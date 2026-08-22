@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { normalizeFoundationProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
+import { agentProfileById } from "../lib/agent-profiles";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,
@@ -43,19 +44,11 @@ type SpecialistReply = {
 type JsonMessage = { readonly message?: string };
 
 const SPECIALISTS = new Set<SpecialistId>(["critics-circle"]);
-const ROOMS_BY_AGENT: Readonly<Record<string, readonly string[]>> = {
-  "sage-brinewick": ["Great Hall", "Story Workshop", "Wyrmwood"],
-  "tamsin-hearthquill": ["Story Workshop"],
-  "master-oaken-vague": ["Wyrmwood"],
-  "rowan-scalequill": ["Wyrmwood"],
-  "quillan-reedcloak": ["Story Workshop", "Marquee"],
-  "elowen-mapweaver": ["Story Workshop"],
-  "mira-threadmere": ["Story Workshop", "Marquee"],
-  "marquee-director": ["Marquee"],
-  "critics-circle": ["Story Workshop"],
-  "merrin-bellwarden": ["Great Hall"],
-  "orin-ledgerbark": ["Great Hall"],
-  "fen-copperwind": ["Great Hall when engineering status is relevant"],
+const COMMUNITY_ROOM_LABELS: Readonly<Record<string, string>> = {
+  "great-hall": "Great Hall",
+  "story-council": "Story Workshop",
+  "wyrmwood-ring": "Wyrmwood",
+  marquee: "Marquee",
 };
 
 async function readJson<T>(url: string): Promise<T> {
@@ -121,6 +114,15 @@ function activeProjectContext(explicit: unknown) {
   } catch {
     return null;
   }
+}
+
+function publicPresentation(agentId: string) {
+  return agentProfileById(agentId)?.publicPresentation ?? null;
+}
+
+function roomLabels(agentId: string, fallback: string) {
+  const roomIds = publicPresentation(agentId)?.communityRoomIds ?? [];
+  return roomIds.length ? roomIds.map((roomId) => COMMUNITY_ROOM_LABELS[roomId] ?? roomId) : [fallback];
 }
 
 export default function CommunityAgentRoster({ projectContext = null }: { readonly projectContext?: unknown }) {
@@ -224,7 +226,8 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
           const visibleInBuzz = Boolean(identity?.created && identity.verified && (officialIdentity || identity.ownedByMe));
           const specialist = isSpecialist(agent.id) ? agent.id : null;
           const reply = specialist ? specialistReplies[specialist] : null;
-          const rooms = ROOMS_BY_AGENT[agent.id] ?? [agent.homeRoom];
+          const presentation = publicPresentation(agent.id);
+          const rooms = roomLabels(agent.id, agent.homeRoom);
           return (
             <article className={styles.card} key={agent.id} data-state={agent.state}>
               <header>
@@ -238,7 +241,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
                 <span className={styles.status} data-state={agent.state}><i aria-hidden="true" />{agent.stateLabel}</span>
               </header>
 
-              <p className={styles.summaryText}>{agent.publicBio || agent.summary}</p>
+              <p className={styles.summaryText}>{presentation?.shortBio || agent.publicBio || agent.summary}</p>
               <p className={styles.stateDetail}><strong>Helps in:</strong> {rooms.join(" · ")}</p>
 
               {specialist ? <section className={styles.specialist} aria-label={`${agent.displayName} BUZZ conversation`}>

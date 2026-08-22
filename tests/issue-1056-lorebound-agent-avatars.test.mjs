@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const helperDirectory = JSON.parse(readFileSync(resolve(root, "config/helper-directory.json"), "utf8"));
+const playhouse = JSON.parse(readFileSync(resolve(root, "plugins/plotpickle-playhouse/community.json"), "utf8"));
 
 function pngDimensions(path) {
   const png = readFileSync(resolve(root, path));
@@ -14,11 +14,12 @@ function pngDimensions(path) {
   return [png.readUInt32BE(16), png.readUInt32BE(20)];
 }
 
-test("#1056 keeps the 17-helper lorebound roster while #1106 owns current portrait presentation", () => {
-  assert.equal(helperDirectory.helpers.length, 17, "the current helper roster includes Sage plus sixteen other helpers");
-  assert.equal(new Set(helperDirectory.helpers.map((helper) => helper.id)).size, 17);
-  assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
-  for (const helper of helperDirectory.helpers) assert.deepEqual(Object.keys(helper).sort(), ["group", "how", "id"]);
+test("#1056 keeps the canonical 12 public helpers in the Playhouse plugin while internal roles stay out of Help", () => {
+  assert.equal(playhouse.agents.length, 12);
+  assert.equal(new Set(playhouse.agents.map((helper) => helper.profileId)).size, 12);
+  for (const helper of playhouse.agents) {
+    assert.deepEqual(Object.keys(helper).sort(), ["helpGroup", "helpPrompt", "profileId", "roomIds", "shortBio"]);
+  }
 });
 
 test("#1056 preserves the LEARN Sage compatibility asset while the shared profile system uses supplied artwork", () => {

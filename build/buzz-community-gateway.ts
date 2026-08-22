@@ -187,12 +187,9 @@ function firstString(item: Record<string, unknown>, keys: string[]) {
 }
 
 function publicPicture(value: string) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && !url.username && !url.password ? url.toString() : "";
-  } catch {
-    return "";
-  }
+  if (!URL.canParse(value)) return "";
+  const url = new URL(value);
+  return url.protocol === "https:" && !url.username && !url.password ? url.toString() : "";
 }
 
 function channelsFrom(value: unknown): BuzzChannel[] {

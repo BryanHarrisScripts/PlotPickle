@@ -91,8 +91,8 @@ function participantName(pubkey: string, members: readonly CommunityMember[]) {
   return member?.displayName || `${pubkey.slice(0, 8)}…${pubkey.slice(-6)}`;
 }
 
-function normalizedIdentity(value: string) {
-  return value.trim().toLowerCase();
+function identityKey(value: string) {
+  return value.normalize("NFKC").replace(/\s+/gu, " ").trim().toLocaleLowerCase("en-US");
 }
 
 function isPublicKey(value: string) {
@@ -118,17 +118,17 @@ function promptHandle(value: string) {
 }
 
 function agentForAuthor(author: string) {
-  const identity = normalizedIdentity(author);
+  const identity = identityKey(author);
   return PLOTPICKLE_COMMUNITY_EXTENSIONS.agents.find((agent) =>
-    normalizedIdentity(agent.displayName) === identity
-    || normalizedIdentity(agent.profileId) === identity
-    || normalizedIdentity(agent.displayName).split(" ")[0] === identity,
+    identityKey(agent.displayName) === identity
+    || identityKey(agent.profileId) === identity
+    || identityKey(agent.displayName).split(" ")[0] === identity,
   ) ?? null;
 }
 
 function memberForAuthor(author: string, members: readonly CommunityMember[]) {
-  const identity = normalizedIdentity(author);
-  return members.find((member) => normalizedIdentity(member.pubkey) === identity || normalizedIdentity(member.displayName) === identity) ?? null;
+  const identity = identityKey(author);
+  return members.find((member) => identityKey(member.pubkey) === identity || identityKey(member.displayName) === identity) ?? null;
 }
 
 function CommunityAvatar({
@@ -241,7 +241,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
         {messages.length ? messages.map((message) => {
           const member = memberForAuthor(message.author, members);
           const agent = agentForAuthor(member?.displayName || message.author);
-          const human = normalizedIdentity(member?.displayName || message.author) === normalizedIdentity(humanName);
+          const human = identityKey(member?.displayName || message.author) === identityKey(humanName);
           const displayName = agent?.displayName || member?.displayName || (isPublicKey(message.author) ? "BUZZ member" : message.author.trim()) || "BUZZ member";
           const picture = human ? humanPresentation?.avatarUrl || member?.picture || "" : member?.picture || "";
           return <article className={styles.message} key={message.id} data-buzz-event-id={message.id}>
@@ -269,7 +269,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : "Community room"}</h4><p>{target.description}</p></section>
-        {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><CommunityAvatar label={member.displayName} imageUrl={normalizedIdentity(member.displayName) === normalizedIdentity(humanName) ? humanPresentation?.avatarUrl || member.picture : member.picture} size={38} /><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
+        {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><CommunityAvatar label={member.displayName} imageUrl={identityKey(member.displayName) === identityKey(humanName) ? humanPresentation?.avatarUrl || member.picture : member.picture} size={38} /><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
         <section className={styles.contextCard} data-native-buzz-huddle="desktop">
           <span>Voice</span><h4>Open in BUZZ Desktop</h4><p>Use BUZZ Desktop when you want the native Huddle/voice experience. PlotPickle keeps the text conversation here simple.</p>
           {desktopUrl ? <a href={desktopUrl}>Open BUZZ Desktop</a> : <button type="button" disabled>BUZZ Desktop setup required</button>}

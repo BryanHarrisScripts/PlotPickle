@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 
 test("#1064 remains historical and no longer owns product-facing avatar direction", () => {
-  const helperDirectory = readFileSync(resolve(root, "config/helper-directory.json"), "utf8");
+  const playhouse = readFileSync(resolve(root, "plugins/plotpickle-playhouse/community.json"), "utf8");
   const portraitRegistry = readFileSync(resolve(root, "lib/agent-portrait-registry.ts"), "utf8");
-  assert.doesNotMatch(helperDirectory, /\/assets\/helpers\/16bit\//i);
+  assert.doesNotMatch(playhouse, /\/assets\/helpers\/16bit\//i);
   assert.match(portraitRegistry, /painterly|fantasy portrait/i);
 });

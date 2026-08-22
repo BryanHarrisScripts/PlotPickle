@@ -12,6 +12,7 @@ import { createPhase3b3StepDrivers, finalizePhase3b3Proof, runPhase3b3Faults } f
 import { loadCasebook } from "./casebook-contract.mjs";
 import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
 import { createAttendedLiveStepDrivers, finalizeAttendedLiveProof } from "./casebook-attended-live-drivers.mjs";
+import { ensureWriterAppRuntime } from "./writer-app-runtime.mjs";
 import {
   assertAttendedRecordSafe,
   attendedCheckpoint,
@@ -180,9 +181,17 @@ async function main() {
   const browserEvidence = [];
   let tools = [];
 
-  status("Attended endpoint", "READY", endpointTarget.baseUrl);
+  status("Attended endpoint", "CHECKING", endpointTarget.baseUrl);
   status("Browser mode", "VISIBLE", `${browserName}; Human checkpoints enabled`);
   status("Secret policy", "ACTIVE", "credentials stay in PlotPickle/native prompts; never terminal input or Casebook records");
+
+  const appRuntime = await ensureWriterAppRuntime({
+    baseUrl: endpointTarget.baseUrl,
+    repoRoot,
+    onStatus: (state, detail) => status("PlotPickle", String(state || "").toUpperCase(), detail),
+  });
+  await endpointTarget.assertCurrent();
+  status("Attended endpoint", "READY", `${endpointTarget.baseUrl}; ${appRuntime.source}`);
 
   try {
     await client.initialize();
@@ -300,6 +309,7 @@ async function main() {
       }
     }
     await client.close().catch((error) => runnerFindings.push(`MCP close warning: ${scrubAttendedText(error instanceof Error ? error.message : String(error))}`));
+    await appRuntime.stop().catch((error) => runnerFindings.push(`PlotPickle close warning: ${scrubAttendedText(error instanceof Error ? error.message : String(error))}`));
   }
 }
 

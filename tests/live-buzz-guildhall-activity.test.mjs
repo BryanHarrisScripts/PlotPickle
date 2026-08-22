@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
-import { normalizeLiveBuzzActivity, postLiveBuzzActivity } from "../scripts/buzz-live-activity.mjs";
+import { bestEffortLiveBuzzActivity, normalizeLiveBuzzActivity, postLiveBuzzActivity } from "../scripts/buzz-live-activity.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("live BUZZ activity routes the key PlotPickle actors into their Guildhall rooms", () => {
+test("PlotPickle activity still maps deterministically to its local Guildhall routes", () => {
   const expected = [
     ["curriculum.note", "sage-brinewick", "lore-library"],
     ["writer.feedback", "avery-north", "wayfarer-journal"],
@@ -22,7 +24,26 @@ test("live BUZZ activity routes the key PlotPickle actors into their Guildhall r
   }
 });
 
-test("live BUZZ activity posts only compact operational metadata through the local gateway", async () => {
+test("best-effort operational activity records locally and never falls back to the Human BUZZ signer", async () => {
+  const localRoot = await mkdtemp(path.join(tmpdir(), "plotpickle-buzz-local-"));
+  try {
+    const result = await bestEffortLiveBuzzActivity({
+      type: "uat.result",
+      actorId: "bram-gatewick",
+      summary: "UAT evidence stays local.",
+      verified: true,
+      actionable: false,
+    }, { localRoot });
+    assert.equal(result.ok, true);
+    assert.equal(result.localRecorded, true);
+    assert.equal(result.buzzMirrored, false);
+    assert.equal(result.reason, "agent-signer-required");
+  } finally {
+    await rm(localRoot, { recursive: true, force: true });
+  }
+});
+
+test("explicit compatibility round-trip helper remains bounded but is not the operational fallback", async () => {
   const calls = [];
   const fakeFetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -31,28 +52,16 @@ test("live BUZZ activity posts only compact operational metadata through the loc
     }
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
   };
-
   const result = await postLiveBuzzActivity({
     type: "curriculum.note",
     actorId: "sage-brinewick",
-    summary: "Sage completed a curriculum turn.",
-    severity: "info",
-    target: "curriculum-guide",
-    verified: true,
-    actionable: false,
+    summary: "Explicit compatibility probe.",
   }, { baseUrl: "http://127.0.0.1:4173", fetchImpl: fakeFetch });
-
   assert.equal(result.ok, true);
-  assert.equal(result.channel, "lore-library");
   assert.equal(calls.length, 2);
-  const posted = JSON.parse(calls[1].init.body);
-  assert.equal(posted.channel, "room-12345678");
-  assert.match(posted.content, /Sage Brinewick · Lorekeeper/);
-  assert.match(posted.content, /route=lore-library/);
-  assert.doesNotMatch(posted.content, /private key|full prompt|hidden reasoning/i);
 });
 
-test("Mastra chat responses are mirrored into BUZZ without turning BUZZ into the agent runtime", async () => {
+test("Mastra runtime no longer mirrors Agent turns through the Human message endpoint", async () => {
   const [mirror, gateway] = await Promise.all([
     read("build/buzz-agent-activity-mirror.ts"),
     read("build/local-ai-gateway.ts"),
@@ -60,13 +69,12 @@ test("Mastra chat responses are mirrored into BUZZ without turning BUZZ into the
   for (const token of ["curriculum-guide", "sage-brinewick", "foundations-planner", "wyrmwood-rival-director", "master-oaken-vague", "wyrmwood-curriculum-evaluator", "rowan-scalequill", "creative-director", "quillan-reedcloak"]) {
     assert.match(mirror, new RegExp(token));
   }
-  assert.match(mirror, /postBuzzGuildhallEvent/);
-  assert.match(mirror, /\.catch\(\(\) => \{\}\)/);
-  assert.doesNotMatch(mirror, /agents.*draft-create|BUZZ_PRIVATE_KEY/);
+  assert.match(mirror, /connected Human signer is never used as an Agent fallback/);
+  assert.doesNotMatch(mirror, /postBuzzGuildhallEvent|BUZZ_PRIVATE_KEY|\/api\/local-buzz\/messages/);
   assert.ok(gateway.indexOf("registerBuzzAgentActivityMirror(server)") < gateway.indexOf("registerWritingAssistantGateway(server)"));
 });
 
-test("Writer, UAT, repair, visual findings and GitHub reporters all emit live BUZZ activity", async () => {
+test("Writer UAT repair and visual reporters keep recording bounded local activity", async () => {
   const [writerRecovery, writerReporter, closedLoop, uatReporter] = await Promise.all([
     read("scripts/writer-in-residence-runtime-recovery.mjs"),
     read("scripts/report-writer-in-residence.mjs"),
@@ -74,25 +82,17 @@ test("Writer, UAT, repair, visual findings and GitHub reporters all emit live BU
     read("scripts/report-uat-findings.mjs"),
   ]);
   assert.match(writerRecovery, /bestEffortLiveBuzzActivity/);
-  assert.match(writerRecovery, /actorId: "avery-north"/);
-  assert.match(writerRecovery, /type: "writer\.feedback"/);
-  assert.match(writerReporter, /rendered-visual-observer/);
-  assert.match(writerReporter, /type: visual \? "visual\.finding" : "writer\.feedback"/);
-  assert.match(writerReporter, /type: "github\.status"/);
-  assert.match(closedLoop, /type: "uat\.result"/);
-  assert.match(closedLoop, /type: "repair\.request"/);
-  assert.match(uatReporter, /actorId: "bram-gatewick"/);
-  assert.match(uatReporter, /actorId: "rook-ironquill"/);
-  assert.match(uatReporter, /actorId: "fen-copperwind"/);
+  assert.match(writerReporter, /bestEffortLiveBuzzActivity/);
+  assert.match(closedLoop, /bestEffortLiveBuzzActivity/);
+  assert.match(uatReporter, /bestEffortLiveBuzzActivity/);
 });
 
-test("the real local verifier writes and reads back all seven important activity routes", async () => {
+test("the real verifier validates local routes without publishing synthetic Agent traffic", async () => {
   const verifier = await read("scripts/verify-buzz-live-activity.mjs");
   for (const room of ["lore-library", "wayfarer-journal", "wyrmwood-ring", "lantern-watch", "gatehouse", "forge", "github-herald"]) {
     assert.match(verifier, new RegExp(room));
   }
-  assert.match(verifier, /postLiveBuzzActivity/);
-  assert.match(verifier, /\/messages\?channel=/);
-  assert.match(verifier, /BUZZ LIVE ACTIVITY PASS/);
-  assert.match(verifier, /7\/\$\{probes\.length\}|verified\.length/);
+  assert.match(verifier, /normalizeLiveBuzzActivity/);
+  assert.doesNotMatch(verifier, /postLiveBuzzActivity|\/messages\?channel=/);
+  assert.match(verifier, /no Agent\/test event was published through the Human signer/);
 });

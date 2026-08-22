@@ -334,6 +334,17 @@ async function main() {
         status("Attended Casebook", "STOPPED", `${caseDefinition.title} · ${interruptedStepId}`);
         break;
       }
+      if (caseDecision === "continue") {
+        status("Attended Casebook", "CONTINUE", "Re-anchoring PlotPickle before the next Business Case.");
+        try {
+          await browser.navigate(endpointTarget.baseUrl);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (error) {
+          const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+          runnerFindings.push(`${caseDefinition.id} continue re-anchor warning: ${message}`);
+          status("Attended Casebook", "WARNING", "PlotPickle re-anchor failed; the next case will observe the current browser state.");
+        }
+      }
     }
 
     await endpointTarget.assertCurrent();

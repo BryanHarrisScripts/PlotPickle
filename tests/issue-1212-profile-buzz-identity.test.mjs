@@ -100,3 +100,33 @@ test("#1212 Profile keeps Node, agent and Guest authority separate from the Huma
   assert.match(boundary, /Guest cannot see Human profiles, projects, recent items, credentials, agents, or BUZZ identities/u);
   assert.match(boundary, /Use isolated Guest/u);
 });
+
+test("#1212 every Profile-owned BUZZ mutation carries the authenticated session CSRF proof", async () => {
+  const [panel, sessionBoundary, gateway] = await Promise.all([
+    read("app/profile-access/profile-identity-panel.tsx"),
+    read("core/auth/server-session/server-session-boundary-core.mjs"),
+    read("build/buzz-profile-identity-gateway.ts"),
+  ]);
+
+  const publishStart = panel.indexOf("async function publishToBuzz");
+  const publishEnd = panel.indexOf("async function savePresentation");
+  const setupStart = panel.indexOf("async function finishBuzzSetup");
+  const setupEnd = panel.indexOf("async function disconnectBuzz");
+  const disconnectEnd = panel.indexOf("const identityConfigured");
+  assert.ok(publishStart >= 0 && publishEnd > publishStart && setupStart > publishEnd && setupEnd > setupStart && disconnectEnd > setupEnd);
+
+  for (const block of [
+    panel.slice(publishStart, publishEnd),
+    panel.slice(setupStart, setupEnd),
+    panel.slice(setupEnd, disconnectEnd),
+  ]) {
+    assert.match(block, /method: "POST"/u);
+    assert.match(block, /headers: \{ "X-PlotPickle-CSRF": csrfToken \}/u);
+  }
+
+  assert.match(sessionBoundary, /const mutation = requirements\.mutation === true \|\| !SAFE_HTTP_METHODS\.includes\(method\)/u);
+  assert.match(sessionBoundary, /headerValue\(request\?\.headers, "x-plotpickle-csrf"\)/u);
+  assert.match(gateway, /privateKey: action === "import" \? privateKey\.trim\(\) : undefined/u);
+  assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/u);
+  assert.doesNotMatch(panel, /console\.(?:log|info|warn|error)\([^\n]*privateKey/u);
+});

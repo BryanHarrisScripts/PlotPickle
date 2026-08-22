@@ -15,6 +15,8 @@ export const AGENT_PROFILE_EXECUTION_KINDS = [
 ] as const;
 export const AGENT_PROFILE_BUZZ_MODES = ["mirrored", "native", "service"] as const;
 export const AGENT_PROFILE_EXECUTION_CONTEXTS = ["private-local", "public-buzz"] as const;
+export const PUBLIC_AGENT_HELP_GROUPS = ["writing-story", "creative-visual", "community"] as const;
+export const PUBLIC_AGENT_COMMUNITY_ROOM_IDS = ["great-hall", "story-council", "wyrmwood-ring", "marquee"] as const;
 export const HOST_FORBIDDEN_PROFILE_CAPABILITIES = [
   "ppf-direct-write",
   "github-write",
@@ -48,10 +50,16 @@ export type AgentProfileAvailability = (typeof AGENT_PROFILE_AVAILABILITY)[numbe
 export type AgentProfileExecutionKind = (typeof AGENT_PROFILE_EXECUTION_KINDS)[number];
 export type AgentProfileBuzzMode = (typeof AGENT_PROFILE_BUZZ_MODES)[number];
 export type AgentProfileExecutionContext = (typeof AGENT_PROFILE_EXECUTION_CONTEXTS)[number];
+export type AgentPublicHelpGroup = (typeof PUBLIC_AGENT_HELP_GROUPS)[number];
+export type AgentPublicCommunityRoomId = (typeof PUBLIC_AGENT_COMMUNITY_ROOM_IDS)[number];
 
 export type AgentPublicPresentation = {
   readonly avatarRef: string;
+  readonly shortBio: string;
   readonly publicBio: string;
+  readonly helpPrompt: string;
+  readonly helpGroup: AgentPublicHelpGroup;
+  readonly communityRoomIds: readonly AgentPublicCommunityRoomId[];
   readonly executionContexts: readonly AgentProfileExecutionContext[];
   readonly officialBuzzIdentity: {
     readonly provisioning: "external-buzz-admin";
@@ -148,13 +156,15 @@ const AVAILABILITY = new Set<string>(AGENT_PROFILE_AVAILABILITY);
 const EXECUTION_KINDS = new Set<string>(AGENT_PROFILE_EXECUTION_KINDS);
 const EXECUTION_CONTEXTS = new Set<string>(AGENT_PROFILE_EXECUTION_CONTEXTS);
 const BUZZ_MODES = new Set<string>(AGENT_PROFILE_BUZZ_MODES);
+const PUBLIC_HELP_GROUPS = new Set<string>(PUBLIC_AGENT_HELP_GROUPS);
+const PUBLIC_COMMUNITY_ROOMS = new Set<string>(PUBLIC_AGENT_COMMUNITY_ROOM_IDS);
 const HOST_FORBIDDEN = new Set<string>(HOST_FORBIDDEN_PROFILE_CAPABILITIES);
 const KNOWN_SKILL_URIS = new Set(skillConfig.skills.map((skill) => skill.uri));
 const PUBLIC_AVATAR_REF = /^\/assets\/helpers\/lore\/[a-z0-9-]+\.svg$/;
 const PUBLIC_AGENT_SECRET_FIELD = /^(?:nsec|privateKey|private_key|secret|signingKey|signing_key|credential|token)$/i;
 
 function nonEmptyStrings(values: readonly string[] | undefined) {
-  return Array.isArray(values) && values.every((value) => typeof value === "string" && value.trim().length > 0);
+  return Array.isArray(values) && values.length > 0 && values.every((value) => typeof value === "string" && value.trim().length > 0);
 }
 
 function stringList(values: readonly string[] | undefined) {
@@ -167,8 +177,12 @@ function publicPresentationHasSecretField(value: unknown): boolean {
   return Object.entries(value as Record<string, unknown>).some(([key, child]) => PUBLIC_AGENT_SECRET_FIELD.test(key) || publicPresentationHasSecretField(child));
 }
 
+function validPublicCopy(value: unknown, max: number) {
+  return typeof value === "string" && value.trim().length > 0 && value.length <= max;
+}
+
 function validatePublicAgentPresentations(errors: string[], profileIds: ReadonlySet<string>) {
-  if (PUBLIC_AGENT_PRESENTATION_REGISTRY.schemaVersion !== 1) {
+  if (PUBLIC_AGENT_PRESENTATION_REGISTRY.schemaVersion !== 2) {
     errors.push(`Unsupported public Agent presentation schema version: ${PUBLIC_AGENT_PRESENTATION_REGISTRY.schemaVersion}.`);
     return;
   }
@@ -176,8 +190,12 @@ function validatePublicAgentPresentations(errors: string[], profileIds: Readonly
     const prefix = `Public Agent presentation ${profileId}`;
     if (!profileIds.has(profileId)) errors.push(`${prefix} does not match a host-owned Agent Profile.`);
     if (!PUBLIC_AVATAR_REF.test(presentation.avatarRef || "")) errors.push(`${prefix} must use a canonical PlotPickle lore avatar asset.`);
-    if (typeof presentation.publicBio !== "string" || !presentation.publicBio.trim() || presentation.publicBio.length > 500) {
-      errors.push(`${prefix} requires a public bio of 1-500 characters.`);
+    if (!validPublicCopy(presentation.shortBio, 180)) errors.push(`${prefix} requires a short bio of 1-180 characters.`);
+    if (!validPublicCopy(presentation.publicBio, 500)) errors.push(`${prefix} requires a public bio of 1-500 characters.`);
+    if (!validPublicCopy(presentation.helpPrompt, 240)) errors.push(`${prefix} requires a Help prompt of 1-240 characters.`);
+    if (!PUBLIC_HELP_GROUPS.has(presentation.helpGroup)) errors.push(`${prefix} has an invalid Help group.`);
+    if (!nonEmptyStrings(presentation.communityRoomIds) || presentation.communityRoomIds.some((roomId) => !PUBLIC_COMMUNITY_ROOMS.has(roomId))) {
+      errors.push(`${prefix} has invalid Community room memberships.`);
     }
     if (!nonEmptyStrings(presentation.executionContexts) || presentation.executionContexts.some((context) => !EXECUTION_CONTEXTS.has(context))) {
       errors.push(`${prefix} has invalid execution contexts.`);
@@ -265,6 +283,14 @@ export function assertAgentProfilesValid(registry: AgentProfileRegistry = AGENT_
 
 export function agentProfileById(profileId: string) {
   return AGENT_PROFILES.find((profile) => profile.id === profileId) ?? null;
+}
+
+export function publicAgentProfiles() {
+  return AGENT_PROFILES.filter((profile) => profile.publicPresentation !== null);
+}
+
+export function publicAgentProfilesForRoom(roomId: AgentPublicCommunityRoomId) {
+  return publicAgentProfiles().filter((profile) => profile.publicPresentation?.communityRoomIds.includes(roomId));
 }
 
 export function officialAgentPublicIdentity(profileId: string) {

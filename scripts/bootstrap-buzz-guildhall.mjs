@@ -80,7 +80,9 @@ function channelRecords(value) {
     if (!entry || typeof entry !== "object") return [];
     const id = String(entry.id || entry.channel_id || entry.channelId || entry.uuid || "").trim();
     const name = String(entry.name || entry.title || entry.slug || "").trim();
-    return id && name ? [{ id, name }] : [];
+    const rawType = String(entry.channel_type || entry.channelType || entry.type || "").trim();
+    const type = rawType === "stream" || rawType === "forum" ? rawType : "";
+    return id && name ? [{ id, name, type, archived: entry.archived === true }] : [];
   });
 }
 
@@ -95,8 +97,17 @@ const [cleanup, community] = await Promise.all([cleanupPath, communityPath].map(
 const provisionedChannels = cleanup.retainedRooms;
 const retainedRoomIds = new Set(provisionedChannels.map((room) => room.id));
 
+async function findChannel(name) {
+  const records = channelRecords(parseJson(
+    await command(["channels", "search", "--query", name, "--exact"]),
+    `buzz channels search ${name}`,
+  ));
+  return records.find((channel) => channel.name === name && !channel.archived) || null;
+}
+
 async function listChannels() {
-  return channelRecords(parseJson(await command(["channels", "list"]), "buzz channels list"));
+  const channels = await Promise.all(provisionedChannels.map((definition) => findChannel(definition.name)));
+  return channels.filter(Boolean);
 }
 
 async function createChannel(definition) {
@@ -107,6 +118,21 @@ async function createChannel(definition) {
     "--visibility", definition.visibility,
     "--description", definition.description,
   ]);
+}
+
+async function migrateChannel(channel, definition) {
+  const legacyName = `${definition.name}-legacy-${channel.type || "unknown"}-${channel.id.slice(0, 8)}`;
+  print("MIGRATE", `${definition.name} (${channel.type || "unknown"} -> ${definition.type})`);
+  await command(["channels", "update", "--channel", channel.id, "--name", legacyName]);
+  await command(["channels", "archive", "--channel", channel.id]);
+  await createChannel(definition);
+  return {
+    name: definition.name,
+    from: channel.type || "unknown",
+    to: definition.type,
+    archivedAs: legacyName,
+    archivedChannelId: channel.id,
+  };
 }
 
 function requireApplyCredentials() {
@@ -155,6 +181,7 @@ if (!apply) {
     print(`Buzz-native owner-reviewed drafts: ${plan.nativeAgentDrafts.length}.`);
     for (const actor of plan.nativeAgentDrafts) print(`  ${actor.displayName}`, `— ${actor.title}`);
     print("Nothing was written. Re-run with --apply after BUZZ_RELAY_URL and BUZZ_PRIVATE_KEY are set for the intended community.");
+    print("When an existing room has the wrong BUZZ type, apply mode renames and archives that legacy room before recreating the canonical room. The following Agent sync restores room memberships.");
     print("Add --draft-agents only when you want Buzz Desktop to open owner-reviewed create-agent drafts for the two native Guildhall stewards.");
   }
   process.exit(0);
@@ -165,19 +192,28 @@ print(`Connecting ${config.name} through ${cli}.`);
 let channels = await listChannels();
 const created = [];
 const kept = [];
+const migrated = [];
 for (const definition of provisionedChannels) {
-  if (channels.some((channel) => channel.name === definition.name)) {
+  const channel = channels.find((candidate) => candidate.name === definition.name);
+  if (channel?.type === definition.type) {
     kept.push(definition.name);
-    print("KEEP", definition.name);
+    print("KEEP", `${definition.name} (${definition.type})`);
     continue;
   }
-  print("CREATE", definition.name);
+  if (channel) {
+    migrated.push(await migrateChannel(channel, definition));
+    continue;
+  }
+  print("CREATE", `${definition.name} (${definition.type})`);
   await createChannel(definition);
   created.push(definition.name);
 }
 channels = await listChannels();
-const missing = provisionedChannels.filter((definition) => !channels.some((channel) => channel.name === definition.name));
-if (missing.length) throw new Error(`Buzz Guildhall bootstrap is incomplete; missing: ${missing.map((item) => item.name).join(", ")}.`);
+const invalid = provisionedChannels.filter((definition) => {
+  const channel = channels.find((candidate) => candidate.name === definition.name);
+  return !channel || channel.type !== definition.type;
+});
+if (invalid.length) throw new Error(`Buzz Guildhall bootstrap is incomplete or has channel-type drift: ${invalid.map((item) => `${item.name}:${item.type}`).join(", ")}.`);
 
 const drafted = [];
 if (draftAgents) {
@@ -193,6 +229,7 @@ const result = {
   guildhall: config.name,
   created,
   kept,
+  migrated,
   readyRooms: provisionedChannels.length,
   ownerReviewedAgentDraftsOpened: drafted,
   note: draftAgents
@@ -202,7 +239,8 @@ const result = {
 if (jsonOutput) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 else {
   print(`Guildhall ready: ${result.readyRooms}/${provisionedChannels.length} rooms.`);
-  print(`Created ${created.length}; already present ${kept.length}.`);
+  print(`Created ${created.length}; migrated ${migrated.length}; already correct ${kept.length}.`);
+  if (migrated.length) print("Legacy room history was preserved in archived, renamed BUZZ rooms. Continue this sync so Agent memberships are restored on the replacement rooms.");
   if (draftAgents) print(`Opened ${drafted.length} owner-reviewed Buzz agent draft(s).`);
   else print("Native agent drafts were intentionally skipped.");
 }

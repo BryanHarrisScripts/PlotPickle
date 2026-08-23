@@ -10,8 +10,8 @@ $ErrorActionPreference = "Stop"
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
-$BootstrapScript = Join-Path $ScriptRoot "bootstrap-buzz-guildhall.mjs"
-$AgentScript = Join-Path $ScriptRoot "provision-community-agents.mjs"
+$BootstrapScript = Join-Path $ProjectRoot "scripts\bootstrap-buzz-guildhall.mjs"
+$AgentScript = Join-Path $ProjectRoot "scripts\provision-community-agents.mjs"
 
 function Find-NodeExecutable {
   $command = Get-Command "node.exe" -ErrorAction SilentlyContinue

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { buildUatFinding } from "../lib/sage-conversation-uat.mjs";
+import { buildUatFinding } from "../lib/verification/sage-conversation-uat.mjs";
 import { McpClient } from "./creative-uat/mcp-runtime.mjs";
 import { partitionExhaustiveFindings } from "./exhaustive-ui-finding-policy.mjs";
 import { runExhaustiveUiControlAudit } from "./exhaustive-ui-control-audit.mjs";

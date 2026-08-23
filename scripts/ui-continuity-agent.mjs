@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { auditContinuitySnapshot, continuityReport } from "../lib/ui-continuity-audit.mjs";
+import { auditContinuitySnapshot, continuityReport } from "../lib/verification/ui-continuity-audit.mjs";
 import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
 import { delay, extractPageState, McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
 

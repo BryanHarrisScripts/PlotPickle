@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
-import { publishAgentEvent, readAgentEvents, supervisorSummary } from "../lib/production-supervisor-bus.mjs";
+import { publishAgentEvent, readAgentEvents, supervisorSummary } from "../lib/verification/production-supervisor-bus.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);

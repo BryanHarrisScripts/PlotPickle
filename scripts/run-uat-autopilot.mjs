@@ -10,7 +10,7 @@ import {
   assessFocusedUat,
   contractTestsFromRegistry,
   validateUatRegistry,
-} from "../lib/uat-autopilot.mjs";
+} from "../lib/verification/uat-autopilot.mjs";
 import {
   consoleHasErrors,
   McpClient,

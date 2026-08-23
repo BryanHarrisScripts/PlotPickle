@@ -3,7 +3,7 @@
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
-import { publishAgentEvent } from "../lib/production-supervisor-bus.mjs";
+import { publishAgentEvent } from "../lib/verification/production-supervisor-bus.mjs";
 import { processLatestFullStoryVisuals } from "../lib/visual-production-agent.mjs";
 
 const DEFAULT_SERVER = "http://127.0.0.1:4173";

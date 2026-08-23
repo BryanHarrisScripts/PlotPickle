@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createFullStoryProject } from "../lib/full-story-builder.mjs";
-import { auditProjectCoverage, createCapabilitySnapshot, supervisorFoundationReport } from "../lib/production-supervisor.mjs";
+import { auditProjectCoverage, createCapabilitySnapshot, supervisorFoundationReport } from "../lib/verification/production-supervisor.mjs";
 
 const fixed = { now: "2026-08-09T20:00:00.000Z", jobId: "issue-550-foundation" };
 

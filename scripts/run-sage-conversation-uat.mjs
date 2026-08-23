@@ -9,7 +9,7 @@ import {
   assessSageConversationAnswer,
   buildUatFinding,
   SAGE_CONVERSATION_UAT_CASES,
-} from "../lib/sage-conversation-uat.mjs";
+} from "../lib/verification/sage-conversation-uat.mjs";
 import {
   delay,
   extractPageState,

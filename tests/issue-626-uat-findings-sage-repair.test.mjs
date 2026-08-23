@@ -7,7 +7,7 @@ import {
   findingFingerprint,
   SAGE_CONVERSATION_UAT_CASES,
   sageUatLeaksInternalScaffolding,
-} from "../lib/sage-conversation-uat.mjs";
+} from "../lib/verification/sage-conversation-uat.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

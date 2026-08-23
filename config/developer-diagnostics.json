@@ -291,7 +291,7 @@
         "app/globals.css",
         "app/layout.tsx",
         "config/ui-continuity-agent-registry.json",
-        "lib/ui-continuity-audit.mjs",
+        "lib/verification/ui-continuity-audit.mjs",
         "scripts/ui-continuity-agent.mjs",
         "Start-PlotPickle.bat",
         ".github/workflows/visual.yml",
@@ -321,7 +321,7 @@
         "app/layout.tsx",
         "config/ui-continuity-agent-registry.json",
         "config/developer-diagnostics.json",
-        "lib/ui-continuity-audit.mjs",
+        "lib/verification/ui-continuity-audit.mjs",
         "scripts/ui-continuity-agent.mjs",
         "Start-PlotPickle.bat",
         ".github/workflows/visual.yml",
@@ -687,7 +687,7 @@
           "optional": false
         },
         {
-          "path": "lib/ui-continuity-audit.mjs",
+          "path": "lib/verification/ui-continuity-audit.mjs",
           "optional": false
         },
         {

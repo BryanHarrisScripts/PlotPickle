@@ -80,7 +80,7 @@ test("issue #177 persists only project-scoped non-secret queue metadata", async 
 
 test("issue #177 preserves legacy project fields and implementation contracts for migration", async () => {
   const [project, workspaceBase, operationsBase, gatewayBase] = await Promise.all([
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("app/ai-pitch-deck-workspace-base.tsx"),
     source("lib/ai-pitch-deck-base.ts"),
     source("build/local-ai-gateway-base.ts"),

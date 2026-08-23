@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function invitationContract() {
-  const raw = (await source("lib/collaboration-invitations.ts")).replace(/\r\n?/g, "\n");
+  const raw = (await source("lib/projects/collaboration/collaboration-invitations.ts")).replace(/\r\n?/g, "\n");
   const compiled = stripTypeScriptTypes(raw, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
@@ -122,7 +122,7 @@ test("issue #156 exposes role-first onboarding and Project Lead-only decisions",
     source("app/story-proposals.tsx"),
     source("app/collaboration-invitations.module.css"),
     source("docs/issue-156-collaboration-invitations.md"),
-    source("lib/collaboration-invitations.ts"),
+    source("lib/projects/collaboration/collaboration-invitations.ts"),
     source("app/collaboration-workspace-router.tsx"),
     source("app/application-shell-header.tsx"),
     source("app/layout.tsx"),

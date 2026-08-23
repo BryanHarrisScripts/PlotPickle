@@ -3,9 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { createPortableProjectFile, parsePortableProjectFile } from "../lib/project-package";
-import { createProjectFolder, parseProjectFolder, projectFolderName, type ProjectFolderFiles } from "../lib/project-folder";
-import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+import { createPortableProjectFile, parsePortableProjectFile } from "../lib/projects/persistence/project-package";
+import { createProjectFolder, parseProjectFolder, projectFolderName, type ProjectFolderFiles } from "../lib/projects/persistence/project-folder";
+import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/projects/project";
 
 const API = "/api/local-projects";
 const MAX_BODY = 30 * 1024 * 1024;

@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./collab-workspace.module.css";
 
 type ConferenceStatus = "none" | "pending" | "success" | "failure";

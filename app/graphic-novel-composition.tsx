@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { buildGraphicNovelExport, readGraphicNovelPackage, type GraphicNovelPanel } from "@/lib/graphic-novel-composition";
 
 export default function GraphicNovelComposition({

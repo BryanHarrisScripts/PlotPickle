@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #386 adds a provider-neutral visual story context package", async () => {
-  const context = await source("lib/visual-context.ts");
+  const context = await source("lib/projects/visual/visual-context.ts");
   for (const phrase of [
     "VisualStoryContextPackage",
     "assembleVisualStoryContext",
@@ -28,7 +28,7 @@ test("issue #386 adds a provider-neutral visual story context package", async ()
 });
 
 test("issue #386 resolves story targets into block scene and mini-block context", async () => {
-  const context = await source("lib/visual-context.ts");
+  const context = await source("lib/projects/visual/visual-context.ts");
   assert.match(context, /function findBlock/);
   assert.match(context, /function findScene/);
   assert.match(context, /function findMiniBlock/);
@@ -38,7 +38,7 @@ test("issue #386 resolves story targets into block scene and mini-block context"
 });
 
 test("issue #386 keeps reference purpose rights and source labels inspectable", async () => {
-  const context = await source("lib/visual-context.ts");
+  const context = await source("lib/projects/visual/visual-context.ts");
   for (const phrase of [
     "purpose: VisualReference",
     "rightsStatus: VisualReference",

@@ -11,13 +11,13 @@ import {
   parseProjectSyncContents,
   safeManagedDeletionPath,
   type ProjectSyncInventory,
-} from "../lib/project-folder-sync";
-import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+} from "../lib/projects/persistence/project-folder-sync";
+import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/projects/project";
 import {
   inspectStoryProjectManifest,
   STORY_PROJECT_MANIFEST_PATH,
   type StoryProjectManifest,
-} from "../lib/story-project-repository";
+} from "../lib/projects/persistence/story-project-repository";
 import {
   applyStoryProposalGroups,
   compareStoryProposalProjects,
@@ -25,7 +25,7 @@ import {
   validStoryProposalGroups,
   withStoryProposalDecision,
   type StoryProposalGroupId,
-} from "../lib/story-proposals";
+} from "../lib/projects/story/story-proposals";
 import { persistentHome, readCredentialJson, writeCredentialJson } from "./local-credentials";
 
 const API = "/api/local-github";

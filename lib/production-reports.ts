@@ -4,7 +4,7 @@ import type {
   ProductionBreakdown,
   ProductionShootGroupDecision,
   ProductionShootGroupDecisionStatus,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import { productionDraftReport } from "@/lib/production-draft";
 
 export const PRODUCTION_REPORT_GUIDANCE =

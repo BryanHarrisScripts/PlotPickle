@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useMemo, useRef, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./treatment-editor.module.css";
 
 type Props = {

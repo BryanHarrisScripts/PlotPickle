@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PitchReviewWorkspace, { type PitchReviewScope } from "../pitch-review-workspace";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 

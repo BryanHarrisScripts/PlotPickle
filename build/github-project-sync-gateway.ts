@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { parsePortableProjectFile } from "../lib/project-package";
+import { parsePortableProjectFile } from "../lib/projects/persistence/project-package";
 import {
   createPortableReleaseSnapshot,
   createProjectSyncInventory,
@@ -9,14 +9,14 @@ import {
   parseProjectSyncContents,
   safeManagedDeletionPath,
   type ProjectSyncInventory,
-} from "../lib/project-folder-sync";
-import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+} from "../lib/projects/persistence/project-folder-sync";
+import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/projects/project";
 import {
   inspectStoryProjectManifest,
   STORY_PROJECT_MANIFEST_PATH,
   upgradeStoryProjectManifest,
   type StoryProjectManifest,
-} from "../lib/story-project-repository";
+} from "../lib/projects/persistence/story-project-repository";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 
 const API = "/api/local-github-sync";

@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import manifest from "@/data/afterglow-visual-manifest.json";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   afterglowMappingSummary,
   afterglowOverviewVisuals,

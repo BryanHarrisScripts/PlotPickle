@@ -1,4 +1,4 @@
-import type { ArcCheckpointKind } from "@/lib/project";
+import type { ArcCheckpointKind } from "@/lib/projects/project";
 import type { LearningModule } from "./learning-library";
 
 export type CharacterArcShape =

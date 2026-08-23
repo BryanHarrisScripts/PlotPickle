@@ -23,7 +23,7 @@ test("PlotPickle 0.16 keeps the canonical pitch package tools in Pitch", async (
 });
 
 test("review threads anchor to stable canonical project identities", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   const operations = await source("lib/pitch-review.ts");
   for (const phrase of ["ReviewAnchorKind", "ReviewThreadStatus", "ReviewComment", "ReviewThread", "ReviewWorkspace", "review: ReviewWorkspace"]) assert.ok(project.includes(phrase), `Missing canonical review field: ${phrase}`);
   for (const phrase of ["screenplay-element", "story-field", "createReviewThread", "addReviewComment", "updateReviewThreadStatus", "resolvedAt"]) assert.ok(`${project}\n${operations}`.includes(phrase), `Missing review operation: ${phrase}`);

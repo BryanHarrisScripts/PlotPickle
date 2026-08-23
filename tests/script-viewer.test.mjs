@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("full screenplay remains part of the canonical local project", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   const schema = JSON.parse(await source("schema/plotpickle-project.schema.json"));
   assert.match(project, /type ScreenplayDocument/);
   assert.match(project, /screenplay: ScreenplayDocument/);
@@ -21,7 +21,7 @@ test("full screenplay remains part of the canonical local project", async () => 
 });
 
 test("viewer reads common screenplay formats and colour-codes screenplay grammar", async () => {
-  const parser = await source("lib/screenplay.ts");
+  const parser = await source("lib/projects/screenplay/screenplay.ts");
   const viewer = await source("app/script-viewer.tsx");
   for (const format of ["plain-text", "fountain", "final-draft"]) assert.match(parser, new RegExp(format));
   for (const element of ["scene-heading", "action", "character", "parenthetical", "dialogue", "transition"]) assert.match(parser, new RegExp(element));
@@ -42,7 +42,7 @@ test("guided reading connects passages to existing story knowledge", async () =>
 test("top Import and Script Viewer use one screenplay ingestion pipeline", async () => {
   const page = await source("app/page.tsx");
   const viewer = await source("app/script-viewer.tsx");
-  const importer = await source("lib/screenplay-import.ts");
+  const importer = await source("lib/projects/screenplay/screenplay-import.ts");
 
   assert.match(page, /createProjectFromScreenplay/);
   assert.match(page, /replaceWithImportedScreenplay/);
@@ -54,7 +54,7 @@ test("top Import and Script Viewer use one screenplay ingestion pipeline", async
 });
 
 test("screenplay import replaces example data and populates the shared framework as suggestions", async () => {
-  const importer = await source("lib/screenplay-import.ts");
+  const importer = await source("lib/projects/screenplay/screenplay-import.ts");
   for (const contract of [
     "makeCharacters",
     "makeLocations",

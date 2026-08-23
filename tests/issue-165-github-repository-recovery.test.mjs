@@ -27,9 +27,9 @@ async function runtimeGateway() {
   const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-165-"));
   const imports = {
     '../lib/github-repository-recovery': './github-repository-recovery.mjs',
-    '../lib/collaboration-invitations': './collaboration-invitations.mjs',
+    '../lib/projects/collaboration/collaboration-invitations': './collaboration-invitations.mjs',
     '../lib/github-command-outbox': './github-command-outbox.mjs',
-    '../lib/story-project-repository': './story-project-repository.mjs',
+    '../lib/projects/persistence/story-project-repository': './story-project-repository.mjs',
     './github-command-service': './github-command-service.mjs',
     './local-credentials': './local-credentials.mjs',
   };

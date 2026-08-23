@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const binder = await readFile(new URL("../lib/canon-binder.ts", import.meta.url), "utf8");
-const folder = await readFile(new URL("../lib/project-folder.ts", import.meta.url), "utf8");
+const binder = await readFile(new URL("../lib/projects/canon/canon-binder.ts", import.meta.url), "utf8");
+const folder = await readFile(new URL("../lib/projects/persistence/project-folder.ts", import.meta.url), "utf8");
 const docs = await readFile(new URL("../docs/PHASE-7-CANON-BINDER.md", import.meta.url), "utf8");
 
 test("Phase 7 defines authoritative canon sections and lifecycle", () => {

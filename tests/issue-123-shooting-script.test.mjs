@@ -6,7 +6,7 @@ const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8"
 
 test("issue #123 extends the canonical screenplay instead of creating a duplicate Shooting Script engine", async () => {
   const [project, model, panel] = await Promise.all([
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("lib/production-draft.ts"),
     source("app/production-draft-panel.tsx"),
   ]);
@@ -29,7 +29,7 @@ test("issue #123 explicitly converts a writer draft and preserves a recoverable 
 });
 
 test("issue #123 locks pages and preserves A/B scene and page numbering", async () => {
-  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/project.ts")]);
+  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/projects/project.ts")]);
   for (const contract of [
     "lockProductionPagination",
     "pageAssignments",
@@ -44,7 +44,7 @@ test("issue #123 locks pages and preserves A/B scene and page numbering", async 
 });
 
 test("issue #123 tracks revision colours dates marks changed pages and approval history", async () => {
-  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/project.ts")]);
+  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/projects/project.ts")]);
   for (const contract of [
     "startProductionRevision",
     "closeProductionRevision",
@@ -87,7 +87,7 @@ test("issue #123 integrates production numbers and revision state into Writer an
 });
 
 test("issue #123 keeps production annotations local, targeted and credential-free", async () => {
-  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/project.ts")]);
+  const [model, project] = await Promise.all([source("lib/production-draft.ts"), source("lib/projects/project.ts")]);
   assert.match(model, /addProductionAnnotation/);
   assert.match(project, /targetType: "screenplay-element" \| "scene" \| "page"/);
   assert.match(project, /department: string/);
@@ -97,7 +97,7 @@ test("issue #123 keeps production annotations local, targeted and credential-fre
 
 test("issue #123 production state is normalized and registered in both canonical schemas", async () => {
   const [project, currentSchema, frozenSchema, packageText] = await Promise.all([
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("schema/plotpickle-project.schema.json"),
     source("schema/plotpickle-project-v1.7.schema.json"),
     source("package.json"),

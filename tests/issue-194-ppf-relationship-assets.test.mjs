@@ -16,11 +16,11 @@ const [
   productionSource,
   documentation,
 ] = await Promise.all([
-  readFile(new URL("../lib/project.ts", import.meta.url), "utf8"),
-  readFile(new URL("../lib/project-assets.ts", import.meta.url), "utf8"),
-  readFile(new URL("../lib/story-dependencies.ts", import.meta.url), "utf8"),
-  readFile(new URL("../lib/project-folder.ts", import.meta.url), "utf8"),
-  readFile(new URL("../lib/project-modules.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/project.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/persistence/project-assets.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/story/story-dependencies.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/persistence/project-folder.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/project-modules.ts", import.meta.url), "utf8"),
   readFile(new URL("../app/visual-storyboard.tsx", import.meta.url), "utf8"),
   readFile(new URL("../lib/ai-pitch-deck-base.ts", import.meta.url), "utf8"),
   readFile(new URL("../lib/preproduction.ts", import.meta.url), "utf8"),
@@ -68,13 +68,13 @@ test("Issue 194 remains an optional additive project module", () => {
 
 test("legacy visuals migrate, share identity, retain variations and round-trip", () => {
   const program = String.raw`
-    import { createBlankProject, normalizePlotPickleProject } from "./lib/project.ts";
+    import { createBlankProject, normalizePlotPickleProject } from "./lib/projects/project.ts";
     import { createComicPitchDeckPlan } from "./lib/ai-pitch-deck.ts";
     import { createShotFromFrame, updateProductionShot } from "./lib/preproduction.ts";
-    import { buildStoryDependencies, relationshipIndexFingerprint } from "./lib/story-dependencies.ts";
-    import { createProjectFolder, parseProjectFolder } from "./lib/project-folder.ts";
-    import { createPortableProjectFile, parsePortableProjectFile, portableProjectHash, serializePortableProjectFile } from "./lib/project-package.ts";
-    import { projectAssetSourceRisks } from "./lib/project-assets.ts";
+    import { buildStoryDependencies, relationshipIndexFingerprint } from "./lib/projects/story/story-dependencies.ts";
+    import { createProjectFolder, parseProjectFolder } from "./lib/projects/persistence/project-folder.ts";
+    import { createPortableProjectFile, parsePortableProjectFile, portableProjectHash, serializePortableProjectFile } from "./lib/projects/persistence/project-package.ts";
+    import { projectAssetSourceRisks } from "./lib/projects/persistence/project-assets.ts";
 
     let project = createBlankProject();
     const firstSource = "/api/local-ai/assets/shared.webp";
@@ -207,9 +207,9 @@ test("legacy visuals migrate, share identity, retain variations and round-trip",
 test("Afterglow rebuilds the relationship index and asset registry from its existing visual workspaces", () => {
   const program = String.raw`
     import { createAfterglowProject } from "./data/afterglow-complete.ts";
-    import { normalizePlotPickleProject } from "./lib/project.ts";
-    import { createProjectFolder } from "./lib/project-folder.ts";
-    import { buildStoryDependencies, relationshipIndexFingerprint } from "./lib/story-dependencies.ts";
+    import { normalizePlotPickleProject } from "./lib/projects/project.ts";
+    import { createProjectFolder } from "./lib/projects/persistence/project-folder.ts";
+    import { buildStoryDependencies, relationshipIndexFingerprint } from "./lib/projects/story/story-dependencies.ts";
 
     const project = normalizePlotPickleProject(createAfterglowProject());
     if (!project) throw new Error("Afterglow normalization failed.");

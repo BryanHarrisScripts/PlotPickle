@@ -54,8 +54,8 @@ test("Afterglow reference PPF carries complete v9 plus partial v10 without treat
 
 test("PPF project extensions preserve the revision workspace on export and import", async () => {
   const [folder, exchange] = await Promise.all([
-    read("lib/project-folder.ts"),
-    read("lib/ppf-exchange.ts"),
+    read("lib/projects/persistence/project-folder.ts"),
+    read("lib/projects/canon/ppf-exchange.ts"),
   ]);
   assert.match(folder, /projectExtensions: project\.extensions \?\? \{\}/);
   assert.match(folder, /extensions: manifestExtensions\.projectExtensions/);

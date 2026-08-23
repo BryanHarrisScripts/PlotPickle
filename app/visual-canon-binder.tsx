@@ -1,11 +1,11 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   approvedVisualCanon,
   readVisualCanonBinder,
   type VisualCanonItem,
-} from "@/lib/visual-canon";
+} from "@/lib/projects/visual/visual-canon";
 
 export default function VisualCanonBinder({
   project,

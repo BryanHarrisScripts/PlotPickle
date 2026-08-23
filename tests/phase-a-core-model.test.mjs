@@ -13,7 +13,7 @@ test("schema 1.7 is the canonical released schema", async () => {
 });
 
 test("blank, imported and Afterglow projects use the Phase A model", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   const afterglow = await source("data/afterglow.ts");
   assert.match(project, /schemaVersion: "1\.7\.0"/);
   assert.match(project, /"1\.6\.0", "1\.7\.0"/);
@@ -41,7 +41,7 @@ test("all Phase A interfaces are connected without duplicating Core Model in Set
 });
 
 test("expanded screenplay elements export through Fountain and FDX", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   const draft = await source("lib/screenplay-draft.ts");
   for (const type of ["section", "synopsis", "shot", "lyrics", "dual-dialogue", "centered", "page-break", "title-page", "note", "boneyard"]) {
     assert.ok(project.includes(`| "${type}"`), type);

@@ -22,7 +22,7 @@ import {
   type ComicPitchDialogue,
   type ComicPitchPanel,
   type PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import {
   discoverLocalGraphicNovelVersions,
@@ -31,7 +31,7 @@ import {
   prepareGraphicNovelRepositoryVersion,
   selectGraphicNovelAssetVersion,
 } from "@/lib/graphic-novel-asset-versions";
-import type { ProjectAssetReference } from "@/lib/project-assets";
+import type { ProjectAssetReference } from "@/lib/projects/persistence/project-assets";
 import styles from "./ai-pitch-deck-workspace.module.css";
 
 type ImageQuality = "low" | "medium" | "high";

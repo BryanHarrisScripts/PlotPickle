@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { aiRevisionLessons, aiRevisionLessonSearchText, type AiRevisionLesson } from "./learning-ai-revision";
 import {
   characterMotionLessons,

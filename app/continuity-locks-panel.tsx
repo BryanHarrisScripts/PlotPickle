@@ -1,7 +1,7 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
-import { continuityWarnings, effectiveContinuityLocks, type ContinuityTarget } from "@/lib/continuity-locks";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { continuityWarnings, effectiveContinuityLocks, type ContinuityTarget } from "@/lib/projects/canon/continuity-locks";
 
 export default function ContinuityLocksPanel({ project, target }: { project: PlotPickleProject; target: ContinuityTarget }) {
   const locks = effectiveContinuityLocks(project, target);

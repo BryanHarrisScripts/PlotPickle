@@ -12,11 +12,11 @@ import {
   type CollaborationPolicy,
   type CollaborationRole,
   type LocalInvitationState,
-} from "../lib/collaboration-invitations";
+} from "../lib/projects/collaboration/collaboration-invitations";
 import {
   inspectStoryProjectManifest,
   STORY_PROJECT_MANIFEST_PATH,
-} from "../lib/story-project-repository";
+} from "../lib/projects/persistence/story-project-repository";
 import {
   readCredentialJson,
   removeCredentialFile,

@@ -11,9 +11,9 @@ import {
   parsePortableProjectFile,
   portableProjectFileName,
   serializePortableProjectFile,
-} from "@/lib/project-package";
+} from "@/lib/projects/persistence/project-package";
 import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/github-collaboration";
-import { cloneProject, type PlotPickleProject } from "@/lib/project";
+import { cloneProject, type PlotPickleProject } from "@/lib/projects/project";
 
 type LibraryItem = { fileName: string; title: string; updatedAt: string; bytes: number; integrityValid: boolean };
 type BackupItem = { fileName: string; bytes: number };

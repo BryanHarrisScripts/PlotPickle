@@ -180,7 +180,7 @@ This registry is a naming and technical-lineage record. It does **not** determin
 
 **Architecture decision:** Caura may be studied for governance concepts but is not installed and does not own PlotPickle memory. Potential lifecycle states such as candidate, confirmed, superseded, outdated, and archived are design vocabulary unless/until explicitly implemented and tested.
 
-**Implementation anchors:** `lib/creative-memory.ts`; `lib/context-engine.ts`; project-memory handling in #963; memory-core work associated with #1200.
+**Implementation anchors:** `lib/projects/canon/creative-memory.ts`; `lib/context-engine.ts`; project-memory handling in #963; memory-core work associated with #1200.
 
 **Related processes:** CONTEXT, PPF, VAULT, IDENTITY.
 
@@ -204,7 +204,7 @@ This registry is a naming and technical-lineage record. It does **not** determin
 
 **Method:** BINDER distinguishes approved canon from exploratory candidates and gives downstream tools a canonical retrieval surface instead of allowing generated candidates to self-promote.
 
-**Implementation anchors:** `lib/canon-binder.ts`; `app/visual-canon-binder.tsx`; `docs/PHASE-7-CANON-BINDER.md`; `docs/adr/0004-canon-binder-source-of-truth.md`.
+**Implementation anchors:** `lib/projects/canon/canon-binder.ts`; `app/visual-canon-binder.tsx`; `docs/PHASE-7-CANON-BINDER.md`; `docs/adr/0004-canon-binder-source-of-truth.md`.
 
 **Related processes:** PPF, LOCKS, CONTRACT, CONTEXT.
 
@@ -216,7 +216,7 @@ This registry is a naming and technical-lineage record. It does **not** determin
 
 **Method:** LOCKS express constraints that exploratory/generative operations must preserve, allowing variation around open creative choices without altering locked continuity authority.
 
-**Implementation anchors:** `lib/continuity-locks.ts`; `app/continuity-locks-panel.tsx`; character/world visual development and continuity references.
+**Implementation anchors:** `lib/projects/canon/continuity-locks.ts`; `app/continuity-locks-panel.tsx`; character/world visual development and continuity references.
 
 **Related processes:** BINDER, CONTRACT, COMPILER, PPF.
 

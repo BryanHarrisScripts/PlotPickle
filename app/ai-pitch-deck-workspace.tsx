@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { graphicNovelFileName, withComicPitchDeck } from "@/lib/ai-pitch-deck";
 import { buildGraphicNovelViewerHtml, graphicNovelImageFileName } from "@/lib/graphic-novel-viewer";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
 import RefreshAction from "./refresh-action";

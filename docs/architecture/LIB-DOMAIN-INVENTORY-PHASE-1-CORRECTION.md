@@ -30,11 +30,11 @@ This correction removes `connector-trust-policy.ts` from Phase 4 (#1305).
 
 Baseline assignment:
 
-`lib/specialist-labs.ts` → Agents
+`lib/projects/specialist-labs.ts` → Agents
 
 Corrected assignment:
 
-`lib/specialist-labs.ts` → `lib/projects/specialist-labs.ts` in Phase 3 (#1304)
+`lib/projects/specialist-labs.ts` → `lib/projects/specialist-labs.ts` in Phase 3 (#1304)
 
 Reason:
 

@@ -32,7 +32,7 @@ async function compileTypeScriptModule(path) {
 }
 
 const [modeModule, lifecycleModule] = await Promise.all([
-  compileTypeScriptModule("lib/collaboration-mode.ts"),
+  compileTypeScriptModule("lib/projects/collaboration/collaboration-mode.ts"),
   compileTypeScriptModule("lib/connection-lifecycle.ts"),
 ]);
 

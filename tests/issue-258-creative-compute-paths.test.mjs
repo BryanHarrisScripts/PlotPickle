@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #258 keeps collaboration modes separate from the three creative-compute paths", async () => {
   const [setup, collaboration] = await Promise.all([
     source("app/setup-connections-dashboard.tsx"),
-    source("lib/collaboration-mode.ts"),
+    source("lib/projects/collaboration/collaboration-mode.ts"),
   ]);
 
   for (const phrase of [

@@ -7,8 +7,8 @@ import {
   type CollaborationPolicy,
   type CollaborationRole,
   type PlotPickleInvitation,
-} from "@/lib/collaboration-invitations";
-import type { PlotPickleProject } from "@/lib/project";
+} from "@/lib/projects/collaboration/collaboration-invitations";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./collaboration-invitations.module.css";
 
 export type CollaborationAccess = {

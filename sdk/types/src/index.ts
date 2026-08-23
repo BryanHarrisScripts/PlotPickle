@@ -1,5 +1,5 @@
-import type { PlotPickleProject } from "../../../lib/project";
-import type { CanonBinder, CanonEntry, CanonSection, CanonStatus } from "../../../lib/canon-binder";
+import type { PlotPickleProject } from "../../../lib/projects/project";
+import type { CanonBinder, CanonEntry, CanonSection, CanonStatus } from "../../../lib/projects/canon/canon-binder";
 import type {
   PluginCapability,
   PluginManifest,

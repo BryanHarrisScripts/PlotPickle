@@ -3,8 +3,8 @@ import {
   type ScreenplayDocument,
   type ScreenplayDraftElement,
   type ScreenplayDraftElementType,
-} from "@/lib/project";
-import { parseScreenplay } from "@/lib/screenplay";
+} from "@/lib/projects/project";
+import { parseScreenplay } from "@/lib/projects/screenplay/screenplay";
 import part01 from "./afterglow-screenplay/part-01";
 import part02 from "./afterglow-screenplay/part-02";
 import part03 from "./afterglow-screenplay/part-03";

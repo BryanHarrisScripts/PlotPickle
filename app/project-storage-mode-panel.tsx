@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   PROJECT_STORAGE_MODES,
   projectStorageModeSnapshot,
   projectStorageTransitionConfirmation,
   transitionProjectStorageMode,
   type ProjectStorageMode,
-} from "@/lib/project-storage-mode";
+} from "@/lib/projects/persistence/project-storage-mode";
 import styles from "./project-storage-mode-panel.module.css";
 
 const PROJECT_STORAGE_KEY = "plotpickle.project.v1";

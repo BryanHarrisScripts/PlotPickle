@@ -1,9 +1,9 @@
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   COLLABORATION_MODE_COPY,
   collaborationModeRequirements,
   normalizeCollaborationModeRecord,
-} from "@/lib/collaboration-mode";
+} from "@/lib/projects/collaboration/collaboration-mode";
 import type { BuzzRuntimeSnapshot } from "@/lib/buzz/buzz-runtime";
 import {
   buzzConnectionLifecycle,

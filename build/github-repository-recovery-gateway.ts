@@ -8,9 +8,9 @@ import {
   type GitHubRepositoryRecoveryDiagnosis,
   type VerifiedRecoveryBranch,
 } from "../lib/github-repository-recovery";
-import { createCollaborationPolicy, parseCollaborationPolicy } from "../lib/collaboration-invitations";
+import { createCollaborationPolicy, parseCollaborationPolicy } from "../lib/projects/collaboration/collaboration-invitations";
 import { publicGitHubCommandEntry } from "../lib/github-command-outbox";
-import { inspectStoryProjectManifest, STORY_PROJECT_MANIFEST_PATH } from "../lib/story-project-repository";
+import { inspectStoryProjectManifest, STORY_PROJECT_MANIFEST_PATH } from "../lib/projects/persistence/story-project-repository";
 import { readGitHubCommandOutbox } from "./github-command-service";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 

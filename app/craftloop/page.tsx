@@ -6,7 +6,7 @@ import {
   createBlankProject,
   normalizePlotPickleProject,
   type PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import { scanPageFlowDraft } from "@/lib/pageflow";
 import styles from "./craftloop.module.css";
 

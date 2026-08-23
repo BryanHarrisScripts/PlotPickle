@@ -2,8 +2,8 @@ import { chmod, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { createPortableProjectFile, parsePortableProjectFile, portableProjectFileName, serializePortableProjectFile } from "../lib/project-package";
-import { normalizePlotPickleProject } from "../lib/project";
+import { createPortableProjectFile, parsePortableProjectFile, portableProjectFileName, serializePortableProjectFile } from "../lib/projects/persistence/project-package";
+import { normalizePlotPickleProject } from "../lib/projects/project";
 import { persistentHome } from "./local-credentials";
 
 const PROJECT_API = "/api/local-projects";

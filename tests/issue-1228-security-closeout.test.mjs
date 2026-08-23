@@ -64,7 +64,7 @@ test("#1228 retains the source-level fixes behind older CodeQL records", async (
   const [build, characterImage, screenplay] = await Promise.all([
     read("scripts/build-verified.mjs"),
     read("app/character-image-generator.tsx"),
-    read("lib/screenplay.ts"),
+    read("lib/projects/screenplay/screenplay.ts"),
   ]);
 
   assert.match(build, /main\(\)\.catch\(\(\) => \{/, "build failure boundary should not log caught exception contents");

@@ -18,7 +18,7 @@ test("PlotPickle 0.17 exposes the complete page-to-production workspace", async 
 
 test("shots, cues, breakdowns and schedules retain stable project links", async () => {
   const engine = await source("lib/preproduction.ts");
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   for (const operation of ["createShotFromFrame", "createSonicCue", "buildShotCoverage", "buildAnimaticTimeline", "generateProductionBreakdowns", "generateProductionSchedule", "productionCoverage"]) {
     assert.match(engine, new RegExp(`export function ${operation}\\b`), `Missing ${operation}`);
   }
@@ -28,8 +28,8 @@ test("shots, cues, breakdowns and schedules retain stable project links", async 
 });
 
 test("the canonical schema and revision snapshots include production planning", async () => {
-  const project = await source("lib/project.ts");
-  const phaseOne = await source("lib/project-phase-one.ts");
+  const project = await source("lib/projects/project.ts");
+  const phaseOne = await source("lib/projects/project-phase-one.ts");
   const schema = JSON.parse(await source("schema/plotpickle-project.schema.json"));
   assert.ok(schema.required.includes("production"));
   assert.equal(schema.properties.production.$ref, "#/$defs/productionWorkspace");

@@ -16,7 +16,7 @@ import {
   updatePitchPackage,
   updateReviewThreadStatus,
 } from "@/lib/pitch-review";
-import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/project";
+import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/projects/project";
 
 type View = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
 export type PitchReviewScope = "pitch" | "plan";

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useMemo, useState } from "react";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import { scanPageFlowDraft } from "@/lib/pageflow";
 import styles from "./pageflow.module.css";
 

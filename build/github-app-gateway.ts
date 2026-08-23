@@ -11,7 +11,7 @@ import {
   storyProjectBootstrapFiles,
   validateRepositoryName,
   type StoryProjectManifest,
-} from "../lib/story-project-repository";
+} from "../lib/projects/persistence/story-project-repository";
 import {
   readCredentialJson,
   removeCredentialFile,

@@ -118,7 +118,7 @@ test("OpenAI reference images use the supported edit endpoint and stay local", a
 
 test("comic deck state migrates safely and records non-secret provenance", async () => {
   const [project, schema, operations] = await Promise.all([
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("schema/plotpickle-project.schema.json"),
     source("lib/ai-pitch-deck.ts"),
   ]);

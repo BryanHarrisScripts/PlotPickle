@@ -2,7 +2,7 @@
 
 import type { PlotPickleSettings } from "@/lib/ai/settings";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
 import DashboardStoryLibrary from "./dashboard-story-library";
 

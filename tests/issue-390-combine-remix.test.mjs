@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #390 builds traceable remix recipes from multiple candidates", async () => {
-  const model = await source("lib/creative-remix.ts");
+  const model = await source("lib/projects/canon/creative-remix.ts");
   for (const phrase of [
     "CreativeRemixRecipe",
     "RemixQuality",
@@ -19,7 +19,7 @@ test("issue #390 builds traceable remix recipes from multiple candidates", async
 });
 
 test("issue #390 provides a safe flattened direction for providers without structured remix support", async () => {
-  const model = await source("lib/creative-remix.ts");
+  const model = await source("lib/projects/canon/creative-remix.ts");
   assert.match(model, /buildFlattenedRemixDirection/);
   assert.match(model, /flattenedDirection/);
   assert.match(model, /Overall direction:/);
@@ -27,7 +27,7 @@ test("issue #390 provides a safe flattened direction for providers without struc
 });
 
 test("issue #390 keeps combined output in the ordinary candidate lineage", async () => {
-  const model = await source("lib/creative-remix.ts");
+  const model = await source("lib/projects/canon/creative-remix.ts");
   assert.match(model, /createRemixCandidateLineage/);
   assert.match(model, /parentCandidateId: request\.sourceCandidateId/);
   assert.match(model, /derivedFromCandidateIds: \[\.\.\.request\.remix\.sourceCandidateIds\]/);

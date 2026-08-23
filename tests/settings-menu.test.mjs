@@ -11,7 +11,7 @@ const credentialStore = await readFile(new URL("../build/local-credentials.ts", 
 const viteConfig = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
 const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", import.meta.url), "utf8");
 const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
-const terms = await readFile(new URL("../lib/screenplay-terms.ts", import.meta.url), "utf8");
+const terms = await readFile(new URL("../lib/projects/screenplay/screenplay-terms.ts", import.meta.url), "utf8");
 
 test("settings keep AI, music, and plugin migration in one local model", () => {
   assert.match(settings, /type PlotPickleSettings/);

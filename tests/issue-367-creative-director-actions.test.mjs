@@ -6,7 +6,7 @@ const source = fs.readFileSync(new URL("../app/creative-director-actions.tsx", i
 const styles = fs.readFileSync(new URL("../app/creative-director-actions.module.css", import.meta.url), "utf8");
 const storyboard = fs.readFileSync(new URL("../app/visual-storyboard.tsx", import.meta.url), "utf8");
 const storyboardStyles = fs.readFileSync(new URL("../app/visual-storyboard.module.css", import.meta.url), "utf8");
-const project = fs.readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
+const project = fs.readFileSync(new URL("../lib/projects/project.ts", import.meta.url), "utf8");
 const workflow = fs.readFileSync(new URL("../.github/workflows/visual.yml", import.meta.url), "utf8");
 
 test("Creative Director actions keep story decisions ahead of provider configuration", () => {

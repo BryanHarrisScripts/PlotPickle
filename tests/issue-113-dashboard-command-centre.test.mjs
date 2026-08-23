@@ -71,7 +71,7 @@ test("issue #113 keeps Settings configuration outside the story-first Dashboard"
 });
 
 test("issue #113 dashboard progress tolerates legacy projects missing Concept Canvas data", async () => {
-  const progress = await source("lib/project-progress.ts");
+  const progress = await source("lib/projects/project-progress.ts");
   assert.match(progress, /createBlankDevelopment/);
   assert.match(progress, /developmentWithDefaults/);
   assert.match(progress, /development\.conceptCanvas\.conceptText/);

@@ -3,7 +3,7 @@ import { copyFile, mkdir, open, readFile, readdir, rename, rm, stat, writeFile }
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { parsePortableProjectFile, serializePortableProjectFile, type PortablePlotPickleFile } from "../lib/project-package";
+import { parsePortableProjectFile, serializePortableProjectFile, type PortablePlotPickleFile } from "../lib/projects/persistence/project-package";
 import { persistentHome } from "./local-credentials";
 
 const API = "/api/local-backups";

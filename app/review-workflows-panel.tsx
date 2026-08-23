@@ -27,7 +27,7 @@ import {
   feedbackTargetOptions,
 } from "@/lib/unified-feedback-store";
 import type { FeedbackAuthorRole, FeedbackStatus } from "@/lib/unified-feedback";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 
 type ReviewWorkflowPanelProps = {
   project: PlotPickleProject;

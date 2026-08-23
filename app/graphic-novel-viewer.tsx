@@ -39,7 +39,7 @@ import type {
   ComicPitchDialogue,
   ComicPitchPanel,
   PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import styles from "./graphic-novel-viewer.module.css";
 
 type Props = {

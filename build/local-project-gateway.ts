@@ -9,8 +9,8 @@ import {
   parsePortableProjectFile,
   portableProjectFileName,
   serializePortableProjectFile,
-} from "../lib/project-package";
-import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+} from "../lib/projects/persistence/project-package";
+import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/projects/project";
 import {
   persistentHome,
   readCredentialJson,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./dialectic-worksheet.module.css";
 
 export default function DialecticWorksheet({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {

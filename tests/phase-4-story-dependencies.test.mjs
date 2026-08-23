@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const engine = await readFile(new URL("../lib/story-dependencies.ts", import.meta.url), "utf8");
-const folder = await readFile(new URL("../lib/project-folder.ts", import.meta.url), "utf8");
-const modules = await readFile(new URL("../lib/project-modules.ts", import.meta.url), "utf8");
+const engine = await readFile(new URL("../lib/projects/story/story-dependencies.ts", import.meta.url), "utf8");
+const folder = await readFile(new URL("../lib/projects/persistence/project-folder.ts", import.meta.url), "utf8");
+const modules = await readFile(new URL("../lib/projects/project-modules.ts", import.meta.url), "utf8");
 
 test("Phase 4 builds a typed story knowledge graph", () => {
   assert.match(engine, /StoryNodeKind/);

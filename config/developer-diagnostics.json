@@ -246,7 +246,7 @@
         "app/learning-studio.tsx",
         "build/full-story-builder-gateway.ts",
         "lib/full-story-builder.mjs",
-        "lib/project-folder.ts",
+        "lib/projects/persistence/project-folder.ts",
         "scripts/full-story-builder-agent.mjs",
         "Start-PlotPickle.bat",
         "vite.config.ts",
@@ -270,7 +270,7 @@
         "app/learning-studio.tsx",
         "build/full-story-builder-gateway.ts",
         "lib/full-story-builder.mjs",
-        "lib/project-folder.ts",
+        "lib/projects/persistence/project-folder.ts",
         "scripts/full-story-builder-agent.mjs",
         "Start-PlotPickle.bat",
         "vite.config.ts",
@@ -656,7 +656,7 @@
           "optional": false
         },
         {
-          "path": "lib/project-folder.ts",
+          "path": "lib/projects/persistence/project-folder.ts",
           "optional": false
         },
         {

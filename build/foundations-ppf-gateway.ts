@@ -1,9 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { assembleFoundationSourceContext } from "../lib/foundation-source-context";
-import { parsePortableProjectFile } from "../lib/project-package";
-import { projectFromPackage } from "../lib/ppf-exchange";
-import type { PlotPickleProject } from "../lib/project";
+import { assembleFoundationSourceContext } from "../lib/projects/canon/foundation-source-context";
+import { parsePortableProjectFile } from "../lib/projects/persistence/project-package";
+import { projectFromPackage } from "../lib/projects/canon/ppf-exchange";
+import type { PlotPickleProject } from "../lib/projects/project";
 
 const FOUNDATIONS_PPF_PATH = "/api/plan/foundations/ppf-context";
 const MAX_PPF_BYTES = 48 * 1024 * 1024;

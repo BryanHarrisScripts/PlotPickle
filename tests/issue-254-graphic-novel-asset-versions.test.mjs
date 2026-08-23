@@ -19,7 +19,7 @@ test("local asset discovery is loopback-only, hashed and restricted to the PlotP
 test("Graphic Novel discovery matches stable panel IDs and keeps originals as separate variations", async () => {
   const [versions, assets] = await Promise.all([
     source("lib/graphic-novel-asset-versions.ts"),
-    source("lib/project-assets.ts"),
+    source("lib/projects/persistence/project-assets.ts"),
   ]);
   assert.match(versions, /graphicNovelPanelIdForLocalAsset/);
   assert.match(versions, /stem\.startsWith/);
@@ -53,7 +53,7 @@ test("per-panel UI can scan, compare, select and explicitly publish one local al
 test("repository publishing verifies immutable binaries and makes Asset versions separately reviewable", async () => {
   const [gateway, proposals, proposalUi] = await Promise.all([
     source("build/github-review-gateway.ts"),
-    source("lib/story-proposals.ts"),
+    source("lib/projects/story/story-proposals.ts"),
     source("app/story-proposals.tsx"),
   ]);
   assert.match(gateway, /proposalAssetFiles/);

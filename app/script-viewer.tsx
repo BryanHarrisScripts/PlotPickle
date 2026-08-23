@@ -1,14 +1,14 @@
 "use client";
 
 import { ChangeEvent, useMemo, useRef, useState } from "react";
-import { createBlankProductionDraftState, type PlotPickleProject, type ScreenplayDocument } from "@/lib/project";
+import { createBlankProductionDraftState, type PlotPickleProject, type ScreenplayDocument } from "@/lib/projects/project";
 import {
   parseScreenplay,
   screenplayFormatForFile,
   screenplayLegend,
   screenplayStats,
   type ScreenplayElement,
-} from "@/lib/screenplay";
+} from "@/lib/projects/screenplay/screenplay";
 import styles from "./script-viewer.module.css";
 
 type ScriptViewerProps = {

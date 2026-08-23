@@ -6,7 +6,7 @@ import {
   createBlankProject,
   normalizePlotPickleProject,
   type PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   addDynamicScene,
   addShortSceneToMini,
@@ -27,7 +27,7 @@ import {
   type ShortScene,
   type StoryScene,
   type StorySequence,
-} from "@/lib/structure";
+} from "@/lib/projects/structure";
 import {
   analyzeSceneStructure,
   buildGlobalSceneIndex,

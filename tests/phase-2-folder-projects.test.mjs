@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const folderSource = await readFile(new URL("../lib/project-folder.ts", import.meta.url), "utf8");
+const folderSource = await readFile(new URL("../lib/projects/persistence/project-folder.ts", import.meta.url), "utf8");
 const gatewaySource = await readFile(new URL("../build/folder-project-gateway.ts", import.meta.url), "utf8");
 const viteSource = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
 

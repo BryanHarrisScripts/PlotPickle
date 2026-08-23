@@ -7,7 +7,7 @@ import {
   createBlankProject,
   normalizePlotPickleProject,
   type PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import styles from "./draftlens.module.css";
 import { CraftDiagnosticSummary } from "../craft-diagnostics";
 

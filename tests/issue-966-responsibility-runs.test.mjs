@@ -36,7 +36,7 @@ test("deterministic workers can observe but only authoritative verification can 
 test("creative Runs stop at the writer gate and never turn artifacts into canon themselves", async () => {
   const [runs, revisions] = await Promise.all([
     read("lib/agents/responsibility/responsibility-runs.ts"),
-    read("lib/project-revisions.ts"),
+    read("lib/projects/persistence/project-revisions.ts"),
   ]);
   assert.match(runs, /createCreativeResponsibilityRun/);
   assert.match(runs, /requestWriterApproval/);

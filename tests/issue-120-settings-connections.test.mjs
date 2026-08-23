@@ -101,7 +101,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
     source("build/local-credentials.ts"),
     source("app/settings-panel-legacy.tsx"),
     source("lib/connection-status.ts"),
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
   ]);
   assert.match(vault, /PLOTPICKLE_HOME/);
   assert.match(vault, /secrets/);

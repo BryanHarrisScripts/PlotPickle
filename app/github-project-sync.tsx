@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/github-collaboration";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./github-collaboration.module.css";
 
 type SyncDiff = {

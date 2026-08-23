@@ -1,9 +1,9 @@
-import { createBlankDevelopment, type PlotPickleProject } from "@/lib/project";
+import { createBlankDevelopment, type PlotPickleProject } from "@/lib/projects/project";
 import {
   nextRecommendedSection,
   projectSectionProgress,
   type ProjectProgressSection,
-} from "@/lib/project-progress";
+} from "@/lib/projects/project-progress";
 import styles from "./project-overview.module.css";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {

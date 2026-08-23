@@ -27,7 +27,7 @@ test("Introduction is retained as a compatible deep workspace, not a primary ste
 });
 
 test("issue #112 context model preserves required working selections", async () => {
-  const context = await source("lib/workspace-context.ts");
+  const context = await source("lib/projects/workspace-context.ts");
   for (const field of [
     "workspace",
     "submenu",

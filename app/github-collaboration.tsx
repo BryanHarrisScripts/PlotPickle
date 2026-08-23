@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
-import { portableProjectFileName } from "@/lib/project-package";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { portableProjectFileName } from "@/lib/projects/persistence/project-package";
 import {
   COLLABORATION_MODES,
   COLLABORATION_MODE_COPY,
@@ -12,14 +12,14 @@ import {
   transitionCollaborationMode,
   type CollaborationMode,
   type CollaborationServiceState,
-} from "@/lib/collaboration-mode";
+} from "@/lib/projects/collaboration/collaboration-mode";
 import {
   PROJECT_STORAGE_MODES,
   projectStorageModeSnapshot,
   projectStorageTransitionConfirmation,
   transitionProjectStorageMode,
   type ProjectStorageMode,
-} from "@/lib/project-storage-mode";
+} from "@/lib/projects/persistence/project-storage-mode";
 import GitHubCollaborationBase from "./github-collaboration-base";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import modeStyles from "./project-mode-settings.module.css";

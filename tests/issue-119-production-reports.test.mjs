@@ -82,7 +82,7 @@ test("issue #119 covers the complete requested shot taxonomy", async () => {
 test("issue #119 shoot groups explain reasoning and Build owns accept reject and adjustment decisions", async () => {
   const [reports, project, reportWorkspace, buildWorkspace] = await Promise.all([
     source("lib/production-reports.ts"),
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("app/production-reports-workspace.tsx"),
     source("app/preproduction-workspace.tsx"),
   ]);
@@ -221,7 +221,7 @@ test("issue #119 mounts read-only Production reports and routes canonical writes
 });
 
 test("issue #119 production planning state is backward-compatible and normalized", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   assert.match(project, /reporting\?: ProductionReporting/);
   assert.match(project, /createBlankProductionReporting/);
   assert.match(project, /normalizeProductionReporting/);

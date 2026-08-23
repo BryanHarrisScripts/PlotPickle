@@ -1,7 +1,7 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
-import { proposalsForAsset, type ImageToStoryProposal } from "@/lib/image-to-story-proposals";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { proposalsForAsset, type ImageToStoryProposal } from "@/lib/projects/visual/image-to-story-proposals";
 
 export default function ImageToStoryProposals({
   project,

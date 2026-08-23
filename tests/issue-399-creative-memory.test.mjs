@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #399 connects concepts references candidates canon locks and story changes", async () => {
-  const model = await source("lib/creative-memory.ts");
+  const model = await source("lib/projects/canon/creative-memory.ts");
   for (const kind of ["concept", "reference", "candidate", "canon", "continuity", "story-change"]) assert.ok(model.includes(`\"${kind}\"`));
   assert.match(model, /readCreativeCandidateStore/);
   assert.match(model, /readVisualCanonBinder/);
@@ -15,7 +15,7 @@ test("issue #399 connects concepts references candidates canon locks and story c
 });
 
 test("issue #399 derives effective current decisions deterministically", async () => {
-  const model = await source("lib/creative-memory.ts");
+  const model = await source("lib/projects/canon/creative-memory.ts");
   assert.match(model, /effectiveCreativeMemory/);
   assert.match(model, /node\.status === "active"/);
   assert.match(model, /nodes\.sort\(\(a, b\) => a\.id\.localeCompare\(b\.id\)\)/);
@@ -23,14 +23,14 @@ test("issue #399 derives effective current decisions deterministically", async (
 });
 
 test("issue #399 keeps obsolete decisions inspectable without treating them as active", async () => {
-  const [model, view] = await Promise.all([source("lib/creative-memory.ts"), source("app/creative-memory.tsx")]);
+  const [model, view] = await Promise.all([source("lib/projects/canon/creative-memory.ts"), source("app/creative-memory.tsx")]);
   assert.match(model, /historicalCreativeMemory/);
   assert.match(model, /status === "historical"/);
   assert.match(view, /Historical and superseded decisions/);
 });
 
 test("issue #399 remains portable through project data and excludes sensitive routing material", async () => {
-  const [model, project] = await Promise.all([source("lib/creative-memory.ts"), source("lib/project.ts")]);
+  const [model, project] = await Promise.all([source("lib/projects/canon/creative-memory.ts"), source("lib/projects/project.ts")]);
   assert.match(project, /extensions\?: Record<string, unknown>/);
   assert.match(model, /creativeMemoryPrivacy/);
   assert.match(model, /credentialsIncluded: false/);

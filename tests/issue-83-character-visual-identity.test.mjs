@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-const model = read("lib/character-visual-identity.ts");
+const model = read("lib/projects/visual/character-visual-identity.ts");
 const generator = read("app/character-image-generator.tsx");
 const storyboard = read("app/visual-storyboard.tsx");
 const directorActions = read("app/creative-director-actions.tsx");

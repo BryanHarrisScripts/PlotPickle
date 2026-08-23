@@ -3,15 +3,15 @@
 /* eslint-disable @next/next/no-img-element -- Storyboard assets are served by PlotPickle's private local gateway or supplied by the writer. */
 
 import { useEffect, useRef, useState } from "react";
-import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame, type VisualMediaVersion } from "@/lib/project";
-import { migrateLegacyAssetReferences, resolveProjectAssetSource } from "@/lib/project-assets";
+import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame, type VisualMediaVersion } from "@/lib/projects/project";
+import { migrateLegacyAssetReferences, resolveProjectAssetSource } from "@/lib/projects/persistence/project-assets";
 import {
   approvedCharacterIdentityPrompt,
   approvedCharacterReferenceImages,
   characterVisualIdentityDiagnostic,
   getCharacterVisualIdentity,
   type CharacterWithVisualIdentity,
-} from "@/lib/character-visual-identity";
+} from "@/lib/projects/visual/character-visual-identity";
 import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
 import CreativeDirectorActions from "./creative-director-actions";
 import { requestPlotPickleConfirmation } from "./common-overlay-layer";

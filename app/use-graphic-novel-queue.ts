@@ -31,7 +31,7 @@ import {
   type ComicPitchDeck,
   type ComicPitchPanel,
   type PlotPickleProject,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import {
   deriveGraphicNovelStoryBrief,

@@ -1,7 +1,7 @@
 "use client";
 
-import type { CreativeExplorationCandidate } from "@/lib/creative-candidates";
-import type { CandidateComparisonRecord } from "@/lib/candidate-comparison";
+import type { CreativeExplorationCandidate } from "@/lib/projects/canon/creative-candidates";
+import type { CandidateComparisonRecord } from "@/lib/projects/canon/candidate-comparison";
 
 export default function CandidateComparisonBoard({
   candidates,

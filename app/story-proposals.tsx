@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
-import type { StoryProposalGroupId } from "@/lib/story-proposals";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import type { StoryProposalGroupId } from "@/lib/projects/story/story-proposals";
 import CollaborationInvitations, { type CollaborationAccess } from "./collaboration-invitations";
 import styles from "./story-proposals.module.css";
 

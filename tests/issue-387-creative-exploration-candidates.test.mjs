@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #387 defines one provider-neutral candidate model for text image video and audio", async () => {
-  const candidates = await source("lib/creative-candidates.ts");
+  const candidates = await source("lib/projects/canon/creative-candidates.ts");
   for (const phrase of [
     '"text" | "image" | "video" | "audio"',
     "CreativeExplorationCandidate",
@@ -21,7 +21,7 @@ test("issue #387 defines one provider-neutral candidate model for text image vid
 });
 
 test("issue #387 preserves alternatives and retry lineage instead of overwriting results", async () => {
-  const candidates = await source("lib/creative-candidates.ts");
+  const candidates = await source("lib/projects/canon/creative-candidates.ts");
   assert.match(candidates, /candidates: \[\.\.\.current\.candidates, normalized\]/);
   assert.match(candidates, /createRetryCandidate/);
   assert.match(candidates, /parentCandidateId: sourceCandidate\.id/);
@@ -30,7 +30,7 @@ test("issue #387 preserves alternatives and retry lineage instead of overwriting
 });
 
 test("issue #387 distinguishes usable failed and cancelled attempts while never approving canon", async () => {
-  const candidates = await source("lib/creative-candidates.ts");
+  const candidates = await source("lib/projects/canon/creative-candidates.ts");
   for (const status of ["ready", "failed", "cancelled", "shortlisted", "rejected"]) {
     assert.ok(candidates.includes(`"${status}"`), `Missing candidate status: ${status}`);
   }
@@ -41,8 +41,8 @@ test("issue #387 distinguishes usable failed and cancelled attempts while never 
 
 test("issue #387 persists candidate history through the project extensions carried by PPF export and import", async () => {
   const [candidates, project] = await Promise.all([
-    source("lib/creative-candidates.ts"),
-    source("lib/project.ts"),
+    source("lib/projects/canon/creative-candidates.ts"),
+    source("lib/projects/project.ts"),
   ]);
   assert.match(project, /extensions\?: Record<string, unknown>/);
   assert.match(candidates, /const EXTENSION_KEY = "creativeExploration"/);
@@ -53,7 +53,7 @@ test("issue #387 persists candidate history through the project extensions carri
 });
 
 test("issue #387 keeps routing metadata inspectable without storing endpoint or credential material", async () => {
-  const candidates = await source("lib/creative-candidates.ts");
+  const candidates = await source("lib/projects/canon/creative-candidates.ts");
   assert.match(candidates, /routeId/);
   assert.match(candidates, /safeRouteId/);
   assert.match(candidates, /api\[_-\]\?key\|token\|secret\|password\|credential/);

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   approvedCharacterReferenceImages,
   buildCharacterIdentityPrompt,
@@ -11,7 +11,7 @@ import {
   type CharacterVisualIdentity,
   type CharacterVisualReference,
   type CharacterWithVisualIdentity,
-} from "@/lib/character-visual-identity";
+} from "@/lib/projects/visual/character-visual-identity";
 
 type CastQueueState = "pending" | "working" | "completed" | "failed" | "skipped";
 

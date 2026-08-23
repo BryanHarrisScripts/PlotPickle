@@ -4,14 +4,14 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1295 replaces the Great Hall SVG with text-native 16-bit fantasy BBS character art", async () => {
+test("#1295 evolves the Great Hall artwork into the shared 16/32-bit BBS room presentation", async () => {
   const social = await read("modules/community/community-buzz-social.tsx");
 
-  assert.match(social, /GREAT_HALL_ASCII_CHARACTER_ART/u);
-  assert.match(social, /<pre[^>]*data-ascii-character-art="16-bit-bbs"[^>]*role="img"/u);
-  assert.match(social, /wizard, dragon and wayfarer/u);
+  assert.match(social, /COMMUNITY_ROOM_ART/u);
+  assert.match(social, /\/assets\/community-bbs\/great-hall\.webp/u);
+  assert.match(social, /pixel-art dragon curled protectively/u);
   assert.match(social, /MEMBERS \{memberCount\} · MESSAGES \{messageCount\}/u);
-  assert.doesNotMatch(social, /<svg|Great Hall line art|styles\.greatHallArt/u);
+  assert.doesNotMatch(social, /GREAT_HALL_ASCII_CHARACTER_ART|<svg|Great Hall line art/u);
 });
 
 test("#1295 bundles an open-licensed terminal font and applies one coherent BBS type system", async () => {
@@ -40,13 +40,13 @@ test("#1295 matches the supplied three-column hierarchy while preserving readabl
   ]);
 
   assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/su);
-  assert.match(social, /roomGuide && !greatHall/u);
-  assert.match(social, /greatHall && roomGuide/u);
-  assert.match(socialStyles, /\.conversation\[data-great-hall="true"\]\s*>\s*\.conversationHeader\s*\{[^}]*display:\s*none;/su);
+  assert.match(social, /roomId \? <CommunityRoomBanner/u);
+  assert.match(social, /\{roomGuide \? <section/u);
+  assert.match(socialStyles, /\.conversation\[data-community-room-template="bbs-v1"\]\s*>\s*\.conversationHeader\s*\{[^}]*display:\s*none;/su);
   assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*(?:16|17|18)px;/su);
   assert.match(socialStyles, /\.composer textarea\s*\{[^}]*font-size:\s*(?:16|17|18|19|20)px;/su);
-  assert.match(socialStyles, /\.greatHallAscii\s*\{[^}]*white-space:\s*pre;/su);
-  assert.match(socialStyles, /@media \(max-width: 900px\)[\s\S]*\.greatHallBanner\s*\{[^}]*grid-template-columns:\s*1fr;/u);
+  assert.match(socialStyles, /\.roomArtwork\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/su);
+  assert.match(socialStyles, /@media \(max-width: 900px\)[\s\S]*\.roomBanner\s*\{[^}]*padding-inline:/u);
   assert.match(socialStyles, /@media \(prefers-reduced-motion: reduce\)/u);
 });
 

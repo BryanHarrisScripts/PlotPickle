@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1288 gives the Great Hall a graphic-led 1980s BBS centre without replacing the three-column Community shell", async () => {
+test("#1288 keeps the graphic-led BBS centre and three-column Community shell as the shared room foundation", async () => {
   const [workspace, social, socialStyles, navigationStyles] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
@@ -14,12 +14,11 @@ test("#1288 gives the Great Hall a graphic-led 1980s BBS centre without replacin
 
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/u);
   assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/su);
-  assert.match(social, /function GreatHallBanner\(/u);
-  assert.match(social, /PLOTPICKLE GREAT HALL/u);
-  assert.match(social, /16-bit-bbs/u);
-  assert.match(social, /data-great-hall=\{greatHall \? "true"/u);
-  assert.match(socialStyles, /\.greatHallBanner\s*\{[^}]*grid-template-columns:/su);
-  assert.match(socialStyles, /\.greatHallAscii\s*\{[^}]*white-space:\s*pre;/su);
+  assert.match(social, /function CommunityRoomBanner\(/u);
+  assert.match(social, /PLOTPICKLE COMMUNITY BBS/u);
+  assert.match(social, /data-community-room-template=\{roomId \? "bbs-v1"/u);
+  assert.match(socialStyles, /\.roomBanner\s*\{/u);
+  assert.match(socialStyles, /\.roomArtwork img\s*\{[^}]*image-rendering:\s*pixelated;/su);
 });
 
 test("#1288 enlarges Community typography and adds the terminal identity prompt", async () => {

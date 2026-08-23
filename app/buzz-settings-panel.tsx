@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
-import { describeBuzzManagedRuntime, getBuzzManagedRuntimeActions } from "../lib/buzz-managed-runtime";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
+import { describeBuzzManagedRuntime, getBuzzManagedRuntimeActions } from "../lib/buzz/buzz-managed-runtime";
 import {
   UNVERIFIED_HUMAN_BUZZ_IDENTITY,
   humanBuzzFingerprint,
   isKnownHumanBuzzIdentity,
   type HumanBuzzIdentity,
-} from "../lib/buzz-story-room";
+} from "../lib/buzz/buzz-story-room";
 import styles from "./buzz-settings.module.css";
 
 const API = "/api/local-buzz";

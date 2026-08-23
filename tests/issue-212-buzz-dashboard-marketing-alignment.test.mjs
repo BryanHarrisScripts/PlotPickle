@@ -9,8 +9,8 @@ test("issue #212 keeps Buzz diagnostics in Settings without faking packaged bina
   const [settings, profile, defaults, runtime, gateway, header] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
     source("app/profile-access/profile-identity-panel.tsx"),
-    source("lib/buzz-default-community.ts"),
-    source("lib/buzz-runtime.ts"),
+    source("lib/buzz/buzz-default-community.ts"),
+    source("lib/buzz/buzz-runtime.ts"),
     source("build/buzz-gateway.ts"),
     source("app/application-shell-header.tsx"),
   ]);

@@ -7,7 +7,7 @@ async function source(path) {
 }
 
 test("#1222 hardwires the official PlotPickle Community descriptor and default relay", async () => {
-  const community = await source("lib/buzz-default-community.ts");
+  const community = await source("lib/buzz/buzz-default-community.ts");
   assert.match(community, /name:\s*["']PlotPickle Community BBS["']/);
   assert.match(community, /displayName:\s*["']PlotPickle Playhouse["']/);
   assert.match(community, /relayUrl:\s*["']wss:\/\/plotpickleplayhouse\.communities\.buzz\.xyz["']/);
@@ -96,7 +96,7 @@ test("#1222 maps BUZZ CLI exit classes, membership failures and redacts private 
 
 test("#1222 uses a generic lore glyph only when no custom Human avatar exists", async () => {
   const [community, profile] = await Promise.all([
-    source("lib/buzz-default-community.ts"),
+    source("lib/buzz/buzz-default-community.ts"),
     source("app/profile-access/profile-identity-panel.tsx"),
   ]);
   assert.match(community, /DEFAULT_HUMAN_LORE_GLYPH/);

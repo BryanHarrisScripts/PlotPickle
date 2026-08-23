@@ -4,7 +4,7 @@ import {
   collaborationModeRequirements,
   normalizeCollaborationModeRecord,
 } from "@/lib/collaboration-mode";
-import type { BuzzRuntimeSnapshot } from "@/lib/buzz-runtime";
+import type { BuzzRuntimeSnapshot } from "@/lib/buzz/buzz-runtime";
 import {
   buzzConnectionLifecycle,
   githubConnectionLifecycle,

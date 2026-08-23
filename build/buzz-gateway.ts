@@ -13,7 +13,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import type { Plugin } from "vite";
-import { BUZZ_STORY_ROOMS, type BuzzStoryRoomId } from "../lib/buzz-story-room";
+import { BUZZ_STORY_ROOMS, type BuzzStoryRoomId } from "../lib/buzz/buzz-story-room";
 import {
   persistentHome,
   readCredentialJson,

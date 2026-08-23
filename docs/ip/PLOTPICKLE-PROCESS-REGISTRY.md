@@ -272,7 +272,7 @@ This registry is a naming and technical-lineage record. It does **not** determin
 - PlotPickle does not maintain a competing message/member database.
 - The Playhouse root connection can be ignored in daily use but cannot be deleted from the PlotPickle federation policy.
 
-**Implementation anchors:** #1129 and #1277; `lib/buzz-default-community.ts`; BUZZ community/profile gateways.
+**Implementation anchors:** #1129 and #1277; `lib/buzz/buzz-default-community.ts`; BUZZ community/profile gateways.
 
 **Related processes:** IDENTITY, TRUST, VAULT, CASEBOOK.
 

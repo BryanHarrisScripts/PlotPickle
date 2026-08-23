@@ -1,5 +1,5 @@
 import type { ProjectCollaboration } from "./project";
-import type { BuzzRuntimeSnapshot } from "./buzz-runtime";
+import type { BuzzRuntimeSnapshot } from "./buzz/buzz-runtime";
 
 export const CONNECTION_LIFECYCLE_STATES = [
   "optional",

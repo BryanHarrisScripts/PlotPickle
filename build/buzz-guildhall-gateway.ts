@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
-import { BUZZ_COMMUNITY_CHANNELS, BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
+import { BUZZ_COMMUNITY_CHANNELS, BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
 
 const API = "/api/local-buzz/guildhall";
 const CONNECTION_FILE = "buzz-connection.json";

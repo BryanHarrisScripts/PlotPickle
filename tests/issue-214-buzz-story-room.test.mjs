@@ -19,7 +19,7 @@ test("issue #214 registers the local-only Buzz gateway", async () => {
 
 test("issue #214 provides project-specific Story Rooms and signed relay operations", async () => {
   const [model, workspace, workspaceStyles, gateway] = await Promise.all([
-    source("lib/buzz-story-room.ts"),
+    source("lib/buzz/buzz-story-room.ts"),
     source("app/buzz-workspace.tsx"),
     source("app/buzz-workspace.module.css"),
     source("build/buzz-gateway.ts"),
@@ -40,7 +40,7 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
 });
 
 test("issue #214 keeps PPF authority human-controlled and auditable", async () => {
-  const [model, workspace] = await Promise.all([source("lib/buzz-story-room.ts"), source("app/buzz-workspace.tsx")]);
+  const [model, workspace] = await Promise.all([source("lib/buzz/buzz-story-room.ts"), source("app/buzz-workspace.tsx")]);
   assert.match(model, /export type BuzzProposalStatus = "open" \| "approved" \| "declined" \| "conflict"/);
   assert.match(model, /source: BuzzDiscussionReference/);
   assert.match(model, /messageId: string/);
@@ -56,7 +56,7 @@ test("issue #214 keeps Settings diagnostic-only while Profile owns the encrypted
   const [settings, profile, defaults, collab, settingsPanel, compatibilityRoute, taxonomy] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
     source("app/profile-access/profile-identity-panel.tsx"),
-    source("lib/buzz-default-community.ts"),
+    source("lib/buzz/buzz-default-community.ts"),
     source("app/collab-workspace.tsx"),
     source("app/settings-panel.tsx"),
     source("app/settings/buzz/page.tsx"),
@@ -123,8 +123,8 @@ test("issue #214 stays Buzz-only", async () => {
     "app/buzz-workspace.tsx",
     "app/settings/buzz/page.tsx",
     "build/buzz-gateway.ts",
-    "lib/buzz-runtime.ts",
-    "lib/buzz-story-room.ts",
+    "lib/buzz/buzz-runtime.ts",
+    "lib/buzz/buzz-story-room.ts",
     "runtime/buzz/compose.yml",
     "runtime/buzz/manifest.json",
   ];

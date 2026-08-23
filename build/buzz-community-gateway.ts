@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
-import { projectCommunityConversationFeed, type CommunityConversationItem } from "../lib/community-conversation";
+import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz/buzz-guildhall";
+import { projectCommunityConversationFeed, type CommunityConversationItem } from "../lib/buzz/community-conversation";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
 

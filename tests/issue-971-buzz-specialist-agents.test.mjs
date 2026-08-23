@@ -136,7 +136,7 @@ test("untrusted room text cannot grant provider spending PPF or developer author
 
 test("Community profile cards show avatar role runtime/model memory scope skills and Critics Circle conversation UI", async () => {
   const [model, ui, css] = await Promise.all([
-    read("lib/community-agent-roster.ts"),
+    read("lib/buzz/community-agent-roster.ts"),
     read("app/community-agent-roster.tsx"),
     read("app/community-agent-roster.module.css"),
   ]);

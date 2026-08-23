@@ -24,7 +24,7 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   const [workspace, roster, model] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-agent-roster.tsx"),
-    read("lib/community-agent-roster.ts"),
+    read("lib/buzz/community-agent-roster.ts"),
   ]);
 
   assert.match(workspace, /import CommunityAgentRoster from "\.\/community-agent-roster"/);
@@ -53,7 +53,7 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
 test("the roster derives active, on-demand and parked roles from PlotPickle availability without duplicating BUZZ lifecycle settings", async () => {
   const [profiles, model] = await Promise.all([
     read("config/agent-profiles.json"),
-    read("lib/community-agent-roster.ts"),
+    read("lib/buzz/community-agent-roster.ts"),
   ]);
 
   assert.match(profiles, /"quillan-reedcloak"[\s\S]*?"defaultAvailability": "parked"/);

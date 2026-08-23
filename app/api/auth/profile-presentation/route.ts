@@ -4,7 +4,7 @@ import {
   getProfileExperienceRuntime,
   requestBoundary,
 } from "../../../../core/auth/profile-experience/profile-experience-runtime";
-import { isPlotPickleGeneratedAvatarRef } from "../../../../lib/buzz-default-community";
+import { isPlotPickleGeneratedAvatarRef } from "../../../../lib/buzz/buzz-default-community";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

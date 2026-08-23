@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz/buzz-guildhall";
+import { BUZZ_COMMUNITY_CHANNELS, BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz/buzz-guildhall";
 import { projectCommunityConversationFeed, type CommunityConversationItem } from "../lib/buzz/community-conversation";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
@@ -98,6 +98,12 @@ function validConnection(value: unknown): value is BuzzConnection {
 async function readConnection() {
   const value = await readCredentialJson<unknown>(CONNECTION_FILE);
   return validConnection(value) ? value : null;
+}
+
+function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
+  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
+    throw new Error("Verify your Human Buzz identity before publishing Community content.");
+  }
 }
 
 function relayHttpUrl(value: string) {
@@ -220,8 +226,12 @@ function activityFrom(value: unknown): BuzzActivity[] {
   });
 }
 
+async function memberChannels(connection: BuzzConnection) {
+  return channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list", "--member"]));
+}
+
 async function findGreatHall(connection: BuzzConnection) {
-  const channels = channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list", "--member"]));
+  const channels = await memberChannels(connection);
   const definition = BUZZ_GUILDHALL_CHANNELS.find((room) => room.id === "great-hall");
   return definition ? channels.find((channel) => channel.name === definition.name) ?? null : null;
 }
@@ -334,6 +344,23 @@ async function removeGreatHallMember(body: Record<string, unknown>) {
   return communityStatus();
 }
 
+async function publishForumTopic(body: Record<string, unknown>) {
+  const connection = await readConnection();
+  verifiedConnection(connection);
+  const roomId = text(body.roomId);
+  const channelId = text(body.channel);
+  const content = text(body.content);
+  const definition = BUZZ_COMMUNITY_CHANNELS.find((room) => room.id === roomId);
+  if (!definition || definition.type !== "forum") throw new Error("Choose a PlotPickle Community forum before publishing a topic.");
+  if (!/^[A-Za-z0-9-]{8,128}$/.test(channelId)) throw new Error("Choose a valid BUZZ forum channel.");
+  if (!content || content.length > 20_000) throw new Error("BUZZ forum topics must contain between 1 and 20,000 characters.");
+  const channels = await memberChannels(connection);
+  const channel = channels.find((candidate) => candidate.name === definition.name);
+  if (!channel || channel.id !== channelId) throw new Error(`${definition.label} is not the active BUZZ forum for this Community.`);
+  const result = await runBuzz(connection, ["messages", "send", "--channel", channel.id, "--content", content, "--kind", "45001"]);
+  return { ok: true, result, message: `${definition.label} topic published to BUZZ.` };
+}
+
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
   if (request.method === "GET" && url.pathname === `${API}/status`) {
     sendJson(response, 200, await communityStatus());
@@ -345,6 +372,10 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   }
   if (request.method === "DELETE" && url.pathname === `${API}/members`) {
     sendJson(response, 200, await removeGreatHallMember(await readBody(request)));
+    return;
+  }
+  if (request.method === "POST" && url.pathname === `${API}/forum-topic`) {
+    sendJson(response, 200, await publishForumTopic(await readBody(request)));
     return;
   }
   sendJson(response, 404, { ok: false, message: "Buzz Community operation not found." });

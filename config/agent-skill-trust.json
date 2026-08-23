@@ -41,6 +41,13 @@
       "lastEvaluatedRevision": "issue-1005"
     },
     {
+      "uri": "skill://plotpickle/engineering-discipline",
+      "displayName": "Engineering Discipline",
+      "requestedCapabilityClasses": ["task-scope-read", "verification-evidence-read", "engineering-procedure"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1331"
+    },
+    {
       "uri": "skill://plotpickle/sage-brinewick",
       "displayName": "Sage Brinewick",
       "requestedCapabilityClasses": ["curriculum-read", "bounded-project-context"],

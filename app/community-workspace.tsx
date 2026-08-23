@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
 import {
   BUZZ_STORY_ROOMS,
   buzzProjectSlug,
@@ -12,12 +13,8 @@ import {
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../lib/buzz/buzz-story-room";
-import { agentsForCommunityRoom } from "../lib/plugin-platform";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
-import {
-  PLOTPICKLE_COMMUNITY_EXTENSIONS,
-  PLOTPICKLE_PLAYHOUSE_PLUGIN,
-} from "../plugins/plotpickle-playhouse";
+import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
 import ConnectedStudiosPanel from "./connected-studios-panel";
@@ -25,14 +22,18 @@ import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
-const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN.displayName;
+const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY.name;
 const PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story";
+const ROOM_RAIL_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
+  "great-hall": "Welcome, questions & general chat",
+  "story-council": "Story planning, structure & critique",
+  "wyrmwood-ring": "Challenges, lessons & game discussion",
+  marquee: "Posters, key art & promotion",
+});
 
 const PUBLIC_ROOMS = PLOTPICKLE_PLAYHOUSE_PLUGIN.rooms.map((room) => ({
   ...room,
-  helpers: agentsForCommunityRoom(PLOTPICKLE_COMMUNITY_EXTENSIONS, room.id)
-    .map((agent) => agent.displayName)
-    .join(" · "),
+  railDescription: ROOM_RAIL_DESCRIPTIONS[room.id] || room.description,
 }));
 
 type BuzzChannel = { id: string; name: string; description: string };
@@ -283,7 +284,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   return <div className={styles.page} data-community-native-buzz="true">
     <div className={navigationStyles.communityLayout}>
       <aside className={navigationStyles.communityRail} aria-label="BUZZ Community navigation">
-        <header className={navigationStyles.railHeader}><b>{COMMUNITY_BBS_NAME}</b></header>
+        <header className={navigationStyles.railHeader}><b>{community?.community || COMMUNITY_BBS_NAME}</b></header>
         <div className={navigationStyles.destinationDetails} data-community-bbs-server="true">
           <small>{connected ? "BUZZ CONNECTED" : "BUZZ IDENTITY REQUIRED"}</small>
           <div className={navigationStyles.humanIdentity} data-community-caller="verified-human">
@@ -306,7 +307,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
               {PUBLIC_ROOMS.map((definition) => {
                 const room = readyRoomById.get(definition.id);
                 const current = selectedTarget?.id === definition.id && utilityView === "social";
-                return <button type="button" className={navigationStyles.subDestination} key={definition.id} disabled={!room} aria-current={current ? "page" : undefined} onClick={() => chooseRoom(definition.id)}><span>{definition.label}</span><small>{definition.helpers}</small></button>;
+                return <button type="button" className={navigationStyles.subDestination} key={definition.id} disabled={!room} aria-current={current ? "page" : undefined} onClick={() => chooseRoom(definition.id)}><span>{definition.label}</span><small>{definition.railDescription}</small></button>;
               })}
             </div>
           </section>

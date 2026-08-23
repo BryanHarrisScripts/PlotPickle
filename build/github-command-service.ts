@@ -17,7 +17,7 @@ import {
   type GitHubCommandEntry,
   type GitHubCommandOutbox,
   type PublicGitHubCommandEntry,
-} from "../lib/github-command-outbox";
+} from "../lib/integrations/github/github-command-outbox";
 import { persistentHome } from "./local-credentials";
 
 export const GITHUB_COMMAND_OUTBOX_DIRECTORY = "github";

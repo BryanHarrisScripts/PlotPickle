@@ -5,7 +5,7 @@ import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickle
 import {
   createConnectionStatusSnapshot,
   type ConnectionRuntimeSnapshot,
-} from "@/lib/connection-status";
+} from "@/lib/integrations/connection-status";
 import type { PlotPickleProject } from "@/lib/projects/project";
 
 export const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";

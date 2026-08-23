@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { GitHubRepositoryRecoveryDiagnosis } from "@/lib/github-repository-recovery";
+import type { GitHubRepositoryRecoveryDiagnosis } from "@/lib/integrations/github/github-repository-recovery";
 import styles from "./github-recovery-centre.module.css";
 
 const API = "/api/local-github-repository-recovery";

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { ConnectionStatusSnapshot, ConnectionState } from "@/lib/connection-status";
+import type { ConnectionStatusSnapshot, ConnectionState } from "@/lib/integrations/connection-status";
 import {
   COLLABORATION_NAVIGATION,
   PRIMARY_WORKFLOW_NAVIGATION,

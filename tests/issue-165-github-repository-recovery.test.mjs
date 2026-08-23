@@ -26,17 +26,17 @@ function invoke(handler, url, method = "GET", body, remoteAddress = "127.0.0.1")
 async function runtimeGateway() {
   const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-165-"));
   const imports = {
-    '../lib/github-repository-recovery': './github-repository-recovery.mjs',
+    '../lib/integrations/github/github-repository-recovery': './github-repository-recovery.mjs',
     '../lib/projects/collaboration/collaboration-invitations': './collaboration-invitations.mjs',
-    '../lib/github-command-outbox': './github-command-outbox.mjs',
+    '../lib/integrations/github/github-command-outbox': './github-command-outbox.mjs',
     '../lib/projects/persistence/story-project-repository': './story-project-repository.mjs',
     './github-command-service': './github-command-service.mjs',
     './local-credentials': './local-credentials.mjs',
   };
   let gateway = (await source("build/github-repository-recovery-gateway.ts")).replace(/\r\n?/g, "\n");
   for (const [from, to] of Object.entries(imports)) gateway = gateway.replaceAll(`from "${from}"`, `from "${to}"`);
-  const recovery = (await source("lib/github-repository-recovery.ts")).replace(/\r\n?/g, "\n").replace('from "./github-command-outbox"', 'from "./github-command-outbox.mjs"');
-  const outbox = (await source("lib/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
+  const recovery = (await source("lib/integrations/github/github-repository-recovery.ts")).replace(/\r\n?/g, "\n").replace('from "./github-command-outbox"', 'from "./github-command-outbox.mjs"');
+  const outbox = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
   await Promise.all([
     writeFile(path.join(directory, "gateway.mjs"), stripTypeScriptTypes(gateway, { mode: "transform" })),
     writeFile(path.join(directory, "github-repository-recovery.mjs"), stripTypeScriptTypes(recovery, { mode: "transform" })),
@@ -54,7 +54,7 @@ function manifest(projectId = "afterglow") {
 }
 
 test("issue #165 verifies same-project repository and branch recovery candidates", async () => {
-  const recovery = await contract("lib/github-repository-recovery.ts");
+  const recovery = await contract("lib/integrations/github/github-repository-recovery.ts");
   assert.equal(recovery.repositoryMoved("OldOwner/Afterglow", "NewOwner/Afterglow-Renamed"), true);
   assert.equal(recovery.assertRecoveryProjectIdentity("afterglow", "afterglow"), "afterglow");
   assert.throws(() => recovery.assertRecoveryProjectIdentity("afterglow", "other"), /different PlotPickle project/i);

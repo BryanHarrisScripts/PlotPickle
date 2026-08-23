@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { PublicConnectionStatus } from "@/lib/connection-status";
+import type { PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./collab-workspace.module.css";
 

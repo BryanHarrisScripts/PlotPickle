@@ -83,7 +83,7 @@ test("issue #182 keeps Google setup in Settings while later phases isolate Calen
     source("app/collab-workspace.tsx"),
     source("app/google-calendar-workspace.tsx"),
     source("app/google-meet-workspace.tsx"),
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
   ]);
   assert.doesNotMatch(workspace, /\/api\/local-google|googleapis\.com|accounts\.google\.com/);
   assert.match(workspace, /<GoogleCalendarWorkspace/);

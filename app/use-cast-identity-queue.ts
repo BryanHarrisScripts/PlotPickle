@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PublicConnectionStatus } from "@/lib/connection-status";
+import type { PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   approvedCharacterReferenceImages,

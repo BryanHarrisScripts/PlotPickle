@@ -7,7 +7,7 @@ import {
   GOOGLE_MEET_SCOPE,
   type ConnectionPermission,
   type PublicConnectionStatus,
-} from "../lib/connection-status";
+} from "../lib/integrations/connection-status";
 import { resolveGoogleOAuthPublicConfig } from "./google-oauth-public-config";
 import { readCredentialJson, removeCredentialFile, writeCredentialJson } from "./local-credentials";
 

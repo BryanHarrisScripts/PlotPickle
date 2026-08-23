@@ -41,7 +41,7 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     source("app/github-project-sync.tsx"),
     source("app/story-proposals.tsx"),
     source("lib/projects/story/story-proposals.ts"),
-    source("lib/github-collaboration.ts"),
+    source("lib/integrations/github/github-collaboration.ts"),
     source("vite.config.ts"),
     source("build/local-credentials.ts"),
   ]);

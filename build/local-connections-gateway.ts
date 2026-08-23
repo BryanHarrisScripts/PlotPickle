@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import type { PublicConnectionStatus } from "../lib/connection-status";
+import type { PublicConnectionStatus } from "../lib/integrations/connection-status";
 import {
   cancelGoogleAuthorization,
   checkGoogleConnection,

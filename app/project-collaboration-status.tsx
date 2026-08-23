@@ -8,7 +8,7 @@ import type { BuzzRuntimeSnapshot } from "@/lib/buzz/buzz-runtime";
 import {
   buzzConnectionLifecycle,
   githubConnectionLifecycle,
-} from "@/lib/connection-lifecycle";
+} from "@/lib/integrations/connection-lifecycle";
 import styles from "./project-collaboration-status.module.css";
 
 export default function ProjectCollaborationStatus({

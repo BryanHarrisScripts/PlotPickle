@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { GOOGLE_CALENDAR_SCOPE } from "../lib/connection-status";
+import { GOOGLE_CALENDAR_SCOPE } from "../lib/integrations/connection-status";
 import { checkGoogleConnection } from "./google-desktop-oauth";
 import {
   createMeetConferenceData,

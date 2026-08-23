@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { GitHubRecoverySummary } from "@/lib/github-recovery-status";
-import type { GitHubCommandState, PublicGitHubCommandEntry } from "@/lib/github-command-outbox";
+import type { GitHubRecoverySummary } from "@/lib/integrations/github/github-recovery-status";
+import type { GitHubCommandState, PublicGitHubCommandEntry } from "@/lib/integrations/github/github-command-outbox";
 import styles from "./github-recovery-centre.module.css";
 
 type RecoverySnapshot = {

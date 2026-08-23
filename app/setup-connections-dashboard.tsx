@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ConnectionState, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/connection-status";
+import type { ConnectionState, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import styles from "./setup-connections-dashboard.module.css";
 
 const OPENAI_KEYS_URL = "https://platform.openai.com/api-keys";

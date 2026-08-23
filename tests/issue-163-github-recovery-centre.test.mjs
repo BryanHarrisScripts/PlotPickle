@@ -30,16 +30,16 @@ function commandDraft(label = "Publish approved story") {
 
 async function gatewayContract(home) {
   const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-recovery-gateway-"));
-  const outboxRaw = (await source("lib/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
-  const statusRaw = (await source("lib/github-recovery-status.ts")).replace(/\r\n?/g, "\n")
+  const outboxRaw = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
+  const statusRaw = (await source("lib/integrations/github/github-recovery-status.ts")).replace(/\r\n?/g, "\n")
     .replace('from "./github-command-outbox";', 'from "./github-command-outbox.mjs";');
   const serviceRaw = (await source("build/github-command-service.ts")).replace(/\r\n?/g, "\n")
-    .replace('from "../lib/github-command-outbox";', 'from "./github-command-outbox.mjs";')
+    .replace('from "../lib/integrations/github/github-command-outbox";', 'from "./github-command-outbox.mjs";')
     .replace('from "./local-credentials";', 'from "./local-credentials.mjs";');
   const gatewayRaw = (await source("build/github-command-gateway.ts")).replace(/\r\n?/g, "\n")
     .replace('from "./github-command-service";', 'from "./github-command-service.mjs";')
-    .replace('from "../lib/github-command-outbox";', 'from "./github-command-outbox.mjs";')
-    .replace('from "../lib/github-recovery-status";', 'from "./github-recovery-status.mjs";')
+    .replace('from "../lib/integrations/github/github-command-outbox";', 'from "./github-command-outbox.mjs";')
+    .replace('from "../lib/integrations/github/github-recovery-status";', 'from "./github-recovery-status.mjs";')
     .replace('from "./local-credentials";', 'from "./local-credentials.mjs";');
   await Promise.all([
     writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(outboxRaw, { mode: "transform" }), "utf8"),
@@ -75,7 +75,7 @@ function invokeGateway(handler, url, method = "GET", remoteAddress = "127.0.0.1"
 }
 
 test("issue #163 prepares only retryable commands and never replays them", async () => {
-  const contract = await contractModule("lib/github-command-outbox.ts");
+  const contract = await contractModule("lib/integrations/github/github-command-outbox.ts");
   const queued = contract.enqueueGitHubCommand(contract.emptyGitHubCommandOutbox("2026-07-28T00:00:00.000Z"), commandDraft(), "2026-07-28T00:00:00.000Z");
   const sending = contract.markGitHubCommandSending(queued.outbox, queued.entry.id, "2026-07-28T00:00:01.000Z");
   const failed = contract.recordGitHubCommandFailure(sending.outbox, queued.entry.id, { status: 503, message: "GitHub temporarily unavailable" }, "2026-07-28T00:00:02.000Z");
@@ -89,7 +89,7 @@ test("issue #163 prepares only retryable commands and never replays them", async
 });
 
 test("issue #163 keeps authentication and review failures stopped for a person", async () => {
-  const contract = await contractModule("lib/github-command-outbox.ts");
+  const contract = await contractModule("lib/integrations/github/github-command-outbox.ts");
   const base = contract.enqueueGitHubCommand(contract.emptyGitHubCommandOutbox(), commandDraft());
   const sending = contract.markGitHubCommandSending(base.outbox, base.entry.id);
   const authentication = contract.recordGitHubCommandFailure(sending.outbox, base.entry.id, { status: 401, message: "Token expired" });
@@ -110,7 +110,7 @@ test("issue #163 keeps authentication and review failures stopped for a person",
 });
 
 test("issue #163 cancellation preserves an audit entry and rejects unsafe states", async () => {
-  const contract = await contractModule("lib/github-command-outbox.ts");
+  const contract = await contractModule("lib/integrations/github/github-command-outbox.ts");
   const queued = contract.enqueueGitHubCommand(contract.emptyGitHubCommandOutbox(), commandDraft());
   const cancelled = contract.cancelGitHubCommand(queued.outbox, queued.entry.id);
   assert.equal(cancelled.entry.state, "cancelled");
@@ -126,7 +126,7 @@ test("issue #163 cancellation preserves an audit entry and rejects unsafe states
 });
 
 test("issue #163 summarizes green, amber, red and review-required recovery states", async () => {
-  const recovery = await contractModule("lib/github-recovery-status.ts");
+  const recovery = await contractModule("lib/integrations/github/github-recovery-status.ts");
   assert.equal(recovery.summarizeGitHubRecovery([]).tone, "ready");
   const base = {
     version: 1,

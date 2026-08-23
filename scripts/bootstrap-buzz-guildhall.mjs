@@ -86,9 +86,8 @@ function channelRecords(value) {
   });
 }
 
-function parseJson(text, label) {
-  try { return JSON.parse(text || "null"); }
-  catch { throw new Error(`${label} returned invalid JSON.`); }
+function parseJson(text) {
+  return JSON.parse(text || "null");
 }
 
 const cleanupPath = path.join(projectRoot, "config", "buzz-community-cleanup.json");
@@ -100,7 +99,6 @@ const retainedRoomIds = new Set(provisionedChannels.map((room) => room.id));
 async function findChannel(name) {
   const records = channelRecords(parseJson(
     await command(["channels", "search", "--query", name, "--exact"]),
-    `buzz channels search ${name}`,
   ));
   return records.find((channel) => channel.name === name && !channel.archived) || null;
 }

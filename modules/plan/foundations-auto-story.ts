@@ -10,7 +10,7 @@ import {
   listLibraryProjects,
 } from "../../core/storage/project-library-browser";
 import { saveFoundationProject } from "../../core/storage/foundation-project-browser";
-import { normalizeFullStoryBrief } from "../learn/full-story-builder.mjs";
+import { normalizeFullStoryBrief } from "../../lib/projects/story/full-story-brief.mjs";
 import { draftFoundationLesson } from "./foundations-plan-drafter";
 
 type FullStoryBrief = {

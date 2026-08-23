@@ -1,3 +1,14 @@
+import {
+  FIRST_NAMES,
+  SURNAMES,
+  clean,
+  hash,
+  normalizeFullStoryBrief,
+  pick,
+} from "../../lib/projects/story/full-story-brief.mjs";
+
+export { normalizeFullStoryBrief };
+
 const BLOCK_TEMPLATES = [
   ["Hook, Introduction & Catalyst", "Open on a compelling image, establish the ordinary world, then disrupt it."],
   ["Problem, Stakes & Philosophy", "Define the problem, the cost of failure and the belief under pressure."],
@@ -54,32 +65,10 @@ const LEARNING_EVIDENCE = [
 ];
 
 const MINI_LABELS = ["Promise", "Progress", "Pressure", "Payoff"];
-const FIRST_NAMES = ["Mara", "Theo", "Inez", "Callum", "Asha", "Jonah", "Noor", "Elian"];
-const SURNAMES = ["Vale", "Mercer", "Sato", "Quill", "Moreno", "Rook", "Avery", "Bell"];
-const TITLE_FIRST = ["Glass", "Quiet", "Copper", "Winter", "Paper", "Hidden", "Salt", "Last"];
-const TITLE_SECOND = ["Orchard", "Signal", "Harbour", "Atlas", "Lantern", "Current", "Garden", "Compass"];
-const SETTINGS = ["a weather-beaten island observatory", "a lake town built around a silent mill", "a vertical city whose elevators remember every passenger", "a northern greenhouse settlement", "a coastal archive threatened by the tide", "a railway community at the end of its line"];
-
-function clean(value, fallback = "") {
-  return typeof value === "string" && value.trim() ? value.trim().slice(0, 4_000) : fallback;
-}
 
 function integer(value, fallback, minimum, maximum) {
   const candidate = Number(value);
   return Number.isFinite(candidate) ? Math.min(maximum, Math.max(minimum, Math.round(candidate))) : fallback;
-}
-
-function hash(value) {
-  let state = 2166136261;
-  for (const character of String(value)) {
-    state ^= character.charCodeAt(0);
-    state = Math.imul(state, 16777619);
-  }
-  return state >>> 0;
-}
-
-function pick(values, seed, offset = 0) {
-  return values[(seed + offset * 2654435761) % values.length];
 }
 
 function id(prefix, seed) {
@@ -88,36 +77,6 @@ function id(prefix, seed) {
 
 function slug(value) {
   return clean(value, "untitled-story").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "untitled-story";
-}
-
-export function normalizeFullStoryBrief(value = {}) {
-  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  const seedText = clean(source.originalitySeed, `${Date.now()}-${Math.random()}`);
-  const seed = hash(seedText);
-  const protagonist = clean(source.protagonist, `${pick(FIRST_NAMES, seed)} ${pick(SURNAMES, seed, 1)}`);
-  const title = clean(source.title, `The ${pick(TITLE_FIRST, seed, 2)} ${pick(TITLE_SECOND, seed, 3)}`);
-  const setting = clean(source.setting, pick(SETTINGS, seed, 4));
-  const goal = clean(source.protagonistGoal, "recover a stolen public memory before the community forgets why it exists");
-  const opposition = clean(source.opposition, "a trusted civic keeper who believes forgetting is the only way the community can survive");
-  const theme = clean(source.theme, "A shared future requires the courage to remember together, not the comfort of choosing the past for others.");
-  const premise = clean(source.premise, `In ${setting}, ${protagonist}, a practical outsider with a private reason to avoid the past, must ${goal} while ${opposition} closes every route forward.`);
-  return {
-    title,
-    premise,
-    genre: clean(source.genre, "Character-driven speculative mystery"),
-    tone: clean(source.tone, "Tense, intimate and visually tactile, with earned warmth"),
-    protagonist,
-    protagonistGoal: goal,
-    opposition,
-    theme,
-    setting,
-    visualLanguage: clean(source.visualLanguage, "Matte charcoal interiors, weathered brass, hard window light, handmade maps and restrained amber accents"),
-    audience: clean(source.audience, "Adult and crossover audiences who enjoy emotional mystery and grounded speculative drama"),
-    contentRating: clean(source.contentRating, "PG-13"),
-    language: clean(source.language, "English"),
-    projectOwner: clean(source.projectOwner, "Project owner"),
-    originalitySeed: seedText,
-  };
 }
 
 function character({ seed, name, role, description, want, need, ghost, flaw, strengths, arc, voice }) {

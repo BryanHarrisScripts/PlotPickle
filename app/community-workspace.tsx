@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PPFProject } from "../core/project/project";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
 import {
@@ -75,7 +76,7 @@ type StoryRoomRecord = { roomId: BuzzStoryRoomId; channel: BuzzChannel; created?
 type UtilityView = "social" | "story-rooms" | "studios" | "agents";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BUZZ_API}${path}`, {
+  const response = await authenticatedProfileFetch(`${BUZZ_API}${path}`, {
     ...init,
     cache: "no-store",
     headers: { Accept: "application/json", "Content-Type": "application/json", ...(init?.headers ?? {}) },

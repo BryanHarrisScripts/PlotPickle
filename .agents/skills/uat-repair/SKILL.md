@@ -18,11 +18,12 @@ Use this skill only for a concrete, reproducible PlotPickle UAT finding. AGENTS.
 2. Work only inside the isolated repair worktree provided by PlotPickle.
 3. Reproduce the failure from the existing evidence or nearest focused test before changing product behavior.
 4. Add or strengthen the nearest focused regression so the reported defect is represented by a failing test.
-5. Find the smallest architectural root cause. Repair that cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.
-6. Apply the BEN Code Quality standard (`skill://plotpickle/ben-code-quality`) while naming, moving, typing, documenting, and organizing changed code.
-7. Run the new regression and nearby focused tests. Keep iterating until they pass.
-8. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, then focused UAT contracts and the production build.
-9. Finish with a concise summary of root cause, files changed, regression added, BEN findings addressed or remaining, and tests run.
+5. Apply Engineering Discipline (`skill://plotpickle/engineering-discipline`): resolve material assumptions from repository evidence, define observable success criteria, and keep the repair to the smallest sufficient task-scoped change.
+6. Find the smallest architectural root cause. Repair that cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.
+7. Apply the BEN Code Quality standard (`skill://plotpickle/ben-code-quality`) while naming, moving, typing, documenting, and organizing changed code.
+8. Run the new regression and nearby focused tests. Keep iterating until they pass.
+9. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, then focused UAT contracts and the production build.
+10. Finish with a concise summary of root cause, files changed, regression added, BEN findings addressed or remaining, and tests run.
 
 ## BEN coding standard
 
@@ -36,7 +37,7 @@ For every repair, keep the resulting code easy for the next coding agent to find
 - put short plain-language comments where a search lands when the signature cannot express the key constraint;
 - keep orchestration thin and move question-sized implementations into well-named concept modules.
 
-The full BEN procedure is the canonical standard. This summary exists so repair workers preserve the rules even when the host cannot progressively load the companion Skill during a local repair session.
+The full BEN procedure is the canonical discoverability standard. Engineering Discipline is the companion scope-and-execution procedure. This summary exists so repair workers preserve the BEN rules even when the host cannot progressively load the companion Skill during a local repair session.
 
 ## Boundaries
 

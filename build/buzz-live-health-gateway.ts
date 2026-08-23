@@ -9,7 +9,7 @@ import { readCredentialJson } from "./local-credentials";
 const API = "/api/local-buzz/live-health";
 const CONNECTION_FILE = "buzz-connection.json";
 const MAX_COMMAND_OUTPUT = 2 * 1024 * 1024;
-const HEALTH_ROOM = "gatehouse";
+const HEALTH_ROOM = "great-hall";
 
 type BuzzConnection = {
   version: 1;
@@ -24,7 +24,7 @@ type BuzzConnection = {
 };
 
 type CommandResult = { stdout: string; stderr: string; code: number };
-type BuzzChannel = { id: string; name: string };
+type BuzzChannel = { id: string; name: string; archived: boolean };
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -164,13 +164,17 @@ function firstString(item: Record<string, unknown>, keys: string[]) {
   return "";
 }
 
+function archivedChannel(item: Record<string, unknown>) {
+  return item.archived === true || String(item.archived ?? "").trim().toLowerCase() === "true";
+}
+
 function channelsFrom(value: unknown): BuzzChannel[] {
   return nestedArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
     const id = firstString(item, ["channel_id", "id", "channelId", "uuid"]);
     const name = firstString(item, ["name", "title", "slug"]);
-    return id && name ? [{ id, name }] : [];
+    return id && name ? [{ id, name, archived: archivedChannel(item) }] : [];
   });
 }
 
@@ -195,17 +199,17 @@ async function liveRoundTrip() {
   }
 
   const channels = channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list"]));
-  const gatehouse = channels.find((channel) => channel.name === HEALTH_ROOM);
-  if (!gatehouse) throw new Error("The Guildhall Gatehouse is missing. Set up the PlotPickle Guildhall first.");
+  const healthRoom = channels.find((channel) => channel.name === HEALTH_ROOM && !channel.archived);
+  if (!healthRoom) throw new Error("The active Great Hall is missing. Refresh or repair the PlotPickle Playhouse rooms before running the live test.");
 
   const sentAt = new Date().toISOString();
   const tag = `plotpickle-buzz-health:${randomUUID()}`;
-  const content = `${tag}\nPlotPickle signed BUZZ round-trip health probe · ${sentAt}`;
-  await runBuzz(connection, ["messages", "send", "--channel", gatehouse.id, "--content", content]);
+  const content = `${tag}\nPlotPickle signed BUZZ round-trip connection probe · ${sentAt}`;
+  await runBuzz(connection, ["messages", "send", "--channel", healthRoom.id, "--content", content]);
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
     if (attempt > 0) await sleep(400);
-    const messages = await runBuzz(connection, ["messages", "get", "--channel", gatehouse.id, "--limit", "30"]);
+    const messages = await runBuzz(connection, ["messages", "get", "--channel", healthRoom.id, "--limit", "30"]);
     if (messageContents(messages).some((message) => message.includes(tag))) {
       const receivedAt = new Date().toISOString();
       return {
@@ -214,12 +218,12 @@ async function liveRoundTrip() {
         room: HEALTH_ROOM,
         sentAt,
         receivedAt,
-        message: "Guildhall reachable. Signed test message received from BUZZ.",
+        message: "BUZZ transport reachable. Signed test message received through the Great Hall.",
       };
     }
   }
 
-  throw new Error("BUZZ accepted the signed Gatehouse message, but PlotPickle could not read the same message back. The live round trip is not proven yet.");
+  throw new Error("BUZZ accepted the signed Great Hall test message, but PlotPickle could not read the same message back. The live round trip is not proven yet.");
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {

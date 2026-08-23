@@ -4,13 +4,15 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1283 Community rail uses the plugin presentation name while the connected BUZZ relay remains authoritative", async () => {
-  const [workspace, social] = await Promise.all([
+test("#1283/#1323 Community rail uses the configured BUZZ Community name while the connected BUZZ relay remains authoritative", async () => {
+  const [workspace, social, defaultCommunity] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
+    read("lib/buzz/buzz-default-community.ts"),
   ]);
-  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN\.displayName/);
-  assert.match(workspace, /<b>\{COMMUNITY_BBS_NAME\}<\/b>/);
+  assert.match(defaultCommunity, /name:\s*"PlotPickle Community BBS"/);
+  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY\.name/);
+  assert.match(workspace, /<b>\{community\?\.community \|\| COMMUNITY_BBS_NAME\}<\/b>/);
   assert.match(workspace, /buzzDesktopUrl\(community\?\.relayUrl \|\| "", community\?\.community \|\| ""\)/);
   assert.match(social, /const BUZZ_API = "\/api\/local-buzz"/);
 });

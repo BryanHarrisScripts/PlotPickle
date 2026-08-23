@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
 import { describeBuzzManagedRuntime, getBuzzManagedRuntimeActions } from "../lib/buzz/buzz-managed-runtime";
 import {
@@ -43,7 +44,7 @@ type ConnectionState = "loading" | "disconnected" | "detected" | "connecting" | 
 const EMPTY: FormState = { mode: "existing-relay", relayUrl: PLOTPICKLE_BUZZ_COMMUNITY.relayUrl, cliPath: "" };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
+  const response = await authenticatedProfileFetch(`${API}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
   const body = await response.json() as T & { message?: string };
   if (!response.ok) throw new Error(body.message || `Buzz returned ${response.status}.`);
   return body;

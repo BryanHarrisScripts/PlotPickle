@@ -72,12 +72,12 @@ test("README uses the current supplied repository-resident artwork in intentiona
   const readme = await read("README.md");
 
   const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.jpg");
-  const progression = readme.indexOf("docs/brand/Plot-Pickle-Architecture.jpg");
+  const community = readme.indexOf("docs/brand/PlotPickle-Community-BBS.jpg");
   const heading = readme.indexOf("<h1 align=\"center\">PlotPickle</h1>");
-  const progressionIntro = readme.indexOf("The core creative progression is:");
-  const visualWriter = readme.indexOf("## The Visual Writer");
+  const communityHeading = readme.indexOf("## Community, BBS and BUZZ");
+  const nodesHeading = readme.indexOf("## PlotPickle Nodes, Human profiles, Stewards and BUZZ");
   assert.ok(primary >= 0 && primary < heading, "the current supplied dragon/logo banner should lead the README");
-  assert.ok(progression > progressionIntro && progression < visualWriter, "the supplied LEARN PLAN BUILD banner should introduce the Visual Writer section");
+  assert.ok(community > communityHeading && community < nodesHeading, "the supplied Community BBS artwork should introduce the Community section");
   assert.doesNotMatch(readme, /plotpickle-header-horizontal-1200\.png|plotpickle-wordmark-horizontal\.svg/i);
   assert.doesNotMatch(readme, /sage-brinewick-v5-pp-c1\.png|docs\/brand-sources\/sage-brinewick-v2-master\.png/i);
   assert.doesNotMatch(readme, /private-user-images\.githubusercontent\.com|chatgpt\.com|oaidalleapiprodscus/i);

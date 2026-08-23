@@ -53,7 +53,8 @@ test("#1295 matches the supplied three-column hierarchy while preserving readabl
 test("#1295 leaves signed BUZZ posting, polling, identity separation and native voice handoff unchanged", async () => {
   const social = await read("modules/community/community-buzz-social.tsx");
 
-  assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/u);
+  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages\?channel=/u);
+  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages`,[\s\S]*method:\s*"POST"/u);
   assert.match(social, /window\.setInterval\(\(\) => \{ void refresh\(true\); \}, 5000\)/u);
   assert.match(social, /<AgentPortrait id=\{agentId\}/u);
   assert.match(social, /humanPresentation\?\.avatarUrl \|\| member\?\.picture/u);

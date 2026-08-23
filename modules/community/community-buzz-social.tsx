@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import AgentPortrait from "../../components/agent-portrait";
+import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { agentsForCommunityRoom } from "../../lib/plugin-platform";
 import {
   PLOTPICKLE_COMMUNITY_EXTENSIONS,
@@ -86,7 +87,7 @@ function isLegacyOperationalDump(message: BuzzMessage) {
 }
 
 async function readMessages(channelId: string): Promise<BuzzMessage[]> {
-  const response = await fetch(`${BUZZ_API}/messages?channel=${encodeURIComponent(channelId)}&limit=80`, {
+  const response = await authenticatedProfileFetch(`${BUZZ_API}/messages?channel=${encodeURIComponent(channelId)}&limit=80`, {
     cache: "no-store",
     headers: { Accept: "application/json" },
   });
@@ -96,7 +97,7 @@ async function readMessages(channelId: string): Promise<BuzzMessage[]> {
 }
 
 async function sendMessage(channelId: string, content: string) {
-  const response = await fetch(`${BUZZ_API}/messages`, {
+  const response = await authenticatedProfileFetch(`${BUZZ_API}/messages`, {
     method: "POST",
     cache: "no-store",
     headers: { Accept: "application/json", "Content-Type": "application/json" },

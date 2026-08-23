@@ -59,10 +59,12 @@ The semantic execution record itself remains the execution authority. BUZZ recei
 
 1. Read the encrypted local BUZZ connection.
 2. Confirm the identity was previously verified.
-3. Find the private `gatehouse` Guildhall room.
-4. Send a uniquely tagged, signed health message through the BUZZ CLI.
-5. Read recent `gatehouse` messages back from the relay.
+3. Find the active retained `great-hall` room and ignore archived channel records.
+4. Send a uniquely tagged, signed connection-test message through the BUZZ CLI.
+5. Read recent `great-hall` messages back from the relay.
 6. Report success only when the exact tag sent by this test is observed on the read path.
+
+The previous `gatehouse` probe target was retired by the Community cleanup contract, so live health must not depend on that archived room. The Great Hall is retained as the stable Community transport path. The probe is sent only when the Human explicitly presses the live connection test.
 
 The probe contains only an opaque health tag and timestamp. It contains no story content, prompt, model response, credential, hidden reasoning, or private key.
 

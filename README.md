@@ -24,10 +24,6 @@ PlotPickle currently implements that progression through **Foundations** and **W
 
 ****
 
-<p align="center">
-  <img src="docs/brand/Plot-Pickle-Architecture.jpg" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
-</p>
-
 ## The Visual Writer
 
 PlotPickle is organized around one shared progression engine rather than a pile of disconnected tools.
@@ -65,6 +61,10 @@ The layout collapses deliberately on small screens instead of allowing individua
 Community/BBS follows the same contract: live BUZZ server/caller/presence on the left, active BBS content in the centre, and keyboard commands/context on the right.
 
 ## Community, BBS and BUZZ
+
+<p align="center">
+  <img src="docs/brand/PlotPickle-Community-BBS.jpg" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
+</p>
 
 PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed messaging, Communities, rooms, membership, presence and coordination layer.
 
@@ -197,6 +197,10 @@ Provider setup links open the actual provider configuration section instead of b
 Credentials are kept outside story/PPF project files. PlotPickle does not silently migrate credentials, BUZZ identity keys or private project data into committed source.
 
 ## How the architecture fits together
+
+<p align="center">
+  <img src="docs/brand/Plot-Pickle-Architecture.jpg" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
+</p>
 
 ```mermaid
 flowchart TB

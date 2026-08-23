@@ -2,9 +2,8 @@ import { parseRenderedEvaluateText } from "./writer-visual-observer-v3.mjs";
 import { resultText } from "./creative-uat/mcp-runtime.mjs";
 
 export const EXPECTED_NAVIGATION_IDS = [
-  "dashboard",
-  "library",
   "community",
+  "library",
   "learn",
   "wyrmwood",
   "plan",
@@ -16,13 +15,13 @@ export const EXPECTED_NAVIGATION_IDS = [
   "feedback",
   "refine",
   "reports",
+  "dashboard",
   "settings",
 ];
 
 export const EXPECTED_NAVIGATION_LABELS = [
-  "Dashboard",
-  "Library",
   "Community",
+  "Library",
   "Learn",
   "Wyrmwood",
   "Plan",
@@ -34,14 +33,11 @@ export const EXPECTED_NAVIGATION_LABELS = [
   "Feedback",
   "Refine",
   "Reports",
+  "Dashboard",
   "Settings",
 ];
 
-export const EXPECTED_NAVIGATION_GAPS = [
-  { after: "wyrmwood", kind: "community-game" },
-  { after: "graphic-novel", kind: "previs" },
-  { after: "refine", kind: "reports" },
-];
+export const EXPECTED_NAVIGATION_GAPS = [];
 
 export async function inspectWorkspaceNavigation(client) {
   const result = await client.call("browser_evaluate", { function: `async () => {
@@ -51,6 +47,7 @@ export async function inspectWorkspaceNavigation(client) {
           id: node.getAttribute('data-workspace-nav-id') || '',
           label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
           detail: (node.querySelector('small')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+          width: Math.round(node.getBoundingClientRect().width),
         }));
       const gaps = items.length
         ? [...document.querySelectorAll('[data-workspace-navigation="true"] [data-navigation-gap-after]')].map((node) => ({
@@ -87,8 +84,9 @@ export function navigationViolations(facts) {
   if (JSON.stringify(actualGaps) !== JSON.stringify(EXPECTED_NAVIGATION_GAPS)) {
     violations.push(`navigation gaps ${actualGaps.map((gap) => `${gap.after}:${gap.kind}`).join(", ") || "missing"}`);
   }
-  for (const gap of facts?.gaps || []) {
-    if (Number(gap.marginRight || 0) <= 0) violations.push(`gap after ${gap.after} has no visible spacing`);
+  const oversized = (facts?.items || []).filter((item) => Number(item.width || 0) > 72);
+  if (oversized.length) {
+    violations.push(`navigation item width ${oversized.map((item) => `${item.id}:${item.width}`).join(", ")}`);
   }
   return violations;
 }

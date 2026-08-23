@@ -75,9 +75,9 @@ export default function BuzzLiveHealthCard() {
   }
 
   const copy = roundTripState === "testing"
-    ? { title: "Testing live BUZZ connection", tone: "Testing", detail: "PlotPickle is signing a Gatehouse probe and reading that exact message back." }
+    ? { title: "Testing live BUZZ connection", tone: "Testing", detail: "PlotPickle is signing a Great Hall connection probe and reading that exact message back." }
     : roundTripState === "passed"
-      ? { title: "Guildhall reachable", tone: "Live", detail: result?.message || "Signed test message received from BUZZ." }
+      ? { title: "BUZZ transport reachable", tone: "Live", detail: result?.message || "Signed test message received from BUZZ." }
       : roundTripState === "failed"
         ? { title: "Round-trip failed", tone: "Needs attention", detail: result?.message || "PlotPickle could not prove a signed BUZZ round trip." }
         : { title: "Live BUZZ connection not tested yet", tone: "Not tested yet", detail: "Room setup and relay reachability are not enough. Run one signed send-and-read test to prove BUZZ is actually working on this computer." };
@@ -94,7 +94,7 @@ export default function BuzzLiveHealthCard() {
       <p>BUZZ · Live connection</p>
       <h2 id="buzz-live-health-title">{copy.title}</h2>
       <p>{copy.detail}</p>
-      {result?.receivedAt ? <small>Signed test message received {new Date(result.receivedAt).toLocaleString()} via {result.room || "Gatehouse"}.</small> : null}
+      {result?.receivedAt ? <small>Signed test message received {new Date(result.receivedAt).toLocaleString()} via {result.room || "Great Hall"}.</small> : null}
       <div data-buzz-local-backbone="true">
         <p><strong>Local coordination: {localTone}</strong></p>
         <small>{localSummary}</small>

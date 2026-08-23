@@ -67,7 +67,7 @@ test("#1292 BUZZ team snapshots embed the same canonical official images", async
 
 test("#1292 existing Agent repair stays in place and warns against duplicate import", async () => {
   const [setup, provisioner, docs] = await Promise.all([
-    read("scripts/setup-buzz-community.ps1").then((value) => value.toString("utf8")),
+    read("Utilities/Sync-PlotPickle-BUZZ.ps1").then((value) => value.toString("utf8")),
     read("scripts/provision-community-agents.mjs").then((value) => value.toString("utf8")),
     read("docs/buzz-community-one-time-setup.md").then((value) => value.toString("utf8")),
   ]);
@@ -80,7 +80,7 @@ test("#1292 existing Agent repair stays in place and warns against duplicate imp
   assert.match(docs, /does not expose managed Persona avatar edits/);
 });
 
-test("#1292 sync plans every Guildhall stream and forum plus each Agent's functional room", async () => {
+test("#1292 sync plans the four public Community rooms plus each Agent's contributed room", async () => {
   const run = spawnSync(process.execPath, ["scripts/provision-community-agents.mjs"], {
     cwd: new URL(".", root),
     env: process.env,
@@ -88,19 +88,21 @@ test("#1292 sync plans every Guildhall stream and forum plus each Agent's functi
   });
   assert.equal(run.status, 0, run.stderr);
 
-  const [plan, guildhall] = await Promise.all([
+  const [plan, guildhall, cleanup, plugin] = await Promise.all([
     Promise.resolve(JSON.parse(run.stdout)),
     readJson("config/buzz-guildhall.json"),
+    readJson("config/buzz-community-cleanup.json"),
+    readJson("plugins/plotpickle-playhouse/community.json"),
   ]);
-  assert.deepEqual(plan.rooms, guildhall.channels.map(({ id, name, type }) => ({ id, name, type })));
+  assert.deepEqual(plan.rooms.map(({ id, name, type }) => ({ id, name, type })), cleanup.retainedRooms.map(({ id, name, type }) => ({ id, name, type })));
   assert.ok(plan.rooms.some((room) => room.type === "forum"));
   assert.ok(plan.rooms.some((room) => room.type === "stream"));
 
   const actorById = new Map(guildhall.actors.map((actor) => [actor.id, actor]));
-  const configuredRoomIds = new Set(guildhall.channels.map((room) => room.id));
+  const configuredRoomIds = new Set(plugin.rooms.map((room) => room.id));
   for (const agent of plan.agents) {
     for (const roomId of agent.roomIds) assert.ok(configuredRoomIds.has(roomId), `${agent.profileId}: ${roomId}`);
     const primaryChannel = actorById.get(agent.profileId)?.primaryChannel;
-    if (primaryChannel) assert.ok(agent.roomIds.includes(primaryChannel), `${agent.profileId}: ${primaryChannel}`);
+    if (primaryChannel && configuredRoomIds.has(primaryChannel)) assert.ok(agent.roomIds.includes(primaryChannel), `${agent.profileId}: ${primaryChannel}`);
   }
 });

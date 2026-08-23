@@ -89,6 +89,12 @@ function parseJson(text, label) {
   catch { throw new Error(`${label} returned invalid JSON.`); }
 }
 
+const cleanupPath = path.join(projectRoot, "config", "buzz-community-cleanup.json");
+const communityPath = path.join(projectRoot, "plugins", "plotpickle-playhouse", "community.json");
+const [cleanup, community] = await Promise.all([cleanupPath, communityPath].map(async (file) => JSON.parse(await readFile(file, "utf8"))));
+const provisionedChannels = cleanup.retainedRooms;
+const retainedRoomIds = new Set(provisionedChannels.map((room) => room.id));
+
 async function listChannels() {
   return channelRecords(parseJson(await command(["channels", "list"]), "buzz channels list"));
 }
@@ -108,8 +114,14 @@ function requireApplyCredentials() {
   if (!process.env.BUZZ_PRIVATE_KEY?.trim()) throw new Error("--apply requires BUZZ_PRIVATE_KEY. Keep it in the process environment only; never place it in PlotPickle source or config.");
 }
 
+function publicPrimaryChannel(actor) {
+  if (retainedRoomIds.has(actor.primaryChannel)) return actor.primaryChannel;
+  return community.agents.find((entry) => entry.profileId === actor.id)?.roomIds?.find((roomId) => retainedRoomIds.has(roomId)) || "";
+}
+
 async function draftNativeAgent(actor, channels) {
-  const room = channels.find((channel) => channel.name === config.channels.find((entry) => entry.id === actor.primaryChannel)?.name);
+  const primaryChannel = publicPrimaryChannel(actor);
+  const room = channels.find((channel) => channel.name === provisionedChannels.find((entry) => entry.id === primaryChannel)?.name);
   if (!room) throw new Error(`Cannot draft ${actor.displayName}; primary Guildhall room is missing.`);
   await command([
     "agents", "draft-create",
@@ -123,7 +135,7 @@ const plan = {
   schemaVersion: config.schemaVersion,
   guildhall: config.name,
   mode: apply ? "apply" : "dry-run",
-  channels: config.channels.map((channel) => ({
+  channels: provisionedChannels.map((channel) => ({
     name: channel.name,
     label: channel.label,
     type: channel.type,
@@ -131,7 +143,7 @@ const plan = {
   })),
   nativeAgentDrafts: config.actors
     .filter((actor) => actor.buzzPresence === "native-draft")
-    .map((actor) => ({ id: actor.id, displayName: actor.displayName, title: actor.title, primaryChannel: actor.primaryChannel })),
+    .map((actor) => ({ id: actor.id, displayName: actor.displayName, title: actor.title, primaryChannel: publicPrimaryChannel(actor) })),
 };
 
 if (!apply) {
@@ -153,7 +165,7 @@ print(`Connecting ${config.name} through ${cli}.`);
 let channels = await listChannels();
 const created = [];
 const kept = [];
-for (const definition of config.channels) {
+for (const definition of provisionedChannels) {
   if (channels.some((channel) => channel.name === definition.name)) {
     kept.push(definition.name);
     print("KEEP", definition.name);
@@ -164,7 +176,7 @@ for (const definition of config.channels) {
   created.push(definition.name);
 }
 channels = await listChannels();
-const missing = config.channels.filter((definition) => !channels.some((channel) => channel.name === definition.name));
+const missing = provisionedChannels.filter((definition) => !channels.some((channel) => channel.name === definition.name));
 if (missing.length) throw new Error(`Buzz Guildhall bootstrap is incomplete; missing: ${missing.map((item) => item.name).join(", ")}.`);
 
 const drafted = [];
@@ -181,7 +193,7 @@ const result = {
   guildhall: config.name,
   created,
   kept,
-  readyRooms: config.channels.length,
+  readyRooms: provisionedChannels.length,
   ownerReviewedAgentDraftsOpened: drafted,
   note: draftAgents
     ? "Buzz Desktop owns final review/save of each drafted native agent."
@@ -189,7 +201,7 @@ const result = {
 };
 if (jsonOutput) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 else {
-  print(`Guildhall ready: ${result.readyRooms}/${config.channels.length} rooms.`);
+  print(`Guildhall ready: ${result.readyRooms}/${provisionedChannels.length} rooms.`);
   print(`Created ${created.length}; already present ${kept.length}.`);
   if (draftAgents) print(`Opened ${drafted.length} owner-reviewed Buzz agent draft(s).`);
   else print("Native agent drafts were intentionally skipped.");

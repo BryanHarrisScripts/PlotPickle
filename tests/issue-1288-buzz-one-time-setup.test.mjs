@@ -10,11 +10,11 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#1288 Windows launcher provides a deliberate one-time BUZZ setup path", async () => {
   const [launcher, setup, docs] = await Promise.all([
     read("Sync-PlotPickle-BUZZ.cmd"),
-    read("scripts/setup-buzz-community.ps1"),
+    read("Utilities/Sync-PlotPickle-BUZZ.ps1"),
     read("docs/buzz-community-one-time-setup.md"),
   ]);
 
-  assert.match(launcher, /setup-buzz-community\.ps1/i);
+  assert.match(launcher, /Utilities\\Sync-PlotPickle-BUZZ\.ps1/i);
   assert.match(setup, /Type SET UP/);
   assert.match(setup, /bootstrap-buzz-guildhall\.mjs/);
   assert.match(setup, /provision-community-agents\.mjs/);
@@ -25,7 +25,7 @@ test("#1288 Windows launcher provides a deliberate one-time BUZZ setup path", as
 });
 
 test("#1288 setup prompts only for the Human admin credential and never places it on command lines", async () => {
-  const setup = await read("scripts/setup-buzz-community.ps1");
+  const setup = await read("Utilities/Sync-PlotPickle-BUZZ.ps1");
 
   assert.match(setup, /Human\/admin BUZZ private key" -AsSecureString/);
   assert.doesNotMatch(setup, /owner\/provisioner credential/i);
@@ -38,7 +38,7 @@ test("#1288 setup prompts only for the Human admin credential and never places i
 
 test("#1288 setup preserves Human and Agent signer separation", async () => {
   const [setup, provisioner] = await Promise.all([
-    read("scripts/setup-buzz-community.ps1"),
+    read("Utilities/Sync-PlotPickle-BUZZ.ps1"),
     read("scripts/provision-community-agents.mjs"),
   ]);
 
@@ -51,7 +51,7 @@ test("#1288 setup preserves Human and Agent signer separation", async () => {
 
 test("#1288 sync accepts BUZZ single-user discovery and prepares one credential-free team import", async () => {
   const [setup, provisioner, docs] = await Promise.all([
-    read("scripts/setup-buzz-community.ps1"),
+    read("Utilities/Sync-PlotPickle-BUZZ.ps1"),
     read("scripts/provision-community-agents.mjs"),
     read("docs/buzz-community-one-time-setup.md"),
   ]);

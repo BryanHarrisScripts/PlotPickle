@@ -51,7 +51,7 @@ on:
       - "scripts/agent-skill-procedures.mjs"
       - "scripts/install-buzz-desktop.ps1"
       - "scripts/bootstrap-buzz-guildhall.mjs"
-      - "scripts/post-buzz-guildhall-event.mjs"
+      - "build/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
       - "scripts/verify-buzz-live-activity.mjs"
       - "scripts/writer-in-residence-runtime-recovery.mjs"
@@ -134,7 +134,7 @@ on:
       - "scripts/agent-skill-procedures.mjs"
       - "scripts/install-buzz-desktop.ps1"
       - "scripts/bootstrap-buzz-guildhall.mjs"
-      - "scripts/post-buzz-guildhall-event.mjs"
+      - "build/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
       - "scripts/verify-buzz-live-activity.mjs"
       - "scripts/writer-in-residence-runtime-recovery.mjs"
@@ -183,7 +183,7 @@ jobs:
           node --check scripts/agent-skills.mjs
           node --check scripts/agent-skill-procedures.mjs
           node --check scripts/bootstrap-buzz-guildhall.mjs
-          node --check scripts/post-buzz-guildhall-event.mjs
+          node --check build/post-buzz-guildhall-event.mjs
           node --check scripts/buzz-live-activity.mjs
           node --check scripts/verify-buzz-live-activity.mjs
           node --check scripts/writer-in-residence-runtime-recovery.mjs

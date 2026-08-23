@@ -1,5 +1,6 @@
 import guildhallConfig from "../config/buzz-guildhall.json";
 import communityGuildhallConfig from "../config/buzz-guildhall-community.json";
+import communityCleanupConfig from "../config/buzz-community-cleanup.json";
 
 const BUZZ_API = "/api/local-buzz";
 const GUILDHALL_EVENT_VERSION = 1 as const;
@@ -53,6 +54,7 @@ type GuildhallFetch = typeof fetch;
 
 export const BUZZ_GUILDHALL = { ...guildhallConfig, actors: MERGED_GUILDHALL_ACTORS };
 export const BUZZ_GUILDHALL_CHANNELS = guildhallConfig.channels;
+export const BUZZ_COMMUNITY_CHANNELS = communityCleanupConfig.retainedRooms;
 export const BUZZ_GUILDHALL_ACTORS = MERGED_GUILDHALL_ACTORS;
 
 function cleanText(value: unknown, limit: number) {

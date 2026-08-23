@@ -16,10 +16,6 @@ function option(name, fallback = "") {
   return hit ? hit.slice(prefix.length) : fallback;
 }
 
-function hasFlag(name) {
-  return process.argv.includes(name);
-}
-
 function clean(value, limit) {
   return String(value ?? "")
     .replace(/[\u0000-\u001F\u007F]/g, " ")
@@ -39,7 +35,7 @@ async function stdinText() {
 }
 
 async function inputEvent() {
-  if (hasFlag("--stdin")) {
+  if (process.argv.includes("--stdin")) {
     const raw = await stdinText();
     if (!raw) throw new Error("--stdin expected one JSON event on standard input.");
     return JSON.parse(raw);
@@ -58,8 +54,8 @@ async function inputEvent() {
     severity: option("--severity", "info"),
     projectId: option("--project"),
     target: option("--target"),
-    verified: hasFlag("--verified"),
-    actionable: hasFlag("--actionable"),
+    verified: process.argv.includes("--verified"),
+    actionable: process.argv.includes("--actionable"),
     evidence,
     occurredAt: new Date().toISOString(),
   };

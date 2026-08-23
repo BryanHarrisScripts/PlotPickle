@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
-import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
+import { BUZZ_COMMUNITY_CHANNELS, BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
 
 const API = "/api/local-buzz/guildhall";
 const CONNECTION_FILE = "buzz-connection.json";
@@ -236,7 +236,7 @@ function stewardCards() {
 }
 
 function roomStatus(channels: BuzzChannel[]) {
-  const readyRooms = BUZZ_GUILDHALL_CHANNELS.flatMap((definition) => {
+  const readyRooms = BUZZ_COMMUNITY_CHANNELS.flatMap((definition) => {
     const channel = channels.find((candidate) => candidate.name === definition.name);
     return channel ? [{
       id: definition.id,
@@ -248,14 +248,14 @@ function roomStatus(channels: BuzzChannel[]) {
       description: definition.description,
     }] : [];
   });
-  const missingRooms = BUZZ_GUILDHALL_CHANNELS
+  const missingRooms = BUZZ_COMMUNITY_CHANNELS
     .filter((definition) => !channels.some((candidate) => candidate.name === definition.name))
     .map((definition) => ({ id: definition.id, name: definition.name, label: definition.label }));
   return {
     ready: missingRooms.length === 0,
     operational: missingRooms.length === 0,
     readyCount: readyRooms.length,
-    totalCount: BUZZ_GUILDHALL_CHANNELS.length,
+    totalCount: BUZZ_COMMUNITY_CHANNELS.length,
     readyRooms,
     missingRooms,
   };
@@ -271,9 +271,9 @@ async function status() {
     ready: false,
     operational: false,
     readyCount: 0,
-    totalCount: BUZZ_GUILDHALL_CHANNELS.length,
+    totalCount: BUZZ_COMMUNITY_CHANNELS.length,
     readyRooms: [] as Array<Record<string, string>>,
-    missingRooms: BUZZ_GUILDHALL_CHANNELS.map((room) => ({ id: room.id, name: room.name, label: room.label })),
+    missingRooms: BUZZ_COMMUNITY_CHANNELS.map((room) => ({ id: room.id, name: room.name, label: room.label })),
     stewards: stewardCards(),
     upstreamAgentBoundary: "Buzz-native agent creation remains an explicit owner action in Buzz Desktop. PlotPickle does not bypass BUZZ_AUTH_TAG or owner review.",
     message: "Connect and verify Buzz before setting up the PlotPickle Guildhall.",
@@ -288,8 +288,8 @@ async function status() {
       ...rooms,
       canSetup: true,
       message: rooms.ready
-        ? "PlotPickle Guildhall is operational. All private coordination rooms are ready."
-        : `${rooms.readyCount}/${rooms.totalCount} Guildhall rooms are ready. PlotPickle can create the missing rooms safely.`,
+        ? "PlotPickle Community is operational. All four Human-purpose rooms are ready."
+        : `${rooms.readyCount}/${rooms.totalCount} Community rooms are ready. PlotPickle can create the missing rooms safely.`,
     };
   } catch (error) {
     return { ...base, message: safeError(error) };
@@ -302,7 +302,7 @@ async function setup() {
   let channels = await listChannels(connection);
   const created: string[] = [];
   const kept: string[] = [];
-  for (const definition of BUZZ_GUILDHALL_CHANNELS) {
+  for (const definition of BUZZ_COMMUNITY_CHANNELS) {
     if (channels.some((channel) => channel.name === definition.name)) {
       kept.push(definition.name);
       continue;

@@ -1,12 +1,13 @@
 .profileColumns {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 0.72fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.72fr);
   gap: 12px;
   color: #e8f5f6;
 }
 
 .profileColumns :where(button, input, textarea) {
+  box-sizing: border-box;
   font: inherit;
 }
 
@@ -16,6 +17,7 @@
 }
 
 .identityColumn,
+.editorCard,
 .actionColumn {
   min-width: 0;
   padding: 16px;
@@ -27,19 +29,28 @@
 
 .identityColumn {
   grid-column: 1;
-  grid-row: 1 / span 2;
   display: grid;
+  align-content: start;
   gap: 16px;
 }
 
+.rightRail {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.editorCard,
 .actionColumn {
-  grid-column: 2;
+  min-width: 0;
   display: grid;
   align-content: start;
   gap: 9px;
 }
 
 .identityColumn header,
+.editorCard header,
 .actionColumn header {
   display: grid;
   gap: 5px;
@@ -48,6 +59,7 @@
 }
 
 .identityColumn header > span,
+.editorCard header > span,
 .actionColumn header > span {
   color: #d8b36d;
   font-size: 0.64rem;
@@ -57,6 +69,7 @@
 }
 
 .identityColumn h2,
+.editorCard h2,
 .actionColumn h2,
 .buzzSetup h3 {
   margin: 0;
@@ -64,6 +77,7 @@
 }
 
 .identityColumn header p,
+.editorCard header p,
 .actionColumn header p,
 .buzzCard p,
 .buzzSetup p,
@@ -76,15 +90,15 @@
 
 .avatarRow {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
   align-items: center;
 }
 
 .avatarRow > img,
 .avatarRow > div {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
   border: 1px solid #8d6b32;
   border-radius: 50%;
   object-fit: cover;
@@ -113,6 +127,7 @@
 }
 
 .avatarRow small,
+.editorAvatar small,
 .identityForm small,
 .buzzHeading small,
 .buzzSetup small {
@@ -121,7 +136,42 @@
   line-height: 1.45;
 }
 
+.editorAvatar {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.editorAvatar > img,
+.editorAvatar > div {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #8d6b32;
+  border-radius: 50%;
+  object-fit: cover;
+  background: radial-gradient(circle at 38% 30%, #62ded1, #0e5c58 45%, #11211f 72%);
+}
+
+.editorAvatar > div {
+  display: grid;
+  place-items: center;
+  color: #effffc;
+  font-weight: 850;
+}
+
+.editorAvatar > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.editorAvatar strong {
+  overflow-wrap: anywhere;
+}
+
 .identityForm {
+  width: 100%;
   display: grid;
   gap: 11px;
 }
@@ -313,7 +363,6 @@
 }
 
 .notice {
-  grid-column: 1 / -1;
   margin: 0;
   padding: 10px 12px;
   border: 1px solid #3c5967;
@@ -354,12 +403,7 @@
   }
 
   .identityColumn,
-  .actionColumn {
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .notice {
+  .rightRail {
     grid-column: 1;
   }
 

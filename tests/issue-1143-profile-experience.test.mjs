@@ -166,8 +166,8 @@ test("#1143 Profile owns security actions while Settings no longer duplicates Pr
   for (const phrase of ["Access", "Security", "Lock", "Switch profile", "Profile actions", "Add profile", "Log out"]) {
     assert.ok(profile.includes(phrase), `Profile must own security/action copy: ${phrase}`);
   }
-  assert.match(profileCss, /grid-template-columns:\s*minmax\(0, 1\.7fr\) minmax\(220px, 0\.72fr\)/u);
-  assert.match(profileCss, /\.identityColumn\s*\{[\s\S]*grid-column:\s*1;[\s\S]*grid-row:\s*1 \/ span 2;/u);
-  assert.match(profileCss, /\.actionColumn\s*\{[\s\S]*grid-column:\s*2;/u);
-  assert.match(profileCss, /@media \(max-width: 820px\)[\s\S]*\.identityColumn,[\s\S]*\.actionColumn[\s\S]*grid-column:\s*1;[\s\S]*grid-row:\s*auto;/u);
+  assert.match(profileCss, /grid-template-columns:\s*minmax\(0, 1\.7fr\) minmax\(260px, 0\.72fr\)/u);
+  assert.match(profileCss, /\.identityColumn\s*\{[\s\S]*grid-column:\s*1;/u);
+  assert.match(profileCss, /\.rightRail\s*\{[\s\S]*display:\s*grid;[\s\S]*align-content:\s*start;/u);
+  assert.match(profileCss, /@media \(max-width: 820px\)[\s\S]*\.identityColumn,[\s\S]*\.rightRail[\s\S]*grid-column:\s*1;/u);
 });

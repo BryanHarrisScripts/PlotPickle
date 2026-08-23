@@ -27,13 +27,15 @@ test("#1044 retries only transient BUZZ transport failures", async () => {
   assert.equal(functionalAttempts, 1);
 });
 
-test("#1044/#1283 plugin branding owns the visible Community identity while BUZZ remains the transport source of truth", async () => {
-  const [workspace, social] = await Promise.all([
+test("#1044/#1283/#1323 configured BUZZ Community naming owns the visible Community identity while BUZZ remains the transport source of truth", async () => {
+  const [workspace, social, defaultCommunity] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
+    read("lib/buzz/buzz-default-community.ts"),
   ]);
-  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN\.displayName/);
-  assert.match(workspace, /<b>\{COMMUNITY_BBS_NAME\}<\/b>/);
+  assert.match(defaultCommunity, /name:\s*"PlotPickle Community BBS"/);
+  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY\.name/);
+  assert.match(workspace, /<b>\{community\?\.community \|\| COMMUNITY_BBS_NAME\}<\/b>/);
   assert.match(workspace, /community\?\.relayUrl/);
   assert.match(workspace, /community\?\.community/);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);

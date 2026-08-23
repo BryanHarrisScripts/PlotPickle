@@ -54,8 +54,48 @@ export default function LibraryWorkspace() {
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [notice, setNotice] = useState("");
-  useEffect(() => { const refresh = () => { const library = initializeProjectLibrary(); setActiveProject(library.activeProject); setStories(listLibraryProjects()); if (library.migrated) setNotice("Your existing PlotPickle project was safely added to My Stories."); else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story."); }; refresh(); window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh); return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh); }, []);
-  function confirmLoad() { if (!pending) return; try { if (pending.kind === "story") switchActiveLibraryProject(pending.item.id); else createLibraryWorkingCopy({ sourceProject: pending.item.project, sourceKind: pending.sourceKind, sourceId: pending.item.id, title: pending.item.title, genre: pending.item.genre, format: pending.item.format }); setPending(null); openActiveProject(); } catch (error) { setPending(null); setNotice(error instanceof Error ? error.message : "PlotPickle could not switch stories."); } }
+
+  useEffect(() => {
+    const refresh = () => {
+      const library = initializeProjectLibrary();
+      setActiveProject(library.activeProject);
+      setStories(listLibraryProjects());
+      if (library.migrated) setNotice("Your existing PlotPickle project was safely added to My Stories.");
+      else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
+    };
+    refresh();
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+  }, []);
+
+  function confirmLoad() {
+    if (!pending) return;
+    try {
+      if (pending.kind === "story") switchActiveLibraryProject(pending.item.id);
+      else createLibraryWorkingCopy({ sourceProject: pending.item.project, sourceKind: pending.sourceKind, sourceId: pending.item.id, title: pending.item.title, genre: pending.item.genre, format: pending.item.format });
+      setPending(null);
+      openActiveProject();
+    } catch (error) {
+      setPending(null);
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not switch stories.");
+    }
+  }
+
   const visibleCatalog = tab === "featured" ? examples : presets;
-  return <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v1"><header className={styles.hero}><div><p className={styles.eyebrow}>Local story archive</p><h1 id="library-title">Library</h1><p>Examples &amp; Stories</p></div><aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "Opening your Library…"}</strong><small>Your work stays local and is saved before every story switch.</small></aside></header><AverySessionHistory /><nav aria-label="Library filters" className={styles.tabs}>{TABS.map((item) => <button aria-current={tab === item.id ? "page" : undefined} key={item.id} onClick={() => setTab(item.id)} type="button">{item.label}{item.id === "stories" ? <span>{stories.length}</span> : null}</button>)}</nav>{notice ? <p className={styles.notice} role="status">{notice}</p> : null}{tab === "stories" ? <section aria-labelledby="my-stories-title" className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div><p>Open any saved Human project without mixing it with Avery’s read-only Writer-in-Residence sessions. Those sessions stay above the story shelf and never become the active Human project.</p></div>{stories.length ? <div className={styles.grid}>{stories.map((item) => <StoryCard activeProjectId={activeProject?.id || ""} item={item} key={item.id} onOpen={() => setPending({ kind: "story", item })} />)}</div> : <div className={styles.empty}><h3>Your shelves are ready.</h3><p>Explore a complete example or choose a genre preset to create your first local working story.</p><button className={styles.primaryButton} onClick={() => setTab("featured")} type="button">Browse Featured Examples</button></div>}</section> : <section aria-labelledby={`${tab}-title`} className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>{tab === "featured" ? "Immutable source projects" : "Canonical PPF starters"}</p><h2 id={`${tab}-title`}>{tab === "featured" ? "Featured Examples" : "Genre Presets"}</h2></div><p>{tab === "featured" ? "Load a user-owned working copy, then explore it through the normal PlotPickle workflow. The packaged source never changes." : "Each preset fills only fields supported by the current PPF model, leaving your creative decisions open."}</p></div><div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: tab === "featured" ? "example" : "preset", item })} sourceKind={tab === "featured" ? "example" : "preset"} />)}</div></section>}{pending ? <div className={styles.dialogBackdrop} role="presentation"><section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog"><p className={styles.eyebrow}>Safe project switch</p><h2 id="library-load-title">Load this project?</h2><p>Your current work will be saved as a local story before PlotPickle switches projects.</p><strong>{pending.item.title}</strong><div><button className={styles.secondaryButton} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} onClick={confirmLoad} type="button">Save &amp; Switch</button></div></section></div> : null}</main>;
+
+  return <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v1">
+    <header className={styles.hero}>
+      <div><p className={styles.eyebrow}>Local story archive</p><h1 id="library-title">Library</h1><p>Examples &amp; Stories</p></div>
+      <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "Opening your Library…"}</strong><small>Your work stays local and is saved before every story switch.</small></aside>
+    </header>
+
+    <div className={styles.libraryColumn}>
+      <AverySessionHistory />
+      <nav aria-label="Library filters" className={styles.tabs}>{TABS.map((item) => <button aria-current={tab === item.id ? "page" : undefined} key={item.id} onClick={() => setTab(item.id)} type="button">{item.label}{item.id === "stories" ? <span>{stories.length}</span> : null}</button>)}</nav>
+      {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+      {tab === "stories" ? <section aria-labelledby="my-stories-title" className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div><p>Open any saved Human project without mixing it with Avery’s read-only Writer-in-Residence sessions. Those sessions stay above the story shelf and never become the active Human project.</p></div>{stories.length ? <div className={styles.grid}>{stories.map((item) => <StoryCard activeProjectId={activeProject?.id || ""} item={item} key={item.id} onOpen={() => setPending({ kind: "story", item })} />)}</div> : <div className={styles.empty}><h3>Your shelves are ready.</h3><p>Explore a complete example or choose a genre preset to create your first local working story.</p><button className={styles.primaryButton} onClick={() => setTab("featured")} type="button">Browse Featured Examples</button></div>}</section> : <section aria-labelledby={`${tab}-title`} className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>{tab === "featured" ? "Immutable source projects" : "Canonical PPF starters"}</p><h2 id={`${tab}-title`}>{tab === "featured" ? "Featured Examples" : "Genre Presets"}</h2></div><p>{tab === "featured" ? "Load a user-owned working copy, then explore it through the normal PlotPickle workflow. The packaged source never changes." : "Each preset fills only fields supported by the current PPF model, leaving your creative decisions open."}</p></div><div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: tab === "featured" ? "example" : "preset", item })} sourceKind={tab === "featured" ? "example" : "preset"} />)}</div></section>}
+    </div>
+
+    {pending ? <div className={styles.dialogBackdrop} role="presentation"><section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog"><p className={styles.eyebrow}>Safe project switch</p><h2 id="library-load-title">Load this project?</h2><p>Your current work will be saved as a local story before PlotPickle switches projects.</p><strong>{pending.item.title}</strong><div><button className={styles.secondaryButton} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} onClick={confirmLoad} type="button">Save &amp; Switch</button></div></section></div> : null}
+  </main>;
 }

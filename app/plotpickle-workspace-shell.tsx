@@ -8,9 +8,8 @@ import styles from "./plotpickle-workspace-shell.module.css";
 export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";
 
 export const ROOT_NAV_ITEMS = [
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
-  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Examples & Stories", selectable: true },
   { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
+  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Examples & Stories", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
@@ -22,6 +21,7 @@ export const ROOT_NAV_ITEMS = [
   { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
   { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
   { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
   { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "Settings", detail: "Config", selectable: true },
 ] as const;
 
@@ -30,13 +30,6 @@ type RootNavItem = (typeof ROOT_NAV_ITEMS)[number];
 function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
   return id === "dashboard" || id === "learn" || id === "plan" || id === "build"
     || id === "wyrmwood" || id === "library" || id === "community" || id === "settings";
-}
-
-function navigationBreakAfter(id: RootNavItem["id"]) {
-  if (id === "wyrmwood") return "community-game";
-  if (id === "graphic-novel") return "previs";
-  if (id === "refine") return "reports";
-  return "";
 }
 
 export default function PlotPickleWorkspaceShell({
@@ -71,17 +64,9 @@ export default function PlotPickleWorkspaceShell({
             {ROOT_NAV_ITEMS.map((item) => {
               const active = item.id === activeWorkspace;
               const selectable = item.selectable && isRootWorkspace(item.id);
-              const breakAfter = navigationBreakAfter(item.id);
-              const className = [
-                active ? styles.active : "",
-                breakAfter === "community-game" ? styles.groupBreakCommunityGame : "",
-                breakAfter === "previs" ? styles.groupBreakPrevis : "",
-                breakAfter === "reports" ? styles.groupBreakReports : "",
-              ].filter(Boolean).join(" ") || undefined;
               return (
                 <li
-                  className={className}
-                  data-navigation-gap-after={breakAfter || undefined}
+                  className={active ? styles.active : undefined}
                   data-workspace-nav-id={item.id}
                   key={item.id}
                 >

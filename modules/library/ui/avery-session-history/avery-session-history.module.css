@@ -14,8 +14,8 @@
 .heading p,.reviewHeader p,.reviewSection p,.answerCard p { margin: 0; color: var(--plotpickle-text-muted, #a8bbb5); }
 .kicker { text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; color: var(--plotpickle-accent, #65d6c2) !important; }
 .notice { margin: 14px 0 0; }
-.slotGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 250px)); gap: 18px; margin-top: 20px; align-items: start; }
-.slotWrap { width: 100%; max-width: 250px; }
+.slotGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 20px; align-items: start; }
+.slotWrap { width: 100%; min-width: 0; }
 .sessionCard { position: relative; width: 100%; aspect-ratio: 1 / 1; padding: 0; overflow: hidden; border: 1px solid rgba(101,214,194,.26); border-radius: 16px; background: #0b1110; color: inherit; text-align: left; cursor: pointer; }
 .sessionCard:disabled { cursor: default; opacity: .72; }
 .artwork { position: absolute; inset: 0; }
@@ -48,5 +48,5 @@
 .timeline article,.findings article,.visualList article { padding: 12px; border-left: 2px solid rgba(101,214,194,.45); background: rgba(0,0,0,.12); }
 .timeline header,.findings header { display: flex; justify-content: space-between; gap: 12px; color: #d9ebe6; }
 .timeline small,.findings small { color: var(--plotpickle-text-muted,#a8bbb5); }
-@media (max-width:1180px) { .slotGrid { grid-template-columns: repeat(2,minmax(0,250px)); } .reviewSummary { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width:1180px) { .slotGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } .reviewSummary { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width:640px) { .heading,.reviewHeader { flex-direction: column; } .slotGrid,.reviewSummary { grid-template-columns: 1fr; } .slotWrap { max-width:100%; } }

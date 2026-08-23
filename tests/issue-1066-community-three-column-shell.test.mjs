@@ -32,11 +32,12 @@ test("#1102/#1103 terminal screen and command rail use the inherited centre/righ
   assert.match(terminal, /const COMMANDS:/);
 });
 
-test("#1283 keeps the Community rail truthful about verified Human identity and plugin presentation", async () => {
+test("#1283/#1323 keeps the Community rail truthful about verified Human identity and configured Community presentation", async () => {
   const workspace = await read("app/community-workspace.tsx");
   assert.match(workspace, /data-community-native-buzz="true"/);
   assert.match(workspace, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
-  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN\.displayName/);
+  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY\.name/);
+  assert.match(workspace, /community\?\.community \|\| COMMUNITY_BBS_NAME/);
   assert.match(workspace, /data-community-caller="verified-human"/);
   assert.match(workspace, /You speak as yourself\. Agents use separate identities/);
 });

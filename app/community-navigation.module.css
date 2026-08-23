@@ -213,9 +213,15 @@
 }
 
 .subDestination small {
-  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 64%;
+  flex: 1 1 auto;
+  overflow: hidden;
   color: var(--community-muted, #918a80);
   font-size: 10px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .subDestination[aria-current="page"] {

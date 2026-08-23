@@ -163,7 +163,7 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   const community = shell.indexOf('id: "community"');
   const learn = shell.indexOf('id: "learn"');
   const wyrmwood = shell.indexOf('id: "wyrmwood"');
-  assert.ok(dashboard < library && library < community && community < learn && learn < wyrmwood);
+  assert.ok(community < library && library < learn && learn < wyrmwood && wyrmwood < dashboard);
   assert.match(shell, /label: "Library", detail: "Examples & Stories", selectable: true/);
   assert.match(route, /activeWorkspace="library"/);
   assert.match(workspace, /Featured Examples/);

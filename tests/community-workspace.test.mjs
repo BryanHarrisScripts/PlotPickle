@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Community remains a native PlotPickle workspace beside Dashboard", async () => {
+test("Community remains a native PlotPickle workspace in the revised workflow order", async () => {
   const [page, nav, glyph] = await Promise.all([
     read("app/page.tsx"),
     read("app/plotpickle-workspace-shell.tsx"),
@@ -12,10 +12,14 @@ test("Community remains a native PlotPickle workspace beside Dashboard", async (
   ]);
   assert.match(page, /requested === "community"/);
   assert.match(page, /<CommunityWorkspace onOpenSettings=\{\(\) => navigateWorkspace\("settings"\)\}/);
-  const dashboard = nav.indexOf('id: "dashboard"');
   const community = nav.indexOf('id: "community"');
+  const library = nav.indexOf('id: "library"');
   const learn = nav.indexOf('id: "learn"');
-  assert.ok(dashboard >= 0 && dashboard < community && community < learn);
+  const reports = nav.indexOf('id: "reports"');
+  const dashboard = nav.indexOf('id: "dashboard"');
+  const settings = nav.indexOf('id: "settings"');
+  assert.ok(community >= 0 && community < library && library < learn);
+  assert.ok(reports >= 0 && reports < dashboard && dashboard < settings);
   assert.match(nav, /community\.svg/);
   assert.match(glyph, /transparent PlotPickle guild sigil/i);
 });
@@ -58,6 +62,21 @@ test("normal Community rail exposes plugin-contributed Human-purpose rooms inste
   assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
   assert.match(workspace, /Private Story Room/);
   assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.agents\.length/);
+});
+
+test("Community rail shows the real Community name and room-purpose descriptions instead of Agent names", async () => {
+  const [workspace, navigationStyles, defaultCommunity] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/community-navigation.module.css"),
+    read("lib/buzz/buzz-default-community.ts"),
+  ]);
+  assert.match(defaultCommunity, /name:\s*"PlotPickle Community BBS"/);
+  assert.match(workspace, /PLOTPICKLE_BUZZ_COMMUNITY\.name/);
+  assert.match(workspace, /community\?\.community \|\| COMMUNITY_BBS_NAME/);
+  assert.match(workspace, /ROOM_RAIL_DESCRIPTIONS/);
+  assert.match(workspace, /definition\.railDescription/);
+  assert.doesNotMatch(workspace, /agentsForCommunityRoom|definition\.helpers/);
+  assert.match(navigationStyles, /\.subDestination small\s*\{[^}]*max-width:\s*64%;[^}]*text-align:\s*right;[^}]*text-overflow:\s*ellipsis;/s);
 });
 
 test("Great Hall uses the same readable BUZZ social surface as other public rooms", async () => {

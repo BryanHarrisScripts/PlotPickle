@@ -13,9 +13,10 @@ test("#1067 defines one BUZZ room history shared by PlotPickle and Buzz Desktop"
   assert.equal(config.conversationMirror.offlineShadowHistory, false);
 });
 
-test("#1067 keeps PlotPickle Community reads and writes on the real BUZZ message route", async () => {
-  const [gateway, workspace, social, storyAccess] = await Promise.all([
+test("#1067 keeps PlotPickle Community reads and writes on real BUZZ message/forum routes", async () => {
+  const [gateway, communityGateway, workspace, social, storyAccess] = await Promise.all([
     read("build/buzz-gateway.ts"),
+    read("build/buzz-community-gateway.ts"),
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("app/community-story-room-access.tsx"),
@@ -25,8 +26,9 @@ test("#1067 keeps PlotPickle Community reads and writes on the real BUZZ message
   assert.match(gateway, /firstString\(item, \["id", "event_id", "eventId"\]\)/);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
   assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
-  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages`,/);
-  assert.match(social, /sendMessage\(target\.channelId, draft\.trim\(\)\)/);
+  assert.match(social, /community\/forum-topic/);
+  assert.match(social, /await sendMessage\(target, draft\.trim\(\)\)/);
+  assert.match(communityGateway, /"messages", "send", "--channel", channel\.id, "--content", content, "--kind", "45001"/);
   assert.match(storyAccess, /One room, two interfaces/);
   assert.match(storyAccess, /same conversation in Buzz Desktop and PlotPickle/);
 });

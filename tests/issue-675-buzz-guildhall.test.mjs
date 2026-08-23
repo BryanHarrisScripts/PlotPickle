@@ -106,15 +106,18 @@ test("PlotPickle bridge reuses the existing encrypted local BUZZ gateway", () =>
   assert.doesNotMatch(bridge, /localStorage|sessionStorage/);
 });
 
-test("bootstrap is dry-run by default and keeps agent creation owner-reviewed", () => {
+test("bootstrap is dry-run by default, detects room types, and keeps agent creation owner-reviewed", () => {
   assert.match(bootstrap, /const apply = hasFlag\("--apply"\)/);
-  assert.match(bootstrap, /channels", "list/);
+  assert.match(bootstrap, /channels", "search", "--query", name, "--exact"/);
   assert.match(bootstrap, /"channels", "create"/);
+  assert.match(bootstrap, /"channels", "update", "--channel", channel\.id, "--name", legacyName/);
+  assert.match(bootstrap, /"channels", "archive", "--channel", channel\.id/);
   assert.match(bootstrap, /"agents", "draft-create"/);
   assert.match(bootstrap, /BUZZ_RELAY_URL/);
   assert.match(bootstrap, /BUZZ_PRIVATE_KEY/);
   assert.match(bootstrap, /owner-reviewed/i);
   assert.match(bootstrap, /Nothing was written/);
+  assert.match(bootstrap, /Legacy room history was preserved/);
   assert.doesNotMatch(bootstrap, /(?:console\.log|print|stdout\.write)\([^\n]*process\.env\.BUZZ_PRIVATE_KEY/);
 });
 

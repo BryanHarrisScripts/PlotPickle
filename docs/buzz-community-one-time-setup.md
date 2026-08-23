@@ -5,11 +5,13 @@ On Windows, double-click `Sync-PlotPickle-BUZZ.cmd` from the PlotPickle folder. 
 The launcher first prints the channel and Agent plan without writing anything. When you confirm, it asks for the intended BUZZ relay and your Human/admin BUZZ private key using a hidden prompt. It then:
 
 1. Finds the BUZZ CLI installed with BUZZ Desktop.
-2. Creates only missing Human-purpose Community rooms from this four-room set: Great Hall, Story Workshop, Wyrmwood and Marquee. Existing matching rooms are kept.
+2. Synchronizes the four Human-purpose Community rooms: Great Hall, Story Workshop, Wyrmwood and Marquee. Missing rooms are created as BUZZ streams. Matching stream rooms are kept. If an existing canonical room is still a legacy forum, the sync renames and archives that old room so its history is preserved, then recreates the canonical room as a stream.
 3. Discovers existing PlotPickle Agent identities owned by the BUZZ account, including BUZZ's single-record response shape.
 4. Creates one `PlotPickle-BUZZ-Missing-Agents.team.json` import containing only missing Agents, with their exact names, system prompts, public bios and embedded official PlotPickle painterly avatars.
-5. Adds each discovered Agent only to the public rooms contributed by the active PlotPickle Community plugin, with the BUZZ `bot` role.
+5. Adds each discovered Agent only to the public rooms contributed by the active PlotPickle Community plugin, with the BUZZ `bot` role. This also restores memberships after a room-type migration.
 6. Verifies every membership after writing it.
+
+PlotPickle standardizes all four public Community rooms on the BUZZ stream transport. Story Workshop remains the Human-facing PlotPickle name while `story-council` remains its stable BUZZ room name. Wyrmwood remains `wyrmwood-ring`. BUZZ does not support changing a channel between stream and forum in place, so the explicit sync uses the preserve-and-recreate migration above instead of deleting history.
 
 When Agents are missing, open BUZZ Desktop, choose **Agents → Import Team**, select the generated file shown by the launcher, and approve the import once. BUZZ Desktop mints a separate key and owner authorization for every imported Agent, stores those secrets in its protected local credential boundary, and publishes the Agent avatars. Rerun the sync once after import; it discovers the approved identities and completes their room memberships.
 

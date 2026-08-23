@@ -87,7 +87,7 @@ $buzz = Find-BuzzExecutable -Requested $BuzzCli
 
 Write-Host ""
 Write-Host "PLOTPICKLE / BUZZ ONE-TIME COMMUNITY SETUP"
-Write-Host "This safe sync creates only missing channels, discovers approved Agents, and repairs room membership."
+Write-Host "This safe sync creates missing channels, migrates legacy room types without deleting history, discovers approved Agents, and repairs room membership."
 Write-Host "Missing Agents are prepared as one BUZZ Desktop team import with their names, prompts, bios, and avatars."
 Write-Host "Your Human/admin key is requested in a hidden prompt, passed only to child processes, and cleared before exit."
 Write-Host ""
@@ -110,7 +110,7 @@ if (-not (Test-RelayUrl -Value $RelayUrl)) {
   throw "Enter a complete http, https, ws or wss BUZZ relay URL without embedded credentials."
 }
 
-$confirmation = Read-Host "Type SET UP to create missing channels and provision memberships"
+$confirmation = Read-Host "Type SET UP to synchronize Community rooms and Agent memberships"
 if ($confirmation -cne "SET UP") {
   Write-Host "Cancelled. Nothing was changed."
   exit 0
@@ -133,7 +133,11 @@ try {
   Write-Host ""
   Write-Host "Preparing BUZZ channels..."
   $channelResult = Invoke-NodeScript -Node $node -Script $BootstrapScript -Arguments @("--apply", "--json", "--cli=$buzz") | ConvertFrom-Json
-  Write-Host "Channels ready: $($channelResult.readyRooms). Created: $($channelResult.created.Count). Kept: $($channelResult.kept.Count)."
+  $migrated = @($channelResult.migrated)
+  Write-Host "Channels ready: $($channelResult.readyRooms). Created: $($channelResult.created.Count). Migrated: $($migrated.Count). Kept: $($channelResult.kept.Count)."
+  if ($migrated.Count) {
+    Write-Host "Legacy room history was preserved in renamed archived BUZZ rooms. The replacement rooms now use the canonical PlotPickle transport."
+  }
 
   Write-Host "Synchronizing PlotPickle Agent identities, profiles, and room memberships..."
   $agentResult = Invoke-NodeScript -Node $node -Script $AgentScript -Arguments @("--apply") | ConvertFrom-Json

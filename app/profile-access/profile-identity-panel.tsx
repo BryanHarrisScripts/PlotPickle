@@ -33,23 +33,35 @@ type BuzzStatus = {
     identityConfigured?: boolean;
     identityVerified?: boolean;
   };
-  local?: {
-    running?: boolean;
-    probe?: { ok?: boolean; error?: string | null };
+};
+type GuildhallStatus = {
+  operational?: boolean;
+  readyCount?: number;
+  totalCount?: number;
+  message?: string;
+};
+type AssistantProviderId = "local" | "ollama" | "openai" | "minimax";
+type AssistantProviderStatus = {
+  configured?: boolean;
+  ready?: boolean;
+  active?: boolean;
+  provider?: AssistantProviderId;
+  runtime?: string;
+  model?: string;
+};
+type AssistantStatus = {
+  activeProvider?: AssistantProviderId | "disabled";
+  providers?: Partial<Record<AssistantProviderId, AssistantProviderStatus>>;
+  localRuntime?: { ready?: boolean; runtime?: string; error?: string };
+  ollama?: { reachable?: boolean; error?: string };
+};
+type LocalConnectionsStatus = {
+  comfyui?: {
+    state?: "connected" | "configured" | "disconnected" | "checking" | "error" | "unavailable" | "disabled";
+    identity?: string;
+    detail?: string;
+    error?: string;
   };
-};
-type RuntimeStatus = {
-  roles?: Record<string, {
-    ready?: boolean;
-    model?: string;
-    validation?: { ok?: boolean; error?: string | null };
-  }>;
-};
-type MediaStatus = {
-  endpoints?: Array<{
-    endpoint?: { preset?: string };
-    validation?: { ok?: boolean; error?: string | null };
-  }>;
 };
 type SetupMode = "connect" | null;
 
@@ -57,7 +69,10 @@ type ReadinessIndicatorProps = {
   readonly label: string;
   readonly ready: boolean | null;
   readonly detail?: string;
+  readonly settingsTarget: string;
 };
+
+const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 
 async function jsonRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -77,11 +92,17 @@ function shortKey(value: string) {
   return key.length <= 24 ? key : `${key.slice(0, 12)}…${key.slice(-10)}`;
 }
 
-function ReadinessIndicator({ label, ready, detail }: ReadinessIndicatorProps) {
-  const state = ready === null ? "Checking" : ready ? "Ready" : "Unavailable";
+function openSettingsTarget(target: string) {
+  window.sessionStorage.setItem(SETTINGS_SECTION_KEY, target);
+  window.dispatchEvent(new CustomEvent("plotpickle:navigate-workspace", { detail: "settings" }));
+  window.setTimeout(() => window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: target })), 0);
+}
+
+function ReadinessIndicator({ label, ready, detail, settingsTarget }: ReadinessIndicatorProps) {
+  const state = ready === null ? "Checking" : ready ? "Active" : "Not active";
   return (
     <div className={styles.statusItem} title={detail || `${label}: ${state}`}>
-      <span>{label}</span>
+      <button type="button" className={styles.statusLink} onClick={() => openSettingsTarget(settingsTarget)} aria-label={`Configure ${label}`}>{label}</button>
       <i data-ready={ready === null ? "checking" : ready ? "true" : "false"} aria-label={`${label}: ${state}`} />
     </div>
   );
@@ -112,8 +133,9 @@ export default function ProfileIdentityPanel({
   const [presentation, setPresentation] = useState<Presentation>({ displayName: profile.displayName, avatarUrl: "", publicBio: "" });
   const [buzz, setBuzz] = useState<BuzzIdentity | null>(null);
   const [buzzStatus, setBuzzStatus] = useState<BuzzStatus | null>(null);
-  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null);
-  const [mediaStatus, setMediaStatus] = useState<MediaStatus | null>(null);
+  const [guildhallStatus, setGuildhallStatus] = useState<GuildhallStatus | null>(null);
+  const [assistantStatus, setAssistantStatus] = useState<AssistantStatus | null>(null);
+  const [connectionsStatus, setConnectionsStatus] = useState<LocalConnectionsStatus | null>(null);
   const [readinessLoaded, setReadinessLoaded] = useState(false);
   const [setupMode, setSetupMode] = useState<SetupMode>(null);
   const [privateKey, setPrivateKey] = useState("");
@@ -122,18 +144,20 @@ export default function ProfileIdentityPanel({
   const [busy, setBusy] = useState("");
 
   const refresh = useCallback(async () => {
-    const [profileBody, identityBody, statusBody, runtimeBody, mediaBody] = await Promise.all([
+    const [profileBody, identityBody, statusBody, guildhallBody, assistantBody, connectionsBody] = await Promise.all([
       jsonRequest<{ profile: Presentation }>("/api/auth/profile-presentation"),
       jsonRequest<BuzzIdentity & { ok: true }>("/api/local-buzz/human-identity").catch(() => null),
       jsonRequest<BuzzStatus & { ok: true }>("/api/local-buzz/status").catch(() => null),
-      jsonRequest<RuntimeStatus>("/api/local-ai/runtime").catch(() => null),
-      jsonRequest<MediaStatus>("/api/media-routing/status").catch(() => null),
+      jsonRequest<GuildhallStatus & { ok: true }>("/api/local-buzz/guildhall/status").catch(() => null),
+      jsonRequest<AssistantStatus & { ok: true }>("/api/writing-assistant/status").catch(() => null),
+      jsonRequest<LocalConnectionsStatus & { ok: true }>("/api/local-connections").catch(() => null),
     ]);
     setPresentation(profileBody.profile);
     setBuzz(identityBody);
     setBuzzStatus(statusBody);
-    setRuntimeStatus(runtimeBody);
-    setMediaStatus(mediaBody);
+    setGuildhallStatus(guildhallBody);
+    setAssistantStatus(assistantBody);
+    setConnectionsStatus(connectionsBody);
     setReadinessLoaded(true);
   }, []);
 
@@ -287,12 +311,23 @@ export default function ProfileIdentityPanel({
   const connected = Boolean(buzz?.humanCommunityAllowed && buzz.identityVerified && buzz.kind === "human");
   const identityLabel = connected ? "Connected" : identityConfigured ? "Connected · Community access pending" : "Not configured";
   const localGeneratedAvatar = isPlotPickleGeneratedAvatarRef(presentation.avatarUrl);
-  const fastRole = runtimeStatus?.roles?.fast;
-  const agentRuntimeReady = readinessLoaded ? Boolean(fastRole?.ready || (buzzStatus?.local?.running && buzzStatus.local.probe?.ok)) : null;
-  const modelReady = readinessLoaded ? Boolean(fastRole?.ready && fastRole.model) : null;
-  const comfyEndpoint = mediaStatus?.endpoints?.find((entry) => entry?.endpoint?.preset === "comfyui");
-  const comfyReady = readinessLoaded ? Boolean(comfyEndpoint?.validation?.ok) : null;
-  const modelDetail = fastRole?.model ? `Model: ${fastRole.model}` : undefined;
+  const activeProvider = assistantStatus?.activeProvider;
+  const localProvider = activeProvider === "local" || activeProvider === "ollama" ? activeProvider : null;
+  const cloudProvider = activeProvider === "openai" || activeProvider === "minimax" ? activeProvider : null;
+  const localProfile = localProvider ? assistantStatus?.providers?.[localProvider] : null;
+  const cloudProfile = cloudProvider ? assistantStatus?.providers?.[cloudProvider] : null;
+  const communityReady = readinessLoaded ? Boolean(connected && guildhallStatus?.operational) : null;
+  const localModelReady = readinessLoaded ? Boolean(localProvider && (localProfile?.ready || (localProvider === "local" && assistantStatus?.localRuntime?.ready))) : null;
+  const comfyReady = readinessLoaded ? connectionsStatus?.comfyui?.state === "connected" : null;
+  const cloudComputeReady = readinessLoaded ? Boolean(cloudProvider && cloudProfile?.ready) : null;
+  const localDetail = localProvider
+    ? `${localProvider === "ollama" ? "Ollama" : "Local Runtime"}${localProfile?.model ? ` · ${localProfile.model}` : ""}`
+    : "A local model is not the active text route.";
+  const cloudDetail = cloudProvider
+    ? `${cloudProvider === "openai" ? "OpenAI" : "MiniMax"}${cloudProfile?.model ? ` · ${cloudProfile.model}` : ""}`
+    : "Cloud compute is not the active text route.";
+  const comfyDetail = connectionsStatus?.comfyui?.detail || connectionsStatus?.comfyui?.identity || "ComfyUI is not active.";
+  const cloudSettingsTarget = cloudProvider === "minimax" ? "minimax" : "openai";
 
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v2">
@@ -312,10 +347,11 @@ export default function ProfileIdentityPanel({
             <blockquote className={styles.motto}>The agents are the workshop. Stories—and better storytellers—are the product.</blockquote>
           </div>
           <div className={styles.statusRail} aria-label="Profile readiness">
-            <ReadinessIndicator label="BUZZ Identity" ready={connected} detail={identityLabel} />
-            <ReadinessIndicator label="Agents runtimes" ready={agentRuntimeReady} />
-            <ReadinessIndicator label="Model" ready={modelReady} detail={modelDetail} />
-            <ReadinessIndicator label="ComfyUI" ready={comfyReady} />
+            <ReadinessIndicator label="BUZZ Identity" ready={connected} detail={identityLabel} settingsTarget="buzz" />
+            <ReadinessIndicator label="Community BBS" ready={communityReady} detail={guildhallStatus?.message} settingsTarget="buzz" />
+            <ReadinessIndicator label="Local Model" ready={localModelReady} detail={localDetail} settingsTarget="ollama" />
+            <ReadinessIndicator label="ComfyUI" ready={comfyReady} detail={comfyDetail} settingsTarget="comfyui" />
+            <ReadinessIndicator label="Cloud Compute" ready={cloudComputeReady} detail={cloudDetail} settingsTarget={cloudSettingsTarget} />
           </div>
         </section>
 

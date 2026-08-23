@@ -22,7 +22,14 @@ type BuzzConnection = {
 };
 
 type CommandResult = { stdout: string; stderr: string; code: number };
-type BuzzChannel = { id: string; name: string; description: string };
+type BuzzChannel = {
+  id: string;
+  name: string;
+  description: string;
+  type: "stream" | "forum" | "";
+  visibility: string;
+  archived: boolean;
+};
 type BuzzDm = { id: string; participants: string[]; createdAt: string };
 
 function isLoopback(value: string | undefined) {
@@ -134,6 +141,7 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
     });
   });
 }
+
 async function runBuzz(connection: BuzzConnection, args: string[]) {
   if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before setting up the Guildhall.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
@@ -141,8 +149,7 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("Buzz CLI returned invalid JSON."); }
+  return JSON.parse(result.stdout || "null") as unknown;
 }
 
 function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
@@ -175,8 +182,17 @@ function channelsFrom(value: unknown): BuzzChannel[] {
     const item = entry as Record<string, unknown>;
     const id = firstString(item, ["channel_id", "id", "channelId", "uuid"]);
     const name = firstString(item, ["name", "title", "slug"]);
+    const rawType = firstString(item, ["channel_type", "channelType", "type"]);
+    const type = rawType === "stream" || rawType === "forum" ? rawType : "";
     if (!id || !name) return [];
-    return [{ id, name, description: firstString(item, ["description", "purpose", "topic"]) }];
+    return [{
+      id,
+      name,
+      description: firstString(item, ["description", "about", "purpose", "topic"]),
+      type,
+      visibility: firstString(item, ["visibility"]),
+      archived: item.archived === true,
+    }];
   });
 }
 
@@ -197,8 +213,14 @@ function dmsFrom(value: unknown): BuzzDm[] {
   });
 }
 
-async function listChannels(connection: BuzzConnection) {
-  return channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list"]));
+async function findChannel(connection: BuzzConnection, name: string) {
+  const channels = channelsFrom(await runBuzz(connection, ["channels", "search", "--query", name, "--exact"]));
+  return channels.find((channel) => channel.name === name && !channel.archived) ?? null;
+}
+
+async function listCommunityChannels(connection: BuzzConnection) {
+  const channels = await Promise.all(BUZZ_COMMUNITY_CHANNELS.map((definition) => findChannel(connection, definition.name)));
+  return channels.filter((channel): channel is BuzzChannel => Boolean(channel));
 }
 
 async function listDms(connection: BuzzConnection) {
@@ -238,7 +260,8 @@ function stewardCards() {
 function roomStatus(channels: BuzzChannel[]) {
   const readyRooms = BUZZ_COMMUNITY_CHANNELS.flatMap((definition) => {
     const channel = channels.find((candidate) => candidate.name === definition.name);
-    return channel ? [{
+    if (!channel || channel.type !== definition.type) return [];
+    return [{
       id: definition.id,
       name: definition.name,
       label: definition.label,
@@ -246,18 +269,32 @@ function roomStatus(channels: BuzzChannel[]) {
       type: definition.type,
       visibility: definition.visibility,
       description: definition.description,
-    }] : [];
+    }];
   });
   const missingRooms = BUZZ_COMMUNITY_CHANNELS
     .filter((definition) => !channels.some((candidate) => candidate.name === definition.name))
     .map((definition) => ({ id: definition.id, name: definition.name, label: definition.label }));
+  const typeMismatches = BUZZ_COMMUNITY_CHANNELS.flatMap((definition) => {
+    const channel = channels.find((candidate) => candidate.name === definition.name);
+    if (!channel || channel.type === definition.type) return [];
+    return [{
+      id: definition.id,
+      name: definition.name,
+      label: definition.label,
+      channelId: channel.id,
+      expectedType: definition.type,
+      actualType: channel.type || "unknown",
+    }];
+  });
+  const operational = missingRooms.length === 0 && typeMismatches.length === 0;
   return {
-    ready: missingRooms.length === 0,
-    operational: missingRooms.length === 0,
+    ready: operational,
+    operational,
     readyCount: readyRooms.length,
     totalCount: BUZZ_COMMUNITY_CHANNELS.length,
     readyRooms,
     missingRooms,
+    typeMismatches,
   };
 }
 
@@ -274,6 +311,7 @@ async function status() {
     totalCount: BUZZ_COMMUNITY_CHANNELS.length,
     readyRooms: [] as Array<Record<string, string>>,
     missingRooms: BUZZ_COMMUNITY_CHANNELS.map((room) => ({ id: room.id, name: room.name, label: room.label })),
+    typeMismatches: [] as Array<Record<string, string>>,
     stewards: stewardCards(),
     upstreamAgentBoundary: "Buzz-native agent creation remains an explicit owner action in Buzz Desktop. PlotPickle does not bypass BUZZ_AUTH_TAG or owner review.",
     message: "Connect and verify Buzz before setting up the PlotPickle Guildhall.",
@@ -281,15 +319,18 @@ async function status() {
   if (!connection) return base;
   if (!base.identityVerified) return { ...base, message: "The Buzz connection exists, but its identity has not passed verification yet." };
   try {
-    const channels = await listChannels(connection);
+    const channels = await listCommunityChannels(connection);
     const rooms = roomStatus(channels);
+    const message = rooms.operational
+      ? "PlotPickle Community is operational. All four public rooms use the canonical BUZZ stream transport."
+      : rooms.typeMismatches.length
+        ? `${rooms.typeMismatches.length} Community room${rooms.typeMismatches.length === 1 ? "" : "s"} use a legacy BUZZ channel type. Run Utilities\\Sync-PlotPickle-BUZZ.ps1 to preserve the old room and recreate the canonical stream safely.`
+        : `${rooms.readyCount}/${rooms.totalCount} Community rooms are ready. PlotPickle can create the missing rooms safely.`;
     return {
       ...base,
       ...rooms,
       canSetup: true,
-      message: rooms.ready
-        ? "PlotPickle Community is operational. All four Human-purpose rooms are ready."
-        : `${rooms.readyCount}/${rooms.totalCount} Community rooms are ready. PlotPickle can create the missing rooms safely.`,
+      message,
     };
   } catch (error) {
     return { ...base, message: safeError(error) };
@@ -299,11 +340,16 @@ async function status() {
 async function setup() {
   const connection = await readConnection();
   verifiedConnection(connection);
-  let channels = await listChannels(connection);
+  let channels = await listCommunityChannels(connection);
+  let rooms = roomStatus(channels);
+  if (rooms.typeMismatches.length) {
+    throw new Error("One or more BUZZ Community rooms use the wrong channel type. Run Utilities\\Sync-PlotPickle-BUZZ.ps1 so PlotPickle can archive the legacy room, recreate the canonical stream, and then restore Agent memberships.");
+  }
   const created: string[] = [];
   const kept: string[] = [];
   for (const definition of BUZZ_COMMUNITY_CHANNELS) {
-    if (channels.some((channel) => channel.name === definition.name)) {
+    const channel = channels.find((candidate) => candidate.name === definition.name);
+    if (channel && channel.type === definition.type) {
       kept.push(definition.name);
       continue;
     }
@@ -316,8 +362,8 @@ async function setup() {
     ]);
     created.push(definition.name);
   }
-  channels = await listChannels(connection);
-  const rooms = roomStatus(channels);
+  channels = await listCommunityChannels(connection);
+  rooms = roomStatus(channels);
   if (!rooms.ready) {
     throw new Error(`Buzz Guildhall setup is incomplete; missing ${rooms.missingRooms.map((room) => room.name).join(", ")}.`);
   }
@@ -332,8 +378,8 @@ async function setup() {
     stewards: stewardCards(),
     upstreamAgentBoundary: "Orin Ledgerbark and Fen Copperwind are optional separate Buzz-native identities. BUZZ requires owner-reviewed creation in Buzz Desktop; the Guildhall itself is operational without bypassing that boundary.",
     message: created.length
-      ? `PlotPickle Guildhall is operational. Created ${created.length} missing room${created.length === 1 ? "" : "s"}; all ${rooms.totalCount} are ready.`
-      : `PlotPickle Guildhall was already operational. All ${rooms.totalCount} rooms are ready.`,
+      ? `PlotPickle Guildhall is operational. Created ${created.length} missing room${created.length === 1 ? "" : "s"}; all ${rooms.totalCount} canonical stream rooms are ready.`
+      : `PlotPickle Guildhall was already operational. All ${rooms.totalCount} canonical stream rooms are ready.`,
   };
 }
 

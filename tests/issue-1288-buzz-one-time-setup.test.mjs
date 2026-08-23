@@ -20,7 +20,9 @@ test("#1288 Windows launcher provides a deliberate one-time BUZZ setup path", as
   assert.match(setup, /provision-community-agents\.mjs/);
   assert.match(setup, /--apply/);
   assert.match(setup, /\[switch\]\$PlanOnly/);
-  assert.match(docs, /creates only missing/i);
+  assert.match(setup, /Migrated:/i);
+  assert.match(docs, /all four public Community rooms on the BUZZ stream transport/i);
+  assert.match(docs, /renames and archives that old room so its history is preserved/i);
   assert.match(docs, /Agents → Import Team/i);
 });
 

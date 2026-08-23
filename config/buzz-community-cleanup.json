@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "retainedRooms": [
     { "id": "great-hall", "name": "great-hall", "label": "The Great Hall", "type": "stream", "visibility": "open", "description": "General Community conversation, welcomes, questions and handoffs between people." },
-    { "id": "story-council", "name": "story-council", "label": "Story Workshop", "type": "forum", "visibility": "open", "description": "Planning, structure, characters, continuity and story critique." },
+    { "id": "story-council", "name": "story-council", "label": "Story Workshop", "type": "stream", "visibility": "open", "description": "Planning, structure, characters, continuity and story critique." },
     { "id": "wyrmwood-ring", "name": "wyrmwood-ring", "label": "Wyrmwood", "type": "stream", "visibility": "open", "description": "Wyrmwood challenges, game discussion and lesson evaluation." },
-    { "id": "marquee", "name": "marquee", "label": "Marquee", "type": "forum", "visibility": "open", "description": "Visual development, posters, key art and promotion." }
+    { "id": "marquee", "name": "marquee", "label": "Marquee", "type": "stream", "visibility": "open", "description": "Visual development, posters, key art and promotion." }
   ],
   "retiredRooms": [
     { "id": "forge", "replacementRoomId": null, "reason": "Developer repair traffic stays in GitHub and local verification records." },

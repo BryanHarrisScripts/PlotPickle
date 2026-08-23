@@ -13,9 +13,8 @@ const shellSource = await readFile(new URL("../app/plotpickle-workspace-shell.ts
 const shellCss = await readFile(new URL("../app/plotpickle-workspace-shell.module.css", import.meta.url), "utf8");
 
 const canonicalIds = [
-  "dashboard",
-  "library",
   "community",
+  "library",
   "learn",
   "wyrmwood",
   "plan",
@@ -27,13 +26,13 @@ const canonicalIds = [
   "feedback",
   "refine",
   "reports",
+  "dashboard",
   "settings",
 ];
 
 const canonicalLabels = [
-  "Dashboard",
-  "Library",
   "Community",
+  "Library",
   "Learn",
   "Wyrmwood",
   "Plan",
@@ -45,21 +44,18 @@ const canonicalLabels = [
   "Feedback",
   "Refine",
   "Reports",
+  "Dashboard",
   "Settings",
 ];
 
-const canonicalGaps = [
-  { after: "wyrmwood", kind: "community-game" },
-  { after: "graphic-novel", kind: "previs" },
-  { after: "refine", kind: "reports" },
-];
+const canonicalGaps = [];
 
 function sourceNavigationItems(source) {
   return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "[^"]+", selectable: (?:true|false) \}/g)]
     .map((match) => ({ id: match[1], label: match[2] }));
 }
 
-test("canonical navigation contract preserves the approved order and labels", () => {
+test("canonical navigation contract preserves the revised order and labels", () => {
   assert.deepEqual(EXPECTED_NAVIGATION_IDS, canonicalIds);
   assert.deepEqual(EXPECTED_NAVIGATION_LABELS, canonicalLabels);
   assert.deepEqual(EXPECTED_NAVIGATION_GAPS, canonicalGaps);
@@ -69,27 +65,23 @@ test("canonical navigation contract preserves the approved order and labels", ()
   assert.deepEqual(sourceItems.map((item) => item.label), canonicalLabels);
 });
 
-test("workspace shell exposes stable UAT hooks for all navigation groups", () => {
+test("workspace shell exposes stable UAT hooks without legacy visual gap groups", () => {
   assert.match(shellSource, /data-plotpickle-global-nav="v2"/);
   assert.match(shellSource, /data-workspace-navigation="true"/);
   assert.match(shellSource, /data-workspace-nav-id=\{item\.id\}/);
-  assert.match(shellSource, /data-navigation-gap-after=\{breakAfter \|\| undefined\}/);
-
-  assert.match(shellSource, /id === "wyrmwood"\) return "community-game"/);
-  assert.match(shellSource, /id === "graphic-novel"\) return "previs"/);
-  assert.match(shellSource, /id === "refine"\) return "reports"/);
+  assert.doesNotMatch(shellSource, /data-navigation-gap-after|navigationBreakAfter|groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });
 
-test("navigation CSS keeps two workflow gaps and a larger Reports separation", () => {
-  assert.match(shellCss, /\.list li\.groupBreakCommunityGame\s*\{\s*margin-right: clamp\(28px, 4vw, 72px\);/);
-  assert.match(shellCss, /\.list li\.groupBreakPrevis\s*\{\s*margin-right: clamp\(22px, 3vw, 56px\);/);
-  assert.match(shellCss, /\.list li\.groupBreakReports\s*\{\s*margin-right: clamp\(72px, 10vw, 180px\);/);
+test("navigation CSS keeps the workflow strip centered and compact", () => {
+  assert.match(shellCss, /\.list\s*\{[^}]*width:\s*max-content;[^}]*margin:\s*0 auto;[^}]*gap:\s*clamp\(2px, 0\.25vw, 4px\);/s);
+  assert.match(shellCss, /\.list li\s*\{[^}]*width:\s*64px;[^}]*flex:\s*0 0 64px;/s);
+  assert.doesNotMatch(shellCss, /groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });
 
-test("rendered navigation UAT rejects order, label, gap, and spacing regressions", () => {
+test("rendered navigation UAT rejects order, label, gap, and compactness regressions", () => {
   const healthy = {
-    items: canonicalIds.map((id, index) => ({ id, label: canonicalLabels[index] })),
-    gaps: canonicalGaps.map((gap, index) => ({ ...gap, marginRight: [40, 32, 100][index] })),
+    items: canonicalIds.map((id, index) => ({ id, label: canonicalLabels[index], width: 64 })),
+    gaps: [],
   };
   assert.deepEqual(navigationViolations(healthy), []);
 
@@ -97,7 +89,11 @@ test("rendered navigation UAT rejects order, label, gap, and spacing regressions
   [reordered.items[1], reordered.items[2]] = [reordered.items[2], reordered.items[1]];
   assert.ok(navigationViolations(reordered).some((value) => value.startsWith("navigation order")));
 
-  const noGap = structuredClone(healthy);
-  noGap.gaps[2].marginRight = 0;
-  assert.ok(navigationViolations(noGap).some((value) => value.includes("has no visible spacing")));
+  const legacyGap = structuredClone(healthy);
+  legacyGap.gaps.push({ after: "wyrmwood", kind: "community-game", marginRight: 40 });
+  assert.ok(navigationViolations(legacyGap).some((value) => value.startsWith("navigation gaps")));
+
+  const tooWide = structuredClone(healthy);
+  tooWide.items[0].width = 96;
+  assert.ok(navigationViolations(tooWide).some((value) => value.startsWith("navigation item width")));
 });

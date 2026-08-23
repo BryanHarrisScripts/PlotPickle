@@ -6,20 +6,20 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("defines the five canonical connection lifecycle states", async () => {
-  const lifecycle = await source("lib/connection-lifecycle.ts");
+  const lifecycle = await source("lib/integrations/connection-lifecycle.ts");
   for (const state of ["optional", "connecting", "connected", "attention", "failed"]) {
     assert.match(lifecycle, new RegExp(`"${state}"`));
   }
 });
 
 test("never-configured services remain neutral and optional", async () => {
-  const lifecycle = await source("lib/connection-lifecycle.ts");
+  const lifecycle = await source("lib/integrations/connection-lifecycle.ts");
   assert.match(lifecycle, /return \{ state: "optional", label: "Optional · not configured", tone: "neutral" \}/);
   assert.match(lifecycle, /return "optional"/);
 });
 
 test("error tone is reserved for a previously connected failed service", async () => {
-  const lifecycle = await source("lib/connection-lifecycle.ts");
+  const lifecycle = await source("lib/integrations/connection-lifecycle.ts");
   assert.match(lifecycle, /input\.failed && input\.previouslyConnected/);
   assert.match(lifecycle, /case "failed":[\s\S]*tone: "error"/);
   assert.match(lifecycle, /mayUseErrorTone[\s\S]*=== "failed"/);
@@ -27,7 +27,7 @@ test("error tone is reserved for a previously connected failed service", async (
 
 test("GitHub and Buzz use the shared lifecycle adapters", async () => {
   const [lifecycle, status] = await Promise.all([
-    source("lib/connection-lifecycle.ts"),
+    source("lib/integrations/connection-lifecycle.ts"),
     source("app/project-collaboration-status.tsx"),
   ]);
   assert.match(lifecycle, /githubConnectionLifecycle/);

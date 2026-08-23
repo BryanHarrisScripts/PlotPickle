@@ -13,7 +13,7 @@ import {
 import type {
   ConnectionStatusSnapshot,
   PublicConnectionStatus,
-} from "@/lib/connection-status";
+} from "@/lib/integrations/connection-status";
 import {
   announceSettingsChanged,
   SETTINGS_STORAGE_KEY,

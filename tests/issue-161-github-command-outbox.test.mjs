@@ -10,16 +10,16 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function outboxContract() {
-  const raw = (await source("lib/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
+  const raw = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
   const compiled = stripTypeScriptTypes(raw, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
 async function serviceContract(home) {
   const directory = await mkdtemp(path.join(os.tmpdir(), "plotpickle-command-service-"));
-  const libRaw = (await source("lib/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
+  const libRaw = (await source("lib/integrations/github/github-command-outbox.ts")).replace(/\r\n?/g, "\n");
   const serviceRaw = (await source("build/github-command-service.ts")).replace(/\r\n?/g, "\n")
-    .replace('from "../lib/github-command-outbox";', 'from "./github-command-outbox.mjs";')
+    .replace('from "../lib/integrations/github/github-command-outbox";', 'from "./github-command-outbox.mjs";')
     .replace('import { persistentHome } from "./local-credentials";', 'const persistentHome = () => process.env.PLOTPICKLE_HOME || "";');
   await writeFile(path.join(directory, "github-command-outbox.mjs"), stripTypeScriptTypes(libRaw, { mode: "transform" }), "utf8");
   await writeFile(path.join(directory, "github-command-service.mjs"), stripTypeScriptTypes(serviceRaw, { mode: "transform" }), "utf8");
@@ -182,7 +182,7 @@ test("issue #161 claims duplicate concurrent commands only once", async () => {
 
 test("issue #161 keeps the command foundation separate from browser interception and repository repair", async () => {
   const [outbox, service, docs] = await Promise.all([
-    source("lib/github-command-outbox.ts"),
+    source("lib/integrations/github/github-command-outbox.ts"),
     source("build/github-command-service.ts"),
     source("docs/issue-161-github-command-outbox.md"),
   ]);

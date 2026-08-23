@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PlotPickleProject } from "@/lib/projects/project";
-import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
+import type { ConnectionStatusSnapshot } from "@/lib/integrations/connection-status";
 import taxonomySource from "../config/settings-system-taxonomy.json";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import GitHubCollaboration from "./github-collaboration";

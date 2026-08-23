@@ -22,7 +22,7 @@ test("issue #120 exposes the complete Settings navigation", async () => {
 
 test("issue #120 uses one sanitized connection-status source in Settings Dashboard and Reports", async () => {
   const [status, hook, page, dashboard, reports] = await Promise.all([
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
     source("app/use-connection-status.ts"),
     source("app/page.tsx"),
     source("lib/dashboard-command-centre.ts"),
@@ -41,7 +41,7 @@ test("issue #120 uses one sanitized connection-status source in Settings Dashboa
 
 test("issue #120 gives every optional integration the shared setup and repair contract", async () => {
   const [status, panel] = await Promise.all([
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
     source("app/settings-panel-legacy.tsx"),
   ]);
   for (const field of [
@@ -63,7 +63,7 @@ test("issue #120 gives every optional integration the shared setup and repair co
 
 test("issues #120 and #184 implement Google Calendar and Meet desktop OAuth foundations", async () => {
   const [status, gateway, google, panel, vite] = await Promise.all([
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
     source("build/local-connections-gateway.ts"),
     source("build/google-desktop-oauth.ts"),
     source("app/settings-panel-legacy.tsx"),
@@ -100,7 +100,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
     source("build/google-desktop-oauth.ts"),
     source("build/local-credentials.ts"),
     source("app/settings-panel-legacy.tsx"),
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
     source("lib/projects/project.ts"),
   ]);
   assert.match(vault, /PLOTPICKLE_HOME/);

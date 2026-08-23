@@ -5,8 +5,8 @@ import {
   readGitHubCommandOutbox,
   retryPersistentGitHubCommand,
 } from "./github-command-service";
-import { publicGitHubCommandEntry } from "../lib/github-command-outbox";
-import { summarizeGitHubRecovery } from "../lib/github-recovery-status";
+import { publicGitHubCommandEntry } from "../lib/integrations/github/github-command-outbox";
+import { summarizeGitHubRecovery } from "../lib/integrations/github/github-recovery-status";
 import { readCredentialJson } from "./local-credentials";
 
 const API = "/api/local-github-commands";

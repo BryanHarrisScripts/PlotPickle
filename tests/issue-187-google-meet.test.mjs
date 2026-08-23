@@ -23,7 +23,7 @@ test("issue #187 adds conferenceDataVersion only through the owned Calendar even
   const [calendar, meet, status] = await Promise.all([
     source("build/google-calendar.ts"),
     source("build/google-meet.ts"),
-    source("lib/connection-status.ts"),
+    source("lib/integrations/connection-status.ts"),
   ]);
   assert.match(calendar, /conferenceDataVersion=1/);
   assert.match(calendar, /createMeetConferenceData/);

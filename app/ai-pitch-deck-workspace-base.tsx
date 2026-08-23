@@ -23,7 +23,7 @@ import {
   type ComicPitchPanel,
   type PlotPickleProject,
 } from "@/lib/projects/project";
-import type { PublicConnectionStatus } from "@/lib/connection-status";
+import type { PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import {
   discoverLocalGraphicNovelVersions,
   graphicNovelAssetVersions,

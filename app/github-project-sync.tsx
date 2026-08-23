@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/github-collaboration";
+import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/integrations/github/github-collaboration";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import styles from "./github-collaboration.module.css";
 

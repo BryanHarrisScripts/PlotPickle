@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import AgentPortrait from "../../components/agent-portrait";
 import { agentsForCommunityRoom } from "../../lib/plugin-platform";
@@ -40,21 +40,26 @@ type RoomGuide = {
 };
 
 const BUZZ_API = "/api/local-buzz";
-const GREAT_HALL_ASCII_CHARACTER_ART = String.raw`
-        /\                 .----.                 /\
-       /__\      .-.      / /\   \      .-.      /__\
-      (o  o)    /___\    / /  \   \    /___\    (o  o)
-      /|==|\    (o o)   /_/ /\ \___\   (o o)    /|==|\
-     /_|  |_\   /|=|\      /  \       /|=|\   /_|  |_\
-       /__\      / \      / /\ \       / \      /__\
-                 _.._    /_/  \_\    _.._
-              .-'    '-.   /\     .-'    '-.
-             /  @  @    \ /  \   /    @  @  \
-            |     ^      | /\ | |      ^     |
-             \  '--'    / /  \ \ \    '--'  /
-          ____'-.____.-'_/ /\ \_\_'-.____.-'____
-         /___/\___/\____/ /  \ \____/\___/\___/\
-             WIZARD        DRAGON       WAYFARER`;
+const COMMUNITY_ROOM_ART = {
+  "great-hall": {
+    src: "/assets/community-bbs/great-hall.webp",
+    alt: "A pixel-art dragon curled protectively around the welcoming PlotPickle guildhall",
+  },
+  "story-council": {
+    src: "/assets/community-bbs/story-workshop.webp",
+    alt: "A pixel-art writers workshop with manuscripts, quills, books and a story map",
+  },
+  "wyrmwood-ring": {
+    src: "/assets/community-bbs/wyrmwood.webp",
+    alt: "A pixel-art Wyrmwood trial ring surrounded by ancient trees and carved stones",
+  },
+  marquee: {
+    src: "/assets/community-bbs/marquee.webp",
+    alt: "A pixel-art fantasy theatre with a glowing marquee, poster cases and stage curtains",
+  },
+} as const;
+
+type CommunityRoomId = keyof typeof COMMUNITY_ROOM_ART;
 
 function roomGuideFor(roomId: string): RoomGuide | null {
   const room = PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.find((candidate) => candidate.id === roomId);
@@ -163,15 +168,24 @@ function CommunityAvatar({
   </span>;
 }
 
-function GreatHallBanner({ memberCount, messageCount }: { readonly memberCount: number; readonly messageCount: number }) {
-  return <section className={styles.greatHallBanner} aria-label="PlotPickle Great Hall BBS">
-    <div className={styles.greatHallCopy}>
-      <span>COMMUNITY NODE 01</span>
-      <h1 aria-label="PlotPickle Great Hall">╔══ PLOTPICKLE GREAT HALL ══╗</h1>
-      <p>Writers, wizards and wayfarers online</p>
-      <small>MEMBERS {memberCount} · MESSAGES {messageCount}</small>
+function isCommunityRoomId(value: string): value is CommunityRoomId {
+  return value in COMMUNITY_ROOM_ART;
+}
+
+function CommunityRoomBanner({ roomId, label, memberCount, messageCount }: { readonly roomId: CommunityRoomId; readonly label: string; readonly memberCount: number; readonly messageCount: number }) {
+  const artwork = COMMUNITY_ROOM_ART[roomId];
+  const roomNumber = PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.findIndex((room) => room.id === roomId) + 1;
+  return <section className={styles.roomBanner} aria-label={`${label} BBS`} data-community-room-art={roomId}>
+    <header className={styles.roomBannerHeader}>
+      <span>CONNECT 2400 / SYNCING LINE ESTABLISHED…</span>
+      <small>AUTHENTICATED WRITER NODE · ACCESS GRANTED</small>
+      <h1>PLOTPICKLE COMMUNITY BBS</h1>
+      <p>{`// ${label.toUpperCase()} //`}</p>
+      <small>ROOM {String(roomNumber).padStart(2, "0")} · MEMBERS {memberCount} · MESSAGES {messageCount}</small>
+    </header>
+    <div className={styles.roomArtwork}>
+      <Image alt={artwork.alt} height={864} priority={roomId === "great-hall"} src={artwork.src} width={1536} />
     </div>
-    <pre className={styles.greatHallAscii} data-ascii-character-art="16-bit-bbs" role="img" aria-label="16-bit fantasy BBS character scene with a wizard, dragon and wayfarer">{GREAT_HALL_ASCII_CHARACTER_ART}</pre>
   </section>;
 }
 
@@ -180,15 +194,31 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const loadedChannelRef = useRef("");
+  const messageCountRef = useRef(0);
+  const timelineEndRef = useRef<HTMLSpanElement | null>(null);
 
   const roomGuide = useMemo(() => target ? roomGuideFor(target.id) : null, [target]);
   const channelId = target?.channelId || "";
 
   const refresh = useCallback(async (quiet = false) => {
-    if (!channelId) { setMessages([]); return; }
+    if (!channelId) {
+      loadedChannelRef.current = "";
+      messageCountRef.current = 0;
+      setMessages([]);
+      return;
+    }
     try {
       const next = await readMessages(channelId);
+      const firstReadForChannel = loadedChannelRef.current !== channelId;
+      const conversationAdvanced = !firstReadForChannel && next.length > messageCountRef.current;
+      loadedChannelRef.current = channelId;
+      messageCountRef.current = next.length;
       setMessages(next);
+      if (conversationAdvanced) window.requestAnimationFrame(() => {
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        timelineEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
+      });
       if (!quiet) setNotice("Conversation refreshed from BUZZ.");
     } catch (error) {
       if (!quiet) setNotice(error instanceof Error ? error.message : "BUZZ conversation could not be loaded.");
@@ -237,21 +267,17 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
 
   const kindLabel = target.kind === "dm" ? "Direct Message" : "Room";
   const participantNames = target.participants?.map((pubkey) => participantName(pubkey, members)) ?? [];
-  const greatHall = target.id === "great-hall";
+  const roomId = isCommunityRoomId(target.id) ? target.id : null;
   const humanName = humanPresentation?.displayName.trim() || "PlotPickle Human";
 
   return <>
-    <main className={styles.conversation} data-great-hall={greatHall ? "true" : undefined} aria-label={`${kindLabel}: ${target.label}`}>
+    <main className={styles.conversation} data-community-room-template={roomId ? "bbs-v1" : undefined} aria-label={`${kindLabel}: ${target.label}`}>
       <header className={styles.conversationHeader}>
         <div><span>{kindLabel}</span><h2>{target.label}</h2><small>{target.description}</small></div>
       </header>
-      {greatHall ? <GreatHallBanner memberCount={members.length} messageCount={messages.length} /> : null}
-      {roomGuide && !greatHall ? <section className={styles.roomGuide} aria-label={`Who helps in ${target.label}`}>
-        <div><span>What this room is for</span><p>{roomGuide.purpose}</p><small>{roomGuide.actionHint}</small></div>
-        <div className={styles.helpers}><span>Who helps here</span><div>{roomGuide.agents.map((agent) => <span className={styles.helper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div></div>
-      </section> : null}
       <section className={styles.timeline} aria-live="polite">
-        {messages.length ? messages.map((message) => {
+        {roomId ? <CommunityRoomBanner roomId={roomId} label={target.label} memberCount={members.length} messageCount={messages.length} /> : null}
+        <div className={styles.timelineBody}>{messages.length ? messages.map((message) => {
           const member = memberForAuthor(message.author, members);
           const agent = agentForAuthor(member?.displayName || message.author);
           const human = identityKey(member?.displayName || message.author) === identityKey(humanName);
@@ -264,13 +290,17 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
               <p>{message.content}</p>
             </div>
           </article>;
-        }) : <p className={styles.empty}>No conversation here yet. Start with a question, idea or update.</p>}
+        }) : <p className={styles.empty}>No conversation here yet. Start with a question, idea or update.</p>}</div>
+        <span className={styles.timelineEnd} ref={timelineEndRef} aria-hidden="true" />
       </section>
       <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
         <label htmlFor="community-buzz-composer">Message {target.label}</label>
         <div className={styles.composerRow}>
           <span className={styles.prompt} aria-hidden="true">{promptHandle(humanName)}@{promptHandle(target.label)}:&gt;</span>
-          <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
+          <span className={styles.composerInput}>
+            <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
+            {canPost && !busy && !draft ? <span className={styles.terminalCursor} aria-hidden="true">█</span> : null}
+          </span>
           <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : "Post"}</button>
         </div>
         <small className={styles.composerHint}>Enter to post · Shift+Enter for a new line</small>
@@ -282,7 +312,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : "Community room"}</h4><p>{target.description}</p></section>
-        {greatHall && roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
+        {roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
           <span>Who helps here</span>
           <div className={styles.contextHelpers}>{roomGuide.agents.map((agent) => <span className={styles.contextHelper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div>
           <span>What this room is for</span>

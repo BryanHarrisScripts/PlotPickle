@@ -73,6 +73,7 @@
         "tests/community-agent-roster.test.mjs",
         "tests/issue-1297-buzz-cleanup-utilities.test.mjs",
         "tests/issue-1295-great-hall-ascii-bbs.test.mjs",
+        "tests/issue-1299-four-room-bbs.test.mjs",
         "tests/issue-962-agent-profiles.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",

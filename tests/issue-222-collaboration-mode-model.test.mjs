@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const source = await readFile(new URL("../lib/collaboration-mode.ts", import.meta.url), "utf8");
+const source = await readFile(new URL("../lib/projects/collaboration/collaboration-mode.ts", import.meta.url), "utf8");
 
 test("defines the three canonical project collaboration modes", () => {
   assert.match(source, /"local-story"/);

@@ -6,7 +6,7 @@ Issue 194 converts existing PlotPickle foundations. It does not introduce a seco
 
 The PlotPickle project remains the sole canonical source for story, structure, logic, screenplay, visual, production, rights, and collaboration data.
 
-`lib/story-dependencies.ts` is upgraded in place to relationship-index version 2.0.0. It derives nodes, edges, reverse references, conflicts, and health checks from the current project. The index is a rebuildable derived read model and never becomes a second canonical story graph. Its folder metadata explicitly records `derived: true` and `canonicalDataStoredHere: false`.
+`lib/projects/story/story-dependencies.ts` is upgraded in place to relationship-index version 2.0.0. It derives nodes, edges, reverse references, conflicts, and health checks from the current project. The index is a rebuildable derived read model and never becomes a second canonical story graph. Its folder metadata explicitly records `derived: true` and `canonicalDataStoredHere: false`.
 
 Stable project IDs connect characters, locations, threads, acts, sequences, Blocks, scenes, mini-blocks, screenplay elements, visual frames, Graphic Novel panels, Production Shots, cues, revisions, provenance records, story-logic evidence, and retained assets.
 

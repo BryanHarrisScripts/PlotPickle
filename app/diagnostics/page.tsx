@@ -4,7 +4,7 @@ import Link from "next/link";
 import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useState } from "react";
 import CraftDiagnosticsWorkspace from "../craft-diagnostics";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 

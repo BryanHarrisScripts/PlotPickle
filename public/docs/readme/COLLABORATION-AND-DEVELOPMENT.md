@@ -45,11 +45,11 @@ The source of truth is:
 
 - `schema/plotpickle-project.schema.json`
 - `schema/plotpickle-project-v1.7.schema.json`
-- `lib/project.ts`
-- `lib/project-phase-one.ts`
-- `lib/structure.ts`
+- `lib/projects/project.ts`
+- `lib/projects/project-phase-one.ts`
+- `lib/projects/structure.ts`
 - `lib/craft-diagnostics.ts`
-- `lib/specialist-labs.ts`
+- `lib/projects/specialist-labs.ts`
 
 Portable `.ppf` projects and optional GitHub collaboration now build on schema 1.7 revisions and provenance without changing local-only use. Multiple local servers submit reviewable pull requests rather than writing directly to the canonical branch.
 

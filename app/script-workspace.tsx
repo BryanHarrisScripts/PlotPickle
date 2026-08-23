@@ -6,7 +6,7 @@ import type {
   ScreenplayDocument,
   ScreenplayDraftElement,
   ScreenplayDraftElementType,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   createDraftElement,
   draftFromScreenplay,

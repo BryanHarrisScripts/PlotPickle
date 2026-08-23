@@ -23,7 +23,7 @@ import {
   feedbackTargetOptions,
   updateFeedback,
 } from "@/lib/unified-feedback-store";
-import type { PlotPickleProject, ReviewPriority } from "@/lib/project";
+import type { PlotPickleProject, ReviewPriority } from "@/lib/projects/project";
 
 const SECTION_LABELS: Record<FeedbackSection, string> = {
   overview: "Overview",

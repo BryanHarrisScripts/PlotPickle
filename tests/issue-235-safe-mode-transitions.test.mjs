@@ -5,7 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const root = new URL("..", import.meta.url);
-const modeSource = await readFile(new URL("lib/collaboration-mode.ts", root), "utf8");
+const modeSource = await readFile(new URL("lib/projects/collaboration/collaboration-mode.ts", root), "utf8");
 const uiSource = await readFile(new URL("app/github-collaboration.tsx", root), "utf8");
 
 const compiled = ts.transpileModule(modeSource, {

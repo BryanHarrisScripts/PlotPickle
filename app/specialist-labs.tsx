@@ -16,7 +16,7 @@ import { dialogueGuidedPasses } from "./learning-dialogue-in-motion";
 import VisualReferenceLibrary from "./visual-reference-library";
 import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
 import { legacyVisualProposalText, type AfterglowLegacyVisual, type AfterglowVisualDecision } from "@/lib/afterglow-legacy-visuals";
-import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
+import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/projects/project";
 import {
   applySpecialistSuggestion,
   attachProjectDocumentToCanonBinder,
@@ -29,7 +29,7 @@ import {
   type CanonProjectDocumentKind,
   type SpecialistLabKind,
   type SpecialistSuggestion,
-} from "@/lib/specialist-labs";
+} from "@/lib/projects/specialist-labs";
 import styles from "./specialist-labs.module.css";
 
 type Props = {

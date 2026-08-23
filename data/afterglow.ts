@@ -1,4 +1,4 @@
-import { createBlankArcMatrix, createBlankProject, type Character, type PlotPickleProject } from "@/lib/project";
+import { createBlankArcMatrix, createBlankProject, type Character, type PlotPickleProject } from "@/lib/projects/project";
 import { createAfterglowScreenplay } from "./afterglow-screenplay";
 
 const afterglowCharacters: Array<Omit<Character, "arcMatrix">> = [

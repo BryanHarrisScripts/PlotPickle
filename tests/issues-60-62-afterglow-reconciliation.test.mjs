@@ -65,7 +65,7 @@ test("built-in Afterglow project overrides blank rights and uses current display
 });
 
 test("user projects keep All rights reserved defaults", async () => {
-  const project = await source("lib/project-phase-one.ts");
+  const project = await source("lib/projects/project-phase-one.ts");
   assert.match(project, /defaultCreativeLicence: "All rights reserved"/);
 });
 

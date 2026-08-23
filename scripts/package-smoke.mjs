@@ -16,7 +16,7 @@ for (const file of [
   "README.md",
   "worker/index.ts",
   "db/index.ts",
-  "lib/project-package.ts",
+  "lib/projects/persistence/project-package.ts",
   "build/local-project-gateway.ts",
   "build/github-app-public-config.ts",
   "build/google-oauth-public-config.ts",

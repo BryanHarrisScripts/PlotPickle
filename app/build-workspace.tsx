@@ -23,7 +23,7 @@ import {
   captureArrangementRecovery,
   loadArrangementRecovery,
 } from "@/lib/build-recovery";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
 
 type BuildWorkspaceDisplay = BuildWorkspaceView | "mini-blocks";

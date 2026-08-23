@@ -1,4 +1,4 @@
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 
 export const BEGINNER_RECORD_MARKER = "PLOTPICKLE_BEGINNER_PATH_RECORD" as const;
 export const BEGINNER_PREFERENCES_KEY = "plotpickle.beginner.preferences.v1" as const;

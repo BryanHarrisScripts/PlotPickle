@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #398 supports character world scene action and dialogue proposals", async () => {
-  const model = await source("lib/image-to-story-proposals.ts");
+  const model = await source("lib/projects/visual/image-to-story-proposals.ts");
   assert.match(model, /StoryProposalKind = "character" \| "world" \| "scene" \| "action" \| "dialogue"/);
   assert.match(model, /sourceAssetId/);
   assert.match(model, /sourceCandidateId/);
@@ -16,7 +16,7 @@ test("issue #398 supports character world scene action and dialogue proposals", 
 });
 
 test("issue #398 never edits story fields merely by adding a visual proposal", async () => {
-  const model = await source("lib/image-to-story-proposals.ts");
+  const model = await source("lib/projects/visual/image-to-story-proposals.ts");
   assert.match(model, /addImageToStoryProposal/);
   assert.match(model, /proposals: \[\.\.\.store\.proposals, proposal\]/);
   const addSection = model.slice(model.indexOf("export function addImageToStoryProposal"), model.indexOf("export function decideImageToStoryProposal"));
@@ -25,7 +25,7 @@ test("issue #398 never edits story fields merely by adding a visual proposal", a
 
 test("issue #398 requires explicit accept edit reject or defer decisions", async () => {
   const [model, view] = await Promise.all([
-    source("lib/image-to-story-proposals.ts"),
+    source("lib/projects/visual/image-to-story-proposals.ts"),
     source("app/image-to-story-proposals.tsx"),
   ]);
   assert.match(model, /"accepted" \| "edited" \| "rejected" \| "deferred"/);
@@ -33,7 +33,7 @@ test("issue #398 requires explicit accept edit reject or defer decisions", async
 });
 
 test("issue #398 accepted changes preserve asset provenance and human decision in revision history", async () => {
-  const model = await source("lib/image-to-story-proposals.ts");
+  const model = await source("lib/projects/visual/image-to-story-proposals.ts");
   assert.match(model, /AcceptedStoryRevision/);
   assert.match(model, /sourceAssetId: proposal\.sourceAssetId/);
   assert.match(model, /sourceCandidateId: proposal\.sourceCandidateId/);

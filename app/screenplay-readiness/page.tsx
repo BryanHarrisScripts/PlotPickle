@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import { assessScreenplayReadiness, readinessDestinations } from "../beginner-experience";
 import styles from "./screenplay-readiness.module.css";
 

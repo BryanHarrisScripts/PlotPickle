@@ -1,4 +1,4 @@
-import type { VisualFrame } from "@/lib/project";
+import type { VisualFrame } from "@/lib/projects/project";
 
 const sourceStoryboardBlocks = 21;
 const bundledStoryboardBlocks = 24;

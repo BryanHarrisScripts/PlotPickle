@@ -1,7 +1,7 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
-import { effectiveCreativeMemory, historicalCreativeMemory, type CreativeMemoryTarget } from "@/lib/creative-memory";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { effectiveCreativeMemory, historicalCreativeMemory, type CreativeMemoryTarget } from "@/lib/projects/canon/creative-memory";
 
 export default function CreativeMemory({ project, target }: { project: PlotPickleProject; target?: CreativeMemoryTarget }) {
   const active = effectiveCreativeMemory(project, target);

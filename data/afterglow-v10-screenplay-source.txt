@@ -1,7 +1,7 @@
 import type {
   ScreenplayDocument,
   ScreenplayDraftElement,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 
 /*
  * Canonical demonstration screenplay extracted from Bryan Elgin Harris's

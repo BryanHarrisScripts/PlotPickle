@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { nextAvailableRepositoryName, normalizeRepositoryName } from "../lib/story-project-repository";
+import { nextAvailableRepositoryName, normalizeRepositoryName } from "../lib/projects/persistence/story-project-repository";
 import styles from "./github-collaboration.module.css";
 
 export type GitHubAppConnectedRepository = {

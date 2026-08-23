@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CreativeExplorationCandidate } from "@/lib/creative-candidates";
+import type { CreativeExplorationCandidate } from "@/lib/projects/canon/creative-candidates";
 import {
   buildProviderNeutralRemixRequest,
   type CreativeRemixRecipe,
   type ProviderNeutralRemixRequest,
   type RemixQuality,
-} from "@/lib/creative-remix";
+} from "@/lib/projects/canon/creative-remix";
 
 const QUALITY_OPTIONS = ["face", "identity", "composition", "mood", "colour", "camera", "lighting", "wardrobe", "action", "continuity"];
 

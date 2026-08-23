@@ -1,4 +1,4 @@
-import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
+import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/projects/project";
 import { createAfterglowProject as createBaseAfterglowProject } from "./afterglow";
 import { createAfterglowScreenplay } from "./afterglow-screenplay";
 import { createAfterglowStoryboardFrames } from "./afterglow-storyboard";

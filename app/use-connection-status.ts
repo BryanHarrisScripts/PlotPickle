@@ -6,7 +6,7 @@ import {
   createConnectionStatusSnapshot,
   type ConnectionRuntimeSnapshot,
 } from "@/lib/connection-status";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 
 export const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 export const SETTINGS_SECTION_KEY = "plotpickle.settings.section";

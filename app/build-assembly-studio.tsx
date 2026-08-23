@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { buildGlobalSceneIndex } from "@/lib/scene-management";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 

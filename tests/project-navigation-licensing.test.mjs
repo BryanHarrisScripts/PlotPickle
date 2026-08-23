@@ -37,7 +37,7 @@ test("main application exposes the grouped project rail and local-only product m
 });
 
 test("section progress model covers every visible story section", async () => {
-  const progress = await source("lib/project-progress.ts");
+  const progress = await source("lib/projects/project-progress.ts");
   for (const section of [
     "overview",
     "storySetup",

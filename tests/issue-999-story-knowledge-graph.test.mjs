@@ -8,7 +8,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
 async function loadGraphCore() {
-  const source = await read("lib/story-knowledge-graph.ts");
+  const source = await read("lib/projects/story/story-knowledge-graph.ts");
   const output = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.ESNext,
@@ -95,7 +95,7 @@ test("graph revisions are explicit and semantic diffs expose additions without m
 });
 
 test("model routing is provider-independent and bounds local inference rather than promoting extraction to a frontier model", async () => {
-  const source = await read("lib/story-knowledge-graph.ts");
+  const source = await read("lib/projects/story/story-knowledge-graph.ts");
   assert.match(source, /extraction: \{ route: "fast", maxLocalConcurrency: 1 \}/);
   assert.match(source, /resolution: \{ route: "quality", maxLocalConcurrency: 1 \}/);
   assert.match(source, /export type StoryKnowledgeExtractor/);
@@ -103,8 +103,8 @@ test("model routing is provider-independent and bounds local inference rather th
 });
 
 test("canonical PPF seeds a read-only graph from characters, locations, blocks and relationships with revision provenance", async () => {
-  const source = await read("lib/story-knowledge-ppf.ts");
-  assert.match(source, /import type \{ PlotPickleProject \} from "\.\/project";/);
+  const source = await read("lib/projects/story/story-knowledge-ppf.ts");
+  assert.match(source, /import type \{ PlotPickleProject \} from "\.\.\/project";/);
   assert.match(source, /project\.characters/);
   assert.match(source, /project\.world\.locations/);
   assert.match(source, /project\.blocks/);
@@ -118,7 +118,7 @@ test("canonical PPF seeds a read-only graph from characters, locations, blocks a
 test("Context Engine treats story graph material as bounded non-canon evidence below PPF authority", async () => {
   const [engine, adapter] = await Promise.all([
     read("lib/agents/context/context-engine.ts"),
-    read("lib/story-knowledge-context.ts"),
+    read("lib/projects/story/story-knowledge-context.ts"),
   ]);
   assert.match(engine, /"story-knowledge-graph"/);
   assert.match(engine, /storyKnowledgeGraph: 76/);

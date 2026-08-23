@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { type PlotPickleProject } from "@/lib/project";
-import { buildStoryClock, secondsToTimecode } from "@/lib/structure";
+import { type PlotPickleProject } from "@/lib/projects/project";
+import { buildStoryClock, secondsToTimecode } from "@/lib/projects/structure";
 import styles from "./structure-map-summary.module.css";
 
 const actNames = ["Setup", "Confrontation", "Complication", "Resolution"];

@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function repositoryContract() {
-  const compiled = stripTypeScriptTypes(await source("lib/story-project-repository.ts"), { mode: "transform" });
+  const compiled = stripTypeScriptTypes(await source("lib/projects/persistence/story-project-repository.ts"), { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
@@ -110,7 +110,7 @@ test("issue #148 detects manifests and requires explicit initialization without 
   const [gateway, component, repositoryContractSource] = await Promise.all([
     source("build/github-app-gateway.ts"),
     source("app/github-app-connection.tsx"),
-    source("lib/story-project-repository.ts"),
+    source("lib/projects/persistence/story-project-repository.ts"),
   ]);
   const setupContract = `${gateway}\n${repositoryContractSource}`;
   for (const contract of [

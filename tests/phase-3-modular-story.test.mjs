@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const folder = await readFile(new URL("../lib/project-folder.ts", import.meta.url), "utf8");
-const modules = await readFile(new URL("../lib/project-modules.ts", import.meta.url), "utf8");
+const folder = await readFile(new URL("../lib/projects/persistence/project-folder.ts", import.meta.url), "utf8");
+const modules = await readFile(new URL("../lib/projects/project-modules.ts", import.meta.url), "utf8");
 const gateway = await readFile(new URL("../build/folder-project-gateway.ts", import.meta.url), "utf8");
 
 test("Phase 3 registers independent story modules", () => {

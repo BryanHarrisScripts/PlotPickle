@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("Phase 2 keeps screenplay elements attached to stable scene identities", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   const draft = await source("lib/screenplay-draft.ts");
   const management = await source("lib/scene-management.ts");
   const writer = await source("app/script-workspace.tsx");
@@ -48,7 +48,7 @@ test("the canonical compatibility schema accepts flexible scenes and short scene
 });
 
 test("the project validator no longer restores the two-scene restriction", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   assert.doesNotMatch(project, /block\.scenes\.length === 2/);
   assert.doesNotMatch(project, /scene\.miniBlocks\.length === 2/);
   assert.match(project, /block\.scenes\.length < 1/);

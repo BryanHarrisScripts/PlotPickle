@@ -19,7 +19,7 @@ import {
   updateSonicCue,
 } from "@/lib/preproduction";
 import { createProductionReportsModel, updateProductionShootGroupDecision } from "@/lib/production-reports";
-import type { PlotPickleProject, ProductionBreakdown, ProductionScheduleDay, ProductionShot, SonicCue } from "@/lib/project";
+import type { PlotPickleProject, ProductionBreakdown, ProductionScheduleDay, ProductionShot, SonicCue } from "@/lib/projects/project";
 
 type View = "shots" | "sonic" | "animatic" | "breakdowns" | "shoot-groups" | "schedule" | "distribution";
 export type ProductionScope = "all" | "storyboard" | "build";

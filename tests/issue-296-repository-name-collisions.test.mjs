@@ -8,7 +8,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function repositoryContract() {
-  const compiled = stripTypeScriptTypes(await source("lib/story-project-repository.ts"), { mode: "transform" });
+  const compiled = stripTypeScriptTypes(await source("lib/projects/persistence/story-project-repository.ts"), { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 

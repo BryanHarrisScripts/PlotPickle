@@ -269,7 +269,7 @@ Every major workspace should use the same structural pattern:
 | `LearningStudio` | 81-module library, recommendations, progress and contextual learning | Keep and modify | Learn and contextual guidance drawer | Replace DOM button simulation and route replacement with typed navigation commands |
 | `StructureMapSummary` | Readable 4/12/24/scene/96 overview | Keep | Plan, Build and Story reports | Add context-preserving open actions |
 | Plan Blocks editor and Storyboard planner | 24-Block editing and visual direction | Extend | Build foundation | Reuse fields and callbacks inside visual card inspectors |
-| `app/structure/page.tsx` and `lib/structure.ts` | Sequences, scenes, mini-blocks, movement, duplication, timing and Story Clock | Extend and extract | Build and production planning | Extract pure operations and reusable editors; stop owning a separate project session when embedded |
+| `app/structure/page.tsx` and `lib/projects/structure.ts` | Sequences, scenes, mini-blocks, movement, duplication, timing and Story Clock | Extend and extract | Build and production planning | Extract pure operations and reusable editors; stop owning a separate project session when embedded |
 | `ScriptWorkspace`, `TreatmentEditor`, `ScriptViewer` | Treatment, screenplay, scene links, exports and readable full draft | Keep and extend | Write, Table Read and Shooting Script | Add contextual feedback and production-draft modes without creating another screenplay |
 | `VisualStoryboard` | 24/96 visual boards, frame editor, visual identity, prompt and continuity diagnostics | Keep and extend | Storyboard and Build | Reuse board/navigation primitives and thumbnails; unify selected Block/mini state with shell |
 | `CraftDiagnosticSummary` and specialist diagnostics | Evidence-based warnings | Combine | Build, Refine, Feedback and Reports | Normalize diagnostic records and targets so findings can become feedback proposals |
@@ -350,7 +350,7 @@ Build should be assembled from existing systems rather than written as an indepe
 
 - Canonical `StoryBlock`, `StorySequence`, `StoryScene` and `MiniBlock` records
 - Existing 4-act, 12-sequence, 24-Block and 96-mini-block defaults
-- Stable IDs and normalization rules in `lib/structure.ts`
+- Stable IDs and normalization rules in `lib/projects/structure.ts`
 - Block fields and editors currently used in Plan
 - Structure Engine move, duplicate, rebalance, scene and mini-block operations
 - Story Clock and structure diagnostics

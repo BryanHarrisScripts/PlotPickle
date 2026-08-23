@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { feedbackTargetOptions } from "@/lib/unified-feedback-store";
 import {
   approveWritersRoomProposal,

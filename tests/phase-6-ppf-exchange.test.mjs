@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const exchange = await readFile(new URL("../lib/ppf-exchange.ts", import.meta.url), "utf8");
-const pdf = await readFile(new URL("../lib/pdf-screenplay-import.ts", import.meta.url), "utf8");
+const exchange = await readFile(new URL("../lib/projects/canon/ppf-exchange.ts", import.meta.url), "utf8");
+const pdf = await readFile(new URL("../lib/projects/screenplay/pdf-screenplay-import.ts", import.meta.url), "utf8");
 const docs = await readFile(new URL("../docs/PHASE-6-PPF-EXCHANGE.md", import.meta.url), "utf8").catch(() => "");
 
 test("Phase 6 defines ZIP exchange packages and checksums", () => {

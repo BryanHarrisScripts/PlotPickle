@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("canonical PPF state has one portable revision store and immutable proposal base revisions", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   assert.match(source, /PROJECT_REVISION_EXTENSION_KEY = "canonicalRevision"/);
   assert.match(source, /currentRevision: number/);
   assert.match(source, /baseRevision: number/);
@@ -17,7 +17,7 @@ test("canonical PPF state has one portable revision store and immutable proposal
 });
 
 test("two proposals created against the same revision cannot both silently become canon", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   assert.match(source, /found\.baseRevision !== store\.currentRevision/);
   assert.match(source, /status: "stale" as const/);
   assert.match(source, /reason: "stale-revision"/);
@@ -28,7 +28,7 @@ test("two proposals created against the same revision cannot both silently becom
 });
 
 test("stale proposals remain reviewable and require explicit reject, rebase or a new accepted proposal", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   assert.match(source, /CanonicalProposalStatus = "pending" \| "accepted" \| "rejected" \| "stale" \| "rebased" \| "superseded"/);
   assert.match(source, /rejectCanonicalProposal/);
   assert.match(source, /rebaseCanonicalProposal/);
@@ -38,7 +38,7 @@ test("stale proposals remain reviewable and require explicit reject, rebase or a
 });
 
 test("every canonical mutation requires an explicit writer approval boundary", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   assert.match(source, /type WriterApproval = \{/);
   assert.match(source, /kind: "writer"/);
   assert.match(source, /Explicit writer approval is required for canonical mutation/);
@@ -49,7 +49,7 @@ test("every canonical mutation requires an explicit writer approval boundary", a
 });
 
 test("proposal provenance links agent, Skill, run, model route and Context Engine sources without storing secrets or hidden reasoning", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   for (const field of ["profileId", "skillUri", "runId", "provider", "model", "routeId", "promptFingerprint", "sourceIds", "sourceRevisions", "generatedAt"]) {
     assert.match(source, new RegExp(`${field}:`), `missing provenance field ${field}`);
   }
@@ -60,7 +60,7 @@ test("proposal provenance links agent, Skill, run, model route and Context Engin
 });
 
 test("asset proposals use the same revision/provenance gate as story and screenplay proposals", async () => {
-  const source = await read("lib/project-revisions.ts");
+  const source = await read("lib/projects/persistence/project-revisions.ts");
   assert.match(source, /CanonicalProposalKind = "story" \| "field" \| "screenplay" \| "asset" \| "other"/);
   assert.match(source, /CanonicalGenerationProvenance/);
   assert.match(source, /contentFingerprint/);
@@ -70,7 +70,7 @@ test("asset proposals use the same revision/provenance gate as story and screenp
 
 test("the portable PPF and Afterglow revision workspace can coexist with canonical revision history", async () => {
   const [projectFolder, screenplayRevisions, afterglowTest] = await Promise.all([
-    read("lib/project-folder.ts"),
+    read("lib/projects/persistence/project-folder.ts"),
     read("lib/screenplay-revisions.ts"),
     read("tests/afterglow-revision-ppf.test.mjs"),
   ]);

@@ -9,7 +9,7 @@ import {
   type PlotPickleProject,
   type ReviewThread,
   type ScreenplayDraftElement,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   dialogueBlueprintFields,
   dialogueGuidedPasses,

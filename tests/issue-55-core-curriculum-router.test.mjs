@@ -181,7 +181,7 @@ test("Read and Learn searches legacy aliases and supports direct deep links", as
 
 test("schema 1.7 remains frozen and records use existing review threads", async () => {
   const page = await source("app/core-curriculum/page.tsx");
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   assert.match(project, /schemaVersion: "1\.7\.0"/);
   assert.match(page, /type ReviewThread/);
   assert.match(page, /anchor: \{ kind: "project"/);

@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function syncContract() {
-  const raw = (await source("lib/project-folder-sync.ts")).replace(/\r\n?/g, "\n");
+  const raw = (await source("lib/projects/persistence/project-folder-sync.ts")).replace(/\r\n?/g, "\n");
   const withoutRelativeImports = raw.replace(/import[\s\S]*?;\n/g, (statement) => statement.includes('from "./') ? "" : statement);
   const dependencies = 'const PROJECT_FOLDER_FORMAT = "plotpickle-project";\nconst PROJECT_FOLDER_VERSION = "2.3.0";\n';
   const compiled = stripTypeScriptTypes(`${dependencies}${withoutRelativeImports}`, { mode: "transform" });
@@ -58,7 +58,7 @@ test("issue #150 restricts deletions and rejects unsupported remote folders", as
 test("issue #150 uses one guarded Git tree and preserves unrelated repository content", async () => {
   const [gateway, syncSource] = await Promise.all([
     source("build/github-project-sync-gateway.ts"),
-    source("lib/project-folder-sync.ts"),
+    source("lib/projects/persistence/project-folder-sync.ts"),
   ]);
   for (const contract of [
     "/git/blobs",
@@ -111,7 +111,7 @@ test("issue #150 promotes project/ to canonical and keeps .ppf as exchange", asy
   const [schema, templateManifest, repositorySource, vite] = await Promise.all([
     source("schema/github-story-project-manifest.schema.json").then(JSON.parse),
     source("templates/github-story-project/plotpickle-project.json").then(JSON.parse),
-    source("lib/story-project-repository.ts"),
+    source("lib/projects/persistence/story-project-repository.ts"),
     source("vite.config.ts"),
   ]);
   assert.equal(schema.properties.formatVersion.const, "1.1.0");

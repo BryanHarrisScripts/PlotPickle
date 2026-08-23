@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 
 export default function SimpleStart({
   project,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { diagnoseCraftLayer, type CraftFinding } from "@/lib/craft-diagnostics";
 import styles from "./craft-diagnostics.module.css";
 

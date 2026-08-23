@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { LOGLINE_EVIDENCE_GROUPS, scoreLogline } from "@/lib/logline-rubric";
 import type { LoglineEvidenceState } from "@/lib/logline-lab";
 import styles from "./logline-rubric.module.css";

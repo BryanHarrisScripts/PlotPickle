@@ -8,7 +8,7 @@ import {
   type PlotPickleProject,
   type ReviewAnchorKind,
   type ReviewThread,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   authorityActions,
   collaborationModels,

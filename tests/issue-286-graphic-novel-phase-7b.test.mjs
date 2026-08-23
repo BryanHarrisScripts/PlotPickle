@@ -8,7 +8,7 @@ const viewer = readFileSync(new URL("../app/graphic-novel-viewer.tsx", import.me
 const workspace = readFileSync(new URL("../app/ai-pitch-deck-workspace.tsx", import.meta.url), "utf8");
 const queue = readFileSync(new URL("../app/use-graphic-novel-queue.ts", import.meta.url), "utf8");
 const baseEditor = readFileSync(new URL("../app/ai-pitch-deck-workspace-base.tsx", import.meta.url), "utf8");
-const projectSource = readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
+const projectSource = readFileSync(new URL("../lib/projects/project.ts", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 test("Phase 7B stores non-destructive writing direction in a versioned PPF extension", () => {

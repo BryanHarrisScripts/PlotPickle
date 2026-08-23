@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ScreenplayDraftElement } from "@/lib/project";
+import type { ScreenplayDraftElement } from "@/lib/projects/project";
 
 type EditLens = "scene" | "dialogue" | "action" | "pacing" | "continuity";
 

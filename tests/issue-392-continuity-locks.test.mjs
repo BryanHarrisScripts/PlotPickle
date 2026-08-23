@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #392 defines scoped continuity locks for the required visual facts", async () => {
-  const model = await source("lib/continuity-locks.ts");
+  const model = await source("lib/projects/canon/continuity-locks.ts");
   for (const phrase of [
     '"identity" | "wardrobe" | "prop" | "architecture" | "palette" | "time" | "weather" | "camera"',
     '"project" | "sequence" | "block" | "scene"',
@@ -17,7 +17,7 @@ test("issue #392 defines scoped continuity locks for the required visual facts",
 });
 
 test("issue #392 resolves inherited locks by scope and permits explicit overrides", async () => {
-  const model = await source("lib/continuity-locks.ts");
+  const model = await source("lib/projects/canon/continuity-locks.ts");
   assert.match(model, /PRECEDENCE/);
   assert.match(model, /effectiveContinuityLocks/);
   assert.match(model, /if \(scope\.kind === "project"\) return true/);
@@ -29,7 +29,7 @@ test("issue #392 resolves inherited locks by scope and permits explicit override
 
 test("issue #392 warns on conflicting overrides before generation", async () => {
   const [model, view] = await Promise.all([
-    source("lib/continuity-locks.ts"),
+    source("lib/projects/canon/continuity-locks.ts"),
     source("app/continuity-locks-panel.tsx"),
   ]);
   assert.match(model, /Override conflicts with inherited/);
@@ -40,7 +40,7 @@ test("issue #392 warns on conflicting overrides before generation", async () => 
 });
 
 test("issue #392 injects effective locks and warnings into visual story context", async () => {
-  const context = await source("lib/visual-context.ts");
+  const context = await source("lib/projects/visual/visual-context.ts");
   assert.match(context, /effectiveContinuityLocks/);
   assert.match(context, /continuityWarnings/);
   assert.match(context, /continuityLocks: EffectiveContinuityLock\[\]/);
@@ -50,7 +50,7 @@ test("issue #392 injects effective locks and warnings into visual story context"
 });
 
 test("issue #392 does not mutate prior approved assets when locks change", async () => {
-  const model = await source("lib/continuity-locks.ts");
+  const model = await source("lib/projects/canon/continuity-locks.ts");
   assert.match(model, /setContinuityLockActive/);
   assert.match(model, /locks: store\.locks\.map/);
   assert.doesNotMatch(model, /project\.assets\s*=|assets:\s*\[|approvedVisualCanon\s*=/);

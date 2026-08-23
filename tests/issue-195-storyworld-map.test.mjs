@@ -6,12 +6,12 @@ import test from "node:test";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const [mapSource, panelSource, wallSource, buildSource, pitchSource, projectSource, documentation] = await Promise.all([
-  readFile(new URL("../lib/storyworld-map.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/story/storyworld-map.ts", import.meta.url), "utf8"),
   readFile(new URL("../app/storyworld-map-panel.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/mini-block-wall.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/build-workspace.tsx", import.meta.url), "utf8"),
   readFile(new URL("../lib/pitch-review.ts", import.meta.url), "utf8"),
-  readFile(new URL("../lib/project.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/projects/project.ts", import.meta.url), "utf8"),
   readFile(new URL("../docs/ISSUE-195-STORYWORLD-MAP.md", import.meta.url), "utf8"),
 ]);
 
@@ -52,7 +52,7 @@ test("Storyworld Map exposes semantic zoom, evidence overlays, shared layout and
 
 test("the derived map is deterministic and its optional layout survives PPF round-trip", () => {
   const program = String.raw`
-    import { createBlankProject } from "./lib/project.ts";
+    import { createBlankProject } from "./lib/projects/project.ts";
     import { createShotFromFrame } from "./lib/preproduction.ts";
     import {
       buildStoryworldMapHtml,
@@ -62,8 +62,8 @@ test("the derived map is deterministic and its optional layout survives PPF roun
       readStoryworldMapSharedLayout,
       saveStoryworldMapSharedLayout,
       storyworldConnectionsForItem,
-    } from "./lib/storyworld-map.ts";
-    import { createPortableProjectFile, parsePortableProjectFile, serializePortableProjectFile } from "./lib/project-package.ts";
+    } from "./lib/projects/story/storyworld-map.ts";
+    import { createPortableProjectFile, parsePortableProjectFile, serializePortableProjectFile } from "./lib/projects/persistence/project-package.ts";
     import { buildPitchPackageHtml } from "./lib/pitch-review.ts";
 
     let project = createBlankProject();

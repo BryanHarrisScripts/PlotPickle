@@ -143,9 +143,9 @@ Schema 1.7 is the canonical application and export model as of PlotPickle 0.13. 
 
 ## Implementation source
 
-- `lib/structure.ts`
+- `lib/projects/structure.ts`
 - `app/structure/page.tsx`
-- `lib/project-phase-one.ts`
+- `lib/projects/project-phase-one.ts`
 - `schema/plotpickle-project-v1.7.schema.json`
 - `tests/phase-one-core-schema.test.mjs`
 - `tests/dynamic-scenes.test.mjs`

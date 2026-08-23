@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const API_ROOT = "/api/render/lazy-frames";

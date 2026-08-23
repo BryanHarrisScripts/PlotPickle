@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #385 adds normalized visual references with rights and provenance", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   for (const field of [
     "VisualReference",
     "visualReferences",
@@ -29,7 +29,7 @@ test("issue #385 adds normalized visual references with rights and provenance", 
 });
 
 test("issue #385 preserves privacy boundaries for imported references", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   assert.match(project, /function safeReferenceUrl/);
   assert.match(project, /function safeImportFileName/);
   assert.match(project, /\^\(\?:file\|\[a-z\]\):/i);
@@ -62,7 +62,7 @@ test("issue #385 exposes a no-AI Visual References planner section", async () =>
 test("issue #385 is registered as a focused programme slice", async () => {
   const [registry, progress, packageJson] = await Promise.all([
     source("config/ai-native-visual-writing-programme.json"),
-    source("lib/project-progress.ts"),
+    source("lib/projects/project-progress.ts"),
     source("package.json"),
   ]);
   assert.match(registry, /"issue": 385/);

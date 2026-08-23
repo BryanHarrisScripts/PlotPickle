@@ -9,7 +9,7 @@ import {
   normalizePlotPickleProject,
   type PlotPickleProject,
   type ReviewThread,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   advancedFormattingTemplates,
   essentialTechniqueLibrary,

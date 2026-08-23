@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PreproductionWorkspace, { type ProductionScope } from "../preproduction-workspace";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import { ensureProductionWorkspace } from "@/lib/preproduction";
 
 const STORAGE_KEY = "plotpickle.project.v1";

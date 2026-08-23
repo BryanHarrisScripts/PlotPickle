@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element, react-hooks/immutability -- Local generated assets use the loopback gateway; identity staging is committed through onImage. */
 
 import { useState } from "react";
-import type { Character, PlotPickleProject } from "@/lib/project";
+import type { Character, PlotPickleProject } from "@/lib/projects/project";
 import {
   approvePendingVisualIdentity,
   buildCharacterIdentityPrompt,
@@ -17,7 +17,7 @@ import {
   type CharacterVisualIdentity,
   type CharacterVisualTraits,
   type CharacterWithVisualIdentity,
-} from "@/lib/character-visual-identity";
+} from "@/lib/projects/visual/character-visual-identity";
 import styles from "./character-image-generator.module.css";
 
 type ImageResponse = { assetUrl?: string; revisedPrompt?: string; message?: string };

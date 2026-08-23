@@ -3,8 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- Bundled offline WebP references are loaded lazily from public assets. */
 
 import { useEffect, useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
-import { createSpecialistSuggestion, type SpecialistSuggestion } from "@/lib/specialist-labs";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { createSpecialistSuggestion, type SpecialistSuggestion } from "@/lib/projects/specialist-labs";
 import styles from "./visual-reference-library.module.css";
 
 export type VisualReference = {

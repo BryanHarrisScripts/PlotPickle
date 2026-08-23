@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "./mini-block-wall.module.css";
 import mapStyles from "./storyworld-map-panel.module.css";
 import type { MiniBlockWallCard, MiniBlockWallState } from "@/lib/mini-block-wall";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   buildStoryworldMapHtml,
   buildStoryworldMapSvg,
@@ -17,7 +17,7 @@ import {
   storyworldMarkersForItem,
   type StoryworldMapItem,
   type StoryworldMapOverlay,
-} from "@/lib/storyworld-map";
+} from "@/lib/projects/story/storyworld-map";
 
 type StoryworldMapPanelProps = {
   project: PlotPickleProject;

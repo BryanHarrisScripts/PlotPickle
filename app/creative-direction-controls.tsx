@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CreativeExplorationCandidate } from "@/lib/creative-candidates";
+import type { CreativeExplorationCandidate } from "@/lib/projects/canon/creative-candidates";
 import {
   buildProviderNeutralCreativeRequest,
   createBlankCreativeDirection,

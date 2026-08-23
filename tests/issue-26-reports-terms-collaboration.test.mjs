@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("screenplay import populates every current canonical project area", async () => {
-  const importer = await source("lib/screenplay-import.ts");
+  const importer = await source("lib/projects/screenplay/screenplay-import.ts");
   for (const field of [
     "metadata", "story", "world", "development", "screenplay", "structure", "characters", "blocks",
     "storyThreads", "rights", "revisions", "review", "production", "collaboration",
@@ -36,7 +36,7 @@ test("reports recalculate and audit all recently added sections", async () => {
 });
 
 test("terminology uses readable categories, views, examples, and workspace links", async () => {
-  const [terms, panel, styles] = await Promise.all([source("lib/screenplay-terms.ts"), source("app/settings-project-tools.tsx"), source("app/settings-project-tools.module.css")]);
+  const [terms, panel, styles] = await Promise.all([source("lib/projects/screenplay/screenplay-terms.ts"), source("app/settings-project-tools.tsx"), source("app/settings-project-tools.module.css")]);
   for (const category of ["Writing", "Formatting", "Structure", "Character", "Production", "Revision", "PlotPickle", "Collaboration"]) assert.ok(terms.includes(category));
   for (const term of ["Call sheet", "Canon", "Collaboration proposal", "Pull request", "Revision colour", "Story Bible"]) assert.ok(terms.includes(term));
   assert.match(panel, /Concise/);

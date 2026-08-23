@@ -31,8 +31,8 @@ import {
   captureArrangementRecovery,
   loadArrangementRecovery,
 } from "@/lib/build-recovery";
-import type { PlotPickleProject } from "@/lib/project";
-import { readStoryworldMapSharedLayout } from "@/lib/storyworld-map";
+import type { PlotPickleProject } from "@/lib/projects/project";
+import { readStoryworldMapSharedLayout } from "@/lib/projects/story/storyworld-map";
 
 const wallStateByProject = new Map<string, MiniBlockWallState>();
 

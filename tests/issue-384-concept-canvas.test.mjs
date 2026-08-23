@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #384 adds a normalized Concept Canvas to the project model", async () => {
-  const project = await source("lib/project.ts");
+  const project = await source("lib/projects/project.ts");
   for (const field of [
     "conceptCanvas",
     "conceptText",

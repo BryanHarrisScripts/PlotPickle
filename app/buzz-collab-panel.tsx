@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import BuzzWorkspace from "./buzz-workspace";
 
 const PROJECT_STORAGE_KEY = "plotpickle.project.v1";

@@ -8,7 +8,7 @@ import {
   LEARNING_MODULE_COUNT,
   PLOTPICKLE_REPOSITORY_URL,
 } from "@/lib/product-direction";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import styles from "./welcome.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";

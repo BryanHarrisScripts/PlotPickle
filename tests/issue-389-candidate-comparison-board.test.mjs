@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #389 persists candidate comparison decisions independently from providers", async () => {
-  const model = await source("lib/candidate-comparison.ts");
+  const model = await source("lib/projects/canon/candidate-comparison.ts");
   for (const phrase of [
     "CandidateComparisonRecord",
     "candidateComparison",
@@ -20,7 +20,7 @@ test("issue #389 persists candidate comparison decisions independently from prov
 });
 
 test("issue #389 records strengths problems reusable qualities and ranking", async () => {
-  const model = await source("lib/candidate-comparison.ts");
+  const model = await source("lib/projects/canon/candidate-comparison.ts");
   assert.match(model, /strengths: string/);
   assert.match(model, /problems: string/);
   assert.match(model, /reusableQualities: string/);

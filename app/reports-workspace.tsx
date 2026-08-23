@@ -11,7 +11,7 @@ import {
   type ReportTarget,
   type ReportsRuntimeConnections,
 } from "@/lib/consolidated-reports";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProductionReportSection } from "@/lib/production-reports";
 
 type ReportsWorkspaceProps = {

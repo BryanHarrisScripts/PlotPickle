@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import taxonomySource from "../config/settings-system-taxonomy.json";
 import BuzzSettingsPanel from "./buzz-settings-panel";

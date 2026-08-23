@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
-import { createBlankProject, normalizePlotPickleProject } from "@/lib/project";
-import { createRevisionSnapshot } from "@/lib/core-model";
+import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/projects/project";
+import { createBlankProject, normalizePlotPickleProject } from "@/lib/projects/project";
+import { createRevisionSnapshot } from "@/lib/projects/core-model";
 import { buildGlobalSceneIndex } from "@/lib/scene-management";
 import { reconcileProductionDraft } from "@/lib/production-draft";
 import { isAfterglowExampleProject } from "@/lib/afterglow-example";

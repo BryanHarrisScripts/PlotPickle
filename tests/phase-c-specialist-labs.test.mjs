@@ -33,7 +33,7 @@ test("PlotPickle 0.15 keeps every specialist lab and routes it through its owner
 test("every lab reads and writes the active canonical project", async () => {
   const [route, engine] = await Promise.all([
     read("../app/labs/page.tsx"),
-    read("../lib/specialist-labs.ts"),
+    read("../lib/projects/specialist-labs.ts"),
   ]);
   assert.ok(route.includes('const STORAGE_KEY = "plotpickle.project.v1"'));
   assert.ok(route.includes("normalizePlotPickleProject"));
@@ -61,7 +61,7 @@ test("specialist suggestions cannot change the project without approval", async 
 });
 
 test("approved passes preserve before, after, provenance and source records", async () => {
-  const engine = await read("../lib/specialist-labs.ts");
+  const engine = await read("../lib/projects/specialist-labs.ts");
   for (const contract of [
     "before: suggestion.before",
     "after: suggestion.after",
@@ -77,7 +77,7 @@ test("approved passes preserve before, after, provenance and source records", as
 });
 
 test("research and visual labs use existing canonical fields instead of parallel storage", async () => {
-  const engine = await read("../lib/specialist-labs.ts");
+  const engine = await read("../lib/projects/specialist-labs.ts");
   assert.ok(engine.includes("next.development.notes.research"));
   assert.ok(engine.includes("next.development.notes.sources"));
   assert.ok(engine.includes("next.rights.attributions"));

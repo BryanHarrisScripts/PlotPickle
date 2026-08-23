@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("phase 2 step 5 defines writer-facing collaboration terms without renaming technical contracts", async () => {
   const [language, copyText] = await Promise.all([
-    source("lib/collaboration-language.ts"),
+    source("lib/projects/collaboration/collaboration-language.ts"),
     source("config/collaboration-copy.json"),
   ]);
   const terms = JSON.stringify(JSON.parse(copyText).terms);
@@ -53,7 +53,7 @@ test("phase 2 step 5 keeps technical vocabulary secondary to the primary writer-
 });
 
 test("phase 2 step 5 is presentation-only and does not contain provider operations", async () => {
-  const language = await source("lib/collaboration-language.ts");
+  const language = await source("lib/projects/collaboration/collaboration-language.ts");
   assert.doesNotMatch(language, /fetch\(|onChange\(|syncEnabled|lastPulledCommit|lastPushedCommit|projectPath|repositoryUrl/);
   assert.match(language, /export function collaborationTerm/);
 });

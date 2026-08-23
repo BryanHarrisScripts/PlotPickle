@@ -22,7 +22,7 @@ test("Pitch & Review includes a four-part dialectic worksheet and evidence-based
 
 test("Canon Binder can attach the current beats, outline and pitch", async () => {
   const labs = await source("app/specialist-labs.tsx");
-  const logic = await source("lib/specialist-labs.ts");
+  const logic = await source("lib/projects/specialist-labs.ts");
   for (const phrase of ["24 Blocks beats", "Scene outline", "Pitch package", "Attach to Canon Binder", "Refresh attachment"]) assert.ok(labs.includes(phrase) || logic.includes(phrase), `Missing Canon Binder feature: ${phrase}`);
   assert.match(logic, /attachProjectDocumentToCanonBinder/);
   assert.match(logic, /project-document:\$\{kind\}/);

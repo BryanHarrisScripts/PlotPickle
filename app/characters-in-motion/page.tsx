@@ -8,7 +8,7 @@ import {
   type Character,
   type PlotPickleProject,
   type Relationship,
-} from "@/lib/project";
+} from "@/lib/projects/project";
 import {
   characterArcShapes,
   characterQuestionsForContext,

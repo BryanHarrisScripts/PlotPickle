@@ -1,4 +1,4 @@
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { learningModules, type LearningModule } from "./learning-library";
 
 export type CoreStageId = "find" | "build" | "write" | "diagnose" | "responsible";

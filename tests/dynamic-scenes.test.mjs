@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("the structure model treats 48 scenes as a template rather than a restriction", async () => {
-  const structure = await source("lib/structure.ts");
+  const structure = await source("lib/projects/structure.ts");
 
   for (const phrase of [
     "export type SceneType",

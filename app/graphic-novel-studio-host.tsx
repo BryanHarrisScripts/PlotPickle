@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { approveGraphicNovelAssetVersion } from "@/lib/graphic-novel-approval";
 import { graphicNovelAssetVersions } from "@/lib/graphic-novel-asset-versions";
 import { buildGlobalSceneIndex } from "@/lib/scene-management";
-import { createBlankProject, normalizePlotPickleProject } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject } from "@/lib/projects/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 

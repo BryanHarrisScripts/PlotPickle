@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import { createCharacterDialogueReport, createDirectorReport, createProducerReport, type CharacterDialogueReport } from "@/lib/screenplay-reports";
-import { screenplayTermCategories, screenplayTerms, type ScreenplayTermCategory } from "@/lib/screenplay-terms";
+import { screenplayTermCategories, screenplayTerms, type ScreenplayTermCategory } from "@/lib/projects/screenplay/screenplay-terms";
 import panelStyles from "./settings-panel.module.css";
 import styles from "./settings-project-tools.module.css";
 

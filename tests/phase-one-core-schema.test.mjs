@@ -28,7 +28,7 @@ test("schema 1.7 declares every Phase 1 project capability", async () => {
 });
 
 test("Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions", async () => {
-  const operations = await source("lib/project-phase-one.ts");
+  const operations = await source("lib/projects/project-phase-one.ts");
 
   for (const exportedOperation of [
     "upgradeProjectToPhaseOne",

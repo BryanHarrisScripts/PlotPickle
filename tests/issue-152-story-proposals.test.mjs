@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function semanticContract() {
-  const raw = (await source("lib/story-proposals.ts")).replace(/\r\n?/g, "\n");
+  const raw = (await source("lib/projects/story/story-proposals.ts")).replace(/\r\n?/g, "\n");
   const withoutImports = raw.replace(/import[\s\S]*?;\n/g, "");
   const compiled = stripTypeScriptTypes(`const cloneProject = structuredClone;\n${withoutImports}`, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);

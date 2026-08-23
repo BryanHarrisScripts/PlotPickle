@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PlotPickleProject, RevisionColour, ScreenplayDraftElement } from "@/lib/project";
+import type { PlotPickleProject, RevisionColour, ScreenplayDraftElement } from "@/lib/projects/project";
 import {
   addProductionAnnotation,
   closeProductionRevision,

@@ -1,11 +1,11 @@
-import { completionFor, type PlotPickleProject } from "@/lib/project";
+import { completionFor, type PlotPickleProject } from "@/lib/projects/project";
 import { createAfterglowProject } from "@/data/afterglow";
 import { AFTERGLOW_EXAMPLE_ACTIVE_KEY } from "@/lib/afterglow-example";
 import {
   nextRecommendedSection,
   projectSectionProgress,
   type ProjectProgressSection,
-} from "@/lib/project-progress";
+} from "@/lib/projects/project-progress";
 import styles from "./dashboard-story-library.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";

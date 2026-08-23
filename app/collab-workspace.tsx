@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ConnectionId, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/connection-status";
-import type { PlotPickleProject } from "@/lib/project";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import GitHubCollaboration from "./github-collaboration";
 import GoogleCalendarWorkspace from "./google-calendar-workspace";
 import GoogleMeetWorkspace from "./google-meet-workspace";

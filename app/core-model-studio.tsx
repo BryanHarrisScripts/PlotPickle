@@ -10,8 +10,8 @@ import {
   type SourceAttribution,
   type StoryThread,
   type StoryThreadMilestone,
-} from "@/lib/project";
-import { compareRevisionSnapshots, createRevisionSnapshot, createStoryThread, restoreRevisionSnapshot, synchronizeThreadSceneLinks } from "@/lib/core-model";
+} from "@/lib/projects/project";
+import { compareRevisionSnapshots, createRevisionSnapshot, createStoryThread, restoreRevisionSnapshot, synchronizeThreadSceneLinks } from "@/lib/projects/core-model";
 import styles from "./core-model-studio.module.css";
 
 type Section = "threads" | "arcs" | "rights" | "revisions";

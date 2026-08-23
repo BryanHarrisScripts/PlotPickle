@@ -15,7 +15,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("PlotPickle 1.0 candidate defines a portable .ppf boundary", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  const portable = await source("lib/project-package.ts");
+  const portable = await source("lib/projects/persistence/project-package.ts");
   assert.match(packageJson.version, /^1\.0\.0-rc\.\d+$/);
   assert.match(packageJson.scripts.test, /phase-f-collaboration-release\.test\.mjs/);
   for (const phrase of ["plotpickle-project-file", "PPF_FORMAT_VERSION", "createPortableProjectFile", "parsePortableProjectFile", "integrityValid", "portableProjectFileName", packageJson.version]) {
@@ -40,7 +40,7 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     source("app/github-collaboration.tsx"),
     source("app/github-project-sync.tsx"),
     source("app/story-proposals.tsx"),
-    source("lib/story-proposals.ts"),
+    source("lib/projects/story/story-proposals.ts"),
     source("lib/github-collaboration.ts"),
     source("vite.config.ts"),
     source("build/local-credentials.ts"),
@@ -90,7 +90,7 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
 
 test("canonical projects retain repository metadata without credentials", async () => {
   const [project, schema, afterglow] = await Promise.all([
-    source("lib/project.ts"),
+    source("lib/projects/project.ts"),
     source("schema/plotpickle-project.schema.json").then(JSON.parse),
     source("data/afterglow-complete.ts"),
   ]);

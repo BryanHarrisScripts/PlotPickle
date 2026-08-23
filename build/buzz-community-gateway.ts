@@ -100,12 +100,6 @@ async function readConnection() {
   return validConnection(value) ? value : null;
 }
 
-function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
-  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
-    throw new Error("Verify your Human Buzz identity before publishing Community content.");
-  }
-}
-
 function relayHttpUrl(value: string) {
   const url = new URL(value);
   if (url.protocol === "ws:") url.protocol = "http:";
@@ -346,7 +340,9 @@ async function removeGreatHallMember(body: Record<string, unknown>) {
 
 async function publishForumTopic(body: Record<string, unknown>) {
   const connection = await readConnection();
-  verifiedConnection(connection);
+  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
+    throw new Error("Verify your Human Buzz identity before publishing Community content.");
+  }
   const roomId = text(body.roomId);
   const channelId = text(body.channel);
   const content = text(body.content);

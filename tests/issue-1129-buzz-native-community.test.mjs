@@ -38,15 +38,22 @@ test("#1129 exposes four Human-purpose rooms and native Direct Messages instead 
   assert.doesNotMatch(`${workspace}\n${social}\n${gateway}`, /community-messages\.json|community-dms\.json|better-sqlite/i);
 });
 
-test("#1129 mirrors ordinary room and DM conversation through the same BUZZ message route", async () => {
-  const social = await read(SOCIAL);
+test("#1129 mirrors streams and DMs through BUZZ messages while forums publish BUZZ topic roots", async () => {
+  const [social, communityGateway] = await Promise.all([
+    read(SOCIAL),
+    read("build/buzz-community-gateway.ts"),
+  ]);
   assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
-  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages`,/);
-  assert.match(social, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
+  assert.match(social, /community\/forum-topic/);
+  assert.match(social, /\? \{ roomId: target\.id, channel: target\.channelId, content \}/);
+  assert.match(social, /: \{ channel: target\.channelId, content \}/);
+  assert.match(communityGateway, /definition\.type !== "forum"/);
+  assert.match(communityGateway, /"--kind", "45001"/);
   assert.match(social, /data-buzz-event-id=\{message\.id\}/);
   assert.match(social, /window\.setInterval/);
   assert.match(social, /5000/);
   assert.match(social, /Message sent as your connected Human BUZZ identity/);
+  assert.match(social, /Forum topic published as your connected Human BUZZ identity/);
   assert.doesNotMatch(social, /localStorage|sessionStorage|indexedDB/i);
 });
 

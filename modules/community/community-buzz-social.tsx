@@ -96,12 +96,15 @@ async function readMessages(channelId: string): Promise<BuzzMessage[]> {
   return chronological(Array.isArray(body.messages) ? body.messages : []).filter((message) => !isLegacyOperationalDump(message));
 }
 
-async function sendMessage(channelId: string, content: string) {
-  const response = await authenticatedProfileFetch(`${BUZZ_API}/messages`, {
+async function sendMessage(target: CommunitySocialTarget, content: string) {
+  const forum = target.kind === "forum";
+  const response = await authenticatedProfileFetch(forum ? `${BUZZ_API}/community/forum-topic` : `${BUZZ_API}/messages`, {
     method: "POST",
     cache: "no-store",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify({ channel: channelId, content }),
+    body: JSON.stringify(forum
+      ? { roomId: target.id, channel: target.channelId, content }
+      : { channel: target.channelId, content }),
   });
   const body = await response.json() as { readonly message?: string };
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
@@ -243,14 +246,16 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   async function submit() {
     if (!target || !draft.trim() || !canPost || busy) return;
     setBusy(true);
-    setNotice("Sending signed BUZZ message…");
+    setNotice(target.kind === "forum" ? "Publishing signed BUZZ forum topic…" : "Sending signed BUZZ message…");
     try {
-      await sendMessage(target.channelId, draft.trim());
+      await sendMessage(target, draft.trim());
       setDraft("");
       await refresh(true);
-      setNotice("Message sent as your connected Human BUZZ identity.");
+      setNotice(target.kind === "forum"
+        ? "Forum topic published as your connected Human BUZZ identity."
+        : "Message sent as your connected Human BUZZ identity.");
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The signed BUZZ message could not be sent.");
+      setNotice(error instanceof Error ? error.message : target.kind === "forum" ? "The BUZZ forum topic could not be published." : "The signed BUZZ message could not be sent.");
     } finally {
       setBusy(false);
     }
@@ -266,10 +271,11 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
     </>;
   }
 
-  const kindLabel = target.kind === "dm" ? "Direct Message" : "Room";
+  const kindLabel = target.kind === "dm" ? "Direct Message" : target.kind === "forum" ? "Forum" : "Room";
   const participantNames = target.participants?.map((pubkey) => participantName(pubkey, members)) ?? [];
   const roomId = isCommunityRoomId(target.id) ? target.id : null;
   const humanName = humanPresentation?.displayName.trim() || "PlotPickle Human";
+  const forum = target.kind === "forum";
 
   return <>
     <main className={styles.conversation} data-community-room-template={roomId ? "bbs-v1" : undefined} aria-label={`${kindLabel}: ${target.label}`}>
@@ -291,20 +297,20 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
               <p>{message.content}</p>
             </div>
           </article>;
-        }) : <p className={styles.empty}>No conversation here yet. Start with a question, idea or update.</p>}</div>
+        }) : <p className={styles.empty}>{forum ? "No topics here yet. Start with a story question, idea or draft concern." : "No conversation here yet. Start with a question, idea or update."}</p>}</div>
         <span className={styles.timelineEnd} ref={timelineEndRef} aria-hidden="true" />
       </section>
       <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-        <label htmlFor="community-buzz-composer">Message {target.label}</label>
+        <label htmlFor="community-buzz-composer">{forum ? `New topic in ${target.label}` : `Message ${target.label}`}</label>
         <div className={styles.composerRow}>
           <span className={styles.prompt} aria-hidden="true">{promptHandle(humanName)}@{promptHandle(target.label)}:&gt;</span>
           <span className={styles.composerInput}>
-            <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
+            <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? forum ? "Start a forum topic…" : "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
             {canPost && !busy && !draft ? <span className={styles.terminalCursor} aria-hidden="true">█</span> : null}
           </span>
-          <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : "Post"}</button>
+          <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : forum ? "Post topic" : "Post"}</button>
         </div>
-        <small className={styles.composerHint}>Enter to post · Shift+Enter for a new line</small>
+        <small className={styles.composerHint}>{forum ? "Enter to publish a topic · Shift+Enter for a new line · threaded replies and voting remain in BUZZ Desktop" : "Enter to post · Shift+Enter for a new line"}</small>
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
       </form>
     </main>
@@ -312,7 +318,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
     <aside className={styles.context} aria-label={`${target.label} details`}>
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
-        <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : "Community room"}</h4><p>{target.description}</p></section>
+        <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : forum ? "Community forum" : "Community room"}</h4><p>{target.description}</p></section>
         {roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
           <span>Who helps here</span>
           <div className={styles.contextHelpers}>{roomGuide.agents.map((agent) => <span className={styles.contextHelper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div>
@@ -322,7 +328,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
         </section> : null}
         {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><CommunityAvatar label={member.displayName} imageUrl={identityKey(member.displayName) === identityKey(humanName) ? humanPresentation?.avatarUrl || member.picture : member.picture} size={38} /><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
         <section className={styles.contextCard} data-native-buzz-huddle="desktop">
-          <span>Voice</span><h4>Open in BUZZ Desktop</h4><p>Use BUZZ Desktop when you want the native Huddle/voice experience. PlotPickle keeps the text conversation here simple.</p>
+          <span>{forum ? "Forum tools" : "Voice"}</span><h4>Open in BUZZ Desktop</h4><p>{forum ? "PlotPickle publishes proper BUZZ forum topics here. Use BUZZ Desktop for threaded replies, voting and the complete native forum view." : "Use BUZZ Desktop when you want the native Huddle/voice experience. PlotPickle keeps the text conversation here simple."}</p>
           {desktopUrl ? <a href={desktopUrl}>Open BUZZ Desktop</a> : <button type="button" disabled>BUZZ Desktop setup required</button>}
         </section>
       </div>

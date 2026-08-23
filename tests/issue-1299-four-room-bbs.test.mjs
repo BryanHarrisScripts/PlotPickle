@@ -88,7 +88,8 @@ test("#1299 lets new conversation smoothly carry the banner upward while the com
 test("#1299 preserves signed BUZZ transport and keyboard composer behavior", async () => {
   const social = await read("modules/community/community-buzz-social.tsx");
 
-  assert.match(social, /sendMessage\(target\.channelId, draft\.trim\(\)\)/u);
+  assert.match(social, /await sendMessage\(target, draft\.trim\(\)\)/u);
+  assert.match(social, /community\/forum-topic/u);
   assert.match(social, /window\.setInterval\(\(\) => \{ void refresh\(true\); \}, 5000\)/u);
   assert.match(social, /event\.key === "Enter" && !event\.shiftKey/u);
   assert.match(social, /humanPresentation\?\.avatarUrl \|\| member\?\.picture/u);

@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("one host policy evaluates profile scopes, connector allowlists and egress", async () => {
-  const source = await read("lib/connector-trust-policy.ts");
+  const source = await read("lib/agents/connector-trust-policy.ts");
   assert.match(source, /CONNECTOR_POLICY_SCOPES/);
   assert.match(source, /evaluateConnectorInvocation/);
   assert.match(source, /agentProfileById/);
@@ -22,8 +22,8 @@ test("one host policy evaluates profile scopes, connector allowlists and egress"
 
 test("developer, GitHub and shell authority cannot be acquired through a connector", async () => {
   const [policy, profiles] = await Promise.all([
-    read("lib/connector-trust-policy.ts"),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/connector-trust-policy.ts"),
+    read("lib/agents/agent-profiles.ts"),
   ]);
   assert.match(policy, /developer-boundary/);
   assert.match(policy, /Product Agent Profiles never receive developer repository, GitHub-write or shell authority/);
@@ -33,7 +33,7 @@ test("developer, GitHub and shell authority cannot be acquired through a connect
 });
 
 test("direct, MCP, provider, graph, code-mode and BUZZ-triggered calls all use the same policy pipeline", async () => {
-  const source = await read("lib/connector-trust-policy.ts");
+  const source = await read("lib/agents/connector-trust-policy.ts");
   for (const route of ["direct", "mcp", "provider-tool", "graph-node", "code-mode", "buzz-trigger"]) {
     assert.match(source, new RegExp(`"${route}"`));
   }
@@ -44,7 +44,7 @@ test("direct, MCP, provider, graph, code-mode and BUZZ-triggered calls all use t
 });
 
 test("policy denial is non-retryable and distinct from runtime failure", async () => {
-  const source = await read("lib/connector-trust-policy.ts");
+  const source = await read("lib/agents/connector-trust-policy.ts");
   assert.match(source, /retryable: false/);
   assert.match(source, /bypassPermitted: false/);
   assert.match(source, /toolRuntimeFailure/);
@@ -54,7 +54,7 @@ test("policy denial is non-retryable and distinct from runtime failure", async (
 });
 
 test("bounded search/list results disclose truncation and a bounded continuation reference", async () => {
-  const source = await read("lib/connector-trust-policy.ts");
+  const source = await read("lib/agents/connector-trust-policy.ts");
   assert.match(source, /boundedToolResult/);
   assert.match(source, /truncated: boolean/);
   assert.match(source, /returnedCount/);
@@ -65,7 +65,7 @@ test("bounded search/list results disclose truncation and a bounded continuation
 });
 
 test("connector arguments and outputs are bounded and secret-like values are redacted", async () => {
-  const source = await read("lib/connector-trust-policy.ts");
+  const source = await read("lib/agents/connector-trust-policy.ts");
   assert.match(source, /connectorArgumentsAreValid/);
   assert.match(source, /64 \* 1024/);
   assert.match(source, /UNSAFE_ARGUMENT_KEY/);
@@ -76,8 +76,8 @@ test("connector arguments and outputs are bounded and secret-like values are red
 
 test("signed BUZZ or external text enters Context Engine as untrusted evidence rather than instruction", async () => {
   const [policy, context] = await Promise.all([
-    read("lib/connector-trust-policy.ts"),
-    read("lib/context-engine.ts"),
+    read("lib/agents/connector-trust-policy.ts"),
+    read("lib/agents/context-engine.ts"),
   ]);
   assert.match(policy, /inboundExternalContext/);
   assert.match(policy, /source: "buzz-peer" \| "external-tool"/);
@@ -114,7 +114,7 @@ test("protected local credential storage remains the secret implementation", asy
 
 test("external Skills are procedure, remain quarantined by default and cannot grant connector authority", async () => {
   const [policy, profiles] = await Promise.all([
-    read("lib/connector-trust-policy.ts"),
+    read("lib/agents/connector-trust-policy.ts"),
     read("config/agent-profiles.json"),
   ]);
   assert.match(policy, /activate-external-skill/);

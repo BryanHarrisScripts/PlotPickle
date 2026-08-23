@@ -201,6 +201,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   const loadedChannelRef = useRef("");
   const messageCountRef = useRef(0);
   const timelineEndRef = useRef<HTMLSpanElement | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
   const roomGuide = useMemo(() => target ? roomGuideFor(target.id) : null, [target]);
   const channelId = target?.channelId || "";
@@ -242,6 +243,12 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       window.clearInterval(timer);
     };
   }, [channelId, refresh]);
+
+  useEffect(() => {
+    if (!channelId || !canPost) return;
+    const frame = window.requestAnimationFrame(() => composerRef.current?.focus({ preventScroll: true }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [channelId, canPost]);
 
   async function submit() {
     if (!target || !draft.trim() || !canPost || busy) return;
@@ -305,7 +312,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
         <div className={styles.composerRow}>
           <span className={styles.prompt} aria-hidden="true">{promptHandle(humanName)}@{promptHandle(target.label)}:&gt;</span>
           <span className={styles.composerInput}>
-            <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? forum ? "Start a forum topic…" : "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
+            <textarea ref={composerRef} id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? forum ? "Start a forum topic…" : "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
             {canPost && !busy && !draft ? <span className={styles.terminalCursor} aria-hidden="true">█</span> : null}
           </span>
           <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : forum ? "Post topic" : "Post"}</button>

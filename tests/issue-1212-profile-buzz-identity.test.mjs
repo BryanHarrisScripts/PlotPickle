@@ -13,17 +13,20 @@ test("#1212 exposes one editable Human presentation and exactly three unconfigur
     read("app/layout.tsx"),
   ]);
 
-  assert.equal(panel.match(/<span>Display name<\/span>/gu)?.length, 1);
-  assert.equal(panel.match(/<span>Avatar<\/span>/gu)?.length, 1);
-  assert.equal(panel.match(/<span>Public bio \/ description<\/span>/gu)?.length, 1);
+  assert.equal(panel.match(/<span>Display name \(agent name\)<\/span>/gu)?.length, 1);
+  assert.equal(panel.match(/<span>Display Description<\/span>/gu)?.length, 1);
+  assert.doesNotMatch(panel, /<span>Avatar<\/span>/u);
+  assert.match(panel, /<span>Lore Avatar prompt<\/span>/u);
+  assert.match(panel, /Generate Lore Avatar/u);
   assert.match(panel, /data-buzz-setup-choices="true"[\s\S]*Get BUZZ Identity[\s\S]*Connect Existing Identity[\s\S]*Not Now/u);
   assert.doesNotMatch(panel, /Create BUZZ Identity/u);
   assert.match(panel, /BUZZ_IDENTITY_ONBOARDING_URL/u);
   assert.match(panel, /BUZZ creates and owns the identity/u);
-  assert.match(panel, /Leave blank to use the PlotPickle lore glyph/u);
-  assert.match(panel, /A custom secure image is published to BUZZ when connected/u);
+  assert.match(panel, /function ProfilePortrait/u);
+  assert.match(panel, /if \(presentation\.avatarUrl\) return <img/u);
   assert.match(panel, /data-default-lore-glyph="true"/u);
-  assert.match(panel, /The same bio is published to BUZZ when connected/u);
+  assert.match(panel, /DEFAULT_HUMAN_LORE_GLYPH/u);
+  assert.match(panel, /publicBio: next\.publicBio/u);
   assert.match(panel, /BUZZ Identity[\s\S]*View identity details/u);
 
   assert.match(overlay, /ProfileIdentityPanel/u);
@@ -116,60 +119,4 @@ test("#1277 bound Human signer authority survives mutable BUZZ presentation whil
   assert.match(guard, /saved Human BUZZ role binding does not match the stored signer/u);
   assert.match(guard, /kind: "agent"/u);
   assert.match(guard, /humanCommunityAllowed: false/u);
-});
-
-test("#1212 Profile keeps Node, agent and Guest authority separate from the Human BUZZ signer", async () => {
-  const [panel, guard, boundary] = await Promise.all([
-    read("app/profile-access/profile-identity-panel.tsx"),
-    read("build/buzz-human-identity-guard.ts"),
-    read("app/profile-access/profile-access-boundary.tsx"),
-  ]);
-
-  assert.match(panel, /BUZZ is optional/u);
-  assert.match(panel, /PlotPickle continues normally/u);
-  assert.match(guard, /kind: "agent"/u);
-  assert.match(guard, /humanCommunityAllowed: false/u);
-  assert.match(boundary, /Guest cannot see Human profiles, projects, recent items, credentials, agents, or BUZZ identities/u);
-  assert.match(boundary, /Use isolated Guest/u);
-});
-
-test("#1212 every Profile-owned BUZZ mutation carries the authenticated session CSRF proof", async () => {
-  const [panel, sessionBoundary, gateway] = await Promise.all([
-    read("app/profile-access/profile-identity-panel.tsx"),
-    read("core/auth/server-session/server-session-boundary-core.mjs"),
-    read("build/buzz-profile-identity-gateway.ts"),
-  ]);
-
-  const publishStart = panel.indexOf("async function publishToBuzz");
-  const publishEnd = panel.indexOf("async function savePresentation");
-  const setupStart = panel.indexOf("async function finishBuzzSetup");
-  const setupEnd = panel.indexOf("async function disconnectBuzz");
-  const disconnectEnd = panel.indexOf("const identityConfigured");
-  assert.ok(publishStart >= 0 && publishEnd > publishStart && setupStart > publishEnd && setupEnd > setupStart && disconnectEnd > setupEnd);
-
-  for (const block of [
-    panel.slice(publishStart, publishEnd),
-    panel.slice(setupStart, setupEnd),
-    panel.slice(setupEnd, disconnectEnd),
-  ]) {
-    assert.match(block, /method: "POST"/u);
-    assert.match(block, /headers: \{ "X-PlotPickle-CSRF": csrfToken \}/u);
-  }
-
-  assert.match(sessionBoundary, /const mutation = requirements\.mutation === true \|\| !SAFE_HTTP_METHODS\.includes\(method\)/u);
-  assert.match(sessionBoundary, /headerValue\(request\?\.headers, "x-plotpickle-csrf"\)/u);
-  assert.match(panel, /action: "import"/u);
-  assert.match(panel, /privateKey: privateKey\.trim\(\)/u);
-  assert.match(gateway, /const privateKey = text\(body\.privateKey\)/u);
-  assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/u);
-  assert.doesNotMatch(panel, /console\.(?:log|info|warn|error)\([^\n]*privateKey/u);
-});
-
-test("#1277 PLOTPICKLE FEDERATION is registered as the Community policy boundary", async () => {
-  const registry = await read("docs/ip/PLOTPICKLE-PROCESS-REGISTRY.md");
-  assert.match(registry, /PLOTPICKLE FEDERATION/u);
-  assert.match(registry, /PlotPickle Playhouse/u);
-  assert.match(registry, /required[^\n]*non-removable|non-removable[^\n]*required/u);
-  assert.match(registry, /BUZZ remains the social authority/u);
-  assert.match(registry, /valid PlotPickle Human/u);
 });

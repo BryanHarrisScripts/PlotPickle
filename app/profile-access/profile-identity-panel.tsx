@@ -33,8 +33,31 @@ type BuzzStatus = {
     identityConfigured?: boolean;
     identityVerified?: boolean;
   };
+  local?: {
+    running?: boolean;
+    probe?: { ok?: boolean; error?: string | null };
+  };
+};
+type RuntimeStatus = {
+  roles?: Record<string, {
+    ready?: boolean;
+    model?: string;
+    validation?: { ok?: boolean; error?: string | null };
+  }>;
+};
+type MediaStatus = {
+  endpoints?: Array<{
+    endpoint?: { preset?: string };
+    validation?: { ok?: boolean; error?: string | null };
+  }>;
 };
 type SetupMode = "connect" | null;
+
+type ReadinessIndicatorProps = {
+  readonly label: string;
+  readonly ready: boolean | null;
+  readonly detail?: string;
+};
 
 async function jsonRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -52,6 +75,21 @@ function shortKey(value: string) {
   const key = value.trim();
   if (!key) return "";
   return key.length <= 24 ? key : `${key.slice(0, 12)}…${key.slice(-10)}`;
+}
+
+function ReadinessIndicator({ label, ready, detail }: ReadinessIndicatorProps) {
+  const state = ready === null ? "Checking" : ready ? "Ready" : "Unavailable";
+  return (
+    <div className={styles.statusItem} title={detail || `${label}: ${state}`}>
+      <span>{label}</span>
+      <i data-ready={ready === null ? "checking" : ready ? "true" : "false"} aria-label={`${label}: ${state}`} />
+    </div>
+  );
+}
+
+function ProfilePortrait({ presentation, alt, compact = false }: { readonly presentation: Presentation; readonly alt: string; readonly compact?: boolean }) {
+  if (presentation.avatarUrl) return <img src={presentation.avatarUrl} alt={alt} />;
+  return <div aria-hidden="true" data-default-lore-glyph="true" data-compact={compact ? "true" : "false"}>{DEFAULT_HUMAN_LORE_GLYPH}</div>;
 }
 
 export default function ProfileIdentityPanel({
@@ -74,6 +112,9 @@ export default function ProfileIdentityPanel({
   const [presentation, setPresentation] = useState<Presentation>({ displayName: profile.displayName, avatarUrl: "", publicBio: "" });
   const [buzz, setBuzz] = useState<BuzzIdentity | null>(null);
   const [buzzStatus, setBuzzStatus] = useState<BuzzStatus | null>(null);
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null);
+  const [mediaStatus, setMediaStatus] = useState<MediaStatus | null>(null);
+  const [readinessLoaded, setReadinessLoaded] = useState(false);
   const [setupMode, setSetupMode] = useState<SetupMode>(null);
   const [privateKey, setPrivateKey] = useState("");
   const [avatarDescription, setAvatarDescription] = useState("");
@@ -81,19 +122,28 @@ export default function ProfileIdentityPanel({
   const [busy, setBusy] = useState("");
 
   const refresh = useCallback(async () => {
-    const [profileBody, identityBody, statusBody] = await Promise.all([
+    const [profileBody, identityBody, statusBody, runtimeBody, mediaBody] = await Promise.all([
       jsonRequest<{ profile: Presentation }>("/api/auth/profile-presentation"),
       jsonRequest<BuzzIdentity & { ok: true }>("/api/local-buzz/human-identity").catch(() => null),
       jsonRequest<BuzzStatus & { ok: true }>("/api/local-buzz/status").catch(() => null),
+      jsonRequest<RuntimeStatus>("/api/local-ai/runtime").catch(() => null),
+      jsonRequest<MediaStatus>("/api/media-routing/status").catch(() => null),
     ]);
     setPresentation(profileBody.profile);
     setBuzz(identityBody);
     setBuzzStatus(statusBody);
+    setRuntimeStatus(runtimeBody);
+    setMediaStatus(mediaBody);
+    setReadinessLoaded(true);
   }, []);
 
   useEffect(() => {
-    void refresh().catch((cause) => setNotice(cause instanceof Error ? cause.message : "Profile details could not be loaded."));
-  }, [refresh]);
+    setReadinessLoaded(false);
+    void refresh().catch((cause) => {
+      setReadinessLoaded(true);
+      setNotice(cause instanceof Error ? cause.message : "Profile details could not be loaded.");
+    });
+  }, [profile.profileId, refresh]);
 
   async function publishToBuzz(next: Presentation) {
     return jsonRequest<{ ok: true; message?: string; identity?: BuzzIdentity }>("/api/local-buzz/human-identity", {
@@ -237,16 +287,37 @@ export default function ProfileIdentityPanel({
   const connected = Boolean(buzz?.humanCommunityAllowed && buzz.identityVerified && buzz.kind === "human");
   const identityLabel = connected ? "Connected" : identityConfigured ? "Connected · Community access pending" : "Not configured";
   const localGeneratedAvatar = isPlotPickleGeneratedAvatarRef(presentation.avatarUrl);
+  const fastRole = runtimeStatus?.roles?.fast;
+  const agentRuntimeReady = readinessLoaded ? Boolean(fastRole?.ready || (buzzStatus?.local?.running && buzzStatus.local.probe?.ok)) : null;
+  const modelReady = readinessLoaded ? Boolean(fastRole?.ready && fastRole.model) : null;
+  const comfyEndpoint = mediaStatus?.endpoints?.find((entry) => entry?.endpoint?.preset === "comfyui");
+  const comfyReady = readinessLoaded ? Boolean(comfyEndpoint?.validation?.ok) : null;
+  const modelDetail = fastRole?.model ? `Model: ${fastRole.model}` : undefined;
 
   return (
-    <div className={styles.profileColumns} data-profile-identity-surface="v1">
+    <div className={styles.profileColumns} data-profile-identity-surface="v2">
       <section className={styles.identityColumn} aria-labelledby="profile-identity-heading">
         <header><span>Human Profile</span><h2 id="profile-identity-heading">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
 
-        <div className={styles.avatarRow}>
-          {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar" /> : <div aria-hidden="true" data-default-lore-glyph="true">{DEFAULT_HUMAN_LORE_GLYPH}</div>}
-          <span><strong>{presentation.displayName}</strong><small>{presentation.publicBio || "Add a short public bio if you want one."}</small></span>
-        </div>
+        <section className={styles.identitySummary} aria-label="Identity summary">
+          <div className={styles.tokenSummary}>
+            <span className={styles.summaryLabel}>Identity Token</span>
+            <div className={styles.tokenPortrait}><ProfilePortrait presentation={presentation} alt="Identity Token portrait" /></div>
+            <a className={styles.buzzSetupLink} href="#profile-buzz-heading">BUZZ Setup</a>
+          </div>
+          <div className={styles.summaryCopy}>
+            <span className={styles.summaryLabel}>Agent name</span>
+            <strong>{presentation.displayName}</strong>
+            <p>{presentation.publicBio || "Add a short Display Description to complete this identity."}</p>
+            <blockquote className={styles.motto}>The agents are the workshop. Stories—and better storytellers—are the product.</blockquote>
+          </div>
+          <div className={styles.statusRail} aria-label="Profile readiness">
+            <ReadinessIndicator label="BUZZ Identity" ready={connected} detail={identityLabel} />
+            <ReadinessIndicator label="Agents runtimes" ready={agentRuntimeReady} />
+            <ReadinessIndicator label="Model" ready={modelReady} detail={modelDetail} />
+            <ReadinessIndicator label="ComfyUI" ready={comfyReady} />
+          </div>
+        </section>
 
         <section className={styles.buzzCard} aria-labelledby="profile-buzz-heading">
           <div className={styles.buzzHeading}><span><b id="profile-buzz-heading">BUZZ Identity</b><small>{identityLabel}</small></span><i data-connected={connected ? "true" : "false"} aria-hidden="true" /></div>
@@ -273,23 +344,35 @@ export default function ProfileIdentityPanel({
             <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy) || !privateKey.trim()} onClick={() => void finishBuzzSetup()}>{busy === "import" ? "Working…" : "Connect identity"}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setSetupMode(null); setPrivateKey(""); }}>Cancel</button></div>
           </div> : null}
         </section>
+
+        <section className={styles.artifactGrid} aria-label="Profile identity artifacts">
+          <article className={`${styles.artifactCard} ${styles.mandateCard}`}>
+            <span className={styles.artifactLabel}>Agent mandate</span>
+            <div className={styles.mandatePortrait}><ProfilePortrait presentation={presentation} alt="Agent mandate portrait" /></div>
+            <div className={styles.artifactCopy}><strong>{presentation.displayName}</strong><p>{presentation.publicBio || "Your saved Display Description will appear here."}</p></div>
+          </article>
+          <article className={`${styles.artifactCard} ${styles.tokenCard}`}>
+            <span className={styles.artifactLabel}>Identity token</span>
+            <div className={styles.tokenArtwork}><ProfilePortrait presentation={presentation} alt="Identity token artwork" compact /></div>
+            <div className={styles.artifactCopy}><strong>{presentation.displayName}</strong><small>Canonical Human identity</small></div>
+          </article>
+        </section>
       </section>
 
       <aside className={styles.rightRail} aria-label="Profile editing and access">
         <section className={styles.editorCard} aria-labelledby="profile-editor-heading">
-          <header><span>Profile editor</span><h2 id="profile-editor-heading">Presentation</h2><p>Edit the Human presentation shared by PlotPickle and BUZZ.</p></header>
+          <header><span>Profile editor</span><h2 id="profile-editor-heading">Presentation</h2></header>
 
           <div className={styles.editorAvatar}>
-            {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar preview" /> : <div aria-hidden="true">{DEFAULT_HUMAN_LORE_GLYPH}</div>}
+            <ProfilePortrait presentation={presentation} alt="Current profile avatar preview" compact />
             <span><strong>{presentation.displayName}</strong><small>Current Human presentation</small></span>
           </div>
 
           <form className={styles.identityForm} onSubmit={savePresentation}>
-            <label><span>Display name</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
-            <label><span>Avatar</span><input type="text" inputMode="url" placeholder="https://… or generated Lore Avatar" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>{localGeneratedAvatar ? "Generated Lore Avatar saved to this Human profile. BUZZ requires a publicly reachable HTTPS image, so its current avatar is preserved." : "Leave blank to use the PlotPickle lore glyph. A custom secure image is published to BUZZ when connected."}</small></label>
-            <label><span>Lore Avatar description</span><textarea rows={2} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /><small>PlotPickle combines your description with its existing lore visual contract and sends one request through the image route you selected in Settings.</small></label>
+            <label><span>Display name (agent name)</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
+            <label><span>Display Description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500</small></label>
             <button type="button" disabled={Boolean(busy) || !avatarDescription.trim()} onClick={() => void generateLoreAvatar()}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
-            <label><span>Public bio / description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500 · The same bio is published to BUZZ when connected.</small></label>
+            <label><span>Lore Avatar prompt</span><textarea rows={3} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /></label>
             <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>
           </form>
         </section>

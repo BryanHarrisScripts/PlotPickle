@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { buildUatFinding } from "../lib/sage-conversation-uat.mjs";
+import { buildUatFinding } from "../lib/verification/sage-conversation-uat.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

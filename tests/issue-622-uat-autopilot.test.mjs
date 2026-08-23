@@ -6,7 +6,7 @@ import {
   assessRenderedArea,
   contractTestsFromRegistry,
   validateUatRegistry,
-} from "../lib/uat-autopilot.mjs";
+} from "../lib/verification/uat-autopilot.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

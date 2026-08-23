@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { auditContinuitySnapshot } from "../lib/ui-continuity-audit.mjs";
+import { auditContinuitySnapshot } from "../lib/verification/ui-continuity-audit.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 

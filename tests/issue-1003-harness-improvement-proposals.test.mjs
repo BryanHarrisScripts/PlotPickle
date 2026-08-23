@@ -8,7 +8,7 @@ import {
   harnessImprovementPromotionStatusCore,
   isProtectedHarnessTarget,
   recordHarnessImprovementVerificationCore,
-} from "../lib/harness-improvement-core.mjs";
+} from "../lib/verification/harness-improvement-core.mjs";
 import {
   contextStrategyForTask,
   selectAdaptiveContextCandidates,
@@ -42,7 +42,7 @@ test("protected harness paths cannot be targets while bounded execution paths re
     "lib/agents/responsibility/connector-trust-policy.ts",
     "build/local-credentials.ts",
     "lib/revision-aware-ppf.ts",
-    "lib/harness-improvement-proposals.ts",
+    "lib/verification/harness-improvement-proposals.ts",
     "scripts/run-plotpickle-full-check.ps1",
   ]) assert.equal(isProtectedHarnessTarget(path), true, `${path} must be protected`);
 

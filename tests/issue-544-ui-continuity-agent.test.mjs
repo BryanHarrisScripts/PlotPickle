@@ -7,7 +7,7 @@ import {
   CANONICAL_NAVIGATION_LABELS,
   continuityReport,
   continuitySummary,
-} from "../lib/ui-continuity-audit.mjs";
+} from "../lib/verification/ui-continuity-audit.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (name) => readFile(new URL(name, root), "utf8");

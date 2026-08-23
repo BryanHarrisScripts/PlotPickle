@@ -90,7 +90,7 @@ test("provider health and circuit state are explicit and never imply a silent ro
 });
 
 test("portability evals cover Sage PLAN graph schema and known-bad verifier rejection with model-independent rules", async () => {
-  const evals = await read("lib/model-portability-evals.ts");
+  const evals = await read("lib/verification/model-portability-evals.ts");
   for (const caseId of ["sage-grounding", "plan-proposal", "graph-structured-output", "verifier-known-bad"]) assert.match(evals, new RegExp(`"${caseId}"`));
   assert.match(evals, /evaluateSageGrounding/);
   assert.match(evals, /requiredSourceIds/);
@@ -104,7 +104,7 @@ test("portability evals cover Sage PLAN graph schema and known-bad verifier reje
 });
 
 test("portability reports compare runtime/provider/model variants without changing Agent definitions or production routing", async () => {
-  const evals = await read("lib/model-portability-evals.ts");
+  const evals = await read("lib/verification/model-portability-evals.ts");
   assert.match(evals, /PortabilityVariant/);
   assert.match(evals, /capabilityRole/);
   assert.match(evals, /runtime/);
@@ -118,7 +118,7 @@ test("portability reports compare runtime/provider/model variants without changi
 });
 
 test("portability evals include reconstruction loop and retry integrity signals", async () => {
-  const evals = await read("lib/model-portability-evals.ts");
+  const evals = await read("lib/verification/model-portability-evals.ts");
   assert.match(evals, /reconstructionSynchronized/);
   assert.match(evals, /context\/request reconstruction desynchronized/);
   assert.match(evals, /loopCount/);
@@ -129,7 +129,7 @@ test("portability evals include reconstruction loop and retry integrity signals"
 });
 
 test("Skills are evaluatable versioned artifacts including trust/source/eval metadata and overhead", async () => {
-  const evals = await read("lib/model-portability-evals.ts");
+  const evals = await read("lib/verification/model-portability-evals.ts");
   for (const field of ["skillId", "skillTrustState", "skillSourceRevision", "skillSourceHash"]) assert.match(evals, new RegExp(`${field}:`));
   assert.match(evals, /PORTABILITY_EVAL_REVISION/);
   assert.match(evals, /compareSkillVariants/);

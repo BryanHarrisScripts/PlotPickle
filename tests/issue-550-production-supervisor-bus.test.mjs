@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { latestAgentStates, normalizeAgentEvent, publishAgentEvent, readAgentEvents, sanitizeEvidence, supervisorSummary } from "../lib/production-supervisor-bus.mjs";
+import { latestAgentStates, normalizeAgentEvent, publishAgentEvent, readAgentEvents, sanitizeEvidence, supervisorSummary } from "../lib/verification/production-supervisor-bus.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (name) => readFile(new URL(name, root), "utf8");

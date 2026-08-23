@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createFullStoryProject } from "../lib/full-story-builder.mjs";
-import { auditProjectCoverage } from "../lib/production-supervisor.mjs";
+import { auditProjectCoverage } from "../lib/verification/production-supervisor.mjs";
 import { attachPosterCandidate } from "../lib/visual-production-agent.mjs";
 
 test("#550 coverage audit recognizes a schema-safe unreviewed poster candidate", () => {

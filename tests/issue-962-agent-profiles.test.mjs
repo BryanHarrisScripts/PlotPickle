@@ -56,7 +56,7 @@ test("host policy, profiles and Skills cannot grant developer, credential, provi
   const [profileRaw, skillsRaw, authoritySource] = await Promise.all([
     read("config/agent-profiles.json"),
     read("config/agent-skills.json"),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/agent-profiles.ts"),
   ]);
   const registry = JSON.parse(profileRaw);
   const skills = JSON.parse(skillsRaw);
@@ -80,7 +80,7 @@ test("host policy, profiles and Skills cannot grant developer, credential, provi
 test("a developer-capable BUZZ harness cannot become PlotPickle developer authority", async () => {
   const [registryRaw, authoritySource] = await Promise.all([
     read("config/agent-profiles.json"),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/agent-profiles.ts"),
   ]);
   const registry = JSON.parse(registryRaw);
   assert.match(registry.ownership.boundaries.join(" "), /Codex, Claude Code, Goose, buzz-agent/i);
@@ -126,7 +126,7 @@ test("startup validates Agent Contracts before continuing existing health checks
 });
 
 test("defining, binding or activating an Agent Contract has no direct PPF or GitHub mutation path", async () => {
-  const source = await read("lib/agent-profiles.ts");
+  const source = await read("lib/agents/agent-profiles.ts");
   assert.match(source, /profileCanRequestCapability/);
   assert.match(source, /HOST_FORBIDDEN\.has\(capability\)/);
   assert.doesNotMatch(source, /project-store|ppf-store|saveProject|writeProject|merge_pull_request|create_pull_request|update_ref/);

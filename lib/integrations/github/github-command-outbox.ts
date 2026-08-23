@@ -141,6 +141,28 @@ function sanitizeJsonValue(value: unknown, path: string, depth: number): unknown
   return output;
 }
 
+function isSafeGitHubCommandJsonValue(value: unknown, depth: number, ancestors: Set<object>): boolean {
+  if (depth > 24) return false;
+  if (value === null || typeof value === "string" || typeof value === "boolean") return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (!value || typeof value !== "object") return false;
+  if (ancestors.has(value)) return false;
+  ancestors.add(value);
+  const safe = Array.isArray(value)
+    ? value.every((item) => isSafeGitHubCommandJsonValue(item, depth + 1, ancestors))
+    : Object.entries(value as Record<string, unknown>).every(
+      ([key, item]) => !isCredentialFieldName(key) && isSafeGitHubCommandJsonValue(item, depth + 1, ancestors),
+    );
+  ancestors.delete(value);
+  return safe;
+}
+
+function isSafeGitHubCommandPayload(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (!isSafeGitHubCommandJsonValue(value, 0, new Set())) return false;
+  return Buffer.byteLength(JSON.stringify(value), "utf8") <= GITHUB_COMMAND_MAX_PAYLOAD_BYTES;
+}
+
 export function safeGitHubCommandPayload(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("GitHub command payload must be a JSON object.");
   const payload = sanitizeJsonValue(value, "payload", 0) as Record<string, unknown>;
@@ -233,10 +255,8 @@ function normalizedEntry(value: unknown, now: string): GitHubCommandEntry | null
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<GitHubCommandEntry>;
   if (!validCommandType(item.type)) return null;
-  const payload = (() => {
-    try { return safeGitHubCommandPayload(item.payload); } catch { return null; }
-  })();
-  if (!payload) return null;
+  if (!isSafeGitHubCommandPayload(item.payload)) return null;
+  const payload = safeGitHubCommandPayload(item.payload);
   const repository = cleanText(item.repository, 240);
   const branch = cleanText(item.branch, 240);
   const projectId = cleanText(item.projectId, 240);

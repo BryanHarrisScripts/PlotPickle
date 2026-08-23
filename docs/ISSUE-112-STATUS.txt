@@ -1,1 +1,0 @@
-Foundation branch for Issue #112. Runtime shell integration remains in progress.

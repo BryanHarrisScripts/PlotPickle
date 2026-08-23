@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "plotpickle-dev": {
-      "command": "node",
-      "args": ["scripts/developer-agent-mcp.mjs"],
-      "cwd": "."
-    }
-  }
-}

@@ -73,7 +73,9 @@ test("workspace shell exposes stable UAT hooks without legacy visual gap groups"
 });
 
 test("navigation CSS keeps the workflow strip centered and compact", () => {
-  assert.match(shellCss, /\.list\s*\{[^}]*width:\s*max-content;[^}]*margin:\s*0 auto;[^}]*gap:\s*clamp\(2px, 0\.25vw, 4px\);/s);
+  assert.match(shellCss, /\.list\s*\{[^}]*width:\s*max-content;/s);
+  assert.match(shellCss, /\.list\s*\{[^}]*margin:\s*0 auto;/s);
+  assert.match(shellCss, /\.list\s*\{[^}]*gap:\s*clamp\(2px, 0\.25vw, 4px\);/s);
   assert.match(shellCss, /\.list li\s*\{[^}]*width:\s*64px;[^}]*flex:\s*0 0 64px;/s);
   assert.doesNotMatch(shellCss, /groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });

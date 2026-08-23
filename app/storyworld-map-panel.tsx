@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import styles from "./mini-block-wall.module.css";
 import mapStyles from "./storyworld-map-panel.module.css";
-import type { MiniBlockWallCard, MiniBlockWallState } from "@/lib/mini-block-wall";
+import type { MiniBlockWallCard, MiniBlockWallState } from "@/modules/plan/mini-block-wall";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import {
   buildStoryworldMapHtml,

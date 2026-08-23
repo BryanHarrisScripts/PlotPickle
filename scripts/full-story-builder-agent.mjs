@@ -1,8 +1,8 @@
 import process from "node:process";
 import os from "node:os";
 import { pathToFileURL } from "node:url";
-import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../lib/full-story-builder.mjs";
-import { mergeLearnProjectWithFullStory } from "../lib/learn-full-story-merge.mjs";
+import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../modules/learn/full-story-builder.mjs";
+import { mergeLearnProjectWithFullStory } from "../modules/learn/learn-full-story-merge.mjs";
 import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
 
 const DEFAULT_SERVER = "http://127.0.0.1:4173";

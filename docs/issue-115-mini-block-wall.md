@@ -18,7 +18,7 @@ Filtering, diagnostics, colour modes, zoom and pan do not alter canonical orderi
 
 ## Delivered model
 
-`lib/mini-block-wall.ts` provides:
+`modules/plan/mini-block-wall.ts` provides:
 
 - whole-film, act, sequence, Block, character and storyline views;
 - colour-mode contracts for character, storyline, location, status, setup/payoff and custom labels;
@@ -28,7 +28,7 @@ Filtering, diagnostics, colour modes, zoom and pan do not alter canonical orderi
 - restorable selection, expansion scope, filters, zoom and pan state;
 - derived card status without adding a persisted mini-block-wall status field.
 
-`lib/mini-block-wall-edit.ts` locates and updates mini-blocks by stable ID. It preserves the canonical mini-block ID and number, returns the unchanged project when no value changes, and writes through the same project consumed by Plan, Write, Storyboard, Refine and Reports.
+`modules/plan/mini-block-wall-edit.ts` locates and updates mini-blocks by stable ID. It preserves the canonical mini-block ID and number, returns the unchanged project when no value changes, and writes through the same project consumed by Plan, Write, Storyboard, Refine and Reports.
 
 ## Delivered Build workspace
 

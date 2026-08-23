@@ -245,7 +245,7 @@
         "app/full-story-builder-panel.module.css",
         "app/learning-studio.tsx",
         "build/full-story-builder-gateway.ts",
-        "lib/full-story-builder.mjs",
+        "modules/learn/full-story-builder.mjs",
         "lib/projects/persistence/project-folder.ts",
         "scripts/full-story-builder-agent.mjs",
         "Start-PlotPickle.bat",
@@ -269,7 +269,7 @@
         "app/full-story-builder-panel.module.css",
         "app/learning-studio.tsx",
         "build/full-story-builder-gateway.ts",
-        "lib/full-story-builder.mjs",
+        "modules/learn/full-story-builder.mjs",
         "lib/projects/persistence/project-folder.ts",
         "scripts/full-story-builder-agent.mjs",
         "Start-PlotPickle.bat",
@@ -652,7 +652,7 @@
     "story-builder.local-agent": {
       "owners": [
         {
-          "path": "lib/full-story-builder.mjs",
+          "path": "modules/learn/full-story-builder.mjs",
           "optional": false
         },
         {

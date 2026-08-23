@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import type { PlotPickleProject } from "@/lib/projects/project";
-import { LOGLINE_EVIDENCE_GROUPS, scoreLogline } from "@/lib/logline-rubric";
-import type { LoglineEvidenceState } from "@/lib/logline-lab";
+import { LOGLINE_EVIDENCE_GROUPS, scoreLogline } from "@/modules/plan/logline-rubric";
+import type { LoglineEvidenceState } from "@/modules/plan/logline-lab";
 import styles from "./logline-rubric.module.css";
 
 const stateLabels: Record<LoglineEvidenceState, string> = {

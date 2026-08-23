@@ -23,7 +23,7 @@ test("issue #124 makes Build the only full structural arrangement workspace", as
 
 test("issue #124 moves all mini-blocks through one stable-ID canonical ordering path", async () => {
   const [order, wall] = await Promise.all([
-    source("lib/mini-block-wall-order.ts"),
+    source("modules/plan/mini-block-wall-order.ts"),
     source("app/mini-block-wall.tsx"),
   ]);
   for (const contract of [
@@ -99,7 +99,7 @@ test("issue #124 hardens autosave recovery and destructive restore", async () =>
 
 test("issue #124 deduplicates diagnostics and hardens the complete 96-card surface", async () => {
   const [model, wall, css] = await Promise.all([
-    source("lib/mini-block-wall.ts"),
+    source("modules/plan/mini-block-wall.ts"),
     source("app/mini-block-wall.tsx"),
     source("app/mini-block-wall.module.css"),
   ]);
@@ -114,7 +114,7 @@ test("issue #124 deduplicates diagnostics and hardens the complete 96-card surfa
 });
 
 test("issue #124 audits stable story-thread and character-arc scene references after movement", async () => {
-  const order = await source("lib/mini-block-wall-order.ts");
+  const order = await source("modules/plan/mini-block-wall-order.ts");
   for (const contract of [
     "miniBlockReferenceAudit",
     "project.storyThreads",

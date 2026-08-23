@@ -1,6 +1,6 @@
 import type { PlotPickleProject } from "../project";
 import { buildStoryDependencies, type StoryConflict, type StoryEdge, type StoryNode } from "./story-dependencies";
-import { createMiniBlockWallModel, type MiniBlockWallCard } from "../../mini-block-wall";
+import { createMiniBlockWallModel, type MiniBlockWallCard } from "../../../modules/plan/mini-block-wall";
 
 export const STORYWORLD_MAP_LAYOUT_EXTENSION = "plotpickle.storyworld-map-layout" as const;
 export const STORYWORLD_MAP_LAYOUT_VERSION = 1 as const;

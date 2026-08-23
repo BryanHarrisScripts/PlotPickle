@@ -5,7 +5,7 @@ import test from "node:test";
 const source = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("issue #121 stores local-first Writers’ Room sessions in canonical review history", async () => {
-  const model = await source("lib/writers-room.ts");
+  const model = await source("modules/creative-room/writers-room.ts");
   for (const contract of ["WritersRoomSession", "participants", "agenda", "targets", "activeTargetId", "notes", "decisions", "unresolvedQuestions", "actions", "proposals", "summary", "meetUrl", "calendarEventId", "recordingReference"]) {
     assert.ok(model.includes(contract), `Missing session contract: ${contract}`);
   }
@@ -22,7 +22,7 @@ test("issue #121 mounts Writers’ Room inside Feedback and remains usable witho
 });
 
 test("issue #121 gates story changes behind explicit proposal approval", async () => {
-  const model = await source("lib/writers-room.ts");
+  const model = await source("modules/creative-room/writers-room.ts");
   assert.match(model, /status: "proposed"/);
   assert.match(model, /proposal\.status !== "proposed"/);
   assert.match(model, /createFeedback\(updated/);

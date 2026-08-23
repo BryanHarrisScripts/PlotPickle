@@ -10,10 +10,7 @@ import {
   listLibraryProjects,
 } from "../../core/storage/project-library-browser";
 import { saveFoundationProject } from "../../core/storage/foundation-project-browser";
-// The existing Full Story Builder is JavaScript. Keep its narrow typing local to PLAN
-// rather than adding another shared lib surface just for this consumer.
-// @ts-expect-error — full-story-builder.mjs intentionally has no TypeScript declaration file.
-import { normalizeFullStoryBrief } from "../../lib/full-story-builder.mjs";
+import { normalizeFullStoryBrief } from "../../lib/projects/story/full-story-brief.mjs";
 import { draftFoundationLesson } from "./foundations-plan-drafter";
 
 type FullStoryBrief = {

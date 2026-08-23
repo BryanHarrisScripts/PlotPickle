@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("logline lab supports six purposes and seven transparent sentence shapes", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   for (const purpose of ["development", "submission", "pitch-deck", "public-teaser", "collaborator-brief", "custom"]) {
     assert.ok(lab.includes(`id: "${purpose}"`), `Missing purpose: ${purpose}`);
   }
@@ -19,7 +19,7 @@ test("logline lab supports six purposes and seven transparent sentence shapes", 
 });
 
 test("candidate metadata is optional and backward compatible", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   for (const field of ["purpose?", "intendedAudience?", "shape?", "ingredients?", "rationale?", "linkedProjectEvidence?", "deliberateOmissions?", "wordCount?", "writerNotes?", "reviewStatus?", "updatedAt?", "sourceType?", "importedEvidence?", "uncertainInterpretations?"]) {
     assert.ok(lab.includes(field), `Missing optional candidate metadata: ${field}`);
   }
@@ -27,7 +27,7 @@ test("candidate metadata is optional and backward compatible", async () => {
 });
 
 test("evidence model separates sentence support from project-only and intentional omission", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   for (const state of ["sentence-supported", "review", "intentional-omission", "project-only"]) {
     assert.ok(lab.includes(`"${state}"`), `Missing evidence state: ${state}`);
   }
@@ -41,7 +41,7 @@ test("evidence model separates sentence support from project-only and intentiona
 });
 
 test("approval is selective and preserves revision history", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   for (const target of ["primary", "oneSentencePitch", "pitchPackage", "purposeVariant", "createRevisionSnapshot"]) {
     assert.ok(lab.includes(`${target}: boolean`), `Missing approval target: ${target}`);
   }
@@ -53,7 +53,7 @@ test("approval is selective and preserves revision history", async () => {
 });
 
 test("imported screenplay loglines remain suggestions with evidence and uncertainty", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   assert.match(lab, /createImportedLoglineSuggestion/);
   assert.match(lab, /sourceType: "imported-suggestion"/);
   assert.match(lab, /reviewStatus: "draft"/);
@@ -75,7 +75,7 @@ test("focused learning deep dive extends The Pitch without creating a broad curr
 });
 
 test("manual local-only and no-AI operation remain complete", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   const learning = await source("app/learning-loglines-that-carry-the-movie.ts");
   assert.match(lab, /buildLoglineAlternative/);
   assert.match(lab, /sourceType: metadata\.sourceType \|\| "manual"/);

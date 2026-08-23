@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createFullStoryProject } from "../lib/full-story-builder.mjs";
+import { createFullStoryProject } from "../modules/learn/full-story-builder.mjs";
 import {
   attachPosterCandidate,
   hasPosterCandidate,

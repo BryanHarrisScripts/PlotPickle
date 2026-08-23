@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #113 retains canonical dashboard model sources for downstream reporting", async () => {
-  const model = await source("lib/dashboard-command-centre.ts");
+  const model = await source("modules/dashboard/dashboard-command-centre.ts");
   for (const contract of [
     "completionFor",
     "projectSectionProgress",

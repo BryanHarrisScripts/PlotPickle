@@ -9,8 +9,8 @@ test("Pitch & Review includes a four-part dialectic worksheet and evidence-based
   const workspace = await source("app/pitch-review-workspace.tsx");
   const labUi = await source("app/logline-lab.tsx");
   const dialectic = await source("app/dialectic-worksheet.tsx");
-  const rubric = await source("lib/logline-rubric.ts");
-  const evidence = await source("lib/logline-lab.ts");
+  const rubric = await source("modules/plan/logline-rubric.ts");
+  const evidence = await source("modules/plan/logline-lab.ts");
   assert.match(workspace, /Theme Dialectic/);
   assert.match(workspace, /LoglineLab/);
   assert.match(labUi, /LoglineRubric/);

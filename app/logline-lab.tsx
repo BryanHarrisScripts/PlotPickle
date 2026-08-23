@@ -16,7 +16,7 @@ import {
   type LoglinePurpose,
   type LoglineShape,
   type PurposeAwareLoglineCandidate,
-} from "@/lib/logline-lab";
+} from "@/modules/plan/logline-lab";
 import LoglineRubric from "./logline-rubric";
 import styles from "./pitch-review-workspace.module.css";
 

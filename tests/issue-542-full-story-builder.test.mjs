@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../lib/full-story-builder.mjs";
-import { mergeLearnProjectWithFullStory } from "../lib/learn-full-story-merge.mjs";
+import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../modules/learn/full-story-builder.mjs";
+import { mergeLearnProjectWithFullStory } from "../modules/learn/learn-full-story-merge.mjs";
 import { visualRequestPlan } from "../scripts/full-story-builder-agent.mjs";
 
 const root = new URL("../", import.meta.url);

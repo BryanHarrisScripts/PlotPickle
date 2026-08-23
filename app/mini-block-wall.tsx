@@ -16,17 +16,17 @@ import {
   type MiniBlockWallScope,
   type MiniBlockWallState,
   type MiniBlockWallView,
-} from "@/lib/mini-block-wall";
+} from "@/modules/plan/mini-block-wall";
 import {
   findCanonicalMiniBlock,
   updateCanonicalMiniBlock,
   type MiniBlockWallPatch,
-} from "@/lib/mini-block-wall-edit";
+} from "@/modules/plan/mini-block-wall-edit";
 import {
   applyCanonicalMiniBlockOrder,
   canonicalMiniBlockOrder,
   moveCanonicalMiniBlock,
-} from "@/lib/mini-block-wall-order";
+} from "@/modules/plan/mini-block-wall-order";
 import {
   captureArrangementRecovery,
   loadArrangementRecovery,

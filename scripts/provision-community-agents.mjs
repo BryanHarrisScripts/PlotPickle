@@ -12,6 +12,9 @@ const statePath = path.join(root, ".plotpickle", "operator", "community-agent-pr
 const pluginPath = process.env.PLOTPICKLE_COMMUNITY_PLUGIN_CONFIG
   ? path.resolve(process.env.PLOTPICKLE_COMMUNITY_PLUGIN_CONFIG)
   : path.join(root, "plugins", "plotpickle-playhouse", "community.json");
+const guildhallPath = process.env.PLOTPICKLE_BUZZ_GUILDHALL_CONFIG
+  ? path.resolve(process.env.PLOTPICKLE_BUZZ_GUILDHALL_CONFIG)
+  : path.join(root, "config", "buzz-guildhall.json");
 const buzz = process.env.BUZZ_CLI_PATH?.trim() || "buzz";
 const relayUrl = process.env.BUZZ_RELAY_URL?.trim() || "";
 const humanKey = process.env.BUZZ_PRIVATE_KEY?.trim() || "";
@@ -140,11 +143,51 @@ function profilePrompt(profile, publicBio) {
   ].join("\n\n");
 }
 
+const AVATAR_MIME_TYPES = new Map([
+  [".jpeg", "image/jpeg"],
+  [".jpg", "image/jpeg"],
+  [".png", "image/png"],
+  [".webp", "image/webp"],
+]);
+
+function publicAvatarPath(avatarRef) {
+  if (!avatarRef.startsWith("/assets/") || avatarRef.includes("\\")) {
+    throw new Error(`Agent avatar reference must be a local public asset: ${avatarRef}`);
+  }
+  const publicRoot = path.join(root, "public");
+  const resolved = path.resolve(publicRoot, `.${avatarRef}`);
+  if (!resolved.startsWith(`${publicRoot}${path.sep}`)) {
+    throw new Error(`Agent avatar reference escapes the public asset directory: ${avatarRef}`);
+  }
+  return resolved;
+}
+
+async function publicAvatarDataUrl(avatarRef) {
+  const avatarPath = publicAvatarPath(avatarRef);
+  const mimeType = AVATAR_MIME_TYPES.get(path.extname(avatarPath).toLowerCase());
+  if (!mimeType) throw new Error(`Agent avatar uses an unsupported image type: ${avatarRef}`);
+  const avatar = await readFile(avatarPath);
+  return `data:${mimeType};base64,${avatar.toString("base64")}`;
+}
+
+function avatarRepairPackage(agents) {
+  if (!agents.length) return null;
+  return {
+    path: path.join(root, "public", "assets", "helpers", "official"),
+    agentCount: agents.length,
+    requiresDesktopPersonaEdit: true,
+    preventsDuplicateImport: true,
+    agents: agents.map((agent) => ({
+      profileId: agent.profileId,
+      displayName: agent.displayName,
+      avatarPath: publicAvatarPath(agent.avatarRef),
+    })),
+  };
+}
+
 async function writeMissingAgentTeam(agents) {
   if (!agents.length) return null;
   const members = await Promise.all(agents.map(async (agent) => {
-    const avatarPath = path.join(root, "public", "assets", "helpers", "buzz", `${agent.profileId}.png`);
-    const avatar = await readFile(avatarPath);
     return {
       format: "buzz-agent-snapshot",
       version: 1,
@@ -157,7 +200,7 @@ async function writeMissingAgentTeam(agents) {
       profile: {
         displayName: agent.displayName,
         about: agent.publicBio,
-        avatarDataUrl: `data:image/png;base64,${avatar.toString("base64")}`,
+        avatarDataUrl: await publicAvatarDataUrl(agent.avatarRef),
       },
       memory: { level: "none", entries: [] },
     };
@@ -180,8 +223,9 @@ async function writeMissingAgentTeam(agents) {
 }
 
 async function main() {
-  const [plugin, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
+  const [plugin, guildhall, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
     json(pluginPath),
+    json(guildhallPath),
     json(path.join(root, "config", "agent-profiles.json")),
     json(path.join(root, "config", "agent-profile-extensions", "community.json")),
     json(path.join(root, "config", "agent-profile-extensions", "public.json")),
@@ -190,17 +234,27 @@ async function main() {
   if (plugin.schemaVersion !== 1 || !Array.isArray(plugin.rooms) || !Array.isArray(plugin.agents)) {
     throw new Error("Community plugin config is not a supported provisioning contribution.");
   }
+  if (!Array.isArray(guildhall.channels) || !Array.isArray(guildhall.actors)) {
+    throw new Error("BUZZ Guildhall config must define channels and actors.");
+  }
+  const guildhallChannels = new Map(guildhall.channels.map((channel) => [channel.id, channel]));
+  const guildhallActors = new Map(guildhall.actors.map((actor) => [actor.id, actor]));
   const profiles = collectProfiles(baseProfiles, communityProfiles);
   const plan = plugin.agents.map((extension) => {
     const profile = profiles.get(extension.profileId);
     const presentation = publicProfiles.profiles?.[extension.profileId];
     if (!profile || !presentation) throw new Error(`Community plugin references missing public Agent Profile ${extension.profileId}.`);
+    const primaryChannel = guildhallActors.get(extension.profileId)?.primaryChannel;
+    const roomIds = [...new Set([...(extension.roomIds ?? []), ...(primaryChannel ? [primaryChannel] : [])])];
+    for (const roomId of roomIds) {
+      if (!guildhallChannels.has(roomId)) throw new Error(`Agent Profile ${extension.profileId} references unknown BUZZ room ${roomId}.`);
+    }
     return {
       profileId: extension.profileId,
       displayName: profile.displayName,
       publicBio: presentation.publicBio,
       avatarRef: presentation.avatarRef,
-      roomIds: extension.roomIds,
+      roomIds,
       configuredPubkey: presentation.officialBuzzIdentity?.pubkey || null,
       prompt: profilePrompt(profile, presentation.publicBio),
     };
@@ -212,6 +266,7 @@ async function main() {
     communityName: plugin.displayName,
     mode: apply ? "apply" : "plan",
     generatedAt: new Date().toISOString(),
+    rooms: guildhall.channels.map(({ id, name, type }) => ({ id, name, type })),
     agents: [],
     publicIdentityUpdates: {},
   };
@@ -232,12 +287,14 @@ async function main() {
 
   const channelRows = asArray(await runJson(["--format", "json", "channels", "list"], humanEnv()));
   const channelByRoom = new Map();
-  for (const room of plugin.rooms) {
-    const matches = channelRows.filter((candidate) => text(candidate.name) === room.id);
-    if (matches.length !== 1) throw new Error(`Expected exactly one BUZZ channel named ${room.id}; found ${matches.length}.`);
+  const requiredRoomIds = [...new Set(plan.flatMap((agent) => agent.roomIds))];
+  for (const roomId of requiredRoomIds) {
+    const room = guildhallChannels.get(roomId);
+    const matches = channelRows.filter((candidate) => text(candidate.name) === room.name);
+    if (matches.length !== 1) throw new Error(`Expected exactly one BUZZ channel named ${room.name}; found ${matches.length}.`);
     const channelId = text(matches[0].channel_id ?? matches[0].id);
-    if (!channelId) throw new Error(`BUZZ channel ${room.id} did not return a channel id.`);
-    channelByRoom.set(room.id, channelId);
+    if (!channelId) throw new Error(`BUZZ channel ${room.name} did not return a channel id.`);
+    channelByRoom.set(roomId, channelId);
   }
 
   state.pendingDrafts ??= {};
@@ -309,7 +366,10 @@ async function main() {
 
   const missingAgents = plan.filter((agent) => result.agents.some((entry) =>
     entry.profileId === agent.profileId && entry.status === "owner-provisioner-required"));
+  const existingAgents = plan.filter((agent) => result.agents.some((entry) =>
+    entry.profileId === agent.profileId && entry.status === "ready"));
   result.syncPackage = await writeMissingAgentTeam(missingAgents);
+  result.avatarRepair = avatarRepairPackage(existingAgents);
 
   await saveState(state);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

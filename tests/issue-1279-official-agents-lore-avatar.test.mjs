@@ -35,7 +35,7 @@ test("#1279 canonical five wizards own one public PlotPickle presentation contra
     assert.ok(baseIds.has(id), `Host Agent Profile missing ${id}`);
     assert.ok(learnRoster.includes(`"${id}"`), `LEARN roster missing ${id}`);
     const presentation = publicConfig.profiles[id];
-    assert.equal(presentation.avatarRef, `/assets/helpers/lore/${id}.svg`);
+    assert.equal(presentation.avatarRef, `/assets/helpers/official/${id}.webp`);
     assert.ok(presentation.publicBio.length >= 1 && presentation.publicBio.length <= 500);
     assert.deepEqual(presentation.executionContexts, ["private-local", "public-buzz"]);
     assert.equal(presentation.officialBuzzIdentity.provisioning, "external-buzz-admin");

@@ -24,14 +24,18 @@ test("Guildhall gateway owns one-click local setup without GitHub secrets", () =
   assert.doesNotMatch(gateway, /process\.env\.BUZZ_AUTH_TAG|BUZZ_AUTH_TAG\s*:/);
 });
 
-test("one-click setup is idempotent and provisions only the four Human-purpose Community rooms", () => {
+test("one-click setup is type-safe and provisions only the four Human-purpose Community rooms", () => {
   assert.equal(config.channels.length, 13);
   assert.ok(config.channels.every((room) => room.visibility === "private"));
   assert.deepEqual(cleanup.retainedRooms.map((room) => room.id), ["great-hall", "story-council", "wyrmwood-ring", "marquee"]);
   assert.ok(cleanup.retainedRooms.every((room) => room.visibility === "open"));
+  assert.ok(cleanup.retainedRooms.every((room) => room.type === "stream"));
   assert.match(gateway, /BUZZ_COMMUNITY_CHANNELS/u);
   assert.doesNotMatch(gateway, /for \(const definition of BUZZ_GUILDHALL_CHANNELS\)/u);
-  assert.match(gateway, /channels\.some\(\(channel\) => channel\.name === definition\.name\)/);
+  assert.match(gateway, /"channels", "search", "--query", name, "--exact"/);
+  assert.match(gateway, /channel && channel\.type === definition\.type/);
+  assert.match(gateway, /typeMismatches/);
+  assert.match(gateway, /Run Utilities\\\\Sync-PlotPickle-BUZZ\.ps1/);
   assert.match(gateway, /kept\.push\(definition\.name\)/);
   assert.match(gateway, /created\.push\(definition\.name\)/);
   assert.match(gateway, /if \(!rooms\.ready\)/);

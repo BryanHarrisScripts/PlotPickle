@@ -100,7 +100,7 @@ test("#1222 uses a generic lore glyph only when no custom Human avatar exists", 
     source("app/profile-access/profile-identity-panel.tsx"),
   ]);
   assert.match(community, /DEFAULT_HUMAN_LORE_GLYPH/);
-  assert.match(profile, /presentation\.avatarUrl \? <img/);
+  assert.match(profile, /if \(presentation\.avatarUrl\) return <img/);
   assert.match(profile, /data-default-lore-glyph=["']true["']/);
   assert.match(profile, /DEFAULT_HUMAN_LORE_GLYPH/);
 });

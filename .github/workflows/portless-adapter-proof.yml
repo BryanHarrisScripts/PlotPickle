@@ -1,0 +1,113 @@
+name: Portless Adapter Proof
+
+on:
+  pull_request:
+    paths:
+      - "core/runtime/local-endpoint-registry.mjs"
+      - "core/runtime/portless-adapter.mjs"
+      - "scripts/run-portless-windows-acceptance.mjs"
+      - "config/portless-runtime.json"
+      - "docs/architecture/PLOTPICKLE-PORTLESS-ADAPTER.md"
+      - "tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs"
+      - "tests/issue-1156-portless-adapter.test.mjs"
+      - ".github/workflows/portless-adapter-proof.yml"
+      - ".github/workflows/local-endpoint-registry.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  direct-node22:
+    name: ${{ matrix.name }} direct fallback and build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64 Node 22
+            os: ubuntu-latest
+            package: ""
+          - name: Windows x64 Node 22
+            os: windows-latest
+            package: package:windows
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use PlotPickle Node.js 22.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+
+      - name: Install PlotPickle dependencies without Portless
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate Portless adapter and inherited endpoint registry
+        run: >-
+          node --test
+          tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs
+          tests/issue-1156-portless-adapter.test.mjs
+          tests/issue-1155-local-endpoint-registry.test.mjs
+          tests/issue-989-verification-execution-graph.test.mjs
+          tests/issue-1108-writer-app-preflight.test.mjs
+          tests/issue-1170-writer-observer-stabilization.test.mjs
+
+      - name: Production build
+        run: npm run build
+
+      - name: Stage and audit Windows package with Portless absent
+        if: matrix.package != ''
+        run: npm run ${{ matrix.package }}
+
+  real-windows-portless:
+    name: Windows Node 24 pinned Portless static-alias acceptance
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use isolated developer-tool Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+
+      - name: Capture exact published Portless package metadata
+        shell: pwsh
+        run: |
+          $metadata = npm view portless@0.15.5 version dist.integrity dist.tarball engines license --json
+          $metadata | Tee-Object -FilePath "$env:RUNNER_TEMP\portless-0.15.5-metadata.json"
+
+      - name: Provision pinned Portless outside PlotPickle dependency tree
+        shell: pwsh
+        run: |
+          $toolRoot = Join-Path $env:RUNNER_TEMP "plotpickle-portless-0.15.5"
+          npm install --prefix $toolRoot --no-save --package-lock=false --ignore-scripts portless@0.15.5
+          $cli = Join-Path $toolRoot "node_modules\portless\dist\cli.js"
+          if (-not (Test-Path $cli)) { throw "Pinned Portless CLI was not installed at the reviewed path." }
+          "PLOTPICKLE_PORTLESS_CLI=$cli" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PLOTPICKLE_PORTLESS_STATE=$(Join-Path $env:RUNNER_TEMP 'plotpickle-portless-state')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Run real Windows static-alias, long-PATH and cleanup acceptance
+        shell: pwsh
+        run: |
+          $node = (Get-Command node).Source
+          node scripts/run-portless-windows-acceptance.mjs `
+            --node $node `
+            --cli $env:PLOTPICKLE_PORTLESS_CLI `
+            --state-dir $env:PLOTPICKLE_PORTLESS_STATE `
+            --artifact .artifacts/portless/windows-acceptance.json
+
+      - name: Upload sanitized Windows acceptance and package metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: portless-1156-windows-${{ github.run_id }}
+          path: |
+            .artifacts/portless/windows-acceptance.json
+            ${{ runner.temp }}/portless-0.15.5-metadata.json
+          if-no-files-found: error
+          retention-days: 5

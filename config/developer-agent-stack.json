@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "platform": "windows-native",
+  "sharedRules": "AGENTS.md",
+  "skills": {
+    "registry": "config/agent-skills.json",
+    "root": ".agents/skills",
+    "discovery": "progressive",
+    "transport": "filesystem-first-mcp-resource-ready",
+    "repairSkill": "uat-repair"
+  },
+  "requiredAgents": [
+    {
+      "id": "pi",
+      "label": "Pi",
+      "role": "primary-or-reviewer",
+      "installCommand": "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.84.2",
+      "projectSettings": ".pi/settings.json"
+    },
+    {
+      "id": "cline",
+      "label": "Cline",
+      "role": "primary-or-reviewer",
+      "installCommand": "npm install -g cline",
+      "projectSettings": ".cline"
+    }
+  ],
+  "excludedRequiredTools": ["OpenHands", "Herdr"],
+  "piPackages": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
+  ],
+  "piRuntime": {
+    "requiredForFullVerification": true,
+    "managedVersion": "0.84.2",
+    "managedExecutablePolicy": "full-verification-managed-only",
+    "autoProvisionMissingCli": true,
+    "ensureCommand": "scripts/ensure-pi-repair-stack.mjs",
+    "verifyCommand": "scripts/verify-pi-repair-worker.mjs",
+    "localOnly": true,
+    "cloudFallback": false,
+    "providerConfigScope": "LOCALAPPDATA/PlotPickle/developer-agent"
+  },
+  "mcp": {
+    "sharedConfig": ".mcp.json",
+    "clineConfig": ".cline/mcp.json",
+    "server": "plotpickle-dev",
+    "command": "node",
+    "args": ["scripts/developer-agent-mcp.mjs"]
+  },
+  "repair": {
+    "command": "scripts/run-uat-repair-agent.mjs",
+    "defaultWorker": "pi",
+    "selectableWorkers": ["pi", "cline"],
+    "legacyWorker": "mastra-qwen",
+    "skill": "uat-repair",
+    "localOnly": true,
+    "cloudFallback": false,
+    "requiresApprovedLocalCodingModel": true,
+    "isolatedWorktree": true,
+    "draftPrOnly": true
+  },
+  "codeQualityReview": {
+    "deterministicObserver": "ben",
+    "deterministicCommand": "scripts/run-ben-code-quality.mjs",
+    "advisoryReviewer": "pi",
+    "advisoryCommand": "scripts/run-pi-code-quality-review.mjs",
+    "piTools": ["read", "grep", "find", "ls"],
+    "writesAllowed": false,
+    "authoritative": false,
+    "artifactRoot": "LOCALAPPDATA/PlotPickle/full-verification/pi-code-quality"
+  },
+  "agentBench": {
+    "runner": "scripts/run-agent-bench.mjs",
+    "tasks": "config/agent-bench/tasks.json",
+    "agents": ["pi", "cline"],
+    "artifactRoot": ".artifacts/agent-bench"
+  },
+  "gates": [
+    "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
+    "npm run build"
+  ],
+  "mergePolicy": "green-exact-head-only"
+}

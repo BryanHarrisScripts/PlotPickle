@@ -1,0 +1,603 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "world",
+    "title": "World and Genre"
+  },
+  "lessonCount": 5,
+  "sourceCount": 4,
+  "lessons": [
+    {
+      "id": "genres",
+      "number": 2,
+      "topic": "world",
+      "title": "Tropes and Genres",
+      "duration": "30–40 min",
+      "overview": "Use genre as an audience agreement and tropes as flexible storytelling tools, then create freshness through character, context, consequence and combination.",
+      "objectives": [
+        "Identify the emotional promise of the chosen genre.",
+        "Distinguish useful conventions from unexamined clichés.",
+        "Combine or invert tropes without breaking the audience contract."
+      ],
+      "sections": [
+        {
+          "heading": "Genre is a promise",
+          "paragraphs": [
+            "Genre tells an audience what kind of emotional journey they are entering. Comedy promises patterned surprise and release; horror promises dread, vulnerability and confrontation with fear; drama promises consequential human choices; thriller promises uncertainty, pursuit and mounting pressure; fantasy promises an extraordinary world governed by intelligible rules; science fiction tests human questions through technology, discovery or changed conditions.",
+            "A story can mix genres, but it still needs a dominant promise. The secondary genre should sharpen the experience rather than create a different movie every twenty minutes."
+          ],
+          "points": [
+            "Comedy: escalation, contrast, timing and consequence.",
+            "Horror: vulnerability, anticipation, boundary violation and cost.",
+            "Drama: relationships, values, difficult choices and change.",
+            "Thriller: information control, pursuit, reversals and a clock.",
+            "Fantasy: wonder, myth, rules and moral consequence.",
+            "Science fiction: speculation, systems, unintended effects and human meaning."
+          ]
+        },
+        {
+          "heading": "Tropes are tools",
+          "paragraphs": [
+            "A trope is a recognizable pattern: the reluctant hero, forbidden room, ticking clock, chosen family, false victory or mentor sacrifice. Recognition gives the writer speed and gives the audience orientation. A cliché appears when the pattern arrives without a story-specific cause, cost or point of view.",
+            "Freshness rarely means eliminating every familiar element. It means asking who experiences it, what this world makes different, what choice it forces and what consequence the familiar version usually avoids."
+          ],
+          "points": [
+            "Fulfil a convention cleanly when the audience needs orientation.",
+            "Subvert it when the reversal reveals character or theme.",
+            "Combine conventions when their pressures interact.",
+            "Avoid a reversal that exists only to prove the audience wrong."
+          ]
+        },
+        {
+          "heading": "Audit the genre experience",
+          "paragraphs": [
+            "Track where the screenplay delivers its genre promise across the 24 Blocks. A horror story cannot rely on one frightening opening and a frightening ending; a comedy needs comic engines that can generate different complications; a mystery must manage clues, interpretations and fair concealment.",
+            "Tone can vary without abandoning genre. Relief, tenderness and stillness often make the next genre beat stronger because contrast resets the audience's attention."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Genre convention",
+          "meaning": "A recurring feature audiences reasonably expect from a kind of story."
+        },
+        {
+          "term": "Trope",
+          "meaning": "A recognizable storytelling pattern that can be used, combined, questioned or inverted."
+        },
+        {
+          "term": "Cliché",
+          "meaning": "A familiar device presented without fresh cause, specificity, consequence or insight."
+        }
+      ],
+      "example": {
+        "title": "Refreshing a familiar trope",
+        "text": "Instead of a detective who breaks rules because he is brilliant, make rule-following his survival strategy. The case forces him to choose between the procedure that once protected him and the witness it now endangers."
+      },
+      "checklist": [
+        "The dominant genre is clear.",
+        "The emotional promise repeats with variation.",
+        "Major tropes have story-specific causes.",
+        "Genre mixing creates useful pressure.",
+        "The ending satisfies or deliberately reframes the central promise."
+      ],
+      "mistakes": [
+        "Confusing darkness with horror or jokes with comedy.",
+        "Subverting a trope without replacing its dramatic function.",
+        "Changing genre because the middle lacks an engine.",
+        "Using stereotypes as shorthand for character."
+      ],
+      "exercise": "Name the active story's dominant and secondary genres. List five audience expectations, then mark each as fulfil, twist, combine or intentionally omit—and explain why.",
+      "apply": "Block plan",
+      "tags": [
+        "genre",
+        "trope",
+        "comedy",
+        "horror",
+        "drama",
+        "thriller",
+        "fantasy",
+        "science fiction",
+        "cliche"
+      ],
+      "original": {
+        "number": 2,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-general-general-tropes-and-genres-md",
+          "repository": "24-Blocks",
+          "path": "General/General - Tropes and Genres.md",
+          "title": "Navigating Unique Tropes and Popular Genres",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/General/General%20-%20Tropes%20and%20Genres.md",
+          "content": "# Navigating Unique Tropes and Popular Genres \n\nAs storytellers, game developers, filmmakers, or authors, we often find ourselves exploring a plethora of genres, each bearing their own unique attributes. Understanding these genres' unique tropes and structures can provide the guidance needed to skillfully craft our narrative and ensure an engaging audience experience. Let's delve into popular genres like comedy, horror, drama, thriller, and more, providing you with tailored guidelines that can act as your creative compass.\n\n### Comedy\n\nComedy is all about timing and surprise. It thrives on the unexpected, the absurd, and the humorous interpretation of ordinary situations. Keep your dialogue punchy, your situations hilariously relatable, and your characters colorful and exaggerated. Comedic callbacks and running gags can provide a sense of familiarity, while comedic relief can serve as a valuable tool in more dramatic narratives to lighten the mood and give the audience a breather.\n\n### Horror\n\nHorror is intended to provoke fear and dread. It's all about atmosphere, suspense, and often, the unseen or unknown. Build tension slowly and steadily, and focus on the psychological aspects of fear as much as, if not more than, the physical manifestations of it. Uncertainty and anticipation of the horrific are your best tools. Often, what the audience imagines is far scarier than anything you can explicitly show.\n\n### Drama\n\nDrama revolves around conflict and emotion. Your characters are the heart of the drama, and their development, relationships, and struggles should drive the narrative. Focus on emotional authenticity and let your characters' actions and choices dictate the direction of the story. Themes of love, betrayal, sacrifice, and redemption are common, serving as emotional touchstones that resonate with audiences.\n\n### Thriller\n\nThrillers are about suspense, excitement, and high stakes. They keep audiences on the edge of their seats, engrossed in a compelling, intricate plot where protagonists must overcome dire situations. A sense of urgency, a well-crafted antagonist, and twists and turns to keep audiences guessing are key elements of a thriller.\n\n### Fantasy\n\nFantasy involves the creation of a unique, fully-realized other world with its own rules, history, and mythologies. The magic system needs to be well thought out and consistent. Readers should be able to immerse themselves in this world completely. Epic battles, quests, and journeys, as well as themes of good versus evil, are common staples of the genre.\n\n### Science Fiction\n\nScience Fiction explores speculative ideas and deals with imaginative and futuristic concepts such as advanced science, technology, space exploration, time travel, parallel universes, and extraterrestrial life. It's essential to keep your science plausible and your speculation grounded in reality, or at least, in a reality your audience can believe in. The best sci-fi stories often use their speculative ideas to comment on contemporary social issues.\n\nRemember, these guidelines are not rules set in stone. They serve as starting points, foundational elements to understand and respect before you consider how and when to subvert them. Successful genre-bending often comes from a deep understanding of the genre's conventions and an innovative approach to bending or combining them.\n\nIn the world of storytelling, the genre is more than a category—it's a promise to your audience of what kind of story they can expect. Keeping these genre-specific guidelines in mind will help ensure you deliver on that promise, creating engaging, resonant narratives that your audience will love.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "world-building",
+      "number": 6,
+      "topic": "world",
+      "title": "World-Building",
+      "duration": "40–55 min",
+      "overview": "Create a world with history, cultures, institutions, rules, geography and language that produces story pressure and appears through lived detail rather than explanation.",
+      "objectives": [
+        "Define rules and consequences the plot can test.",
+        "Connect place, culture and institutions to character behaviour.",
+        "Reveal the world through action, conflict and selective detail."
+      ],
+      "sections": [
+        {
+          "heading": "Build the blueprint",
+          "paragraphs": [
+            "World-building applies to every genre. A contemporary hospital, a small town, a touring band and an invented planet all have geography, power, routines, values, language and restricted access. Begin with what characters can and cannot do, who benefits from the system and where the story can apply pressure.",
+            "In speculative work, distinguish physical rules, social rules and believed rules. A belief may be false while still controlling behaviour. A physical rule should remain consistent unless the story clearly establishes its exception and cost."
+          ],
+          "points": [
+            "Environment and geography",
+            "History and collective memory",
+            "Institutions and power",
+            "Economy and everyday labour",
+            "Cultures, rituals and taboos",
+            "Technology, magic or special rules",
+            "Language, symbols and communication"
+          ]
+        },
+        {
+          "heading": "Make the world causal",
+          "paragraphs": [
+            "A world detail earns screen time when it changes a choice, creates an obstacle, offers a tool, reveals status or deepens theme. Weather can close a route; an institutional policy can make honesty dangerous; a ritual can force enemies into the same room.",
+            "History should leave present evidence: architecture, prejudice, law, family expectations, damaged land, slang or disputed monuments. Avoid writing a past that no living character carries."
+          ],
+          "points": [
+            "For every major rule, define who enforces it.",
+            "For every resource, define who controls access.",
+            "For every cultural value, show a character who agrees and one who pays its cost."
+          ]
+        },
+        {
+          "heading": "Reveal without lectures",
+          "paragraphs": [
+            "Let the audience infer ordinary rules by watching characters use them. Exposition becomes active when one person needs another to misunderstand, comply, remember, choose or break a rule.",
+            "Balance the extraordinary with the mundane. Meals, repairs, travel, jokes and private habits give scale to invented wonders. Select a few precise sensory details instead of describing the entire environment on first arrival."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "World rule",
+          "meaning": "A consistent physical, social, institutional or supernatural constraint with consequences."
+        },
+        {
+          "term": "Exposition",
+          "meaning": "Information the audience needs in order to understand story conditions."
+        },
+        {
+          "term": "Lived detail",
+          "meaning": "A specific behaviour, object, routine or consequence that makes the world feel inhabited."
+        }
+      ],
+      "example": {
+        "title": "World detail as conflict",
+        "text": "Weak: Citizens must surrender memories each year. Dramatic: At renewal, the protagonist finds her mother in the surrender line holding a memory the government says never existed."
+      },
+      "checklist": [
+        "Rules have visible costs and enforcement.",
+        "History affects present behaviour.",
+        "Cultures contain disagreement and variation.",
+        "Geography changes access or risk.",
+        "Exposition arrives through a current objective.",
+        "Visual details can feed the storyboard."
+      ],
+      "mistakes": [
+        "Explaining the whole world before the story begins.",
+        "Creating rules that change whenever the plot needs an escape.",
+        "Treating a culture as one uniform personality.",
+        "Building fascinating history with no present consequence."
+      ],
+      "exercise": "Choose one active location. Define its controlling power, public rule, private exception, sensory signature and the behaviour that reveals all four without explanatory dialogue.",
+      "apply": "Block plan",
+      "tags": [
+        "world",
+        "history",
+        "culture",
+        "society",
+        "rules",
+        "geography",
+        "language",
+        "setting",
+        "show don't tell"
+      ],
+      "original": {
+        "number": 6,
+        "path": "Development"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-general-general-world-building-md",
+          "repository": "24-Blocks",
+          "path": "General/General - World Building.md",
+          "title": "World Building for Fantasy and Sci-Fi",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/General/General%20-%20World%20Building.md",
+          "content": "# World Building for Fantasy and Sci-Fi \n\nCreating a world that encapsulates your narrative is one of the most exhilarating aspects of writing, especially in the genres of fantasy and sci-fi. When you construct a universe from scratch, you are not merely creating a setting for your story; you are developing a living, breathing entity that adds depth, intrigue, and an exciting backdrop to your tale. \n\nThis blog post aims to provide a comprehensive guide to world-building for scripts. This tool can be quite beneficial, particularly for fantasy and sci-fi genres. So, whether you are an experienced writer or a budding novice exploring the vast cosmos of scriptwriting, let this guide be your star map as you navigate through the intricate galaxy of world-building. \n\n### 1. **The Blueprint of Your Universe**\n\nThe initial stage of world-building involves laying out the blueprint of your universe. Do you envision a dystopian future city, a vibrant alien planet, or a mythical kingdom lost in time? Be as specific as possible, as this blueprint will serve as a guide for every other decision you make.\n\n### 2. **Develop a History**\n\nBehind every great world lies an elaborate history. This background shapes the culture, politics, and personalities of the characters inhabiting it. It's like an unseen force guiding the actions and reactions within the world. Remember, history informs the present. \n\n### 3. **Create Cultures and Societies**\n\nWho are the inhabitants of your world? What are their cultures and societal structures? Whether it's a society of highly-intelligent robots or a kingdom of magical elves, the cultures and societies within your world provide depth and color to your narrative.\n\n### 4. **Define the Rules**\n\nIn fantasy and sci-fi, the only limits are those you set yourself. However, once these rules are established, they should be consistently followed. Whether it's the limitations of a magic system or the constraints of technology, setting clear rules adds believability to your world.\n\n### 5. **The Landscape and Environment**\n\nYour world's environment shapes its inhabitants and their lifestyle. For example, a civilization living in a desert might develop technology to extract water from the air, whereas an aquatic species would have a completely different set of technological advancements.\n\n### 6. **The Language and Communication**\n\nWhether it's an alien language, a magical script, or a dialect of the future, language can add authenticity to your world. Consider the forms of communication and how they influence social interactions.\n\n### 7. **Balancing the Mundane and the Extraordinary**\n\nA believable world balances the mundane and the extraordinary. Yes, your characters might be battling intergalactic enemies, but they also need to eat, sleep, and maybe even take care of a space pet.\n\n### 8. **Show, Don't Tell**\n\nIt's often more effective to reveal aspects of your world through the actions and interactions of your characters, rather than explicit exposition. This keeps the audience engaged and encourages them to infer the intricacies of your world.\n\nRemember, world-building is a gradual process. It doesn't have to be perfect at the first attempt. It evolves as you delve deeper into your story, just like a painter adding layers of color to a canvas. Imbibe the essence of world-building and see your script come alive with the magic of a well-constructed universe.\n\nBe patient, and most importantly, enjoy the process. The worlds you can create are boundless. \n\n---"
+        }
+      ]
+    },
+    {
+      "id": "story-bible",
+      "number": 8,
+      "topic": "world",
+      "title": "The Story Bible",
+      "duration": "35–50 min",
+      "overview": "Create a living source of truth for premise, world, characters, chronology, tone, themes, terminology and continuity without turning development into an archive no one uses.",
+      "objectives": [
+        "Choose information that protects consistency and supports decisions.",
+        "Separate canonical facts from possibilities and research.",
+        "Maintain the bible as the screenplay evolves."
+      ],
+      "sections": [
+        {
+          "heading": "Purpose and scope",
+          "paragraphs": [
+            "A story bible keeps collaborators and future drafts aligned. It answers recurring questions about who, where, when, how the world works and what the project is trying to make the audience feel. For a feature, it can be compact. For a series or extensive fictional world, it may include episode engines, long arcs and rules for material not yet written.",
+            "The bible should reduce friction. If a page is never consulted and never changes a decision, it may belong in research notes rather than the canonical bible."
+          ],
+          "points": [
+            "Project premise, genre, format and audience promise",
+            "Character profiles and relationship map",
+            "World rules, locations and institutions",
+            "Chronology and significant backstory",
+            "Structure, theme, motifs and tone",
+            "Terminology, pronunciation and continuity locks",
+            "Open questions and revision decisions"
+          ]
+        },
+        {
+          "heading": "Canonical, proposed and unknown",
+          "paragraphs": [
+            "Mark the status of information. Canonical material is established by the current project. Proposed material is being tested. Unknowns are deliberate questions. Research facts should retain a source. This prevents an attractive possibility from silently becoming a contradiction later.",
+            "When the screenplay changes a fact, update the source of truth. Do not leave three competing answers in separate notes and expect memory to decide which is current."
+          ],
+          "points": [
+            "Record decisions and their consequences.",
+            "Date major changes when collaboration makes history useful.",
+            "Keep private creative work inside the project rather than in AI prompts or external services by default."
+          ]
+        },
+        {
+          "heading": "Use it during writing",
+          "paragraphs": [
+            "Before a scene, consult only the relevant character, location, timeline and rule information. After a writing session, promote new facts that the screenplay established. Continuity review should search for changes in dates, ages, injuries, knowledge, props, geography, wardrobe and relationship status.",
+            "PlotPickle's shared project already connects the planner, treatment, screenplay and storyboard. The goal is one evolving work, not four disconnected copies."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Canon",
+          "meaning": "Information accepted as true within the current version of the story."
+        },
+        {
+          "term": "Continuity",
+          "meaning": "Consistency of facts, time, space, knowledge, objects and conditions across the work."
+        },
+        {
+          "term": "Source of truth",
+          "meaning": "The authoritative current record used when different notes conflict."
+        }
+      ],
+      "example": {
+        "title": "A usable rule entry",
+        "text": "Rule: Memory transfers preserve emotion but not names. Evidence: Block 3 lab test. Cost: recipients misidentify people they love. Open question: can repeated transfers restore a name? Status: proposed until Block 9 is drafted."
+      },
+      "checklist": [
+        "The premise and audience promise are current.",
+        "Facts have clear status.",
+        "Character and relationship records agree with the draft.",
+        "World rules include costs and exceptions.",
+        "Chronology is testable.",
+        "New screenplay facts are promoted after writing."
+      ],
+      "mistakes": [
+        "Collecting information without status or purpose.",
+        "Keeping contradictory versions in separate documents.",
+        "Treating the bible as fixed when the better story changes.",
+        "Putting every research note into the reader-facing story."
+      ],
+      "exercise": "Audit the active project for ten canonical facts, three proposed facts and three important unknowns. Add a continuity consequence to every canonical fact that could affect a later block.",
+      "apply": "Block plan",
+      "tags": [
+        "story bible",
+        "canon",
+        "continuity",
+        "timeline",
+        "research",
+        "world",
+        "character",
+        "source of truth"
+      ],
+      "original": {
+        "number": 8,
+        "path": "Development"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-general-general-story-bible-character-md",
+          "repository": "24-Blocks",
+          "path": "General/General - Story Bible - Character.md",
+          "title": "Story Bible - Character",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/General/General%20-%20Story%20Bible%20-%20Character.md",
+          "content": "# Story Bible - Character\n\nWhen creating a story Bible, characters are indeed a crucial element to include. Here are some key aspects to consider when developing and documenting your characters:\n\n* **Character Profiles**: Create detailed profiles for each main character, including their names, ages, physical descriptions, backgrounds, personalities, and motivations. Note their roles in the story and their relationships with other characters.\n\n* **Backstories**: Provide backstories for your characters, outlining their personal histories, experiences, and any significant events that have shaped them. Consider their childhood, family dynamics, education, and past achievements or failures.\n\n* **Goals and Motivations**: Clearly define the goals and motivations driving each character. What do they desire? What are their dreams, fears, and ambitions? understanding these aspects will help you write more authentic and consistent character arcs.\n\n* **Character Arcs**: Plan out the development and growth of your characters throughout the story. Consider how their experiences and interactions will shape their personalities and beliefs over time. A character arc typically involves a transformation or change in attitude or behavior.\n\n* **Relationships**: Map out the relationships between your characters. Identify their allies, enemies, friends, and romantic interests. Note any conflicts or tensions that arise within these relationships and how they may evolve throughout the story.\n\n* **Internal and External Conflict**: Determine the internal and external conflicts each character faces. Internal conflicts refer to emotional or psychological struggles, while external conflicts involve obstacles and challenges from the outside world. Understand how these conflicts drive the characters' actions and decisions.\n\n* **Strengths and Weaknesses**: Define the strengths, skills, and unique qualities of each character. Also, identify their weaknesses and vulnerabilities. These attributes will shape how characters contribute to the plot and interact with one another.\n\n* **Character Arc Consistency**: Ensure consistency in the portrayal of your characters' personalities, traits, and behaviors. Make sure their actions and decisions align with their established profiles and character arcs.\n\n* **Supporting Characters**: Develop supporting characters that complement the main characters and contribute to the story. Although they may have less detailed profiles, they should still have clear roles, motivations, and relationships.\n\n* **Character Relationships with Setting**: Consider how your characters interact with the story's setting. How does their environment influence their actions, values, or beliefs? Ensure that the characters are grounded in their world and respond to it accordingly.\n\nRemember, a story Bible is a reference guide that helps maintain consistency and coherence throughout the narrative. Building well-rounded, relatable, and consistent characters is essential for engaging storytelling.\n\n---"
+        },
+        {
+          "id": "24-blocks-general-general-story-bible-md",
+          "repository": "24-Blocks",
+          "path": "General/General - Story Bible.md",
+          "title": "Story Bible",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/General/General%20-%20Story%20Bible.md",
+          "content": "# Story Bible\n\nIn Hollywood, a \"show bible\" or \"story bible\" is often used during the development of a television show, movie, or even a novel. It serves as a reference document that provides a comprehensive overview of the characters, settings, plots, and other important details of the story. For some projects, this bible can be a living document, meaning that it gets updated as the project develops.\n\nWhile there's no standard format for a show bible, it typically contains the following:\n\n1. **Logline**: A one- or two-sentence summary of the story. It should capture the essence of the story in a succinct way.\n\n2. **Overview/Summary**: A brief summary of the show or movie concept that provides more detail than the logline. It usually includes the genre, setting, and basic premise of the story.\n\n3. **Pilot Synopsis**: A detailed summary of the first episode or the film's plot. It gives a clear picture of the story arc and hooks.\n\n4. **Character Descriptions**: Detailed profiles of each main character. This can include their backgrounds, motivations, relationships, and any other relevant information.\n\n5. **Episode Outlines/Synopses**: For TV shows, this section contains brief outlines or synopses for several episodes, demonstrating the progression of the storyline.\n\n6. **World-building/Setting**: Descriptions of the world in which the story takes place. This can include the time period, location, society, culture, technology level, and any other relevant details.\n\n7. **Tone/Style**: An explanation of the show or movie's tone and style. This includes aspects like pacing, humor, seriousness, realism, etc.\n\n8. **Themes**: An exploration of the themes the show or movie will delve into.\n\n9. **Visual Elements**: Concept art, storyboards, or other visual elements that help to convey the look and feel of the show or movie.\n\n10. **Production Plan**: This can include a schedule, budget, and details about the production team. \n\n11. **Marketing and Audience**: An analysis of the target audience and potential marketing strategies.\n\n12. **Future Seasons or Sequels**: Ideas for where the show or film could go in future seasons or sequels, demonstrating potential for longevity.\n\nIn addition to the bible, Hollywood also reviews scripts and pitch documents. A pitch is a verbal (and sometimes visual) presentation where you propose the idea for the show or movie to potential buyers. \n\nRemember, the goal of these documents is not just to explain the story but to sell it. You need to demonstrate why your story is unique and why an audience would want to watch it.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "ai-revision-genre-world-continuity",
+      "number": 39,
+      "topic": "world",
+      "title": "Genre, world and continuity pass",
+      "duration": "15–25 min",
+      "overview": "World rules, genre promises or story facts conflict, disappear or fail to shape choices.",
+      "objectives": [
+        "Recognize when the genre, world and continuity pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Story Planner."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "Rules change for convenience.",
+            "Genre expectations are promised but not developed.",
+            "Character knowledge, props, locations or chronology drift."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The task requires external factual verification rather than internal consistency."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Identify evidence and risks.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Story Thread, Character or relationship, Act or sequence, Block."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Identify evidence and risks",
+            "Canonical scope: Complete project · Story Thread · Character or relationship · Act or sequence · Block",
+            "Recommended destination: Story Planner"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Invented lore",
+            "Genre stereotyping",
+            "Treating plausibility as verified fact",
+            "Changing canon to solve a contradiction"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Genre, world and continuity pass setup",
+        "text": "Select “Identify evidence and risks,” include only Complete project and Story Thread, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Story Planner."
+      },
+      "checklist": [
+        "Rules are sourced from canon.",
+        "Contradictions are precisely located.",
+        "Genre advice respects the selected project.",
+        "Research questions are clearly marked."
+      ],
+      "mistakes": [
+        "Invented lore",
+        "Genre stereotyping",
+        "Treating plausibility as verified fact",
+        "Changing canon to solve a contradiction"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: World rules, genre promises or story facts conflict, disappear or fail to shape choices. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Block plan",
+      "tags": [
+        "genre",
+        "world",
+        "continuity",
+        "canon",
+        "chronology",
+        "rules",
+        "Structure and Characters",
+        "Suggested Additions",
+        "Individual Intermediate",
+        "Craft Layer",
+        "Identify evidence and risks",
+        "Story Planner"
+      ],
+      "original": {
+        "number": 35,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "ai-revision-representation-research",
+      "number": 40,
+      "topic": "world",
+      "title": "Representation and research-question pass",
+      "duration": "15–25 min",
+      "overview": "The project touches lived experience, culture, identity, history or specialist knowledge that requires informed human review.",
+      "objectives": [
+        "Recognize when the representation and research-question pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Story Planner."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The writer needs to identify assumptions or research gaps.",
+            "Authenticity questions should be routed to people and sources."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The writer expects AI to certify accuracy, authenticity or cultural safety."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Build a checklist.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Character or relationship, Scene, Story Thread."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Build a checklist",
+            "Canonical scope: Complete project · Character or relationship · Scene · Story Thread",
+            "Recommended destination: Story Planner"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Claiming cultural authority",
+            "Stereotype substitution",
+            "False factual certainty",
+            "Using sensitivity language as a guarantee"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Representation and research-question pass setup",
+        "text": "Select “Build a checklist,” include only Complete project and Character or relationship, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Story Planner."
+      },
+      "checklist": [
+        "Uncertainty is explicit.",
+        "Questions are specific and researchable.",
+        "Human review is required where appropriate.",
+        "No group is treated as monolithic."
+      ],
+      "mistakes": [
+        "Claiming cultural authority",
+        "Stereotype substitution",
+        "False factual certainty",
+        "Using sensitivity language as a guarantee"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: The project touches lived experience, culture, identity, history or specialist knowledge that requires informed human review. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Block plan",
+      "tags": [
+        "representation",
+        "culture",
+        "research",
+        "authenticity",
+        "verification",
+        "human review",
+        "Individual Critical",
+        "Suggested Additions",
+        "ChatGPT Tips",
+        "Craft Layer",
+        "Build a checklist",
+        "Story Planner"
+      ],
+      "original": {
+        "number": 36,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schemas/sdk/1.0/sdk-host.schema.json",
+  "title": "PlotPickle SDK Host",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "services"],
+  "properties": {
+    "apiVersion": { "const": "1.0.0" },
+    "services": {
+      "type": "object",
+      "required": ["apiVersion", "project", "canon", "screenplay", "storyboard", "reports", "timeline", "ai", "assets", "storage", "git", "plugins"],
+      "properties": { "apiVersion": { "const": "1.0.0" } },
+      "additionalProperties": true
+    }
+  }
+}

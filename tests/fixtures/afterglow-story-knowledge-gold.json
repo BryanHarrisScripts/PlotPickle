@@ -1,0 +1,21 @@
+{
+  "fixture": "Afterglow bounded PPF character relationships",
+  "revision": "afterglow-v9-gold-v1",
+  "entities": [
+    { "type": "CHARACTER", "name": "Ren", "aliases": ["Ren"] },
+    { "type": "CHARACTER", "name": "Isobel", "aliases": ["Isobel", "Summer"] },
+    { "type": "CHARACTER", "name": "Amy", "aliases": ["Amy"] },
+    { "type": "CHARACTER", "name": "Jai", "aliases": ["Jai"] },
+    { "type": "CHARACTER", "name": "Kai", "aliases": ["Kai"] },
+    { "type": "CHARACTER", "name": "Sarah", "aliases": ["Sarah"] }
+  ],
+  "relations": [
+    { "source": "Ren", "sourceType": "CHARACTER", "predicate": "Connection", "target": "Isobel", "targetType": "CHARACTER" },
+    { "source": "Ren", "sourceType": "CHARACTER", "predicate": "Creator and creation", "target": "Amy", "targetType": "CHARACTER" },
+    { "source": "Isobel", "sourceType": "CHARACTER", "predicate": "Connection", "target": "Ren", "targetType": "CHARACTER" },
+    { "source": "Amy", "sourceType": "CHARACTER", "predicate": "Creator and companion", "target": "Ren", "targetType": "CHARACTER" },
+    { "source": "Jai", "sourceType": "CHARACTER", "predicate": "Partner", "target": "Kai", "targetType": "CHARACTER" },
+    { "source": "Kai", "sourceType": "CHARACTER", "predicate": "Partner", "target": "Jai", "targetType": "CHARACTER" },
+    { "source": "Sarah", "sourceType": "CHARACTER", "predicate": "Lost loved one", "target": "Ren", "targetType": "CHARACTER" }
+  ]
+}

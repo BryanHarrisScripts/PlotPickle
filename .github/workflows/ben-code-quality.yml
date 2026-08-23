@@ -1,0 +1,83 @@
+name: BEN Code Quality
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.cjs"
+      - ".mcp.json"
+      - ".cline/mcp.json"
+      - ".agents/skills/**"
+      - "config/agent-*.json"
+      - "config/runtime-manifest.json"
+      - "config/ben-code-quality.json"
+      - "docs/architecture/MODULAR-FOUNDATION.md"
+      - "tests/**"
+      - ".github/workflows/ben-code-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ben-code-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ben-code-quality:
+    name: Discoverability and slop delta
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout full history for delta baseline
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install PlotPickle dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate BEN Agent, Skill and trust boundaries
+        run: node --test tests/issue-1005-ben-code-quality.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-913-agent-skills-migration.test.mjs
+
+      - name: Validate release security regressions
+        run: node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs
+
+      - name: Validate Casebook real integrations, attended mode, Phase 3B3 faults, live outcome proof, evidence, semantic execution and existing repair-graph authority
+        run: node --test tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1236-casebook-live-verifiers.test.mjs tests/issue-1236-casebook-profile-isolation-live.test.mjs tests/issue-1236-casebook-phase3b3.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
+
+      - name: Validate architecture health and record audit evidence
+        run: |
+          node --test tests/issue-1220-architecture-health.test.mjs
+          node scripts/architecture-health-audit.mjs
+
+      - name: Run BEN deterministic slop delta
+        if: github.event_name == 'pull_request'
+        run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+
+      - name: Run BEN current-tree scan
+        if: github.event_name != 'pull_request'
+        run: node scripts/run-ben-code-quality.mjs
+
+      - name: Upload BEN evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ben-code-quality-${{ github.run_id }}
+          path: |
+            .artifacts/ben-code-quality
+            .artifacts/architecture-health
+          if-no-files-found: warn
+          retention-days: 7

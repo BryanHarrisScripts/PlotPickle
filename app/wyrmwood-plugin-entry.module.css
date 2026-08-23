@@ -1,0 +1,64 @@
+.entry {
+  position: fixed;
+  top: 2px;
+  right: 94px;
+  z-index: 80;
+  display: grid;
+  width: 72px;
+  height: 64px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.glyph {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  filter: saturate(1.13) brightness(1.08);
+  transform: translateY(-4px);
+  transform-origin: center;
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.label {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  color: #b7b0a5;
+  font-family: var(--font-mono, "Courier New", monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-align: center;
+}
+
+.entry:hover .glyph,
+.entry:focus-visible .glyph {
+  filter: saturate(1.22) brightness(1.18);
+  transform: translateY(-5px) scale(1.055);
+}
+
+.entry:hover .label,
+.entry:focus-visible .label {
+  color: #efe9dd;
+}
+
+.entry:focus-visible {
+  outline: 1px solid rgba(53, 201, 184, 0.72);
+  outline-offset: 1px;
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .entry {
+    position: absolute;
+    right: 82px;
+  }
+}

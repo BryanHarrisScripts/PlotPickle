@@ -1,0 +1,29 @@
+{
+  "formatVersion": "1.0.0",
+  "projectId": "b0c53fe8-5098-4cd8-b6ef-5ca6ed788e25",
+  "title": "RC4 Minimal Project",
+  "author": "PlotPickle",
+  "createdAt": "2026-07-24T00:00:00.000Z",
+  "modifiedAt": "2026-07-24T00:00:00.000Z",
+  "minimumPlotPickleVersion": "1.0.0-rc.4",
+  "sdkApiVersion": "1.0.0",
+  "schemas": {
+    "project": "1.0.0",
+    "canon": "1.0.0",
+    "timeline": "1.0.0",
+    "character": "1.0.0",
+    "world": "1.0.0",
+    "screenplay": "1.0.0",
+    "storyboard": "1.0.0"
+  },
+  "extensions": [
+    {
+      "id": "example.future-module",
+      "version": "1.0.0",
+      "path": "extensions/example.future-module/data.json",
+      "optional": true,
+      "futureMetadata": { "preserve": true }
+    }
+  ],
+  "futureManifestField": { "preserve": true }
+}

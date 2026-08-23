@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "model": "smollm2:135m-instruct-q2_K",
+  "displayName": "SmolLM2 135M Instruct Q2_K",
+  "approximateDownloadBytes": 92274688,
+  "purpose": "Minimal local bootstrap model for PlotPickle connection testing and first-run recovery.",
+  "qualityBoundary": "This starter verifies that Ollama can run a local model. It is not the recommended model for final story development.",
+  "officialLibraryUrl": "https://ollama.com/library/smollm2:135m-instruct-q2_K"
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "retainedRooms": [
+    { "id": "great-hall", "name": "great-hall", "label": "The Great Hall", "type": "stream", "visibility": "open", "description": "General Community conversation, welcomes, questions and handoffs between people." },
+    { "id": "story-council", "name": "story-council", "label": "Story Workshop", "type": "forum", "visibility": "open", "description": "Planning, structure, characters, continuity and story critique." },
+    { "id": "wyrmwood-ring", "name": "wyrmwood-ring", "label": "Wyrmwood", "type": "stream", "visibility": "open", "description": "Wyrmwood challenges, game discussion and lesson evaluation." },
+    { "id": "marquee", "name": "marquee", "label": "Marquee", "type": "forum", "visibility": "open", "description": "Visual development, posters, key art and promotion." }
+  ],
+  "retiredRooms": [
+    { "id": "forge", "replacementRoomId": null, "reason": "Developer repair traffic stays in GitHub and local verification records." },
+    { "id": "gatehouse", "replacementRoomId": null, "reason": "UAT and runtime evidence stays in local verification records." },
+    { "id": "github-herald", "replacementRoomId": null, "reason": "GitHub remains the code and CI authority." },
+    { "id": "lantern-watch", "replacementRoomId": null, "reason": "Automated visual findings stay in the local Verification Inbox." },
+    { "id": "wayfarer-journal", "replacementRoomId": null, "reason": "Synthetic-writer sessions stay in local UAT reports." },
+    { "id": "lore-library", "replacementRoomId": "story-council", "reason": "Curriculum and teaching discussion belongs in Story Workshop." },
+    { "id": "thread-vault", "replacementRoomId": "story-council", "reason": "Continuity discussion belongs in Story Workshop." },
+    { "id": "critics-circle", "replacementRoomId": "story-council", "reason": "Story critique belongs in Story Workshop." },
+    { "id": "archive", "replacementRoomId": null, "reason": "Durable product records stay in their authoritative local or GitHub stores." }
+  ]
+}

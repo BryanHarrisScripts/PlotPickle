@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a focused improvement to PlotPickle.
+title: "[Feature]: "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Writer or collaborator need
+      description: Explain the problem before proposing the interface or implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful outcome and where it belongs in PlotPickle.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      options: [Configuration Dashboard, Learn, Plan, Storyboard, Write, Graphic Novel, Build, Feedback, Refine, Reports, Collaboration, Packaging, Documentation, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Rights and privacy
+      options:
+        - label: This request does not include private story material, confidential information, or content I am not authorized to share.
+          required: true

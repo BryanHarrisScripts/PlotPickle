@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Community relic</title>
+  <desc id="desc">A transparent PlotPickle guild sigil with three gold figures gathered around a teal lantern gem.</desc>
+  <defs>
+    <radialGradient id="gem" cx="38%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#e8fffb"/>
+      <stop offset="0.22" stop-color="#7cf1df"/>
+      <stop offset="0.58" stop-color="#2aa99a"/>
+      <stop offset="1" stop-color="#0a403c"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6b4b20"/>
+      <stop offset="0.26" stop-color="#f1d183"/>
+      <stop offset="0.52" stop-color="#8d652b"/>
+      <stop offset="0.76" stop-color="#e5bd67"/>
+      <stop offset="1" stop-color="#5b3e1b"/>
+    </linearGradient>
+    <linearGradient id="iron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#35413d"/>
+      <stop offset="0.48" stop-color="#111817"/>
+      <stop offset="1" stop-color="#52615b"/>
+    </linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 7 57 13 68 11 72 22 83 27 80 39 88 48 80 57 83 69 72 74 68 85 57 83 48 89 39 83 28 85 24 74 13 69 16 57 8 48 16 39 13 27 24 22 28 11 39 13Z" fill="url(#iron)" stroke="#2c3431" stroke-width="2"/>
+    <circle cx="48" cy="48" r="34" fill="#080b0b" stroke="url(#gold)" stroke-width="4"/>
+    <circle cx="48" cy="48" r="27" stroke="#86632d" stroke-width="1.5" opacity=".85"/>
+    <path d="M48 21v11M25 62l9-6M71 62l-9-6" stroke="#b4873d" stroke-width="2" opacity=".8"/>
+    <circle cx="48" cy="25" r="7" fill="#181f1d" stroke="url(#gold)" stroke-width="2.2"/>
+    <path d="M37 42c1-8 5-12 11-12s10 4 11 12" fill="#121918" stroke="url(#gold)" stroke-width="2.3"/>
+    <circle cx="27" cy="58" r="7" fill="#181f1d" stroke="url(#gold)" stroke-width="2.2"/>
+    <path d="M18 76c1-8 4-12 9-12 6 0 9 4 10 12" fill="#121918" stroke="url(#gold)" stroke-width="2.3"/>
+    <circle cx="69" cy="58" r="7" fill="#181f1d" stroke="url(#gold)" stroke-width="2.2"/>
+    <path d="M59 76c1-8 4-12 10-12 5 0 8 4 9 12" fill="#121918" stroke="url(#gold)" stroke-width="2.3"/>
+    <path d="M48 37 57 43 55 56 48 64 41 56 39 43Z" fill="url(#gem)" stroke="#d7bc76" stroke-width="2.2" filter="url(#glow)"/>
+    <path d="M44 45 48 40l4 5-1 9-3 4-3-4Z" fill="#9af6e8" stroke="#e8fffb" stroke-width=".8" opacity=".9"/>
+    <circle cx="48" cy="49" r="2.5" fill="#f4fffd" opacity=".78"/>
+    <path d="M33 46c4 4 8 6 15 6s11-2 15-6M31 68c5 4 10 6 17 6s12-2 17-6" stroke="#bb8d3f" stroke-width="1.4" opacity=".78"/>
+  </g>
+</svg>

@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1.0.0",
+  "examples": [
+    { "id": "plotpickle.hello", "title": "Hello PlotPickle", "kind": "read-only", "permissions": ["project.read"], "capabilities": ["commands", "menus", "events"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.github", "title": "GitHub Collaboration", "kind": "write", "permissions": ["project.read", "git.write"], "capabilities": ["commands", "events", "git-provider"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.openai-compatible", "title": "OpenAI-Compatible Provider", "kind": "provider", "permissions": ["project.read", "ai.execute"], "capabilities": ["ai-provider", "streaming", "approval-gate"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.ollama", "title": "Ollama Provider", "kind": "provider", "permissions": ["project.read", "ai.execute"], "capabilities": ["ai-provider", "local-provider", "approval-gate"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.lm-studio", "title": "LM Studio Provider", "kind": "provider", "permissions": ["project.read", "ai.execute"], "capabilities": ["ai-provider", "local-provider", "approval-gate"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.final-draft", "title": "Final Draft Exchange", "kind": "exporter", "permissions": ["project.read", "screenplay.read", "screenplay.write", "storage.write"], "capabilities": ["importer", "exporter", "compatibility-report"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.fountain", "title": "Fountain Exchange", "kind": "exporter", "permissions": ["project.read", "screenplay.read", "screenplay.write", "storage.write"], "capabilities": ["importer", "exporter", "provenance"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.pdf", "title": "PDF Publisher", "kind": "exporter", "permissions": ["project.read", "screenplay.read", "reports.read", "storage.write"], "capabilities": ["exporter", "screenplay-pdf", "report-pdf"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.character-reports", "title": "Character Reports", "kind": "read-only", "permissions": ["project.read", "screenplay.read", "reports.read"], "capabilities": ["reports", "character-metrics"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.dialogue-analysis", "title": "Dialogue Analysis", "kind": "read-only", "permissions": ["project.read", "screenplay.read", "reports.read"], "capabilities": ["reports", "dialogue-metrics"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.story-diagnostics", "title": "Story Diagnostics", "kind": "read-only", "permissions": ["project.read", "canon.read", "screenplay.read", "reports.read"], "capabilities": ["reports", "24-blocks", "96-mini-blocks"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.image-provider", "title": "Image Provider", "kind": "provider", "permissions": ["project.read", "assets.write", "ai.execute"], "capabilities": ["image-provider", "character-images", "storyboard-images", "approval-gate"], "entryPoint": "./src/index.ts" },
+    { "id": "plotpickle.music-provider", "title": "Music Provider", "kind": "provider", "permissions": ["project.read", "assets.write", "ai.execute"], "capabilities": ["music-provider", "cue-sheets", "approval-gate"], "entryPoint": "./src/index.ts" }
+  ],
+  "security": {
+    "credentials": "host-secret-store-only",
+    "canonicalChanges": "explicit-user-approval",
+    "provenance": "required-for-import-export-and-generated-assets"
+  }
+}

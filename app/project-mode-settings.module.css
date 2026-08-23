@@ -1,0 +1,179 @@
+.panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(126, 194, 205, 0.22);
+  border-radius: 16px;
+  background: rgba(6, 20, 28, 0.48);
+}
+
+.panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.panel header p,
+.subsectionHeader p {
+  margin: 0 0 5px;
+  color: #88d8ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel h3,
+.subsectionHeader h4 {
+  margin: 0 0 6px;
+  color: #f4fffc;
+  font-size: 19px;
+}
+
+.panel header span,
+.subsectionHeader span,
+.boundary {
+  color: #9db8bf;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.panel header strong {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid rgba(120, 229, 157, 0.34);
+  border-radius: 999px;
+  color: #a4efb8;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.options,
+.storageOptions {
+  display: grid;
+  gap: 10px;
+}
+
+.options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.storageOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.options button,
+.storageOptions button {
+  display: grid;
+  gap: 6px;
+  min-height: 128px;
+  padding: 14px;
+  border: 1px solid rgba(126, 194, 205, 0.18);
+  border-radius: 12px;
+  background: rgba(5, 18, 26, 0.5);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.options button:hover,
+.options button:focus-visible,
+.storageOptions button:hover,
+.storageOptions button:focus-visible {
+  border-color: rgba(136, 216, 255, 0.55);
+}
+
+.options button.active,
+.storageOptions button.active {
+  border-color: rgba(120, 229, 157, 0.48);
+  background: rgba(44, 119, 77, 0.18);
+}
+
+.options span,
+.storageOptions span {
+  color: #86a7af;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.options b,
+.storageOptions b {
+  color: #f4fffc;
+  font-size: 13px;
+}
+
+.options small,
+.storageOptions small {
+  color: #88a6ad;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.storageStatus {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.storageStatus div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(126, 194, 205, 0.14);
+  border-radius: 10px;
+  background: rgba(3, 14, 20, 0.28);
+}
+
+.storageStatus dt {
+  color: #7f9ca4;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.storageStatus dd {
+  margin: 0;
+  color: #e6f7f2;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.subsectionHeader {
+  padding-top: 14px;
+  border-top: 1px solid rgba(126, 194, 205, 0.14);
+}
+
+.subsectionHeader h4 {
+  font-size: 16px;
+}
+
+.boundary {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(126, 194, 205, 0.14);
+}
+
+@media (max-width: 900px) {
+  .storageStatus {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .options,
+  .storageOptions,
+  .storageStatus {
+    grid-template-columns: 1fr;
+  }
+
+  .panel header {
+    display: grid;
+  }
+
+  .panel header strong {
+    justify-self: start;
+  }
+}

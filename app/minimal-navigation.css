@@ -1,0 +1,220 @@
+/* UI/UX audit #339: compact, semantic and edge-safe application navigation. */
+.application-shell-header {
+  --shell-text-muted: #b9cbd1;
+  --shell-text-active: #ffffff;
+  --shell-hover-surface: rgba(255, 255, 255, 0.07);
+  --shell-active-surface: rgba(255, 255, 255, 0.08);
+  --shell-accent: #8edbc9;
+  --shell-divider-color: rgba(185, 203, 209, 0.42);
+  --shell-focus-ring: rgba(142, 219, 201, 0.78);
+
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto auto auto auto auto;
+  gap: 8px;
+  min-height: 68px;
+  padding-block: 0;
+  padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right));
+  scrollbar-width: thin;
+}
+
+.application-shell-header > * {
+  grid-column: auto;
+  grid-row: auto;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.application-shell-header .shell-brand {
+  min-width: 44px;
+  min-height: 44px;
+  justify-self: start;
+  touch-action: manipulation;
+}
+
+.application-shell-header .shell-primary-navigation {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+}
+
+.application-shell-header .main-tabs {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.application-shell-header .main-tabs button,
+.application-shell-header .shell-zone-project-actions button,
+.application-shell-header .shell-zone-configuration a {
+  position: relative;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 9px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--shell-text-muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.application-shell-header .main-tabs button::after {
+  position: absolute;
+  right: 8px;
+  bottom: 2px;
+  left: 8px;
+  height: 2px;
+  content: "";
+  background: transparent;
+}
+
+.application-shell-header .main-tabs button:hover,
+.application-shell-header .shell-zone-project-actions button:hover,
+.application-shell-header .shell-zone-configuration a:hover {
+  background: var(--shell-hover-surface);
+  color: var(--shell-text-active);
+  transform: none;
+}
+
+.application-shell-header .main-tabs button.active {
+  border: 0;
+  background: var(--shell-active-surface);
+  color: var(--shell-text-active);
+  box-shadow: none;
+  font-weight: 860;
+}
+
+.application-shell-header .main-tabs button.active::after {
+  background: var(--shell-accent);
+}
+
+.application-shell-header .main-tabs button:focus-visible,
+.application-shell-header .shell-zone-project-actions button:focus-visible,
+.application-shell-header .shell-zone-configuration a:focus-visible,
+.application-shell-header .shell-brand:focus-visible {
+  outline: 3px solid var(--shell-focus-ring);
+  outline-offset: -3px;
+}
+
+.application-shell-header .shell-zone-project-actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 2px;
+}
+
+.application-shell-header .shell-zone-collaboration,
+.application-shell-header .shell-zone-configuration {
+  justify-self: start;
+}
+
+.application-shell-header .shell-divider {
+  display: block;
+  width: 1px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 1px;
+  border: 0;
+  background: var(--shell-divider-color);
+}
+
+.application-shell-header .shell-release-smoke-active {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.project-strip {
+  top: 68px;
+}
+
+@media (max-width: 1420px) {
+  .application-shell-header {
+    grid-template-columns: auto auto max-content auto max-content auto max-content auto max-content;
+    justify-content: start;
+    padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right));
+    scroll-padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right));
+  }
+
+  .application-shell-header .brand-lockup span:last-child {
+    display: none;
+  }
+
+  .application-shell-header .main-tabs button,
+  .application-shell-header .shell-zone-project-actions button,
+  .application-shell-header .shell-zone-configuration a {
+    padding-inline: 7px;
+    font-size: 0.69rem;
+  }
+}
+
+@media (max-width: 920px) {
+  .application-shell-header .shell-brand div {
+    display: none;
+  }
+
+  .application-shell-header .shell-divider {
+    height: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .application-shell-header {
+    position: static;
+    min-height: 62px;
+    padding-block: 4px;
+    padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+    scroll-padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+  }
+
+  .application-shell-header .brand-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .application-shell-header .main-tabs button,
+  .application-shell-header .shell-zone-project-actions button,
+  .application-shell-header .shell-zone-configuration a {
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 7px;
+    font-size: 0.67rem;
+  }
+
+  .project-strip {
+    top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .application-shell-header button,
+  .application-shell-header a {
+    transition: none;
+  }
+}

@@ -1,0 +1,250 @@
+:global(body.plotpickle-overlay-active) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.confirmation {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 32px));
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 20px;
+  color: #173f45;
+  background: transparent;
+  box-shadow: 0 26px 80px rgba(10, 40, 47, 0.32);
+}
+
+.confirmation::backdrop {
+  background: rgba(7, 29, 35, 0.68);
+  backdrop-filter: blur(5px);
+}
+
+.confirmation:focus {
+  outline: none;
+}
+
+.confirmationCard {
+  padding: 30px;
+  border: 1px solid #bad8d4;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #ffffff, #edf8f5);
+}
+
+.confirmationEyebrow {
+  display: block;
+  color: #3c8385;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.confirmation[data-tone="danger"] .confirmationEyebrow {
+  color: #9a3d32;
+}
+
+.confirmation h2 {
+  margin: 9px 0 12px;
+  font-size: clamp(1.55rem, 4vw, 2.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.confirmation p {
+  margin: 0;
+  color: #587478;
+  line-height: 1.65;
+}
+
+.confirmationActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.confirmationActions button,
+.notice button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #79aaa6;
+  border-radius: 10px;
+  color: #2d696b;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.confirmationActions button {
+  padding: 0 18px;
+}
+
+.confirmAction {
+  border-color: #245f61 !important;
+  color: #ffffff !important;
+  background: #2d7775 !important;
+}
+
+.confirmAction[data-tone="danger"] {
+  border-color: #842f29 !important;
+  background: #a43f35 !important;
+}
+
+.confirmationActions button:hover,
+.notice button:hover {
+  border-color: #438b87;
+  background: #edf8f5;
+}
+
+.confirmAction:hover {
+  background: #245f61 !important;
+}
+
+.confirmAction[data-tone="danger"]:hover {
+  background: #842f29 !important;
+}
+
+.confirmationActions button:focus-visible,
+.notice button:focus-visible {
+  outline: 3px solid #4e9e98;
+  outline-offset: 3px;
+}
+
+.noticeViewport {
+  position: fixed;
+  z-index: 1200;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  display: grid;
+  gap: 10px;
+  width: min(420px, calc(100vw - 28px));
+  pointer-events: none;
+}
+
+.notice {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 44px;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid #bad8d4;
+  border-radius: 14px;
+  color: #173f45;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 16px 42px rgba(22, 62, 68, 0.18);
+  pointer-events: auto;
+  animation: noticeIn 180ms ease-out both;
+}
+
+.notice[data-tone="success"] {
+  border-color: #9ccbb2;
+}
+
+.notice[data-tone="warning"] {
+  border-color: #d8b76f;
+}
+
+.notice[data-tone="error"] {
+  border-color: #d8a09a;
+}
+
+.noticeMarker {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4d8f91;
+  box-shadow: 0 0 0 4px rgba(77, 143, 145, 0.14);
+}
+
+.notice[data-tone="success"] .noticeMarker {
+  background: #3e8b5d;
+  box-shadow: 0 0 0 4px rgba(62, 139, 93, 0.14);
+}
+
+.notice[data-tone="warning"] .noticeMarker {
+  background: #a77620;
+  box-shadow: 0 0 0 4px rgba(167, 118, 32, 0.14);
+}
+
+.notice[data-tone="error"] .noticeMarker {
+  background: #a43f35;
+  box-shadow: 0 0 0 4px rgba(164, 63, 53, 0.14);
+}
+
+.notice p {
+  margin: 0;
+  color: #405f63;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.notice button {
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+@keyframes noticeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .confirmation {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+  }
+
+  .confirmationCard {
+    padding: 22px;
+  }
+
+  .confirmationActions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .confirmationActions button {
+    width: 100%;
+  }
+
+  .noticeViewport {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice {
+    animation: none;
+  }
+
+  .confirmation::backdrop {
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .confirmationCard,
+  .notice,
+  .confirmationActions button,
+  .notice button {
+    border: 2px solid CanvasText;
+  }
+
+  .noticeMarker {
+    background: CanvasText;
+    box-shadow: none;
+  }
+}

@@ -1,0 +1,5 @@
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+web_search = "live"
+model_verbosity = "high"
+model_reasoning_summary = "concise"

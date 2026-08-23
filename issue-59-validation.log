@@ -1,0 +1,1414 @@
+
+> plotpickle@1.0.0-rc.3 lint
+> bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+/home/runner/work/PlotPickle/PlotPickle/app/preproduction-workspace.tsx
+  131:109  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  169:72   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  171:265  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/runner/work/PlotPickle/PlotPickle/app/story-craft-essentials/page.tsx
+  127:10  warning  'textLength' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/app/structure/page.tsx
+  164:9  warning  'totalBeats' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/ai/adapters.ts
+   75:21  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+   79:21  warning  '_id' is defined but never used       @typescript-eslint/no-unused-vars
+  233:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+  280:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/preproduction.ts
+  1:10  warning  'cloneProject' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/scripts/sdk-release.mjs
+  4:10  warning  'dirname' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 11 problems (0 errors, 11 warnings)
+
+
+> plotpickle@1.0.0-rc.3 test
+> npm run build && node --test tests/rendered-html.test.mjs tests/engines-workspace.test.mjs tests/project-navigation-licensing.test.mjs tests/ai-architecture.test.mjs tests/settings-menu.test.mjs tests/script-viewer.test.mjs tests/screenplay-writer.test.mjs tests/visual-storyboard.test.mjs tests/writer-learning.test.mjs tests/issue-48-24-blocks-learning.test.mjs tests/issue-49-guided-ai-revision.test.mjs tests/issue-55-core-curriculum-router.test.mjs tests/issue-56-purpose-aware-logline-lab.test.mjs tests/issue-57-visual-reference-library.test.mjs tests/issue-58-afterglow-legacy-visuals.test.mjs tests/issue-59-about-origins-principles.test.mjs tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs tests/phase-a-core-model.test.mjs tests/phase-b-diagnostic-craft.test.mjs tests/phase-c-specialist-labs.test.mjs tests/phase-d-pitch-review.test.mjs tests/phase-e-page-to-production.test.mjs tests/phase-f-collaboration-release.test.mjs tests/issue-26-reports-terms-collaboration.test.mjs tests/story-tools-reports-docs.test.mjs tests/phase-2-folder-projects.test.mjs tests/phase-3-modular-story.test.mjs tests/phase-4-story-dependencies.test.mjs tests/phase-5-native-git.test.mjs tests/phase-6-ppf-exchange.test.mjs tests/phase-7-canon-binder.test.mjs tests/phase-8-open-plugin-platform.test.mjs tests/phase-9a-sdk-foundation.test.mjs tests/phase-9b-plugin-sdk.test.mjs tests/phase-9c-example-plugins.test.mjs tests/phase-9d-developer-docs.test.mjs tests/phase-9e-sdk-packaging.test.mjs tests/rc4-project-format.test.mjs
+
+
+> plotpickle@1.0.0-rc.3 build
+> bash scripts/build-verified.sh
+
+Running bounded vinext build...
+
+  vinext build  (Vite 8.0.13)
+
+[34m[1/5] analyze client references...[39m
+[2Ktransforming...✓ 164 modules transformed.
+rendering chunks...
+[32m✓ built in 1.19s[39m
+[34m[2/5] analyze server references...[39m
+[2Ktransforming...✓ 186 modules transformed.
+rendering chunks...
+[32m✓ built in 1.42s[39m
+[34m[3/5] build rsc environment...[39m
+[2Ktransforming...✓ 170 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 830ms[39m
+[34m[4/5] build client environment...[39m
+[2Ktransforming...✓ 193 modules transformed.
+rendering chunks...
+computing gzip size...
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 1.32s[39m
+[34m[5/5] build ssr environment...[39m
+[2Ktransforming...✓ 192 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 1.15s[39m
+[0m
+  Route (app)
+  ┌ ? /                      
+  ├ ? /about                 
+  ├ ? /characters-in-motion  
+  ├ ? /core-curriculum       
+  ├ ? /craftloop             
+  ├ ? /diagnostics           
+  ├ ? /dialogue-in-motion    
+  ├ ? /draftlens             
+  ├ ? /git                   
+  ├ ? /labs                  
+  ├ ? /legal                 
+  ├ ? /pageflow              
+  ├ ? /pitch-review          
+  ├ ? /production            
+  ├ ? /resonance             
+  ├ ? /story-craft-essentials
+  ├ ? /structure             
+  ├ ? /voiceprint            
+  └ ? /working-together      
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+Validated Sites artifact: ESM Worker default.fetch and hosting manifest are present.
+TAP version 13
+# Subtest: AI contracts cover portable knowledge and character consistency
+ok 1 - AI contracts cover portable knowledge and character consistency
+  ---
+  duration_ms: 0.84269
+  type: 'test'
+  ...
+# Subtest: provider choices preserve OpenAI focus without provider lock-in
+ok 2 - provider choices preserve OpenAI focus without provider lock-in
+  ---
+  duration_ms: 0.228909
+  type: 'test'
+  ...
+# Subtest: OpenAI video is a replaceable unavailable capability
+ok 3 - OpenAI video is a replaceable unavailable capability
+  ---
+  duration_ms: 0.200686
+  type: 'test'
+  ...
+# Subtest: provider configuration never contains an API key
+ok 4 - provider configuration never contains an API key
+  ---
+  duration_ms: 0.293911
+  type: 'test'
+  ...
+# Subtest: OpenAI Responses and image generation are isolated in the adapter
+ok 5 - OpenAI Responses and image generation are isolated in the adapter
+  ---
+  duration_ms: 0.191679
+  type: 'test'
+  ...
+# Subtest: advanced AI capabilities stay behind one Settings menu
+ok 6 - advanced AI capabilities stay behind one Settings menu
+  ---
+  duration_ms: 0.152536
+  type: 'test'
+  ...
+# Subtest: the structure model treats 48 scenes as a template rather than a restriction
+ok 7 - the structure model treats 48 scenes as a template rather than a restriction
+  ---
+  duration_ms: 5.350762
+  type: 'test'
+  ...
+# Subtest: the Structure Engine exposes complete dynamic scene controls
+ok 8 - the Structure Engine exposes complete dynamic scene controls
+  ---
+  duration_ms: 2.051646
+  type: 'test'
+  ...
+# Subtest: main application exposes Engines inside five connected creative workspaces
+ok 9 - main application exposes Engines inside five connected creative workspaces
+  ---
+  duration_ms: 5.760399
+  type: 'test'
+  ...
+# Subtest: Engines workspace explains every specialist before opening it
+ok 10 - Engines workspace explains every specialist before opening it
+  ---
+  duration_ms: 1.788894
+  type: 'test'
+  ...
+# Subtest: floating engine stack was removed from the root layout
+ok 11 - floating engine stack was removed from the root layout
+  ---
+  duration_ms: 1.411576
+  type: 'test'
+  ...
+# Subtest: screenplay import populates every current canonical project area
+ok 12 - screenplay import populates every current canonical project area
+  ---
+  duration_ms: 6.423924
+  type: 'test'
+  ...
+# Subtest: reports recalculate and audit all recently added sections
+ok 13 - reports recalculate and audit all recently added sections
+  ---
+  duration_ms: 3.129848
+  type: 'test'
+  ...
+# Subtest: terminology uses readable categories, views, examples, and workspace links
+ok 14 - terminology uses readable categories, views, examples, and workspace links
+  ---
+  duration_ms: 1.899421
+  type: 'test'
+  ...
+# Subtest: many local servers submit branches and pull requests instead of canonical writes
+ok 15 - many local servers submit branches and pull requests instead of canonical writes
+  ---
+  duration_ms: 1.782231
+  type: 'test'
+  ...
+# Subtest: The 24 Blocks Method exposes all ten original source concepts
+ok 16 - The 24 Blocks Method exposes all ten original source concepts
+  ---
+  duration_ms: 6.349314
+  type: 'test'
+  ...
+# Subtest: Principle of Three preserves the original triad and identifies Pressure as PlotPickle's extension
+ok 17 - Principle of Three preserves the original triad and identifies Pressure as PlotPickle's extension
+  ---
+  duration_ms: 1.818019
+  type: 'test'
+  ...
+# Subtest: Dramatic questions and structure diversity are taught at the required resolution
+ok 18 - Dramatic questions and structure diversity are taught at the required resolution
+  ---
+  duration_ms: 2.628595
+  type: 'test'
+  ...
+# Subtest: Every method lesson includes application, example, visual, mistakes and active-project exercise
+ok 19 - Every method lesson includes application, example, visual, mistakes and active-project exercise
+  ---
+  duration_ms: 2.191639
+  type: 'test'
+  ...
+# Subtest: Read & Learn integrates the method collection, search and contextual recommendations
+ok 20 - Read & Learn integrates the method collection, search and contextual recommendations
+  ---
+  duration_ms: 1.356873
+  type: 'test'
+  ...
+# Subtest: all legacy prompt resources map into consolidated revision playbooks
+ok 21 - all legacy prompt resources map into consolidated revision playbooks
+  ---
+  duration_ms: 7.368715
+  type: 'test'
+  ...
+# Subtest: passes are grouped by Story First, Craft Layer and Polish Layer
+ok 22 - passes are grouped by Story First, Craft Layer and Polish Layer
+  ---
+  duration_ms: 1.512195
+  type: 'test'
+  ...
+# Subtest: operation modes keep revision opt-in instead of default
+ok 23 - operation modes keep revision opt-in instead of default
+  ---
+  duration_ms: 2.097833
+  type: 'test'
+  ...
+# Subtest: canonical scope selector supports project, structural, screenplay and pitch targets
+ok 24 - canonical scope selector supports project, structural, screenplay and pitch targets
+  ---
+  duration_ms: 1.200791
+  type: 'test'
+  ...
+# Subtest: generated prompts enforce the structured response and approval boundary
+ok 25 - generated prompts enforce the structured response and approval boundary
+  ---
+  duration_ms: 1.168571
+  type: 'test'
+  ...
+# Subtest: marketing is routed outside screenplay editing
+ok 26 - marketing is routed outside screenplay editing
+  ---
+  duration_ms: 1.158732
+  type: 'test'
+  ...
+# Subtest: AI Prompt Lab exposes pass, operation and canonical scope controls
+ok 27 - AI Prompt Lab exposes pass, operation and canonical scope controls
+  ---
+  duration_ms: 1.643181
+  type: 'test'
+  ...
+# Subtest: Read and Learn exposes the generated AI-Assisted Revision collection
+ok 28 - Read and Learn exposes the generated AI-Assisted Revision collection
+  ---
+  duration_ms: 2.152245
+  type: 'test'
+  ...
+# Subtest: guided recommendations remain contextual and revision remains explicit
+ok 29 - guided recommendations remain contextual and revision remains explicit
+  ---
+  duration_ms: 2.017162
+  type: 'test'
+  ...
+# Subtest: all fourteen General sources map to the existing fourteen modules
+ok 30 - all fourteen General sources map to the existing fourteen modules
+  ---
+  duration_ms: 7.991429
+  type: 'test'
+  ...
+# Subtest: the existing modules form a five-stage advisory curriculum
+ok 31 - the existing modules form a five-stage advisory curriculum
+  ---
+  duration_ms: 2.433061
+  type: 'test'
+  ...
+# Subtest: six editable writer routes cover idea through collaboration
+ok 32 - six editable writer routes cover idea through collaboration
+  ---
+  duration_ms: 7.154406
+  type: 'test'
+  ...
+# Subtest: focused-problem routing covers ten specialist areas
+ok 33 - focused-problem routing covers ten specialist areas
+  ---
+  duration_ms: 2.587271
+  type: 'test'
+  ...
+# Subtest: every core module has Understand, See it, Try it, Apply it, Check it and Go deeper data
+ok 34 - every core module has Understand, See it, Try it, Apply it, Check it and Go deeper data
+  ---
+  duration_ms: 2.411509
+  type: 'test'
+  ...
+# Subtest: recommendations explain why now using active-project evidence
+ok 35 - recommendations explain why now using active-project evidence
+  ---
+  duration_ms: 5.174752
+  type: 'test'
+  ...
+# Subtest: progress separates generic reading from project-specific evidence
+ok 36 - progress separates generic reading from project-specific evidence
+  ---
+  duration_ms: 1.3707
+  type: 'test'
+  ...
+# Subtest: Vomit Draft remains searchable while Pickle Draft is displayed
+ok 37 - Vomit Draft remains searchable while Pickle Draft is displayed
+  ---
+  duration_ms: 2.101399
+  type: 'test'
+  ...
+# Subtest: legacy framing corrections remain explicit
+ok 38 - legacy framing corrections remain explicit
+  ---
+  duration_ms: 1.488701
+  type: 'test'
+  ...
+# Subtest: Complete Learning Library remains prominent beside Core Curriculum
+ok 39 - Complete Learning Library remains prominent beside Core Curriculum
+  ---
+  duration_ms: 1.980293
+  type: 'test'
+  ...
+# Subtest: Read and Learn searches legacy aliases and supports direct deep links
+ok 40 - Read and Learn searches legacy aliases and supports direct deep links
+  ---
+  duration_ms: 1.585392
+  type: 'test'
+  ...
+# Subtest: schema 1.7 remains frozen and records use existing review threads
+ok 41 - schema 1.7 remains frozen and records use existing review threads
+  ---
+  duration_ms: 1.789625
+  type: 'test'
+  ...
+# Subtest: logline lab supports six purposes and seven transparent sentence shapes
+ok 42 - logline lab supports six purposes and seven transparent sentence shapes
+  ---
+  duration_ms: 6.803445
+  type: 'test'
+  ...
+# Subtest: candidate metadata is optional and backward compatible
+ok 43 - candidate metadata is optional and backward compatible
+  ---
+  duration_ms: 1.778344
+  type: 'test'
+  ...
+# Subtest: evidence model separates sentence support from project-only and intentional omission
+ok 44 - evidence model separates sentence support from project-only and intentional omission
+  ---
+  duration_ms: 2.358161
+  type: 'test'
+  ...
+# Subtest: approval is selective and preserves revision history
+ok 45 - approval is selective and preserves revision history
+  ---
+  duration_ms: 1.356363
+  type: 'test'
+  ...
+# Subtest: imported screenplay loglines remain suggestions with evidence and uncertainty
+ok 46 - imported screenplay loglines remain suggestions with evidence and uncertainty
+  ---
+  duration_ms: 1.218405
+  type: 'test'
+  ...
+# Subtest: focused learning deep dive extends The Pitch without creating a broad curriculum
+ok 47 - focused learning deep dive extends The Pitch without creating a broad curriculum
+  ---
+  duration_ms: 1.243161
+  type: 'test'
+  ...
+# Subtest: manual local-only and no-AI operation remain complete
+ok 48 - manual local-only and no-AI operation remain complete
+  ---
+  duration_ms: 1.875907
+  type: 'test'
+  ...
+# Subtest: legacy mood-board inventory is exact and verified
+ok 49 - legacy mood-board inventory is exact and verified
+  ---
+  duration_ms: 7.52077
+  type: 'test'
+  ...
+# Subtest: every retained reference has complete searchable metadata and three WebP derivatives
+ok 50 - every retained reference has complete searchable metadata and three WebP derivatives
+  ---
+  duration_ms: 42.759025
+  type: 'test'
+  ...
+# Subtest: named-film boards are generalized rather than shipped as film presets
+ok 51 - named-film boards are generalized rather than shipped as film presets
+  ---
+  duration_ms: 2.278763
+  type: 'test'
+  ...
+# Subtest: Visual Bible separates Project Mood Board from Reference Library
+ok 52 - Visual Bible separates Project Mood Board from Reference Library
+  ---
+  duration_ms: 3.313853
+  type: 'test'
+  ...
+# Subtest: reference detail exposes palette, visual ingredients, accessibility and provenance
+ok 53 - reference detail exposes palette, visual ingredients, accessibility and provenance
+  ---
+  duration_ms: 1.278046
+  type: 'test'
+  ...
+# Subtest: selecting a bundled reference stays behind the Visual Bible approval boundary
+ok 54 - selecting a bundled reference stays behind the Visual Bible approval boundary
+  ---
+  duration_ms: 1.094903
+  type: 'test'
+  ...
+# Subtest: reference proposals support selective palette, ingredients and project scope
+ok 55 - reference proposals support selective palette, ingredients and project scope
+  ---
+  duration_ms: 1.056691
+  type: 'test'
+  ...
+# Subtest: Mood Colour and Visual Language learning opens the reference workflow without copying
+ok 56 - Mood Colour and Visual Language learning opens the reference workflow without copying
+  ---
+  duration_ms: 1.468253
+  type: 'test'
+  ...
+# Subtest: the reference library is static and offline with no AI, account or remote image dependency
+ok 57 - the reference library is static and offline with no AI, account or remote image dependency
+  ---
+  duration_ms: 3.356002
+  type: 'test'
+  ...
+# Subtest: exact Afterglow Images inventory is preserved
+ok 58 - exact Afterglow Images inventory is preserved
+  ---
+  duration_ms: 7.354518
+  type: 'test'
+  ...
+# Subtest: every manifest visual has full card and thumbnail WebPs
+ok 59 - every manifest visual has full card and thumbnail WebPs
+  ---
+  duration_ms: 8.616694
+  type: 'test'
+  ...
+# Subtest: story mapping preserves proposed status and known Block relationships
+ok 60 - story mapping preserves proposed status and known Block relationships
+  ---
+  duration_ms: 1.80857
+  type: 'test'
+  ...
+# Subtest: Banner remains historical placeholder and unresolved assets remain visible for review
+ok 61 - Banner remains historical placeholder and unresolved assets remain visible for review
+  ---
+  duration_ms: 1.40846
+  type: 'test'
+  ...
+# Subtest: overview pitch visual bible and storyboard integrations keep approval boundaries
+ok 62 - overview pitch visual bible and storyboard integrations keep approval boundaries
+  ---
+  duration_ms: 3.192124
+  type: 'test'
+  ...
+# Subtest: legacy decisions use specialist review and do not mutate automatically
+ok 63 - legacy decisions use specialist review and do not mutate automatically
+  ---
+  duration_ms: 1.657889
+  type: 'test'
+  ...
+# Subtest: Summer and Isobel reconciliation is explicit
+ok 64 - Summer and Isobel reconciliation is explicit
+  ---
+  duration_ms: 1.170424
+  type: 'test'
+  ...
+# Subtest: learning deep dive distinguishes concept card Block cover storyboard and production keyframe
+ok 65 - learning deep dive distinguishes concept card Block cover storyboard and production keyframe
+  ---
+  duration_ms: 1.426485
+  type: 'test'
+  ...
+# Subtest: About PlotPickle explains the current product without reviving obsolete commitments
+ok 66 - About PlotPickle explains the current product without reviving obsolete commitments
+  ---
+  duration_ms: 8.17128
+  type: 'test'
+  ...
+# Subtest: evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
+ok 67 - evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
+  ---
+  duration_ms: 2.162384
+  type: 'test'
+  ...
+# Subtest: page-to-production diagram uses one canonical project across all stages
+ok 68 - page-to-production diagram uses one canonical project across all stages
+  ---
+  duration_ms: 1.276393
+  type: 'test'
+  ...
+# Subtest: legacy convergence map explains separate GPT and repository evolution
+ok 69 - legacy convergence map explains separate GPT and repository evolution
+  ---
+  duration_ms: 1.199649
+  type: 'test'
+  ...
+# Subtest: both legacy READMEs are mapped section by section with explicit disposition
+ok 70 - both legacy READMEs are mapped section by section with explicit disposition
+  ---
+  duration_ms: 3.190321
+  type: 'test'
+  ...
+# Subtest: historical document separates origins from roadmap, licensing and legal guidance
+ok 71 - historical document separates origins from roadmap, licensing and legal guidance
+  ---
+  duration_ms: 2.100408
+  type: 'test'
+  ...
+# Subtest: Why PlotPickle Works in Layers is a complete learning module with legacy aliases
+ok 72 - Why PlotPickle Works in Layers is a complete learning module with legacy aliases
+  ---
+  duration_ms: 2.404986
+  type: 'test'
+  ...
+# Subtest: product integration links About from README, Project Overview and Read & Learn
+ok 73 - product integration links About from README, Project Overview and Read & Learn
+  ---
+  duration_ms: 2.840185
+  type: 'test'
+  ...
+# Subtest: Phase 2 folder projects remain readable after modular evolution
+ok 74 - Phase 2 folder projects remain readable after modular evolution
+  ---
+  duration_ms: 0.954339
+  type: 'test'
+  ...
+# Subtest: canonical projects remain folders with portable backups and staged writes
+ok 75 - canonical projects remain folders with portable backups and staged writes
+  ---
+  duration_ms: 0.170069
+  type: 'test'
+  ...
+# Subtest: The folder gateway precedes the legacy GitHub gateway
+ok 76 - The folder gateway precedes the legacy GitHub gateway
+  ---
+  duration_ms: 0.191559
+  type: 'test'
+  ...
+# Subtest: Phase 3 registers independent story modules
+ok 77 - Phase 3 registers independent story modules
+  ---
+  duration_ms: 0.9547
+  type: 'test'
+  ...
+# Subtest: characters, voiceprints and 24 Blocks serialize as individual files
+ok 78 - characters, voiceprints and 24 Blocks serialize as individual files
+  ---
+  duration_ms: 0.153718
+  type: 'test'
+  ...
+# Subtest: folder creation includes screenplay Fountain, canon and plugin registries
+ok 79 - folder creation includes screenplay Fountain, canon and plugin registries
+  ---
+  duration_ms: 0.158998
+  type: 'test'
+  ...
+# Subtest: Phase 2 folders migrate and unknown JSON modules remain harmless
+ok 80 - Phase 2 folders migrate and unknown JSON modules remain harmless
+  ---
+  duration_ms: 0.157245
+  type: 'test'
+  ...
+# Subtest: module saves use a staged folder replacement
+ok 81 - module saves use a staged folder replacement
+  ---
+  duration_ms: 0.154449
+  type: 'test'
+  ...
+# Subtest: Phase 4 builds a typed story knowledge graph
+ok 82 - Phase 4 builds a typed story knowledge graph
+  ---
+  duration_ms: 0.897914
+  type: 'test'
+  ...
+# Subtest: Phase 4 detects broken references and unresolved threads
+ok 83 - Phase 4 detects broken references and unresolved threads
+  ---
+  duration_ms: 0.210726
+  type: 'test'
+  ...
+# Subtest: Phase 4 produces deterministic story health checks
+ok 84 - Phase 4 produces deterministic story health checks
+  ---
+  duration_ms: 0.220324
+  type: 'test'
+  ...
+# Subtest: dependency artifacts remain written into the modular project
+ok 85 - dependency artifacts remain written into the modular project
+  ---
+  duration_ms: 0.243266
+  type: 'test'
+  ...
+# Subtest: Phase 2 through Phase 4 project folders remain readable
+ok 86 - Phase 2 through Phase 4 project folders remain readable
+  ---
+  duration_ms: 0.179457
+  type: 'test'
+  ...
+# Subtest: Phase 5 exposes terminal-free native Git operations
+ok 87 - Phase 5 exposes terminal-free native Git operations
+  ---
+  duration_ms: 1.106053
+  type: 'test'
+  ...
+# Subtest: native Git is local-only and constrained to project folders
+ok 88 - native Git is local-only and constrained to project folders
+  ---
+  duration_ms: 0.16502
+  type: 'test'
+  ...
+# Subtest: Phase 5 UI presents the planned story-oriented commands
+ok 89 - Phase 5 UI presents the planned story-oriented commands
+  ---
+  duration_ms: 0.186039
+  type: 'test'
+  ...
+# Subtest: native Git gateway is mounted with canonical folder storage
+ok 90 - native Git gateway is mounted with canonical folder storage
+  ---
+  duration_ms: 0.225934
+  type: 'test'
+  ...
+# Subtest: Phase 6 defines ZIP exchange packages and checksums
+ok 91 - Phase 6 defines ZIP exchange packages and checksums
+  ---
+  duration_ms: 0.934101
+  type: 'test'
+  ...
+# Subtest: Phase 6 supports selective package kinds
+ok 92 - Phase 6 supports selective package kinds
+  ---
+  duration_ms: 0.230953
+  type: 'test'
+  ...
+# Subtest: PDF screenplay import validates structure and preserves provenance
+ok 93 - PDF screenplay import validates structure and preserves provenance
+  ---
+  duration_ms: 0.161733
+  type: 'test'
+  ...
+# Subtest: Phase 6 documentation freezes folder-first exchange boundaries
+ok 94 - Phase 6 documentation freezes folder-first exchange boundaries
+  ---
+  duration_ms: 0.151254
+  type: 'test'
+  ...
+# Subtest: Phase 7 defines authoritative canon sections and lifecycle
+ok 95 - Phase 7 defines authoritative canon sections and lifecycle
+  ---
+  duration_ms: 0.981991
+  type: 'test'
+  ...
+# Subtest: Phase 7 exposes canon query and context packet APIs
+ok 96 - Phase 7 exposes canon query and context packet APIs
+  ---
+  duration_ms: 0.175349
+  type: 'test'
+  ...
+# Subtest: Phase 7 persists binder artifacts in project folders
+ok 97 - Phase 7 persists binder artifacts in project folders
+  ---
+  duration_ms: 0.20823
+  type: 'test'
+  ...
+# Subtest: Phase 7 documentation states the single-source-of-truth boundary
+ok 98 - Phase 7 documentation states the single-source-of-truth boundary
+  ---
+  duration_ms: 0.149601
+  type: 'test'
+  ...
+# Subtest: Phase 8 defines a versioned permissioned plugin manifest
+ok 99 - Phase 8 defines a versioned permissioned plugin manifest
+  ---
+  duration_ms: 0.856285
+  type: 'test'
+  ...
+# Subtest: plugins install disabled and cannot escalate undeclared permissions
+ok 100 - plugins install disabled and cannot escalate undeclared permissions
+  ---
+  duration_ms: 0.217287
+  type: 'test'
+  ...
+# Subtest: Phase 8 provides the complete core services layer
+ok 101 - Phase 8 provides the complete core services layer
+  ---
+  duration_ms: 0.190697
+  type: 'test'
+  ...
+# Subtest: initial plugin contracts cover core integrations without vendor lock-in
+ok 102 - initial plugin contracts cover core integrations without vendor lock-in
+  ---
+  duration_ms: 0.201508
+  type: 'test'
+  ...
+# Subtest: Phase 9A exposes versioned SDK packages
+ok 103 - Phase 9A exposes versioned SDK packages
+  ---
+  duration_ms: 6.047728
+  type: 'test'
+  ...
+# Subtest: Phase 9A publishes a machine-readable host contract and stability guide
+ok 104 - Phase 9A publishes a machine-readable host contract and stability guide
+  ---
+  duration_ms: 5.706498
+  type: 'test'
+  ...
+# Subtest: Phase 9B exposes the public plugin SDK package
+ok 105 - Phase 9B exposes the public plugin SDK package
+  ---
+  duration_ms: 0.958217
+  type: 'test'
+  ...
+# Subtest: Phase 9B declares all initial typed events
+ok 106 - Phase 9B declares all initial typed events
+  ---
+  duration_ms: 0.405711
+  type: 'test'
+  ...
+# Subtest: subscriptions and registrations are disposable
+ok 107 - subscriptions and registrations are disposable
+  ---
+  duration_ms: 0.162014
+  type: 'test'
+  ...
+# Subtest: permission failures are explicit and testable
+ok 108 - permission failures are explicit and testable
+  ---
+  duration_ms: 0.9654
+  type: 'test'
+  ...
+# Subtest: mock activation host and development reload boundaries exist
+ok 109 - mock activation host and development reload boundaries exist
+  ---
+  duration_ms: 0.236162
+  type: 'test'
+  ...
+# Subtest: Phase 9C ships the complete reference catalog
+ok 110 - Phase 9C ships the complete reference catalog
+  ---
+  duration_ms: 1.584781
+  type: 'test'
+  ...
+# Subtest: examples cover the required plugin shapes
+ok 111 - examples cover the required plugin shapes
+  ---
+  duration_ms: 0.317385
+  type: 'test'
+  ...
+# Subtest: reference source uses only the public lifecycle surface
+ok 112 - reference source uses only the public lifecycle surface
+  ---
+  duration_ms: 0.276949
+  type: 'test'
+  ...
+# Subtest: provider safety and provenance rules are explicit
+ok 113 - provider safety and provenance rules are explicit
+  ---
+  duration_ms: 0.977803
+  type: 'test'
+  ...
+# Subtest: Phase 9D ships a complete offline documentation bundle
+ok 114 - Phase 9D ships a complete offline documentation bundle
+  ---
+  duration_ms: 1.325134
+  type: 'test'
+  ...
+# Subtest: developer documentation has no broken relative Markdown links
+ok 115 - developer documentation has no broken relative Markdown links
+  ---
+  duration_ms: 2.158557
+  type: 'test'
+  ...
+# Subtest: search index covers every developer page
+ok 116 - search index covers every developer page
+  ---
+  duration_ms: 0.347572
+  type: 'test'
+  ...
+# Subtest: API reference documents every public plugin SDK export
+ok 117 - API reference documents every public plugin SDK export
+  ---
+  duration_ms: 2.312525
+  type: 'test'
+  ...
+# Subtest: documentation distinguishes stable preview and internal APIs
+ok 118 - documentation distinguishes stable preview and internal APIs
+  ---
+  duration_ms: 0.302407
+  type: 'test'
+  ...
+# Subtest: SDK packages are coordinated and intentionally allow-listed
+ok 119 - SDK packages are coordinated and intentionally allow-listed
+  ---
+  duration_ms: 2.315511
+  type: 'test'
+  ...
+# Subtest: release tooling keeps publishing manually locked
+ok 120 - release tooling keeps publishing manually locked
+  ---
+  duration_ms: 0.262572
+  type: 'test'
+  ...
+# Subtest: release policy documents compatibility, migration and rollback
+ok 121 - release policy documents compatibility, migration and rollback
+  ---
+  duration_ms: 0.507622
+  type: 'test'
+  ...
+# Subtest: schema 1.7 is the canonical released schema
+ok 122 - schema 1.7 is the canonical released schema
+  ---
+  duration_ms: 8.557363
+  type: 'test'
+  ...
+# Subtest: blank, imported and Afterglow projects use the Phase A model
+ok 123 - blank, imported and Afterglow projects use the Phase A model
+  ---
+  duration_ms: 2.811992
+  type: 'test'
+  ...
+# Subtest: all Phase A interfaces are connected without duplicating Core Model in Settings
+ok 124 - all Phase A interfaces are connected without duplicating Core Model in Settings
+  ---
+  duration_ms: 4.312826
+  type: 'test'
+  ...
+# Subtest: expanded screenplay elements export through Fountain and FDX
+ok 125 - expanded screenplay elements export through Fountain and FDX
+  ---
+  duration_ms: 2.203
+  type: 'test'
+  ...
+# Subtest: Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+ok 126 - Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+  ---
+  duration_ms: 7.7179
+  type: 'test'
+  ...
+# Subtest: Opening Move and Act I Launch architecture is ported without a second story model
+ok 127 - Opening Move and Act I Launch architecture is ported without a second story model
+  ---
+  duration_ms: 2.102311
+  type: 'test'
+  ...
+# Subtest: the Diagnostic Craft workspace exposes every Phase B view
+ok 128 - the Diagnostic Craft workspace exposes every Phase B view
+  ---
+  duration_ms: 1.694738
+  type: 'test'
+  ...
+# Subtest: Structure, Writer and DraftLens embed the same diagnostic engine
+ok 129 - Structure, Writer and DraftLens embed the same diagnostic engine
+  ---
+  duration_ms: 2.431278
+  type: 'test'
+  ...
+# Subtest: the Phase B completion standard remains documented in later releases
+ok 130 - the Phase B completion standard remains documented in later releases
+  ---
+  duration_ms: 1.681372
+  type: 'test'
+  ...
+# Subtest: PlotPickle 0.15 exposes every specialist lab
+ok 131 - PlotPickle 0.15 exposes every specialist lab
+  ---
+  duration_ms: 6.984074
+  type: 'test'
+  ...
+# Subtest: every lab reads and writes the active canonical project
+ok 132 - every lab reads and writes the active canonical project
+  ---
+  duration_ms: 1.960456
+  type: 'test'
+  ...
+# Subtest: specialist suggestions cannot change the project without approval
+ok 133 - specialist suggestions cannot change the project without approval
+  ---
+  duration_ms: 2.301705
+  type: 'test'
+  ...
+# Subtest: approved passes preserve before, after, provenance and source records
+ok 134 - approved passes preserve before, after, provenance and source records
+  ---
+  duration_ms: 1.240776
+  type: 'test'
+  ...
+# Subtest: research and visual labs use existing canonical fields instead of parallel storage
+ok 135 - research and visual labs use existing canonical fields instead of parallel storage
+  ---
+  duration_ms: 1.104851
+  type: 'test'
+  ...
+# Subtest: PlotPickle 0.16 exposes the complete pitch and review studio
+ok 136 - PlotPickle 0.16 exposes the complete pitch and review studio
+  ---
+  duration_ms: 6.76903
+  type: 'test'
+  ...
+# Subtest: review threads anchor to stable canonical project identities
+ok 137 - review threads anchor to stable canonical project identities
+  ---
+  duration_ms: 3.524238
+  type: 'test'
+  ...
+# Subtest: purpose-aware logline candidates require explicit selective approval
+ok 138 - purpose-aware logline candidates require explicit selective approval
+  ---
+  duration_ms: 1.586915
+  type: 'test'
+  ...
+# Subtest: revision comparison and pitch exports remain inside PlotPickle
+ok 139 - revision comparison and pitch exports remain inside PlotPickle
+  ---
+  duration_ms: 1.886147
+  type: 'test'
+  ...
+# Subtest: the specialist hub links review to the existing story workflow
+ok 140 - the specialist hub links review to the existing story workflow
+  ---
+  duration_ms: 1.181345
+  type: 'test'
+  ...
+# Subtest: PlotPickle 0.17 exposes the complete page-to-production workspace
+ok 141 - PlotPickle 0.17 exposes the complete page-to-production workspace
+  ---
+  duration_ms: 7.213654
+  type: 'test'
+  ...
+# Subtest: shots, cues, breakdowns and schedules retain stable project links
+ok 142 - shots, cues, breakdowns and schedules retain stable project links
+  ---
+  duration_ms: 4.073347
+  type: 'test'
+  ...
+# Subtest: the canonical schema and revision snapshots include production planning
+ok 143 - the canonical schema and revision snapshots include production planning
+  ---
+  duration_ms: 2.907521
+  type: 'test'
+  ...
+# Subtest: Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+ok 144 - Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+  ---
+  duration_ms: 6.342531
+  type: 'test'
+  ...
+# Subtest: Phase E documentation states the continuous-plan completion contract
+ok 145 - Phase E documentation states the continuous-plan completion contract
+  ---
+  duration_ms: 1.109449
+  type: 'test'
+  ...
+# Subtest: PlotPickle 1.0 candidate defines a portable .ppf boundary
+ok 146 - PlotPickle 1.0 candidate defines a portable .ppf boundary
+  ---
+  duration_ms: 6.398736
+  type: 'test'
+  ...
+# Subtest: local project storage uses atomic saves, integrity checks, and rolling backups
+ok 147 - local project storage uses atomic saves, integrity checks, and rolling backups
+  ---
+  duration_ms: 91.155636
+  type: 'test'
+  ...
+# Subtest: GitHub collaboration is local-only, review-first, and owner-controlled
+ok 148 - GitHub collaboration is local-only, review-first, and owner-controlled
+  ---
+  duration_ms: 2.669054
+  type: 'test'
+  ...
+# Subtest: canonical projects retain repository metadata without credentials
+ok 149 - canonical projects retain repository metadata without credentials
+  ---
+  duration_ms: 2.955902
+  type: 'test'
+  ...
+# Subtest: Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+ok 150 - Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+  ---
+  duration_ms: 4.06974
+  type: 'test'
+  ...
+# Subtest: schema 1.7 declares every Phase 1 project capability
+ok 151 - schema 1.7 declares every Phase 1 project capability
+  ---
+  duration_ms: 6.303026
+  type: 'test'
+  ...
+# Subtest: Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+ok 152 - Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+  ---
+  duration_ms: 2.380413
+  type: 'test'
+  ...
+# Subtest: Phase 1 documentation explains the migration boundary
+ok 153 - Phase 1 documentation explains the migration boundary
+  ---
+  duration_ms: 2.126407
+  type: 'test'
+  ...
+# Subtest: Phase 2 keeps screenplay elements attached to stable scene identities
+ok 154 - Phase 2 keeps screenplay elements attached to stable scene identities
+  ---
+  duration_ms: 7.247458
+  type: 'test'
+  ...
+# Subtest: the canonical compatibility schema accepts flexible scenes and short scenes
+ok 155 - the canonical compatibility schema accepts flexible scenes and short scenes
+  ---
+  duration_ms: 3.114839
+  type: 'test'
+  ...
+# Subtest: the project validator no longer restores the two-scene restriction
+ok 156 - the project validator no longer restores the two-scene restriction
+  ---
+  duration_ms: 1.377373
+  type: 'test'
+  ...
+# Subtest: the Structure Engine reports scene health and global numbering
+ok 157 - the Structure Engine reports scene health and global numbering
+  ---
+  duration_ms: 2.390091
+  type: 'test'
+  ...
+# Subtest: main application exposes the grouped project rail and local-only product model
+ok 158 - main application exposes the grouped project rail and local-only product model
+  ---
+  duration_ms: 6.400088
+  type: 'test'
+  ...
+# Subtest: section progress model covers every visible story section
+ok 159 - section progress model covers every visible story section
+  ---
+  duration_ms: 1.613655
+  type: 'test'
+  ...
+# Subtest: overview and structure summary explain their contracts before deeper work
+ok 160 - overview and structure summary explain their contracts before deeper work
+  ---
+  duration_ms: 1.726868
+  type: 'test'
+  ...
+# Subtest: PlotPickle declares software, method, user, contribution, and brand rights separately
+ok 161 - PlotPickle declares software, method, user, contribution, and brand rights separately
+  ---
+  duration_ms: 3.603296
+  type: 'test'
+  ...
+# Subtest: repository includes the complete AGPL licence text
+ok 162 - repository includes the complete AGPL licence text
+  ---
+  duration_ms: 1.283847
+  type: 'test'
+  ...
+# Subtest: RC4 freezes project format major version 1
+ok 163 - RC4 freezes project format major version 1
+  ---
+  duration_ms: 1.0293
+  type: 'test'
+  ...
+# Subtest: RC4 declares all frozen schema families
+ok 164 - RC4 declares all frozen schema families
+  ---
+  duration_ms: 0.211767
+  type: 'test'
+  ...
+# Subtest: unknown optional extensions and fields survive JSON round-trip
+ok 165 - unknown optional extensions and fields survive JSON round-trip
+  ---
+  duration_ms: 1.619767
+  type: 'test'
+  ...
+# Subtest: RC4 portable fixture passes local validation
+ok 166 - RC4 portable fixture passes local validation
+  ---
+  duration_ms: 34.824689
+  type: 'test'
+  ...
+# Subtest: freeze policy covers security, migration and breaking changes
+ok 167 - freeze policy covers security, migration and breaking changes
+  ---
+  duration_ms: 0.350107
+  type: 'test'
+  ...
+# Subtest: renders the root route and preserves the local-first workspace contract
+ok 168 - renders the root route and preserves the local-first workspace contract
+  ---
+  duration_ms: 223.763861
+  type: 'test'
+  ...
+# Subtest: registers the legal route and preserves ownership and server-use guidance
+ok 169 - registers the legal route and preserves ownership and server-use guidance
+  ---
+  duration_ms: 64.092021
+  type: 'test'
+  ...
+# Subtest: renders the Voiceprint Engine route
+ok 170 - renders the Voiceprint Engine route
+  ---
+  duration_ms: 41.138539
+  type: 'test'
+  ...
+# Subtest: renders the PageFlow Engine route
+ok 171 - renders the PageFlow Engine route
+  ---
+  duration_ms: 59.218349
+  type: 'test'
+  ...
+# Subtest: renders the Resonance Engine route
+ok 172 - renders the Resonance Engine route
+  ---
+  duration_ms: 45.08575
+  type: 'test'
+  ...
+# Subtest: renders the DraftLens Engine route
+ok 173 - renders the DraftLens Engine route
+  ---
+  duration_ms: 57.957685
+  type: 'test'
+  ...
+# Subtest: registers the CraftLoop client route and preserves its workspace contract
+ok 174 - registers the CraftLoop client route and preserves its workspace contract
+  ---
+  duration_ms: 69.686754
+  type: 'test'
+  ...
+# Subtest: registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+ok 175 - registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+  ---
+  duration_ms: 59.336421
+  type: 'test'
+  ...
+# Subtest: schema 1.7 preserves 12/24/96 while accepting flexible scenes
+ok 176 - schema 1.7 preserves 12/24/96 while accepting flexible scenes
+  ---
+  duration_ms: 2.786617
+  type: 'test'
+  ...
+# Subtest: project migration accepts earlier schemas and creates the new hierarchy
+ok 177 - project migration accepts earlier schemas and creates the new hierarchy
+  ---
+  duration_ms: 5.485659
+  type: 'test'
+  ...
+# Subtest: Windows launcher reuses a package-lock-specific persistent runtime
+ok 178 - Windows launcher reuses a package-lock-specific persistent runtime
+  ---
+  duration_ms: 1.303104
+  type: 'test'
+  ...
+# Subtest: persistent runtime manager fingerprints package-lock and separates application files
+ok 179 - persistent runtime manager fingerprints package-lock and separates application files
+  ---
+  duration_ms: 44.38085
+  type: 'test'
+  ...
+# Subtest: Windows updater overlays program files while preserving runtime and projects
+ok 180 - Windows updater overlays program files while preserving runtime and projects
+  ---
+  duration_ms: 2.076655
+  type: 'test'
+  ...
+# Subtest: Windows repair resets only the current persistent runtime
+ok 181 - Windows repair resets only the current persistent runtime
+  ---
+  duration_ms: 1.485296
+  type: 'test'
+  ...
+# Subtest: Windows launcher explains and verifies the local installation
+ok 182 - Windows launcher explains and verifies the local installation
+  ---
+  duration_ms: 2.749306
+  type: 'test'
+  ...
+# Subtest: Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+ok 183 - Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+  ---
+  duration_ms: 44.42366
+  type: 'test'
+  ...
+# Subtest: Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+ok 184 - Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+  ---
+  duration_ms: 6.833387
+  type: 'test'
+  ...
+# Subtest: writer supports standard screenplay grammar and Final Draft/Fountain handoff
+ok 185 - writer supports standard screenplay grammar and Final Draft/Fountain handoff
+  ---
+  duration_ms: 2.128361
+  type: 'test'
+  ...
+# Subtest: Afterglow loads the complete v9 screenplay as one continuous editable draft
+ok 186 - Afterglow loads the complete v9 screenplay as one continuous editable draft
+  ---
+  duration_ms: 5.269053
+  type: 'test'
+  ...
+# Subtest: AI writing and character images use the private local gateway and require approval
+ok 187 - AI writing and character images use the private local gateway and require approval
+  ---
+  duration_ms: 2.70334
+  type: 'test'
+  ...
+# Subtest: full screenplay remains part of the canonical local project
+ok 188 - full screenplay remains part of the canonical local project
+  ---
+  duration_ms: 7.426309
+  type: 'test'
+  ...
+# Subtest: viewer reads common screenplay formats and colour-codes screenplay grammar
+ok 189 - viewer reads common screenplay formats and colour-codes screenplay grammar
+  ---
+  duration_ms: 2.785284
+  type: 'test'
+  ...
+# Subtest: guided reading connects passages to existing story knowledge
+ok 190 - guided reading connects passages to existing story knowledge
+  ---
+  duration_ms: 1.290551
+  type: 'test'
+  ...
+# Subtest: top Import and Script Viewer use one screenplay ingestion pipeline
+ok 191 - top Import and Script Viewer use one screenplay ingestion pipeline
+  ---
+  duration_ms: 2.121429
+  type: 'test'
+  ...
+# Subtest: screenplay import replaces example data and populates the shared framework as suggestions
+ok 192 - screenplay import replaces example data and populates the shared framework as suggestions
+  ---
+  duration_ms: 1.479425
+  type: 'test'
+  ...
+# Subtest: settings keep AI, music, and future plugins in one local model
+ok 193 - settings keep AI, music, and future plugins in one local model
+  ---
+  duration_ms: 0.952266
+  type: 'test'
+  ...
+# Subtest: settings never include API-key storage
+ok 194 - settings never include API-key storage
+  ---
+  duration_ms: 0.247665
+  type: 'test'
+  ...
+# Subtest: AI Setup verifies a saved key and displays live connection state
+ok 195 - AI Setup verifies a saved key and displays live connection state
+  ---
+  duration_ms: 0.17091
+  type: 'test'
+  ...
+# Subtest: the saved key stays behind the private localhost gateway
+ok 196 - the saved key stays behind the private localhost gateway
+  ---
+  duration_ms: 0.226916
+  type: 'test'
+  ...
+# Subtest: music artist links are limited to Suno and Udio HTTPS profiles
+ok 197 - music artist links are limited to Suno and Udio HTTPS profiles
+  ---
+  duration_ms: 0.164077
+  type: 'test'
+  ...
+# Subtest: Settings includes live producer, actor, and director reports plus a current import audit
+ok 198 - Settings includes live producer, actor, and director reports plus a current import audit
+  ---
+  duration_ms: 0.296105
+  type: 'test'
+  ...
+# Subtest: character reports recalculate from editable drafts or imported source
+ok 199 - character reports recalculate from editable drafts or imported source
+  ---
+  duration_ms: 0.269786
+  type: 'test'
+  ...
+# Subtest: Settings terminology is grouped, searchable, and concise or expanded
+ok 200 - Settings terminology is grouped, searchable, and concise or expanded
+  ---
+  duration_ms: 0.233177
+  type: 'test'
+  ...
+# Subtest: Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab
+ok 201 - Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab
+  ---
+  duration_ms: 8.466149
+  type: 'test'
+  ...
+# Subtest: Canon Binder can attach the current beats, outline and pitch
+ok 202 - Canon Binder can attach the current beats, outline and pitch
+  ---
+  duration_ms: 2.906301
+  type: 'test'
+  ...
+# Subtest: Settings exposes real connections and three role-specific reports
+ok 203 - Settings exposes real connections and three role-specific reports
+  ---
+  duration_ms: 2.23396
+  type: 'test'
+  ...
+# Subtest: README remains complete while three .md tabs are selectable from the main page
+ok 204 - README remains complete while three .md tabs are selectable from the main page
+  ---
+  duration_ms: 2.693412
+  type: 'test'
+  ...
+# Subtest: collaboration documentation uses committed PlotPickle logos
+ok 205 - collaboration documentation uses committed PlotPickle logos
+  ---
+  duration_ms: 2.151916
+  type: 'test'
+  ...
+# Subtest: Windows publisher guidance explains Mark of the Web and the signed-launcher path
+ok 206 - Windows publisher guidance explains Mark of the Web and the signed-launcher path
+  ---
+  duration_ms: 1.685932
+  type: 'test'
+  ...
+# Subtest: Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+ok 207 - Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+  ---
+  duration_ms: 7.010459
+  type: 'test'
+  ...
+# Subtest: default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+ok 208 - default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+  ---
+  duration_ms: 1.786271
+  type: 'test'
+  ...
+# Subtest: storyboard images use the private local gateway, landscape output, and local assets
+ok 209 - storyboard images use the private local gateway, landscape output, and local assets
+  ---
+  duration_ms: 2.683353
+  type: 'test'
+  ...
+# Subtest: schema 1.7 migrates earlier projects into four storyboard slots per block
+ok 210 - schema 1.7 migrates earlier projects into four storyboard slots per block
+  ---
+  duration_ms: 2.454924
+  type: 'test'
+  ...
+# Subtest: Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+ok 211 - Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+  ---
+  duration_ms: 7.865072
+  type: 'test'
+  ...
+# Subtest: Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+ok 212 - Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+  ---
+  duration_ms: 1.761143
+  type: 'test'
+  ...
+# Subtest: Learning Studio connects contextual guidance to the complete course
+ok 213 - Learning Studio connects contextual guidance to the complete course
+  ---
+  duration_ms: 2.784523
+  type: 'test'
+  ...
+# Subtest: Learning Library contains all 14 source modules with substantial teaching tools
+ok 214 - Learning Library contains all 14 source modules with substantial teaching tools
+  ---
+  duration_ms: 2.077898
+  type: 'test'
+  ...
+# Subtest: Learning progress is per project and survives a browser restart
+ok 215 - Learning progress is per project and survives a browser restart
+  ---
+  duration_ms: 1.259402
+  type: 'test'
+  ...
+# Subtest: Learning Studio preserves the educational and user-work licence boundary
+ok 216 - Learning Studio preserves the educational and user-work licence boundary
+  ---
+  duration_ms: 1.18858
+  type: 'test'
+  ...
+# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+ok 217 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+  ---
+  duration_ms: 3.80688
+  type: 'test'
+  ...
+1..217
+# tests 217
+# suites 0
+# pass 217
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3333.233063
+lint_status=0 test_status=0

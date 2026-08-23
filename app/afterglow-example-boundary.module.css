@@ -1,0 +1,130 @@
+.banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  margin: 0 24px 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(26, 90, 72, 0.2);
+  border-left: 4px solid #1d7a60;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(224, 247, 240, 0.82), rgba(239, 247, 255, 0.84));
+  box-shadow: 0 10px 30px rgba(20, 57, 48, 0.07);
+}
+
+.identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  min-width: 0;
+}
+
+.identity > div {
+  display: grid;
+  gap: 4px;
+}
+
+.identity p,
+.identity small {
+  margin: 0;
+}
+
+.identity p {
+  color: #4f6f66;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.identity strong {
+  color: #173f35;
+  font-size: 1.03rem;
+}
+
+.identity small {
+  max-width: 72ch;
+  color: #526660;
+  line-height: 1.45;
+}
+
+.lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #173f35;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.actions button {
+  border: 1px solid rgba(23, 63, 53, 0.22);
+  border-radius: 11px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #173f35;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actions button:hover:not(:disabled) {
+  border-color: #1d7a60;
+  background: #fff;
+}
+
+.actions .primary {
+  border-color: #173f35;
+  background: #173f35;
+  color: #fff;
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+@media (max-width: 900px) {
+  .banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
+  .banner {
+    margin-inline: 14px;
+  }
+
+  .identity {
+    grid-template-columns: 1fr;
+  }
+
+  .lock {
+    justify-self: start;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

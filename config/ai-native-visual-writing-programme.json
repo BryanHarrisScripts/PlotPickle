@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "programmeIssue": 382,
+  "foundationIssue": 383,
+  "productCategory": "AI-native visual writing and creative direction studio",
+  "canonicalLoop": [
+    "concept",
+    "explore",
+    "compare",
+    "direct",
+    "refine",
+    "approve",
+    "reuse"
+  ],
+  "humanAuthorityRules": [
+    "generated results remain candidates until explicit human approval",
+    "visual discoveries may propose story changes but never apply them automatically",
+    "provider routing never enables paid fallback without action-specific consent",
+    "manual import and no-AI workflows remain complete product paths"
+  ],
+  "briefs": [
+    { "sequence": 1, "id": "foundation-contract", "issue": 383, "wave": "foundation", "title": "Codify the AI-native visual writing contract", "dependsOn": [] },
+    { "sequence": 2, "id": "concept-canvas", "issue": 384, "wave": "creative-input", "title": "Concept Canvas for creative seeds and intentions", "dependsOn": ["foundation-contract"] },
+    { "sequence": 3, "id": "visual-reference-ingestion", "issue": 385, "wave": "creative-input", "title": "Visual reference ingestion, rights and provenance", "dependsOn": ["foundation-contract"] },
+    { "sequence": 4, "id": "story-context-assembler", "issue": 386, "wave": "creative-context", "title": "Automatic story context assembler", "dependsOn": ["concept-canvas", "visual-reference-ingestion"] },
+    { "sequence": 5, "id": "exploration-candidates", "issue": 387, "wave": "creative-context", "title": "Versioned creative exploration candidates", "dependsOn": ["foundation-contract"] },
+    { "sequence": 6, "id": "creative-direction-controls", "issue": 388, "wave": "creative-direction", "title": "Keep, Change and Try creative direction controls", "dependsOn": ["story-context-assembler", "exploration-candidates"] },
+    { "sequence": 7, "id": "candidate-comparison", "issue": 389, "wave": "creative-direction", "title": "Candidate comparison and annotation board", "dependsOn": ["exploration-candidates"] },
+    { "sequence": 8, "id": "combine-remix", "issue": 390, "wave": "creative-direction", "title": "Combine and Remix from selected qualities", "dependsOn": ["creative-direction-controls", "candidate-comparison"] },
+    { "sequence": 9, "id": "visual-canon-binder", "issue": 391, "wave": "canon-continuity", "title": "Visual Canon Binder and approval flow", "dependsOn": ["visual-reference-ingestion", "exploration-candidates", "candidate-comparison"] },
+    { "sequence": 10, "id": "continuity-locks", "issue": 392, "wave": "canon-continuity", "title": "Continuity locks and propagation", "dependsOn": ["visual-canon-binder"] },
+    { "sequence": 11, "id": "character-look-development", "issue": 393, "wave": "connected-workspaces", "title": "Character Look Development workspace", "dependsOn": ["creative-direction-controls", "visual-canon-binder", "continuity-locks"] },
+    { "sequence": 12, "id": "world-look-development", "issue": 394, "wave": "connected-workspaces", "title": "World and Location Look Development workspace", "dependsOn": ["creative-direction-controls", "visual-canon-binder", "continuity-locks"] },
+    { "sequence": 13, "id": "scene-visual-writing", "issue": 395, "wave": "connected-workspaces", "title": "Scene and Block visual writing sessions", "dependsOn": ["story-context-assembler", "creative-direction-controls", "visual-canon-binder", "continuity-locks"] },
+    { "sequence": 14, "id": "storyboard-exploration", "issue": 396, "wave": "connected-workspaces", "title": "Storyboard explorations from approved visual language", "dependsOn": ["scene-visual-writing", "continuity-locks"] },
+    { "sequence": 15, "id": "graphic-novel-composition", "issue": 397, "wave": "connected-workspaces", "title": "Graphic Novel from approved references and panels", "dependsOn": ["storyboard-exploration", "visual-canon-binder"] },
+    { "sequence": 16, "id": "image-to-story-proposals", "issue": 398, "wave": "creative-feedback", "title": "Image-to-story proposals", "dependsOn": ["exploration-candidates", "visual-canon-binder"] },
+    { "sequence": 17, "id": "creative-memory", "issue": 399, "wave": "creative-feedback", "title": "Project creative memory and decision graph", "dependsOn": ["visual-canon-binder", "image-to-story-proposals"] },
+    { "sequence": 18, "id": "creative-route-consent", "issue": 400, "wave": "trust-safety", "title": "Creative-route readiness, consent and cost preview", "dependsOn": ["story-context-assembler", "exploration-candidates"] },
+    { "sequence": 19, "id": "approval-ledger", "issue": 401, "wave": "trust-safety", "title": "AI contribution and human approval ledger", "dependsOn": ["exploration-candidates", "visual-canon-binder", "creative-memory"] },
+    { "sequence": 20, "id": "human-journey-gate", "issue": 402, "wave": "verification", "title": "End-to-end visual writing human journey gate", "dependsOn": ["character-look-development", "world-look-development", "scene-visual-writing", "storyboard-exploration", "graphic-novel-composition", "image-to-story-proposals", "creative-route-consent", "approval-ledger"] }
+  ]
+}

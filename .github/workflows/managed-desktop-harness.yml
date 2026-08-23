@@ -1,0 +1,38 @@
+name: Managed Desktop Harness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "config/runtime-manifest.json"
+      - "core/runtime/managed-runtime-core.mjs"
+      - "tests/issue-1079-managed-desktop-harness.test.mjs"
+      - "docs/architecture/MANAGED-DESKTOP-HARNESS.md"
+      - ".github/workflows/managed-desktop-harness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: managed-desktop-harness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  runtime-supervisor:
+    name: Runtime manifest, lifecycle and readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate managed runtime supervisor
+        run: node --test tests/issue-1079-managed-desktop-harness.test.mjs
+      - name: Re-run current ComfyUI and remote-compute compatibility contracts
+        run: node --test tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1075-trusted-node-remote-compute.test.mjs
+      - name: Production build
+        run: npm run build

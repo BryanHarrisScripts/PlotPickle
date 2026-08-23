@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schemas/minimax-h3-native.manifest.schema.json",
+  "title": "PlotPickle MiniMax H3 Native ComfyUI Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "model",
+    "workflowFamily",
+    "officialSource",
+    "minimumComfyUIVersion",
+    "workflow",
+    "requiredModels"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "model": { "const": "MiniMax-H3" },
+    "workflowFamily": {
+      "enum": [
+        "text-to-video",
+        "image-to-video",
+        "first-last-frame",
+        "reference-to-video",
+        "in-place-edit"
+      ]
+    },
+    "officialSource": {
+      "type": "string",
+      "format": "uri",
+      "description": "Official MiniMax or ComfyUI page from which this workflow contract was obtained."
+    },
+    "minimumComfyUIVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
+    },
+    "workflow": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "ComfyUI API-format workflow. It must include the PlotPickle prompt and family-specific placeholders and must not include cloud credentials."
+    },
+    "requiredModels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "directory", "loaderNode", "inputName", "filenames"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "directory": {
+            "enum": ["checkpoints", "clip", "diffusion_models", "loras", "text_encoders", "vae", "vae_approx"]
+          },
+          "loaderNode": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "inputName": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "filenames": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        }
+      }
+    }
+  }
+}

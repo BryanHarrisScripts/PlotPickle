@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schemas/github-app-public-config/1.0/schema.json",
+  "title": "PlotPickle public GitHub App configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "product",
+    "registrationStatus",
+    "clientId",
+    "slug",
+    "installUrl",
+    "homepageUrl",
+    "deviceFlow",
+    "expiringUserTokens",
+    "webhooks",
+    "permissions"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "product": { "const": "PlotPickle" },
+    "registrationStatus": {
+      "enum": ["pending-owner-registration", "registered"]
+    },
+    "clientId": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "slug": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[a-z0-9-]*$"
+    },
+    "installUrl": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "homepageUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "deviceFlow": { "const": true },
+    "expiringUserTokens": { "const": true },
+    "webhooks": { "const": false },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metadata", "contents", "pullRequests", "administration"],
+      "properties": {
+        "metadata": { "const": "read" },
+        "contents": { "const": "write" },
+        "pullRequests": { "const": "write" },
+        "administration": { "const": "write" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "registrationStatus": { "const": "registered" } },
+        "required": ["registrationStatus"]
+      },
+      "then": {
+        "properties": {
+          "clientId": { "minLength": 8 },
+          "slug": { "minLength": 1 },
+          "installUrl": {
+            "pattern": "^https://github\\.com/apps/[a-z0-9-]+/installations/new$"
+          }
+        }
+      }
+    }
+  ]
+}

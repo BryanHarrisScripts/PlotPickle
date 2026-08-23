@@ -1,0 +1,775 @@
+[
+  {
+    "id": "afterglow-menu-v9",
+    "title": "Afterglow Menu v9",
+    "kind": "overview",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/afterglow-menu-v9.webp",
+      "card": "/afterglow/legacy-visuals/card/afterglow-menu-v9.webp",
+      "full": "/afterglow/legacy-visuals/full/afterglow-menu-v9.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "confirmed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "overview"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Afterglow Menu v9.png",
+      "originalFilename": "Afterglow Menu v9.png",
+      "originalSha": "f999ad707563d6e4ad85d1250164d779ee59fe23",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "puppets-and-puppeteers",
+    "title": "Puppets and Puppeteers",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/puppets-and-puppeteers.webp",
+      "card": "/afterglow/legacy-visuals/card/puppets-and-puppeteers.webp",
+      "full": "/afterglow/legacy-visuals/full/puppets-and-puppeteers.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      1,
+      2
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Shared legacy sequence reference for related Blocks; not two independent storyboard frames.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 1",
+      "Block 2"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Afterglow v9 Puppets.png",
+      "originalFilename": "Afterglow v9 Puppets.png",
+      "originalSha": "842f3661c22b8effb4f6238cbd1bef4bf4d0427b",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "afterglow-plot",
+    "title": "Afterglow Plot",
+    "kind": "plot",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/afterglow-plot.webp",
+      "card": "/afterglow/legacy-visuals/card/afterglow-plot.webp",
+      "full": "/afterglow/legacy-visuals/full/afterglow-plot.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "confirmed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "plot"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/AfterglowPlot.png",
+      "originalFilename": "AfterglowPlot.png",
+      "originalSha": "037066f50c84ebcbc13b2b96440f5e66ba94ef57",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "afterglowprompts",
+    "title": "AfterglowPrompts",
+    "kind": "unmapped",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/afterglowprompts.webp",
+      "card": "/afterglow/legacy-visuals/card/afterglowprompts.webp",
+      "full": "/afterglow/legacy-visuals/full/afterglowprompts.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "unmapped",
+    "mappingNote": "Requires manual source and story review.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "unmapped"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/AfterglowPrompts.png",
+      "originalFilename": "AfterglowPrompts.png",
+      "originalSha": "888a7d190085535fb0aaae52dc101a255fc9a18c",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "banner-placeholder",
+    "title": "Legacy Banner Placeholder",
+    "kind": "placeholder",
+    "summary": "Historical placeholder used where unique story artwork was not available.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/banner-placeholder.webp",
+      "card": "/afterglow/legacy-visuals/card/banner-placeholder.webp",
+      "full": "/afterglow/legacy-visuals/full/banner-placeholder.webp",
+      "width": 1500,
+      "height": 500
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "placeholder",
+    "mappingNote": "Do not present as completed artwork for Blocks 17–24.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "placeholder"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Banner.png",
+      "originalFilename": "Banner.png",
+      "originalSha": "c05eabd25769961a5c4734d2a716fa9cd9f7a967",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "broken-numbers",
+    "title": "Broken Numbers",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/broken-numbers.webp",
+      "card": "/afterglow/legacy-visuals/card/broken-numbers.webp",
+      "full": "/afterglow/legacy-visuals/full/broken-numbers.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      4
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 4"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/BrokenNumbers v9.png",
+      "originalFilename": "BrokenNumbers v9.png",
+      "originalSha": "586953481a8a2f0371209245184478e8dcdf011b",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "dawn-of-departure",
+    "title": "Dawn of Departure",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/dawn-of-departure.webp",
+      "card": "/afterglow/legacy-visuals/card/dawn-of-departure.webp",
+      "full": "/afterglow/legacy-visuals/full/dawn-of-departure.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      5
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 5"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Dawn Departure v9.png",
+      "originalFilename": "Dawn Departure v9.png",
+      "originalSha": "3217378948412173e7d7633cb1a9ea68732aabc4",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "dusk-to-drive",
+    "title": "Dusk to Drive",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/dusk-to-drive.webp",
+      "card": "/afterglow/legacy-visuals/card/dusk-to-drive.webp",
+      "full": "/afterglow/legacy-visuals/full/dusk-to-drive.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      8
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 8"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/DusktoDrive.png",
+      "originalFilename": "DusktoDrive.png",
+      "originalSha": "d25bc2851f3eb8e41d65e6fc5a62c7887c22698b",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "echoes-of-familiarity",
+    "title": "Echoes of Familiarity",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/echoes-of-familiarity.webp",
+      "card": "/afterglow/legacy-visuals/card/echoes-of-familiarity.webp",
+      "full": "/afterglow/legacy-visuals/full/echoes-of-familiarity.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      11
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 11"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Echoes of Familiarity.png",
+      "originalFilename": "Echoes of Familiarity.png",
+      "originalSha": "a33a4b2735005d2d56f2d9c133ff801f5b6acdd8",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "indiewood",
+    "title": "IndieWood",
+    "kind": "unmapped",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/indiewood.webp",
+      "card": "/afterglow/legacy-visuals/card/indiewood.webp",
+      "full": "/afterglow/legacy-visuals/full/indiewood.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "unmapped",
+    "mappingNote": "Requires manual source and story review.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "unmapped"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/IndieWood.png",
+      "originalFilename": "IndieWood.png",
+      "originalSha": "0db5a8335c5e9f92c31a55410d577daf86d6f995",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "irony-of-connection",
+    "title": "The Irony of Connection",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/irony-of-connection.webp",
+      "card": "/afterglow/legacy-visuals/card/irony-of-connection.webp",
+      "full": "/afterglow/legacy-visuals/full/irony-of-connection.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      10
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 10"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/IronyOfConnection.png",
+      "originalFilename": "IronyOfConnection.png",
+      "originalSha": "3f75108f4a2ab075da169c9ff04fb67040d5ab5d",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "joyride-into-consciousness",
+    "title": "Joyride into Consciousness",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/joyride-into-consciousness.webp",
+      "card": "/afterglow/legacy-visuals/card/joyride-into-consciousness.webp",
+      "full": "/afterglow/legacy-visuals/full/joyride-into-consciousness.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      14
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 14"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Joyride into Consciousness.png",
+      "originalFilename": "Joyride into Consciousness.png",
+      "originalSha": "6965b92de7fc19d3ba04dd18e9d067d87a518927",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "lost-and-found-venice-beach",
+    "title": "Lost and Found in Venice Beach",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/lost-and-found-venice-beach.webp",
+      "card": "/afterglow/legacy-visuals/card/lost-and-found-venice-beach.webp",
+      "full": "/afterglow/legacy-visuals/full/lost-and-found-venice-beach.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      16
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 16"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Lost and Found in Venice Beach.png",
+      "originalFilename": "Lost and Found in Venice Beach.png",
+      "originalSha": "85875d81ccc5f4b6582ca5e968758be037b9a708",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "reflections-and-revelations",
+    "title": "Reflections and Revelations",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/reflections-and-revelations.webp",
+      "card": "/afterglow/legacy-visuals/card/reflections-and-revelations.webp",
+      "full": "/afterglow/legacy-visuals/full/reflections-and-revelations.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      12
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 12"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Reflections and Revelations.png",
+      "originalFilename": "Reflections and Revelations.png",
+      "originalSha": "9ca93f748e91f5dd0845841bdc6af8b1eedc8cb4",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "remnants-of-the-past",
+    "title": "Remnants of the Past",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/remnants-of-the-past.webp",
+      "card": "/afterglow/legacy-visuals/card/remnants-of-the-past.webp",
+      "full": "/afterglow/legacy-visuals/full/remnants-of-the-past.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      6
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 6"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Remnants Past v9.png",
+      "originalFilename": "Remnants Past v9.png",
+      "originalSha": "8c76f80831fb1b08c2900904dba02f34fbaa2abf",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "screenwritingblocks",
+    "title": "ScreenwritingBlocks",
+    "kind": "unmapped",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/screenwritingblocks.webp",
+      "card": "/afterglow/legacy-visuals/card/screenwritingblocks.webp",
+      "full": "/afterglow/legacy-visuals/full/screenwritingblocks.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "unmapped",
+    "mappingNote": "Requires manual source and story review.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "unmapped"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/ScreenwritingBlocks.png",
+      "originalFilename": "ScreenwritingBlocks.png",
+      "originalSha": "05c2c5c7a400fb572a939e9a1f8cf2dd208d7018",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "summers-symphony",
+    "title": "Summer's Symphony",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/summers-symphony.webp",
+      "card": "/afterglow/legacy-visuals/card/summers-symphony.webp",
+      "full": "/afterglow/legacy-visuals/full/summers-symphony.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      3
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 3"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Summers Symphony v9.png",
+      "originalFilename": "Summers Symphony v9.png",
+      "originalSha": "8861ef31a60e8ba46ed43a4b4eef80faf1cc07c7",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "summers-intervention",
+    "title": "Summer's Intervention",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/summers-intervention.webp",
+      "card": "/afterglow/legacy-visuals/card/summers-intervention.webp",
+      "full": "/afterglow/legacy-visuals/full/summers-intervention.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      9
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 9"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/SummersIntervention.png",
+      "originalFilename": "SummersIntervention.png",
+      "originalSha": "bf9610c9b4f2b83642a9798fea41a8824073f4c4",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "the-journey-within",
+    "title": "The Journey Within",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/the-journey-within.webp",
+      "card": "/afterglow/legacy-visuals/card/the-journey-within.webp",
+      "full": "/afterglow/legacy-visuals/full/the-journey-within.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      15
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 15"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/The Journey Within.png",
+      "originalFilename": "The Journey Within.png",
+      "originalSha": "66089b70c161af00c328e2b1b6cf483d21d49eb1",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "the-long-road-to-silence",
+    "title": "The Long Road to Silence",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/the-long-road-to-silence.webp",
+      "card": "/afterglow/legacy-visuals/card/the-long-road-to-silence.webp",
+      "full": "/afterglow/legacy-visuals/full/the-long-road-to-silence.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      7
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 7"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/The Long Road to Silence.png",
+      "originalFilename": "The Long Road to Silence.png",
+      "originalSha": "25ac3b34c89182754012d1423f368a0a4a7f4b21",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "afterglow-theme",
+    "title": "Afterglow Theme",
+    "kind": "theme",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/afterglow-theme.webp",
+      "card": "/afterglow/legacy-visuals/card/afterglow-theme.webp",
+      "full": "/afterglow/legacy-visuals/full/afterglow-theme.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [],
+    "mappingStatus": "confirmed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "theme"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/ThemeAfterglow.png",
+      "originalFilename": "ThemeAfterglow.png",
+      "originalSha": "601d959dc396d04ad920a59f8ac0c4a220174b9b",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  },
+  {
+    "id": "uncharted-territories",
+    "title": "Uncharted Territories",
+    "kind": "block-cover",
+    "summary": "Legacy Afterglow visual-development artwork retained for comparison and review.",
+    "images": {
+      "thumb": "/afterglow/legacy-visuals/thumbnail/uncharted-territories.webp",
+      "card": "/afterglow/legacy-visuals/card/uncharted-territories.webp",
+      "full": "/afterglow/legacy-visuals/full/uncharted-territories.webp",
+      "width": 1200,
+      "height": 675
+    },
+    "proposedBlockNumbers": [
+      13
+    ],
+    "mappingStatus": "proposed",
+    "mappingNote": "Initial title-and-story mapping for Bryan's review; not automatically canonical.",
+    "characterIds": [],
+    "locationIds": [],
+    "tags": [
+      "Afterglow",
+      "legacy visual",
+      "block-cover",
+      "Block 13"
+    ],
+    "source": {
+      "repository": "BryanHarrisScripts/24-Blocks-OpenStoryStudio",
+      "path": "Images/Uncharted Territories.png",
+      "originalFilename": "Uncharted Territories.png",
+      "originalSha": "6b765a713439cbdd3d1680f067d38871b54ce8c1",
+      "prompt": "",
+      "creator": "Bryan Elgin Harris",
+      "generated": "unknown",
+      "rightsNote": "Legacy Afterglow project visual. Redistribution and third-party-content review required before public release."
+    }
+  }
+]

@@ -1,0 +1,319 @@
+.sourceConsole {
+  color: #eef3f7;
+  border-color: #2c3442;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(16, 185, 129, 0.12), transparent 24rem),
+    linear-gradient(145deg, #12161d, #181d26 64%, #11151b);
+  box-shadow: 0 20px 48px rgba(4, 8, 14, 0.28);
+}
+
+.consoleHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 20px;
+  align-items: end;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #2b3340;
+}
+
+.consoleHeader p {
+  color: #7f8b9e !important;
+}
+
+.consoleHeader h2 {
+  color: #f4f7fa;
+}
+
+.consoleHeader > strong {
+  color: #34d399;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.consoleHeader > span {
+  grid-column: 1 / -1;
+  color: #8f9aad !important;
+  text-align: left !important;
+}
+
+.modeSelectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.modeCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 12px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #2b3340;
+  border-radius: 8px;
+  background: rgba(7, 10, 15, 0.4);
+}
+
+.modeCard i {
+  grid-row: 1 / 3;
+  width: 38px;
+  height: 38px;
+  border: 4px solid #4a5363;
+  border-radius: 50%;
+}
+
+.modeCard strong {
+  color: #8c97a8;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+}
+
+.modeCard span {
+  color: #687386;
+  font-size: 0.76rem;
+}
+
+.modeCard[data-active="true"] {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.modeCard[data-active="true"] i {
+  border-color: #34d399;
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.75), inset 0 0 10px rgba(52, 211, 153, 0.35);
+}
+
+.modeCard[data-active="true"] strong {
+  color: #f2f7f5;
+}
+
+.modeCard[data-active="true"] span {
+  color: #9fe7cd;
+}
+
+.sourceConsole :global(article) {
+  background: #171d25;
+}
+
+.sourceConsole :global(article h3),
+.sourceConsole :global(article dd) {
+  color: #eef3f7;
+}
+
+.sourceConsole :global(article dt),
+.sourceConsole :global(article > header span) {
+  color: #8f9aad;
+}
+
+.sourceConsole :global(article dl div) {
+  border-top-color: #303846;
+}
+
+.sourceConsole :global(article button) {
+  color: #dff8ee;
+  border-color: #4f6d65;
+  background: #202932;
+}
+
+.installedGate {
+  width: min(1240px, 100%);
+  margin: 16px auto 0;
+  padding: 24px;
+  color: #eff4f8;
+  border: 1px solid #2d3542;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #151a22, #10141a);
+  box-shadow: 0 14px 34px rgba(4, 8, 14, 0.2);
+}
+
+.installedGate > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.installedGate > header p {
+  margin: 0;
+  color: #6f7d91;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.installedGate > header h2 {
+  margin: 5px 0 0;
+  font-size: 1.55rem;
+}
+
+.installedGate > header > span {
+  max-width: 560px;
+  color: #8e99aa;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.providerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.providerGrid article {
+  --state: #657083;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--state) 55%, #2a313d);
+  border-top: 4px solid var(--state);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--state) 7%, #171c23);
+}
+
+.providerGrid article[data-state="active"] {
+  --state: #34d399;
+}
+
+.providerGrid article[data-state="ready"] {
+  --state: #59b7ff;
+}
+
+.providerGrid article[data-state="attention"] {
+  --state: #d9a441;
+}
+
+.providerGrid article > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.providerGrid article > header span {
+  color: #788498;
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.providerGrid article h3 {
+  margin: 4px 0 0;
+  color: #f0f4f7;
+}
+
+.providerGrid article > header > strong {
+  color: var(--state);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.providerFacts,
+.routeBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.providerFacts span,
+.routeBadges span {
+  padding: 5px 8px;
+  color: #9ca6b5;
+  border: 1px solid #3a4351;
+  border-radius: 999px;
+  background: #212731;
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.providerFacts span[data-on="true"],
+.routeBadges span[data-on="true"] {
+  color: #a7f3d0;
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.providerGrid article p {
+  margin: 0;
+  color: #9aa4b3;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.providerGrid article button {
+  align-self: flex-start;
+  min-height: 38px;
+  margin-top: auto;
+  padding: 0 12px;
+  color: #e8f5f0;
+  border: 1px solid #52675f;
+  border-radius: 8px;
+  background: #202832;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.providerGrid article button:hover {
+  border-color: #34d399;
+  background: #26352f;
+}
+
+.routeBadges {
+  margin-top: -2px;
+}
+
+@media (max-width: 1050px) {
+  .providerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .consoleHeader,
+  .installedGate > header {
+    display: grid;
+  }
+
+  .consoleHeader > strong {
+    justify-self: start;
+  }
+
+  .modeSelectors,
+  .providerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .installedGate > header > span {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modeCard i {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .sourceConsole,
+  .modeCard,
+  .installedGate,
+  .providerGrid article,
+  .providerFacts span,
+  .routeBadges span {
+    border-color: CanvasText;
+  }
+
+  .modeCard[data-active="true"] i,
+  .providerGrid article[data-state] {
+    border-color: Highlight;
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@plotpickle/testing",
+  "version": "0.1.0-preview.1",
+  "description": "Mock host and service helpers for PlotPickle plugin tests.",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "files": ["dist", "README.md", "LICENSE"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "dependencies": {
+    "@plotpickle/plugin-sdk": "0.1.0-preview.1",
+    "@plotpickle/types": "0.1.0-preview.1"
+  },
+  "engines": { "node": ">=22.13.0" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "sideEffects": false
+}

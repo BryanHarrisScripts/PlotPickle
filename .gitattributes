@@ -1,0 +1,5 @@
+# Keep the signed Buzz trust bundle byte-stable on every operating system.
+runtime/buzz/compose.yml text eol=lf
+runtime/buzz/README.md text eol=lf
+runtime/buzz/LICENSE.buzz.txt text eol=lf
+runtime/buzz/manifest.json text eol=lf

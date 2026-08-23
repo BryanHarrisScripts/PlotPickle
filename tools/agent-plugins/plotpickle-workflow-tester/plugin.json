@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "plotpickle-workflow-tester",
+  "version": "0.1.0",
+  "description": "Human-like end-to-end acceptance testing for PlotPickle using a portable Agent Skill and Playwright MCP browser automation.",
+  "repository": "https://github.com/BryanHarrisScripts/PlotPickle",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["plotpickle", "qa", "acceptance", "playwright", "mcp", "agent-plugin"]
+}

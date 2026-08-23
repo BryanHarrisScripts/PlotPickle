@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-07-25T00:39:03.308Z",
+  "sourceCount": 22,
+  "retainedCount": 21,
+  "placeholderCount": 1,
+  "omittedCount": 0,
+  "duplicateCount": 0,
+  "unresolvedCount": 3,
+  "derivativeCount": 66,
+  "originalBytes": 32323353,
+  "convertedBytes": 5980758,
+  "sizeReductionPercent": 81.5,
+  "missingDerivatives": [],
+  "failures": []
+}

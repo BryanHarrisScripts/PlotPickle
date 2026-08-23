@@ -1,0 +1,162 @@
+.panel {
+  margin: 14px 0 0;
+  padding: 16px;
+  border: 1px solid rgba(53, 201, 184, 0.22);
+  border-radius: 9px;
+  background: rgba(8, 13, 13, 0.72);
+}
+
+.headingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: #35c9b8;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.headingRow h3 {
+  margin: 0;
+  color: #f1eee7;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 7px 0 0;
+  color: #a9a297;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.actions button {
+  min-height: 33px;
+  padding: 7px 10px;
+  border: 1px solid rgba(105, 101, 94, 0.34);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #d8d2c8;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.actions .primary {
+  border-color: rgba(53, 201, 184, 0.42);
+  background: rgba(53, 201, 184, 0.1);
+  color: #dff9f4;
+}
+
+.actions button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.actions button:focus-visible {
+  outline: 2px solid #35c9b8;
+  outline-offset: 2px;
+}
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 14px;
+  color: #8f887e;
+  font-size: 9px;
+}
+
+.badge {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(200, 148, 70, 0.12);
+  color: #f0d39c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.running {
+  background: rgba(53, 201, 184, 0.12);
+  color: #bcefe6;
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.command span {
+  color: #777168;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.command code {
+  color: #dff9f4;
+  font-size: 10px;
+}
+
+.message,
+.safety,
+.error {
+  margin: 10px 0 0;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.message {
+  color: #bdb6aa;
+}
+
+.safety {
+  color: #827c73;
+}
+
+.error {
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: rgba(157, 55, 39, 0.12);
+  color: #ffb9ad;
+}
+
+@media (max-width: 760px) {
+  .headingRow {
+    display: grid;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .command {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

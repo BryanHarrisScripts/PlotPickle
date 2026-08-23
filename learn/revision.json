@@ -1,0 +1,1028 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "revision",
+    "title": "Revision"
+  },
+  "lessonCount": 8,
+  "sourceCount": 5,
+  "lessons": [
+    {
+      "id": "ai-revision-diagnose-only",
+      "number": 29,
+      "topic": "revision",
+      "title": "Diagnose without rewriting",
+      "duration": "15–25 min",
+      "overview": "The writer knows something is weak but does not yet know whether the cause is structural, character-based, tonal or local to a scene.",
+      "objectives": [
+        "Recognize when the diagnose without rewriting is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to DraftLens."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The symptom is clear but the cause is not.",
+            "A rewrite would be premature.",
+            "The writer wants questions and evidence before options."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The writer has already chosen a precise repair.",
+            "The task is purely formatting or copy-editing."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Identify evidence and risks.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Act or sequence, Block, Scene."
+          ],
+          "points": [
+            "Layer: Story First",
+            "Default operation: Identify evidence and risks",
+            "Canonical scope: Complete project · Act or sequence · Block · Scene",
+            "Recommended destination: DraftLens"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Generic screenwriting advice",
+            "Invented story facts",
+            "Treating opinion as evidence",
+            "Jumping directly to a rewrite"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Diagnose without rewriting setup",
+        "text": "Select “Identify evidence and risks,” include only Complete project and Act or sequence, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to DraftLens."
+      },
+      "checklist": [
+        "Every claim points to project evidence.",
+        "Symptoms are separated from root causes.",
+        "Questions are answerable by the writer.",
+        "No unrequested revision is produced."
+      ],
+      "mistakes": [
+        "Generic screenwriting advice",
+        "Invented story facts",
+        "Treating opinion as evidence",
+        "Jumping directly to a rewrite"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: The writer knows something is weak but does not yet know whether the cause is structural, character-based, tonal or local to a scene. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "diagnosis",
+        "evidence",
+        "risks",
+        "root cause",
+        "questions",
+        "Individual Critical",
+        "Individual Intermediate",
+        "Individual Fine-Tuning",
+        "Story First",
+        "Identify evidence and risks",
+        "DraftLens"
+      ],
+      "original": {
+        "number": 25,
+        "path": "Responsible AI"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-individual-critical-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Individual Critical.md",
+          "title": "Individual Prompts for Screenwriting",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Critical.md",
+          "content": "# Individual Prompts for Screenwriting\n\n### 24 Blocks Summary:\n\nThis resource, powered by OpenAI's ChatGPT, is designed to assist in the detailed refinement of screenplays, navigating through the AI's token limit. It segments the editing process into Most Critical Elements, Intermediate Elements, and Fine-Tuning Elements, covering a wide spectrum from structure, character development, and dialogue enhancement to scene analysis and sensory details.\n\nSpecific prompts are provided under each topic, facilitating a methodical dissection of the screenplay. For instance, prompts direct users on enhancing dialogue depth, evolving character relationships, pinpointing the theme, and identifying instances of dramatic irony.\n\nIntermediate elements explore distinctive aspects of screenplay writing such as genre-specific elements, symbolism, humor, and cultural context. The fine-tuning elements attend to minor yet significant aspects like script formatting, editing, voiceovers, and pacing.\n\nOverall, this resource equips writers with the necessary tools to effectively harness AI in screenplay editing, leading to engaging, polished scripts that connect with audiences and appeal to producers.\n\n#### Optional Prompts:\n\n- Don't use the copy code boxes just write them out. Please. \n- Write a 1500-character summary of this screenplay.\n- Write a 1500-irony summary and write a brief 1500-theme summary.\n- Write a 1500-theme summary and write a brief 1500-theme summary.\n- Write out a new version of the script edited using the above guidelines.\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\n**Most Critical Elements**\n---------------------------------------------\n\n- (Prompts) Story Outline and Structure\n- (Prompts) Emotion and Conflict\n- Conflict and Tension\n- (Prompts) Character Development\n- Character Arc Consistency\n- (Prompts) Dialogue Enhancement\n- (Prompts) Script Analysis and Feedback\n- Subplots\n- Thematic Exploration and Depth\n- (Prompts) Theme, Irony, and Prose\n- Inciting Incidents and Plot Twists\n- (Prompts) Emotional Appeal\n- Resolution and Climax\n- (Prompts) Visual Imagery\n- Antagonist Development\n- Character Relationships and Dynamics\n- Character Introductions\n- (Prompts) Character Motivations\n- (Prompts) Character Backstories\n\n**Most Critical Elements**\n---------------------------------------------\n\n1. **(Prompts) Story Outline and Structure**\n\n   - \"From the story elements we've discussed, construct a narrative outline using both Roman and Arabic numerals. Make sure it reflects the main plot points, character arcs, and the progression of the story.\"\n\n2. **(Prompts) Emotion and Conflict**\n\n   - \"Looking at this scene, how could the emotional journey of the main character be amplified? Suggest specific script changes to increase the audience's emotional connection to the character.\"\n\n   - \"Critique the conflict and resolution in this section of the script. What would you suggest to increase the tension and make the resolution more satisfying?\"\n\n3. **(Prompts) Character Development**\n\n   - \"Let's build out our protagonist further. Given their background and the story's context, what would be their immediate reaction to a personal crisis? Please build on their characteristics and evolve their profile accordingly.\"\n\n   - \"Evaluate the relationships between characters in this script. Are they believable and complex? How do they evolve over the course of the story? Suggest any improvements you see fit.\"\n\n4. **(Prompts) Dialogue Enhancement**\n\n   - \"This dialogue seems unvaried and lacks depth. Please rewrite it, enhancing its subtext and authenticity while preserving its original meaning.\"\n\n5. **(Prompts) Theme, Irony, and Prose**\n\n   - \"Review these screenplay pages and provide a summary focusing on the theme. Can you identify any instances of dramatic irony? Also, note any parts that seem overly verbose and suggest how they might be made more concise.\"\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-individual-fine-tuning-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Individual Fine-Tuning.md",
+          "title": "Individual Prompts for Screenwriting",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Fine-Tuning.md",
+          "content": "# Individual Prompts for Screenwriting\n\n### 24 Blocks Summary:\n\nThis resource, powered by OpenAI's ChatGPT, is designed to assist in the detailed refinement of screenplays, navigating through the AI's token limit. It segments the editing process into Most Critical Elements, Intermediate Elements, and Fine-Tuning Elements, covering a wide spectrum from structure, character development, and dialogue enhancement to scene analysis and sensory details.\n\nSpecific prompts are provided under each topic, facilitating a methodical dissection of the screenplay. For instance, prompts direct users on enhancing dialogue depth, evolving character relationships, pinpointing the theme, and identifying instances of dramatic irony.\n\nIntermediate elements explore distinctive aspects of screenplay writing such as genre-specific elements, symbolism, humor, and cultural context. The fine-tuning elements attend to minor yet significant aspects like script formatting, editing, voiceovers, and pacing.\n\nOverall, this resource equips writers with the necessary tools to effectively harness AI in screenplay editing, leading to engaging, polished scripts that connect with audiences and appeal to producers.\n\n#### Optional Prompts:\n\n- Don't use the copy code boxes just write them out. Please. \n- Write a 1500-character summary of this screenplay.\n- Write a 1500-irony summary and write a brief 1500-theme summary.\n- Write a 1500-theme summary and write a brief 1500-theme summary.\n- Write out a new version of the script edited using the above guidelines.\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\nFine-Tuning Elements\n---------------------------------------------\n\n- Pacing and Rhythm\n- Voiceover and Narration\n- (Prompts) Fine-Tuning Elements\n- Script Formatting and Style\n- Rewriting and Editing\n- Title Significance\n- Action Description\n- (Prompts) Diction and Language Style\n- (Prompts) Authenticity of Dialogue\n- (Prompts) Diverse Representation\n- (Prompts) Feedback and Revision Process\n- (Prompts) Marketing and Pitching\n- (Prompts) Audience Engagement and Perspective\n\n**Fine-Tuning Elements**\n---------------------------------------------\n\n1. **(Prompts) Script Formatting and Style**\n\n   - \"Review this script excerpt. Are there any formatting errors or stylistic inconsistencies that need to be addressed to align with standard screenplay conventions?\"\n\n   - \"Analyze the transitions between the acts in this script. Are they smooth and impactful? Do they effectively contribute to the overall story? Offer suggestions for improvements if needed.\"\n\n2. **(Prompts) Rewriting and Editing**\n\n   - \"Choose a dialogue exchange in the script. How might it be rewritten to include more subtext and nuanced character expression?\"\n\n   - \"Evaluate the introduction of the protagonist and other significant characters. Are their personalities and roles in the story immediately clear? Suggest improvements to \nmake these introductions more engaging and informative.\"\n\n   - \"Evaluate the development of the antagonist. Is their motivation clear and compelling? How might their character arc be improved to create a more dynamic conflict with the protagonist?\"\n\n3. **(Prompts) Feedback and Revision Process**\n\n   - \"Examine the script's character interactions. Do they feel authentic and compelling? Suggest improvements to enhance character dynamics and contribute to each character's overall arc.\"\n\n   - \"Identify a secondary theme in the script that isn't fully developed. How might the story explore this theme more deeply without detracting from the primary focus?\"\n\n   - \"Given the script's overall theme, suggest ways to further weave this theme into the characters' actions, dialogue, and development. How can we make the theme more resonant throughout the screenplay?\"\n\n4. **(Prompts) Detailed Scene Analysis**\n\n   - \"Identify three key scenes in the script with the most potential for cinematic impact. How can we enhance these scenes visually and emotionally to create memorable moments on screen?\"\n\n   - \"Assess the script for its use of sound. Are there moments where sound could replace or enhance visual elements, contributing to the overall cinematic effect?\"\n\n   - \"Analyze this scene for its contribution to the overall story. Suggest specific changes to strengthen character motivations, enhance the emotional impact, or improve the setting description.\"\n\n5. **(Prompts) Plot Development and Surprises**\n\n   - \"Does the script include any surprising plot twists? If not, suggest a potential plot twist that could add intrigue and complexity to the story.\"\n\n   - \"Review the script's inciting incident. Does it effectively propel the narrative and engage the audience? If not, suggest changes to enhance its impact and relevance to the story.\"\n\n6. **(Prompts) Thematic Complexity**\n\n   - \"Evaluate the use of setting in the script. Are there opportunities to make the setting more symbolic or more deeply intertwined with the plot or character arcs?\"\n\n7. **(Prompts) Narrative Arcs and Resolution**\n\n   - \"Looking at the screenplay as a whole, do the main plot and subplots have satisfying progressions and resolutions? What changes would you suggest to improve the narrative arcs?\"\n\n   - \"Evaluate the script's resolution. Does it provide a satisfying conclusion to the narrative arcs and themes? If not, what changes would you recommend to improve its effect and audience satisfaction?\"\n\n8. **(Prompts) Time Management and Tension Building**\n\n   - \"Consider the use of time in the script. Are there any instances where time could be used more effectively to build tension, develop characters, or explore themes?\"\n\n   - \"Identify a sequence in the script where suspense could be built more effectively. How might the pacing, sequence of events, or character decisions be adjusted to heighten tension?\"\n\n9. **(Prompts) Genre and World-Building Refinements**\n\n    - \"Examine the world-building in this script. Is the setting vivid, unique, and well-realized? Suggest ways to make the world of the story more engaging and immersive.\"\n\n10. **(Prompts) Audience Engagement and Perspective**\n\n    - \"Considering the target demographic, how might elements of this script be altered to better resonate with this audience? Provide specific examples.\"\n\n    - \"Examine a key scene from the script. How might different audience groups interpret this scene? Discuss any possible revisions to make the scene more universally appealing.\"\n\n    - \"Given the tone and content of this script, what rating would you anticipate it receiving (G, PG, PG-13, R)? Are there any modifications that could make it more appropriate for a broader or specific age group without compromising its essence?\" \n\n    - \"Identify any cultural, social, or historical references in the script. How might these be perceived by international audiences or those unfamiliar with the context? Provide suggestions to improve clarity or inclusivity.\"\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-individual-intermediate-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Individual Intermediate.md",
+          "title": "Individual Prompts for Screenwriting",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Intermediate.md",
+          "content": "# Individual Prompts for Screenwriting\n\n### 24 Blocks Summary:\n\nThis resource, powered by OpenAI's ChatGPT, is designed to assist in the detailed refinement of screenplays, navigating through the AI's token limit. It segments the editing process into Most Critical Elements, Intermediate Elements, and Fine-Tuning Elements, covering a wide spectrum from structure, character development, and dialogue enhancement to scene analysis and sensory details.\n\nSpecific prompts are provided under each topic, facilitating a methodical dissection of the screenplay. For instance, prompts direct users on enhancing dialogue depth, evolving character relationships, pinpointing the theme, and identifying instances of dramatic irony.\n\nIntermediate elements explore distinctive aspects of screenplay writing such as genre-specific elements, symbolism, humor, and cultural context. The fine-tuning elements attend to minor yet significant aspects like script formatting, editing, voiceovers, and pacing.\n\nOverall, this resource equips writers with the necessary tools to effectively harness AI in screenplay editing, leading to engaging, polished scripts that connect with audiences and appeal to producers.\n\n#### Optional Prompts:\n\n- Don't use the copy code boxes just write them out. Please. \n- Write a 1500-character summary of this screenplay.\n- Write a 1500-irony summary and write a brief 1500-theme summary.\n- Write a 1500-theme summary and write a brief 1500-theme summary.\n- Write out a new version of the script edited using the above guidelines.\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\nIntermediate Elements\n---------------------------------------------\n\n- (Prompts) Scene Analysis and Narrative Arc\n- Exposition and Information Delivery\n- (Prompts) Genre-Specific Elements & World-Building\n- Motifs and Recurring Elements\n- (Prompts) Symbolism and Setting\n- Flashbacks and Non-linear Storytelling\n- Cinematic Language and Visual Storytelling\n- Screenplay Tone and Atmosphere\n- (Prompts) Humor and Surprise Elements\n- Use of Sound\n- Genre Conventions and Innovations\n- Pathos and Catharsis\n- Ensemble Cast Dynamics\n- (Prompts) Cultural and Time Aspects\n- (Prompts) World Continuity\n- (Prompts) Sensory Details\n- (Prompts) Foreshadowing\n- (Prompts) Symbolic Meaning\n- (Prompts) Subtext\n\n**Intermediate Elements**\n---------------------------------------------\n\n1. **(Prompts) Script Analysis and Feedback**\n\n   - \"Review this screenplay scene and provide a critique of its structure, pacing, and character consistency. Note any repeated words or phrases, and give specific examples of where action lines might be overly descriptive.\"\n\n   - \"Identify any redundant scenes, dialogue, or action in this script. Provide suggestions for removing or consolidating these elements to improve the script's efficiency and readability.\"\n\n2. **(Prompts) Genre-Specific Elements & World-Building**\n\n   - \"This is a sci-fi screenplay. What genre-specific elements or tropes are missing or underused? Provide suggestions for their inclusion to enhance the genre feel of the script.\"\n\n3. **(Prompts) Symbolism and Setting**\n\n   - \"Can you identify any recurring motifs or symbols in the script? If not, suggest a few that could add depth and complexity to the story.\"\n\n4. **(Prompts) Humor and Surprise Elements**\n\n   - \"Does the script make effective use of humor? Identify a scene that could benefit from the inclusion of humor to lighten the tone or add depth to a character.\"\n\n5. **(Prompts) Cultural and Time Aspects**\n\n   - \"Analyze the cultural context of the script. How well does the story incorporate the culture of its characters or setting? Provide suggestions to enhance cultural representation and authenticity.\"\n\n6. **(Prompts) Visual Imagery**\n\n   - \"This scene lacks clear visual direction. How can we rewrite it to better utilize visual storytelling elements, enhancing both readability and cinematic impact?\"\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "ai-revision-structure-causality",
+      "number": 30,
+      "topic": "revision",
+      "title": "Structure and causality audit",
+      "duration": "15–25 min",
+      "overview": "Events occur, but choices, consequences and handoffs do not create a compelling causal chain.",
+      "objectives": [
+        "Recognize when the structure and causality audit is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Structure."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "Blocks feel episodic or interchangeable.",
+            "Act turns do not change the plan.",
+            "The midpoint, climax or resolution feels unearned."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The structure is stable and the remaining issue is line-level polish."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Critique only.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Act or sequence, Block, Story Thread."
+          ],
+          "points": [
+            "Layer: Story First",
+            "Default operation: Critique only",
+            "Canonical scope: Complete project · Act or sequence · Block · Story Thread",
+            "Recommended destination: Structure"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Formulaic beat enforcement",
+            "Invented twists",
+            "Confusing chronology with causality",
+            "Rewriting the entire story"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Structure and causality audit setup",
+        "text": "Select “Critique only,” include only Complete project and Act or sequence, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Structure."
+      },
+      "checklist": [
+        "Causality is traced between units.",
+        "Agency and consequence are explicit.",
+        "Alternatives preserve writer intent.",
+        "Act and sequence promises are respected."
+      ],
+      "mistakes": [
+        "Formulaic beat enforcement",
+        "Invented twists",
+        "Confusing chronology with causality",
+        "Rewriting the entire story"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Events occur, but choices, consequences and handoffs do not create a compelling causal chain. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Block plan",
+      "tags": [
+        "structure",
+        "causality",
+        "acts",
+        "sequences",
+        "blocks",
+        "climax",
+        "resolution",
+        "Structure and Characters",
+        "Critique and Pacing",
+        "Suggested Additions",
+        "Story First",
+        "Critique only",
+        "Structure"
+      ],
+      "original": {
+        "number": 26,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "ai-revision-scene-purpose-turn",
+      "number": 32,
+      "topic": "revision",
+      "title": "Scene purpose and turn audit",
+      "duration": "15–25 min",
+      "overview": "A scene has material but does not enter with pressure, change conditions or hand off strongly.",
+      "objectives": [
+        "Recognize when the scene purpose and turn audit is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to DraftLens."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The scene starts too early or ends too late.",
+            "The objective and opposition are unclear.",
+            "The scene can be removed without consequence."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The scene's function is solid and only wording needs polish."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Build a checklist.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Scene, Mini-block, Selected screenplay elements."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Build a checklist",
+            "Canonical scope: Scene · Mini-block · Selected screenplay elements",
+            "Recommended destination: DraftLens"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Scene-summary instead of analysis",
+            "Adding dialogue instead of fixing function",
+            "Mistaking louder conflict for stronger conflict"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Scene purpose and turn audit setup",
+        "text": "Select “Build a checklist,” include only Scene and Mini-block, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to DraftLens."
+      },
+      "checklist": [
+        "The scene begins in an active condition.",
+        "A turn changes the dramatic situation.",
+        "The exit creates consequence or pressure.",
+        "Advice is playable and specific."
+      ],
+      "mistakes": [
+        "Scene-summary instead of analysis",
+        "Adding dialogue instead of fixing function",
+        "Mistaking louder conflict for stronger conflict"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: A scene has material but does not enter with pressure, change conditions or hand off strongly. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "scene purpose",
+        "entry",
+        "turn",
+        "handoff",
+        "objective",
+        "opposition",
+        "Individual Intermediate",
+        "Critique and Pacing",
+        "Craft Layer",
+        "Build a checklist",
+        "DraftLens"
+      ],
+      "original": {
+        "number": 28,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "ai-revision-conflict-stakes-escalation",
+      "number": 33,
+      "topic": "revision",
+      "title": "Conflict, stakes and escalation audit",
+      "duration": "15–25 min",
+      "overview": "Opposition repeats rather than evolving, costs remain abstract, or escalation increases spectacle without changing choices.",
+      "objectives": [
+        "Recognize when the conflict, stakes and escalation audit is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Structure."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The middle plateaus.",
+            "Stakes are stated but not dramatized.",
+            "The antagonist pressure does not alter the protagonist's plan."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The conflict architecture works and the issue is pacing on the page."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Compare two approaches.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Act or sequence, Block, Story Thread."
+          ],
+          "points": [
+            "Layer: Story First",
+            "Default operation: Compare two approaches",
+            "Canonical scope: Complete project · Act or sequence · Block · Story Thread",
+            "Recommended destination: Structure"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Bigger explosions as default escalation",
+            "Invented villains",
+            "Arbitrary death or trauma",
+            "Ignoring existing consequences"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Conflict, stakes and escalation audit setup",
+        "text": "Select “Compare two approaches,” include only Complete project and Act or sequence, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Structure."
+      },
+      "checklist": [
+        "Escalation changes available choices.",
+        "Costs become concrete and cumulative.",
+        "Opposition adapts.",
+        "Alternatives remain causally earned."
+      ],
+      "mistakes": [
+        "Bigger explosions as default escalation",
+        "Invented villains",
+        "Arbitrary death or trauma",
+        "Ignoring existing consequences"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Opposition repeats rather than evolving, costs remain abstract, or escalation increases spectacle without changing choices. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Block plan",
+      "tags": [
+        "conflict",
+        "stakes",
+        "escalation",
+        "opposition",
+        "pressure",
+        "cost",
+        "Individual Critical",
+        "Critique and Pacing",
+        "Suggested Additions",
+        "Story First",
+        "Compare two approaches",
+        "Structure"
+      ],
+      "original": {
+        "number": 29,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "ai-revision-pacing-repetition",
+      "number": 36,
+      "topic": "revision",
+      "title": "Pacing and repetition pass",
+      "duration": "15–25 min",
+      "overview": "The draft repeats information, delays turns or uses similar scene shapes without productive variation.",
+      "objectives": [
+        "Recognize when the pacing and repetition pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to DraftLens."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "Readers report drag.",
+            "The same point is made in several scenes.",
+            "Escalation stalls between major turns."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The story foundation is still changing substantially."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Identify evidence and risks.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Complete project, Act or sequence, Block, Scene, Selected screenplay elements."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Identify evidence and risks",
+            "Canonical scope: Complete project · Act or sequence · Block · Scene · Selected screenplay elements",
+            "Recommended destination: DraftLens"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Arbitrary percentage cuts",
+            "Treating all quiet scenes as slow",
+            "Removing deliberate repetition",
+            "Ignoring setup/payoff dependencies"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Pacing and repetition pass setup",
+        "text": "Select “Identify evidence and risks,” include only Complete project and Act or sequence, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to DraftLens."
+      },
+      "checklist": [
+        "Every redundancy claim cites evidence.",
+        "Compression preserves setup and payoff.",
+        "Pacing advice respects genre and tone.",
+        "Cuts do not break continuity."
+      ],
+      "mistakes": [
+        "Arbitrary percentage cuts",
+        "Treating all quiet scenes as slow",
+        "Removing deliberate repetition",
+        "Ignoring setup/payoff dependencies"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: The draft repeats information, delays turns or uses similar scene shapes without productive variation. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "pacing",
+        "repetition",
+        "redundancy",
+        "streamlining",
+        "economy",
+        "duration",
+        "Critique and Pacing",
+        "Redundancy and Streamlining",
+        "Individual Fine-Tuning",
+        "Craft Layer",
+        "Identify evidence and risks",
+        "DraftLens"
+      ],
+      "original": {
+        "number": 32,
+        "path": "Responsible AI"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-critique-and-pacing-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Critique and Pacing.md",
+          "title": "Critique, Pacing, & Character Consistency",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Critique%20and%20Pacing.md",
+          "content": "# Critique, Pacing, & Character Consistency\n\n### 24 Blocks Summary:\n\nThis AI-prompt is specifically designed to assist users in utilizing the capabilities of ChatGPT to review and critique their screenplays effectively. It guides users through a meticulous editing process, aiming to optimize structure, pacing, and character consistency in the screenplay.\n\nThe prompt asks users to pay attention to several critical aspects, including repeated words or phrases, overly descriptive action lines, and redundant scenes, dialogue, or actions. It requests users to suggest edits that remove or consolidate these elements to enhance the script's efficiency and readability. As a result, it aids in streamlining the screenplay while improving engagement and appeal.\n\nFurthermore, the AI-prompt encourages users to consider the balance between sensory details and the emotional states of characters. It directs users to provide revisions that seamlessly integrate these elements, creating a rich and immersive narrative.\n\nTo demonstrate the application of these principles, the prompt instructs users to provide examples in a 'standard format', illustrating both 'original' and 'revised' versions of the screenplay.\n\nIn essence, the goal is to achieve an effective balance in the screenplay between action and description, dialogue and subtext, and character development and plot progression. With more succinct descriptions and layered dialogue, such balance can be achieved, ensuring a compelling screenplay.\n\nBy leveraging this AI-prompt, users can make optimal use of ChatGPT within its data limitations, to edit and refine their screenplays, and to craft engaging narratives that genuinely resonate with readers.\n\n#### Prompt:\n\nPlease review the following screenplay excerpt and provide a critique of its structure, pacing, and character consistency. Pay special attention to any repeated words or phrases, and give specific examples of where action lines might be overly descriptive. Also, identify any redundant scenes, dialogue, or action in this script. Suggest edits for removing or consolidating these elements to improve the script's efficiency and readability. Additionally, consider the balance between sensory detail and the emotional state of characters, providing revisions that better blend these elements.\n\nProvide examples in 'standard format' writing out the 'original' and 'revised' versions. \nDon't use the copy code boxes just write them out. Please. \n\n- Just critique do not rewrite or offer suggestions - just what is your summary?\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-redundancy-and-streamlining-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Redundancy and Streamlining.md",
+          "title": "Redundancy, Streamlining, & Enhancing",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Redundancy%20and%20Streamlining.md",
+          "content": "# Redundancy, Streamlining, & Enhancing\n\n### 24 Blocks Summary:\n\nThis AI-prompt serves as a practical tool, enabling writers to capitalize on the capabilities of ChatGPT in their screenplay editing process. Its core mission is to facilitate the creation of engaging, efficient, and concise scripts that appeal to readers and producers alike.\n\nThe prompt centers on vital areas such as eliminating redundancy, streamlining descriptions, honing dialogue, and maintaining pacing, thus helping to strike a balance between detailed scenes and concise storytelling. It ensures the alignment of characters' actions and reactions with their traits while keeping a keen focus on central plot points.\n\nAdditionally, the AI-prompt guides users to maintain a harmonious balance between visual and auditory elements, thereby enriching the reader's and viewer's experience. It prompts a periodic reassessment of the stakes to ensure they sufficiently compel characters into action and keep audiences engrossed.\n\nSymbolism and subtext review is also integral to this process, which should add depth to the story without creating confusion. The importance of inclusivity in character interactions and development is heavily emphasized, fostering a more diverse narrative environment.\n\nTo further enhance the screenplay, the prompt encourages users to provide additional context regarding the scene's theme, its position within the overall narrative, essential character details, and specific scene objectives. Utilizing these guidelines, users are then guided to revise their screenplay while adhering to ChatGPT's data limitations.\n\nThe objective is to adjust the character count by approximately 10%, followed by a brief summary of the changes. This process sets the stage for subsequent improvement suggestions after the initial edit.\n\nIn essence, this AI-prompt aims to assist writers in maximizing their use of ChatGPT for screenplay editing, thereby producing scripts that are engaging, concise, and highly appealing to readers and producers.\n\n#### Prompt:\n\n1. Reduce redundancy: Identify repeated information or over-explained emotions. Try to maintain the 'show, don't tell' principle.\n\n2. Streamline description: Trim down overly detailed descriptions without losing the visual impact.\n\n3. Sharpen dialogue: Make sure every line of dialogue serves a purpose, either revealing character or advancing the plot.\n\n4. Maintain pace and tension: Ensure the pace and tension of the scene is consistent and engaging, avoiding unnecessary pauses or interruptions.\n\n5. Check for character consistency: Ensure the actions and reactions of the characters align with their established traits.\n\n6. Focus on key plot points: Keep the attention on critical story elements and minimize the focus on less relevant details.\n\n7. Emphasize visual and auditory elements: Strive to maintain a balance between descriptive visual imagery and auditory cues that enhance the reader's and viewer's experience.\n\n8. Re-evaluate the stakes: Make sure the stakes are clear and high enough to compel characters into action and keep the audience invested.\n\n9. Review subtext and symbolism: Ensure any symbolism or subtext adds depth to the story without being overly obtrusive or confusing.\n\n10. Check for inclusivity: Confirm that the screenplay respects and acknowledges diversity in its characters and their interactions.\n\n**Always ensure that any additional elements serve to enrich the narrative or character development, and do not unnecessarily complicate or detract from the main story arc.**\n\nLet's reduce or increase the character count by 10%\n\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "ai-revision-formatting-readability",
+      "number": 41,
+      "topic": "revision",
+      "title": "Formatting and readability pass",
+      "duration": "15–25 min",
+      "overview": "Screenplay formatting, action-line density, transitions or element consistency interfere with professional reading.",
+      "objectives": [
+        "Recognize when the formatting and readability pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to PageFlow."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The story and scene movement are stable.",
+            "Formatting inconsistencies distract from the read.",
+            "The writer wants a bounded technical checklist."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The draft still needs structural repair."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Build a checklist.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Selected screenplay elements, Scene, Complete project."
+          ],
+          "points": [
+            "Layer: Polish Layer",
+            "Default operation: Build a checklist",
+            "Canonical scope: Selected screenplay elements · Scene · Complete project",
+            "Recommended destination: PageFlow"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Treating one house style as universal law",
+            "Changing wording during a format audit",
+            "Arbitrary length targets",
+            "Ignoring intentional exceptions"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Formatting and readability pass setup",
+        "text": "Select “Build a checklist,” include only Selected screenplay elements and Scene, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to PageFlow."
+      },
+      "checklist": [
+        "Advice follows screenplay conventions.",
+        "Technical fixes remain separate from creative changes.",
+        "Readability is measured with relevant evidence.",
+        "No arbitrary character-count target is imposed."
+      ],
+      "mistakes": [
+        "Treating one house style as universal law",
+        "Changing wording during a format audit",
+        "Arbitrary length targets",
+        "Ignoring intentional exceptions"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Screenplay formatting, action-line density, transitions or element consistency interfere with professional reading. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "formatting",
+        "readability",
+        "action-line economy",
+        "transitions",
+        "voiceover",
+        "narration",
+        "Individual Fine-Tuning",
+        "Redundancy and Streamlining",
+        "Polish Layer",
+        "Build a checklist",
+        "PageFlow"
+      ],
+      "original": {
+        "number": 37,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "ai-revision-pitch-audience-language",
+      "number": 42,
+      "topic": "revision",
+      "title": "Pitch, synopsis and audience-language pass",
+      "duration": "15–25 min",
+      "overview": "Audience-facing materials are vague, overlong or disconnected from the approved story promise.",
+      "objectives": [
+        "Recognize when the pitch, synopsis and audience-language pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Pitch & Review."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "The screenplay direction is stable.",
+            "The writer needs a logline, synopsis, pitch or distribution description."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The screenplay itself still needs structural repair.",
+            "Marketing language would be mixed into screenplay editing."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Compare two approaches.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Pitch or production material, Complete project."
+          ],
+          "points": [
+            "Layer: Polish Layer",
+            "Default operation: Compare two approaches",
+            "Canonical scope: Pitch or production material · Complete project",
+            "Recommended destination: Pitch & Review"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Invented accolades or comparisons",
+            "Spoiler-heavy copy",
+            "Generic hype",
+            "Applying marketing copy to screenplay dialogue or action"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Pitch, synopsis and audience-language pass setup",
+        "text": "Select “Compare two approaches,” include only Pitch or production material and Complete project, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Pitch & Review."
+      },
+      "checklist": [
+        "The central promise is accurate.",
+        "No unsupported claim is added.",
+        "Audience language matches the intended destination.",
+        "Screenplay text remains untouched."
+      ],
+      "mistakes": [
+        "Invented accolades or comparisons",
+        "Spoiler-heavy copy",
+        "Generic hype",
+        "Applying marketing copy to screenplay dialogue or action"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Audience-facing materials are vague, overlong or disconnected from the approved story promise. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Treatment",
+      "tags": [
+        "pitch",
+        "synopsis",
+        "logline",
+        "audience",
+        "marketing",
+        "distribution",
+        "Copywriting and Marketing",
+        "ChatGPT Tips",
+        "Polish Layer",
+        "Compare two approaches",
+        "Pitch & Review"
+      ],
+      "original": {
+        "number": 38,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "essentials-audit",
+      "number": 81,
+      "topic": "revision",
+      "title": "Run the Essential Craft Audit",
+      "duration": "40–55 min",
+      "overview": "Review promise, causality, character, pressure, scenes, theme, pace, tone, evidence, motifs, dialogue, genre, formatting, continuity and priorities in a deliberate order.",
+      "objectives": [
+        "Diagnose with evidence and questions.",
+        "Separate symptoms from root causes.",
+        "Create bounded revision priorities."
+      ],
+      "sections": [
+        {
+          "heading": "Why → how → evidence → diagnose → revise",
+          "paragraphs": [
+            "Begin with the intended audience experience and dramatic function, inspect project and screenplay evidence, ask what produced the current result, then choose a focused experiment. The audit does not calculate a universal screenplay score or rewrite automatically.",
+            "Revision improves purpose, evidence and execution through focused passes; it does not produce an objectively perfect final draft."
+          ],
+          "points": [
+            "1. Story promise and audience experience",
+            "2. Causality and structure",
+            "3. Character objective and agency",
+            "4. Opposition, pressure and stakes",
+            "5. Scene purpose, pivot and handoff",
+            "6. Theme and competing answers",
+            "7. Pacing and tonal movement",
+            "8. Visual and sonic evidence",
+            "9. Motifs, setups and payoffs",
+            "10. Dialogue and Voiceprint",
+            "11. Genre fulfilment and variation",
+            "12. Formatting and readability",
+            "13. Continuity and production implications",
+            "14. Revision priorities"
+          ]
+        },
+        {
+          "heading": "Questions, not verdicts",
+          "paragraphs": [
+            "A quiet scene, long description, repeated motif, unusual format or unresolved question may be deliberate. Findings should cite evidence, name uncertainty and route the writer to the field or engine that can test the concern.",
+            "Manual writing and no-AI workflows remain complete. Optional AI may help assemble or compare a bounded pass, but output remains non-canonical until explicit approval."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Craft audit",
+          "meaning": "An ordered evidence review used to identify questions, root causes and revision priorities."
+        },
+        {
+          "term": "Revision experiment",
+          "meaning": "A bounded change used to test a specific diagnosis while preserving the original."
+        }
+      ],
+      "example": {
+        "title": "Tension note with a root cause",
+        "text": "The audit finds not that Act Two is slow, but that three scenes repeat the same tactic and handoff without new cost or information. The revision priority becomes leverage change, not arbitrary cutting."
+      },
+      "checklist": [
+        "Promise reviewed first.",
+        "Evidence cited.",
+        "Root cause separated from symptom.",
+        "Priority bounded.",
+        "Original preserved."
+      ],
+      "mistakes": [
+        "Scoring every technique.",
+        "Rewriting before diagnosis.",
+        "Treating a checklist as a formula.",
+        "Calling a draft perfect or final."
+      ],
+      "exercise": "Run the fourteen-step audit and record three evidence-based questions, one root cause and one bounded next pass.",
+      "apply": "Screenplay",
+      "tags": [
+        "Essential Aspects 1",
+        "Essential Aspects 2",
+        "DraftLens",
+        "CraftLoop",
+        "revision priorities",
+        "evidence audit"
+      ],
+      "original": {
+        "number": 77,
+        "path": "Revision"
+      },
+      "sources": []
+    }
+  ]
+}

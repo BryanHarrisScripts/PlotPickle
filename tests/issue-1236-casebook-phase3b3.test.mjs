@@ -1,0 +1,177 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { runProfileIsolationLiveCase } from "../scripts/creative-uat/casebook-profile-isolation-live.mjs";
+import {
+  createPhase3b3StepDrivers,
+  finalizePhase3b3Proof,
+  verifyGreatHallEvidence,
+} from "../scripts/creative-uat/casebook-phase3b3-live.mjs";
+import { loadCasebook } from "../scripts/casebook-contract.mjs";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function event(id = "event-1", overrides = {}) {
+  return {
+    id,
+    content: "PlotPickle Casebook marker-1",
+    author: "Casebook Human",
+    createdAt: "2026-08-22T00:00:00.000Z",
+    raw: { pubkey: "pubkey-casebook-human", ...overrides },
+  };
+}
+
+test("#1236 Phase 3B3 profile isolation performs real encrypted two-Human boundary checks and deliberate cross-profile faults", async () => {
+  const result = await runProfileIsolationLiveCase();
+  assert.equal(result.caseId, "profile-isolation");
+  assert.equal(result.mode, "real-machine");
+  assert.equal(result.profileCount, 2);
+  assert.equal(result.independentVerification.status, "verified");
+  assert.equal(result.independentVerification.source, "profile-boundary-observer");
+  assert.equal(result.observations.every((item) => item.status === "verified"), true);
+  assert.ok(result.faults.length >= 2);
+  assert.equal(result.faults.every((item) => ["blocked", "fail"].includes(item.outcome)), true);
+  assert.equal(result.rootRetained, "");
+});
+
+test("#1236 Great Hall verifier requires one stable event id and rejects duplicates or signer mismatch", () => {
+  const marker = "PlotPickle Casebook marker-1";
+  const original = event();
+  const pass = verifyGreatHallEvidence({
+    marker,
+    initialMessages: [original],
+    reloadMessages: [structuredClone(original)],
+    humanIdentity: { pubkey: "pubkey-casebook-human" },
+  });
+  assert.equal(pass.status, "verified");
+  assert.equal(pass.source, "buzz-event-observer");
+  assert.equal(pass.metadata.eventId, "event-1");
+  assert.equal(pass.metadata.signerMatched, true);
+
+  const duplicate = verifyGreatHallEvidence({
+    marker,
+    initialMessages: [original, structuredClone(original)],
+    reloadMessages: [original],
+    humanIdentity: { pubkey: "pubkey-casebook-human" },
+  });
+  assert.equal(duplicate.status, "contradicted");
+  assert.match(duplicate.summary, /exactly one/i);
+
+  const wrongSigner = verifyGreatHallEvidence({
+    marker,
+    initialMessages: [event("event-1", { pubkey: "wrong-pubkey" })],
+    reloadMessages: [event("event-1", { pubkey: "wrong-pubkey" })],
+    humanIdentity: { pubkey: "pubkey-casebook-human" },
+  });
+  assert.equal(wrongSigner.status, "contradicted");
+  assert.match(wrongSigner.summary, /signer/i);
+});
+
+test("#1236 Phase 3B4 exposes exact Profile/BUZZ drivers before signer verification", () => {
+  const browser = {
+    clickVisible: async () => false,
+    fillByLabel: async () => ({ ok: false, method: "test" }),
+    navigate: async () => {},
+    currentState: async () => ({ url: "http://127.0.0.1:4173/" }),
+  };
+  const client = { call: async () => ({ content: [{ type: "text", text: '{"ok":false}' }] }) };
+  const drivers = createPhase3b3StepDrivers({ browser, client, runState: {} });
+  for (const key of [
+    "profile-isolation:unlock-a",
+    "profile-isolation:create-private-a",
+    "profile-isolation:switch-b",
+    "profile-isolation:deny-cross-profile",
+    "profile-isolation:restart-and-recheck",
+    "buzz-connect-existing-identity:open-profile-buzz",
+    "buzz-connect-existing-identity:enter-existing-key",
+    "buzz-connect-existing-identity:verify-signer",
+    "buzz-connect-existing-identity:persist-connected",
+    "buzz-connect-existing-identity:open-community",
+    "buzz-great-hall-signed-conversation:open-great-hall",
+    "buzz-great-hall-signed-conversation:send-message",
+    "buzz-great-hall-signed-conversation:observe-signed-event",
+    "buzz-great-hall-signed-conversation:read-back",
+    "buzz-great-hall-signed-conversation:reload-and-confirm",
+  ]) assert.equal(typeof drivers.get(key), "function", `missing Phase 3B driver ${key}`);
+});
+
+test("#1236 Phase 3B3 profile and BUZZ proofs use the Casebook-declared independent verifier sources", async () => {
+  const casebook = await loadCasebook();
+  const profile = casebook.cases.find((item) => item.id === "profile-isolation");
+  const profileRun = await runProfileIsolationLiveCase();
+  const profileProof = await finalizePhase3b3Proof({ caseDefinition: profile, runState: { profileIsolation: profileRun } });
+  assert.equal(profileProof.status, "verified");
+  assert.equal(profileProof.source, profile.independentVerification.source);
+
+  const buzz = casebook.cases.find((item) => item.id === "buzz-connect-existing-identity");
+  const buzzProof = await finalizePhase3b3Proof({
+    caseDefinition: buzz,
+    runState: {
+      buzzIdentity: {
+        connected: { identityVerified: true, humanCommunityAllowed: true, pubkey: "pubkey-a" },
+        persisted: { pubkey: "pubkey-a" },
+        communityOpened: true,
+      },
+    },
+  });
+  assert.equal(buzzProof.status, "verified");
+  assert.equal(buzzProof.source, buzz.independentVerification.source);
+});
+
+test("#1236 attended credential checkpoints wait for operator Enter with no countdown", async () => {
+  const [runner, runtime, phase] = await Promise.all([
+    readFile(path.join(repoRoot, "scripts", "run-casebook-attended.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "scripts", "casebook-attended-runtime.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live-core.mjs"), "utf8"),
+  ]);
+  assert.match(runtime, /resumePolicy: "operator-enter"/);
+  assert.match(runner, /await io\.question\("Press Enter here when the Human-authorized action is complete: "\)/);
+  assert.match(phase, /paused with no time limit/);
+  assert.match(phase, /waiting indefinitely for operator Enter/);
+  assert.doesNotMatch(runner, /Promise\.race\([^)]*io\.question/s);
+});
+
+test("#1236 attended BUZZ reloads refuse undefined navigation targets", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live-core.mjs"), "utf8");
+  assert.match(source, /const current = await browser\.currentState\(\)/);
+  assert.match(source, /refused to navigate with an undefined target/);
+  assert.doesNotMatch(source, /browser\.navigate\(location\.url\)/);
+  assert.doesNotMatch(source, /browser\.navigate\(current\.url\)/);
+});
+
+test("#1236 attended runner now executes B3 proof and faults instead of leaving a blanket pending-fault blocker", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "run-casebook-attended.mjs"), "utf8");
+  assert.match(source, /createPhase3b3StepDrivers/);
+  assert.match(source, /finalizePhase3b3Proof/);
+  assert.match(source, /runPhase3b3Faults/);
+  assert.match(source, /record\.faults = await runPhase3b3Faults/);
+  assert.match(source, /detectedFaults/);
+  assert.doesNotMatch(source, /Deliberate real-machine fault injection is still required before this attended record can become green/);
+  assert.match(source, /A case remains non-green if any critical step, independent proof or fault detector is missing/);
+});
+
+test("#1271 attended BUZZ uses the authenticated profile API as authority and the DOM marker only as supporting evidence", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  assert.match(source, /fetch\('\/api\/auth\/profile', \{ credentials: 'same-origin', cache: 'no-store' \}\)/);
+  assert.match(source, /response\.ok && body\.authenticated === true && Boolean\(profile\?\.profileId\)/);
+  assert.match(source, /domActive: Boolean\(active\)/);
+  assert.match(source, /profile API still reports no active Human after the Human checkpoint/);
+  assert.match(source, /supporting DOM marker=/);
+  assert.doesNotMatch(source, /csrfToken/);
+  assert.match(source, /createCorePhase3b3StepDrivers/);
+});
+
+test("#1273 attended BUZZ restores a drifted browser to the remembered PlotPickle origin before Human verification", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  assert.match(source, /function httpOrigin/);
+  assert.match(source, /URL\.canParse\(candidate\)/);
+  assert.match(source, /async function ensurePlotPickleBrowserPage/);
+  assert.match(source, /if \(expectedOrigin && httpOrigin\(beforeUrl\) === expectedOrigin\)/);
+  assert.match(source, /await browser\.navigate\(target\)/);
+  assert.match(source, /runState\.attendedPlotPickleOrigin = initialOrigin/);
+  assert.match(source, /const anchor = await ensurePlotPickleBrowserPage\(browser, runState\.attendedPlotPickleOrigin \|\| initialOrigin\)/);
+  assert.match(source, /re-anchored=\$\{anchor\.reanchored \? "yes" : "no"\}/);
+  assert.doesNotMatch(source, /csrfToken/);
+});

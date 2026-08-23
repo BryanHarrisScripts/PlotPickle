@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "id": "sage-help-followup-637",
+      "label": "Sage help and follow-up repair",
+      "baseSha": "6b232b0a87f0222383742697cd0fed865964bd66",
+      "historicalIssues": [634, 635],
+      "prompt": "Reproduce and repair two Sage Creative Room failures on this historical PlotPickle revision. First, asking 'Can you help me?' can fall through to a broken-response recovery message instead of a natural direct answer. Second, asking 'Can you give me a shorter version of that?' can restart a fragile model turn and fail instead of editing Sage's immediately previous answer. Preserve one visible Sage personality, keep simple help and shortening fast, make the smallest architecture-consistent change, add a focused regression before or alongside the repair, and do not weaken existing UAT. Do not commit, push, open a PR, or merge.",
+      "verify": [
+        "node --test tests/issue-601-sage-personality-and-answer-quality.test.mjs tests/issue-626-uat-findings-sage-repair.test.mjs",
+        "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
+        "npm run build"
+      ]
+    },
+    {
+      "id": "sage-visible-answer-640",
+      "label": "Sage visible-answer timeout and craft recovery",
+      "baseSha": "8299b80c8c8c9fba4afdad163722cdd01ad047e1",
+      "historicalIssues": [638, 639],
+      "prompt": "Reproduce and repair the historical Sage focused-UAT failures where an identity question can time out waiting for a visible reply and a curriculum/craft question can exhaust local model repair and leave the Creative Room without a useful visible answer. Keep identity on the deterministic safety path, preserve curriculum grounding and source lesson IDs, provide bounded visible-answer recovery rather than an empty/error response, and keep the browser UAT tolerant of valid message rendering rather than assuming a fixed DOM count. Add a focused regression, make the smallest safe diff, do not add a canned response bank, and do not commit, push, open a PR, or merge.",
+      "verify": [
+        "node --test tests/issue-601-sage-personality-and-answer-quality.test.mjs tests/issue-626-uat-findings-sage-repair.test.mjs tests/issue-637-first-uat-findings.test.mjs",
+        "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
+        "npm run build"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+.statusCard {
+  border-color: rgba(53, 201, 184, 0.3);
+  background: linear-gradient(145deg, #111315, #0d1011);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  color: #f1eee7;
+}
+
+.statusCard > div:first-child > p:first-child {
+  color: #35c9b8;
+}
+
+.statusCard h2 {
+  color: #f1eee7;
+}
+
+.statusCard p,
+.statusCard small {
+  color: #aaa398;
+}
+
+.actions {
+  border-color: rgba(53, 201, 184, 0.2);
+  background: #0d1011;
+  box-shadow: none;
+}
+
+.actions > button:first-child {
+  border-color: rgba(53, 201, 184, 0.62);
+  background: rgba(53, 201, 184, 0.12);
+  color: #dff9f4;
+}
+
+.actions > button:first-child:hover {
+  background: rgba(53, 201, 184, 0.2);
+}
+
+.statusBadge {
+  border-color: #4e5558;
+  background: #171a1c;
+  color: #aaa398;
+}
+
+.statusBadge[data-state="loading"],
+.statusBadge[data-state="detected"],
+.statusBadge[data-state="connecting"] {
+  border-color: rgba(53, 201, 184, 0.4);
+  background: rgba(53, 201, 184, 0.08);
+  color: #65d8ca;
+}
+
+.statusBadge[data-state="connected"] {
+  border-color: rgba(53, 201, 184, 0.58);
+  background: rgba(53, 201, 184, 0.12);
+  color: #7be1d5;
+}
+
+.statusBadge[data-state="degraded"] {
+  border-color: rgba(200, 148, 70, 0.5);
+  background: rgba(200, 148, 70, 0.08);
+  color: #e3c48c;
+}

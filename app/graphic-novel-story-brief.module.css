@@ -1,0 +1,168 @@
+.panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(25, 74, 61, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(238, 251, 246, 0.94), rgba(244, 249, 255, 0.94));
+  box-shadow: 0 18px 48px rgba(18, 54, 45, 0.08);
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+}
+
+.heading > div {
+  display: grid;
+  gap: 6px;
+}
+
+.heading span,
+.heading h2,
+.heading p {
+  margin: 0;
+}
+
+.heading span {
+  color: #39705f;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.heading h2 {
+  color: #153e34;
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+}
+
+.heading p {
+  max-width: 78ch;
+  color: #526b63;
+  line-height: 1.55;
+}
+
+.heading > strong {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #183f35;
+  color: #fff;
+  font-size: 0.76rem;
+}
+
+.panel form {
+  display: grid;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.grid label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.grid label > span {
+  color: #173f35;
+  font-weight: 800;
+}
+
+.grid small {
+  min-height: 2.5em;
+  color: #667a74;
+  line-height: 1.35;
+}
+
+.grid textarea {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  border: 1px solid rgba(23, 63, 53, 0.2);
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #173f35;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.grid textarea:focus {
+  outline: 3px solid rgba(29, 122, 96, 0.17);
+  border-color: #1d7a60;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.actions button {
+  border: 1px solid rgba(23, 63, 53, 0.22);
+  border-radius: 11px;
+  padding: 10px 14px;
+  background: #fff;
+  color: #173f35;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actions .primary {
+  border-color: #173f35;
+  background: #173f35;
+  color: #fff;
+}
+
+.actions button:disabled,
+.grid textarea:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.note {
+  margin: 0;
+  color: #5f746d;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 860px) {
+  .heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .heading > strong {
+    align-self: flex-start;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .panel {
+    padding: 16px;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

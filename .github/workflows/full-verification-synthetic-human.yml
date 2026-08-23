@@ -1,0 +1,61 @@
+name: Full Verification Synthetic Human
+
+on:
+  pull_request:
+    paths:
+      - "scripts/full-verification-auth.mjs"
+      - "scripts/local-endpoint-runtime.mjs"
+      - "scripts/run-npx-stdio.mjs"
+      - "scripts/buzz-live-activity.mjs"
+      - "scripts/verify-buzz-live-activity.mjs"
+      - "scripts/verify-full-verification-synthetic-human.mjs"
+      - "tests/issue-1196-full-verification-synthetic-human.test.mjs"
+      - ".github/workflows/full-verification-synthetic-human.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-verification-synthetic-human-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-human:
+    name: ${{ matrix.name }} authenticated verification runtime
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+          - name: Linux x64
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate synthetic Human and inherited Auth/endpoint contracts
+        run: >-
+          node --test
+          tests/issue-1196-full-verification-synthetic-human.test.mjs
+          tests/issue-1142-server-session-boundary.test.mjs
+          tests/issue-1143-profile-experience.test.mjs
+          tests/issue-1155-local-endpoint-registry.test.mjs
+          tests/issue-1036-standalone-full-verification-windows.test.mjs
+
+      - name: Prove live authenticated browser through real profile boundary
+        run: node scripts/verify-full-verification-synthetic-human.mjs
+
+      - name: Production build
+        run: npm run build

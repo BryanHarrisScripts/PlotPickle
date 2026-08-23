@@ -1,0 +1,458 @@
+:root {
+  --pp-workspace-columns: minmax(240px, 19%) minmax(440px, 56%) minmax(300px, 25%);
+  --pp-workspace-columns-compact: 220px minmax(420px, 1fr) 280px;
+  --pp-continuity-bg: #07100e;
+  --pp-continuity-panel: #0c1714;
+  --pp-continuity-panel-raised: #10201c;
+  --pp-continuity-line: #285247;
+  --pp-continuity-text: #e8f7f2;
+  --pp-continuity-muted: #8ca69f;
+  --pp-continuity-teal: #36d9c2;
+  --pp-continuity-jade: #2f9d78;
+  --pp-continuity-gold: #d5ac63;
+  --pp-continuity-glow: rgba(54, 217, 194, 0.18);
+}
+
+/*
+ * Active workspace continuity contract.
+ * LEARN, PLAN and Wyrmwood already own three real content columns. These
+ * selectors normalize their desktop proportions without coupling the modules
+ * to one another or reviving parked historical workspaces.
+ */
+[data-active-workspace="learn"] main[data-preserve-story-language="true"],
+[data-active-workspace="plan"] main[data-preserve-story-language="true"],
+[data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main {
+  grid-template-columns: var(--pp-workspace-columns) !important;
+}
+
+/* Community becomes the same left-navigation / centre-work / right-context room. */
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child {
+  --community-bg: var(--pp-continuity-bg);
+  --community-panel: var(--pp-continuity-panel);
+  --community-panel-2: var(--pp-continuity-panel-raised);
+  --community-border: var(--pp-continuity-line);
+  --community-text: var(--pp-continuity-text);
+  --community-muted: var(--pp-continuity-muted);
+  --community-teal: var(--pp-continuity-teal);
+  /* Keep the legacy variable name for compatibility, but make it PlotPickle gold. */
+  --community-orange: var(--pp-continuity-gold);
+  display: grid !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-columns: var(--pp-workspace-columns) !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(54, 217, 194, 0.12), transparent 28rem),
+    radial-gradient(circle at 88% 8%, rgba(213, 172, 99, 0.08), transparent 24rem),
+    var(--pp-continuity-bg) !important;
+  color: var(--pp-continuity-text);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header {
+  display: contents !important;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:first-child {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  max-width: none !important;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--pp-continuity-line);
+  background: linear-gradient(180deg, rgba(16, 32, 28, 0.94), rgba(7, 16, 14, 0.84));
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:first-child h1 {
+  color: var(--pp-continuity-text);
+  text-shadow: 0 0 24px rgba(54, 217, 194, 0.1);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:first-child > span {
+  color: var(--pp-continuity-muted);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:last-child {
+  position: sticky;
+  top: 20px;
+  grid-column: 3;
+  grid-row: 1 / 4;
+  width: auto !important;
+  min-width: 0 !important;
+  align-self: start;
+  margin: 20px;
+  border-color: rgba(54, 217, 194, 0.36) !important;
+  background:
+    linear-gradient(180deg, rgba(16, 35, 30, 0.98), rgba(8, 20, 17, 0.98)) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.035),
+    0 0 28px rgba(54, 217, 194, 0.06);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:last-child::after {
+  display: block;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(213, 172, 99, 0.24);
+  color: var(--pp-continuity-muted);
+  content: "BUZZ carries signed discussion, presence and Guildhall receipts. PPF remains the creative record; GitHub remains the code and merge authority.";
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"] {
+  grid-column: 1;
+  grid-row: 1 / 5;
+  display: flex !important;
+  max-width: none !important;
+  min-height: 0;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 !important;
+  padding: 20px 14px 28px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-right: 1px solid var(--pp-continuity-line);
+  background:
+    linear-gradient(180deg, rgba(16, 32, 28, 0.98), rgba(8, 18, 16, 0.98));
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"]::before {
+  display: block;
+  margin: 2px 4px 12px;
+  color: var(--pp-continuity-gold);
+  content: "COMMUNITY · GUILDHALL";
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"] button {
+  width: 100%;
+  min-height: 42px;
+  flex: 0 0 auto !important;
+  padding: 10px 12px !important;
+  border-color: rgba(40, 82, 71, 0.72) !important;
+  background: rgba(8, 23, 19, 0.76) !important;
+  color: #9bb9b0 !important;
+  text-align: left;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"] button[aria-selected="true"] {
+  border-color: rgba(54, 217, 194, 0.66) !important;
+  background:
+    linear-gradient(90deg, rgba(54, 217, 194, 0.16), rgba(47, 157, 120, 0.05)) !important;
+  color: var(--pp-continuity-text) !important;
+  box-shadow: inset 3px 0 var(--pp-continuity-teal), 0 0 18px rgba(54, 217, 194, 0.05);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > section {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: none !important;
+  margin: 0 !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(213, 172, 99, 0.07), rgba(54, 217, 194, 0.035)) !important;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main {
+  grid-column: 2;
+  grid-row: 3;
+  min-width: 0;
+  min-height: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 20px 22px 38px;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(54, 217, 194, 0.04), transparent 24rem),
+    var(--pp-continuity-bg);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main button,
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main a {
+  border-color: rgba(40, 82, 71, 0.8);
+  background: #0b1815;
+  color: #b5cbc5;
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main button:hover:not(:disabled),
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main a:hover {
+  border-color: rgba(54, 217, 194, 0.68);
+  color: var(--pp-continuity-text);
+  box-shadow: 0 0 14px rgba(54, 217, 194, 0.05);
+}
+
+[data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > p[role="status"] {
+  grid-column: 2 / 4;
+  grid-row: 4;
+  max-width: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+}
+
+/* Settings uses permanent category navigation and contextual help rails. */
+[data-plotpickle-settings="v2"] {
+  display: grid !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-columns: var(--pp-workspace-columns) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(54, 217, 194, 0.09), transparent 28rem),
+    var(--pp-continuity-bg) !important;
+  color: var(--pp-continuity-text);
+}
+
+[data-settings-rail="navigation"],
+[data-settings-rail="context"] {
+  min-height: 0;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--pp-continuity-panel-raised), var(--pp-continuity-panel));
+}
+
+[data-settings-rail="navigation"] {
+  padding: 22px 16px 28px;
+  border-right: 1px solid var(--pp-continuity-line);
+}
+
+[data-settings-rail="navigation"] > header {
+  margin: 0 4px 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(40, 82, 71, 0.72);
+}
+
+[data-settings-rail="navigation"] > header p,
+[data-settings-rail="context"] section > p {
+  margin: 0 0 6px;
+  color: var(--pp-continuity-teal);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+[data-settings-rail="navigation"] h2,
+[data-settings-rail="context"] h2,
+[data-settings-rail="context"] h3 {
+  margin: 0;
+  color: var(--pp-continuity-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+[data-settings-rail="navigation"] h2 {
+  color: var(--pp-continuity-gold);
+  font-size: 24px;
+}
+
+[data-settings-rail="navigation"] header span,
+[data-settings-rail="context"] section > span,
+[data-settings-rail="context"] section > small {
+  display: block;
+  margin-top: 8px;
+  color: var(--pp-continuity-muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+[data-settings-rail="navigation"] nav {
+  display: grid;
+  gap: 7px;
+}
+
+[data-settings-rail="navigation"] nav a {
+  display: block;
+  padding: 11px 12px;
+  border: 1px solid rgba(40, 82, 71, 0.7);
+  border-radius: 7px;
+  background: rgba(8, 23, 19, 0.72);
+  color: #a9c0b9;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+[data-settings-rail="navigation"] nav a:hover,
+[data-settings-rail="navigation"] nav a:focus-visible {
+  border-color: rgba(54, 217, 194, 0.68);
+  background: rgba(54, 217, 194, 0.09);
+  color: var(--pp-continuity-text);
+  outline: none;
+}
+
+[data-settings-main] {
+  min-width: 0;
+  min-height: 0;
+  padding: 22px 24px 56px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(54, 217, 194, 0.045), transparent 24rem),
+    var(--pp-continuity-bg);
+  scroll-behavior: smooth;
+}
+
+[data-settings-main] > *,
+[data-settings-section] > * {
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+[data-settings-section] {
+  scroll-margin-top: 20px;
+}
+
+[data-settings-section] + [data-settings-section] {
+  margin-top: 16px !important;
+}
+
+[data-settings-rail="context"] {
+  padding: 20px 16px 28px;
+  border-left: 1px solid var(--pp-continuity-line);
+}
+
+[data-settings-rail="context"] section {
+  padding: 15px 14px;
+  border: 1px solid rgba(40, 82, 71, 0.72);
+  border-radius: 9px;
+  background: rgba(8, 23, 19, 0.76);
+}
+
+[data-settings-rail="context"] section + section {
+  margin-top: 10px;
+}
+
+[data-settings-rail="context"] section:nth-child(2) {
+  border-color: rgba(54, 217, 194, 0.38);
+  box-shadow: 0 0 20px rgba(54, 217, 194, 0.045);
+}
+
+[data-settings-rail="context"] section:nth-child(3) {
+  border-color: rgba(213, 172, 99, 0.34);
+}
+
+[data-settings-rail="context"] h2 {
+  font-size: 21px;
+}
+
+[data-settings-rail="context"] h3 {
+  font-size: 17px;
+}
+
+@media (max-width: 1050px) {
+  [data-active-workspace="learn"] main[data-preserve-story-language="true"],
+  [data-active-workspace="plan"] main[data-preserve-story-language="true"],
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child,
+  [data-plotpickle-settings="v2"] {
+    grid-template-columns: var(--pp-workspace-columns-compact) !important;
+  }
+
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main > aside:last-child {
+    display: block !important;
+  }
+}
+
+@media (max-width: 900px) {
+  [data-active-workspace="learn"] [data-workspace-frame="true"] > :first-child,
+  [data-active-workspace="plan"] [data-workspace-frame="true"] > :first-child,
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
+  [data-active-workspace="learn"] main[data-preserve-story-language="true"],
+  [data-active-workspace="plan"] main[data-preserve-story-language="true"],
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  [data-active-workspace="learn"] main[data-preserve-story-language="true"] > *,
+  [data-active-workspace="plan"] main[data-preserve-story-language="true"] > *,
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main > * {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child,
+  [data-plotpickle-settings="v2"] {
+    display: block !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header {
+    display: block !important;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:first-child,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:last-child,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > section,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > p[role="status"] {
+    margin: 0 !important;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:first-child,
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > main,
+  [data-settings-main] {
+    padding: 18px 14px 32px;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > header > div:last-child {
+    position: static;
+    margin: 12px 14px !important;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"] {
+    flex-direction: row;
+    padding: 10px 12px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    border-right: 0;
+    border-bottom: 1px solid var(--pp-continuity-line);
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"]::before {
+    display: none;
+  }
+
+  [data-active-workspace="community"] [data-workspace-frame="true"] > :first-child > nav[aria-label="Community sections"] button {
+    width: auto;
+    min-width: max-content;
+  }
+
+  [data-settings-rail="navigation"] {
+    border-right: 0;
+    border-bottom: 1px solid var(--pp-continuity-line);
+  }
+
+  [data-settings-rail="navigation"] nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-settings-rail="context"] {
+    border-top: 1px solid var(--pp-continuity-line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  [data-settings-rail="navigation"] nav {
+    grid-template-columns: 1fr;
+  }
+}

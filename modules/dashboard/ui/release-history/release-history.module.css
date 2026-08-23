@@ -1,0 +1,131 @@
+.panel {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid var(--plotpickle-border, rgba(127, 231, 214, 0.18));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--plotpickle-surface, #101716) 94%, transparent);
+  color: var(--plotpickle-text, #edf7f4);
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.heading p,
+.release header p {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: var(--plotpickle-accent, #65d6c2);
+}
+
+.heading h2 {
+  margin: 4px 0 8px;
+}
+
+.heading span,
+.summary,
+.release small {
+  color: var(--plotpickle-text-muted, #a8bbb5);
+}
+
+.heading > strong {
+  padding: 7px 10px;
+  border: 1px solid rgba(101, 214, 194, 0.28);
+  border-radius: 999px;
+  color: #d9ebe6;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.releases {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.release {
+  padding: 18px;
+  border: 1px solid rgba(127, 231, 214, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.release[data-latest="true"] {
+  border-color: rgba(101, 214, 194, 0.38);
+  background: rgba(101, 214, 194, 0.045);
+}
+
+.release > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.release h3 {
+  margin: 5px 0;
+}
+
+.release header span {
+  color: #cbd9d5;
+  font-size: 12px;
+}
+
+.release header > strong {
+  color: var(--plotpickle-accent, #65d6c2);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.summary {
+  max-width: 86ch;
+  line-height: 1.55;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.changeGroup {
+  padding: 12px;
+  border: 1px solid rgba(127, 231, 214, 0.11);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.changeGroup h4 {
+  margin: 0 0 8px;
+  color: #d9ebe6;
+}
+
+.changeGroup ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #c4d1cd;
+}
+
+.changeGroup li + li {
+  margin-top: 7px;
+}
+
+@media (max-width: 840px) {
+  .heading,
+  .release > header {
+    flex-direction: column;
+  }
+
+  .heading > strong {
+    white-space: normal;
+  }
+
+  .groups {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,21 @@
+/* Issue #452 — deterministic Storyboard deep-link focus.
+   A Plan handoff must visibly open the requested Storyboard section instead of
+   merely selecting it below the fold. The host removes this ordering as soon
+   as the writer chooses another Visual Board section. */
+
+.visual-studio-layout[data-storyboard-focus="overview"] [data-visual-section="overview"],
+.visual-studio-layout[data-storyboard-focus="characters"] [data-visual-section="characters"],
+.visual-studio-layout[data-storyboard-focus="locations"] [data-visual-section="locations"],
+.visual-studio-layout[data-storyboard-focus="assets"] [data-visual-section="assets"],
+.visual-studio-layout[data-storyboard-focus="language"] [data-visual-section="language"],
+.visual-studio-layout[data-storyboard-focus="blocks"] [data-visual-section="blocks"],
+.visual-studio-layout[data-storyboard-focus="frames"] [data-visual-section="frames"],
+.visual-studio-layout[data-storyboard-focus="pitch"] [data-visual-section="pitch"],
+.visual-studio-layout[data-storyboard-focus="diagnostics"] [data-visual-section="diagnostics"] {
+  order: -10;
+}
+
+.visual-studio-layout[data-storyboard-focus="frames"] [data-visual-section="frames"],
+.visual-studio-layout[data-storyboard-focus="blocks"] [data-visual-section="blocks"] {
+  scroll-margin-top: 128px;
+}

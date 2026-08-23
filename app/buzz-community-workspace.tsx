@@ -1,0 +1,118 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import styles from "./buzz-community-workspace.module.css";
+
+const COMMUNITY_PORTAL_URL = "https://app.builderlab.xyz/buzz";
+const PLOTPICKLE_SERVER_INVITE_URL = process.env.NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL?.trim() || "";
+const BUZZ_STATUS_API = "/api/local-buzz/status";
+
+type BuzzCommunityStatus = {
+  connection?: {
+    configured?: boolean;
+    relayUrl?: string;
+    community?: string;
+    identityVerified?: boolean;
+  };
+  cli?: { available?: boolean };
+};
+
+function buzzDesktopUrl(value: string, name: string) {
+  try {
+    const url = new URL(value);
+    if (!["ws:", "wss:"].includes(url.protocol)) return "";
+    url.hash = "";
+    url.search = "";
+    const query = new URLSearchParams({ relay: url.toString().replace(/\/$/, "") });
+    if (name.trim()) query.set("name", name.trim());
+    return `buzz://add-community?${query.toString()}`;
+  } catch {
+    return "";
+  }
+}
+
+export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const [status, setStatus] = useState<BuzzCommunityStatus | null>(null);
+  const [statusError, setStatusError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch(BUZZ_STATUS_API, { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Buzz status is unavailable.");
+        return response.json() as Promise<BuzzCommunityStatus>;
+      })
+      .then((body) => { if (!cancelled) setStatus(body); })
+      .catch((error) => { if (!cancelled) setStatusError(error instanceof Error ? error.message : "Buzz status is unavailable."); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const relayUrl = status?.connection?.relayUrl?.trim() || "";
+  const communityName = status?.connection?.community?.trim() || "";
+  const desktopUrl = buzzDesktopUrl(relayUrl, communityName);
+  const desktopReady = Boolean(desktopUrl && status?.cli?.available);
+  const verified = Boolean(status?.connection?.identityVerified);
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.heading}>
+        <div>
+          <p>Community</p>
+          <h1>Your Buzz community, connected to PlotPickle.</h1>
+          <span>Create or manage the hosted community in your browser, then open that same community in Buzz Desktop for channels, messages and huddles.</span>
+        </div>
+        <div className={styles.actions}>
+          {desktopReady ? <a className={styles.primary} href={desktopUrl}>Open in Buzz Desktop</a> : <button type="button" className={styles.primary} disabled>Buzz Desktop needs setup</button>}
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Open in browser</a>
+          <button type="button" onClick={onOpenSettings}>Writers’ Room setup</button>
+        </div>
+      </header>
+
+      <section className={styles.communityChoices} aria-label="Choose a Buzz community path">
+        <article className={styles.recommendedChoice}>
+          <span>Fastest start</span>
+          <h2>Join PlotPickleServer</h2>
+          <p>Accept the PlotPickle Community BBS invitation and add its ready-made community to Buzz.</p>
+          {PLOTPICKLE_SERVER_INVITE_URL
+            ? <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
+            : <button type="button" disabled>Invite available from the community administrator</button>}
+        </article>
+        <article>
+          <span>New Buzz account or community</span>
+          <h2>Create a new community</h2>
+          <p>Use BuilderLab to set up or sign in to your account, then create and manage your Buzz communities.</p>
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Set up account &amp; communities</a>
+        </article>
+        <article>
+          <span>Advanced</span>
+          <h2>Be your own RELAY</h2>
+          <p>Keep using PlotPickle&apos;s existing managed local Buzz relay and lifecycle controls.</p>
+          <button type="button" onClick={onOpenSettings}>Configure local relay</button>
+        </article>
+      </section>
+
+      <section className={styles.connectionBar} aria-label="Buzz community status">
+        <div>
+          <span>PlotPickle community</span>
+          <strong>{communityName || (relayUrl ? "Saved Buzz community" : "No community saved")}</strong>
+          <small>{relayUrl || "Save the wss:// community address in Writers’ Room setup."}</small>
+        </div>
+        <div className={verified && desktopReady ? styles.ready : styles.setup} role="status">
+          {statusError ? "Status unavailable" : verified && desktopReady ? "Ready" : "Setup needed"}
+        </div>
+      </section>
+
+      <section className={styles.handoff} aria-labelledby="buzz-community-handoff-title">
+        <div>
+          <span>Application handoff</span>
+          <h2 id="buzz-community-handoff-title">Buzz opens beside PlotPickle</h2>
+          <p>Buzz Communities blocks embedded frames, and Buzz Desktop is a separate application. PlotPickle keeps the saved community and verified identity visible here while opening each tool in its supported window.</p>
+        </div>
+        <div className={styles.actions}>
+          {desktopReady ? <a className={styles.primary} href={desktopUrl}>Open Buzz Desktop</a> : <button type="button" className={styles.primary} disabled>Complete Buzz setup</button>}
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Manage communities in browser</a>
+        </div>
+      </section>
+    </div>
+  );
+}

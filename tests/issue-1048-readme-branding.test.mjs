@@ -7,21 +7,20 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const readme = readFileSync(resolve(root, "README.md"), "utf8");
 
-function assertWebp(relativePath) {
+function assertJpeg(relativePath) {
   const path = resolve(root, relativePath);
   assert.ok(existsSync(path), `README branding asset is missing: ${relativePath}`);
   const bytes = readFileSync(path);
-  assert.equal(bytes.subarray(0, 4).toString("ascii"), "RIFF");
-  assert.equal(bytes.subarray(8, 12).toString("ascii"), "WEBP");
+  assert.equal(bytes.subarray(0, 3).toString("hex"), "ffd8ff");
 }
 
 test("#1048 README uses the newly supplied PlotPickle fantasy banners", () => {
-  assert.match(readme, /docs\/brand\/plotpickle-banner-dragon-logo\.webp/);
-  assert.match(readme, /docs\/brand\/plotpickle-banner-learn-plan-build\.webp/);
+  assert.match(readme, /docs\/brand\/plotpickle-banner-dragon-logo\.jpg/);
+  assert.match(readme, /docs\/brand\/Plot-Pickle-Architecture\.jpg/);
   assert.match(readme, /alt="PlotPickle dragon, compass-nib emblem and wordmark"/);
   assert.match(readme, /alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD"/);
-  assertWebp("docs/brand/plotpickle-banner-dragon-logo.webp");
-  assertWebp("docs/brand/plotpickle-banner-learn-plan-build.webp");
+  assertJpeg("docs/brand/plotpickle-banner-dragon-logo.jpg");
+  assertJpeg("docs/brand/Plot-Pickle-Architecture.jpg");
 });
 
 test("#1048 removes retired README branding and the standalone Sage promotional hero", () => {

@@ -10,6 +10,7 @@ const bridge = await readFile(path.join(root, "lib", "buzz", "buzz-guildhall.ts"
 const bootstrap = await readFile(path.join(root, "scripts", "bootstrap-buzz-guildhall.mjs"), "utf8");
 const poster = await readFile(path.join(root, "build", "post-buzz-guildhall-event.mjs"), "utf8");
 const docs = await readFile(path.join(root, "docs", "buzz-guildhall.md"), "utf8");
+const syncUtility = await readFile(path.join(root, "Utilities", "Sync-PlotPickle-BUZZ.ps1"), "utf8");
 
 const requiredRooms = [
   "great-hall",
@@ -119,6 +120,12 @@ test("bootstrap is dry-run by default, detects room types, and keeps agent creat
   assert.match(bootstrap, /Nothing was written/);
   assert.match(bootstrap, /Legacy room history was preserved/);
   assert.doesNotMatch(bootstrap, /(?:console\.log|print|stdout\.write)\([^\n]*process\.env\.BUZZ_PRIVATE_KEY/);
+});
+
+test("BUZZ sync utility resolves its implementation from repository scripts", () => {
+  assert.match(syncUtility, /\$BootstrapScript = Join-Path \$ProjectRoot "scripts\\bootstrap-buzz-guildhall\.mjs"/u);
+  assert.match(syncUtility, /\$AgentScript = Join-Path \$ProjectRoot "scripts\\provision-community-agents\.mjs"/u);
+  assert.doesNotMatch(syncUtility, /Join-Path \$ScriptRoot "(?:bootstrap-buzz-guildhall|provision-community-agents)\.mjs"/u);
 });
 
 test("node workflows can post safe routed events through the running PlotPickle gateway", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import styles from "./buzz-settings.module.css";
 import liveStyles from "./buzz-live-health-card.module.css";
 
@@ -41,7 +42,7 @@ export default function BuzzLiveHealthCard() {
 
   async function refreshLocalHealth() {
     try {
-      const response = await fetch("/api/local-buzz/live-health", { cache: "no-store" });
+      const response = await authenticatedProfileFetch("/api/local-buzz/live-health", { cache: "no-store" });
       const body = await response.json() as LocalBackboneResult;
       setLocalHealth(body);
     } catch (error) {
@@ -57,7 +58,7 @@ export default function BuzzLiveHealthCard() {
     setRoundTripState("testing");
     setResult(null);
     try {
-      const response = await fetch("/api/local-buzz/live-health", { method: "POST", headers: { "Content-Type": "application/json" } });
+      const response = await authenticatedProfileFetch("/api/local-buzz/live-health", { method: "POST", headers: { "Content-Type": "application/json" } });
       const body = await response.json() as HealthResult;
       setResult(body);
       setRoundTripState(response.ok && body.roundTrip ? "passed" : "failed");

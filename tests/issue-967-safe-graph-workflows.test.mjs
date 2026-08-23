@@ -5,18 +5,18 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("graph nodes define one bounded job with structured contracts, policy scopes, isolation and verification", async () => {
-  const source = await read("lib/responsibility-graph.ts");
-  assert.match(source, /GraphNodeContract/);
+  const source = await read("lib/agents/responsibility-graph.ts");
   for (const field of ["job", "profileId", "capabilityRole", "allowedScopes", "allowedConnectorIds", "inputSchema", "outputSchema", "exclusiveResources", "timeoutMs", "tokenBudget", "cloudCostBudgetUsd", "failureRoutes", "verification"]) {
     assert.ok(source.includes(`${field}:`), `missing node field ${field}`);
   }
+  assert.match(source, /GraphNodeContract/);
   assert.match(source, /validateStructuredObject/);
   assert.match(source, /Structured result contains an undeclared field/);
   assert.match(source, /Structured result exceeds its node byte budget/);
 });
 
 test("data edges require real declared output-to-input dependencies instead of arbitrary sequence", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /GraphDependency/);
   assert.match(source, /outputFields: string\[\]/);
   assert.match(source, /inputKeys: string\[\]/);
@@ -28,7 +28,7 @@ test("data edges require real declared output-to-input dependencies instead of a
 });
 
 test("independent nodes are schedulable in parallel while shared resources remain isolated", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /maxParallelism/);
   assert.match(source, /runningResourceIds/);
   assert.match(source, /busyResources\.has\(resource\) \|\| selectedResources\.has\(resource\)/);
@@ -41,7 +41,7 @@ test("independent nodes are schedulable in parallel while shared resources remai
 });
 
 test("developer workers require worktree isolation while creative work stays on proposal boundaries", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /workerType === "developer-worker" && node\.isolation\.mode !== "git-worktree"/);
   assert.match(source, /requires isolated git-worktree execution/);
   assert.match(source, /workerType === "product-agent" && node\.isolation\.mode === "git-worktree"/);
@@ -50,7 +50,7 @@ test("developer workers require worktree isolation while creative work stays on 
 });
 
 test("node outcomes are machine-routable through pass retry reroute escalate and stop", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /GRAPH_OUTCOME_ROUTES = \["pass", "retry", "reroute", "escalate", "stop"\]/);
   for (const route of ["pass", "retry", "reroute", "escalate", "stop"]) {
     assert.ok(
@@ -65,7 +65,7 @@ test("node outcomes are machine-routable through pass retry reroute escalate and
 });
 
 test("fresh verifier receives structured output and evidence rather than the worker transcript", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /freshVerifierInput/);
   assert.match(source, /structuredOutput: result\.output/);
   assert.match(source, /evidence: result\.evidence/);
@@ -76,7 +76,7 @@ test("fresh verifier receives structured output and evidence rather than the wor
 });
 
 test("fan-in detects missing and failed children and partial completion must be explicit", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /fanInGraphResults/);
   assert.match(source, /missingNodeIds/);
   assert.match(source, /failedNodeIds/);
@@ -87,7 +87,7 @@ test("fan-in detects missing and failed children and partial completion must be 
 });
 
 test("layered fan-in bounds raw result count and bytes before synthesis", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /layeredFanIn/);
   assert.match(source, /maxItemsPerLayer/);
   assert.match(source, /maxBytesPerLayer/);
@@ -97,7 +97,7 @@ test("layered fan-in bounds raw result count and bytes before synthesis", async 
 });
 
 test("discovery rounds stop deterministically after no-new rounds or graph caps", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /advanceDiscoveryRound/);
   assert.match(source, /noNewRounds >= 2/);
   assert.match(source, /two-rounds-no-new-findings/);
@@ -106,7 +106,7 @@ test("discovery rounds stop deterministically after no-new rounds or graph caps"
 });
 
 test("graph budgets cannot exceed the parent Responsibility Run or silently enable cloud spend", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /Graph parallelism exceeds the parent Responsibility Run child cap/);
   assert.match(source, /Graph token budget exceeds the parent Responsibility Run budget/);
   assert.match(source, /Graph context budget exceeds the parent Responsibility Run budget/);
@@ -117,7 +117,7 @@ test("graph budgets cannot exceed the parent Responsibility Run or silently enab
 });
 
 test("the real code sweep fixture has width while the sequential control retains a genuine dependency", async () => {
-  const source = await read("lib/responsibility-graph.ts");
+  const source = await read("lib/agents/responsibility-graph.ts");
   assert.match(source, /Parallel code\/UAT sweep with deterministic reduction/);
   assert.match(source, /workers\.map/);
   assert.match(source, /Deterministically combine verified findings and preserve missing-child evidence/);

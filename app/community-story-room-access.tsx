@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import styles from "./community-story-room-access.module.css";
 
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
@@ -14,7 +15,7 @@ type Props = {
 };
 
 async function request(path: string, init?: RequestInit) {
-  const response = await fetch(path, {
+  const response = await authenticatedProfileFetch(path, {
     ...init,
     headers: { Accept: "application/json", "Content-Type": "application/json", ...(init?.headers ?? {}) },
   });

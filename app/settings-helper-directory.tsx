@@ -1,5 +1,5 @@
 import AgentPortrait from "../components/agent-portrait";
-import { agentProfileById, type AgentProfile } from "../lib/agent-profiles";
+import { agentProfileById, type AgentProfile } from "../lib/agents/agent-profiles";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./settings-helper-directory.module.css";
 

@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Responsibility Runs expose the bounded lifecycle requested by the architecture", async () => {
-  const source = await read("lib/responsibility-runs.ts");
+  const source = await read("lib/agents/responsibility/responsibility-runs.ts");
   for (const state of ["queued", "preparing-context", "working", "verifying", "revising", "waiting-for-writer", "paused", "completed", "failed", "cancelled"]) {
     assert.match(source, new RegExp(`"${state}"`));
   }
@@ -19,7 +19,7 @@ test("Responsibility Runs expose the bounded lifecycle requested by the architec
 
 test("deterministic workers can observe but only authoritative verification can PASS or FAIL the Run", async () => {
   const [runs, verifier] = await Promise.all([
-    read("lib/responsibility-runs.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
     read("scripts/verification-orchestrator.mjs"),
   ]);
   assert.match(runs, /recordWorkerVerificationObservation/);
@@ -35,7 +35,7 @@ test("deterministic workers can observe but only authoritative verification can 
 
 test("creative Runs stop at the writer gate and never turn artifacts into canon themselves", async () => {
   const [runs, revisions] = await Promise.all([
-    read("lib/responsibility-runs.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
     read("lib/project-revisions.ts"),
   ]);
   assert.match(runs, /createCreativeResponsibilityRun/);
@@ -49,7 +49,7 @@ test("creative Runs stop at the writer gate and never turn artifacts into canon 
 });
 
 test("pause, resume, cancel and redirect remain host-visible state changes without canon mutation", async () => {
-  const source = await read("lib/responsibility-runs.ts");
+  const source = await read("lib/agents/responsibility/responsibility-runs.ts");
   for (const operation of ["pauseResponsibilityRun", "resumeResponsibilityRun", "cancelResponsibilityRun", "redirectResponsibilityRun"]) {
     assert.match(source, new RegExp(operation));
   }
@@ -60,7 +60,7 @@ test("pause, resume, cancel and redirect remain host-visible state changes witho
 });
 
 test("equivalent repeated tool calls produce escalating reminders before hard host limits", async () => {
-  const source = await read("lib/responsibility-runs.ts");
+  const source = await read("lib/agents/responsibility/responsibility-runs.ts");
   assert.match(source, /REPETITION_THRESHOLDS = \[3, 5, 8\]/);
   assert.match(source, /stable\(input\.arguments\)/);
   assert.match(source, /deniedCount/);
@@ -72,7 +72,7 @@ test("equivalent repeated tool calls produce escalating reminders before hard ho
 });
 
 test("fresh-context restart carries only a compact handoff and cannot alter objective or permissions", async () => {
-  const source = await read("lib/responsibility-runs.ts");
+  const source = await read("lib/agents/responsibility/responsibility-runs.ts");
   assert.match(source, /ResponsibilityRunHandoff/);
   for (const field of ["status", "summary", "evidence", "nextSteps", "blocker"]) assert.match(source, new RegExp(`${field}:`));
   assert.match(source, /restartResponsibilityRunContext/);
@@ -122,8 +122,8 @@ test("Responsibility Run activity remains understandable while the simplified pu
 
 test("local-first cloud safety remains explicit in Run budgets and connector policy", async () => {
   const [runs, policy] = await Promise.all([
-    read("lib/responsibility-runs.ts"),
-    read("lib/connector-trust-policy.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
+    read("lib/agents/responsibility/connector-trust-policy.ts"),
   ]);
   assert.match(runs, /maxCloudCostUsd/);
   assert.match(runs, /cloudCostUsd > run\.limits\.maxCloudCostUsd/);

@@ -21,7 +21,7 @@ test("orchestration config assigns responsibilities without duplicating BUZZ mut
 });
 
 test("execution owner follows Agent Contract execution.kind rather than BUZZ presence", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.match(source, /executionOwnerForProfile/);
   assert.match(source, /profile\.execution\.kind === "embedded-mastra"/);
   assert.match(source, /return "mastra"/);
@@ -34,7 +34,7 @@ test("execution owner follows Agent Contract execution.kind rather than BUZZ pre
 });
 
 test("BUZZ trigger is always Context Engine buzz-peer untrusted suggestion rather than host instruction", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.match(source, /buzzTriggerContextItem/);
   assert.match(source, /sourceType: "buzz-peer"/);
   assert.match(source, /trust: "untrusted"/);
@@ -46,7 +46,7 @@ test("BUZZ trigger is always Context Engine buzz-peer untrusted suggestion rathe
 });
 
 test("signed BUZZ provenance does not become canon or trusted instruction", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.match(source, /signed \? "signed" : "unsigned"/);
   assert.match(source, /attached as untrusted suggestion context/);
   assert.match(source, /trustedAsInstruction: false/);
@@ -55,7 +55,7 @@ test("signed BUZZ provenance does not become canon or trusted instruction", asyn
 });
 
 test("cross-runtime handoff carries bounded structured references rather than a transcript or memory dump", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   for (const field of ["parentRunId", "targetProfileId", "executionOwner", "goal", "summary", "contextPacketId", "contextSourceIds", "skillUris", "proposalOnly", "cloudBudgetUsd"]) assert.match(source, new RegExp(`${field}:`));
   assert.match(source, /carriesFullTranscript: false/);
   assert.match(source, /maxContextSourceIds/);
@@ -64,7 +64,7 @@ test("cross-runtime handoff carries bounded structured references rather than a 
 });
 
 test("BUZZ-triggered project work becomes a bounded Responsibility Run with zero cloud budget and no connector grants by default", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.match(source, /createBuzzTriggeredOrchestration/);
   assert.match(source, /assembleContextPacket/);
   assert.match(source, /createResponsibilityRun/);
@@ -76,7 +76,7 @@ test("BUZZ-triggered project work becomes a bounded Responsibility Run with zero
 });
 
 test("PlotPickle-to-BUZZ handoff is allowed only for a BUZZ-managed profile", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.match(source, /createPlotPickleToBuzzHandoff/);
   assert.match(source, /executionOwnerForProfile\(profile\) !== "buzz"/);
   assert.match(source, /do not move execution merely because it has a BUZZ identity/);
@@ -86,7 +86,7 @@ test("PlotPickle-to-BUZZ handoff is allowed only for a BUZZ-managed profile", as
 test("parallel agent work remains Responsibility Graph responsibility instead of adding Mastra Networks as a second graph authority", async () => {
   const [orchestration, graph] = await Promise.all([
     read("config/agent-orchestration.json"),
-    read("lib/responsibility-graph.ts"),
+    read("lib/agents/responsibility/responsibility-graph.ts"),
   ]);
   assert.match(orchestration, /"parallelSpecialistWorkUsesResponsibilityGraph": true/);
   assert.match(orchestration, /"mastraNetworksRequired": false/);
@@ -96,7 +96,7 @@ test("parallel agent work remains Responsibility Graph responsibility instead of
 });
 
 test("orchestration layer has no connector execution credentials provider routing or PPF mutation path", async () => {
-  const source = await read("lib/agent-orchestration.ts");
+  const source = await read("lib/agents/agent-orchestration.ts");
   assert.doesNotMatch(source, /node:child_process|execSync|spawnSync|fork\s*\(/);
   assert.doesNotMatch(source, /\bfetch\s*\(|https?:\/\//);
   assert.doesNotMatch(source, /Authorization|BUZZ_PRIVATE_KEY|apiKey|credential/i);

@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("structured telemetry is appended to the existing Responsibility Run event truth", async () => {
   const [telemetry, runs] = await Promise.all([
     read("lib/run-telemetry.ts"),
-    read("lib/responsibility-runs.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
   ]);
   assert.match(runs, /events: ResponsibilityRunEvent\[\]/);
   assert.match(telemetry, /appendRunTelemetryEvent/);
@@ -62,7 +62,7 @@ test("usage accounting labels exact estimated and unknown tokens/cost instead of
 test("provider protocol adapters hide model quirks below Agent Profiles without granting authority or paid fallback", async () => {
   const [harness, profiles] = await Promise.all([
     read("lib/provider-harness.ts"),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/agent-profiles.ts"),
   ]);
   assert.match(harness, /openAiCompatibleAdapter/);
   assert.match(harness, /plotPickleLocalAdapter/);

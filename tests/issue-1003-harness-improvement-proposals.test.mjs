@@ -12,7 +12,7 @@ import {
 import {
   contextStrategyForTask,
   selectAdaptiveContextCandidates,
-} from "../lib/adaptive-context-strategy-core.mjs";
+} from "../lib/agents/context/adaptive-context-strategy-core.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -22,7 +22,7 @@ function proposalInput(overrides = {}) {
     proposerId: "pi-repair",
     title: "Improve context selection after repeated misses",
     rationale: "The same bounded context miss occurred repeatedly.",
-    targetPaths: ["lib/adaptive-context-strategies.ts"],
+    targetPaths: ["lib/agents/context/adaptive-context-strategies.ts"],
     failure: {
       signature: "context-miss:scene-history",
       occurrences: 6,
@@ -39,17 +39,17 @@ test("protected harness paths cannot be targets while bounded execution paths re
   for (const path of [
     "tests/issue-963-context-engine.test.mjs",
     ".github/workflows/learn-validation.yml",
-    "lib/connector-trust-policy.ts",
+    "lib/agents/responsibility/connector-trust-policy.ts",
     "build/local-credentials.ts",
     "lib/revision-aware-ppf.ts",
     "lib/harness-improvement-proposals.ts",
     "scripts/run-plotpickle-full-check.ps1",
   ]) assert.equal(isProtectedHarnessTarget(path), true, `${path} must be protected`);
 
-  assert.equal(isProtectedHarnessTarget("lib/context-engine.ts"), false);
-  assert.equal(isProtectedHarnessTarget("lib/agent-orchestration.ts"), false);
+  assert.equal(isProtectedHarnessTarget("lib/agents/context/context-engine.ts"), false);
+  assert.equal(isProtectedHarnessTarget("lib/agents/agent-orchestration.ts"), false);
   assert.throws(
-    () => createHarnessImprovementProposalCore(proposalInput({ targetPaths: ["lib/connector-trust-policy.ts"] })),
+    () => createHarnessImprovementProposalCore(proposalInput({ targetPaths: ["lib/agents/responsibility/connector-trust-policy.ts"] })),
     /Protected harness targets cannot be self-edited/,
   );
 });
@@ -148,10 +148,10 @@ test("task language selects a bounded strategy deterministically", () => {
 
 test("runtime integration keeps the protected Context Engine and host cancellation boundary authoritative", async () => {
   const [adaptive, sage, interrupts, runs] = await Promise.all([
-    read("lib/adaptive-context-strategies.ts"),
+    read("lib/agents/context/adaptive-context-strategies.ts"),
     read("modules/creative-room/sage-context-engine.ts"),
-    read("lib/responsibility-run-interrupts.ts"),
-    read("lib/responsibility-runs.ts"),
+    read("lib/agents/responsibility/responsibility-run-interrupts.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
   ]);
   assert.match(adaptive, /assembleContextPacket\(/, "adaptive strategies must delegate final assembly to the protected Context Engine");
   assert.match(adaptive, /strategyId: input\.strategyId/);

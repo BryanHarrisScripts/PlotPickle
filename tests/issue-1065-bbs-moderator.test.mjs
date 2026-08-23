@@ -7,7 +7,7 @@ const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.met
 test("#1065 registers Merrin as a host-owned BUZZ-managed Community Agent Profile", async () => {
   const [profileExtension, loader, playhouse] = await Promise.all([
     read("config/agent-profile-extensions/community.json").then(JSON.parse),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/agent-profiles.ts"),
     read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
   const profile = profileExtension.profiles.find((item) => item.id === "merrin-bellwarden");

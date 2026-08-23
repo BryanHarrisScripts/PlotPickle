@@ -48,7 +48,7 @@ test("#1279 distributed public Agent metadata contains no official private signi
   assert.equal(containsSecretField(publicConfig), false);
   assert.doesNotMatch(JSON.stringify(publicConfig), /nsec1[a-z0-9]+/i);
 
-  const profiles = await read("lib/agent-profiles.ts");
+  const profiles = await read("lib/agents/agent-profiles.ts");
   assert.match(profiles, /provisioning: "external-buzz-admin"/);
   assert.match(profiles, /pubkey !== null && !\/\^\[a-f0-9\]\{64\}\$\/i/);
   assert.match(profiles, /publicPresentationHasSecretField/);
@@ -59,7 +59,7 @@ test("#1279 Sage remains one routed embedded Agent with private-local and public
   const [base, publicConfig, profileRuntime] = await Promise.all([
     readJson("config/agent-profiles.json"),
     readJson("config/agent-profile-extensions/public.json"),
-    read("lib/agent-profiles.ts"),
+    read("lib/agents/agent-profiles.ts"),
   ]);
   const sage = base.profiles.find((profile) => profile.id === "sage-brinewick");
   assert.ok(sage);

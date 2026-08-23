@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { agentProfileById } from "../lib/agent-profiles";
+import { agentProfileById } from "../lib/agents/agent-profiles";
 import styles from "./agent-portrait.module.css";
 
 type AgentPortraitSpec = {

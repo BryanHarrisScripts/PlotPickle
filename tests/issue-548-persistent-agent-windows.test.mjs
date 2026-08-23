@@ -10,7 +10,7 @@ test("#548 helper implementations remain available for deliberate manual use", a
     read("scripts/full-story-builder-agent.mjs"),
     read("scripts/ui-continuity-agent.mjs"),
     read("scripts/run-creative-writer-uat.ps1"),
-    read("lib/agent-window-status.mjs"),
+    read("lib/agents/agent-window-status.mjs"),
   ]);
 
   for (const phrase of ["AGENT LOADED", "Instructions required", "Instructions:", "AGENT COMPLETED", "AGENT NEEDS ATTENTION"]) {

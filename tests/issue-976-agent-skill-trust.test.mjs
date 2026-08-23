@@ -101,7 +101,7 @@ test("quarantined fixture contains an executable-looking script but production t
 
 test("existing #965 and #968 layers remain the authority and evaluation boundaries for Skills", async () => {
   const [policy, evals] = await Promise.all([
-    read("lib/connector-trust-policy.ts"),
+    read("lib/agents/connector-trust-policy.ts"),
     read("lib/model-portability-evals.ts"),
   ]);
   assert.match(policy, /skill-quarantined/);

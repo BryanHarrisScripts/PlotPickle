@@ -63,36 +63,24 @@
 
 .list {
   display: flex;
-  width: 100%;
-  min-width: 0;
-  justify-content: center;
-  gap: clamp(3px, 0.55vw, 8px);
-  margin: 0;
+  width: max-content;
+  min-width: max-content;
+  justify-content: flex-start;
+  gap: clamp(2px, 0.25vw, 4px);
+  margin: 0 auto;
   padding: 6px 84px 8px;
   list-style: none;
 }
 
 .list li {
   display: grid;
-  width: auto;
-  min-width: 0;
-  max-width: 84px;
-  flex: 1 1 0;
+  width: 64px;
+  min-width: 64px;
+  max-width: 64px;
+  flex: 0 0 64px;
   justify-items: center;
   color: #837d73;
   text-align: center;
-}
-
-.list li.groupBreakCommunityGame {
-  margin-right: clamp(28px, 4vw, 72px);
-}
-
-.list li.groupBreakPrevis {
-  margin-right: clamp(22px, 3vw, 56px);
-}
-
-.list li.groupBreakReports {
-  margin-right: clamp(72px, 10vw, 180px);
 }
 
 .list button {
@@ -101,7 +89,7 @@
   justify-items: center;
   align-content: start;
   gap: 2px;
-  padding: 0 2px 2px;
+  padding: 0 1px 2px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -214,46 +202,12 @@
   display: none !important;
 }
 
-@media (max-width: 1240px) {
-  .list li.groupBreakCommunityGame {
-    margin-right: 22px;
-  }
-
-  .list li.groupBreakPrevis {
-    margin-right: 18px;
-  }
-
-  .list li.groupBreakReports {
-    margin-right: 48px;
-  }
-}
-
 @media (max-width: 1040px) {
   .list {
-    width: max-content;
-    min-width: max-content;
-    justify-content: flex-start;
-    gap: 6px;
+    margin: 0;
+    gap: 4px;
     padding-right: 16px;
     padding-left: 76px;
-  }
-
-  .list li {
-    width: 76px;
-    max-width: none;
-    flex: 0 0 76px;
-  }
-
-  .list li.groupBreakCommunityGame {
-    margin-right: 24px;
-  }
-
-  .list li.groupBreakPrevis {
-    margin-right: 20px;
-  }
-
-  .list li.groupBreakReports {
-    margin-right: 48px;
   }
 }
 

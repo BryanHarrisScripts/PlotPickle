@@ -25,15 +25,10 @@ export const retiredRoomIds = Object.freeze([
   "archive",
 ]);
 
-function option(name, fallback = "") {
+function readCliOption(name) {
   const prefix = `${name}=`;
   const hit = process.argv.find((value) => value.startsWith(prefix));
-  return hit ? hit.slice(prefix.length) : fallback;
-}
-
-function parseJson(value, label) {
-  try { return JSON.parse(value || "null"); }
-  catch { throw new Error(`${label} returned invalid JSON.`); }
+  return hit?.slice(prefix.length);
 }
 
 function asArray(value) {
@@ -128,8 +123,10 @@ function commandRunner(cli) {
   });
 }
 
-async function runJson(run, args, label) {
-  return parseJson(await run(["--format", "json", ...args]), label);
+async function runJson(run, args, context) {
+  const output = await run(["--format", "json", ...args]);
+  if (!output) throw new Error(`${context} returned no JSON.`);
+  return JSON.parse(output);
 }
 
 async function exactRooms(run, roomName) {
@@ -255,7 +252,7 @@ function printReport(report) {
 }
 
 async function main() {
-  const mode = option("--mode", "plan").toLowerCase();
+  const mode = (readCliOption("--mode") || "plan").toLowerCase();
   const relayUrl = clean(process.env.BUZZ_RELAY_URL);
   const privateKey = clean(process.env.BUZZ_PRIVATE_KEY);
   if (!relayUrl) throw new Error("BUZZ_RELAY_URL is required.");
@@ -266,11 +263,11 @@ async function main() {
   ]);
   const report = await executeCleanup({
     mode,
-    roomId: option("--room"),
-    confirmation: option("--confirm"),
+    roomId: readCliOption("--room") || "",
+    confirmation: readCliOption("--confirm") || "",
     guildhall,
     cleanup,
-    run: commandRunner(option("--cli", process.env.BUZZ_CLI_PATH || (process.platform === "win32" ? "buzz.exe" : "buzz"))),
+    run: commandRunner(readCliOption("--cli") || process.env.BUZZ_CLI_PATH || (process.platform === "win32" ? "buzz.exe" : "buzz")),
   });
   if (process.argv.includes("--json")) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   else printReport(report);

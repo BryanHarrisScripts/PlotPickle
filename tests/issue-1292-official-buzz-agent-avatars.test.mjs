@@ -67,7 +67,7 @@ test("#1292 BUZZ team snapshots embed the same canonical official images", async
 
 test("#1292 existing Agent repair stays in place and warns against duplicate import", async () => {
   const [setup, provisioner, docs] = await Promise.all([
-    read("scripts/setup-buzz-community.ps1").then((value) => value.toString("utf8")),
+    read("Utilities/Sync-PlotPickle-BUZZ.ps1").then((value) => value.toString("utf8")),
     read("scripts/provision-community-agents.mjs").then((value) => value.toString("utf8")),
     read("docs/buzz-community-one-time-setup.md").then((value) => value.toString("utf8")),
   ]);

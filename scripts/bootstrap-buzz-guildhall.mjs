@@ -9,11 +9,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, "..");
 const configPath = path.join(projectRoot, "config", "buzz-guildhall.json");
-const cleanupPath = path.join(projectRoot, "config", "buzz-community-cleanup.json");
-const communityPath = path.join(projectRoot, "plugins", "plotpickle-playhouse", "community.json");
-const [config, cleanup, community] = await Promise.all([configPath, cleanupPath, communityPath].map(async (file) => JSON.parse(await readFile(file, "utf8"))));
-const provisionedChannels = cleanup.retainedRooms;
-const retainedRoomIds = new Set(provisionedChannels.map((room) => room.id));
+const config = JSON.parse(await readFile(configPath, "utf8"));
 
 function hasFlag(name) {
   return process.argv.includes(name);
@@ -92,6 +88,12 @@ function parseJson(text, label) {
   try { return JSON.parse(text || "null"); }
   catch { throw new Error(`${label} returned invalid JSON.`); }
 }
+
+const cleanupPath = path.join(projectRoot, "config", "buzz-community-cleanup.json");
+const communityPath = path.join(projectRoot, "plugins", "plotpickle-playhouse", "community.json");
+const [cleanup, community] = await Promise.all([cleanupPath, communityPath].map(async (file) => JSON.parse(await readFile(file, "utf8"))));
+const provisionedChannels = cleanup.retainedRooms;
+const retainedRoomIds = new Set(provisionedChannels.map((room) => room.id));
 
 async function listChannels() {
   return channelRecords(parseJson(await command(["channels", "list"]), "buzz channels list"));

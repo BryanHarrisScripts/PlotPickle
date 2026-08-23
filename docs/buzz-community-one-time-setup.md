@@ -28,11 +28,11 @@ To inspect or archive the nine retired machine-generated rooms, use `Utilities\C
 For a read-only plan from PowerShell:
 
 ```powershell
-.\scripts\setup-buzz-community.ps1 -PlanOnly
+.\Utilities\Sync-PlotPickle-BUZZ.ps1 -PlanOnly
 ```
 
 To supply a non-standard BUZZ executable:
 
 ```powershell
-.\scripts\setup-buzz-community.ps1 -BuzzCli "C:\Tools\BUZZ\buzz.exe"
+.\Utilities\Sync-PlotPickle-BUZZ.ps1 -BuzzCli "C:\Tools\BUZZ\buzz.exe"
 ```

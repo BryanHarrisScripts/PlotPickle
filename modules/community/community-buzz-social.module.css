@@ -10,7 +10,12 @@
 }
 
 .conversation[data-great-hall="true"] {
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  font-family: var(--community-bbs-font, "Lucida Console", "Courier New", monospace);
+}
+
+.conversation[data-great-hall="true"] > .conversationHeader {
+  display: none;
 }
 
 .conversationHeader,
@@ -41,7 +46,7 @@
 .contextHeader h3 {
   margin: 4px 0 0;
   color: #eef4ef;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
 }
 
 .conversationHeader small { color: #8f9c95; font-size: 13px; line-height: 1.5; }
@@ -82,6 +87,11 @@
 .contextCard h4 { color: #e5eee9; font-size: 15px; }
 .contextCard p,
 .contextCard small { color: #9ba9a1; font-size: 13px; line-height: 1.55; }
+.contextGuide { gap: 10px; }
+.contextGuide > span:not(:first-child) { margin-top: 6px; }
+.contextHelpers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.contextHelper { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: center; min-width: 0; padding: 4px; border: 1px solid rgba(53, 201, 184, .13); border-radius: 999px; background: rgba(7, 16, 14, .78); }
+.contextHelper small { overflow: hidden; color: #d7e4dc; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .memberList { display: grid; gap: 5px; }
 .memberRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.045); }
 .memberRow:last-child { border-bottom: 0; }
@@ -118,17 +128,33 @@
 }
 
 .greatHallBanner {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 30%);
+  grid-template-columns: minmax(250px, .8fr) minmax(340px, 1.2fr);
   gap: 18px;
   align-items: center;
-  padding: 18px 20px;
+  overflow: hidden;
+  padding: 18px 20px 16px;
   border-bottom: 1px solid rgba(53, 201, 184, .2);
   background:
-    linear-gradient(rgba(53, 201, 184, .035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(53, 201, 184, .035) 1px, transparent 1px),
+    radial-gradient(circle at 78% 45%, rgba(214, 169, 95, .07), transparent 38%),
+    linear-gradient(rgba(53, 201, 184, .028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 201, 184, .028) 1px, transparent 1px),
     rgba(8, 17, 15, .96);
   background-size: 20px 20px;
+}
+
+.greatHallBanner::after {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(2, 7, 5, .16) 3px 4px);
+  content: "";
+  pointer-events: none;
+}
+
+.greatHallCopy {
+  position: relative;
+  z-index: 1;
 }
 
 .greatHallBanner span {
@@ -150,18 +176,32 @@
 .greatHallBanner p {
   margin: 0;
   color: #f1eee7;
-  font-size: 16px;
+  font-size: 18px;
 }
 
-.greatHallArt {
+.greatHallBanner small {
+  display: block;
+  margin-top: 7px;
+  color: #7da59c;
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+
+.greatHallAscii {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-height: 150px;
-  color: #65d6ca;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 6px rgba(53, 201, 184, .2));
+  margin: 0;
+  overflow: hidden;
+  color: #8bd9c7;
+  font-family: var(--community-bbs-font, "Lucida Console", "Courier New", monospace);
+  font-size: clamp(8px, .74vw, 12px);
+  font-weight: 400;
+  line-height: .88;
+  letter-spacing: 0;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(53, 201, 184, .25), 0 0 2px rgba(229, 189, 114, .16);
+  white-space: pre;
 }
 
 @media (max-width: 900px) {
@@ -173,10 +213,17 @@
   .helpers { justify-items:start; }
   .helpers > div { justify-content:flex-start; }
   .greatHallBanner { grid-template-columns: 1fr; }
-  .greatHallArt { max-width: 260px; }
+  .greatHallAscii { font-size: clamp(7px, 1.55vw, 11px); text-align: left; }
 }
 
 @media (max-width: 620px) {
   .composerRow { grid-template-columns: 1fr; }
   .prompt { padding-top: 0; white-space: normal; }
+  .contextHelpers { grid-template-columns: 1fr; }
+  .greatHallAscii { margin-inline: auto; font-size: clamp(6px, 1.7vw, 9px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .greatHallBanner::after { background-image: none; }
+  .greatHallAscii { text-shadow: none; }
 }

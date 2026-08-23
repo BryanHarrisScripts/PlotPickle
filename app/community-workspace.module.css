@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "PlotPickle VT323";
+  src: url("/assets/fonts/vt323/VT323-Regular.ttf") format("truetype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 .page {
   --community-bg: #090a0b;
   --community-panel: #111416;
@@ -7,6 +15,7 @@
   --community-muted: #918a80;
   --community-teal: #35c9b8;
   --community-orange: #d68a45;
+  --community-bbs-font: "PlotPickle VT323", "Lucida Console", "Courier New", monospace;
   min-height: 100%;
   padding: 28px clamp(18px, 3vw, 46px) 52px;
   background:
@@ -14,7 +23,7 @@
     radial-gradient(circle at 86% 8%, rgba(214, 138, 69, 0.07), transparent 24%),
     var(--community-bg);
   color: var(--community-text);
-  font-family: var(--font-mono, "Courier New", monospace);
+  font-family: var(--community-bbs-font);
 }
 
 .hero,
@@ -70,7 +79,7 @@
 .panel h2,
 .roomConversationHeader h3 {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--community-bbs-font);
   font-weight: 600;
   letter-spacing: 0.01em;
 }
@@ -266,7 +275,7 @@
 
 .summaryGrid strong {
   color: var(--community-text);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--community-bbs-font);
   font-size: 19px;
   font-weight: 600;
 }
@@ -433,7 +442,7 @@
 
 .roomGrid span {
   color: var(--community-text);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--community-bbs-font);
   font-size: 17px;
 }
 

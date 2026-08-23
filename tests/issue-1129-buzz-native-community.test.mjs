@@ -40,8 +40,8 @@ test("#1129 exposes four Human-purpose rooms and native Direct Messages instead 
 
 test("#1129 mirrors ordinary room and DM conversation through the same BUZZ message route", async () => {
   const social = await read(SOCIAL);
-  assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
-  assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages`,/);
+  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
+  assert.match(social, /authenticatedProfileFetch\(`\$\{BUZZ_API\}\/messages`,/);
   assert.match(social, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
   assert.match(social, /data-buzz-event-id=\{message\.id\}/);
   assert.match(social, /window\.setInterval/);

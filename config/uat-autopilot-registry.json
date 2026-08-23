@@ -22,6 +22,7 @@
         "tests/issue-1140-profile-master-key-vault.test.mjs",
         "tests/issue-1142-server-session-boundary.test.mjs",
         "tests/issue-1143-profile-experience.test.mjs",
+        "tests/issue-1290-profile-editor-right-rail.test.mjs",
         "tests/agent-skills-foundation.test.mjs",
         "tests/issue-645-uat-readiness-git-bash.test.mjs",
         "tests/issue-651-pi-cline-uat-repair.test.mjs",

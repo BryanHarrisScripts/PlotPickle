@@ -241,21 +241,12 @@ export default function ProfileIdentityPanel({
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v1">
       <section className={styles.identityColumn} aria-labelledby="profile-identity-heading">
-        <header><span>Identity</span><h2 id="profile-identity-heading">Your Profile</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
+        <header><span>Human Profile</span><h2 id="profile-identity-heading">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
 
         <div className={styles.avatarRow}>
           {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar" /> : <div aria-hidden="true" data-default-lore-glyph="true">{DEFAULT_HUMAN_LORE_GLYPH}</div>}
           <span><strong>{presentation.displayName}</strong><small>{presentation.publicBio || "Add a short public bio if you want one."}</small></span>
         </div>
-
-        <form className={styles.identityForm} onSubmit={savePresentation}>
-          <label><span>Display name</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
-          <label><span>Avatar</span><input type="text" inputMode="url" placeholder="https://… or generated Lore Avatar" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>{localGeneratedAvatar ? "Generated Lore Avatar saved to this Human profile. BUZZ requires a publicly reachable HTTPS image, so its current avatar is preserved." : "Leave blank to use the PlotPickle lore glyph. A custom secure image is published to BUZZ when connected."}</small></label>
-          <label><span>Generate Lore Avatar</span><textarea rows={2} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /><small>PlotPickle combines your description with its existing lore visual contract and sends one request through the image route you selected in Settings.</small></label>
-          <button type="button" disabled={Boolean(busy) || !avatarDescription.trim()} onClick={() => void generateLoreAvatar()}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
-          <label><span>Public bio / description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500 · The same bio is published to BUZZ when connected.</small></label>
-          <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>
-        </form>
 
         <section className={styles.buzzCard} aria-labelledby="profile-buzz-heading">
           <div className={styles.buzzHeading}><span><b id="profile-buzz-heading">BUZZ Identity</b><small>{identityLabel}</small></span><i data-connected={connected ? "true" : "false"} aria-hidden="true" /></div>
@@ -284,19 +275,39 @@ export default function ProfileIdentityPanel({
         </section>
       </section>
 
-      <section className={styles.actionColumn} aria-labelledby="profile-access-heading">
-        <header><span>Access</span><h2 id="profile-access-heading">Security</h2><p>These controls affect only the authenticated PlotPickle Human profile.</p></header>
-        <button type="button" disabled={Boolean(busy)} onClick={onLock}>Lock</button>
-        <button type="button" disabled={Boolean(busy)} onClick={onSwitchProfile}>Switch profile</button>
-      </section>
+      <aside className={styles.rightRail} aria-label="Profile editing and access">
+        <section className={styles.editorCard} aria-labelledby="profile-editor-heading">
+          <header><span>Profile editor</span><h2 id="profile-editor-heading">Presentation</h2><p>Edit the Human presentation shared by PlotPickle and BUZZ.</p></header>
 
-      <section className={styles.actionColumn} aria-labelledby="profile-actions-heading">
-        <header><span>Profile actions</span><h2 id="profile-actions-heading">Profile</h2><p>Create another Human or leave this authenticated session.</p></header>
-        <button type="button" disabled={Boolean(busy)} onClick={onAddProfile}>Add profile</button>
-        <button type="button" disabled={Boolean(busy)} onClick={onLogout}>Log out</button>
-      </section>
+          <div className={styles.editorAvatar}>
+            {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar preview" /> : <div aria-hidden="true">{DEFAULT_HUMAN_LORE_GLYPH}</div>}
+            <span><strong>{presentation.displayName}</strong><small>Current Human presentation</small></span>
+          </div>
 
-      {notice ? <p className={styles.notice} role="status" aria-live="polite">{notice}</p> : null}
+          <form className={styles.identityForm} onSubmit={savePresentation}>
+            <label><span>Display name</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
+            <label><span>Avatar</span><input type="text" inputMode="url" placeholder="https://… or generated Lore Avatar" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>{localGeneratedAvatar ? "Generated Lore Avatar saved to this Human profile. BUZZ requires a publicly reachable HTTPS image, so its current avatar is preserved." : "Leave blank to use the PlotPickle lore glyph. A custom secure image is published to BUZZ when connected."}</small></label>
+            <label><span>Lore Avatar description</span><textarea rows={2} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /><small>PlotPickle combines your description with its existing lore visual contract and sends one request through the image route you selected in Settings.</small></label>
+            <button type="button" disabled={Boolean(busy) || !avatarDescription.trim()} onClick={() => void generateLoreAvatar()}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
+            <label><span>Public bio / description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500 · The same bio is published to BUZZ when connected.</small></label>
+            <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>
+          </form>
+        </section>
+
+        <section className={styles.actionColumn} aria-labelledby="profile-access-heading">
+          <header><span>Access</span><h2 id="profile-access-heading">Security</h2><p>These controls affect only the authenticated PlotPickle Human profile.</p></header>
+          <button type="button" disabled={Boolean(busy)} onClick={onLock}>Lock</button>
+          <button type="button" disabled={Boolean(busy)} onClick={onSwitchProfile}>Switch profile</button>
+        </section>
+
+        <section className={styles.actionColumn} aria-labelledby="profile-actions-heading">
+          <header><span>Profile actions</span><h2 id="profile-actions-heading">Profile</h2><p>Create another Human or leave this authenticated session.</p></header>
+          <button type="button" disabled={Boolean(busy)} onClick={onAddProfile}>Add profile</button>
+          <button type="button" disabled={Boolean(busy)} onClick={onLogout}>Log out</button>
+        </section>
+
+        {notice ? <p className={styles.notice} role="status" aria-live="polite">{notice}</p> : null}
+      </aside>
     </div>
   );
 }

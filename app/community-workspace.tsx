@@ -11,7 +11,7 @@ import {
   isKnownHumanBuzzIdentity,
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
-} from "../lib/buzz-story-room";
+} from "../lib/buzz/buzz-story-room";
 import { agentsForCommunityRoom } from "../lib/plugin-platform";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
 import {

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "config", "buzz-guildhall.json"), "utf8"));
-const bridge = await readFile(path.join(root, "lib", "buzz-guildhall.ts"), "utf8");
+const bridge = await readFile(path.join(root, "lib", "buzz", "buzz-guildhall.ts"), "utf8");
 const bootstrap = await readFile(path.join(root, "scripts", "bootstrap-buzz-guildhall.mjs"), "utf8");
 const poster = await readFile(path.join(root, "build", "post-buzz-guildhall-event.mjs"), "utf8");
 const docs = await readFile(path.join(root, "docs", "buzz-guildhall.md"), "utf8");

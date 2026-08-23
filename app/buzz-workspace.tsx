@@ -13,10 +13,10 @@ import {
   validBuzzStoryProposal,
   type BuzzStoryProposal,
   type BuzzStoryRoomId,
-} from "@/lib/buzz-story-room";
+} from "@/lib/buzz/buzz-story-room";
 import {
   BUZZ_RUNTIME_BOUNDARIES,
-} from "@/lib/buzz-runtime";
+} from "@/lib/buzz/buzz-runtime";
 import styles from "./buzz-workspace.module.css";
 
 const PROJECT_STORAGE_KEY = "plotpickle.project.v1";

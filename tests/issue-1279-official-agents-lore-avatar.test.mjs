@@ -85,7 +85,7 @@ test("#1279 official BUZZ Agent lookup matches public signer instead of Human ow
 test("#1279 Community shows official Agent state without requiring ownedByMe", async () => {
   const [ui, roster] = await Promise.all([
     read("app/community-agent-roster.tsx"),
-    read("lib/community-agent-roster.ts"),
+    read("lib/buzz/community-agent-roster.ts"),
   ]);
   assert.match(ui, /officialIdentity \|\| identity\.ownedByMe/);
   assert.match(ui, /Official BUZZ identity · Admin provisioning pending/);
@@ -97,7 +97,7 @@ test("#1279 Community shows official Agent state without requiring ownedByMe", a
 
 test("#1279 Generate Lore Avatar reuses the selected image route and saves only after generation succeeds", async () => {
   const [contract, panel, route] = await Promise.all([
-    read("lib/buzz-default-community.ts"),
+    read("lib/buzz/buzz-default-community.ts"),
     read("app/profile-access/profile-identity-panel.tsx"),
     read("app/api/auth/profile-presentation/route.ts"),
   ]);

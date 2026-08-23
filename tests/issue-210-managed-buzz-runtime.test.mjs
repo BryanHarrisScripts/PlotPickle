@@ -11,7 +11,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #210 defines a dormant PlotPickle-managed Buzz runtime", async () => {
-  const runtime = await source("lib/buzz-runtime.ts");
+  const runtime = await source("lib/buzz/buzz-runtime.ts");
 
   for (const component of ["buzz-relay", "buzz-cli", "buzz-agent", "buzz-dev-mcp"]) {
     assert.match(runtime, new RegExp(`"${component}"`));
@@ -58,7 +58,7 @@ test("issue #210 keeps Buzz inside Collab without changing the creative workflow
 
 test("issue #210 keeps Settings, Profile, PPF and GitHub authority boundaries explicit", async () => {
   const [runtime, brief, settings, profile] = await Promise.all([
-    source("lib/buzz-runtime.ts"),
+    source("lib/buzz/buzz-runtime.ts"),
     source("docs/issue-210-managed-buzz-runtime.md"),
     source("app/buzz-settings-panel.tsx"),
     source("app/profile-access/profile-identity-panel.tsx"),
@@ -84,7 +84,7 @@ test("issue #210 keeps Settings, Profile, PPF and GitHub authority boundaries ex
 
 test("issue #210 does not pretend unverified native Buzz binaries are packaged", async () => {
   const [runtime, workspace, settings, packagingReadme] = await Promise.all([
-    source("lib/buzz-runtime.ts"),
+    source("lib/buzz/buzz-runtime.ts"),
     source("app/buzz-workspace.tsx"),
     source("app/buzz-settings-panel.tsx"),
     source("runtime/buzz/README.md"),

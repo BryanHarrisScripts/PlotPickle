@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
-import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
-import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
+import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
 import { buzzCliFailure, redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { privateKeyHex, publicKeyFromPrivateKey } from "./buzz-key-identity";

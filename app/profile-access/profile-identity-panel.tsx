@@ -7,7 +7,7 @@ import {
   DEFAULT_HUMAN_LORE_GLYPH,
   isPlotPickleGeneratedAvatarRef,
   PLOTPICKLE_BUZZ_COMMUNITY,
-} from "../../lib/buzz-default-community";
+} from "../../lib/buzz/buzz-default-community";
 import styles from "./profile-identity-panel.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };

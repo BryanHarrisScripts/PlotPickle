@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
-import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
+import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
 import { buzzCliFailure, redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { publicKeyFromPrivateKey } from "./buzz-key-identity";

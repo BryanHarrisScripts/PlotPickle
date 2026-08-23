@@ -10,7 +10,7 @@ import {
   type AgentTrace,
   type BuzzNativeAgentState,
   type WritingAssistantStatus,
-} from "../lib/community-agent-roster";
+} from "../lib/buzz/community-agent-roster";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./community-agent-roster.module.css";
 

@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #220 centralizes managed Buzz lifecycle guards", async () => {
-  const policy = await source("lib/buzz-managed-runtime.ts");
+  const policy = await source("lib/buzz/buzz-managed-runtime.ts");
   assert.match(policy, /getBuzzManagedRuntimeActions/);
   assert.match(policy, /const prerequisitesReady = state\.bundleAvailable && state\.dockerAvailable/);
   assert.match(policy, /const transitional = \["configuring", "starting", "stopping"\]/);
@@ -17,7 +17,7 @@ test("issue #220 centralizes managed Buzz lifecycle guards", async () => {
 });
 
 test("issue #220 prevents stopped-only maintenance while managed Buzz is running", async () => {
-  const policy = await source("lib/buzz-managed-runtime.ts");
+  const policy = await source("lib/buzz/buzz-managed-runtime.ts");
   assert.match(policy, /repair: prerequisitesReady && state\.installed && !state\.running && repairState/);
   assert.match(policy, /update: prerequisitesReady && state\.installed && !state\.running/);
   assert.match(policy, /remove: state\.installed && !state\.running/);
@@ -51,7 +51,7 @@ test("issue #220 preserves the pinned local-only deployment boundary", async () 
 test("issue #220 does not weaken the human canon boundary", async () => {
   const [settings, storyRoom] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
-    source("lib/buzz-story-room.ts"),
+    source("lib/buzz/buzz-story-room.ts"),
   ]);
   assert.match(settings, /Only an explicit human approval applies a selected proposal/);
   assert.match(storyRoom, /applyBuzzStoryProposal/);

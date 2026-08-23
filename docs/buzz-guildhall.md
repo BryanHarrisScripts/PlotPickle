@@ -53,7 +53,7 @@ Use `Utilities\Clean-PlotPickle-BUZZ.cmd` to inventory existing installations, a
 
 ## PlotPickle to BUZZ bridge
 
-`lib/buzz-guildhall.ts` uses PlotPickle's existing local BUZZ gateway rather than reading BUZZ credentials itself.
+`lib/buzz/buzz-guildhall.ts` uses PlotPickle's existing local BUZZ gateway rather than reading BUZZ credentials itself.
 
 The bridge first reads `/api/local-buzz/rooms`, finds the configured Guildhall room, then posts a signed operational summary through `/api/local-buzz/messages`. The existing gateway continues to own the encrypted BUZZ connection and private key.
 

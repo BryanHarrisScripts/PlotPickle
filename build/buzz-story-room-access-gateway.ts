@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { BUZZ_STORY_ROOMS } from "../lib/buzz-story-room";
+import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
 

@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("Story Rooms are the same private BUZZ channels in PlotPickle and Buzz Desktop", async () => {
   const [workspace, contract, access, gateway, vite] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("lib/buzz-story-room.ts"),
+    read("lib/buzz/buzz-story-room.ts"),
     read("app/community-story-room-access.tsx"),
     read("build/buzz-story-room-access-gateway.ts"),
     read("vite.config.ts"),

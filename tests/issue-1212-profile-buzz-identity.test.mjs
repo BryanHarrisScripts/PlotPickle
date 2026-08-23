@@ -62,7 +62,7 @@ test("#1277 BUZZ identity is acquired in BUZZ, imported into the active Human va
   const [gateway, credentials, defaults, vite] = await Promise.all([
     read("build/buzz-profile-identity-gateway.ts"),
     read("build/local-credentials.ts"),
-    read("lib/buzz-default-community.ts"),
+    read("lib/buzz/buzz-default-community.ts"),
     read("vite.config.ts"),
   ]);
 

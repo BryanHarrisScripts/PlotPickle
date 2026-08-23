@@ -92,7 +92,7 @@ test("a developer-capable BUZZ harness cannot become PlotPickle developer author
 
 test("Community roster consumes PlotPickle Agent Contracts while technical authority detail stays secondary", async () => {
   const [model, ui] = await Promise.all([
-    read("lib/community-agent-roster.ts"),
+    read("lib/buzz/community-agent-roster.ts"),
     read("app/community-agent-roster.tsx"),
   ]);
   assert.match(model, /import \{[\s\S]*AGENT_PROFILES/);

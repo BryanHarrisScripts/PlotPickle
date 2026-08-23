@@ -40,10 +40,26 @@ function sessionRequest(request: IncomingMessage, origin: string) {
   };
 }
 
+function authorizationCode(error: unknown) {
+  if (!error || typeof error !== "object" || !("code" in error)) return "";
+  const code = (error as { readonly code?: unknown }).code;
+  return typeof code === "string" ? code : "";
+}
+
+function rejectionMessage(error: unknown) {
+  const code = authorizationCode(error);
+  if (code === "CSRF_REJECTED") {
+    return "PlotPickle rejected this BUZZ request because the active Human session proof is missing or expired. Refresh the page or sign in again.";
+  }
+  const message = error instanceof Error && error.message ? error.message : "";
+  return /session|auth|profile|unlock|cookie/i.test(message)
+    ? "Unlock a PlotPickle Human profile before using BUZZ."
+    : "PlotPickle could not authorize this BUZZ request for the active Human profile.";
+}
+
 function sendRejected(response: ServerResponse, error: unknown) {
-  const message = error instanceof Error && error.message
-    ? error.message
-    : "Unlock a PlotPickle Human profile before using BUZZ.";
+  const authCode = authorizationCode(error);
+  const development = process.env.NODE_ENV !== "production";
   response.statusCode = 401;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
@@ -51,9 +67,9 @@ function sendRejected(response: ServerResponse, error: unknown) {
   response.end(JSON.stringify({
     ok: false,
     code: "plotpickle-profile-required",
-    message: /session|auth|profile|unlock|cookie/i.test(message)
-      ? "Unlock a PlotPickle Human profile before using BUZZ."
-      : "PlotPickle could not authorize this BUZZ request for the active Human profile.",
+    message: rejectionMessage(error),
+    ...(development && authCode ? { authCode } : {}),
+    ...(development && error instanceof Error && error.message ? { detail: error.message } : {}),
   }));
 }
 

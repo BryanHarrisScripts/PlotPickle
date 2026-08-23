@@ -105,32 +105,28 @@ test("Community caller comes from the authoritative Human BUZZ identity and Prof
   assert.match(guard, /Human BUZZ identity|human Community caller|human-buzz-identity-required/i);
 });
 
-test("purpose-led rooms and DMs use real BUZZ message, forum, and DM contracts", async () => {
-  const [workspace, social, gateway, communityGateway] = await Promise.all([
+test("canonical public rooms and DMs use real BUZZ stream and DM contracts", async () => {
+  const [workspace, social, gateway, cleanup] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-guildhall-gateway.ts"),
-    read("build/buzz-community-gateway.ts"),
+    read("config/buzz-community-cleanup.json").then(JSON.parse),
   ]);
+  assert.ok(cleanup.retainedRooms.length === 4);
+  assert.ok(cleanup.retainedRooms.every((room) => room.type === "stream"));
   assert.match(workspace, /room\.type === "forum" \? "forum" : "channel"/);
   assert.match(workspace, /\/guildhall\/dms/);
   assert.match(workspace, /\/guildhall\/dms\/open/);
   assert.match(gateway, /\["dms", "list", "--limit", "100"\]/);
   assert.match(gateway, /const args = \["dms", "open"\]/);
+  assert.match(gateway, /"channels", "search", "--query", name, "--exact"/);
+  assert.match(gateway, /typeMismatches/);
   assert.match(social, /\/messages\?channel=/);
-  assert.match(social, /community\/forum-topic/);
-  assert.match(social, /roomId: target\.id, channel: target\.channelId, content/);
-  assert.match(social, /Forum topic published as your connected Human BUZZ identity/);
-  assert.match(social, /threaded replies and voting remain in BUZZ Desktop/);
-  assert.match(communityGateway, /BUZZ_COMMUNITY_CHANNELS/);
-  assert.match(communityGateway, /definition\.type !== "forum"/);
-  assert.match(communityGateway, /"messages", "send", "--channel", channel\.id, "--content", content, "--kind", "45001"/);
-  assert.match(communityGateway, /url\.pathname === `\$\{API\}\/forum-topic`/);
   assert.match(social, /data-buzz-event-id/);
   assert.doesNotMatch(`${workspace}\n${social}`, /localStorage|sessionStorage|indexedDB/i);
 });
 
-test("Story Workshop is the user-facing forum name while story-council remains the stable compatibility id", async () => {
+test("Story Workshop keeps the stable story-council compatibility id while sharing the stream transport", async () => {
   const [plugin, cleanup] = await Promise.all([
     read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
     read("config/buzz-community-cleanup.json").then(JSON.parse),
@@ -138,7 +134,17 @@ test("Story Workshop is the user-facing forum name while story-council remains t
   const room = plugin.rooms.find((candidate) => candidate.id === "story-council");
   const transport = cleanup.retainedRooms.find((candidate) => candidate.id === "story-council");
   assert.equal(room?.label, "Story Workshop");
-  assert.equal(transport?.type, "forum");
+  assert.equal(transport?.name, "story-council");
+  assert.equal(transport?.type, "stream");
+});
+
+test("BUZZ sync preserves legacy room history while migrating channel-type drift", async () => {
+  const bootstrap = await read("scripts/bootstrap-buzz-guildhall.mjs");
+  assert.match(bootstrap, /MIGRATE/);
+  assert.match(bootstrap, /channels", "update", "--channel", channel\.id, "--name", legacyName/);
+  assert.match(bootstrap, /channels", "archive", "--channel", channel\.id/);
+  assert.match(bootstrap, /await createChannel\(definition\)/);
+  assert.match(bootstrap, /Agent memberships are restored/);
 });
 
 test("Buzz Desktop and PlotPickle retain one conversation authority", async () => {

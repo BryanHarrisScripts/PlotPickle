@@ -25,7 +25,7 @@ test("issue #120 uses one sanitized connection-status source in Settings Dashboa
     source("lib/integrations/connection-status.ts"),
     source("app/use-connection-status.ts"),
     source("app/page.tsx"),
-    source("lib/dashboard-command-centre.ts"),
+    source("modules/dashboard/dashboard-command-centre.ts"),
     source("lib/consolidated-reports.ts"),
   ]);
   assert.match(status, /createConnectionStatusSnapshot/);

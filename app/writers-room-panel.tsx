@@ -9,7 +9,7 @@ import {
   createWritersRoomSession,
   updateWritersRoomSession,
   writersRoomSessions,
-} from "@/lib/writers-room";
+} from "@/modules/creative-room/writers-room";
 import styles from "./writers-room-panel.module.css";
 
 type Props = { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void };

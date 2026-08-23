@@ -1,5 +1,5 @@
 import type { PlotPickleProject, ReviewPriority } from "./project";
-import { createMiniBlockWallModel } from "./mini-block-wall";
+import { createMiniBlockWallModel } from "../modules/plan/mini-block-wall";
 import {
   countSpokenWords,
   createCharacterDialogueReport,

@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("Dashboard discovery requires a PlotPickle repository manifest", async () => {
-  const model = await source("lib/project-dashboard.ts");
+  const model = await source("modules/dashboard/project-dashboard.ts");
   assert.match(model, /\.plotpickle\/story\.json/);
   assert.match(model, /plotpickle-story-repository/);
   assert.match(model, /projectPath\?\.endsWith\("\.ppf"\)/);
@@ -14,7 +14,7 @@ test("Dashboard discovery requires a PlotPickle repository manifest", async () =
 });
 
 test("Dashboard storage states never claim synchronization without verified hashes and commits", async () => {
-  const model = await source("lib/project-dashboard.ts");
+  const model = await source("modules/dashboard/project-dashboard.ts");
   for (const label of [
     "Local only",
     "Local project plus local asset folder",
@@ -31,7 +31,7 @@ test("Dashboard storage states never claim synchronization without verified hash
 });
 
 test("Dashboard separates the canonical project from binary assets and keeps Settings responsible for private credentials", async () => {
-  const model = await source("lib/project-dashboard.ts");
+  const model = await source("modules/dashboard/project-dashboard.ts");
   assert.match(model, /canonical \.ppf project/);
   assert.match(model, /generated binary assets/);
   assert.match(model, /separate asset folder/);

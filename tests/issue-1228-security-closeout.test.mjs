@@ -51,7 +51,7 @@ test("#1228 hardens Windows batch execution before cmd.exe receives values", asy
 });
 
 test("#1228 durable creative IDs require cryptographic randomUUID", async () => {
-  for (const path of ["lib/table-read.ts", "lib/writers-room.ts"]) {
+  for (const path of ["lib/table-read.ts", "modules/creative-room/writers-room.ts"]) {
     const source = await read(path);
     assert.doesNotMatch(source, /Math\.random\s*\(/, `${path} must not use Math.random for IDs`);
     assert.doesNotMatch(source, /Date\.now\s*\(/, `${path} must not use timestamps as uniqueness fallbacks`);

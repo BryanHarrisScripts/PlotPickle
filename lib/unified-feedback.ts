@@ -1,4 +1,4 @@
-import { createMiniBlockWallModel, DEFAULT_MINI_BLOCK_WALL_STATE } from "./mini-block-wall";
+import { createMiniBlockWallModel, DEFAULT_MINI_BLOCK_WALL_STATE } from "../modules/plan/mini-block-wall";
 import type {
   PlotPickleProject,
   ReviewAnchor,

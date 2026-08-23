@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #115 derives the whole-film wall from canonical mini-blocks", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   for (const contract of [
     "project.blocks",
     "block.scenes",
@@ -22,7 +22,7 @@ test("issue #115 derives the whole-film wall from canonical mini-blocks", async 
 });
 
 test("issue #115 supports every required focused view and colour mode", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   const wall = await source("app/mini-block-wall.tsx");
   for (const value of [
     '"whole-film"',
@@ -42,7 +42,7 @@ test("issue #115 supports every required focused view and colour mode", async ()
 });
 
 test("issue #115 filters never mutate canonical ordering", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   assert.match(model, /const cards = \[\.\.\.project\.blocks\]/);
   assert.match(model, /\.sort\(\(left, right\) => left\.number - right\.number\)/);
   assert.match(model, /const visibleCards = cards\.filter/);
@@ -50,7 +50,7 @@ test("issue #115 filters never mutate canonical ordering", async () => {
 });
 
 test("issue #115 connects characters storylines locations scenes frames screenplay and shots", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   const wall = await source("app/mini-block-wall.tsx");
   for (const contract of [
     "project.characters",
@@ -70,7 +70,7 @@ test("issue #115 connects characters storylines locations scenes frames screenpl
 });
 
 test("issue #115 defines and renders every diagnostic family", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   const wall = await source("app/mini-block-wall.tsx");
   for (const warning of [
     "empty-mini-block",
@@ -90,7 +90,7 @@ test("issue #115 defines and renders every diagnostic family", async () => {
 });
 
 test("issue #115 restores selection views filters zoom pan and expansion per project", async () => {
-  const model = await source("lib/mini-block-wall.ts");
+  const model = await source("modules/plan/mini-block-wall.ts");
   const wall = await source("app/mini-block-wall.tsx");
   for (const contract of [
     "selectedMiniBlockId",
@@ -112,7 +112,7 @@ test("issue #115 restores selection views filters zoom pan and expansion per pro
 });
 
 test("issue #115 edits canonical mini-blocks while preserving stable IDs and order", async () => {
-  const edit = await source("lib/mini-block-wall-edit.ts");
+  const edit = await source("modules/plan/mini-block-wall-edit.ts");
   const wall = await source("app/mini-block-wall.tsx");
   for (const contract of [
     "project.blocks",

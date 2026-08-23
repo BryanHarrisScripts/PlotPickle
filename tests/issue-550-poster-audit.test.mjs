@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createFullStoryProject } from "../lib/full-story-builder.mjs";
+import { createFullStoryProject } from "../modules/learn/full-story-builder.mjs";
 import { auditProjectCoverage } from "../lib/verification/production-supervisor.mjs";
 import { attachPosterCandidate } from "../lib/visual-production-agent.mjs";
 

@@ -31,7 +31,7 @@ test("review threads anchor to stable canonical project identities", async () =>
 });
 
 test("purpose-aware logline candidates require explicit selective approval", async () => {
-  const lab = await source("lib/logline-lab.ts");
+  const lab = await source("modules/plan/logline-lab.ts");
   const workspace = await source("app/logline-lab.tsx");
   assert.match(lab, /buildLoglineAlternatives/);
   assert.match(lab, /savePurposeAwareCandidate/);

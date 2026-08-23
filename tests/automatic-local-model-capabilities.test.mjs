@@ -6,7 +6,7 @@ import {
   normalizeModelDescriptor,
   recommendModelsForRoles,
   scoreModelForRole,
-} from "../lib/ai/local-model-capabilities.mjs";
+} from "../lib/runtime/ai/local-model/local-model-capabilities.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

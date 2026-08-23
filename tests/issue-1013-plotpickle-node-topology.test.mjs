@@ -8,7 +8,7 @@ import {
   normalizePlotPickleNodeDescriptor,
   normalizePlotPickleNodeEndpoint,
   selectPlotPickleNode,
-} from "../lib/plotpickle-node-topology-core.mjs";
+} from "../lib/runtime/plotpickle-node-topology-core.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 

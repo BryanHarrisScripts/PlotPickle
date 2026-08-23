@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import os from "node:os";
 import process from "node:process";
-import { selectLocalHardwareProfile, type LocalHardwareProfile } from "../lib/ai/local-runtime";
+import { selectLocalHardwareProfile, type LocalHardwareProfile } from "../lib/runtime/ai/local-runtime";
 
 export type LocalGpuGeneration = "pascal" | "turing" | "ampere" | "ada" | "blackwell" | "other" | "none";
 

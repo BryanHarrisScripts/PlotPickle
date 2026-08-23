@@ -75,7 +75,7 @@ test("issue #347 stores routing outside PPF and coordinates existing provider st
 test("issue #347 adds the official asynchronous OpenAI video job lifecycle", async () => {
   const [gateway, providers] = await Promise.all([
     source("build/ai-routing-gateway.ts"),
-    source("lib/ai/providers.ts"),
+    source("lib/runtime/ai/providers.ts"),
   ]);
   for (const contract of [
     'form.set("model", model)',

@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("local text is provider-independent and llama.cpp is preferred", async () => {
   const [catalog, manager, provider, gateway] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("build/local-runtime-manager.ts"),
     read("build/writing-assistant-provider.ts"),
     read("build/writing-assistant-gateway.ts"),
@@ -24,7 +24,7 @@ test("local text is provider-independent and llama.cpp is preferred", async () =
 
 test("GTX 1080 Pascal receives the CUDA 12.6 safe hardware profile", async () => {
   const [profiles, detector, installer] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("build/local-hardware-detection.ts"),
     read("scripts/configure-hardware-aware-local-ai.ps1"),
   ]);
@@ -41,7 +41,7 @@ test("GTX 1080 Pascal receives the CUDA 12.6 safe hardware profile", async () =>
 });
 
 test("the GTX 1080 model-role catalog remains the starter fallback profile", async () => {
-  const catalog = await read("lib/ai/local-runtime.ts");
+  const catalog = await read("lib/runtime/ai/local-runtime.ts");
   assert.match(catalog, /Qwen3\.5-4B GGUF/);
   assert.match(catalog, /Q6_K or Q8/);
   assert.match(catalog, /Qwen3\.5-9B GGUF/);
@@ -55,7 +55,7 @@ test("the GTX 1080 model-role catalog remains the starter fallback profile", asy
 
 test("SmolLM2 is health-check only and cannot become a production role", async () => {
   const [catalog, panel] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("app/local-runtime-panel.tsx"),
   ]);
   assert.match(catalog, /id: "smollm2-135m-health"/);
@@ -85,7 +85,7 @@ test("curriculum RAG uses CPU Qwen embedding and reranking with bounded assembly
 
 test("context is 16K by default with an explicit 32K override", async () => {
   const [catalog, manager, panel] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("build/local-runtime-manager.ts"),
     read("app/local-runtime-panel.tsx"),
   ]);
@@ -112,7 +112,7 @@ test("the GPU scheduler enforces text-media residency transitions", async () => 
 
 test("SDXL is the default 8 GB image route and SD3.5 is only experimental", async () => {
   const [catalog, store, gateway] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("build/media-routing-store.ts"),
     read("build/comfyui-sdxl-local-gateway.ts"),
   ]);
@@ -125,7 +125,7 @@ test("SDXL is the default 8 GB image route and SD3.5 is only experimental", asyn
 
 test("LTX-Video 2B is the default lightweight local video path while H3 stays override-compatible", async () => {
   const [catalog, ltx, gateway, composition] = await Promise.all([
-    read("lib/ai/local-runtime.ts"),
+    read("lib/runtime/ai/local-runtime.ts"),
     read("build/comfyui-ltx-local-provider.ts"),
     read("build/comfyui-ltx-local-gateway.ts"),
     read("build/local-ai-gateway.ts"),
@@ -142,7 +142,7 @@ test("LTX-Video 2B is the default lightweight local video path while H3 stays ov
 
 test("visual continuity controls remain above provider/model selection and reach local SDXL", async () => {
   const [contracts, common, sdxl] = await Promise.all([
-    read("lib/ai/contracts.ts"),
+    read("lib/runtime/ai/contracts.ts"),
     read("build/media-provider-common.ts"),
     read("build/comfyui-sdxl-local-provider.ts"),
   ]);

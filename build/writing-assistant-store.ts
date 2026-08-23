@@ -1,5 +1,5 @@
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
-import type { LocalRuntimeKind } from "../lib/ai/local-runtime";
+import type { LocalRuntimeKind } from "../lib/runtime/ai/local-runtime";
 
 export type TextProvider = "local" | "ollama" | "openai" | "minimax";
 export type ActiveTextProvider = TextProvider | "disabled";

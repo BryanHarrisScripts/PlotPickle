@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { createLocalDesktopPlotPickleNode, type PlotPickleNodeHardwareSummary } from "../lib/plotpickle-node-topology";
+import { createLocalDesktopPlotPickleNode, type PlotPickleNodeHardwareSummary } from "../lib/runtime/plotpickle-node-topology";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 
 const NODE_TOPOLOGY_PATH = "/api/system/node-topology";

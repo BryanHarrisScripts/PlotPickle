@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("structured telemetry is appended to the existing Responsibility Run event truth", async () => {
   const [telemetry, runs] = await Promise.all([
-    read("lib/run-telemetry.ts"),
+    read("lib/runtime/run-telemetry.ts"),
     read("lib/agents/responsibility/responsibility-runs.ts"),
   ]);
   assert.match(runs, /events: ResponsibilityRunEvent\[\]/);
@@ -19,7 +19,7 @@ test("structured telemetry is appended to the existing Responsibility Run event 
 });
 
 test("model requests are recorded before send and can be reconstructed with a desync assertion", async () => {
-  const telemetry = await read("lib/run-telemetry.ts");
+  const telemetry = await read("lib/runtime/run-telemetry.ts");
   assert.match(telemetry, /ModelRequestBlueprint/);
   assert.match(telemetry, /recordModelRequest/);
   assert.match(telemetry, /modelRequestFingerprint/);
@@ -33,7 +33,7 @@ test("model requests are recorded before send and can be reconstructed with a de
 });
 
 test("telemetry sanitization excludes credentials and hidden reasoning rather than logging them for completeness", async () => {
-  const telemetry = await read("lib/run-telemetry.ts");
+  const telemetry = await read("lib/runtime/run-telemetry.ts");
   assert.match(telemetry, /SECRET_KEY/);
   assert.match(telemetry, /SECRET_VALUE/);
   assert.match(telemetry, /HIDDEN_REASONING_KEY/);
@@ -44,7 +44,7 @@ test("telemetry sanitization excludes credentials and hidden reasoning rather th
 });
 
 test("usage accounting labels exact estimated and unknown tokens/cost instead of pretending precision", async () => {
-  const telemetry = await read("lib/run-telemetry.ts");
+  const telemetry = await read("lib/runtime/run-telemetry.ts");
   assert.match(telemetry, /UsagePrecision = "exact" \| "estimated" \| "unknown"/);
   assert.match(telemetry, /inputTokens/);
   assert.match(telemetry, /outputTokens/);
@@ -61,7 +61,7 @@ test("usage accounting labels exact estimated and unknown tokens/cost instead of
 
 test("provider protocol adapters hide model quirks below Agent Profiles without granting authority or paid fallback", async () => {
   const [harness, profiles] = await Promise.all([
-    read("lib/provider-harness.ts"),
+    read("lib/runtime/provider-harness.ts"),
     read("lib/agents/agent-profiles.ts"),
   ]);
   assert.match(harness, /openAiCompatibleAdapter/);
@@ -81,7 +81,7 @@ test("provider protocol adapters hide model quirks below Agent Profiles without 
 });
 
 test("provider health and circuit state are explicit and never imply a silent route change", async () => {
-  const harness = await read("lib/provider-harness.ts");
+  const harness = await read("lib/runtime/provider-harness.ts");
   for (const state of ["healthy", "unavailable", "timeout", "rate-limited", "circuit-open", "recovering"]) assert.match(harness, new RegExp(`"${state}"`));
   assert.match(harness, /consecutiveFailures >= 3/);
   assert.match(harness, /providerCircuitAllowsAttempt/);
@@ -170,7 +170,7 @@ test("Agent Activity renders plain-language event-derived summary first and expa
 });
 
 test("Verification Inbox and BUZZ can reference a Run without duplicating private telemetry", async () => {
-  const telemetry = await read("lib/run-telemetry.ts");
+  const telemetry = await read("lib/runtime/run-telemetry.ts");
   assert.match(telemetry, /minimalVerificationRunReference/);
   assert.match(telemetry, /return \{ runId: text\(runId/);
   assert.match(telemetry, /minimalBuzzRunReceipt/);

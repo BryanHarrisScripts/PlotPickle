@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url), "utf8");
+const settings = await readFile(new URL("../lib/runtime/ai/settings.ts", import.meta.url), "utf8");
 const panel = await readFile(new URL("../app/settings-panel-legacy.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8");

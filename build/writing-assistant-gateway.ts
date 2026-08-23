@@ -22,7 +22,7 @@ import {
   localRuntimeSnapshot,
   localTextExecutionProfile,
 } from "./local-runtime-manager";
-import type { LocalTextRole } from "../lib/ai/local-runtime";
+import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
 import {
   PLOTPICKLE_AGENT_ROLES,
   askPlotPickleAgent,

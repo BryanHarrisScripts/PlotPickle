@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import type { ViteDevServer } from "vite";
-import type { LocalTextRole } from "../lib/ai/local-runtime";
+import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
 import {
   localRuntimeSnapshot,
   startManagedLlama,

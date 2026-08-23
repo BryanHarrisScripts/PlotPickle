@@ -65,7 +65,7 @@ test("legacy #928 signed Studio events map to Node provenance without rewriting 
 test("#1013 topology routing id remains separate from cryptographic Node identity", async () => {
   const [doc, topology] = await Promise.all([
     read("docs/architecture/IDENTITY-AUTHORITY.md"),
-    read("lib/plotpickle-node-topology-core.mjs"),
+    read("lib/runtime/plotpickle-node-topology-core.mjs"),
   ]);
   assert.match(topology, /id: input\.id \|\| "local-desktop"/);
   assert.match(doc, /routing\/topology descriptor identifier/);

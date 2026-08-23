@@ -1,4 +1,4 @@
-import registryJson from "../../config/ai-source-registry.json";
+import registryJson from "../../../config/ai-source-registry.json";
 
 export type AiSourceCapability = "text" | "image" | "video";
 

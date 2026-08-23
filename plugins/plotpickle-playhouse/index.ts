@@ -1,5 +1,5 @@
 import communityConfig from "./community.json";
-import { AGENT_PROFILES } from "../../lib/agent-profiles";
+import { AGENT_PROFILES } from "../../lib/agents/agent-profiles";
 import {
   createCommunityExtensionSnapshot,
   defineCommunityExtensionPlugin,

@@ -159,6 +159,22 @@ try {
       Write-Warning "Missing Agents were found, but the BUZZ team import could not be prepared."
     }
   }
+  if ($agentResult.avatarRepair -and $agentResult.avatarRepair.agentCount) {
+    Write-Host ""
+    Write-Host "EXISTING BUZZ AGENT AVATAR UPDATE"
+    Write-Host "Do not import the team again for these existing Agents; that would create duplicate identities."
+    Write-Host "BUZZ keeps each managed Agent private key inside BUZZ Desktop and does not expose managed-avatar edits through its CLI."
+    Write-Host "In BUZZ Desktop, open Agents, edit each matching Persona/Profile, choose the named WebP below, and Save."
+    Write-Host "BUZZ Desktop will publish the corrected avatar on the same Agent identity."
+    Write-Host "Official image folder: $($agentResult.avatarRepair.path)"
+    foreach ($repair in $agentResult.avatarRepair.agents) {
+      Write-Host "  $($repair.displayName): $($repair.avatarPath)"
+    }
+    $openRepair = Read-Host "Type OPEN to open the official image folder, or press Enter to continue"
+    if ($openRepair -ceq "OPEN") {
+      Invoke-Item -LiteralPath $agentResult.avatarRepair.path
+    }
+  }
   foreach ($agent in $attention) { Write-Warning "$($agent.displayName): $($agent.status)" }
   if (-not $pending.Count -and -not $ownerRequired.Count -and -not $attention.Count) {
     Write-Host "PlotPickle Community setup is complete. Every discovered Agent is verified in its contributed BUZZ rooms."

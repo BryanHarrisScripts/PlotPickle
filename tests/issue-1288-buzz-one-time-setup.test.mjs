@@ -60,7 +60,7 @@ test("#1288 sync accepts BUZZ single-user discovery and prepares one credential-
   assert.match(provisioner, /buzz-team-snapshot/);
   assert.match(provisioner, /buzz-agent-snapshot/);
   assert.match(provisioner, /avatarDataUrl/);
-  assert.match(provisioner, /data:image\/png;base64/);
+  assert.match(provisioner, /image\/webp/);
   assert.match(provisioner, /respondTo: "owner-only"/);
   assert.match(provisioner, /memory: \{ level: "none", entries: \[\] \}/);
   assert.match(setup, /Import Team/);
@@ -85,7 +85,7 @@ test("#1288 generated BUZZ team import carries all public profiles and no identi
     assert.equal(member.format, "buzz-agent-snapshot");
     assert.equal(member.memory.level, "none");
     assert.deepEqual(member.memory.entries, []);
-    assert.match(member.profile.avatarDataUrl, /^data:image\/png;base64,iVBOR/u);
+    assert.match(member.profile.avatarDataUrl, /^data:image\/webp;base64,UklGR/u);
     assert.ok(member.profile.about?.length > 20);
     assert.match(member.definition.systemPrompt, /Never sign or speak as the connected Human/u);
   }

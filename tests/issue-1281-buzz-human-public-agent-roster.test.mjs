@@ -44,7 +44,7 @@ test("#1281 PlotPicklePlayhouse has exactly twelve official public Agent present
   for (const id of PUBLIC_AGENT_IDS) {
     const presentation = publicConfig.profiles[id];
     assert.ok(presentation.publicBio.length > 0 && presentation.publicBio.length <= 500, `${id} requires a public bio`);
-    assert.equal(presentation.avatarRef, `/assets/helpers/lore/${id}.svg`);
+    assert.equal(presentation.avatarRef, `/assets/helpers/official/${id}.webp`);
     assert.ok(presentation.executionContexts.includes("public-buzz"), `${id} must be a public BUZZ personality`);
     assert.equal(presentation.officialBuzzIdentity.provisioning, "external-buzz-admin");
     assert.ok(presentation.officialBuzzIdentity.pubkey === null || /^[a-f0-9]{64}$/i.test(presentation.officialBuzzIdentity.pubkey));

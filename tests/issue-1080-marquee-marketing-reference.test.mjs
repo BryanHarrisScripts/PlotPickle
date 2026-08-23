@@ -33,7 +33,7 @@ test("#1080 keeps Marquee additive in LEARN while its official Community identit
   assert.ok(rosterIndex >= 0 && marqueeIndex > rosterIndex, "Marquee must remain additive after the five-wizard roster");
   assert.match(overlay, /aria-label="The Marquee Director private project agent"/);
   assert.doesNotMatch(overlay, /\/api\/local-buzz/);
-  assert.equal(publicPresentations.profiles["marquee-director"].avatarRef, "/assets/helpers/lore/marquee-director.svg");
+  assert.equal(publicPresentations.profiles["marquee-director"].avatarRef, "/assets/helpers/official/marquee-director.webp");
   assert.ok(publicPresentations.profiles["marquee-director"].executionContexts.includes("public-buzz"));
   assert.match(communityRoster, /publicAgentByProfileId\(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent\.id\)/);
   assert.equal(skill.includes("not a BBS/Guildhall conversation agent in this workflow"), true);

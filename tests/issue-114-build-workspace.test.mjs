@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #114 derives Build views from the canonical project", async () => {
-  const model = await source("lib/build-workspace-model.ts");
+  const model = await source("modules/build/build-workspace-model.ts");
   for (const contract of [
     "project.blocks",
     "project.structure.sequences",
@@ -24,7 +24,7 @@ test("issue #114 derives Build views from the canonical project", async () => {
 
 test("issue #114 supports search and filters without persisted Build-only records", async () => {
   const [model, workspace] = await Promise.all([
-    source("lib/build-workspace-model.ts"),
+    source("modules/build/build-workspace-model.ts"),
     source("app/build-workspace.tsx"),
   ]);
   for (const contract of [
@@ -51,7 +51,7 @@ test("issue #114 supports search and filters without persisted Build-only record
 
 test("issue #114 canonical Block edits preserve stable IDs", async () => {
   const [model, workspace] = await Promise.all([
-    source("lib/build-workspace-model.ts"),
+    source("modules/build/build-workspace-model.ts"),
     source("app/build-workspace.tsx"),
   ]);
   assert.match(model, /export function updateCanonicalBuildBlock/);
@@ -96,7 +96,7 @@ test("issue #114 mounts the current canonical Foundations BUILD workspace", asyn
 });
 
 test("issue #114 remaps every canonical Block-number reference atomically", async () => {
-  const order = await source("lib/build-workspace-order.ts");
+  const order = await source("modules/build/build-workspace-order.ts");
   for (const contract of [
     "canonicalBuildOrder",
     "applyCanonicalBuildOrder",

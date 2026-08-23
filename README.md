@@ -22,14 +22,10 @@ The core creative progression is:
 
 PlotPickle currently implements that progression through **Foundations** and **World**. Character is the next Visual Writer frontier. The complete 81-lesson curriculum remains available; later groups stay gated until their vertical slices are deliberately implemented.
 
-**
+****
 
 <p align="center">
   <img src="docs/brand/Plot-Pickle-Architecture.jpg" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
-</p>
-
-<p align="center">
-  <img src="docs/brand/plotpickle-banner-learn-plan-build.webp" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
 </p>
 
 ## The Visual Writer

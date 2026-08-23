@@ -14,12 +14,12 @@ test("#1288 gives the Great Hall a graphic-led 1980s BBS centre without replacin
 
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/u);
   assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/su);
-  assert.match(social, /function GreatHallBanner\(\)/u);
+  assert.match(social, /function GreatHallBanner\(/u);
   assert.match(social, /PLOTPICKLE GREAT HALL/u);
-  assert.match(social, /Great Hall line art/u);
+  assert.match(social, /16-bit-bbs/u);
   assert.match(social, /data-great-hall=\{greatHall \? "true"/u);
   assert.match(socialStyles, /\.greatHallBanner\s*\{[^}]*grid-template-columns:/su);
-  assert.match(socialStyles, /\.greatHallArt\s*\{[^}]*stroke:\s*currentColor;/su);
+  assert.match(socialStyles, /\.greatHallAscii\s*\{[^}]*white-space:\s*pre;/su);
 });
 
 test("#1288 enlarges Community typography and adds the terminal identity prompt", async () => {

@@ -40,6 +40,21 @@ type RoomGuide = {
 };
 
 const BUZZ_API = "/api/local-buzz";
+const GREAT_HALL_ASCII_CHARACTER_ART = String.raw`
+        /\                 .----.                 /\
+       /__\      .-.      / /\   \      .-.      /__\
+      (o  o)    /___\    / /  \   \    /___\    (o  o)
+      /|==|\    (o o)   /_/ /\ \___\   (o o)    /|==|\
+     /_|  |_\   /|=|\      /  \       /|=|\   /_|  |_\
+       /__\      / \      / /\ \       / \      /__\
+                 _.._    /_/  \_\    _.._
+              .-'    '-.   /\     .-'    '-.
+             /  @  @    \ /  \   /    @  @  \
+            |     ^      | /\ | |      ^     |
+             \  '--'    / /  \ \ \    '--'  /
+          ____'-.____.-'_/ /\ \_\_'-.____.-'____
+         /___/\___/\____/ /  \ \____/\___/\___/\
+             WIZARD        DRAGON       WAYFARER`;
 
 function roomGuideFor(roomId: string): RoomGuide | null {
   const room = PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.find((candidate) => candidate.id === roomId);
@@ -148,17 +163,15 @@ function CommunityAvatar({
   </span>;
 }
 
-function GreatHallBanner() {
+function GreatHallBanner({ memberCount, messageCount }: { readonly memberCount: number; readonly messageCount: number }) {
   return <section className={styles.greatHallBanner} aria-label="PlotPickle Great Hall BBS">
-    <div>
+    <div className={styles.greatHallCopy}>
       <span>COMMUNITY NODE 01</span>
       <h1 aria-label="PlotPickle Great Hall">╔══ PLOTPICKLE GREAT HALL ══╗</h1>
       <p>Writers, wizards and wayfarers online</p>
+      <small>MEMBERS {memberCount} · MESSAGES {messageCount}</small>
     </div>
-    <svg className={styles.greatHallArt} viewBox="0 0 240 170" role="img" aria-label="Great Hall line art">
-      <path d="M30 145V73l26-13V39l15-8 15 8v8l34-17 34 17v-8l15-8 15 8v21l26 13v72M30 73l90 43 90-43M56 60l64 32 64-32M86 47l34 16 34-16M30 145l90 21 90-21M56 60v79M86 47v99M120 30v136M154 47v99M184 60v79" />
-      <path d="M42 137v-34q7-18 14 0v36M68 142v-31q9-24 18 0v35M101 158v-36q19-42 38 0v36M154 146v-35q9-24 18 0v31M184 139v-36q7-18 14 0v34M51 39h30M51 31v12M66 31v12M81 31v12M149 39h30M149 31v12M164 31v12M179 31v12M105 31V18M120 30V15M135 31V18" />
-    </svg>
+    <pre className={styles.greatHallAscii} data-ascii-character-art="16-bit-bbs" role="img" aria-label="16-bit fantasy BBS character scene with a wizard, dragon and wayfarer">{GREAT_HALL_ASCII_CHARACTER_ART}</pre>
   </section>;
 }
 
@@ -232,8 +245,8 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       <header className={styles.conversationHeader}>
         <div><span>{kindLabel}</span><h2>{target.label}</h2><small>{target.description}</small></div>
       </header>
-      {greatHall ? <GreatHallBanner /> : null}
-      {roomGuide ? <section className={styles.roomGuide} aria-label={`Who helps in ${target.label}`}>
+      {greatHall ? <GreatHallBanner memberCount={members.length} messageCount={messages.length} /> : null}
+      {roomGuide && !greatHall ? <section className={styles.roomGuide} aria-label={`Who helps in ${target.label}`}>
         <div><span>What this room is for</span><p>{roomGuide.purpose}</p><small>{roomGuide.actionHint}</small></div>
         <div className={styles.helpers}><span>Who helps here</span><div>{roomGuide.agents.map((agent) => <span className={styles.helper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div></div>
       </section> : null}
@@ -269,6 +282,13 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : "Community room"}</h4><p>{target.description}</p></section>
+        {greatHall && roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
+          <span>Who helps here</span>
+          <div className={styles.contextHelpers}>{roomGuide.agents.map((agent) => <span className={styles.contextHelper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div>
+          <span>What this room is for</span>
+          <p>{roomGuide.purpose}</p>
+          <small>{roomGuide.actionHint}</small>
+        </section> : null}
         {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><CommunityAvatar label={member.displayName} imageUrl={identityKey(member.displayName) === identityKey(humanName) ? humanPresentation?.avatarUrl || member.picture : member.picture} size={38} /><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
         <section className={styles.contextCard} data-native-buzz-huddle="desktop">
           <span>Voice</span><h4>Open in BUZZ Desktop</h4><p>Use BUZZ Desktop when you want the native Huddle/voice experience. PlotPickle keeps the text conversation here simple.</p>

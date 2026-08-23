@@ -25,7 +25,7 @@
 
 .railHeader b {
   color: var(--community-text, #f1eee7);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--community-bbs-font, "Lucida Console", "Courier New", monospace);
   font-size: 16px;
   letter-spacing: 0.02em;
 }

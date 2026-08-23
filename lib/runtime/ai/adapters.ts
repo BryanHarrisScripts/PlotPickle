@@ -155,8 +155,11 @@ export class OpenAiAdapter extends BaseAdapter {
     if (request.schema) {
       try {
         parsed = JSON.parse(outputText);
-      } catch {
-        throw new AiProviderError("OpenAI returned text that could not be parsed as the requested structure.", "invalid-structured-output");
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          throw new AiProviderError("OpenAI returned text that could not be parsed as the requested structure.", "invalid-structured-output");
+        }
+        throw error;
       }
     }
 
@@ -258,9 +261,19 @@ export class OpenAiCompatibleAdapter extends BaseAdapter {
   }
 }
 
+const miniMaxStatuses = new Set<AiVideoJob["status"]>([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+  "expired",
+]);
+
 function miniMaxStatus(value: unknown): AiVideoJob["status"] {
-  if (value === "queued" || value === "running" || value === "succeeded" || value === "failed" || value === "cancelled" || value === "expired") return value;
-  return "failed";
+  const candidate = String(value) as AiVideoJob["status"];
+  if (!miniMaxStatuses.has(candidate)) return "failed";
+  return candidate;
 }
 
 export class MiniMaxAdapter extends BaseAdapter {

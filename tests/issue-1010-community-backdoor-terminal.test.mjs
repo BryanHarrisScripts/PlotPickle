@@ -75,16 +75,20 @@ test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatme
 });
 
 test("current Community conversation uses real BUZZ routes rather than fake users or a second backend", async () => {
-  const [terminal, workspace, social] = await Promise.all([
+  const [terminal, workspace, social, communityGateway] = await Promise.all([
     read("app/community-backdoor-terminal.tsx"),
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
+    read("build/buzz-community-gateway.ts"),
   ]);
   assert.match(terminal, /BUZZ_GUILDHALL_ACTORS/);
   assert.match(terminal, /BUZZ_GUILDHALL_CHANNELS/);
   assert.match(terminal, /\/api\/local-buzz/);
   assert.match(social, /\/messages\?channel=/);
-  assert.match(social, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
+  assert.match(social, /community\/forum-topic/);
+  assert.match(social, /\? \{ roomId: target\.id, channel: target\.channelId, content \}/);
+  assert.match(social, /: \{ channel: target\.channelId, content \}/);
+  assert.match(communityGateway, /"--kind", "45001"/);
   assert.match(workspace, /members=\{community\?\.members \?\? \[\]\}/);
   assert.match(workspace, /canPost=\{humanCanPost\}/);
   assert.match(workspace, /target=\{selectedTarget\}/);

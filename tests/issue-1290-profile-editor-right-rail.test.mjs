@@ -16,15 +16,15 @@ test("#1290 keeps the left Human identity summary read-only and moves presentati
   assert.ok(identityStart >= 0 && rightRailStart > identityStart);
   assert.match(identity, /Human Profile/u);
   assert.match(identity, /BUZZ Identity/u);
-  assert.doesNotMatch(identity, /className=\{styles\.identityForm\}|<span>Display name<\/span>|<span>Avatar<\/span>|<span>Public bio \/ description<\/span>|Save Profile/u);
+  assert.doesNotMatch(identity, /className=\{styles\.identityForm\}|<span>Display name \(agent name\)<\/span>|<span>Display Description<\/span>|<span>Lore Avatar prompt<\/span>|Save Profile/u);
 
   assert.match(rightRail, /Profile editor/u);
   assert.match(rightRail, /Current profile avatar/u);
-  assert.match(rightRail, /<span>Display name<\/span>/u);
-  assert.match(rightRail, /<span>Avatar<\/span>/u);
-  assert.match(rightRail, /<span>Lore Avatar description<\/span>/u);
+  assert.match(rightRail, /<span>Display name \(agent name\)<\/span>/u);
+  assert.match(rightRail, /<span>Display Description<\/span>/u);
+  assert.doesNotMatch(rightRail, /<span>Avatar<\/span>/u);
+  assert.match(rightRail, /<span>Lore Avatar prompt<\/span>/u);
   assert.match(rightRail, /Generate Lore Avatar/u);
-  assert.match(rightRail, /<span>Public bio \/ description<\/span>/u);
   assert.match(rightRail, /Save Profile/u);
 
   const editorIndex = rightRail.indexOf("Profile editor");

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/brand/plotpickle-banner-dragon-logo.png" alt="PlotPickle dragon, compass-nib emblem and wordmark" width="960">
+  <img src="docs/brand/plotpickle-banner-dragon-logo.jpg" alt="PlotPickle dragon, compass-nib emblem and wordmark" width="960">
 </p>
 
 <h1 align="center">PlotPickle</h1>

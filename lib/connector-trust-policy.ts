@@ -1,2 +1,2 @@
 // Temporary Phase 1 compatibility bridge. Remove after canonical consumers move to lib/agents/.
-export * from "./agents/connector-trust-policy";
+export * from "./agents/responsibility/connector-trust-policy";

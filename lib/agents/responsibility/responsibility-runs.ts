@@ -1,4 +1,4 @@
-import { agentProfileById } from "./agent-profiles";
+import { agentProfileById } from "../agent-profiles";
 import type { ConnectorPolicyScope } from "./connector-trust-policy";
 
 export const RESPONSIBILITY_RUN_STATES = [
@@ -141,9 +141,9 @@ function boundedStringList(value: readonly string[] | undefined, maximum = 64, i
   return [...new Set((value || []).map((item) => boundedText(item, itemMaximum)).filter(Boolean))].slice(0, maximum);
 }
 
-function timestamp(value?: string) {
+export function responsibilityRunTimestamp(value?: string, fallback = new Date().toISOString()) {
   const parsed = value ? Date.parse(value) : NaN;
-  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : fallback;
 }
 
 function runId() {
@@ -172,7 +172,7 @@ function normalizeLimits(input: Partial<ResponsibilityRunLimits> = {}): Responsi
 }
 
 function addEvent(run: ResponsibilityRun, type: string, summary: string, at = new Date().toISOString()): ResponsibilityRun {
-  const cleanAt = timestamp(at);
+  const cleanAt = responsibilityRunTimestamp(at);
   return {
     ...run,
     updatedAt: cleanAt,
@@ -190,21 +190,22 @@ function withState(run: ResponsibilityRun, state: ResponsibilityRunState, summar
   const next: ResponsibilityRun = {
     ...run,
     state,
-    updatedAt: timestamp(at),
-    completedAt: TERMINAL_STATES.has(state) ? timestamp(at) : run.completedAt,
+    updatedAt: responsibilityRunTimestamp(at),
+    completedAt: TERMINAL_STATES.has(state) ? responsibilityRunTimestamp(at) : run.completedAt,
   };
   return addEvent(next, `state.${state}`, summary, at);
 }
 
+function orderedRunValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(orderedRunValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, child]) => [key, orderedRunValue(child)]));
+}
+
 function stable(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
-  if (value && typeof value === "object") {
-    return `{${Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, child]) => `${JSON.stringify(key)}:${stable(child)}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value) ?? "undefined";
+  return JSON.stringify(orderedRunValue(value)) ?? "undefined";
 }
 
 function simpleHash(source: string) {
@@ -242,7 +243,7 @@ export function createResponsibilityRun(input: {
   const requestedSkills = boundedStringList(input.skillUris);
   const approvedSkills = new Set(profile.skillUris);
   if (requestedSkills.some((skill) => !approvedSkills.has(skill))) throw new Error("Responsibility Run cannot load a Skill outside the owning Agent Contract.");
-  const createdAt = timestamp(input.createdAt);
+  const createdAt = responsibilityRunTimestamp(input.createdAt);
   const run: ResponsibilityRun = {
     version: 1,
     runId: boundedText(input.runId || runId(), 160),
@@ -256,7 +257,7 @@ export function createResponsibilityRun(input: {
     context: input.context ? {
       taskId: boundedText(input.context.taskId, 180),
       sourceIds: boundedStringList(input.context.sourceIds, 256, 240),
-      receiptGeneratedAt: timestamp(input.context.receiptGeneratedAt),
+      receiptGeneratedAt: responsibilityRunTimestamp(input.context.receiptGeneratedAt),
     } : null,
     verificationMode: input.verificationMode,
     limits: normalizeLimits(input.limits),
@@ -284,7 +285,7 @@ export function createResponsibilityRun(input: {
 export function responsibilityRunLimitStatus(run: ResponsibilityRun, now = new Date().toISOString()): ResponsibilityLimitStatus {
   if (run.usage.attempts >= run.limits.maxAttempts) return { exhausted: true, reason: "attempts" };
   const start = Date.parse(run.startedAt || run.updatedAt);
-  const current = Date.parse(timestamp(now));
+  const current = Date.parse(responsibilityRunTimestamp(now));
   if (Number.isFinite(start) && Number.isFinite(current) && current - start >= run.limits.timeoutMs) return { exhausted: true, reason: "timeout" };
   if (run.usage.contextCharacters > run.limits.maxContextCharacters) return { exhausted: true, reason: "context" };
   if (run.usage.tokens > run.limits.maxTokens) return { exhausted: true, reason: "tokens" };
@@ -298,7 +299,7 @@ export function prepareResponsibilityRun(run: ResponsibilityRun, contextCharacte
   if (run.state !== "queued") throw new Error("Only a queued Responsibility Run can prepare context.");
   const next: ResponsibilityRun = {
     ...run,
-    startedAt: run.startedAt || timestamp(now),
+    startedAt: run.startedAt || responsibilityRunTimestamp(now),
     usage: { ...run.usage, contextCharacters: Math.max(0, Math.floor(contextCharacters)) },
   };
   const limit = responsibilityRunLimitStatus(next, now);
@@ -341,7 +342,7 @@ export function recordResponsibilityToolCall(run: ResponsibilityRun, input: { co
   const existing = run.repetition.find((item) => item.signature === signature);
   const count = (existing?.count || 0) + 1;
   const deniedCount = (existing?.deniedCount || 0) + (input.allowed ? 0 : 1);
-  const replacement: ResponsibilityRunRepetition = { signature, connectorId, count, deniedCount, lastSeenAt: timestamp(now) };
+  const replacement: ResponsibilityRunRepetition = { signature, connectorId, count, deniedCount, lastSeenAt: responsibilityRunTimestamp(now) };
   let next: ResponsibilityRun = {
     ...run,
     usage: { ...run.usage, toolCalls: run.usage.toolCalls + 1 },
@@ -366,7 +367,7 @@ export function addResponsibilityArtifact(run: ResponsibilityRun, artifact: Omit
     id: boundedText(artifact.id, 180),
     kind: artifact.kind,
     ref: boundedText(artifact.ref, 500),
-    producedAt: timestamp(artifact.producedAt),
+    producedAt: responsibilityRunTimestamp(artifact.producedAt),
     canonical: false,
   };
   return addEvent({ ...run, artifacts: [...run.artifacts.filter((item) => item.id !== normalized.id), normalized] }, "artifact.produced", `Produced non-canonical ${normalized.kind} ${normalized.id}.`, normalized.producedAt);
@@ -389,7 +390,7 @@ export function recordWorkerVerificationObservation(run: ResponsibilityRun, inpu
     result: "OBSERVATION",
     evidenceRef: boundedText(input.evidenceRef, 500),
     summary: boundedText(input.summary, 800),
-    recordedAt: timestamp(now),
+    recordedAt: responsibilityRunTimestamp(now),
     immutable: true,
   };
   return addEvent(appendVerification(run, evidence), "verification.worker-observation", "Worker observation recorded without PASS/FAIL authority.", now);
@@ -405,7 +406,7 @@ export function recordAuthoritativeDeterministicVerification(run: Responsibility
     result: input.result,
     evidenceRef: boundedText(input.evidenceRef, 500),
     summary: boundedText(`${input.summary}${input.retestOfEvidenceId ? ` Retest of ${input.retestOfEvidenceId}.` : ""}`, 800),
-    recordedAt: timestamp(now),
+    recordedAt: responsibilityRunTimestamp(now),
     immutable: true,
   };
   const next = appendVerification(run, evidence);
@@ -424,7 +425,7 @@ export function recordResponsibilityWriterDecision(run: ResponsibilityRun, input
   if (run.verificationMode !== "writer-approval" || run.state !== "waiting-for-writer") throw new Error("This Run is not waiting for writer approval.");
   const writerId = boundedText(input.writerId, 180);
   if (!writerId) throw new Error("Writer identity is required for a creative approval decision.");
-  const decision: ResponsibilityWriterDecision = { writerId, decision: input.decision, note: boundedText(input.note, 800), decidedAt: timestamp(now) };
+  const decision: ResponsibilityWriterDecision = { writerId, decision: input.decision, note: boundedText(input.note, 800), decidedAt: responsibilityRunTimestamp(now) };
   const evidence: ResponsibilityRunVerificationEvidence = {
     id: `${run.runId}:writer:${run.writerDecisions.length + 1}`,
     verifier: writerId,
@@ -477,7 +478,7 @@ export function restartResponsibilityRunContext(run: ResponsibilityRun, handoff:
     evidence: boundedStringList(handoff.evidence, 24, 400),
     nextSteps: boundedStringList(handoff.nextSteps, 24, 400),
     blocker: boundedText(handoff.blocker, 800),
-    createdAt: timestamp(now),
+    createdAt: responsibilityRunTimestamp(now),
   };
   const next: ResponsibilityRun = { ...run, contextRound: run.contextRound + 1, handoff: compact };
   if (!samePermissions(run, next) || next.goal !== run.goal || next.objectiveRevision !== run.objectiveRevision) throw new Error("Fresh-context restart cannot change objective or permissions.");

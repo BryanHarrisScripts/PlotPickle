@@ -5,12 +5,12 @@ import {
   assembleContextPacket,
   type ContextItemInput,
   type ContextPacket,
-} from "./context-engine";
+} from "./context/context-engine";
 import {
   createResponsibilityRun,
   type ResponsibilityRun,
   type ResponsibilityRunLimits,
-} from "./responsibility-runs";
+} from "./responsibility/responsibility-runs";
 
 export type AgentExecutionOwner = "plotpickle" | "mastra" | "buzz" | "developer";
 export type OrchestrationHandoffDirection = "buzz-to-plotpickle" | "plotpickle-to-buzz" | "mastra-to-buzz" | "buzz-to-mastra";

@@ -1,5 +1,6 @@
 import {
   cancelResponsibilityRun,
+  responsibilityRunTimestamp,
   responsibilityRunLimitStatus,
   type ResponsibilityRun,
   type ResponsibilityRunLimits,
@@ -24,11 +25,6 @@ function clean(value: unknown, maximum = 500) {
   return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maximum);
 }
 
-function timestamp(value?: string) {
-  const parsed = value ? Date.parse(value) : NaN;
-  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
-}
-
 /**
  * Host-owned interrupt boundary. It delegates state transition to the existing
  * Responsibility Run cancellation function and records immutable metadata
@@ -46,7 +42,7 @@ export function interruptResponsibilityRun(input: {
   if (!requestedBy) throw new Error("Responsibility Run interrupt requires a host/user identity.");
   if (!reason) throw new Error("Responsibility Run interrupt requires an explicit reason.");
   if (["completed", "failed", "cancelled"].includes(input.run.state)) throw new Error(`A terminal Responsibility Run cannot be interrupted while ${input.run.state}.`);
-  const requestedAt = timestamp(input.requestedAt);
+  const requestedAt = responsibilityRunTimestamp(input.requestedAt);
   const limitsAtInterrupt = { ...input.run.limits };
   const previousState = input.run.state;
   const run = cancelResponsibilityRun(input.run, `interrupt:${input.signal || "cancel"}:${requestedBy}:${reason}`, requestedAt);

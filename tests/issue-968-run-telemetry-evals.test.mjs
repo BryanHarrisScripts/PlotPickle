@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("structured telemetry is appended to the existing Responsibility Run event truth", async () => {
   const [telemetry, runs] = await Promise.all([
     read("lib/run-telemetry.ts"),
-    read("lib/agents/responsibility-runs.ts"),
+    read("lib/agents/responsibility/responsibility-runs.ts"),
   ]);
   assert.match(runs, /events: ResponsibilityRunEvent\[\]/);
   assert.match(telemetry, /appendRunTelemetryEvent/);

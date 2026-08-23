@@ -1,4 +1,4 @@
-import { agentProfileById, type AgentProfileCapabilityRole } from "./agent-profiles";
+import { agentProfileById, type AgentProfileCapabilityRole } from "../agent-profiles";
 import type { ConnectorPolicyScope } from "./connector-trust-policy";
 import {
   createResponsibilityRun,

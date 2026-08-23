@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("shared Context Engine defines machine-readable source, trust, authority, revision, timestamp and allowed-use metadata", async () => {
-  const engine = await read("lib/agents/context-engine.ts");
+  const engine = await read("lib/agents/context/context-engine.ts");
   for (const sourceType of [
     "agent-profile",
     "agent-skill",
@@ -33,7 +33,7 @@ test("shared Context Engine defines machine-readable source, trust, authority, r
 });
 
 test("trust normalization prevents federated, observed and external context from becoming host instructions or canon", async () => {
-  const engine = await read("lib/agents/context-engine.ts");
+  const engine = await read("lib/agents/context/context-engine.ts");
   assert.match(engine, /UNTRUSTED_SOURCE_TYPES = new Set<ContextSourceType>\(\["agent-observation", "buzz-peer", "external-tool"\]\)/);
   assert.match(engine, /if \(UNTRUSTED_SOURCE_TYPES\.has\(item\.sourceType\)\) return "untrusted-suggestion"/);
   assert.match(engine, /if \(UNTRUSTED_SOURCE_TYPES\.has\(item\.sourceType\)\) return "untrusted"/);
@@ -42,7 +42,7 @@ test("trust normalization prevents federated, observed and external context from
 });
 
 test("PPF and current curriculum authority outrank approved memory, historical curriculum and untrusted evidence", async () => {
-  const engine = await read("lib/agents/context-engine.ts");
+  const engine = await read("lib/agents/context/context-engine.ts");
   const authorityBlock = engine.match(/const AUTHORITY = \{([\s\S]*?)\} as const;/)?.[1] || "";
   const value = (name) => Number(authorityBlock.match(new RegExp(`${name}:\\s*(\\d+)`))?.[1] || 0);
   assert.ok(value("writerInstruction") > value("ppfCanon"));
@@ -56,7 +56,7 @@ test("PPF and current curriculum authority outrank approved memory, historical c
 });
 
 test("context budgeting is bounded and reduces lower-priority sources without requiring a vector database", async () => {
-  const engine = await read("lib/agents/context-engine.ts");
+  const engine = await read("lib/agents/context/context-engine.ts");
   assert.match(engine, /Math\.max\(2_000, Math\.min\(96_000/);
   assert.match(engine, /\.sort\(priority\)/);
   assert.match(engine, /maximumPerItem/);
@@ -98,7 +98,7 @@ test("PLAN packet keeps imported PPF canon above project memory and current curr
 });
 
 test("context receipts expose provenance and compact source counts without hidden reasoning", async () => {
-  const engine = await read("lib/agents/context-engine.ts");
+  const engine = await read("lib/agents/context/context-engine.ts");
   assert.match(engine, /contextReceiptSummary/);
   assert.match(engine, /const storyFacts = count\("ppf-canon"\)/);
   assert.match(engine, /count\("curriculum-current"\)/);

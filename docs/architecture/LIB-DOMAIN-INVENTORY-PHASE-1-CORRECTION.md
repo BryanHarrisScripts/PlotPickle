@@ -14,7 +14,7 @@ Baseline assignment:
 
 Corrected assignment:
 
-`lib/connector-trust-policy.ts` → `lib/agents/connector-trust-policy.ts`
+`lib/connector-trust-policy.ts` → `lib/agents/responsibility/connector-trust-policy.ts`
 
 Reason:
 
@@ -55,18 +55,18 @@ The two corrections swap ownership between existing library-domain files, so the
 
 ## Corrected Phase 1 slice
 
-`lib/agents/` receives exactly these ten implementations:
+`lib/agents/` receives exactly these ten implementations, split below the eight-file fan-out limit:
 
-- `adaptive-context-strategies.ts`
-- `adaptive-context-strategy-core.mjs`
+- `context/adaptive-context-strategies.ts`
+- `context/adaptive-context-strategy-core.mjs`
 - `agent-orchestration.ts`
 - `agent-profiles.ts`
 - `agent-window-status.mjs`
-- `context-engine.ts`
-- `connector-trust-policy.ts`
-- `responsibility-graph.ts`
-- `responsibility-run-interrupts.ts`
-- `responsibility-runs.ts`
+- `context/context-engine.ts`
+- `responsibility/connector-trust-policy.ts`
+- `responsibility/responsibility-graph.ts`
+- `responsibility/responsibility-run-interrupts.ts`
+- `responsibility/responsibility-runs.ts`
 
 `specialist-labs.ts` remains at its current path until the Projects phase.
 

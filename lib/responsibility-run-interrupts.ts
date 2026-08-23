@@ -1,2 +1,2 @@
 // Temporary Phase 1 compatibility bridge. Remove after canonical consumers move to lib/agents/.
-export * from "./agents/responsibility-run-interrupts";
+export * from "./agents/responsibility/responsibility-run-interrupts";

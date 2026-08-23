@@ -117,7 +117,7 @@ test("canonical PPF seeds a read-only graph from characters, locations, blocks a
 
 test("Context Engine treats story graph material as bounded non-canon evidence below PPF authority", async () => {
   const [engine, adapter] = await Promise.all([
-    read("lib/agents/context-engine.ts"),
+    read("lib/agents/context/context-engine.ts"),
     read("lib/story-knowledge-context.ts"),
   ]);
   assert.match(engine, /"story-knowledge-graph"/);

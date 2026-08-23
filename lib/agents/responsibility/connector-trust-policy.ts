@@ -1,5 +1,5 @@
-import { agentProfileById } from "./agent-profiles";
-import { CONTEXT_AUTHORITY, type ContextItemInput } from "./context-engine";
+import { agentProfileById } from "../agent-profiles";
+import { CONTEXT_AUTHORITY, type ContextItemInput } from "../context/context-engine";
 
 export const CONNECTOR_POLICY_SCOPES = [
   "read-curriculum",
@@ -184,17 +184,30 @@ function validArgumentValue(value: unknown, depth = 0): boolean {
 
 export function connectorArgumentsAreValid(value: unknown) {
   if (value === undefined) return true;
-  try {
-    if (JSON.stringify(value).length > 64 * 1024) return false;
-  } catch {
-    return false;
+  return serializedArgumentSize(value) <= 64 * 1024 && validArgumentValue(value);
+}
+
+function serializedArgumentSize(value: unknown, ancestors = new WeakSet<object>()): number {
+  if (value === null || typeof value === "boolean" || typeof value === "number" || typeof value === "string") {
+    return JSON.stringify(value).length;
   }
-  return validArgumentValue(value);
+  if (!value || typeof value !== "object" || ancestors.has(value)) return Number.POSITIVE_INFINITY;
+  ancestors.add(value);
+  const entries = Array.isArray(value)
+    ? value.map((child) => ["", child] as const)
+    : Object.entries(value as Record<string, unknown>);
+  let size = 2;
+  for (const [key, child] of entries) {
+    size += (key ? JSON.stringify(key).length + 1 : 0) + serializedArgumentSize(child, ancestors) + 1;
+    if (size > 64 * 1024) break;
+  }
+  ancestors.delete(value);
+  return size;
 }
 
 function allowedNetworkHost(descriptor: ConnectorDescriptor, targetUrl: string) {
-  let url: URL;
-  try { url = new URL(targetUrl); } catch { return false; }
+  if (!URL.canParse(targetUrl)) return false;
+  const url = new URL(targetUrl);
   if (url.protocol !== "https:") return false;
   const host = url.hostname.toLowerCase();
   if (!host || LOOPBACK_HOSTS.has(host) || PRIVATE_OR_LINK_LOCAL.test(host)) return false;

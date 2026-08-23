@@ -1,4 +1,4 @@
-import { agentProfileById, type AgentProfile } from "./agent-profiles";
+import { agentProfileById, type AgentProfile } from "../agent-profiles";
 
 export const CONTEXT_SOURCE_TYPES = [
   "agent-profile",
@@ -128,8 +128,9 @@ const NON_CANON_SOURCE_TYPES = new Set<ContextSourceType>([
   "task-reference",
 ]);
 
-function cleanText(value: string) {
-  return value.replace(/\u0000/g, "").replace(/\r/g, "").trim();
+function normalizeContextText(value: string) {
+  const withoutUnsupportedCharacters = value.replace(/\u0000|\r/g, "");
+  return withoutUnsupportedCharacters.trim();
 }
 
 function approximateTokens(characters: number) {
@@ -200,7 +201,7 @@ function profileContext(profile: AgentProfile): ContextItemInput {
 }
 
 function normalizeItem(item: ContextItemInput, generatedAt: string): ContextItemInput {
-  const content = cleanText(item.content);
+  const content = normalizeContextText(item.content);
   return {
     ...item,
     content,
@@ -312,9 +313,9 @@ export function assembleContextPacket(input: {
   return {
     version: 1,
     taskId: input.taskId,
-    goal: cleanText(input.goal),
+    goal: normalizeContextText(input.goal),
     profileId: input.profileId,
-    expectedOutputSchema: cleanText(input.expectedOutputSchema || ""),
+    expectedOutputSchema: normalizeContextText(input.expectedOutputSchema || ""),
     items: included,
     receipt,
   };

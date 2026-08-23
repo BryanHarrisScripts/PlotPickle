@@ -86,7 +86,7 @@ test("PlotPickle-to-BUZZ handoff is allowed only for a BUZZ-managed profile", as
 test("parallel agent work remains Responsibility Graph responsibility instead of adding Mastra Networks as a second graph authority", async () => {
   const [orchestration, graph] = await Promise.all([
     read("config/agent-orchestration.json"),
-    read("lib/agents/responsibility-graph.ts"),
+    read("lib/agents/responsibility/responsibility-graph.ts"),
   ]);
   assert.match(orchestration, /"parallelSpecialistWorkUsesResponsibilityGraph": true/);
   assert.match(orchestration, /"mastraNetworksRequired": false/);

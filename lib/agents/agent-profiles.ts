@@ -123,11 +123,11 @@ export const AGENT_PROFILE_REGISTRY: AgentProfileRegistry = {
   profiles: [...BASE_AGENT_PROFILE_REGISTRY.profiles, ...COMMUNITY_AGENT_PROFILES],
 };
 
-function buzzPresence(mode: AgentProfileBuzzMode): AgentProfile["buzzPresence"] {
-  if (mode === "native") return "native-draft";
-  if (mode === "mirrored") return "mirrored";
-  return "service";
-}
+const BUZZ_PRESENCE_BY_MODE: Readonly<Record<AgentProfileBuzzMode, AgentProfile["buzzPresence"]>> = {
+  native: "native-draft",
+  mirrored: "mirrored",
+  service: "service",
+};
 
 function materializeProfile(profile: AgentProfileConfig): AgentProfile {
   return {
@@ -136,7 +136,7 @@ function materializeProfile(profile: AgentProfileConfig): AgentProfile {
     runtimeRoleId: profile.execution.roleId,
     requestedModelRole: profile.requestedCapabilityRole,
     lifecycleState: profile.defaultAvailability,
-    buzzPresence: buzzPresence(profile.buzzBinding.mode),
+    buzzPresence: BUZZ_PRESENCE_BY_MODE[profile.buzzBinding.mode],
     publicPresentation: PUBLIC_AGENT_PRESENTATION_REGISTRY.profiles[profile.id] ?? null,
   };
 }

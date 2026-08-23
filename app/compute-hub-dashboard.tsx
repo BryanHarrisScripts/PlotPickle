@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PlotPickleSettings } from "@/lib/ai/settings";
+import type { PlotPickleSettings } from "@/lib/runtime/ai/settings";
 import type { ConnectionState, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/integrations/connection-status";
 import styles from "./compute-hub-dashboard.module.css";
 

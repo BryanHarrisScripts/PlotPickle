@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickleSettings } from "@/lib/ai/settings";
+import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickleSettings } from "@/lib/runtime/ai/settings";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 

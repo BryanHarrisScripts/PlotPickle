@@ -48,7 +48,7 @@ test("issue #285 removes unsupported provider placeholders from visible settings
   const [panel, taxonomy, settings] = await Promise.all([
     source("app/settings-panel-legacy.tsx"),
     source("config/settings-system-taxonomy.json"),
-    source("lib/ai/settings.ts"),
+    source("lib/runtime/ai/settings.ts"),
   ]);
   assert.doesNotMatch(`${panel}\n${taxonomy}`, /Pika Labs|Runway|Additional media & film engines/);
   assert.match(panel, /Unsupported provider placeholders are hidden until a working connector exists/);

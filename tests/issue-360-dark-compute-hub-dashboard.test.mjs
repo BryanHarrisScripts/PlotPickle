@@ -7,7 +7,7 @@ const source = (file) => readFile(new URL(file, root), "utf8");
 
 test("issue #360 makes dark Appearance the first-run default without removing system or light choices", async () => {
   const [settings, panel, runtime, layout, css] = await Promise.all([
-    source("lib/ai/settings.ts"),
+    source("lib/runtime/ai/settings.ts"),
     source("app/settings-panel-legacy.tsx"),
     source("app/appearance-runtime.tsx"),
     source("app/layout.tsx"),

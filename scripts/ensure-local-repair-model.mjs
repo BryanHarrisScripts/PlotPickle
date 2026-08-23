@@ -7,7 +7,7 @@ import {
   normalizeModelDescriptor,
   probeRuntimeModelCapabilities,
   scoreModelForRole,
-} from "../lib/ai/local-model-capabilities.mjs";
+} from "../lib/runtime/ai/local-model/local-model-capabilities.mjs";
 import {
   approvedCodingModel,
   chooseApprovedCodingModel,

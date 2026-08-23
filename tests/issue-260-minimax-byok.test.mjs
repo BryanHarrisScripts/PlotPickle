@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #260 registers MiniMax as a native BYOK provider", async () => {
   const [registry, provider, gateway] = await Promise.all([
-    source("lib/ai/providers.ts"),
+    source("lib/runtime/ai/providers.ts"),
     source("build/cloud-media-provider.ts"),
     source("build/media-routing-gateway.ts"),
   ]);

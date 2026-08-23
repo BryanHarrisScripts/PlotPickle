@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeModelDescriptor } from "../lib/ai/local-model-capabilities.mjs";
+import { normalizeModelDescriptor } from "../lib/runtime/ai/local-model/local-model-capabilities.mjs";
 import {
   buildLocalModelCatalog,
   chooseModelForPreference,
   modelThroughput,
   recommendLocalModelPreferences,
-} from "../lib/ai/local-model-recommendations.mjs";
+} from "../lib/runtime/ai/local-model/local-model-recommendations.mjs";
 
 const GB = 1024 ** 3;
 const hardware = {

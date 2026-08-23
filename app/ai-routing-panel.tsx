@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AI_SOURCE_GROUPS, AI_SOURCE_OPTION_LABELS, type AiSourceCapability } from "../lib/ai/source-registry";
+import { AI_SOURCE_GROUPS, AI_SOURCE_OPTION_LABELS, type AiSourceCapability } from "../lib/runtime/ai/source-registry";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./ai-routing-panel.module.css";
 

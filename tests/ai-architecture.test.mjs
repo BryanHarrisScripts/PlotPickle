@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const contracts = await readFile(new URL("../lib/ai/contracts.ts", import.meta.url), "utf8");
-const providers = await readFile(new URL("../lib/ai/providers.ts", import.meta.url), "utf8");
-const adapters = await readFile(new URL("../lib/ai/adapters.ts", import.meta.url), "utf8");
+const contracts = await readFile(new URL("../lib/runtime/ai/contracts.ts", import.meta.url), "utf8");
+const providers = await readFile(new URL("../lib/runtime/ai/providers.ts", import.meta.url), "utf8");
+const adapters = await readFile(new URL("../lib/runtime/ai/adapters.ts", import.meta.url), "utf8");
 const architecture = await readFile(new URL("../docs/ai-architecture.md", import.meta.url), "utf8");
-const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url), "utf8");
+const settings = await readFile(new URL("../lib/runtime/ai/settings.ts", import.meta.url), "utf8");
 
 test("AI contracts cover portable knowledge and character consistency", () => {
   assert.match(contracts, /type KnowledgeSource/);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickleSettings } from "@/lib/ai/settings";
+import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickleSettings } from "@/lib/runtime/ai/settings";
 import {
   createConnectionStatusSnapshot,
   type ConnectionRuntimeSnapshot,

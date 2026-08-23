@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { summarizeRunTelemetry } from "../lib/run-telemetry";
+import { summarizeRunTelemetry } from "../lib/runtime/run-telemetry";
 import type { ResponsibilityRunEvent } from "../lib/responsibility-runs";
 import styles from "./responsibility-run-activity.module.css";
 

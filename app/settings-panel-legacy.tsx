@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { PlotPickleProject } from "@/lib/projects/project";
-import { providerPresets } from "@/lib/ai/providers";
+import { providerPresets } from "@/lib/runtime/ai/providers";
 import {
   defaultPlotPickleSettings,
   isSupportedMusicArtistUrl,
   normalizePlotPickleSettings,
   type MusicArtistLink,
   type PlotPickleSettings,
-} from "@/lib/ai/settings";
+} from "@/lib/runtime/ai/settings";
 import type {
   ConnectionStatusSnapshot,
   PublicConnectionStatus,

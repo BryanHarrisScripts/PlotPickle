@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { providerPresets } from "../../../lib/ai/providers";
+import { providerPresets } from "../../../lib/runtime/ai/providers";
 import { requestConnectionStatusRefresh } from "../../use-connection-status";
 import styles from "./ai-provider-setup-panel.module.css";
 

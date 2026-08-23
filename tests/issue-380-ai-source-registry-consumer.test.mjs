@@ -4,7 +4,7 @@ import test from "node:test";
 
 const root = new URL("..", import.meta.url);
 const panel = await readFile(new URL("app/ai-routing-panel.tsx", root), "utf8");
-const loader = await readFile(new URL("lib/ai/source-registry.ts", root), "utf8");
+const loader = await readFile(new URL("lib/runtime/ai/source-registry.ts", root), "utf8");
 const registry = JSON.parse(await readFile(new URL("config/ai-source-registry.json", root), "utf8"));
 const packageJson = JSON.parse(await readFile(new URL("package.json", root), "utf8"));
 

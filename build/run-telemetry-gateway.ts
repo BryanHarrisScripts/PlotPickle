@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
-import { appendRunTelemetryEvent, RUN_TELEMETRY_EVENT_TYPES, type RunTelemetryData, type RunTelemetryEventType } from "../lib/run-telemetry";
+import { appendRunTelemetryEvent, RUN_TELEMETRY_EVENT_TYPES, type RunTelemetryData, type RunTelemetryEventType } from "../lib/runtime/run-telemetry";
 import type { ResponsibilityRun } from "../lib/responsibility-runs";
 
 const API = "/api/responsibility-runs/telemetry";

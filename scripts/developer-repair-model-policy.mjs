@@ -2,7 +2,7 @@ import {
   chooseModelForRole,
   normalizeModelDescriptor,
   scoreModelForRole,
-} from "../lib/ai/local-model-capabilities.mjs";
+} from "../lib/runtime/ai/local-model/local-model-capabilities.mjs";
 import { repairCapabilityCacheApproves } from "./local-repair-capability-cache.mjs";
 
 export const APPROVED_LOCAL_CODING_MODELS = [

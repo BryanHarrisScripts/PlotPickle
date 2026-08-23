@@ -8,18 +8,18 @@ import {
   scoreModelForRole,
   type LocalCapabilityRole,
   type LocalModelDescriptor,
-} from "../lib/ai/local-model-capabilities.mjs";
+} from "../lib/runtime/ai/local-model/local-model-capabilities.mjs";
 import {
   buildLocalModelCatalog,
   chooseModelForPreference,
   LOCAL_MODEL_PREFERENCES,
   recommendLocalModelPreferences,
-} from "../lib/ai/local-model-recommendations.mjs";
+} from "../lib/runtime/ai/local-model/local-model-recommendations.mjs";
 import {
   LOCAL_MODEL_CATALOG,
   type LocalRuntimeKind,
   type LocalTextRole,
-} from "../lib/ai/local-runtime";
+} from "../lib/runtime/ai/local-runtime";
 import { detectLocalHardware } from "./local-hardware-detection";
 import { persistentHome, readCredentialJson, writeCredentialJson } from "./local-credentials";
 

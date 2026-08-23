@@ -71,8 +71,8 @@ test("Settings exposes permanent left categories centre controls and right help 
 test("README uses the current supplied repository-resident artwork in intentional roles", async () => {
   const readme = await read("README.md");
 
-  const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.webp");
-  const progression = readme.indexOf("docs/brand/plotpickle-banner-learn-plan-build.webp");
+  const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.jpg");
+  const progression = readme.indexOf("docs/brand/Plot-Pickle-Architecture.jpg");
   const heading = readme.indexOf("<h1 align=\"center\">PlotPickle</h1>");
   const progressionIntro = readme.indexOf("The core creative progression is:");
   const visualWriter = readme.indexOf("## The Visual Writer");

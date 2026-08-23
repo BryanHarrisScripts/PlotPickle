@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { normalizeFoundationProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import { publicAgentByProfileId } from "../lib/plugin-platform";
@@ -54,7 +55,7 @@ async function readJson<T>(url: string): Promise<T> {
 }
 
 async function sendJson<T>(url: string, body: Record<string, unknown>): Promise<T> {
-  const response = await fetch(url, {
+  const response = await authenticatedProfileFetch(url, {
     method: "POST",
     cache: "no-store",
     headers: { Accept: "application/json", "Content-Type": "application/json" },

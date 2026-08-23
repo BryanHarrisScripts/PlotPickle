@@ -281,10 +281,10 @@ export default function BuzzSettingsPanel() {
       </section>
 
       <section className={styles.setupGuide} aria-labelledby="guildhall-setup-title">
-        <div className={styles.guideHeading}><span>Guildhall compatibility</span><h2 id="guildhall-setup-title">Prepare underlying BUZZ rooms.</h2><p>The normal Community UI hides internal/operator rooms and shows four Human-purpose rooms.</p></div>
+        <div className={styles.guideHeading}><span>Community rooms</span><h2 id="guildhall-setup-title">Prepare the four BUZZ rooms.</h2><p>Great Hall, Story Workshop, Wyrmwood and Marquee are the complete Human-facing Community set.</p></div>
         <div className={styles.setupSteps}>
           <article data-complete={identityVerified ? "true" : "false"}><span>1</span><div><b>Profile-owned signing key</b><strong>{identityVerified ? "Ready" : "Required"}</strong><p>Settings never asks for the nsec. Profile owns Human signer creation/import/disconnect.</p></div></article>
-          <article data-complete={guildhallReady ? "true" : "false"}><span>2</span><div><b>Guildhall rooms</b><strong>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} ready` : "Checking"}</strong><p>{guildhallReady ? "All compatibility rooms are ready." : guildhall?.missingRooms.length ? `Missing: ${guildhall.missingRooms.map((room) => room.label).join(", ")}.` : "PlotPickle will create only missing rooms."}</p></div></article>
+          <article data-complete={guildhallReady ? "true" : "false"}><span>2</span><div><b>Community rooms</b><strong>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} ready` : "Checking"}</strong><p>{guildhallReady ? "All four Community rooms are ready." : guildhall?.missingRooms.length ? `Missing: ${guildhall.missingRooms.map((room) => room.label).join(", ")}.` : "PlotPickle will create only missing rooms."}</p></div></article>
           <article data-complete={guildhallReady ? "true" : "false"}><span>3</span><div><b>PlotPickle bridge</b><strong>{guildhallReady ? "Live" : "Waiting"}</strong><p>Local Agent/test activity never falls back to Human Great Hall authorship.</p></div></article>
         </div>
         <div className={styles.actions}><button type="button" disabled={blocked || !guildhall?.canSetup || guildhallReady} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : guildhallReady ? "Guildhall operational" : "Set up PlotPickle Guildhall"}</button><button type="button" disabled={blocked} onClick={() => void refreshGuildhall(true)}>Refresh Guildhall status</button></div>

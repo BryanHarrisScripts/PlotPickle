@@ -10,6 +10,7 @@ const settings = await readFile(path.join(root, "app", "buzz-settings-panel.tsx"
 const profile = await readFile(path.join(root, "app", "profile-access", "profile-identity-panel.tsx"), "utf8");
 const vite = await readFile(path.join(root, "vite.config.ts"), "utf8");
 const config = JSON.parse(await readFile(path.join(root, "config", "buzz-guildhall.json"), "utf8"));
+const cleanup = JSON.parse(await readFile(path.join(root, "config", "buzz-community-cleanup.json"), "utf8"));
 
 test("Guildhall gateway owns one-click local setup without GitHub secrets", () => {
   assert.match(gateway, /const API = "\/api\/local-buzz\/guildhall"/);
@@ -23,11 +24,13 @@ test("Guildhall gateway owns one-click local setup without GitHub secrets", () =
   assert.doesNotMatch(gateway, /process\.env\.BUZZ_AUTH_TAG|BUZZ_AUTH_TAG\s*:/);
 });
 
-test("one-click setup is idempotent and verifies all private Guildhall rooms", () => {
+test("one-click setup is idempotent and provisions only the four Human-purpose Community rooms", () => {
   assert.equal(config.channels.length, 13);
   assert.ok(config.channels.every((room) => room.visibility === "private"));
-  assert.ok(config.channels.some((room) => room.id === "marquee"));
-  assert.ok(config.channels.some((room) => room.id === "critics-circle"));
+  assert.deepEqual(cleanup.retainedRooms.map((room) => room.id), ["great-hall", "story-council", "wyrmwood-ring", "marquee"]);
+  assert.ok(cleanup.retainedRooms.every((room) => room.visibility === "open"));
+  assert.match(gateway, /BUZZ_COMMUNITY_CHANNELS/u);
+  assert.doesNotMatch(gateway, /for \(const definition of BUZZ_GUILDHALL_CHANNELS\)/u);
   assert.match(gateway, /channels\.some\(\(channel\) => channel\.name === definition\.name\)/);
   assert.match(gateway, /kept\.push\(definition\.name\)/);
   assert.match(gateway, /created\.push\(definition\.name\)/);

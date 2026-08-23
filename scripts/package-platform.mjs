@@ -32,6 +32,7 @@ const runtimeDirectories = [
   "schema",
   "scripts",
   "tests",
+  "Utilities",
   "worker",
 ];
 
@@ -67,7 +68,7 @@ if (!launcherSource.includes(launcherAnchor)) throw new Error(`The ${platform} l
 writeFileSync(launcherPath, launcherSource.replace(launcherAnchor, `${launcherAnchor}\n${launcherConfig}`));
 if (platform !== "windows") chmodSync(launcherPath, 0o755);
 if (platform === "windows") {
-  for (const file of ["Repair-PlotPickle.bat", "Update-PlotPickle.bat"]) if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
+  for (const file of ["Repair-PlotPickle.bat", "Update-PlotPickle.bat", "Run-PlotPickle-ComfyUI-Check.bat"]) if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }
 const githubAppConfigPath = path.join(destination, "config", "github-app.json");
 const githubAppConfig = JSON.parse(readFileSync(githubAppConfigPath, "utf8"));

@@ -223,9 +223,10 @@ async function writeMissingAgentTeam(agents) {
 }
 
 async function main() {
-  const [plugin, guildhall, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
+  const [plugin, guildhall, cleanup, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
     json(pluginPath),
     json(guildhallPath),
+    json(path.join(root, "config", "buzz-community-cleanup.json")),
     json(path.join(root, "config", "agent-profiles.json")),
     json(path.join(root, "config", "agent-profile-extensions", "community.json")),
     json(path.join(root, "config", "agent-profile-extensions", "public.json")),
@@ -239,13 +240,15 @@ async function main() {
   }
   const guildhallChannels = new Map(guildhall.channels.map((channel) => [channel.id, channel]));
   const guildhallActors = new Map(guildhall.actors.map((actor) => [actor.id, actor]));
+  const publicChannels = new Map(cleanup.retainedRooms.map((channel) => [channel.id, channel]));
+  const contributedRoomIds = new Set(plugin.rooms.map((room) => room.id));
   const profiles = collectProfiles(baseProfiles, communityProfiles);
   const plan = plugin.agents.map((extension) => {
     const profile = profiles.get(extension.profileId);
     const presentation = publicProfiles.profiles?.[extension.profileId];
     if (!profile || !presentation) throw new Error(`Community plugin references missing public Agent Profile ${extension.profileId}.`);
     const primaryChannel = guildhallActors.get(extension.profileId)?.primaryChannel;
-    const roomIds = [...new Set([...(extension.roomIds ?? []), ...(primaryChannel ? [primaryChannel] : [])])];
+    const roomIds = [...new Set([...(extension.roomIds ?? []), ...(primaryChannel && contributedRoomIds.has(primaryChannel) ? [primaryChannel] : [])])];
     for (const roomId of roomIds) {
       if (!guildhallChannels.has(roomId)) throw new Error(`Agent Profile ${extension.profileId} references unknown BUZZ room ${roomId}.`);
     }
@@ -266,7 +269,7 @@ async function main() {
     communityName: plugin.displayName,
     mode: apply ? "apply" : "plan",
     generatedAt: new Date().toISOString(),
-    rooms: guildhall.channels.map(({ id, name, type }) => ({ id, name, type })),
+    rooms: plugin.rooms.map(({ id, label }) => ({ id, name: publicChannels.get(id)?.name ?? id, type: publicChannels.get(id)?.type, label })),
     agents: [],
     publicIdentityUpdates: {},
   };

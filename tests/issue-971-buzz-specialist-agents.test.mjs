@@ -48,7 +48,7 @@ test("specialist Skills keep provider generation critique scoring and canon auth
   assert.match(critics, /cannot write PPF/i);
 });
 
-test("Guildhall bootstrap preserves legacy private specialist rooms and explicit project privacy defaults", async () => {
+test("Guildhall preserves internal specialist contracts while remote bootstrap provisions only public Community rooms", async () => {
   const [guildhallRaw, bootstrap] = await Promise.all([
     read("config/buzz-guildhall.json"),
     read("scripts/bootstrap-buzz-guildhall.mjs"),
@@ -62,7 +62,7 @@ test("Guildhall bootstrap preserves legacy private specialist rooms and explicit
   assert.equal(guildhall.privacy.explicitProjectContextApprovalRequired, true);
   assert.match(guildhall.privacy.forbiddenEventContent, /unpublished story text/i);
   assert.match(guildhall.privacy.forbiddenEventContent, /raw lead\/contact data/i);
-  assert.match(bootstrap, /config\.channels\.map/);
+  assert.match(bootstrap, /const provisionedChannels = cleanup\.retainedRooms/);
   assert.match(bootstrap, /"channels", "create"/);
 });
 

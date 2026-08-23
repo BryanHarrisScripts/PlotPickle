@@ -31,9 +31,9 @@ The names are original PlotPickle lore. Existing named characters remain intact 
 
 A mirrored or service identity is a label on signed PlotPickle coordination events. It is not a second autonomous copy of the Mastra agent. This avoids two Sages or two Oaken-Vagues independently answering the same problem.
 
-## Guildhall rooms
+## Internal routing and public Community rooms
 
-The bootstrap creates private rooms only:
+The original Guildhall routing registry retains these internal room names as compatibility vocabulary for local evidence and older installations:
 
 - `great-hall` — cross-agent handoffs.
 - `lore-library` — Sage and curriculum coordination.
@@ -46,6 +46,10 @@ The bootstrap creates private rooms only:
 - `forge` — verified repair work.
 - `github-herald` — GitHub issue/PR/CI/merge status.
 - `archive` — durable summaries and receipts.
+
+New remote BUZZ setup no longer creates that complete internal list. It provisions only the four Human-purpose public Community rooms: `great-hall`, `story-council` (Story Workshop), `wyrmwood-ring` (Wyrmwood) and `marquee`. Automated UAT, repair, runtime and GitHub evidence remains in PlotPickle's local verification records or GitHub rather than filling the public Community.
+
+Use `Utilities\Clean-PlotPickle-BUZZ.cmd` to inventory existing installations, archive the nine retired rooms, or explicitly reset one retained room to a new empty channel. Archiving is the normal cleanup path; reset is separately guarded because it permanently replaces that room's BUZZ history.
 
 ## PlotPickle to BUZZ bridge
 

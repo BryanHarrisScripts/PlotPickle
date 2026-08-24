@@ -1,0 +1,43 @@
+name: Developer Workbench
+
+on:
+  pull_request:
+    paths:
+      - "Utilities/DeveloperWorkbench/**"
+      - "scripts/pi-work-item-review.mjs"
+      - "tests/issue-1349-developer-workbench.test.mjs"
+      - ".github/workflows/developer-workbench.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Contract regression
+        run: node --test tests/issue-1349-developer-workbench.test.mjs
+
+      - name: Build Windows Workbench
+        run: dotnet build Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj --configuration Release
+
+      - name: Publish single-file EXE
+        shell: pwsh
+        run: ./Utilities/DeveloperWorkbench/build.ps1
+
+      - name: Upload Windows Workbench
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlotPickle-Developer-Workbench-win-x64
+          path: Utilities/DeveloperWorkbench/dist/win-x64/PlotPickleDeveloperWorkbench.exe
+          if-no-files-found: error

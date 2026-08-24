@@ -121,12 +121,15 @@ function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))];
 }
 
-function clean(value: string) {
-  return value.replace(/\s+/g, " ").trim();
+function normalizeEvidenceText(value: string) {
+  if (!value) return "";
+  const withoutNullBytes = value.replace(/\u0000/g, "");
+  const normalizedSpacing = withoutNullBytes.replace(/\s+/g, " ");
+  return normalizedSpacing.trim();
 }
 
 export function isUsableBuildEvidenceText(value: string) {
-  const normalized = clean(value || "");
+  const normalized = normalizeEvidenceText(value || "");
   if (!normalized) return false;
   if (GUIDANCE_PREFIX.test(normalized)) return false;
   if (IMPORT_GUIDANCE.test(normalized)) return false;
@@ -142,7 +145,7 @@ function directScreenplayEvidence(project: PlotPickleProject, block: StoryBlock)
   return project.screenplay.draftElements.filter((element) => (
     element.blockNumber === block.number
     && !element.omitted
-    && Boolean(clean(element.text))
+    && Boolean(normalizeEvidenceText(element.text))
   ));
 }
 
@@ -151,7 +154,7 @@ function evidenceSource(element: ScreenplayDraftElement): BuildEvidenceSource {
     id: element.id,
     kind: element.type,
     label: element.sceneNumber > 0 ? `Scene ${element.sceneNumber} · ${element.type}` : element.type,
-    excerpt: clean(element.text).slice(0, 180),
+    excerpt: normalizeEvidenceText(element.text).slice(0, 180),
   };
 }
 
@@ -193,7 +196,7 @@ function containsImportedGuidance(block: StoryBlock) {
     block.payoff,
     block.storyboardDirection,
     block.notes,
-  ].some((value) => GUIDANCE_PREFIX.test(clean(value || "")) || IMPORT_GUIDANCE.test(clean(value || "")));
+  ].some((value) => GUIDANCE_PREFIX.test(normalizeEvidenceText(value || "")) || IMPORT_GUIDANCE.test(normalizeEvidenceText(value || "")));
 }
 
 export function deriveBuildEvidence(project: PlotPickleProject, block: StoryBlock): BuildEvidenceSummary {

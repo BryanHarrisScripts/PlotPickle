@@ -216,7 +216,7 @@ export default function LibraryWorkspace() {
             <div className={styles.sectionHeading}>
               <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div>
               <div className={styles.storyTools}>
-                <p>Open saved projects here. Convert screenplay source files with the PlotPickle utility first, then import the resulting .PPF without turning importer suggestions into canon.</p>
+                <p>Open saved Human projects here without mixing them with Avery’s read-only Writer-in-Residence sessions. Convert screenplay source files with the PlotPickle utility first, then import the resulting .PPF without turning importer suggestions into canon.</p>
                 <input ref={ppfInput} accept=".ppf,application/octet-stream" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
                 <button className={styles.secondaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import .PPF"}</button>
               </div>

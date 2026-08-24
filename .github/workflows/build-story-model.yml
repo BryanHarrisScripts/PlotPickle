@@ -1,0 +1,54 @@
+name: BUILD Story Model
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "modules/build/build-workspace-model.ts"
+      - "app/build-workspace.tsx"
+      - "app/build-health-map.tsx"
+      - "app/build-health-map.module.css"
+      - "lib/projects/screenplay/screenplay-import.ts"
+      - "lib/projects/persistence/project-folder.ts"
+      - "lib/projects/canon/ppf-exchange.ts"
+      - "tests/issue-114-build-workspace.test.mjs"
+      - "tests/issue-351-build-health-map.test.mjs"
+      - "tests/issue-1338-progressive-build-story-model.test.mjs"
+      - "docs/PRODUCT-DEVELOPER-BRIEF-08-23-PROGRESSIVE-BUILD-STORY-MODEL.md"
+      - ".github/workflows/build-story-model.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-story-model-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  story-model:
+    name: Evidence model, existing BUILD regressions and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate progressive BUILD story evidence
+        run: node --test tests/issue-1338-progressive-build-story-model.test.mjs
+
+      - name: Validate existing BUILD workspace and health map
+        run: node --test tests/issue-114-build-workspace.test.mjs tests/issue-351-build-health-map.test.mjs
+
+      - name: Production build
+        run: npm run build

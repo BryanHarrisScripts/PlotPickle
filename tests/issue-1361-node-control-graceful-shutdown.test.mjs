@@ -1,12 +1,9 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
-  ensurePlotPickleNodeIdentity,
-  resetPlotPickleNodeIdentityCacheForTests,
-  shortPlotPickleNodeId,
+  PLOTPICKLE_NODE_LIFECYCLE_STATES,
   createPlotPickleNodeShutdownLifecycle,
   runSaveFirstNodeShutdown,
 } from "../core/runtime/plotpickle-node-control-core.mjs";
@@ -14,30 +11,13 @@ import {
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("Node identity is installation-scoped, durable, and short ID is presentation-only", () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "plotpickle-node-"));
-  try {
-    const first = ensurePlotPickleNodeIdentity({ root: home, env: {} });
-    resetPlotPickleNodeIdentityCacheForTests();
-    const second = ensurePlotPickleNodeIdentity({ root: home, env: {} });
-    assert.equal(second.nodeId, first.nodeId);
-    assert.match(first.nodeId, /^pp-node-[a-f0-9]{32}$/i);
-    assert.match(first.shortId, /^PP-[A-F0-9]{4}$/);
-    assert.equal(first.shortId, shortPlotPickleNodeId(first.nodeId));
-    assert.notEqual(first.shortId, first.nodeId);
-    assert.ok(fs.existsSync(path.join(home, "node", "identity", "node.json")));
-  } finally {
-    resetPlotPickleNodeIdentityCacheForTests();
-    fs.rmSync(home, { recursive: true, force: true });
-  }
-});
-
 test("Node lifecycle rejects repeated shutdown and supports a blocked retry", () => {
   let sequence = 0;
   const lifecycle = createPlotPickleNodeShutdownLifecycle({
     tokenFactory: () => `proof-${++sequence}`,
     now: () => "2026-08-24T19:00:00.000Z",
   });
+  assert.deepEqual(PLOTPICKLE_NODE_LIFECYCLE_STATES, ["RUNNING", "SAVING", "SHUTTING DOWN", "SHUTDOWN BLOCKED", "STOPPED"]);
   assert.equal(lifecycle.snapshot().state, "RUNNING");
   const first = lifecycle.begin();
   assert.equal(first.lifecycle.state, "SAVING");
@@ -61,25 +41,38 @@ test("save-first shutdown sequence blocks before session release when persistenc
   assert.deepEqual(order, ["save", "blocked"]);
 });
 
-test("graceful shutdown source preserves save, session, supervisor and owned-browser ordering", () => {
+test("#1361 preserves the existing Studio signing identity as the compatibility node_id", () => {
+  const gateway = source("build/node-topology-gateway.ts");
+  const core = source("core/runtime/plotpickle-node-control-core.mjs");
+  const identityContract = source("docs/architecture/IDENTITY-AUTHORITY.md");
+
+  assert.match(gateway, /createStudioIdentity, readPublicStudioIdentity/);
+  assert.match(gateway, /existing\.configured \? existing : await createStudioIdentity\("Local"\)/);
+  assert.match(gateway, /nodeId: identity\.studioId/);
+  assert.match(gateway, /shortId: `PP-\$\{identity\.shortCode\}`/);
+  assert.doesNotMatch(core, /pp-node-|node\/identity\/node\.json/);
+  assert.match(identityContract, /existing StudioIdentity\.studioId\s+-> node_id \(same opaque value\)/);
+  assert.match(identityContract, /Existing `pp_studio_XXXXXXXX` IDs remain valid/);
+});
+
+test("graceful shutdown source preserves save, Human release, supervisor and owned-browser ordering", () => {
   const shell = source("app/plotpickle-workspace-shell.tsx");
-  const control = shell;
   const gateway = source("build/node-topology-gateway.ts");
   const browser = source("Start-PlotPickle.bat");
-  const topology = source("build/node-topology-gateway.ts");
 
   assert.match(shell, /<NodeControl \/>/);
-  assert.match(control, /Shut down this PlotPickle Node\?/);
-  assert.match(control, /PlotPickle will save your work, close the current session, stop local services, and close this PlotPickle window\./);
-  assert.ok(control.indexOf("persistActiveProfileProject()") < control.indexOf("logoutHumanProfile(currentProfile.csrfToken)"));
-  assert.ok(control.indexOf("logoutHumanProfile(currentProfile.csrfToken)") < control.indexOf('nodeAction("complete-shutdown"'));
-  assert.match(control, /flushProfilePrivateWrites\(\)/);
-  assert.match(control, /clearProfilePrivateBrowser\(\)/);
+  assert.match(shell, /Shut down this PlotPickle Node\?/);
+  assert.match(shell, /PlotPickle will save your work, close the current session, stop local services, and close this PlotPickle window\./);
+  assert.ok(shell.indexOf("persistActiveProfileProject()") < shell.indexOf("logoutHumanProfile(currentProfile.csrfToken)"));
+  assert.ok(shell.indexOf("logoutHumanProfile(currentProfile.csrfToken)") < shell.indexOf('nodeAction("complete-shutdown"'));
+  assert.match(shell, /flushProfilePrivateWrites\(\)/);
+  assert.match(shell, /clearProfilePrivateBrowser\(\)/);
+  assert.match(shell, /localStorage\.removeItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\)/);
 
   const commitAt = gateway.indexOf("lifecycle.commit");
   const releaseAt = gateway.indexOf("resetProfileExperienceRuntime()", commitAt);
   const managedStopAt = gateway.indexOf("stopManagedLlama()", commitAt);
-  const launcherAt = gateway.indexOf("signalOwnedLauncher()", commitAt);
+  const launcherAt = gateway.indexOf("signalOwnedLauncher(identity)", commitAt);
   const serverCloseAt = gateway.indexOf("server.close()", commitAt);
   assert.ok(commitAt >= 0 && commitAt < releaseAt);
   assert.ok(releaseAt < managedStopAt);
@@ -93,6 +86,5 @@ test("graceful shutdown source preserves save, session, supervisor and owned-bro
   assert.match(browser, /Start-Process[^\n]+-PassThru/);
   assert.match(browser, /Stop-Process -Id \$browser\.Id/);
   assert.doesNotMatch(browser, /Stop-Process[^\n]+-Name|taskkill|killall|pkill/i);
-
-  assert.match(topology, /id: identity\.nodeId/);
-});
+  assert.match(browser, /PLOTPICKLE_SHUTDOWN_SIGNAL/);
+}

@@ -1,7 +1,16 @@
+import {
+  createEmptyProjectSourceEvidence,
+  normalizeProjectSourceEvidence,
+  type ProjectSourceEvidence,
+} from "../contracts/imported-screenplay-evidence";
 import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../project/project";
 import * as libraryCore from "./project-library-core.mjs";
 
-export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated";
+export type LibraryPPFProject = PPFProject & {
+  readonly sourceEvidence: ProjectSourceEvidence;
+};
+
+export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import";
 
 export type ProjectLibrarySummary = {
   readonly id: string;
@@ -33,6 +42,20 @@ function idFactory() {
 
 function now() {
   return new Date().toISOString();
+}
+
+function normalizeLibraryProject(value: unknown): LibraryPPFProject {
+  const project = normalizeFoundationProject(value);
+  const sourceEvidence = normalizeProjectSourceEvidence(
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as { readonly sourceEvidence?: unknown }).sourceEvidence
+      : null,
+  );
+  return { ...project, sourceEvidence };
+}
+
+function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
+  return { ...createEmptyProject(input), sourceEvidence: createEmptyProjectSourceEvidence() };
 }
 
 function answerCount(project: PPFProject) {
@@ -70,8 +93,8 @@ function coreInput() {
   return {
     storage: storage(),
     profileId: profileId(),
-    normalizeProject: normalizeFoundationProject,
-    createProject: createEmptyProject,
+    normalizeProject: normalizeLibraryProject,
+    createProject: createEmptyLibraryProject,
     describeProject,
     now,
     idFactory,
@@ -85,7 +108,7 @@ function announceChange() {
 export function initializeProjectLibrary() {
   return libraryCore.initializeProfileProjectLibrary(coreInput()) as {
     readonly registry: { readonly activeProjectId: string | null; readonly projects: readonly ProjectLibrarySummary[] };
-    readonly activeProject: PPFProject | null;
+    readonly activeProject: LibraryPPFProject | null;
     readonly migrated: boolean;
     readonly quarantined: readonly string[];
   };
@@ -95,10 +118,10 @@ export function hasActiveLibraryProject() {
   return Boolean(initializeProjectLibrary().activeProject);
 }
 
-export function loadActiveLibraryProject() {
+export function loadActiveLibraryProject(): LibraryPPFProject {
   const initialized = initializeProjectLibrary();
   if (initialized.activeProject) return initialized.activeProject;
-  return createEmptyProject({
+  return createEmptyLibraryProject({
     id: idFactory(),
     now: now(),
     title: "Untitled Story",
@@ -107,7 +130,7 @@ export function loadActiveLibraryProject() {
 
 export function saveActiveLibraryProject(project: PPFProject) {
   const result = libraryCore.saveProfileActiveProject({ ...coreInput(), project }) as {
-    readonly activeProject: PPFProject;
+    readonly activeProject: LibraryPPFProject;
   };
   announceChange();
   return result.activeProject;
@@ -123,7 +146,7 @@ export function listArchivedLibraryProjects() {
 
 export function switchActiveLibraryProject(projectId: string) {
   const result = libraryCore.switchProfileActiveProject({ ...coreInput(), projectId }) as {
-    readonly activeProject: PPFProject;
+    readonly activeProject: LibraryPPFProject;
   };
   announceChange();
   return result.activeProject;
@@ -135,7 +158,7 @@ export function createLibraryUserProject(input: {
   readonly format?: string;
 }) {
   const result = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
-    readonly activeProject: PPFProject;
+    readonly activeProject: LibraryPPFProject;
   };
   announceChange();
   return result.activeProject;
@@ -150,15 +173,35 @@ export function createLibraryWorkingCopy(input: {
   readonly format: string;
 }) {
   const result = libraryCore.createProfileWorkingCopy({ ...coreInput(), ...input }) as {
-    readonly activeProject: PPFProject;
+    readonly activeProject: LibraryPPFProject;
   };
+  announceChange();
+  return result.activeProject;
+}
+
+export function importLibraryProject(input: {
+  readonly sourceProject: LibraryPPFProject;
+  readonly sourceId: string;
+  readonly title: string;
+  readonly genre?: string;
+  readonly format?: string;
+}) {
+  const result = libraryCore.createProfileWorkingCopy({
+    ...coreInput(),
+    sourceProject: input.sourceProject,
+    sourceKind: "import",
+    sourceId: input.sourceId,
+    title: input.title,
+    genre: input.genre || "",
+    format: input.format || "Imported screenplay",
+  }) as { readonly activeProject: LibraryPPFProject };
   announceChange();
   return result.activeProject;
 }
 
 export function archiveLibraryProject(projectId: string) {
   const result = libraryCore.archiveProfileProject({ ...coreInput(), projectId }) as {
-    readonly activeProject: PPFProject | null;
+    readonly activeProject: LibraryPPFProject | null;
   };
   announceChange();
   return result.activeProject;
@@ -166,7 +209,7 @@ export function archiveLibraryProject(projectId: string) {
 
 export function restoreArchivedLibraryProject(projectId: string) {
   const result = libraryCore.restoreProfileProject({ ...coreInput(), projectId }) as {
-    readonly activeProject: PPFProject | null;
+    readonly activeProject: LibraryPPFProject | null;
   };
   announceChange();
   return result.activeProject;

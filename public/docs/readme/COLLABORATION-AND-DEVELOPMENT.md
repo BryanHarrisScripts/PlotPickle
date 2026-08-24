@@ -31,7 +31,7 @@ The evidence contains JSON and Markdown summaries together with browser and serv
 
 PlotPickle's earlier Lighthouse runner never provided a trustworthy packaged-runtime release gate. It tested the wrong runtime, produced misleading local API and font failures, and could leave child processes running after the audit had already ended.
 
-The runner is no longer used by CI or release packaging. `Run-Lighthouse.bat` and the npm Lighthouse commands now exit immediately with a retirement notice instead of launching a long or misleading audit. The Windows packaged interaction gate is the supported release test.
+The runner is no longer used by CI or release packaging. Its historical Windows launcher is retained only as `Utilities/archive/Run-Lighthouse.arc`, where the non-executable `.arc` suffix prevents it from being presented as a supported tool. The npm Lighthouse commands exit immediately with a retirement notice instead of launching a long or misleading audit. The Windows packaged interaction gate is the supported release test.
 
 ## Project data and migration
 

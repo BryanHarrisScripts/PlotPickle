@@ -59,7 +59,7 @@ test("#550 completed video attaches only a local MP4 or WebM as an unreviewed PP
 test("#550 supervisor discovers the video worker and launcher keeps it persistent without authorizing paid work", async () => {
   const [supervisor, launcher, worker] = await Promise.all([
     read("scripts/production-supervisor-agent.mjs"),
-    read("Start-Production-Supervisor.bat"),
+    read("Utilities/Start-Production-Supervisor.bat"),
     read("scripts/video-production-agent.mjs"),
   ]);
   assert.match(supervisor, /video-production/);

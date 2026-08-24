@@ -11,8 +11,6 @@ PlotPickle is officially distributed as a **downloadable local-server applicatio
 
 The local edition runs on the user’s own computer and opens in a browser at `http://127.0.0.1:4173`. There is no required PlotPickle cloud account and no official online PlotPickle service.
 
-Because the repository is currently private, sign into the GitHub account that has access before downloading.
-
 ## Easiest Windows setup
 
 1. Download the current ZIP.
@@ -22,6 +20,8 @@ Because the repository is currently private, sign into the GitHub account that h
 5. Review the installation plan and press **Y** only when a dependency runtime is genuinely required.
 6. Leave the command window open while using PlotPickle.
 7. Press `Ctrl+C` when finished, then close the command window.
+
+The repository root intentionally exposes the normal platform launchers rather than maintenance tools. Windows repair, update, verification, ComfyUI checks and BUZZ maintenance are kept under `Utilities` so a first-time user does not have to choose among developer/maintenance launchers.
 
 PlotPickle requires Node.js 22.13 or newer. The first successful launch installs a reusable dependency runtime under the current Windows user’s local application-data folder. Later launches and matching future downloads reconnect to that runtime instead of installing all packages again.
 
@@ -59,13 +59,13 @@ Application files and installed packages are separated:
 ### Recommended routine upgrade
 
 1. Close PlotPickle and its local-server command window.
-2. Double-click `Update-PlotPickle.bat` inside the existing PlotPickle folder.
+2. Open `Utilities` and double-click `Update-PlotPickle.cmd`.
 3. Download the current ZIP through the signed-in browser.
 4. Return to the updater and select the ZIP.
 5. The updater replaces managed program files while preserving the runtime and local settings.
 6. Choose whether to start the upgraded PlotPickle immediately.
 
-A downloaded ZIP can also be dragged directly onto `Update-PlotPickle.bat`.
+A downloaded ZIP can also be dragged directly onto `Utilities\Update-PlotPickle.cmd`.
 
 The launcher fingerprints `package-lock.json`. When the fingerprint matches an installed runtime, PlotPickle starts without running npm. A new dependency runtime is created only when the dependency fingerprint changes or the current runtime is damaged.
 
@@ -102,7 +102,6 @@ npm run lint
 npm run build
 npm test
 ```
-
 
 ## Windows security warning
 

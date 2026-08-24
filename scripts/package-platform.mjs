@@ -67,9 +67,8 @@ const launcherSource = readFileSync(launcherPath, "utf8");
 if (!launcherSource.includes(launcherAnchor)) throw new Error(`The ${platform} launcher configuration anchor is missing.`);
 writeFileSync(launcherPath, launcherSource.replace(launcherAnchor, `${launcherAnchor}\n${launcherConfig}`));
 if (platform !== "windows") chmodSync(launcherPath, 0o755);
-if (platform === "windows") {
-  for (const file of ["Repair-PlotPickle.bat", "Update-PlotPickle.bat", "Run-PlotPickle-ComfyUI-Check.bat"]) if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
-}
+// The Utilities directory is already packaged above. Keep maintenance launchers there so
+// a fresh Windows package exposes only the normal Start-PlotPickle.bat launcher at its root.
 const githubAppConfigPath = path.join(destination, "config", "github-app.json");
 const githubAppConfig = JSON.parse(readFileSync(githubAppConfigPath, "utf8"));
 const googleOAuthConfigPath = path.join(destination, "config", "google-oauth.json");

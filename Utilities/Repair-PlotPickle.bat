@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title PlotPickle Playhouse Repair
 
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"

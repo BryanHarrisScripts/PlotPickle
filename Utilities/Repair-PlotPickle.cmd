@@ -1,3 +1,3 @@
 @echo off
-call "%~dp0..\Repair-PlotPickle.bat" %*
+call "%~dp0Repair-PlotPickle.bat" %*
 exit /b %ERRORLEVEL%

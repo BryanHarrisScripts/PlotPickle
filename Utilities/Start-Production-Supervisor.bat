@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title PlotPickle Production Supervisor
 
 set "PLOTPICKLE_PORT=4173"

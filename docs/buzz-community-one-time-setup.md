@@ -1,6 +1,6 @@
 # PlotPickle / BUZZ one-time Community setup
 
-On Windows, double-click `Sync-PlotPickle-BUZZ.cmd` from the PlotPickle folder. The original `Setup-PlotPickle-BUZZ.cmd` remains as a compatible entry point to the same safe sync.
+On Windows, open the `Utilities` folder and double-click `Sync-PlotPickle-BUZZ.cmd`. Retired root-level BUZZ launchers are archived as non-executable `.arc` references and are not supported entry points.
 
 The launcher first prints the channel and Agent plan without writing anything. When you confirm, it asks for the intended BUZZ relay and your Human/admin BUZZ private key using a hidden prompt. It then:
 

@@ -169,7 +169,7 @@ test("#550 supervisor discovers and launches the persistent visual worker with s
   const [supervisor, worker, launcher] = await Promise.all([
     read("scripts/production-supervisor-agent.mjs"),
     read("scripts/visual-production-agent.mjs"),
-    read("Start-Production-Supervisor.bat"),
+    read("Utilities/Start-Production-Supervisor.bat"),
   ]);
   assert.match(supervisor, /agentId: "visual-production"/);
   assert.match(supervisor, /poster-and-image-production/);

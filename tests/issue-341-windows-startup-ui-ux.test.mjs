@@ -94,7 +94,7 @@ test("required runtime consent and repair remain visible and recoverable", async
     'node "%RUNTIME_MANAGER%" verify-runtime',
     'node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"',
     'node "%RUNTIME_MANAGER%" reset-current',
-    "Repair-PlotPickle.bat",
+    "Utilities\\Repair-PlotPickle.cmd",
     "Your story projects are not stored in that folder",
   ]) assert.ok(launcher.includes(contract), `Missing required-runtime recovery: ${contract}`);
 });

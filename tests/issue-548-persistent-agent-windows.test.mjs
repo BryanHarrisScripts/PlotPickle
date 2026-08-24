@@ -37,7 +37,7 @@ test("normal PlotPickle startup no longer opens the three helper windows", async
 
 test("#550 Production Supervisor remains separate and paid generation consent-gated", async () => {
   const [launcher, supervisor, video] = await Promise.all([
-    read("Start-Production-Supervisor.bat"),
+    read("Utilities/Start-Production-Supervisor.bat"),
     read("scripts/production-supervisor-agent.mjs"),
     read("scripts/video-production-agent.mjs"),
   ]);

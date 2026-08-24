@@ -5,10 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Windows launcher is portable, double-click friendly, and keeps the console open", async () => {
-  const launcher = await read("Run-PlotPickle-Full-Check.bat");
+  const launcher = await read("Utilities/Run-PlotPickle-Full-Check.bat");
 
-  assert.match(launcher, /cd \/d "%~dp0"/i);
-  assert.match(launcher, /powershell\.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\\run-plotpickle-full-check\.ps1"/i);
+  assert.match(launcher, /cd \/d "%~dp0\.\."/i);
+  assert.match(launcher, /powershell\.exe -NoProfile -ExecutionPolicy Bypass -File "%CD%\\scripts\\run-plotpickle-full-check\.ps1"/i);
   assert.match(launcher, /pause >nul/i);
   assert.match(launcher, /exit \/b %EXIT_CODE%/i);
   assert.doesNotMatch(launcher, /C:\\Users\\/i);

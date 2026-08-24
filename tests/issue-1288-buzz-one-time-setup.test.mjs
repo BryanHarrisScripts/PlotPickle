@@ -9,12 +9,12 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1288 Windows launcher provides a deliberate one-time BUZZ setup path", async () => {
   const [launcher, setup, docs] = await Promise.all([
-    read("Sync-PlotPickle-BUZZ.cmd"),
+    read("Utilities/Sync-PlotPickle-BUZZ.cmd"),
     read("Utilities/Sync-PlotPickle-BUZZ.ps1"),
     read("docs/buzz-community-one-time-setup.md"),
   ]);
 
-  assert.match(launcher, /Utilities\\Sync-PlotPickle-BUZZ\.ps1/i);
+  assert.match(launcher, /Sync-PlotPickle-BUZZ\.ps1/i);
   assert.match(setup, /Type SET UP/);
   assert.match(setup, /bootstrap-buzz-guildhall\.mjs/);
   assert.match(setup, /provision-community-agents\.mjs/);

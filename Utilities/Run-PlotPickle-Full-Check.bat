@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title PlotPickle - Full Verification
 
 set "PS_ARGS="
@@ -45,7 +45,7 @@ echo   --repair                 run bounded Pi repair only after deterministic f
 echo   --retest-of RUN_ID       link this new run to an earlier immutable result
 echo.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\run-plotpickle-full-check.ps1" %PS_ARGS%
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%CD%\scripts\run-plotpickle-full-check.ps1" %PS_ARGS%
 set "EXIT_CODE=%ERRORLEVEL%"
 
 echo.

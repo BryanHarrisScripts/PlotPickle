@@ -89,7 +89,7 @@ test("#1036 standalone app readiness owns a dynamically allocated exact-instance
 });
 
 test("#1036 Full Check tells Windows users it is standalone", async () => {
-  const launcher = await source("Run-PlotPickle-Full-Check.bat");
+  const launcher = await source("Utilities/Run-PlotPickle-Full-Check.bat");
   assert.match(launcher, /STANDALONE: You do not need to run Start-PlotPickle\.bat first\./);
   assert.match(launcher, /Full Verification starts and owns the local app server when browser checks need it\./);
 });

@@ -64,7 +64,7 @@ test("#550 supervisor summary never hides needs-attention states", () => {
 });
 
 test("#550 persistent supervisor window discovers current companions and preserves safety boundaries", async () => {
-  const [script, launcher] = await Promise.all([read("scripts/production-supervisor-agent.mjs"), read("Start-Production-Supervisor.bat")]);
+  const [script, launcher] = await Promise.all([read("scripts/production-supervisor-agent.mjs"), read("Utilities/Start-Production-Supervisor.bat")]);
   for (const agent of ["full-story-builder", "ui-continuity", "creative-writer-uat"]) assert.match(script, new RegExp(agent));
   assert.match(script, /Production Supervisor accepts only a local PlotPickle server address/);
   assert.match(script, /The supervisor will not mark the production complete while blockers remain/);

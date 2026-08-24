@@ -45,7 +45,7 @@ test("ComfyUI starter distinguishes launch, first-run, engine, and wrong-port st
 });
 
 test("focused Windows ComfyUI verification runs API readiness before live routes and generation", async () => {
-  const runner = await read("Run-PlotPickle-ComfyUI-Check.bat");
+  const runner = await read("Utilities/Run-PlotPickle-ComfyUI-Check.bat");
   const preflight = runner.indexOf("start-comfyui-background.ps1");
   const live = runner.indexOf("verify-comfyui-live.mjs");
   assert.ok(preflight >= 0, "focused verifier must start with the reviewed ComfyUI readiness helper");

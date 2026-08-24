@@ -5,11 +5,13 @@ import test from "node:test";
 const programPath = new URL("../Utilities/DeveloperWorkbench/Program.cs", import.meta.url);
 const projectPath = new URL("../Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj", import.meta.url);
 const piBridgePath = new URL("../scripts/pi-work-item-review.mjs", import.meta.url);
+const gitignorePath = new URL("../.gitignore", import.meta.url);
 
-const [program, project, piBridge] = await Promise.all([
+const [program, project, piBridge, gitignore] = await Promise.all([
   readFile(programPath, "utf8"),
   readFile(projectPath, "utf8"),
   readFile(piBridgePath, "utf8"),
+  readFile(gitignorePath, "utf8"),
 ]);
 
 test("#1349 Workbench stays a standalone Windows utility", () => {
@@ -35,6 +37,16 @@ test("#1349 Pi review is bounded, read-only and implementation-grade", () => {
   assert.match(piBridge, /## EXACT CODE CHANGES RECOMMENDED/);
   assert.match(piBridge, /Priority; File; Symbol; Change; Evidence; Reason; Regression\/validation/);
   assert.match(piBridge, /Do not expose chain-of-thought/);
+});
+
+test("#1349 Windows Pi transport keeps rich prompts out of pi.cmd arguments", () => {
+  assert.match(gitignore, /^\/\.plotpickle\/$/m);
+  assert.match(piBridge, /promptDirectory = path\.join\(reviewPackage\.repositoryPath, "\.plotpickle", "developer-workbench"\)/);
+  assert.match(piBridge, /writeFile\(promptPath, reviewPrompt\(reviewPackage\), "utf8"\)/);
+  assert.match(piBridge, /promptArgument = `@\.plotpickle\/developer-workbench\/\$\{promptFileName\}`/);
+  assert.match(piBridge, /prompt:\s*promptArgument/);
+  assert.match(piBridge, /rm\(promptPath, \{ force: true \}\)/);
+  assert.doesNotMatch(piBridge, /prompt:\s*reviewPrompt\(reviewPackage\)/);
 });
 
 test("#1349 publication requires Human action and records reviewed head", () => {

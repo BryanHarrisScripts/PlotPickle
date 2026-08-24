@@ -47,9 +47,9 @@ test("one shared root navigator owns the approved revised PlotPickle order", asy
 
   assert.match(navigator, /relic: "\/assets\/workflow-relics\/community\.svg", label: "Community", detail: "Guildhall", selectable: true/);
   assert.match(navigator, /label: "Wyrmwood", detail: "Game", selectable: true/);
-  assert.match(navigator, /label: "Library", detail: "Examples & Stories", selectable: true/);
+  assert.match(navigator, /label: "Library", detail: "Stories", selectable: true/);
   assert.match(navigator, /label: "Previs", detail: "Visualize", selectable: false/);
-  assert.match(navigator, /label: "Dashboard", detail: "Start", selectable: true/);
+  assert.match(navigator, /label: "Dashboard", detail: "KPI", selectable: true/);
   assert.match(navigator, /label: "Settings", detail: "Config", selectable: true/);
   assert.doesNotMatch(navigator, /navigationBreakAfter|data-navigation-gap-after|groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });

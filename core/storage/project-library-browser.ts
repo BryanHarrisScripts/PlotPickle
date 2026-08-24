@@ -15,6 +15,7 @@ export type ProjectLibrarySummary = {
   readonly sourceId: string | null;
   readonly genre: string;
   readonly format: string;
+  readonly archivedAt: string | null;
 };
 
 export const PROJECT_LIBRARY_CHANGED_EVENT = libraryCore.PROJECT_LIBRARY_CHANGED_EVENT as string;
@@ -28,6 +29,10 @@ function storage() {
 
 function idFactory() {
   return globalThis.crypto?.randomUUID?.() ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function now() {
+  return new Date().toISOString();
 }
 
 function answerCount(project: PPFProject) {
@@ -68,7 +73,7 @@ function coreInput() {
     normalizeProject: normalizeFoundationProject,
     createProject: createEmptyProject,
     describeProject,
-    now: Date.prototype.toISOString.bind(new Date()),
+    now,
     idFactory,
   };
 }
@@ -79,15 +84,25 @@ function announceChange() {
 
 export function initializeProjectLibrary() {
   return libraryCore.initializeProfileProjectLibrary(coreInput()) as {
-    readonly registry: { readonly activeProjectId: string; readonly projects: readonly ProjectLibrarySummary[] };
-    readonly activeProject: PPFProject;
+    readonly registry: { readonly activeProjectId: string | null; readonly projects: readonly ProjectLibrarySummary[] };
+    readonly activeProject: PPFProject | null;
     readonly migrated: boolean;
     readonly quarantined: readonly string[];
   };
 }
 
+export function hasActiveLibraryProject() {
+  return Boolean(initializeProjectLibrary().activeProject);
+}
+
 export function loadActiveLibraryProject() {
-  return initializeProjectLibrary().activeProject;
+  const initialized = initializeProjectLibrary();
+  if (initialized.activeProject) return initialized.activeProject;
+  return createEmptyProject({
+    id: idFactory(),
+    now: now(),
+    title: "Untitled Story",
+  });
 }
 
 export function saveActiveLibraryProject(project: PPFProject) {
@@ -100,6 +115,10 @@ export function saveActiveLibraryProject(project: PPFProject) {
 
 export function listLibraryProjects() {
   return libraryCore.listProfileProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
+}
+
+export function listArchivedLibraryProjects() {
+  return libraryCore.listProfileArchivedProjectSummaries(coreInput()) as readonly ProjectLibrarySummary[];
 }
 
 export function switchActiveLibraryProject(projectId: string) {
@@ -132,6 +151,22 @@ export function createLibraryWorkingCopy(input: {
 }) {
   const result = libraryCore.createProfileWorkingCopy({ ...coreInput(), ...input }) as {
     readonly activeProject: PPFProject;
+  };
+  announceChange();
+  return result.activeProject;
+}
+
+export function archiveLibraryProject(projectId: string) {
+  const result = libraryCore.archiveProfileProject({ ...coreInput(), projectId }) as {
+    readonly activeProject: PPFProject | null;
+  };
+  announceChange();
+  return result.activeProject;
+}
+
+export function restoreArchivedLibraryProject(projectId: string) {
+  const result = libraryCore.restoreProfileProject({ ...coreInput(), projectId }) as {
+    readonly activeProject: PPFProject | null;
   };
   announceChange();
   return result.activeProject;

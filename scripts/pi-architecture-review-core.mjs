@@ -1,5 +1,3 @@
-import path from "node:path";
-
 export const PI_ARCHITECTURE_REVIEW_TOOLS = Object.freeze(["read", "grep", "find", "ls"]);
 export const PI_CI_CLASSIFICATIONS = Object.freeze([
   "real-behavioral-regression",
@@ -216,9 +214,10 @@ export function createPiArchitectureReviewEvidence({
   ci = null,
   runtime = null,
 }) {
-  const resolvedSpec = spec?.status === "present"
-    ? (specReview || normalizePiReviewAxis("spec", { verdict: "FINDINGS", summary: "Spec review was not completed.", findings: [] }))
-    : normalizePiReviewAxis("spec", { verdict: "NO SPEC", summary: "No authoritative spec was supplied by the host.", findings: [] });
+  const resolvedSpec = specReview
+    || (spec?.status === "missing"
+      ? normalizePiReviewAxis("spec", { verdict: "NO SPEC", summary: "No authoritative spec was supplied by the host.", findings: [] })
+      : null);
   return Object.freeze({
     schemaVersion: 1,
     generatedAt: generatedAt || new Date().toISOString(),
@@ -270,7 +269,7 @@ export function renderPiArchitectureReviewMarkdown(evidence) {
     ...findingLines(evidence.standards),
     "",
     "## Spec",
-    evidence.spec.verdict,
+    evidence.spec ? evidence.spec.verdict : "Not run.",
     ...findingLines(evidence.spec),
   ];
   if (evidence.ci) {
@@ -278,11 +277,4 @@ export function renderPiArchitectureReviewMarkdown(evidence) {
   }
   lines.push("", evidence.note, "");
   return lines.join("\n");
-}
-
-export function repositoryRelativeEvidencePath(repoRoot, value) {
-  const resolved = path.resolve(value);
-  const relative = path.relative(repoRoot, resolved);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) return resolved;
-  return relative.replaceAll("\\", "/");
 }

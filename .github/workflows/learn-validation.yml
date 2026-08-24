@@ -115,6 +115,9 @@ jobs:
       - name: Validate global navigation order and grouping
         run: node --test tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs
 
+      - name: Validate unified Local and Cloud Compute Settings UX
+        run: node --test tests/issue-1377-unified-ai-compute-settings.test.mjs tests/issue-1256-navigation-settings-ia.test.mjs tests/issue-1111-settings-unified-workspace.test.mjs tests/issue-1105-settings-dark-surface-regression.test.mjs tests/learn-sage-settings-entry.test.mjs
+
       - name: Validate Windows startup Agent Skills contract
         run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-974-startup-health-contract.test.mjs
 

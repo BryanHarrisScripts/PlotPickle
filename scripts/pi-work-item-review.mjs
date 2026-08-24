@@ -3,11 +3,11 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { runManagedPiReadOnly } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
-  raceWorkbenchRuntime,
-  readPinnedWorkbenchRuntime,
-} from "../Utilities/DeveloperWorkbench/pi-runtime-race.mjs";
+  probeManagedPiReadiness,
+  runManagedPiReadOnly,
+  WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS,
+} from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import { buildInstructionBundle } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "./pi-worker-runtime.mjs";
@@ -25,7 +25,7 @@ function errorDetail(error) {
 async function printReadiness() {
   const repositoryPath = path.resolve(argument("--repository-path"));
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     ready: false,
     node: {
       ready: true,
@@ -35,7 +35,7 @@ async function printReadiness() {
     pi: {
       ready: false,
       version: "",
-      detail: "PlotPickle-managed Pi has not been checked yet.",
+      detail: "PlotPickle-managed Pi has not completed the canonical local inference proof yet.",
     },
     runtime: {
       ready: false,
@@ -47,8 +47,8 @@ async function printReadiness() {
     inference: {
       ready: false,
       latencyMs: 0,
-      providerId: "plotpickle-workbench-local",
-      detail: "The 60-second local inference race has not run yet.",
+      providerId: "plotpickle-local",
+      detail: "The canonical Pi local-model smoke has not run yet.",
     },
   };
 
@@ -57,11 +57,8 @@ async function printReadiness() {
     pi = await ensureManagedPiInstalled({
       allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0",
     });
-    report.pi = {
-      ready: true,
-      version: pi.version || pi.expectedVersion || "unknown",
-      detail: `PlotPickle-managed Pi ${pi.version || pi.expectedVersion || "unknown"} is ready${pi.installed ? " and was installed by this check" : ""}.`,
-    };
+    report.pi.version = pi.version || pi.expectedVersion || "unknown";
+    report.pi.detail = `PlotPickle-managed Pi ${report.pi.version} is installed and executable; real local inference still must pass before Pi is GREEN.`;
   } catch (error) {
     report.pi.detail = errorDetail(error);
     process.stdout.write(`${JSON.stringify(report)}\n`);
@@ -69,45 +66,51 @@ async function printReadiness() {
   }
 
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
-  let race;
-  try {
-    race = await raceWorkbenchRuntime({
-      pi,
-      cwd: repositoryPath,
-    });
-  } catch (error) {
-    report.runtime.detail = errorDetail(error);
-    report.inference.detail = `The 60-second local inference race could not start. ${errorDetail(error)}`;
-    process.stdout.write(`${JSON.stringify(report)}\n`);
-    return;
-  }
 
-  if (race.runtime) {
+  let runtime;
+  try {
+    runtime = await resolvePiLocalRuntime();
     report.runtime = {
       ready: true,
-      label: race.runtime.label || race.runtime.kind || "Local runtime",
-      model: race.runtime.model || "",
-      baseUrl: race.runtime.baseUrl || "",
-      detail: race.ready
-        ? `${race.runtime.label || race.runtime.kind || "Local runtime"} won the local inference race with approved model ${race.runtime.model || "<unknown>"}.`
-        : `${race.runtime.label || race.runtime.kind || "Local runtime"} advertises approved model ${race.runtime.model || "<unknown>"}, but no candidate completed the full Pi inference handshake within the race window.`,
+      label: runtime.label || runtime.kind || "Local runtime",
+      model: runtime.model || "",
+      baseUrl: runtime.baseUrl || "",
+      detail: `${runtime.label || runtime.kind || "Local runtime"} advertises approved model ${runtime.model || "<unknown>"}; canonical Pi inference proof is next.`,
     };
-  } else {
-    report.runtime.detail = race.detail || "No approved local coding model became responsive during the 60-second race.";
-  }
-
-  if (!race.ready) {
-    report.inference.detail = race.detail || "No approved local model completed a real inference response within 60 seconds.";
+  } catch (error) {
+    report.runtime.detail = errorDetail(error);
+    report.inference.detail = `Canonical Pi inference could not start because no approved local runtime was resolved. ${errorDetail(error)}`;
     process.stdout.write(`${JSON.stringify(report)}\n`);
     return;
   }
 
-  report.inference = {
-    ready: true,
-    latencyMs: race.totalLatencyMs,
-    providerId: race.providerId,
-    detail: `Local inference race selected ${race.runtime.label || race.runtime.kind || "Local runtime"} · ${race.runtime.model} in ${race.totalLatencyMs} ms after ${race.attempts} candidate probe${race.attempts === 1 ? "" : "s"}; Pi confirmed the same explicit provider before enabling review.`,
-  };
+  try {
+    const proof = await probeManagedPiReadiness({
+      pi,
+      runtime,
+      cwd: repositoryPath,
+      purpose: "work-item-readiness",
+      smokeTimeout: WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS,
+    });
+    report.pi = {
+      ready: true,
+      version: report.pi.version,
+      detail: `PlotPickle-managed Pi ${report.pi.version} completed the canonical local-model smoke through ${runtime.label || runtime.kind || "Local runtime"} · ${runtime.model}.`,
+    };
+    report.inference = {
+      ready: true,
+      latencyMs: proof.latencyMs,
+      providerId: proof.providerId,
+      detail: `Canonical Pi inference passed through ${proof.providerId} using ${runtime.label || runtime.kind || "Local runtime"} · ${runtime.model} in ${proof.latencyMs} ms. Cold start is allowed up to ${Math.round(WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS / 1000)} seconds.`,
+    };
+  } catch (error) {
+    const detail = errorDetail(error);
+    report.pi.ready = false;
+    report.pi.detail = `Pi ${report.pi.version} is installed, but it is not operational until canonical local inference succeeds. ${detail}`;
+    report.inference.detail = detail;
+    process.stdout.write(`${JSON.stringify(report)}\n`);
+    return;
+  }
 
   report.ready = report.pi.ready && report.runtime.ready && report.inference.ready;
   process.stdout.write(`${JSON.stringify(report)}\n`);
@@ -205,7 +208,7 @@ async function main() {
     allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0",
   });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
-  const runtime = await readPinnedWorkbenchRuntime(reviewPackage.repositoryPath) || await resolvePiLocalRuntime();
+  const runtime = await resolvePiLocalRuntime();
 
   const promptDirectory = path.join(reviewPackage.repositoryPath, ".plotpickle", "developer-workbench");
   await mkdir(promptDirectory, { recursive: true });

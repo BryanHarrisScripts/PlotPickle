@@ -228,7 +228,7 @@ function printSuccess(includeInstalledSize) {
   console.log("Upgrade meaning:");
   console.log("  - You can replace or update the PlotPickle program folder without deleting this runtime.");
   console.log("  - Matching future versions reconnect to these packages immediately.");
-  console.log("  - Update-PlotPickle.bat replaces program files while preserving this runtime.");
+  console.log("  - Utilities\\Update-PlotPickle.cmd replaces program files while preserving this runtime.");
   console.log("");
   console.log("What running a local server means:");
   console.log("  - PlotPickle runs as a small web application on your own computer.");

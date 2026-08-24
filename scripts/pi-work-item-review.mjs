@@ -17,10 +17,6 @@ function argument(name) {
   return process.argv[index + 1];
 }
 
-function hasFlag(name) {
-  return process.argv.includes(name);
-}
-
 function errorDetail(error) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -182,7 +178,7 @@ function reviewPrompt(reviewPackage, instructionBundle) {
 }
 
 async function main() {
-  if (hasFlag("--readiness")) {
+  if (process.argv.includes("--readiness")) {
     await printReadiness();
     return;
   }

@@ -38,6 +38,16 @@ PlotPickle may use OS-backed secure storage when the OS account identifies one H
 
 Guest is an isolated local profile, not implicit access to an existing Human's work.
 
+## Node control and local shutdown
+
+The permanent top-left PlotPickle crest is the user-facing Node control. The far-right Profile control remains the active Human control. This visual split deliberately reinforces the architecture: Node/device identity is separate from Human identity.
+
+The navigation may show a short presentation form such as `PP-7F42`, but the full durable `node_id` and Node signing identity remain the provenance/security identifiers. Multiple Human profiles on one installation do not create additional Nodes, and normal restart/shutdown never rotates Node identity.
+
+Clicking the Node crest opens Node information and lifecycle controls. `Shut Down PlotPickle` means a graceful local application shutdown: preserve known safe creative state, release the active Human/session boundary, stop PlotPickle-owned managed services and child processes, terminate the PlotPickle launcher/CMD runtime, and close only the PlotPickle-owned browser window. It never means shutting down Windows or killing unrelated browser tabs/processes.
+
+The full Node-control, autosave, confirmation, runtime-supervisor and shutdown-state contract is defined in `docs/architecture/NODE-CONTROL-GRACEFUL-SHUTDOWN.md`.
+
 ## BUZZ Communities and people
 
 BUZZ is the signed Community/federation fabric through which PlotPickle sees Communities, people, rooms, membership and presence.
@@ -152,6 +162,9 @@ Community discovery is reported as BUZZ-backed `communities`, `people`, `rooms` 
 
 - One Node may host several isolated Humans.
 - One Human may use several Nodes without becoming several Community people.
+- The top-left Node control and far-right Human Profile control remain separate identity surfaces.
+- Normal shutdown/restart preserves the durable Node identity.
+- Graceful shutdown must preserve safe known work, clear Human-scoped session state and stop only PlotPickle-owned runtime/browser resources.
 - Profile switches clear Human-scoped project, agent, retrieval, UI, credential and BUZZ-session state before another Human unlocks.
 - Community discovery centers Communities and people; Node identity is provenance underneath.
 - Community presence never exposes or routes local resources.

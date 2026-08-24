@@ -11,6 +11,7 @@ import { registerSdxlLocalImageGateway } from "./comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./comfyui-sdxl-starter-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
+import { registerProviderModelCatalogGateway } from "./provider-model-catalog-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerLazyFramesGateway } from "./lazy-frames-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
@@ -51,7 +52,7 @@ export function localAiGateway(): Plugin {
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
     registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerPlotPickleNodeTopologyGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerDeepSeekHarnessGateway(server);
-    registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server);
+    registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerComfyUiSdxlStarterGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);

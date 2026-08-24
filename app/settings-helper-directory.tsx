@@ -92,7 +92,7 @@ export default function SettingsHelperDirectory() {
   if (selectedAgent) {
     return (
       <div className={styles.help} data-settings-help="individual-helper" data-selected-helper={selectedAgent.profileId}>
-        <header className={`${styles.hero} ${styles.individualHero}`}>
+        <header className={styles.hero}>
           <div>
             <p className={styles.eyebrow}>HELP · Individual Helper</p>
             <h2 id="settings-help-title">{selectedAgent.displayName}</h2>

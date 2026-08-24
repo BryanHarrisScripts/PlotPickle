@@ -15,7 +15,7 @@ import {
   parsePiJsonResponse,
   resolvePiReviewTarget,
   resolvePiSpecDescriptor,
-} from "../scripts/pi-architecture-review-core.mjs";
+} from "../scripts/pi/architecture-review-core.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
@@ -163,7 +163,7 @@ test("issue #1321 Pi review parser stores concise JSON findings rather than raw 
 
 test("issue #1321 runner keeps Pi local, read-only, non-authoritative and session-independent", async () => {
   const [runner, runtime] = await Promise.all([
-    source("scripts/run-pi-architecture-review.mjs"),
+    source("scripts/pi/run-architecture-review.mjs"),
     source("scripts/pi-worker-runtime.mjs"),
   ]);
   assert.deepEqual(PI_ARCHITECTURE_REVIEW_TOOLS, ["read", "grep", "find", "ls"]);

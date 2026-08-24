@@ -272,7 +272,7 @@
   justify-content: flex-start;
   gap: clamp(2px, 0.25vw, 4px);
   margin: 0 auto;
-  padding: 6px 76px 8px;
+  padding: 6px 72px 8px;
   list-style: none;
 }
 

@@ -1,0 +1,314 @@
+.workspace {
+  display: grid;
+  gap: 14px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(40, 82, 71, 0.72);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(8, 23, 19, 0.82), rgba(16, 24, 22, 0.7));
+}
+
+.hero p,
+.capabilityIntro p,
+.connectionMethods header p {
+  margin: 0 0 5px;
+  color: var(--pp-teal, #35c9b8);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--pp-text, #f1eee7);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(25px, 3vw, 36px);
+  font-weight: 500;
+}
+
+.hero span {
+  display: block;
+  max-width: 760px;
+  margin-top: 8px;
+  color: var(--pp-muted, #aaa398);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.hero > strong {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid rgba(213, 172, 99, 0.42);
+  border-radius: 999px;
+  color: var(--pp-gold, #d5ac63);
+  font-size: 8px;
+  letter-spacing: .09em;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  padding: 7px;
+  border: 1px solid rgba(40, 82, 71, 0.62);
+  border-radius: 10px;
+  background: rgba(8, 23, 19, 0.62);
+}
+
+.tabs button {
+  display: grid;
+  min-height: 64px;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(40, 82, 71, 0.7);
+  border-radius: 8px;
+  background: rgba(4, 15, 12, 0.56);
+  color: #9ebbb3;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tabs button strong {
+  color: var(--pp-text, #f1eee7);
+  font-size: 11px;
+}
+
+.tabs button span {
+  color: #78958d;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.tabs button:hover,
+.tabs button:focus-visible {
+  border-color: rgba(54, 217, 194, 0.72);
+  background: rgba(54, 217, 194, 0.07);
+  outline: none;
+}
+
+.tabs button[aria-current="page"] {
+  border-color: rgba(54, 217, 194, 0.76);
+  background: linear-gradient(180deg, rgba(54, 217, 194, 0.13), rgba(47, 157, 120, 0.04));
+  box-shadow: inset 0 2px var(--pp-teal, #36d9c2), 0 0 20px rgba(54, 217, 194, 0.05);
+}
+
+.tabs button[aria-current="page"] span {
+  color: #a9c0b9;
+}
+
+.capabilityIntro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(105, 101, 94, 0.3);
+  border-radius: 9px;
+  background: rgba(11, 14, 14, 0.6);
+}
+
+.capabilityIntro h2,
+.connectionMethods h3 {
+  margin: 0;
+  color: var(--pp-text, #f1eee7);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.capabilityIntro span {
+  display: block;
+  margin-top: 5px;
+  color: var(--pp-muted, #aaa398);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.capabilityIntro button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 8px 11px;
+  border: 1px solid rgba(213, 172, 99, 0.48);
+  border-radius: 7px;
+  background: rgba(213, 172, 99, 0.06);
+  color: var(--pp-gold, #d5ac63);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.capabilityIntro button:hover,
+.capabilityIntro button:focus-visible {
+  border-color: var(--pp-gold, #d5ac63);
+  color: var(--pp-text, #f1eee7);
+  outline: none;
+}
+
+.advanced {
+  border: 1px solid rgba(105, 101, 94, 0.34);
+  border-radius: 10px;
+  background: rgba(11, 14, 14, 0.66);
+  overflow: clip;
+}
+
+.advanced > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  color: var(--pp-text, #f1eee7);
+  cursor: pointer;
+}
+
+.advanced > summary span {
+  display: grid;
+  gap: 3px;
+}
+
+.advanced > summary strong {
+  font-size: 10px;
+}
+
+.advanced > summary small,
+.advanced > summary em {
+  color: var(--pp-muted, #8f887e);
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.advanced[open] > summary {
+  border-bottom: 1px solid rgba(105, 101, 94, 0.28);
+  background: rgba(213, 172, 99, 0.035);
+}
+
+.advancedBody {
+  padding: 14px;
+}
+
+.advancedStack {
+  display: grid;
+  gap: 14px;
+}
+
+.advancedNote {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(54, 217, 194, 0.62);
+  background: rgba(54, 217, 194, 0.04);
+  color: var(--pp-muted, #aaa398);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.expertDetails {
+  border: 1px solid rgba(40, 82, 71, 0.55);
+  border-radius: 8px;
+  background: rgba(8, 23, 19, 0.45);
+}
+
+.expertDetails > summary {
+  padding: 11px 13px;
+  color: var(--pp-gold, #d5ac63);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.expertDetails > p {
+  margin: 0;
+  padding: 0 13px 11px;
+  color: var(--pp-muted, #aaa398);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.connectionMethods {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid rgba(40, 82, 71, 0.6);
+  border-radius: 9px;
+  background: rgba(8, 23, 19, 0.5);
+}
+
+.connectionMethods > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.connectionMethods article {
+  display: grid;
+  gap: 5px;
+  min-height: 80px;
+  padding: 11px;
+  border: 1px solid rgba(40, 82, 71, 0.66);
+  border-radius: 8px;
+  background: rgba(4, 15, 12, 0.5);
+}
+
+.connectionMethods article[data-available="true"] {
+  border-color: rgba(54, 217, 194, 0.55);
+}
+
+.connectionMethods article[data-available="false"] {
+  opacity: .72;
+}
+
+.connectionMethods article strong {
+  color: var(--pp-text, #f1eee7);
+  font-size: 10px;
+}
+
+.connectionMethods article span {
+  color: var(--pp-muted, #aaa398);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.boundary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(40, 82, 71, 0.55);
+  color: var(--pp-muted, #8f887e);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.boundary strong {
+  color: var(--pp-teal, #35c9b8);
+  font-size: 9px;
+}
+
+@media (max-width: 780px) {
+  .hero,
+  .capabilityIntro,
+  .boundary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero > strong,
+  .capabilityIntro button {
+    align-self: flex-start;
+  }
+
+  .tabs,
+  .connectionMethods > div {
+    grid-template-columns: 1fr;
+  }
+}

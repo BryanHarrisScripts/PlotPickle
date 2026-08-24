@@ -84,6 +84,6 @@ export async function runSaveFirstNodeShutdown(steps) {
         throw new AggregateError([error, blockError], "PlotPickle could not persist the session or record the blocked shutdown state.");
       }
     }
-    throw error;
+    throw new Error(`PlotPickle graceful shutdown was blocked before managed teardown: ${errorText(error)}`, { cause: error });
   }
 }

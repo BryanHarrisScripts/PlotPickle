@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { agentProfileById, type AgentProfile } from "../lib/agents/agent-profiles";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
@@ -20,6 +23,11 @@ function cannotDo(profile: AgentProfile) {
 function roomLabels(roomIds: readonly string[]) {
   const roomById = new Map(PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.map((room) => [room.id, room.label]));
   return roomIds.map((roomId) => roomById.get(roomId) ?? roomId).join(" · ");
+}
+
+function requestedHelperId() {
+  if (typeof window === "undefined") return "";
+  return new URL(window.location.href).searchParams.get("helper")?.trim() || "";
 }
 
 type HelperAgent = (typeof PLOTPICKLE_COMMUNITY_EXTENSIONS.agents)[number];
@@ -68,8 +76,17 @@ function HelperCard({ agent, expanded = false }: { readonly agent: HelperAgent; 
   );
 }
 
-export default function SettingsHelperDirectory({ selectedHelperId = "" }: { readonly selectedHelperId?: string }) {
+export default function SettingsHelperDirectory() {
   const { agents, helpGroups } = PLOTPICKLE_COMMUNITY_EXTENSIONS;
+  const [selectedHelperId, setSelectedHelperId] = useState("");
+
+  useEffect(() => {
+    const sync = () => setSelectedHelperId(requestedHelperId());
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
+
   const selectedAgent = selectedHelperId ? agents.find((agent) => agent.profileId === selectedHelperId) ?? null : null;
 
   if (selectedAgent) {

@@ -27,6 +27,14 @@ Process state and capability readiness are deliberately separate. A running Comf
 
 The Windows target is one PlotPickle launch with managed helpers started without normal-user console windows. Restart is bounded; shutdown must target the managed process tree; stale/orphan processes must not become the next launch's hidden authority. Launcher paths remain application/package-relative and cannot silently escape to an arbitrary local executable.
 
+## Graceful Node shutdown
+
+The top-left PlotPickle crest is the user-facing Node control. It requests lifecycle actions from the runtime supervisor; it does not directly kill arbitrary processes.
+
+A normal `Shut Down PlotPickle` sequence must preserve known creative state, release the active Human/session boundary, stop PlotPickle-owned managed services and child processes, terminate the PlotPickle launcher/CMD runtime, and close only the PlotPickle-owned browser window. A failed save or required cleanup blocks successful shutdown rather than silently discarding work.
+
+The complete UX, save, browser-ownership, privacy and acceptance contract is defined in `docs/architecture/NODE-CONTROL-GRACEFUL-SHUTDOWN.md`.
+
 ## Tauri decision
 
 Tauri 2 remains a candidate desktop shell, not a dependency or product authority in this phase. The existing vinext/Vite application contract stays above the shell. A later Windows packaging spike may adopt Tauri only if it proves a material benefit for hidden sidecar lifecycle, secure local storage, installer/update behavior and clean shutdown without weakening macOS/Linux direction.

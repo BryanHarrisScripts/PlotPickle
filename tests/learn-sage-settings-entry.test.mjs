@@ -48,11 +48,12 @@ test("the standalone header exposes a dedicated lore-style Settings SVG and uses
   assert.doesNotMatch(relic, /<rect[^>]+(?:fill="#000|fill="black)/i);
 });
 
-test("workspace=settings opens an Overview-first setup inside the shared root navigator", async () => {
-  const [page, shell, settings] = await Promise.all([
+test("workspace=settings opens an Overview-first compute setup inside the shared root navigator", async () => {
+  const [page, shell, settings, compute] = await Promise.all([
     read("app/page.tsx"),
     read("app/plotpickle-workspace-shell.tsx"),
     read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
   assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
@@ -63,14 +64,16 @@ test("workspace=settings opens an Overview-first setup inside the shared root na
   assert.match(shell, /label: "Settings", detail: "Config", selectable: true/);
   assert.match(settings, /Settings · Overview/);
   assert.match(settings, /<h2 id="settings-quick-steps">Quick Setup<\/h2>/);
-  assert.match(settings, /Step 1:<\/strong> Configure and test Sage/);
-  assert.match(settings, /Step 2:<\/strong> Configure and test PLAN/);
-  assert.match(settings, /Step 3:<\/strong> Choose explicit LLM and media routes/);
-  assert.match(settings, /Step 4:<\/strong> Configure only the providers you intend to use/);
+  assert.match(settings, /Step 1:<\/strong> Open Local Compute/);
+  assert.match(settings, /Step 2:<\/strong> Open Cloud Compute/);
+  assert.match(settings, /Step 3:<\/strong> Use Writing, Images and Video tabs/);
+  assert.match(settings, /Step 4:<\/strong> Open Advanced Options/);
   assert.match(settings, /href="\/\?workspace=learn">Return to LEARN/);
   assert.match(settings, /href="\/\?workspace=plan">Return to PLAN/);
-  assert.match(settings, /case "sage":[\s\S]*<SageFastModelSetup \/>/);
-  assert.match(settings, /case "plan":[\s\S]*<SageFastModelSetup \/>/);
+  assert.match(settings, /case "local-compute":[\s\S]*<AiComputeWorkspace mode="local" \/>/);
+  assert.match(settings, /case "cloud-compute":[\s\S]*<AiComputeWorkspace mode="cloud" \/>/);
+  assert.match(compute, /<SageFastModelSetup \/>/);
+  assert.match(compute, /<AiRoutingPanel/);
   assert.match(settings, /case "runtime":[\s\S]*<details className=\{styles\.advancedRuntime\}>[\s\S]*<LocalRuntimePanel \/>[\s\S]*<\/details>/);
   assert.doesNotMatch(settings, /<details className=\{styles\.advancedRuntime\}\s+open/);
 });

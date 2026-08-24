@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
@@ -89,14 +89,28 @@ async function main() {
   });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
-  const review = await runPiReadOnly({
-    command: pi.command,
-    runtime,
-    prompt: reviewPrompt(reviewPackage),
-    cwd: reviewPackage.repositoryPath,
-    purpose: "work-item-review",
-    timeout: 15 * 60_000,
-  });
+
+  const promptDirectory = path.join(reviewPackage.repositoryPath, ".plotpickle", "developer-workbench");
+  await mkdir(promptDirectory, { recursive: true });
+  const promptFileName = `pi-work-item-prompt-${process.pid}-${Date.now()}.md`;
+  const promptPath = path.join(promptDirectory, promptFileName);
+  const promptArgument = `@.plotpickle/developer-workbench/${promptFileName}`;
+  await writeFile(promptPath, reviewPrompt(reviewPackage), "utf8");
+
+  let review;
+  try {
+    review = await runPiReadOnly({
+      command: pi.command,
+      runtime,
+      prompt: promptArgument,
+      cwd: reviewPackage.repositoryPath,
+      purpose: "work-item-review",
+      timeout: 15 * 60_000,
+    });
+  } finally {
+    await rm(promptPath, { force: true });
+  }
+
   const markdown = review.stdout.trim();
   if (!markdown) throw new Error("Pi work-item review completed without producing a developer brief.");
   await mkdir(path.dirname(outputPath), { recursive: true });

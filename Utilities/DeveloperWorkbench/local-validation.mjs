@@ -16,12 +16,9 @@ function settingsRepositoryPath() {
     ? path.join(os.homedir(), "AppData", "Local")
     : path.join(os.homedir(), ".local", "share"));
   const settingsPath = path.join(localAppData, "PlotPickle", "DeveloperWorkbench", "settings.json");
-  try {
-    const parsed = JSON.parse(readFileSync(settingsPath, "utf8"));
-    return String(parsed?.repositoryPath || "").trim();
-  } catch {
-    return "";
-  }
+  if (!existsSync(settingsPath)) return "";
+  const parsed = JSON.parse(readFileSync(settingsPath, "utf8"));
+  return String(parsed?.repositoryPath || "").trim();
 }
 
 function resolveRepository() {

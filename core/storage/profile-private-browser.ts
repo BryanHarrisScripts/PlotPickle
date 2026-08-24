@@ -7,12 +7,24 @@ type HydratedPrivateState = {
   readonly wyrmwood: unknown | null;
 };
 
+type ProfilePrivateSaveState = Readonly<{
+  state: "saved" | "saving" | "blocked";
+  message: string;
+}>;
+
 const LEGACY_ACTIVE_PROJECT_KEY = "plotpickle.foundation.project.v1";
 const LEGACY_LIBRARY_PREFIX = "plotpickle.library.profile.v1.";
+export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save-state";
 
 let csrfToken = "";
 let hydrated: HydratedPrivateState = { project: null, wyrmwood: null };
 let pendingWrite: Promise<void> = Promise.resolve();
+let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
+
+function updateSaveState(state: ProfilePrivateSaveState["state"], message: string) {
+  saveState = Object.freeze({ state, message });
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(PROFILE_PRIVATE_SAVE_STATE_EVENT, { detail: saveState }));
+}
 
 async function privateMutation(action: string, payload: Record<string, unknown>, token = csrfToken) {
   if (!token) throw new Error("The Human profile is locked.");
@@ -30,10 +42,18 @@ async function privateMutation(action: string, payload: Record<string, unknown>,
 function queueWrite(action: string, payload: Record<string, unknown>) {
   const token = csrfToken;
   if (!token) return Promise.reject(new Error("The Human profile is locked."));
-  pendingWrite = pendingWrite.catch(() => undefined).then(async () => {
+  updateSaveState("saving", "Unsaved changes");
+  const current = pendingWrite.catch(() => undefined).then(async () => {
     await privateMutation(action, payload, token);
   });
-  return pendingWrite;
+  pendingWrite = current;
+  void current.then(
+    () => { if (pendingWrite === current) updateSaveState("saved", "Saved"); },
+    (error) => {
+      if (pendingWrite === current) updateSaveState("blocked", error instanceof Error ? error.message : "Unsaved changes could not be persisted.");
+    },
+  );
+  return current;
 }
 
 function legacyBrowserProjects() {
@@ -89,6 +109,7 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   hydrated = await result.json() as HydratedPrivateState;
   if (hydrated.project) saveFoundationProject(hydrated.project as Parameters<typeof saveFoundationProject>[0]);
   else saveFoundationProject(loadFoundationProject());
+  updateSaveState("saved", "Saved");
 }
 
 export function hydratedProfilePrivateValue(key: "wyrmwood") {
@@ -104,6 +125,10 @@ export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {
   return queueWrite("save-wyrmwood", { value });
 }
 
+export function getProfilePrivateSaveState() {
+  return saveState;
+}
+
 export async function flushProfilePrivateWrites() {
   await pendingWrite;
 }
@@ -112,5 +137,6 @@ export function clearProfilePrivateBrowser() {
   csrfToken = "";
   hydrated = { project: null, wyrmwood: null };
   pendingWrite = Promise.resolve();
+  saveState = Object.freeze({ state: "saved", message: "Saved" });
   window.sessionStorage.clear();
 }

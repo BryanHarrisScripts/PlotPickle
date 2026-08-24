@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
+import { resolveManagedPiCliEntry } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
   selectRelevantArchitecturePaths,
   selectRelevantSkillIds,
@@ -10,13 +13,15 @@ const programPath = new URL("../Utilities/DeveloperWorkbench/Program.cs", import
 const projectPath = new URL("../Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj", import.meta.url);
 const piBridgePath = new URL("../scripts/pi-work-item-review.mjs", import.meta.url);
 const instructionHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-review-instructions.mjs", import.meta.url);
+const directLaunchHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs", import.meta.url);
 const gitignorePath = new URL("../.gitignore", import.meta.url);
 
-const [program, project, piBridge, instructionHelper, gitignore] = await Promise.all([
+const [program, project, piBridge, instructionHelper, directLaunchHelper, gitignore] = await Promise.all([
   readFile(programPath, "utf8"),
   readFile(projectPath, "utf8"),
   readFile(piBridgePath, "utf8"),
   readFile(instructionHelperPath, "utf8"),
+  readFile(directLaunchHelperPath, "utf8"),
   readFile(gitignorePath, "utf8"),
 ]);
 
@@ -37,7 +42,7 @@ test("#1349 Workbench uses GitHub evidence and exact-head freshness", () => {
 });
 
 test("#1349 Pi review is bounded, read-only and implementation-grade", () => {
-  assert.match(piBridge, /runPiReadOnly/);
+  assert.match(piBridge, /runManagedPiReadOnly/);
   assert.match(piBridge, /read, grep, find, and ls/);
   assert.match(piBridge, /Do not edit files, run shell commands, commit, push/);
   assert.match(piBridge, /## EXACT CODE CHANGES RECOMMENDED/);
@@ -90,7 +95,28 @@ test("#1349 Pi deliberately loads AGENTS, registered skills and relevant archite
   assert.ok(!architecture.includes("docs/architecture/HARDWARE-AWARE-LOCAL-AI.md"));
 });
 
-test("#1349 Windows Pi transport keeps rich prompts out of pi.cmd arguments", () => {
+test("#1349 managed Workbench launches Pi through Node instead of the Windows pi.cmd wrapper", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-pi-direct-"));
+  const packageRoot = path.join(root, "node_modules", "@earendil-works", "pi-coding-agent");
+  const cliEntry = path.join(packageRoot, "dist", "cli.js");
+  try {
+    await mkdir(path.dirname(cliEntry), { recursive: true });
+    await writeFile(path.join(packageRoot, "package.json"), JSON.stringify({ bin: { pi: "dist/cli.js" } }), "utf8");
+    await writeFile(cliEntry, "#!/usr/bin/env node\n", "utf8");
+    assert.equal(await resolveManagedPiCliEntry({ root }), cliEntry);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+
+  assert.match(piBridge, /runManagedPiReadOnly/);
+  assert.doesNotMatch(piBridge, /\brunPiReadOnly\b/);
+  assert.match(directLaunchHelper, /manifest\.bin/);
+  assert.match(directLaunchHelper, /runPortableCommand\(process\.execPath, args/);
+  assert.match(directLaunchHelper, /Pi detail:/);
+  assert.doesNotMatch(directLaunchHelper, /cmd\.exe|windowsBatchWrapper|pi\.command/);
+});
+
+test("#1349 Windows Pi transport keeps rich prompts out of process arguments", () => {
   assert.match(gitignore, /^\/\.plotpickle\/$/m);
   assert.match(piBridge, /promptDirectory = path\.join\(reviewPackage\.repositoryPath, "\.plotpickle", "developer-workbench"\)/);
   assert.match(piBridge, /writeFile\(promptPath, reviewPrompt\(reviewPackage, instructionBundle\), "utf8"\)/);

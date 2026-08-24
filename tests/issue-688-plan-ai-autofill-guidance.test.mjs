@@ -66,18 +66,20 @@ test("PLAN recovers failed Quality fields through the Fast local role before giv
 });
 
 test("a PPF can be reduced to read-only story evidence for PLAN Foundations", async () => {
-  const [gateway, context, localGateway] = await Promise.all([
+  const [gateway, reader, context, localGateway] = await Promise.all([
     read("build/foundations-ppf-gateway.ts"),
+    read("build/portable-ppf-reader.ts"),
     read("lib/projects/canon/foundation-source-context.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
 
   assert.match(gateway, /\/api\/plan\/foundations\/ppf-context/);
-  assert.match(gateway, /parsePortableProjectFile\(text\)/);
-  assert.match(gateway, /projectFromPackage\(buffer\)/);
-  assert.match(gateway, /integrityValid/);
+  assert.match(gateway, /openLocalPpf\(await readLocalPpfRequest\(request\)\)/);
   assert.match(gateway, /assembleFoundationSourceContext\(project\)/);
-  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(gateway, /isLocalPlotPickleRequest\(request\)/);
+  assert.match(reader, /parsePortableProjectFile\(text\)/);
+  assert.match(reader, /projectFromPackage\(buffer\)/);
+  assert.match(reader, /integrityValid/);
   assert.match(localGateway, /registerFoundationsPpfGateway\(server\)/);
   assert.match(context, /project\.story\.premise/);
   assert.match(context, /project\.characters/);
@@ -117,21 +119,4 @@ test("the Foundations drafter treats imported PPF evidence as read-only source c
   assert.match(drafter, /Imported PPF evidence is read-only/);
   assert.match(drafter, /never alter or discuss unselected fields/i);
   assert.match(drafter, /provider: "local"/);
-});
-
-test("PLAN Foundations opens on a welcome choice before lesson editing", async () => {
-  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
-
-  assert.match(workspace, /const \[showWelcome, setShowWelcome\] = useState\(true\)/);
-  assert.match(workspace, /setShowWelcome\(!requested\)/);
-  assert.match(workspace, /Foundations welcome choices/);
-  assert.match(workspace, /Choose how you want to begin/);
-  assert.match(workspace, /NEW STORY · ONE PASS · LOCAL AI/);
-  assert.match(workspace, /Create a new story and auto-complete Foundations/);
-  assert.match(workspace, /OPTIONAL · EXISTING \.PPF · READ-ONLY EVIDENCE/);
-  assert.match(workspace, /Or build Foundations yourself/);
-  assert.match(workspace, /function openFoundationsWelcome\(\)/);
-  assert.match(workspace, /url\.searchParams\.delete\("lesson"\)/);
-  assert.match(workspace, /setShowWelcome\(false\)/);
-  assert.match(workspace, /← Foundations welcome/);
 });

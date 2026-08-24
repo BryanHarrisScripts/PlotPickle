@@ -30,11 +30,11 @@ test("#1373 Workbench cannot report Pi GREEN from version discovery alone", () =
   const install = bridge.indexOf("ensureManagedPiInstalled");
   const runtimeResolve = bridge.indexOf("resolvePiLocalRuntime");
   const inference = bridge.indexOf("const proof = await probeManagedPiReadiness");
-  const green = bridge.indexOf("ready: true,\n      version: report.pi.version");
   assert.ok(install >= 0);
   assert.ok(runtimeResolve > install);
   assert.ok(inference > runtimeResolve);
-  assert.ok(green > inference);
+  const afterProof = bridge.slice(inference);
+  assert.match(afterProof, /report\.pi\s*=\s*\{\s*ready:\s*true,\s*version:\s*report\.pi\.version/s);
   assert.match(bridge, /is installed and executable; real local inference still must pass before Pi is GREEN/);
 });
 

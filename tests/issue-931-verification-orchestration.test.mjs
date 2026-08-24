@@ -56,7 +56,7 @@ test("linked retest is a new immutable deterministic record",()=>{
 test("runner saves immutable result before advisory orchestration and centralizes GitHub reporting",async()=>{
   const [runner,batch,orchestrator,recordWriter]=await Promise.all([
     readFile(new URL("../scripts/run-plotpickle-full-check.ps1",import.meta.url),"utf8"),
-    readFile(new URL("../Run-PlotPickle-Full-Check.bat",import.meta.url),"utf8"),
+    readFile(new URL("../Utilities/Run-PlotPickle-Full-Check.bat",import.meta.url),"utf8"),
     readFile(new URL("../scripts/verification-orchestrator.mjs",import.meta.url),"utf8"),
     readFile(new URL("../scripts/verification-record.mjs",import.meta.url),"utf8"),
   ]);

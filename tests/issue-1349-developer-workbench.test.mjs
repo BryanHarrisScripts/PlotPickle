@@ -179,9 +179,11 @@ test("#1355 Workbench shows independent readiness lights and gates Pi review on 
 test("#1355 Workbench embeds build number and exact source SHA in the EXE and artifact name", () => {
   assert.match(project, /<PlotPickleWorkbenchBuild Condition=/);
   assert.match(project, /<PlotPickleWorkbenchSha Condition=/);
-  assert.match(project, /<AssemblyInformationalVersion>build-\$\(PlotPickleWorkbenchBuild\);sha-\$\(PlotPickleWorkbenchSha\)<\/AssemblyInformationalVersion>/);
+  assert.match(project, /<InformationalVersion>build-\$\(PlotPickleWorkbenchBuild\);sha-\$\(PlotPickleWorkbenchSha\)<\/InformationalVersion>/);
+  assert.doesNotMatch(project, /<AssemblyInformationalVersion>/);
   assert.match(program, /WorkbenchBuildIdentity\.Current/);
   assert.match(program, /AssemblyInformationalVersionAttribute/);
+  assert.match(program, /Build #\{build\}/);
   assert.match(buildScript, /PLOTPICKLE_WORKBENCH_BUILD/);
   assert.match(buildScript, /PLOTPICKLE_WORKBENCH_SHA/);
   assert.match(buildScript, /PlotPickleWorkbenchBuild/);
@@ -191,4 +193,18 @@ test("#1355 Workbench embeds build number and exact source SHA in the EXE and ar
   assert.match(workflow, /github\.event\.pull_request\.head\.sha/);
   assert.match(workflow, /WORKBENCH_ARTIFACT_NAME=PlotPickle-Developer-Workbench-win-x64-build-/);
   assert.match(workflow, /name: \$\{\{ env\.WORKBENCH_ARTIFACT_NAME \}\}/);
+});
+
+test("#1359 Workbench makes the three-step flow and inference failure visible", () => {
+  assert.match(program, /1\. Choose GitHub work/);
+  assert.match(program, /2\. Review selected evidence/);
+  assert.match(program, /3\. Pi developer brief/);
+  assert.match(program, /_readinessMessage/);
+  assert.match(program, /Text = "Test inference"/);
+  assert.match(program, /TestInferenceAsync/);
+  assert.match(program, /ApplyPiReadiness/);
+  assert.match(program, /Inference problem/);
+  assert.match(program, /The exact failure is shown in the diagnostic above/);
+  assert.match(program, /SetReadinessButtonsEnabled/);
+  assert.doesNotMatch(program, /Hover a red light for detail/);
 });

@@ -6,6 +6,7 @@ on:
       - "Utilities/DeveloperWorkbench/**"
       - "scripts/pi-work-item-review.mjs"
       - "tests/issue-1349-developer-workbench.test.mjs"
+      - "tests/issue-1373-workbench-canonical-pi-readiness.test.mjs"
       - ".github/workflows/developer-workbench.yml"
   workflow_dispatch:
 
@@ -40,13 +41,13 @@ jobs:
           "WORKBENCH_ARTIFACT_NAME=PlotPickle-Developer-Workbench-win-x64-build-$build-$shortSha" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Contract regression
-        run: node --test tests/issue-1349-developer-workbench.test.mjs
+        run: node --test tests/issue-1349-developer-workbench.test.mjs tests/issue-1373-workbench-canonical-pi-readiness.test.mjs
 
       - name: Build Windows Workbench
         shell: pwsh
         run: dotnet build Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj --configuration Release "-p:PlotPickleWorkbenchBuild=$env:PLOTPICKLE_WORKBENCH_BUILD" "-p:PlotPickleWorkbenchSha=$env:WORKBENCH_SHORT_SHA"
 
-      - name: Publish single-file EXE
+      - name: Publish Workbench package
         shell: pwsh
         run: ./Utilities/DeveloperWorkbench/build.ps1
 
@@ -54,5 +55,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.WORKBENCH_ARTIFACT_NAME }}
-          path: Utilities/DeveloperWorkbench/dist/win-x64/PlotPickleDeveloperWorkbench.exe
+          path: Utilities/DeveloperWorkbench/dist/win-x64/
           if-no-files-found: error

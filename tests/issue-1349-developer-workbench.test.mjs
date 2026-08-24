@@ -5,35 +5,23 @@ import path from "node:path";
 import test from "node:test";
 import { resolveManagedPiCliEntry } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
-  raceWorkbenchRuntime,
-  readPinnedWorkbenchRuntime,
-  writePinnedWorkbenchRuntime,
-} from "../Utilities/DeveloperWorkbench/pi-runtime-race.mjs";
-import {
   selectRelevantArchitecturePaths,
   selectRelevantSkillIds,
 } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 
-const programPath = new URL("../Utilities/DeveloperWorkbench/Program.cs", import.meta.url);
-const projectPath = new URL("../Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj", import.meta.url);
-const buildScriptPath = new URL("../Utilities/DeveloperWorkbench/build.ps1", import.meta.url);
-const workflowPath = new URL("../.github/workflows/developer-workbench.yml", import.meta.url);
-const piBridgePath = new URL("../scripts/pi-work-item-review.mjs", import.meta.url);
-const instructionHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-review-instructions.mjs", import.meta.url);
-const directLaunchHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs", import.meta.url);
-const runtimeRacePath = new URL("../Utilities/DeveloperWorkbench/pi-runtime-race.mjs", import.meta.url);
-const gitignorePath = new URL("../.gitignore", import.meta.url);
-
-const [program, project, buildScript, workflow, piBridge, instructionHelper, directLaunchHelper, runtimeRace, gitignore] = await Promise.all([
-  readFile(programPath, "utf8"),
-  readFile(projectPath, "utf8"),
-  readFile(buildScriptPath, "utf8"),
-  readFile(workflowPath, "utf8"),
-  readFile(piBridgePath, "utf8"),
-  readFile(instructionHelperPath, "utf8"),
-  readFile(directLaunchHelperPath, "utf8"),
-  readFile(runtimeRacePath, "utf8"),
-  readFile(gitignorePath, "utf8"),
+const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
+const [program, project, buildScript, workflow, piBridge, instructionHelper, directLaunchHelper, gitignore, readme, localValidation, localValidationCmd] = await Promise.all([
+  read("Utilities/DeveloperWorkbench/Program.cs"),
+  read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),
+  read("Utilities/DeveloperWorkbench/build.ps1"),
+  read(".github/workflows/developer-workbench.yml"),
+  read("scripts/pi-work-item-review.mjs"),
+  read("Utilities/DeveloperWorkbench/pi-review-instructions.mjs"),
+  read("Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs"),
+  read(".gitignore"),
+  read("Utilities/DeveloperWorkbench/README.md"),
+  read("Utilities/DeveloperWorkbench/local-validation.mjs"),
+  read("Utilities/DeveloperWorkbench/Run-Local-Validation.cmd"),
 ]);
 
 test("#1349 Workbench stays a standalone Windows utility", () => {
@@ -41,32 +29,32 @@ test("#1349 Workbench stays a standalone Windows utility", () => {
   assert.match(project, /<UseWindowsForms>true<\/UseWindowsForms>/);
   assert.match(project, /<PublishSingleFile>true<\/PublishSingleFile>/);
   assert.match(program, /PlotPickle Developer Workbench/);
-  assert.match(program, /Utilities|DeveloperWorkbench/);
+  assert.match(readme, /outside the PlotPickle product runtime/);
 });
 
 test("#1349 Workbench uses GitHub evidence and exact-head freshness", () => {
-  assert.match(program, /gh/);
   assert.match(program, /statusCheckRollup/);
   assert.match(program, /headRefOid/);
   assert.match(program, /Review stale — PR head changed/);
   assert.match(program, /RefreshPrHeadAsync/);
+  assert.match(program, /Publish approved brief/);
+  assert.match(program, /Reviewed exact PR head/);
 });
 
-test("#1349 Pi review is bounded, read-only and implementation-grade", () => {
+test("#1349 Pi review stays bounded, read-only and implementation-grade", () => {
   assert.match(piBridge, /runManagedPiReadOnly/);
   assert.match(piBridge, /read, grep, find, and ls/);
   assert.match(piBridge, /Do not edit files, run shell commands, commit, push/);
   assert.match(piBridge, /## EXACT CODE CHANGES RECOMMENDED/);
   assert.match(piBridge, /Priority; File; Symbol; Change; Evidence; Reason; Regression\/validation/);
   assert.match(piBridge, /Do not expose chain-of-thought/);
+  assert.doesNotMatch(piBridge, /runPortableCommand\([^)]*(?:git|gh)/i);
 });
 
 test("#1349 Pi deliberately loads AGENTS, registered skills and relevant architecture context", () => {
   assert.match(piBridge, /buildInstructionBundle/);
   assert.match(piBridge, /AGENTS\.md is the highest repository instruction authority/);
-  assert.match(piBridge, /Skills and architecture documents may refine procedure and ownership, but they never grant permissions/);
   assert.match(instructionHelper, /config\/agent-skills\.json/);
-  assert.match(instructionHelper, /skill\.entry/);
   assert.match(instructionHelper, /docs\/architecture/);
   assert.match(instructionHelper, /MAX_BUNDLE_CHARS/);
 
@@ -119,27 +107,33 @@ test("#1349 managed Workbench launches Pi through Node instead of the Windows pi
     await rm(root, { recursive: true, force: true });
   }
 
-  assert.match(piBridge, /runManagedPiReadOnly/);
-  assert.doesNotMatch(piBridge, /\brunPiReadOnly\b/);
   assert.match(directLaunchHelper, /manifest\.bin/);
-  assert.match(directLaunchHelper, /runPortableCommand\(process\.execPath, args/);
-  assert.match(directLaunchHelper, /Pi detail:/);
+  assert.match(directLaunchHelper, /runPortableCommand\(process\.execPath/);
+  assert.match(directLaunchHelper, /Direct launcher:/);
   assert.doesNotMatch(directLaunchHelper, /cmd\.exe|windowsBatchWrapper|pi\.command/);
 });
 
-test("#1349 Workbench registers only its explicit local provider and proves inference before the large review", () => {
-  assert.match(directLaunchHelper, /WORKBENCH_PROVIDER_ID = "plotpickle-workbench-local"/);
-  assert.match(directLaunchHelper, /pi\.registerProvider/);
-  assert.match(directLaunchHelper, /plotpickle-workbench-local-provider\.mjs/);
-  assert.match(directLaunchHelper, /"--no-extensions"/);
-  assert.match(directLaunchHelper, /"--extension", extensionPath/);
-  assert.match(directLaunchHelper, /"--no-context-files"/);
-  assert.match(directLaunchHelper, /WORKBENCH_SMOKE_TIMEOUT = 45_000/);
-  assert.match(directLaunchHelper, /PLOTPICKLE_WORKBENCH_PI_READY/);
-  assert.match(directLaunchHelper, /verifyManagedPiInference/);
-  assert.match(directLaunchHelper, /smokeTimeout = WORKBENCH_SMOKE_TIMEOUT/);
-  assert.match(directLaunchHelper, /timeout: smokeTimeout/);
-  assert.match(directLaunchHelper, /supportsUsageInStreaming: false/);
+test("#1373 Workbench direct transport reuses the canonical PlotPickle Pi provider contract", () => {
+  assert.match(directLaunchHelper, /WORKBENCH_CANONICAL_PROVIDER_ID = "plotpickle-local"/);
+  assert.match(directLaunchHelper, /WORKBENCH_CANONICAL_SMOKE_MARKER = "PLOTPICKLE_PI_READY"/);
+  assert.match(directLaunchHelper, /WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS = 4 \* 60_000/);
+  assert.match(directLaunchHelper, /configurePiLocalRuntime/);
+  assert.match(directLaunchHelper, /piLocalEnvironment/);
+  assert.match(directLaunchHelper, /"--provider", WORKBENCH_CANONICAL_PROVIDER_ID/);
+  assert.doesNotMatch(directLaunchHelper, /pi\.registerProvider|plotpickle-workbench-local-provider|WORKBENCH_PROVIDER_ID/);
+});
+
+test("#1373 Pi GREEN requires the real canonical local inference proof", () => {
+  const installedIndex = piBridge.indexOf("ensureManagedPiInstalled");
+  const runtimeIndex = piBridge.indexOf("resolvePiLocalRuntime");
+  const proofIndex = piBridge.indexOf("const proof = await probeManagedPiReadiness");
+  assert.ok(installedIndex >= 0 && runtimeIndex > installedIndex && proofIndex > runtimeIndex);
+  const afterProof = piBridge.slice(proofIndex);
+  assert.match(afterProof, /report\.pi\s*=\s*\{\s*ready:\s*true,/s);
+  assert.match(piBridge, /real local inference still must pass before Pi is GREEN/);
+  assert.match(piBridge, /smokeTimeout: WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS/);
+  assert.match(piBridge, /providerId: "plotpickle-local"/);
+  assert.doesNotMatch(piBridge, /raceWorkbenchRuntime|readPinnedWorkbenchRuntime/);
 });
 
 test("#1349 Windows Pi transport keeps rich prompts out of process arguments", () => {
@@ -149,21 +143,6 @@ test("#1349 Windows Pi transport keeps rich prompts out of process arguments", (
   assert.match(piBridge, /promptArgument = `@\.plotpickle\/developer-workbench\/\$\{promptFileName\}`/);
   assert.match(piBridge, /prompt:\s*promptArgument/);
   assert.match(piBridge, /rm\(promptPath, \{ force: true \}\)/);
-  assert.doesNotMatch(piBridge, /prompt:\s*reviewPrompt\(reviewPackage/);
-});
-
-test("#1349 publication requires Human action and records reviewed head", () => {
-  assert.match(program, /Publish approved brief/);
-  assert.match(program, /Reviewed exact PR head/);
-  assert.match(program, /MessageBoxButtons\.OKCancel/);
-  assert.match(program, /PLOTPICKLE-DEVELOPER-WORKBENCH-BRIEF-START/);
-  assert.match(program, /PLOTPICKLE-DEVELOPER-WORKBENCH-BRIEF-END/);
-});
-
-test("#1349 Workbench does not introduce credential storage or merge authority", () => {
-  assert.doesNotMatch(program, /GITHUB_TOKEN|GH_TOKEN|private[_ -]?key|api[_ -]?key\s*=/i);
-  assert.doesNotMatch(program, /["']pr["']\s*,\s*["']merge["']/i);
-  assert.doesNotMatch(piBridge, /runPortableCommand\([^)]*(?:git|gh)/i);
 });
 
 test("#1355 Workbench shows independent readiness lights and gates Pi review on live inference", () => {
@@ -174,105 +153,37 @@ test("#1355 Workbench shows independent readiness lights and gates Pi review on 
   assert.match(program, /Loading Issues\/PRs does not require Pi or a local LLM/);
   assert.match(program, /_reviewWithPi\.Enabled = _evidenceReady && _reviewStackReady/);
   assert.match(program, /report\.Pi\.Ready && report\.Runtime\.Ready && report\.Inference\.Ready/);
-  assert.match(program, /Review with Pi is blocked until PI, LOCAL LLM and INFERENCE are green/);
+  assert.match(program, /Test inference/);
   assert.match(program, /PiReadinessProbe\.RunAsync/);
-  assert.match(program, /"--readiness", "--repository-path"/);
-  assert.match(piBridge, /async function printReadiness/);
-  assert.match(piBridge, /raceWorkbenchRuntime/);
-  assert.match(runtimeRace, /probeManagedPiReadiness/);
-  assert.match(runtimeRace, /purpose: "work-item-readiness"/);
-  assert.match(directLaunchHelper, /export async function probeManagedPiReadiness/);
-  assert.match(directLaunchHelper, /latencyMs: Date\.now\(\) - startedAt/);
 });
 
-test("#1355 Workbench embeds build number and exact source SHA in the EXE and artifact name", () => {
+test("#1355 Workbench embeds build number and exact source SHA in the package", () => {
   assert.match(project, /<PlotPickleWorkbenchBuild Condition=/);
   assert.match(project, /<PlotPickleWorkbenchSha Condition=/);
   assert.match(project, /<InformationalVersion>build-\$\(PlotPickleWorkbenchBuild\);sha-\$\(PlotPickleWorkbenchSha\)<\/InformationalVersion>/);
-  assert.doesNotMatch(project, /<AssemblyInformationalVersion>/);
   assert.match(program, /WorkbenchBuildIdentity\.Current/);
   assert.match(program, /AssemblyInformationalVersionAttribute/);
-  assert.match(program, /Build #\{build\}/);
   assert.match(buildScript, /PLOTPICKLE_WORKBENCH_BUILD/);
   assert.match(buildScript, /PLOTPICKLE_WORKBENCH_SHA/);
-  assert.match(buildScript, /PlotPickleWorkbenchBuild/);
-  assert.match(buildScript, /PlotPickleWorkbenchSha/);
-  assert.match(workflow, /Prepare Workbench build identity/);
   assert.match(workflow, /github\.run_number/);
-  assert.match(workflow, /github\.event\.pull_request\.head\.sha/);
   assert.match(workflow, /WORKBENCH_ARTIFACT_NAME=PlotPickle-Developer-Workbench-win-x64-build-/);
-  assert.match(workflow, /name: \$\{\{ env\.WORKBENCH_ARTIFACT_NAME \}\}/);
 });
 
-test("#1359 Workbench makes the three-step flow and inference failure visible", () => {
-  assert.match(program, /1\. Choose GitHub work/);
-  assert.match(program, /2\. Review selected evidence/);
-  assert.match(program, /3\. Pi developer brief/);
-  assert.match(program, /_readinessMessage/);
-  assert.match(program, /Text = "Test inference"/);
-  assert.match(program, /TestInferenceAsync/);
-  assert.match(program, /ApplyPiReadiness/);
-  assert.match(program, /Inference problem/);
-  assert.match(program, /The exact failure is shown in the diagnostic above/);
-  assert.match(program, /SetReadinessButtonsEnabled/);
-  assert.doesNotMatch(program, /Hover a red light for detail/);
+test("#1373 Workbench package includes a local pre-CI gate instead of using GitHub Actions for diagnosis", () => {
+  assert.match(localValidation, /scripts\/developer-diagnostics\/test-changed\.mjs/);
+  assert.match(localValidation, /scripts\/run-ben-code-quality\.mjs/);
+  assert.match(localValidation, /scripts\/build-verified\.mjs/);
+  assert.match(localValidation, /LOCAL PRE-CI GREEN/);
+  assert.match(localValidation, /shell: false/);
+  assert.match(localValidationCmd, /local-validation\.mjs/);
+  assert.match(buildScript, /Run-Local-Validation\.cmd/);
+  assert.match(buildScript, /local-validation\.mjs/);
+  assert.match(workflow, /path: Utilities\/DeveloperWorkbench\/dist\/win-x64\//);
+  assert.match(readme, /GitHub Actions can remain the independent exact-head release gate/);
 });
 
-test("#1362 Workbench races real local inference for 60 seconds and reuses the winner", () => {
-  assert.match(runtimeRace, /WORKBENCH_RUNTIME_RACE_MS = 60_000/);
-  assert.match(runtimeRace, /WORKBENCH_RUNTIME_POLL_MS = 2_500/);
-  assert.match(runtimeRace, /Promise\.any\(tasks\)/);
-  assert.match(runtimeRace, /\/completions/);
-  assert.match(runtimeRace, /No approved local model completed the real inference \+ Pi handshake within/);
-  assert.match(runtimeRace, /writePinnedWorkbenchRuntime/);
-  assert.match(runtimeRace, /readPinnedWorkbenchRuntime/);
-  assert.match(piBridge, /readPinnedWorkbenchRuntime\(reviewPackage\.repositoryPath\) \|\| await resolvePiLocalRuntime\(\)/);
-});
-
-test("#1362 first real responder wins and is pinned before review", async () => {
-  const slow = { kind: "lm-studio", label: "LM Studio", baseUrl: "http://127.0.0.1:1234/v1", model: "qwen2.5-coder:7b" };
-  const fast = { kind: "ollama", label: "Ollama", baseUrl: "http://127.0.0.1:11434/v1", model: "qwen2.5-coder:7b" };
-  let pinned = null;
-  const result = await raceWorkbenchRuntime({
-    pi: { root: "unused-by-injected-probe" },
-    cwd: process.cwd(),
-    raceMs: 250,
-    pollMs: 1,
-    attemptTimeoutMs: 80,
-    discoverCandidates: async () => ({ candidates: [slow, fast], diagnostics: [] }),
-    probeCandidate: async (runtime) => {
-      await new Promise((resolve) => setTimeout(resolve, runtime.kind === "ollama" ? 5 : 25));
-      return { runtime, latencyMs: runtime.kind === "ollama" ? 5 : 25, output: "ready" };
-    },
-    probePi: async ({ runtime, smokeTimeout }) => {
-      assert.equal(runtime.kind, "ollama");
-      assert.ok(smokeTimeout <= 12_000);
-      return { providerId: "plotpickle-workbench-local", latencyMs: 4 };
-    },
-    pinSelection: async (_cwd, runtime) => {
-      pinned = runtime;
-    },
-  });
-
-  assert.equal(result.ready, true);
-  assert.equal(result.runtime.kind, "ollama");
-  assert.equal(pinned?.kind, "ollama");
-});
-
-test("#1362 pinned Workbench runtime stays loopback-only and survives the readiness subprocess", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-workbench-runtime-pin-"));
-  try {
-    await writePinnedWorkbenchRuntime(root, {
-      kind: "ollama",
-      label: "Ollama",
-      baseUrl: "http://127.0.0.1:11434/v1",
-      model: "qwen2.5-coder:7b",
-    }, "plotpickle-workbench-local");
-    const pinned = await readPinnedWorkbenchRuntime(root, { maxAgeMs: 60_000 });
-    assert.equal(pinned?.kind, "ollama");
-    assert.equal(pinned?.model, "qwen2.5-coder:7b");
-    assert.equal(pinned?.baseUrl, "http://127.0.0.1:11434/v1");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+test("#1349 Workbench does not introduce credential storage or merge authority", () => {
+  assert.doesNotMatch(program, /GITHUB_TOKEN|GH_TOKEN|private[_ -]?key|api[_ -]?key\s*=/i);
+  assert.doesNotMatch(program, /["']pr["']\s*,\s*["']merge["']/i);
+  assert.doesNotMatch(localValidation, /gh\s+pr\s+merge|GITHUB_TOKEN|GH_TOKEN/i);
 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReleaseHistoryPanel from "../modules/dashboard/ui/release-history";
+import ArchiveStoriesPanel from "../modules/library/ui/archive-stories-panel";
 import AgentObservabilityPanel from "./agent-observability-panel";
 import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
@@ -33,6 +34,7 @@ type SettingsSection =
   | "ollama"
   | "openai"
   | "minimax"
+  | "archive"
   | "buzz"
   | "activity"
   | "runtime";
@@ -76,6 +78,12 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
+    label: "LIBRARY",
+    items: [
+      { id: "archive", label: "Archive", detail: "Restore stories moved out of the active Library" },
+    ],
+  },
+  {
     label: "COMMUNITY",
     items: [
       { id: "buzz", label: "BUZZ Setup", detail: "Relay, Guildhall and live connection test" },
@@ -106,6 +114,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-comfyui": "images",
   "settings-images": "images",
   "settings-video": "video",
+  "settings-archive": "archive",
   "settings-buzz": "buzz",
   "settings-advanced": "runtime",
   quick: "overview",
@@ -199,6 +208,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-openai"><SectionIntro eyebrow="Settings · Model Provider" title="Configure and test OpenAI Cloud." detail="Credentials stay protected and paid calls remain explicit. Verify the provider here before selecting it as an active route." /><AiProviderSetupPanel provider="openai" /><WritingAssistantConsole onManage={() => openSettingsTarget("openai")} focusProvider="openai" /></section>;
       case "minimax":
         return <section id="settings-minimax"><SectionIntro eyebrow="Settings · Model Provider" title="Configure and test MiniMax Cloud." detail="Configure image/video provider access here; paid tests and generation continue to respect existing consent rules." /><AiProviderSetupPanel provider="minimax" /><WritingAssistantConsole onManage={() => openSettingsTarget("minimax")} focusProvider="minimax" /></section>;
+      case "archive":
+        return <section id="settings-archive"><SectionIntro eyebrow="Settings · Library" title="Archive." detail="Archived stories remain the same local projects. Restore them to Library here without creating a copy or deleting the original PPF." /><ArchiveStoriesPanel /></section>;
       case "buzz":
         return <section id="settings-buzz"><SectionIntro eyebrow="Settings · Community" title="Configure and test BUZZ transport." detail="Profile owns the Human BUZZ identity. Settings owns relay/runtime diagnostics and the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "activity":

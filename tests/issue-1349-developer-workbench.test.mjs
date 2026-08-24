@@ -127,8 +127,9 @@ test("#1373 Pi GREEN requires the real canonical local inference proof", () => {
   const installedIndex = piBridge.indexOf("ensureManagedPiInstalled");
   const runtimeIndex = piBridge.indexOf("resolvePiLocalRuntime");
   const proofIndex = piBridge.indexOf("const proof = await probeManagedPiReadiness");
-  const readyIndex = piBridge.indexOf("ready: true,\n      version: report.pi.version");
-  assert.ok(installedIndex >= 0 && runtimeIndex > installedIndex && proofIndex > runtimeIndex && readyIndex > proofIndex);
+  assert.ok(installedIndex >= 0 && runtimeIndex > installedIndex && proofIndex > runtimeIndex);
+  const afterProof = piBridge.slice(proofIndex);
+  assert.match(afterProof, /report\.pi\s*=\s*\{\s*ready:\s*true,/s);
   assert.match(piBridge, /real local inference still must pass before Pi is GREEN/);
   assert.match(piBridge, /smokeTimeout: WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS/);
   assert.match(piBridge, /providerId: "plotpickle-local"/);

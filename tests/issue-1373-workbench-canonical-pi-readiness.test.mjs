@@ -39,7 +39,8 @@ test("#1373 Workbench cannot report Pi GREEN from version discovery alone", () =
 });
 
 test("#1373 Windows transport stays direct Node while provider policy stays canonical", () => {
-  assert.match(direct, /runPortableCommand\(process\.execPath/);
+  assert.match(direct, /spawn\(process\.execPath, args/);
+  assert.match(direct, /stdio: \["ignore", "pipe", "pipe"\]/);
   assert.match(direct, /resolveManagedPiCliEntry/);
   assert.match(direct, /configurePiLocalRuntime/);
   assert.match(direct, /piLocalEnvironment/);

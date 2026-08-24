@@ -6,6 +6,7 @@ on:
     paths:
       - "core/storage/**"
       - "core/auth/**"
+      - "core/memory/**"
       - "build/local-credentials.ts"
       - "build/local-project-gateway.ts"
       - "config/credential-boundary.registry.json"
@@ -17,6 +18,7 @@ on:
       - "scripts/package-platform.mjs"
       - "tests/issue-1122-library-persistence.test.mjs"
       - "tests/issue-1141-profile-private-storage.test.mjs"
+      - "tests/issue-1200-scoped-memory-contract.test.mjs"
       - "tests/issue-299-credential-boundary-audit.test.mjs"
       - "tests/issue-299-local-credential-audit.test.mjs"
       - "package.json"
@@ -57,6 +59,8 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate profile-private storage and migration
         run: npm run test:profile-storage
+      - name: Validate Memory v1 host authority contract
+        run: node --test tests/issue-1200-scoped-memory-contract.test.mjs
       - name: Validate Library persistence dependency
         run: node --test tests/issue-1122-library-persistence.test.mjs
       - name: Validate PMK and Auth dependencies

@@ -94,7 +94,7 @@ test("issue #1338 removes the new evidence implementation from the obsolete BUIL
 test("issue #1338 bridges rich imported PPF evidence into the current modular Library project without canon inflation", async () => {
   const [bridge, evidence, library, gateway] = await Promise.all([
     source("modules/library/import/rich-ppf-to-library-project.ts"),
-    source("core/contracts/imported-screenplay-evidence.ts"),
+    source("core/contracts/imported-screenplay-evidence/index.ts"),
     source("core/storage/project-library-browser.ts"),
     source("build/library-ppf-import-gateway.ts"),
   ]);

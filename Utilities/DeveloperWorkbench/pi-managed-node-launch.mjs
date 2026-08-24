@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
@@ -8,9 +8,9 @@ import {
 } from "../../scripts/pi-worker-runtime.mjs";
 
 const PI_PACKAGE_PATH = ["node_modules", "@earendil-works", "pi-coding-agent"];
-const WORKBENCH_PROVIDER_ID = "plotpickle-workbench-local";
-const WORKBENCH_SMOKE_MARKER = "PLOTPICKLE_WORKBENCH_PI_READY";
-const WORKBENCH_SMOKE_TIMEOUT = 45_000;
+export const WORKBENCH_CANONICAL_PROVIDER_ID = "plotpickle-local";
+export const WORKBENCH_CANONICAL_SMOKE_MARKER = "PLOTPICKLE_PI_READY";
+export const WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS = 4 * 60_000;
 const QUIET_RESOURCE_FLAGS = [
   "--no-extensions",
   "--no-skills",
@@ -47,65 +47,34 @@ export async function resolveManagedPiCliEntry(pi) {
   return cliEntry;
 }
 
-function workbenchProviderSource(runtime, baseUrl) {
-  const provider = {
-    name: "PlotPickle Workbench Local",
-    baseUrl,
-    apiKey: "plotpickle-local",
-    api: "openai-completions",
-    compat: {
-      supportsDeveloperRole: false,
-      supportsReasoningEffort: false,
-      supportsUsageInStreaming: false,
-    },
-    models: [{
-      id: runtime.model,
-      name: `PlotPickle Workbench — ${runtime.model}`,
-      reasoning: false,
-      input: ["text"],
-      contextWindow: 131072,
-      maxTokens: 16384,
-      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-    }],
-  };
-  return [
-    "export default function registerPlotPickleWorkbenchProvider(pi) {",
-    `  pi.registerProvider(${JSON.stringify(WORKBENCH_PROVIDER_ID)}, ${JSON.stringify(provider, null, 2)});`,
-    "}",
-    "",
-  ].join("\n");
-}
-
-async function configureWorkbenchProvider(runtime, purpose) {
-  const configured = await configurePiLocalRuntime(runtime, { purpose });
-  const extensionPath = path.join(configured.agentDir, "plotpickle-workbench-local-provider.mjs");
-  await writeFile(extensionPath, workbenchProviderSource(runtime, configured.baseUrl), "utf8");
-  return { ...configured, extensionPath };
-}
-
-function directPiArgs(cliEntry, extensionPath, runtime, toolArgs, prompt) {
+function directPiArgs(cliEntry, runtime, toolArgs, prompt) {
   return [
     cliEntry,
     "-p",
     "--no-session",
     ...toolArgs,
     ...QUIET_RESOURCE_FLAGS,
-    "--extension", extensionPath,
-    "--provider", WORKBENCH_PROVIDER_ID,
+    "--provider", WORKBENCH_CANONICAL_PROVIDER_ID,
     "--model", runtime.model,
     prompt,
   ];
 }
 
-async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd, timeout = WORKBENCH_SMOKE_TIMEOUT }) {
+function childFailureDetail(error) {
+  const stderr = String(error?.stderr || "").trim();
+  const stdout = String(error?.stdout || "").trim();
+  const detail = stderr || stdout;
+  return detail.length <= 8_000 ? detail : `${detail.slice(-8_000)}\n[Pi child output truncated to the final 8000 characters.]`;
+}
+
+async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd, timeout }) {
   let result;
   try {
     result = await runPortableCommand(process.execPath, directPiArgs(
       cliEntry,
-      configured.extensionPath,
       runtime,
       ["--no-tools"],
-      `Reply with exactly ${WORKBENCH_SMOKE_MARKER}.`,
+      `Reply with exactly ${WORKBENCH_CANONICAL_SMOKE_MARKER}.`,
     ), {
       cwd,
       timeout,
@@ -120,37 +89,41 @@ async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd, ti
       detail ? `Pi detail:\n${detail}` : "Pi produced no stderr/stdout detail.",
     ].join("\n"), { cause: error });
   }
-  if (!result.stdout.includes(WORKBENCH_SMOKE_MARKER)) {
-    throw new Error(`Pi reached ${runtime.label} (${runtime.model}) but the bounded local-model handshake did not return ${WORKBENCH_SMOKE_MARKER}. Output: ${result.stdout.slice(-500) || result.stderr.slice(-500) || "<empty>"}`);
+  if (!result.stdout.includes(WORKBENCH_CANONICAL_SMOKE_MARKER)) {
+    throw new Error(`Pi reached ${runtime.label} (${runtime.model}) but the canonical local-model handshake did not return ${WORKBENCH_CANONICAL_SMOKE_MARKER}. Output: ${result.stdout.slice(-500) || result.stderr.slice(-500) || "<empty>"}`);
   }
 }
 
-export async function probeManagedPiReadiness({ pi, runtime, cwd, purpose = "work-item-readiness", smokeTimeout = WORKBENCH_SMOKE_TIMEOUT }) {
+export async function probeManagedPiReadiness({
+  pi,
+  runtime,
+  cwd,
+  purpose = "work-item-readiness",
+  smokeTimeout = WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS,
+}) {
   const cliEntry = await resolveManagedPiCliEntry(pi);
-  const configured = await configureWorkbenchProvider(runtime, purpose);
+  const configured = await configurePiLocalRuntime(runtime, { purpose });
   const startedAt = Date.now();
   await verifyManagedPiInference({ cliEntry, configured, runtime, cwd, timeout: smokeTimeout });
   return Object.freeze({
     cliEntry,
     configured,
-    providerId: WORKBENCH_PROVIDER_ID,
+    providerId: WORKBENCH_CANONICAL_PROVIDER_ID,
     latencyMs: Date.now() - startedAt,
   });
 }
 
-function childFailureDetail(error) {
-  const stderr = String(error?.stderr || "").trim();
-  const stdout = String(error?.stdout || "").trim();
-  const detail = stderr || stdout;
-  return detail.length <= 8_000 ? detail : `${detail.slice(-8_000)}\n[Pi child output truncated to the final 8000 characters.]`;
-}
-
 export async function runManagedPiReadOnly({ pi, runtime, prompt, cwd, purpose = "work-item-review", timeout = 15 * 60_000 }) {
-  const readiness = await probeManagedPiReadiness({ pi, runtime, cwd, purpose });
+  const readiness = await probeManagedPiReadiness({
+    pi,
+    runtime,
+    cwd,
+    purpose,
+    smokeTimeout: WORKBENCH_CANONICAL_SMOKE_TIMEOUT_MS,
+  });
   const { cliEntry, configured } = readiness;
   const args = directPiArgs(
     cliEntry,
-    configured.extensionPath,
     runtime,
     ["--tools", "read,grep,find,ls"],
     prompt,
@@ -169,6 +142,7 @@ export async function runManagedPiReadOnly({ pi, runtime, prompt, cwd, purpose =
       "PlotPickle-managed Pi exited before completing the Developer Workbench review.",
       detail ? `Pi detail:\n${detail}` : "Pi produced no stderr/stdout detail.",
       `Runtime: ${runtime.label} · ${runtime.model}`,
+      `Provider: ${WORKBENCH_CANONICAL_PROVIDER_ID}`,
       `Direct launcher: ${process.execPath} ${cliEntry}`,
     ].join("\n"), { cause: error });
   }

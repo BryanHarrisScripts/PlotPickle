@@ -1,0 +1,61 @@
+name: Pi Architecture-Aware Engineering
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".agents/skills/diagnosis/**"
+      - ".agents/skills/plotpickle-architecture-review/**"
+      - ".agents/skills/uat-repair/**"
+      - "config/agent-skills.json"
+      - "scripts/pi-architecture-review-core.mjs"
+      - "scripts/run-pi-architecture-review.mjs"
+      - "docs/architecture/pi-architecture-aware-engineering.md"
+      - "tests/issue-1321-pi-architecture-aware-engineering.test.mjs"
+      - ".github/workflows/pi-architecture-aware-engineering.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pi-architecture-aware-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Skills, review contracts and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout full history for fixed-point tests
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate Pi architecture-aware engineering contracts
+        run: node --test tests/issue-1321-pi-architecture-aware-engineering.test.mjs
+
+      - name: Validate existing Agent Skills and Pi worker boundaries
+        run: >-
+          node --test
+          tests/agent-skills-foundation.test.mjs
+          tests/issue-976-agent-skill-trust.test.mjs
+          tests/issue-1119-pi-required-worker.test.mjs
+          tests/issue-1185-pi-managed-install.test.mjs
+
+      - name: Validate skill registry executable index
+        run: node scripts/agent-skills.mjs --self-test
+
+      - name: Production build
+        run: npm run build

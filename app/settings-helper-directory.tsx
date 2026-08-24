@@ -22,8 +22,76 @@ function roomLabels(roomIds: readonly string[]) {
   return roomIds.map((roomId) => roomById.get(roomId) ?? roomId).join(" · ");
 }
 
-export default function SettingsHelperDirectory() {
+type HelperAgent = (typeof PLOTPICKLE_COMMUNITY_EXTENSIONS.agents)[number];
+
+function HelperCard({ agent, expanded = false }: { readonly agent: HelperAgent; readonly expanded?: boolean }) {
+  const profile = agentProfileById(agent.profileId);
+  if (!profile) return null;
+  return (
+    <article className={`${styles.card} ${expanded ? styles.individualCard : ""}`} data-helper-id={agent.profileId}>
+      <div className={styles.portraitFrame}>
+        <AgentPortrait
+          id={agent.profileId}
+          alt={`Illustrated fantasy portrait of ${agent.displayName}, ${agent.title}.`}
+          size={expanded ? 180 : 140}
+        />
+      </div>
+      <div className={styles.cardBody}>
+        <p className={styles.title}>{agent.title}</p>
+        <h4>{agent.displayName}</h4>
+        <p className={styles.shortBio}>{agent.shortBio}</p>
+        <dl>
+          <div>
+            <dt>Ask me about</dt>
+            <dd>{agent.helpPrompt}</dd>
+          </div>
+          <div>
+            <dt>Find me in</dt>
+            <dd>{roomLabels(agent.roomIds)}</dd>
+          </div>
+          {expanded ? <div>
+            <dt>About</dt>
+            <dd>{agent.publicBio}</dd>
+          </div> : null}
+          {expanded ? <div>
+            <dt>Boundary</dt>
+            <dd>{cannotDo(profile)}</dd>
+          </div> : null}
+        </dl>
+        {!expanded ? <details>
+          <summary>About {agent.displayName}</summary>
+          <p>{agent.publicBio}</p>
+          <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
+        </details> : null}
+      </div>
+    </article>
+  );
+}
+
+export default function SettingsHelperDirectory({ selectedHelperId = "" }: { readonly selectedHelperId?: string }) {
   const { agents, helpGroups } = PLOTPICKLE_COMMUNITY_EXTENSIONS;
+  const selectedAgent = selectedHelperId ? agents.find((agent) => agent.profileId === selectedHelperId) ?? null : null;
+
+  if (selectedAgent) {
+    return (
+      <div className={styles.help} data-settings-help="individual-helper" data-selected-helper={selectedAgent.profileId}>
+        <header className={`${styles.hero} ${styles.individualHero}`}>
+          <div>
+            <p className={styles.eyebrow}>HELP · Individual Helper</p>
+            <h2 id="settings-help-title">{selectedAgent.displayName}</h2>
+            <p>{selectedAgent.shortBio}</p>
+          </div>
+          <nav className={styles.helpNav} aria-label="Help pages">
+            <a href="/?workspace=settings&settings=help">← All helpers</a>
+          </nav>
+        </header>
+        <section className={styles.individual} aria-label={`${selectedAgent.displayName} help`}>
+          <HelperCard agent={selectedAgent} expanded />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.help} data-settings-help="meet-the-helpers">
       <header className={styles.hero}>
@@ -52,41 +120,7 @@ export default function SettingsHelperDirectory() {
               <span>{group.description}</span>
             </header>
             <div className={styles.grid}>
-              {groupAgents.map((agent) => {
-                const profile = agentProfileById(agent.profileId);
-                if (!profile) return null;
-                return (
-                  <article className={styles.card} data-helper-id={agent.profileId} key={agent.profileId}>
-                    <div className={styles.portraitFrame}>
-                      <AgentPortrait
-                        id={agent.profileId}
-                        alt={`Illustrated fantasy portrait of ${agent.displayName}, ${agent.title}.`}
-                        size={140}
-                      />
-                    </div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.title}>{agent.title}</p>
-                      <h4>{agent.displayName}</h4>
-                      <p className={styles.shortBio}>{agent.shortBio}</p>
-                      <dl>
-                        <div>
-                          <dt>Ask me about</dt>
-                          <dd>{agent.helpPrompt}</dd>
-                        </div>
-                        <div>
-                          <dt>Find me in</dt>
-                          <dd>{roomLabels(agent.roomIds)}</dd>
-                        </div>
-                      </dl>
-                      <details>
-                        <summary>About {agent.displayName}</summary>
-                        <p>{agent.publicBio}</p>
-                        <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
-                      </details>
-                    </div>
-                  </article>
-                );
-              })}
+              {groupAgents.map((agent) => <HelperCard agent={agent} key={agent.profileId} />)}
             </div>
           </section>
         );

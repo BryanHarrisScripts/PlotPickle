@@ -77,13 +77,16 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     ":open_when_ready",
     "AddSeconds(%READY_TIMEOUT_SECONDS%)",
     "Start-Sleep -Milliseconds 500",
-    "Start-Process '%PLOTPICKLE_URL%'",
+    "Start-Process -FilePath $edge -ArgumentList $arguments -PassThru",
+    "'--app='+$base",
+    "'--user-data-dir='+$env:PLOTPICKLE_BROWSER_PROFILE",
     "did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
 
   assert.doesNotMatch(launcher, /Start-Sleep -Seconds 4/);
   assert.doesNotMatch(launcher, /--host 0\.0\.0\.0/);
+  assert.doesNotMatch(executableLines(launcher), /Start-Process\s+'%PLOTPICKLE_URL%'/i);
 });
 
 test("required runtime consent and repair remain visible and recoverable", async () => {

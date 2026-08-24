@@ -44,14 +44,30 @@ const CAPABILITIES: CapabilityDefinition[] = [
   },
 ];
 
+const LEGACY_CAPABILITY_TARGETS: Record<string, ComputeCapability> = {
+  "settings-models": "writing",
+  "settings-sage": "writing",
+  "settings-plan": "writing",
+  "settings-routing": "writing",
+  "settings-ollama": "writing",
+  "settings-openai": "writing",
+  "settings-minimax": "writing",
+  "settings-comfyui": "images",
+  "settings-images": "images",
+  "settings-video": "video",
+};
+
 function sessionKey(mode: ComputeMode) {
   return `plotpickle.settings.compute.${mode}.capability`;
 }
 
 function readInitialCapability(mode: ComputeMode): ComputeCapability {
   if (typeof window === "undefined") return "writing";
-  const query = new URL(window.location.href).searchParams.get("compute");
+  const url = new URL(window.location.href);
+  const query = url.searchParams.get("compute");
   if (CAPABILITIES.some((item) => item.id === query)) return query as ComputeCapability;
+  const legacyTarget = url.hash.replace(/^#/, "").trim().toLowerCase();
+  if (legacyTarget in LEGACY_CAPABILITY_TARGETS) return LEGACY_CAPABILITY_TARGETS[legacyTarget];
   const saved = window.sessionStorage.getItem(sessionKey(mode));
   return CAPABILITIES.some((item) => item.id === saved) ? saved as ComputeCapability : "writing";
 }

@@ -9,16 +9,21 @@ function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
 }
 
-export function isLocalPlotPickleRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
+function localHostUrl(request: IncomingMessage) {
+  if (!isLoopback(request.socket.remoteAddress)) return null;
   const host = request.headers.host;
-  if (!host) return false;
-  let hostUrl: URL;
-  try { hostUrl = new URL(`http://${host}`); } catch { return false; }
-  if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
+  if (!host) return null;
+  const value = `http://${host}`;
+  if (!URL.canParse(value)) return null;
+  const hostUrl = new URL(value);
+  return ["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname) ? hostUrl : null;
+}
+
+export function isLocalPlotPickleRequest(request: IncomingMessage) {
+  const hostUrl = localHostUrl(request);
+  if (!hostUrl) return false;
   const origin = request.headers.origin;
-  if (!origin) return true;
-  try { return new URL(origin).host === hostUrl.host; } catch { return false; }
+  return !origin || (URL.canParse(origin) && new URL(origin).host === hostUrl.host);
 }
 
 export async function readLocalPpfRequest(request: IncomingMessage) {

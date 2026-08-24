@@ -69,21 +69,3 @@ export function createPlotPickleNodeShutdownLifecycle(options = {}) {
     },
   });
 }
-
-export async function runSaveFirstNodeShutdown(steps) {
-  const begun = await steps.begin();
-  try {
-    await steps.persist();
-    await steps.releaseSession();
-    await steps.commit(begun.token);
-    return begun.token;
-  } catch (error) {
-    if (typeof steps.block === "function") {
-      try { await steps.block(begun.token, error); }
-      catch (blockError) {
-        throw new AggregateError([error, blockError], "PlotPickle could not persist the session or record the blocked shutdown state.");
-      }
-    }
-    throw new Error(`PlotPickle graceful shutdown was blocked before managed teardown: ${errorText(error)}`, { cause: error });
-  }
-}

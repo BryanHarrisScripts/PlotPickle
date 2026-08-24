@@ -18,20 +18,31 @@ internal static class Program
 
 internal sealed class MainForm : Form
 {
-    private readonly TextBox _repository = new() { Width = 220 };
-    private readonly TextBox _repositoryPath = new() { Width = 420 };
+    private readonly TextBox _repository = new() { Dock = DockStyle.Fill };
+    private readonly TextBox _repositoryPath = new() { Dock = DockStyle.Fill };
     private readonly Button _browse = new() { Text = "Browse...", AutoSize = true };
     private readonly Button _load = new() { Text = "Load GitHub work", AutoSize = true };
     private readonly Button _refreshReadiness = new() { Text = "Refresh readiness", AutoSize = true };
-    private readonly ComboBox _filter = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 130 };
+    private readonly Button _testInference = new() { Text = "Test inference", AutoSize = true };
+    private readonly ComboBox _filter = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 125 };
     private readonly TextBox _search = new() { PlaceholderText = "Search # / title", Dock = DockStyle.Fill };
-    private readonly ListView _queue = new() { View = View.Details, FullRowSelect = true, HideSelection = false, Dock = DockStyle.Fill };
-    private readonly RichTextBox _evidence = new() { ReadOnly = true, Dock = DockStyle.Fill, Font = new Font("Consolas", 9F) };
-    private readonly RichTextBox _review = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 9F), AcceptsTab = true };
+    private readonly ListView _queue = new() { View = View.Details, FullRowSelect = true, HideSelection = false, GridLines = true, Dock = DockStyle.Fill };
+    private readonly RichTextBox _evidence = new() { ReadOnly = true, Dock = DockStyle.Fill, Font = new Font("Consolas", 9.5F) };
+    private readonly RichTextBox _review = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 9.5F), AcceptsTab = true };
     private readonly Button _reviewWithPi = new() { Text = "Review with Pi", AutoSize = true, Enabled = false };
     private readonly Button _copy = new() { Text = "Copy brief", AutoSize = true, Enabled = false };
     private readonly Button _publish = new() { Text = "Publish approved brief", AutoSize = true, Enabled = false };
     private readonly Label _status = new() { Text = "Ready", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+    private readonly TextBox _readinessMessage = new()
+    {
+        ReadOnly = true,
+        Multiline = true,
+        Dock = DockStyle.Fill,
+        BorderStyle = BorderStyle.FixedSingle,
+        BackColor = SystemColors.Window,
+        ScrollBars = ScrollBars.Vertical,
+        TabStop = false,
+    };
     private readonly ToolTip _readinessDetails = new();
     private readonly Label _buildState = CreateReadinessLabel("BUILD");
     private readonly Label _githubState = CreateReadinessLabel("GITHUB");
@@ -53,15 +64,15 @@ internal sealed class MainForm : Form
     {
         Text = $"PlotPickle Developer Workbench · {WorkbenchBuildIdentity.Current}";
         MinimumSize = new Size(1180, 760);
-        Width = 1500;
+        Width = 1480;
         Height = 940;
         StartPosition = FormStartPosition.CenterScreen;
+        Font = new Font("Segoe UI", 9F);
 
-        _queue.Columns.Add("Type", 58);
-        _queue.Columns.Add("#", 58);
-        _queue.Columns.Add("Title", 330);
-        _queue.Columns.Add("Updated", 120);
-        _queue.Columns.Add("State", 90);
+        _queue.Columns.Add("Type", 52);
+        _queue.Columns.Add("#", 52);
+        _queue.Columns.Add("Title", 290);
+        _queue.Columns.Add("State", 82);
 
         _filter.Items.AddRange(["All", "Red / blocked", "Issues", "PRs", "Recent"]);
         _filter.SelectedIndex = 0;
@@ -81,46 +92,73 @@ internal sealed class MainForm : Form
         var topArea = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 126,
-            RowCount = 2,
+            Height = 190,
+            RowCount = 3,
             ColumnCount = 1,
-            Padding = new Padding(0),
+            Padding = new Padding(8, 8, 8, 4),
         };
+        topArea.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
         topArea.RowStyles.Add(new RowStyle(SizeType.Absolute, 66));
         topArea.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-        var top = new FlowLayoutPanel
+        var setup = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(10),
-            WrapContents = false,
-            AutoScroll = true,
+            ColumnCount = 7,
+            RowCount = 1,
+            Margin = new Padding(0),
         };
-        top.Controls.Add(new Label { Text = "Repository", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
-        top.Controls.Add(_repository);
-        top.Controls.Add(new Label { Text = "Local repo", AutoSize = true, Margin = new Padding(14, 7, 6, 0) });
-        top.Controls.Add(_repositoryPath);
-        top.Controls.Add(_browse);
-        top.Controls.Add(_load);
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        setup.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        setup.Controls.Add(new Label { Text = "Repository", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(0, 7, 8, 0) }, 0, 0);
+        setup.Controls.Add(_repository, 1, 0);
+        setup.Controls.Add(new Label { Text = "Local repo", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(14, 7, 8, 0) }, 2, 0);
+        setup.Controls.Add(_repositoryPath, 3, 0);
+        setup.Controls.Add(_browse, 4, 0);
+        setup.Controls.Add(_load, 5, 0);
+        setup.Controls.Add(new Label { Text = WorkbenchBuildIdentity.Current, AutoSize = true, Anchor = AnchorStyles.Left, ForeColor = Color.DimGray, Margin = new Padding(10, 7, 0, 0) }, 6, 0);
 
-        var readiness = new FlowLayoutPanel
+        var readiness = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(10, 0, 10, 8),
-            WrapContents = true,
-            AutoScroll = true,
+            ColumnCount = 4,
+            RowCount = 2,
+            Margin = new Padding(0, 4, 0, 4),
         };
-        readiness.Controls.Add(_buildState);
-        readiness.Controls.Add(_githubState);
-        readiness.Controls.Add(_repoState);
-        readiness.Controls.Add(_nodeState);
-        readiness.Controls.Add(_piState);
-        readiness.Controls.Add(_runtimeState);
-        readiness.Controls.Add(_inferenceState);
-        readiness.Controls.Add(_refreshReadiness);
+        for (var index = 0; index < 4; index++) readiness.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+        readiness.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        readiness.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        readiness.Controls.Add(_buildState, 0, 0);
+        readiness.SetColumnSpan(_buildState, 2);
+        readiness.Controls.Add(_githubState, 2, 0);
+        readiness.Controls.Add(_repoState, 3, 0);
+        readiness.Controls.Add(_nodeState, 0, 1);
+        readiness.Controls.Add(_piState, 1, 1);
+        readiness.Controls.Add(_runtimeState, 2, 1);
+        readiness.Controls.Add(_inferenceState, 3, 1);
 
-        topArea.Controls.Add(top, 0, 0);
+        var diagnostics = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 3,
+            RowCount = 1,
+            Margin = new Padding(0, 2, 0, 0),
+        };
+        diagnostics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        diagnostics.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        diagnostics.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        diagnostics.Controls.Add(_readinessMessage, 0, 0);
+        diagnostics.Controls.Add(_testInference, 1, 0);
+        diagnostics.Controls.Add(_refreshReadiness, 2, 0);
+
+        topArea.Controls.Add(setup, 0, 0);
         topArea.Controls.Add(readiness, 0, 1);
+        topArea.Controls.Add(diagnostics, 0, 2);
 
         var body = new TableLayoutPanel
         {
@@ -129,16 +167,16 @@ internal sealed class MainForm : Form
             RowCount = 1,
             Padding = new Padding(8, 0, 8, 8),
         };
-        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34));
         body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
-        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37));
         body.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         var left = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Margin = new Padding(2) };
         left.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         left.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         left.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        left.Controls.Add(new Label { Text = "GitHub work queue", AutoSize = true, Font = new Font(Font, FontStyle.Bold), Padding = new Padding(0, 0, 0, 6) }, 0, 0);
+        left.Controls.Add(CreateStepLabel("1. Choose GitHub work"), 0, 0);
         var filters = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, Height = 34 };
         filters.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -150,14 +188,14 @@ internal sealed class MainForm : Form
         var center = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = new Padding(8, 2, 8, 2) };
         center.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         center.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        center.Controls.Add(new Label { Text = "Selected Issue / PR evidence", AutoSize = true, Font = new Font(Font, FontStyle.Bold), Padding = new Padding(0, 0, 0, 6) }, 0, 0);
+        center.Controls.Add(CreateStepLabel("2. Review selected evidence"), 0, 0);
         center.Controls.Add(_evidence, 0, 1);
 
         var right = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Margin = new Padding(2) };
         right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        right.Controls.Add(new Label { Text = "Pi developer brief", AutoSize = true, Font = new Font(Font, FontStyle.Bold), Padding = new Padding(0, 0, 0, 6) }, 0, 0);
+        right.Controls.Add(CreateStepLabel("3. Pi developer brief"), 0, 0);
         var actions = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, WrapContents = true, Padding = new Padding(0, 0, 0, 6) };
         actions.Controls.Add(_reviewWithPi);
         actions.Controls.Add(_copy);
@@ -169,7 +207,7 @@ internal sealed class MainForm : Form
         body.Controls.Add(center, 1, 0);
         body.Controls.Add(right, 2, 0);
 
-        var bottom = new Panel { Dock = DockStyle.Bottom, Height = 30, Padding = new Padding(10, 2, 10, 2) };
+        var bottom = new Panel { Dock = DockStyle.Bottom, Height = 32, Padding = new Padding(10, 3, 10, 3) };
         bottom.Controls.Add(_status);
 
         Controls.Add(body);
@@ -177,11 +215,20 @@ internal sealed class MainForm : Form
         Controls.Add(topArea);
     }
 
+    private Label CreateStepLabel(string text) => new()
+    {
+        Text = text,
+        AutoSize = true,
+        Font = new Font(Font, FontStyle.Bold),
+        Padding = new Padding(0, 0, 0, 7),
+    };
+
     private void WireEvents()
     {
         _browse.Click += (_, _) => BrowseRepository();
         _load.Click += async (_, _) => await LoadQueueAsync();
         _refreshReadiness.Click += async (_, _) => await RefreshReadinessAsync();
+        _testInference.Click += async (_, _) => await TestInferenceAsync();
         _repositoryPath.TextChanged += (_, _) => InvalidateReadinessForRepositoryChange();
         _filter.SelectedIndexChanged += (_, _) => RenderQueue();
         _search.TextChanged += (_, _) => RenderQueue();
@@ -243,7 +290,7 @@ internal sealed class MainForm : Form
             _copy.Enabled = false;
             _publish.Enabled = false;
             RenderQueue();
-            SetStatus($"Loaded {_items.Count} open work items. GitHub queue is ready; Pi review still follows the readiness lights above.");
+            SetStatus($"Loaded {_items.Count} open work items. Select an Issue or PR in step 1.");
         });
     }
 
@@ -274,7 +321,6 @@ internal sealed class MainForm : Form
             var row = new ListViewItem(item.Kind);
             row.SubItems.Add(item.Number.ToString());
             row.SubItems.Add(item.Title);
-            row.SubItems.Add(item.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"));
             row.SubItems.Add(item.Status);
             row.Tag = item;
             _queue.Items.Add(row);
@@ -298,8 +344,8 @@ internal sealed class MainForm : Form
             _copy.Enabled = false;
             _publish.Enabled = false;
             SetStatus(_reviewStackReady
-                ? $"Evidence ready for {item.Kind} #{item.Number}. Pi review stack is green."
-                : $"Evidence ready for {item.Kind} #{item.Number}. Review with Pi remains disabled until PI, LOCAL LLM and INFERENCE are green.");
+                ? $"Evidence ready for {item.Kind} #{item.Number}. Continue to step 3 and choose Review with Pi."
+                : $"Evidence ready for {item.Kind} #{item.Number}. Pi review is blocked by the readiness diagnostic above.");
         });
     }
 
@@ -309,7 +355,7 @@ internal sealed class MainForm : Form
         if (!_reviewStackReady)
         {
             UpdateReviewAvailability();
-            SetStatus("Review with Pi is blocked until PI, LOCAL LLM and INFERENCE are green. Choose Refresh readiness after starting the local model runtime.");
+            SetStatus("Review with Pi is blocked until PI, LOCAL LLM and INFERENCE are green. Use Test inference after fixing the diagnostic above.");
             return;
         }
         await RunUiTaskAsync("Pi is reviewing the exact work-item package...", async () =>
@@ -323,7 +369,7 @@ internal sealed class MainForm : Form
             catch
             {
                 _reviewStackReady = false;
-                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The review call failed after the last readiness check. Refresh readiness before another Pi review.");
+                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The review call failed after the last readiness check. Test inference before another Pi review.");
                 UpdateReviewAvailability();
                 throw;
             }
@@ -399,7 +445,7 @@ internal sealed class MainForm : Form
         var workingDirectory = Directory.Exists(repositoryPath) ? repositoryPath : Environment.CurrentDirectory;
         _reviewStackReady = false;
         UpdateReviewAvailability();
-        _refreshReadiness.Enabled = false;
+        SetReadinessButtonsEnabled(false);
 
         SetReadiness(_githubState, "GITHUB", ReadinessLevel.Checking, "CHECKING", "Checking GitHub CLI authentication.");
         SetReadiness(_repoState, "LOCAL REPO", ReadinessLevel.Checking, "CHECKING", "Checking the selected PlotPickle checkout.");
@@ -462,43 +508,85 @@ internal sealed class MainForm : Form
             {
                 SetReadiness(_piState, "PI", ReadinessLevel.Failed, "RED", error.Message);
                 SetReadiness(_runtimeState, "LOCAL LLM", ReadinessLevel.Failed, "RED", "The readiness probe could not resolve the local runtime because the Pi bridge itself failed.");
-                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The bounded inference handshake did not run.");
+                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The bounded inference handshake did not run. " + error.Message);
                 SetStatus("Pi readiness probe failed. GitHub queue loading remains independent; Review with Pi is disabled.");
                 return;
             }
 
-            SetReadiness(
-                _piState,
-                "PI",
-                report.Pi.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
-                report.Pi.Ready ? report.Pi.Version : "RED",
-                report.Pi.Detail);
-            var runtimeSummary = report.Runtime.Ready
-                ? string.Join(" · ", new[] { report.Runtime.Label, report.Runtime.Model }.Where(value => !string.IsNullOrWhiteSpace(value)))
-                : "RED";
-            SetReadiness(
-                _runtimeState,
-                "LOCAL LLM",
-                report.Runtime.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
-                runtimeSummary,
-                report.Runtime.Detail);
-            SetReadiness(
-                _inferenceState,
-                "INFERENCE",
-                report.Inference.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
-                report.Inference.Ready ? $"{report.Inference.LatencyMs} ms" : "RED",
-                report.Inference.Detail);
-
-            _reviewStackReady = report.Pi.Ready && report.Runtime.Ready && report.Inference.Ready;
-            UpdateReviewAvailability();
+            ApplyPiReadiness(report);
             SetStatus(_reviewStackReady
-                ? "Pi review stack is green. Select an Issue/PR; Review with Pi will enable when its evidence is ready."
-                : "GitHub work can load, but Review with Pi stays disabled until PI, LOCAL LLM and INFERENCE are green. Hover a red light for detail.");
+                ? "Pi review stack is green. Select an Issue or PR in step 1."
+                : "GitHub work can load, but Pi review is blocked. Read the inference diagnostic above, fix it, then choose Test inference.");
         }
         finally
         {
-            _refreshReadiness.Enabled = true;
+            SetReadinessButtonsEnabled(true);
         }
+    }
+
+    private async Task TestInferenceAsync()
+    {
+        var repositoryPath = _repositoryPath.Text.Trim();
+        if (!IsPlotPickleRepository(repositoryPath))
+        {
+            SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "BLOCKED", "Choose a current PlotPickle local repository before testing inference.");
+            SetStatus("Inference test blocked: local repository is not ready.");
+            return;
+        }
+
+        _reviewStackReady = false;
+        UpdateReviewAvailability();
+        SetReadinessButtonsEnabled(false);
+        SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Checking, "CHECKING", "Testing the exact managed Pi + local provider inference handshake used before a review.");
+        SetStatus("Testing local Pi inference...");
+
+        try
+        {
+            var report = await PiReadinessProbe.RunAsync(repositoryPath);
+            ApplyPiReadiness(report);
+            SetStatus(_reviewStackReady
+                ? "Inference test passed. The Pi review stack is green."
+                : "Inference test did not pass. The exact failure is shown in the diagnostic above.");
+        }
+        catch (Exception error)
+        {
+            _reviewStackReady = false;
+            UpdateReviewAvailability();
+            SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", error.Message);
+            SetStatus("Inference test failed. The diagnostic above contains the failure returned by the existing Pi readiness probe.");
+        }
+        finally
+        {
+            SetReadinessButtonsEnabled(true);
+        }
+    }
+
+    private void ApplyPiReadiness(PiReadinessReport report)
+    {
+        SetReadiness(
+            _piState,
+            "PI",
+            report.Pi.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+            report.Pi.Ready ? report.Pi.Version : "RED",
+            report.Pi.Detail);
+        var runtimeSummary = report.Runtime.Ready
+            ? string.Join(" · ", new[] { report.Runtime.Label, report.Runtime.Model }.Where(value => !string.IsNullOrWhiteSpace(value)))
+            : "RED";
+        SetReadiness(
+            _runtimeState,
+            "LOCAL LLM",
+            report.Runtime.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+            runtimeSummary,
+            report.Runtime.Detail);
+        SetReadiness(
+            _inferenceState,
+            "INFERENCE",
+            report.Inference.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+            report.Inference.Ready ? $"{report.Inference.LatencyMs} ms" : "RED",
+            report.Inference.Detail);
+
+        _reviewStackReady = report.Pi.Ready && report.Runtime.Ready && report.Inference.Ready;
+        UpdateReviewAvailability();
     }
 
     private void InvalidateReadinessForRepositoryChange()
@@ -512,6 +600,12 @@ internal sealed class MainForm : Form
         SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Unknown, "REFRESH", "Repository path changed. Refresh readiness before Pi review.");
     }
 
+    private void SetReadinessButtonsEnabled(bool enabled)
+    {
+        _refreshReadiness.Enabled = enabled;
+        _testInference.Enabled = enabled;
+    }
+
     private void UpdateReviewAvailability() => _reviewWithPi.Enabled = _evidenceReady && _reviewStackReady;
 
     private static bool IsPlotPickleRepository(string repositoryPath)
@@ -523,10 +617,12 @@ internal sealed class MainForm : Form
     private static Label CreateReadinessLabel(string name) => new()
     {
         Text = $"{name} CHECKING",
-        AutoSize = true,
+        Dock = DockStyle.Fill,
+        AutoEllipsis = true,
+        TextAlign = ContentAlignment.MiddleCenter,
         BorderStyle = BorderStyle.FixedSingle,
-        Padding = new Padding(7, 4, 7, 4),
-        Margin = new Padding(0, 2, 6, 2),
+        Padding = new Padding(6, 3, 6, 3),
+        Margin = new Padding(3),
         ForeColor = Color.White,
         BackColor = Color.DimGray,
     };
@@ -550,6 +646,25 @@ internal sealed class MainForm : Form
             _ => Color.DimGray,
         };
         _readinessDetails.SetToolTip(label, string.IsNullOrWhiteSpace(detail) ? label.Text : detail);
+
+        if (ReferenceEquals(label, _inferenceState))
+        {
+            var prefix = level switch
+            {
+                ReadinessLevel.Ready => "Inference ready",
+                ReadinessLevel.Failed => "Inference problem",
+                ReadinessLevel.Checking => "Testing inference",
+                _ => "Inference needs refresh",
+            };
+            _readinessMessage.Text = $"{prefix}: {(string.IsNullOrWhiteSpace(detail) ? summary : detail)}";
+            _readinessMessage.ForeColor = level switch
+            {
+                ReadinessLevel.Ready => Color.DarkGreen,
+                ReadinessLevel.Failed => Color.DarkRed,
+                ReadinessLevel.Checking => Color.DarkGoldenrod,
+                _ => SystemColors.WindowText,
+            };
+        }
     }
 
     private async Task RunUiTaskAsync(string message, Func<Task> action)
@@ -1151,7 +1266,15 @@ internal static class WorkbenchBuildIdentity
     private static string Resolve()
     {
         var value = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        return string.IsNullOrWhiteSpace(value) ? "build-local · sha-unknown" : value.Replace(";", " · ", StringComparison.Ordinal);
+        if (string.IsNullOrWhiteSpace(value)) return "Local build · SHA unknown";
+        var match = Regex.Match(value, @"^build-(?<build>[^;]+);sha-(?<sha>[^+;]+)", RegexOptions.IgnoreCase);
+        if (!match.Success) return value;
+
+        var build = match.Groups["build"].Value;
+        var sha = match.Groups["sha"].Value;
+        return string.Equals(build, "local", StringComparison.OrdinalIgnoreCase)
+            ? $"Local build · {sha}"
+            : $"Build #{build} · {sha}";
     }
 }
 

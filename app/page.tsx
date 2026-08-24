@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../core/storage/foundation-project-browser";
+import { hasActiveLibraryProject } from "../core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
@@ -44,6 +45,7 @@ function requestedSection(): GuidedSection {
 
 function repairPersistedProject() {
   try {
+    if (!hasActiveLibraryProject()) return;
     const normalized = loadFoundationProject();
     const validLessonIds = new Set(plotPickleCurriculum.map((lesson) => lesson.id));
     const repaired: PPFProject = {

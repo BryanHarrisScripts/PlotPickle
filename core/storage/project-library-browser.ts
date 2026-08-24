@@ -40,10 +40,6 @@ function idFactory() {
   return globalThis.crypto?.randomUUID?.() ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function now() {
-  return new Date().toISOString();
-}
-
 function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const project = normalizeFoundationProject(value);
   const sourceEvidence = normalizeProjectSourceEvidence(
@@ -96,7 +92,7 @@ function coreInput() {
     normalizeProject: normalizeLibraryProject,
     createProject: createEmptyLibraryProject,
     describeProject,
-    now,
+    now: Date.prototype.toISOString.bind(new Date()),
     idFactory,
   };
 }
@@ -123,7 +119,7 @@ export function loadActiveLibraryProject(): LibraryPPFProject {
   if (initialized.activeProject) return initialized.activeProject;
   return createEmptyLibraryProject({
     id: idFactory(),
-    now: now(),
+    now: new Date().toISOString(),
     title: "Untitled Story",
   });
 }

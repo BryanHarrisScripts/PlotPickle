@@ -5,7 +5,7 @@ This slice adds the first bounded visual-production worker to the PlotPickle Pro
 ## What it does
 
 - discovers the Visual Production Agent from the local supervisor;
-- launches the worker from `Start-Production-Supervisor.bat` and keeps its result window visible;
+- launches the worker from `Utilities/Start-Production-Supervisor.bat` and keeps its result window visible;
 - finds the newest completed Full Story Builder PPF through PlotPickle's existing local project APIs;
 - checks the image route already selected in Settings;
 - when local ComfyUI is selected and generation-ready, creates one missing poster/key-art candidate and one missing story-image candidate;

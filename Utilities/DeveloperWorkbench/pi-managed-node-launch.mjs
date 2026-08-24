@@ -115,6 +115,19 @@ async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd }) 
   }
 }
 
+export async function probeManagedPiReadiness({ pi, runtime, cwd, purpose = "work-item-readiness" }) {
+  const cliEntry = await resolveManagedPiCliEntry(pi);
+  const configured = await configureWorkbenchProvider(runtime, purpose);
+  const startedAt = Date.now();
+  await verifyManagedPiInference({ cliEntry, configured, runtime, cwd });
+  return Object.freeze({
+    cliEntry,
+    configured,
+    providerId: WORKBENCH_PROVIDER_ID,
+    latencyMs: Date.now() - startedAt,
+  });
+}
+
 function childFailureDetail(error) {
   const stderr = String(error?.stderr || "").trim();
   const stdout = String(error?.stdout || "").trim();
@@ -123,9 +136,8 @@ function childFailureDetail(error) {
 }
 
 export async function runManagedPiReadOnly({ pi, runtime, prompt, cwd, purpose = "work-item-review", timeout = 15 * 60_000 }) {
-  const cliEntry = await resolveManagedPiCliEntry(pi);
-  const configured = await configureWorkbenchProvider(runtime, purpose);
-  await verifyManagedPiInference({ cliEntry, configured, runtime, cwd });
+  const readiness = await probeManagedPiReadiness({ pi, runtime, cwd, purpose });
+  const { cliEntry, configured } = readiness;
   const args = directPiArgs(
     cliEntry,
     configured.extensionPath,

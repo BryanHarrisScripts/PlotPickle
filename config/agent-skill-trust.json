@@ -48,6 +48,20 @@
       "lastEvaluatedRevision": "issue-1331"
     },
     {
+      "uri": "skill://plotpickle/diagnosis",
+      "displayName": "Diagnosis",
+      "requestedCapabilityClasses": ["repository-diff-read", "verification-evidence-read", "engineering-procedure", "finding-proposal"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1321"
+    },
+    {
+      "uri": "skill://plotpickle/plotpickle-architecture-review",
+      "displayName": "PlotPickle Architecture Review",
+      "requestedCapabilityClasses": ["repository-diff-read", "verification-evidence-read", "code-quality-evidence", "finding-proposal"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1321"
+    },
+    {
       "uri": "skill://plotpickle/sage-brinewick",
       "displayName": "Sage Brinewick",
       "requestedCapabilityClasses": ["curriculum-read", "bounded-project-context"],

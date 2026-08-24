@@ -1,6 +1,5 @@
 import type {
   MemoryAuthority,
-  MemoryRecord,
   MemoryScope,
   MemoryService,
   MemorySessionProof,
@@ -50,5 +49,3 @@ export const retrieveRelevantMemories = core.retrieveRelevantMemories as (
   proof: MemorySessionProof,
   query: MemoryRetrievalQuery,
 ) => Promise<MemoryRetrievalResult>;
-
-void (0 as unknown as MemoryRecord);

@@ -88,7 +88,7 @@ if "!PLOTPICKLE_SOURCE_UPDATED!"=="1" (
   exit /b !ERRORLEVEL!
 )
 if "!PLOTPICKLE_SOURCE_MODE!"=="git" echo !READY! PlotPickle source is current at !PLOTPICKLE_SOURCE_SHA!.
-if "!PLOTPICKLE_SOURCE_MODE!"=="download" echo !READY! Downloaded PlotPickle copy detected; application updates remain available through Update-PlotPickle.bat.
+if "!PLOTPICKLE_SOURCE_MODE!"=="download" echo !READY! Downloaded PlotPickle copy detected; application updates remain available through Utilities\Update-PlotPickle.cmd.
 if "!PLOTPICKLE_SOURCE_MODE!"=="git-unavailable" echo !READY_WARN! Git is unavailable; continuing without an application update check.
 if "!PLOTPICKLE_SOURCE_MODE!"=="non-main" echo !READY_WARN! Application update skipped because this checkout is on !PLOTPICKLE_SOURCE_BRANCH!.
 if "!PLOTPICKLE_SOURCE_MODE!"=="dirty" echo !READY_WARN! Application update skipped because tracked local changes are present.
@@ -225,7 +225,7 @@ if not exist "%AGENT_SKILLS_CLI%" (
   echo.
   echo !ERROR_TAG! The PlotPickle Agent Skills verifier is missing.
   echo The local server was not started because agent instructions cannot be verified.
-  echo Run Repair-PlotPickle.bat or update PlotPickle, then try again.
+  echo Run Utilities\Repair-PlotPickle.cmd or update PlotPickle, then try again.
   pause
   exit /b 1
 )
@@ -237,7 +237,7 @@ if errorlevel 1 (
   echo.
   echo !ERROR_TAG! PlotPickle Agent Skills could not be verified.
   echo The local server was not started because agent instructions are incomplete or invalid.
-  echo Run Repair-PlotPickle.bat or update PlotPickle, then try again.
+  echo Run Utilities\Repair-PlotPickle.cmd or update PlotPickle, then try again.
   pause
   exit /b 1
 )
@@ -282,7 +282,7 @@ set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 if not "%EXIT_CODE%"=="0" (
   echo !ERROR_TAG! PlotPickle stopped with an error. Review the messages above.
-  echo If the same runtime error returns, run Repair-PlotPickle.bat.
+  echo If the same runtime error returns, run Utilities\Repair-PlotPickle.cmd.
 ) else (
   echo PlotPickle has stopped. The local server started by this window is no longer running.
 )
@@ -464,7 +464,7 @@ echo 1. Confirm that your internet connection is stable.
 echo 2. Confirm that at least 2 GB of disk space is free.
 echo 3. Close other PlotPickle, Node, npm, editor, or terminal windows.
 echo 4. Run Start-PlotPickle.bat again. It will retry the same platform-specific runtime.
-echo 5. Run Repair-PlotPickle.bat only if the same runtime remains damaged.
+echo 5. Run Utilities\Repair-PlotPickle.cmd only if the same runtime remains damaged.
 echo.
 echo Runtime folder: !PLOTPICKLE_RUNTIME_DIR!
 echo Your story projects are not stored in that folder.

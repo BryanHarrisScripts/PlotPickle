@@ -333,7 +333,7 @@
 .workspaceFrame :global(nav[aria-label="PlotPickle workflow and plugins"]) { display: none !important; }
 
 @media (max-width: 1040px) {
-  .list { margin: 0; gap: 4px; padding-right: 16px; padding-left: 72px; }
+  .list { margin: 0; gap: 4px; padding-right: 16px; padding-left: 76px; }
 }
 
 @media (max-width: 820px) {

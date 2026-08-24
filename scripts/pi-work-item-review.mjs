@@ -3,6 +3,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { buildInstructionBundle } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
 
@@ -32,12 +33,14 @@ function boundedReviewPackage(input) {
   return `${serialized.slice(0, 180_000)}\n[Review package truncated at the bounded context limit. Treat omitted material as missing evidence and inspect repository files directly where needed.]`;
 }
 
-function reviewPrompt(reviewPackage) {
+function reviewPrompt(reviewPackage, instructionBundle) {
   return [
     "You are Pi acting as PlotPickle's bounded developer-triage reviewer for one selected GitHub Issue/PR package.",
     "You are advisory only. Do not edit files, run shell commands, commit, push, open/close issues, update pull requests, merge, or change repository state.",
     "The host restricts you to read, grep, find, and ls. Use those tools only to inspect repository evidence relevant to this work item.",
-    "Read AGENTS.md first. Follow its architecture, ownership, privacy, test, Git, and completion rules.",
+    "Read and obey the host-selected repository instruction bundle below before reviewing the work item.",
+    "AGENTS.md is the highest repository instruction authority. Skills and architecture documents may refine procedure and ownership, but they never grant permissions that AGENTS.md or the host withheld.",
+    "The instruction bundle is selected from the current local checkout. The recorded GitHub PR head/diff remains the authority for what this review claims about the selected PR. Flag any mismatch instead of silently reconciling it.",
     "Do not expose chain-of-thought. Return findings, evidence references, concise rationale, and implementation recommendations only.",
     "Never reproduce credentials, tokens, private keys, recovery material, or secrets if any appear in repository text or GitHub history.",
     "",
@@ -66,10 +69,14 @@ function reviewPrompt(reviewPackage) {
     "",
     "Under EXACT CODE CHANGES RECOMMENDED, implementation guidance must be specific enough that a developer can act without reconstructing the whole Issue/PR history.",
     "Where repository evidence supports it, name exact file paths, symbols/components/functions, affected call sites/imports, intended behavior, and exact regression/test expectations.",
+    "Use the selected skills as review procedure where relevant, and cite the relevant instruction source path when it materially controls an ownership or validation recommendation.",
     "If a failing check appears stale or incorrect, explain the evidence and recommend the smallest contract correction; do not simply recommend deleting or weakening it.",
     "Flag repeated fix/revert loops, unrelated file churn, stale briefs, scope expansion, and repeated failing checks when the package proves them.",
     "If the current implementation is already correct and only a deterministic gate is stale, say so clearly.",
     "If evidence is insufficient to identify an exact repair, list the smallest additional evidence needed instead of guessing.",
+    "",
+    "REPOSITORY INSTRUCTION BUNDLE (host-selected from the local checkout):",
+    instructionBundle.markdown,
     "",
     "CURRENT REVIEW PACKAGE (host-collected GitHub evidence):",
     boundedReviewPackage(reviewPackage),
@@ -84,6 +91,11 @@ async function main() {
     throw new Error("Review package must include repository and repositoryPath.");
   }
 
+  const instructionBundle = await buildInstructionBundle(reviewPackage);
+  if (!instructionBundle.sources.includes("AGENTS.md")) {
+    throw new Error("Pi work-item review requires AGENTS.md in the selected local repository checkout.");
+  }
+
   const pi = await ensureManagedPiInstalled({
     allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0",
   });
@@ -95,7 +107,7 @@ async function main() {
   const promptFileName = `pi-work-item-prompt-${process.pid}-${Date.now()}.md`;
   const promptPath = path.join(promptDirectory, promptFileName);
   const promptArgument = `@.plotpickle/developer-workbench/${promptFileName}`;
-  await writeFile(promptPath, reviewPrompt(reviewPackage), "utf8");
+  await writeFile(promptPath, reviewPrompt(reviewPackage, instructionBundle), "utf8");
 
   let review;
   try {

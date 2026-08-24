@@ -70,11 +70,14 @@ test("#1377 Cloud Compute presents API and MCP OAuth truthfully without inventin
   assert.match(compute, /<strong>MCP \/ OAuth<\/strong>/);
   assert.match(compute, /no current OpenAI or MiniMax OAuth\/MCP provider adapter is registered here/);
   assert.match(compute, /PlotPickle will not pretend an OAuth connection exists/);
-  assert.match(compute, /Credentials stay protected/);
+  assert.match(compute, /credentials stay protected/i);
 });
 
 test("#1377 preserves old Settings links while moving their destination into Local or Cloud Compute", async () => {
-  const settings = await read("app/sage-settings-workspace.tsx");
+  const [settings, compute] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
+  ]);
 
   for (const legacy of ["settings-models", "settings-sage", "settings-plan", "settings-routing", "settings-ollama", "settings-comfyui", "settings-images", "settings-video"]) {
     assert.match(settings, new RegExp(`"${legacy}": "local-compute"`));
@@ -83,4 +86,7 @@ test("#1377 preserves old Settings links while moving their destination into Loc
     assert.match(settings, new RegExp(`"${legacy}": "cloud-compute"`));
   }
   assert.match(settings, /url\.searchParams\.delete\("compute"\)/);
+  assert.match(compute, /"settings-images": "images"/);
+  assert.match(compute, /"settings-video": "video"/);
+  assert.match(compute, /"settings-routing": "writing"/);
 });

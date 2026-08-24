@@ -55,6 +55,20 @@ test("#1283 replaces internal Channels and Forums with plugin rooms, Direct Mess
   assert.doesNotMatch(workspace, />Channels<|>Forums<|<CommunityBackdoorTerminal/);
 });
 
+test("#1341 Who helps here links each room Agent to an individual Settings Help screen", async () => {
+  const [social, helpers] = await Promise.all([
+    read("modules/community/community-buzz-social.tsx"),
+    read("app/settings-helper-directory.tsx"),
+  ]);
+  assert.match(social, /href=\{`\/\?workspace=settings&settings=help&helper=\$\{encodeURIComponent\(agent\.id\)\}`\}/);
+  assert.match(social, /aria-label=\{`Open \$\{agent\.name\} help`\}/);
+  assert.match(helpers, /searchParams\.get\("helper"\)/);
+  assert.match(helpers, /data-settings-help="individual-helper"/);
+  assert.match(helpers, /data-selected-helper=\{selectedAgent\.profileId\}/);
+  assert.match(helpers, /← All helpers/);
+  assert.match(helpers, /<HelperCard agent=\{selectedAgent\} expanded \/>/);
+});
+
 test("#1102/#1103 preserve keyboard safety and use the shared shell collapse breakpoint", async () => {
   const [css, terminal, continuity] = await Promise.all([
     read("app/community-navigation.module.css"),

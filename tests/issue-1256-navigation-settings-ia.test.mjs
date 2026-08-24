@@ -5,8 +5,8 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function navItems(source) {
-  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "[^"]+", selectable: (?:true|false) \}/g)]
-    .map((match) => ({ id: match[1], label: match[2] }));
+  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "([^"]+)", selectable: (?:true|false) \}/g)]
+    .map((match) => ({ id: match[1], label: match[2], detail: match[3] }));
 }
 
 test("#1256 global workflow navigation follows the attended UAT order", async () => {
@@ -28,6 +28,13 @@ test("#1256 global workflow navigation follows the attended UAT order", async ()
     "Reports",
     "Settings",
   ]);
+});
+
+test("#1341 Library and Dashboard keep their titles while using the approved subtitles", async () => {
+  const source = await read("app/plotpickle-workspace-shell.tsx");
+  const items = navItems(source);
+  assert.deepEqual(items.find((item) => item.id === "library"), { id: "library", label: "Library", detail: "Stories" });
+  assert.deepEqual(items.find((item) => item.id === "dashboard"), { id: "dashboard", label: "Dashboard", detail: "KPI" });
 });
 
 test("#1256 Settings exposes the approved capability-owned information architecture", async () => {

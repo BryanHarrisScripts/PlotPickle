@@ -42,8 +42,65 @@
 
 .map {
   display: grid;
-  grid-template-columns: repeat(6, minmax(92px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.sequenceSlot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 6px;
+  min-width: 0;
+  align-items: center;
+}
+
+.sequenceBox {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid rgba(113, 221, 200, .28);
+  border-radius: 12px;
+  background: rgba(5, 12, 11, .42);
+}
+
+.sequenceHeader {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 7px;
+  padding: 0 2px;
+}
+.sequenceHeader strong { color: #65ddcb; font: 900 .68rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
+.sequenceHeader span { min-width: 0; overflow: hidden; color: #789990; font-size: .64rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+
+.sequenceBlocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.turningPoint {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  align-content: center;
+  border: 1px solid rgba(227, 165, 104, .55);
+  border-radius: 6px;
+  color: #efb87e;
+  background: rgba(35, 23, 10, .88);
+  font: 900 .62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .04em;
+}
+.turningPoint strong,
+.turningPoint span { display: block; }
+.turningPoint strong { margin-bottom: 2px; font-size: .55rem; }
+.turningPoint[data-kind="absolute"] {
+  border: 2px solid rgba(101, 221, 203, .9);
+  color: #9cf0df;
+  background: rgba(10, 42, 36, .94);
+  box-shadow: 0 0 0 1px rgba(101, 221, 203, .18);
 }
 
 .block {
@@ -108,11 +165,16 @@
 .provenance { padding-top: 12px; border-top: 1px solid rgba(119, 154, 146, .1); color: #7f9992 !important; font-size: .72rem; }
 
 @media (max-width: 1220px) {
-  .map { grid-template-columns: repeat(4, minmax(100px, 1fr)); }
+  .map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
   .header,
-  .explainGrid { grid-template-columns: 1fr; }
-  .map { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .explainGrid,
+  .map { grid-template-columns: 1fr; }
+  .sequenceSlot { grid-template-columns: minmax(0, 1fr) 36px; }
+}
+
+@media (max-width: 520px) {
+  .sequenceBlocks { grid-template-columns: 1fr; }
 }

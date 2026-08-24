@@ -43,7 +43,7 @@
       "id": "settings",
       "label": "Settings",
       "route": "/?workspace=settings",
-      "requiredTerms": ["Sage", "Settings", "Agent Activity"],
+      "requiredTerms": ["Settings", "Local Compute", "Cloud Compute", "Agent Activity"],
       "minimumTextLength": 300,
       "tests": [
         "tests/learn-sage-settings-entry.test.mjs",
@@ -57,6 +57,7 @@
         "tests/issue-1105-settings-dark-surface-regression.test.mjs",
         "tests/issue-1111-settings-unified-workspace.test.mjs",
         "tests/issue-1121-whats-new-settings.test.mjs",
+        "tests/issue-1377-unified-ai-compute-settings.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/automatic-local-model-capabilities.test.mjs",
         "tests/issue-879-visual-continuity.test.mjs"

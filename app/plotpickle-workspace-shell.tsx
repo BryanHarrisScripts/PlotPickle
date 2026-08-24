@@ -9,7 +9,7 @@ export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "communi
 
 export const ROOT_NAV_ITEMS = [
   { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
-  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Examples & Stories", selectable: true },
+  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Stories", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
@@ -21,7 +21,7 @@ export const ROOT_NAV_ITEMS = [
   { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
   { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
   { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "KPI", selectable: true },
   { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "Settings", detail: "Config", selectable: true },
 ] as const;
 

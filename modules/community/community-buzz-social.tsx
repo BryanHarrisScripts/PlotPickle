@@ -328,7 +328,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : forum ? "Community forum" : "Community room"}</h4><p>{target.description}</p></section>
         {roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
           <span>Who helps here</span>
-          <div className={styles.contextHelpers}>{roomGuide.agents.map((agent) => <span className={styles.contextHelper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div>
+          <div className={styles.contextHelpers}>{roomGuide.agents.map((agent) => <a aria-label={`Open ${agent.name} help`} className={styles.contextHelper} href={`/?workspace=settings&settings=help&helper=${encodeURIComponent(agent.id)}`} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></a>)}</div>
           <span>What this room is for</span>
           <p>{roomGuide.purpose}</p>
           <small>{roomGuide.actionHint}</small>

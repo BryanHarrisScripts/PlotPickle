@@ -12,9 +12,8 @@ function navItems(source) {
 test("#1256 global workflow navigation follows the attended UAT order", async () => {
   const source = await read("app/plotpickle-workspace-shell.tsx");
   assert.deepEqual(navItems(source).map((item) => item.label), [
-    "Dashboard",
-    "Library",
     "Community",
+    "Library",
     "Learn",
     "Wyrmwood",
     "Plan",
@@ -26,6 +25,7 @@ test("#1256 global workflow navigation follows the attended UAT order", async ()
     "Feedback",
     "Refine",
     "Reports",
+    "Dashboard",
     "Settings",
   ]);
 });

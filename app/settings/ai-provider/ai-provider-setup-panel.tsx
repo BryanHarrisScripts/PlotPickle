@@ -74,7 +74,7 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
           setCheckedAt(current.checkedAt || "");
           setNotice(`${label} is saved. The API key stays protected and is never displayed here.`);
         } else {
-          setNotice(`Enter your ${label} API key, review the models, then save and test.`);
+          setNotice(`Connect ${label} here, then choose models from the searchable catalog above. Manual model IDs remain available as an advanced fallback.`);
         }
       })
       .catch((error) => { if (active) setNotice(error instanceof Error ? error.message : "Provider status could not be checked."); });
@@ -106,7 +106,7 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
       setApiKey("");
       setSavedForProvider(true);
       setCheckedAt(result.checkedAt || "");
-      setNotice(`${label} connected successfully. PlotPickle kept the credential in protected local storage.`);
+      setNotice(`${label} connected successfully. PlotPickle kept the credential in protected local storage. Refresh the model catalog above to see provider-reported choices.`);
       announceRefresh();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : `${label} could not be connected.`);
@@ -138,18 +138,24 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
   return (
     <section className={styles.panel} data-ai-provider-setup={provider} aria-labelledby={`${provider}-provider-setup-title`}>
       <header>
-        <div><p>Exact provider setup</p><h2 id={`${provider}-provider-setup-title`}>{label}</h2><span>{preset?.description}</span></div>
+        <div><p>Provider connection</p><h2 id={`${provider}-provider-setup-title`}>{label}</h2><span>{preset?.description}</span></div>
         <strong data-ready={savedForProvider}>{savedForProvider ? "Configured" : "Setup needed"}</strong>
       </header>
       <div className={styles.grid}>
         <label><span>Server address</span><input value={form.baseUrl} onChange={(event) => update("baseUrl", event.target.value)} spellCheck={false} /></label>
         <label><span>API key</span><input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder={savedForProvider ? "Leave blank to keep saved key" : `Enter ${label} API key`} /></label>
-        <label><span>Text model</span><input value={form.textModel} onChange={(event) => update("textModel", event.target.value)} spellCheck={false} /></label>
-        <label><span>Image model</span><input value={form.imageModel} onChange={(event) => update("imageModel", event.target.value)} spellCheck={false} /></label>
-        <label><span>Video model</span><input value={form.videoModel} onChange={(event) => update("videoModel", event.target.value)} spellCheck={false} /></label>
       </div>
+      <details>
+        <summary>Manual model IDs · advanced fallback</summary>
+        <p>The searchable model catalog above is the normal selection path. Edit these only when the provider does not expose model discovery or you need an exact model ID that is not listed.</p>
+        <div className={styles.grid}>
+          <label><span>Text model</span><input value={form.textModel} onChange={(event) => update("textModel", event.target.value)} spellCheck={false} /></label>
+          <label><span>Image model</span><input value={form.imageModel} onChange={(event) => update("imageModel", event.target.value)} spellCheck={false} /></label>
+          <label><span>Video model</span><input value={form.videoModel} onChange={(event) => update("videoModel", event.target.value)} spellCheck={false} /></label>
+        </div>
+      </details>
       <div className={styles.actions}>
-        <button type="button" onClick={() => void saveAndTest()} disabled={working}>{working ? "Checking…" : "Save & test"}</button>
+        <button type="button" onClick={() => void saveAndTest()} disabled={working}>{working ? "Checking…" : "Save & test connection"}</button>
         <button type="button" onClick={() => void testAgain()} disabled={working || !savedForProvider}>Test saved connection</button>
       </div>
       <p className={styles.notice} role="status">{notice}</p>

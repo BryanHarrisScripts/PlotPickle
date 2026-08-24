@@ -104,8 +104,8 @@ set "PROBE_RESULT=!ERRORLEVEL!"
 if "!PROBE_RESULT!"=="0" (
   echo !READY! The current PlotPickle build is already running at %PLOTPICKLE_URL%.
   echo Its startup contract confirms that required checks completed before that server opened.
-  echo Opening the verified session. No second server or maintenance pass will be started.
-  start "" "%PLOTPICKLE_URL%"
+  echo No second server, browser window, or maintenance pass will be started.
+  echo Return to the PlotPickle app window already owned by the running launcher.
   exit /b 0
 )
 if "!PROBE_RESULT!"=="3" (
@@ -188,6 +188,20 @@ if not exist "%RUNTIME_ENV%" (
 call "%RUNTIME_ENV%"
 del /q "%RUNTIME_ENV%" >nul 2>&1
 set "npm_config_cache=%PLOTPICKLE_NPM_CACHE%"
+if not defined PLOTPICKLE_HOME (
+  if defined LOCALAPPDATA (
+    set "PLOTPICKLE_HOME=%LOCALAPPDATA%\PlotPickle"
+  ) else (
+    set "PLOTPICKLE_HOME=%USERPROFILE%\.plotpickle"
+  )
+)
+set "PLOTPICKLE_NODE_RUNTIME_DIR=%PLOTPICKLE_HOME%\node\runtime"
+set "PLOTPICKLE_SHUTDOWN_SIGNAL=%PLOTPICKLE_NODE_RUNTIME_DIR%\shutdown-request.json"
+set "PLOTPICKLE_BROWSER_STATE=%PLOTPICKLE_NODE_RUNTIME_DIR%\browser-owner.json"
+set "PLOTPICKLE_BROWSER_PROFILE=%PLOTPICKLE_NODE_RUNTIME_DIR%\browser-profile"
+if not exist "%PLOTPICKLE_NODE_RUNTIME_DIR%" mkdir "%PLOTPICKLE_NODE_RUNTIME_DIR%" >nul 2>&1
+del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
+del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
 
 for /f %%V in ('npm --version') do set "NPM_VERSION=%%V"
 for /f %%V in ('node -p "require('./package.json').version"') do set "PLOTPICKLE_VERSION=%%V"
@@ -280,6 +294,12 @@ call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
+if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
+  del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
+  del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
+  echo !SUCCESS! PlotPickle saved the current session, stopped its managed services, and closed its owned app window.
+  exit /b 0
+)
 if not "%EXIT_CODE%"=="0" (
   echo !ERROR_TAG! PlotPickle stopped with an error. Review the messages above.
   echo If the same runtime error returns, run Utilities\Repair-PlotPickle.cmd.
@@ -294,7 +314,7 @@ powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try 
 exit /b !ERRORLEVEL!
 
 :open_when_ready
-start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match '%PLOTPICKLE_STARTUP_MARKER%') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.' -ForegroundColor Yellow; exit 1"
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds([int]$env:READY_TIMEOUT_SECONDS); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { break } } catch {}; Start-Sleep -Milliseconds 500 }; if ((Get-Date) -ge $deadline) { Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract in time. Review the server messages in this window.' -ForegroundColor Yellow; exit 1 }; $edge=@((Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'),(Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe'),(Join-Path $env:LOCALAPPDATA 'Microsoft\Edge\Application\msedge.exe')) ^| Where-Object { $_ -and (Test-Path $_) } ^| Select-Object -First 1; if (-not $edge) { Write-Host ('[WARNING] Microsoft Edge was not found. PlotPickle will not open an unmanaged browser window that it cannot safely close. Open ' + $base + ' manually if needed.') -ForegroundColor Yellow; exit 2 }; New-Item -ItemType Directory -Force -Path (Split-Path $env:PLOTPICKLE_BROWSER_STATE -Parent) ^| Out-Null; New-Item -ItemType Directory -Force -Path $env:PLOTPICKLE_BROWSER_PROFILE ^| Out-Null; $arguments=@('--app='+$base,'--user-data-dir='+$env:PLOTPICKLE_BROWSER_PROFILE,'--no-first-run','--no-default-browser-check'); $browser=Start-Process -FilePath $edge -ArgumentList $arguments -PassThru; @{ format='plotpickle-owned-browser'; version=1; pid=$browser.Id; executable=$edge; baseUrl=$base; startedAt=(Get-Date).ToUniversalTime().ToString('o') } ^| ConvertTo-Json ^| Set-Content -Encoding UTF8 -Path $env:PLOTPICKLE_BROWSER_STATE; try { while (-not $browser.HasExited) { if (Test-Path $env:PLOTPICKLE_SHUTDOWN_SIGNAL) { Stop-Process -Id $browser.Id -ErrorAction SilentlyContinue; break }; try { Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec 1 ^| Out-Null } catch { Stop-Process -Id $browser.Id -ErrorAction SilentlyContinue; break }; Start-Sleep -Milliseconds 400; $browser.Refresh() } } finally { Remove-Item -Force -ErrorAction SilentlyContinue $env:PLOTPICKLE_BROWSER_STATE }"
 exit /b 0
 
 :start_deferred_companion_maintenance

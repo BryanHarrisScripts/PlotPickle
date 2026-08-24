@@ -21,6 +21,7 @@ import {
   FOUNDATIONS_WIREFRAME_WORKFLOW,
   type FoundationsWireframeFramePlan,
 } from "../wireframe/foundations-wireframe";
+import FoundationsStoryCoverage from "./foundations-story-coverage";
 import styles from "./foundations-build-workspace.module.css";
 
 type ImageRouteStatus = {
@@ -261,6 +262,8 @@ export default function FoundationsBuildWorkspace({
             </div>
             <span className={styles.routeBadge}>{selectedRoute}</span>
           </div>
+
+          <FoundationsStoryCoverage curriculum={curriculum} project={project} />
 
           {!unlocked ? (
             <div className={styles.emptyState}>

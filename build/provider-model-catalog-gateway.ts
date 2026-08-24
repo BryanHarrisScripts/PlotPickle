@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
+import { normalizedUrl as normalizeProviderUrl } from "./media-provider-common";
 import {
   readMediaRoutingStore,
   writeMediaRoutingStore,
@@ -16,6 +17,8 @@ const CATALOG_PATH = "/api/ai-model-catalog";
 const SELECT_PATH = `${CATALOG_PATH}/select`;
 const CLOUD_PROVIDERS = ["openai", "minimax"] as const;
 const CAPABILITIES = ["writing", "images", "video"] as const;
+const LOOPBACK_ADDRESSES = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 type CloudProvider = typeof CLOUD_PROVIDERS[number];
 type Capability = typeof CAPABILITIES[number];
@@ -31,29 +34,26 @@ type LegacyConnection = {
   verifiedAt?: unknown;
 };
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
+type ProviderModelRecord = { id?: unknown; name?: unknown; model?: unknown };
+
+function requestIsTrusted(request: IncomingMessage, expectedPath: string) {
+  const remote = request.socket.remoteAddress || "";
+  const host = request.headers.host || "";
+  if (!LOOPBACK_ADDRESSES.has(remote) || !host || !request.url?.startsWith(expectedPath)) return false;
+  const hostText = `http://${host}`;
+  if (!URL.canParse(hostText)) return false;
+  const hostUrl = new URL(hostText);
+  if (!LOOPBACK_HOSTS.has(hostUrl.hostname)) return false;
+  const origin = request.headers.origin;
+  return !origin || (URL.canParse(origin) && new URL(origin).host === hostUrl.host);
 }
 
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
-  response.statusCode = status;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
+function reply(response: ServerResponse, body: Record<string, unknown>, status = 200) {
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  });
   response.end(JSON.stringify(body));
 }
 
@@ -79,20 +79,13 @@ function normalizedCapability(value: unknown): Capability | null {
   return CAPABILITIES.includes(value as Capability) ? value as Capability : null;
 }
 
-function normalizedBaseUrl(value: string) {
-  const url = new URL(value.trim());
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("The provider model catalog requires an HTTP or HTTPS server address.");
-  if (url.username || url.password) throw new Error("Do not put credentials in the provider server address.");
-  return url.toString().replace(/\/$/, "");
-}
-
 function modelIds(value: unknown) {
   if (!value || typeof value !== "object") return [];
   const body = value as {
-    data?: Array<{ id?: unknown; name?: unknown }>;
-    models?: Array<{ id?: unknown; name?: unknown; model?: unknown }>;
+    data?: ProviderModelRecord[];
+    models?: ProviderModelRecord[];
   };
-  const candidates = [
+  const candidates: ProviderModelRecord[] = [
     ...(Array.isArray(body.data) ? body.data : []),
     ...(Array.isArray(body.models) ? body.models : []),
   ];
@@ -141,8 +134,6 @@ async function profileSnapshot(provider: CloudProvider, capability?: Capability)
   return {
     assistantStore: assistantResult.store,
     mediaStore: media,
-    writing,
-    mediaProfile,
     configured: Boolean((writing || mediaProfile) && baseUrl && apiKey),
     baseUrl,
     apiKey,
@@ -154,9 +145,8 @@ async function profileSnapshot(provider: CloudProvider, capability?: Capability)
 }
 
 async function discoverProviderModels(provider: CloudProvider, baseUrl: string, apiKey: string) {
-  const endpoint = provider === "minimax"
-    ? `${normalizedBaseUrl(baseUrl)}/v1/models`
-    : `${normalizedBaseUrl(baseUrl)}/models`;
+  const normalized = normalizeProviderUrl(baseUrl);
+  const endpoint = provider === "minimax" ? `${normalized}/v1/models` : `${normalized}/models`;
   const response = await fetch(endpoint, {
     headers: { Accept: "application/json", Authorization: `Bearer ${apiKey}` },
     signal: AbortSignal.timeout(15_000),
@@ -261,8 +251,8 @@ export function registerProviderModelCatalogGateway(server: ViteDevServer) {
       next();
       return;
     }
-    if (!isLocalRequest(request)) {
-      sendJson(response, 403, { ok: false, message: "The provider model catalog is available only to this PlotPickle server." });
+    if (!requestIsTrusted(request, CATALOG_PATH)) {
+      reply(response, { ok: false, message: "The provider model catalog is available only to this PlotPickle server." }, 403);
       return;
     }
     void (async () => {
@@ -274,7 +264,7 @@ export function registerProviderModelCatalogGateway(server: ViteDevServer) {
           const capability = capabilityValue ? normalizedCapability(capabilityValue) : undefined;
           if (!provider) throw new Error("Choose OpenAI or MiniMax before loading a cloud model catalog.");
           if (capabilityValue && !capability) throw new Error("Choose Writing, Images, or Video before loading a model catalog.");
-          sendJson(response, 200, await catalogBody(provider, capability));
+          reply(response, await catalogBody(provider, capability));
           return;
         }
         if (pathname === SELECT_PATH && request.method === "POST") {
@@ -283,13 +273,13 @@ export function registerProviderModelCatalogGateway(server: ViteDevServer) {
           const capability = normalizedCapability(body.capability);
           const model = typeof body.model === "string" ? body.model.trim() : "";
           if (!provider || !capability) throw new Error("Choose a valid provider and capability before selecting a model.");
-          sendJson(response, 200, await selectModel(provider, capability, model));
+          reply(response, await selectModel(provider, capability, model));
           return;
         }
-        sendJson(response, 405, { ok: false, message: "Method not allowed." });
+        reply(response, { ok: false, message: "Method not allowed." }, 405);
       } catch (error) {
         const message = error instanceof Error ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]") : "The provider model catalog request failed.";
-        sendJson(response, 400, { ok: false, message });
+        reply(response, { ok: false, message }, 400);
       }
     })();
   });

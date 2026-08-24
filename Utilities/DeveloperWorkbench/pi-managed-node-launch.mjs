@@ -23,12 +23,7 @@ function packageRootForManagedPi(pi) {
 export async function resolveManagedPiCliEntry(pi) {
   const packageRoot = packageRootForManagedPi(pi);
   const packageJsonPath = path.join(packageRoot, "package.json");
-  let manifest;
-  try {
-    manifest = JSON.parse(await readFile(packageJsonPath, "utf8"));
-  } catch (error) {
-    throw new Error(`PlotPickle-managed Pi package metadata could not be read at ${packageJsonPath}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
-  }
+  const manifest = JSON.parse(await readFile(packageJsonPath, "utf8"));
 
   const binEntry = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.pi;
   if (!binEntry || typeof binEntry !== "string") {

@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
@@ -8,11 +8,15 @@ import {
 } from "../../scripts/pi-worker-runtime.mjs";
 
 const PI_PACKAGE_PATH = ["node_modules", "@earendil-works", "pi-coding-agent"];
+const WORKBENCH_PROVIDER_ID = "plotpickle-workbench-local";
+const WORKBENCH_SMOKE_MARKER = "PLOTPICKLE_WORKBENCH_PI_READY";
+const WORKBENCH_SMOKE_TIMEOUT = 45_000;
 const QUIET_RESOURCE_FLAGS = [
   "--no-extensions",
   "--no-skills",
   "--no-prompt-templates",
   "--no-themes",
+  "--no-context-files",
 ];
 
 function packageRootForManagedPi(pi) {
@@ -43,6 +47,74 @@ export async function resolveManagedPiCliEntry(pi) {
   return cliEntry;
 }
 
+function workbenchProviderSource(runtime, baseUrl) {
+  const provider = {
+    name: "PlotPickle Workbench Local",
+    baseUrl,
+    apiKey: "plotpickle-local",
+    api: "openai-completions",
+    compat: {
+      supportsDeveloperRole: false,
+      supportsReasoningEffort: false,
+      supportsUsageInStreaming: false,
+    },
+    models: [{
+      id: runtime.model,
+      name: `PlotPickle Workbench — ${runtime.model}`,
+      reasoning: false,
+      input: ["text"],
+      contextWindow: 131072,
+      maxTokens: 16384,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    }],
+  };
+  return [
+    "export default function registerPlotPickleWorkbenchProvider(pi) {",
+    `  pi.registerProvider(${JSON.stringify(WORKBENCH_PROVIDER_ID)}, ${JSON.stringify(provider, null, 2)});`,
+    "}",
+    "",
+  ].join("\n");
+}
+
+async function configureWorkbenchProvider(runtime, purpose) {
+  const configured = await configurePiLocalRuntime(runtime, { purpose });
+  const extensionPath = path.join(configured.agentDir, "plotpickle-workbench-local-provider.mjs");
+  await writeFile(extensionPath, workbenchProviderSource(runtime, configured.baseUrl), "utf8");
+  return { ...configured, extensionPath };
+}
+
+function directPiArgs(cliEntry, extensionPath, runtime, toolArgs, prompt) {
+  return [
+    cliEntry,
+    "-p",
+    "--no-session",
+    ...toolArgs,
+    ...QUIET_RESOURCE_FLAGS,
+    "--extension", extensionPath,
+    "--provider", WORKBENCH_PROVIDER_ID,
+    "--model", runtime.model,
+    prompt,
+  ];
+}
+
+async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd }) {
+  const result = await runPortableCommand(process.execPath, directPiArgs(
+    cliEntry,
+    configured.extensionPath,
+    runtime,
+    ["--no-tools"],
+    `Reply with exactly ${WORKBENCH_SMOKE_MARKER}.`,
+  ), {
+    cwd,
+    timeout: WORKBENCH_SMOKE_TIMEOUT,
+    env: piLocalEnvironment(configured.agentDir),
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  if (!result.stdout.includes(WORKBENCH_SMOKE_MARKER)) {
+    throw new Error(`Pi reached ${runtime.label} (${runtime.model}) but the bounded local-model handshake did not return ${WORKBENCH_SMOKE_MARKER}. Output: ${result.stdout.slice(-500) || result.stderr.slice(-500) || "<empty>"}`);
+  }
+}
+
 function childFailureDetail(error) {
   const stderr = String(error?.stderr || "").trim();
   const stdout = String(error?.stdout || "").trim();
@@ -52,17 +124,15 @@ function childFailureDetail(error) {
 
 export async function runManagedPiReadOnly({ pi, runtime, prompt, cwd, purpose = "work-item-review", timeout = 15 * 60_000 }) {
   const cliEntry = await resolveManagedPiCliEntry(pi);
-  const configured = await configurePiLocalRuntime(runtime, { purpose });
-  const args = [
+  const configured = await configureWorkbenchProvider(runtime, purpose);
+  await verifyManagedPiInference({ cliEntry, configured, runtime, cwd });
+  const args = directPiArgs(
     cliEntry,
-    "-p",
-    "--no-session",
-    "--tools", "read,grep,find,ls",
-    ...QUIET_RESOURCE_FLAGS,
-    "--provider", "plotpickle-local",
-    "--model", runtime.model,
+    configured.extensionPath,
+    runtime,
+    ["--tools", "read,grep,find,ls"],
     prompt,
-  ];
+  );
 
   try {
     return await runPortableCommand(process.execPath, args, {
@@ -76,6 +146,7 @@ export async function runManagedPiReadOnly({ pi, runtime, prompt, cwd, purpose =
     throw new Error([
       "PlotPickle-managed Pi exited before completing the Developer Workbench review.",
       detail ? `Pi detail:\n${detail}` : "Pi produced no stderr/stdout detail.",
+      `Runtime: ${runtime.label} · ${runtime.model}`,
       `Direct launcher: ${process.execPath} ${cliEntry}`,
     ].join("\n"), { cause: error });
   }

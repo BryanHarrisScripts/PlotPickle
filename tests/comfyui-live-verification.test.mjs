@@ -97,8 +97,8 @@ test("focused verifier matches PlotPickle's existing ComfyUI backend contracts",
 });
 
 test("one-click Windows runner uses the safe non-paid verification mode by default", async () => {
-  const runner = await source("Run-PlotPickle-ComfyUI-Check.bat");
-  assert.match(runner, /node "%~dp0scripts\\verify-comfyui-live\.mjs"/);
+  const runner = await source("Utilities/Run-PlotPickle-ComfyUI-Check.bat");
+  assert.match(runner, /node "%CD%\\scripts\\verify-comfyui-live\.mjs"/);
   assert.match(runner, /Paid cloud image and H3 generation are NOT run/);
   const executionLine = runner.split(/\r?\n/).find((line) => /^node /i.test(line.trim())) || "";
   assert.doesNotMatch(executionLine, /--live-cloud|--live-paid-h3|--live-native-h3/);

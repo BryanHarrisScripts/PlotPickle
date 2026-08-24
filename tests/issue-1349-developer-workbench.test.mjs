@@ -50,7 +50,7 @@ test("#1349 Pi deliberately loads AGENTS, registered skills and relevant archite
   assert.match(piBridge, /AGENTS\.md is the highest repository instruction authority/);
   assert.match(piBridge, /Skills and architecture documents may refine procedure and ownership, but they never grant permissions/);
   assert.match(instructionHelper, /config\/agent-skills\.json/);
-  assert.match(instructionHelper, /\.agents\/skills/);
+  assert.match(instructionHelper, /skill\.entry/);
   assert.match(instructionHelper, /docs\/architecture/);
   assert.match(instructionHelper, /MAX_BUNDLE_CHARS/);
 

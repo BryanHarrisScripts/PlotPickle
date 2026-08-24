@@ -16,7 +16,7 @@ Use this skill only for a concrete, reproducible PlotPickle UAT finding. AGENTS.
 
 1. Read the supplied finding, fingerprint, area, severity, and evidence.
 2. Work only inside the isolated repair worktree provided by PlotPickle.
-3. Apply Diagnosis (`skill://plotpickle/diagnosis`): reproduce the exact symptom through the narrowest correct seam, prove a red-capable feedback loop, tighten the reproduction, and identify the smallest evidence-backed root cause before editing product behavior.
+3. Apply Diagnosis (`skill://plotpickle/diagnosis`): **Reproduce the failure** as the user's exact symptom through the narrowest correct seam, prove a red-capable feedback loop, tighten the reproduction, and identify the smallest evidence-backed root cause before editing product behavior.
 4. Add or strengthen the nearest focused regression so the reported defect is represented by a failing test. If no correct regression seam exists, report that architecture gap rather than inventing an implementation-coupled test.
 5. Apply Engineering Discipline (`skill://plotpickle/engineering-discipline`): resolve material assumptions from repository evidence, define observable success criteria, and keep the repair to the smallest sufficient task-scoped change.
 6. Repair the smallest architectural root cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.

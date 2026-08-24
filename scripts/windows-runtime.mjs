@@ -141,7 +141,7 @@ function verifyModules(modulesPath, { quiet = false } = {}) {
     if (!quiet) {
       console.error(`[PlotPickle runtime error] Required Windows native binding is missing: ${binding.packageName || `${process.platform}-${process.arch}`}`);
       if (binding.entryPath) console.error(`[PlotPickle runtime error] Expected native entry: ${binding.entryPath}`);
-      console.error("Run Repair-PlotPickle.bat, or allow Start-PlotPickle.bat to rebuild this runtime automatically.");
+      console.error("Run Utilities\\Repair-PlotPickle.cmd, or allow Start-PlotPickle.bat to rebuild this runtime automatically.");
     }
     return false;
   }

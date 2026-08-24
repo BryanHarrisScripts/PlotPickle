@@ -74,4 +74,12 @@ test("graceful shutdown source preserves save, Human release, supervisor and own
   assert.match(browser, /Stop-Process -Id \$browser\.Id/);
   assert.doesNotMatch(browser, /Stop-Process[^\n]+-Name|taskkill|killall|pkill/i);
   assert.match(browser, /PLOTPICKLE_SHUTDOWN_SIGNAL/);
+
+  const openWhenReady = browser.slice(
+    browser.indexOf(":open_when_ready"),
+    browser.indexOf(":start_deferred_companion_maintenance"),
+  );
+  assert.match(openWhenReady, /\) \| Where-Object/);
+  assert.match(openWhenReady, /\} \| ConvertTo-Json \| Set-Content/);
+  assert.doesNotMatch(openWhenReady, /\^\|/);
 });

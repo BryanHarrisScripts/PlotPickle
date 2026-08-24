@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AI_SOURCE_GROUPS, AI_SOURCE_OPTION_LABELS, type AiSourceCapability } from "../lib/runtime/ai/source-registry";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./ai-routing-panel.module.css";
 
 type Capability = AiSourceCapability;
 type ProviderTarget = "ollama" | "openai" | "minimax" | "comfyui";
+type Locality = "local" | "cloud";
 type OptionState = {
   configured: boolean;
   ready: boolean;
@@ -27,6 +28,12 @@ type RoutingStatus = {
   text: { selected: string; options: Record<string, OptionState> };
   image: { selected: string; options: Record<string, OptionState> };
   video: { selected: string; options: Record<string, OptionState> };
+};
+
+type AiRoutingPanelProps = {
+  capability?: Capability;
+  locality?: Locality;
+  onManage?: (target: ProviderTarget) => void;
 };
 
 const API = "/api/ai-routing";
@@ -93,12 +100,23 @@ function settingsTargets(route: string, option: OptionState): ProviderTarget[] {
   return target ? [target] : [];
 }
 
-export default function AiRoutingPanel() {
+function capabilityName(capability: Capability) {
+  if (capability === "text") return "Writing";
+  if (capability === "image") return "Images";
+  return "Video";
+}
+
+export default function AiRoutingPanel({ capability: capabilityFilter, locality, onManage }: AiRoutingPanelProps = {}) {
   const [status, setStatus] = useState<RoutingStatus | null>(null);
   const [paidAcknowledged, setPaidAcknowledged] = useState(false);
   const [dataSharingAcknowledged, setDataSharingAcknowledged] = useState(false);
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("");
+
+  const visibleGroups = useMemo(
+    () => AI_SOURCE_GROUPS.filter(({ capability }) => !capabilityFilter || capability === capabilityFilter),
+    [capabilityFilter],
+  );
 
   function refreshDashboardLights() {
     requestConnectionStatusRefresh();
@@ -209,6 +227,10 @@ export default function AiRoutingPanel() {
   }
 
   function openSettings(target: ProviderTarget) {
+    if (onManage) {
+      onManage(target);
+      return;
+    }
     const sectionId = `settings-${target}`;
     window.sessionStorage.setItem("plotpickle.settings.section", target);
     const url = new URL(window.location.href);
@@ -233,26 +255,37 @@ export default function AiRoutingPanel() {
     ));
   }
 
+  function filteredOptions(capability: Capability) {
+    const options = status?.[capability].options || {};
+    return Object.entries(options).filter(([, option]) => !locality || option.locality === locality);
+  }
+
   if (!status) {
     return <section className={styles.loading} aria-live="polite">{notice || "Checking AI routing…"}</section>;
   }
 
-  const activeOptions = AI_SOURCE_GROUPS.map(({ capability }) => status[capability].options[status[capability].selected]);
+  const activeOptions = visibleGroups.map(({ capability }) => status[capability].options[status[capability].selected]);
   const localActive = activeOptions.filter((option) => option.locality === "local").length;
   const cloudActive = activeOptions.filter((option) => option.locality === "cloud").length;
   const sourceMode = localActive && cloudActive ? "HYBRID" : localActive ? "LOCAL" : cloudActive ? "CLOUD" : "NO AI / MANUAL";
+  const filteredTitle = capabilityFilter ? capabilityName(capabilityFilter) : "Writing, Images & Video";
+  const filteredLocation = locality === "local" ? "Local Compute" : locality === "cloud" ? "Cloud Compute" : "AI Routing";
 
   return (
-    <section className={styles.panel} aria-labelledby="ai-routing-title">
+    <section className={styles.panel} aria-labelledby="ai-routing-title" data-routing-locality={locality || "all"} data-routing-capability={capabilityFilter || "all"}>
       <header className={styles.header}>
         <div>
-          <p>Settings · AI Routing</p>
-          <h1 id="ai-routing-title">Choose where writing, images and video are created.</h1>
-          <span>Each job has one active choice. Select the route you want; Off and Manual Import are explicit safe choices rather than hidden switch behaviour.</span>
+          <p>Settings · {filteredLocation}</p>
+          <h1 id="ai-routing-title">{locality ? `${filteredTitle} setup` : "Choose where writing, images and video are created."}</h1>
+          <span>{locality
+            ? `Only ${locality === "local" ? "on-device" : "online"} ${capabilityFilter ? capabilityName(capabilityFilter).toLowerCase() : "AI"} routes are shown here. A route becomes selectable only after its real setup and test are ready.`
+            : "Each job has one active choice. Select the route you want; Off and Manual Import are explicit safe choices rather than hidden switch behaviour."}</span>
         </div>
         <div className={styles.presetActions}>
-          <button type="button" aria-label="Use local-first AI routing setup" onClick={() => void applyPreset("local")} disabled={Boolean(working)}>{working === "local-preset" ? "Selecting local routes…" : "Use local-first setup"}</button>
-          <button type="button" aria-label="Switch to cloud AI routing setup" onClick={() => void applyPreset("cloud")} disabled={Boolean(working)}>{working === "cloud-preset" ? "Selecting cloud routes…" : "Switch to cloud setup"}</button>
+          {!locality && !capabilityFilter ? <>
+            <button type="button" aria-label="Use local-first AI routing setup" onClick={() => void applyPreset("local")} disabled={Boolean(working)}>{working === "local-preset" ? "Selecting local routes…" : "Use local-first setup"}</button>
+            <button type="button" aria-label="Switch to cloud AI routing setup" onClick={() => void applyPreset("cloud")} disabled={Boolean(working)}>{working === "cloud-preset" ? "Selecting cloud routes…" : "Switch to cloud setup"}</button>
+          </> : null}
           <button type="button" className={styles.secondaryButton} aria-label="Refresh current AI routing configuration" onClick={() => void refresh(true)} disabled={Boolean(working)}>Refresh current configuration</button>
         </div>
       </header>
@@ -265,7 +298,7 @@ export default function AiRoutingPanel() {
           <span>This is what PlotPickle will use now. Changing a choice updates only that job.</span>
         </header>
         <div className={styles.activeGrid}>
-          {AI_SOURCE_GROUPS.map(({ capability, title }) => {
+          {visibleGroups.map(({ capability, title }) => {
             const group = status[capability];
             const selected = group.selected;
             const option = group.options[selected];
@@ -280,6 +313,7 @@ export default function AiRoutingPanel() {
                   <div><dt>Last successful test</dt><dd>{formatDate(option.verifiedAt)}</dd></div>
                   <div><dt>Cost</dt><dd>{option.cost}</dd></div>
                 </dl>
+                {locality && option.locality !== locality ? <p>The active route currently belongs to {option.locality === "cloud" ? "Cloud Compute" : "Local Compute"}. Choose a ready option below to switch this capability.</p> : null}
                 {!option.ready && selected !== "off" && selected !== "manual" ? <p>{option.error || "This active route still needs setup or a successful test."}</p> : null}
                 {setupButtons(selected, option, "Open")}
               </article>
@@ -288,43 +322,48 @@ export default function AiRoutingPanel() {
         </div>
       </section>
 
-      <section className={styles.consent} aria-labelledby="cloud-consent-title">
-        <div><h2 id="cloud-consent-title">Cloud-provider consent</h2><p>These confirmations matter only when you choose a cloud route. Choosing a provider does not itself run a paid generation.</p></div>
-        <label><input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.target.checked)} /><span><strong>I understand cloud API requests can incur charges.</strong><small>PlotPickle uses only the account and API key you configured.</small></span></label>
-        <label><input type="checkbox" checked={dataSharingAcknowledged} onChange={(event) => setDataSharingAcknowledged(event.target.checked)} /><span><strong>I understand cloud video sends the prompt and selected reference image.</strong><small>Local ComfyUI routes keep generation on this computer.</small></span></label>
-      </section>
+      {locality !== "local" ? (
+        <section className={styles.consent} aria-labelledby="cloud-consent-title">
+          <div><h2 id="cloud-consent-title">Cloud-provider consent</h2><p>These confirmations matter only when you choose a cloud route. Choosing a provider does not itself run a paid generation.</p></div>
+          <label><input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.target.checked)} /><span><strong>I understand cloud API requests can incur charges.</strong><small>PlotPickle uses only the account and protected connection you configured.</small></span></label>
+          {!capabilityFilter || capabilityFilter === "video" ? <label><input type="checkbox" checked={dataSharingAcknowledged} onChange={(event) => setDataSharingAcknowledged(event.target.checked)} /><span><strong>I understand cloud video sends the prompt and selected reference image.</strong><small>Local media routes keep generation on this computer.</small></span></label> : null}
+        </section>
+      ) : null}
 
       <div className={styles.groups}>
-        {AI_SOURCE_GROUPS.map(({ capability, title, description }) => {
+        {visibleGroups.map(({ capability, title, description }) => {
           const group = status[capability];
+          const options = filteredOptions(capability);
           return (
             <fieldset className={styles.group} key={capability}>
               <legend>{title}</legend>
-              <p>{description} Choose one option below.</p>
-              <ul className={styles.options}>
-                {Object.entries(group.options).map(([route, option]) => {
-                  const selected = group.selected === route;
-                  const label = AI_SOURCE_OPTION_LABELS[capability][route];
-                  const pending = working === `${capability}:${route}`;
-                  const selectable = routeCanRun(route, option);
-                  return (
-                    <li className={styles.option} data-selected={selected} data-ready={option.ready} data-available={selectable} key={route}>
-                      <label aria-disabled={!selectable && !selected}>
-                        <input type="radio" name={`ai-route-${capability}`} value={route} checked={selected} aria-label={`Choose ${label.title} for ${title.toLowerCase()}`} onChange={() => void select(capability, route)} disabled={Boolean(working) || (!selectable && !selected)} style={{ position: "static", width: 20, height: 20, opacity: 1, marginTop: 2, accentColor: "#35c9b8" }} />
-                        <span className={styles.copy}><strong>{label.title}</strong><small>{label.description}</small></span>
-                      </label>
-                      <dl>
-                        <div><dt>Status</dt><dd>{pending ? "Updating…" : statusLabel(selected, option, route)}</dd></div>
-                        <div><dt>Cost</dt><dd>{option.cost}</dd></div>
-                        {option.model ? <div><dt>Model or workflow</dt><dd>{option.model}</dd></div> : null}
-                        <div><dt>Last test</dt><dd>{formatDate(option.verifiedAt)}</dd></div>
-                      </dl>
-                      {!selectable && !selected ? <p className={styles.warning}>{option.error || "Complete installation, configuration and a successful test before choosing this route."}</p> : selected && !option.ready && route !== "off" && route !== "manual" ? <p className={styles.warning}>{option.error || "This route is active but still needs configuration or a successful test."}</p> : null}
-                      {setupButtons(route, option, selectable ? "Open" : "Set up")}
-                    </li>
-                  );
-                })}
-              </ul>
+              <p>{description} {locality ? `Choose one ${locality === "local" ? "local" : "cloud"} option below.` : "Choose one option below."}</p>
+              {options.length ? (
+                <ul className={styles.options}>
+                  {options.map(([route, option]) => {
+                    const selected = group.selected === route;
+                    const label = AI_SOURCE_OPTION_LABELS[capability][route];
+                    const pending = working === `${capability}:${route}`;
+                    const selectable = routeCanRun(route, option);
+                    return (
+                      <li className={styles.option} data-selected={selected} data-ready={option.ready} data-available={selectable} key={route}>
+                        <label aria-disabled={!selectable && !selected}>
+                          <input type="radio" name={`ai-route-${capability}`} value={route} checked={selected} aria-label={`Choose ${label.title} for ${title.toLowerCase()}`} onChange={() => void select(capability, route)} disabled={Boolean(working) || (!selectable && !selected)} style={{ position: "static", width: 20, height: 20, opacity: 1, marginTop: 2, accentColor: "#35c9b8" }} />
+                          <span className={styles.copy}><strong>{label.title}</strong><small>{label.description}</small></span>
+                        </label>
+                        <dl>
+                          <div><dt>Status</dt><dd>{pending ? "Updating…" : statusLabel(selected, option, route)}</dd></div>
+                          <div><dt>Cost</dt><dd>{option.cost}</dd></div>
+                          {option.model ? <div><dt>Model or workflow</dt><dd>{option.model}</dd></div> : null}
+                          <div><dt>Last test</dt><dd>{formatDate(option.verifiedAt)}</dd></div>
+                        </dl>
+                        {!selectable && !selected ? <p className={styles.warning}>{option.error || "Complete installation, configuration and a successful test before choosing this route."}</p> : selected && !option.ready && route !== "off" && route !== "manual" ? <p className={styles.warning}>{option.error || "This route is active but still needs configuration or a successful test."}</p> : null}
+                        {setupButtons(route, option, selectable ? "Open" : "Set up")}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : <p className={styles.warning}>No {locality} {capabilityName(capability).toLowerCase()} route is currently registered. PlotPickle will not invent or silently substitute one.</p>}
             </fieldset>
           );
         })}

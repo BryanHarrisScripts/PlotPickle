@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
-import { PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
+import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
 import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,
@@ -149,6 +149,7 @@ function NodeControl() {
         await logoutHumanProfile(currentProfile.csrfToken);
       }
       clearProfilePrivateBrowser();
+      window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
 
       setNode(await nodeAction("complete-shutdown", { shutdownToken }));
     } catch (cause) {

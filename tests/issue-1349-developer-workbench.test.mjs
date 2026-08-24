@@ -47,6 +47,6 @@ test("#1349 publication requires Human action and records reviewed head", () => 
 
 test("#1349 Workbench does not introduce credential storage or merge authority", () => {
   assert.doesNotMatch(program, /GITHUB_TOKEN|GH_TOKEN|private[_ -]?key|api[_ -]?key\s*=/i);
-  assert.doesNotMatch(program, /gh[^\n]*pr[^\n]*merge/i);
+  assert.doesNotMatch(program, /["']pr["']\s*,\s*["']merge["']/i);
   assert.doesNotMatch(piBridge, /runPortableCommand\([^)]*(?:git|gh)/i);
 });

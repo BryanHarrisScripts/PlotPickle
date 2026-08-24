@@ -54,18 +54,6 @@ function matchesFilter(model: CatalogModel, filter: CatalogFilter) {
   return capabilities.some((value) => value.includes("coding") || value.includes("code") || value.includes("tool"));
 }
 
-function searchableText(model: CatalogModel) {
-  return [
-    model.id,
-    model.family,
-    model.parameterSize,
-    model.quantization,
-    model.fit.label,
-    model.metadataSource,
-    ...capabilityNames(model),
-  ].join(" ").toLowerCase();
-}
-
 export default function LocalModelCatalogPanel() {
   const [status, setStatus] = useState<RuntimeStatus | null>(null);
   const [query, setQuery] = useState("");
@@ -91,7 +79,16 @@ export default function LocalModelCatalogPanel() {
     const normalizedQuery = query.trim().toLowerCase();
     return (status?.modelCatalog || []).filter((model) => {
       if (!matchesFilter(model, filter)) return false;
-      return !normalizedQuery || searchableText(model).includes(normalizedQuery);
+      const searchable = [
+        model.id,
+        model.family,
+        model.parameterSize,
+        model.quantization,
+        model.fit.label,
+        model.metadataSource,
+        ...capabilityNames(model),
+      ].join(" ").toLowerCase();
+      return !normalizedQuery || searchable.includes(normalizedQuery);
     });
   }, [filter, query, status]);
 

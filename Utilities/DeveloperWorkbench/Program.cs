@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -21,6 +22,7 @@ internal sealed class MainForm : Form
     private readonly TextBox _repositoryPath = new() { Width = 420 };
     private readonly Button _browse = new() { Text = "Browse...", AutoSize = true };
     private readonly Button _load = new() { Text = "Load GitHub work", AutoSize = true };
+    private readonly Button _refreshReadiness = new() { Text = "Refresh readiness", AutoSize = true };
     private readonly ComboBox _filter = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 130 };
     private readonly TextBox _search = new() { PlaceholderText = "Search # / title", Dock = DockStyle.Fill };
     private readonly ListView _queue = new() { View = View.Details, FullRowSelect = true, HideSelection = false, Dock = DockStyle.Fill };
@@ -30,19 +32,29 @@ internal sealed class MainForm : Form
     private readonly Button _copy = new() { Text = "Copy brief", AutoSize = true, Enabled = false };
     private readonly Button _publish = new() { Text = "Publish approved brief", AutoSize = true, Enabled = false };
     private readonly Label _status = new() { Text = "Ready", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+    private readonly ToolTip _readinessDetails = new();
+    private readonly Label _buildState = CreateReadinessLabel("BUILD");
+    private readonly Label _githubState = CreateReadinessLabel("GITHUB");
+    private readonly Label _repoState = CreateReadinessLabel("LOCAL REPO");
+    private readonly Label _nodeState = CreateReadinessLabel("NODE");
+    private readonly Label _piState = CreateReadinessLabel("PI");
+    private readonly Label _runtimeState = CreateReadinessLabel("LOCAL LLM");
+    private readonly Label _inferenceState = CreateReadinessLabel("INFERENCE");
 
     private GitHubClient? _github;
     private List<WorkItem> _items = [];
     private WorkItem? _selected;
     private ReviewPackage? _currentPackage;
     private string _reviewedHeadSha = string.Empty;
+    private bool _reviewStackReady;
+    private bool _evidenceReady;
 
     public MainForm()
     {
-        Text = "PlotPickle Developer Workbench";
-        MinimumSize = new Size(1180, 720);
+        Text = $"PlotPickle Developer Workbench · {WorkbenchBuildIdentity.Current}";
+        MinimumSize = new Size(1180, 760);
         Width = 1500;
-        Height = 900;
+        Height = 940;
         StartPosition = FormStartPosition.CenterScreen;
 
         _queue.Columns.Add("Type", 58);
@@ -60,14 +72,26 @@ internal sealed class MainForm : Form
 
         BuildLayout();
         WireEvents();
+        SetReadiness(_buildState, "BUILD", ReadinessLevel.Ready, WorkbenchBuildIdentity.Current, "This identity is embedded in the executable at publish time.");
+        Shown += async (_, _) => await RefreshReadinessAsync();
     }
 
     private void BuildLayout()
     {
-        var top = new FlowLayoutPanel
+        var topArea = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 76,
+            Height = 126,
+            RowCount = 2,
+            ColumnCount = 1,
+            Padding = new Padding(0),
+        };
+        topArea.RowStyles.Add(new RowStyle(SizeType.Absolute, 66));
+        topArea.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var top = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
             Padding = new Padding(10),
             WrapContents = false,
             AutoScroll = true,
@@ -78,6 +102,25 @@ internal sealed class MainForm : Form
         top.Controls.Add(_repositoryPath);
         top.Controls.Add(_browse);
         top.Controls.Add(_load);
+
+        var readiness = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(10, 0, 10, 8),
+            WrapContents = true,
+            AutoScroll = true,
+        };
+        readiness.Controls.Add(_buildState);
+        readiness.Controls.Add(_githubState);
+        readiness.Controls.Add(_repoState);
+        readiness.Controls.Add(_nodeState);
+        readiness.Controls.Add(_piState);
+        readiness.Controls.Add(_runtimeState);
+        readiness.Controls.Add(_inferenceState);
+        readiness.Controls.Add(_refreshReadiness);
+
+        topArea.Controls.Add(top, 0, 0);
+        topArea.Controls.Add(readiness, 0, 1);
 
         var body = new TableLayoutPanel
         {
@@ -131,13 +174,15 @@ internal sealed class MainForm : Form
 
         Controls.Add(body);
         Controls.Add(bottom);
-        Controls.Add(top);
+        Controls.Add(topArea);
     }
 
     private void WireEvents()
     {
         _browse.Click += (_, _) => BrowseRepository();
         _load.Click += async (_, _) => await LoadQueueAsync();
+        _refreshReadiness.Click += async (_, _) => await RefreshReadinessAsync();
+        _repositoryPath.TextChanged += (_, _) => InvalidateReadinessForRepositoryChange();
         _filter.SelectedIndexChanged += (_, _) => RenderQueue();
         _search.TextChanged += (_, _) => RenderQueue();
         _queue.SelectedIndexChanged += async (_, _) => await QueueSelectionChangedAsync();
@@ -168,6 +213,7 @@ internal sealed class MainForm : Form
         }
         if (!Directory.Exists(repositoryPath))
         {
+            SetReadiness(_repoState, "LOCAL REPO", ReadinessLevel.Failed, "RED", "Choose an existing local PlotPickle repository folder.");
             MessageBox.Show(this, "Choose the local PlotPickle repository folder first.", Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -176,18 +222,28 @@ internal sealed class MainForm : Form
         {
             SettingsStore.Save(new WorkbenchSettings(repository, repositoryPath));
             _github = new GitHubClient(repository, repositoryPath);
-            await _github.CheckAuthAsync();
+            try
+            {
+                await _github.CheckAuthAsync();
+                SetReadiness(_githubState, "GITHUB", ReadinessLevel.Ready, "CONNECTED", "GitHub CLI authentication is valid for github.com.");
+            }
+            catch (Exception error)
+            {
+                SetReadiness(_githubState, "GITHUB", ReadinessLevel.Failed, "RED", error.Message);
+                throw;
+            }
             _items = await _github.ListOpenItemsAsync();
             _selected = null;
             _currentPackage = null;
             _reviewedHeadSha = string.Empty;
+            _evidenceReady = false;
             _evidence.Clear();
             _review.Clear();
-            _reviewWithPi.Enabled = false;
+            UpdateReviewAvailability();
             _copy.Enabled = false;
             _publish.Enabled = false;
             RenderQueue();
-            SetStatus($"Loaded {_items.Count} open work items.");
+            SetStatus($"Loaded {_items.Count} open work items. GitHub queue is ready; Pi review still follows the readiness lights above.");
         });
     }
 
@@ -237,21 +293,40 @@ internal sealed class MainForm : Form
             _evidence.Text = EvidenceRenderer.Render(_currentPackage);
             _review.Clear();
             _reviewedHeadSha = string.Empty;
-            _reviewWithPi.Enabled = true;
+            _evidenceReady = true;
+            UpdateReviewAvailability();
             _copy.Enabled = false;
             _publish.Enabled = false;
-            SetStatus($"Evidence ready for {item.Kind} #{item.Number}.");
+            SetStatus(_reviewStackReady
+                ? $"Evidence ready for {item.Kind} #{item.Number}. Pi review stack is green."
+                : $"Evidence ready for {item.Kind} #{item.Number}. Review with Pi remains disabled until PI, LOCAL LLM and INFERENCE are green.");
         });
     }
 
     private async Task ReviewWithPiAsync()
     {
         if (_currentPackage is null) return;
+        if (!_reviewStackReady)
+        {
+            UpdateReviewAvailability();
+            SetStatus("Review with Pi is blocked until PI, LOCAL LLM and INFERENCE are green. Choose Refresh readiness after starting the local model runtime.");
+            return;
+        }
         await RunUiTaskAsync("Pi is reviewing the exact work-item package...", async () =>
         {
             var runner = new PiReviewRunner(_currentPackage.RepositoryPath);
-            var markdown = await runner.RunAsync(_currentPackage);
-            _review.Text = markdown;
+            try
+            {
+                var markdown = await runner.RunAsync(_currentPackage);
+                _review.Text = markdown;
+            }
+            catch
+            {
+                _reviewStackReady = false;
+                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The review call failed after the last readiness check. Refresh readiness before another Pi review.");
+                UpdateReviewAvailability();
+                throw;
+            }
             _reviewedHeadSha = _currentPackage.PullRequest?.HeadSha ?? string.Empty;
             _copy.Enabled = true;
             _publish.Enabled = true;
@@ -316,6 +391,165 @@ internal sealed class MainForm : Form
             SetStatus($"Review stale — PR head changed from {_reviewedHeadSha[..Math.Min(12, _reviewedHeadSha.Length)]} to {current[..Math.Min(12, current.Length)]}. Refresh required.");
             throw new InvalidOperationException("The PR head changed after Pi reviewed it. Reload the work item and run Review with Pi again before publishing.");
         }
+    }
+
+    private async Task RefreshReadinessAsync()
+    {
+        var repositoryPath = _repositoryPath.Text.Trim();
+        var workingDirectory = Directory.Exists(repositoryPath) ? repositoryPath : Environment.CurrentDirectory;
+        _reviewStackReady = false;
+        UpdateReviewAvailability();
+        _refreshReadiness.Enabled = false;
+
+        SetReadiness(_githubState, "GITHUB", ReadinessLevel.Checking, "CHECKING", "Checking GitHub CLI authentication.");
+        SetReadiness(_repoState, "LOCAL REPO", ReadinessLevel.Checking, "CHECKING", "Checking the selected PlotPickle checkout.");
+        SetReadiness(_nodeState, "NODE", ReadinessLevel.Checking, "CHECKING", "Checking Node.js availability.");
+        SetReadiness(_piState, "PI", ReadinessLevel.Checking, "CHECKING", "Checking PlotPickle-managed Pi.");
+        SetReadiness(_runtimeState, "LOCAL LLM", ReadinessLevel.Checking, "CHECKING", "Resolving a supported local coding runtime and model.");
+        SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Checking, "CHECKING", "Running the same bounded explicit-provider handshake used before Pi review.");
+        SetStatus("Checking Developer Workbench readiness...");
+
+        try
+        {
+            try
+            {
+                await ProcessRunner.RunAsync("gh", ["auth", "status", "-h", "github.com"], workingDirectory, TimeSpan.FromSeconds(30));
+                SetReadiness(_githubState, "GITHUB", ReadinessLevel.Ready, "CONNECTED", "GitHub CLI authentication is valid. Loading Issues/PRs does not require Pi or a local LLM.");
+            }
+            catch (Exception error)
+            {
+                SetReadiness(_githubState, "GITHUB", ReadinessLevel.Failed, "RED", error.Message);
+            }
+
+            var repositoryReady = IsPlotPickleRepository(repositoryPath);
+            SetReadiness(
+                _repoState,
+                "LOCAL REPO",
+                repositoryReady ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+                repositoryReady ? "CURRENT" : "RED",
+                repositoryReady
+                    ? repositoryPath
+                    : "The selected folder must contain PlotPickle AGENTS.md, package.json and scripts/pi-work-item-review.mjs.");
+
+            var nodeReady = false;
+            try
+            {
+                var nodeVersion = await ProcessRunner.RunAsync("node", ["--version"], workingDirectory, TimeSpan.FromSeconds(15));
+                nodeReady = true;
+                SetReadiness(_nodeState, "NODE", ReadinessLevel.Ready, nodeVersion, $"Node {nodeVersion} is available for the Pi bridge.");
+            }
+            catch (Exception error)
+            {
+                SetReadiness(_nodeState, "NODE", ReadinessLevel.Failed, "RED", error.Message);
+            }
+
+            if (!repositoryReady || !nodeReady)
+            {
+                var dependency = !repositoryReady ? "a current PlotPickle local repository" : "Node.js";
+                SetReadiness(_piState, "PI", ReadinessLevel.Failed, "BLOCKED", $"Pi readiness requires {dependency}.");
+                SetReadiness(_runtimeState, "LOCAL LLM", ReadinessLevel.Failed, "BLOCKED", $"Local runtime readiness requires {dependency}.");
+                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "BLOCKED", $"Inference readiness requires {dependency}.");
+                SetStatus("GitHub work can still be loaded when GitHub is connected. Pi review is blocked until the local review stack is ready.");
+                return;
+            }
+
+            PiReadinessReport report;
+            try
+            {
+                report = await PiReadinessProbe.RunAsync(repositoryPath);
+            }
+            catch (Exception error)
+            {
+                SetReadiness(_piState, "PI", ReadinessLevel.Failed, "RED", error.Message);
+                SetReadiness(_runtimeState, "LOCAL LLM", ReadinessLevel.Failed, "RED", "The readiness probe could not resolve the local runtime because the Pi bridge itself failed.");
+                SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Failed, "RED", "The bounded inference handshake did not run.");
+                SetStatus("Pi readiness probe failed. GitHub queue loading remains independent; Review with Pi is disabled.");
+                return;
+            }
+
+            SetReadiness(
+                _piState,
+                "PI",
+                report.Pi.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+                report.Pi.Ready ? report.Pi.Version : "RED",
+                report.Pi.Detail);
+            var runtimeSummary = report.Runtime.Ready
+                ? string.Join(" · ", new[] { report.Runtime.Label, report.Runtime.Model }.Where(value => !string.IsNullOrWhiteSpace(value)))
+                : "RED";
+            SetReadiness(
+                _runtimeState,
+                "LOCAL LLM",
+                report.Runtime.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+                runtimeSummary,
+                report.Runtime.Detail);
+            SetReadiness(
+                _inferenceState,
+                "INFERENCE",
+                report.Inference.Ready ? ReadinessLevel.Ready : ReadinessLevel.Failed,
+                report.Inference.Ready ? $"{report.Inference.LatencyMs} ms" : "RED",
+                report.Inference.Detail);
+
+            _reviewStackReady = report.Pi.Ready && report.Runtime.Ready && report.Inference.Ready;
+            UpdateReviewAvailability();
+            SetStatus(_reviewStackReady
+                ? "Pi review stack is green. Select an Issue/PR; Review with Pi will enable when its evidence is ready."
+                : "GitHub work can load, but Review with Pi stays disabled until PI, LOCAL LLM and INFERENCE are green. Hover a red light for detail.");
+        }
+        finally
+        {
+            _refreshReadiness.Enabled = true;
+        }
+    }
+
+    private void InvalidateReadinessForRepositoryChange()
+    {
+        _reviewStackReady = false;
+        _evidenceReady = false;
+        UpdateReviewAvailability();
+        SetReadiness(_repoState, "LOCAL REPO", ReadinessLevel.Unknown, "REFRESH", "Repository path changed. Refresh readiness before Pi review.");
+        SetReadiness(_piState, "PI", ReadinessLevel.Unknown, "REFRESH", "Repository path changed. Refresh readiness before Pi review.");
+        SetReadiness(_runtimeState, "LOCAL LLM", ReadinessLevel.Unknown, "REFRESH", "Repository path changed. Refresh readiness before Pi review.");
+        SetReadiness(_inferenceState, "INFERENCE", ReadinessLevel.Unknown, "REFRESH", "Repository path changed. Refresh readiness before Pi review.");
+    }
+
+    private void UpdateReviewAvailability() => _reviewWithPi.Enabled = _evidenceReady && _reviewStackReady;
+
+    private static bool IsPlotPickleRepository(string repositoryPath)
+        => Directory.Exists(repositoryPath)
+            && File.Exists(Path.Combine(repositoryPath, "AGENTS.md"))
+            && File.Exists(Path.Combine(repositoryPath, "package.json"))
+            && File.Exists(Path.Combine(repositoryPath, "scripts", "pi-work-item-review.mjs"));
+
+    private static Label CreateReadinessLabel(string name) => new()
+    {
+        Text = $"{name} CHECKING",
+        AutoSize = true,
+        BorderStyle = BorderStyle.FixedSingle,
+        Padding = new Padding(7, 4, 7, 4),
+        Margin = new Padding(0, 2, 6, 2),
+        ForeColor = Color.White,
+        BackColor = Color.DimGray,
+    };
+
+    private void SetReadiness(Label label, string name, ReadinessLevel level, string summary, string detail)
+    {
+        var state = level switch
+        {
+            ReadinessLevel.Ready => "GREEN",
+            ReadinessLevel.Failed => "RED",
+            ReadinessLevel.Checking => "CHECKING",
+            _ => "UNKNOWN",
+        };
+        label.Text = string.IsNullOrWhiteSpace(summary) ? $"{name} {state}" : $"{name} {state} · {summary}";
+        label.ForeColor = Color.White;
+        label.BackColor = level switch
+        {
+            ReadinessLevel.Ready => Color.DarkGreen,
+            ReadinessLevel.Failed => Color.DarkRed,
+            ReadinessLevel.Checking => Color.DarkGoldenrod,
+            _ => Color.DimGray,
+        };
+        _readinessDetails.SetToolTip(label, string.IsNullOrWhiteSpace(detail) ? label.Text : detail);
     }
 
     private async Task RunUiTaskAsync(string message, Func<Task> action)
@@ -740,6 +974,22 @@ internal sealed class PiReviewRunner(string repositoryPath)
     }
 }
 
+internal static class PiReadinessProbe
+{
+    public static async Task<PiReadinessReport> RunAsync(string repositoryPath)
+    {
+        var script = Path.Combine(repositoryPath, "scripts", "pi-work-item-review.mjs");
+        if (!File.Exists(script)) throw new FileNotFoundException("Pi work-item review bridge is missing from this repository checkout.", script);
+        var raw = await ProcessRunner.RunAsync(
+            "node",
+            [script, "--readiness", "--repository-path", repositoryPath],
+            repositoryPath,
+            TimeSpan.FromMinutes(16));
+        var report = JsonSerializer.Deserialize<PiReadinessReport>(raw, JsonOptions.Standard);
+        return report ?? throw new InvalidOperationException("Pi readiness probe returned invalid JSON.");
+    }
+}
+
 internal static class ProcessRunner
 {
     public static async Task<string> RunAsync(string command, IEnumerable<string> arguments, string workingDirectory, TimeSpan timeout)
@@ -894,13 +1144,65 @@ internal static class RepositoryLocator
     }
 }
 
+internal static class WorkbenchBuildIdentity
+{
+    public static string Current { get; } = Resolve();
+
+    private static string Resolve()
+    {
+        var value = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        return string.IsNullOrWhiteSpace(value) ? "build-local · sha-unknown" : value.Replace(";", " · ", StringComparison.Ordinal);
+    }
+}
+
 internal static class JsonOptions
 {
     public static readonly JsonSerializerOptions Standard = new() { PropertyNameCaseInsensitive = true };
     public static readonly JsonSerializerOptions Indented = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 }
 
+internal enum ReadinessLevel
+{
+    Unknown,
+    Checking,
+    Ready,
+    Failed,
+}
+
 internal sealed record WorkbenchSettings(string Repository, string RepositoryPath);
+
+internal sealed class PiReadinessReport
+{
+    public int SchemaVersion { get; set; }
+    public bool Ready { get; set; }
+    public PiReadinessComponent Pi { get; set; } = new();
+    public PiRuntimeReadiness Runtime { get; set; } = new();
+    public PiInferenceReadiness Inference { get; set; } = new();
+}
+
+internal sealed class PiReadinessComponent
+{
+    public bool Ready { get; set; }
+    public string Version { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
+
+internal sealed class PiRuntimeReadiness
+{
+    public bool Ready { get; set; }
+    public string Label { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public string BaseUrl { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
+
+internal sealed class PiInferenceReadiness
+{
+    public bool Ready { get; set; }
+    public int LatencyMs { get; set; }
+    public string ProviderId { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
 
 internal sealed class WorkItem
 {

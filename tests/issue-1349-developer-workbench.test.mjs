@@ -11,14 +11,18 @@ import {
 
 const programPath = new URL("../Utilities/DeveloperWorkbench/Program.cs", import.meta.url);
 const projectPath = new URL("../Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj", import.meta.url);
+const buildScriptPath = new URL("../Utilities/DeveloperWorkbench/build.ps1", import.meta.url);
+const workflowPath = new URL("../.github/workflows/developer-workbench.yml", import.meta.url);
 const piBridgePath = new URL("../scripts/pi-work-item-review.mjs", import.meta.url);
 const instructionHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-review-instructions.mjs", import.meta.url);
 const directLaunchHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs", import.meta.url);
 const gitignorePath = new URL("../.gitignore", import.meta.url);
 
-const [program, project, piBridge, instructionHelper, directLaunchHelper, gitignore] = await Promise.all([
+const [program, project, buildScript, workflow, piBridge, instructionHelper, directLaunchHelper, gitignore] = await Promise.all([
   readFile(programPath, "utf8"),
   readFile(projectPath, "utf8"),
+  readFile(buildScriptPath, "utf8"),
+  readFile(workflowPath, "utf8"),
   readFile(piBridgePath, "utf8"),
   readFile(instructionHelperPath, "utf8"),
   readFile(directLaunchHelperPath, "utf8"),
@@ -152,4 +156,39 @@ test("#1349 Workbench does not introduce credential storage or merge authority",
   assert.doesNotMatch(program, /GITHUB_TOKEN|GH_TOKEN|private[_ -]?key|api[_ -]?key\s*=/i);
   assert.doesNotMatch(program, /["']pr["']\s*,\s*["']merge["']/i);
   assert.doesNotMatch(piBridge, /runPortableCommand\([^)]*(?:git|gh)/i);
+});
+
+test("#1355 Workbench shows independent readiness lights and gates Pi review on live inference", () => {
+  for (const label of ["BUILD", "GITHUB", "LOCAL REPO", "NODE", "PI", "LOCAL LLM", "INFERENCE"]) {
+    assert.match(program, new RegExp(`CreateReadinessLabel\\("${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\)`));
+  }
+  assert.match(program, /Refresh readiness/);
+  assert.match(program, /Loading Issues\/PRs does not require Pi or a local LLM/);
+  assert.match(program, /_reviewWithPi\.Enabled = _evidenceReady && _reviewStackReady/);
+  assert.match(program, /report\.Pi\.Ready && report\.Runtime\.Ready && report\.Inference\.Ready/);
+  assert.match(program, /Review with Pi is blocked until PI, LOCAL LLM and INFERENCE are green/);
+  assert.match(program, /PiReadinessProbe\.RunAsync/);
+  assert.match(program, /"--readiness", "--repository-path"/);
+  assert.match(piBridge, /async function printReadiness/);
+  assert.match(piBridge, /probeManagedPiReadiness/);
+  assert.match(piBridge, /purpose: "work-item-readiness"/);
+  assert.match(directLaunchHelper, /export async function probeManagedPiReadiness/);
+  assert.match(directLaunchHelper, /latencyMs: Date\.now\(\) - startedAt/);
+});
+
+test("#1355 Workbench embeds build number and exact source SHA in the EXE and artifact name", () => {
+  assert.match(project, /<PlotPickleWorkbenchBuild Condition=/);
+  assert.match(project, /<PlotPickleWorkbenchSha Condition=/);
+  assert.match(project, /<AssemblyInformationalVersion>build-\$\(PlotPickleWorkbenchBuild\);sha-\$\(PlotPickleWorkbenchSha\)<\/AssemblyInformationalVersion>/);
+  assert.match(program, /WorkbenchBuildIdentity\.Current/);
+  assert.match(program, /AssemblyInformationalVersionAttribute/);
+  assert.match(buildScript, /PLOTPICKLE_WORKBENCH_BUILD/);
+  assert.match(buildScript, /PLOTPICKLE_WORKBENCH_SHA/);
+  assert.match(buildScript, /PlotPickleWorkbenchBuild/);
+  assert.match(buildScript, /PlotPickleWorkbenchSha/);
+  assert.match(workflow, /Prepare Workbench build identity/);
+  assert.match(workflow, /github\.run_number/);
+  assert.match(workflow, /github\.event\.pull_request\.head\.sha/);
+  assert.match(workflow, /WORKBENCH_ARTIFACT_NAME=PlotPickle-Developer-Workbench-win-x64-build-/);
+  assert.match(workflow, /name: \$\{\{ env\.WORKBENCH_ARTIFACT_NAME \}\}/);
 });

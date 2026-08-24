@@ -70,7 +70,7 @@ test("Desktop onboarding remains local-only and does not silently install model 
 
 test("the focused live verifier remains the end-to-end local acceptance test", async () => {
   const verifier = await source("scripts/verify-comfyui-live.mjs");
-  const runner = await source("Run-PlotPickle-ComfyUI-Check.bat");
+  const runner = await source("Utilities/Run-PlotPickle-ComfyUI-Check.bat");
 
   assert.ok(verifier.includes("Ollama → PlotPickle → local ComfyUI image"));
   assert.ok(verifier.includes("/api/media-routing/test/image"));

@@ -5,17 +5,35 @@ on:
     branches: [main]
     paths:
       - "app/page.tsx"
+      - "app/sage-settings-workspace.tsx"
+      - "build/foundations-ppf-gateway.ts"
+      - "build/library-ppf-import-gateway.ts"
+      - "build/local-ai-gateway.ts"
+      - "build/portable-ppf-reader.ts"
       - "core/contracts/foundation-plan.ts"
+      - "core/contracts/imported-screenplay-evidence.ts"
       - "core/project/project.ts"
+      - "core/storage/project-library-browser.ts"
+      - "core/storage/project-library-core.mjs"
+      - "lib/projects/screenplay/screenplay-import.ts"
+      - "lib/projects/screenplay/screenplay-to-ppf.ts"
       - "modules/build/foundations-story-coverage.ts"
+      - "modules/build/progressive-story-map.ts"
       - "modules/build/ui/foundations-story-coverage.tsx"
       - "modules/build/ui/foundations-story-coverage.module.css"
       - "modules/build/ui/foundations-build-workspace.tsx"
+      - "modules/build/ui/progressive-story-map.tsx"
+      - "modules/build/ui/progressive-story-map.module.css"
       - "modules/build/build-workspace-model.ts"
+      - "modules/library/import/**"
+      - "modules/library/ui/**"
+      - "scripts/projects/convert-screenplay-to-ppf.mjs"
+      - "Utilities/Convert-Screenplay-To-PPF.cmd"
       - "app/build-health-map.tsx"
       - "app/build-health-map.module.css"
-      - "lib/projects/screenplay/screenplay-import.ts"
       - "tests/issue-1338-progressive-build-story-model.test.mjs"
+      - "tests/issue-1338-screenplay-to-ppf-utility.test.mjs"
+      - "tests/issue-1338-library-import-archive.test.mjs"
       - "tests/foundations-build-visual-workshop.test.mjs"
       - "tests/issue-1030b-foundations-wireframe.test.mjs"
       - "tests/dashboard-foundations-progression.test.mjs"
@@ -35,9 +53,9 @@ concurrency:
 
 jobs:
   story-model:
-    name: Live BUILD evidence, regressions and production build
+    name: Live BUILD evidence, Library import/archive and production build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 24
 
     steps:
       - name: Checkout
@@ -46,14 +64,17 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "22.13.0"
+          node-version: "22.22.0"
           cache: npm
 
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate live progressive BUILD story evidence
+      - name: Validate live progressive BUILD and 24/96 evidence
         run: node --test tests/issue-1338-progressive-build-story-model.test.mjs
+
+      - name: Validate screenplay conversion, modular import and Archive lifecycle
+        run: node --test tests/issue-1338-screenplay-to-ppf-utility.test.mjs tests/issue-1338-library-import-archive.test.mjs
 
       - name: Validate current Foundations BUILD behavior
         run: node --test tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs tests/dashboard-foundations-progression.test.mjs

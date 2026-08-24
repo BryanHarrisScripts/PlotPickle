@@ -4,29 +4,29 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1026 AI Routing opens exact in-place provider sections and normalizes ComfyUI into Images Setup", async () => {
-  const [routing, settings, providerSetup] = await Promise.all([
+test("#1026/#1377 AI Routing opens the shared Local or Cloud Compute owner without duplicating provider sections", async () => {
+  const [routing, settings, compute, providerSetup] = await Promise.all([
     read("app/ai-routing-panel.tsx"),
     read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/settings/ai-provider/ai-provider-setup-panel.tsx"),
   ]);
 
-  for (const target of ["ollama", "openai", "minimax"]) {
-    assert.match(settings, new RegExp(`id=["']settings-${target}["']`));
-  }
-  assert.match(settings, /id=["']settings-images["']/);
-  assert.match(settings, /"settings-comfyui": "images"/);
-  assert.match(settings, /comfyui: "images"/);
+  assert.match(settings, /id=["']settings-local-compute["']/);
+  assert.match(settings, /id=["']settings-cloud-compute["']/);
+  assert.match(settings, /"settings-ollama": "local-compute"/);
+  assert.match(settings, /"settings-comfyui": "local-compute"/);
+  assert.match(settings, /"settings-openai": "cloud-compute"/);
+  assert.match(settings, /"settings-minimax": "cloud-compute"/);
   assert.match(routing, /type ProviderTarget = "ollama" \| "openai" \| "minimax" \| "comfyui"/);
-  assert.match(routing, /const sectionId = `settings-\$\{target\}`/);
   assert.match(routing, /route === "ollama-comfyui"\) return \["ollama", "comfyui"\]/);
-  assert.doesNotMatch(routing, /target\.toLowerCase\(\)\.includes\("comfy"\) \? "settings-comfyui" : ""/);
+  assert.match(routing, /if \(onManage\)/);
   assert.match(routing, /plotpickle:settings-section/);
-  assert.match(settings, /openSettingsTarget\("ollama"\)/);
-  assert.match(settings, /focusProvider="ollama"/);
-  assert.match(settings, /AiProviderSetupPanel provider="openai"/);
-  assert.match(settings, /AiProviderSetupPanel provider="minimax"/);
-  assert.match(settings, /MediaRoutingPanel onManage=\{openSettingsTarget\}/);
+  assert.match(compute, /<AiRoutingPanel/);
+  assert.match(compute, /<AiProviderSetupPanel provider="openai" \/>/);
+  assert.match(compute, /<AiProviderSetupPanel provider="minimax" \/>/);
+  assert.match(compute, /<MediaRoutingPanel/);
+  assert.match(compute, /"settings-comfyui": "images"/);
   assert.match(providerSetup, /\/api\/local-ai\/connection/);
   assert.match(providerSetup, /type="password"/);
   assert.match(providerSetup, /Leave blank to keep saved key/);

@@ -12,9 +12,8 @@ function navItems(source) {
 test("#1256 global workflow navigation follows the attended UAT order", async () => {
   const source = await read("app/plotpickle-workspace-shell.tsx");
   assert.deepEqual(navItems(source).map((item) => item.label), [
-    "Dashboard",
-    "Library",
     "Community",
+    "Library",
     "Learn",
     "Wyrmwood",
     "Plan",
@@ -26,42 +25,45 @@ test("#1256 global workflow navigation follows the attended UAT order", async ()
     "Feedback",
     "Refine",
     "Reports",
+    "Dashboard",
     "Settings",
   ]);
 });
 
-test("#1256 Settings exposes the approved capability-owned information architecture", async () => {
+test("#1256/#1377 Settings exposes the approved compute-first information architecture", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const group of ["START", "LOCAL AI", "MODEL PROVIDERS", "COMMUNITY", "SYSTEM"]) {
+  for (const group of ["START", "AI COMPUTE", "COMMUNITY", "SYSTEM"]) {
     assert.match(source, new RegExp(`label: ["']${group}["']`));
   }
   for (const item of [
     "Overview",
     "What’s New",
     "Help",
-    "Sage Setup",
-    "PLAN Setup",
-    "LLM Routing",
-    "Images Setup",
-    "Video Setup",
-    "Ollama",
-    "OpenAI Cloud",
-    "MiniMax Cloud",
+    "Local Compute",
+    "Cloud Compute",
     "BUZZ Setup",
     "Agent Activity",
     "Advanced Runtime",
   ]) {
     assert.match(source, new RegExp(`label: ["']${item.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`));
   }
+  assert.doesNotMatch(source, /label: ["'](?:Sage Setup|PLAN Setup|LLM Routing|Images Setup|Video Setup|Ollama|OpenAI Cloud|MiniMax Cloud)["']/);
   assert.doesNotMatch(source, /Profiles\s*&\s*Security/i);
   assert.match(source, /Profile owns the Human BUZZ identity/);
 });
 
-test("#1256 existing setup owners are reused rather than duplicated", async () => {
-  const source = await read("app/sage-settings-workspace.tsx");
-  assert.match(source, /<SageFastModelSetup\s*\/>/);
-  assert.match(source, /<AiRoutingPanel\s*\/>/);
-  assert.match(source, /<MediaRoutingPanel onManage=\{openSettingsTarget\}\s*\/>/);
-  assert.match(source, /<BuzzSettingsPanel\s*\/>/);
-  assert.match(source, /<LocalRuntimePanel\s*\/>/);
+test("#1256/#1377 existing setup owners are reused inside the shared Compute workspace", async () => {
+  const [settings, compute] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
+  ]);
+  assert.match(settings, /<AiComputeWorkspace mode="local" \/>/);
+  assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
+  assert.match(compute, /<AiRoutingPanel/);
+  assert.match(compute, /<SageFastModelSetup \/>/);
+  assert.match(compute, /<MediaRoutingPanel/);
+  assert.match(compute, /<AiProviderSetupPanel provider="openai" \/>/);
+  assert.match(compute, /<AiProviderSetupPanel provider="minimax" \/>/);
+  assert.match(settings, /<BuzzSettingsPanel \/>/);
+  assert.match(settings, /<LocalRuntimePanel \/>/);
 });

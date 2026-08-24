@@ -34,8 +34,11 @@ test("Community and Guildhall use PlotPickle teal jade and gold instead of the o
   assert.doesNotMatch(continuity, /#d68a45|#f08a4b/i);
 });
 
-test("Settings exposes permanent left categories centre controls and right help without removing capabilities", async () => {
-  const settings = await read("app/sage-settings-workspace.tsx");
+test("Settings exposes permanent left categories centre controls and right help without removing AI capability depth", async () => {
+  const [settings, compute] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
+  ]);
 
   assert.match(settings, /data-plotpickle-settings="v2"/);
   assert.match(settings, /data-settings-rail="navigation"/);
@@ -43,27 +46,25 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /data-settings-rail="context"/);
   for (const label of [
     "Overview",
-    "Sage Setup",
-    "PLAN Setup",
-    "LLM Routing",
-    "Images Setup",
-    "Video Setup",
-    "Ollama",
-    "OpenAI Cloud",
-    "MiniMax Cloud",
+    "Local Compute",
+    "Cloud Compute",
     "BUZZ Setup",
     "Agent Activity",
     "Advanced Runtime",
   ]) {
     assert.match(settings, new RegExp(`label: "${label}"`));
   }
-  assert.match(settings, /<SageFastModelSetup \/>/);
   assert.match(settings, /<AgentObservabilityPanel \/>/);
   assert.match(settings, /<BuzzSettingsPanel \/>/);
   assert.match(settings, /<BuzzLiveHealthCard \/>/);
   assert.match(settings, /<DeepSeekHarnessPanel \/>/);
   assert.match(settings, /<LocalRuntimePanel \/>/);
-  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(settings, /<AiComputeWorkspace mode="local" \/>/);
+  assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
+  for (const capability of ["writing", "images", "video"]) assert.match(compute, new RegExp(`id: "${capability}"`));
+  for (const component of ["SageFastModelSetup", "AiRoutingPanel", "MediaRoutingPanel", "AiProviderSetupPanel"]) {
+    assert.match(compute, new RegExp(`<${component}\\b`));
+  }
   assert.match(settings, /data-settings-section=\{activeSection\}/);
   assert.match(settings, /aria-current=\{activeSection === item\.id \? "page" : undefined\}/);
 });

@@ -4,25 +4,27 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Advanced AI stays inside the three-column Settings workspace", async () => {
-  const [settings, routingPanel, route] = await Promise.all([
+test("Advanced AI stays inside the three-column Settings workspace through shared Local and Cloud Compute", async () => {
+  const [settings, compute, routingPanel, route] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/ai-routing-panel.tsx"),
     read("app/ai-routing/page.tsx"),
   ]);
 
-  assert.match(settings, /import AiRoutingPanel from "\.\/ai-routing-panel"/);
-  assert.match(settings, /import MediaRoutingPanel from "\.\/media-routing-panel"/);
-  assert.match(settings, /id="settings-routing"/);
-  assert.match(settings, /id="settings-comfyui"/);
-  assert.match(settings, /<AiRoutingPanel \/>/);
-  assert.match(settings, /<MediaRoutingPanel onManage=\{openSettingsTarget\} \/>/);
-  assert.match(settings, /href="#settings-routing"/);
-  assert.match(routingPanel, /target\.toLowerCase\(\)\.includes\("comfy"\) \? "settings-comfyui"/);
+  assert.match(settings, /import AiComputeWorkspace from "\.\/settings\/compute\/ai-compute-workspace"/);
+  assert.match(settings, /id="settings-local-compute"/);
+  assert.match(settings, /id="settings-cloud-compute"/);
+  assert.match(settings, /<AiComputeWorkspace mode="local" \/>/);
+  assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
+  assert.match(settings, /"settings-routing": "local-compute"/);
+  assert.match(settings, /"settings-comfyui": "local-compute"/);
+  assert.match(compute, /<AiRoutingPanel/);
+  assert.match(compute, /<MediaRoutingPanel/);
+  assert.match(compute, />Advanced Options<\/button>/);
+  assert.match(routingPanel, /if \(onManage\)/);
   assert.match(routingPanel, /localSection\.scrollIntoView/);
   assert.match(routingPanel, /window\.history\.replaceState/);
-  assert.match(routingPanel, /\?workspace=settings\$\{localSectionId \? `#\$\{localSectionId\}` : ""\}/);
-  assert.doesNotMatch(routingPanel, /window\.location\.assign\("\/\?workspace=settings"\)/);
   assert.match(route, /redirect\("\/\?workspace=settings#settings-routing"\)/);
   assert.doesNotMatch(route, /LocalRuntimePanel|<main|AiRoutingPanel/);
 });

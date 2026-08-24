@@ -4,17 +4,19 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#671 Advanced AI routing stays inside the matte-black Settings surface family", async () => {
-  const [page, settings, routing, consoleStyles] = await Promise.all([
+test("#671 Advanced AI routing stays inside the matte-black shared Compute surface family", async () => {
+  const [page, settings, compute, routing, consoleStyles] = await Promise.all([
     read("app/ai-routing/page.tsx"),
     read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/ai-routing-panel.module.css"),
     read("app/ai-routing-source-console.module.css"),
   ]);
 
   assert.match(page, /redirect\("\/\?workspace=settings#settings-routing"\)/);
-  assert.match(settings, /id="settings-routing"/);
-  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(settings, /"settings-routing": "local-compute"/);
+  assert.match(settings, /id="settings-local-compute"/);
+  assert.match(compute, /<AiRoutingPanel/);
   assert.match(routing, /--routing-bg: #090a0b/);
   assert.match(routing, /--routing-panel: #111315/);
   assert.match(routing, /--routing-raised: #171a1c/);
@@ -35,9 +37,10 @@ test("#671 Advanced AI routing stays inside the matte-black Settings surface fam
   assert.match(consoleStyles, /\.sourceConsole \{[\s\S]*linear-gradient\(145deg, #12161d, #181d26 64%, #11151b\)/);
 });
 
-test("#671 explains Advanced AI routing in writer-friendly language inside Settings", async () => {
-  const [settings, panel, page] = await Promise.all([
+test("#671/#1377 explains routing in beginner language while keeping expert controls available", async () => {
+  const [settings, compute, panel, page] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/ai-routing-panel.tsx"),
     read("app/ai-routing/page.tsx"),
   ]);
@@ -45,11 +48,11 @@ test("#671 explains Advanced AI routing in writer-friendly language inside Setti
   assert.match(panel, /Choose where writing, images and video are created/);
   assert.match(panel, /Each job has one active choice/);
   assert.match(panel, /Off and Manual Import are explicit safe choices/);
-  assert.match(settings, /One active choice per job/);
-  assert.match(settings, /Ollama is optional and no longer defines the local architecture/);
-  assert.match(settings, /AI provider routing is configured in the dedicated LLM Routing section above so the hardware view is not repeated/);
-  assert.match(settings, /<LocalRuntimePanel \/>/);
-  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(settings, /One interface for Local and Cloud/);
+  assert.match(settings, /Provider jargon and expert controls stay behind Advanced Options/);
+  assert.match(compute, /<LocalRuntimePanel \/>/);
+  assert.match(compute, /<AiRoutingPanel/);
+  assert.match(compute, />Advanced Options<\/button>/);
   assert.doesNotMatch(page, /LocalRuntimePanel|AiRoutingPanel|<main/);
 });
 

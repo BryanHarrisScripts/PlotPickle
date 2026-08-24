@@ -88,6 +88,9 @@
 .contextGuide > span:not(:first-child) { margin-top: 6px; }
 .contextHelpers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 .contextHelper { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: center; min-width: 0; padding: 4px; border: 1px solid rgba(53, 201, 184, .13); border-radius: 999px; background: rgba(7, 16, 14, .78); }
+.contextCard a.contextHelper { align-self: auto; padding: 4px; border: 1px solid rgba(53, 201, 184, .13); border-radius: 999px; background: rgba(7, 16, 14, .78); }
+.contextCard a.contextHelper:hover { border-color: rgba(53, 201, 184, .42); background: rgba(53, 201, 184, .08); }
+.contextCard a.contextHelper:focus-visible { outline: 2px solid #35c9b8; outline-offset: 2px; }
 .contextHelper small { overflow: hidden; color: #d7e4dc; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .memberList { display: grid; gap: 5px; }
 .memberRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.045); }

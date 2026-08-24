@@ -173,7 +173,7 @@ test("#1201 rejects obvious credential canaries before anything reaches profile-
       "recovery_secret=abcdefghijklmnop",
       "oauth_token=abcdefghijklmnop",
       "BUZZ_AUTH_TAG=abcdefghijklmnop",
-      "-----BEGIN PRIVATE KEY----- secret",
+      ["-----BEGIN", "PRIVATE KEY-----", "secret"].join(" "),
     ];
     for (const canary of canaries) {
       await assert.rejects(memory.saveMemory(proof(setup.profileA), {

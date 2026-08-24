@@ -79,7 +79,7 @@ test("issue #86 keeps pull-request CI bounded and leaves Windows smoke to the re
 test("issue #86 retires the unsupported Lighthouse runner instead of presenting it as valid", async () => {
   const [runner, launcher, docs] = await Promise.all([
     source("scripts/lighthouse-audit.mjs"),
-    source("Run-Lighthouse.bat"),
+    source("Utilities/archive/Run-Lighthouse.arc"),
     source("public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md"),
   ]);
 

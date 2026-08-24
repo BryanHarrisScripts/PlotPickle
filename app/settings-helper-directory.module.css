@@ -114,6 +114,26 @@
   background: rgba(10, 13, 13, 0.82);
 }
 
+.individual {
+  display: grid;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.individualCard {
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.8fr);
+  align-items: center;
+}
+
+.individualCard .portraitFrame {
+  min-height: 260px;
+  padding: 28px;
+}
+
+.individualCard .shortBio {
+  min-height: 0;
+}
+
 .portraitFrame {
   display: grid;
   min-height: 170px;
@@ -197,4 +217,6 @@
   .grid { grid-template-columns: 1fr; }
   .hero { padding: 18px; }
   .shortBio { min-height: 0; }
+  .individualCard { grid-template-columns: 1fr; }
+  .individualCard .portraitFrame { min-height: 200px; padding-bottom: 6px; }
 }

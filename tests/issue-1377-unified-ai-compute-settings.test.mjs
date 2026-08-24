@@ -90,3 +90,24 @@ test("#1377 preserves old Settings links while moving their destination into Loc
   assert.match(compute, /"settings-video": "video"/);
   assert.match(compute, /"settings-routing": "writing"/);
 });
+
+test("#1344 model catalogs extend the shared Compute workspace instead of restoring provider-first navigation", async () => {
+  const [settings, compute, localCatalog, cloudCatalog, gateway] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
+    read("app/settings/compute/local-model-catalog-panel.tsx"),
+    read("app/settings/compute/cloud-model-catalog-panel.tsx"),
+    read("build/provider-model-catalog-gateway.ts"),
+  ]);
+
+  assert.match(compute, /<LocalModelCatalogPanel \/>/);
+  assert.match(compute, /<CloudModelCatalogPanel capability=\{activeCapability\} \/>/);
+  assert.doesNotMatch(settings, /label: "PLOTPICKLE SETUP"|label: "LOCAL MODELS"|label: "CLOUD MODELS"/);
+  assert.match(localCatalog, />Search models</);
+  assert.match(localCatalog, /filtered\.length} of \{total}/);
+  assert.match(cloudCatalog, /status\?\.count/);
+  assert.match(gateway, /readSynchronizedAssistantStore/);
+  assert.match(gateway, /readMediaRoutingStore/);
+  assert.match(gateway, /count: models\.length/);
+  assert.doesNotMatch(`${localCatalog}\n${cloudCatalog}\n${gateway}`, /\b640\b/);
+});

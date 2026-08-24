@@ -1,0 +1,272 @@
+.panel {
+  border: 1px solid rgba(111, 180, 167, 0.28);
+  border-radius: 14px;
+  background: rgba(10, 28, 25, 0.72);
+  padding: 16px;
+}
+
+.heading,
+.provider > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.heading p {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a99a62;
+}
+
+.heading h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #edf7f4;
+}
+
+.heading span,
+.provider header span,
+.card p,
+.card small,
+.boundary,
+.limit,
+.warning,
+.selected,
+.notice {
+  color: #a9c0ba;
+}
+
+.heading span {
+  display: block;
+  margin-top: 5px;
+  max-width: 760px;
+  line-height: 1.45;
+}
+
+.heading button,
+.provider header button,
+.actions button,
+.compactList button {
+  border: 1px solid rgba(142, 224, 213, 0.34);
+  border-radius: 8px;
+  background: rgba(22, 50, 45, 0.92);
+  color: #eaf7f3;
+  cursor: pointer;
+}
+
+.heading button,
+.provider header button,
+.actions button {
+  padding: 7px 10px;
+}
+
+.heading button:disabled,
+.provider header button:disabled,
+.actions button:disabled,
+.compactList button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 220px) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.controlsSingle {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 12px 0;
+}
+
+.controls label,
+.controlsSingle label {
+  display: grid;
+  gap: 5px;
+  color: #bdd2cd;
+  font-size: 12px;
+}
+
+.controls input,
+.controls select,
+.controlsSingle input {
+  min-width: 0;
+  border: 1px solid rgba(111, 180, 167, 0.36);
+  border-radius: 8px;
+  background: #0b1b18;
+  color: #eff8f5;
+  padding: 8px 9px;
+}
+
+.controls > strong,
+.controlsSingle > strong {
+  padding: 8px 0;
+  color: #8ee0d5;
+  white-space: nowrap;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card,
+.provider {
+  border: 1px solid rgba(111, 180, 167, 0.24);
+  border-radius: 10px;
+  background: rgba(17, 42, 37, 0.86);
+  padding: 12px;
+}
+
+.card > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.card > header strong {
+  overflow-wrap: anywhere;
+  color: #eff8f5;
+}
+
+.card > header span {
+  flex: 0 0 auto;
+  color: #8ee0d5;
+  font-size: 11px;
+}
+
+.card p {
+  margin: 7px 0 0;
+  line-height: 1.4;
+  font-size: 12px;
+}
+
+.card small {
+  display: block;
+  margin-top: 7px;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.providerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.provider > header strong {
+  display: block;
+  color: #eff8f5;
+}
+
+.provider > header span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.selected {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+.selected strong {
+  color: #e8f7f2;
+  overflow-wrap: anywhere;
+}
+
+.compactList {
+  display: grid;
+  gap: 6px;
+  max-height: 330px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.compactList button {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 9px;
+  text-align: left;
+}
+
+.compactList button[data-selected="true"] {
+  border-color: rgba(142, 224, 213, 0.78);
+  background: rgba(33, 72, 64, 0.96);
+}
+
+.compactList button span {
+  overflow-wrap: anywhere;
+}
+
+.compactList button strong {
+  flex: 0 0 auto;
+  color: #8ee0d5;
+  font-size: 11px;
+}
+
+.notice,
+.warning,
+.limit {
+  margin: 9px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.warning {
+  color: #d3bd72;
+}
+
+.empty {
+  margin-top: 12px;
+  border: 1px dashed rgba(111, 180, 167, 0.28);
+  border-radius: 9px;
+  padding: 12px;
+  color: #a9c0ba;
+  font-size: 12px;
+}
+
+.boundary {
+  margin-top: 12px;
+  border-top: 1px solid rgba(111, 180, 167, 0.18);
+  padding-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .controls,
+  .controlsSingle {
+    grid-template-columns: 1fr;
+  }
+
+  .heading,
+  .provider > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compactList button {
+    flex-direction: column;
+  }
+}

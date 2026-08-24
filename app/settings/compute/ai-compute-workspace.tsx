@@ -6,6 +6,8 @@ import LocalRuntimePanel from "../../local-runtime-panel";
 import MediaRoutingPanel from "../../media-routing-panel";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
+import CloudModelCatalogPanel from "./cloud-model-catalog-panel";
+import LocalModelCatalogPanel from "./local-model-catalog-panel";
 import styles from "./ai-compute-workspace.module.css";
 
 type ComputeMode = "local" | "cloud";
@@ -123,6 +125,7 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
       return (
         <div className={styles.advancedStack}>
           <SageFastModelSetup />
+          <LocalModelCatalogPanel />
           <details className={styles.expertDetails}>
             <summary>Expert runtime diagnostics</summary>
             <p>Inspect hardware, installed models and lower-level local runtime information. These controls reuse the existing local runtime authority.</p>
@@ -154,6 +157,7 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
             <article data-available="false"><strong>MCP / OAuth</strong><span>Shown as a supported connection class, but no current OpenAI or MiniMax OAuth/MCP provider adapter is registered here. PlotPickle will not pretend an OAuth connection exists.</span></article>
           </div>
         </section>
+        <CloudModelCatalogPanel capability={activeCapability} />
         <AiProviderSetupPanel provider="openai" />
         <AiProviderSetupPanel provider="minimax" />
         {activeCapability !== "writing" ? (

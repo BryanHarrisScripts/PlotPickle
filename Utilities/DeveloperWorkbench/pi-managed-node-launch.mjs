@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
@@ -39,6 +39,11 @@ export async function resolveManagedPiCliEntry(pi) {
   const relative = path.relative(packageRoot, cliEntry);
   if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error(`PlotPickle-managed Pi declared an unsafe CLI entry outside its private package root: ${binEntry}`);
+  }
+  try {
+    await access(cliEntry);
+  } catch (error) {
+    throw new Error(`PlotPickle-managed Pi CLI entry is missing or unreadable at ${cliEntry}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
   }
   return cliEntry;
 }

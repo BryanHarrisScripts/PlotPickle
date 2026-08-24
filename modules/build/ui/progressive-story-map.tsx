@@ -16,8 +16,24 @@ const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
   locked: "Locked",
 };
 
+const ABSOLUTE_TURNING_POINTS: Readonly<Record<number, number>> = {
+  3: 1,
+  9: 2,
+  12: 3,
+};
+
 export default function ProgressiveStoryMap({ project }: { readonly project: PPFProject }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
+  const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
+    const number = index + 1;
+    const blocks = storyMap.blocks.filter((block) => block.sequenceNumber === number);
+    return {
+      number,
+      title: blocks[0]?.sequenceTitle ?? `Sequence ${number}`,
+      blocks,
+      actNumber: ABSOLUTE_TURNING_POINTS[number],
+    };
+  }), [storyMap.blocks]);
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const selected = storyMap.blocks.find((block) => block.number === selectedBlockNumber) ?? storyMap.blocks[0];
 
@@ -42,27 +58,52 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
         ))}
       </div>
 
-      <div className={styles.map} aria-label="24 story Blocks">
-        {storyMap.blocks.map((block) => (
-          <button
-            aria-pressed={selected.number === block.number}
-            className={styles.block}
-            data-state={block.state}
-            key={block.id}
-            onClick={() => setSelectedBlockNumber(block.number)}
-            type="button"
-          >
-            <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
-            <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
-            <strong>{STATE_LABELS[block.state]}</strong>
-            {block.observedPassageCount ? <small>{block.observedPassageCount} source passage{block.observedPassageCount === 1 ? "" : "s"}</small> : <small>Not enough information yet</small>}
-            <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
-              {block.miniBlocks.map((mini) => (
-                <i data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</i>
-              ))}
-            </span>
-          </button>
-        ))}
+      <div className={styles.map} aria-label="12 story Sequences containing 24 Blocks">
+        {sequences.map((sequence) => {
+          const turningPointLabel = sequence.actNumber
+            ? `Absolute turning point after Sequence ${sequence.number}: end of Act ${sequence.actNumber}`
+            : `Potential turning point after Sequence ${sequence.number}`;
+          return (
+            <section className={styles.sequenceSlot} data-sequence={sequence.number} key={`sequence-${sequence.number}`}>
+              <div className={styles.sequenceBox}>
+                <header className={styles.sequenceHeader}>
+                  <strong>S{String(sequence.number).padStart(2, "0")}</strong>
+                  <span>{sequence.title}</span>
+                </header>
+                <div className={styles.sequenceBlocks}>
+                  {sequence.blocks.map((block) => (
+                    <button
+                      aria-pressed={selected.number === block.number}
+                      className={styles.block}
+                      data-state={block.state}
+                      key={block.id}
+                      onClick={() => setSelectedBlockNumber(block.number)}
+                      type="button"
+                    >
+                      <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
+                      <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
+                      <strong>{STATE_LABELS[block.state]}</strong>
+                      {block.observedPassageCount ? <small>{block.observedPassageCount} source passage{block.observedPassageCount === 1 ? "" : "s"}</small> : <small>Not enough information yet</small>}
+                      <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
+                        {block.miniBlocks.map((mini) => (
+                          <i data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</i>
+                        ))}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div
+                aria-label={turningPointLabel}
+                className={styles.turningPoint}
+                data-kind={sequence.actNumber ? "absolute" : "potential"}
+                title={turningPointLabel}
+              >
+                {sequence.actNumber ? <><strong>A{sequence.actNumber}</strong><span>PT</span></> : <span>PT</span>}
+              </div>
+            </section>
+          );
+        })}
       </div>
 
       <article className={styles.inspector} data-selected-block={selected.number}>

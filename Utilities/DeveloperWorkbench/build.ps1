@@ -45,5 +45,9 @@ if (-not (Test-Path $exe)) {
   throw "Expected Workbench executable was not produced: $exe"
 }
 
+Copy-Item (Join-Path $root "local-validation.mjs") (Join-Path $output "local-validation.mjs") -Force
+Copy-Item (Join-Path $root "Run-Local-Validation.cmd") (Join-Path $output "Run-Local-Validation.cmd") -Force
+
 Write-Host "Developer Workbench ready: $exe"
+Write-Host "Local pre-CI launcher: $(Join-Path $output 'Run-Local-Validation.cmd')"
 Write-Host "Embedded identity: build-$buildNumber · sha-$shortSha"

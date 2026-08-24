@@ -116,6 +116,20 @@ test("#1349 managed Workbench launches Pi through Node instead of the Windows pi
   assert.doesNotMatch(directLaunchHelper, /cmd\.exe|windowsBatchWrapper|pi\.command/);
 });
 
+test("#1349 Workbench registers only its explicit local provider and proves inference before the large review", () => {
+  assert.match(directLaunchHelper, /WORKBENCH_PROVIDER_ID = "plotpickle-workbench-local"/);
+  assert.match(directLaunchHelper, /pi\.registerProvider/);
+  assert.match(directLaunchHelper, /plotpickle-workbench-local-provider\.mjs/);
+  assert.match(directLaunchHelper, /"--no-extensions"/);
+  assert.match(directLaunchHelper, /"--extension", extensionPath/);
+  assert.match(directLaunchHelper, /"--no-context-files"/);
+  assert.match(directLaunchHelper, /WORKBENCH_SMOKE_TIMEOUT = 45_000/);
+  assert.match(directLaunchHelper, /PLOTPICKLE_WORKBENCH_PI_READY/);
+  assert.match(directLaunchHelper, /verifyManagedPiInference/);
+  assert.match(directLaunchHelper, /await verifyManagedPiInference\(\{ cliEntry, configured, runtime, cwd \}\)/);
+  assert.match(directLaunchHelper, /supportsUsageInStreaming: false/);
+});
+
 test("#1349 Windows Pi transport keeps rich prompts out of process arguments", () => {
   assert.match(gitignore, /^\/\.plotpickle\/$/m);
   assert.match(piBridge, /promptDirectory = path\.join\(reviewPackage\.repositoryPath, "\.plotpickle", "developer-workbench"\)/);

@@ -87,7 +87,7 @@ test("#1288 generated BUZZ team import carries all public profiles and no identi
     assert.equal(member.format, "buzz-agent-snapshot");
     assert.equal(member.memory.level, "none");
     assert.deepEqual(member.memory.entries, []);
-    assert.match(member.profile.avatarDataUrl, /^data:image\/webp;base64,UklGR\//);
+    assert.match(member.profile.avatarDataUrl, /^data:image\/webp;base64,UklGR/u);
     assert.ok(member.profile.about?.length > 20);
     assert.match(member.definition.systemPrompt, /Never sign or speak as the connected Human/u);
   }

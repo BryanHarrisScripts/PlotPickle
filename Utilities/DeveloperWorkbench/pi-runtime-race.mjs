@@ -216,7 +216,7 @@ export async function raceWorkbenchRuntime(options) {
     const eligible = lastCandidates.filter((candidate) => (piCooldownUntil.get(runtimeKey(candidate)) || 0) <= now());
     if (eligible.length) {
       attempts += eligible.length;
-      const remaining = Math.max(250, deadline - now());
+      const remaining = Math.max(1, deadline - now());
       const direct = await firstInferenceResponse(eligible, {
         probeCandidate,
         fetchImpl: options.fetchImpl,
@@ -227,7 +227,7 @@ export async function raceWorkbenchRuntime(options) {
       if (direct.winner) {
         const runtime = direct.winner.runtime;
         const remainingForPi = deadline - now();
-        if (remainingForPi > 250) {
+        if (remainingForPi > 0) {
           try {
             const probe = await probePi({
               pi,

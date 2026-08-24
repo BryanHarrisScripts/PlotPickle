@@ -16,14 +16,15 @@ Use this skill only for a concrete, reproducible PlotPickle UAT finding. AGENTS.
 
 1. Read the supplied finding, fingerprint, area, severity, and evidence.
 2. Work only inside the isolated repair worktree provided by PlotPickle.
-3. Reproduce the failure from the existing evidence or nearest focused test before changing product behavior.
-4. Add or strengthen the nearest focused regression so the reported defect is represented by a failing test.
+3. Apply Diagnosis (`skill://plotpickle/diagnosis`): reproduce the exact symptom through the narrowest correct seam, prove a red-capable feedback loop, tighten the reproduction, and identify the smallest evidence-backed root cause before editing product behavior.
+4. Add or strengthen the nearest focused regression so the reported defect is represented by a failing test. If no correct regression seam exists, report that architecture gap rather than inventing an implementation-coupled test.
 5. Apply Engineering Discipline (`skill://plotpickle/engineering-discipline`): resolve material assumptions from repository evidence, define observable success criteria, and keep the repair to the smallest sufficient task-scoped change.
-6. Find the smallest architectural root cause. Repair that cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.
+6. Repair the smallest architectural root cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.
 7. Apply the BEN Code Quality standard (`skill://plotpickle/ben-code-quality`) while naming, moving, typing, documenting, and organizing changed code.
 8. Run the new regression and nearby focused tests. Keep iterating until they pass.
-9. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, then focused UAT contracts and the production build.
-10. Finish with a concise summary of root cause, files changed, regression added, BEN findings addressed or remaining, and tests run.
+9. Re-run the original unminimised feedback loop so the exact reported failure is proven green after the repair.
+10. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, then focused UAT contracts and the production build.
+11. Finish with a concise summary of root cause, files changed, regression added, BEN findings addressed or remaining, and tests run.
 
 ## BEN coding standard
 
@@ -37,7 +38,7 @@ For every repair, keep the resulting code easy for the next coding agent to find
 - put short plain-language comments where a search lands when the signature cannot express the key constraint;
 - keep orchestration thin and move question-sized implementations into well-named concept modules.
 
-The full BEN procedure is the canonical discoverability standard. Engineering Discipline is the companion scope-and-execution procedure. This summary exists so repair workers preserve the BEN rules even when the host cannot progressively load the companion Skill during a local repair session.
+The full BEN procedure is the canonical discoverability standard. Diagnosis governs how the failure is reproduced and isolated. Engineering Discipline is the companion scope-and-execution procedure. This summary exists so repair workers preserve the BEN rules even when the host cannot progressively load a companion Skill during a local repair session.
 
 ## Boundaries
 

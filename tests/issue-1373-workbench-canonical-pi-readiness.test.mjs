@@ -29,7 +29,7 @@ test("#1373 Workbench aligns its real Pi cold-start budget with Full Verificatio
 test("#1373 Workbench cannot report Pi GREEN from version discovery alone", () => {
   const install = bridge.indexOf("ensureManagedPiInstalled");
   const runtimeResolve = bridge.indexOf("resolvePiLocalRuntime");
-  const inference = bridge.indexOf("probeManagedPiReadiness");
+  const inference = bridge.indexOf("const proof = await probeManagedPiReadiness");
   const green = bridge.indexOf("ready: true,\n      version: report.pi.version");
   assert.ok(install >= 0);
   assert.ok(runtimeResolve > install);

@@ -112,7 +112,10 @@
 }
 
 .sectionHeading h2 { margin: 5px 0 0; font: 500 clamp(26px, 3vw, 38px)/1.1 Georgia, serif; }
-.sectionHeading > p { max-width: 720px; margin: 0; color: #98b5ac; line-height: 1.6; }
+.sectionHeading > p,
+.storyTools > p { max-width: 720px; margin: 0; color: #98b5ac; line-height: 1.6; }
+.storyTools { display: grid; justify-items: start; gap: 10px; }
+.storyTools button { min-width: 132px; }
 
 .grid {
   display: grid;
@@ -130,6 +133,8 @@
 }
 
 .activeCard { border-color: rgba(238, 200, 103, 0.55); box-shadow: 0 0 0 1px rgba(238, 200, 103, 0.13), 0 18px 58px rgba(0, 0, 0, 0.3); }
+.ghostCard { border-style: dashed; border-color: rgba(126, 205, 180, .26); background: linear-gradient(160deg, rgba(13, 28, 25, .66), rgba(5, 14, 13, .82)); }
+.ghostCard .storyVisual { opacity: .72; }
 
 .visual,
 .storyVisual {
@@ -161,7 +166,14 @@
 
 .storyVisual span { color: rgba(235, 255, 247, 0.88); font: 500 72px/1 Georgia, serif; }
 .storyVisual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.storyVisual strong { z-index: 1; justify-self: end; padding: 6px 9px; border-radius: 99px; color: #241c08; background: #efcf76; font-size: 11px; text-transform: uppercase; }
+.storyVisual > strong { z-index: 1; justify-self: end; padding: 6px 9px; border-radius: 99px; color: #241c08; background: #efcf76; font-size: 11px; text-transform: uppercase; }
+
+.cardMenu { position: absolute; z-index: 3; top: 12px; right: 12px; }
+.cardMenu summary { display: grid; width: 42px; height: 38px; place-items: center; border: 1px solid rgba(154, 220, 198, .26); border-radius: 9px; color: #f5fff9; background: rgba(1, 7, 6, .88); font-size: 18px; font-weight: 900; letter-spacing: .1em; cursor: pointer; list-style: none; }
+.cardMenu summary::-webkit-details-marker { display: none; }
+.cardMenu > div { position: absolute; top: 44px; right: 0; min-width: 150px; padding: 6px; border: 1px solid rgba(137, 211, 186, .22); border-radius: 10px; background: #091714; box-shadow: 0 12px 30px rgba(0, 0, 0, .45); }
+.cardMenu button { width: 100%; padding: 9px 10px; border: 0; border-radius: 7px; color: #e5f2ee; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.cardMenu button:hover { background: rgba(104, 215, 178, .11); }
 
 .cardBody { display: grid; gap: 11px; padding: 20px; }
 .cardBody h3 { margin: 0; overflow-wrap: anywhere; color: #f4fff9; font: 500 24px/1.15 Georgia, serif; }
@@ -185,6 +197,8 @@
 .primaryButton { color: #06130f; background: linear-gradient(135deg, #67ddb7, #a2edca); }
 .primaryButton:hover { filter: brightness(1.07); }
 .secondaryButton { border-color: rgba(127, 221, 188, 0.25); color: #c7e7dc; background: rgba(11, 31, 27, 0.9); }
+.primaryButton:disabled,
+.secondaryButton:disabled { cursor: not-allowed; opacity: .5; }
 
 .progress { height: 5px; overflow: hidden; border-radius: 99px; background: #11251f; }
 .progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #47c69d, #edc86d); }

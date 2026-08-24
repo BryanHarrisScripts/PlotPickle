@@ -31,7 +31,7 @@ test("issue #1338 derives current story coverage from canonical PPF answers and 
   assert.doesNotMatch(model, /completedLessonIds|visualArtifacts|acceptedVisualArtifactIds|lib\/projects|screenplay/);
 });
 
-test("issue #1338 keeps draft proposals non-canonical and does not inflate coverage", async () => {
+test("issue #1338 keeps draft and imported proposals non-canonical and does not inflate coverage", async () => {
   const model = await source("modules/build/foundations-story-coverage.ts");
   assert.match(model, /A draft proposal exists, but it has not become a saved story decision in the canonical PPF/);
   assert.match(model, /const total = defined \+ emerging \+ missing/);
@@ -39,10 +39,13 @@ test("issue #1338 keeps draft proposals non-canonical and does not inflate cover
   assert.doesNotMatch(model, /\(defined \+ emerging\) \/ total/);
 });
 
-test("issue #1338 exposes visible Story Coverage and explainability on the live BUILD screen", async () => {
-  const [component, css] = await Promise.all([
+test("issue #1338 exposes visible Story Coverage and 24/96 explainability on the live BUILD screen", async () => {
+  const [component, css, mapComponent, mapCss, mapModel] = await Promise.all([
     source("modules/build/ui/foundations-story-coverage.tsx"),
     source("modules/build/ui/foundations-story-coverage.module.css"),
+    source("modules/build/ui/progressive-story-map.tsx"),
+    source("modules/build/ui/progressive-story-map.module.css"),
+    source("modules/build/progressive-story-map.ts"),
   ]);
   for (const contract of [
     "Story Coverage",
@@ -51,17 +54,32 @@ test("issue #1338 exposes visible Story Coverage and explainability on the live 
     "Missing",
     'data-story-coverage="live-foundations"',
     "Saved Human-approved decisions",
-    "Draft proposals awaiting a decision",
+    "Draft/import proposals awaiting a decision",
     "No usable story support yet",
     "decision.reason",
     "decision.excerpt",
     "decision.sourceLabel",
     "course completion",
     "generated wireframe frames",
+    "<ProgressiveStoryMap project={project} />",
   ]) assert.ok(component.includes(contract), `Live BUILD evidence UI is missing: ${contract}`);
   for (const contract of ["panel", "score", "summary", "lessonGrid", "decision", "@media (forced-colors: active)"]) {
     assert.ok(css.includes(contract), `Live BUILD Story Coverage styling is missing: ${contract}`);
   }
+  for (const contract of [
+    'data-progressive-story-map="24x96"',
+    "24 Blocks / 96 Mini-Blocks",
+    "Observed",
+    "Locked",
+    "Not enough information yet",
+    "Selected story position",
+    "screenplay text is observed evidence",
+  ]) assert.ok(mapComponent.includes(contract), `24/96 BUILD UI is missing: ${contract}`);
+  assert.match(mapModel, /Array\.from\(\{ length: 24 \}/);
+  assert.match(mapModel, /\["Promise", "Progress", "Pressure", "Payoff"\]/);
+  assert.match(mapModel, /analysisStatus === "reviewed"/);
+  assert.match(mapModel, /placement remains importer-suggested and requires Human review/);
+  assert.match(mapCss, /grid-template-columns: repeat\(6/);
 });
 
 test("issue #1338 removes the new evidence implementation from the obsolete BUILD surface", async () => {
@@ -73,22 +91,32 @@ test("issue #1338 removes the new evidence implementation from the obsolete BUIL
   assert.doesNotMatch(legacyMap, /BuildEvidenceStatus|Story Coverage|Direct screenplay passages|Import review/);
 });
 
-test("issue #1338 records that imported Observed evidence still requires modular import migration", async () => {
-  const [correction, project, importer] = await Promise.all([
-    source("docs/issue-1338-live-build-correction.md"),
-    source("core/project/project.ts"),
-    source("lib/projects/screenplay/screenplay-import.ts"),
+test("issue #1338 bridges rich imported PPF evidence into the current modular Library project without canon inflation", async () => {
+  const [bridge, evidence, library, gateway] = await Promise.all([
+    source("modules/library/import/rich-ppf-to-library-project.ts"),
+    source("core/contracts/imported-screenplay-evidence/index.ts"),
+    source("core/storage/project-library-browser.ts"),
+    source("build/library-ppf-import-gateway.ts"),
   ]);
   for (const contract of [
-    "Phase B — imported screenplay observations",
-    "must not fabricate an Observed state",
-    "current modular `PPFProject`",
-    "legacy `lib/projects` project model",
-    "Issue #1338 remains open",
-  ]) assert.ok(correction.includes(contract), `Correction record is missing: ${contract}`);
-  assert.doesNotMatch(project, /draftElements|analysisStatus|screenplay:/);
-  assert.match(importer, /type PlotPickleProject/);
-  assert.doesNotMatch(importer, /type PPFProject|core\/project\/project/);
+    "richPpfToLibraryProject",
+    "Imported screenplay analysis",
+    "proposal:",
+    "sourceEvidence",
+    "draftElements",
+    "analysisStatus",
+    "MAX_IMPORTED_PASSAGES",
+    "createEmptyProject",
+  ]) assert.ok(bridge.includes(contract), `Library import bridge is missing: ${contract}`);
+  assert.doesNotMatch(bridge, /completedLessonIds\s*:/);
+  assert.match(evidence, /passagesTruncated/);
+  assert.match(evidence, /slice\(0, 2500\)/);
+  assert.match(library, /normalizeLibraryProject/);
+  assert.match(library, /normalizeProjectSourceEvidence/);
+  assert.match(library, /importLibraryProject/);
+  assert.match(gateway, /openLocalPpf/);
+  assert.match(gateway, /richPpfToLibraryProject/);
+  assert.match(gateway, /\/api\/library\/import\/ppf/);
 });
 
 test("issue #1338 retains the original PPF authority and no-filler product contract", async () => {

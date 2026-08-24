@@ -20,12 +20,23 @@ No Administrator rights, Windows service or Windows startup registration are req
 | `Update-PlotPickle.cmd` | You downloaded PlotPickle and want the current release | Updates application files while preserving the user-owned runtime |
 | `Repair-PlotPickle.cmd` | Startup reports a damaged or incomplete installation | Repairs reviewed PlotPickle dependencies and runtime files |
 | `Verify-PlotPickle.cmd` | You want the complete local verification pass | Runs the maintained full-check utility |
+| `Convert-Screenplay-To-PPF.cmd` | You have an existing screenplay and want a PlotPickle project file | Reads the source screenplay locally and writes a new rich `.ppf`; the source file is never changed |
 | `Check-ComfyUI.cmd` | Image generation is not ready | Checks the supported ComfyUI connection and starter path |
 | `Sync-PlotPickle-BUZZ.cmd` | BUZZ Agents, avatars or room membership need synchronization | Creates only the four supported missing Community rooms and repairs approved Agent memberships |
 | `Clean-PlotPickle-BUZZ.cmd` | Old machine-generated BUZZ rooms or messages need cleanup | Plans, archives legacy rooms, or explicitly resets one retained room |
 | `Start-Production-Supervisor.bat` | Advanced local production-agent diagnosis is needed | Starts the bounded local Visual/Video Production supervisor tools |
 
 The `.bat` launchers stored beside the convenience `.cmd` files are maintained implementation launchers. Normal users should prefer the short `.cmd` utilities above.
+
+## Screenplay to PPF conversion
+
+`Convert-Screenplay-To-PPF.cmd` is a thin launcher over PlotPickle's existing screenplay parser, rich screenplay importer and portable PPF packager. It does not create a second importer or project format.
+
+Supported source families are Final Draft `.fdx`, Fountain `.fountain` / `.spmd`, plain screenplay `.txt`, and text-based `.pdf`. For PDFs, the utility uses a local `pdftotext` (Poppler) or `mutool` (MuPDF) command when one is already available. PlotPickle does not silently OCR scanned/image-only PDFs; export those scripts as Final Draft, Fountain or text, or perform an explicit OCR step first.
+
+You can drag a screenplay file onto `Convert-Screenplay-To-PPF.cmd`, double-click the utility and enter a path, or run it from a terminal. By default the resulting `.ppf` is written beside the source screenplay. The source file is never modified.
+
+The resulting project keeps the imported screenplay evidence and marks generated structural interpretation as reviewable suggestions. Importing a screenplay does not mark PlotPickle curriculum lessons complete.
 
 ## BUZZ Community cleanup
 

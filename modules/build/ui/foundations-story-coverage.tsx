@@ -6,6 +6,7 @@ import {
   deriveFoundationsStoryCoverage,
   type FoundationsStoryEvidenceState,
 } from "../foundations-story-coverage";
+import ProgressiveStoryMap from "./progressive-story-map";
 import styles from "./foundations-story-coverage.module.css";
 
 const STATE_LABELS: Readonly<Record<FoundationsStoryEvidenceState, string>> = {
@@ -39,15 +40,17 @@ export default function FoundationsStoryCoverage({
 
       <dl className={styles.summary} aria-label="Foundations story evidence totals">
         <div data-state="defined"><dt>Defined</dt><dd>{coverage.defined}</dd><small>Saved Human-approved decisions</small></div>
-        <div data-state="emerging"><dt>Emerging</dt><dd>{coverage.emerging}</dd><small>Draft proposals awaiting a decision</small></div>
+        <div data-state="emerging"><dt>Emerging</dt><dd>{coverage.emerging}</dd><small>Draft/import proposals awaiting a decision</small></div>
         <div data-state="missing"><dt>Missing</dt><dd>{coverage.missing}</dd><small>No usable story support yet</small></div>
       </dl>
 
       <div className={styles.legend} aria-label="Story evidence meanings">
         <span data-state="defined"><i aria-hidden="true">✓</i><strong>Defined</strong> is canonical story material saved in PLAN.</span>
-        <span data-state="emerging"><i aria-hidden="true">~</i><strong>Emerging</strong> is useful proposal material that still needs Human acceptance.</span>
+        <span data-state="emerging"><i aria-hidden="true">~</i><strong>Emerging</strong> is useful proposal/import interpretation that still needs Human acceptance.</span>
         <span data-state="missing"><i aria-hidden="true">○</i><strong>Missing</strong> means PlotPickle leaves the decision open instead of inventing filler.</span>
       </div>
+
+      <ProgressiveStoryMap project={project} />
 
       <div className={styles.lessonGrid}>
         {coverage.lessons.map((lesson) => (
@@ -72,7 +75,7 @@ export default function FoundationsStoryCoverage({
         ))}
       </div>
 
-      <p className={styles.footnote}>Story Coverage counts saved story decisions, not course completion and not generated wireframe frames. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
+      <p className={styles.footnote}>Story Coverage counts saved story decisions, not course completion and not generated wireframe frames. Imported screenplay passages are evidence; importer structure remains reviewable until the Human accepts it. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
     </section>
   );
 }

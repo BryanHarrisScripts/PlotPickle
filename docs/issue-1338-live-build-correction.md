@@ -46,24 +46,54 @@ defined Foundations decisions / expected Foundations decisions
 
 Emerging proposals do not raise the score. LEARN completion and generated wireframe frames do not raise the score. BUILD remains a view over canonical project state and does not silently turn generated visuals into story truth.
 
-## Phase B — imported screenplay observations
+## Phase B — Library-owned screenplay import observations
 
-The original brief's **Observed** state remains valid product direction, but it cannot be honestly displayed by the live modular BUILD yet.
+The original brief's **Observed** state remains valid product direction, but the missing implementation belongs to **Library**, not BUILD.
 
-The current modular `PPFProject` has Foundations, World, learning state, Creative Room state, and BUILD artifacts. It does not currently carry the legacy screenplay import evidence (`draftElements`, block assignments, import review state). The existing Final Draft/Fountain screenplay importer still targets the legacy `lib/projects` project model and is not mounted by the current Library/BUILD route.
+The current modular `PPFProject` has Foundations, World, learning state, Creative Room state, and BUILD artifacts. It does not currently carry the legacy screenplay import evidence (`draftElements`, block assignments, import review state). The existing Final Draft/Fountain screenplay importer still targets the legacy `lib/projects` project model and is not mounted by the current Library route.
 
-Therefore the corrective implementation must not fabricate an Observed state or copy the legacy project into BUILD.
+The ownership rule is:
 
-A subsequent modular import bridge must:
+```text
+LIBRARY
+  -> import Final Draft / Fountain / screenplay
+  -> convert into current modular PPF
+  -> preserve direct source evidence + provenance + review status
+  -> persist as a normal Library story
 
-1. expose imported source evidence through the current canonical PPF/import contract;
-2. preserve source provenance and review status;
-3. keep direct observations separate from inferred story decisions;
-4. avoid marking LEARN lessons complete;
-5. feed the same live BUILD evidence surface;
-6. migrate useful parser capability rather than creating a second importer.
+BUILD
+  -> open the already-canonical PPF
+  -> read preserved screenplay evidence
+  -> render direct imported evidence as Observed
+  -> render importer interpretation as Emerging
+```
 
-Issue #1338 remains open until that Phase B path is implemented and verified.
+BUILD must not own file import, parser lifecycle, or conversion into PPF. It consumes the result.
+
+The Library import bridge must:
+
+1. expose Final Draft/Fountain import from the current Library surface;
+2. migrate/reuse useful parser capability rather than creating a competing importer;
+3. create a current modular `PPFProject`, not a legacy `lib/projects` project;
+4. preserve direct source evidence, source format/file identity, block/scene linkage where available, and import review status;
+5. keep direct observations separate from inferred story decisions;
+6. never mark LEARN lessons complete merely because a screenplay was imported;
+7. persist the imported project through the same profile-owned Library authority as native stories;
+8. feed the same live BUILD evidence surface after the imported story is opened.
+
+Issue #1338 remains open until that Library-owned Phase B path is implemented and verified.
+
+## Library archive lifecycle
+
+Library also owns reversible story archiving:
+
+- the `...` menu on a real story card can archive it;
+- archive is metadata on the same canonical project registry, not a copied PPF;
+- archived stories leave the active Library shelf and appear under Archive → Stories;
+- Settings links to the same Archive surface/data rather than owning another archive list;
+- restore returns the same project to Library;
+- if no active stories remain, Library shows one non-persisted ghost/coming-soon card rather than creating a fake project;
+- archive remains distinct from destructive deletion.
 
 ## Verification contract
 
@@ -74,6 +104,13 @@ The corrective tests must prove all of the following:
 - coverage uses current canonical PPF Foundations answers/proposals;
 - Defined, Emerging, and Missing remain distinct;
 - course completion and generated images cannot inflate Story Coverage;
+- Library owns Final Draft/Fountain import and current modular PPF conversion;
+- imported direct evidence survives Library persistence and becomes BUILD `Observed` evidence;
+- imported suggestions remain `Emerging` until reviewed;
+- screenplay import does not mark curriculum lessons complete;
+- Archive/Restore use the same profile-owned Library registry without copying projects;
+- Settings and Library read the same Archive data;
+- zero active Library stories renders a non-persisted ghost card;
 - the obsolete BUILD model no longer contains the #1339 evidence implementation;
 - existing Foundations BUILD visual-workshop behavior still passes;
 - production build passes;

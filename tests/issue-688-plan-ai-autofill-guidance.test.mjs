@@ -66,18 +66,20 @@ test("PLAN recovers failed Quality fields through the Fast local role before giv
 });
 
 test("a PPF can be reduced to read-only story evidence for PLAN Foundations", async () => {
-  const [gateway, context, localGateway] = await Promise.all([
+  const [gateway, reader, context, localGateway] = await Promise.all([
     read("build/foundations-ppf-gateway.ts"),
+    read("build/portable-ppf-reader.ts"),
     read("lib/projects/canon/foundation-source-context.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
 
   assert.match(gateway, /\/api\/plan\/foundations\/ppf-context/);
-  assert.match(gateway, /parsePortableProjectFile\(text\)/);
-  assert.match(gateway, /projectFromPackage\(buffer\)/);
-  assert.match(gateway, /integrityValid/);
+  assert.match(gateway, /openLocalPpf\(await readLocalPpfRequest\(request\)\)/);
   assert.match(gateway, /assembleFoundationSourceContext\(project\)/);
-  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(gateway, /isLocalPlotPickleRequest\(request\)/);
+  assert.match(reader, /parsePortableProjectFile\(text\)/);
+  assert.match(reader, /projectFromPackage\(buffer\)/);
+  assert.match(reader, /integrityValid/);
   assert.match(localGateway, /registerFoundationsPpfGateway\(server\)/);
   assert.match(context, /project\.story\.premise/);
   assert.match(context, /project\.characters/);

@@ -20,6 +20,7 @@ import { registerPlotPickleNodeTopologyGateway } from "./node-topology-gateway";
 import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
 import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
 import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
+import { registerLibraryPpfImportGateway } from "./library-ppf-import-gateway";
 import { registerStudioIdentityGateway } from "./studio-identity-gateway";
 import { registerPlayhouseFederationGateway } from "./playhouse-federation-gateway";
 import { registerPlayhouseDirectoryGateway } from "./playhouse-directory-gateway";
@@ -54,7 +55,7 @@ export function localAiGateway(): Plugin {
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerComfyUiSdxlStarterGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);
-    registerFoundationsPpfGateway(server); registerWritingAssistantGateway(server);
+    registerFoundationsPpfGateway(server); registerLibraryPpfImportGateway(server); registerWritingAssistantGateway(server);
     if (typeof legacy.configureServer === "function") legacy.configureServer(server);
   } };
 }

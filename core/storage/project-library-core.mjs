@@ -84,6 +84,7 @@ function normalizeSummary(value) {
     sourceId: typeof value.sourceId === "string" ? value.sourceId : null,
     genre: typeof value.genre === "string" ? value.genre : "",
     format: typeof value.format === "string" ? value.format : "Story",
+    archivedAt: typeof value.archivedAt === "string" && value.archivedAt.trim() ? value.archivedAt : null,
   };
 }
 
@@ -93,9 +94,10 @@ function normalizeRegistry(value, profileId) {
   const projects = Array.isArray(value.projects)
     ? value.projects.map(normalizeSummary).filter(Boolean).filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
     : [];
-  const activeProjectId = typeof value.activeProjectId === "string" && projects.some((item) => item.id === value.activeProjectId)
-    ? value.activeProjectId
-    : projects[0]?.id ?? null;
+  const requestedActiveProjectId = typeof value.activeProjectId === "string" ? value.activeProjectId : null;
+  const activeProjectId = requestedActiveProjectId && projects.some((item) => item.id === requestedActiveProjectId && !item.archivedAt)
+    ? requestedActiveProjectId
+    : projects.find((item) => !item.archivedAt)?.id ?? null;
   return {
     version: PROJECT_LIBRARY_VERSION,
     profileId,
@@ -126,6 +128,7 @@ function describeProject(project, describe, options = {}) {
     sourceId: options.sourceId,
     genre: options.genre,
     format: options.format,
+    archivedAt: options.archivedAt,
   });
 }
 
@@ -209,6 +212,10 @@ function createRegistry(profileId, summary, now) {
   };
 }
 
+function activeSummaries(registry) {
+  return registry.projects.filter((item) => !item.archivedAt);
+}
+
 export function resolveProjectLibraryProfileId(storage) {
   requireStorage(storage);
   const stored = storage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
@@ -240,14 +247,22 @@ export function initializeProfileProjectLibrary(input) {
   }
 
   if (registry) {
-    const orderedIds = [registry.activeProjectId, ...registry.projects.map((item) => item.id)].filter(Boolean);
+    const available = activeSummaries(registry);
+    if (!available.length && registry.projects.length) {
+      registry = writeRegistry(storage, { ...registry, activeProjectId: null, updatedAt: registry.updatedAt || now });
+      return { registry, activeProject: null, migrated: false, quarantined };
+    }
+
+    const orderedIds = [registry.activeProjectId, ...available.map((item) => item.id)].filter(Boolean);
     for (const projectId of [...new Set(orderedIds)]) {
       const loaded = readProject(storage, profileId, projectId, input.normalizeProject, now);
       if (!loaded) continue;
+      const priorSummary = registry.projects.find((item) => item.id === projectId);
       const summary = describeProject(loaded.project, input.describeProject, {
         ...loaded.entry,
         now,
         sourceKind: loaded.entry.sourceKind,
+        archivedAt: priorSummary?.archivedAt ?? null,
       });
       registry = writeRegistry(storage, {
         ...registry,
@@ -259,7 +274,9 @@ export function initializeProfileProjectLibrary(input) {
     }
   }
 
+  const archivedIds = new Set(registry?.projects.filter((item) => item.archivedAt).map((item) => item.id) ?? []);
   for (const projectId of storedProfileProjectIds(storage, profileId, now, quarantined)) {
+    if (archivedIds.has(projectId)) continue;
     const loaded = readProject(storage, profileId, projectId, input.normalizeProject, now);
     if (!loaded) continue;
     const summary = describeProject(loaded.project, input.describeProject, {
@@ -268,6 +285,7 @@ export function initializeProfileProjectLibrary(input) {
       sourceId: loaded.entry.sourceId,
       genre: loaded.entry.genre,
       format: loaded.entry.format,
+      archivedAt: null,
     });
     registry = writeRegistry(storage, createRegistry(profileId, summary, now));
     return { registry, activeProject: loaded.project, migrated: false, quarantined };
@@ -300,6 +318,7 @@ export function initializeProfileProjectLibrary(input) {
     sourceId: migrated ? "legacy-active-project" : null,
     genre: "",
     format: "Story",
+    archivedAt: null,
   });
   registry = writeRegistry(storage, createRegistry(profileId, summary, now));
   if (migrated) {
@@ -323,12 +342,14 @@ export function saveProfileActiveProject(input) {
   const now = input.now();
   const project = input.normalizeProject(input.project);
   const prior = initialized.registry.projects.find((item) => item.id === project.id);
+  if (prior?.archivedAt) throw new Error("Archived stories must be restored to Library before they can be edited.");
   const summary = writeProject(storage, profileId, project, input.describeProject, {
     now,
     sourceKind: input.sourceKind || prior?.sourceKind || "user",
     sourceId: input.sourceId ?? prior?.sourceId ?? null,
     genre: input.genre ?? prior?.genre ?? "",
     format: input.format ?? prior?.format ?? "Story",
+    archivedAt: null,
   });
   const registry = writeRegistry(storage, {
     ...initialized.registry,
@@ -341,16 +362,21 @@ export function saveProfileActiveProject(input) {
 
 export function switchProfileActiveProject(input) {
   const initialized = initializeProfileProjectLibrary(input);
-  const saved = saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  if (initialized.activeProject) saveProfileActiveProject({ ...input, project: initialized.activeProject });
   const now = input.now();
-  const target = readProject(input.storage, input.profileId, requireProjectId(input.projectId), input.normalizeProject, now);
+  const projectId = requireProjectId(input.projectId);
+  const summary = initialized.registry.projects.find((item) => item.id === projectId);
+  if (summary?.archivedAt) throw new Error("Restore this story from Archive before opening it.");
+  const target = readProject(input.storage, input.profileId, projectId, input.normalizeProject, now);
   if (!target) throw new Error("The selected story is unavailable. Its recoverable snapshot was quarantined.");
+  const refreshed = normalizeRegistry(parseJson(input.storage.getItem(projectLibraryRegistryKey(input.profileId))).value, input.profileId)
+    ?? initialized.registry;
   const registry = writeRegistry(input.storage, {
-    ...saved.registry,
+    ...refreshed,
     activeProjectId: target.project.id,
     projects: [
-      saved.registry.projects.find((item) => item.id === target.project.id),
-      ...saved.registry.projects.filter((item) => item.id !== target.project.id),
+      refreshed.projects.find((item) => item.id === target.project.id),
+      ...refreshed.projects.filter((item) => item.id !== target.project.id),
     ].filter(Boolean),
     updatedAt: now,
   });
@@ -359,7 +385,7 @@ export function switchProfileActiveProject(input) {
 
 export function createProfileUserProject(input) {
   const initialized = initializeProfileProjectLibrary(input);
-  saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  if (initialized.activeProject) saveProfileActiveProject({ ...input, project: initialized.activeProject });
   const now = input.now();
   const project = input.createProject({
     id: input.idFactory(),
@@ -378,7 +404,7 @@ export function createProfileUserProject(input) {
 
 export function createProfileWorkingCopy(input) {
   const initialized = initializeProfileProjectLibrary(input);
-  saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  if (initialized.activeProject) saveProfileActiveProject({ ...input, project: initialized.activeProject });
   const now = input.now();
   const source = input.normalizeProject(structuredClone(input.sourceProject));
   const project = input.normalizeProject({
@@ -400,6 +426,60 @@ export function createProfileWorkingCopy(input) {
   });
 }
 
+export function archiveProfileProject(input) {
+  const initialized = initializeProfileProjectLibrary(input);
+  const now = input.now();
+  const projectId = requireProjectId(input.projectId);
+  const target = initialized.registry.projects.find((item) => item.id === projectId);
+  if (!target) throw new Error("The selected story is not in this Library.");
+  if (target.archivedAt) return { registry: initialized.registry, activeProject: initialized.activeProject };
+
+  const projects = initialized.registry.projects.map((item) => (
+    item.id === projectId ? { ...item, archivedAt: now } : item
+  ));
+  const nextActiveProjectId = initialized.registry.activeProjectId === projectId
+    ? projects.find((item) => !item.archivedAt)?.id ?? null
+    : initialized.registry.activeProjectId;
+  const registry = writeRegistry(input.storage, {
+    ...initialized.registry,
+    activeProjectId: nextActiveProjectId,
+    projects,
+    updatedAt: now,
+  });
+  const loaded = nextActiveProjectId
+    ? readProject(input.storage, input.profileId, nextActiveProjectId, input.normalizeProject, now)
+    : null;
+  return { registry, activeProject: loaded?.project ?? null };
+}
+
+export function restoreProfileProject(input) {
+  const initialized = initializeProfileProjectLibrary(input);
+  const now = input.now();
+  const projectId = requireProjectId(input.projectId);
+  const target = initialized.registry.projects.find((item) => item.id === projectId);
+  if (!target) throw new Error("The selected archived story is not in this Library.");
+  if (!target.archivedAt) return { registry: initialized.registry, activeProject: initialized.activeProject };
+  const loaded = readProject(input.storage, input.profileId, projectId, input.normalizeProject, now);
+  if (!loaded) throw new Error("The archived story snapshot is unavailable. Its recoverable data was quarantined.");
+
+  const restored = { ...target, archivedAt: null };
+  const activeProjectId = initialized.registry.activeProjectId || restored.id;
+  const registry = writeRegistry(input.storage, {
+    ...initialized.registry,
+    activeProjectId,
+    projects: [restored, ...initialized.registry.projects.filter((item) => item.id !== restored.id)],
+    updatedAt: now,
+  });
+  return {
+    registry,
+    activeProject: activeProjectId === restored.id ? loaded.project : initialized.activeProject,
+  };
+}
+
 export function listProfileProjectSummaries(input) {
-  return initializeProfileProjectLibrary(input).registry.projects;
+  return activeSummaries(initializeProfileProjectLibrary(input).registry);
+}
+
+export function listProfileArchivedProjectSummaries(input) {
+  return initializeProfileProjectLibrary(input).registry.projects.filter((item) => item.archivedAt);
 }

@@ -1,0 +1,155 @@
+.panel {
+  display: grid;
+  gap: 18px;
+}
+
+.panel > header {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(119, 218, 184, 0.16);
+}
+
+.panel > header p {
+  margin: 0 0 5px;
+  color: #68d7b2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.panel > header h2 {
+  margin: 0;
+  color: #f4fff9;
+  font: 500 clamp(28px, 3vw, 40px)/1.1 Georgia, serif;
+}
+
+.panel > header > span {
+  color: #8eaaa2;
+  font-size: 13px;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 0;
+  color: #9cb5ad;
+  line-height: 1.6;
+}
+
+.notice {
+  margin: 0;
+  padding: 11px 14px;
+  border-left: 3px solid #68d7b2;
+  color: #dffff3;
+  background: rgba(53, 157, 126, 0.1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(119, 218, 184, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(15, 37, 32, 0.97), rgba(5, 17, 15, 0.98));
+}
+
+.visual {
+  display: grid;
+  min-height: 118px;
+  padding: 18px;
+  place-items: end start;
+  background: radial-gradient(circle at 72% 25%, rgba(122, 232, 195, 0.2), transparent 30%), linear-gradient(135deg, #102c26, #081412 68%);
+}
+
+.visual span {
+  color: rgba(235, 255, 247, 0.75);
+  font: 500 54px/1 Georgia, serif;
+}
+
+.body {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.meta span {
+  padding: 4px 8px;
+  border: 1px solid rgba(110, 215, 180, 0.18);
+  border-radius: 99px;
+  color: #78cdb0;
+  font-size: 11px;
+}
+
+.body h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #f4fff9;
+  font: 500 22px/1.15 Georgia, serif;
+}
+
+.body p,
+.body small {
+  margin: 0;
+  color: #91ada4;
+}
+
+.body button {
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 14px;
+  border: 1px solid rgba(127, 221, 188, 0.25);
+  border-radius: 11px;
+  color: #c7e7dc;
+  background: rgba(11, 31, 27, 0.9);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.body button:hover {
+  color: #06130f;
+  background: #8ce8c4;
+}
+
+.empty {
+  padding: 34px;
+  border: 1px dashed rgba(123, 218, 185, 0.25);
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(5, 18, 15, 0.6);
+}
+
+.empty h3 {
+  margin: 0;
+  color: #f4fff9;
+  font: 500 28px/1.2 Georgia, serif;
+}
+
+.empty p {
+  max-width: 560px;
+  margin: 10px auto 0;
+  color: #9cb5ad;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .panel > header {
+    align-items: start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}

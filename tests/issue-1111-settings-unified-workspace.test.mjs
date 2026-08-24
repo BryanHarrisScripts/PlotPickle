@@ -15,21 +15,22 @@ test("#1111 live Settings uses one persistent Community-style rail and one activ
   assert.doesNotMatch(source, /scrollIntoView\(/, "switching Settings areas should replace the center rather than scroll a long page of mini-apps");
 });
 
-test("#1111 exposes the approved Settings destinations without returning to a Settings home screen", async () => {
+test("#1111/#1377 exposes compute-first Settings destinations without returning to a Settings home screen", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const id of ["overview", "updates", "help", "sage", "plan", "routing", "images", "video", "ollama", "openai", "minimax", "buzz", "activity", "runtime"]) {
+  for (const id of ["overview", "updates", "help", "local-compute", "cloud-compute", "buzz", "activity", "runtime"]) {
     assert.match(source, new RegExp(`id: ["']${id}["']`), `missing Settings destination ${id}`);
   }
-  for (const group of ["START", "LOCAL AI", "MODEL PROVIDERS", "COMMUNITY", "SYSTEM"]) {
+  for (const group of ["START", "AI COMPUTE", "COMMUNITY", "SYSTEM"]) {
     assert.match(source, new RegExp(`label: ["']${group}["']`), `missing Settings group ${group}`);
   }
-  for (const label of ["Overview", "What’s New", "Help", "Sage Setup", "PLAN Setup", "LLM Routing", "Images Setup", "Video Setup", "Ollama", "OpenAI Cloud", "MiniMax Cloud", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
+  for (const label of ["Overview", "What’s New", "Help", "Local Compute", "Cloud Compute", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
     assert.match(source, new RegExp(`label: ["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`), `missing Settings label ${label}`);
   }
+  assert.doesNotMatch(source, /label: ["'](?:Sage Setup|PLAN Setup|LLM Routing|Images Setup|Video Setup|Ollama|OpenAI Cloud|MiniMax Cloud)["']/);
   assert.doesNotMatch(source, /Profiles\s*&\s*Security/i, "Profile remains the sole owner of profile and security actions");
 });
 
-test("#1111 Settings deep links are bookmarkable and browser back/forward restores the active center section", async () => {
+test("#1111 Settings deep links are bookmarkable and legacy AI links resolve into Local or Cloud Compute", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
   assert.match(source, /const SETTINGS_QUERY_KEY = "settings"/);
   assert.match(source, /url\.searchParams\.set\(SETTINGS_QUERY_KEY, section\)/);
@@ -38,11 +39,13 @@ test("#1111 Settings deep links are bookmarkable and browser back/forward restor
   assert.match(source, /window\.addEventListener\("popstate", sync\)/);
   assert.match(source, /window\.sessionStorage\.setItem\(SETTINGS_SECTION_KEY, section\)/);
   assert.match(source, /LEGACY_TARGETS/, "old Settings deep links must continue to resolve into the new navigation model");
-  assert.match(source, /"settings-models": "sage"/);
-  assert.match(source, /"settings-comfyui": "images"/);
+  assert.match(source, /"settings-models": "local-compute"/);
+  assert.match(source, /"settings-comfyui": "local-compute"/);
+  assert.match(source, /"settings-openai": "cloud-compute"/);
+  assert.match(source, /"settings-minimax": "cloud-compute"/);
   const hashIndex = source.indexOf("if (url.hash)");
   const queryIndex = source.indexOf("const querySection = url.searchParams.get(SETTINGS_QUERY_KEY)");
-  assert.ok(hashIndex >= 0 && queryIndex >= 0 && hashIndex < queryIndex, "legacy hash destinations must win over a stale settings query so Help, LLM Routing, ComfyUI and provider links remain usable");
+  assert.ok(hashIndex >= 0 && queryIndex >= 0 && hashIndex < queryIndex, "legacy hash destinations must win over a stale settings query");
 });
 
 test("#1111 common overview reads existing runtime media and BUZZ authorities without creating a second status store", async () => {
@@ -56,7 +59,7 @@ test("#1111 common overview reads existing runtime media and BUZZ authorities wi
   assert.doesNotMatch(overview, /localStorage|indexedDB|sessionStorage/, "overview readiness must stay derived from existing authorities");
 });
 
-test("#1111 overview distinguishes process-running from capability-ready and deep-links each status to configure/test", async () => {
+test("#1111 overview distinguishes process-running from capability-ready and legacy configure links remain resolvable", async () => {
   const overview = await read("app/settings-readiness-overview.tsx");
   assert.match(overview, /comfyui\?\.reachable/);
   assert.match(overview, /imageNodesReady/);
@@ -68,24 +71,26 @@ test("#1111 overview distinguishes process-running from capability-ready and dee
   }
 });
 
-test("#1111 reuses existing configure and test owners for text media providers BUZZ and runtime", async () => {
-  const source = await read("app/sage-settings-workspace.tsx");
+test("#1111/#1377 reuses existing configure and test owners inside one Local/Cloud Compute component", async () => {
+  const [settings, compute] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/settings/compute/ai-compute-workspace.tsx"),
+  ]);
   for (const component of [
-    "SageFastModelSetup",
     "AiRoutingPanel",
+    "SageFastModelSetup",
     "MediaRoutingPanel",
     "AiProviderSetupPanel",
-    "WritingAssistantConsole",
-    "BuzzSettingsPanel",
-    "BuzzLiveHealthCard",
-    "AgentObservabilityPanel",
     "LocalRuntimePanel",
   ]) {
-    assert.match(source, new RegExp(`<${component}\\b`), `${component} must remain reachable in the unified Settings workspace`);
+    assert.match(compute, new RegExp(`<${component}\\b`), `${component} must remain reachable in the shared Compute workspace`);
   }
-  assert.match(source, /No silent cloud fallback/);
-  assert.match(source, /paid calls remain explicit/i);
-  assert.match(source, /Credentials stay protected/i);
+  for (const component of ["BuzzSettingsPanel", "BuzzLiveHealthCard", "AgentObservabilityPanel", "LocalRuntimePanel"]) {
+    assert.match(settings, new RegExp(`<${component}\\b`), `${component} must remain reachable in Settings`);
+  }
+  assert.match(settings, /No silent cloud fallback/);
+  assert.match(compute, /paid routes remain explicit/i);
+  assert.match(compute, /Credentials stay outside story projects/i);
 });
 
 test("#1111 dark surface guard still scopes every dynamically mounted Settings section", async () => {

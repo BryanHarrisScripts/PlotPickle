@@ -3,7 +3,10 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { runManagedPiReadOnly } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
+import {
+  probeManagedPiReadiness,
+  runManagedPiReadOnly,
+} from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import { buildInstructionBundle } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "./pi-worker-runtime.mjs";
@@ -12,6 +15,100 @@ function argument(name) {
   const index = process.argv.indexOf(name);
   if (index < 0 || !process.argv[index + 1]) throw new Error(`Missing required ${name} argument.`);
   return process.argv[index + 1];
+}
+
+function hasFlag(name) {
+  return process.argv.includes(name);
+}
+
+function errorDetail(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function printReadiness() {
+  const repositoryPath = path.resolve(argument("--repository-path"));
+  const report = {
+    schemaVersion: 1,
+    ready: false,
+    node: {
+      ready: true,
+      version: process.version,
+      detail: `Node ${process.version} is running the Developer Workbench readiness probe.`,
+    },
+    pi: {
+      ready: false,
+      version: "",
+      detail: "PlotPickle-managed Pi has not been checked yet.",
+    },
+    runtime: {
+      ready: false,
+      label: "",
+      model: "",
+      baseUrl: "",
+      detail: "A local coding runtime has not been resolved yet.",
+    },
+    inference: {
+      ready: false,
+      latencyMs: 0,
+      providerId: "plotpickle-workbench-local",
+      detail: "The bounded local inference handshake has not run yet.",
+    },
+  };
+
+  let pi;
+  try {
+    pi = await ensureManagedPiInstalled({
+      allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0",
+    });
+    report.pi = {
+      ready: true,
+      version: pi.version || pi.expectedVersion || "unknown",
+      detail: `PlotPickle-managed Pi ${pi.version || pi.expectedVersion || "unknown"} is ready${pi.installed ? " and was installed by this check" : ""}.`,
+    };
+  } catch (error) {
+    report.pi.detail = errorDetail(error);
+    process.stdout.write(`${JSON.stringify(report)}\n`);
+    return;
+  }
+
+  process.env.PLOTPICKLE_PI_COMMAND = pi.command;
+  let runtime;
+  try {
+    runtime = await resolvePiLocalRuntime();
+    report.runtime = {
+      ready: true,
+      label: runtime.label || runtime.kind || "Local runtime",
+      model: runtime.model || "",
+      baseUrl: runtime.baseUrl || "",
+      detail: `${runtime.label || runtime.kind || "Local runtime"} is reachable with approved model ${runtime.model || "<unknown>"}.`,
+    };
+  } catch (error) {
+    report.runtime.detail = errorDetail(error);
+    process.stdout.write(`${JSON.stringify(report)}\n`);
+    return;
+  }
+
+  try {
+    const probe = await probeManagedPiReadiness({
+      pi,
+      runtime,
+      cwd: repositoryPath,
+      purpose: "work-item-readiness",
+    });
+    report.inference = {
+      ready: true,
+      latencyMs: probe.latencyMs,
+      providerId: probe.providerId,
+      detail: `Local inference answered the bounded Workbench handshake in ${probe.latencyMs} ms through ${probe.providerId}.`,
+    };
+  } catch (error) {
+    report.inference.detail = errorDetail(error);
+    process.stdout.write(`${JSON.stringify(report)}\n`);
+    return;
+  }
+
+  report.ready = report.pi.ready && report.runtime.ready && report.inference.ready;
+  process.stdout.write(`${JSON.stringify(report)}\n`);
 }
 
 function boundedReviewPackage(input) {
@@ -85,6 +182,11 @@ function reviewPrompt(reviewPackage, instructionBundle) {
 }
 
 async function main() {
+  if (hasFlag("--readiness")) {
+    await printReadiness();
+    return;
+  }
+
   const inputPath = path.resolve(argument("--input"));
   const outputPath = path.resolve(argument("--output"));
   const reviewPackage = JSON.parse(await readFile(inputPath, "utf8"));

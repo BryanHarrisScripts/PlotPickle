@@ -126,7 +126,7 @@ test("#1373 Workbench direct transport reuses the canonical PlotPickle Pi provid
 test("#1373 Pi GREEN requires the real canonical local inference proof", () => {
   const installedIndex = piBridge.indexOf("ensureManagedPiInstalled");
   const runtimeIndex = piBridge.indexOf("resolvePiLocalRuntime");
-  const proofIndex = piBridge.indexOf("probeManagedPiReadiness");
+  const proofIndex = piBridge.indexOf("const proof = await probeManagedPiReadiness");
   const readyIndex = piBridge.indexOf("ready: true,\n      version: report.pi.version");
   assert.ok(installedIndex >= 0 && runtimeIndex > installedIndex && proofIndex > runtimeIndex && readyIndex > proofIndex);
   assert.match(piBridge, /real local inference still must pass before Pi is GREEN/);

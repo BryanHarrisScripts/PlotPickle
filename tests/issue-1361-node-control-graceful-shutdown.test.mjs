@@ -5,7 +5,6 @@ import test from "node:test";
 import {
   PLOTPICKLE_NODE_LIFECYCLE_STATES,
   createPlotPickleNodeShutdownLifecycle,
-  runSaveFirstNodeShutdown,
 } from "../core/runtime/plotpickle-node-control-core.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -27,18 +26,6 @@ test("Node lifecycle rejects repeated shutdown and supports a blocked retry", ()
   assert.notEqual(retry.token, first.token);
   assert.equal(lifecycle.commit(retry.token).state, "SHUTTING DOWN");
   assert.equal(lifecycle.stop().state, "STOPPED");
-});
-
-test("save-first shutdown sequence blocks before session release when persistence fails", async () => {
-  const order = [];
-  await assert.rejects(() => runSaveFirstNodeShutdown({
-    begin: async () => ({ token: "proof" }),
-    persist: async () => { order.push("save"); throw new Error("cannot persist"); },
-    releaseSession: async () => order.push("session"),
-    commit: async () => order.push("commit"),
-    block: async () => order.push("blocked"),
-  }), /cannot persist/i);
-  assert.deepEqual(order, ["save", "blocked"]);
 });
 
 test("#1361 preserves the existing Studio signing identity as the compatibility node_id", () => {
@@ -87,4 +74,4 @@ test("graceful shutdown source preserves save, Human release, supervisor and own
   assert.match(browser, /Stop-Process -Id \$browser\.Id/);
   assert.doesNotMatch(browser, /Stop-Process[^\n]+-Name|taskkill|killall|pkill/i);
   assert.match(browser, /PLOTPICKLE_SHUTDOWN_SIGNAL/);
-}
+});

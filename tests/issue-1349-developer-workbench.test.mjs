@@ -108,7 +108,8 @@ test("#1349 managed Workbench launches Pi through Node instead of the Windows pi
   }
 
   assert.match(directLaunchHelper, /manifest\.bin/);
-  assert.match(directLaunchHelper, /runPortableCommand\(process\.execPath/);
+  assert.match(directLaunchHelper, /spawn\(process\.execPath/);
+  assert.match(directLaunchHelper, /stdio: \["ignore", "pipe", "pipe"\]/);
   assert.match(directLaunchHelper, /Direct launcher:/);
   assert.doesNotMatch(directLaunchHelper, /cmd\.exe|windowsBatchWrapper|pi\.command/);
 });

@@ -8,6 +8,7 @@ on:
       - ".agents/skills/plotpickle-architecture-review/**"
       - ".agents/skills/uat-repair/**"
       - "config/agent-skills.json"
+      - "config/agent-skill-trust.json"
       - "scripts/pi-architecture-review-core.mjs"
       - "scripts/run-pi-architecture-review.mjs"
       - "docs/architecture/pi-architecture-aware-engineering.md"
@@ -37,7 +38,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "22.19.0"
+          node-version: "22.22.0"
           cache: npm
 
       - name: Install dependencies

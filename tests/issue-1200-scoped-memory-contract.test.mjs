@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MEMORY_AUTHORITY,
+  createInMemoryMemoryStore,
   createMemoryService,
   parseMemoryRecord,
   resolveMemoryAgainstPpf,
@@ -36,6 +37,7 @@ function memoryHarness() {
   let tick = 0;
   let identifier = 0;
   const service = createMemoryService({
+    store: createInMemoryMemoryStore(),
     resolveSession(sessionId) {
       const resolved = sessions.get(sessionId);
       if (!resolved) throw new Error("Session is not authorized.");
@@ -167,7 +169,7 @@ test("listMemories rechecks project authority and does not leak inaccessible rec
   await assert.rejects(service.listMemories({ sessionId: "session-a" }, { projectId: "project-a" }), /outside the authenticated Human authority/);
 });
 
-test("forget is host-owned, deterministic and hidden from normal reads", async () => {
+test("forget is host-owned and removes the record from the configured store", async () => {
   const { service } = memoryHarness();
   const saved = await service.saveMemory({ sessionId: "session-a" }, {
     scope: "human",
@@ -178,10 +180,8 @@ test("forget is host-owned, deterministic and hidden from normal reads", async (
   assert.equal(forgotten.status, "forgotten");
   assert.notEqual(forgotten.updatedAt, saved.updatedAt);
   assert.deepEqual(await service.listMemories({ sessionId: "session-a" }), []);
-  const history = await service.listMemories({ sessionId: "session-a" }, { includeForgotten: true });
-  assert.equal(history.length, 1);
-  assert.equal(history[0].id, saved.id);
-  assert.equal((await service.forgetMemory({ sessionId: "session-a" }, saved.id)).status, "forgotten");
+  assert.deepEqual(await service.listMemories({ sessionId: "session-a" }, { includeForgotten: true }), []);
+  await assert.rejects(service.forgetMemory({ sessionId: "session-a" }, saved.id), /not found in the authenticated Human scope/);
 });
 
 test("PPF deterministically outranks conflicting contextual memory", () => {

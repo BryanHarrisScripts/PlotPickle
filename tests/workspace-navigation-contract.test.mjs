@@ -51,8 +51,8 @@ const canonicalLabels = [
 const canonicalGaps = [];
 
 function sourceNavigationItems(source) {
-  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "[^"]+", selectable: (?:true|false) \}/g)]
-    .map((match) => ({ id: match[1], label: match[2] }));
+  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "([^"]+)", selectable: (?:true|false) \}/g)]
+    .map((match) => ({ id: match[1], label: match[2], detail: match[3] }));
 }
 
 test("canonical navigation contract preserves the revised order and labels", () => {
@@ -63,6 +63,12 @@ test("canonical navigation contract preserves the revised order and labels", () 
   const sourceItems = sourceNavigationItems(shellSource);
   assert.deepEqual(sourceItems.map((item) => item.id), canonicalIds);
   assert.deepEqual(sourceItems.map((item) => item.label), canonicalLabels);
+});
+
+test("#1341 keeps Library and Dashboard titles while using their approved subtitles", () => {
+  const sourceItems = sourceNavigationItems(shellSource);
+  assert.deepEqual(sourceItems.find((item) => item.id === "library"), { id: "library", label: "Library", detail: "Stories" });
+  assert.deepEqual(sourceItems.find((item) => item.id === "dashboard"), { id: "dashboard", label: "Dashboard", detail: "KPI" });
 });
 
 test("workspace shell exposes stable UAT hooks without legacy visual gap groups", () => {

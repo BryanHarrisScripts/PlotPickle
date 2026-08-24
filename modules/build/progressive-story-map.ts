@@ -87,7 +87,7 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
       mappingNote: blockPassages.length
         ? reviewedMapping
           ? "Direct screenplay passages support this reviewed story position."
-          : "Direct screenplay passages are present, but their 24/96 placement is still importer-suggested and requires Human review."
+          : "Direct screenplay passages are present, but placement remains importer-suggested and requires Human review."
         : "No screenplay passage or Human-approved structural decision currently supports this Block. PlotPickle leaves it unresolved.",
       miniBlocks,
     };

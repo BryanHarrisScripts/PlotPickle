@@ -4,13 +4,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
 import { resetProfileExperienceRuntime } from "../core/auth/profile-experience/profile-experience-runtime";
-import {
-  createPlotPickleNodeShutdownLifecycle,
-  ensurePlotPickleNodeIdentity,
-  plotPicklePersistentHome,
-} from "../core/runtime/plotpickle-node-control-core.mjs";
+import { createPlotPickleNodeShutdownLifecycle } from "../core/runtime/plotpickle-node-control-core.mjs";
 import { createLocalDesktopPlotPickleNode, type PlotPickleNodeHardwareSummary } from "../lib/runtime/plotpickle-node-topology";
+import { persistentHome } from "./local-credentials";
 import { localRuntimeSnapshot, stopManagedLlama } from "./local-runtime-manager";
+import { createStudioIdentity, readPublicStudioIdentity } from "./studio-identity";
 
 const NODE_TOPOLOGY_PATH = "/api/system/node-topology";
 const NODE_CONTROL_PATH = "/api/system/node-control";
@@ -18,8 +16,8 @@ const NODE_CONTROL_HEADER = "x-plotpickle-node-control";
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const LOOPBACK_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 const lifecycle = createPlotPickleNodeShutdownLifecycle();
-const identity = ensurePlotPickleNodeIdentity();
-process.env.PLOTPICKLE_NODE_ID ||= identity.nodeId;
+type NodeIdentity = Readonly<{ nodeId: string; shortId: string }>;
+let identityPromise: Promise<NodeIdentity> | null = null;
 
 function isLocalNodeRequest(request: IncomingMessage) {
   if (!LOOPBACK_PEERS.has(String(request.socket.remoteAddress || ""))) return false;
@@ -58,12 +56,26 @@ async function boundedBody(request: IncomingMessage) {
   return chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown> : {};
 }
 
-function shutdownSignalPath() {
-  const configured = process.env.PLOTPICKLE_SHUTDOWN_SIGNAL?.trim();
-  return configured ? path.resolve(configured) : path.join(plotPicklePersistentHome(), "node", "runtime", "shutdown-request.json");
+async function plotPickleNodeIdentity() {
+  if (!identityPromise) {
+    identityPromise = (async () => {
+      const existing = await readPublicStudioIdentity();
+      const identity = existing.configured ? existing : await createStudioIdentity("Local");
+      return Object.freeze({ nodeId: identity.studioId, shortId: `PP-${identity.shortCode}` });
+    })().catch((error) => {
+      identityPromise = null;
+      throw error;
+    });
+  }
+  return identityPromise;
 }
 
-async function signalOwnedLauncher() {
+function shutdownSignalPath() {
+  const configured = process.env.PLOTPICKLE_SHUTDOWN_SIGNAL?.trim();
+  return configured ? path.resolve(configured) : path.join(persistentHome(), "node", "runtime", "shutdown-request.json");
+}
+
+async function signalOwnedLauncher(identity: NodeIdentity) {
   const signal = shutdownSignalPath();
   await mkdir(path.dirname(signal), { recursive: true, mode: 0o700 });
   await writeFile(signal, `${JSON.stringify({
@@ -76,7 +88,7 @@ async function signalOwnedLauncher() {
   return signal;
 }
 
-function publicNodeControlSnapshot() {
+function publicNodeControlSnapshot(identity: NodeIdentity) {
   const browserState = process.env.PLOTPICKLE_BROWSER_STATE?.trim();
   return {
     ok: true,
@@ -90,7 +102,7 @@ function publicNodeControlSnapshot() {
 }
 
 async function handleTopology(request: IncomingMessage, response: ServerResponse) {
-  const runtime = await localRuntimeSnapshot();
+  const [identity, runtime] = await Promise.all([plotPickleNodeIdentity(), localRuntimeSnapshot()]);
   const hardware: PlotPickleNodeHardwareSummary = {
     platform: process.platform,
     architecture: process.arch,
@@ -131,7 +143,8 @@ async function handleTopology(request: IncomingMessage, response: ServerResponse
 }
 
 async function handleNodeControl(request: IncomingMessage, response: ServerResponse, server: ViteDevServer) {
-  if (request.method === "GET") { sendJson(response, 200, publicNodeControlSnapshot()); return; }
+  const identity = await plotPickleNodeIdentity();
+  if (request.method === "GET") { sendJson(response, 200, publicNodeControlSnapshot(identity)); return; }
   if (request.method !== "POST") { sendJson(response, 405, { ok: false, message: "Method not allowed." }); return; }
   if (request.headers[NODE_CONTROL_HEADER] !== "confirmed") {
     sendJson(response, 403, { ok: false, message: "Graceful shutdown requires an intentional same-origin confirmation." });
@@ -142,12 +155,12 @@ async function handleNodeControl(request: IncomingMessage, response: ServerRespo
   const action = String(input.action || "");
   if (action === "begin-shutdown") {
     const begun = lifecycle.begin();
-    sendJson(response, 200, { ...publicNodeControlSnapshot(), shutdownToken: begun.token });
+    sendJson(response, 200, { ...publicNodeControlSnapshot(identity), shutdownToken: begun.token });
     return;
   }
   if (action === "block-shutdown") {
     lifecycle.block(String(input.shutdownToken || ""), String(input.message || "PlotPickle could not safely persist the current session."));
-    sendJson(response, 200, publicNodeControlSnapshot());
+    sendJson(response, 200, publicNodeControlSnapshot(identity));
     return;
   }
   if (action !== "complete-shutdown") {
@@ -159,17 +172,17 @@ async function handleNodeControl(request: IncomingMessage, response: ServerRespo
   try {
     await resetProfileExperienceRuntime();
     await stopManagedLlama();
-    const signal = await signalOwnedLauncher();
+    const signal = await signalOwnedLauncher(identity);
     response.once("finish", () => {
       void server.close().finally(() => {
         lifecycle.stop();
         process.exit(0);
       });
     });
-    sendJson(response, 202, { ...publicNodeControlSnapshot(), signal });
+    sendJson(response, 202, { ...publicNodeControlSnapshot(identity), signal });
   } catch (error) {
     lifecycle.blockCommitted(error);
-    sendJson(response, 500, { ...publicNodeControlSnapshot(), ok: false, message: error instanceof Error ? error.message : "PlotPickle could not stop its managed services." });
+    sendJson(response, 500, { ...publicNodeControlSnapshot(identity), ok: false, message: error instanceof Error ? error.message : "PlotPickle could not stop its managed services." });
   }
 }
 

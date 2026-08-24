@@ -136,7 +136,9 @@ async function firstInferenceResponse(candidates, options = {}) {
     }
   });
   try {
-    return { winner: await Promise.any(tasks), errors };
+    const winner = await Promise.any(tasks);
+    await Promise.allSettled(tasks);
+    return { winner, errors };
   } catch {
     await Promise.allSettled(tasks);
     return { winner: null, errors };

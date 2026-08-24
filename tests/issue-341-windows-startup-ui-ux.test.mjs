@@ -84,6 +84,13 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
 
+  const openWhenReadyLabel = launcher.indexOf("\n:open_when_ready\n");
+  const deferredLabel = launcher.indexOf("\n:start_deferred_companion_maintenance\n", openWhenReadyLabel);
+  assert.ok(openWhenReadyLabel >= 0 && deferredLabel > openWhenReadyLabel, "Owned-browser startup labels must remain ordered and discoverable");
+  const openWhenReady = launcher.slice(openWhenReadyLabel, deferredLabel);
+  assert.match(openWhenReady, /\) \| Where-Object/);
+  assert.match(openWhenReady, /\} \| ConvertTo-Json \| Set-Content/);
+  assert.doesNotMatch(openWhenReady, /\^\|/);
   assert.doesNotMatch(launcher, /Start-Sleep -Seconds 4/);
   assert.doesNotMatch(launcher, /--host 0\.0\.0\.0/);
   assert.doesNotMatch(executableLines(launcher), /Start-Process\s+'%PLOTPICKLE_URL%'/i);

@@ -3,9 +3,10 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { runManagedPiReadOnly } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import { buildInstructionBundle } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
-import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
+import { resolvePiLocalRuntime } from "./pi-worker-runtime.mjs";
 
 function argument(name) {
   const index = process.argv.indexOf(name);
@@ -111,8 +112,8 @@ async function main() {
 
   let review;
   try {
-    review = await runPiReadOnly({
-      command: pi.command,
+    review = await runManagedPiReadOnly({
+      pi,
       runtime,
       prompt: promptArgument,
       cwd: reviewPackage.repositoryPath,

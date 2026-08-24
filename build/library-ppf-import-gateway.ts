@@ -9,12 +9,12 @@ import {
 
 const LIBRARY_PPF_IMPORT_PATH = "/api/library/import/ppf";
 
-function sendJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
-  response.statusCode = status;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
+function sendLibraryJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  }).end(JSON.stringify(body));
 }
 
 export function registerLibraryPpfImportGateway(server: ViteDevServer) {
@@ -25,11 +25,11 @@ export function registerLibraryPpfImportGateway(server: ViteDevServer) {
       return;
     }
     if (!isLocalPlotPickleRequest(request)) {
-      sendJson(response, 403, { ok: false, message: "Library .ppf import is available only from this local PlotPickle app." });
+      sendLibraryJson(response, 403, { ok: false, message: "Library .ppf import is available only from this local PlotPickle app." });
       return;
     }
     if (request.method !== "POST") {
-      sendJson(response, 405, { ok: false, message: "Use POST to import a .ppf into Library." });
+      sendLibraryJson(response, 405, { ok: false, message: "Use POST to import a .ppf into Library." });
       return;
     }
 
@@ -40,7 +40,7 @@ export function registerLibraryPpfImportGateway(server: ViteDevServer) {
       const importedAt = new Date().toISOString();
       const { project, packageKind } = openLocalPpf(await readLocalPpfRequest(request));
       const modularProject = richPpfToLibraryProject(project, importedAt);
-      sendJson(response, 200, {
+      sendLibraryJson(response, 200, {
         ok: true,
         packageKind,
         sourceProjectId: project.id,
@@ -49,7 +49,7 @@ export function registerLibraryPpfImportGateway(server: ViteDevServer) {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "PlotPickle could not import this .ppf into Library.";
-      sendJson(response, /48 MB/.test(message) ? 413 : 400, { ok: false, message });
+      sendLibraryJson(response, /48 MB/.test(message) ? 413 : 400, { ok: false, message });
     }
   });
 }

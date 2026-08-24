@@ -43,6 +43,11 @@ const PROVIDER_TARGET_LABELS: Record<ProviderTarget, string> = {
   minimax: "MiniMax",
   comfyui: "ComfyUI",
 };
+const CAPABILITY_NAMES: Record<Capability, string> = {
+  text: "Writing",
+  image: "Images",
+  video: "Video",
+};
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
@@ -98,12 +103,6 @@ function settingsTargets(route: string, option: OptionState): ProviderTarget[] {
   if (route === "ollama-comfyui") return ["ollama", "comfyui"];
   const target = canonicalTarget(option.settingsTarget);
   return target ? [target] : [];
-}
-
-function capabilityName(capability: Capability) {
-  if (capability === "text") return "Writing";
-  if (capability === "image") return "Images";
-  return "Video";
 }
 
 export default function AiRoutingPanel({ capability: capabilityFilter, locality, onManage }: AiRoutingPanelProps = {}) {
@@ -268,7 +267,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
   const localActive = activeOptions.filter((option) => option.locality === "local").length;
   const cloudActive = activeOptions.filter((option) => option.locality === "cloud").length;
   const sourceMode = localActive && cloudActive ? "HYBRID" : localActive ? "LOCAL" : cloudActive ? "CLOUD" : "NO AI / MANUAL";
-  const filteredTitle = capabilityFilter ? capabilityName(capabilityFilter) : "Writing, Images & Video";
+  const filteredTitle = capabilityFilter ? CAPABILITY_NAMES[capabilityFilter] : "Writing, Images & Video";
   const filteredLocation = locality === "local" ? "Local Compute" : locality === "cloud" ? "Cloud Compute" : "AI Routing";
 
   return (
@@ -278,7 +277,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
           <p>Settings · {filteredLocation}</p>
           <h1 id="ai-routing-title">{locality ? `${filteredTitle} setup` : "Choose where writing, images and video are created."}</h1>
           <span>{locality
-            ? `Only ${locality === "local" ? "on-device" : "online"} ${capabilityFilter ? capabilityName(capabilityFilter).toLowerCase() : "AI"} routes are shown here. A route becomes selectable only after its real setup and test are ready.`
+            ? `Only ${locality === "local" ? "on-device" : "online"} ${capabilityFilter ? CAPABILITY_NAMES[capabilityFilter].toLowerCase() : "AI"} routes are shown here. A route becomes selectable only after its real setup and test are ready.`
             : "Each job has one active choice. Select the route you want; Off and Manual Import are explicit safe choices rather than hidden switch behaviour."}</span>
         </div>
         <div className={styles.presetActions}>
@@ -363,7 +362,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
                     );
                   })}
                 </ul>
-              ) : <p className={styles.warning}>No {locality} {capabilityName(capability).toLowerCase()} route is currently registered. PlotPickle will not invent or silently substitute one.</p>}
+              ) : <p className={styles.warning}>No {locality} {CAPABILITY_NAMES[capability].toLowerCase()} route is currently registered. PlotPickle will not invent or silently substitute one.</p>}
             </fieldset>
           );
         })}

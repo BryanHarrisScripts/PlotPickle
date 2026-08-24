@@ -23,7 +23,7 @@ The model review is advisory. Deterministic gates remain authoritative.
 
 ## Existing boundary reused
 
-`scripts/run-pi-architecture-review.mjs` reuses the existing PlotPickle-managed Pi installation and `runPiReadOnly()` path. Every Pi invocation is headless, sessionless, local-runtime only, and restricted to:
+`scripts/pi/run-architecture-review.mjs` reuses the existing PlotPickle-managed Pi installation and `runPiReadOnly()` path. The architecture-specific runner and deterministic review core live together under `scripts/pi/` so the root `scripts/` directory does not become another flat dumping ground. Every Pi invocation is headless, sessionless, local-runtime only, and restricted to:
 
 ```text
 read, grep, find, ls
@@ -72,7 +72,7 @@ The exact fixed point and exact reviewed head SHA are recorded in review evidenc
 Store the authoritative issue or developer brief in the repository, then run:
 
 ```powershell
-node scripts/run-pi-architecture-review.mjs impact --base main --head HEAD --spec docs/path/to/developer-brief.md
+node scripts/pi/run-architecture-review.mjs impact --base main --head HEAD --spec docs/path/to/developer-brief.md
 ```
 
 The impact map covers, where relevant:
@@ -97,7 +97,7 @@ The output is local evidence under the user's PlotPickle application-data direct
 After implementation, pass the prior impact JSON back to the reviewer:
 
 ```powershell
-node scripts/run-pi-architecture-review.mjs review `
+node scripts/pi/run-architecture-review.mjs review `
   --base main `
   --head HEAD `
   --spec docs/path/to/developer-brief.md `
@@ -121,7 +121,7 @@ If `--spec` is omitted during post-change review, the host records **NO SPEC** a
 Place the exact failing CI log or extracted job evidence inside the repository, preferably under `.artifacts/`, then run:
 
 ```powershell
-node scripts/run-pi-architecture-review.mjs ci `
+node scripts/pi/run-architecture-review.mjs ci `
   --base main `
   --head HEAD `
   --impact-map <path-to-pi-impact-json> `

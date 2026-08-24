@@ -1,4 +1,5 @@
 import type { AuthContext } from "../auth/plotpickle-auth";
+import type { ProfilePrivateStorageService } from "../storage/profile-private/profile-private-storage";
 import * as core from "./memory-service-core.mjs";
 
 export type MemoryScope = "human" | "project" | "agent";
@@ -20,6 +21,18 @@ export type MemoryRecord = Readonly<{
   updatedAt: string;
   tags: readonly string[];
   status: MemoryStatus;
+}>;
+
+export type MemoryStoreSnapshot = Readonly<{
+  format: "plotpickle-memory-store";
+  version: 1;
+  profileId: string;
+  records: readonly MemoryRecord[];
+}>;
+
+export type MemoryStore = Readonly<{
+  read(authContext: AuthContext): Promise<unknown | null>;
+  write(authContext: AuthContext, value: MemoryStoreSnapshot): Promise<unknown>;
 }>;
 
 export type MemorySessionProof = Readonly<{ sessionId: string }>;
@@ -44,10 +57,13 @@ export type MemoryService = Readonly<{
   saveMemory(proof: MemorySessionProof, value: MemoryWrite): Promise<MemoryRecord>;
   listMemories(proof: MemorySessionProof, query?: MemoryQuery): Promise<readonly MemoryRecord[]>;
   forgetMemory(proof: MemorySessionProof, memoryId: string): Promise<MemoryRecord>;
+  purgeProjectMemories(proof: MemorySessionProof, projectId: string): Promise<number>;
+  purgeProfileMemories(proof: MemorySessionProof): Promise<number>;
 }>;
 
 export type MemoryServiceOptions = Readonly<{
   resolveSession(sessionId: string): AuthContext;
+  store: MemoryStore;
   authorizeProject?: (input: Readonly<{ authContext: AuthContext; projectId: string }>) => boolean | Promise<boolean>;
   authorizeAgent?: (input: Readonly<{ authContext: AuthContext; agentId: string; projectId: string | null }>) => boolean | Promise<boolean>;
   now?: () => string;
@@ -59,7 +75,13 @@ export const MEMORY_AUTHORITY = core.MEMORY_AUTHORITY as MemoryAuthority;
 export const MEMORY_SCOPES = core.MEMORY_SCOPES as readonly MemoryScope[];
 export const MEMORY_SOURCES = core.MEMORY_SOURCES as readonly MemorySource[];
 export const MEMORY_STATUSES = core.MEMORY_STATUSES as readonly MemoryStatus[];
+export const MEMORY_STORE_FORMAT = core.MEMORY_STORE_FORMAT as "plotpickle-memory-store";
+export const MEMORY_STORE_VERSION = core.MEMORY_STORE_VERSION as 1;
+export const MEMORY_STORE_OBJECT_ID = core.MEMORY_STORE_OBJECT_ID as "memory-v1";
 export const parseMemoryRecord = core.parseMemoryRecord as (value: unknown) => MemoryRecord;
+export const parseMemoryStore = core.parseMemoryStore as (value: unknown, profileId: string) => MemoryStoreSnapshot;
+export const createInMemoryMemoryStore = core.createInMemoryMemoryStore as () => MemoryStore;
+export const createProfilePrivateMemoryStore = core.createProfilePrivateMemoryStore as (privateStorage: ProfilePrivateStorageService) => MemoryStore;
 export const resolveMemoryAgainstPpf = core.resolveMemoryAgainstPpf as <T>(input: Readonly<{
   ppfValue: T | null | undefined;
   memoryValue: T;

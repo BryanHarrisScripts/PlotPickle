@@ -5,6 +5,9 @@ export const MEMORY_AUTHORITY = "contextual";
 export const MEMORY_SCOPES = Object.freeze(["human", "project", "agent"]);
 export const MEMORY_SOURCES = Object.freeze(["human", "agent", "project"]);
 export const MEMORY_STATUSES = Object.freeze(["active", "forgotten"]);
+export const MEMORY_STORE_FORMAT = "plotpickle-memory-store";
+export const MEMORY_STORE_VERSION = 1;
+export const MEMORY_STORE_OBJECT_ID = "memory-v1";
 
 const MEMORY_SCOPE_SET = new Set(MEMORY_SCOPES);
 const MEMORY_SOURCE_SET = new Set(MEMORY_SOURCES);
@@ -20,6 +23,13 @@ const HOST_OWNED_WRITE_FIELDS = Object.freeze([
 const MAX_MEMORY_CONTENT = 8_000;
 const MAX_MEMORY_TAGS = 12;
 const MAX_MEMORY_TAG_LENGTH = 64;
+const SECRET_PATTERNS = Object.freeze([
+  /\bnsec1[a-z0-9]{8,}\b/i,
+  /\bBearer\s+[A-Za-z0-9._~+/=-]{8,}\b/i,
+  /\b(?:sk|pk)-[A-Za-z0-9_-]{8,}\b/,
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i,
+  /\b(?:api[_-]?key|password|passphrase|pmk|recovery(?:[_-]?secret)?|csrf(?:[_-]?token)?|session(?:[_-]?token)?|oauth(?:[_-]?token)?|access[_-]?token|refresh[_-]?token|private[_-]?key|buzz[_-]?auth[_-]?tag)\b\s*[:=]\s*[^\s,;]+/i,
+]);
 
 function memoryObject(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object.`);
@@ -58,6 +68,13 @@ function assertHostOwnedWriteFields(input) {
     if (Object.prototype.hasOwnProperty.call(input, field)) {
       throw new Error(`Memory field ${field} is host-owned and cannot be supplied by a caller.`);
     }
+  }
+}
+
+function assertNoSecretMaterial(content, tags) {
+  const candidate = [String(content ?? ""), ...(Array.isArray(tags) ? tags : [])].join("\n");
+  if (SECRET_PATTERNS.some((pattern) => pattern.test(candidate))) {
+    throw new Error("Memory contains credential or secret material and was not persisted.");
   }
 }
 
@@ -122,6 +139,79 @@ export function parseMemoryRecord(value) {
   });
 }
 
+function emptyMemoryStore(profileId) {
+  return Object.freeze({
+    format: MEMORY_STORE_FORMAT,
+    version: MEMORY_STORE_VERSION,
+    profileId,
+    records: Object.freeze([]),
+  });
+}
+
+export function parseMemoryStore(value, expectedProfileId) {
+  const profileId = memoryText(expectedProfileId, "Memory store profile ID", 160);
+  if (value == null) return emptyMemoryStore(profileId);
+  const store = memoryObject(value, "Memory store");
+  if (store.format !== MEMORY_STORE_FORMAT || store.version !== MEMORY_STORE_VERSION || store.profileId !== profileId || !Array.isArray(store.records)) {
+    throw new Error("Memory store ownership or version is invalid.");
+  }
+  const records = store.records.map(parseMemoryRecord);
+  const ids = new Set();
+  for (const record of records) {
+    if (record.profileId !== profileId) throw new Error("Memory store contains a record owned by another Human profile.");
+    if (ids.has(record.id)) throw new Error(`Memory store contains duplicate ID: ${record.id}.`);
+    ids.add(record.id);
+  }
+  return Object.freeze({
+    format: MEMORY_STORE_FORMAT,
+    version: MEMORY_STORE_VERSION,
+    profileId,
+    records: Object.freeze(records),
+  });
+}
+
+function snapshot(profileId, records) {
+  return parseMemoryStore({
+    format: MEMORY_STORE_FORMAT,
+    version: MEMORY_STORE_VERSION,
+    profileId,
+    records,
+  }, profileId);
+}
+
+export function createInMemoryMemoryStore() {
+  const stores = new Map();
+  return Object.freeze({
+    async read(authContext) {
+      const profileId = memoryProfile(authContext);
+      return stores.has(profileId) ? structuredClone(stores.get(profileId)) : null;
+    },
+    async write(authContext, value) {
+      const profileId = memoryProfile(authContext);
+      const checked = parseMemoryStore(value, profileId);
+      stores.set(profileId, structuredClone(checked));
+      return checked;
+    },
+  });
+}
+
+export function createProfilePrivateMemoryStore(privateStorage) {
+  if (!privateStorage || typeof privateStorage.readPrivateJson !== "function" || typeof privateStorage.writePrivateJson !== "function") {
+    throw new Error("Profile-private Memory Store requires PlotPickle profile-private storage.");
+  }
+  return Object.freeze({
+    async read(authContext) {
+      return privateStorage.readPrivateJson(authContext, { domain: "memory", objectId: MEMORY_STORE_OBJECT_ID });
+    },
+    async write(authContext, value) {
+      const profileId = memoryProfile(authContext);
+      const checked = parseMemoryStore(value, profileId);
+      await privateStorage.writePrivateJson(authContext, { domain: "memory", objectId: MEMORY_STORE_OBJECT_ID, value: checked });
+      return checked;
+    },
+  });
+}
+
 async function allowedBy(resolver, details, label) {
   if (typeof resolver !== "function") throw new Error(`${label} authorization is not configured on the host.`);
   if (await resolver(details) !== true) throw new Error(`${label} is outside the authenticated Human authority.`);
@@ -161,10 +251,6 @@ async function authorizeWriteScope(authContext, input, options) {
   return { scope, projectId, agentId };
 }
 
-function activeProfileRecords(records, profileId) {
-  return records.get(profileId) || new Map();
-}
-
 function memoryFilter(value) {
   if (value == null) return {};
   const input = memoryObject(value, "Memory query");
@@ -197,45 +283,64 @@ export function resolveMemoryAgainstPpf({ ppfValue, memoryValue }) {
 
 export function createMemoryService(options = {}) {
   if (typeof options.resolveSession !== "function") throw new Error("Memory Service requires the host Auth session resolver.");
+  if (!options.store || typeof options.store.read !== "function" || typeof options.store.write !== "function") {
+    throw new Error("Memory Service requires an explicit host-owned Memory Store.");
+  }
   const now = typeof options.now === "function" ? options.now : () => new Date().toISOString();
   const createId = typeof options.createId === "function" ? options.createId : () => `memory:${randomUUID()}`;
-  const records = new Map();
+  const mutationQueues = new Map();
 
   function resolveAuthority(proof) {
     const authoritative = options.resolveSession(sessionId(proof));
     return { ...authoritative, profileId: memoryProfile(authoritative) };
   }
 
+  async function readStore(authContext) {
+    return parseMemoryStore(await options.store.read(authContext), authContext.profileId);
+  }
+
+  async function writeStore(authContext, records) {
+    return options.store.write(authContext, snapshot(authContext.profileId, records));
+  }
+
+  function serialize(profileId, operation) {
+    const previous = mutationQueues.get(profileId) || Promise.resolve();
+    const current = previous.catch(() => undefined).then(operation);
+    mutationQueues.set(profileId, current);
+    return current.finally(() => {
+      if (mutationQueues.get(profileId) === current) mutationQueues.delete(profileId);
+    });
+  }
+
   return Object.freeze({
     async saveMemory(proof, value) {
       const input = memoryObject(value, "Memory write");
       assertHostOwnedWriteFields(input);
+      assertNoSecretMaterial(input.content, input.tags);
       const authContext = resolveAuthority(proof);
       const scope = await authorizeWriteScope(authContext, input, options);
-      const timestamp = memoryTimestamp(now(), "Memory host timestamp");
-      const record = parseMemoryRecord({
-        version: MEMORY_RECORD_VERSION,
-        id: memoryText(createId(), "Memory ID", 240),
-        scope: scope.scope,
-        profileId: authContext.profileId,
-        projectId: scope.projectId,
-        agentId: scope.agentId,
-        content: input.content,
-        source: input.source,
-        authority: MEMORY_AUTHORITY,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        tags: input.tags,
-        status: "active",
+      return serialize(authContext.profileId, async () => {
+        const store = await readStore(authContext);
+        const timestamp = memoryTimestamp(now(), "Memory host timestamp");
+        const record = parseMemoryRecord({
+          version: MEMORY_RECORD_VERSION,
+          id: memoryText(createId(), "Memory ID", 240),
+          scope: scope.scope,
+          profileId: authContext.profileId,
+          projectId: scope.projectId,
+          agentId: scope.agentId,
+          content: input.content,
+          source: input.source,
+          authority: MEMORY_AUTHORITY,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          tags: input.tags,
+          status: "active",
+        });
+        if (store.records.some((item) => item.id === record.id)) throw new Error(`Memory ID already exists: ${record.id}.`);
+        await writeStore(authContext, [...store.records, record]);
+        return record;
       });
-      let profileRecords = records.get(authContext.profileId);
-      if (!profileRecords) {
-        profileRecords = new Map();
-        records.set(authContext.profileId, profileRecords);
-      }
-      if (profileRecords.has(record.id)) throw new Error(`Memory ID already exists: ${record.id}.`);
-      profileRecords.set(record.id, record);
-      return record;
     },
 
     async listMemories(proof, query = {}) {
@@ -243,8 +348,9 @@ export function createMemoryService(options = {}) {
       const filter = memoryFilter(query);
       if (filter.projectId) await allowedBy(options.authorizeProject, { authContext, projectId: filter.projectId }, "Project memory query");
       if (filter.agentId) await allowedBy(options.authorizeAgent, { authContext, agentId: filter.agentId, projectId: filter.projectId }, "Agent memory query");
+      const store = await readStore(authContext);
       const available = [];
-      for (const record of activeProfileRecords(records, authContext.profileId).values()) {
+      for (const record of store.records) {
         if (!matchesFilter(record, filter)) continue;
         if (await authorizeRecord(authContext, record, options)) available.push(record);
       }
@@ -254,17 +360,41 @@ export function createMemoryService(options = {}) {
     async forgetMemory(proof, memoryId) {
       const authContext = resolveAuthority(proof);
       const id = memoryText(memoryId, "Memory ID", 240);
-      const profileRecords = activeProfileRecords(records, authContext.profileId);
-      const current = profileRecords.get(id);
-      if (!current || !(await authorizeRecord(authContext, current, options))) throw new Error("Memory was not found in the authenticated Human scope.");
-      if (current.status === "forgotten") return current;
-      const forgotten = parseMemoryRecord({
-        ...current,
-        updatedAt: memoryTimestamp(now(), "Memory host timestamp"),
-        status: "forgotten",
+      return serialize(authContext.profileId, async () => {
+        const store = await readStore(authContext);
+        const current = store.records.find((item) => item.id === id);
+        if (!current || !(await authorizeRecord(authContext, current, options))) throw new Error("Memory was not found in the authenticated Human scope.");
+        const forgotten = parseMemoryRecord({
+          ...current,
+          updatedAt: memoryTimestamp(now(), "Memory host timestamp"),
+          status: "forgotten",
+        });
+        await writeStore(authContext, store.records.filter((item) => item.id !== id));
+        return forgotten;
       });
-      profileRecords.set(id, forgotten);
-      return forgotten;
+    },
+
+    async purgeProjectMemories(proof, projectId) {
+      const authContext = resolveAuthority(proof);
+      const id = memoryText(projectId, "Memory project ID", 200);
+      await allowedBy(options.authorizeProject, { authContext, projectId: id }, "Project memory purge");
+      return serialize(authContext.profileId, async () => {
+        const store = await readStore(authContext);
+        const retained = store.records.filter((record) => record.projectId !== id);
+        const removed = store.records.length - retained.length;
+        if (removed) await writeStore(authContext, retained);
+        return removed;
+      });
+    },
+
+    async purgeProfileMemories(proof) {
+      const authContext = resolveAuthority(proof);
+      return serialize(authContext.profileId, async () => {
+        const store = await readStore(authContext);
+        const removed = store.records.length;
+        if (removed) await writeStore(authContext, []);
+        return removed;
+      });
     },
   });
 }

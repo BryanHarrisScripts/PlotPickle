@@ -31,10 +31,6 @@ function normalizeLoopbackBaseUrl(value) {
   return parsed.toString().replace(/\/$/, "");
 }
 
-function runtimeKey(runtime) {
-  return `${runtime.baseUrl}|${runtime.model}`.toLowerCase();
-}
-
 function errorDetail(error) {
   const stderr = String(error?.stderr || "").trim();
   const stdout = String(error?.stdout || "").trim();
@@ -131,7 +127,7 @@ async function firstInferenceResponse(candidates, options = {}) {
     try {
       return await probeCandidate(candidate, { timeoutMs, fetchImpl: options.fetchImpl });
     } catch (error) {
-      errors.set(runtimeKey(candidate), errorDetail(error));
+      errors.set(`${candidate.baseUrl}|${candidate.model}`.toLowerCase(), errorDetail(error));
       throw error;
     }
   });
@@ -213,7 +209,7 @@ export async function raceWorkbenchRuntime(options) {
     lastCandidates = discovery.candidates || [];
     for (const diagnostic of discovery.diagnostics || []) lastErrors.set(`discovery:${diagnostic}`, diagnostic);
 
-    const eligible = lastCandidates.filter((candidate) => (piCooldownUntil.get(runtimeKey(candidate)) || 0) <= now());
+    const eligible = lastCandidates.filter((candidate) => (piCooldownUntil.get(`${candidate.baseUrl}|${candidate.model}`.toLowerCase()) || 0) <= now());
     if (eligible.length) {
       attempts += eligible.length;
       const remaining = Math.max(1, deadline - now());
@@ -248,7 +244,7 @@ export async function raceWorkbenchRuntime(options) {
               diagnostics: [...lastErrors.values()],
             });
           } catch (error) {
-            const key = runtimeKey(runtime);
+            const key = `${runtime.baseUrl}|${runtime.model}`.toLowerCase();
             lastErrors.set(key, `Pi handshake: ${errorDetail(error)}`);
             piCooldownUntil.set(key, now() + 8_000);
           }

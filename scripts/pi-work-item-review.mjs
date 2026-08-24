@@ -3,10 +3,11 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { runManagedPiReadOnly } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
-  probeManagedPiReadiness,
-  runManagedPiReadOnly,
-} from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
+  raceWorkbenchRuntime,
+  readPinnedWorkbenchRuntime,
+} from "../Utilities/DeveloperWorkbench/pi-runtime-race.mjs";
 import { buildInstructionBundle } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "./pi-worker-runtime.mjs";
@@ -47,7 +48,7 @@ async function printReadiness() {
       ready: false,
       latencyMs: 0,
       providerId: "plotpickle-workbench-local",
-      detail: "The bounded local inference handshake has not run yet.",
+      detail: "The 60-second local inference race has not run yet.",
     },
   };
 
@@ -68,40 +69,45 @@ async function printReadiness() {
   }
 
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
-  let runtime;
+  let race;
   try {
-    runtime = await resolvePiLocalRuntime();
-    report.runtime = {
-      ready: true,
-      label: runtime.label || runtime.kind || "Local runtime",
-      model: runtime.model || "",
-      baseUrl: runtime.baseUrl || "",
-      detail: `${runtime.label || runtime.kind || "Local runtime"} is reachable with approved model ${runtime.model || "<unknown>"}.`,
-    };
+    race = await raceWorkbenchRuntime({
+      pi,
+      cwd: repositoryPath,
+    });
   } catch (error) {
     report.runtime.detail = errorDetail(error);
+    report.inference.detail = `The 60-second local inference race could not start. ${errorDetail(error)}`;
     process.stdout.write(`${JSON.stringify(report)}\n`);
     return;
   }
 
-  try {
-    const probe = await probeManagedPiReadiness({
-      pi,
-      runtime,
-      cwd: repositoryPath,
-      purpose: "work-item-readiness",
-    });
-    report.inference = {
+  if (race.runtime) {
+    report.runtime = {
       ready: true,
-      latencyMs: probe.latencyMs,
-      providerId: probe.providerId,
-      detail: `Local inference answered the bounded Workbench handshake in ${probe.latencyMs} ms through ${probe.providerId}.`,
+      label: race.runtime.label || race.runtime.kind || "Local runtime",
+      model: race.runtime.model || "",
+      baseUrl: race.runtime.baseUrl || "",
+      detail: race.ready
+        ? `${race.runtime.label || race.runtime.kind || "Local runtime"} won the local inference race with approved model ${race.runtime.model || "<unknown>"}.`
+        : `${race.runtime.label || race.runtime.kind || "Local runtime"} advertises approved model ${race.runtime.model || "<unknown>"}, but no candidate completed the full Pi inference handshake within the race window.`,
     };
-  } catch (error) {
-    report.inference.detail = errorDetail(error);
+  } else {
+    report.runtime.detail = race.detail || "No approved local coding model became responsive during the 60-second race.";
+  }
+
+  if (!race.ready) {
+    report.inference.detail = race.detail || "No approved local model completed a real inference response within 60 seconds.";
     process.stdout.write(`${JSON.stringify(report)}\n`);
     return;
   }
+
+  report.inference = {
+    ready: true,
+    latencyMs: race.totalLatencyMs,
+    providerId: race.providerId,
+    detail: `Local inference race selected ${race.runtime.label || race.runtime.kind || "Local runtime"} · ${race.runtime.model} in ${race.totalLatencyMs} ms after ${race.attempts} candidate probe${race.attempts === 1 ? "" : "s"}; Pi confirmed the same explicit provider before enabling review.`,
+  };
 
   report.ready = report.pi.ready && report.runtime.ready && report.inference.ready;
   process.stdout.write(`${JSON.stringify(report)}\n`);
@@ -199,7 +205,7 @@ async function main() {
     allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0",
   });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
-  const runtime = await resolvePiLocalRuntime();
+  const runtime = await readPinnedWorkbenchRuntime(reviewPackage.repositoryPath) || await resolvePiLocalRuntime();
 
   const promptDirectory = path.join(reviewPackage.repositoryPath, ".plotpickle", "developer-workbench");
   await mkdir(promptDirectory, { recursive: true });

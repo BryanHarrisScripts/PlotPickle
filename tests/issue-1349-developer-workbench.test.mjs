@@ -5,6 +5,11 @@ import path from "node:path";
 import test from "node:test";
 import { resolveManagedPiCliEntry } from "../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs";
 import {
+  raceWorkbenchRuntime,
+  readPinnedWorkbenchRuntime,
+  writePinnedWorkbenchRuntime,
+} from "../Utilities/DeveloperWorkbench/pi-runtime-race.mjs";
+import {
   selectRelevantArchitecturePaths,
   selectRelevantSkillIds,
 } from "../Utilities/DeveloperWorkbench/pi-review-instructions.mjs";
@@ -16,9 +21,10 @@ const workflowPath = new URL("../.github/workflows/developer-workbench.yml", imp
 const piBridgePath = new URL("../scripts/pi-work-item-review.mjs", import.meta.url);
 const instructionHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-review-instructions.mjs", import.meta.url);
 const directLaunchHelperPath = new URL("../Utilities/DeveloperWorkbench/pi-managed-node-launch.mjs", import.meta.url);
+const runtimeRacePath = new URL("../Utilities/DeveloperWorkbench/pi-runtime-race.mjs", import.meta.url);
 const gitignorePath = new URL("../.gitignore", import.meta.url);
 
-const [program, project, buildScript, workflow, piBridge, instructionHelper, directLaunchHelper, gitignore] = await Promise.all([
+const [program, project, buildScript, workflow, piBridge, instructionHelper, directLaunchHelper, runtimeRace, gitignore] = await Promise.all([
   readFile(programPath, "utf8"),
   readFile(projectPath, "utf8"),
   readFile(buildScriptPath, "utf8"),
@@ -26,6 +32,7 @@ const [program, project, buildScript, workflow, piBridge, instructionHelper, dir
   readFile(piBridgePath, "utf8"),
   readFile(instructionHelperPath, "utf8"),
   readFile(directLaunchHelperPath, "utf8"),
+  readFile(runtimeRacePath, "utf8"),
   readFile(gitignorePath, "utf8"),
 ]);
 
@@ -130,7 +137,8 @@ test("#1349 Workbench registers only its explicit local provider and proves infe
   assert.match(directLaunchHelper, /WORKBENCH_SMOKE_TIMEOUT = 45_000/);
   assert.match(directLaunchHelper, /PLOTPICKLE_WORKBENCH_PI_READY/);
   assert.match(directLaunchHelper, /verifyManagedPiInference/);
-  assert.match(directLaunchHelper, /await verifyManagedPiInference\(\{ cliEntry, configured, runtime, cwd \}\)/);
+  assert.match(directLaunchHelper, /smokeTimeout = WORKBENCH_SMOKE_TIMEOUT/);
+  assert.match(directLaunchHelper, /timeout: smokeTimeout/);
   assert.match(directLaunchHelper, /supportsUsageInStreaming: false/);
 });
 
@@ -170,8 +178,9 @@ test("#1355 Workbench shows independent readiness lights and gates Pi review on 
   assert.match(program, /PiReadinessProbe\.RunAsync/);
   assert.match(program, /"--readiness", "--repository-path"/);
   assert.match(piBridge, /async function printReadiness/);
-  assert.match(piBridge, /probeManagedPiReadiness/);
-  assert.match(piBridge, /purpose: "work-item-readiness"/);
+  assert.match(piBridge, /raceWorkbenchRuntime/);
+  assert.match(runtimeRace, /probeManagedPiReadiness/);
+  assert.match(runtimeRace, /purpose: "work-item-readiness"/);
   assert.match(directLaunchHelper, /export async function probeManagedPiReadiness/);
   assert.match(directLaunchHelper, /latencyMs: Date\.now\(\) - startedAt/);
 });
@@ -207,4 +216,63 @@ test("#1359 Workbench makes the three-step flow and inference failure visible", 
   assert.match(program, /The exact failure is shown in the diagnostic above/);
   assert.match(program, /SetReadinessButtonsEnabled/);
   assert.doesNotMatch(program, /Hover a red light for detail/);
+});
+
+test("#1362 Workbench races real local inference for 60 seconds and reuses the winner", () => {
+  assert.match(runtimeRace, /WORKBENCH_RUNTIME_RACE_MS = 60_000/);
+  assert.match(runtimeRace, /WORKBENCH_RUNTIME_POLL_MS = 2_500/);
+  assert.match(runtimeRace, /Promise\.any\(tasks\)/);
+  assert.match(runtimeRace, /\/completions/);
+  assert.match(runtimeRace, /No approved local model completed the real inference \+ Pi handshake within/);
+  assert.match(runtimeRace, /writePinnedWorkbenchRuntime/);
+  assert.match(runtimeRace, /readPinnedWorkbenchRuntime/);
+  assert.match(piBridge, /readPinnedWorkbenchRuntime\(reviewPackage\.repositoryPath\) \|\| await resolvePiLocalRuntime\(\)/);
+});
+
+test("#1362 first real responder wins and is pinned before review", async () => {
+  const slow = { kind: "lm-studio", label: "LM Studio", baseUrl: "http://127.0.0.1:1234/v1", model: "qwen2.5-coder:7b" };
+  const fast = { kind: "ollama", label: "Ollama", baseUrl: "http://127.0.0.1:11434/v1", model: "qwen2.5-coder:7b" };
+  let pinned = null;
+  const result = await raceWorkbenchRuntime({
+    pi: { root: "unused-by-injected-probe" },
+    cwd: process.cwd(),
+    raceMs: 250,
+    pollMs: 1,
+    attemptTimeoutMs: 80,
+    discoverCandidates: async () => ({ candidates: [slow, fast], diagnostics: [] }),
+    probeCandidate: async (runtime) => {
+      await new Promise((resolve) => setTimeout(resolve, runtime.kind === "ollama" ? 5 : 25));
+      return { runtime, latencyMs: runtime.kind === "ollama" ? 5 : 25, output: "ready" };
+    },
+    probePi: async ({ runtime, smokeTimeout }) => {
+      assert.equal(runtime.kind, "ollama");
+      assert.ok(smokeTimeout <= 12_000);
+      return { providerId: "plotpickle-workbench-local", latencyMs: 4 };
+    },
+    pinSelection: async (_cwd, runtime) => {
+      pinned = runtime;
+    },
+  });
+
+  assert.equal(result.ready, true);
+  assert.equal(result.runtime.kind, "ollama");
+  assert.equal(pinned?.kind, "ollama");
+});
+
+test("#1362 pinned Workbench runtime stays loopback-only and survives the readiness subprocess", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "plotpickle-workbench-runtime-pin-"));
+  try {
+    await writePinnedWorkbenchRuntime(root, {
+      kind: "ollama",
+      label: "Ollama",
+      baseUrl: "http://127.0.0.1:11434/v1",
+      model: "qwen2.5-coder:7b",
+    }, "plotpickle-workbench-local");
+    const pinned = await readPinnedWorkbenchRuntime(root, { maxAgeMs: 60_000 });
+    assert.equal(pinned?.kind, "ollama");
+    assert.equal(pinned?.model, "qwen2.5-coder:7b");
+    assert.equal(pinned?.baseUrl, "http://127.0.0.1:11434/v1");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

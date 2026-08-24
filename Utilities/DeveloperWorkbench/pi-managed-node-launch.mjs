@@ -97,29 +97,39 @@ function directPiArgs(cliEntry, extensionPath, runtime, toolArgs, prompt) {
   ];
 }
 
-async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd }) {
-  const result = await runPortableCommand(process.execPath, directPiArgs(
-    cliEntry,
-    configured.extensionPath,
-    runtime,
-    ["--no-tools"],
-    `Reply with exactly ${WORKBENCH_SMOKE_MARKER}.`,
-  ), {
-    cwd,
-    timeout: WORKBENCH_SMOKE_TIMEOUT,
-    env: piLocalEnvironment(configured.agentDir),
-    maxBuffer: 4 * 1024 * 1024,
-  });
+async function verifyManagedPiInference({ cliEntry, configured, runtime, cwd, timeout = WORKBENCH_SMOKE_TIMEOUT }) {
+  let result;
+  try {
+    result = await runPortableCommand(process.execPath, directPiArgs(
+      cliEntry,
+      configured.extensionPath,
+      runtime,
+      ["--no-tools"],
+      `Reply with exactly ${WORKBENCH_SMOKE_MARKER}.`,
+    ), {
+      cwd,
+      timeout,
+      env: piLocalEnvironment(configured.agentDir),
+      maxBuffer: 4 * 1024 * 1024,
+    });
+  } catch (error) {
+    const detail = childFailureDetail(error);
+    throw new Error([
+      `Pi inference handshake failed for ${runtime.label} · ${runtime.model}.`,
+      `Timeout budget: ${Math.max(1, Math.round(timeout / 1000))} seconds.`,
+      detail ? `Pi detail:\n${detail}` : "Pi produced no stderr/stdout detail.",
+    ].join("\n"), { cause: error });
+  }
   if (!result.stdout.includes(WORKBENCH_SMOKE_MARKER)) {
     throw new Error(`Pi reached ${runtime.label} (${runtime.model}) but the bounded local-model handshake did not return ${WORKBENCH_SMOKE_MARKER}. Output: ${result.stdout.slice(-500) || result.stderr.slice(-500) || "<empty>"}`);
   }
 }
 
-export async function probeManagedPiReadiness({ pi, runtime, cwd, purpose = "work-item-readiness" }) {
+export async function probeManagedPiReadiness({ pi, runtime, cwd, purpose = "work-item-readiness", smokeTimeout = WORKBENCH_SMOKE_TIMEOUT }) {
   const cliEntry = await resolveManagedPiCliEntry(pi);
   const configured = await configureWorkbenchProvider(runtime, purpose);
   const startedAt = Date.now();
-  await verifyManagedPiInference({ cliEntry, configured, runtime, cwd });
+  await verifyManagedPiInference({ cliEntry, configured, runtime, cwd, timeout: smokeTimeout });
   return Object.freeze({
     cliEntry,
     configured,

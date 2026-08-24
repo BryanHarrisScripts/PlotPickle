@@ -150,7 +150,7 @@ const EXECUTION_CONTEXTS = new Set<string>(AGENT_PROFILE_EXECUTION_CONTEXTS);
 const BUZZ_MODES = new Set<string>(AGENT_PROFILE_BUZZ_MODES);
 const HOST_FORBIDDEN = new Set<string>(HOST_FORBIDDEN_PROFILE_CAPABILITIES);
 const KNOWN_SKILL_URIS = new Set(skillConfig.skills.map((skill) => skill.uri));
-const PUBLIC_AVATAR_REF = /^\/assets\/helpers\/lore\/[a-z0-9-]+\.svg$/;
+const PUBLIC_AVATAR_REF = /^\/assets\/helpers\/official\/[a-z0-9-]+\.webp$/;
 const PUBLIC_AGENT_SECRET_FIELD = /^(?:nsec|privateKey|private_key|secret|signingKey|signing_key|credential|token)$/i;
 
 function nonEmptyStrings(values: readonly string[] | undefined) {
@@ -175,7 +175,7 @@ function validatePublicAgentPresentations(errors: string[], profileIds: Readonly
   for (const [profileId, presentation] of Object.entries(PUBLIC_AGENT_PRESENTATION_REGISTRY.profiles || {})) {
     const prefix = `Public Agent presentation ${profileId}`;
     if (!profileIds.has(profileId)) errors.push(`${prefix} does not match a host-owned Agent Profile.`);
-    if (!PUBLIC_AVATAR_REF.test(presentation.avatarRef || "")) errors.push(`${prefix} must use a canonical PlotPickle lore avatar asset.`);
+    if (!PUBLIC_AVATAR_REF.test(presentation.avatarRef || "")) errors.push(`${prefix} must use a canonical PlotPickle official lore avatar asset.`);
     if (typeof presentation.publicBio !== "string" || !presentation.publicBio.trim() || presentation.publicBio.length > 500) {
       errors.push(`${prefix} requires a public bio of 1-500 characters.`);
     }

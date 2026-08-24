@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 const CORE_DEVELOPER_SKILLS = new Set([
@@ -84,29 +84,32 @@ function withinRoot(root, candidate) {
   return relative && !relative.startsWith("..") && !path.isAbsolute(relative) ? resolvedCandidate : null;
 }
 
+async function pathExists(candidate) {
+  return access(candidate).then(
+    () => true,
+    (error) => {
+      if (error?.code === "ENOENT") return false;
+      throw error;
+    },
+  );
+}
+
 async function readBounded(root, relativePath) {
   const resolved = withinRoot(root, relativePath);
-  if (!resolved) return null;
-  try {
-    const content = await readFile(resolved, "utf8");
-    return content.length <= MAX_SOURCE_CHARS
-      ? content
-      : `${content.slice(0, MAX_SOURCE_CHARS)}\n[Instruction source truncated by Developer Workbench context budget.]`;
-  } catch {
-    return null;
-  }
+  if (!resolved || !(await pathExists(resolved))) return null;
+  const content = await readFile(resolved, "utf8");
+  return content.length <= MAX_SOURCE_CHARS
+    ? content
+    : `${content.slice(0, MAX_SOURCE_CHARS)}\n[Instruction source truncated by Developer Workbench context budget.]`;
 }
 
 async function architectureFiles(root) {
   const directory = path.join(root, "docs", "architecture");
-  try {
-    const entries = await readdir(directory, { withFileTypes: true });
-    return entries
-      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
-      .map((entry) => `docs/architecture/${entry.name}`);
-  } catch {
-    return [];
-  }
+  if (!(await pathExists(directory))) return [];
+  const entries = await readdir(directory, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
+    .map((entry) => `docs/architecture/${entry.name}`);
 }
 
 function appendSource(parts, sources, relativePath, content) {
@@ -130,11 +133,8 @@ export async function buildInstructionBundle(reviewPackage) {
 
   const registryPath = "config/agent-skills.json";
   const registryText = await readBounded(root, registryPath);
-  let registry = { skills: [] };
-  if (registryText) {
-    try { registry = JSON.parse(registryText.replace(/\n\[Instruction source truncated[\s\S]*$/u, "")); } catch { registry = { skills: [] }; }
-    appendSource(parts, sources, registryPath, registryText);
-  }
+  const registry = registryText ? JSON.parse(registryText) : { skills: [] };
+  if (registryText) appendSource(parts, sources, registryPath, registryText);
 
   const selectedSkillIds = selectRelevantSkillIds(reviewPackage, registry);
   const skills = Array.isArray(registry.skills) ? registry.skills : [];

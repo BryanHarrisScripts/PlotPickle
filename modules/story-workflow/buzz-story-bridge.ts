@@ -38,6 +38,13 @@ function contextItems(packet: ContextPacket) {
   }));
 }
 
+function contextMatchesRun(run: ResponsibilityRun, packet: ContextPacket, workItem: StoryWorkItem) {
+  if (!run.context || run.context.taskId !== workItem.workItemId) return false;
+  if (run.context.receiptGeneratedAt !== packet.receipt.generatedAt) return false;
+  const allowed = new Set(run.context.sourceIds);
+  return packet.receipt.sources.every((source) => allowed.has(source.id));
+}
+
 /**
  * Adapt an existing Story Work Item + Responsibility Run into the optional BUZZ
  * transport. The Agent itself receives no new network or credential authority;
@@ -56,6 +63,9 @@ export function prepareStoryBridgeRequest(input: {
   if (profile.id !== input.run.profileId) throw new Error("Story Bridge Agent Profile must match the existing Responsibility Run.");
   if (input.contextPacket.profileId !== profile.id || input.contextPacket.taskId !== input.workItem.workItemId) {
     throw new Error("Story Bridge context must remain bound to the exact Story Work Item and Agent Profile.");
+  }
+  if (!contextMatchesRun(input.run, input.contextPacket, input.workItem)) {
+    throw new Error("Story Bridge context receipt must match the persisted Responsibility Run context before private evidence can leave the local workflow.");
   }
   if (!agentExecutionContexts(profile.id).includes("public-buzz")) {
     throw new Error(`${profile.displayName} is not approved for BUZZ execution context.`);
@@ -78,10 +88,18 @@ export function prepareStoryBridgeRequest(input: {
     localEquivalentAllowed: profile.execution.kind === "embedded-mastra",
     destination: {
       privacyClass: "private-project",
+      federation: "private-only",
       roomId,
       roomName: buzzRoomName(input.project, roomId),
     },
     contextItems: contextItems(input.contextPacket),
+    limits: {
+      timeoutMs: input.run.limits.timeoutMs,
+      maxContextCharacters: input.run.limits.maxContextCharacters,
+      maxTokens: input.run.limits.maxTokens,
+      maxToolCalls: input.run.limits.maxToolCalls,
+      maxCloudCostUsd: input.run.limits.maxCloudCostUsd,
+    },
   });
 }
 

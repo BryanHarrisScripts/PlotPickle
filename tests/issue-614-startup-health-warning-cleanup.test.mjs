@@ -83,18 +83,20 @@ test("issue #1404 reconciles root, client, RSC and SSR Vinext optimization", asy
   ]);
 
   assert.match(config, /VINEXT_PACKAGE/);
+  assert.match(config, /VINEXT_LINK_SHIM/);
   assert.match(config, /VINEXT_PREFETCH_QUEUE_SHIM/);
-  assert.match(config, /exclude: \[VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM\]/);
+  assert.match(config, /exclude: \[VINEXT_PACKAGE, VINEXT_LINK_SHIM, VINEXT_PREFETCH_QUEUE_SHIM\]/);
   assert.match(config, /vinextRscOptimizationCompatibilityPlugin\(\)/);
 
   assert.match(compatibility, /export const VINEXT_PACKAGE = "vinext"/);
+  assert.match(compatibility, /export const VINEXT_LINK_SHIM = "vinext\/shims\/link"/);
   assert.match(compatibility, /vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js/);
   assert.match(compatibility, /react-server-dom-webpack\/static\.edge/);
   assert.match(compatibility, /new Set\(\["client", "rsc", "ssr"\]\)/);
   assert.match(compatibility, /configEnvironment\(name, config\)/);
   assert.match(compatibility, /config\.optimizeDeps \?\?= \{\}/);
-  assert.match(compatibility, /VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM/);
-  assert.match(compatibility, /optimizer metadata from the client environment/);
+  assert.match(compatibility, /VINEXT_PACKAGE,[\s\S]*VINEXT_LINK_SHIM,[\s\S]*VINEXT_PREFETCH_QUEUE_SHIM/);
+  assert.match(compatibility, /Vinext aliases[\s\S]*next\/link[\s\S]*vinext\/shims\/link/);
   assert.match(compatibility, /name === "rsc"/);
   assert.match(compatibility, /optimizeDeps\.include = optimizeDeps\.include\.filter/);
   assert.match(compatibility, /entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY/);
@@ -113,4 +115,21 @@ test("issue #1404 removes only impossible cross-runtime compile timings from dev
   assert.match(compatibility, /replace\(\/compile:/);
   assert.match(compatibility, /typeof chunk === "string" \? sanitizeVinextRequestTimingOutput\(chunk\) : chunk/);
   assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
+});
+
+test("issue #1404 launcher liveness probes do not render or log the application root after the browser is owned", async () => {
+  const [config, liveness] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/startup/launcher-liveness-gateway.ts"),
+  ]);
+
+  assert.match(config, /launcherLivenessGateway\(\)[\s\S]*vinext\(\)/);
+  assert.match(liveness, /PLOTPICKLE_BROWSER_STATE/);
+  assert.match(liveness, /existsSync\(browserState\)/);
+  assert.match(liveness, /request\.method === "GET"/);
+  assert.match(liveness, /request\.url === "\/"/);
+  assert.match(liveness, /powershell/i);
+  assert.match(liveness, /response\.statusCode = 204/);
+  assert.match(liveness, /Cache-Control/);
+  assert.doesNotMatch(liveness, /console\.|logger\.|fetch\(|render/);
 });

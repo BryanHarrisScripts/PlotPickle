@@ -259,7 +259,11 @@ export default function GitHubCollaboration({
       setNotice("GitHub is optional. Connect an account only when repository collaboration is wanted.");
       return;
     }
-    try { await jsonRequest("/api/local-github-app/status"); } catch { /* Manual-token connections do not require GitHub App status. */ }
+    try {
+      await jsonRequest("/api/local-github-app/status");
+    } catch {
+      setNotice("GitHub App status is unavailable. Continuing with the saved connection check.");
+    }
     try {
       const checked = await jsonRequest("/api/local-github/connection/check", "POST");
       const readyStatus = statusFromResponse(checked);

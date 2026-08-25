@@ -4,7 +4,7 @@ export const VINEXT_PACKAGE = "vinext";
 export const VINEXT_PREFETCH_QUEUE_SHIM = "vinext/dist/shims/internal/app-prefetch-fetch-queue.js";
 export const VINEXT_OPTIONAL_RSC_STATIC_ENTRY = "react-server-dom-webpack/static.edge";
 
-const TARGET_SERVER_ENVIRONMENTS = new Set(["rsc", "ssr"]);
+const TARGET_OPTIMIZER_ENVIRONMENTS = new Set(["client", "rsc", "ssr"]);
 const REQUEST_TIMING_GUARD = Symbol.for("plotpickle.vinextRequestTimingGuard");
 const MAX_CROSS_RUNTIME_CLOCK_DRIFT_MS = 60_000;
 
@@ -52,6 +52,13 @@ function reconcileEnvironmentOptimizeDeps(name: string, config: EnvironmentOptio
     ...new Set([...existingExclude, VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM]),
   ];
 
+  // @vitejs/plugin-rsc records optimizer metadata from the client environment,
+  // then warns when a "use client" module reached through a server-imported
+  // package is also present in that client optimizer bundle. Root/RSC exclusions
+  // alone therefore cannot silence this specific warning. Keep Vinext and the
+  // prefetch queue shim out of the client optimizer too, while leaving the
+  // plugin's optimizer-metadata hook and genuine warnings intact.
+
   // vinext 0.2.1 treats react-server-dom-webpack as an optional peer, while
   // @vitejs/plugin-rsc 0.5.34 can use its vendored RSC runtime when that peer is
   // absent. vinext still inserts static.edge into the RSC optimizer include list,
@@ -70,7 +77,7 @@ export function vinextRscOptimizationCompatibilityPlugin(): Plugin {
     name: "plotpickle:vinext-rsc-optimization-compatibility",
     enforce: "post",
     configEnvironment(name, config) {
-      if (!TARGET_SERVER_ENVIRONMENTS.has(name)) return;
+      if (!TARGET_OPTIMIZER_ENVIRONMENTS.has(name)) return;
       reconcileEnvironmentOptimizeDeps(name, config);
     },
   };

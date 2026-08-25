@@ -18,6 +18,7 @@ import { buzzLiveHealthGateway } from "./build/buzz-live-health-gateway";
 import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gateway";
 import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
+import { storyWorkflowBuzzBridgeGateway } from "./build/story-workflow-buzz-bridge-gateway";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
@@ -123,6 +124,7 @@ export default defineConfig(async ({ command }) => {
       buzzLiveHealthGateway(),
       buzzStoryRoomAccessGateway(),
       buzzGateway(),
+      storyWorkflowBuzzBridgeGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),
       githubAppGateway(),

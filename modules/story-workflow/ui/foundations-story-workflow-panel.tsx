@@ -94,8 +94,7 @@ async function askLocalFoundationsPlanner(fieldId: string, task: ReturnType<type
   });
   const value = await response.json() as AgentResponse;
   if (!response.ok || !value.ok || !value.text) throw new Error(value.message || "The local Story Workflow specialist returned no proposal.");
-  let parsed: unknown;
-  try { parsed = JSON.parse(value.text); } catch { throw new Error("The local Story Workflow specialist returned an invalid structured proposal."); }
+  const parsed = JSON.parse(value.text) as unknown;
   const values = parsed && typeof parsed === "object" && !Array.isArray(parsed)
     ? (parsed as { readonly values?: unknown }).values
     : null;

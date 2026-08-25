@@ -126,30 +126,31 @@ test("#1422 server dispatch re-authorizes the exact persisted Run context before
   assert.doesNotMatch(gateway, /saveActiveLibraryProject|foundations\.proposal\.accept|ppf-direct-write|canon-write/i);
 });
 
-test("#1422 Story Bridge dispatch puts the exact approved BUZZ Agent in the private room and mention-targets its signer", async () => {
-  const [gateway, buzzGateway] = await Promise.all([
+test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room before canonical mention dispatch", async () => {
+  const [gateway, membership] = await Promise.all([
     read("build/story-workflow-buzz-bridge-gateway.ts"),
-    read("build/buzz-gateway.ts"),
+    read("build/story-workflow/buzz-private-room-membership.ts"),
   ]);
   for (const contract of [
     "agentProfileById(bridge.agentProfileId)",
     "profile.buzzBinding.actorId !== bridge.agentActorId",
     "return `@${profile.displayName}`",
-    "/api/local-buzz/rooms/members/ensure",
-    "mentions: [bridge.expectedAgentPubkey]",
+    "ensurePrivateBuzzAgentMembership",
+    "agentPubkey: bridge.expectedAgentPubkey",
     "STORY_BRIDGE_RESULT_MARKER",
     "Copy every correlation ID and target/evidence ref exactly",
-    "mention-targeted",
+    "canonical Agent mention",
   ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing managed-Agent live targeting: ${contract}`);
 
   for (const contract of [
-    '["channels", "members"',
-    '["channels", "add-member"',
-    '"--role", "bot"',
-    'args.push("--mention", mention)',
-    "rooms/members/ensure",
-  ]) assert.ok(buzzGateway.includes(contract), `Local BUZZ gateway is missing private Agent membership/mention support: ${contract}`);
+    "readCredentialJson<unknown>(CONNECTION_FILE)",
+    "resolveBuzzCliExecutable(connection.cliPath)",
+    '["channels", "members", "--channel", channelId]',
+    '["channels", "add-member", "--channel", channelId, "--pubkey", agentPubkey, "--role", "bot"]',
+    "BUZZ did not confirm the approved Agent as a private Story Room member",
+  ]) assert.ok(membership.includes(contract), `Story Bridge private-membership helper is missing a required boundary: ${contract}`);
 
+  assert.match(membership, /replace\(\/nsec1\[a-z0-9\]\+\/gi/);
   assert.ok(
     gateway.includes("message.content.startsWith(`${STORY_BRIDGE_DISPATCH_MARKER}\\n`)")
       && gateway.includes("message.content.includes(`\\\"requestId\\\":\\\"${requestId}\\\"`)"),

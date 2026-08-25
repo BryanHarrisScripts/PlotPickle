@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   normalizeBuzzAgentIdentityBindings,
   resolveBuzzAgentIdentityBinding,
-} from "../core/story-workflow/buzz-agent-identity-binding.mjs";
+} from "../core/story-workflow/buzz/agent-identity-binding.mjs";
 
 test("normalizes only valid public BUZZ Agent keys", () => {
   const valid = "A".repeat(64);

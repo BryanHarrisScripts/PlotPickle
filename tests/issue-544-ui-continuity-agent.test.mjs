@@ -76,7 +76,7 @@ test("#544 registers canonical top-level and nested routes with read-only policy
   assert.ok(registry.screens.filter((screen) => screen.returnDestination).every((screen) => screen.returnDestination.trim()));
 });
 
-test("#544 keeps the Agent & Settings control fixed in the shared shell and standalone routes", async () => {
+test("#544/#1395 keeps the Agent & Settings control fixed while Setup AI can use its focused route", async () => {
   const [header, anchor, styles, layout] = await Promise.all([
     read("app/application-shell-header.tsx"),
     read("app/ui-continuity-anchor.tsx"),
@@ -88,7 +88,7 @@ test("#544 keeps the Agent & Settings control fixed in the shared shell and stan
   assert.match(header, /data-ui-continuity-anchor="agent-settings"/);
   assert.match(header, /aria-label="Open Agent and Settings"/);
   assert.ok(header.indexOf("shell-agent-settings-anchor") < header.indexOf("shell-brand"));
-  assert.match(anchor, /href="\/\?workspace=settings"/);
+  assert.match(anchor, /href=\{sageSetupNeeded \? "\/\?workspace=settings&settings=sage-plan" : "\/\?workspace=settings"\}/);
   assert.match(anchor, /workflow-relics\/settings\.svg/);
   assert.match(styles, /position: fixed/);
   assert.match(styles, /top: 3px/);

@@ -276,7 +276,7 @@ test("#1422 reuses Agent, Context, Responsibility Run and BUZZ room boundaries w
     "degraded-local",
     "no paid-cloud fallback",
     "connected Human signer authored only the task dispatch",
-    "decodeStoryBridgeResultEnvelope",
+    "STORY_BRIDGE_RESULT_MARKER",
     "normalizeStoryBridgeContribution",
   ]) assert.ok(gateway.includes(contract), `Story Bridge gateway is missing: ${contract}`);
 

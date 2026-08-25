@@ -104,3 +104,39 @@ test("#1410 replaces the fake Afterglow catalog story and lazy-loads the heavy v
   assert.doesNotMatch(catalog, /from "\.\/reference\/afterglow-v9-foundations"/,
     "the full v9 reference must remain off the initial Library catalog import path");
 });
+
+test("#1410 shows lesson-family frontier coverage without pretending later product stages are complete", async () => {
+  const [catalog, workspace, css] = await Promise.all([
+    source("modules/library/project-library-catalog.ts"),
+    source("modules/library/ui/library-workspace.tsx"),
+    source("modules/library/ui/library-workspace.module.css"),
+  ]);
+
+  for (const contract of [
+    'foundations: "100%"',
+    'world: "Not started"',
+    'character: "Not available yet"',
+    'structure: "Locked"',
+    'storyboard: "Locked"',
+  ]) assert.ok(catalog.includes(contract), `Afterglow Library frontier rail is missing: ${contract}`);
+  assert.match(workspace, /COVERAGE_LABELS/);
+  assert.match(workspace, /item\.coverage\[key\]/);
+  assert.match(workspace, /curriculum coverage/);
+  assert.match(css, /\.coverage/);
+  assert.match(css, /data-coverage-state="Locked"/);
+});
+
+test("#1410 makes BUILD distinguish observed v9 evidence from synthetic reference decisions", async () => {
+  const [model, component] = await Promise.all([
+    source("modules/build/foundations-story-coverage.ts"),
+    source("modules/build/ui/foundations-story-coverage.tsx"),
+  ]);
+
+  assert.match(model, /FoundationsStoryEvidenceState = "defined" \| "observed" \| "emerging" \| "missing"/);
+  assert.match(model, /reference\.kind === "observed"/);
+  assert.match(model, /reference\.kind === "synthetic-reference"/);
+  assert.match(model, /Synthetic reference decision · not screenplay evidence/);
+  assert.match(model, /const supported = defined \+ observed/);
+  assert.match(component, /Observed/);
+  assert.match(component, /synthetic fixture decisions are labelled separately from observed source evidence/i);
+});

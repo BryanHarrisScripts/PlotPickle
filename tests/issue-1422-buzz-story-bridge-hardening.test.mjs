@@ -125,3 +125,20 @@ test("#1422 server dispatch re-authorizes the exact persisted Run context before
 
   assert.doesNotMatch(gateway, /saveActiveLibraryProject|foundations\.proposal\.accept|ppf-direct-write|canon-write/i);
 });
+
+test("#1422 Story Bridge dispatch mention-targets the exact approved BUZZ Agent Profile", async () => {
+  const gateway = await read("build/story-workflow-buzz-bridge-gateway.ts");
+  for (const contract of [
+    "agentProfileById(bridge.agentProfileId)",
+    "profile.buzzBinding.actorId !== bridge.agentActorId",
+    "return `@${profile.displayName}`",
+    "encodeStoryBridgeDispatchEnvelope(bridge)",
+    "agentMention(bridge)",
+    "mention-targeted to the approved Agent",
+  ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing Agent mention targeting: ${contract}`);
+
+  assert.ok(
+    gateway.indexOf("encodeStoryBridgeDispatchEnvelope(bridge)") < gateway.indexOf("agentMention(bridge)"),
+    "The signed structured dispatch marker must remain at the start of the message so retry/idempotency detection remains stable.",
+  );
+});

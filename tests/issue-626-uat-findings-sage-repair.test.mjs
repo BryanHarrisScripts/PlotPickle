@@ -43,11 +43,13 @@ test("Sage conversation matrix covers identity, name meaning, wellbeing, help, c
 });
 
 test("LEARN routes visible Sage answers through the unified safety boundary", async () => {
-  const [page, guard] = await Promise.all([
+  const [page, memoryGuide, guard] = await Promise.all([
     read("app/page.tsx"),
+    read("modules/creative-room/memory-aware-sage-guide.ts"),
     read("modules/creative-room/sage-unified-guide.ts"),
   ]);
-  assert.match(page, /creative-room\/sage-unified-guide/);
+  assert.match(page, /creative-room\/memory-aware-sage-guide/);
+  assert.match(memoryGuide, /from "\.\/sage-unified-guide"/);
   assert.doesNotMatch(page, /creative-room\/sage-safe-guide/);
   assert.match(guard, /what is your name\|whats your name/);
   assert.match(guard, /INTERNAL_MARKERS/);

@@ -10,6 +10,7 @@ import {
   type StoryBridgeRequest,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
 import { agentProfileById } from "../lib/agents/agent-profiles";
+import { ensurePrivateBuzzAgentMembership } from "./story-workflow/buzz-private-room-membership";
 
 const API = "/api/story-workflow/buzz-bridge";
 const MAX_BODY = 128 * 1024;
@@ -275,11 +276,11 @@ function agentReplyProtocol(bridge: StoryBridgeRequest) {
   ].join("\n");
 }
 
-async function ensureApprovedAgentInRoom(request: IncomingMessage, bridge: StoryBridgeRequest, roomId: string) {
+async function ensureApprovedAgentInRoom(bridge: StoryBridgeRequest, roomId: string) {
   if (!bridge.expectedAgentPubkey) throw new Error("Story Bridge cannot add an Agent without an approved public signer binding.");
-  return localJson<{ member: { added?: boolean } }>(request, "/api/local-buzz/rooms/members/ensure", {
-    method: "POST",
-    body: JSON.stringify({ channel: roomId, pubkey: bridge.expectedAgentPubkey }),
+  return ensurePrivateBuzzAgentMembership({
+    channelId: roomId,
+    agentPubkey: bridge.expectedAgentPubkey,
   });
 }
 
@@ -292,7 +293,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
 
   const room = await storyRoom(request, bridge, true);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };
-  await ensureApprovedAgentInRoom(request, bridge, room.id);
+  await ensureApprovedAgentInRoom(bridge, room.id);
   const existing = await recentMessages(request, room.id).catch(() => []);
   if (dispatchAlreadyPresent(existing, bridge.requestId)) {
     return {
@@ -310,7 +311,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\n\n${agentReplyProtocol(bridge)}`;
   await localJson(request, "/api/local-buzz/messages", {
     method: "POST",
-    body: JSON.stringify({ channel: room.id, content, mentions: [bridge.expectedAgentPubkey] }),
+    body: JSON.stringify({ channel: room.id, content }),
   });
   return {
     ok: true,
@@ -320,7 +321,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     room: { id: room.id, name: room.name },
     idempotent: false,
     ...observability(bridge, startedAt),
-    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room, the approved Agent was ensured as a bot member, and its exact signer was mention-targeted. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
+    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room, the approved Agent was ensured as a bot member, and its canonical Agent mention was included. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
   };
 }
 

@@ -127,7 +127,7 @@ test("#1422 server dispatch re-authorizes the exact persisted Run context before
 });
 
 test("#1422 Story Bridge dispatch mention-targets the exact approved BUZZ Agent Profile", async () => {
-  const gateway = await read("build/story-workflow/buzz-story-bridge-gateway.ts");
+  const gateway = await read("build/story-workflow-buzz-bridge-gateway.ts");
   for (const contract of [
     "agentProfileById(bridge.agentProfileId)",
     "profile.buzzBinding.actorId !== bridge.agentActorId",

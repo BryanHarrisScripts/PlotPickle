@@ -424,7 +424,7 @@ async function loadManifest(directory = BUNDLE_DIRECTORY): Promise<RuntimeManife
 }
 
 async function verifyBundle(directory = BUNDLE_DIRECTORY) {
-  const manifest = await loadManifest();
+  const manifest = await loadManifest(directory);
   const results = await Promise.all(manifest.files.map(async (item) => {
     const file = await readFile(path.join(directory, item.path));
     return { path: item.path, ok: file.byteLength === item.bytes && sha256(file) === item.sha256 };
@@ -958,7 +958,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
     return;
   }
   if (request.method === "POST" && url.pathname === `${API}/managed/repair`) {
-    sendJson(response, 200, { ok: true, managed: await repairManagedRuntime(), message: "Managed Buzz containers were recreated and passed the local health check." });
+    sendJson(response, 200, { ok: true, managed: await repairManagedRuntime(), message: "Managed Buzz containers were recreated and passed its local health check." });
     return;
   }
   if (request.method === "POST" && url.pathname === `${API}/managed/update`) {

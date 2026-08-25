@@ -6,8 +6,7 @@ on:
     paths:
       - "core/buzz/nostr-event-verification.mjs"
       - "core/buzz/nostr-event-verification.d.ts"
-      - "core/story-workflow/buzz-agent-identity-binding.mjs"
-      - "core/story-workflow/buzz-agent-identity-binding.d.ts"
+      - "core/story-workflow/buzz/**"
       - "core/story-workflow/buzz-story-bridge-core.mjs"
       - "core/story-workflow/buzz-story-bridge-core.d.ts"
       - "core/story-workflow/story-workflow-core.mjs"

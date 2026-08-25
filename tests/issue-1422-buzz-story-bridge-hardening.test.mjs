@@ -143,10 +143,10 @@ test("#1422 Story Bridge dispatch puts the exact approved BUZZ Agent in the priv
   ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing managed-Agent live targeting: ${contract}`);
 
   for (const contract of [
-    "channels\", \"members",
-    "channels\", \"add-member",
-    "--role\", \"bot",
-    "--mention",
+    '["channels", "members"',
+    '["channels", "add-member"',
+    '"--role", "bot"',
+    'args.push("--mention", mention)',
     "rooms/members/ensure",
   ]) assert.ok(buzzGateway.includes(contract), `Local BUZZ gateway is missing private Agent membership/mention support: ${contract}`);
 

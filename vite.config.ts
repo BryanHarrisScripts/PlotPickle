@@ -41,7 +41,9 @@ import { sites } from "./build/sites-vite-plugin";
 import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics";
 import { uatDiscoveryPlugin } from "./build/uat-discovery-plugin";
 import { localInstanceProofGateway } from "./build/local-instance-proof-gateway";
+import { launcherLivenessGateway } from "./build/startup/launcher-liveness-gateway";
 import {
+  VINEXT_LINK_SHIM,
   VINEXT_PACKAGE,
   VINEXT_PREFETCH_QUEUE_SHIM,
   installVinextRequestTimingOutputGuard,
@@ -88,7 +90,7 @@ export default defineConfig(async ({ command }) => {
       ),
     },
     optimizeDeps: {
-      exclude: [VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM],
+      exclude: [VINEXT_PACKAGE, VINEXT_LINK_SHIM, VINEXT_PREFETCH_QUEUE_SHIM],
     },
     server: {
       host: "0.0.0.0",
@@ -136,6 +138,7 @@ export default defineConfig(async ({ command }) => {
       localAiGateway(),
       startupAgentDiagnosticsPlugin(),
       uatDiscoveryPlugin(),
+      launcherLivenessGateway(),
       vinext(),
       vinextRscOptimizationCompatibilityPlugin(),
       sites(),

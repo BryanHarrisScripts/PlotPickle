@@ -366,8 +366,10 @@ export function editStoryboardStructuredShot(
   return writeStore(project, { version: 1, frames });
 }
 
-function normalized(value: string) {
-  return value.trim().toLocaleLowerCase();
+function conflictingExplicitValue(left: string, right: string) {
+  const leftValue = left.trim().toLocaleLowerCase();
+  const rightValue = right.trim().toLocaleLowerCase();
+  return Boolean(leftValue && rightValue && leftValue !== rightValue);
 }
 
 function motionClauseCount(value: string) {
@@ -470,7 +472,7 @@ export function evaluateStoryboardAdvisories(
       const after = currentBlocking.get(subjectId);
       if (!before || !after) continue;
 
-      if (before.axisState.trim() && after.axisState.trim() && normalized(before.axisState) !== normalized(after.axisState)) {
+      if (conflictingExplicitValue(before.axisState, after.axisState)) {
         const id = findingId("axis-crossing", currentShot.shotId, previousShot.shotId, subjectId);
         findings.push(applyOverride(current, {
           id,
@@ -483,7 +485,7 @@ export function evaluateStoryboardAdvisories(
         }));
       }
 
-      if (before.eyelineTargetId.trim() && after.eyelineTargetId.trim() && normalized(before.eyelineTargetId) !== normalized(after.eyelineTargetId)) {
+      if (conflictingExplicitValue(before.eyelineTargetId, after.eyelineTargetId)) {
         const id = findingId("eyeline-mismatch", currentShot.shotId, previousShot.shotId, subjectId);
         findings.push(applyOverride(current, {
           id,
@@ -496,7 +498,7 @@ export function evaluateStoryboardAdvisories(
         }));
       }
 
-      if (before.screenDirection.trim() && after.screenDirection.trim() && normalized(before.screenDirection) !== normalized(after.screenDirection)) {
+      if (conflictingExplicitValue(before.screenDirection, after.screenDirection)) {
         const id = findingId("screen-direction-mismatch", currentShot.shotId, previousShot.shotId, subjectId);
         findings.push(applyOverride(current, {
           id,

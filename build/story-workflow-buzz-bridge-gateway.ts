@@ -242,6 +242,47 @@ function agentMention(bridge: StoryBridgeRequest) {
   return `@${profile.displayName}`;
 }
 
+function agentReplyProtocol(bridge: StoryBridgeRequest) {
+  const template = {
+    version: 1,
+    requestId: bridge.requestId,
+    projectId: bridge.projectId,
+    workItemId: bridge.workItemId,
+    runId: bridge.runId,
+    baseRevision: bridge.baseRevision,
+    agentProfileId: bridge.agentProfileId,
+    agentActorId: bridge.agentActorId,
+    result: {
+      workItemId: bridge.workItemId,
+      kind: "proposal",
+      targetRefs: bridge.targetRefs,
+      evidenceRefs: bridge.evidenceRefs,
+      severity: "medium",
+      confidence: 0.5,
+      changesCanon: false,
+      explanation: "REPLACE_WITH_A_SHORT_EVIDENCE_BASED_EXPLANATION",
+      proposal: "REPLACE_WITH_ONE_REVIEWABLE_FOUNDATIONS_PROPOSAL",
+      alternatives: [],
+      affectedDownstreamRefs: bridge.dependencyRefs,
+    },
+  };
+  return [
+    `${agentMention(bridge)}, answer this bounded task only.`,
+    `Your reply MUST begin with exactly: ${STORY_BRIDGE_RESULT_MARKER}`,
+    "On the next line output exactly one JSON object using the template below. Do not use markdown fences or add text before/after it.",
+    "Copy every correlation ID and target/evidence ref exactly. Replace only explanation, proposal and confidence. Do not claim to edit PlotPickle or canon.",
+    JSON.stringify(template),
+  ].join("\n");
+}
+
+async function ensureApprovedAgentInRoom(request: IncomingMessage, bridge: StoryBridgeRequest, roomId: string) {
+  if (!bridge.expectedAgentPubkey) throw new Error("Story Bridge cannot add an Agent without an approved public signer binding.");
+  return localJson<{ member: { added?: boolean } }>(request, "/api/local-buzz/rooms/members/ensure", {
+    method: "POST",
+    body: JSON.stringify({ channel: roomId, pubkey: bridge.expectedAgentPubkey }),
+  });
+}
+
 async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const startedAt = Date.now();
   if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
@@ -251,6 +292,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
 
   const room = await storyRoom(request, bridge, true);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };
+  await ensureApprovedAgentInRoom(request, bridge, room.id);
   const existing = await recentMessages(request, room.id).catch(() => []);
   if (dispatchAlreadyPresent(existing, bridge.requestId)) {
     return {
@@ -265,10 +307,10 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     };
   }
 
-  const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\n\n${agentMention(bridge)}`;
+  const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\n\n${agentReplyProtocol(bridge)}`;
   await localJson(request, "/api/local-buzz/messages", {
     method: "POST",
-    body: JSON.stringify({ channel: room.id, content }),
+    body: JSON.stringify({ channel: room.id, content, mentions: [bridge.expectedAgentPubkey] }),
   });
   return {
     ok: true,
@@ -278,7 +320,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     room: { id: room.id, name: room.name },
     idempotent: false,
     ...observability(bridge, startedAt),
-    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room and mention-targeted to the approved Agent. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
+    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room, the approved Agent was ensured as a bot member, and its exact signer was mention-targeted. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
   };
 }
 

@@ -104,13 +104,9 @@ function liftX(x) {
   return { x, y };
 }
 
-function sha256(value) {
-  return createHash("sha256").update(value).digest();
-}
-
 function taggedHash(tag, value) {
-  const tagHash = sha256(Buffer.from(tag, "utf8"));
-  return sha256(Buffer.concat([tagHash, tagHash, value]));
+  const tagHash = createHash("sha256").update(Buffer.from(tag, "utf8")).digest();
+  return createHash("sha256").update(Buffer.concat([tagHash, tagHash, value])).digest();
 }
 
 function bytesFromHex(value) {
@@ -158,14 +154,14 @@ export function normalizeNostrEvent(value) {
 export function canonicalNostrEventId(value) {
   const event = normalizeNostrEvent(value);
   if (!event) return "";
-  return sha256(Buffer.from(JSON.stringify([
+  return createHash("sha256").update(Buffer.from(JSON.stringify([
     0,
     event.pubkey,
     event.created_at,
     event.kind,
     event.tags,
     event.content,
-  ]), "utf8")).toString("hex");
+  ]), "utf8")).digest("hex");
 }
 
 export function verifyNostrEventSignature(value) {

@@ -19,6 +19,7 @@ import {
   resolveFoundationsStoryWorkItem,
   storyWorkflowActivitySummary,
 } from "../foundations-story-workflow";
+import FoundationsBuzzStoryLiveTest from "./foundations-buzz-story-live-test";
 import styles from "./foundations-story-workflow-panel.module.css";
 
 type RunResponse = {
@@ -258,6 +259,13 @@ export default function FoundationsStoryWorkflowPanel({
         <button type="button" disabled={running || !selected.length} onClick={() => void runChecks()}>
           {running ? "Running local story checks…" : selected.length ? `Run ${selected.length} story ${selected.length === 1 ? "check" : "checks"}` : "No new checks to run"}
         </button>
+        <FoundationsBuzzStoryLiveTest
+          curriculum={curriculum}
+          disabled={running}
+          onStatus={setNotice}
+          project={project}
+          workItem={selected[0] ?? null}
+        />
         {onOpenPlan ? <button className={styles.secondary} type="button" onClick={onOpenPlan}>Review in PLAN{waiting.length ? ` (${waiting.length})` : ""}</button> : null}
       </div>
 

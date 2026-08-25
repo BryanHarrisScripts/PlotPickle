@@ -1,5 +1,8 @@
 import type { PPFProject } from "../../core/project/project";
 import {
+  resolveBuzzAgentIdentityBinding,
+} from "../../core/story-workflow/buzz-agent-identity-binding.mjs";
+import {
   createStoryBridgeRequest,
   type StoryBridgeContribution,
   type StoryBridgeRequest,
@@ -15,6 +18,8 @@ import { inboundExternalContext, redactConnectorPayload } from "../../lib/agents
 import type { ResponsibilityRun } from "../../lib/agents/responsibility/responsibility-runs";
 import { buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../../lib/buzz/buzz-story-room";
 
+declare const __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: Readonly<Record<string, string>> | undefined;
+
 const STORY_BRIDGE_ROOM_BY_FRONTIER: Readonly<Record<string, BuzzStoryRoomId>> = {
   Foundations: "story",
   World: "continuity",
@@ -26,6 +31,13 @@ const STORY_BRIDGE_ROOM_BY_FRONTIER: Readonly<Record<string, BuzzStoryRoomId>> =
 
 function bridgeRoomFor(workItem: StoryWorkItem): BuzzStoryRoomId {
   return STORY_BRIDGE_ROOM_BY_FRONTIER[workItem.frontier] ?? "story";
+}
+
+function localBuzzAgentIdentities() {
+  return typeof __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__ === "object"
+    && __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__
+    ? __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__
+    : {};
 }
 
 function contextItems(packet: ContextPacket) {
@@ -73,6 +85,11 @@ export function prepareStoryBridgeRequest(input: {
 
   const roomId = bridgeRoomFor(input.workItem);
   const identity = officialAgentPublicIdentity(profile.id);
+  const expectedAgentPubkey = resolveBuzzAgentIdentityBinding({
+    profileId: profile.id,
+    configuredPubkey: identity?.pubkey ?? "",
+    localBindings: localBuzzAgentIdentities(),
+  });
   return createStoryBridgeRequest({
     projectId: input.project.id,
     projectRoomPrefix: buzzProjectSlug(input.project),
@@ -84,7 +101,7 @@ export function prepareStoryBridgeRequest(input: {
     evidenceRefs: input.workItem.evidenceRefs,
     agentProfileId: profile.id,
     agentActorId: profile.buzzBinding.actorId,
-    expectedAgentPubkey: identity?.pubkey ?? "",
+    expectedAgentPubkey,
     localEquivalentAllowed: profile.execution.kind === "embedded-mastra",
     destination: {
       privacyClass: "private-project",

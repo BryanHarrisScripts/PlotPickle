@@ -34,17 +34,19 @@ A person adapting or redistributing that material must:
 
 The PlotPickle software and documentation licences do **not** claim ownership of user-created material.
 
-Users retain the rights they hold in their original:
+Humans retain any copyright and other rights they hold in:
 
 - stories and screenplays;
 - characters and worlds;
 - dialogue and scene text;
 - research and notes;
 - uploaded or linked images;
-- exported `.plotpickle.json` project files; and
+- PPF projects and other exported project files; and
 - other creative output.
 
 Using PlotPickle does not transfer that material to Bryan Harris, PlotPickle, a contributor, or a server operator.
+
+PlotPickle does not determine or promise whether any particular material, including AI-assisted output, qualifies for copyright protection. Provider terms, source material, collaboration agreements, Human authorship, and applicable law may affect the rights available in a specific output.
 
 ## 4. Contributions
 
@@ -72,6 +74,10 @@ See `TRADEMARKS.md`.
 Third-party dependencies, fonts, images, sample content, and other included material remain subject to their own copyright notices and licences. Their inclusion does not change those terms.
 
 PlotPickle's Auth cryptographic contract uses `libsodium-wrappers-sumo` and its `libsodium-sumo` runtime under the ISC licence. That permissive licence is compatible with distribution in the AGPL-licensed application; the upstream copyright and licence notices remain applicable.
+
+The direct JavaScript runtime dependencies declared for the current release use Apache-2.0, ISC, or MIT licences as recorded in `package-lock.json`. Development dependencies use Apache-2.0, MIT, or the `MIT OR Apache-2.0` expression recorded there. Transitive packages remain governed by their own package metadata and included notices.
+
+The optional pinned BUZZ runtime bundle retains its separate upstream notice in `runtime/buzz/LICENSE.buzz.txt`.
 
 ## 7. No warranty and no legal advice
 

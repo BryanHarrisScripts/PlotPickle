@@ -8,8 +8,9 @@ const creativeCommonsLicense = "https://creativecommons.org/licenses/by-sa/4.0/"
 const legalSections = [
   ["#ownership", "Your work"],
   ["#software", "Software"],
-  ["#hosting", "Hosted editions"],
-  ["#operators", "Operator checklist"],
+  ["#privacy", "Privacy"],
+  ["#community", "Community"],
+  ["#hosting", "Server operators"],
   ["#legal-help", "Help"],
 ] as const;
 
@@ -23,7 +24,7 @@ export default function LegalPage() {
           <p className={styles.eyebrow}>Copyright, licensing, and ownership</p>
           <h1>Open software. Shared method. Your story remains yours.</h1>
           <p>
-            PlotPickle is officially distributed as a downloadable local-server application. People may also run an unmodified or modified server edition, including on compatible Plesk or WordPress infrastructure, provided they follow the applicable software, content, attribution, and source-availability terms below.
+            PlotPickle is officially distributed as a downloadable local-server application. A local Human profile requires no email, phone number, PlotPickle cloud account, BUZZ identity, GitHub account, or Google account. Optional external connections act only when the Human deliberately configures and uses them.
           </p>
         </header>
 
@@ -38,6 +39,8 @@ export default function LegalPage() {
             <a href={sourceRepository} target="_blank" rel="noreferrer" aria-label="Corresponding source (opens in a new tab)">Corresponding source</a>
             <a href={agplLicense} target="_blank" rel="noreferrer" aria-label="AGPLv3 licence (opens in a new tab)">AGPLv3 licence</a>
             <a href={creativeCommonsLicense} target="_blank" rel="noreferrer" aria-label="CC BY-SA 4.0 licence (opens in a new tab)">CC BY-SA 4.0 licence</a>
+            <a href={`${sourceRepository}/blob/main/PRIVACY.md`} target="_blank" rel="noreferrer" aria-label="Privacy Notice (opens in a new tab)">Privacy Notice</a>
+            <a href={`${sourceRepository}/blob/main/COMMUNITY_GUIDELINES.md`} target="_blank" rel="noreferrer" aria-label="Community Guidelines (opens in a new tab)">Community Guidelines</a>
           </div>
         </section>
 
@@ -46,10 +49,10 @@ export default function LegalPage() {
             <span>01</span>
             <h2>User stories and project files</h2>
             <p>
-              Users retain copyright and all other rights they hold in their original stories, characters, dialogue, images, research, notes, and exported <code>.plotpickle.json</code> project files. Using PlotPickle does not transfer ownership of that material to Bryan Harris, PlotPickle, a server operator, or a contributor.
+              Humans retain any copyright and other rights they hold in their stories, characters, dialogue, images, research, notes, PPF projects, and exports. Using PlotPickle does not transfer ownership of that material to Bryan Harris, PlotPickle, a server operator, or a contributor.
             </p>
             <p>
-              The PlotPickle software licences do not automatically apply to a user’s creative output merely because it was created, stored, imported, or exported through the application.
+              The PlotPickle software licences do not automatically apply to creative output merely because it was created, stored, imported, or exported through the application. PlotPickle does not decide or promise whether any particular work, including AI-assisted output, qualifies for copyright protection.
             </p>
           </section>
 
@@ -66,12 +69,12 @@ export default function LegalPage() {
 
           <section id="hosting">
             <span>03</span>
-            <h2>Server and network editions</h2>
+            <h2>Operator-run server mode</h2>
             <p>
-              Self-hosting is allowed. A person or organization may install PlotPickle on compatible hosting, including a private server, Plesk environment, or a WordPress-connected architecture.
+              The software includes an advanced <code>server-network</code> mode for an operator who deliberately configures trusted HTTPS, exact Host and Origin allowlists, the intended bind address, trusted-proxy handling, and the first-profile bootstrap boundary. The official project does not provide a hosted PlotPickle SaaS or promise compatibility with a particular hosting control panel or CMS.
             </p>
             <p>
-              When a modified PlotPickle version is made available to users over a network, those users must be prominently offered the corresponding source code for the modified version at no charge, as required by AGPLv3 section 13. The source offer must be practical and accessible to the users of that server.
+              An operator is responsible for deployment security and for accurate privacy, retention, deletion, support, and jurisdiction terms for that service. When a modified PlotPickle version is made available over a network, its users must be offered the corresponding source code as required by AGPLv3 section 13.
             </p>
           </section>
 
@@ -107,12 +110,34 @@ export default function LegalPage() {
               Third-party libraries, fonts, images, and other included material remain subject to their own licences and notices.
             </p>
           </section>
+
+          <section id="privacy">
+            <span>07</span>
+            <h2>Local-first privacy</h2>
+            <p>
+              Human profiles, private projects, LEARN answers, PLAN decisions, BUILD artifacts, credentials, and local files stay within the selected PlotPickle Node by default. Local storage and backups are controlled by the Human&apos;s computer account and configured retention settings; archiving is not deletion.
+            </p>
+            <p>
+              A deliberate BUZZ post, cloud-AI request, GitHub action, Google action, or manual export sends only the content selected for that action to the chosen external service. That service&apos;s own privacy and retention terms then apply. PlotPickle does not silently upload a project or silently fall back from local AI to a paid cloud route.
+            </p>
+          </section>
+
+          <section id="community">
+            <span>08</span>
+            <h2>BUZZ Community conduct</h2>
+            <p>
+              PlotPickle is a storytelling environment. Fictional, historical, educational, or analytical discussion may include difficult subjects and is not misconduct merely because it contains a sensitive word. Real-world harassment, credible threats, operational harm instructions, privacy violations, credential sharing, and deliberate disruption are not acceptable.
+            </p>
+            <p>
+              Merrin Bellwarden may welcome, redirect, de-escalate, make a supportive safety intervention, or surface a concern for Human review. Merrin cannot delete messages, ban or block members, alter permissions, investigate people, read private project state, or make a final enforcement decision.
+            </p>
+          </section>
         </div>
 
         <section className={styles.operatorChecklist} id="operators">
           <div>
             <p className={styles.eyebrow}>Server operator checklist</p>
-            <h2>Before making a hosted edition available</h2>
+            <h2>Before making an operator-run edition available</h2>
           </div>
           <ol>
             <li>Keep the copyright, licence, warranty, and attribution notices visible.</li>
@@ -121,6 +146,7 @@ export default function LegalPage() {
             <li>Keep modified software under AGPL-3.0-or-later.</li>
             <li>Keep adapted instructional material under CC BY-SA 4.0 and provide attribution.</li>
             <li>Do not claim ownership of user-created stories or imply official endorsement of a modified edition.</li>
+            <li>Publish privacy and service terms that match the operator&apos;s real storage, backup, access, retention, deletion, support, and jurisdiction practices.</li>
           </ol>
         </section>
 
@@ -128,7 +154,7 @@ export default function LegalPage() {
           <div>
             <p className={styles.eyebrow}>Questions or problems</p>
             <h2 id="legal-help-title">Use the right support path</h2>
-            <p>Use Suggest / Report for a product or documentation problem. Questions involving a particular business, contributor agreement, commercial deployment, or jurisdiction should be reviewed by a qualified intellectual-property professional.</p>
+            <p>Use Suggest / Report for a product or documentation problem. Use the Community&apos;s available report or block path for conduct concerns. Questions involving a particular business, contributor agreement, commercial deployment, privacy obligation, or jurisdiction should be reviewed by a qualified professional.</p>
           </div>
           <div>
             <Link className={styles.primaryAction} href="/suggest-report">Open Suggest / Report</Link>
@@ -138,7 +164,7 @@ export default function LegalPage() {
 
         <footer className={styles.footer}>
           <strong>This page is a practical project summary, not legal advice.</strong>
-          <p>Licensing questions involving a particular business, contributor agreement, commercial deployment, or jurisdiction should be reviewed by a qualified intellectual-property professional.</p>
+          <p>Licensing, privacy, platform, and Community questions involving a particular business, deployment, or jurisdiction should be reviewed by an appropriately qualified professional.</p>
           <div>
             <a href={sourceRepository} target="_blank" rel="noreferrer" aria-label="Source repository (opens in a new tab)">Source repository</a>
             <a href={`${sourceRepository}/blob/main/LICENSES.md`} target="_blank" rel="noreferrer" aria-label="Licence scope file (opens in a new tab)">Licence scope file</a>

@@ -86,11 +86,11 @@ These project documents provide practical information and are not a substitute f
 
 ## Self-hosted server editions
 
-PlotPickle’s official distribution remains the downloadable local edition. Downstream users may adapt PlotPickle for compatible server infrastructure, including Plesk or a WordPress-connected architecture, under the applicable licences.
+PlotPickle’s official distribution remains the downloadable local edition. The software includes an advanced `server-network` mode that a downstream operator may deliberately configure on infrastructure they control under the applicable licences and deployment-security requirements. The official project does not promise compatibility with a particular hosting control panel or CMS.
 
-A modified version made available to remote users must prominently offer those users the corresponding source code for that version at no charge, as required by AGPLv3 section 13. Hosted editions must preserve legal notices, identify modifications, respect user ownership and avoid implying that an unofficial edition is the official PlotPickle service.
+A modified version made available to remote users must prominently offer those users the corresponding source code for that version at no charge, as required by AGPLv3 section 13. Operator-run editions must preserve legal notices, identify modifications, respect user ownership and avoid implying that an unofficial edition is the official PlotPickle service.
 
-A server operator should provide their own privacy and data-retention terms because a hosted edition may store user projects differently from the official local edition.
+A server operator must provide accurate privacy, retention, deletion, support, security, and jurisdiction terms because an operator-run edition may handle Human profiles and projects differently from the official local edition.
 
 ## Brand assets
 

@@ -348,4 +348,6 @@ Historical modules still exist in the repository where useful, but they do not b
 
 ## License
 
-PlotPickle is licensed under **AGPL-3.0-or-later**. See the repository license for details.
+PlotPickle software is licensed under **AGPL-3.0-or-later**. Written method and documentation material identified by PlotPickle is available under **CC BY-SA 4.0** unless a file states otherwise. Humans retain the rights they hold in their own creative work; PlotPickle does not promise copyrightability for every output.
+
+Read [licence scope](LICENSES.md), [licensing and ownership](docs/licensing-and-ownership.md), the [Privacy Notice](PRIVACY.md), and the [BUZZ Community Guidelines](COMMUNITY_GUIDELINES.md).

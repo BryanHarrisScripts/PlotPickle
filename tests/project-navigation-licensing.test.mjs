@@ -95,14 +95,19 @@ test("PlotPickle declares software, method, user, contribution, and brand rights
 
   const legal = await source("app/legal/page.tsx");
   const scope = await source("LICENSES.md");
+  const privacy = await source("PRIVACY.md");
+  const community = await source("COMMUNITY_GUIDELINES.md");
   const contributing = await source("CONTRIBUTING.md");
   const trademarks = await source("TRADEMARKS.md");
 
   assert.match(legal, /Your story remains yours/);
   assert.match(legal, /GNU Affero General Public License/);
   assert.match(legal, /Creative Commons Attribution-ShareAlike 4\.0/);
-  assert.match(legal, /Plesk or WordPress/);
+  assert.match(legal, /does not provide a hosted PlotPickle SaaS/);
+  assert.match(legal, /AI-assisted output/);
   assert.match(scope, /User-created stories are excluded/);
+  assert.match(privacy, /does not require an email address, phone number/);
+  assert.match(community, /Merrin cannot silently delete messages/);
   assert.match(contributing, /Contributor ownership/);
   assert.match(trademarks, /Modified editions/);
 });

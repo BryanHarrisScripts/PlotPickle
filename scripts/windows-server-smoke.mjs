@@ -5,6 +5,7 @@ import path from "node:path";
 const root = path.resolve(process.argv[2] ?? ".");
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
 const url = "http://127.0.0.1:4173/";
+const navigationProbeUrl = new URL("/library", url).href;
 const logFile = path.join(root, "windows-server-smoke.log");
 const timeoutMs = 120_000;
 
@@ -50,6 +51,7 @@ function saveLog(summary) {
       `Platform: ${process.platform} ${process.arch}`,
       `Root: ${root}`,
       `URL: ${url}`,
+      `Navigation probe: ${navigationProbeUrl}`,
       `Result: ${summary}`,
       `Exit code: ${exitCode ?? "running"}`,
       `Exit signal: ${exitSignal ?? "none"}`,
@@ -59,6 +61,16 @@ function saveLog(summary) {
     ].join("\n"),
     "utf8",
   );
+}
+
+async function probe(urlToProbe) {
+  const response = await fetch(urlToProbe, { signal: AbortSignal.timeout(4_000) });
+  lastResponse = `${urlToProbe} -> ${response.status} ${response.statusText}`;
+  if (!response.ok) {
+    const body = await response.text();
+    lastResponse += body ? ` — ${body.slice(0, 500).replace(/\s+/g, " ")}` : "";
+  }
+  return response;
 }
 
 const server = spawn(
@@ -97,19 +109,24 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 1_000));
     if (exited) throw new Error(`Vite exited before responding (code ${exitCode ?? "unknown"}, signal ${exitSignal ?? "none"}).`);
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(4_000) });
-      lastResponse = `${response.status} ${response.statusText}`;
+      const response = await probe(url);
       if (response.ok) {
         success = true;
         break;
       }
-      const body = await response.text();
-      lastResponse += body ? ` — ${body.slice(0, 500).replace(/\s+/g, " ")}` : "";
     } catch (error) {
       lastResponse = error instanceof Error ? error.message : String(error);
     }
   }
   if (!success) throw new Error(`PlotPickle did not return a successful response within ${timeoutMs / 1_000} seconds.`);
+
+  // Exercise a real client route that imports next/navigation. This makes the
+  // Windows acceptance gate cover the Vinext navigation shim path implicated in
+  // #1404 instead of validating only the root route.
+  const navigationResponse = await probe(navigationProbeUrl);
+  if (!navigationResponse.ok) {
+    throw new Error(`PlotPickle navigation probe failed: ${lastResponse}`);
+  }
 
   // Let Vite/Vinext flush request diagnostics before evaluating the startup log.
   await new Promise((resolve) => setTimeout(resolve, 750));
@@ -119,7 +136,7 @@ try {
   }
 
   saveLog(lastResponse);
-  console.log(`PlotPickle answered at ${url} with ${lastResponse} and clean startup diagnostics.`);
+  console.log(`PlotPickle root and navigation probes passed with clean startup diagnostics.`);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   saveLog(message);

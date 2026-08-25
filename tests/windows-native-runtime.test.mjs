@@ -78,7 +78,7 @@ test("release packages include every local server configuration input", async ()
   assert.match(packager, /Required runtime directory is missing/);
 });
 
-test("Windows server smoke uses Node directly and saves startup diagnostics", async () => {
+test("Windows server smoke uses Node directly and rejects known startup regressions", async () => {
   const smoke = await source("scripts/windows-server-smoke.mjs");
   for (const contract of [
     "spawn(",
@@ -89,10 +89,25 @@ test("Windows server smoke uses Node directly and saves startup diagnostics", as
     "fetch(url",
     "AbortSignal.timeout",
     "windows-server-smoke.log",
+    "startupOutputFindings",
+    "Failed to resolve dependency: react-server-dom-webpack/static.edge",
+    "client component dependency is inconsistently optimized",
+    "app-prefetch-fetch-queue.js",
+    "request logger reported impossible compile timing",
+    "clean startup diagnostics",
     "saveLog",
     'server.kill("SIGTERM")',
   ]) assert.ok(smoke.includes(contract), `Windows server smoke is missing: ${contract}`);
   assert.doesNotMatch(smoke, /Start-Process|Invoke-WebRequest/);
+});
+
+test("Profile Experience validates the real Windows Vite startup for #1404", async () => {
+  const workflow = await source(".github/workflows/profile-experience.yml");
+  assert.match(workflow, /build\/startup\/\*\*/);
+  assert.match(workflow, /scripts\/windows-server-smoke\.mjs/);
+  assert.match(workflow, /Validate clean Windows Vite startup/);
+  assert.match(workflow, /if: matrix\.os == 'windows-latest'/);
+  assert.match(workflow, /node scripts\/windows-server-smoke\.mjs \./);
 });
 
 test("Windows release validation repairs the binding and runs the packaged interaction smoke", async () => {

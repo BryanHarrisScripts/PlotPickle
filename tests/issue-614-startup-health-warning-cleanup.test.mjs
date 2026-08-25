@@ -76,8 +76,32 @@ test("Next startup uses proxy instead of the deprecated middleware convention", 
   assert.doesNotMatch(proxy, /export function middleware/);
 });
 
-test("Vite excludes the vinext RSC shim that produced the inconsistent optimization warning", async () => {
-  const config = await read("vite.config.ts");
-  assert.match(config, /optimizeDeps/);
-  assert.match(config, /exclude: \["vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js"\]/);
+test("issue #1404 excludes the vinext prefetch shim in root, RSC and SSR optimization", async () => {
+  const [config, compatibility] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/startup/vite-compatibility.ts"),
+  ]);
+
+  assert.match(config, /VINEXT_PREFETCH_QUEUE_SHIM/);
+  assert.match(config, /exclude: \[VINEXT_PREFETCH_QUEUE_SHIM\]/);
+  assert.match(config, /vinextRscOptimizationCompatibilityPlugin\(\)/);
+  assert.match(compatibility, /vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js/);
+  assert.match(compatibility, /new Set\(\["rsc", "ssr"\]\)/);
+  assert.match(compatibility, /configEnvironment\(name, config\)/);
+  assert.match(compatibility, /exclude: \[\.\.\.new Set\(\[\.\.\.existing, VINEXT_PREFETCH_QUEUE_SHIM\]\)\]/);
+});
+
+test("issue #1404 removes only impossible cross-runtime compile timings from dev request output", async () => {
+  const [config, compatibility] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/startup/vite-compatibility.ts"),
+  ]);
+
+  assert.match(config, /if \(command === "serve"\) installVinextRequestTimingOutputGuard\(\)/);
+  assert.match(compatibility, /sanitizeVinextRequestTimingOutput/);
+  assert.match(compatibility, /MAX_CROSS_RUNTIME_CLOCK_DRIFT_MS = 60_000/);
+  assert.match(compatibility, /compileMs <= totalMs \+ MAX_CROSS_RUNTIME_CLOCK_DRIFT_MS/);
+  assert.match(compatibility, /replace\(\/compile:/);
+  assert.match(compatibility, /typeof chunk === "string" \? sanitizeVinextRequestTimingOutput\(chunk\) : chunk/);
+  assert.doesNotMatch(compatibility, /console\.warn\s*=|console\.error\s*=|process\.stderr\.write\s*=/);
 });

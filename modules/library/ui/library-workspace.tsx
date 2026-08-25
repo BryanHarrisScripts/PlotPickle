@@ -17,7 +17,12 @@ import {
 } from "../../../core/storage/project-library-browser";
 import AverySessionHistory from "./avery-session-history/index";
 import ArchiveStoriesPanel from "./archive-stories-panel";
-import { createFeaturedExamples, createGenrePresets, type LibraryCatalogItem } from "../project-library-catalog";
+import {
+  createFeaturedExamples,
+  createGenrePresets,
+  type LibraryCatalogItem,
+  type LibraryFrontierCoverage,
+} from "../project-library-catalog";
 import styles from "./library-workspace.module.css";
 
 type LibraryTab = "featured" | "presets" | "stories" | "archive";
@@ -31,6 +36,14 @@ const TABS: readonly { readonly id: LibraryTab; readonly label: string }[] = [
   { id: "stories", label: "My Stories" },
   { id: "archive", label: "Archive" },
 ];
+
+const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> = {
+  foundations: "Foundations",
+  world: "World",
+  character: "Character",
+  structure: "Structure",
+  storyboard: "Storyboard",
+};
 
 function displayDate(value: string) {
   const date = new Date(value);
@@ -54,6 +67,11 @@ function CatalogCard({ item, sourceKind, onLoad }: {
         <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
         <h3>{item.title}</h3>
         <p>{item.description}</p>
+        <div className={styles.coverage} aria-label={`${item.title} curriculum coverage`}>
+          {(Object.keys(COVERAGE_LABELS) as (keyof LibraryFrontierCoverage)[]).map((key) => (
+            <span data-coverage-state={item.coverage[key]} key={key}><b>{COVERAGE_LABELS[key]}</b><strong>{item.coverage[key]}</strong></span>
+          ))}
+        </div>
         {item.referenceLoader === "afterglow-v9-foundations" ? <small>Reference frontier: Foundations complete · later story detail remains reviewable or locked.</small> : null}
         <button className={styles.primaryButton} onClick={onLoad} type="button">{sourceKind === "example" ? "Load & Explore" : "Start from Preset"}</button>
       </div>

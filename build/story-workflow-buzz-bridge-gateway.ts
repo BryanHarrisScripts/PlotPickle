@@ -2,17 +2,18 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import {
   createStoryBridgeRequest,
-  decodeStoryBridgeResultEnvelope,
   dedupeStoryBridgeContributions,
   encodeStoryBridgeDispatchEnvelope,
   normalizeStoryBridgeContribution,
   STORY_BRIDGE_DISPATCH_MARKER,
+  STORY_BRIDGE_RESULT_MARKER,
   type StoryBridgeRequest,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
 
 const API = "/api/story-workflow/buzz-bridge";
 const MAX_BODY = 128 * 1024;
 const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled"]);
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 type BuzzStatus = {
   connection?: { configured?: boolean; identityVerified?: boolean; identityConfigured?: boolean };
@@ -36,43 +37,43 @@ type ResponsibilityRunSnapshot = {
 };
 type LocalResponse<T> = T & { ok?: boolean; message?: string };
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
+function requestMatchesLocalBridge(request: IncomingMessage, expectedPath: string) {
+  if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(request.socket.remoteAddress || "")) return false;
   const host = request.headers.host;
-  if (!host) return false;
+  const rawUrl = request.url;
+  if (!host || !rawUrl) return false;
   try {
     const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
+    const requestUrl = new URL(rawUrl, hostUrl);
     const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
+    return LOOPBACK_HOSTS.has(hostUrl.hostname)
+      && requestUrl.pathname === expectedPath
+      && (!origin || new URL(origin).host === hostUrl.host);
   } catch {
     return false;
   }
 }
 
-function sendJson(response: ServerResponse, status: number, value: Record<string, unknown>) {
+function writeBridgeResponse(response: ServerResponse, status: number, value: Record<string, unknown>, requestId = "") {
   response.statusCode = status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
+  if (requestId) response.setHeader("X-PlotPickle-Story-Bridge-Request", requestId);
   response.end(JSON.stringify(value));
 }
 
-async function readBody(request: IncomingMessage) {
+async function readBridgeAction(request: IncomingMessage, byteLimit = MAX_BODY, label = "Story Bridge") {
   const chunks: Buffer[] = [];
   let bytes = 0;
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     bytes += value.length;
-    if (bytes > MAX_BODY) throw new Error("The Story Bridge request is too large.");
+    if (bytes > byteLimit) throw new Error(`The ${label} request is too large.`);
     chunks.push(value);
   }
   const decoded: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("The Story Bridge request is invalid.");
+  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error(`The ${label} request is invalid.`);
   return decoded as Record<string, unknown>;
 }
 
@@ -87,7 +88,7 @@ function safeError(error: unknown) {
 function localBase(request: IncomingMessage) {
   const host = request.headers.host || "";
   const value = new URL(`http://${host}`);
-  if (!["127.0.0.1", "localhost", "[::1]"].includes(value.hostname)) throw new Error("The local PlotPickle host is unavailable.");
+  if (!LOOPBACK_HOSTS.has(value.hostname)) throw new Error("The local PlotPickle host is unavailable.");
   return value.origin;
 }
 
@@ -278,9 +279,9 @@ async function collect(request: IncomingMessage, bridge: StoryBridgeRequest, cur
   const room = await storyRoom(request, bridge, false);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room is not available."), ...observability(bridge, startedAt) };
   const messages = await recentMessages(request, room.id);
+  const requestToken = `\"requestId\":\"${bridge.requestId}\"`;
   const contributions = messages.flatMap((message) => {
-    const envelope = decodeStoryBridgeResultEnvelope(message.content);
-    if (!envelope || envelope.requestId !== bridge.requestId) return [];
+    if (!message.content.startsWith(`${STORY_BRIDGE_RESULT_MARKER}\n`) || !message.content.includes(requestToken)) return [];
     return [normalizeStoryBridgeContribution({
       request: bridge,
       envelope: message.content,
@@ -317,30 +318,30 @@ export function storyWorkflowBuzzBridgeGateway(): Plugin {
         let url: URL;
         try { url = new URL(raw, "http://127.0.0.1"); } catch { next(); return; }
         if (url.pathname !== API) { next(); return; }
-        if (!isLocalRequest(request)) {
-          sendJson(response, 403, { ok: false, message: "Story Bridge operations are available only from the local PlotPickle application." });
+        if (!requestMatchesLocalBridge(request, API)) {
+          writeBridgeResponse(response, 403, { ok: false, message: "Story Bridge operations are available only from the local PlotPickle application." });
           return;
         }
         void (async () => {
           try {
             if (request.method !== "POST") {
-              sendJson(response, 405, { ok: false, message: "Story Bridge uses bounded POST actions only." });
+              writeBridgeResponse(response, 405, { ok: false, message: "Story Bridge uses bounded POST actions only." });
               return;
             }
-            const body = await readBody(request);
+            const body = await readBridgeAction(request);
             const action = typeof body.action === "string" ? body.action : "";
             const bridge = normalizeRequest(body.request);
             if (action === "dispatch") {
-              sendJson(response, 200, await dispatch(request, bridge));
+              writeBridgeResponse(response, 200, await dispatch(request, bridge), bridge.requestId);
               return;
             }
             if (action === "collect") {
-              sendJson(response, 200, await collect(request, bridge, body.currentRevision));
+              writeBridgeResponse(response, 200, await collect(request, bridge, body.currentRevision), bridge.requestId);
               return;
             }
-            sendJson(response, 404, { ok: false, message: "Story Bridge action not found." });
+            writeBridgeResponse(response, 404, { ok: false, message: "Story Bridge action not found." }, bridge.requestId);
           } catch (error) {
-            sendJson(response, 400, { ok: false, message: safeError(error) });
+            writeBridgeResponse(response, 400, { ok: false, message: safeError(error) });
           }
         })();
       });

@@ -153,7 +153,7 @@ export default function FoundationsStoryWorkflowPanel({
     if (!resolved) throw new Error(`Story Workflow could not resolve ${item.curriculumRequirementId} against the current curriculum.`);
     const task = createFoundationsStoryResponsibilityRun({ project, workItem: item, curriculum });
     let created = false;
-    try {
+    const execution = async () => {
       await runRequest({
         action: "create",
         runId: task.run.runId,
@@ -206,16 +206,19 @@ export default function FoundationsStoryWorkflowPanel({
         producedAt: now,
       });
       return result;
-    } catch (error) {
+    };
+
+    return execution().then(undefined, async (error: unknown) => {
+      const reason = error instanceof Error ? error.message : "Story Workflow specialist failed.";
       if (created) {
-        await runRequest({
+        await Promise.allSettled([runRequest({
           action: "cancel",
           runId: task.run.runId,
-          reason: error instanceof Error ? error.message : "Story Workflow specialist failed.",
-        }).catch(() => undefined);
+          reason,
+        })]);
       }
-      throw error;
-    }
+      throw new Error(`Story Workflow check failed for ${item.curriculumRequirementId}: ${reason}`, { cause: error });
+    });
   }
 
   async function runChecks() {

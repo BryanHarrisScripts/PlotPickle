@@ -9,6 +9,7 @@ import {
   STORY_BRIDGE_RESULT_MARKER,
   type StoryBridgeRequest,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
+import { agentProfileById } from "../lib/agents/agent-profiles";
 
 const API = "/api/story-workflow/buzz-bridge";
 const MAX_BODY = 128 * 1024;
@@ -233,6 +234,14 @@ function dispatchAlreadyPresent(messages: readonly BuzzMessage[], requestId: str
     && message.content.includes(`\"requestId\":\"${requestId}\"`));
 }
 
+function agentMention(bridge: StoryBridgeRequest) {
+  const profile = agentProfileById(bridge.agentProfileId);
+  if (!profile || profile.buzzBinding.actorId !== bridge.agentActorId) {
+    throw new Error("Story Bridge cannot resolve the approved BUZZ Agent mention from the bound Agent Profile.");
+  }
+  return `@${profile.displayName}`;
+}
+
 async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const startedAt = Date.now();
   if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
@@ -256,9 +265,10 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     };
   }
 
+  const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\n\n${agentMention(bridge)}`;
   await localJson(request, "/api/local-buzz/messages", {
     method: "POST",
-    body: JSON.stringify({ channel: room.id, content: encodeStoryBridgeDispatchEnvelope(bridge) }),
+    body: JSON.stringify({ channel: room.id, content }),
   });
   return {
     ok: true,
@@ -268,7 +278,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     room: { id: room.id, name: room.name },
     idempotent: false,
     ...observability(bridge, startedAt),
-    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
+    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room and mention-targeted to the approved Agent. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
   };
 }
 

@@ -5,13 +5,15 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Sage keeps one visible personality through one active guide path", async () => {
-  const [page, unified, skill] = await Promise.all([
+  const [page, memoryGuide, unified, skill] = await Promise.all([
     read("app/page.tsx"),
+    read("modules/creative-room/memory-aware-sage-guide.ts"),
     read("modules/creative-room/sage-unified-guide.ts"),
     read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
 
-  assert.match(page, /sage-unified-guide/);
+  assert.match(page, /memory-aware-sage-guide/);
+  assert.match(memoryGuide, /from "\.\/sage-unified-guide"/);
   assert.match(unified, /isSageCraftQuestion\(request\.question\)/);
   assert.match(unified, /This is ordinary conversation\. Respond naturally/);
   assert.match(unified, /Use the relevant PlotPickle curriculum below for craft teaching/);

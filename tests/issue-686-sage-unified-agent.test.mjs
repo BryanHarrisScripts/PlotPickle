@@ -5,13 +5,15 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("LEARN uses one unified Sage path with the Sage skill instead of a layered conversation specialist", async () => {
-  const [page, unified, skill] = await Promise.all([
+  const [page, memoryGuide, unified, skill] = await Promise.all([
     read("app/page.tsx"),
+    read("modules/creative-room/memory-aware-sage-guide.ts"),
     read("modules/creative-room/sage-unified-guide.ts"),
     read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
 
-  assert.match(page, /from "\.\.\/modules\/creative-room\/sage-unified-guide"/);
+  assert.match(page, /from "\.\.\/modules\/creative-room\/memory-aware-sage-guide"/);
+  assert.match(memoryGuide, /from "\.\/sage-unified-guide"/);
   assert.doesNotMatch(page, /sage-safe-guide/);
   assert.match(unified, /agentId: "curriculum-guide"/);
   assert.doesNotMatch(unified, /answerAsSageConversationSpecialist/);

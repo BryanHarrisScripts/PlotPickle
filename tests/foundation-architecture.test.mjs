@@ -74,13 +74,16 @@ test("the LEARN module owns the interaction without importing legacy app code", 
 });
 
 test("Creative Room retrieval is injected and searches the complete curriculum", async () => {
-  const [page, guide, retrieval, workspace] = await Promise.all([
+  const [page, memoryGuide, guide, retrieval, workspace] = await Promise.all([
     read("app/page.tsx"),
+    read("modules/creative-room/memory-aware-sage-guide.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/creative-room/curriculum-retrieval.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
-  assert.match(page, /guide=\{answerFromCurriculum\}/);
+  assert.match(page, /guide=\{memoryAwareSageGuide\}/);
+  assert.match(memoryGuide, /answerFromCurriculum/);
+  assert.match(memoryGuide, /sagePersistentMemoryText/);
   assert.match(guide, /semanticCurriculumRetrieval/);
   assert.match(guide, /retrieveCurriculumContext/);
   assert.match(retrieval, /buildCurriculumRagInventory/);

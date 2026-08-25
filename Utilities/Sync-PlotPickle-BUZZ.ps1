@@ -12,6 +12,7 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
 $BootstrapScript = Join-Path $ProjectRoot "scripts\bootstrap-buzz-guildhall.mjs"
 $AgentScript = Join-Path $ProjectRoot "scripts\provision-community-agents.mjs"
+$IdentityBindingPath = Join-Path $ProjectRoot ".plotpickle\operator\buzz-agent-public-identities.json"
 
 function Find-NodeExecutable {
   $command = Get-Command "node.exe" -ErrorAction SilentlyContinue
@@ -76,6 +77,39 @@ function Invoke-NodeScript {
   $output = & $Node $Script @Arguments | Out-String
   if ($LASTEXITCODE -ne 0) { throw "The setup command failed. Review the redacted message above, correct it, and rerun this launcher." }
   return $output.Trim()
+}
+
+function Write-AgentIdentityBindings {
+  param(
+    [object]$AgentResult,
+    [object[]]$ReadyAgents,
+    [string]$Relay,
+    [string]$Path
+  )
+
+  $bindings = [ordered]@{}
+  foreach ($agent in $ReadyAgents) {
+    $profileId = [string]$agent.profileId
+    $pubkey = ([string]$agent.pubkey).Trim().ToLowerInvariant()
+    if (-not $profileId -or $pubkey -notmatch '^[a-f0-9]{64}$') {
+      throw "A ready BUZZ Agent returned an invalid public identity. No Story Bridge signer bindings were written."
+    }
+    $bindings[$profileId] = $pubkey
+  }
+
+  $document = [ordered]@{
+    schemaVersion = 1
+    communityId = [string]$AgentResult.communityId
+    relayUrl = $Relay
+    verifiedAt = (Get-Date).ToUniversalTime().ToString("o")
+    bindings = $bindings
+  }
+
+  $directory = Split-Path -Parent $Path
+  New-Item -ItemType Directory -Force -Path $directory | Out-Null
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [IO.File]::WriteAllText($Path, (($document | ConvertTo-Json -Depth 5) + "`n"), $utf8NoBom)
+  return $bindings.Count
 }
 
 if (-not (Test-Path -LiteralPath $BootstrapScript -PathType Leaf) -or -not (Test-Path -LiteralPath $AgentScript -PathType Leaf)) {
@@ -147,6 +181,8 @@ try {
   $attention = @($agentResult.agents | Where-Object { $_.status -notin @("ready", "awaiting-owner-approval", "owner-provisioner-required") })
 
   Write-Host "Agents ready: $($ready.Count)/$($agentResult.agents.Count)."
+  $bindingCount = Write-AgentIdentityBindings -AgentResult $agentResult -ReadyAgents $ready -Relay $RelayUrl -Path $IdentityBindingPath
+  Write-Host "Story Bridge signer bindings: $bindingCount public Agent key(s) saved locally."
   if ($pending.Count) {
     Write-Host "$($pending.Count) Agent draft(s) await your approval in BUZZ Desktop. Approve them, then rerun this launcher to verify identities and memberships."
   }

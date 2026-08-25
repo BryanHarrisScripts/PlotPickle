@@ -6,6 +6,7 @@ on:
     paths:
       - "core/buzz/nostr-event-verification.mjs"
       - "core/buzz/nostr-event-verification.d.ts"
+      - "core/story-workflow/buzz/**"
       - "core/story-workflow/buzz-story-bridge-core.mjs"
       - "core/story-workflow/buzz-story-bridge-core.d.ts"
       - "core/story-workflow/story-workflow-core.mjs"
@@ -13,13 +14,16 @@ on:
       - "modules/story-workflow/**"
       - "lib/agents/**"
       - "lib/buzz/**"
+      - "build/buzz-agent-identity-binding-loader.ts"
       - "build/story-workflow-buzz-bridge-gateway.ts"
       - "build/responsibility-run-gateway.ts"
       - "build/buzz-gateway.ts"
       - "config/agent-profiles.json"
       - "config/agent-profile-extensions/public.json"
+      - "Utilities/Sync-PlotPickle-BUZZ.ps1"
       - "tests/issue-1416-story-workflow-engine.test.mjs"
       - "tests/issue-1422-buzz-story-bridge*.test.mjs"
+      - "tests/issue-1422-buzz-agent-identity-binding.test.mjs"
       - "vite.config.ts"
       - ".github/workflows/story-bridge.yml"
   workflow_dispatch:
@@ -50,7 +54,7 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
 
       - name: Validate Story Workflow and Story Bridge contracts
-        run: node --test tests/issue-1416-story-workflow-engine.test.mjs tests/issue-1422-buzz-story-bridge.test.mjs tests/issue-1422-buzz-story-bridge-hardening.test.mjs
+        run: node --test tests/issue-1416-story-workflow-engine.test.mjs tests/issue-1422-buzz-story-bridge.test.mjs tests/issue-1422-buzz-story-bridge-hardening.test.mjs tests/issue-1422-buzz-agent-identity-binding.test.mjs
 
       - name: Validate existing Agent and connector authority boundaries
         run: node --test tests/issue-962-agent-profiles.test.mjs tests/issue-963-context-engine.test.mjs tests/issue-965-connector-trust-policy.test.mjs tests/issue-966-responsibility-runs.test.mjs

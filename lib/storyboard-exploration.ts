@@ -4,6 +4,46 @@ import { buildVisualWritingSession, type VisualWritingTarget } from "./visual-wr
 export type StoryboardFrameSourceKind = "generated" | "manual-import";
 export type StoryboardFrameStatus = "candidate" | "approved" | "rejected" | "superseded";
 
+export type StoryboardSubjectBlocking = {
+  subjectId: string;
+  startPosition: string;
+  facing: string;
+  eyelineTargetId: string;
+  movement: string;
+  endPosition: string;
+  screenDirection: string;
+  axisState: string;
+};
+
+export type StoryboardAdvisoryOverride = {
+  findingId: string;
+  reason: string;
+};
+
+export type StoryboardAdvisoryCode =
+  | "axis-crossing"
+  | "eyeline-mismatch"
+  | "screen-direction-mismatch"
+  | "continuity-lock-conflict"
+  | "generative-complexity";
+
+export type StoryboardAdvisoryFinding = {
+  id: string;
+  code: StoryboardAdvisoryCode;
+  frameId: string;
+  shotId: string;
+  relatedShotId: string;
+  subjectId: string;
+  message: string;
+  overridden: boolean;
+  overrideReason: string;
+};
+
+export type StoryboardContinuityConflictEvidence = {
+  lockId: string;
+  message: string;
+};
+
 export type StoryboardStructuredShot = {
   shotId: string;
   narrativePurpose: string;
@@ -14,6 +54,8 @@ export type StoryboardStructuredShot = {
   lightingIntent: string;
   continuityLockReferences: string[];
   notes: string;
+  blocking: StoryboardSubjectBlocking[];
+  advisoryOverrides: StoryboardAdvisoryOverride[];
 };
 
 export type StoryboardFrameDirection = {
@@ -62,6 +104,16 @@ const structuredShotStringFields = [
   "lightingIntent",
   "notes",
 ] as const;
+const blockingStringFields = [
+  "subjectId",
+  "startPosition",
+  "facing",
+  "eyelineTargetId",
+  "movement",
+  "endPosition",
+  "screenDirection",
+  "axisState",
+] as const;
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -76,6 +128,33 @@ function stableShotIdentityPart(value: string) {
 
 export function storyboardShotIdForTarget(target: VisualWritingTarget, fallbackId = "") {
   return `storyboard-shot-${target.kind}-${stableShotIdentityPart(target.id || fallbackId || target.label)}`;
+}
+
+function normalizeBlocking(value: unknown): StoryboardSubjectBlocking[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    const raw = record(entry);
+    if (!Object.keys(raw).length) return [];
+    return [{
+      subjectId: text(raw.subjectId),
+      startPosition: text(raw.startPosition),
+      facing: text(raw.facing),
+      eyelineTargetId: text(raw.eyelineTargetId),
+      movement: text(raw.movement),
+      endPosition: text(raw.endPosition),
+      screenDirection: text(raw.screenDirection),
+      axisState: text(raw.axisState),
+    }];
+  });
+}
+
+function normalizeAdvisoryOverrides(value: unknown): StoryboardAdvisoryOverride[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    const raw = record(entry);
+    if (!Object.keys(raw).length) return [];
+    return [{ findingId: text(raw.findingId), reason: text(raw.reason) }];
+  });
 }
 
 function normalizeStructuredShot(
@@ -96,6 +175,8 @@ function normalizeStructuredShot(
     lightingIntent: text(raw.lightingIntent),
     continuityLockReferences: strings(raw.continuityLockReferences),
     notes: text(raw.notes),
+    blocking: normalizeBlocking(raw.blocking),
+    advisoryOverrides: normalizeAdvisoryOverrides(raw.advisoryOverrides),
   };
 }
 
@@ -108,6 +189,26 @@ export function validateStoryboardStructuredShot(value: unknown) {
   }
   if (!Array.isArray(raw.continuityLockReferences) || raw.continuityLockReferences.some((item) => typeof item !== "string")) {
     errors.push("continuityLockReferences must be an array of strings");
+  }
+  if (!Array.isArray(raw.blocking)) {
+    errors.push("blocking must be an array");
+  } else {
+    raw.blocking.forEach((entry, index) => {
+      const blocking = record(entry);
+      for (const field of blockingStringFields) {
+        if (typeof blocking[field] !== "string") errors.push(`blocking[${index}].${field} must be a string`);
+      }
+      if (typeof blocking.subjectId !== "string" || !blocking.subjectId.trim()) errors.push(`blocking[${index}].subjectId is required`);
+    });
+  }
+  if (!Array.isArray(raw.advisoryOverrides)) {
+    errors.push("advisoryOverrides must be an array");
+  } else {
+    raw.advisoryOverrides.forEach((entry, index) => {
+      const override = record(entry);
+      if (typeof override.findingId !== "string" || !override.findingId.trim()) errors.push(`advisoryOverrides[${index}].findingId is required`);
+      if (typeof override.reason !== "string" || !override.reason.trim()) errors.push(`advisoryOverrides[${index}].reason is required`);
+    });
   }
   return errors;
 }
@@ -168,6 +269,8 @@ export function buildStoryboardFrameDirection(project: PlotPickleProject, target
       lightingIntent: "",
       continuityLockReferences: context.continuityLocks.map((lock) => lock.id),
       notes: "",
+      blocking: [],
+      advisoryOverrides: [],
     },
     continuityNotes: context.continuityLocks.map((lock) => `${lock.kind}: ${lock.effectiveValue}`),
     approvedCanonItemIds: session.approvedCanon.map((item) => item.id),
@@ -247,6 +350,10 @@ export function editStoryboardStructuredShot(
       continuityLockReferences: patch.continuityLockReferences
         ? [...patch.continuityLockReferences]
         : frame.direction.structuredShot.continuityLockReferences,
+      blocking: patch.blocking ? patch.blocking.map((entry) => ({ ...entry })) : frame.direction.structuredShot.blocking,
+      advisoryOverrides: patch.advisoryOverrides
+        ? patch.advisoryOverrides.map((entry) => ({ ...entry }))
+        : frame.direction.structuredShot.advisoryOverrides,
     };
     const errors = validateStoryboardStructuredShot(structuredShot);
     if (errors.length) throw new Error(`Invalid Storyboard structured shot: ${errors.join("; ")}`);
@@ -256,6 +363,210 @@ export function editStoryboardStructuredShot(
       updatedAt,
     };
   });
+  return writeStore(project, { version: 1, frames });
+}
+
+function normalized(value: string) {
+  return value.trim().toLocaleLowerCase();
+}
+
+function motionClauseCount(value: string) {
+  return value
+    .split(/\b(?:and then|then|while|plus)\b|[,;/]/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .length;
+}
+
+function shortShot(frame: StoryboardFrameCandidate) {
+  if (frame.target.kind === "mini-block") return true;
+  return /\b(?:short|brief|quick|beat|moment|insert)\b/i.test(
+    `${frame.direction.structuredShot.narrativePurpose} ${frame.direction.structuredShot.notes}`,
+  );
+}
+
+function latestActiveFramePerShot(frames: StoryboardFrameCandidate[]) {
+  const eligible = frames.filter((frame) => frame.status === "candidate" || frame.status === "approved");
+  const latest = new Map<string, number>();
+  eligible.forEach((frame, index) => latest.set(frame.direction.structuredShot.shotId, index));
+  return eligible.filter((frame, index) => latest.get(frame.direction.structuredShot.shotId) === index);
+}
+
+function blockingBySubject(frame: StoryboardFrameCandidate) {
+  return new Map(frame.direction.structuredShot.blocking.map((entry) => [entry.subjectId, entry]));
+}
+
+function relatedSubjects(left: StoryboardFrameCandidate, right: StoryboardFrameCandidate) {
+  const leftSubjects = blockingBySubject(left);
+  const shared = [...blockingBySubject(right).keys()].filter((subjectId) => leftSubjects.has(subjectId));
+  if (!shared.length) return [];
+  const leftLocations = new Set(left.direction.locationIds);
+  const rightLocations = new Set(right.direction.locationIds);
+  const sameLocation = !leftLocations.size || !rightLocations.size || [...leftLocations].some((id) => rightLocations.has(id));
+  return sameLocation ? shared : [];
+}
+
+function findingId(code: StoryboardAdvisoryCode, shotId: string, relatedShotId = "", subjectId = "") {
+  return [code, shotId, relatedShotId || "single", subjectId || "shot"].join(":");
+}
+
+function applyOverride(frame: StoryboardFrameCandidate, finding: Omit<StoryboardAdvisoryFinding, "overridden" | "overrideReason">): StoryboardAdvisoryFinding {
+  const override = frame.direction.structuredShot.advisoryOverrides.find((entry) => entry.findingId === finding.id && entry.reason.trim());
+  return { ...finding, overridden: Boolean(override), overrideReason: override?.reason || "" };
+}
+
+export function evaluateStoryboardAdvisories(
+  frames: StoryboardFrameCandidate[],
+  continuityConflicts: Record<string, StoryboardContinuityConflictEvidence[]> = {},
+): StoryboardAdvisoryFinding[] {
+  const sequence = latestActiveFramePerShot(frames);
+  const findings: StoryboardAdvisoryFinding[] = [];
+
+  for (const frame of sequence) {
+    const shot = frame.direction.structuredShot;
+    const cameraMotionCount = motionClauseCount(shot.cameraMovement);
+    const subjectMotionCount = shot.blocking.reduce((count, entry) => count + motionClauseCount(entry.movement), 0);
+    if (shortShot(frame) && cameraMotionCount + subjectMotionCount >= 3 && (cameraMotionCount >= 2 || subjectMotionCount >= 2)) {
+      const id = findingId("generative-complexity", shot.shotId);
+      findings.push(applyOverride(frame, {
+        id,
+        code: "generative-complexity",
+        frameId: frame.id,
+        shotId: shot.shotId,
+        relatedShotId: "",
+        subjectId: "",
+        message: `Shot ${shot.shotId} is a short beat with ${cameraMotionCount} camera move clause(s) and ${subjectMotionCount} subject move clause(s). Consider simplifying or splitting unrelated motion.`,
+      }));
+    }
+
+    for (const evidence of continuityConflicts[shot.shotId] ?? []) {
+      if (!shot.continuityLockReferences.includes(evidence.lockId)) continue;
+      const id = findingId("continuity-lock-conflict", shot.shotId, evidence.lockId);
+      findings.push(applyOverride(frame, {
+        id,
+        code: "continuity-lock-conflict",
+        frameId: frame.id,
+        shotId: shot.shotId,
+        relatedShotId: "",
+        subjectId: "",
+        message: `Shot ${shot.shotId} references continuity lock ${evidence.lockId}: ${evidence.message}`,
+      }));
+    }
+  }
+
+  for (let index = 1; index < sequence.length; index += 1) {
+    const previous = sequence[index - 1];
+    const current = sequence[index];
+    const previousShot = previous.direction.structuredShot;
+    const currentShot = current.direction.structuredShot;
+    if (previousShot.shotId === currentShot.shotId) continue;
+    const sharedSubjects = relatedSubjects(previous, current);
+    if (!sharedSubjects.length) continue;
+    const previousBlocking = blockingBySubject(previous);
+    const currentBlocking = blockingBySubject(current);
+
+    for (const subjectId of sharedSubjects) {
+      const before = previousBlocking.get(subjectId);
+      const after = currentBlocking.get(subjectId);
+      if (!before || !after) continue;
+
+      if (before.axisState.trim() && after.axisState.trim() && normalized(before.axisState) !== normalized(after.axisState)) {
+        const id = findingId("axis-crossing", currentShot.shotId, previousShot.shotId, subjectId);
+        findings.push(applyOverride(current, {
+          id,
+          code: "axis-crossing",
+          frameId: current.id,
+          shotId: currentShot.shotId,
+          relatedShotId: previousShot.shotId,
+          subjectId,
+          message: `Shot ${currentShot.shotId} changes ${subjectId} from axis state “${before.axisState}” in ${previousShot.shotId} to “${after.axisState}”. Confirm the 180-degree crossing is intentional.`,
+        }));
+      }
+
+      if (before.eyelineTargetId.trim() && after.eyelineTargetId.trim() && normalized(before.eyelineTargetId) !== normalized(after.eyelineTargetId)) {
+        const id = findingId("eyeline-mismatch", currentShot.shotId, previousShot.shotId, subjectId);
+        findings.push(applyOverride(current, {
+          id,
+          code: "eyeline-mismatch",
+          frameId: current.id,
+          shotId: currentShot.shotId,
+          relatedShotId: previousShot.shotId,
+          subjectId,
+          message: `Shot ${currentShot.shotId} changes ${subjectId}’s eyeline target from “${before.eyelineTargetId}” in ${previousShot.shotId} to “${after.eyelineTargetId}”.`,
+        }));
+      }
+
+      if (before.screenDirection.trim() && after.screenDirection.trim() && normalized(before.screenDirection) !== normalized(after.screenDirection)) {
+        const id = findingId("screen-direction-mismatch", currentShot.shotId, previousShot.shotId, subjectId);
+        findings.push(applyOverride(current, {
+          id,
+          code: "screen-direction-mismatch",
+          frameId: current.id,
+          shotId: currentShot.shotId,
+          relatedShotId: previousShot.shotId,
+          subjectId,
+          message: `Shot ${currentShot.shotId} changes ${subjectId}’s screen direction from “${before.screenDirection}” in ${previousShot.shotId} to “${after.screenDirection}”.`,
+        }));
+      }
+    }
+  }
+
+  return findings;
+}
+
+function continuityConflictEvidence(project: PlotPickleProject, frames: StoryboardFrameCandidate[]) {
+  const evidence: Record<string, StoryboardContinuityConflictEvidence[]> = {};
+  for (const frame of latestActiveFramePerShot(frames)) {
+    const references = new Set(frame.direction.structuredShot.continuityLockReferences);
+    if (!references.size) continue;
+    const locks = buildVisualWritingSession(project, frame.target).context.continuityLocks;
+    const conflicts = locks
+      .filter((lock) => references.has(lock.id) && lock.warning.trim())
+      .map((lock) => ({ lockId: lock.id, message: lock.warning }));
+    if (conflicts.length) evidence[frame.direction.structuredShot.shotId] = conflicts;
+  }
+  return evidence;
+}
+
+export function storyboardAdvisoryFindings(project: PlotPickleProject) {
+  const frames = readStoryboardExplorationStore(project).frames;
+  return evaluateStoryboardAdvisories(frames, continuityConflictEvidence(project, frames));
+}
+
+export function storyboardAdvisoryFindingsForFrame(project: PlotPickleProject, frameId: string) {
+  return storyboardAdvisoryFindings(project).filter((finding) => finding.frameId === frameId);
+}
+
+export function acknowledgeStoryboardAdvisory(
+  project: PlotPickleProject,
+  frameId: string,
+  findingIdValue: string,
+  reason: string,
+  updatedAt = new Date().toISOString(),
+) {
+  const findingId = findingIdValue.trim();
+  const overrideReason = reason.trim();
+  if (!findingId) throw new Error("Storyboard advisory findingId is required");
+  if (!overrideReason) throw new Error("Storyboard advisory override reason is required");
+  const store = readStoryboardExplorationStore(project);
+  let found = false;
+  const frames = store.frames.map((frame) => {
+    if (frame.id !== frameId) return frame;
+    found = true;
+    const existing = frame.direction.structuredShot.advisoryOverrides.filter((entry) => entry.findingId !== findingId);
+    return {
+      ...frame,
+      direction: {
+        ...frame.direction,
+        structuredShot: {
+          ...frame.direction.structuredShot,
+          advisoryOverrides: [...existing, { findingId, reason: overrideReason }],
+        },
+      },
+      updatedAt,
+    };
+  });
+  if (!found) throw new Error(`Storyboard frame not found: ${frameId}`);
   return writeStore(project, { version: 1, frames });
 }
 

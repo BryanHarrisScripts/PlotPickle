@@ -35,6 +35,12 @@ export type StoryCommand =
       readonly occurredAt: string;
     }
   | {
+      readonly type: "foundations.sequence-shift.update";
+      readonly sequenceId: string;
+      readonly shiftId: string;
+      readonly occurredAt: string;
+    }
+  | {
       readonly type: "foundations.proposal.store";
       readonly lessonId: string;
       readonly proposal: FoundationDraftProposal;

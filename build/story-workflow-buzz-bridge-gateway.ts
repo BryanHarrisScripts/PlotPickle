@@ -12,6 +12,7 @@ import {
 
 const API = "/api/story-workflow/buzz-bridge";
 const MAX_BODY = 128 * 1024;
+const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled"]);
 
 type BuzzStatus = {
   connection?: { configured?: boolean; identityVerified?: boolean; identityConfigured?: boolean };
@@ -20,6 +21,19 @@ type BuzzStatus = {
 };
 type BuzzRoom = { id: string; name: string; description?: string };
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string; raw?: unknown };
+type ResponsibilityRunSnapshot = {
+  runId: string;
+  profileId: string;
+  state: string;
+  context: { taskId: string; sourceIds: string[]; receiptGeneratedAt: string } | null;
+  limits: {
+    timeoutMs: number;
+    maxContextCharacters: number;
+    maxTokens: number;
+    maxToolCalls: number;
+    maxCloudCostUsd: number;
+  };
+};
 type LocalResponse<T> = T & { ok?: boolean; message?: string };
 
 function isLoopback(value: string | undefined) {
@@ -112,6 +126,7 @@ function normalizeRequest(value: unknown): StoryBridgeRequest {
     localEquivalentAllowed: input.localEquivalentAllowed,
     destination: input.destination,
     contextItems: input.contextItems,
+    limits: input.limits,
     createdAt: input.createdAt,
   });
   if (input.requestId && input.requestId !== normalized.requestId) throw new Error("Story Bridge request identity does not match its bounded work/run/revision fields.");
@@ -140,6 +155,48 @@ function statusReady(status: BuzzStatus) {
     && status.connection?.identityVerified
     && status.cli?.available !== false
     && status.relay?.reachable !== false);
+}
+
+function withinRunLimit(value: number, limit: number) {
+  return Number.isFinite(value) && Number.isFinite(limit) && value <= limit;
+}
+
+async function verifyRunAuthorization(request: IncomingMessage, bridge: StoryBridgeRequest) {
+  const response = await localJson<{ run: ResponsibilityRunSnapshot }>(
+    request,
+    `/api/responsibility-runs?runId=${encodeURIComponent(bridge.runId)}`,
+  );
+  const run = response.run;
+  if (!run || run.runId !== bridge.runId || run.profileId !== bridge.agentProfileId) {
+    throw new Error("Story Bridge request does not match the persisted Responsibility Run and approved Agent Profile.");
+  }
+  if (TERMINAL_RUN_STATES.has(run.state)) throw new Error(`Story Bridge cannot dispatch or collect against terminal Responsibility Run state ${run.state}.`);
+  if (!run.context || run.context.taskId !== bridge.workItemId) {
+    throw new Error("Story Bridge work item does not match the persisted Responsibility Run context task.");
+  }
+  const allowedSources = new Set(run.context.sourceIds || []);
+  if (!bridge.contextItems.every((item) => allowedSources.has(item.id))) {
+    throw new Error("Story Bridge context contains a source that was not authorized by the persisted Responsibility Run receipt.");
+  }
+  if (!withinRunLimit(bridge.limits.timeoutMs, run.limits.timeoutMs)
+    || !withinRunLimit(bridge.limits.maxContextCharacters, run.limits.maxContextCharacters)
+    || !withinRunLimit(bridge.limits.maxTokens, run.limits.maxTokens)
+    || !withinRunLimit(bridge.limits.maxToolCalls, run.limits.maxToolCalls)
+    || !withinRunLimit(bridge.limits.maxCloudCostUsd, run.limits.maxCloudCostUsd)) {
+    throw new Error("Story Bridge request attempted to exceed its persisted Responsibility Run budget.");
+  }
+  return run;
+}
+
+function observability(bridge: StoryBridgeRequest, startedAt: number) {
+  return {
+    agentActorId: bridge.agentActorId,
+    privacyClass: bridge.destination.privacyClass,
+    federation: bridge.destination.federation,
+    contextCount: bridge.contextItems.length,
+    contextCharacters: bridge.contextCharacters,
+    elapsedMs: Math.max(0, Date.now() - startedAt),
+  };
 }
 
 async function storyRoom(request: IncomingMessage, bridge: StoryBridgeRequest, create: boolean) {
@@ -176,12 +233,14 @@ function dispatchAlreadyPresent(messages: readonly BuzzMessage[], requestId: str
 }
 
 async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
-  if (bridge.state !== "ready") return fallback(bridge, bridge.stateReason);
+  const startedAt = Date.now();
+  if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
+  await verifyRunAuthorization(request, bridge);
   const status = await localJson<BuzzStatus>(request, "/api/local-buzz/status").catch(() => ({}));
-  if (!statusReady(status)) return fallback(bridge, "BUZZ is unavailable or the connected Human transport identity is not verified.");
+  if (!statusReady(status)) return { ...fallback(bridge, "BUZZ is unavailable or the connected Human transport identity is not verified."), ...observability(bridge, startedAt) };
 
   const room = await storyRoom(request, bridge, true);
-  if (!room?.id) return fallback(bridge, "The private project Story Room could not be resolved.");
+  if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };
   const existing = await recentMessages(request, room.id).catch(() => []);
   if (dispatchAlreadyPresent(existing, bridge.requestId)) {
     return {
@@ -191,6 +250,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
       requestId: bridge.requestId,
       room: { id: room.id, name: room.name },
       idempotent: true,
+      ...observability(bridge, startedAt),
       message: "This bounded Story Work Item is already present in the private BUZZ Story Room; no duplicate dispatch was sent.",
     };
   }
@@ -206,14 +266,17 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     requestId: bridge.requestId,
     room: { id: room.id, name: room.name },
     idempotent: false,
+    ...observability(bridge, startedAt),
     message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
   };
 }
 
 async function collect(request: IncomingMessage, bridge: StoryBridgeRequest, currentRevision: unknown) {
-  if (!bridge.expectedAgentPubkey) return fallback(bridge, bridge.stateReason);
+  const startedAt = Date.now();
+  if (!bridge.expectedAgentPubkey) return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
+  await verifyRunAuthorization(request, bridge);
   const room = await storyRoom(request, bridge, false);
-  if (!room?.id) return fallback(bridge, "The private project Story Room is not available.");
+  if (!room?.id) return { ...fallback(bridge, "The private project Story Room is not available."), ...observability(bridge, startedAt) };
   const messages = await recentMessages(request, room.id);
   const contributions = messages.flatMap((message) => {
     const envelope = decodeStoryBridgeResultEnvelope(message.content);
@@ -234,6 +297,7 @@ async function collect(request: IncomingMessage, bridge: StoryBridgeRequest, cur
     requestId: bridge.requestId,
     contributions: unique,
     accepted,
+    ...observability(bridge, startedAt),
     message: accepted.length
       ? `${accepted.length} signed Agent contribution${accepted.length === 1 ? "" : "s"} matched the bounded Story Work Item.`
       : unique.length

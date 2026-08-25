@@ -11,11 +11,6 @@ import { installedBusinessCaseContributions } from "./casebook/installed-contrib
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 
-function argument(name) {
-  const index = argv.indexOf(name);
-  return index >= 0 && index + 1 < argv.length ? argv[index + 1] : "";
-}
-
 function flag(name) {
   return argv.includes(name);
 }

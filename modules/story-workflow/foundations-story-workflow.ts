@@ -39,6 +39,10 @@ function targetRef(lessonId: string, fieldId: string) {
   return `ppf:foundations:${lessonId}:${fieldId}`;
 }
 
+function proposalContainerRef(lessonId: string) {
+  return `ppf:foundations:${lessonId}:proposal-container`;
+}
+
 function proposalRef(lessonId: string, fieldId: string) {
   return `proposal:foundations:${lessonId}:${fieldId}`;
 }
@@ -74,7 +78,10 @@ function requirementForField(
   return {
     id: `foundations:${lesson.id}:${field.id}`,
     frontier: FOUNDATIONS_STORY_WORKFLOW_FRONTIER,
-    targetRefs: [targetRef(lesson.id, field.id)],
+    // The lesson-level proposal container is also an exclusive target because
+    // FoundationDraftProposal stores one values map per lesson. Two fields in
+    // the same lesson therefore cannot safely write proposals in parallel.
+    targetRefs: [targetRef(lesson.id, field.id), proposalContainerRef(lesson.id)],
     evidenceRefs,
     dependencyRefs,
     assignedAgentId: FOUNDATIONS_STORY_WORKFLOW_PROFILE_ID,
@@ -124,6 +131,13 @@ function resolveRequirement(
   return buildFoundationPlanLessons(curriculum)
     .flatMap((lesson) => lesson.fields.map((field) => ({ lesson, field })))
     .find(({ lesson, field }) => `foundations:${lesson.id}:${field.id}` === workItem.curriculumRequirementId) ?? null;
+}
+
+export function resolveFoundationsStoryWorkItem(
+  workItem: StoryWorkItem,
+  curriculum: readonly CurriculumLesson[] = plotPickleCurriculum,
+) {
+  return resolveRequirement(workItem, curriculum);
 }
 
 function boundedProjectContext(
@@ -261,7 +275,8 @@ const STORY_RESULT_OUTPUT_FIELDS = [
 
 /**
  * Build graph width only for queued independent work. Target refs are exclusive
- * resources, so two workers can never race on the same story decision.
+ * resources, so two workers can never race on the same story decision or the
+ * same lesson-level proposal container.
  */
 export function createFoundationsStoryWorkflowGraph(input: {
   readonly parentRun: ResponsibilityRun;

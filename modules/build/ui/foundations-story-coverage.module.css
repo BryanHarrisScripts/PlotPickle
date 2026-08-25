@@ -45,7 +45,7 @@
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
 }
@@ -60,6 +60,7 @@
   background: color-mix(in srgb, var(--state) 7%, rgba(4, 8, 8, .72));
 }
 .summary div[data-state="defined"] { --state: #66dbc9; }
+.summary div[data-state="observed"] { --state: #79bfe4; }
 .summary div[data-state="emerging"] { --state: #d5ac63; }
 .summary div[data-state="missing"] { --state: #d47f69; }
 .summary dt { color: var(--state); font-size: .68rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
@@ -68,7 +69,7 @@
 
 .legend {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -86,6 +87,7 @@
   line-height: 1.45;
 }
 .legend span[data-state="defined"] { --state: #66dbc9; }
+.legend span[data-state="observed"] { --state: #79bfe4; }
 .legend span[data-state="emerging"] { --state: #d5ac63; }
 .legend span[data-state="missing"] { --state: #d47f69; }
 .legend i { color: var(--state); font-style: normal; font-weight: 900; }
@@ -100,6 +102,7 @@
   background: rgba(3, 7, 7, .48);
 }
 .lesson[data-state="defined"] { --state: #66dbc9; }
+.lesson[data-state="observed"] { --state: #79bfe4; }
 .lesson[data-state="emerging"] { --state: #d5ac63; }
 .lesson[data-state="missing"] { --state: #d47f69; }
 
@@ -132,6 +135,7 @@
   text-transform: uppercase;
 }
 .lesson summary em[data-state="defined"], .decision header span[data-state="defined"] { --badge: #66dbc9; }
+.lesson summary em[data-state="observed"], .decision header span[data-state="observed"] { --badge: #79bfe4; }
 .lesson summary em[data-state="emerging"], .decision header span[data-state="emerging"] { --badge: #d5ac63; }
 .lesson summary em[data-state="missing"], .decision header span[data-state="missing"] { --badge: #d47f69; }
 
@@ -167,6 +171,11 @@
   color: #7f948e !important;
   font-size: .72rem;
   line-height: 1.45 !important;
+}
+
+@media (max-width: 980px) {
+  .summary,
+  .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {

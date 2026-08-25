@@ -1,5 +1,12 @@
 import archivedV10Source from "@/data/afterglow-v10-screenplay-source.txt?raw";
 import { createAfterglowProject } from "@/data/afterglow";
+import {
+  AFTERGLOW_V9_REFERENCE_LABEL,
+  AFTERGLOW_V9_REFERENCE_SOURCE_ID,
+  AFTERGLOW_V9_SOURCE_FILE_NAME,
+  AFTERGLOW_V9_SOURCE_SHA,
+  AFTERGLOW_V9_SOURCE_VERSION,
+} from "@/data/afterglow-reference-identity";
 import { packageProject } from "./ppf-exchange";
 import {
   createScreenplayRevisionWorkspace,
@@ -9,10 +16,10 @@ import {
 } from "./screenplay-revisions";
 
 export const AFTERGLOW_REFERENCE_PPF_FILENAME = "Afterglow.ppf";
-export const AFTERGLOW_V9_SOURCE_SHA = "54b5967644c5a41363fa88f57b02473ea758acc2";
+export { AFTERGLOW_V9_SOURCE_SHA } from "@/data/afterglow-reference-identity";
 export const AFTERGLOW_V10_SOURCE_SHA = "042427931c4a74a5dbe48e05750aea66f6b2486e";
 
-const V9_SOURCE_ID = "afterglow-v9-complete-baseline";
+const V9_SOURCE_ID = AFTERGLOW_V9_REFERENCE_SOURCE_ID;
 const V10_SOURCE_ID = "afterglow-v10-partial-rewrite";
 
 type ArchivedV10Element = Omit<ScreenplayRevisionElement, "id">;
@@ -32,12 +39,12 @@ export function createAfterglowRevisionProject() {
   const v10Elements = extractAfterglowV10RevisionElements();
   const v9Source: ScreenplayRevisionSource = {
     id: V9_SOURCE_ID,
-    label: "Afterglow v9 — Complete 2023 Baseline",
+    label: AFTERGLOW_V9_REFERENCE_LABEL,
     role: "canonical-baseline",
     immutable: true,
-    sourceFileName: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx",
+    sourceFileName: AFTERGLOW_V9_SOURCE_FILE_NAME,
     sourceSha: AFTERGLOW_V9_SOURCE_SHA,
-    sourceVersion: "v9",
+    sourceVersion: AFTERGLOW_V9_SOURCE_VERSION,
     elementMode: "canonical-project",
     attemptedBlocks: Array.from({ length: 24 }, (_, index) => index + 1),
     notAttemptedBlocks: [],

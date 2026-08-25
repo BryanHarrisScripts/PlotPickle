@@ -41,9 +41,13 @@ test("screenplay revisions are portable writer-controlled decisions", async () =
 });
 
 test("Afterglow reference PPF carries complete v9 plus partial v10 without treating untouched Blocks as deletions", async () => {
-  const reference = await read("lib/afterglow-reference-ppf.ts");
+  const [reference, identity] = await Promise.all([
+    read("lib/afterglow-reference-ppf.ts"),
+    read("data/afterglow-reference-identity.ts"),
+  ]);
   assert.match(reference, /Afterglow\.ppf/);
-  assert.match(reference, /Afterglow v9 — Complete 2023 Baseline/);
+  assert.match(identity, /AFTERGLOW_V9_REFERENCE_LABEL = "Afterglow v9 — Complete 2023 Baseline"/);
+  assert.match(reference, /AFTERGLOW_V9_REFERENCE_LABEL/);
   assert.match(reference, /Afterglow v10 — Unfinished Blocks 1–8 Rewrite/);
   assert.match(reference, /Array\.from\(\{ length: 8 \}/);
   assert.match(reference, /Array\.from\(\{ length: 16 \}, \(_, index\) => index \+ 9\)/);

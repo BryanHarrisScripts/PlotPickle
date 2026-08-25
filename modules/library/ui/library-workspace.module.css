@@ -156,7 +156,7 @@
   content: "";
 }
 
-.visual[data-visual-kind="afterglow"] { background: radial-gradient(circle at 62% 36%, #f2b16b 0, rgba(242, 177, 107, 0.18) 22%, transparent 43%), linear-gradient(145deg, #203f4d, #181323 75%); }
+.visual[data-visual-kind="afterglow-v9"] { background: radial-gradient(circle at 62% 36%, #f2b16b 0, rgba(242, 177, 107, 0.18) 22%, transparent 43%), linear-gradient(145deg, #203f4d, #181323 75%); }
 .visual[data-visual-kind="clockmakers-map"] { background: radial-gradient(circle at 60% 42%, rgba(237, 194, 99, 0.5), transparent 28%), repeating-radial-gradient(circle at 60% 42%, #142821 0 10px, #263c2d 11px 12px); }
 .visual[data-visual-kind="dark-fantasy"] { background: radial-gradient(circle at 50% 45%, rgba(222, 99, 50, 0.45), transparent 23%), linear-gradient(135deg, #25110d, #0b1511); }
 .visual[data-visual-kind="cyberpunk"] { background: linear-gradient(155deg, rgba(32, 226, 195, 0.22), transparent 45%), repeating-linear-gradient(90deg, #071719 0 10px, #0e2222 11px 12px); }
@@ -182,6 +182,31 @@
 
 .meta { display: flex; flex-wrap: wrap; gap: 7px; }
 .meta span { padding: 4px 8px; border: 1px solid rgba(110, 215, 180, 0.18); border-radius: 99px; color: #78cdb0; font-size: 11px; }
+
+.coverage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.coverage span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(120, 205, 177, .14);
+  border-radius: 8px;
+  color: #8da9a0;
+  background: rgba(2, 10, 9, .42);
+  font-size: 10px;
+}
+.coverage span:last-child { grid-column: 1 / -1; }
+.coverage b { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.coverage strong { flex: none; color: #b8d8cd; font-size: 10px; font-weight: 800; }
+.coverage span[data-coverage-state="100%"] strong { color: #69dcb7; }
+.coverage span[data-coverage-state="Locked"] strong { color: #ad8f9e; }
+.coverage span[data-coverage-state="Not available yet"] strong { color: #82918d; }
 
 .primaryButton,
 .secondaryButton {
@@ -238,6 +263,8 @@
   .hero,
   .sectionHeading { grid-template-columns: 1fr; gap: 18px; }
   .tabs button { flex: 1 0 auto; }
+  .coverage { grid-template-columns: 1fr; }
+  .coverage span:last-child { grid-column: auto; }
   .dialog > div { flex-direction: column-reverse; }
 }
 

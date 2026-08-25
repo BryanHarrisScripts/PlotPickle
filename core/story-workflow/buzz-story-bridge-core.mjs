@@ -32,28 +32,18 @@ function stable(value) {
     .join(",")}}`;
 }
 
-function fnv1a(value) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16).padStart(8, "0");
-}
-
-function boundedInteger(value, fallback, minimum, maximum) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.max(minimum, Math.min(maximum, Math.floor(parsed))) : fallback;
-}
-
 function normalizeLimits(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const timeout = Number(source.timeoutMs);
+  const context = Number(source.maxContextCharacters);
+  const tokens = Number(source.maxTokens);
+  const tools = Number(source.maxToolCalls);
   const cloud = Number(source.maxCloudCostUsd);
   return {
-    timeoutMs: boundedInteger(source.timeoutMs, 10 * 60_000, 10_000, 24 * 60 * 60_000),
-    maxContextCharacters: boundedInteger(source.maxContextCharacters, MAX_CONTEXT_CHARACTERS, 2_000, MAX_CONTEXT_CHARACTERS),
-    maxTokens: boundedInteger(source.maxTokens, 12_000, 1_000, 2_000_000),
-    maxToolCalls: boundedInteger(source.maxToolCalls, 12, 1, 5_000),
+    timeoutMs: Number.isFinite(timeout) ? Math.max(10_000, Math.min(24 * 60 * 60_000, Math.floor(timeout))) : 10 * 60_000,
+    maxContextCharacters: Number.isFinite(context) ? Math.max(2_000, Math.min(MAX_CONTEXT_CHARACTERS, Math.floor(context))) : MAX_CONTEXT_CHARACTERS,
+    maxTokens: Number.isFinite(tokens) ? Math.max(1_000, Math.min(2_000_000, Math.floor(tokens))) : 12_000,
+    maxToolCalls: Number.isFinite(tools) ? Math.max(1, Math.min(5_000, Math.floor(tools))) : 12,
     maxCloudCostUsd: Number.isFinite(cloud) ? Math.max(0, Math.min(1_000, Number(cloud.toFixed(4)))) : 0,
   };
 }
@@ -156,7 +146,9 @@ export function createStoryBridgeRequest(input) {
     limits,
     createdAt: cleanText(input.createdAt, 64) || new Date().toISOString(),
   };
-  request.requestId = `story-bridge:${fnv1a(requestIdentity(request))}`;
+  const identity = requestIdentity(request);
+  const hash = [...identity].reduce((value, character) => Math.imul(value ^ character.charCodeAt(0), 16777619) >>> 0, 2166136261);
+  request.requestId = `story-bridge:${hash.toString(16).padStart(8, "0")}`;
   request.state = expectedAgentPubkey ? "ready" : request.localEquivalentAllowed ? "degraded-local" : "blocked";
   request.stateReason = expectedAgentPubkey
     ? "An official BUZZ Agent public key is available for signed contribution verification."
@@ -196,12 +188,8 @@ export function decodeStoryBridgeResultEnvelope(content) {
   const source = content.trim();
   const prefix = `${STORY_BRIDGE_RESULT_MARKER}\n`;
   if (!source.startsWith(prefix)) return null;
-  try {
-    const value = JSON.parse(source.slice(prefix.length));
-    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
-  } catch {
-    return null;
-  }
+  const value = JSON.parse(source.slice(prefix.length));
+  return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
 function rejection(request, envelope, verification, state, reason) {
@@ -238,7 +226,13 @@ export function normalizeStoryBridgeContribution(input) {
   if (!suppliedContent || suppliedContent !== signedEvent.content.trim()) {
     return rejection(request, null, verification, "rejected", "The Story Bridge result envelope is not the exact content authenticated by the verified BUZZ event signature.");
   }
-  const envelope = decodeStoryBridgeResultEnvelope(signedEvent.content);
+
+  let envelope;
+  try {
+    envelope = decodeStoryBridgeResultEnvelope(signedEvent.content);
+  } catch (error) {
+    return rejection(request, null, verification, "rejected", error instanceof Error ? `The verified BUZZ Story Bridge envelope is malformed: ${error.message}` : "The verified BUZZ Story Bridge envelope is malformed.");
+  }
   if (!envelope) {
     return rejection(request, null, verification, "rejected", "The verified BUZZ event does not contain a valid Story Bridge result envelope.");
   }

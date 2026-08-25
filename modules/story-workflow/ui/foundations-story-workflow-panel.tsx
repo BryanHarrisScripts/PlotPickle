@@ -135,7 +135,7 @@ export default function FoundationsStoryWorkflowPanel({
 }: {
   readonly project: PPFProject;
   readonly curriculum: readonly CurriculumLesson[];
-  readonly onOpenPlan: () => void;
+  readonly onOpenPlan?: () => void;
 }) {
   const [running, setRunning] = useState(false);
   const [notice, setNotice] = useState("");
@@ -256,7 +256,7 @@ export default function FoundationsStoryWorkflowPanel({
         <button type="button" disabled={running || !selected.length} onClick={() => void runChecks()}>
           {running ? "Running local story checks…" : selected.length ? `Run ${selected.length} story ${selected.length === 1 ? "check" : "checks"}` : "No new checks to run"}
         </button>
-        <button className={styles.secondary} type="button" onClick={onOpenPlan}>Review in PLAN{waiting.length ? ` (${waiting.length})` : ""}</button>
+        {onOpenPlan ? <button className={styles.secondary} type="button" onClick={onOpenPlan}>Review in PLAN{waiting.length ? ` (${waiting.length})` : ""}</button> : null}
       </div>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}

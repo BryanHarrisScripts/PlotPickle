@@ -364,6 +364,12 @@ function validRoomId(value: unknown): BuzzStoryRoomId {
   return id;
 }
 
+function validBuzzPubkey(value: unknown) {
+  const pubkey = text(value).toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Choose a valid BUZZ public identity key.");
+  return pubkey;
+}
+
 async function probeRelay(relayUrl: string) {
   const startedAt = Date.now();
   const httpUrl = relayHttpUrl(relayUrl);
@@ -383,7 +389,7 @@ async function probeRelay(relayUrl: string) {
       detail = `${response.status} from ${candidate}`;
     } catch (error) { detail = safeError(error); }
   }
-  return { reachable: false, checkedAt: new Date().toISOString(), latencyMs: Date.now() - startedAt, detail: detail || "No response." };
+  return { reachable: false, checkedAt: new Date().toISOString(), latencyMs: 0, detail: detail || "No response." };
 }
 
 function sha256(source: Buffer | string) {
@@ -853,6 +859,25 @@ async function ensureRooms(body: Record<string, unknown>) {
   return result;
 }
 
+async function ensureRoomMember(body: Record<string, unknown>) {
+  const connection = await readConnection();
+  if (!connection) throw new Error("Connect Buzz before adding an Agent to a Story Room.");
+  const channel = text(body.channel);
+  const pubkey = validBuzzPubkey(body.pubkey);
+  if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Buzz channel.");
+  const readMembers = async () => {
+    const raw = await runBuzz(connection, ["channels", "members", "--channel", channel]);
+    return (Array.isArray(raw) ? raw : nestedArray(raw))
+      .flatMap((item) => typeof item === "string" && /^[a-f0-9]{64}$/i.test(item) ? [item.toLowerCase()] : []);
+  };
+  const existing = await readMembers();
+  if (existing.includes(pubkey)) return { channel, pubkey, role: "bot", added: false };
+  await runBuzz(connection, ["channels", "add-member", "--channel", channel, "--pubkey", pubkey, "--role", "bot"], { write: true });
+  const verified = await readMembers();
+  if (!verified.includes(pubkey)) throw new Error("Buzz did not confirm the approved Agent as a private Story Room member.");
+  return { channel, pubkey, role: "bot", added: true };
+}
+
 async function listMessages(channelValue: unknown, limitValue: unknown) {
   const connection = await readConnection();
   if (!connection) throw new Error("Connect Buzz before loading messages.");
@@ -869,7 +894,12 @@ async function sendMessage(body: Record<string, unknown>) {
   const content = text(body.content);
   if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Buzz channel.");
   if (!content || content.length > 20_000) throw new Error("Buzz messages must contain between 1 and 20,000 characters.");
-  return runBuzz(connection, ["messages", "send", "--channel", channel, "--content", content], { write: true });
+  const mentionInput = Array.isArray(body.mentions) ? body.mentions : [];
+  if (mentionInput.length > 8) throw new Error("A PlotPickle BUZZ message may explicitly target at most eight public identities.");
+  const mentions = [...new Set(mentionInput.map(validBuzzPubkey))];
+  const args = ["messages", "send", "--channel", channel, "--content", content];
+  for (const mention of mentions) args.push("--mention", mention);
+  return runBuzz(connection, args, { write: true });
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
@@ -897,6 +927,10 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   }
   if (request.method === "POST" && url.pathname === `${API}/rooms/ensure`) {
     sendJson(response, 200, { ok: true, rooms: await ensureRooms(await readBody(request)) });
+    return;
+  }
+  if (request.method === "POST" && url.pathname === `${API}/rooms/members/ensure`) {
+    sendJson(response, 200, { ok: true, member: await ensureRoomMember(await readBody(request)) });
     return;
   }
   if (request.method === "GET" && url.pathname === `${API}/messages`) {

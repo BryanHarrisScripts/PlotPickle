@@ -1,6 +1,7 @@
 import type { EnvironmentOptions, Plugin } from "vite";
 
 export const VINEXT_PACKAGE = "vinext";
+export const VINEXT_LINK_SHIM = "vinext/shims/link";
 export const VINEXT_PREFETCH_QUEUE_SHIM = "vinext/dist/shims/internal/app-prefetch-fetch-queue.js";
 export const VINEXT_OPTIONAL_RSC_STATIC_ENTRY = "react-server-dom-webpack/static.edge";
 
@@ -49,15 +50,21 @@ function reconcileEnvironmentOptimizeDeps(name: string, config: EnvironmentOptio
   const optimizeDeps = (config.optimizeDeps ??= {});
   const existingExclude = optimizeDeps.exclude ?? [];
   optimizeDeps.exclude = [
-    ...new Set([...existingExclude, VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM]),
+    ...new Set([
+      ...existingExclude,
+      VINEXT_PACKAGE,
+      VINEXT_LINK_SHIM,
+      VINEXT_PREFETCH_QUEUE_SHIM,
+    ]),
   ];
 
   // @vitejs/plugin-rsc records optimizer metadata from the client environment,
   // then warns when a "use client" module reached through a server-imported
-  // package is also present in that client optimizer bundle. Root/RSC exclusions
-  // alone therefore cannot silence this specific warning. Keep Vinext and the
-  // prefetch queue shim out of the client optimizer too, while leaving the
-  // plugin's optimizer-metadata hook and genuine warnings intact.
+  // package is also present in that client optimizer bundle. Vinext aliases
+  // next/link to vinext/shims/link, so excluding only the package and its final
+  // internal queue file can still let the aliased client shim be prebundled.
+  // Current Vinext upstream explicitly excludes this public shim for the same
+  // plugin-rsc metadata contract; backport that narrow compatibility rule here.
 
   // vinext 0.2.1 treats react-server-dom-webpack as an optional peer, while
   // @vitejs/plugin-rsc 0.5.34 can use its vendored RSC runtime when that peer is

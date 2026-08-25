@@ -42,6 +42,7 @@ import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics
 import { uatDiscoveryPlugin } from "./build/uat-discovery-plugin";
 import { localInstanceProofGateway } from "./build/local-instance-proof-gateway";
 import {
+  VINEXT_PACKAGE,
   VINEXT_PREFETCH_QUEUE_SHIM,
   installVinextRequestTimingOutputGuard,
   vinextRscOptimizationCompatibilityPlugin,
@@ -87,7 +88,7 @@ export default defineConfig(async ({ command }) => {
       ),
     },
     optimizeDeps: {
-      exclude: [VINEXT_PREFETCH_QUEUE_SHIM],
+      exclude: [VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM],
     },
     server: {
       host: "0.0.0.0",

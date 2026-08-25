@@ -76,19 +76,27 @@ test("Next startup uses proxy instead of the deprecated middleware convention", 
   assert.doesNotMatch(proxy, /export function middleware/);
 });
 
-test("issue #1404 excludes the vinext prefetch shim in root, RSC and SSR optimization", async () => {
+test("issue #1404 reconciles root and server-environment Vinext optimization", async () => {
   const [config, compatibility] = await Promise.all([
     read("vite.config.ts"),
     read("build/startup/vite-compatibility.ts"),
   ]);
 
+  assert.match(config, /VINEXT_PACKAGE/);
   assert.match(config, /VINEXT_PREFETCH_QUEUE_SHIM/);
-  assert.match(config, /exclude: \[VINEXT_PREFETCH_QUEUE_SHIM\]/);
+  assert.match(config, /exclude: \[VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM\]/);
   assert.match(config, /vinextRscOptimizationCompatibilityPlugin\(\)/);
+
+  assert.match(compatibility, /export const VINEXT_PACKAGE = "vinext"/);
   assert.match(compatibility, /vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js/);
+  assert.match(compatibility, /react-server-dom-webpack\/static\.edge/);
   assert.match(compatibility, /new Set\(\["rsc", "ssr"\]\)/);
   assert.match(compatibility, /configEnvironment\(name, config\)/);
-  assert.match(compatibility, /exclude: \[\.\.\.new Set\(\[\.\.\.existing, VINEXT_PREFETCH_QUEUE_SHIM\]\)\]/);
+  assert.match(compatibility, /config\.optimizeDeps \?\?= \{\}/);
+  assert.match(compatibility, /VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM/);
+  assert.match(compatibility, /name === "rsc"/);
+  assert.match(compatibility, /optimizeDeps\.include = optimizeDeps\.include\.filter/);
+  assert.match(compatibility, /entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY/);
 });
 
 test("issue #1404 removes only impossible cross-runtime compile timings from dev request output", async () => {

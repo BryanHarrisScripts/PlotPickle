@@ -22,6 +22,25 @@ function append(label, chunk) {
   process.stdout.write(text);
 }
 
+function startupOutputFindings(text) {
+  const findings = [];
+  if (text.includes("Failed to resolve dependency: react-server-dom-webpack/static.edge")) {
+    findings.push("RSC optimizer cannot resolve react-server-dom-webpack/static.edge");
+  }
+  if (
+    text.includes("client component dependency is inconsistently optimized") &&
+    text.includes("app-prefetch-fetch-queue.js")
+  ) {
+    findings.push("Vinext app-prefetch-fetch-queue client dependency is inconsistently optimized");
+  }
+
+  const impossibleCompile = text.match(/compile:\s+(\d+(?:\.\d+)?)s\b/i);
+  if (impossibleCompile && Number(impossibleCompile[1]) > 86_400) {
+    findings.push(`request logger reported impossible compile timing: ${impossibleCompile[0]}`);
+  }
+  return findings;
+}
+
 function saveLog(summary) {
   writeFileSync(
     logFile,
@@ -82,8 +101,6 @@ try {
       lastResponse = `${response.status} ${response.statusText}`;
       if (response.ok) {
         success = true;
-        saveLog(lastResponse);
-        console.log(`PlotPickle answered at ${url} with ${lastResponse}.`);
         break;
       }
       const body = await response.text();
@@ -93,6 +110,16 @@ try {
     }
   }
   if (!success) throw new Error(`PlotPickle did not return a successful response within ${timeoutMs / 1_000} seconds.`);
+
+  // Let Vite/Vinext flush request diagnostics before evaluating the startup log.
+  await new Promise((resolve) => setTimeout(resolve, 750));
+  const findings = startupOutputFindings(output);
+  if (findings.length > 0) {
+    throw new Error(`PlotPickle startup diagnostics failed: ${findings.join("; ")}.`);
+  }
+
+  saveLog(lastResponse);
+  console.log(`PlotPickle answered at ${url} with ${lastResponse} and clean startup diagnostics.`);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   saveLog(message);

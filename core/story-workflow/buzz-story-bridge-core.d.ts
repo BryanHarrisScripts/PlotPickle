@@ -11,6 +11,14 @@ export type StoryBridgeContextItem = {
   readonly content: string;
 };
 
+export type StoryBridgeLimits = {
+  readonly timeoutMs: number;
+  readonly maxContextCharacters: number;
+  readonly maxTokens: number;
+  readonly maxToolCalls: number;
+  readonly maxCloudCostUsd: number;
+};
+
 export type StoryBridgeRequest = {
   readonly version: 1;
   readonly requestId: string;
@@ -28,11 +36,14 @@ export type StoryBridgeRequest = {
   readonly localEquivalentAllowed: boolean;
   readonly destination: {
     readonly privacyClass: "private-project";
+    readonly federation: "private-only";
     readonly roomId: string;
     readonly roomName: string;
   };
   readonly contextItems: readonly StoryBridgeContextItem[];
+  readonly contextCharacters: number;
   readonly expectedResultSchema: "StoryWorkflowResult v1";
+  readonly limits: StoryBridgeLimits;
   readonly createdAt: string;
   readonly state: "ready" | "degraded-local" | "blocked";
   readonly stateReason: string;
@@ -77,8 +88,14 @@ export function createStoryBridgeRequest(input: {
   readonly agentActorId: string;
   readonly expectedAgentPubkey?: string | null;
   readonly localEquivalentAllowed?: boolean;
-  readonly destination: { readonly privacyClass: StoryBridgePrivacyClass; readonly roomId: string; readonly roomName: string };
+  readonly destination: {
+    readonly privacyClass: StoryBridgePrivacyClass;
+    readonly federation?: "private-only";
+    readonly roomId: string;
+    readonly roomName: string;
+  };
   readonly contextItems: readonly StoryBridgeContextItem[];
+  readonly limits?: Partial<StoryBridgeLimits>;
   readonly createdAt?: string;
 }): StoryBridgeRequest;
 
@@ -95,6 +112,7 @@ export function createAffectedStoryBridgeUpdate(request: StoryBridgeRequest, inp
   readonly baseRevision: string | number;
   readonly changedRefs: readonly string[];
   readonly acceptedDecisionId?: string;
+  readonly updatedEvidenceRefs?: readonly string[];
   readonly priorFindingIds?: readonly string[];
   readonly reason?: string;
 }): {
@@ -105,6 +123,7 @@ export function createAffectedStoryBridgeUpdate(request: StoryBridgeRequest, inp
   readonly baseRevision: string;
   readonly acceptedDecisionId: string;
   readonly changedRefs: readonly string[];
+  readonly updatedEvidenceRefs: readonly string[];
   readonly priorFindingIds: readonly string[];
   readonly reason: string;
 } | null;

@@ -23,6 +23,7 @@ type SettingsSection =
   | "overview"
   | "updates"
   | "help"
+  | "sage-plan"
   | "local-compute"
   | "cloud-compute"
   | "comfyui"
@@ -54,6 +55,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
   {
     label: "AI COMPUTE",
     items: [
+      { id: "sage-plan", label: "Sage & PLAN Setup", detail: "Readiness, model selection and tests for local writing AI" },
       { id: "local-compute", label: "Local Compute", detail: "Writing, images and video on this computer" },
       { id: "cloud-compute", label: "Cloud Compute", detail: "Writing, images and video through connected online services" },
       { id: "comfyui", label: "ComfyUI Setup", detail: "Install, connect and verify the local media engine" },
@@ -88,8 +90,8 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-local-compute": "local-compute",
   "settings-cloud-compute": "cloud-compute",
   "settings-models": "local-compute",
-  "settings-sage": "local-compute",
-  "settings-plan": "local-compute",
+  "settings-sage": "sage-plan",
+  "settings-plan": "sage-plan",
   "settings-activity": "activity",
   "settings-routing": "local-compute",
   "settings-ollama": "local-compute",
@@ -104,8 +106,8 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   quick: "overview",
   advanced: "runtime",
   models: "local-compute",
-  sage: "local-compute",
-  plan: "local-compute",
+  sage: "sage-plan",
+  plan: "sage-plan",
   routing: "local-compute",
   ollama: "local-compute",
   images: "local-compute",
@@ -181,6 +183,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-updates"><SectionIntro eyebrow="Settings · Latest updates" title="What’s New in PlotPickle." detail="Review the latest user-facing release notes without interrupting the main creative workspace." /><ReleaseHistoryPanel /></section>;
       case "help":
         return <section id="settings-help"><SectionIntro eyebrow="Settings · Help" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
+      case "sage-plan":
+        return <section id="settings-sage-plan"><AiComputeWorkspace mode="local" focus="sage-plan" /></section>;
       case "local-compute":
         return <section id="settings-local-compute"><AiComputeWorkspace mode="local" /></section>;
       case "cloud-compute":

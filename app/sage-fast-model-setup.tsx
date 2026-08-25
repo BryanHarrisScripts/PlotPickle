@@ -345,6 +345,7 @@ export default function SageFastModelSetup() {
           <button aria-label="Test Sage Fast" type="button" disabled={busy || !status} onClick={() => void prepareRole("fast")}>Test Sage</button>
           <button aria-label="Test PLAN Quality" type="button" disabled={busy || !status} onClick={() => void prepareRole("quality")}>Test PLAN</button>
           <button type="button" disabled={busy} onClick={() => void refresh(true)}>Refresh</button>
+          {sageReady ? <a className={styles.returnLink} href="/?workspace=learn">Return to LEARN</a> : null}
         </div>
       </form>
 

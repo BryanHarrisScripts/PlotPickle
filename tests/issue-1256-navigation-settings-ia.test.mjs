@@ -39,6 +39,7 @@ test("#1256/#1377 Settings exposes the approved compute-first information archit
     "Overview",
     "What’s New",
     "Help",
+    "Sage & PLAN Setup",
     "Local Compute",
     "Cloud Compute",
     "ComfyUI Setup",

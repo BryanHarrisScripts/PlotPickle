@@ -17,13 +17,13 @@ test("#1111 live Settings uses one persistent Community-style rail and one activ
 
 test("#1111/#1377 exposes compute-first Settings destinations without returning to a Settings home screen", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const id of ["overview", "updates", "help", "local-compute", "cloud-compute", "comfyui", "buzz", "activity", "runtime"]) {
+  for (const id of ["overview", "updates", "help", "sage-plan", "local-compute", "cloud-compute", "comfyui", "buzz", "activity", "runtime"]) {
     assert.match(source, new RegExp(`id: ["']${id}["']`), `missing Settings destination ${id}`);
   }
   for (const group of ["START", "AI COMPUTE", "COMMUNITY", "SYSTEM"]) {
     assert.match(source, new RegExp(`label: ["']${group}["']`), `missing Settings group ${group}`);
   }
-  for (const label of ["Overview", "What’s New", "Help", "Local Compute", "Cloud Compute", "ComfyUI Setup", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
+  for (const label of ["Overview", "What’s New", "Help", "Sage & PLAN Setup", "Local Compute", "Cloud Compute", "ComfyUI Setup", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
     assert.match(source, new RegExp(`label: ["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`), `missing Settings label ${label}`);
   }
   assert.doesNotMatch(source, /label: ["'](?:Sage Setup|PLAN Setup|LLM Routing|Images Setup|Video Setup|Ollama|OpenAI Cloud|MiniMax Cloud)["']/);

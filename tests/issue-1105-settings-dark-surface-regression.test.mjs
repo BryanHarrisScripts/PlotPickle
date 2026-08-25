@@ -9,6 +9,7 @@ const SETTINGS_SECTIONS = [
   "settings-quick",
   "settings-updates",
   "settings-help",
+  "settings-sage-plan",
   "settings-local-compute",
   "settings-cloud-compute",
   "settings-comfyui",

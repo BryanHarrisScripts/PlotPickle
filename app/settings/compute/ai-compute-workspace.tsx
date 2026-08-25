@@ -12,6 +12,7 @@ import styles from "./ai-compute-workspace.module.css";
 type ComputeMode = "local" | "cloud";
 type ComputeCapability = "writing" | "images" | "video";
 type ProviderTarget = "ollama" | "openai" | "minimax" | "comfyui";
+type ComputeFocus = "sage-plan";
 
 type CapabilityDefinition = {
   id: ComputeCapability;
@@ -88,7 +89,7 @@ function modeCopy(mode: ComputeMode) {
       };
 }
 
-export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
+export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode; focus?: ComputeFocus }) {
   const [activeCapability, setActiveCapability] = useState<ComputeCapability>("writing");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [providerFocus, setProviderFocus] = useState<ProviderTarget | null>(null);
@@ -99,8 +100,14 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
   );
 
   useEffect(() => {
+    if (focus === "sage-plan") {
+      setActiveCapability("writing");
+      setAdvancedOpen(true);
+      setProviderFocus(null);
+      return;
+    }
     setActiveCapability(readInitialCapability(mode));
-  }, [mode]);
+  }, [focus, mode]);
 
   function selectCapability(next: ComputeCapability) {
     setActiveCapability(next);
@@ -163,7 +170,7 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
   }
 
   return (
-    <section className={styles.workspace} data-ai-compute-mode={mode} data-ai-compute-capability={activeCapability}>
+    <section className={styles.workspace} data-ai-compute-mode={mode} data-ai-compute-capability={activeCapability} data-ai-compute-focus={focus}>
       <header className={styles.hero}>
         <div><p>{copy.eyebrow}</p><h1>{copy.title}</h1><span>{copy.detail}</span></div>
         <strong>{copy.badge}</strong>

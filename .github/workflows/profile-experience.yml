@@ -15,6 +15,8 @@ on:
       - "build/buzz-profile-identity-gateway.ts"
       - "build/local-credentials.ts"
       - "build/profile-request-context.ts"
+      - "build/startup/**"
+      - "scripts/windows-server-smoke.mjs"
       - "vite.config.ts"
       - "public/assets/workflow-relics/library.svg"
       - "public/assets/workflow-relics/profile.svg"
@@ -22,6 +24,8 @@ on:
       - "core/storage/**"
       - "modules/learn/ui/learn-workspace.tsx"
       - "modules/wyrmwood/ui/wyrmwood-workspace.tsx"
+      - "tests/issue-614-startup-health-warning-cleanup.test.mjs"
+      - "tests/windows-native-runtime.test.mjs"
       - "tests/issue-1143-profile-experience.test.mjs"
       - "tests/issue-1144-buzz-profile-agent-scope.test.mjs"
       - "tests/issue-1210-ui-housekeeping.test.mjs"
@@ -62,5 +66,8 @@ jobs:
         run: npm run test:profile-experience && node --test tests/issue-1210-ui-housekeeping.test.mjs tests/issue-1212-profile-buzz-identity.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1279-official-agents-lore-avatar.test.mjs
       - name: Validate Auth and session dependencies
         run: npm run test:auth-core && npm run test:profile-vault && npm run test:profile-storage && npm run test:server-session
+      - name: Validate clean Windows Vite startup
+        if: matrix.os == 'windows-latest'
+        run: node scripts/windows-server-smoke.mjs .
       - name: Production build
         run: npm run build

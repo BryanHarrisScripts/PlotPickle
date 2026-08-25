@@ -1,6 +1,7 @@
 import type { CurriculumLesson } from "./curriculum";
 
 export const FOUNDATION_PROJECT_STORAGE_KEY = "plotpickle.foundation.project.v1";
+export const FOUNDATION_SEQUENCE_SHIFT_METADATA_ID = "__story-map-sequence-shifts__";
 
 export interface FoundationPlanField {
   readonly id: string;
@@ -31,7 +32,6 @@ export interface FoundationLessonAnswers {
 export interface FoundationPlanState {
   readonly activeLessonId: string | null;
   readonly lessons: Readonly<Record<string, FoundationLessonAnswers>>;
-  readonly sequenceShifts: Readonly<Record<string, string>>;
   readonly brief: {
     readonly content: string;
     readonly savedAt: string | null;
@@ -56,7 +56,6 @@ export function createEmptyFoundationPlanState(): FoundationPlanState {
   return {
     activeLessonId: null,
     lessons: {},
-    sequenceShifts: {},
     brief: { content: "", savedAt: null },
   };
 }

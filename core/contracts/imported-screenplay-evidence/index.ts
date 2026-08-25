@@ -21,12 +21,39 @@ export type ImportedScreenplayEvidence = {
   readonly passages: readonly ImportedScreenplayPassage[];
 };
 
+export type ReferenceFixtureFieldKind = "observed" | "synthetic-reference";
+export type ReferenceFixtureAcceptanceState = "reference-defined" | "proposed";
+
+export type ReferenceFixtureFieldEvidence = {
+  readonly key: string;
+  readonly lessonId: string;
+  readonly fieldId: string;
+  readonly kind: ReferenceFixtureFieldKind;
+  readonly acceptanceState: ReferenceFixtureAcceptanceState;
+  readonly sourceRefs: readonly string[];
+  readonly reason: string;
+};
+
+export type ReferenceFixtureEvidence = {
+  readonly fixtureId: string;
+  readonly fixtureVersion: number;
+  readonly sourceId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha: string;
+  readonly sourceLabel: string;
+  readonly frontier: string;
+  readonly curriculumFingerprint: string;
+  readonly createdAt: string;
+  readonly fields: readonly ReferenceFixtureFieldEvidence[];
+};
+
 export type ProjectSourceEvidence = {
   readonly screenplay: ImportedScreenplayEvidence | null;
+  readonly referenceFixture: ReferenceFixtureEvidence | null;
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
-  return { screenplay: null };
+  return { screenplay: null, referenceFixture: null };
 }
 
 function cleanText(value: unknown, limit: number) {
@@ -39,6 +66,14 @@ function boundedInteger(value: unknown, minimum: number, maximum: number) {
   const number = Number(value);
   if (!Number.isInteger(number)) return minimum;
   return Math.min(maximum, Math.max(minimum, number));
+}
+
+function cleanStringArray(value: unknown, limit = 32) {
+  return Array.isArray(value)
+    ? [...new Set(value
+      .map((item) => cleanText(item, 240))
+      .filter(Boolean))].slice(0, limit)
+    : [];
 }
 
 function normalizePassage(value: unknown): ImportedScreenplayPassage | null {
@@ -58,11 +93,73 @@ function normalizePassage(value: unknown): ImportedScreenplayPassage | null {
   };
 }
 
+function normalizeReferenceFixtureField(value: unknown): ReferenceFixtureFieldEvidence | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Partial<ReferenceFixtureFieldEvidence>;
+  const lessonId = cleanText(source.lessonId, 240);
+  const fieldId = cleanText(source.fieldId, 120);
+  const key = cleanText(source.key, 360) || (lessonId && fieldId ? `${lessonId}:${fieldId}` : "");
+  const kind: ReferenceFixtureFieldKind | null = source.kind === "observed"
+    ? "observed"
+    : source.kind === "synthetic-reference"
+      ? "synthetic-reference"
+      : null;
+  const acceptanceState: ReferenceFixtureAcceptanceState | null = source.acceptanceState === "reference-defined"
+    ? "reference-defined"
+    : source.acceptanceState === "proposed"
+      ? "proposed"
+      : null;
+  if (!key || !lessonId || !fieldId || !kind || !acceptanceState) return null;
+  return {
+    key,
+    lessonId,
+    fieldId,
+    kind,
+    acceptanceState,
+    sourceRefs: cleanStringArray(source.sourceRefs),
+    reason: cleanText(source.reason, 1000),
+  };
+}
+
+function normalizeReferenceFixture(value: unknown): ReferenceFixtureEvidence | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Partial<ReferenceFixtureEvidence>;
+  const fixtureId = cleanText(source.fixtureId, 240);
+  const sourceId = cleanText(source.sourceId, 240);
+  const sourceVersion = cleanText(source.sourceVersion, 80);
+  const sourceSha = cleanText(source.sourceSha, 160);
+  const sourceLabel = cleanText(source.sourceLabel, 500);
+  const frontier = cleanText(source.frontier, 120);
+  const curriculumFingerprint = cleanText(source.curriculumFingerprint, 240);
+  const createdAt = cleanText(source.createdAt, 80);
+  if (!fixtureId || !sourceId || !sourceVersion || !sourceSha || !sourceLabel || !frontier || !curriculumFingerprint) return null;
+  const fields = Array.isArray(source.fields)
+    ? source.fields
+      .map(normalizeReferenceFixtureField)
+      .filter((field): field is ReferenceFixtureFieldEvidence => Boolean(field))
+      .filter((field, index, all) => all.findIndex((candidate) => candidate.key === field.key) === index)
+      .slice(0, 500)
+    : [];
+  return {
+    fixtureId,
+    fixtureVersion: boundedInteger(source.fixtureVersion, 1, 100000),
+    sourceId,
+    sourceVersion,
+    sourceSha,
+    sourceLabel,
+    frontier,
+    curriculumFingerprint,
+    createdAt,
+    fields,
+  };
+}
+
 export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvidence {
   if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyProjectSourceEvidence();
-  const source = value as { readonly screenplay?: unknown };
+  const source = value as { readonly screenplay?: unknown; readonly referenceFixture?: unknown };
+  const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return createEmptyProjectSourceEvidence();
+    return { screenplay: null, referenceFixture };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -89,5 +186,6 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       passagesTruncated: Boolean(screenplay.passagesTruncated) || totalPassageCount > passages.length,
       passages,
     },
+    referenceFixture,
   };
 }

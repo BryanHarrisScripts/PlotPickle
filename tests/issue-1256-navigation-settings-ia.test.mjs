@@ -41,6 +41,7 @@ test("#1256/#1377 Settings exposes the approved compute-first information archit
     "Help",
     "Local Compute",
     "Cloud Compute",
+    "ComfyUI Setup",
     "BUZZ Setup",
     "Agent Activity",
     "Advanced Runtime",
@@ -52,7 +53,7 @@ test("#1256/#1377 Settings exposes the approved compute-first information archit
   assert.match(source, /Profile owns the Human BUZZ identity/);
 });
 
-test("#1256/#1377 existing setup owners are reused inside the shared Compute workspace", async () => {
+test("#1256/#1377 existing setup owners are reused in their focused Settings destinations", async () => {
   const [settings, compute] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
@@ -61,7 +62,8 @@ test("#1256/#1377 existing setup owners are reused inside the shared Compute wor
   assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
   assert.match(compute, /<AiRoutingPanel/);
   assert.match(compute, /<SageFastModelSetup \/>/);
-  assert.match(compute, /<MediaRoutingPanel/);
+  assert.match(settings, /<MediaRoutingPanel/);
+  assert.doesNotMatch(compute, /<MediaRoutingPanel/);
   assert.match(compute, /<AiProviderSetupPanel provider="openai" \/>/);
   assert.match(compute, /<AiProviderSetupPanel provider="minimax" \/>/);
   assert.match(settings, /<BuzzSettingsPanel \/>/);

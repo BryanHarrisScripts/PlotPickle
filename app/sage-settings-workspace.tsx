@@ -9,6 +9,7 @@ import BuzzLiveHealthCard from "./buzz-live-health-card";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
+import MediaRoutingPanel from "./media-routing-panel";
 import AiComputeWorkspace from "./settings/compute/ai-compute-workspace";
 import SettingsHelperDirectory from "./settings-helper-directory";
 import SettingsReadinessOverview from "./settings-readiness-overview";
@@ -24,6 +25,7 @@ type SettingsSection =
   | "help"
   | "local-compute"
   | "cloud-compute"
+  | "comfyui"
   | "archive"
   | "buzz"
   | "activity"
@@ -54,6 +56,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     items: [
       { id: "local-compute", label: "Local Compute", detail: "Writing, images and video on this computer" },
       { id: "cloud-compute", label: "Cloud Compute", detail: "Writing, images and video through connected online services" },
+      { id: "comfyui", label: "ComfyUI Setup", detail: "Install, connect and verify the local media engine" },
     ],
   },
   {
@@ -92,7 +95,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-ollama": "local-compute",
   "settings-openai": "cloud-compute",
   "settings-minimax": "cloud-compute",
-  "settings-comfyui": "local-compute",
+  "settings-comfyui": "comfyui",
   "settings-images": "local-compute",
   "settings-video": "local-compute",
   "settings-archive": "archive",
@@ -108,7 +111,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   images: "local-compute",
   video: "local-compute",
   media: "local-compute",
-  comfyui: "local-compute",
+  comfyui: "comfyui",
   openai: "cloud-compute",
   minimax: "cloud-compute",
 };
@@ -182,6 +185,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-local-compute"><AiComputeWorkspace mode="local" /></section>;
       case "cloud-compute":
         return <section id="settings-cloud-compute"><AiComputeWorkspace mode="cloud" /></section>;
+      case "comfyui":
+        return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · AI Compute" title="Set up ComfyUI." detail="Install, connect and verify the local image and video engine here. Local Compute continues to own route selection, while cloud providers remain separately configured in Cloud Compute." /><MediaRoutingPanel onManage={(target) => { if (/openai|minimax|cloud/i.test(target)) navigateSection("cloud-compute"); }} /></section>;
       case "archive":
         return <section id="settings-archive"><SectionIntro eyebrow="Settings · Library" title="Archive." detail="Archived stories remain the same local projects. Restore them to Library here without creating a copy or deleting the original PPF." /><ArchiveStoriesPanel /></section>;
       case "buzz":
@@ -194,7 +199,7 @@ export default function SageSettingsWorkspace() {
       default:
         return (
           <section id="settings-quick">
-            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute use the same Writing, Images and Video setup so you only need to learn one interface." />
+            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute share one capability interface, while detailed ComfyUI installation and diagnostics have their own focused setup screen." />
             <section className={styles.quickGuide} aria-labelledby="settings-quick-steps">
               <h2 id="settings-quick-steps">Quick Setup</h2>
               <ol>
@@ -208,6 +213,7 @@ export default function SageSettingsWorkspace() {
                 <Link href="/?workspace=plan">Return to PLAN</Link>
                 <button type="button" onClick={() => navigateSection("local-compute")}>Configure Local Compute</button>
                 <button type="button" onClick={() => navigateSection("cloud-compute")}>Configure Cloud Compute</button>
+                <button type="button" onClick={() => navigateSection("comfyui")}>Set up ComfyUI</button>
               </div>
             </section>
             <SettingsReadinessOverview onOpen={(section) => navigateSection(normalizeSection(section))} />

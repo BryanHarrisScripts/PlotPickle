@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Advanced AI stays inside the three-column Settings workspace through shared Local and Cloud Compute", async () => {
+test("Advanced AI stays inside the three-column Settings workspace with a dedicated ComfyUI owner", async () => {
   const [settings, compute, routingPanel, route] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
@@ -18,9 +18,10 @@ test("Advanced AI stays inside the three-column Settings workspace through share
   assert.match(settings, /<AiComputeWorkspace mode="local" \/>/);
   assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
   assert.match(settings, /"settings-routing": "local-compute"/);
-  assert.match(settings, /"settings-comfyui": "local-compute"/);
+  assert.match(settings, /"settings-comfyui": "comfyui"/);
+  assert.match(settings, /<MediaRoutingPanel/);
   assert.match(compute, /<AiRoutingPanel/);
-  assert.match(compute, /<MediaRoutingPanel/);
+  assert.doesNotMatch(compute, /<MediaRoutingPanel/);
   assert.match(compute, />Advanced Options<\/button>/);
   assert.match(routingPanel, /if \(onManage\)/);
   assert.match(routingPanel, /localSection\.scrollIntoView/);

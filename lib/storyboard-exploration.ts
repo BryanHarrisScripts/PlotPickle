@@ -219,12 +219,16 @@ function writeStore(project: PlotPickleProject, store: StoryboardExplorationStor
   };
 }
 
+function appendStoryboardFrame(project: PlotPickleProject, store: StoryboardExplorationStore, frame: StoryboardFrameCandidate) {
+  return writeStore(project, { version: 1, frames: [...store.frames, frame] });
+}
+
 export function addStoryboardFrameCandidate(project: PlotPickleProject, frame: StoryboardFrameCandidate) {
   const store = readStoryboardExplorationStore(project);
-  const direction = normalizeDirection(frame.direction, frame.target, frame.id);
-  const errors = validateStoryboardStructuredShot(direction.structuredShot);
+  const normalizedFrame = { ...frame, direction: normalizeDirection(frame.direction, frame.target, frame.id) };
+  const errors = validateStoryboardStructuredShot(normalizedFrame.direction.structuredShot);
   if (errors.length) throw new Error(`Invalid Storyboard structured shot: ${errors.join("; ")}`);
-  return writeStore(project, { version: 1, frames: [...store.frames, { ...frame, direction }] });
+  return appendStoryboardFrame(project, store, normalizedFrame);
 }
 
 export function editStoryboardStructuredShot(

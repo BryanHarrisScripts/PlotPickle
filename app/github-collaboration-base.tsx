@@ -14,6 +14,7 @@ import {
 } from "@/lib/projects/persistence/project-package";
 import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/integrations/github/github-collaboration";
 import { cloneProject, type PlotPickleProject } from "@/lib/projects/project";
+import { PLOTPICKLE_VERSION } from "@/lib/runtime/application-version";
 
 type LibraryItem = { fileName: string; title: string; updatedAt: string; bytes: number; integrityValid: boolean };
 type BackupItem = { fileName: string; bytes: number };
@@ -258,7 +259,11 @@ export default function GitHubCollaboration({
       setNotice("GitHub is optional. Connect an account only when repository collaboration is wanted.");
       return;
     }
-    try { await jsonRequest("/api/local-github-app/status"); } catch { /* Manual-token connections do not require GitHub App status. */ }
+    try {
+      await jsonRequest("/api/local-github-app/status");
+    } catch {
+      setNotice("GitHub App status is unavailable. Continuing with the saved connection check.");
+    }
     try {
       const checked = await jsonRequest("/api/local-github/connection/check", "POST");
       const readyStatus = statusFromResponse(checked);
@@ -316,7 +321,7 @@ export default function GitHubCollaboration({
   }
 
   function exportPpf() {
-    const portable = createPortableProjectFile(project, "1.0.0-rc.2");
+    const portable = createPortableProjectFile(project, PLOTPICKLE_VERSION);
     downloadText(portableProjectFileName(project), serializePortableProjectFile(portable));
     setNotice("Portable .ppf project exported. It contains the story, not GitHub credentials.");
   }

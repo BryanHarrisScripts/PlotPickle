@@ -2,6 +2,14 @@
 
 PlotPickle uses semantic versioning independently for the application, project format and component schemas.
 
+## Current application build
+
+The current PlotPickle application version is `1.0.0-rc.4.0.1`. The final numeric identifier is the approved-build number for the `rc.4.0.x` line. The next approved build is `1.0.0-rc.4.0.2`.
+
+`package.json` is the canonical application-version source. Runtime UI, project exports, feedback diagnostics and packaging read that version through the shared application-version adapter. `package-lock.json` and static repository templates are synchronized release artifacts and are covered by regression tests.
+
+The application version identifies the installed build. It does not replace or regenerate the durable `pp_studio_XXXXXXXX` Node ID, which remains stable across ordinary pulls, builds, restarts and updates.
+
 ## Compatibility rules
 
 - Patch versions clarify or fix compatible behavior.

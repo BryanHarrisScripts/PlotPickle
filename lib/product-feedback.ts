@@ -1,6 +1,7 @@
 import { PLOTPICKLE_REPOSITORY_URL } from "./product-direction";
+import { PLOTPICKLE_VERSION } from "./runtime/application-version";
 
-export const PLOTPICKLE_VERSION = "1.0.0-rc.3" as const;
+export { PLOTPICKLE_VERSION };
 
 export type ProductFeedbackKind = "feature" | "bug" | "usability";
 

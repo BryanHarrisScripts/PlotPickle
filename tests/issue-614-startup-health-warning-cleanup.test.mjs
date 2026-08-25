@@ -76,7 +76,7 @@ test("Next startup uses proxy instead of the deprecated middleware convention", 
   assert.doesNotMatch(proxy, /export function middleware/);
 });
 
-test("issue #1404 reconciles root and server-environment Vinext optimization", async () => {
+test("issue #1404 reconciles root, client, RSC and SSR Vinext optimization", async () => {
   const [config, compatibility] = await Promise.all([
     read("vite.config.ts"),
     read("build/startup/vite-compatibility.ts"),
@@ -90,10 +90,11 @@ test("issue #1404 reconciles root and server-environment Vinext optimization", a
   assert.match(compatibility, /export const VINEXT_PACKAGE = "vinext"/);
   assert.match(compatibility, /vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js/);
   assert.match(compatibility, /react-server-dom-webpack\/static\.edge/);
-  assert.match(compatibility, /new Set\(\["rsc", "ssr"\]\)/);
+  assert.match(compatibility, /new Set\(\["client", "rsc", "ssr"\]\)/);
   assert.match(compatibility, /configEnvironment\(name, config\)/);
   assert.match(compatibility, /config\.optimizeDeps \?\?= \{\}/);
   assert.match(compatibility, /VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM/);
+  assert.match(compatibility, /optimizer metadata from the client environment/);
   assert.match(compatibility, /name === "rsc"/);
   assert.match(compatibility, /optimizeDeps\.include = optimizeDeps\.include\.filter/);
   assert.match(compatibility, /entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY/);

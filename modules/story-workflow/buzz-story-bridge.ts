@@ -1,7 +1,7 @@
 import type { PPFProject } from "../../core/project/project";
 import {
   resolveBuzzAgentIdentityBinding,
-} from "../../core/story-workflow/buzz-agent-identity-binding.mjs";
+} from "../../core/story-workflow/buzz/agent-identity-binding.mjs";
 import {
   createStoryBridgeRequest,
   type StoryBridgeContribution,

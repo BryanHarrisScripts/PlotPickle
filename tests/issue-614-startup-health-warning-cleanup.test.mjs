@@ -77,29 +77,41 @@ test("Next startup uses proxy instead of the deprecated middleware convention", 
 });
 
 test("issue #1404 reconciles root, client, RSC and SSR Vinext optimization", async () => {
-  const [config, compatibility] = await Promise.all([
+  const [config, compatibility, libraryPage] = await Promise.all([
     read("vite.config.ts"),
     read("build/startup/vite-compatibility.ts"),
+    read("app/library/page.tsx"),
   ]);
 
   assert.match(config, /VINEXT_PACKAGE/);
   assert.match(config, /VINEXT_LINK_SHIM/);
+  assert.match(config, /VINEXT_NAVIGATION_SHIM/);
   assert.match(config, /VINEXT_PREFETCH_QUEUE_SHIM/);
-  assert.match(config, /exclude: \[VINEXT_PACKAGE, VINEXT_LINK_SHIM, VINEXT_PREFETCH_QUEUE_SHIM\]/);
+  assert.match(
+    config,
+    /exclude: \[[\s\S]*VINEXT_PACKAGE,[\s\S]*VINEXT_LINK_SHIM,[\s\S]*VINEXT_NAVIGATION_SHIM,[\s\S]*VINEXT_PREFETCH_QUEUE_SHIM,[\s\S]*\]/,
+  );
   assert.match(config, /vinextRscOptimizationCompatibilityPlugin\(\)/);
 
   assert.match(compatibility, /export const VINEXT_PACKAGE = "vinext"/);
   assert.match(compatibility, /export const VINEXT_LINK_SHIM = "vinext\/shims\/link"/);
+  assert.match(compatibility, /export const VINEXT_NAVIGATION_SHIM = "vinext\/shims\/navigation"/);
   assert.match(compatibility, /vinext\/dist\/shims\/internal\/app-prefetch-fetch-queue\.js/);
   assert.match(compatibility, /react-server-dom-webpack\/static\.edge/);
   assert.match(compatibility, /new Set\(\["client", "rsc", "ssr"\]\)/);
   assert.match(compatibility, /configEnvironment\(name, config\)/);
   assert.match(compatibility, /config\.optimizeDeps \?\?= \{\}/);
-  assert.match(compatibility, /VINEXT_PACKAGE,[\s\S]*VINEXT_LINK_SHIM,[\s\S]*VINEXT_PREFETCH_QUEUE_SHIM/);
-  assert.match(compatibility, /Vinext aliases[\s\S]*next\/link[\s\S]*vinext\/shims\/link/);
+  assert.match(
+    compatibility,
+    /VINEXT_PACKAGE,[\s\S]*VINEXT_LINK_SHIM,[\s\S]*VINEXT_NAVIGATION_SHIM,[\s\S]*VINEXT_PREFETCH_QUEUE_SHIM/,
+  );
+  assert.match(compatibility, /next\/link[\s\S]*next\/navigation[\s\S]*client optimizer metadata/);
   assert.match(compatibility, /name === "rsc"/);
   assert.match(compatibility, /optimizeDeps\.include = optimizeDeps\.include\.filter/);
   assert.match(compatibility, /entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY/);
+
+  assert.match(libraryPage, /^"use client";/);
+  assert.match(libraryPage, /from "next\/navigation"/);
 });
 
 test("issue #1404 removes only impossible cross-runtime compile timings from dev request output", async () => {

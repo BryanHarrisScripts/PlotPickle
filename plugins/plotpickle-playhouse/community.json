@@ -47,6 +47,27 @@
   ],
   "agents": [
     {
+      "profileId": "knot-pickle",
+      "shortBio": "Story momentum guide who untangles a stalled scene into three distinct next moves.",
+      "helpPrompt": "Ask Knot where your story has stalled, what is missing, and which next moves would create different consequences.",
+      "helpGroup": "writing-story",
+      "roomIds": ["story-council"]
+    },
+    {
+      "profileId": "thread-pickle",
+      "shortBio": "Plot and continuity repair guide who finds broken logic and the smallest practical repairs.",
+      "helpPrompt": "Ask Thread about plot holes, contradictions, timelines, cause and effect, missing setups, and unsupported payoffs.",
+      "helpGroup": "writing-story",
+      "roomIds": ["story-council"]
+    },
+    {
+      "profileId": "heart-pickle",
+      "shortBio": "Character and emotion guide who strengthens motivation, relationships, voice, and stakes.",
+      "helpPrompt": "Ask Heart about character desire, choices, internal conflict, relationships, dialogue voice, and emotional turns.",
+      "helpGroup": "writing-story",
+      "roomIds": ["story-council"]
+    },
+    {
       "profileId": "sage-brinewick",
       "shortBio": "Learning and story mentor who helps you decide what comes next.",
       "helpPrompt": "Ask Sage about lessons, story craft, where to begin, or what to work on next.",

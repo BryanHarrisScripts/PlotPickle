@@ -5,6 +5,9 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const EXPECTED_PROFILES = [
+  "knot-pickle",
+  "thread-pickle",
+  "heart-pickle",
   "sage-brinewick",
   "tamsin-hearthquill",
   "master-oaken-vague",
@@ -26,7 +29,7 @@ const EXPECTED_PROFILES = [
 const HOST_FORBIDDEN = ["ppf-direct-write", "github-write", "developer-shell", "credential-read", "provider-selection"];
 const CAPABILITY_ROLES = new Set(["fast", "quality", "deep", "vision", "repair"]);
 
-test("one canonical PlotPickle Agent Contract registry covers the initial roster", async () => {
+test("one canonical PlotPickle Agent Contract registry covers the current roster", async () => {
   const registry = JSON.parse(await read("config/agent-profiles.json"));
   assert.equal(registry.schemaVersion, 2);
   assert.deepEqual(registry.profiles.map((profile) => profile.id).sort(), EXPECTED_PROFILES);

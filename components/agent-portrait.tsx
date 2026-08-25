@@ -8,9 +8,13 @@ type AgentPortraitSpec = {
   readonly description: string;
   readonly column: 0 | 1 | 2 | 3 | 4;
   readonly row: 0 | 1 | 2 | 3;
+  readonly source?: "canonical-asset";
 };
 
 const PORTRAITS: readonly AgentPortraitSpec[] = [
+  { id: "knot-pickle", displayName: "Knot Pickle", description: "the story-path guide holding an untangled parchment knot", column: 0, row: 0, source: "canonical-asset" },
+  { id: "thread-pickle", displayName: "Thread Pickle", description: "the continuity guide tracing a luminous woven timeline", column: 0, row: 0, source: "canonical-asset" },
+  { id: "heart-pickle", displayName: "Heart Pickle", description: "the character guide holding an emotional heart-flame", column: 0, row: 0, source: "canonical-asset" },
   { id: "sage-brinewick", displayName: "Sage Brinewick", description: "the supplied elder wizard and curriculum-guide portrait", column: 0, row: 0 },
   { id: "tamsin-hearthquill", displayName: "Tamsin Hearthquill", description: "the supplied botanical foundations-keeper portrait", column: 1, row: 0 },
   { id: "master-oaken-vague", displayName: "Master Oaken-Vague", description: "the supplied dark fire-mage Wyrmwood keeper portrait", column: 2, row: 0 },
@@ -71,13 +75,23 @@ export default function AgentPortrait({
       data-locked={locked ? "true" : "false"}
       style={style}
     >
-      <span
-        aria-label={label}
-        className={styles.atlasPortrait}
-        data-agent-artwork="current-lore"
-        role="img"
-        style={atlasPosition(portrait.column, portrait.row)}
-      />
+      {portrait.source === "canonical-asset" ? (
+        <span
+          aria-label={label}
+          className={styles.canonicalPortrait}
+          data-agent-artwork="current-lore"
+          role="img"
+          style={{ backgroundImage: `url("${canonicalAvatarRef}")` }}
+        />
+      ) : (
+        <span
+          aria-label={label}
+          className={styles.atlasPortrait}
+          data-agent-artwork="current-lore"
+          role="img"
+          style={atlasPosition(portrait.column, portrait.row)}
+        />
+      )}
     </span>
   );
 }

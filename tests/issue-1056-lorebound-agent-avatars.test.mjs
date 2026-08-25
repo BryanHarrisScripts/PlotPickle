@@ -14,9 +14,9 @@ function pngDimensions(path) {
   return [png.readUInt32BE(16), png.readUInt32BE(20)];
 }
 
-test("#1056 keeps the canonical 12 public helpers in the Playhouse plugin while internal roles stay out of Help", () => {
-  assert.equal(playhouse.agents.length, 12);
-  assert.equal(new Set(playhouse.agents.map((helper) => helper.profileId)).size, 12);
+test("#1056/#1399 keeps the canonical 15 public helpers in the Playhouse plugin while internal roles stay out of Help", () => {
+  assert.equal(playhouse.agents.length, 15);
+  assert.equal(new Set(playhouse.agents.map((helper) => helper.profileId)).size, 15);
   for (const helper of playhouse.agents) {
     assert.deepEqual(Object.keys(helper).sort(), ["helpGroup", "helpPrompt", "profileId", "roomIds", "shortBio"]);
   }

@@ -1,6 +1,24 @@
 {
   "schemaVersion": 1,
   "profiles": {
+    "knot-pickle": {
+      "avatarRef": "/assets/helpers/official/knot-pickle.webp",
+      "publicBio": "A public Story Momentum Guide who helps writers identify why a scene or sequence has stalled and compare three distinct next moves without deciding canon.",
+      "executionContexts": ["public-buzz"],
+      "officialBuzzIdentity": { "provisioning": "external-buzz-admin", "pubkey": null }
+    },
+    "thread-pickle": {
+      "avatarRef": "/assets/helpers/official/thread-pickle.webp",
+      "publicBio": "A public Plot and Continuity Repair Guide who finds evidence-backed contradictions, broken cause-and-effect and missing setup or payoff threads, then proposes small repairs.",
+      "executionContexts": ["public-buzz"],
+      "officialBuzzIdentity": { "provisioning": "external-buzz-admin", "pubkey": null }
+    },
+    "heart-pickle": {
+      "avatarRef": "/assets/helpers/official/heart-pickle.webp",
+      "publicBio": "A public Character and Emotion Guide who strengthens motivation, relationships, voice and emotional stakes while leaving the character and final choices with the writer.",
+      "executionContexts": ["public-buzz"],
+      "officialBuzzIdentity": { "provisioning": "external-buzz-admin", "pubkey": null }
+    },
     "sage-brinewick": {
       "avatarRef": "/assets/helpers/official/sage-brinewick.webp",
       "publicBio": "PlotPickle's Lorekeeper and learning mentor, helping writers understand story craft and move from idea to finished story while leaving creative decisions with the Human.",

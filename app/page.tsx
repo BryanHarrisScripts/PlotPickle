@@ -9,7 +9,7 @@ import { loadFoundationProject, saveFoundationProject } from "../core/storage/fo
 import { hasActiveLibraryProject } from "../core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
-import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
+import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";
 import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
@@ -220,7 +220,7 @@ export default function Home() {
     <PlotPickleWorkspaceShell activeWorkspace="learn" onNavigate={navigateWorkspace}>
       <LearnWorkspace
         curriculum={plotPickleCurriculum}
-        guide={answerFromCurriculum}
+        guide={memoryAwareSageGuide}
         onOpenFoundationsPlan={openFoundationsPlan}
       />
       <MarqueeAgentOverlay curriculum={plotPickleCurriculum} />

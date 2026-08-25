@@ -29,21 +29,24 @@ const mcpStderrPath = path.join(artifactRoot, "playwright-mcp.log");
 
 if (!new Set(["smoke", "full"]).has(scope)) throw new Error(`Unsupported UAT scope: ${scope}`);
 
+// This deterministic pass covers only workspaces that are selectable in the
+// current PlotPickle shell. Human-only profile unlock, BUZZ secret entry and
+// native provider authority are intentionally left to attended real-machine UAT.
 const smokeJourney = [
-  { id: "dashboard", label: "Dashboard", query: "dashboard" },
-  { id: "planner", label: "Plan", query: "plan" },
-  { id: "visuals", label: "Storyboard", query: "storyboard" },
-  { id: "script", label: "Write", query: "write" },
-  { id: "edit", label: "Edit", path: "/edit" },
-  { id: "pitch", label: "Graphic Novel", query: "pitch" },
+  { id: "learn", label: "Learn", query: "learn" },
+  { id: "plan", label: "Plan", query: "plan" },
   { id: "build", label: "Build", query: "build" },
-  { id: "feedback", label: "Feedback", query: "feedback" },
+  { id: "settings", label: "Settings", query: "settings" },
 ];
 
 const fullJourney = [
-  ...smokeJourney,
-  { id: "engines", label: "Refine", query: "refine" },
-  { id: "reports", label: "Reports", query: "reports" },
+  { id: "learn", label: "Learn", query: "learn" },
+  { id: "community", label: "Community", query: "community" },
+  { id: "library", label: "Library", path: "/library" },
+  { id: "wyrmwood", label: "Wyrmwood", query: "wyrmwood" },
+  { id: "plan", label: "Plan", query: "plan" },
+  { id: "build", label: "Build", query: "build" },
+  { id: "dashboard", label: "Dashboard", query: "dashboard" },
   { id: "settings", label: "Settings", query: "settings" },
 ];
 
@@ -130,6 +133,8 @@ function extractPageState(text) {
     title: "",
     shellWorkspaceCount: 0,
     splashVisible: false,
+    profileAuthenticated: false,
+    profileGateVisible: false,
   };
 }
 
@@ -145,11 +150,12 @@ function consoleHasErrors(text) {
 function stateMatchesScreen(screen, state) {
   const activeId = String(state?.activeId || "");
   const urlText = String(state?.url || "");
-  if (screen.id === "edit") {
+  if (screen.path) {
     try {
-      return new URL(urlText).pathname === "/edit";
+      const pathMatches = new URL(urlText).pathname === screen.path;
+      return pathMatches && (!activeId || activeId === screen.id);
     } catch {
-      return urlText.includes("/edit");
+      return urlText.includes(screen.path) && (!activeId || activeId === screen.id);
     }
   }
   if (activeId) return activeId === screen.id;
@@ -270,7 +276,9 @@ class McpClient {
           if (message.error) pending.reject(new Error(message.error.message || JSON.stringify(message.error)));
           else pending.resolve(message.result);
         }
-      } catch {}
+      } catch (error) {
+        this.stderr += `Ignored malformed MCP stdout message: ${error instanceof Error ? error.message : String(error)}\n`;
+      }
     }
   }
 
@@ -307,7 +315,7 @@ class McpClient {
     const result = await this.request("initialize", {
       protocolVersion: "2025-06-18",
       capabilities: {},
-      clientInfo: { name: "plotpickle-local-uat", version: "1.1.0" },
+      clientInfo: { name: "plotpickle-local-uat", version: "1.2.0" },
     });
     this.notify("notifications/initialized");
     return result;
@@ -325,7 +333,11 @@ class McpClient {
   }
 
   async close() {
-    try { this.child.stdin.end(); } catch {}
+    try {
+      this.child.stdin.end();
+    } catch (error) {
+      this.stderr += `Failed to close MCP stdin cleanly: ${error instanceof Error ? error.message : String(error)}\n`;
+    }
     await delay(100);
     if (this.child.exitCode === null) this.child.kill();
   }
@@ -376,7 +388,24 @@ async function main() {
     const pageState = async () => {
       if (!has("browser_evaluate")) return {};
       const result = await client.call("browser_evaluate", {
-        function: "() => ({ url: location.href, title: document.title, activeId: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.getAttribute('data-workspace-id') || '', activeLabel: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.textContent?.trim() || '', mainLength: (document.querySelector('main')?.innerText || document.body.innerText || '').trim().length, shellWorkspaceCount: document.querySelectorAll('[data-workspace-id]').length, splashVisible: Boolean(document.querySelector('nav[aria-label=\\\"Splash page navigation\\\"]')) })",
+        function: `() => {
+          const shell = document.querySelector('[data-active-workspace]');
+          const activeNav = document.querySelector('[data-workspace-nav-id] button[aria-current="page"]')?.closest('[data-workspace-nav-id]');
+          const activeId = shell?.getAttribute('data-active-workspace') || activeNav?.getAttribute('data-workspace-nav-id') || '';
+          const activeLabel = activeNav?.querySelector('strong')?.textContent?.trim() || '';
+          const profileAuthenticated = Boolean(document.querySelector('[aria-label="Active PlotPickle Human"]'));
+          return {
+            url: location.href,
+            title: document.title,
+            activeId,
+            activeLabel,
+            mainLength: (document.querySelector('main')?.innerText || document.body.innerText || '').trim().length,
+            shellWorkspaceCount: document.querySelectorAll('[data-workspace-nav-id]').length,
+            splashVisible: Boolean(document.querySelector('nav[aria-label="Splash page navigation"], nav[aria-label="Mobile splash page navigation"]')),
+            profileAuthenticated,
+            profileGateVisible: !profileAuthenticated && !shell && Boolean(document.querySelector('main')),
+          };
+        }`,
       });
       return extractPageState(resultText(result));
     };
@@ -384,8 +413,8 @@ async function main() {
       if (!has("browser_console_messages")) return "";
       try {
         return resultText(await client.call("browser_console_messages", toolArguments(toolMap.get("browser_console_messages"), { level: "error", all: false })));
-      } catch {
-        return "";
+      } catch (error) {
+        return `Console observer unavailable: ${error instanceof Error ? error.message : String(error)}`;
       }
     };
     const takeScreenshot = async (filename) => {
@@ -417,91 +446,118 @@ async function main() {
     await writeFile(path.join(snapshotRoot, "00-splash.md"), splashSnapshot, "utf8");
     await takeScreenshot("00-splash.png");
 
-    const dashboard = journey[0];
-    let dashboardMethod = "visible Enter control";
-    let dashboardNote = "";
-    let dashboardClicked = false;
+    const entryScreen = journey[0];
+    let entryMethod = "visible Enter control";
+    let entryNote = "";
+    let entryClicked = false;
     try {
-      dashboardClicked = await clickVisibleControl("Enter", splashSnapshot);
-      if (dashboardClicked) await delay(500);
+      entryClicked = await clickVisibleControl("Enter", splashSnapshot);
+      if (entryClicked) await delay(500);
     } catch (error) {
-      dashboardNote = `Visible Enter click failed: ${error instanceof Error ? error.message : String(error)}`;
+      entryNote = `Visible Enter click failed: ${error instanceof Error ? error.message : String(error)}`;
     }
 
-    let dashboardState = dashboardClicked ? await pageState() : {};
-    let dashboardReached = dashboardClicked
-      && Number(dashboardState.shellWorkspaceCount || 0) > 0
-      && stateMatchesScreen(dashboard, dashboardState);
+    let entryState = entryClicked ? await pageState() : {};
+    let entryReached = entryClicked
+      && Number(entryState.shellWorkspaceCount || 0) > 0
+      && stateMatchesScreen(entryScreen, entryState);
 
-    if (!dashboardReached) {
-      dashboardMethod = "direct recovery navigation";
-      dashboardNote = dashboardNote || "The visible Enter click completed but the application shell did not become active, so the deterministic runner used the documented Dashboard deep link.";
-      await navigate(recoveryUrl(dashboard));
-      await delay(500);
-      dashboardState = await pageState();
-      dashboardReached = Number(dashboardState.shellWorkspaceCount || 0) > 0 && stateMatchesScreen(dashboard, dashboardState);
-    }
+    const profileBlocked = entryClicked
+      && !entryReached
+      && entryState.profileAuthenticated === false
+      && entryState.profileGateVisible === true;
 
-    let currentSnapshot = dashboardReached ? await snapshot() : "";
-
-    for (let index = 0; index < journey.length; index += 1) {
-      const screen = journey[index];
-      let method = index === 0 ? dashboardMethod : "visible workspace control";
-      let note = index === 0 ? dashboardNote : "";
-      let reached = index === 0 ? dashboardReached : false;
-      let state = index === 0 ? dashboardState : {};
-
-      if (index > 0) {
-        currentSnapshot = await snapshot();
-        let clicked = false;
-        try {
-          clicked = await clickVisibleControl(screen.label, currentSnapshot);
-          if (clicked) await delay(500);
-        } catch (error) {
-          note = `Visible navigation failed: ${error instanceof Error ? error.message : String(error)}`;
-        }
-
-        state = clicked ? await pageState() : {};
-        reached = clicked && stateMatchesScreen(screen, state);
-
-        if (!reached) {
-          method = "direct recovery navigation";
-          if (!note) {
-            note = clicked
-              ? `The visible ${screen.label} control accepted the click but did not activate the target workspace; the deterministic runner used the documented local recovery route.`
-              : `The visible ${screen.label} control could not be used; the deterministic runner used the documented local recovery route.`;
-          }
-          try {
-            await navigate(recoveryUrl(screen));
-            await delay(500);
-            state = await pageState();
-            reached = stateMatchesScreen(screen, state);
-            if (!reached) note += " Recovery navigation also failed to activate the expected workspace.";
-          } catch (error) {
-            note += ` Recovery navigation failed: ${error instanceof Error ? error.message : String(error)}`;
-          }
-        }
-      }
-
-      currentSnapshot = reached ? await snapshot() : currentSnapshot;
-      const filename = `${String(index + 1).padStart(2, "0")}-${safeSlug(screen.label)}`;
-      if (currentSnapshot) await writeFile(path.join(snapshotRoot, `${filename}.md`), currentSnapshot, "utf8");
+    if (profileBlocked) {
+      const profileSnapshot = await snapshot();
+      await writeFile(path.join(snapshotRoot, "01-human-profile-boundary.md"), profileSnapshot, "utf8");
       let screenshotOk = false;
-      if (reached) {
-        try {
-          await takeScreenshot(`${filename}.png`);
-          screenshotOk = true;
-        } catch (error) {
-          note = `${note ? `${note} ` : ""}Screenshot failed: ${error instanceof Error ? error.message : String(error)}`;
-        }
+      try {
+        await takeScreenshot("01-human-profile-boundary.png");
+        screenshotOk = true;
+      } catch (error) {
+        client.stderr += `Profile-boundary screenshot failed: ${error instanceof Error ? error.message : String(error)}\n`;
       }
-      if (reached && (!state || !state.url)) state = await pageState();
-      const consoleText = reached ? await consoleMessages() : "";
-      const routeMatches = stateMatchesScreen(screen, state);
-      const substantive = Number(state?.mainLength || 0) > 40 || currentSnapshot.length > 200;
-      let status = reached && routeMatches && substantive ? "PASS" : "FAIL";
-      if (status === "PASS" && (method === "direct recovery navigation" || !screenshotOk || consoleHasErrors(consoleText))) status = "WARN";
-      evidence.push({ ...screen, status, method, note, screenshotOk, pageState: state, consoleText });
+      evidence.push({
+        id: "human-profile",
+        label: "Human profile",
+        status: "WARN",
+        method: "Human-only profile gate",
+        note: "PlotPickle reached the protected Human profile boundary. The deterministic UAT intentionally does not automate a passphrase or recovery secret. Continue #1239 with the attended real-machine runner to unlock/select the Human profile in the visible browser, then verify BUZZ and local-provider journeys.",
+        screenshotOk,
+        pageState: entryState,
+        consoleText: "",
+      });
+    } else {
+      if (!entryReached) {
+        entryMethod = "direct recovery navigation";
+        entryNote = entryNote || `The visible Enter action did not activate ${entryScreen.label}, so the deterministic runner used its local recovery route.`;
+        await navigate(recoveryUrl(entryScreen));
+        await delay(500);
+        entryState = await pageState();
+        entryReached = Number(entryState.shellWorkspaceCount || 0) > 0 && stateMatchesScreen(entryScreen, entryState);
+      }
+
+      let currentSnapshot = entryReached ? await snapshot() : "";
+
+      for (let index = 0; index < journey.length; index += 1) {
+        const screen = journey[index];
+        let method = index === 0 ? entryMethod : "visible workspace control";
+        let note = index === 0 ? entryNote : "";
+        let reached = index === 0 ? entryReached : false;
+        let state = index === 0 ? entryState : {};
+
+        if (index > 0) {
+          currentSnapshot = await snapshot();
+          let clicked = false;
+          try {
+            clicked = await clickVisibleControl(screen.label, currentSnapshot);
+            if (clicked) await delay(500);
+          } catch (error) {
+            note = `Visible navigation failed: ${error instanceof Error ? error.message : String(error)}`;
+          }
+
+          state = clicked ? await pageState() : {};
+          reached = clicked && stateMatchesScreen(screen, state);
+
+          if (!reached) {
+            method = "direct recovery navigation";
+            if (!note) {
+              note = clicked
+                ? `The visible ${screen.label} control accepted the click but did not activate the target workspace; the deterministic runner used the local recovery route.`
+                : `The visible ${screen.label} control could not be used; the deterministic runner used the local recovery route.`;
+            }
+            try {
+              await navigate(recoveryUrl(screen));
+              await delay(500);
+              state = await pageState();
+              reached = stateMatchesScreen(screen, state);
+              if (!reached) note += " Recovery navigation also failed to activate the expected workspace.";
+            } catch (error) {
+              note += ` Recovery navigation failed: ${error instanceof Error ? error.message : String(error)}`;
+            }
+          }
+        }
+
+        currentSnapshot = reached ? await snapshot() : currentSnapshot;
+        const filename = `${String(index + 1).padStart(2, "0")}-${safeSlug(screen.label)}`;
+        if (currentSnapshot) await writeFile(path.join(snapshotRoot, `${filename}.md`), currentSnapshot, "utf8");
+        let screenshotOk = false;
+        if (reached) {
+          try {
+            await takeScreenshot(`${filename}.png`);
+            screenshotOk = true;
+          } catch (error) {
+            note = `${note ? `${note} ` : ""}Screenshot failed: ${error instanceof Error ? error.message : String(error)}`;
+          }
+        }
+        if (reached && (!state || !state.url)) state = await pageState();
+        const consoleText = reached ? await consoleMessages() : "";
+        const routeMatches = stateMatchesScreen(screen, state);
+        const substantive = Number(state?.mainLength || 0) > 40 || currentSnapshot.length > 200;
+        let status = reached && routeMatches && substantive ? "PASS" : "FAIL";
+        if (status === "PASS" && (method === "direct recovery navigation" || !screenshotOk || consoleHasErrors(consoleText))) status = "WARN";
+        evidence.push({ ...screen, status, method, note, screenshotOk, pageState: state, consoleText });
+      }
     }
   } catch (error) {
     deterministicError = error instanceof Error ? error : new Error(String(error));
@@ -509,7 +565,9 @@ async function main() {
     try {
       const toolNames = new Set(tools.map((tool) => tool.name));
       if (toolNames.has("browser_close")) await client.call("browser_close", {});
-    } catch {}
+    } catch (error) {
+      client.stderr += `Browser close failed: ${error instanceof Error ? error.message : String(error)}\n`;
+    }
     await client.close();
     await writeFile(tracePath, client.trace.map((entry) => JSON.stringify(entry)).join("\n") + "\n", "utf8");
     await writeFile(mcpStderrPath, client.stderr || "", "utf8");
@@ -562,13 +620,13 @@ async function main() {
     "",
     "## Safety boundary",
     "",
-    "This baseline run uses the local Agent Plugin and Playwright MCP against 127.0.0.1 only. It does not require ChatGPT/Codex quota, does not use API-key billing, does not edit repository files, and does not perform external writes. Ollama review is optional and never changes the deterministic verdict.",
+    "This baseline run uses the local Agent Plugin and Playwright MCP against 127.0.0.1 only. It does not require ChatGPT/Codex quota, does not use API-key billing, does not edit repository files, does not automate Human passphrases/recovery secrets, and does not perform external writes. Human-only identity and provider authority continue in the attended real-machine runner. Ollama review is optional and never changes the deterministic verdict.",
     "",
   );
 
   await writeFile(reportPath, lines.join("\n"), "utf8");
   const passed = evidence.filter((item) => item.status === "PASS").length;
-  process.stdout.write(`Local Human UAT ${overall}: ${passed} of ${evidence.length} stages passed. Report: ${reportPath}\n`);
+  process.stdout.write(`Local Human UAT ${overall}: ${passed} of ${evidence.length} deterministic stages passed. Report: ${reportPath}\n`);
   process.exitCode = overall === "FAIL" ? 1 : 0;
 }
 

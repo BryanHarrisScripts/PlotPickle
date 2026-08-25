@@ -1,5 +1,13 @@
 import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../../core/project/project";
 
+export type LibraryFrontierCoverage = {
+  readonly foundations: string;
+  readonly world: string;
+  readonly character: string;
+  readonly structure: string;
+  readonly storyboard: string;
+};
+
 export type LibraryCatalogItem = {
   readonly id: string;
   readonly title: string;
@@ -8,8 +16,15 @@ export type LibraryCatalogItem = {
   readonly format: string;
   readonly visualLabel: string;
   readonly project: PPFProject;
+  readonly coverage: LibraryFrontierCoverage;
   readonly referenceLoader?: "afterglow-v9-foundations";
 };
+
+const LOCKED_LATER_FRONTIERS = {
+  character: "Not available yet",
+  structure: "Locked",
+  storyboard: "Locked",
+} as const;
 
 function answeredLesson(answer: string, now: string) {
   return {
@@ -144,6 +159,11 @@ export function createFeaturedExamples(now: string): readonly LibraryCatalogItem
         title: "Afterglow: Reflections of Sentience",
         now,
       }),
+      coverage: {
+        foundations: "100%",
+        world: "Not started",
+        ...LOCKED_LATER_FRONTIERS,
+      },
       referenceLoader: "afterglow-v9-foundations",
     },
     {
@@ -164,6 +184,11 @@ export function createFeaturedExamples(now: string): readonly LibraryCatalogItem
         world: "A vertical guild city whose clocks coordinate transit, law, and public memory; every mechanism has a social owner, a physical cost, and a rule that characters can test.",
         visualAssetUrl: "/assets/library/examples/clockmakers-map.svg",
       }),
+      coverage: {
+        foundations: "In progress",
+        world: "In progress",
+        ...LOCKED_LATER_FRONTIERS,
+      },
     },
   ];
 }
@@ -216,5 +241,10 @@ export function createGenrePresets(now: string): readonly LibraryCatalogItem[] {
     format: "Story",
     visualLabel: preset.visualLabel,
     project: presetProject({ ...preset, now, title: preset.title.replace(" Starter", "") }),
+    coverage: {
+      foundations: "Not started",
+      world: "Not started",
+      ...LOCKED_LATER_FRONTIERS,
+    },
   }));
 }

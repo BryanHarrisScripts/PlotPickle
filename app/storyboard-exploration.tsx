@@ -6,6 +6,7 @@ import {
   buildStoryboardFrameDirection,
   storyboardApprovalWarnings,
   storyboardFramesForTarget,
+  storyboardShotSummary,
   type StoryboardFrameCandidate,
 } from "@/lib/storyboard-exploration";
 
@@ -92,7 +93,7 @@ export default function StoryboardExploration({
                   <strong>{frame.sourceKind === "manual-import" ? "Manual image" : "Generated frame"}</strong>
                   <span>{frame.status}</span>
                 </div>
-                <p>{frame.sourceLabel || frame.direction.staging || frame.direction.shot || "Storyboard frame"}</p>
+                <p>{frame.sourceLabel || storyboardShotSummary(frame.direction)}</p>
                 <small>{frame.direction.storyPurpose}</small>
                 {frame.status === "candidate" ? (
                   <button type="button" className="small-button" disabled={warnings.length > 0} onClick={() => onApprove(frame.id)}>Approve frame</button>

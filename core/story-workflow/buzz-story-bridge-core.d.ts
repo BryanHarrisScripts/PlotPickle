@@ -1,4 +1,4 @@
-import type { StoryWorkflowResult } from "./story-workflow-core.mjs";
+import type { StoryResult } from "./story-workflow-core.mjs";
 
 export type StoryBridgePrivacyClass = "private-project" | "human-purpose" | "public-great-hall" | "guildhall";
 export type StoryBridgeState = "ready" | "degraded-local" | "blocked" | "accepted" | "stale" | "rejected" | "unverified";
@@ -49,7 +49,7 @@ export type StoryBridgeContribution = {
   readonly state: "accepted" | "stale" | "rejected" | "unverified" | "blocked";
   readonly accepted: boolean;
   readonly reason: string;
-  readonly result: StoryWorkflowResult | null;
+  readonly result: StoryResult | null;
   readonly provenance: {
     readonly transport: "buzz";
     readonly eventId: string;

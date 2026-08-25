@@ -41,6 +41,11 @@ import { sites } from "./build/sites-vite-plugin";
 import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics";
 import { uatDiscoveryPlugin } from "./build/uat-discovery-plugin";
 import { localInstanceProofGateway } from "./build/local-instance-proof-gateway";
+import {
+  VINEXT_PREFETCH_QUEUE_SHIM,
+  installVinextRequestTimingOutputGuard,
+  vinextRscOptimizationCompatibilityPlugin,
+} from "./build/startup/vite-compatibility";
 
 // Vite currently uses the bundled config loader for PlotPickle. Its proactive
 // future-native-loader advisory is developer migration noise, not a startup
@@ -66,10 +71,11 @@ const localBindingConfig = {
   r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
   process.env.WRANGLER_WRITE_LOGS ??= "false";
   process.env.WRANGLER_LOG_PATH ??= ".wrangler/logs";
   process.env.MINIFLARE_REGISTRY_PATH ??= ".wrangler/registry";
+  if (command === "serve") installVinextRequestTimingOutputGuard();
   applyGitHubAppPublicConfig();
   applyGoogleOAuthPublicConfig();
   const { cloudflare } = await import("@cloudflare/vite-plugin");
@@ -81,7 +87,7 @@ export default defineConfig(async () => {
       ),
     },
     optimizeDeps: {
-      exclude: ["vinext/dist/shims/internal/app-prefetch-fetch-queue.js"],
+      exclude: [VINEXT_PREFETCH_QUEUE_SHIM],
     },
     server: {
       host: "0.0.0.0",
@@ -130,6 +136,7 @@ export default defineConfig(async () => {
       startupAgentDiagnosticsPlugin(),
       uatDiscoveryPlugin(),
       vinext(),
+      vinextRscOptimizationCompatibilityPlugin(),
       sites(),
       cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, inspectorPort: false, config: localBindingConfig }),
     ],

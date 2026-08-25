@@ -164,6 +164,7 @@ export function richPpfToLibraryProject(project: PlotPickleProject, importedAt =
         passagesTruncated: project.screenplay.draftElements.length > passages.length,
         passages,
       },
+      referenceFixture: null,
     },
   };
 }

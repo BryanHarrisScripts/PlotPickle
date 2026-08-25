@@ -11,6 +11,7 @@ import styles from "./foundations-story-coverage.module.css";
 
 const STATE_LABELS: Readonly<Record<FoundationsStoryEvidenceState, string>> = {
   defined: "Defined",
+  observed: "Observed",
   emerging: "Emerging",
   missing: "Missing",
 };
@@ -23,6 +24,7 @@ export default function FoundationsStoryCoverage({
   readonly project: PPFProject;
 }) {
   const coverage = deriveFoundationsStoryCoverage(curriculum, project);
+  const supported = coverage.defined + coverage.observed;
 
   return (
     <section className={styles.panel} aria-labelledby="foundations-story-coverage-title" data-story-coverage="live-foundations">
@@ -30,22 +32,24 @@ export default function FoundationsStoryCoverage({
         <div>
           <p className={styles.kicker}>Story evidence · current PPF</p>
           <h2 id="foundations-story-coverage-title">Story Coverage</h2>
-          <p>See which Foundations decisions are actually supported, which are still proposals, and which remain intentionally open.</p>
+          <p>See what the writer has defined, what an immutable reference source directly supports, which ideas are still proposals, and which decisions remain intentionally open.</p>
         </div>
-        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are defined`}>
+        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
           <strong>{coverage.percent}%</strong>
-          <span>{coverage.defined} of {coverage.total} decisions defined</span>
+          <span>{supported} of {coverage.total} decisions supported</span>
         </div>
       </header>
 
       <dl className={styles.summary} aria-label="Foundations story evidence totals">
-        <div data-state="defined"><dt>Defined</dt><dd>{coverage.defined}</dd><small>Saved Human-approved decisions</small></div>
+        <div data-state="defined"><dt>Defined</dt><dd>{coverage.defined}</dd><small>Saved Human decisions or explicit reference-fixture decisions</small></div>
+        <div data-state="observed"><dt>Observed</dt><dd>{coverage.observed}</dd><small>Directly supported by immutable reference/source evidence</small></div>
         <div data-state="emerging"><dt>Emerging</dt><dd>{coverage.emerging}</dd><small>Draft/import proposals awaiting a decision</small></div>
         <div data-state="missing"><dt>Missing</dt><dd>{coverage.missing}</dd><small>No usable story support yet</small></div>
       </dl>
 
       <div className={styles.legend} aria-label="Story evidence meanings">
-        <span data-state="defined"><i aria-hidden="true">✓</i><strong>Defined</strong> is canonical story material saved in PLAN.</span>
+        <span data-state="defined"><i aria-hidden="true">✓</i><strong>Defined</strong> is an explicit working decision. Reference fixtures label synthetic decisions so they are never mistaken for screenplay evidence.</span>
+        <span data-state="observed"><i aria-hidden="true">●</i><strong>Observed</strong> is directly supported by the immutable imported/reference source.</span>
         <span data-state="emerging"><i aria-hidden="true">~</i><strong>Emerging</strong> is useful proposal/import interpretation that still needs Human acceptance.</span>
         <span data-state="missing"><i aria-hidden="true">○</i><strong>Missing</strong> means PlotPickle leaves the decision open instead of inventing filler.</span>
       </div>
@@ -58,7 +62,7 @@ export default function FoundationsStoryCoverage({
             <summary>
               <span className={styles.lessonNumber}>{String(lesson.number).padStart(2, "0")}</span>
               <strong>{lesson.title}</strong>
-              <span className={styles.lessonCount}>{lesson.defined}/{lesson.total} defined</span>
+              <span className={styles.lessonCount}>{lesson.defined + lesson.observed}/{lesson.total} supported</span>
               <em data-state={lesson.state}>{STATE_LABELS[lesson.state]}</em>
             </summary>
             <div className={styles.decisions}>
@@ -75,7 +79,7 @@ export default function FoundationsStoryCoverage({
         ))}
       </div>
 
-      <p className={styles.footnote}>Story Coverage counts saved story decisions, not course completion and not generated wireframe frames. Imported screenplay passages are evidence; importer structure remains reviewable until the Human accepts it. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
+      <p className={styles.footnote}>Story Coverage counts supported story decisions, not course completion and not generated wireframe frames. Imported screenplay passages and the Afterglow reference fixture preserve provenance; synthetic fixture decisions are labelled separately from observed source evidence. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
     </section>
   );
 }

@@ -87,9 +87,10 @@ export function planStoryWorkItems(input) {
       const locked = Boolean(requirement.locked);
       const stale = Boolean(requirement.stale);
       const contradiction = Boolean(requirement.contradiction);
+      const waitingHuman = Boolean(requirement.waitingHuman);
       const satisfied = Boolean(requirement.satisfied) && !stale && !contradiction;
       if (!curriculumRequirementId || locked || satisfied) return null;
-      const kind = stale ? "re-evaluation" : contradiction ? "audit" : "requirement";
+      const kind = waitingHuman ? "human-gate" : stale ? "re-evaluation" : contradiction ? "audit" : "requirement";
       return {
         workItemId: storyWorkItemId({ projectId, baseRevision, curriculumRequirementId, targetRefs }),
         projectId,
@@ -97,12 +98,14 @@ export function planStoryWorkItems(input) {
         curriculumRequirementId,
         frontier: text(requirement.frontier || "Foundations", 120),
         targetRefs,
-        status: "queued",
-        reason: text(requirement.reason || (stale
-          ? "Accepted story evidence changed and this bounded requirement needs re-evaluation."
-          : contradiction
-            ? "Current evidence contains a contradiction that needs bounded review."
-            : "Current-frontier story evidence does not yet satisfy this requirement."), 1200),
+        status: waitingHuman ? "waiting-human" : "queued",
+        reason: text(requirement.reason || (waitingHuman
+          ? "A bounded proposal already exists and requires Human judgment before more work is useful."
+          : stale
+            ? "Accepted story evidence changed and this bounded requirement needs re-evaluation."
+            : contradiction
+              ? "Current evidence contains a contradiction that needs bounded review."
+              : "Current-frontier story evidence does not yet satisfy this requirement."), 1200),
         evidenceRefs,
         assignedAgentId: text(requirement.assignedAgentId, 180),
         runId: "",

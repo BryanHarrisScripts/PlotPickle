@@ -66,6 +66,19 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
   assert.match(launcher, /mark-ready[\s\S]*if errorlevel 1 exit \/b 1/);
 });
 
+test("Windows launcher keeps its owned app window through transient localhost stalls", async () => {
+  const launcher = await source("Start-PlotPickle.bat");
+  for (const contract of [
+    'set "BROWSER_FAILURE_GRACE_SECONDS=12"',
+    "$unreachableSince=$null",
+    "$unreachableSince=Get-Date",
+    ").TotalSeconds -ge %BROWSER_FAILURE_GRACE_SECONDS%",
+    "PlotPickle has remained unreachable long enough to close its owned app window.",
+  ]) assert.ok(launcher.includes(contract), `Launcher is missing browser-liveness protection: ${contract}`);
+  assert.match(launcher, /Test-Path \$env:PLOTPICKLE_SHUTDOWN_SIGNAL[\s\S]*Stop-Process -Id \$browser\.Id[\s\S]*break/);
+  assert.doesNotMatch(launcher, /catch \{ Stop-Process -Id \$browser\.Id -ErrorAction SilentlyContinue; break \}/);
+});
+
 test("release packages include every local server configuration input", async () => {
   const packager = await source("scripts/package-platform.mjs");
   const smoke = await source("scripts/package-smoke.mjs");
@@ -105,6 +118,9 @@ test("Profile Experience validates the real Windows Vite startup for #1404", asy
   const workflow = await source(".github/workflows/profile-experience.yml");
   assert.match(workflow, /build\/startup\/\*\*/);
   assert.match(workflow, /scripts\/windows-server-smoke\.mjs/);
+  assert.match(workflow, /Start-PlotPickle\.bat/);
+  assert.match(workflow, /Use Node\.js 24\.19/);
+  assert.match(workflow, /node-version: "24\.19\.0"/);
   assert.match(workflow, /Validate clean Windows Vite startup/);
   assert.match(workflow, /if: matrix\.os == 'windows-latest'/);
   assert.match(workflow, /node scripts\/windows-server-smoke\.mjs \./);

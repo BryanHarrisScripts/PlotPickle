@@ -11,10 +11,6 @@ import { installedBusinessCaseContributions } from "./casebook/installed-contrib
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 
-function flag(name) {
-  return argv.includes(name);
-}
-
 function printContribution(item) {
   const state = item.migrationState === "legacy" ? "legacy-adapter" : "1:1-contract";
   process.stdout.write(`${item.businessCaseId}\t${item.ownerId}\t${item.capability}\t${state}\t${item.title}\n`);
@@ -57,15 +53,16 @@ async function main() {
   const registry = await discoverBusinessCaseRegistry();
   const selector = selectorFromArgs();
   const selected = registry.list(selector);
+  const listOnly = argv.includes("--list") || (!argv.includes("--attended") && !argv.includes("--release"));
 
-  if (flag("--list") || (!flag("--attended") && !flag("--release"))) {
+  if (listOnly) {
     for (const item of selected) printContribution(item);
     if (!selected.length) process.exitCode = 2;
     return;
   }
 
   if (!selected.length) throw new Error("No installed Business Case matched the requested selector.");
-  if (!flag("--release") && !selector.businessCaseId && !selector.ownerId && !selector.capability) {
+  if (!argv.includes("--release") && !selector.businessCaseId && !selector.ownerId && !selector.capability) {
     throw new Error("Execution requires --case, --retry, --plugin/--owner, --capability, or --release.");
   }
 

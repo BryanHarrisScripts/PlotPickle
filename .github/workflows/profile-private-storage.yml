@@ -8,6 +8,8 @@ on:
       - "core/auth/**"
       - "core/memory/**"
       - "lib/agents/context/memory-context.ts"
+      - "app/api/memory/**"
+      - "modules/creative-room/*memory*"
       - "build/local-credentials.ts"
       - "build/local-project-gateway.ts"
       - "config/credential-boundary.registry.json"
@@ -22,6 +24,7 @@ on:
       - "tests/issue-1200-scoped-memory-contract.test.mjs"
       - "tests/issue-1201-memory-persistence-isolation.test.mjs"
       - "tests/issue-1202-bounded-memory-retrieval.test.mjs"
+      - "tests/issue-1203-sage-avery-memory-continuity.test.mjs"
       - "tests/issue-299-credential-boundary-audit.test.mjs"
       - "tests/issue-299-local-credential-audit.test.mjs"
       - "package.json"
@@ -62,8 +65,8 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate profile-private storage and migration
         run: npm run test:profile-storage
-      - name: Validate Memory v1 authority, persistence, isolation and bounded retrieval
-        run: node --test tests/issue-1200-scoped-memory-contract.test.mjs tests/issue-1201-memory-persistence-isolation.test.mjs tests/issue-1202-bounded-memory-retrieval.test.mjs
+      - name: Validate Memory v1 authority, persistence, retrieval and Sage/Avery continuity
+        run: node --test tests/issue-1200-scoped-memory-contract.test.mjs tests/issue-1201-memory-persistence-isolation.test.mjs tests/issue-1202-bounded-memory-retrieval.test.mjs tests/issue-1203-sage-avery-memory-continuity.test.mjs
       - name: Validate Library persistence dependency
         run: node --test tests/issue-1122-library-persistence.test.mjs
       - name: Validate PMK and Auth dependencies

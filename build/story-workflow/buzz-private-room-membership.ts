@@ -20,13 +20,6 @@ function safeError(error: unknown) {
     .slice(0, 700);
 }
 
-function relayHttpUrl(value: string) {
-  const url = new URL(value);
-  if (url.protocol === "ws:") url.protocol = "http:";
-  if (url.protocol === "wss:") url.protocol = "https:";
-  return url.toString().replace(/\/$/, "");
-}
-
 function validConnection(value: unknown): value is BuzzConnection {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const item = value as Partial<BuzzConnection>;
@@ -49,11 +42,15 @@ function validPubkey(value: string) {
 }
 
 function runJson(executable: string, args: string[], connection: BuzzConnection) {
+  const relay = new URL(connection.relayUrl);
+  if (relay.protocol === "ws:") relay.protocol = "http:";
+  if (relay.protocol === "wss:") relay.protocol = "https:";
+  const relayUrl = relay.toString().replace(/\/$/, "");
   return new Promise<unknown>((resolve, reject) => {
     const child = spawn(executable, args, {
       env: {
         ...process.env,
-        BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
+        BUZZ_RELAY_URL: relayUrl,
         BUZZ_PRIVATE_KEY: connection.privateKey,
       },
       windowsHide: true,

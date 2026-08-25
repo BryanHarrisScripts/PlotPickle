@@ -5,7 +5,6 @@ import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { PPFProject } from "../../../core/project/project";
 import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
-import { prepareStoryBridgeRequest } from "../buzz-story-bridge";
 import { createFoundationsStoryResponsibilityRun } from "../foundations-story-workflow";
 
 type RunResponse = {
@@ -21,12 +20,20 @@ type BridgeContribution = {
   readonly provenance?: { readonly eventId?: string; readonly signatureVerified?: boolean };
 };
 
+type PreparedBridgeRequest = Record<string, unknown> & {
+  readonly requestId?: string;
+  readonly state?: string;
+  readonly stateReason?: string;
+  readonly expectedAgentPubkey?: string;
+};
+
 type BridgeResponse = {
   readonly ok?: boolean;
   readonly message?: string;
   readonly state?: string;
   readonly executionPath?: string;
   readonly requestId?: string;
+  readonly request?: PreparedBridgeRequest;
   readonly idempotent?: boolean;
   readonly contributions?: readonly BridgeContribution[];
   readonly accepted?: readonly BridgeContribution[];
@@ -104,14 +111,16 @@ export default function FoundationsBuzzStoryLiveTest({
         contextCharacters: task.contextPacket.receipt.usedCharacters,
       });
 
-      const bridge = prepareStoryBridgeRequest({
+      const prepared = await bridgeRequest({
+        action: "prepare",
         project,
         workItem,
         run: task.run,
         contextPacket: task.contextPacket,
       });
-      if (bridge.state !== "ready" || !bridge.expectedAgentPubkey) {
-        throw new Error(bridge.stateReason || "Tamsin does not have a usable local BUZZ signer binding.");
+      const bridge = prepared.request;
+      if (!bridge || bridge.state !== "ready" || !bridge.expectedAgentPubkey) {
+        throw new Error(bridge?.stateReason || "Tamsin does not have a usable local BUZZ signer binding.");
       }
 
       onStatus("BUZZ Story Test · adding Tamsin to the private Story Room and dispatching the bounded task…");
@@ -163,7 +172,7 @@ export default function FoundationsBuzzStoryLiveTest({
         action: "proposal-ready",
         runId: task.run.runId,
         resultId: contribution.result.resultId,
-        ref: contribution.provenance?.eventId ? `buzz-event:${contribution.provenance.eventId}` : `buzz-story-bridge:${bridge.requestId}`,
+        ref: contribution.provenance?.eventId ? `buzz-event:${contribution.provenance.eventId}` : `buzz-story-bridge:${bridge.requestId || "unknown"}`,
         producedAt: new Date().toISOString(),
       });
       setState("pass");

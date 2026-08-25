@@ -10,6 +10,7 @@ import {
   type StoryBridgeRequest,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
 import { agentProfileById } from "../lib/agents/agent-profiles";
+import { prepareStoryBridgeRequest } from "../modules/story-workflow/buzz-story-bridge";
 import { ensurePrivateBuzzAgentMembership } from "./story-workflow/buzz-private-room-membership";
 
 const API = "/api/story-workflow/buzz-bridge";
@@ -38,6 +39,7 @@ type ResponsibilityRunSnapshot = {
   };
 };
 type LocalResponse<T> = T & { ok?: boolean; message?: string };
+type StoryBridgePreparationInput = Parameters<typeof prepareStoryBridgeRequest>[0];
 
 function requestMatchesLocalBridge(request: IncomingMessage, expectedPath: string) {
   if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(request.socket.remoteAddress || "")) return false;
@@ -109,6 +111,15 @@ async function localJson<T>(request: IncomingMessage, route: string, init?: Requ
   const value = await response.json() as LocalResponse<T>;
   if (!response.ok) throw new Error(value.message || `Local PlotPickle service returned ${response.status}.`);
   return value as T;
+}
+
+function prepareRequest(body: Record<string, unknown>) {
+  return prepareStoryBridgeRequest({
+    project: body.project as StoryBridgePreparationInput["project"],
+    workItem: body.workItem as StoryBridgePreparationInput["workItem"],
+    run: body.run as StoryBridgePreparationInput["run"],
+    contextPacket: body.contextPacket as StoryBridgePreparationInput["contextPacket"],
+  });
 }
 
 function normalizeRequest(value: unknown): StoryBridgeRequest {
@@ -383,6 +394,11 @@ export function storyWorkflowBuzzBridgeGateway(): Plugin {
             }
             const body = await readBridgeAction(request);
             const action = typeof body.action === "string" ? body.action : "";
+            if (action === "prepare") {
+              const bridge = prepareRequest(body);
+              writeBridgeResponse(response, 200, { ok: true, request: bridge }, bridge.requestId);
+              return;
+            }
             const bridge = normalizeRequest(body.request);
             if (action === "dispatch") {
               writeBridgeResponse(response, 200, await dispatch(request, bridge), bridge.requestId);

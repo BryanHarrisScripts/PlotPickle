@@ -159,13 +159,15 @@ test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room 
 });
 
 test("#1422 exposes a one-click Afterglow/Tamsin live proof without writing the PPF", async () => {
-  const [panel, liveTest] = await Promise.all([
+  const [panel, liveTest, gateway] = await Promise.all([
     read("modules/story-workflow/ui/foundations-story-workflow-panel.tsx"),
     read("modules/story-workflow/ui/foundations-buzz-story-live-test.tsx"),
+    read("build/story-workflow-buzz-bridge-gateway.ts"),
   ]);
   assert.ok(panel.includes("FoundationsBuzzStoryLiveTest"));
   for (const contract of [
     "Run BUZZ Story Test",
+    "action: \"prepare\"",
     "action: \"dispatch\"",
     "retry.idempotent !== true",
     "Waiting for Tamsin Hearthquill’s signed response",
@@ -176,5 +178,9 @@ test("#1422 exposes a one-click Afterglow/Tamsin live proof without writing the 
     "BUZZ Story Test PASS",
   ]) assert.ok(liveTest.includes(contract), `Live Story Bridge UI is missing exit-proof behavior: ${contract}`);
 
+  assert.ok(gateway.includes('if (action === "prepare")') && gateway.includes("prepareStoryBridgeRequest"),
+    "Story Bridge request preparation must execute inside the localhost server gateway.");
+  assert.doesNotMatch(liveTest, /prepareStoryBridgeRequest|nostr-event-verification|node:crypto/,
+    "The client live-test component must not import server-only Story Bridge crypto or request preparation.");
   assert.doesNotMatch(liveTest, /saveFoundationProject|applyStoryCommand|foundations\.proposal\.store|writing-assistant\/chat/);
 });

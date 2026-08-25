@@ -72,13 +72,9 @@ export class BusinessCaseRegistry {
     return [...this.#contributions.values()].filter((item) => {
       if (businessCaseId && item.businessCaseId !== businessCaseId) return false;
       if (ownerId && item.ownerId !== ownerId) return false;
-      if (capability && item.capability !== capability && !item.prerequisiteCapabilities.includes(capability)) return false;
+      if (capability && item.capability !== capability) return false;
       return true;
     });
-  }
-
-  claimedCapabilities() {
-    return [...new Set([...this.#contributions.values()].map((item) => item.capability))].sort();
   }
 }
 

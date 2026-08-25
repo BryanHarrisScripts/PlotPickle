@@ -124,20 +124,13 @@ export function planFoundationsStoryWork(
   });
 }
 
-function resolveRequirement(
-  workItem: StoryWorkItem,
-  curriculum: readonly CurriculumLesson[],
-) {
-  return buildFoundationPlanLessons(curriculum)
-    .flatMap((lesson) => lesson.fields.map((field) => ({ lesson, field })))
-    .find(({ lesson, field }) => `foundations:${lesson.id}:${field.id}` === workItem.curriculumRequirementId) ?? null;
-}
-
 export function resolveFoundationsStoryWorkItem(
   workItem: StoryWorkItem,
   curriculum: readonly CurriculumLesson[] = plotPickleCurriculum,
 ) {
-  return resolveRequirement(workItem, curriculum);
+  return buildFoundationPlanLessons(curriculum)
+    .flatMap((lesson) => lesson.fields.map((field) => ({ lesson, field })))
+    .find(({ lesson, field }) => `foundations:${lesson.id}:${field.id}` === workItem.curriculumRequirementId) ?? null;
 }
 
 function boundedProjectContext(
@@ -218,7 +211,7 @@ export function createFoundationsStoryResponsibilityRun(input: {
 }): { readonly run: ResponsibilityRun; readonly contextPacket: ContextPacket } {
   if (input.workItem.status !== "queued") throw new Error("Only queued Story Work Items may start a Responsibility Run.");
   const curriculum = input.curriculum ?? plotPickleCurriculum;
-  const requirement = resolveRequirement(input.workItem, curriculum);
+  const requirement = resolveFoundationsStoryWorkItem(input.workItem, curriculum);
   if (!requirement) throw new Error(`Story Workflow requirement ${input.workItem.curriculumRequirementId} is not in the live Foundations curriculum.`);
   const { lesson, field } = requirement;
   const contextPacket = assembleContextPacket({

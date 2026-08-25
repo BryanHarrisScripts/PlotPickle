@@ -1,6 +1,7 @@
 import {
   createEmptyFoundationLessonAnswers,
   createEmptyFoundationPlanState,
+  FOUNDATION_SEQUENCE_SHIFT_METADATA_ID,
   type FoundationLessonAnswers,
   type FoundationPlanState,
 } from "../contracts/foundation-plan";
@@ -121,6 +122,28 @@ export function applyStoryCommand(
           updatedAt: command.occurredAt,
         })),
       };
+    case "foundations.sequence-shift.update": {
+      const foundations = foundationState(project);
+      const metadata = foundations.lessons[FOUNDATION_SEQUENCE_SHIFT_METADATA_ID]
+        ?? createEmptyFoundationLessonAnswers();
+      return {
+        ...base,
+        foundations: {
+          ...foundations,
+          lessons: {
+            ...foundations.lessons,
+            [FOUNDATION_SEQUENCE_SHIFT_METADATA_ID]: {
+              ...metadata,
+              answers: {
+                ...metadata.answers,
+                [command.sequenceId]: command.shiftId,
+              },
+              updatedAt: command.occurredAt,
+            },
+          },
+        },
+      };
+    }
     case "foundations.proposal.store":
       return {
         ...base,

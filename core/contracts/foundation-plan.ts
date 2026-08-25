@@ -1,6 +1,7 @@
 import type { CurriculumLesson } from "./curriculum";
 
 export const FOUNDATION_PROJECT_STORAGE_KEY = "plotpickle.foundation.project.v1";
+export const FOUNDATION_SEQUENCE_SHIFT_METADATA_ID = "__story-map-sequence-shifts__";
 
 export interface FoundationPlanField {
   readonly id: string;

@@ -19,6 +19,7 @@ import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gatew
 import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { storyWorkflowBuzzBridgeGateway } from "./build/story-workflow-buzz-bridge-gateway";
+import { loadLocalBuzzAgentIdentityBindings } from "./build/buzz-agent-identity-binding-loader";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
@@ -83,6 +84,7 @@ export default defineConfig(async ({ command }) => {
   if (command === "serve") installVinextRequestTimingOutputGuard();
   applyGitHubAppPublicConfig();
   applyGoogleOAuthPublicConfig();
+  const localBuzzAgentIdentities = command === "serve" ? await loadLocalBuzzAgentIdentityBindings() : {};
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
@@ -90,6 +92,7 @@ export default defineConfig(async ({ command }) => {
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
+      __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: JSON.stringify(localBuzzAgentIdentities),
     },
     optimizeDeps: {
       exclude: [

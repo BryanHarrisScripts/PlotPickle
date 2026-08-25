@@ -48,6 +48,7 @@ test("Settings exposes permanent left categories centre controls and right help 
     "Overview",
     "Local Compute",
     "Cloud Compute",
+    "ComfyUI Setup",
     "BUZZ Setup",
     "Agent Activity",
     "Advanced Runtime",
@@ -62,9 +63,11 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /<AiComputeWorkspace mode="local" \/>/);
   assert.match(settings, /<AiComputeWorkspace mode="cloud" \/>/);
   for (const capability of ["writing", "images", "video"]) assert.match(compute, new RegExp(`id: "${capability}"`));
-  for (const component of ["SageFastModelSetup", "AiRoutingPanel", "MediaRoutingPanel", "AiProviderSetupPanel"]) {
+  assert.match(settings, /<MediaRoutingPanel\b/);
+  for (const component of ["SageFastModelSetup", "AiRoutingPanel", "AiProviderSetupPanel"]) {
     assert.match(compute, new RegExp(`<${component}\\b`));
   }
+  assert.doesNotMatch(compute, /<MediaRoutingPanel\b/);
   assert.match(settings, /data-settings-section=\{activeSection\}/);
   assert.match(settings, /aria-current=\{activeSection === item\.id \? "page" : undefined\}/);
 });

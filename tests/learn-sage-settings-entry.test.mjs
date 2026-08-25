@@ -35,7 +35,7 @@ test("the standalone header exposes a dedicated lore-style Settings SVG and uses
   ]);
   assert.match(anchor, /function SettingsRelic/);
   assert.match(anchor, /\/assets\/workflow-relics\/settings\.svg/);
-  assert.match(anchor, /<a[\s\S]*href="\/\?workspace=settings"/);
+  assert.match(anchor, /href=\{sageSetupNeeded \? "\/\?workspace=settings&settings=sage-plan" : "\/\?workspace=settings"\}/);
   assert.doesNotMatch(anchor, /next\/link|<Link/);
   assert.match(anchor, /sageSetupNeeded \? "Setup AI" : "Settings"/);
   assert.match(anchor, /alertText\.includes\("quality local model"\)/);
@@ -71,6 +71,7 @@ test("workspace=settings opens an Overview-first compute setup inside the shared
   assert.match(settings, /href="\/\?workspace=learn">Return to LEARN/);
   assert.match(settings, /href="\/\?workspace=plan">Return to PLAN/);
   assert.match(settings, /case "local-compute":[\s\S]*<AiComputeWorkspace mode="local" \/>/);
+  assert.match(settings, /case "sage-plan":[\s\S]*<AiComputeWorkspace mode="local" focus="sage-plan" \/>/);
   assert.match(settings, /case "cloud-compute":[\s\S]*<AiComputeWorkspace mode="cloud" \/>/);
   assert.match(compute, /<SageFastModelSetup \/>/);
   assert.match(compute, /<AiRoutingPanel/);

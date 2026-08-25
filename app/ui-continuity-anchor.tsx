@@ -44,7 +44,7 @@ export default function UiContinuityAnchor() {
       data-ui-continuity-anchor="agent-settings"
       aria-label="Open Agent and Settings"
       title={sageSetupNeeded ? "Open Settings to configure local AI" : "Settings"}
-      href="/?workspace=settings"
+      href={sageSetupNeeded ? "/?workspace=settings&settings=sage-plan" : "/?workspace=settings"}
     >
       <SettingsRelic />
       <span>{sageSetupNeeded ? "Setup AI" : "Settings"}</span>

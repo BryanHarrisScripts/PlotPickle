@@ -79,8 +79,11 @@ test("#1377 preserves old Settings links while moving their destination into the
     read("app/settings/compute/ai-compute-workspace.tsx"),
   ]);
 
-  for (const legacy of ["settings-models", "settings-sage", "settings-plan", "settings-routing", "settings-ollama", "settings-images", "settings-video"]) {
+  for (const legacy of ["settings-models", "settings-routing", "settings-ollama", "settings-images", "settings-video"]) {
     assert.match(settings, new RegExp(`"${legacy}": "local-compute"`));
+  }
+  for (const legacy of ["settings-sage", "settings-plan"]) {
+    assert.match(settings, new RegExp(`"${legacy}": "sage-plan"`));
   }
   assert.match(settings, /"settings-comfyui": "comfyui"/);
   for (const legacy of ["settings-openai", "settings-minimax"]) {

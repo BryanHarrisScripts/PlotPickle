@@ -55,8 +55,8 @@ jobs:
       - name: Validate release security regressions
         run: node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs
 
-      - name: Validate structured Storyboard shot compatibility
-        run: node --test tests/issue-396-storyboard-exploration.test.mjs tests/issue-1165-structured-storyboard-shot.test.mjs
+      - name: Validate structured Storyboard direction and visual regression
+        run: node --test tests/issue-396-storyboard-exploration.test.mjs tests/issue-1165-structured-storyboard-shot.test.mjs tests/issue-1166-storyboard-blocking-advisories.test.mjs tests/visual-storyboard.test.mjs
 
       - name: Validate Casebook registry, real integrations, attended mode, Phase 3B3 faults, live outcome proof, evidence, semantic execution and existing repair-graph authority
         run: node --test tests/issue-1286-casebook-business-case-registry.test.mjs tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1236-casebook-live-verifiers.test.mjs tests/issue-1236-casebook-profile-isolation-live.test.mjs tests/issue-1236-casebook-phase3b3.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs

@@ -54,6 +54,7 @@ function CatalogCard({ item, sourceKind, onLoad }: {
         <div className={styles.meta}><span>{item.genre}</span><span>{item.format}</span></div>
         <h3>{item.title}</h3>
         <p>{item.description}</p>
+        {item.referenceLoader === "afterglow-v9-foundations" ? <small>Reference frontier: Foundations complete · later story detail remains reviewable or locked.</small> : null}
         <button className={styles.primaryButton} onClick={onLoad} type="button">{sourceKind === "example" ? "Load & Explore" : "Start from Preset"}</button>
       </div>
     </article>
@@ -116,6 +117,7 @@ export default function LibraryWorkspace() {
   const [pending, setPending] = useState<PendingLoad | null>(null);
   const [notice, setNotice] = useState("");
   const [importingPpf, setImportingPpf] = useState(false);
+  const [loadingReference, setLoadingReference] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -131,16 +133,34 @@ export default function LibraryWorkspace() {
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, []);
 
-  function confirmLoad() {
-    if (!pending) return;
+  async function confirmLoad() {
+    if (!pending || loadingReference) return;
+    setLoadingReference(true);
     try {
-      if (pending.kind === "story") switchActiveLibraryProject(pending.item.id);
-      else createLibraryWorkingCopy({ sourceProject: pending.item.project, sourceKind: pending.sourceKind, sourceId: pending.item.id, title: pending.item.title, genre: pending.item.genre, format: pending.item.format });
+      if (pending.kind === "story") {
+        switchActiveLibraryProject(pending.item.id);
+      } else {
+        let sourceProject = pending.item.project;
+        if (pending.item.referenceLoader === "afterglow-v9-foundations") {
+          const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
+          sourceProject = createAfterglowV9FoundationsReference();
+        }
+        createLibraryWorkingCopy({
+          sourceProject,
+          sourceKind: pending.sourceKind,
+          sourceId: pending.item.id,
+          title: pending.item.title,
+          genre: pending.item.genre,
+          format: pending.item.format,
+        });
+      }
       setPending(null);
       openActiveProject();
     } catch (error) {
       setPending(null);
       setNotice(error instanceof Error ? error.message : "PlotPickle could not switch stories.");
+    } finally {
+      setLoadingReference(false);
     }
   }
 
@@ -249,7 +269,8 @@ export default function LibraryWorkspace() {
           <section aria-labelledby="library-load-title" aria-modal="true" className={styles.dialog} role="dialog">
             <p className={styles.eyebrow}>Safe project switch</p><h2 id="library-load-title">Load this project?</h2>
             <p>Your current work will be saved as a local story before PlotPickle switches projects.</p><strong>{pending.item.title}</strong>
-            <div><button className={styles.secondaryButton} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} onClick={confirmLoad} type="button">Save &amp; Switch</button></div>
+            {pending.kind === "catalog" && pending.item.referenceLoader === "afterglow-v9-foundations" ? <small>The complete v9 reference is loaded only after you confirm, keeping the screenplay and reference evidence off PlotPickle’s startup path.</small> : null}
+            <div><button className={styles.secondaryButton} disabled={loadingReference} onClick={() => setPending(null)} type="button">Keep Current Story</button><button className={styles.primaryButton} disabled={loadingReference} onClick={() => void confirmLoad()} type="button">{loadingReference ? "Loading Reference…" : "Save & Switch"}</button></div>
           </section>
         </div>
       ) : null}

@@ -186,6 +186,7 @@ test("#1416 adapter derives work from live Foundations and reuses Context, Respo
     'verificationMode: "writer-approval"',
     "maxCloudCostUsd: 0",
     "exclusiveResources: item.targetRefs",
+    "proposal-container",
     "current Foundations frontier",
   ]) assert.ok(adapter.includes(contract), `Story Workflow adapter is missing reuse-first contract: ${contract}`);
 
@@ -198,6 +199,43 @@ test("#1416 adapter derives work from live Foundations and reuses Context, Respo
   assert.doesNotMatch(adapter, /BUZZ|buzz-managed|\/rooms\/|channels/i, "Phase 2 Story Workflow must not depend on BUZZ execution authority");
   assert.doesNotMatch(adapter, /saveActiveLibraryProject|writeProject|canon-write|ppf-direct-write/i, "Story workers must not write canon directly");
   assert.doesNotMatch(adapter, /LangGraph|Hermes/i, "Phase 2 must not introduce another orchestration framework");
+});
+
+test("#1416 product path starts bounded local Runs and stores only reviewable PLAN proposals", async () => {
+  const [panel, gateway, coverage] = await Promise.all([
+    read("modules/story-workflow/ui/foundations-story-workflow-panel.tsx"),
+    read("build/responsibility-run-gateway.ts"),
+    read("modules/build/ui/foundations-story-coverage.tsx"),
+  ]);
+
+  for (const contract of [
+    'fetch("/api/responsibility-runs"',
+    'action: "create"',
+    'action: "start"',
+    'action: "proposal-ready"',
+    'fetch("/api/writing-assistant/chat"',
+    'provider: "local"',
+    'modelRole: "quality"',
+    'agentId: "foundations-planner"',
+    "selectIndependent(queued, 2)",
+    'type: "foundations.proposal.store"',
+    "Nothing was accepted automatically",
+  ]) assert.ok(panel.includes(contract), `Story Workflow product path is missing: ${contract}`);
+  assert.doesNotMatch(panel, /foundations\.proposal\.accept|provider:\s*"openai"|provider:\s*"minimax"/,
+    "Story Workflow must stop at a reviewable proposal and must not silently use paid cloud");
+
+  for (const contract of [
+    "ResponsibilityRunContextRef",
+    'action === "start"',
+    "prepareResponsibilityRun",
+    "beginResponsibilityAttempt",
+    'action === "proposal-ready"',
+    "addResponsibilityArtifact",
+    "requestWriterApproval",
+  ]) assert.ok(gateway.includes(contract), `Responsibility Run gateway is missing Story Workflow lifecycle support: ${contract}`);
+
+  assert.match(coverage, /FoundationsStoryWorkflowPanel/);
+  assert.match(coverage, /<FoundationsStoryWorkflowPanel curriculum=\{curriculum\} project=\{project\} \/>/);
 });
 
 test("#1416 keeps the Afterglow reference lazy and uses Phase 1 as stable workflow input", async () => {

@@ -99,6 +99,7 @@
     "test:ppf-relationship-assets": "node --test tests/issue-194-ppf-relationship-assets.test.mjs",
     "test:storyworld-map": "node --test tests/issue-195-storyworld-map.test.mjs",
     "test:managed-buzz-runtime": "node --test tests/issue-210-managed-buzz-runtime.test.mjs",
+    "test:release-policy": "node --test tests/issue-1225-release-policy.test.mjs",
     "test:core-consolidation": "node --test tests/core-consolidation.test.mjs",
     "audit:public-readiness": "node scripts/public-readiness.mjs",
     "test:graphic-novel-story-brief": "node --test tests/issue-282-graphic-novel-story-brief.test.mjs",

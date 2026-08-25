@@ -23,11 +23,11 @@ This matches PlotPickle’s intended collaborative model more accurately than ap
 
 ## Official distribution model
 
-The official PlotPickle edition is distributed as a downloadable package that runs a private local server on the user’s own computer.
+The official PlotPickle edition is distributed as a downloadable package that runs a private local server on the Human's own computer.
 
 The official project does not require an online PlotPickle account or an official cloud-hosted PlotPickle service.
 
-A downstream user may self-host PlotPickle on compatible infrastructure, including a web server, Plesk installation, or WordPress-connected architecture, subject to the applicable licences and notices.
+PlotPickle includes an advanced `server-network` mode. A downstream operator may configure it on infrastructure they control, subject to the applicable licences, deployment-security requirements, and accurate operator-supplied privacy and service terms. The official project does not promise compatibility with a particular hosting control panel or CMS.
 
 ## Server operators
 
@@ -45,7 +45,7 @@ Server operators do not gain ownership of user stories merely by providing hosti
 
 ## User contributions and ownership
 
-A user retains copyright in original feedback text, code, artwork, documentation, or other copyrightable material they create.
+A contributor retains any copyright and other rights they hold in original feedback text, code, artwork, documentation, or other material they create.
 
 General ideas, facts, methods, short phrases, and suggestions may not themselves qualify for copyright protection. When a contribution contains protectable original expression, the contributor retains copyright while licensing that contribution under the applicable PlotPickle licence.
 
@@ -67,11 +67,13 @@ A person who shares an adapted version of PlotPickle’s CC-licensed instruction
 
 Attribution must not imply endorsement.
 
-## User-created stories
+## User-created and AI-assisted work
 
 PlotPickle’s licences do not attach themselves to the content produced with the tool.
 
-A user may choose traditional all-rights-reserved copyright, a Creative Commons licence, a collaboration agreement, a studio contract, or another lawful arrangement for their own story. PlotPickle does not make that decision for the user.
+A Human may choose traditional all-rights-reserved copyright, a Creative Commons licence, a collaboration agreement, a studio contract, or another lawful arrangement for rights they hold in their own story. PlotPickle does not make that decision for the Human.
+
+PlotPickle does not determine or promise whether any particular material, including AI-assisted output, qualifies for copyright protection. Rights may depend on Human authorship, source material, provider terms, collaboration agreements, and applicable law.
 
 ## Collaboration records
 

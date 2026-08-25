@@ -92,7 +92,9 @@ test("registers the legal route and preserves ownership and server-use guidance"
     "GNU Affero General Public License",
     "Creative Commons Attribution-ShareAlike 4.0",
     "Server operator checklist",
-    "Plesk or WordPress",
+    "does not provide a hosted PlotPickle SaaS",
+    "Local-first privacy",
+    "BUZZ Community conduct",
   ]) {
     assert.ok(source.includes(phrase), `Legal route source is missing: ${phrase}`);
   }

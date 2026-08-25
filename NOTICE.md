@@ -22,7 +22,7 @@ When practical, include a link to the official PlotPickle source repository and 
 
 ## User-created work
 
-Stories, characters, dialogue, project files, images, notes, and other creative material entered by users remain owned by those users or their respective rights holders. PlotPickle does not claim ownership merely because material is created, stored, imported, or exported through the application.
+Humans retain any copyright and other rights they hold in stories, characters, dialogue, project files, images, notes, and other creative material entered into PlotPickle. PlotPickle does not claim ownership merely because material is created, stored, imported, or exported through the application, and it does not promise that every output, including AI-assisted output, qualifies for copyright protection.
 
 ## Modified editions
 
@@ -32,4 +32,4 @@ A modified version made available to users over a network must satisfy the sourc
 
 ## Third-party notices
 
-Third-party software and assets remain governed by their respective licences and notices. Dependency licence information can be reviewed through the relevant package metadata and source distributions.
+Third-party software and assets remain governed by their respective licences and notices. Direct and transitive dependency licence information can be reviewed through `package-lock.json`, the relevant package metadata and source distributions. The optional pinned BUZZ runtime notice is retained in `runtime/buzz/LICENSE.buzz.txt`.

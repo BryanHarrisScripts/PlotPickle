@@ -1,4 +1,5 @@
 import { cloneProject, normalizePlotPickleProject, type PlotPickleProject } from "../project";
+import { PLOTPICKLE_VERSION } from "../../runtime/application-version";
 import {
   migrateLegacyAssetReferences,
   portableAssetManifestEntries,
@@ -70,7 +71,7 @@ function assertPortableManifestSources(assets: PortableAssetManifestEntry[]) {
 
 export function createPortableProjectFile(
   project: PlotPickleProject,
-  applicationVersion = "1.0.0-rc.3",
+  applicationVersion = PLOTPICKLE_VERSION,
   assets: PortableAssetManifestEntry[] = [],
   createdAt = new Date().toISOString(),
 ): PortablePlotPickleFile {

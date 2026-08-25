@@ -10,6 +10,7 @@ import {
 import { createProjectFromScreenplay } from "./screenplay-import";
 import { screenplayFormatForFile } from "./screenplay";
 import { analyzeScreenplayText } from "./pdf-screenplay-import";
+import { PLOTPICKLE_VERSION } from "../../runtime/application-version";
 
 export type ScreenplayToPpfInput = {
   readonly fileName: string;
@@ -70,7 +71,7 @@ export function convertScreenplayTextToPpf(input: ScreenplayToPpfInput): Screenp
   const project = createProjectFromScreenplay(screenplay);
   const portable = createPortableProjectFile(
     project,
-    input.applicationVersion || "1.0.0-rc.3",
+    input.applicationVersion || PLOTPICKLE_VERSION,
     [],
     importedAt,
   );

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
+import { PLOTPICKLE_VERSION } from "@/lib/runtime/application-version";
 import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,
@@ -197,6 +198,7 @@ function NodeControl() {
       <header className={styles.nodePanelHeader}><div><small>LOCAL NODE</small><strong>{node?.node.shortId || "PlotPickle Node"}</strong></div><button type="button" onClick={() => setOpen(false)} aria-label="Close Node panel">Close</button></header>
       <dl className={styles.nodeRows}>
         <div><dt>Full Node ID</dt><dd className={styles.nodeId}>{node?.node.id || "Loading…"}</dd></div>
+        <div><dt>Version</dt><dd>{PLOTPICKLE_VERSION}</dd></div>
         <div><dt>Lifecycle</dt><dd>{lifecycle}</dd></div>
         <div><dt>Active Human</dt><dd>{profile?.profile?.displayName || "Locked"}</dd></div>
         <div><dt>Current project</dt><dd>{projectTitle}</dd></div>

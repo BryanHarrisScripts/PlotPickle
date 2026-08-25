@@ -12,6 +12,7 @@ import {
 } from "../project-modules";
 import { buildStoryDependencies, relationshipIndexFingerprint } from "../story/story-dependencies";
 import { buildCanonBinder } from "../canon/canon-binder";
+import { PLOTPICKLE_VERSION } from "../../runtime/application-version";
 import { migrateLegacyAssetReferences } from "./project-assets";
 
 export const PROJECT_FOLDER_FORMAT = "plotpickle-project" as const;
@@ -67,7 +68,7 @@ export function projectFolderName(project: PlotPickleProject) {
   return safeModuleStem(project.metadata.title, "untitled-story");
 }
 
-export function createProjectFolder(project: PlotPickleProject, applicationVersion = "1.0.0-rc.3") {
+export function createProjectFolder(project: PlotPickleProject, applicationVersion = PLOTPICKLE_VERSION) {
   project = normalizePlotPickleProject(project) ?? migrateLegacyAssetReferences(project);
   const imports = project.screenplay.importedAt ? [{
     id: `import-${project.id}`,

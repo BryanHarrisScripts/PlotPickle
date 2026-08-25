@@ -1,3 +1,5 @@
+import { PLOTPICKLE_VERSION } from "../../runtime/application-version";
+
 export const STORY_PROJECT_MANIFEST_PATH = "plotpickle-project.json" as const;
 export const STORY_PROJECT_FORMAT = "plotpickle-story-project" as const;
 export const LEGACY_STORY_PROJECT_FORMAT_VERSION = "1.0.0" as const;
@@ -158,7 +160,7 @@ function currentManifest(input: StoryProjectManifestInput, timestamp: string): S
     title,
     createdAt: timestamp,
     updatedAt: timestamp,
-    createdWith: `PlotPickle ${input.applicationVersion || "1.0.0-rc.3"}`,
+    createdWith: `PlotPickle ${input.applicationVersion || PLOTPICKLE_VERSION}`,
     repository: {
       owner: input.owner.trim(),
       name: repository,

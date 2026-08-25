@@ -7,7 +7,9 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function repositoryContract() {
-  const compiled = stripTypeScriptTypes(await source("lib/projects/persistence/story-project-repository.ts"), { mode: "transform" });
+  const raw = await source("lib/projects/persistence/story-project-repository.ts");
+  const isolated = raw.replace(/import \{ PLOTPICKLE_VERSION \} from "\.\.\/\.\.\/runtime\/application-version";\n/, 'const PLOTPICKLE_VERSION = "test-current-version";\n');
+  const compiled = stripTypeScriptTypes(isolated, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 

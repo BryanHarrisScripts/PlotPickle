@@ -16,30 +16,37 @@ test("issue #1338 proves the current BUILD route mounts the modular Foundations 
   assert.match(workspace, /<FoundationsStoryCoverage curriculum=\{curriculum\} project=\{project\} \/>/);
 });
 
-test("issue #1338 derives current story coverage from canonical PPF answers and proposals", async () => {
+test("issue #1338/#1410 derives current story coverage from canonical PPF answers, explicit reference provenance and proposals", async () => {
   const model = await source("modules/build/foundations-story-coverage.ts");
   for (const contract of [
     "buildFoundationPlanLessons",
     "isUsableFoundationAnswer",
     'state: "defined"',
+    'state: "observed"',
     'state: "emerging"',
     'state: "missing"',
     "lessonState?.answers[field.id]",
     "lessonState?.proposal?.values[field.id]",
-    "Math.round((defined / total) * 100)",
+    "referenceFixture",
+    "reference-defined",
+    "const supported = defined + observed",
+    "Math.round((supported / total) * 100)",
   ]) assert.ok(model.includes(contract), `Live Story Coverage is missing: ${contract}`);
-  assert.doesNotMatch(model, /completedLessonIds|visualArtifacts|acceptedVisualArtifactIds|lib\/projects|screenplay/);
+  assert.doesNotMatch(model, /completedLessonIds|visualArtifacts|acceptedVisualArtifactIds|lib\/projects/);
 });
 
-test("issue #1338 keeps draft and imported proposals non-canonical and does not inflate coverage", async () => {
+test("issue #1338/#1410 keeps proposals non-canonical while allowing direct observed reference evidence to count as supported", async () => {
   const model = await source("modules/build/foundations-story-coverage.ts");
   assert.match(model, /A draft proposal exists, but it has not become a saved story decision in the canonical PPF/);
-  assert.match(model, /const total = defined \+ emerging \+ missing/);
-  assert.match(model, /percent: total \? Math\.round\(\(defined \/ total\) \* 100\) : 0/);
+  assert.match(model, /const total = defined \+ observed \+ emerging \+ missing/);
+  assert.match(model, /const supported = defined \+ observed/);
+  assert.match(model, /percent: total \? Math\.round\(\(supported \/ total\) \* 100\) : 0/);
   assert.doesNotMatch(model, /\(defined \+ emerging\) \/ total/);
+  assert.match(model, /Synthetic reference decision · not screenplay evidence/,
+    "synthetic fixture decisions must remain visibly distinct from observed source evidence");
 });
 
-test("issue #1338 exposes visible Story Coverage and 24/96 explainability on the live BUILD screen", async () => {
+test("issue #1338/#1410 exposes visible Story Coverage and 24/96 explainability on the live BUILD screen", async () => {
   const [component, css, mapComponent, mapCss, mapModel] = await Promise.all([
     source("modules/build/ui/foundations-story-coverage.tsx"),
     source("modules/build/ui/foundations-story-coverage.module.css"),
@@ -50,10 +57,12 @@ test("issue #1338 exposes visible Story Coverage and 24/96 explainability on the
   for (const contract of [
     "Story Coverage",
     "Defined",
+    "Observed",
     "Emerging",
     "Missing",
     'data-story-coverage="live-foundations"',
-    "Saved Human-approved decisions",
+    "explicit reference-fixture decisions",
+    "Directly supported by immutable reference/source evidence",
     "Draft/import proposals awaiting a decision",
     "No usable story support yet",
     "decision.reason",
@@ -63,7 +72,7 @@ test("issue #1338 exposes visible Story Coverage and 24/96 explainability on the
     "generated wireframe frames",
     "<ProgressiveStoryMap project={project} />",
   ]) assert.ok(component.includes(contract), `Live BUILD evidence UI is missing: ${contract}`);
-  for (const contract of ["panel", "score", "summary", "lessonGrid", "decision", "@media (forced-colors: active)"]) {
+  for (const contract of ["panel", "score", "summary", "lessonGrid", "decision", 'data-state="observed"', "@media (forced-colors: active)"]) {
     assert.ok(css.includes(contract), `Live BUILD Story Coverage styling is missing: ${contract}`);
   }
   for (const contract of [

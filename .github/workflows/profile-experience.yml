@@ -17,6 +17,7 @@ on:
       - "build/profile-request-context.ts"
       - "build/startup/**"
       - "scripts/windows-server-smoke.mjs"
+      - "Start-PlotPickle.bat"
       - "vite.config.ts"
       - "public/assets/workflow-relics/library.svg"
       - "public/assets/workflow-relics/profile.svg"
@@ -55,10 +56,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js 22.13
+      - name: Use Node.js 24.19
         uses: actions/setup-node@v4
         with:
-          node-version: "22.13.0"
+          node-version: "24.19.0"
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund

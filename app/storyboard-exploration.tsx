@@ -4,6 +4,7 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { VisualWritingTarget } from "@/lib/visual-writing-session";
 import {
   buildStoryboardFrameDirection,
+  storyboardAdvisoryFindingsForFrame,
   storyboardApprovalWarnings,
   storyboardFramesForTarget,
   storyboardShotSummary,
@@ -16,12 +17,14 @@ export default function StoryboardExploration({
   onAddFrame,
   onApprove,
   onExplore,
+  onAcknowledgeAdvisory,
 }: {
   project: PlotPickleProject;
   target: VisualWritingTarget;
   onAddFrame: (frame: StoryboardFrameCandidate) => void;
   onApprove: (frameId: string) => void;
   onExplore?: (target: VisualWritingTarget) => void;
+  onAcknowledgeAdvisory?: (frameId: string, findingId: string, reason: string) => void;
 }) {
   const direction = buildStoryboardFrameDirection(project, target);
   const frames = storyboardFramesForTarget(project, target);
@@ -42,6 +45,12 @@ export default function StoryboardExploration({
       createdAt: now,
       updatedAt: now,
     });
+  };
+
+  const acknowledgeAdvisory = (frameId: string, findingId: string) => {
+    if (!onAcknowledgeAdvisory) return;
+    const reason = window.prompt("Why is this Storyboard continuity exception intentional?")?.trim() || "";
+    if (reason) onAcknowledgeAdvisory(frameId, findingId, reason);
   };
 
   return (
@@ -80,6 +89,7 @@ export default function StoryboardExploration({
               <ul>{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
             </div>
           ) : <p className="field-help">No continuity conflicts block approval.</p>}
+          <p className="field-help">Shot advisories are non-blocking. Intentional axis, eyeline or screen-direction exceptions can be acknowledged with a short reason.</p>
         </section>
       </div>
 
@@ -87,21 +97,41 @@ export default function StoryboardExploration({
         <h3>Alternate frames</h3>
         {frames.length ? (
           <div className="candidate-grid">
-            {frames.map((frame) => (
-              <article key={frame.id} className={`candidate-card candidate-card-${frame.status}`} tabIndex={0}>
-                <div>
-                  <strong>{frame.sourceKind === "manual-import" ? "Manual image" : "Generated frame"}</strong>
-                  <span>{frame.status}</span>
-                </div>
-                <p>{frame.sourceLabel || storyboardShotSummary(frame.direction)}</p>
-                <small>{frame.direction.storyPurpose}</small>
-                {frame.status === "candidate" ? (
-                  <button type="button" className="small-button" disabled={warnings.length > 0} onClick={() => onApprove(frame.id)}>Approve frame</button>
-                ) : null}
-                {frame.supersedesCandidateId ? <small>Supersedes {frame.supersedesCandidateId}</small> : null}
-                {frame.supersededByCandidateId ? <small>Superseded by {frame.supersededByCandidateId}</small> : null}
-              </article>
-            ))}
+            {frames.map((frame) => {
+              const advisories = storyboardAdvisoryFindingsForFrame(project, frame.id);
+              return (
+                <article key={frame.id} className={`candidate-card candidate-card-${frame.status}`} tabIndex={0}>
+                  <div>
+                    <strong>{frame.sourceKind === "manual-import" ? "Manual image" : "Generated frame"}</strong>
+                    <span>{frame.status}</span>
+                  </div>
+                  <p>{frame.sourceLabel || storyboardShotSummary(frame.direction)}</p>
+                  <small>{frame.direction.storyPurpose}</small>
+                  {advisories.length ? (
+                    <div className="continuity-warning" role="status" aria-label={`Storyboard advisories for ${frame.direction.structuredShot.shotId}`}>
+                      <strong>Advisory checks</strong>
+                      <ul>
+                        {advisories.map((finding) => (
+                          <li key={finding.id}>
+                            <span>{finding.message}</span>
+                            {finding.overridden ? (
+                              <small>Intentional exception: {finding.overrideReason}</small>
+                            ) : onAcknowledgeAdvisory ? (
+                              <button type="button" className="text-button" onClick={() => acknowledgeAdvisory(frame.id, finding.id)}>Acknowledge intentionally</button>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {frame.status === "candidate" ? (
+                    <button type="button" className="small-button" disabled={warnings.length > 0} onClick={() => onApprove(frame.id)}>Approve frame</button>
+                  ) : null}
+                  {frame.supersedesCandidateId ? <small>Supersedes {frame.supersedesCandidateId}</small> : null}
+                  {frame.supersededByCandidateId ? <small>Superseded by {frame.supersededByCandidateId}</small> : null}
+                </article>
+              );
+            })}
           </div>
         ) : <p>No frame candidates yet. Explore with a configured image route or add a manual image; both enter the same review history.</p>}
       </section>

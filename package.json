@@ -103,6 +103,7 @@
     "test:release-policy": "node --test tests/issue-1225-release-policy.test.mjs",
     "test:core-consolidation": "node --test tests/core-consolidation.test.mjs",
     "audit:public-readiness": "node scripts/public-readiness.mjs",
+    "story-pickles:prepare-mint": "node scripts/prepare-story-pickle-mint-package.mjs",
     "test:graphic-novel-story-brief": "node --test tests/issue-282-graphic-novel-story-brief.test.mjs",
     "test:connection-dashboard-fixes": "node --test tests/issue-285-connection-dashboard-navigation-fixes.test.mjs",
     "test:graphic-novel-phase-7b": "node --test tests/issue-286-graphic-novel-phase-7b.test.mjs",

@@ -3,10 +3,32 @@
 import { useEffect, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { agentProfileById, type AgentProfile } from "../lib/agents/agent-profiles";
+import { STORY_PICKLE_PROFILE_IDS } from "../lib/buzz/story-pickle-agents";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./settings-helper-directory.module.css";
 
+type StoryPickleDownload = {
+  readonly profileId: string;
+  readonly fileName: string;
+  readonly available: boolean;
+  readonly status: string;
+  readonly downloadUrl: string | null;
+};
+
+type StoryPickleDownloadStatus = {
+  readonly individuals: readonly StoryPickleDownload[];
+  readonly bundle: {
+    readonly fileName: string;
+    readonly available: boolean;
+    readonly status: string;
+    readonly downloadUrl: string | null;
+  };
+};
+
+const STORY_PICKLE_IDS = new Set<string>(STORY_PICKLE_PROFILE_IDS);
+
 function cannotDo(profile: AgentProfile) {
+  if (STORY_PICKLE_IDS.has(profile.id)) return `${profile.displayName} can use only story material you supply in its BUZZ conversation; it cannot read PlotPickle projects, memory or canon, and every suggestion remains yours to accept.`;
   if (profile.id === "sage-brinewick") return "Sage can advise and propose, but cannot silently change accepted story canon.";
   if (profile.forbiddenCapabilities.includes("merge-authority")) return `${profile.displayName} cannot merge code or change repository state.`;
   if (profile.forbiddenCapabilities.includes("game-state-write")) return `${profile.displayName} cannot change Wyrmwood state, progress or rewards.`;
@@ -32,7 +54,23 @@ function requestedHelperId() {
 
 type HelperAgent = (typeof PLOTPICKLE_COMMUNITY_EXTENSIONS.agents)[number];
 
-function HelperCard({ agent, expanded = false }: { readonly agent: HelperAgent; readonly expanded?: boolean }) {
+function StoryPickleDownloadControl({ profileId, download }: { readonly profileId: string; readonly download?: StoryPickleDownload }) {
+  if (!STORY_PICKLE_IDS.has(profileId)) return null;
+  if (!download?.available || !download.downloadUrl) {
+    return <p className={styles.mintStatus}>Official BUZZ card awaiting verified mint</p>;
+  }
+  return <a className={styles.downloadAction} download={download.fileName} href={download.downloadUrl}>Download verified BUZZ card</a>;
+}
+
+function HelperCard({
+  agent,
+  expanded = false,
+  download,
+}: {
+  readonly agent: HelperAgent;
+  readonly expanded?: boolean;
+  readonly download?: StoryPickleDownload;
+}) {
   const profile = agentProfileById(agent.profileId);
   if (!profile) return null;
   return (
@@ -71,6 +109,7 @@ function HelperCard({ agent, expanded = false }: { readonly agent: HelperAgent; 
           <p>{agent.publicBio}</p>
           <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
         </details> : null}
+        <StoryPickleDownloadControl download={download} profileId={agent.profileId} />
       </div>
     </article>
   );
@@ -79,6 +118,7 @@ function HelperCard({ agent, expanded = false }: { readonly agent: HelperAgent; 
 export default function SettingsHelperDirectory() {
   const { agents, helpGroups } = PLOTPICKLE_COMMUNITY_EXTENSIONS;
   const [selectedHelperId, setSelectedHelperId] = useState("");
+  const [storyPickleDownloads, setStoryPickleDownloads] = useState<StoryPickleDownloadStatus | null>(null);
 
   useEffect(() => {
     const sync = () => setSelectedHelperId(requestedHelperId());
@@ -87,6 +127,18 @@ export default function SettingsHelperDirectory() {
     return () => window.removeEventListener("popstate", sync);
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/story-pickle-downloads", { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((status) => {
+        if (status) setStoryPickleDownloads(status as StoryPickleDownloadStatus);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+
+  const downloadByProfileId = new Map(storyPickleDownloads?.individuals.map((download) => [download.profileId, download]) ?? []);
   const selectedAgent = selectedHelperId ? agents.find((agent) => agent.profileId === selectedHelperId) ?? null : null;
 
   if (selectedAgent) {
@@ -103,7 +155,7 @@ export default function SettingsHelperDirectory() {
           </nav>
         </header>
         <section className={styles.individual} aria-label={`${selectedAgent.displayName} help`}>
-          <HelperCard agent={selectedAgent} expanded />
+          <HelperCard agent={selectedAgent} download={downloadByProfileId.get(selectedAgent.profileId)} expanded />
         </section>
       </div>
     );
@@ -111,7 +163,7 @@ export default function SettingsHelperDirectory() {
 
   return (
     <div className={styles.help} data-settings-help="meet-the-helpers">
-      <header className={styles.hero}>
+      <header className={`${styles.hero} ${styles.directoryHero}`}>
         <div>
           <p className={styles.eyebrow}>HELP · Meet the Helpers</p>
           <h2 id="settings-help-title">Meet the PlotPickle helpers.</h2>
@@ -119,11 +171,8 @@ export default function SettingsHelperDirectory() {
             These are the same official personalities you meet throughout PlotPickle and PlotPicklePlayhouse. Pick the person whose job matches what you need; rooms may have several helpers working together.
           </p>
         </div>
-        <nav className={styles.helpNav} aria-label="Help pages">
+        <nav className={styles.helpNav} aria-label="Current Help page">
           <a href="#settings-help" aria-current="page">Meet the Helpers</a>
-          <span aria-disabled="true">Getting Started · coming later</span>
-          <span aria-disabled="true">AI Setup · coming later</span>
-          <span aria-disabled="true">Projects & Backups · coming later</span>
         </nav>
       </header>
 
@@ -135,9 +184,17 @@ export default function SettingsHelperDirectory() {
             <header className={styles.groupHeader}>
               <h3 id={`helper-group-${group.id}`}>{group.label}</h3>
               <span>{group.description}</span>
+              {group.id === "writing-story" ? (
+                <div className={styles.distribution}>
+                  {storyPickleDownloads?.bundle.available && storyPickleDownloads.bundle.downloadUrl
+                    ? <a className={styles.bundleAction} download={storyPickleDownloads.bundle.fileName} href={storyPickleDownloads.bundle.downloadUrl}>Download all three verified Story Pickles</a>
+                    : <span className={styles.bundleStatus}>All-three BUZZ bundle awaiting the three official verified mints.</span>}
+                  <span className={styles.distributionNote}>Each BUZZ import creates a fresh community-local Agent identity controlled by that community owner. No signer, private memory, previous conversation or PlotPickle project authority transfers with a card.</span>
+                </div>
+              ) : null}
             </header>
             <div className={styles.grid}>
-              {groupAgents.map((agent) => <HelperCard agent={agent} key={agent.profileId} />)}
+              {groupAgents.map((agent) => <HelperCard agent={agent} download={downloadByProfileId.get(agent.profileId)} key={agent.profileId} />)}
             </div>
           </section>
         );

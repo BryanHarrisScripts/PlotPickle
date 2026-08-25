@@ -27,7 +27,7 @@ test("#1028 public Help directory is contributed by the Community plugin without
   const helperIds = playhouse.agents.map((helper) => helper.profileId).sort();
   assert.equal(new Set(helperIds).size, helperIds.length, "public helper ids must be unique");
   assert.deepEqual(helperIds, publicIds, "Help must follow the canonical public Agent roster");
-  assert.equal(helperIds.length, 12);
+  assert.equal(helperIds.length, 15);
 
   for (const helper of playhouse.agents) {
     assert.deepEqual(

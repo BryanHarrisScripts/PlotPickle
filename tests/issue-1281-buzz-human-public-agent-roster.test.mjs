@@ -6,6 +6,9 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
 const PUBLIC_AGENT_IDS = [
+  "knot-pickle",
+  "thread-pickle",
+  "heart-pickle",
   "sage-brinewick",
   "tamsin-hearthquill",
   "master-oaken-vague",
@@ -36,7 +39,7 @@ function containsSecretField(value) {
       || containsSecretField(child));
 }
 
-test("#1281 PlotPicklePlayhouse has exactly twelve official public Agent presentations", async () => {
+test("#1281/#1399 PlotPicklePlayhouse has exactly fifteen official public Agent presentations", async () => {
   const publicConfig = await readJson("config/agent-profile-extensions/public.json");
   assert.equal(publicConfig.schemaVersion, 1);
   assert.deepEqual(Object.keys(publicConfig.profiles), PUBLIC_AGENT_IDS);
@@ -79,7 +82,7 @@ test("#1281 connected BUZZ private key is explicitly Human authority and never a
   assert.match(gateway, /configured public signer, never by Human ownership/);
   assert.doesNotMatch(gateway, /officialBuzzIdentity\.(?:privateKey|private_key|nsec|secret|signingKey)/);
 
-  assert.match(ui, /Your connected BUZZ account remains your Human identity/);
+  assert.match(ui, /Your BUZZ account always remains your Human identity/);
   assert.match(ui, /The connected Human signer is never an Agent signer/);
 });
 
@@ -89,8 +92,8 @@ test("#1281 Community surfaces only canonical public personalities and BUZZ stat
     read("build/buzz-agent-roster-gateway.ts"),
   ]);
 
-  assert.match(ui, /filter\(\(agent\) => Boolean\(agent\.publicBio && agent\.avatarRef\)\)/);
-  assert.match(ui, /agent\.publicBio \|\| agent\.summary/);
+  assert.match(ui, /filter\(\(agent\) => Boolean\(publicAgentByProfileId\(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent\.id\)\)\)/);
+  assert.match(ui, /presentation\?\.shortBio \|\| agent\.publicBio \|\| agent\.summary/);
   assert.doesNotMatch(ui, /PRIVATE_PROJECT_AGENT_IDS/);
   assert.match(gateway, /BUZZ_GUILDHALL_ACTORS\.filter\(\(actor\) => Boolean\(agentProfileById\(actor\.id\)\?\.publicPresentation\)\)/);
 });

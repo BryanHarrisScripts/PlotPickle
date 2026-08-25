@@ -16,6 +16,15 @@
   background: linear-gradient(145deg, rgba(53, 201, 184, 0.07), rgba(200, 148, 70, 0.045));
 }
 
+.directoryHero {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.directoryHero .helpNav {
+  width: fit-content;
+  min-width: 190px;
+}
+
 .eyebrow,
 .title {
   margin: 0 0 7px;
@@ -203,6 +212,66 @@
   color: #89837a;
   font-size: 10px;
   line-height: 1.5;
+}
+
+.mintStatus,
+.bundleStatus {
+  color: #918a80;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.mintStatus {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(113, 111, 103, 0.22);
+}
+
+.bundleStatus {
+  margin-top: 6px;
+}
+
+.distribution {
+  display: grid;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+.distributionNote {
+  max-width: 760px;
+  color: #aaa399;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.downloadAction,
+.bundleAction {
+  display: inline-block;
+  width: fit-content;
+  border: 1px solid rgba(53, 201, 184, 0.52);
+  border-radius: 7px;
+  background: rgba(53, 201, 184, 0.08);
+  color: #dffaf6;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.downloadAction {
+  margin-top: 14px;
+  padding: 9px 11px;
+}
+
+.bundleAction {
+  margin-top: 8px;
+  padding: 8px 10px;
+}
+
+.downloadAction:focus-visible,
+.bundleAction:focus-visible {
+  outline: 2px solid #35c9b8;
+  outline-offset: 3px;
 }
 
 @media (max-width: 1080px) {

@@ -36,13 +36,13 @@ function webpDimensions(buffer) {
 
 const activePortraitSources = [portraitUi, portraitCss, settingsUi, settingsCss, communityUi, marqueeUi, marqueeCss].join("\n");
 
-test("#1106 keeps one shared painterly portrait authority for all 17 known roles while Help selects 12 public Agents", () => {
+test("#1106/#1399 keeps one shared painterly portrait authority for all 20 known roles while Help selects 15 public Agents", () => {
   const portraitIds = [...portraitUi.matchAll(/\{ id: "([a-z0-9-]+)", displayName:/g)].map((match) => match[1]);
-  assert.equal(portraitIds.length, 17);
-  assert.equal(new Set(portraitIds).size, 17);
-  assert.equal(playhouse.agents.length, 12);
+  assert.equal(portraitIds.length, 20);
+  assert.equal(new Set(portraitIds).size, 20);
+  assert.equal(playhouse.agents.length, 15);
   for (const helper of playhouse.agents) assert.ok(portraitIds.includes(helper.profileId), `${helper.profileId} is missing from the portrait component registry`);
-  const atlasCoordinates = [...portraitUi.matchAll(/column: ([0-4]), row: ([0-3])/g)].map((match) => `${match[1]},${match[2]}`);
+  const atlasCoordinates = [...portraitUi.matchAll(/column: ([0-4]), row: ([0-3]) \}/g)].map((match) => `${match[1]},${match[2]}`);
   assert.equal(atlasCoordinates.length, 17); assert.equal(new Set(atlasCoordinates).size, 17);
   assert.doesNotMatch(activePortraitSources, /\/assets\/helpers\/16bit\//i); assert.doesNotMatch(activePortraitSources, /image-rendering:\s*pixelated/i);
 });

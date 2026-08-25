@@ -17,6 +17,7 @@ import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-worksp
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
 import LibraryWorkspace from "../modules/library/ui/library-workspace";
+import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./community-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
@@ -184,11 +185,18 @@ export default function Home() {
             onOpenPlan={() => navigateGuided("plan", "world")}
           />
         ) : (
-          <FoundationsBuildWorkspace
-            curriculum={plotPickleCurriculum}
-            onOpenDashboard={() => navigateWorkspace("dashboard")}
-            onOpenPlan={() => navigateGuided("plan", "foundations")}
-          />
+          <>
+            <FoundationsStoryWorkflowPanel
+              curriculum={plotPickleCurriculum}
+              project={loadFoundationProject()}
+              onOpenPlan={() => navigateGuided("plan", "foundations")}
+            />
+            <FoundationsBuildWorkspace
+              curriculum={plotPickleCurriculum}
+              onOpenDashboard={() => navigateWorkspace("dashboard")}
+              onOpenPlan={() => navigateGuided("plan", "foundations")}
+            />
+          </>
         )}
       </PlotPickleWorkspaceShell>
     );

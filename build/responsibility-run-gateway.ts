@@ -5,15 +5,20 @@ import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
 import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/connector-trust-policy";
 import {
+  addResponsibilityArtifact,
+  beginResponsibilityAttempt,
   cancelResponsibilityRun,
   createCreativeResponsibilityRun,
   createDeterministicResponsibilityRun,
   createResponsibilityRun,
   pauseResponsibilityRun,
+  prepareResponsibilityRun,
   redirectResponsibilityRun,
+  requestWriterApproval,
   restartResponsibilityRunContext,
   resumeResponsibilityRun,
   type ResponsibilityRun,
+  type ResponsibilityRunContextRef,
   type ResponsibilityRunHandoff,
   type ResponsibilityRunKind,
   type ResponsibilityVerificationMode,
@@ -113,6 +118,19 @@ function limits(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, number> : {};
 }
 
+function context(value: unknown): ResponsibilityRunContextRef | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Record<string, unknown>;
+  const taskId = typeof source.taskId === "string" ? source.taskId.trim().slice(0, 180) : "";
+  const receiptGeneratedAt = typeof source.receiptGeneratedAt === "string" ? source.receiptGeneratedAt : "";
+  if (!taskId || !Number.isFinite(Date.parse(receiptGeneratedAt))) throw new Error("Responsibility Run context requires a taskId and valid receipt timestamp.");
+  return {
+    taskId,
+    sourceIds: strings(source.sourceIds, 256).map((item) => item.slice(0, 240)),
+    receiptGeneratedAt: new Date(receiptGeneratedAt).toISOString(),
+  };
+}
+
 function createFromInput(input: Record<string, unknown>) {
   const kind: ResponsibilityRunKind = input.kind === "creative-proposal" ? "creative-proposal" : input.kind === "deterministic-verification" ? "deterministic-verification" : "general";
   const common = {
@@ -122,6 +140,7 @@ function createFromInput(input: Record<string, unknown>) {
     skillUris: strings(input.skillUris),
     allowedScopes: scopes(input.allowedScopes),
     allowedConnectorIds: strings(input.allowedConnectorIds),
+    context: context(input.context),
     limits: limits(input.limits),
     parentRunId: typeof input.parentRunId === "string" ? input.parentRunId : "",
   };
@@ -137,6 +156,21 @@ async function mutate(input: Record<string, unknown>) {
   const runId = typeof input.runId === "string" ? input.runId : "";
   const current = await readRun(runId);
   if (!current) throw new Error("Responsibility Run was not found.");
+  if (action === "start") {
+    const characters = Math.max(0, Math.floor(Number(input.contextCharacters) || 0));
+    const prepared = prepareResponsibilityRun(current, characters);
+    return saveRun(prepared.state === "failed" ? prepared : beginResponsibilityAttempt(prepared));
+  }
+  if (action === "proposal-ready") {
+    const resultId = typeof input.resultId === "string" ? input.resultId.trim().slice(0, 180) : "";
+    if (!resultId) throw new Error("A proposal result ID is required.");
+    const producedAt = typeof input.producedAt === "string" && Number.isFinite(Date.parse(input.producedAt))
+      ? new Date(input.producedAt).toISOString()
+      : new Date().toISOString();
+    const ref = typeof input.ref === "string" && input.ref.trim() ? input.ref.trim().slice(0, 500) : `story-result:${resultId}`;
+    const withArtifact = addResponsibilityArtifact(current, { id: resultId, kind: "proposal", ref, producedAt });
+    return saveRun(requestWriterApproval(withArtifact, producedAt));
+  }
   if (action === "pause") return saveRun(pauseResponsibilityRun(current));
   if (action === "resume") return saveRun(resumeResponsibilityRun(current));
   if (action === "cancel") return saveRun(cancelResponsibilityRun(current, typeof input.reason === "string" ? input.reason : "Cancelled by the user."));
@@ -156,7 +190,7 @@ async function mutate(input: Record<string, unknown>) {
     };
     return saveRun(restartResponsibilityRunContext(current, handoff));
   }
-  throw new Error("Choose create, pause, resume, cancel, redirect or fresh-context.");
+  throw new Error("Choose create, start, proposal-ready, pause, resume, cancel, redirect or fresh-context.");
 }
 
 export function responsibilityRunGateway(): Plugin {

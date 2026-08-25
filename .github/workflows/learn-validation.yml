@@ -85,6 +85,9 @@ jobs:
       - name: Validate bounded Responsibility Runs
         run: node --test tests/issue-966-responsibility-runs.test.mjs
 
+      - name: Validate curriculum-driven Story Workflow Engine
+        run: node --test tests/issue-1416-story-workflow-engine.test.mjs
+
       - name: Validate safe graph workflow primitives
         run: node --test tests/issue-967-safe-graph-workflows.test.mjs
 

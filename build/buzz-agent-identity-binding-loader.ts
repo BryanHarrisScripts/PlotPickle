@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { normalizeBuzzAgentIdentityBindings } from "../core/story-workflow/buzz-agent-identity-binding.mjs";
+import { normalizeBuzzAgentIdentityBindings } from "../core/story-workflow/buzz/agent-identity-binding.mjs";
 
 const LOCAL_BINDING_FILE = path.join(".plotpickle", "operator", "buzz-agent-public-identities.json");
 

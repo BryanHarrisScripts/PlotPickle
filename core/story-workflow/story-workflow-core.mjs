@@ -6,7 +6,7 @@ export const STORY_WORK_ITEM_STATUSES = [
   "blocked",
   "failed",
   "superseded",
-] as const;
+];
 
 export const STORY_RESULT_KINDS = [
   "finding",
@@ -15,7 +15,7 @@ export const STORY_RESULT_KINDS = [
   "no-finding",
   "blocked",
   "needs-human",
-] as const;
+];
 
 export const STORY_HUMAN_GATES = [
   "informational",
@@ -24,7 +24,7 @@ export const STORY_HUMAN_GATES = [
   "creative-choice",
   "conflict",
   "blocked",
-] as const;
+];
 
 const PRIORITY_ORDER = { blocking: 0, high: 1, normal: 2, low: 3 };
 

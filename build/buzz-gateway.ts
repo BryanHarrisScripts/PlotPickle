@@ -389,7 +389,7 @@ async function probeRelay(relayUrl: string) {
       detail = `${response.status} from ${candidate}`;
     } catch (error) { detail = safeError(error); }
   }
-  return { reachable: false, checkedAt: new Date().toISOString(), latencyMs: 0, detail: detail || "No response." };
+  return { reachable: false, checkedAt: new Date().toISOString(), latencyMs: Date.now() - startedAt, detail: detail || "No response." };
 }
 
 function sha256(source: Buffer | string) {
@@ -424,7 +424,7 @@ async function loadManifest(directory = BUNDLE_DIRECTORY): Promise<RuntimeManife
 }
 
 async function verifyBundle(directory = BUNDLE_DIRECTORY) {
-  const manifest = await loadManifest(directory);
+  const manifest = await loadManifest();
   const results = await Promise.all(manifest.files.map(async (item) => {
     const file = await readFile(path.join(directory, item.path));
     return { path: item.path, ok: file.byteLength === item.bytes && sha256(file) === item.sha256 };

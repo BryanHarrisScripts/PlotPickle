@@ -55,6 +55,9 @@ jobs:
       - name: Validate release security regressions
         run: node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs
 
+      - name: Validate #1239 local Human UAT against the current shell
+        run: node --test tests/issue-1239-local-uat-current-shell.test.mjs
+
       - name: Validate structured Storyboard direction and advisory UI
         run: node --test tests/issue-396-storyboard-exploration.test.mjs tests/issue-1165-structured-storyboard-shot.test.mjs tests/issue-1166-storyboard-blocking-advisories.test.mjs
 

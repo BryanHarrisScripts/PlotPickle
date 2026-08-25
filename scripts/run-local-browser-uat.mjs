@@ -276,7 +276,9 @@ class McpClient {
           if (message.error) pending.reject(new Error(message.error.message || JSON.stringify(message.error)));
           else pending.resolve(message.result);
         }
-      } catch {}
+      } catch (error) {
+        this.stderr += `Ignored malformed MCP stdout message: ${error instanceof Error ? error.message : String(error)}\n`;
+      }
     }
   }
 
@@ -331,7 +333,11 @@ class McpClient {
   }
 
   async close() {
-    try { this.child.stdin.end(); } catch {}
+    try {
+      this.child.stdin.end();
+    } catch (error) {
+      this.stderr += `Failed to close MCP stdin cleanly: ${error instanceof Error ? error.message : String(error)}\n`;
+    }
     await delay(100);
     if (this.child.exitCode === null) this.child.kill();
   }
@@ -407,8 +413,8 @@ async function main() {
       if (!has("browser_console_messages")) return "";
       try {
         return resultText(await client.call("browser_console_messages", toolArguments(toolMap.get("browser_console_messages"), { level: "error", all: false })));
-      } catch {
-        return "";
+      } catch (error) {
+        return `Console observer unavailable: ${error instanceof Error ? error.message : String(error)}`;
       }
     };
     const takeScreenshot = async (filename) => {
@@ -468,7 +474,9 @@ async function main() {
       try {
         await takeScreenshot("01-human-profile-boundary.png");
         screenshotOk = true;
-      } catch {}
+      } catch (error) {
+        client.stderr += `Profile-boundary screenshot failed: ${error instanceof Error ? error.message : String(error)}\n`;
+      }
       evidence.push({
         id: "human-profile",
         label: "Human profile",
@@ -557,7 +565,9 @@ async function main() {
     try {
       const toolNames = new Set(tools.map((tool) => tool.name));
       if (toolNames.has("browser_close")) await client.call("browser_close", {});
-    } catch {}
+    } catch (error) {
+      client.stderr += `Browser close failed: ${error instanceof Error ? error.message : String(error)}\n`;
+    }
     await client.close();
     await writeFile(tracePath, client.trace.map((entry) => JSON.stringify(entry)).join("\n") + "\n", "utf8");
     await writeFile(mcpStderrPath, client.stderr || "", "utf8");

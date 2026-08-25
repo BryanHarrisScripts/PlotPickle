@@ -1,6 +1,8 @@
 import type { EnvironmentOptions, Plugin } from "vite";
 
+export const VINEXT_PACKAGE = "vinext";
 export const VINEXT_PREFETCH_QUEUE_SHIM = "vinext/dist/shims/internal/app-prefetch-fetch-queue.js";
+export const VINEXT_OPTIONAL_RSC_STATIC_ENTRY = "react-server-dom-webpack/static.edge";
 
 const TARGET_SERVER_ENVIRONMENTS = new Set(["rsc", "ssr"]);
 const REQUEST_TIMING_GUARD = Symbol.for("plotpickle.vinextRequestTimingGuard");
@@ -43,14 +45,24 @@ export function installVinextRequestTimingOutputGuard() {
   }) as typeof process.stdout.write;
 }
 
-function environmentOptimizeDeps(config: EnvironmentOptions) {
-  const existing = config.optimizeDeps?.exclude ?? [];
-  return {
-    optimizeDeps: {
-      ...config.optimizeDeps,
-      exclude: [...new Set([...existing, VINEXT_PREFETCH_QUEUE_SHIM])],
-    },
-  } satisfies EnvironmentOptions;
+function reconcileEnvironmentOptimizeDeps(name: string, config: EnvironmentOptions) {
+  const optimizeDeps = (config.optimizeDeps ??= {});
+  const existingExclude = optimizeDeps.exclude ?? [];
+  optimizeDeps.exclude = [
+    ...new Set([...existingExclude, VINEXT_PACKAGE, VINEXT_PREFETCH_QUEUE_SHIM]),
+  ];
+
+  // vinext 0.2.1 treats react-server-dom-webpack as an optional peer, while
+  // @vitejs/plugin-rsc 0.5.34 can use its vendored RSC runtime when that peer is
+  // absent. vinext still inserts static.edge into the RSC optimizer include list,
+  // which makes Vite print a failed-resolution warning on every fresh optimizer
+  // pass. Remove only that optional prebundle entry; plugin-rsc continues to own
+  // its vendored runtime and genuine dependency-resolution errors remain visible.
+  if (name === "rsc" && optimizeDeps.include?.includes(VINEXT_OPTIONAL_RSC_STATIC_ENTRY)) {
+    optimizeDeps.include = optimizeDeps.include.filter(
+      (entry) => entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY,
+    );
+  }
 }
 
 export function vinextRscOptimizationCompatibilityPlugin(): Plugin {
@@ -59,7 +71,7 @@ export function vinextRscOptimizationCompatibilityPlugin(): Plugin {
     enforce: "post",
     configEnvironment(name, config) {
       if (!TARGET_SERVER_ENVIRONMENTS.has(name)) return;
-      return environmentOptimizeDeps(config);
+      reconcileEnvironmentOptimizeDeps(name, config);
     },
   };
 }

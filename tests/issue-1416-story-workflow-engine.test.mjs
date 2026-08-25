@@ -202,9 +202,10 @@ test("#1416 adapter derives work from live Foundations and reuses Context, Respo
 });
 
 test("#1416 product path starts bounded local Runs and stores only reviewable PLAN proposals", async () => {
-  const [panel, gateway, coverage] = await Promise.all([
+  const [panel, gateway, appPage, coverage] = await Promise.all([
     read("modules/story-workflow/ui/foundations-story-workflow-panel.tsx"),
     read("build/responsibility-run-gateway.ts"),
+    read("app/page.tsx"),
     read("modules/build/ui/foundations-story-coverage.tsx"),
   ]);
 
@@ -234,8 +235,10 @@ test("#1416 product path starts bounded local Runs and stores only reviewable PL
     "requestWriterApproval",
   ]) assert.ok(gateway.includes(contract), `Responsibility Run gateway is missing Story Workflow lifecycle support: ${contract}`);
 
-  assert.match(coverage, /FoundationsStoryWorkflowPanel/);
-  assert.match(coverage, /<FoundationsStoryWorkflowPanel curriculum=\{curriculum\} project=\{project\} \/>/);
+  assert.match(appPage, /FoundationsStoryWorkflowPanel/);
+  assert.match(appPage, /project=\{loadFoundationProject\(\)\}/);
+  assert.doesNotMatch(coverage, /story-workflow|FoundationsStoryWorkflowPanel/,
+    "Feature modules must not import sibling private implementations; app composition owns the cross-module join");
 });
 
 test("#1416 keeps the Afterglow reference lazy and uses Phase 1 as stable workflow input", async () => {

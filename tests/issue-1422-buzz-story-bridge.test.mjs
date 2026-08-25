@@ -18,13 +18,9 @@ import {
 const GROUP_N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-function sha256(value) {
-  return createHash("sha256").update(value).digest();
-}
-
 function taggedHash(tag, value) {
-  const tagHash = sha256(Buffer.from(tag, "utf8"));
-  return sha256(Buffer.concat([tagHash, tagHash, value]));
+  const tagHash = createHash("sha256").update(Buffer.from(tag, "utf8")).digest();
+  return createHash("sha256").update(Buffer.concat([tagHash, tagHash, value])).digest();
 }
 
 function scalarBytes(value) {
@@ -72,14 +68,14 @@ function signedNostrEvent(content, secret = 3n, overrides = {}) {
     content,
     ...overrides,
   };
-  const id = sha256(Buffer.from(JSON.stringify([
+  const id = createHash("sha256").update(Buffer.from(JSON.stringify([
     0,
     unsigned.pubkey,
     unsigned.created_at,
     unsigned.kind,
     unsigned.tags,
     unsigned.content,
-  ]), "utf8"));
+  ]), "utf8")).digest();
   const signed = signBip340(id, secret);
   return { ...unsigned, id: id.toString("hex"), sig: signed.signature };
 }

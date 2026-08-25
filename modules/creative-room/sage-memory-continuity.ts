@@ -1,5 +1,5 @@
 import type { CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
-import { parseSageMemoryCommand } from "../../core/memory/agent-memory-continuity";
+import { parseSageMemoryCommand } from "../../core/memory/continuity/agent-memory-continuity";
 import {
   forgetSageMemory,
   rememberSageMemory,

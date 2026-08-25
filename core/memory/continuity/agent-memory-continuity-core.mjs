@@ -1,4 +1,4 @@
-import { retrieveRelevantMemories } from "./memory-retrieval-core.mjs";
+import { retrieveRelevantMemories } from "../memory-retrieval-core.mjs";
 
 const SAGE_SCOPES = Object.freeze(["human", "project"]);
 const AVERY_SCOPES = Object.freeze(["project"]);
@@ -8,7 +8,8 @@ function text(value) {
 }
 
 function commandContent(value) {
-  return text(value).replace(/^[:\s-]+/, "").trim();
+  if (typeof value !== "string") return "";
+  return value.trim().replace(/^[:\s-]+/, "").trim();
 }
 
 export function parseSageMemoryCommand(value) {

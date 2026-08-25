@@ -10,7 +10,7 @@ import {
   parseSageMemoryCommand,
   retrieveAveryContinuity,
   retrieveSageContinuity,
-} from "../core/memory/agent-memory-continuity-core.mjs";
+} from "../core/memory/continuity/agent-memory-continuity-core.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const proof = Object.freeze({ sessionId: "session" });
@@ -137,7 +137,7 @@ test("the product wires Sage through authenticated Memory v1 while Avery remains
     read("app/page.tsx"),
     read("modules/creative-room/memory-aware-sage-guide.ts"),
     read("app/api/memory/route.ts"),
-    read("core/memory/agent-memory-continuity-core.mjs"),
+    read("core/memory/continuity/agent-memory-continuity-core.mjs"),
   ]);
   assert.match(page, /guide=\{memoryAwareSageGuide\}/);
   assert.match(sage, /handleSageMemoryCommand/);

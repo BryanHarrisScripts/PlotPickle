@@ -1,5 +1,5 @@
-import type { MemoryRetrievalResult } from "./memory-retrieval";
-import type { MemoryService, MemorySessionProof } from "./memory-service";
+import type { MemoryRetrievalResult } from "../memory-retrieval";
+import type { MemoryService, MemorySessionProof } from "../memory-service";
 import * as core from "./agent-memory-continuity-core.mjs";
 
 export type SageMemoryCommand =

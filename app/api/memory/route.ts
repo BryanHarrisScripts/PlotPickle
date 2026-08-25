@@ -13,7 +13,7 @@ import {
 import {
   retrieveAveryContinuity,
   retrieveSageContinuity,
-} from "../../../core/memory/agent-memory-continuity";
+} from "../../../core/memory/continuity/agent-memory-continuity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +38,8 @@ function errorResponse(error: unknown) {
 async function authorized(request: Request, mutation = false) {
   const runtimeState = await getProfileExperienceRuntime();
   const boundary = runtimeState.boundaryFor(new URL(request.url).origin);
-  const { authContext } = await boundary.authorizeRequest(requestBoundary(request), mutation ? { mutation: true } : undefined);
+  const boundaryRequest = requestBoundary(request);
+  const { authContext } = await boundary.authorizeRequest(boundaryRequest, mutation ? { mutation: true } : undefined);
   return { runtimeState, authContext };
 }
 

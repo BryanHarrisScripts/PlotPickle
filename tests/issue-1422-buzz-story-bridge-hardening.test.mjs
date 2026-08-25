@@ -126,19 +126,54 @@ test("#1422 server dispatch re-authorizes the exact persisted Run context before
   assert.doesNotMatch(gateway, /saveActiveLibraryProject|foundations\.proposal\.accept|ppf-direct-write|canon-write/i);
 });
 
-test("#1422 Story Bridge dispatch mention-targets the exact approved BUZZ Agent Profile", async () => {
-  const gateway = await read("build/story-workflow-buzz-bridge-gateway.ts");
+test("#1422 Story Bridge dispatch puts the exact approved BUZZ Agent in the private room and mention-targets its signer", async () => {
+  const [gateway, buzzGateway] = await Promise.all([
+    read("build/story-workflow-buzz-bridge-gateway.ts"),
+    read("build/buzz-gateway.ts"),
+  ]);
   for (const contract of [
     "agentProfileById(bridge.agentProfileId)",
     "profile.buzzBinding.actorId !== bridge.agentActorId",
     "return `@${profile.displayName}`",
-    "const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\\n\\n${agentMention(bridge)}`",
-    "mention-targeted to the approved Agent",
-  ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing Agent mention targeting: ${contract}`);
+    "/api/local-buzz/rooms/members/ensure",
+    "mentions: [bridge.expectedAgentPubkey]",
+    "STORY_BRIDGE_RESULT_MARKER",
+    "Copy every correlation ID and target/evidence ref exactly",
+    "mention-targeted",
+  ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing managed-Agent live targeting: ${contract}`);
+
+  for (const contract of [
+    "channels\", \"members",
+    "channels\", \"add-member",
+    "--role\", \"bot",
+    "--mention",
+    "rooms/members/ensure",
+  ]) assert.ok(buzzGateway.includes(contract), `Local BUZZ gateway is missing private Agent membership/mention support: ${contract}`);
 
   assert.ok(
     gateway.includes("message.content.startsWith(`${STORY_BRIDGE_DISPATCH_MARKER}\\n`)")
       && gateway.includes("message.content.includes(`\\\"requestId\\\":\\\"${requestId}\\\"`)"),
     "The structured dispatch marker/request identity must remain stable for retry/idempotency detection.",
   );
+});
+
+test("#1422 exposes a one-click Afterglow/Tamsin live proof without writing the PPF", async () => {
+  const [panel, liveTest] = await Promise.all([
+    read("modules/story-workflow/ui/foundations-story-workflow-panel.tsx"),
+    read("modules/story-workflow/ui/foundations-buzz-story-live-test.tsx"),
+  ]);
+  assert.ok(panel.includes("FoundationsBuzzStoryLiveTest"));
+  for (const contract of [
+    "Run BUZZ Story Test",
+    "action: \"dispatch\"",
+    "retry.idempotent !== true",
+    "Waiting for Tamsin Hearthquill’s signed response",
+    "signatureVerified !== true",
+    "simulated-next-revision",
+    "item.state === \"stale\" && item.accepted === false",
+    "JSON.stringify(before) !== JSON.stringify(after)",
+    "BUZZ Story Test PASS",
+  ]) assert.ok(liveTest.includes(contract), `Live Story Bridge UI is missing exit-proof behavior: ${contract}`);
+
+  assert.doesNotMatch(liveTest, /saveFoundationProject|applyStoryCommand|foundations\.proposal\.store|writing-assistant\/chat/);
 });

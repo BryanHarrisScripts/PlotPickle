@@ -55,7 +55,7 @@ test("#1377 beginner view keeps expert detail behind one Advanced Options disclo
   assert.match(compute, /<details id=\{`\$\{mode\}-compute-advanced`\}/);
   assert.match(compute, /<SageFastModelSetup \/>/);
   assert.match(compute, /<LocalRuntimePanel \/>/);
-  assert.match(compute, /<MediaRoutingPanel/);
+  assert.doesNotMatch(compute, /<MediaRoutingPanel/);
   assert.match(compute, /<AiProviderSetupPanel provider="openai" \/>/);
   assert.match(compute, /<AiProviderSetupPanel provider="minimax" \/>/);
   assert.match(css, /\.tabs/);
@@ -73,15 +73,16 @@ test("#1377 Cloud Compute presents API and MCP OAuth truthfully without inventin
   assert.match(compute, /credentials stay protected/i);
 });
 
-test("#1377 preserves old Settings links while moving their destination into Local or Cloud Compute", async () => {
+test("#1377 preserves old Settings links while moving their destination into the current focused owner", async () => {
   const [settings, compute] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
   ]);
 
-  for (const legacy of ["settings-models", "settings-sage", "settings-plan", "settings-routing", "settings-ollama", "settings-comfyui", "settings-images", "settings-video"]) {
+  for (const legacy of ["settings-models", "settings-sage", "settings-plan", "settings-routing", "settings-ollama", "settings-images", "settings-video"]) {
     assert.match(settings, new RegExp(`"${legacy}": "local-compute"`));
   }
+  assert.match(settings, /"settings-comfyui": "comfyui"/);
   for (const legacy of ["settings-openai", "settings-minimax"]) {
     assert.match(settings, new RegExp(`"${legacy}": "cloud-compute"`));
   }
@@ -89,6 +90,7 @@ test("#1377 preserves old Settings links while moving their destination into Loc
   assert.match(compute, /"settings-images": "images"/);
   assert.match(compute, /"settings-video": "video"/);
   assert.match(compute, /"settings-routing": "writing"/);
+  assert.doesNotMatch(compute, /"settings-comfyui": "images"/);
 });
 
 test("#1344 model catalogs extend the shared Compute workspace instead of restoring provider-first navigation", async () => {

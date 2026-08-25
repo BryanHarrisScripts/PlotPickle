@@ -56,14 +56,14 @@ test("issue #351 provides keyboard and screen-reader navigation", async () => {
 test("issue #351 protects touch, responsive, focus, motion and forced-colour states", async () => {
   const css = await source("app/build-health-map.module.css");
   for (const contract of [
-    "min-height:94px",
-    ":focus-visible",
-    "overflow-x:auto",
-    "@media(max-width:560px)",
-    "@media(prefers-reduced-motion:reduce)",
-    "@media(forced-colors:active)",
-    "data-selected=true",
-  ]) assert.ok(css.includes(contract), `Missing health-map visual contract: ${contract}`);
+    /min-height:\s*94px/,
+    /:focus-visible/,
+    /overflow-x:\s*auto/,
+    /@media \(max-width:\s*560px\)/,
+    /@media \(prefers-reduced-motion:\s*reduce\)/,
+    /@media \(forced-colors:\s*active\)/,
+    /data-selected="true"/,
+  ]) assert.match(css, contract, `Missing health-map visual contract: ${contract}`);
 });
 
 test("issue #351 migrates Build recovery to the shared confirmation layer", async () => {

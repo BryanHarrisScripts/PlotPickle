@@ -11,6 +11,7 @@ const SETTINGS_SECTIONS = [
   "settings-help",
   "settings-local-compute",
   "settings-cloud-compute",
+  "settings-comfyui",
   "settings-buzz",
   "settings-activity",
   "settings-advanced",
@@ -28,7 +29,7 @@ test("#1105/#1377 inventories every active Settings route and nested provider/ru
     assert.ok(workspace.includes(`id="${section}"`), `${section} must remain in the Settings route inventory`);
   }
   assert.match(workspace, /"settings-models": "local-compute"/);
-  assert.match(workspace, /"settings-comfyui": "local-compute"/);
+  assert.match(workspace, /"settings-comfyui": "comfyui"/);
   assert.match(workspace, /"settings-openai": "cloud-compute"/);
 
   for (const component of [
@@ -40,9 +41,11 @@ test("#1105/#1377 inventories every active Settings route and nested provider/ru
   ]) {
     assert.ok(workspace.includes(`<${component}`), `${component} must remain covered by the Settings surface root`);
   }
-  for (const component of ["SageFastModelSetup", "AiRoutingPanel", "AiProviderSetupPanel", "MediaRoutingPanel", "LocalRuntimePanel"]) {
+  assert.ok(workspace.includes("<MediaRoutingPanel"), "MediaRoutingPanel must remain covered by the dedicated ComfyUI Settings surface");
+  for (const component of ["SageFastModelSetup", "AiRoutingPanel", "AiProviderSetupPanel", "LocalRuntimePanel"]) {
     assert.ok(compute.includes(`<${component}`), `${component} must remain covered by the shared Compute surface root`);
   }
+  assert.doesNotMatch(compute, /<MediaRoutingPanel/, "detailed ComfyUI configuration must have only one Settings owner");
 });
 
 test("#1105 loads one shared Settings surface guard after workspace continuity and uses only semantic PlotPickle tokens", async () => {
@@ -77,7 +80,7 @@ test("#1105 loads one shared Settings surface guard after workspace continuity a
   assert.doesNotMatch(guard, /background(?:-color)?\s*:\s*(?:white|#fff(?:fff)?\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))/i);
 });
 
-test("#1215/#1377 keeps provider panels inside the guarded Local/Cloud Compute surface", async () => {
+test("#1215/#1377/#1392 keeps provider panels inside their guarded Settings surfaces", async () => {
   const [guard, workspace, compute] = await Promise.all([
     read("app/settings-dark-surface-guard.css"),
     read("app/sage-settings-workspace.tsx"),
@@ -86,13 +89,13 @@ test("#1215/#1377 keeps provider panels inside the guarded Local/Cloud Compute s
 
   assert.ok(guard.includes(":where(div, header, footer, figure)"));
   assert.ok(guard.includes("background-image: none !important"));
-  for (const section of ["local-compute", "cloud-compute", "buzz"]) {
+  for (const section of ["local-compute", "cloud-compute", "comfyui", "buzz"]) {
     assert.ok(workspace.includes(`case "${section}"`), `${section} must remain routed through the shared Settings dark boundary`);
   }
-  for (const component of ["AiProviderSetupPanel", "MediaRoutingPanel", "SageFastModelSetup"]) {
+  for (const component of ["AiProviderSetupPanel", "SageFastModelSetup"]) {
     assert.ok(compute.includes(`<${component}`), `${component} must remain inside the guarded Compute workspace`);
   }
-  for (const component of ["BuzzSettingsPanel", "BuzzLiveHealthCard"]) {
+  for (const component of ["MediaRoutingPanel", "BuzzSettingsPanel", "BuzzLiveHealthCard"]) {
     assert.ok(workspace.includes(`<${component}`), `${component} must remain inside the guarded Settings workspace`);
   }
 });

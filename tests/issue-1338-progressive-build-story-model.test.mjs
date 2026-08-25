@@ -82,7 +82,7 @@ test("issue #1338 exposes visible Story Coverage and 24/96 explainability on the
   assert.match(mapCss, /grid-template-columns: repeat\(3/);
 });
 
-test("issue #1357 groups the 24 Blocks into 12 sequence boxes and marks sequence turning points", async () => {
+test("issue #1357/#1392 groups the 24 Blocks and keeps exactly three act-side turning points", async () => {
   const [mapComponent, mapCss] = await Promise.all([
     source("modules/build/ui/progressive-story-map.tsx"),
     source("modules/build/ui/progressive-story-map.module.css"),
@@ -95,16 +95,16 @@ test("issue #1357 groups the 24 Blocks into 12 sequence boxes and marks sequence
     "9: 2",
     "12: 3",
     'data-sequence={sequence.number}',
-    "Potential turning point after Sequence",
-    "Absolute turning point after Sequence",
-    'data-kind={sequence.actNumber ? "absolute" : "potential"}',
+    "Turning Point after Sequence",
+    "turningPointSpacer",
+    "<span>TP</span>",
   ]) assert.ok(mapComponent.includes(contract), `BUILD sequence/turning-point contract is missing: ${contract}`);
   for (const contract of [
     ".sequenceSlot",
     ".sequenceBox",
     ".sequenceBlocks",
     ".turningPoint",
-    '.turningPoint[data-kind="absolute"]',
+    ".turningPointSpacer",
     "grid-template-columns: repeat(3, minmax(0, 1fr))",
     "grid-template-columns: repeat(2, minmax(0, 1fr))",
   ]) assert.ok(mapCss.includes(contract), `BUILD sequence/turning-point styling is missing: ${contract}`);

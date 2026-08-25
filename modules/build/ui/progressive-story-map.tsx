@@ -61,8 +61,8 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       <div className={styles.map} aria-label="12 story Sequences containing 24 Blocks">
         {sequences.map((sequence) => {
           const turningPointLabel = sequence.actNumber
-            ? `Absolute turning point after Sequence ${sequence.number}: end of Act ${sequence.actNumber}`
-            : `Potential turning point after Sequence ${sequence.number}`;
+            ? `Turning Point after Sequence ${sequence.number}: end of Act ${sequence.actNumber}`
+            : "";
           return (
             <section className={styles.sequenceSlot} data-sequence={sequence.number} key={`sequence-${sequence.number}`}>
               <div className={styles.sequenceBox}>
@@ -93,14 +93,11 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                   ))}
                 </div>
               </div>
-              <div
-                aria-label={turningPointLabel}
-                className={styles.turningPoint}
-                data-kind={sequence.actNumber ? "absolute" : "potential"}
-                title={turningPointLabel}
-              >
-                {sequence.actNumber ? <><strong>A{sequence.actNumber}</strong><span>PT</span></> : <span>PT</span>}
-              </div>
+              {sequence.actNumber ? (
+                <div aria-label={turningPointLabel} className={styles.turningPoint} title={turningPointLabel}>
+                  <strong>A{sequence.actNumber}</strong><span>TP</span>
+                </div>
+              ) : <span aria-hidden="true" className={styles.turningPointSpacer} />}
             </section>
           );
         })}

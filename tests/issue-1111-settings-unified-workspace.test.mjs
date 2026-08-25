@@ -17,20 +17,20 @@ test("#1111 live Settings uses one persistent Community-style rail and one activ
 
 test("#1111/#1377 exposes compute-first Settings destinations without returning to a Settings home screen", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const id of ["overview", "updates", "help", "local-compute", "cloud-compute", "buzz", "activity", "runtime"]) {
+  for (const id of ["overview", "updates", "help", "local-compute", "cloud-compute", "comfyui", "buzz", "activity", "runtime"]) {
     assert.match(source, new RegExp(`id: ["']${id}["']`), `missing Settings destination ${id}`);
   }
   for (const group of ["START", "AI COMPUTE", "COMMUNITY", "SYSTEM"]) {
     assert.match(source, new RegExp(`label: ["']${group}["']`), `missing Settings group ${group}`);
   }
-  for (const label of ["Overview", "What’s New", "Help", "Local Compute", "Cloud Compute", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
+  for (const label of ["Overview", "What’s New", "Help", "Local Compute", "Cloud Compute", "ComfyUI Setup", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
     assert.match(source, new RegExp(`label: ["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`), `missing Settings label ${label}`);
   }
   assert.doesNotMatch(source, /label: ["'](?:Sage Setup|PLAN Setup|LLM Routing|Images Setup|Video Setup|Ollama|OpenAI Cloud|MiniMax Cloud)["']/);
   assert.doesNotMatch(source, /Profiles\s*&\s*Security/i, "Profile remains the sole owner of profile and security actions");
 });
 
-test("#1111 Settings deep links are bookmarkable and legacy AI links resolve into Local or Cloud Compute", async () => {
+test("#1111 Settings deep links are bookmarkable and legacy AI links resolve into their current owners", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
   assert.match(source, /const SETTINGS_QUERY_KEY = "settings"/);
   assert.match(source, /url\.searchParams\.set\(SETTINGS_QUERY_KEY, section\)/);
@@ -40,7 +40,7 @@ test("#1111 Settings deep links are bookmarkable and legacy AI links resolve int
   assert.match(source, /window\.sessionStorage\.setItem\(SETTINGS_SECTION_KEY, section\)/);
   assert.match(source, /LEGACY_TARGETS/, "old Settings deep links must continue to resolve into the new navigation model");
   assert.match(source, /"settings-models": "local-compute"/);
-  assert.match(source, /"settings-comfyui": "local-compute"/);
+  assert.match(source, /"settings-comfyui": "comfyui"/);
   assert.match(source, /"settings-openai": "cloud-compute"/);
   assert.match(source, /"settings-minimax": "cloud-compute"/);
   const hashIndex = source.indexOf("if (url.hash)");
@@ -71,7 +71,7 @@ test("#1111 overview distinguishes process-running from capability-ready and leg
   }
 });
 
-test("#1111/#1377 reuses existing configure and test owners inside one Local/Cloud Compute component", async () => {
+test("#1111/#1377 reuses existing configure and test owners without duplicating ComfyUI", async () => {
   const [settings, compute] = await Promise.all([
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
@@ -79,12 +79,13 @@ test("#1111/#1377 reuses existing configure and test owners inside one Local/Clo
   for (const component of [
     "AiRoutingPanel",
     "SageFastModelSetup",
-    "MediaRoutingPanel",
     "AiProviderSetupPanel",
     "LocalRuntimePanel",
   ]) {
     assert.match(compute, new RegExp(`<${component}\\b`), `${component} must remain reachable in the shared Compute workspace`);
   }
+  assert.match(settings, /<MediaRoutingPanel\b/, "MediaRoutingPanel must remain reachable in dedicated ComfyUI Settings");
+  assert.doesNotMatch(compute, /<MediaRoutingPanel\b/, "Local and Cloud Compute must not duplicate detailed ComfyUI configuration");
   for (const component of ["BuzzSettingsPanel", "BuzzLiveHealthCard", "AgentObservabilityPanel", "LocalRuntimePanel"]) {
     assert.match(settings, new RegExp(`<${component}\\b`), `${component} must remain reachable in Settings`);
   }

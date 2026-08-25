@@ -14,8 +14,9 @@ test("#1026/#1377 AI Routing opens the shared Local or Cloud Compute owner witho
 
   assert.match(settings, /id=["']settings-local-compute["']/);
   assert.match(settings, /id=["']settings-cloud-compute["']/);
+  assert.match(settings, /id=["']settings-comfyui["']/);
   assert.match(settings, /"settings-ollama": "local-compute"/);
-  assert.match(settings, /"settings-comfyui": "local-compute"/);
+  assert.match(settings, /"settings-comfyui": "comfyui"/);
   assert.match(settings, /"settings-openai": "cloud-compute"/);
   assert.match(settings, /"settings-minimax": "cloud-compute"/);
   assert.match(routing, /type ProviderTarget = "ollama" \| "openai" \| "minimax" \| "comfyui"/);
@@ -25,8 +26,9 @@ test("#1026/#1377 AI Routing opens the shared Local or Cloud Compute owner witho
   assert.match(compute, /<AiRoutingPanel/);
   assert.match(compute, /<AiProviderSetupPanel provider="openai" \/>/);
   assert.match(compute, /<AiProviderSetupPanel provider="minimax" \/>/);
-  assert.match(compute, /<MediaRoutingPanel/);
-  assert.match(compute, /"settings-comfyui": "images"/);
+  assert.match(settings, /<MediaRoutingPanel/);
+  assert.doesNotMatch(compute, /<MediaRoutingPanel/);
+  assert.match(compute, /detail: "comfyui"/);
   assert.match(providerSetup, /\/api\/local-ai\/connection/);
   assert.match(providerSetup, /type="password"/);
   assert.match(providerSetup, /Leave blank to keep saved key/);

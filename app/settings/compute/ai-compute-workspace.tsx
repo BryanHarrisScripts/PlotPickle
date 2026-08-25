@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AiRoutingPanel from "../../ai-routing-panel";
 import LocalRuntimePanel from "../../local-runtime-panel";
-import MediaRoutingPanel from "../../media-routing-panel";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
 import CloudModelCatalogPanel from "./cloud-model-catalog-panel";
@@ -54,7 +53,6 @@ const LEGACY_CAPABILITY_TARGETS: Record<string, ComputeCapability> = {
   "settings-ollama": "writing",
   "settings-openai": "writing",
   "settings-minimax": "writing",
-  "settings-comfyui": "images",
   "settings-images": "images",
   "settings-video": "video",
 };
@@ -120,6 +118,10 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
     window.requestAnimationFrame(() => document.getElementById(`${mode}-compute-advanced`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
+  function openComfyUiSetup() {
+    window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: "comfyui" }));
+  }
+
   function renderLocalAdvanced() {
     if (activeCapability === "writing") {
       return (
@@ -137,12 +139,8 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
 
     return (
       <div className={styles.advancedStack}>
-        <p className={styles.advancedNote}>The detailed media engine panel below is the existing authority for ComfyUI installation, checkpoints, workflows, image tests and video prerequisites. It remains shared so PlotPickle does not create a second media configuration system.</p>
-        <MediaRoutingPanel onManage={(target) => {
-          if (/openai|minimax|cloud/i.test(target)) {
-            window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: "cloud-compute" }));
-          }
-        }} />
+        <p className={styles.advancedNote}>Local Compute keeps the current ComfyUI readiness and route selection visible above. Installation, server addresses, checkpoints, workflows and live diagnostics now have one dedicated Settings screen.</p>
+        <button type="button" onClick={openComfyUiSetup}>Open ComfyUI Setup</button>
       </div>
     );
   }
@@ -160,13 +158,6 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
         <CloudModelCatalogPanel capability={activeCapability} />
         <AiProviderSetupPanel provider="openai" />
         <AiProviderSetupPanel provider="minimax" />
-        {activeCapability !== "writing" ? (
-          <details className={styles.expertDetails}>
-            <summary>Expert media routing and returned-asset diagnostics</summary>
-            <p>Use the existing media authority for paid test consent, returned assets and hybrid ComfyUI/MiniMax prerequisites.</p>
-            <MediaRoutingPanel onManage={() => undefined} />
-          </details>
-        ) : null}
       </div>
     );
   }
@@ -205,12 +196,12 @@ export default function AiComputeWorkspace({ mode }: { mode: ComputeMode }) {
       <AiRoutingPanel
         capability={capability.routingCapability}
         locality={mode}
-        onManage={(target) => openAdvanced(target)}
+        onManage={(target) => { if (target === "comfyui") openComfyUiSetup(); else openAdvanced(target); }}
       />
 
       <details id={`${mode}-compute-advanced`} className={styles.advanced} open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
         <summary>
-          <span><strong>Advanced Options</strong><small>{mode === "local" ? "Models, runtimes, ComfyUI and expert diagnostics" : "Provider credentials, models, endpoints, MCP/OAuth availability and expert diagnostics"}</small></span>
+          <span><strong>Advanced Options</strong><small>{mode === "local" ? "Models, runtimes and expert diagnostics" : "Provider credentials, models, endpoints and MCP/OAuth availability"}</small></span>
           {providerFocus ? <em>Requested: {providerFocus}</em> : null}
         </summary>
         <div className={styles.advancedBody}>

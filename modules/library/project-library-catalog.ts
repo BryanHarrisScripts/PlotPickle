@@ -8,6 +8,7 @@ export type LibraryCatalogItem = {
   readonly format: string;
   readonly visualLabel: string;
   readonly project: PPFProject;
+  readonly referenceLoader?: "afterglow-v9-foundations";
 };
 
 function answeredLesson(answer: string, now: string) {
@@ -132,23 +133,18 @@ function presetProject(input: {
 export function createFeaturedExamples(now: string): readonly LibraryCatalogItem[] {
   return [
     {
-      id: "afterglow",
-      title: "Afterglow",
-      description: "A road story about memory, reinvention, and the cost of carrying an unfinished past into a changing future.",
+      id: "afterglow-v9",
+      title: "Afterglow: Reflections of Sentience",
+      description: "The complete 2023 v9 screenplay mapped into PlotPickle as the reference workflow story. Load a normal working copy through the current Foundations frontier while the immutable source remains unchanged.",
       genre: "Science Fiction · Drama",
-      format: "Screenplay",
-      visualLabel: "Pacific dusk",
-      project: exampleProject({
-        id: "example-afterglow-source",
-        title: "Afterglow",
+      format: "Screenplay · v9 reference",
+      visualLabel: "Pacific road · AI family",
+      project: createEmptyProject({
+        id: "reference-afterglow-v9-source",
+        title: "Afterglow: Reflections of Sentience",
         now,
-        pitch: "A guarded traveller follows a fractured coastal route where memory technology turns every reunion into evidence.",
-        logline: "When a failing memory archive reveals that her missing brother may still be alive, a wary courier must cross a destabilized coast before the system erases the route and everyone connected to it.",
-        experience: "A visually driven, intimate journey that balances speculative systems with family grief, uneasy hope, and the pressure of time.",
-        genre: "Character-led science fiction drama with a road-movie engine.",
-        world: "A near-future Pacific coast shaped by climate migration, fragile networks, local repair cultures, and memory archives that can preserve testimony while exposing the people who supplied it.",
-        visualAssetUrl: "/assets/library/examples/afterglow.svg",
       }),
+      referenceLoader: "afterglow-v9-foundations",
     },
     {
       id: "clockmakers-map",

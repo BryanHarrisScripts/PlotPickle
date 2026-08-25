@@ -7,7 +7,24 @@ import {
 } from "../../core/contracts/foundation-plan";
 import type { PPFProject } from "../../core/project/project";
 
-export type FoundationsStoryEvidenceState = "defined" | "emerging" | "missing";
+export type FoundationsStoryEvidenceState = "defined" | "observed" | "emerging" | "missing";
+
+type ReferenceAwareProject = PPFProject & {
+  readonly sourceEvidence?: {
+    readonly referenceFixture?: {
+      readonly sourceLabel?: string;
+      readonly fields?: readonly {
+        readonly key?: string;
+        readonly lessonId?: string;
+        readonly fieldId?: string;
+        readonly kind?: "observed" | "synthetic-reference";
+        readonly acceptanceState?: "reference-defined" | "proposed";
+        readonly reason?: string;
+        readonly sourceRefs?: readonly string[];
+      }[];
+    } | null;
+  };
+};
 
 export type FoundationsStoryDecisionEvidence = {
   readonly id: string;
@@ -28,6 +45,7 @@ export type FoundationsStoryLessonEvidence = {
   readonly title: string;
   readonly state: FoundationsStoryEvidenceState;
   readonly defined: number;
+  readonly observed: number;
   readonly emerging: number;
   readonly missing: number;
   readonly total: number;
@@ -37,6 +55,7 @@ export type FoundationsStoryLessonEvidence = {
 export type FoundationsStoryCoverage = {
   readonly percent: number;
   readonly defined: number;
+  readonly observed: number;
   readonly emerging: number;
   readonly missing: number;
   readonly total: number;
@@ -49,16 +68,52 @@ function excerpt(value: string | null | undefined) {
   return `${normalized.slice(0, 177).trimEnd()}…`;
 }
 
+function referenceField(project: ReferenceAwareProject, lessonId: string, fieldId: string) {
+  return project.sourceEvidence?.referenceFixture?.fields?.find((field) => (
+    field.key === `${lessonId}:${fieldId}`
+    || (field.lessonId === lessonId && field.fieldId === fieldId)
+  ));
+}
+
 function decisionEvidence(
-  project: PPFProject,
+  project: ReferenceAwareProject,
   lesson: FoundationPlanLesson,
   field: FoundationPlanField,
 ): FoundationsStoryDecisionEvidence {
   const lessonState = project.foundations.lessons[lesson.id];
   const savedAnswer = lessonState?.answers[field.id];
   const proposalAnswer = lessonState?.proposal?.values[field.id];
+  const reference = referenceField(project, lesson.id, field.id);
 
   if (isUsableFoundationAnswer(savedAnswer)) {
+    if (reference?.acceptanceState === "reference-defined" && reference.kind === "observed") {
+      return {
+        id: `${lesson.id}:${field.id}`,
+        lessonId: lesson.id,
+        lessonNumber: lesson.number,
+        lessonTitle: lesson.title,
+        fieldId: field.id,
+        prompt: field.prompt,
+        state: "observed",
+        reason: reference.reason || "The immutable reference source directly supports this working answer.",
+        sourceLabel: project.sourceEvidence?.referenceFixture?.sourceLabel || "Observed reference evidence",
+        excerpt: excerpt(savedAnswer),
+      };
+    }
+    if (reference?.acceptanceState === "reference-defined" && reference.kind === "synthetic-reference") {
+      return {
+        id: `${lesson.id}:${field.id}`,
+        lessonId: lesson.id,
+        lessonNumber: lesson.number,
+        lessonTitle: lesson.title,
+        fieldId: field.id,
+        prompt: field.prompt,
+        state: "defined",
+        reason: reference.reason || "This deterministic reference decision completes the current fixture without claiming to be source evidence.",
+        sourceLabel: "Synthetic reference decision · not screenplay evidence",
+        excerpt: excerpt(savedAnswer),
+      };
+    }
     return {
       id: `${lesson.id}:${field.id}`,
       lessonId: lesson.id,
@@ -103,16 +158,18 @@ function decisionEvidence(
 }
 
 function lessonEvidence(
-  project: PPFProject,
+  project: ReferenceAwareProject,
   lesson: FoundationPlanLesson,
 ): FoundationsStoryLessonEvidence {
   const decisions = lesson.fields.map((field) => decisionEvidence(project, lesson, field));
   const defined = decisions.filter((decision) => decision.state === "defined").length;
+  const observed = decisions.filter((decision) => decision.state === "observed").length;
   const emerging = decisions.filter((decision) => decision.state === "emerging").length;
   const missing = decisions.filter((decision) => decision.state === "missing").length;
-  const state: FoundationsStoryEvidenceState = decisions.length > 0 && defined === decisions.length
-    ? "defined"
-    : defined > 0 || emerging > 0
+  const supported = defined + observed;
+  const state: FoundationsStoryEvidenceState = decisions.length > 0 && supported === decisions.length
+    ? defined > 0 ? "defined" : "observed"
+    : supported > 0 || emerging > 0
       ? "emerging"
       : "missing";
   return {
@@ -121,6 +178,7 @@ function lessonEvidence(
     title: lesson.title,
     state,
     defined,
+    observed,
     emerging,
     missing,
     total: decisions.length,
@@ -130,16 +188,19 @@ function lessonEvidence(
 
 export function deriveFoundationsStoryCoverage(
   curriculum: readonly CurriculumLesson[],
-  project: PPFProject,
+  project: ReferenceAwareProject,
 ): FoundationsStoryCoverage {
   const lessons = buildFoundationPlanLessons(curriculum).map((lesson) => lessonEvidence(project, lesson));
   const defined = lessons.reduce((total, lesson) => total + lesson.defined, 0);
+  const observed = lessons.reduce((total, lesson) => total + lesson.observed, 0);
   const emerging = lessons.reduce((total, lesson) => total + lesson.emerging, 0);
   const missing = lessons.reduce((total, lesson) => total + lesson.missing, 0);
-  const total = defined + emerging + missing;
+  const total = defined + observed + emerging + missing;
+  const supported = defined + observed;
   return {
-    percent: total ? Math.round((defined / total) * 100) : 0,
+    percent: total ? Math.round((supported / total) * 100) : 0,
     defined,
+    observed,
     emerging,
     missing,
     total,

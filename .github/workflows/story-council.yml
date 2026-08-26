@@ -5,6 +5,7 @@ on:
     paths:
       - "core/story-workflow/story-council-*.mjs"
       - "core/story-workflow/story-council-*.d.ts"
+      - "core/story-workflow/story-council/**"
       - "modules/story-workflow/story-council*.ts"
       - "modules/story-workflow/**/story-council*.ts"
       - "modules/story-workflow/**/story-council*.tsx"

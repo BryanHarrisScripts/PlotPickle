@@ -7,7 +7,7 @@ import {
   isStoryCouncilRuntimeMessage,
   parseStoryCouncilRuntimeText,
   storyCouncilRuntimeMessage,
-} from "../core/story-workflow/story-council-runtime-protocol.mjs";
+} from "../core/story-workflow/story-council/runtime-protocol.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

@@ -2,7 +2,7 @@ import type { StoryWorkItem } from "../../core/story-workflow/story-workflow-cor
 import {
   parseStoryCouncilRuntimeText,
   storyCouncilRuntimeMessage,
-} from "../../core/story-workflow/story-council-runtime-protocol.mjs";
+} from "../../core/story-workflow/story-council/runtime-protocol.mjs";
 import {
   normalizeStoryCouncilContribution,
   storyCouncilSpecialistByAgentId,

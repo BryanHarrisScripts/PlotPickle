@@ -10,12 +10,19 @@ import { ensureManagedPiInstalled } from "../../scripts/pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../../scripts/pi-worker-runtime.mjs";
 
 const MAX_PACKAGE_CHARS = 185_000;
+const MAX_ERROR_CHARS = 1_000;
 
 function bounded(value) {
   const text = JSON.stringify(value, null, 2);
   return text.length <= MAX_PACKAGE_CHARS
     ? text
     : `${text.slice(0, MAX_PACKAGE_CHARS)}\n[Second-opinion package truncated by Developer Workbench context budget. Treat omitted content as missing evidence.]`;
+}
+
+function safeErrorMessage(error) {
+  const text = error instanceof Error ? error.message : String(error);
+  const oneLine = text.replace(/[\r\n\t]+/gu, " ").replace(/\s{2,}/gu, " ").trim();
+  return (oneLine || "Second-opinion review failed.").slice(0, MAX_ERROR_CHARS);
 }
 
 function prompt(reviewPackage, instructionBundle, runtime) {
@@ -106,6 +113,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.stack || error.message : String(error));
+  console.error(safeErrorMessage(error));
   process.exitCode = 1;
 });

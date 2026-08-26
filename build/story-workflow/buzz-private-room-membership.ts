@@ -4,6 +4,8 @@ import { readCredentialJson } from "../local-credentials";
 
 const CONNECTION_FILE = "buzz-connection.json";
 const MAX_OUTPUT = 2 * 1024 * 1024;
+const MEMBERSHIP_CONFIRM_ATTEMPTS = 8;
+const MEMBERSHIP_CONFIRM_DELAY_MS = 750;
 
 type BuzzConnection = {
   readonly version: 1;
@@ -114,6 +116,19 @@ function memberPubkeys(value: unknown) {
     : []);
 }
 
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function waitForMembership(readMembers: () => Promise<string[]>, agentPubkey: string) {
+  for (let attempt = 0; attempt < MEMBERSHIP_CONFIRM_ATTEMPTS; attempt += 1) {
+    const members = await readMembers();
+    if (members.includes(agentPubkey)) return true;
+    if (attempt + 1 < MEMBERSHIP_CONFIRM_ATTEMPTS) await delay(MEMBERSHIP_CONFIRM_DELAY_MS);
+  }
+  return false;
+}
+
 export async function ensurePrivateBuzzAgentMembership(input: {
   readonly channelId: string;
   readonly agentPubkey: string;
@@ -138,9 +153,9 @@ export async function ensurePrivateBuzzAgentMembership(input: {
     ["channels", "add-member", "--channel", channelId, "--pubkey", agentPubkey, "--role", "bot"],
     connection,
   );
-  const verified = await readMembers();
-  if (!verified.includes(agentPubkey)) {
-    throw new Error("BUZZ did not confirm the approved Agent as a private Story Room member.");
+  const confirmed = await waitForMembership(readMembers, agentPubkey);
+  if (!confirmed) {
+    throw new Error("BUZZ did not confirm the approved Agent as a private Story Room member after bounded membership verification.");
   }
   return { added: true, role: "bot" as const };
 }

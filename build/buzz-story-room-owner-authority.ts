@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { buzzChannelMemberRows } from "../lib/buzz/membership/buzz-channel-members";
 import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
@@ -18,11 +19,6 @@ type BuzzConnection = {
 };
 
 type CommandResult = { stdout: string; stderr: string; code: number };
-
-type ChannelMember = {
-  pubkey: string;
-  role: string;
-};
 
 function validChannelId(value: string) {
   if (!/^[A-Za-z0-9-]{8,128}$/.test(value)) throw new Error("The mapped BUZZ Story Room identifier is invalid.");
@@ -48,27 +44,6 @@ function relayHttpUrl(value: string) {
   url.hash = "";
   url.search = "";
   return url.toString().replace(/\/$/, "");
-}
-
-function rows(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value;
-  if (!value || typeof value !== "object") return [];
-  const item = value as Record<string, unknown>;
-  for (const key of ["members", "items", "data", "results"]) {
-    if (Array.isArray(item[key])) return item[key] as unknown[];
-  }
-  return [];
-}
-
-function channelMembers(value: unknown): ChannelMember[] {
-  return rows(value).flatMap((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
-    const item = entry as Record<string, unknown>;
-    const pubkey = typeof item.pubkey === "string" ? item.pubkey.trim().toLowerCase() : "";
-    const role = typeof item.role === "string" ? item.role.trim().toLowerCase() : "";
-    if (!/^[a-f0-9]{64}$/.test(pubkey) || !["owner", "admin", "member", "guest", "bot"].includes(role)) return [];
-    return [{ pubkey, role }];
-  });
 }
 
 function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
@@ -147,13 +122,14 @@ export async function assertBuzzStoryRoomOwner(channelValue: string, expectedPub
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: privateKey,
   });
-  let decoded: unknown;
-  try {
-    decoded = JSON.parse(result.stdout || "null") as unknown;
-  } catch {
-    throw new Error("BUZZ returned invalid Story Room membership data.");
-  }
-  const membership = channelMembers(decoded).find((member) => member.pubkey === expectedPubkey);
+  const decoded = JSON.parse(result.stdout || "null") as unknown;
+  const membership = buzzChannelMemberRows(decoded)
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry))
+    .map((entry) => ({
+      pubkey: typeof entry.pubkey === "string" ? entry.pubkey.trim().toLowerCase() : "",
+      role: typeof entry.role === "string" ? entry.role.trim().toLowerCase() : "",
+    }))
+    .find((member) => member.pubkey === expectedPubkey);
   if (!membership || membership.role !== "owner") {
     throw new Error("Only the verified BUZZ Story Room owner can change its directory listing. PlotPickle did not publish anything.");
   }

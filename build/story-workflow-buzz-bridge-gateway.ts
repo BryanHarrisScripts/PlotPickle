@@ -10,19 +10,27 @@ import {
   type StoryBridgeRequest,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
 import { agentProfileById } from "../lib/agents/agent-profiles";
-import { prepareStoryBridgeRequest } from "../modules/story-workflow/buzz-story-bridge";
+import {
+  prepareStoryBridgeRequest,
+  storyBridgeAgentSignerDiagnostics,
+} from "../modules/story-workflow/buzz-story-bridge";
+import { currentProfileRequestContext } from "./profile-request-context";
 import { ensurePrivateBuzzAgentMembership } from "./story-workflow/buzz-private-room-membership";
 
 const API = "/api/story-workflow/buzz-bridge";
 const MAX_BODY = 128 * 1024;
 const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled"]);
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
+const SAFE_HTTP_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const DIAGNOSTIC_PROJECT_PREFIX = "plotpickle-story-bridge-diagnostics";
 
 type HumanBuzzIdentity = {
   ready?: boolean;
   identityVerified?: boolean;
   humanCommunityAllowed?: boolean;
   kind?: "human" | "agent" | "unknown";
+  displayName?: string;
+  message?: string;
 };
 type BuzzRoom = { id: string; name: string; description?: string };
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string; raw?: unknown };
@@ -97,15 +105,35 @@ function localBase(request: IncomingMessage) {
   return value.origin;
 }
 
+function requestHeader(request: IncomingMessage, name: string) {
+  const value = request.headers[name.toLowerCase()];
+  if (Array.isArray(value)) return value[0] || "";
+  return typeof value === "string" ? value : "";
+}
+
+function forwardedProfileHeaders(request: IncomingMessage, method: string) {
+  const headers: Record<string, string> = {};
+  const cookie = requestHeader(request, "cookie");
+  if (cookie) headers.Cookie = cookie;
+  if (!SAFE_HTTP_METHODS.has(method.toUpperCase())) {
+    const csrf = requestHeader(request, "x-plotpickle-csrf");
+    if (csrf) headers["X-PlotPickle-CSRF"] = csrf;
+  }
+  return headers;
+}
+
 async function localJson<T>(request: IncomingMessage, route: string, init?: RequestInit): Promise<T> {
   const base = localBase(request);
+  const method = String(init?.method || "GET").toUpperCase();
   const response = await fetch(`${base}${route}`, {
     ...init,
+    method,
     signal: AbortSignal.timeout(45_000),
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
       Origin: base,
+      ...forwardedProfileHeaders(request, method),
       ...(init?.headers || {}),
     },
   });
@@ -217,7 +245,7 @@ async function storyRoom(request: IncomingMessage, bridge: StoryBridgeRequest, c
   const listed = await localJson<{ rooms: BuzzRoom[] }>(
     request,
     `/api/local-buzz/rooms?projectPrefix=${encodeURIComponent(bridge.projectRoomPrefix)}`,
-  ).then((value) => value.rooms ?? []).catch(() => []);
+  ).then((value) => value.rooms ?? []);
   const existing = listed.find((room) => room.name === bridge.destination.roomName);
   if (existing || !create) return existing ?? null;
   const ensured = await localJson<{ rooms: Array<{ roomId: string; channel: BuzzRoom }> }>(request, "/api/local-buzz/rooms/ensure", {
@@ -295,17 +323,52 @@ async function ensureApprovedAgentInRoom(bridge: StoryBridgeRequest, roomId: str
   });
 }
 
+async function storyBridgeDiagnostics(request: IncomingMessage) {
+  const profileContext = currentProfileRequestContext();
+  const signers = storyBridgeAgentSignerDiagnostics();
+  const identity = await localJson<HumanBuzzIdentity>(request, "/api/local-buzz/human-identity");
+  const roomProbe = await localJson<{ rooms: BuzzRoom[] }>(
+    request,
+    `/api/local-buzz/rooms?projectPrefix=${encodeURIComponent(DIAGNOSTIC_PROJECT_PREFIX)}`,
+  );
+  const transportReady = Array.isArray(roomProbe.rooms);
+  const humanReady = humanIdentityReady(identity);
+  const profileReady = Boolean(profileContext?.profileId);
+  const storyBridgeReady = profileReady && transportReady && humanReady && signers.tamsinReady;
+  return {
+    ok: true,
+    checkedAt: new Date().toISOString(),
+    transport: {
+      ready: transportReady,
+      message: transportReady ? "BUZZ read transport is reachable through the Story Bridge path." : "BUZZ read transport is not reachable through the Story Bridge path.",
+    },
+    humanIdentity: {
+      ready: humanReady,
+      displayName: identity.displayName || "",
+      message: identity.message || (humanReady ? "Human BUZZ identity verified." : "Human BUZZ identity is not ready."),
+    },
+    agentSigners: signers,
+    storyBridge: {
+      ready: storyBridgeReady,
+      profileScoped: profileReady,
+      message: storyBridgeReady
+        ? "Story Bridge profile scope, Human identity, BUZZ read transport and Tamsin signer are ready."
+        : "Story Bridge is not ready on the exact active-Human transport path.",
+    },
+  };
+}
+
 async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const startedAt = Date.now();
   if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
   await verifyRunAuthorization(request, bridge);
-  const identity = await localJson<HumanBuzzIdentity>(request, "/api/local-buzz/human-identity").catch(() => ({}));
+  const identity = await localJson<HumanBuzzIdentity>(request, "/api/local-buzz/human-identity");
   if (!humanIdentityReady(identity)) return { ...fallback(bridge, "The connected Human BUZZ transport identity is not verified."), ...observability(bridge, startedAt) };
 
   const room = await storyRoom(request, bridge, true);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };
   await ensureApprovedAgentInRoom(bridge, room.id);
-  const existing = await recentMessages(request, room.id).catch(() => []);
+  const existing = await recentMessages(request, room.id);
   if (dispatchAlreadyPresent(existing, bridge.requestId)) {
     return {
       ok: true,
@@ -394,6 +457,10 @@ export function storyWorkflowBuzzBridgeGateway(): Plugin {
             }
             const body = await readBridgeAction(request);
             const action = typeof body.action === "string" ? body.action : "";
+            if (action === "diagnostics") {
+              writeBridgeResponse(response, 200, await storyBridgeDiagnostics(request));
+              return;
+            }
             if (action === "prepare") {
               const bridge = prepareRequest(body);
               writeBridgeResponse(response, 200, { ok: true, request: bridge }, bridge.requestId);

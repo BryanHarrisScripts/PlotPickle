@@ -3,7 +3,7 @@
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { requiredCliValue } from "./workbench-cli.mjs";
+import { requireCurrentRepository, requiredWorkbenchTempPath } from "./workbench-cli.mjs";
 import { resolveActiveNpmCommand, runPortableCommand } from "../../scripts/pi-worker-runtime.mjs";
 
 const MAX_SEEDS = 48;
@@ -21,7 +21,7 @@ function normalizeRelative(root, candidate) {
   if (!raw || raw.includes("\0") || path.isAbsolute(raw)) return "";
   const resolved = path.resolve(root, raw);
   const relative = path.relative(root, resolved);
-  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return "";
+  if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return "";
   return relative.replaceAll("\\", "/");
 }
 
@@ -79,7 +79,7 @@ async function matchingTests(root, reviewPackage, changed) {
 }
 
 export async function selectRepomixSeeds(reviewPackage) {
-  const root = path.resolve(reviewPackage.repositoryPath);
+  const root = requireCurrentRepository(reviewPackage);
   const changed = (reviewPackage?.pullRequest?.files || []).map((item) => item?.path).filter(Boolean);
   const candidates = [
     ...changed,
@@ -100,7 +100,7 @@ export async function selectRepomixSeeds(reviewPackage) {
 }
 
 export async function buildRepomixEvidence(reviewPackage, outputPath) {
-  const root = path.resolve(reviewPackage.repositoryPath);
+  const root = requireCurrentRepository(reviewPackage);
   const seeds = await selectRepomixSeeds(reviewPackage);
   await mkdir(path.dirname(outputPath), { recursive: true });
   if (!seeds.length) {
@@ -149,10 +149,11 @@ export async function buildRepomixEvidence(reviewPackage, outputPath) {
 }
 
 if (process.argv.includes("--input")) {
-  const inputPath = path.resolve(requiredCliValue(process.argv, "--input"));
-  const outputPath = path.resolve(requiredCliValue(process.argv, "--output"));
+  const inputPath = requiredWorkbenchTempPath(process.argv, "--input");
+  const outputPath = requiredWorkbenchTempPath(process.argv, "--output");
   const reviewPackage = JSON.parse(await readFile(inputPath, "utf8"));
   if (!reviewPackage?.repositoryPath) throw new Error("Repomix evidence requires repositoryPath in the review package.");
+  requireCurrentRepository(reviewPackage);
   await buildRepomixEvidence(reviewPackage, outputPath);
   process.stdout.write(`${outputPath}\n`);
 }

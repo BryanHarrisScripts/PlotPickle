@@ -3,22 +3,18 @@
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { requiredCliValue } from "./workbench-cli.mjs";
 import { resolveActiveNpmCommand, runPortableCommand } from "../../scripts/pi-worker-runtime.mjs";
 
 const MAX_SEEDS = 48;
 const MAX_OUTPUT_CHARS = 90_000;
+const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
 const SAFE_IGNORE = [
   ".env", ".env.*", "**/.env", "**/.env.*", "**/*.pem", "**/*.key", "**/*.p12", "**/*.pfx",
   "**/credentials.json", "**/secrets.json", "**/.npmrc", "**/.yarnrc",
   "node_modules/**", "dist/**", "release/**", "out/**", "coverage/**", ".next/**", ".vite/**",
   ".cache/**", ".artifacts/**", "artifacts/**", "test-results/**", "playwright-report/**", "repomix-output.*",
 ].join(",");
-
-function argument(name) {
-  const index = process.argv.indexOf(name);
-  if (index < 0 || !process.argv[index + 1]) throw new Error(`Missing required ${name} argument.`);
-  return process.argv[index + 1];
-}
 
 function normalizeRelative(root, candidate) {
   const raw = String(candidate || "").trim().replaceAll("\\", "/").replace(/^\.\//u, "");
@@ -29,12 +25,13 @@ function normalizeRelative(root, candidate) {
   return relative.replaceAll("\\", "/");
 }
 
-async function exists(root, relative) {
+async function pathExists(root, relative) {
   try {
     await access(path.join(root, relative));
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (MISSING_CODES.has(error?.code)) return false;
+    throw error;
   }
 }
 
@@ -57,11 +54,12 @@ function mentionedPaths(text) {
 
 async function matchingTests(root, reviewPackage, changed) {
   const testRoot = path.join(root, "tests");
-  let entries = [];
+  let entries;
   try {
     entries = await readdir(testRoot, { withFileTypes: true });
-  } catch {
-    return [];
+  } catch (error) {
+    if (MISSING_CODES.has(error?.code)) return [];
+    throw error;
   }
   const issueNumber = Number(reviewPackage?.issue?.number || reviewPackage?.selectedNumber || 0);
   const tokens = new Set(
@@ -93,7 +91,7 @@ export async function selectRepomixSeeds(reviewPackage) {
   for (const candidate of candidates) {
     const relative = normalizeRelative(root, candidate);
     if (!relative || seen.has(relative.toLowerCase())) continue;
-    if (!(await exists(root, relative))) continue;
+    if (!(await pathExists(root, relative))) continue;
     seen.add(relative.toLowerCase());
     selected.push(relative);
     if (selected.length >= MAX_SEEDS) break;
@@ -150,9 +148,9 @@ export async function buildRepomixEvidence(reviewPackage, outputPath) {
   }
 }
 
-if (import.meta.url === new URL(`file://${process.argv[1].replaceAll("\\", "/")}`).href || process.argv.includes("--input")) {
-  const inputPath = path.resolve(argument("--input"));
-  const outputPath = path.resolve(argument("--output"));
+if (process.argv.includes("--input")) {
+  const inputPath = path.resolve(requiredCliValue(process.argv, "--input"));
+  const outputPath = path.resolve(requiredCliValue(process.argv, "--output"));
   const reviewPackage = JSON.parse(await readFile(inputPath, "utf8"));
   if (!reviewPackage?.repositoryPath) throw new Error("Repomix evidence requires repositoryPath in the review package.");
   await buildRepomixEvidence(reviewPackage, outputPath);

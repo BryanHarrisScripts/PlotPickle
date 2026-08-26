@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { buzzChannelMemberPubkeys } from "../lib/buzz/membership/buzz-channel-members";
 import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
@@ -166,9 +167,6 @@ function channelsFrom(value: unknown): BuzzChannel[] {
     return id && name ? [{ id, name, description: firstString(item, ["description", "purpose", "topic"]) }] : [];
   });
 }
-function memberPubkeys(value: unknown) {
-  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string" && /^[a-f0-9]{64}$/i.test(entry)) : [];
-}
 function validChannelId(value: unknown) {
   const channel = text(value);
   if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Story Room channel.");
@@ -193,7 +191,7 @@ async function storyRoom(connection: BuzzConnection, channelId: string) {
   return channel;
 }
 async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Promise<BuzzMember[]> {
-  const pubkeys = memberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channel.id]));
+  const pubkeys = buzzChannelMemberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channel.id]));
   if (!pubkeys.length) return [];
   const userArgs = ["--format", "compact", "users", "get"];
   for (const pubkey of pubkeys) userArgs.push("--pubkey", pubkey);

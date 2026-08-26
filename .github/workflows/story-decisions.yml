@@ -1,0 +1,35 @@
+name: Story Decisions
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: story-decisions-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  story-decision-contract:
+    name: story-decision-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate Story Decision eligibility, grouping, stale revision, Human authority and Afterglow contracts
+        run: node --test tests/issue-1418-story-decisions.test.mjs
+      - name: Validate existing Story Council and Human profile boundaries
+        run: node --test tests/issue-1417-story-council.test.mjs tests/issue-1142-server-session-boundary.test.mjs
+      - name: Production build
+        run: npm run build

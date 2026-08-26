@@ -2,11 +2,14 @@ import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
+import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
+import { currentProfileRequestContext } from "./profile-request-context";
 
 const API = "/api/local-buzz/story-room-access";
 const CONNECTION_FILE = "buzz-connection.json";
+const BINDINGS_OBJECT_ID = "story-room-bindings-v1";
 const MAX_BODY = 64 * 1024;
 const MAX_COMMAND_OUTPUT = 2 * 1024 * 1024;
 const VALID_ROLES = new Set(["owner", "admin", "member", "guest", "bot"]);
@@ -55,7 +58,7 @@ async function readBody(request: IncomingMessage) {
   let bytes = 0;
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += chunk.length;
+    bytes += buffer.length;
     if (bytes > MAX_BODY) throw new Error("The Story Room access request is too large.");
     chunks.push(buffer);
   }
@@ -142,8 +145,8 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("BUZZ CLI returned invalid JSON."); }
+  const output = result.stdout || "null";
+  return JSON.parse(output) as unknown;
 }
 
 function array(value: unknown): unknown[] {
@@ -184,10 +187,20 @@ async function verifiedConnection() {
   if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) throw new Error("Verify BUZZ before managing Story Room access.");
   return connection;
 }
+async function mappedStoryRoomChannelIds() {
+  const context = currentProfileRequestContext();
+  if (!context) return new Set<string>();
+  const value = await context.privateStorage.readPrivateJson(context.authContext, { domain: "buzz", objectId: BINDINGS_OBJECT_ID });
+  return new Set(normalizeBuzzStoryRoomBindings(value).map((binding) => binding.channelId));
+}
 async function storyRoom(connection: BuzzConnection, channelId: string) {
-  const channels = channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list"]));
+  const [channels, mappedChannelIds] = await Promise.all([
+    runBuzz(connection, ["--format", "compact", "channels", "list"]).then(channelsFrom),
+    mappedStoryRoomChannelIds(),
+  ]);
   const channel = channels.find((item) => item.id === channelId);
   if (!channel) throw new Error("The Story Room is not available to this BUZZ identity.");
+  if (mappedChannelIds.has(channel.id)) return channel;
   const suffixes = BUZZ_STORY_ROOMS.map((room) => `-${room.suffix}`);
   if (!suffixes.some((suffix) => channel.name.endsWith(suffix))) throw new Error("PlotPickle refused to manage membership for a non-Story-Room channel.");
   return channel;

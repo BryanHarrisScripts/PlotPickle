@@ -8,12 +8,14 @@ import { loadFoundationProject } from "../core/storage/foundation-project-browse
 import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
 import {
   BUZZ_STORY_ROOMS,
-  buzzProjectSlug,
-  buzzRoomName,
   isKnownHumanBuzzIdentity,
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../lib/buzz/buzz-story-room";
+import {
+  buzzLegacyStoryRoomName,
+  buzzStoryRoomDisplayName,
+} from "../lib/buzz/story-room-identity";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
 import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
@@ -72,7 +74,14 @@ type GuildhallStatus = {
   message: string;
 };
 type BuzzDm = { id: string; participants: string[]; createdAt: string };
-type StoryRoomRecord = { roomId: BuzzStoryRoomId; channel: BuzzChannel; created?: boolean };
+type StoryRoomRecord = {
+  roomId: BuzzStoryRoomId;
+  displayName: string;
+  channel: BuzzChannel;
+  listingId: string;
+  created?: boolean;
+  mappedFromLegacy?: boolean;
+};
 type UtilityView = "social" | "story-rooms" | "studios" | "agents";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -84,6 +93,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await response.json() as T & { message?: string };
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
   return body;
+}
+
+function storyRoomIdentityBody(project: PPFProject, createMissing: boolean) {
+  return {
+    projectId: project.id,
+    createMissing,
+    rooms: BUZZ_STORY_ROOMS.map((room) => ({
+      id: room.id,
+      legacyName: buzzLegacyStoryRoomName(project, room.id),
+      displayName: buzzStoryRoomDisplayName(project, room.id),
+      description: `${project.title} · ${room.description}`,
+    })),
+  };
 }
 
 function buzzDesktopUrl(relay: string, name: string) {
@@ -189,13 +211,11 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
   const loadStoryRooms = useCallback(async (currentProject: PPFProject, identityVerified: boolean) => {
     if (!identityVerified) { setStoryRooms([]); return; }
-    const prefix = buzzProjectSlug(currentProject);
-    const body = await request<{ rooms: BuzzChannel[] }>(`/rooms?projectPrefix=${encodeURIComponent(prefix)}`);
-    const mapped = body.rooms.flatMap((channel) => {
-      const definition = BUZZ_STORY_ROOMS.find((room) => channel.name === buzzRoomName(currentProject, room.id));
-      return definition ? [{ roomId: definition.id, channel } satisfies StoryRoomRecord] : [];
+    const body = await request<{ rooms: StoryRoomRecord[] }>("/story-room-identity", {
+      method: "POST",
+      body: JSON.stringify(storyRoomIdentityBody(currentProject, false)),
     });
-    setStoryRooms(mapped);
+    setStoryRooms(Array.isArray(body.rooms) ? body.rooms : []);
   }, []);
 
   useEffect(() => {
@@ -233,15 +253,12 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     if (!project) { setNotice("Open LEARN or PLAN once so PlotPickle has an active story before creating its Private Story Room."); return; }
     setBusy("story-rooms");
     try {
-      const body = await request<{ rooms: StoryRoomRecord[] }>("/rooms/ensure", {
+      const body = await request<{ rooms: StoryRoomRecord[]; message: string }>("/story-room-identity", {
         method: "POST",
-        body: JSON.stringify({
-          projectPrefix: buzzProjectSlug(project),
-          rooms: BUZZ_STORY_ROOMS.map((room) => ({ id: room.id, name: buzzRoomName(project, room.id), description: `${project.title} · ${room.description}` })),
-        }),
+        body: JSON.stringify(storyRoomIdentityBody(project, true)),
       });
-      setStoryRooms(body.rooms);
-      setNotice(`Private Story Room is ready for ${project.title}.`);
+      setStoryRooms(Array.isArray(body.rooms) ? body.rooms : []);
+      setNotice(body.message || `Private Story Room is ready for ${project.title}.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The Private Story Room could not be prepared.");
     } finally {
@@ -337,7 +354,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
         : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster /></main>
         : utilityView === "story-rooms" ? <main className={styles.stack}>
-            <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? project.title : "Open a story first"}</h2><p>One private project space for story discussion. PlotPickle keeps the older category channels underneath for compatibility; you do not have to manage six Halls.</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
+            <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? (privateStoryRoom?.displayName || buzzStoryRoomDisplayName(project, PRIVATE_STORY_ROOM_ID)) : "Open a story first"}</h2><p>{project ? `${project.title} · Stable BUZZ channel identity; the normal room name never exposes the project UUID. PlotPickle keeps the older category channels underneath for compatibility.` : "One private project space for story discussion."}</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
             {privateStoryRoom ? <CommunityStoryRoomAccess channel={privateStoryRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : <p className={styles.empty}>{project ? "Create the Private Story Room when you want a BUZZ space dedicated to this story." : "Start or open a story in LEARN or PLAN first."}</p>}
           </main>
         : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} humanPresentation={humanPresentation} onOpenDm={openDm} />}

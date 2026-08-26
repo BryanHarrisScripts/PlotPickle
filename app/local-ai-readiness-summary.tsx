@@ -45,14 +45,14 @@ const cell: React.CSSProperties = {
   background: "rgba(255,255,255,0.025)",
 };
 
-function stateLabel(value: ReadinessState) {
-  if (value === "recommended-ready") return "Recommended and ready";
-  if (value === "recommended-missing") return "Recommended but missing";
-  if (value === "recommended-stopped") return "Installed but stopped";
-  if (value === "recommended-unhealthy") return "Installed but unhealthy";
-  if (value === "user-override") return "Human override";
-  return "Fallback selected";
-}
+const READINESS_STATE_LABELS: Record<ReadinessState, string> = {
+  "recommended-ready": "Recommended and ready",
+  "recommended-missing": "Recommended but missing",
+  "recommended-stopped": "Installed but stopped",
+  "recommended-unhealthy": "Installed but unhealthy",
+  "fallback-selected": "Fallback selected",
+  "user-override": "Human override",
+};
 
 async function requestReadiness(start = false) {
   const response = await fetch(start ? "/api/local-ai/runtime/readiness/startup" : "/api/local-ai/runtime/readiness", {
@@ -89,7 +89,7 @@ export default function LocalAiReadinessSummary({ onOpenAdvanced }: Props) {
     <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start", flexWrap: "wrap" }}>
       <div>
         <p style={{ margin: 0, opacity: 0.7, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase" }}>AI Compute verification</p>
-        <h3 style={{ margin: "5px 0" }}>{readiness ? stateLabel(readiness.state) : "Checking this computer"}</h3>
+        <h3 style={{ margin: "5px 0" }}>{readiness ? READINESS_STATE_LABELS[readiness.state] : "Checking this computer"}</h3>
         <p style={{ margin: 0, maxWidth: 820, lineHeight: 1.5, opacity: 0.82 }}>{message}</p>
       </div>
       <button type="button" disabled={busy} onClick={() => void refresh(false)}>{busy ? "Checking..." : "Re-detect hardware"}</button>

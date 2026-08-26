@@ -14,6 +14,7 @@ type Decision = {
 };
 type ListResponse = { ok?: boolean; decisions?: Decision[]; attentionCount?: number; message?: string };
 type ActionResponse = { ok?: boolean; decision?: Decision; message?: string; refreshRequired?: boolean };
+type ProfileStatus = { authenticated?: boolean; csrfToken?: string | null };
 
 function currentProject() {
   try { const project = loadFoundationProject(); return { id: project.id, revision: String(project.revision), title: project.title }; }
@@ -21,6 +22,12 @@ function currentProject() {
 }
 function date(value: string) { const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? "Not recorded" : parsed.toLocaleString(); }
 function safeVisual(value: unknown) { return typeof value === "string" && (value.startsWith("/assets/") || value.startsWith("/api/local-ai/assets/")) ? value : ""; }
+async function activeCsrfToken() {
+  const response = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
+  const body = await response.json() as ProfileStatus & { message?: string };
+  if (!response.ok || !body.authenticated || !body.csrfToken) throw new Error(body.message || "Unlock your Human profile before answering a Story Decision.");
+  return body.csrfToken;
+}
 
 export default function StoryDecisionsPage() {
   const [project, setProject] = useState(currentProject());
@@ -54,8 +61,9 @@ export default function StoryDecisionsPage() {
     setBusy(true); setNotice("");
     try {
       const latest = currentProject(); setProject(latest);
+      const csrfToken = await activeCsrfToken();
       const response = await fetch("/api/story-decisions", {
-        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-PlotPickle-CSRF": csrfToken },
         body: JSON.stringify({
           action: "respond", decisionId: selected.decisionId,
           response: { responseClass, currentRevision: latest.revision, replacementContent: replacement, rationale, ...extra },

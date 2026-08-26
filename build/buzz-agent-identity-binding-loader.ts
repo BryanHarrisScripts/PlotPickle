@@ -26,12 +26,11 @@ function publishRuntimeBindings(bindings: Readonly<Record<string, string>>) {
 async function readLocalBindingDocument(root: string) {
   const raw = await readFile(path.join(root, LOCAL_BINDING_FILE), "utf8").catch(() => "");
   if (!raw) return {} as LocalBindingDocument;
-  try {
-    const document = JSON.parse(raw) as LocalBindingDocument;
-    return document.schemaVersion === 1 ? document : {};
-  } catch {
-    return {};
+  const document = JSON.parse(raw) as LocalBindingDocument;
+  if (document.schemaVersion !== 1) {
+    throw new Error("The local BUZZ Agent public-identity file uses an unsupported schema version. Rerun BUZZ sync or correct the local binding file.");
   }
+  return document;
 }
 
 export async function loadLocalBuzzAgentIdentityBindings(root = process.cwd()) {

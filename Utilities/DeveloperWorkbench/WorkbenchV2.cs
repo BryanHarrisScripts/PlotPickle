@@ -36,7 +36,7 @@ internal static class Issue1448WorkbenchEnhancer
         var repomix = new ToolStripButton("Repomix context") { CheckOnClick = true, Checked = true };
         var scan = new ToolStripButton("Scan selected") { Enabled = false };
         var secondOpinion = new ToolStripButton("Second opinion") { Enabled = false };
-        var status = new ToolStripLabel("Local reviewer models not loaded yet.") { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
+        var status = new ToolStripLabel("Local reviewer models not loaded yet.") { TextAlign = ContentAlignment.MiddleLeft };
 
         refreshModels.ToolTipText = "Probe supported loopback runtimes for compatible coding/review models.";
         repomix.ToolTipText = "Add a bounded Repomix evidence pack when deterministic file seeds exist.";
@@ -80,8 +80,14 @@ internal static class Issue1448WorkbenchEnhancer
         primary.SelectedIndexChanged += (_, _) =>
         {
             if (primary.SelectedItem is not ReviewerTarget target) return;
+            var changed = !string.Equals(preferences.PrimaryKey, target.Key, StringComparison.OrdinalIgnoreCase);
             preferences.PrimaryKey = target.Key;
             ReviewerPreferenceStore.Save(preferences);
+            if (changed && !string.IsNullOrWhiteSpace(reviewBox.Text))
+            {
+                reviewBox.Clear();
+                status.Text = "Primary reviewer changed. Rescan the selected work item before using this brief.";
+            }
         };
         secondary.SelectedIndexChanged += (_, _) =>
         {
@@ -342,15 +348,16 @@ internal static class Issue1448WorkbenchEnhancer
 
     private static void ApplyScanMarks(ListView queue, WorkbenchScanState state)
     {
+        var repository = SettingsStore.Load().Repository;
         foreach (ListViewItem row in queue.Items)
         {
             while (row.SubItems.Count < 5) row.SubItems.Add(string.Empty);
             row.UseItemStyleForSubItems = false;
-            if (row.Tag is WorkItem item && state.IsCurrent(SettingsStore.Load().Repository, item))
+            if (row.Tag is WorkItem item && state.IsCurrent(repository, item))
             {
                 row.SubItems[4].Text = "✓";
                 row.SubItems[4].ForeColor = Color.ForestGreen;
-                row.SubItems[4].Font = new Font(queue.Font, FontStyle.Bold);
+                row.SubItems[4].Font = queue.Font;
             }
             else
             {
@@ -372,7 +379,7 @@ internal static class Issue1448WorkbenchEnhancer
     private static bool SameEndpoint(string left, string right)
         => string.Equals(NormalizeEndpoint(left), NormalizeEndpoint(right), StringComparison.OrdinalIgnoreCase);
 
-    private static string NormalizeEndpoint(string value) => String(value).Trim().TrimEnd('/');
+    private static string NormalizeEndpoint(string value) => value.Trim().TrimEnd('/');
     private static string Limit(string text, int max) => text.Length <= max ? text : text[..max] + "\n[bounded by Developer Workbench]";
     private static string OneLine(string text) => text.Replace('\r', ' ').Replace('\n', ' ').Trim();
 
@@ -457,7 +464,8 @@ internal static class WorkbenchProcess
         if (process.ExitCode != 0)
         {
             var detail = string.IsNullOrWhiteSpace(error) ? output : error;
-            throw new InvalidOperationException($"{command} exited with code {process.ExitCode}.\n{detail.Trim()[..Math.Min(detail.Trim().Length, 8000)]}");
+            var trimmed = detail.Trim();
+            throw new InvalidOperationException($"{command} exited with code {process.ExitCode}.\n{trimmed[..Math.Min(trimmed.Length, 8000)]}");
         }
         return output.Trim();
     }

@@ -1,4 +1,4 @@
-import { normalizeStoryResult, reduceStoryResults } from "./story-workflow-core.mjs";
+import { normalizeStoryResult, reduceStoryResults } from "../story-workflow-core.mjs";
 
 export const STORY_COUNCIL_VERSION = 1;
 

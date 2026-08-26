@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { promisify } from "node:util";
 import { requireCurrentRepository, requiredWorkbenchTempPath } from "./workbench-cli.mjs";
-import { resolveActiveNpmCommand, runPortableCommand } from "../../scripts/pi-worker-runtime.mjs";
+import { resolveActiveNpmCommand } from "../../scripts/pi-worker-runtime.mjs";
 
+const exec = promisify(execFile);
 const MAX_SEEDS = 48;
 const MAX_OUTPUT_CHARS = 90_000;
 const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
@@ -33,6 +36,42 @@ async function pathExists(root, relative) {
     if (MISSING_CODES.has(error?.code)) return false;
     throw error;
   }
+}
+
+async function resolveRepomixNpmInvocation() {
+  const npmCommand = resolveActiveNpmCommand();
+  if (process.platform !== "win32" || !/\.(?:cmd|bat)$/iu.test(npmCommand)) {
+    return { command: npmCommand, prefix: [] };
+  }
+
+  const roots = [];
+  if (path.isAbsolute(npmCommand)) roots.push(path.dirname(npmCommand));
+  roots.push(path.dirname(process.execPath));
+  for (const root of [...new Set(roots)]) {
+    const npmCli = path.join(root, "node_modules", "npm", "bin", "npm-cli.js");
+    try {
+      await access(npmCli);
+      return { command: process.execPath, prefix: [npmCli] };
+    } catch (error) {
+      if (MISSING_CODES.has(error?.code)) continue;
+      throw error;
+    }
+  }
+
+  throw new Error("Developer Workbench Repomix could not locate npm-cli.js beside the active Node installation. Windows Repomix execution will not fall back to cmd.exe.");
+}
+
+async function runRepomix(root, args) {
+  const invocation = await resolveRepomixNpmInvocation();
+  await exec(invocation.command, [...invocation.prefix, ...args], {
+    cwd: root,
+    env: { ...process.env },
+    windowsHide: true,
+    shell: false,
+    timeout: 3 * 60_000,
+    maxBuffer: 16 * 1024 * 1024,
+    encoding: "utf8",
+  });
 }
 
 function packageText(reviewPackage) {
@@ -116,7 +155,7 @@ export async function buildRepomixEvidence(reviewPackage, outputPath) {
 
   const temporary = path.join(path.dirname(outputPath), `repomix-${process.pid}-${Date.now()}.xml`);
   try {
-    await runPortableCommand(resolveActiveNpmCommand(), [
+    await runRepomix(root, [
       "exec", "--yes", "--package=repomix@1.18.0", "--", "repomix",
       "--style", "xml",
       "--parsable-style",
@@ -124,11 +163,7 @@ export async function buildRepomixEvidence(reviewPackage, outputPath) {
       "--output", temporary,
       "--include", seeds.join(","),
       "--ignore", SAFE_IGNORE,
-    ], {
-      cwd: root,
-      timeout: 3 * 60_000,
-      maxBuffer: 16 * 1024 * 1024,
-    });
+    ]);
     const packed = await readFile(temporary, "utf8");
     const bounded = packed.length <= MAX_OUTPUT_CHARS
       ? packed

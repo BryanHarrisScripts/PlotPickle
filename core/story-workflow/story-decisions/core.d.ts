@@ -35,6 +35,7 @@ export declare const STORY_DECISION_RESPONSE_CLASSES: readonly StoryDecisionResp
 export declare function storyDecisionEligible(councilResult: unknown, input?: { readonly blockedByHuman?: boolean }): boolean;
 export declare function createStoryDecisionFromCouncilResult(input: Readonly<Record<string, unknown>>): StoryDecisionRecord | null;
 export declare function normalizeStoryDecisionRecord(input: unknown): StoryDecisionRecord;
+export declare function supersedeStoryDecision(input: unknown, replacementDecisionId?: string, now?: string): StoryDecisionRecord;
 export declare function mergeStoryDecisionRecords(existingInput: unknown, incomingInput: unknown, input?: { readonly now?: string }): { readonly existing: StoryDecisionRecord; readonly incoming: StoryDecisionRecord | null; readonly merged: boolean };
 export declare function markStoryDecisionStale(input: unknown, currentRevision: string, now?: string): StoryDecisionRecord;
 export declare function withdrawStoryDecision(input: unknown, currentRevision?: string, now?: string): StoryDecisionRecord;

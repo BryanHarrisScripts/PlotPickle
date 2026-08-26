@@ -166,7 +166,12 @@ export function canonicalNostrEventId(value) {
 
 export function verifyNostrEventSignature(value) {
   const event = normalizeNostrEvent(value);
-  if (!event) return { valid: false, eventId: "", pubkey: "", reason: "BUZZ did not return a complete signed Nostr event." };
+  if (!event) return {
+    valid: false,
+    eventId: "",
+    pubkey: "",
+    reason: "BUZZ did not return a complete signed Nostr event, including its public signature.",
+  };
   const canonicalId = canonicalNostrEventId(event);
   if (!canonicalId || canonicalId !== event.id) {
     return { valid: false, eventId: event.id, pubkey: event.pubkey, reason: "The BUZZ event id does not match its signed event content." };

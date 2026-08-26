@@ -101,6 +101,7 @@ export function createStoryBridgeRequest(input: {
 
 export function encodeStoryBridgeDispatchEnvelope(request: StoryBridgeRequest): string;
 export function decodeStoryBridgeResultEnvelope(content: string): Record<string, unknown> | null;
+export function storyBridgeResultMatchesRequest(content: string, requestId: string): boolean;
 export function normalizeStoryBridgeContribution(input: {
   readonly request: StoryBridgeRequest;
   readonly envelope: string | Record<string, unknown>;

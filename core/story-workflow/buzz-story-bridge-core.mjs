@@ -192,6 +192,13 @@ export function decodeStoryBridgeResultEnvelope(content) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
+export function storyBridgeResultMatchesRequest(content, requestId) {
+  const expectedRequestId = cleanText(requestId, 180);
+  if (!expectedRequestId) return false;
+  const envelope = decodeStoryBridgeResultEnvelope(content);
+  return cleanText(envelope?.requestId, 180) === expectedRequestId;
+}
+
 function rejection(request, envelope, verification, state, reason) {
   return {
     contributionId: cleanText(envelope?.contributionId, 180) || verification.eventId || "",

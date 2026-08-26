@@ -8,6 +8,7 @@ import {
   createStoryBridgeRequest,
   dedupeStoryBridgeContributions,
   normalizeStoryBridgeContribution,
+  storyBridgeResultMatchesRequest,
   STORY_BRIDGE_RESULT_MARKER,
 } from "../core/story-workflow/buzz-story-bridge-core.mjs";
 import {
@@ -153,6 +154,38 @@ test("#1422 verifies signed Nostr event identity locally and rejects tampered co
 
   const tampered = { ...event, content: "different content after signing" };
   assert.equal(verifyNostrEventSignature(tampered).valid, false);
+});
+
+test("#1422 matches pretty-printed BUZZ result envelopes by parsed request identity", () => {
+  const bridge = request();
+  const compact = resultEnvelope(bridge);
+  const payload = JSON.parse(compact.slice(compact.indexOf("\n") + 1));
+  const pretty = `${STORY_BRIDGE_RESULT_MARKER}\n${JSON.stringify(payload, null, 2)}`;
+
+  assert.equal(storyBridgeResultMatchesRequest(compact, bridge.requestId), true);
+  assert.equal(storyBridgeResultMatchesRequest(pretty, bridge.requestId), true);
+  assert.equal(storyBridgeResultMatchesRequest(pretty, "story-bridge:different"), false);
+  assert.throws(
+    () => storyBridgeResultMatchesRequest(`${STORY_BRIDGE_RESULT_MARKER}\n{broken`, bridge.requestId),
+    /JSON/,
+  );
+  assert.equal(storyBridgeResultMatchesRequest(`preface\n${pretty}`, bridge.requestId), false);
+});
+
+test("#1422 fails closed with a precise compatibility reason when BUZZ omits the public event signature", () => {
+  const bridge = request();
+  const envelope = resultEnvelope(bridge);
+  const { sig: _omittedPublicSignature, ...signatureStrippedEvent } = signedNostrEvent(envelope, 3n);
+  const contribution = normalizeStoryBridgeContribution({
+    request: bridge,
+    envelope,
+    rawEvent: signatureStrippedEvent,
+    currentRevision: "9",
+  });
+
+  assert.equal(contribution.accepted, false);
+  assert.equal(contribution.state, "unverified");
+  assert.match(contribution.reason, /public signature/i);
 });
 
 test("#1422 creates stable private project bridge requests and degrades locally until official Agent signers exist", () => {

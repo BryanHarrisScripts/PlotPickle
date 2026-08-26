@@ -139,6 +139,7 @@ test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room 
     "ensurePrivateBuzzAgentMembership",
     "agentPubkey: bridge.expectedAgentPubkey",
     "STORY_BRIDGE_RESULT_MARKER",
+    "storyBridgeResultMatchesRequest",
     "Copy every correlation ID and target/evidence ref exactly",
     "canonical Agent mention",
   ]) assert.ok(gateway.includes(contract), `Story Bridge dispatch is missing managed-Agent live targeting: ${contract}`);
@@ -172,7 +173,7 @@ test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room 
   assert.match(membership, /replace\(\/nsec1\[a-z0-9\]\+\/gi/);
   assert.ok(
     gateway.includes("message.content.startsWith(`${STORY_BRIDGE_DISPATCH_MARKER}\\n`)")
-      && gateway.includes("message.content.includes(`\\\"requestId\\\":\\\"${requestId}\\\"`)"),
+      && gateway.includes("storyBridgeResultMatchesRequest(message.content, bridge.requestId)"),
     "The structured dispatch marker/request identity must remain stable for retry/idempotency detection.",
   );
 });

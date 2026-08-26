@@ -13,6 +13,7 @@
     <DebugType>embedded</DebugType>
     <AssemblyName>PlotPickleDeveloperWorkbench</AssemblyName>
     <RootNamespace>PlotPickle.DeveloperWorkbench</RootNamespace>
+    <StartupObject>PlotPickle.DeveloperWorkbench.WorkbenchV2Program</StartupObject>
     <PlotPickleWorkbenchBuild Condition="'$(PlotPickleWorkbenchBuild)' == ''">local</PlotPickleWorkbenchBuild>
     <PlotPickleWorkbenchSha Condition="'$(PlotPickleWorkbenchSha)' == ''">unknown</PlotPickleWorkbenchSha>
     <InformationalVersion>build-$(PlotPickleWorkbenchBuild);sha-$(PlotPickleWorkbenchSha)</InformationalVersion>

@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
+const [project, workbench, inventory, secondOpinion, repomix, workflow] = await Promise.all([
+  read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),
+  read("Utilities/DeveloperWorkbench/WorkbenchV2.cs"),
+  read("Utilities/DeveloperWorkbench/local-reviewer-inventory.mjs"),
+  read("Utilities/DeveloperWorkbench/second-opinion-review.mjs"),
+  read("Utilities/DeveloperWorkbench/workbench-repomix-evidence.mjs"),
+  read(".github/workflows/developer-workbench.yml"),
+]);
+
+test("#1448 upgraded Workbench starts through the additive V2 shell", () => {
+  assert.match(project, /<StartupObject>PlotPickle\.DeveloperWorkbench\.WorkbenchV2Program<\/StartupObject>/);
+  assert.match(workbench, /Issue1448WorkbenchEnhancer\.Attach\(form\)/);
+  assert.match(workbench, /new ToolStripButton\("Scan selected"\)/);
+  assert.match(workbench, /new ToolStripButton\("Second opinion"\)/);
+});
+
+test("#1448 scan status is local, persistent and revision-aware", () => {
+  assert.match(workbench, /queue\.Columns\.Add\("Scanned"/);
+  assert.match(workbench, /row\.SubItems\[4\]\.Text = "✓"/);
+  assert.match(workbench, /Color\.ForestGreen/);
+  assert.match(workbench, /scan-state-v1\.json/);
+  assert.match(workbench, /pr:\{item\.HeadSha\.ToLowerInvariant\(\)\}/);
+  assert.match(workbench, /issue:\{item\.UpdatedAt\.ToUniversalTime\(\):O\}/);
+  assert.doesNotMatch(workbench, /gh[^\n]*label|issue[^\n]*edit[^\n]*scan/i);
+});
+
+test("#1448 model picker keeps llama.cpp distinct and uses existing Pi explicit-selection contract", () => {
+  const llama = inventory.indexOf('kind: "llama.cpp"');
+  const studio = inventory.indexOf('kind: "lm-studio"');
+  const ollama = inventory.indexOf('kind: "ollama"');
+  assert.ok(llama >= 0 && studio > llama && ollama > studio);
+  assert.match(inventory, /approvedCodingModel/);
+  assert.match(inventory, /resolvePiLocalRuntime/);
+  assert.match(workbench, /PLOTPICKLE_REPAIR_ENDPOINT/);
+  assert.match(workbench, /PLOTPICKLE_REPAIR_MODEL/);
+  assert.match(workbench, /VerifyTargetReadinessAsync/);
+  assert.doesNotMatch(inventory, /readdir|glob|\.gguf/i);
+});
+
+test("#1448 second opinion is bounded, independent and Human-incorporated", () => {
+  assert.match(secondOpinion, /runManagedPiReadOnly/);
+  assert.match(secondOpinion, /read, grep, find, and ls/);
+  assert.match(secondOpinion, /Do not expose chain-of-thought/);
+  for (const section of [
+    "LIKELY ROOT CAUSE",
+    "MISSING EVIDENCE / COMPONENTS",
+    "CANDIDATE MINIMAL FIX",
+    "ALTERNATIVE FIX",
+    "REGRESSION RISKS",
+    "VERIFICATION",
+    "CONFIDENCE / UNKNOWNS",
+  ]) assert.match(secondOpinion, new RegExp(section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(workbench, /Choose a different local model for Second opinion/);
+  assert.match(workbench, /Append to editable brief/);
+  assert.match(workbench, /HUMAN-INCLUDED SECOND OPINION/);
+});
+
+test("#1448 Repomix evidence is targeted and credential-safe", () => {
+  assert.match(repomix, /repomix@1\.18\.0/);
+  assert.match(repomix, /--include/);
+  assert.match(repomix, /selectRepomixSeeds/);
+  assert.match(repomix, /MAX_SEEDS = 48/);
+  assert.match(repomix, /\*\*\/credentials\.json/);
+  assert.match(repomix, /\*\*\/secrets\.json/);
+  assert.doesNotMatch(repomix, /"build\/\*\*"/);
+  assert.match(workbench, /Repomix context/);
+});
+
+test("#1448 Windows Workbench CI executes the new focused regression", () => {
+  assert.match(workflow, /issue-1448-developer-workbench-local-reviewers\.test\.mjs/);
+});

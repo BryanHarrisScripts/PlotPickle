@@ -59,7 +59,8 @@ test("#1422 Settings diagnostics exercise the real profile-scoped Story Bridge w
     assert.ok(card.includes(label), `Settings diagnostics are missing ${label}.`);
   }
   assert.match(card, /data-state=\{row\.ready \? "connected" : "degraded"\}/u);
-  assert.match(card, /Test signed BUZZ round trip/u);
+  assert.match(card, /Test live BUZZ connection/u);
+  assert.match(card, /Not tested yet/u);
 });
 
 test("#1422 Agent signer diagnostics cover every public-BUZZ profile and require Tamsin", async () => {

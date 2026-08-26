@@ -28,6 +28,7 @@ function send(response: ServerResponse, status: number, value: Record<string, un
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
   response.end(JSON.stringify(value));
 }
 

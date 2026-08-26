@@ -1,0 +1,40 @@
+name: Story Room Directory
+
+on:
+  pull_request:
+    paths:
+      - "lib/buzz/story-room-identity.ts"
+      - "lib/buzz/story-room-listing.ts"
+      - "build/buzz-story-room-identity-gateway.ts"
+      - "build/buzz-story-room-access-gateway.ts"
+      - "build/buzz-story-room-listing-gateway.ts"
+      - "build/buzz-story-room-owner-authority.ts"
+      - "app/community-story-room-access.tsx"
+      - "app/community-story-room-listing.tsx"
+      - "app/community-story-room-listing.module.css"
+      - "tests/issue-1444-story-room-identity.test.mjs"
+      - "tests/issue-1444-story-room-listing.test.mjs"
+      - "tests/buzz-story-room-access-agents.test.mjs"
+      - ".github/workflows/story-room-directory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  story-room-directory-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Use Node.js 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+      - name: Validate Story Room identity, listing, privacy and access contracts
+        run: >-
+          node --test
+          tests/issue-1444-story-room-identity.test.mjs
+          tests/issue-1444-story-room-listing.test.mjs
+          tests/buzz-story-room-access-agents.test.mjs

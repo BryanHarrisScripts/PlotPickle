@@ -1,0 +1,232 @@
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(124, 241, 223, 0.2);
+  border-radius: 14px;
+  background: rgba(8, 15, 14, 0.72);
+}
+
+.card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card header span,
+.formGrid label > span,
+.preview > span,
+.identityStrip span {
+  display: block;
+  margin-bottom: 4px;
+  color: #7cf1df;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h3,
+.card h4,
+.card p,
+.card dl,
+.card dd {
+  margin: 0;
+}
+
+.card header p,
+.actions p {
+  margin-top: 6px;
+  max-width: 78ch;
+  color: rgba(241, 232, 199, 0.76);
+  line-height: 1.55;
+}
+
+.card button,
+.card select,
+.card input,
+.card textarea {
+  border: 1px solid rgba(124, 241, 223, 0.28);
+  border-radius: 8px;
+  background: rgba(16, 29, 27, 0.92);
+  color: #f1e8c7;
+}
+
+.card button {
+  min-height: 38px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.card button:disabled,
+.card select:disabled,
+.card input:disabled,
+.card textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.identityStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.identityStrip > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(241, 209, 131, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.identityStrip strong,
+.identityStrip small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identityStrip small {
+  margin-top: 3px;
+  color: rgba(241, 232, 199, 0.58);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 4px;
+}
+
+.formGrid select,
+.formGrid input,
+.formGrid textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.formGrid textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.description,
+.checkbox {
+  grid-column: 1 / -1;
+}
+
+.checkbox {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.checkbox span {
+  margin: 0 !important;
+  color: #f1e8c7 !important;
+  font-size: 0.86rem !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.actions p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.preview {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.preview article,
+.closedPreview {
+  padding: 14px;
+  border: 1px solid rgba(241, 209, 131, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.preview article {
+  display: grid;
+  gap: 10px;
+}
+
+.preview article small {
+  color: #f1d183;
+}
+
+.preview article p,
+.closedPreview {
+  color: rgba(241, 232, 199, 0.78);
+  line-height: 1.5;
+}
+
+.preview dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.preview dl > div {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(124, 241, 223, 0.04);
+}
+
+.preview dt {
+  color: rgba(241, 232, 199, 0.58);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.preview dd {
+  margin-top: 3px;
+  color: #f1e8c7;
+}
+
+.notice {
+  padding: 10px 12px;
+  border-left: 3px solid #f1d183;
+  background: rgba(241, 209, 131, 0.06);
+  color: #f1e8c7;
+}
+
+@media (max-width: 900px) {
+  .card > header,
+  .actions {
+    display: grid;
+  }
+
+  .identityStrip,
+  .formGrid,
+  .preview dl {
+    grid-template-columns: 1fr;
+  }
+
+  .description,
+  .checkbox {
+    grid-column: auto;
+  }
+}

@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
+import { buzzChannelMemberPubkeys } from "../lib/buzz/membership/buzz-channel-members";
 import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
@@ -33,7 +34,7 @@ function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
 }
 
-function isLocalRequest(request: IncomingMessage) {
+export function isLocalRequest(request: IncomingMessage) {
   if (!isLoopback(request.socket.remoteAddress)) return false;
   const host = request.headers.host;
   if (!host) return false;
@@ -45,7 +46,7 @@ function isLocalRequest(request: IncomingMessage) {
   } catch { return false; }
 }
 
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
+export function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
@@ -53,7 +54,7 @@ function sendJson(response: ServerResponse, statusCode: number, body: Record<str
   response.end(JSON.stringify(body));
 }
 
-async function readBody(request: IncomingMessage) {
+export async function readBody(request: IncomingMessage) {
   const chunks: Buffer[] = [];
   let bytes = 0;
   for await (const chunk of request) {
@@ -169,10 +170,7 @@ function channelsFrom(value: unknown): BuzzChannel[] {
     return id && name ? [{ id, name, description: firstString(item, ["description", "purpose", "topic"]) }] : [];
   });
 }
-function memberPubkeys(value: unknown) {
-  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string" && /^[a-f0-9]{64}$/i.test(entry)) : [];
-}
-function validChannelId(value: unknown) {
+export function validChannelId(value: unknown) {
   const channel = text(value);
   if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Story Room channel.");
   return channel;
@@ -206,7 +204,7 @@ async function storyRoom(connection: BuzzConnection, channelId: string) {
   return channel;
 }
 async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Promise<BuzzMember[]> {
-  const pubkeys = memberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channel.id]));
+  const pubkeys = buzzChannelMemberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channel.id]));
   if (!pubkeys.length) return [];
   const userArgs = ["--format", "compact", "users", "get"];
   for (const pubkey of pubkeys) userArgs.push("--pubkey", pubkey);

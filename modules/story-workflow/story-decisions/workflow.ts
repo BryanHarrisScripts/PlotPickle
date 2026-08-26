@@ -42,7 +42,10 @@ export function createStoryDecisionsFromCouncilResults(input: {
     });
     if (!candidate) continue;
 
-    const previous = [...records.values()].find((record) => record.projectId === candidate.projectId && record.problemKey === candidate.problemKey && ["new", "reviewing", "deferred"].includes(record.status));
+    const exact = records.get(candidate.decisionId);
+    if (exact && ["answered", "superseded", "withdrawn", "stale"].includes(exact.status)) continue;
+
+    const previous = exact ?? [...records.values()].find((record) => record.projectId === candidate.projectId && record.problemKey === candidate.problemKey && ["new", "reviewing", "deferred"].includes(record.status));
     if (!previous) {
       records.set(candidate.decisionId, candidate);
       continue;
@@ -65,7 +68,7 @@ export function reconcileStoryDecisionsForRevision(input: {
   const active = new Set(input.activeProblemKeys || []);
   return rankStoryDecisions(input.decisions.map((record) => {
     const decision = normalizeStoryDecisionRecord(record);
-    if (["answered", "superseded", "withdrawn"].includes(decision.status)) return decision;
+    if (["answered", "superseded", "withdrawn", "stale"].includes(decision.status)) return decision;
     if (active.size && !active.has(decision.problemKey)) return withdrawStoryDecision(decision, input.currentRevision, input.now);
     return markStoryDecisionStale(decision, input.currentRevision, input.now);
   }));

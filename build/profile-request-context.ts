@@ -5,7 +5,10 @@ import type { AuthContext } from "../core/auth/plotpickle-auth";
 import type { ProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage";
 import { getProfileExperienceRuntime } from "../core/auth/profile-experience/profile-experience-runtime";
 
-const BUZZ_API = "/api/local-buzz";
+const PROFILE_SCOPED_API_PREFIXES = [
+  "/api/local-buzz",
+  "/api/story-workflow/buzz-bridge",
+] as const;
 
 type ProfileRequestContext = Readonly<{
   authContext: AuthContext;
@@ -73,6 +76,10 @@ function sendRejected(response: ServerResponse, error: unknown) {
   }));
 }
 
+function requiresProfileScope(pathname: string) {
+  return PROFILE_SCOPED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 export function currentProfileRequestContext() {
   return profileRequestScope.getStore() ?? null;
 }
@@ -87,7 +94,7 @@ export function profileScopedBuzzRequestContext(): Plugin {
         if (!rawUrl) { next(); return; }
         let url: URL;
         try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
-        if (!url.pathname.startsWith(BUZZ_API)) { next(); return; }
+        if (!requiresProfileScope(url.pathname)) { next(); return; }
 
         void (async () => {
           const origin = requestOrigin(request);

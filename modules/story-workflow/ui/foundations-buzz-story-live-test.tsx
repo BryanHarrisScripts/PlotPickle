@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
 import type { PPFProject } from "../../../core/project/project";
 import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
@@ -40,7 +41,7 @@ type BridgeResponse = {
 };
 
 async function runRequest(body: Record<string, unknown>) {
-  const response = await fetch("/api/responsibility-runs", {
+  const response = await authenticatedProfileFetch("/api/responsibility-runs", {
     method: "POST",
     cache: "no-store",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -51,7 +52,7 @@ async function runRequest(body: Record<string, unknown>) {
 }
 
 async function bridgeRequest(body: Record<string, unknown>) {
-  const response = await fetch("/api/story-workflow/buzz-bridge", {
+  const response = await authenticatedProfileFetch("/api/story-workflow/buzz-bridge", {
     method: "POST",
     cache: "no-store",
     headers: { "Content-Type": "application/json", Accept: "application/json" },

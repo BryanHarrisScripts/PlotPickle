@@ -18,6 +18,76 @@
   color: #aaa398;
 }
 
+.diagnosticGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 12px;
+}
+
+.diagnosticRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid #4e5558;
+  border-radius: 12px;
+  background: #0b0e0f;
+}
+
+.diagnosticRow > div {
+  display: grid;
+  gap: 4px;
+}
+
+.diagnosticRow span {
+  color: #aaa398;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.diagnosticRow strong {
+  color: #f1eee7;
+}
+
+.diagnosticRow i {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #8d2d2d;
+  box-shadow: 0 0 0 4px rgba(193, 70, 70, 0.12);
+}
+
+.diagnosticRow[data-state="connected"] {
+  border-color: rgba(53, 201, 184, 0.4);
+}
+
+.diagnosticRow[data-state="connected"] i {
+  background: #35c9b8;
+  box-shadow: 0 0 0 4px rgba(53, 201, 184, 0.12);
+}
+
+.diagnosticRow[data-state="degraded"] {
+  border-color: rgba(207, 78, 78, 0.5);
+}
+
+.proofBlock {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(53, 201, 184, 0.16);
+}
+
+.proofBlock p {
+  margin: 0 0 4px;
+}
+
+.errorText {
+  color: #ef9a9a !important;
+}
+
 .actions {
   border-color: rgba(53, 201, 184, 0.2);
   background: #0d1011;
@@ -55,7 +125,13 @@
 }
 
 .statusBadge[data-state="degraded"] {
-  border-color: rgba(200, 148, 70, 0.5);
-  background: rgba(200, 148, 70, 0.08);
-  color: #e3c48c;
+  border-color: rgba(207, 78, 78, 0.62);
+  background: rgba(207, 78, 78, 0.1);
+  color: #ef9a9a;
+}
+
+@media (max-width: 800px) {
+  .diagnosticGrid {
+    grid-template-columns: 1fr;
+  }
 }

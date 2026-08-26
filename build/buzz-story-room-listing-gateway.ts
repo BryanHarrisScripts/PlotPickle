@@ -11,6 +11,7 @@ import {
 import { normalizeBuzzStoryRoomBindings, type BuzzStoryRoomBinding } from "../lib/buzz/story-room-identity";
 import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { redactBuzzDiagnostic } from "./buzz-cli-failure";
+import { assertBuzzStoryRoomOwner } from "./buzz-story-room-owner-authority";
 import { readCredentialJson } from "./local-credentials";
 import { currentProfileRequestContext } from "./profile-request-context";
 
@@ -188,6 +189,7 @@ function listingReply(binding: BuzzStoryRoomBinding, owner: VerifiedOwner, listi
 async function status(channelValue: unknown) {
   const owner = await verifiedOwner();
   const { binding } = await mappedPrimaryStoryRoom(channelValue);
+  await assertBuzzStoryRoomOwner(binding.channelId, owner.pubkey);
   const listing = await readListing(binding);
   return listingReply(
     binding,
@@ -215,6 +217,7 @@ function requestedAccessMode(value: unknown): BuzzStoryRoomAccessMode {
 async function update(body: Record<string, unknown>) {
   const owner = await verifiedOwner();
   const { binding } = await mappedPrimaryStoryRoom(body.channel);
+  await assertBuzzStoryRoomOwner(binding.channelId, owner.pubkey);
   const existing = await readListing(binding);
   if (existing && existing.ownerPublicKey !== owner.pubkey) {
     throw new Error("This Story Room listing belongs to a different verified BUZZ owner identity.");

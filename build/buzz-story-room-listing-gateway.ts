@@ -11,6 +11,7 @@ import {
 import { normalizeBuzzStoryRoomBindings, type BuzzStoryRoomBinding } from "../lib/buzz/story-room-identity";
 import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { redactBuzzDiagnostic } from "./buzz-cli-failure";
+import { isLocalRequest, readBody, sendJson, validChannelId } from "./buzz-story-room-access-gateway";
 import { assertBuzzStoryRoomOwner } from "./buzz-story-room-owner-authority";
 import { readCredentialJson } from "./local-credentials";
 import { currentProfileRequestContext } from "./profile-request-context";
@@ -19,7 +20,6 @@ const API = "/api/local-buzz/story-room-listing";
 const CONNECTION_FILE = "buzz-connection.json";
 const BINDINGS_OBJECT_ID = "story-room-bindings-v1";
 const LISTING_OBJECT_PREFIX = "story-room-listing-v1-";
-const MAX_BODY = 64 * 1024;
 
 type StoredConnection = {
   verificationVersion?: number;
@@ -41,54 +41,8 @@ function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
-}
-
-async function readBody(request: IncomingMessage) {
-  const chunks: Buffer[] = [];
-  let bytes = 0;
-  for await (const chunk of request) {
-    const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += value.length;
-    if (bytes > MAX_BODY) throw new Error("The Story Room listing request is too large.");
-    chunks.push(value);
-  }
-  const decoded: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("The Story Room listing request is invalid.");
-  return decoded as Record<string, unknown>;
-}
-
 function safeError(error: unknown) {
   return redactBuzzDiagnostic(error instanceof Error ? error.message : "Story Room listing is unavailable.").slice(0, 600);
-}
-
-function validChannelId(value: unknown) {
-  const channelId = text(value);
-  if (!/^[A-Za-z0-9-]{8,128}$/.test(channelId)) throw new Error("Choose a valid mapped Story Room.");
-  return channelId;
 }
 
 function listingObjectId(binding: BuzzStoryRoomBinding) {

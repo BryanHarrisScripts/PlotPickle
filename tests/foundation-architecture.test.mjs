@@ -311,7 +311,7 @@ test("the GUIDE uses a grounded 16K hardware-aware local profile", async () => {
   assert.match(gateway, /agentId === "curriculum-guide"/);
   assert.match(gateway, /role = requestedModelRole/);
   assert.match(runtime, /temperature: 0\.2/);
-  assert.match(runtime, /maxOutputTokens:[^\n]*(?:320|\? 720 : 320)/);
+  assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : input\.agentId === "wyrmwood-rival-director" \? 1100 : 480/);
   assert.match(guide, /<curriculum_context>/);
   assert.match(guide, /conversation\.slice\(-4\)/);
 });

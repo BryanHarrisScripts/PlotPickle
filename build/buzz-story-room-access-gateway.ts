@@ -145,7 +145,8 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  return JSON.parse(result.stdout || "null") as unknown;
+  const output = result.stdout || "null";
+  return JSON.parse(output) as unknown;
 }
 
 function array(value: unknown): unknown[] {

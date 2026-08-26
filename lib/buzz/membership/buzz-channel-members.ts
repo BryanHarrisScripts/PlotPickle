@@ -8,6 +8,8 @@ function rows(value: unknown): unknown[] {
   return [];
 }
 
+export const buzzChannelMemberRows = rows;
+
 function normalizedPubkey(value: unknown) {
   if (typeof value !== "string") return "";
   const pubkey = value.trim().toLowerCase();

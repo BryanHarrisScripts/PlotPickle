@@ -92,13 +92,10 @@ function envelope(marker: string, value: Record<string, unknown>) {
 function payload(marker: string, content: string) {
   if (!content.startsWith(`${marker}\n`)) return null;
   const source = content.slice(marker.length).trim();
-  if (!source || source.length > 4_096) return null;
-  try {
-    const value: unknown = JSON.parse(source);
-    return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-  } catch {
-    return null;
-  }
+  if (!source || source.length > 4_096) throw new Error("Story Room directory payload is missing or too large.");
+  const value: unknown = JSON.parse(source);
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Story Room directory payload is invalid.");
+  return value as Record<string, unknown>;
 }
 
 export function normalizeStoryRoomDirectoryAnnouncement(value: unknown): StoryRoomDirectoryAnnouncement {
@@ -139,8 +136,7 @@ export function serializeStoryRoomDirectoryAnnouncement(value: StoryRoomDirector
 
 export function parseStoryRoomDirectoryAnnouncement(content: string) {
   const value = payload(STORY_ROOM_DIRECTORY_MARKER, content);
-  if (!value) return null;
-  try { return normalizeStoryRoomDirectoryAnnouncement(value); } catch { return null; }
+  return value ? normalizeStoryRoomDirectoryAnnouncement(value) : null;
 }
 
 export function normalizeStoryRoomAccessRequest(value: unknown): StoryRoomAccessRequest {
@@ -168,8 +164,7 @@ export function serializeStoryRoomAccessRequest(value: StoryRoomAccessRequest) {
 
 export function parseStoryRoomAccessRequest(content: string) {
   const value = payload(STORY_ROOM_ACCESS_REQUEST_MARKER, content);
-  if (!value) return null;
-  try { return normalizeStoryRoomAccessRequest(value); } catch { return null; }
+  return value ? normalizeStoryRoomAccessRequest(value) : null;
 }
 
 export function normalizeStoryRoomAccessDecision(value: unknown): StoryRoomAccessDecision {
@@ -195,6 +190,5 @@ export function serializeStoryRoomAccessDecision(value: StoryRoomAccessDecision)
 
 export function parseStoryRoomAccessDecision(content: string) {
   const value = payload(STORY_ROOM_ACCESS_DECISION_MARKER, content);
-  if (!value) return null;
-  try { return normalizeStoryRoomAccessDecision(value); } catch { return null; }
+  return value ? normalizeStoryRoomAccessDecision(value) : null;
 }

@@ -8,6 +8,7 @@ import { getProfileExperienceRuntime } from "../core/auth/profile-experience/pro
 const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-buzz",
   "/api/story-workflow/buzz-bridge",
+  "/api/story-decisions",
 ] as const;
 
 type ProfileRequestContext = Readonly<{
@@ -26,7 +27,7 @@ function headerRecord(headers: IncomingHttpHeaders) {
 
 function requestOrigin(request: IncomingMessage) {
   const host = request.headers.host;
-  if (!host) throw new Error("PlotPickle rejected a BUZZ request without a Host header.");
+  if (!host) throw new Error("PlotPickle rejected a profile-scoped request without a Host header.");
   if (request.headers.origin) return new URL(request.headers.origin).origin;
   const encrypted = Boolean((request.socket as typeof request.socket & { encrypted?: boolean }).encrypted);
   return `${encrypted ? "https" : "http"}://${host}`;
@@ -52,12 +53,12 @@ function authorizationCode(error: unknown) {
 function rejectionMessage(error: unknown) {
   const code = authorizationCode(error);
   if (code === "CSRF_REJECTED") {
-    return "PlotPickle rejected this BUZZ request because the active Human session proof is missing or expired. Refresh the page or sign in again.";
+    return "PlotPickle rejected this request because the active Human session proof is missing or expired. Refresh the page or sign in again.";
   }
   const message = error instanceof Error && error.message ? error.message : "";
   return /session|auth|profile|unlock|cookie/i.test(message)
-    ? "Unlock a PlotPickle Human profile before using BUZZ."
-    : "PlotPickle could not authorize this BUZZ request for the active Human profile.";
+    ? "Unlock a PlotPickle Human profile before using this profile-scoped feature."
+    : "PlotPickle could not authorize this request for the active Human profile.";
 }
 
 function sendRejected(response: ServerResponse, error: unknown) {

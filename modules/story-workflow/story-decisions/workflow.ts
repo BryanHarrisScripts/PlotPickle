@@ -7,7 +7,7 @@ import {
   storyDecisionAttentionCount,
   withdrawStoryDecision,
   type StoryDecisionRecord,
-} from "../../core/story-workflow/story-decisions/core.mjs";
+} from "../../../core/story-workflow/story-decisions/core.mjs";
 
 export type StoryDecisionCouncilInput = {
   readonly councilResult: Readonly<Record<string, unknown>>;

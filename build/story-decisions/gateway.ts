@@ -10,9 +10,9 @@ import {
   storyDecisionAttentionCount,
   withdrawStoryDecision,
   type StoryDecisionRecord,
-} from "../core/story-workflow/story-decisions/core.mjs";
-import { isLocalPlotPickleRequest } from "./portable-ppf-reader";
-import { currentProfileRequestContext } from "./profile-request-context";
+} from "../../core/story-workflow/story-decisions/core.mjs";
+import { isLocalPlotPickleRequest } from "../portable-ppf-reader";
+import { currentProfileRequestContext } from "../profile-request-context";
 
 const API = "/api/story-decisions";
 const STORE_OBJECT_ID = "story-decisions-v1";

@@ -27,7 +27,7 @@ import { registerPlayhouseFederationGateway } from "./playhouse-federation-gatew
 import { registerPlayhouseDirectoryGateway } from "./playhouse-directory-gateway";
 import { registerVerificationOrchestrationGateway } from "./verification-orchestration-gateway";
 import { registerVerificationInboxGateway } from "./verification-inbox-gateway";
-import { registerStoryDecisionGateway } from "./story-decision-gateway";
+import { registerStoryDecisionGateway } from "./story-decisions/gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;

@@ -200,7 +200,7 @@ test("Afterglow proof covers character choice, structural conflict, grouping and
 
 test("Story Decision gateway and UI preserve profile, encrypted storage, revision and no-canon boundaries", async () => {
   const [gateway, requestContext, profileFetch, page, dashboard, localGateway] = await Promise.all([
-    readFile(new URL("../build/story-decision-gateway.ts", import.meta.url), "utf8"),
+    readFile(new URL("../build/story-decisions/gateway.ts", import.meta.url), "utf8"),
     readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
     readFile(new URL("../core/auth/profile-request-browser.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/story-decisions/page.tsx", import.meta.url), "utf8"),
@@ -216,10 +216,14 @@ test("Story Decision gateway and UI preserve profile, encrypted storage, revisio
   assert.match(gateway, /isLocalPlotPickleRequest/);
   assert.match(gateway, /action === "ingest-council"/);
   assert.match(gateway, /createStoryDecisionFromCouncilResult/);
+  assert.match(gateway, /const unique = new Map<string, StoryDecisionRecord>/);
+  assert.match(gateway, /const exact = store\.records\.find/);
+  assert.match(gateway, /"answered", "superseded", "withdrawn", "stale"/);
   assert.match(gateway, /writesCanon: false/);
   assert.match(gateway, /story-workbench-validation/);
   assert.match(gateway, /Story changed since this question was created/);
   assert.doesNotMatch(gateway, /persistentHome|node:fs|saveFoundationProject|applyStoryCommand|PPFProject/);
+  assert.match(localGateway, /from "\.\/story-decisions\/gateway"/);
   assert.match(localGateway, /registerStoryDecisionGateway\(server\)/);
   assert.match(profileFetch, /X-PlotPickle-CSRF/);
   assert.match(page, /authenticatedProfileFetch/);

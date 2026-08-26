@@ -385,7 +385,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const content = `${encodeStoryBridgeDispatchEnvelope(bridge)}\n\n${agentReplyProtocol(bridge)}`;
   await localJson(request, "/api/local-buzz/messages", {
     method: "POST",
-    body: JSON.stringify({ channel: room.id, content }),
+    body: JSON.stringify({ channel: room.id, content, mentionPubkeys: [bridge.expectedAgentPubkey] }),
   });
   return {
     ok: true,
@@ -395,7 +395,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
     room: { id: room.id, name: room.name },
     idempotent: false,
     ...observability(bridge, startedAt),
-    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room, the approved Agent was ensured as a bot member, and its canonical Agent mention was included. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
+    message: "The bounded Story Work Item was dispatched to its private BUZZ Story Room, the approved Agent was ensured as a bot member, and its canonical Agent mention was included with the approved signer pubkey as the explicit BUZZ recipient. The connected Human signer authored only the task dispatch; an Agent result is accepted only from the approved Agent signer.",
   };
 }
 

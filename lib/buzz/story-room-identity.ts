@@ -7,6 +7,7 @@ import {
 
 export const BUZZ_STORY_ROOM_BINDING_VERSION = 1 as const;
 export const PRIMARY_PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story";
+export const buzzLegacyStoryRoomName = buzzRoomName;
 
 export type BuzzStoryRoomBinding = {
   version: typeof BUZZ_STORY_ROOM_BINDING_VERSION;
@@ -58,10 +59,6 @@ export function buzzStoryTitleSlug(project: unknown) {
 export function buzzStoryRoomDisplayName(project: unknown, roomId: BuzzStoryRoomId) {
   if (roomId !== PRIMARY_PRIVATE_STORY_ROOM_ID) return buzzRoomName(project, roomId);
   return `${buzzStoryTitleSlug(project)}-story-default`.slice(0, 72);
-}
-
-export function buzzLegacyStoryRoomName(project: unknown, roomId: BuzzStoryRoomId) {
-  return buzzRoomName(project, roomId);
 }
 
 export function normalizeBuzzStoryRoomBindings(value: unknown): BuzzStoryRoomBinding[] {

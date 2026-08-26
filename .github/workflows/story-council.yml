@@ -1,6 +1,5 @@
 name: Story Council
 
-# Exact-head verification trigger for #1458.
 on:
   pull_request:
     paths:

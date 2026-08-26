@@ -20,7 +20,6 @@ function currentProject() {
   try { const project = loadFoundationProject(); return { id: project.id, revision: String(project.revision), title: project.title }; }
   catch { return { id: "", revision: "", title: "No active story" }; }
 }
-function date(value: string) { const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? "Not recorded" : parsed.toLocaleString(); }
 function safeVisual(value: unknown) { return typeof value === "string" && (value.startsWith("/assets/") || value.startsWith("/api/local-ai/assets/")) ? value : ""; }
 
 export default function StoryDecisionsPage() {
@@ -94,7 +93,7 @@ export default function StoryDecisionsPage() {
           <label className={styles.field}><span>Optional note</span><input value={rationale} onChange={(event) => setRationale(event.target.value)} placeholder="Why this choice fits your story" /></label>
           <button className={styles.primary} disabled={busy || !replacement.trim() || selected.status === "stale" || selected.baseRevision !== project.revision} onClick={() => void respond(selected.proposedChange ? "modify-proposal" : "freeform-decision")}>{busy ? "Recording…" : "Send to Story Workbench"}</button>
         </section>
-        <details className={styles.evidence}><summary>Evidence, provenance and impact</summary><p><b>Created</b> {date(selected.createdAt)}</p><p><b>Base revision</b> {selected.baseRevision}</p><p><b>Story targets</b> {selected.targetRefs.join(", ") || "None recorded"}</p><p><b>Curriculum</b> {selected.curriculumRefs.join(", ") || "None recorded"}</p><p><b>Evidence</b> {selected.evidenceRefs.join(", ") || "None recorded"}</p><p><b>Council</b> {selected.provenance.councilSummary || "Structured Council result recorded."}</p>{selected.provenance.transcriptRef ? <p><b>Optional BUZZ transcript</b> {selected.provenance.transcriptRef}</p> : null}<p><b>Authority</b> Human response → Story Workbench validation. This channel does not write PPF canon.</p></details>
+        <details className={styles.evidence}><summary>Evidence, provenance and impact</summary><p><b>Created</b> {Number.isNaN(new Date(selected.createdAt).getTime()) ? "Not recorded" : new Date(selected.createdAt).toLocaleString()}</p><p><b>Base revision</b> {selected.baseRevision}</p><p><b>Story targets</b> {selected.targetRefs.join(", ") || "None recorded"}</p><p><b>Curriculum</b> {selected.curriculumRefs.join(", ") || "None recorded"}</p><p><b>Evidence</b> {selected.evidenceRefs.join(", ") || "None recorded"}</p><p><b>Council</b> {selected.provenance.councilSummary || "Structured Council result recorded."}</p>{selected.provenance.transcriptRef ? <p><b>Optional BUZZ transcript</b> {selected.provenance.transcriptRef}</p> : null}<p><b>Authority</b> Human response → Story Workbench validation. This channel does not write PPF canon.</p></details>
       </> : <div className={styles.empty}><h2>{notice || "No Story Decisions need you."}</h2><p>PlotPickle will only interrupt when evidence cannot responsibly resolve a meaningful creative choice.</p></div>}</section>
     </div>{notice && selected ? <p className={styles.notice}>{notice}</p> : null}
   </main>;

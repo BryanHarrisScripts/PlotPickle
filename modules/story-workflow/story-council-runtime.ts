@@ -7,7 +7,7 @@ import {
   normalizeStoryCouncilContribution,
   storyCouncilSpecialistByAgentId,
   type StoryCouncilContribution,
-} from "../../core/story-workflow/story-council-core.mjs";
+} from "../../core/story-workflow/story-council/core.mjs";
 import type { ContextPacket } from "../../lib/agents/context/context-engine";
 import { agentProfileById } from "../../lib/agents/agent-profiles";
 

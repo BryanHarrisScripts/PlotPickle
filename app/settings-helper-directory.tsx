@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { agentProfileById, type AgentProfile } from "../lib/agents/agent-profiles";
+import { PLOTPICKLE_RECOMMENDED_BUZZ_CONFIGURATION } from "../lib/buzz/plotpickle-agent-configuration";
 import { STORY_PICKLE_PROFILE_IDS } from "../lib/buzz/story-pickle-agents";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./settings-helper-directory.module.css";
@@ -30,6 +31,23 @@ type BuzzAgentBindingStatus = {
   readonly bindings?: Readonly<Record<string, string>>;
   readonly profileId?: string;
   readonly pubkey?: string;
+  readonly message?: string;
+};
+
+type BuzzAgentReadback = {
+  readonly actorId: string;
+  readonly created: boolean;
+  readonly verified: boolean;
+  readonly identityConfigured: boolean;
+  readonly pubkey: string;
+  readonly presence: string;
+  readonly lookupError: boolean;
+};
+
+type BuzzAgentReadbackStatus = {
+  readonly ok?: boolean;
+  readonly identityVerified?: boolean;
+  readonly agents?: readonly BuzzAgentReadback[];
   readonly message?: string;
 };
 
@@ -62,6 +80,92 @@ function requestedHelperId() {
 }
 
 type HelperAgent = (typeof PLOTPICKLE_COMMUNITY_EXTENSIONS.agents)[number];
+
+function PlotPickleAgentDefaults() {
+  const { globalDefaults, authority } = PLOTPICKLE_RECOMMENDED_BUZZ_CONFIGURATION;
+  return (
+    <section className={styles.defaults} aria-labelledby="plotpickle-agent-defaults-title">
+      <div>
+        <p className={styles.eyebrow}>PlotPickle Agent Defaults</p>
+        <h3 id="plotpickle-agent-defaults-title">One safe starting point for every official Helper.</h3>
+        <p>{globalDefaults.runtime.label} · {globalDefaults.provider.label} · {globalDefaults.model} · reasoning {globalDefaults.reasoningLabel.toLowerCase()} · auto-restart</p>
+      </div>
+      <dl>
+        <div><dt>Creative truth</dt><dd>{authority.creativeTruth}</dd></div>
+        <div><dt>Conversation record</dt><dd>{authority.conversationRecord}</dd></div>
+        <div><dt>Agent memory</dt><dd>{globalDefaults.memoryLabel}</dd></div>
+        <div><dt>Private keys</dt><dd>Remain entirely inside {authority.privateKeyCustody}</dd></div>
+      </dl>
+    </section>
+  );
+}
+
+function readbackLabel(agent: BuzzAgentReadback | undefined, configuredPubkey: string, readAttempted: boolean) {
+  if (!configuredPubkey) return { tone: "missing", label: "Missing" } as const;
+  if (!readAttempted) return { tone: "pending", label: "Not checked" } as const;
+  if (!agent || agent.lookupError) return { tone: "unavailable", label: "Unavailable" } as const;
+  if (!agent.created || !agent.verified) return { tone: "pending", label: "Not verified" } as const;
+  if (agent.pubkey.toLowerCase() !== configuredPubkey.toLowerCase()) return { tone: "mismatch", label: "Mismatch" } as const;
+  return { tone: "verified", label: "Verified" } as const;
+}
+
+function BuzzConfigurationCard({
+  agent,
+  buzzPubkey,
+  readback,
+  readAttempted,
+  readBusy,
+  onReadFromBuzz,
+}: {
+  readonly agent: HelperAgent;
+  readonly buzzPubkey: string;
+  readonly readback?: BuzzAgentReadback;
+  readonly readAttempted: boolean;
+  readonly readBusy: boolean;
+  readonly onReadFromBuzz: () => Promise<void>;
+}) {
+  const { configurationVersion, globalDefaults, agentDefaults, syncSupport } = PLOTPICKLE_RECOMMENDED_BUZZ_CONFIGURATION;
+  const identity = readbackLabel(readback, buzzPubkey, readAttempted);
+  const [message, setMessage] = useState("");
+
+  async function refresh() {
+    if (readBusy) return;
+    setMessage("");
+    try {
+      await onReadFromBuzz();
+      setMessage("Public identity and presence refreshed. BUZZ does not expose private effective settings for read-back.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "BUZZ configuration read-back is unavailable.");
+    }
+  }
+
+  return (
+    <section className={styles.buzzConfiguration} aria-label={`${agent.displayName} BUZZ configuration`}>
+      <header>
+        <span>BUZZ Configuration</span>
+        <strong>{configurationVersion}</strong>
+      </header>
+      <dl>
+        <div><dt>Info</dt><dd><span className={styles.verifiedStatus}>Defined</span></dd></div>
+        <div><dt>Public Key</dt><dd><span className={styles[`${identity.tone}Status`]}>{identity.label}</span></dd></div>
+        <div><dt>Runtime</dt><dd>{globalDefaults.runtime.label}<small>{globalDefaults.provider.label} · {globalDefaults.model}</small></dd></div>
+        <div><dt>Channels</dt><dd>{roomLabels(agent.roomIds)}<small>Private Story Rooms: {agentDefaults.privateStoryRoomsLabel.toLowerCase()}</small></dd></div>
+        <div><dt>Memory</dt><dd>{globalDefaults.memoryLabel}</dd></div>
+        <div><dt>Agent Instructions</dt><dd>{configurationVersion}</dd></div>
+        <div><dt>Agent Type</dt><dd>{agentDefaults.agentTypeLabel}</dd></div>
+        <div><dt>Activation</dt><dd>{agentDefaults.activationLabel}</dd></div>
+        <div><dt>Startup</dt><dd>Start with BUZZ: On<small>Restart on changes: On · Parallelism: {agentDefaults.parallelism}</small></dd></div>
+        <div><dt>Configuration</dt><dd>{readAttempted ? "Public identity checked; private effective settings unavailable" : "Recommendation ready; BUZZ read-back pending"}</dd></div>
+      </dl>
+      <div className={styles.configurationActions}>
+        <button disabled={readBusy} onClick={() => void refresh()} type="button">{readBusy ? "READING…" : "READ FROM BUZZ"}</button>
+        <button data-sync-capability="unavailable" disabled type="button">SYNC TO BUZZ</button>
+      </div>
+      <p className={styles.syncBoundary}>{syncSupport.unavailableReason} No Agent private key or auth tag will be imported into PlotPickle.</p>
+      {message ? <p className={styles.configurationMessage}>{message}</p> : null}
+    </section>
+  );
+}
 
 function StoryPickleDownloadControl({ profileId, download }: { readonly profileId: string; readonly download?: StoryPickleDownload }) {
   if (!STORY_PICKLE_IDS.has(profileId)) return null;
@@ -151,12 +255,20 @@ function HelperCard({
   expanded = false,
   download,
   buzzPubkey,
+  buzzReadback,
+  buzzReadAttempted,
+  buzzReadBusy,
+  onReadFromBuzz,
   onBindingsChanged,
 }: {
   readonly agent: HelperAgent;
   readonly expanded?: boolean;
   readonly download?: StoryPickleDownload;
   readonly buzzPubkey: string;
+  readonly buzzReadback?: BuzzAgentReadback;
+  readonly buzzReadAttempted: boolean;
+  readonly buzzReadBusy: boolean;
+  readonly onReadFromBuzz: () => Promise<void>;
   readonly onBindingsChanged: (bindings: Readonly<Record<string, string>>) => void;
 }) {
   const profile = agentProfileById(agent.profileId);
@@ -197,6 +309,14 @@ function HelperCard({
           <p>{agent.publicBio}</p>
           <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
         </details> : null}
+        <BuzzConfigurationCard
+          agent={agent}
+          buzzPubkey={buzzPubkey}
+          onReadFromBuzz={onReadFromBuzz}
+          readAttempted={buzzReadAttempted}
+          readback={buzzReadback}
+          readBusy={buzzReadBusy}
+        />
         <BuzzPublicKeyControl
           onBindingsChanged={onBindingsChanged}
           profileId={agent.profileId}
@@ -213,6 +333,25 @@ export default function SettingsHelperDirectory() {
   const [selectedHelperId, setSelectedHelperId] = useState("");
   const [storyPickleDownloads, setStoryPickleDownloads] = useState<StoryPickleDownloadStatus | null>(null);
   const [buzzBindings, setBuzzBindings] = useState<Readonly<Record<string, string>>>({});
+  const [buzzReadback, setBuzzReadback] = useState<BuzzAgentReadbackStatus | null>(null);
+  const [buzzReadBusy, setBuzzReadBusy] = useState(false);
+
+  async function readFromBuzz() {
+    if (buzzReadBusy) return;
+    setBuzzReadBusy(true);
+    try {
+      const response = await fetch("/api/local-buzz/agent-roster", {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
+      const body = await response.json().catch(() => ({})) as BuzzAgentReadbackStatus;
+      if (!response.ok || body.ok === false) throw new Error(body.message || "BUZZ configuration read-back is unavailable.");
+      setBuzzReadback(body);
+    } finally {
+      setBuzzReadBusy(false);
+    }
+  }
 
   useEffect(() => {
     const sync = () => setSelectedHelperId(requestedHelperId());
@@ -265,12 +404,17 @@ export default function SettingsHelperDirectory() {
             <a href="/?workspace=settings&settings=help">← All helpers</a>
           </nav>
         </header>
+        <PlotPickleAgentDefaults />
         <section className={styles.individual} aria-label={`${selectedAgent.displayName} help`}>
           <HelperCard
             agent={selectedAgent}
             buzzPubkey={buzzBindings[selectedAgent.profileId] ?? ""}
+            buzzReadAttempted={buzzReadback !== null}
+            buzzReadback={buzzReadback?.agents?.find((candidate) => candidate.actorId === selectedAgent.profileId)}
+            buzzReadBusy={buzzReadBusy}
             download={downloadByProfileId.get(selectedAgent.profileId)}
             expanded
+            onReadFromBuzz={readFromBuzz}
             onBindingsChanged={setBuzzBindings}
           />
         </section>
@@ -292,6 +436,8 @@ export default function SettingsHelperDirectory() {
           <a href="#settings-help" aria-current="page">Meet the Helpers</a>
         </nav>
       </header>
+
+      <PlotPickleAgentDefaults />
 
       {helpGroups.map((group) => {
         const groupAgents = agents.filter((agent) => agent.helpGroup === group.id);
@@ -315,8 +461,12 @@ export default function SettingsHelperDirectory() {
                 <HelperCard
                   agent={agent}
                   buzzPubkey={buzzBindings[agent.profileId] ?? ""}
+                  buzzReadAttempted={buzzReadback !== null}
+                  buzzReadback={buzzReadback?.agents?.find((candidate) => candidate.actorId === agent.profileId)}
+                  buzzReadBusy={buzzReadBusy}
                   download={downloadByProfileId.get(agent.profileId)}
                   key={agent.profileId}
+                  onReadFromBuzz={readFromBuzz}
                   onBindingsChanged={setBuzzBindings}
                 />
               ))}

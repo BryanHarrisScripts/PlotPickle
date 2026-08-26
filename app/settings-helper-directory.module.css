@@ -25,6 +25,58 @@
   min-width: 190px;
 }
 
+.defaults {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr);
+  gap: 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(53, 201, 184, 0.32);
+  border-radius: 12px;
+  background: rgba(8, 20, 19, 0.72);
+}
+
+.defaults h3 {
+  margin: 0;
+  color: #eee8dc;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.defaults p:not(.eyebrow) {
+  margin: 7px 0 0;
+  color: #b8b1a6;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.defaults dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.defaults dl > div {
+  display: grid;
+  gap: 3px;
+}
+
+.defaults dt {
+  color: #e3c48c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.defaults dd {
+  margin: 0;
+  color: #d1cbc0;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .eyebrow,
 .title {
   margin: 0 0 7px;
@@ -214,6 +266,126 @@
   line-height: 1.5;
 }
 
+.buzzConfiguration {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 13px;
+  border: 1px solid rgba(53, 201, 184, 0.25);
+  border-radius: 9px;
+  background: rgba(4, 12, 12, 0.68);
+}
+
+.buzzConfiguration > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(113, 111, 103, 0.22);
+}
+
+.buzzConfiguration > header span {
+  color: #35c9b8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.buzzConfiguration > header strong {
+  color: #817b72;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.buzzConfiguration dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.buzzConfiguration dl > div {
+  align-content: start;
+}
+
+.buzzConfiguration dd {
+  color: #d7d1c7;
+  font-size: 10px;
+}
+
+.buzzConfiguration dd small {
+  display: block;
+  margin-top: 2px;
+  color: #89837a;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.verifiedStatus,
+.pendingStatus,
+.missingStatus,
+.unavailableStatus,
+.mismatchStatus {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.verifiedStatus {
+  color: #7fcbc0;
+}
+
+.pendingStatus,
+.unavailableStatus {
+  color: #b7a98f;
+}
+
+.missingStatus,
+.mismatchStatus {
+  color: #da6956;
+}
+
+.configurationActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.configurationActions button {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(53, 201, 184, 0.5);
+  border-radius: 7px;
+  background: rgba(53, 201, 184, 0.08);
+  color: #dffaf6;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.configurationActions button:disabled {
+  border-color: rgba(113, 111, 103, 0.28);
+  background: rgba(113, 111, 103, 0.05);
+  color: #6f6a63;
+  cursor: default;
+}
+
+.syncBoundary,
+.configurationMessage {
+  margin: 0;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.syncBoundary {
+  color: #777169;
+}
+
+.configurationMessage {
+  color: #a9dcd5;
+}
+
 .publicKeyControl {
   display: grid;
   gap: 7px;
@@ -382,6 +554,7 @@
 
 @media (max-width: 980px) {
   .hero { grid-template-columns: 1fr; }
+  .defaults { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -391,4 +564,6 @@
   .individualCard { grid-template-columns: 1fr; }
   .individualCard .portraitFrame { min-height: 200px; padding-bottom: 6px; }
   .publicKeyRow { grid-template-columns: 1fr; }
+  .defaults dl,
+  .buzzConfiguration dl { grid-template-columns: 1fr; }
 }

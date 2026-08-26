@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "configurationVersion": "PlotPickle Recommended v1",
+  "globalDefaults": {
+    "runtime": {
+      "id": "buzz-agent",
+      "label": "Buzz Agent"
+    },
+    "provider": {
+      "id": "openai",
+      "label": "OpenAI"
+    },
+    "model": "gpt-5.6-luna",
+    "reasoningEffort": null,
+    "reasoningLabel": "Model default",
+    "memory": "none",
+    "memoryLabel": "PlotPickle Context Only",
+    "autoRestartOnConfigChange": true
+  },
+  "agentDefaults": {
+    "agentType": "local-managed",
+    "agentTypeLabel": "Local Managed Agent",
+    "parallelism": 1,
+    "activation": "explicit-mentions",
+    "activationLabel": "Explicit mentions and assigned work",
+    "privateStoryRooms": "automatic",
+    "privateStoryRoomsLabel": "Automatic",
+    "startOnBuzzLaunch": true,
+    "autoRestartOnConfigChange": true
+  },
+  "authority": {
+    "creativeTruth": "PPF / bounded PlotPickle context",
+    "conversationRecord": "BUZZ history",
+    "memoryAuthority": "BUZZ Agent memory is not creative canon",
+    "privateKeyCustody": "BUZZ"
+  },
+  "commonInstructions": [
+    "Human remains creative authority.",
+    "PPF is canonical.",
+    "BUZZ conversation is not canon.",
+    "Return proposals and evidence; never silently rewrite accepted material.",
+    "Respond only to assigned work or explicit mentions.",
+    "Never impersonate another Agent or the Human.",
+    "Never expose credentials or hidden reasoning."
+  ],
+  "syncSupport": {
+    "readableFromBuzz": [
+      "public-identity",
+      "presence"
+    ],
+    "ownerReviewedDraftFields": [
+      "display-name",
+      "system-prompt",
+      "runtime",
+      "provider",
+      "model"
+    ],
+    "unavailableFields": [
+      "effective-private-configuration",
+      "parallelism",
+      "memory",
+      "start-on-launch",
+      "auto-restart",
+      "avatar",
+      "channel-memberships"
+    ],
+    "noSecretOwnerReviewedSyncAvailable": false,
+    "unavailableReason": "BUZZ does not yet expose a supported no-secret owner-reviewed API for reading or applying the complete effective Agent configuration."
+  }
+}

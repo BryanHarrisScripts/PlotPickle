@@ -22,3 +22,13 @@ test("#1329 does not bind focus to polling or change the terminal posting keys",
   assert.match(social, /event\.key === "Enter" && !event\.shiftKey/u);
   assert.match(social, /Enter to post · Shift\+Enter for a new line/u);
 });
+
+test("#1444 keeps the five-second Community BUZZ poll bounded and renderer-stable", async () => {
+  const social = await read("modules/community/community-buzz-social.tsx");
+
+  assert.match(social, /const refreshInFlightRef = useRef\(false\)/u);
+  assert.match(social, /if \(quiet && document\.visibilityState !== "visible"\) return;/u);
+  assert.match(social, /if \(refreshInFlightRef\.current\) return;/u);
+  assert.match(social, /setMessages\(\(current\) => sameBuzzMessages\(current, next\) \? current : next\)/u);
+  assert.match(social, /finally \{\s*refreshInFlightRef\.current = false;/u);
+});

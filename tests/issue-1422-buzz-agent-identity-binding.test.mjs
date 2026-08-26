@@ -70,3 +70,33 @@ test("publishes verified local signer bindings into the Vite server runtime cons
   assert.ok(adapter.includes("if (runtime && Object.keys(runtime).length) return runtime;"));
   assert.ok(vite.includes("await loadLocalBuzzAgentIdentityBindings()"), "Vite serve startup must load and publish the local signer map before requests arrive.");
 });
+
+test("Help cards edit the same local public signer bindings without accepting private Agent credentials", async () => {
+  const [directory, route, loader] = await Promise.all([
+    read("app/settings-helper-directory.tsx"),
+    read("app/api/buzz-agent-public-identities/route.ts"),
+    read("build/buzz-agent-identity-binding-loader.ts"),
+  ]);
+
+  assert.match(directory, /BUZZ Public Key/);
+  assert.match(directory, /64-character BUZZ public key/);
+  assert.match(directory, /authenticatedProfileFetch\("\/api\/buzz-agent-public-identities"/);
+  assert.match(directory, /Never enter an nsec or private key here\./);
+  assert.match(directory, /NOSTR_PUBLIC_KEY = \/\^\[a-f0-9\]\{64\}\$\/i/);
+
+  assert.match(route, /OFFICIAL_PROFILE_IDS/);
+  assert.match(route, /await authorize\(request, true\)/, "writes must require the authenticated Human mutation boundary and CSRF proof");
+  assert.match(route, /saveLocalBuzzAgentIdentityBinding\(profileId, pubkey\)/);
+
+  assert.match(loader, /\.plotpickle["'], ["']operator["'], ["']buzz-agent-public-identities\.json/);
+  assert.match(loader, /BUZZ public keys must be exactly 64 hexadecimal characters/);
+  assert.match(loader, /unsupported schema version/, "a present malformed/unsupported local signer file must fail visibly rather than become an empty binding map");
+  assert.doesNotMatch(loader, /catch\s*\{\s*return\s*\{\}/, "local signer parsing must not obscure malformed configuration");
+  assert.match(loader, /writeFile\(target/);
+  assert.match(loader, /return publishRuntimeBindings\(bindings\)/, "manual saves must refresh the live Story Bridge signer map immediately");
+
+  const observedTamsinKey = "8fc7aacfa646d49b08f3667fa951269acfbedc7cf8dd18c1144de535d7d1cfa6";
+  assert.ok(!directory.includes(observedTamsinKey));
+  assert.ok(!route.includes(observedTamsinKey));
+  assert.ok(!loader.includes(observedTamsinKey), "the live Tamsin signer must remain machine-local rather than hard-coded");
+});

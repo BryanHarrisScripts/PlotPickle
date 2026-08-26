@@ -214,6 +214,108 @@
   line-height: 1.5;
 }
 
+.publicKeyControl {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(113, 111, 103, 0.22);
+}
+
+.publicKeyHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.publicKeyHeading label {
+  color: #e3c48c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boundStatus,
+.missingStatus {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.boundStatus {
+  color: #7fcbc0;
+}
+
+.missingStatus {
+  color: #918a80;
+}
+
+.publicKeyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.publicKeyRow input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(113, 111, 103, 0.38);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(4, 10, 10, 0.92);
+  color: #dffaf6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+}
+
+.publicKeyRow input:focus-visible {
+  border-color: rgba(53, 201, 184, 0.7);
+  box-shadow: 0 0 0 2px rgba(53, 201, 184, 0.14);
+}
+
+.publicKeyRow input[aria-invalid="true"] {
+  border-color: rgba(218, 105, 86, 0.72);
+}
+
+.publicKeyRow button {
+  padding: 8px 10px;
+  border: 1px solid rgba(53, 201, 184, 0.52);
+  border-radius: 7px;
+  background: rgba(53, 201, 184, 0.08);
+  color: #dffaf6;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.publicKeyRow button:disabled {
+  border-color: rgba(113, 111, 103, 0.26);
+  color: #66625c;
+  cursor: default;
+}
+
+.publicKeyError,
+.publicKeyMessage,
+.publicKeyNote {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.publicKeyError {
+  color: #da6956;
+}
+
+.publicKeyMessage {
+  color: #7fcbc0;
+}
+
+.publicKeyNote {
+  color: #79736b;
+}
+
 .mintStatus,
 .bundleStatus {
   color: #918a80;
@@ -288,4 +390,5 @@
   .shortBio { min-height: 0; }
   .individualCard { grid-template-columns: 1fr; }
   .individualCard .portraitFrame { min-height: 200px; padding-bottom: 6px; }
+  .publicKeyRow { grid-template-columns: 1fr; }
 }

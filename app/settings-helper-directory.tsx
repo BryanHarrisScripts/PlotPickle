@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
+import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { agentProfileById, type AgentProfile } from "../lib/agents/agent-profiles";
 import { STORY_PICKLE_PROFILE_IDS } from "../lib/buzz/story-pickle-agents";
 import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
@@ -25,7 +26,15 @@ type StoryPickleDownloadStatus = {
   };
 };
 
+type BuzzAgentBindingStatus = {
+  readonly bindings?: Readonly<Record<string, string>>;
+  readonly profileId?: string;
+  readonly pubkey?: string;
+  readonly message?: string;
+};
+
 const STORY_PICKLE_IDS = new Set<string>(STORY_PICKLE_PROFILE_IDS);
+const NOSTR_PUBLIC_KEY = /^[a-f0-9]{64}$/i;
 
 function cannotDo(profile: AgentProfile) {
   if (STORY_PICKLE_IDS.has(profile.id)) return `${profile.displayName} can use only story material you supply in its BUZZ conversation; it cannot read PlotPickle projects, memory or canon, and every suggestion remains yours to accept.`;
@@ -62,14 +71,93 @@ function StoryPickleDownloadControl({ profileId, download }: { readonly profileI
   return <a className={styles.downloadAction} download={download.fileName} href={download.downloadUrl}>Download verified BUZZ card</a>;
 }
 
+function BuzzPublicKeyControl({
+  profileId,
+  pubkey,
+  onBindingsChanged,
+}: {
+  readonly profileId: string;
+  readonly pubkey: string;
+  readonly onBindingsChanged: (bindings: Readonly<Record<string, string>>) => void;
+}) {
+  const [draft, setDraft] = useState(pubkey);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const normalized = draft.trim().toLowerCase();
+  const valid = !normalized || NOSTR_PUBLIC_KEY.test(normalized);
+
+  useEffect(() => {
+    setDraft(pubkey);
+  }, [pubkey]);
+
+  async function save() {
+    if (!valid || saving) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const response = await authenticatedProfileFetch("/api/buzz-agent-public-identities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ profileId, pubkey: normalized }),
+      });
+      const body = await response.json().catch(() => ({})) as BuzzAgentBindingStatus;
+      if (!response.ok) throw new Error(body.message || "The BUZZ public key could not be saved.");
+      const bindings = body.bindings ?? {};
+      onBindingsChanged(bindings);
+      setDraft(body.pubkey ?? "");
+      setMessage(body.pubkey ? "Saved locally · Story Bridge signer updated" : "Local BUZZ signer binding cleared");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The BUZZ public key could not be saved.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={styles.publicKeyControl} data-buzz-public-key={pubkey ? "bound" : "missing"}>
+      <div className={styles.publicKeyHeading}>
+        <label htmlFor={`buzz-public-key-${profileId}`}>BUZZ Public Key</label>
+        <span className={pubkey ? styles.boundStatus : styles.missingStatus}>{pubkey ? "Bound" : "Not set"}</span>
+      </div>
+      <div className={styles.publicKeyRow}>
+        <input
+          aria-invalid={!valid}
+          autoCapitalize="none"
+          autoComplete="off"
+          id={`buzz-public-key-${profileId}`}
+          maxLength={64}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            setMessage("");
+          }}
+          placeholder="64-character BUZZ public key"
+          spellCheck={false}
+          type="text"
+          value={draft}
+        />
+        <button disabled={!valid || saving || normalized === pubkey} onClick={save} type="button">
+          {saving ? "Saving…" : normalized ? "Save" : pubkey ? "Clear" : "Save"}
+        </button>
+      </div>
+      {!valid ? <p className={styles.publicKeyError}>Enter exactly 64 hexadecimal characters.</p> : null}
+      {message ? <p className={styles.publicKeyMessage}>{message}</p> : null}
+      <p className={styles.publicKeyNote}>Public identity only. Never enter an nsec or private key here.</p>
+    </div>
+  );
+}
+
 function HelperCard({
   agent,
   expanded = false,
   download,
+  buzzPubkey,
+  onBindingsChanged,
 }: {
   readonly agent: HelperAgent;
   readonly expanded?: boolean;
   readonly download?: StoryPickleDownload;
+  readonly buzzPubkey: string;
+  readonly onBindingsChanged: (bindings: Readonly<Record<string, string>>) => void;
 }) {
   const profile = agentProfileById(agent.profileId);
   if (!profile) return null;
@@ -109,6 +197,11 @@ function HelperCard({
           <p>{agent.publicBio}</p>
           <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
         </details> : null}
+        <BuzzPublicKeyControl
+          onBindingsChanged={onBindingsChanged}
+          profileId={agent.profileId}
+          pubkey={buzzPubkey}
+        />
         <StoryPickleDownloadControl download={download} profileId={agent.profileId} />
       </div>
     </article>
@@ -119,6 +212,7 @@ export default function SettingsHelperDirectory() {
   const { agents, helpGroups } = PLOTPICKLE_COMMUNITY_EXTENSIONS;
   const [selectedHelperId, setSelectedHelperId] = useState("");
   const [storyPickleDownloads, setStoryPickleDownloads] = useState<StoryPickleDownloadStatus | null>(null);
+  const [buzzBindings, setBuzzBindings] = useState<Readonly<Record<string, string>>>({});
 
   useEffect(() => {
     const sync = () => setSelectedHelperId(requestedHelperId());
@@ -133,6 +227,23 @@ export default function SettingsHelperDirectory() {
       .then((response) => response.ok ? response.json() : null)
       .then((status) => {
         if (status) setStoryPickleDownloads(status as StoryPickleDownloadStatus);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/buzz-agent-public-identities", {
+      signal: controller.signal,
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((status) => {
+        const bindings = (status as BuzzAgentBindingStatus | null)?.bindings;
+        if (bindings) setBuzzBindings(bindings);
       })
       .catch(() => undefined);
     return () => controller.abort();
@@ -155,7 +266,13 @@ export default function SettingsHelperDirectory() {
           </nav>
         </header>
         <section className={styles.individual} aria-label={`${selectedAgent.displayName} help`}>
-          <HelperCard agent={selectedAgent} download={downloadByProfileId.get(selectedAgent.profileId)} expanded />
+          <HelperCard
+            agent={selectedAgent}
+            buzzPubkey={buzzBindings[selectedAgent.profileId] ?? ""}
+            download={downloadByProfileId.get(selectedAgent.profileId)}
+            expanded
+            onBindingsChanged={setBuzzBindings}
+          />
         </section>
       </div>
     );
@@ -194,7 +311,15 @@ export default function SettingsHelperDirectory() {
               ) : null}
             </header>
             <div className={styles.grid}>
-              {groupAgents.map((agent) => <HelperCard agent={agent} download={downloadByProfileId.get(agent.profileId)} key={agent.profileId} />)}
+              {groupAgents.map((agent) => (
+                <HelperCard
+                  agent={agent}
+                  buzzPubkey={buzzBindings[agent.profileId] ?? ""}
+                  download={downloadByProfileId.get(agent.profileId)}
+                  key={agent.profileId}
+                  onBindingsChanged={setBuzzBindings}
+                />
+              ))}
             </div>
           </section>
         );

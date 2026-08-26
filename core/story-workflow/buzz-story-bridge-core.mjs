@@ -195,12 +195,8 @@ export function decodeStoryBridgeResultEnvelope(content) {
 export function storyBridgeResultMatchesRequest(content, requestId) {
   const expectedRequestId = cleanText(requestId, 180);
   if (!expectedRequestId) return false;
-  try {
-    const envelope = decodeStoryBridgeResultEnvelope(content);
-    return cleanText(envelope?.requestId, 180) === expectedRequestId;
-  } catch {
-    return false;
-  }
+  const envelope = decodeStoryBridgeResultEnvelope(content);
+  return cleanText(envelope?.requestId, 180) === expectedRequestId;
 }
 
 function rejection(request, envelope, verification, state, reason) {

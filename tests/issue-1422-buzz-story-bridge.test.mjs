@@ -165,7 +165,10 @@ test("#1422 matches pretty-printed BUZZ result envelopes by parsed request ident
   assert.equal(storyBridgeResultMatchesRequest(compact, bridge.requestId), true);
   assert.equal(storyBridgeResultMatchesRequest(pretty, bridge.requestId), true);
   assert.equal(storyBridgeResultMatchesRequest(pretty, "story-bridge:different"), false);
-  assert.equal(storyBridgeResultMatchesRequest(`${STORY_BRIDGE_RESULT_MARKER}\n{broken`, bridge.requestId), false);
+  assert.throws(
+    () => storyBridgeResultMatchesRequest(`${STORY_BRIDGE_RESULT_MARKER}\n{broken`, bridge.requestId),
+    /JSON/,
+  );
   assert.equal(storyBridgeResultMatchesRequest(`preface\n${pretty}`, bridge.requestId), false);
 });
 

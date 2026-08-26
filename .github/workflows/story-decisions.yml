@@ -27,8 +27,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate Story Decision eligibility, grouping, stale revision, Human authority and Afterglow contracts
-        run: node --test tests/issue-1418-story-decisions.test.mjs
+      - name: Validate Story Decision eligibility, grouping, stale revision, Human authority and replay contracts
+        run: node --test tests/issue-1418-story-decisions.test.mjs tests/issue-1418-story-decisions-workflow-source.test.mjs
       - name: Validate existing Story Council and Human profile boundaries
         run: node --test tests/issue-1417-story-council.test.mjs tests/issue-1142-server-session-boundary.test.mjs
       - name: Production build

@@ -77,6 +77,14 @@ test("#1448 Repomix evidence is targeted and credential-safe", () => {
   assert.match(workbench, /Repomix context/);
 });
 
+test("#1448 Repomix execution stays shell-free on Windows", () => {
+  assert.match(repomix, /execFile/);
+  assert.match(repomix, /npm-cli\.js/);
+  assert.match(repomix, /shell: false/);
+  assert.match(repomix, /will not fall back to cmd\.exe/);
+  assert.doesNotMatch(repomix, /runPortableCommand/);
+});
+
 test("#1448 helper file IO stays inside host-selected repository and Workbench temp roots", () => {
   assert.match(workbenchCli, /path\.resolve\(os\.tmpdir\(\), "PlotPickle", "DeveloperWorkbench"\)/);
   assert.match(workbenchCli, /path\.relative\(root, candidate\)/);

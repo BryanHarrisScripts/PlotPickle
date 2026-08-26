@@ -5,16 +5,11 @@ import path from "node:path";
 import process from "node:process";
 import { runManagedPiReadOnly } from "./pi-managed-node-launch.mjs";
 import { buildInstructionBundle } from "./pi-review-instructions.mjs";
+import { requiredCliValue } from "./workbench-cli.mjs";
 import { ensureManagedPiInstalled } from "../../scripts/pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../../scripts/pi-worker-runtime.mjs";
 
 const MAX_PACKAGE_CHARS = 185_000;
-
-function argument(name) {
-  const index = process.argv.indexOf(name);
-  if (index < 0 || !process.argv[index + 1]) throw new Error(`Missing required ${name} argument.`);
-  return process.argv[index + 1];
-}
 
 function bounded(value) {
   const text = JSON.stringify(value, null, 2);
@@ -63,8 +58,8 @@ function prompt(reviewPackage, instructionBundle, runtime) {
 }
 
 async function main() {
-  const inputPath = path.resolve(argument("--input"));
-  const outputPath = path.resolve(argument("--output"));
+  const inputPath = path.resolve(requiredCliValue(process.argv, "--input"));
+  const outputPath = path.resolve(requiredCliValue(process.argv, "--output"));
   const reviewPackage = JSON.parse(await readFile(inputPath, "utf8"));
   if (!reviewPackage?.repositoryPath || !reviewPackage?.repository) {
     throw new Error("Second-opinion review requires repository and repositoryPath.");

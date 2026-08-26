@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { Agent } from "@mastra/core/agent";
 import { Mastra } from "@mastra/core/mastra";
 import { jsonSchema } from "ai";
+import { isStoryCouncilRuntimeMessage } from "../core/story-workflow/story-council-runtime-protocol.mjs";
 import type { ProviderProfile } from "./writing-assistant-store";
 
 const SAGE_BRINEWICK_SKILL_PATH = resolve(process.cwd(), ".agents/skills/sage-brinewick/SKILL.md");
@@ -104,6 +105,31 @@ function foundationProposalSchema(fieldIds: readonly string[]) {
       },
     },
     required: ["values"],
+    additionalProperties: false,
+  });
+}
+
+function storyCouncilContributionSchema() {
+  return jsonSchema<{
+    kind: "finding" | "proposal" | "alternatives" | "no-finding" | "blocked" | "needs-human";
+    severity: "low" | "medium" | "high";
+    confidence: number;
+    changesCanon: boolean;
+    explanation: string;
+    proposal: string;
+    alternatives: string[];
+  }>({
+    type: "object",
+    properties: {
+      kind: { type: "string", enum: ["finding", "proposal", "alternatives", "no-finding", "blocked", "needs-human"] },
+      severity: { type: "string", enum: ["low", "medium", "high"] },
+      confidence: { type: "number", minimum: 0, maximum: 1 },
+      changesCanon: { type: "boolean" },
+      explanation: { type: "string", minLength: 1, maxLength: 2400 },
+      proposal: { type: "string", maxLength: 2400 },
+      alternatives: { type: "array", items: { type: "string", minLength: 1, maxLength: 1000 }, maxItems: 4 },
+    },
+    required: ["kind", "severity", "confidence", "changesCanon", "explanation", "proposal", "alternatives"],
     additionalProperties: false,
   });
 }
@@ -265,6 +291,7 @@ export async function askPlotPickleAgent(input: {
 }) {
   const mastra = createPlotPickleMastra(input.profile);
   const agent = mastra.getAgent(input.agentId);
+  const storyCouncilMode = isStoryCouncilRuntimeMessage(input.message);
   const transcript = (input.history ?? [])
     .filter((item) => item.content.length <= 2_000)
     .slice(-6)
@@ -279,16 +306,27 @@ export async function askPlotPickleAgent(input: {
   try {
     const executionOptions = {
       abortSignal,
-      ...(["curriculum-guide", "foundations-planner", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
+      ...(storyCouncilMode || ["curriculum-guide", "foundations-planner", "wyrmwood-rival-director", "wyrmwood-curriculum-evaluator"].includes(input.agentId) ? {
         modelSettings: {
           // Legacy validation anchors for the previous conservative profile:
           // temperature: 0.2
           // maxOutputTokens: input.agentId === "foundations-planner" ? 720 : 320
-          temperature: input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
-          maxOutputTokens: input.agentId === "foundations-planner" ? 720 : input.agentId === "wyrmwood-rival-director" ? 1100 : 480,
+          temperature: storyCouncilMode ? 0.2 : input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
+          maxOutputTokens: storyCouncilMode ? 850 : input.agentId === "foundations-planner" ? 720 : input.agentId === "wyrmwood-rival-director" ? 1100 : 480,
         },
       } : {}),
     };
+    if (storyCouncilMode) {
+      const result = await agent.generate(prompt, {
+        ...executionOptions,
+        structuredOutput: {
+          schema: storyCouncilContributionSchema(),
+          jsonPromptInjection: false,
+        },
+      });
+      if (!result.object) throw new Error("The Story Council specialist did not return a structured contribution.");
+      return JSON.stringify(result.object);
+    }
     if (input.agentId === "foundations-planner") {
       const result = await agent.generate(prompt, {
         ...executionOptions,

@@ -20,6 +20,7 @@ import { buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../../lib/b
 
 declare const __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: Readonly<Record<string, string>> | undefined;
 
+const RUNTIME_BINDING_KEY = "__PLOTPICKLE_BUZZ_AGENT_IDENTITIES_RUNTIME__";
 const STORY_BRIDGE_ROOM_BY_FRONTIER: Readonly<Record<string, BuzzStoryRoomId>> = {
   Foundations: "story",
   World: "continuity",
@@ -34,6 +35,10 @@ function bridgeRoomFor(workItem: StoryWorkItem): BuzzStoryRoomId {
 }
 
 function localBuzzAgentIdentities() {
+  const runtime = (globalThis as typeof globalThis & {
+    [RUNTIME_BINDING_KEY]?: Readonly<Record<string, string>>;
+  })[RUNTIME_BINDING_KEY];
+  if (runtime && Object.keys(runtime).length) return runtime;
   return typeof __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__ === "object"
     && __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__
     ? __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__

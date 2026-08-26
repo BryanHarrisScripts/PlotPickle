@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
   normalizeBuzzAgentIdentityBindings,
   resolveBuzzAgentIdentityBinding,
 } from "../core/story-workflow/buzz/agent-identity-binding.mjs";
+
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("normalizes only valid public BUZZ Agent keys", () => {
   const valid = "A".repeat(64);
@@ -52,4 +55,18 @@ test("returns no signer for invalid or absent local state", () => {
     profileId: "tamsin-hearthquill",
     localBindings: {},
   }), "");
+});
+
+test("publishes verified local signer bindings into the Vite server runtime consumed by Story Bridge", async () => {
+  const [loader, adapter, vite] = await Promise.all([
+    read("build/buzz-agent-identity-binding-loader.ts"),
+    read("modules/story-workflow/buzz-story-bridge.ts"),
+    read("vite.config.ts"),
+  ]);
+  const runtimeKey = "__PLOTPICKLE_BUZZ_AGENT_IDENTITIES_RUNTIME__";
+  assert.ok(loader.includes(runtimeKey), "The local binding loader must publish the verified map to the server runtime.");
+  assert.ok(loader.includes("publishRuntimeBindings(normalizeBuzzAgentIdentityBindings(document.bindings))"));
+  assert.ok(adapter.includes(runtimeKey), "Story Bridge must consume the server-runtime signer map.");
+  assert.ok(adapter.includes("if (runtime && Object.keys(runtime).length) return runtime;"));
+  assert.ok(vite.includes("await loadLocalBuzzAgentIdentityBindings()"), "Vite serve startup must load and publish the local signer map before requests arrive.");
 });

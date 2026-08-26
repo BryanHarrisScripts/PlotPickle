@@ -90,6 +90,8 @@ test("Help cards edit the same local public signer bindings without accepting pr
 
   assert.match(loader, /\.plotpickle["'], ["']operator["'], ["']buzz-agent-public-identities\.json/);
   assert.match(loader, /BUZZ public keys must be exactly 64 hexadecimal characters/);
+  assert.match(loader, /unsupported schema version/, "a present malformed/unsupported local signer file must fail visibly rather than become an empty binding map");
+  assert.doesNotMatch(loader, /catch\s*\{\s*return\s*\{\}/, "local signer parsing must not obscure malformed configuration");
   assert.match(loader, /writeFile\(target/);
   assert.match(loader, /return publishRuntimeBindings\(bindings\)/, "manual saves must refresh the live Story Bridge signer map immediately");
 

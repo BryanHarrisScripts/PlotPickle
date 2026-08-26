@@ -4,7 +4,7 @@ import {
   selectStoryCouncilSpecialists,
   storyCouncilSpecialistByAgentId,
   type StoryCouncilPlan,
-} from "../../core/story-workflow/story-council-core.mjs";
+} from "../../core/story-workflow/story-council/core.mjs";
 import {
   CONTEXT_AUTHORITY,
   assembleContextPacket,

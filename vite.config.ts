@@ -18,6 +18,7 @@ import { buzzLiveHealthGateway } from "./build/buzz-live-health-gateway";
 import { buzzStoryRoomIdentityGateway } from "./build/buzz-story-room-identity-gateway";
 import { buzzStoryRoomListingGateway } from "./build/buzz-story-room-listing-gateway";
 import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gateway";
+import { buzzStoryRoomDirectoryGateway } from "./build/buzz-story-room-directory-gateway";
 import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { storyWorkflowBuzzBridgeGateway } from "./build/story-workflow-buzz-bridge-gateway";
@@ -130,6 +131,7 @@ export default defineConfig(async ({ command }) => {
       buzzStoryRoomIdentityGateway(),
       buzzStoryRoomListingGateway(),
       buzzStoryRoomAccessGateway(),
+      buzzStoryRoomDirectoryGateway(),
       buzzGateway(),
       storyWorkflowBuzzBridgeGateway(),
       localSystemStatusGateway(),

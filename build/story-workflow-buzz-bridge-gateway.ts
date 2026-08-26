@@ -20,8 +20,6 @@ const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
 type BuzzStatus = {
   connection?: { configured?: boolean; identityVerified?: boolean; identityConfigured?: boolean };
-  cli?: { available?: boolean };
-  relay?: { reachable?: boolean };
 };
 type BuzzRoom = { id: string; name: string; description?: string };
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string; raw?: unknown };
@@ -166,9 +164,7 @@ function fallback(request: StoryBridgeRequest, reason: string) {
 function statusReady(status: BuzzStatus) {
   return Boolean(status.connection?.configured
     && status.connection?.identityConfigured
-    && status.connection?.identityVerified
-    && status.cli?.available !== false
-    && status.relay?.reachable !== false);
+    && status.connection?.identityVerified);
 }
 
 function withinRunLimit(value: number, limit: number) {
@@ -300,7 +296,7 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
   await verifyRunAuthorization(request, bridge);
   const status = await localJson<BuzzStatus>(request, "/api/local-buzz/status").catch(() => ({}));
-  if (!statusReady(status)) return { ...fallback(bridge, "BUZZ is unavailable or the connected Human transport identity is not verified."), ...observability(bridge, startedAt) };
+  if (!statusReady(status)) return { ...fallback(bridge, "The connected Human BUZZ transport identity is not verified."), ...observability(bridge, startedAt) };
 
   const room = await storyRoom(request, bridge, true);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };

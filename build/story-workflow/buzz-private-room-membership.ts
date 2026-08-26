@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { buzzChannelMemberPubkeys } from "../../lib/buzz/membership/buzz-channel-members";
 import { resolveBuzzCliExecutable } from "../buzz-desktop-discovery";
 import { readCredentialJson } from "../local-credentials";
 
@@ -105,17 +106,6 @@ function runJson(executable: string, args: string[], connection: BuzzConnection)
   });
 }
 
-function memberPubkeys(value: unknown) {
-  const rows = Array.isArray(value)
-    ? value
-    : value && typeof value === "object" && Array.isArray((value as { members?: unknown[] }).members)
-      ? (value as { members: unknown[] }).members
-      : [];
-  return rows.flatMap((item) => typeof item === "string" && /^[a-f0-9]{64}$/i.test(item.trim())
-    ? [item.trim().toLowerCase()]
-    : []);
-}
-
 function delay(milliseconds: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -140,7 +130,7 @@ export async function ensurePrivateBuzzAgentMembership(input: {
     throw new Error("PlotPickle does not have a verified Human BUZZ transport identity for private Story Room membership. Reconnect BUZZ in Settings and test the connection.");
   }
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
-  const readMembers = async () => memberPubkeys(await runJson(
+  const readMembers = async () => buzzChannelMemberPubkeys(await runJson(
     resolution.executable,
     ["channels", "members", "--channel", channelId],
     connection,

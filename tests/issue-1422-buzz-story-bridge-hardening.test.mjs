@@ -127,9 +127,10 @@ test("#1422 server dispatch re-authorizes the exact persisted Run context before
 });
 
 test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room before canonical mention dispatch", async () => {
-  const [gateway, membership] = await Promise.all([
+  const [gateway, membership, memberParser] = await Promise.all([
     read("build/story-workflow-buzz-bridge-gateway.ts"),
     read("build/story-workflow/buzz-private-room-membership.ts"),
+    read("lib/buzz/membership/buzz-channel-members.ts"),
   ]);
   for (const contract of [
     "agentProfileById(bridge.agentProfileId)",
@@ -152,8 +153,16 @@ test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room 
     "waitForMembership",
     "await delay(MEMBERSHIP_CONFIRM_DELAY_MS)",
     "const confirmed = await waitForMembership(readMembers, agentPubkey)",
+    "buzzChannelMemberPubkeys",
     "BUZZ did not confirm the approved Agent as a private Story Room member",
   ]) assert.ok(membership.includes(contract), `Story Bridge private-membership helper is missing a required boundary: ${contract}`);
+
+  for (const contract of [
+    'for (const key of ["members", "items", "data", "results"])',
+    "typeof entry === \"string\"",
+    "(entry as Record<string, unknown>).pubkey",
+    "seen.has(pubkey)",
+  ]) assert.ok(memberParser.includes(contract), `BUZZ member parser is missing documented roster-shape support: ${contract}`);
 
   assert.equal(
     (membership.match(/"channels", "add-member"/g) ?? []).length,

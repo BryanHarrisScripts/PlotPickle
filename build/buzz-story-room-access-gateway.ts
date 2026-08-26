@@ -55,7 +55,7 @@ async function readBody(request: IncomingMessage) {
   let bytes = 0;
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += buffer.length;
+    bytes += chunk.length;
     if (bytes > MAX_BODY) throw new Error("The Story Room access request is too large.");
     chunks.push(buffer);
   }

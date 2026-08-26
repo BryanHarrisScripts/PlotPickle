@@ -9,6 +9,7 @@ on:
       - "modules/story-workflow/**/story-council*.ts"
       - "modules/story-workflow/**/story-council*.tsx"
       - "tests/issue-1417-story-council.test.mjs"
+      - "tests/issue-1417-story-council-afterglow.test.mjs"
       - ".github/workflows/story-council.yml"
   workflow_dispatch:
 
@@ -26,5 +27,8 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
-      - name: Validate Story Council responsibility, provenance and disagreement contracts
-        run: node --test tests/issue-1417-story-council.test.mjs
+      - name: Validate Story Council responsibility, provenance, Afterglow and disagreement contracts
+        run: >-
+          node --test
+          tests/issue-1417-story-council.test.mjs
+          tests/issue-1417-story-council-afterglow.test.mjs

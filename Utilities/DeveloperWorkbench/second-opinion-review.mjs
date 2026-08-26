@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { runManagedPiReadOnly } from "./pi-managed-node-launch.mjs";
 import { buildInstructionBundle } from "./pi-review-instructions.mjs";
-import { requiredCliValue } from "./workbench-cli.mjs";
+import { requireCurrentRepository, requiredWorkbenchTempPath } from "./workbench-cli.mjs";
 import { ensureManagedPiInstalled } from "../../scripts/pi-managed-install.mjs";
 import { resolvePiLocalRuntime } from "../../scripts/pi-worker-runtime.mjs";
 
@@ -58,8 +58,8 @@ function prompt(reviewPackage, instructionBundle, runtime) {
 }
 
 async function main() {
-  const inputPath = path.resolve(requiredCliValue(process.argv, "--input"));
-  const outputPath = path.resolve(requiredCliValue(process.argv, "--output"));
+  const inputPath = requiredWorkbenchTempPath(process.argv, "--input");
+  const outputPath = requiredWorkbenchTempPath(process.argv, "--output");
   const reviewPackage = JSON.parse(await readFile(inputPath, "utf8"));
   if (!reviewPackage?.repositoryPath || !reviewPackage?.repository) {
     throw new Error("Second-opinion review requires repository and repositoryPath.");
@@ -68,6 +68,7 @@ async function main() {
     throw new Error("Second-opinion review requires the current primary Developer Workbench brief.");
   }
 
+  const repositoryRoot = requireCurrentRepository(reviewPackage);
   const instructionBundle = await buildInstructionBundle(reviewPackage);
   if (!instructionBundle.sources.includes("AGENTS.md")) {
     throw new Error("Second-opinion review requires AGENTS.md in the selected local repository checkout.");
@@ -76,7 +77,7 @@ async function main() {
   const pi = await ensureManagedPiInstalled({ allowInstall: process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0" });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
-  const promptDirectory = path.join(reviewPackage.repositoryPath, ".plotpickle", "developer-workbench");
+  const promptDirectory = path.join(repositoryRoot, ".plotpickle", "developer-workbench");
   await mkdir(promptDirectory, { recursive: true });
   const promptName = `second-opinion-prompt-${process.pid}-${Date.now()}.md`;
   const promptPath = path.join(promptDirectory, promptName);
@@ -89,7 +90,7 @@ async function main() {
       pi,
       runtime,
       prompt: promptArgument,
-      cwd: reviewPackage.repositoryPath,
+      cwd: repositoryRoot,
       purpose: "work-item-second-opinion",
       timeout: 15 * 60_000,
     });

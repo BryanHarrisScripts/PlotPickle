@@ -18,8 +18,11 @@ const MAX_BODY = 128 * 1024;
 const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled"]);
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 
-type BuzzStatus = {
-  connection?: { configured?: boolean; identityVerified?: boolean; identityConfigured?: boolean };
+type HumanBuzzIdentity = {
+  ready?: boolean;
+  identityVerified?: boolean;
+  humanCommunityAllowed?: boolean;
+  kind?: "human" | "agent" | "unknown";
 };
 type BuzzRoom = { id: string; name: string; description?: string };
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string; raw?: unknown };
@@ -161,10 +164,11 @@ function fallback(request: StoryBridgeRequest, reason: string) {
   };
 }
 
-function statusReady(status: BuzzStatus) {
-  return Boolean(status.connection?.configured
-    && status.connection?.identityConfigured
-    && status.connection?.identityVerified);
+function humanIdentityReady(identity: HumanBuzzIdentity) {
+  return Boolean(identity.ready
+    && identity.identityVerified
+    && identity.humanCommunityAllowed
+    && identity.kind === "human");
 }
 
 function withinRunLimit(value: number, limit: number) {
@@ -295,8 +299,8 @@ async function dispatch(request: IncomingMessage, bridge: StoryBridgeRequest) {
   const startedAt = Date.now();
   if (bridge.state !== "ready") return { ...fallback(bridge, bridge.stateReason), ...observability(bridge, startedAt) };
   await verifyRunAuthorization(request, bridge);
-  const status = await localJson<BuzzStatus>(request, "/api/local-buzz/status").catch(() => ({}));
-  if (!statusReady(status)) return { ...fallback(bridge, "The connected Human BUZZ transport identity is not verified."), ...observability(bridge, startedAt) };
+  const identity = await localJson<HumanBuzzIdentity>(request, "/api/local-buzz/human-identity").catch(() => ({}));
+  if (!humanIdentityReady(identity)) return { ...fallback(bridge, "The connected Human BUZZ transport identity is not verified."), ...observability(bridge, startedAt) };
 
   const room = await storyRoom(request, bridge, true);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room could not be resolved."), ...observability(bridge, startedAt) };

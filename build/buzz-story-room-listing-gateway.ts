@@ -158,17 +158,12 @@ async function saveListing(binding: BuzzStoryRoomBinding, listing: BuzzStoryRoom
   });
 }
 
-function suggestedStoryTitle(binding: BuzzStoryRoomBinding) {
-  const base = binding.lastKnownName.replace(/-story-default$/i, "").replace(/-+/g, " ").trim();
-  return base ? base.replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 120) : "My Story";
-}
-
-function ownerDefaults(binding: BuzzStoryRoomBinding, owner: VerifiedOwner) {
+function ownerDefaults(owner: VerifiedOwner) {
   return {
     ownerDisplayName: owner.displayName,
     ownerPublicKey: owner.pubkey,
     hostingCommunityName: owner.hostingCommunityName,
-    suggestedTitle: suggestedStoryTitle(binding),
+    suggestedTitle: "",
   };
 }
 
@@ -180,7 +175,7 @@ function listingReply(binding: BuzzStoryRoomBinding, owner: VerifiedOwner, listi
     ok: true,
     listing,
     publicPreview: listing ? publicBuzzStoryRoomListing(listing) : null,
-    defaults: ownerDefaults(binding, owner),
+    defaults: ownerDefaults(owner),
     capabilities: { openMembership: false },
     message,
   };
@@ -199,7 +194,7 @@ async function status(channelValue: unknown) {
       ? listing.accessMode === "closed"
         ? "Story Room listing is Closed and absent from public discovery."
         : "Owner-approved Story Room listing metadata is ready for preview."
-      : "Story Room listing defaults to Closed. Nothing is public until the owner explicitly saves Listed access.",
+      : "Story Room listing defaults to Closed. Nothing is public until the owner explicitly enters and saves directory metadata.",
   );
 }
 

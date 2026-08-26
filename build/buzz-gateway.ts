@@ -140,6 +140,16 @@ function integer(value: unknown, fallback: number) {
   return Number.isInteger(parsed) ? parsed : fallback;
 }
 
+function messageMentionPubkeys(value: unknown) {
+  const source = Array.isArray(value) ? value : [];
+  const mentions = [...new Set(source.map(text).filter(Boolean).map((pubkey) => pubkey.toLowerCase()))];
+  if (mentions.length > 16) throw new Error("Buzz messages may explicitly address at most 16 identities.");
+  for (const pubkey of mentions) {
+    if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Buzz explicit mentions must be 64-character hexadecimal public keys.");
+  }
+  return mentions;
+}
+
 function normalizeRelayUrl(value: unknown) {
   const source = text(value);
   if (!source) throw new Error("Enter a Buzz relay address.");
@@ -867,9 +877,12 @@ async function sendMessage(body: Record<string, unknown>) {
   if (!connection) throw new Error("Connect Buzz before sending a message.");
   const channel = text(body.channel);
   const content = text(body.content);
+  const mentions = messageMentionPubkeys(body.mentionPubkeys);
   if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Buzz channel.");
   if (!content || content.length > 20_000) throw new Error("Buzz messages must contain between 1 and 20,000 characters.");
-  return runBuzz(connection, ["messages", "send", "--channel", channel, "--content", content], { write: true });
+  const args = ["messages", "send", "--channel", channel, "--content", content];
+  for (const pubkey of mentions) args.push("--mention", pubkey);
+  return runBuzz(connection, args, { write: true });
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
@@ -937,7 +950,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   }
   if (request.method === "POST" && url.pathname === `${API}/managed/restore`) {
     const body = await readBody(request);
-    sendJson(response, 200, { ok: true, managed: await restoreManagedRuntime(body.backup), message: "Managed Buzz was restored and passed its local health check." });
+    sendJson(response, 200, { ok: true, managed: await restoreManagedRuntime(body.backup), message: "Managed Buzz was restored and passed the local health check." });
     return;
   }
   if (request.method === "DELETE" && url.pathname === `${API}/managed`) {

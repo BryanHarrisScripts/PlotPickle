@@ -147,9 +147,19 @@ test("#1422 Story Bridge puts the exact approved BUZZ Agent in the private room 
     "resolveBuzzCliExecutable(connection.cliPath)",
     '["channels", "members", "--channel", channelId]',
     '["channels", "add-member", "--channel", channelId, "--pubkey", agentPubkey, "--role", "bot"]',
+    "MEMBERSHIP_CONFIRM_ATTEMPTS",
+    "MEMBERSHIP_CONFIRM_DELAY_MS",
+    "waitForMembership",
+    "await delay(MEMBERSHIP_CONFIRM_DELAY_MS)",
+    "const confirmed = await waitForMembership(readMembers, agentPubkey)",
     "BUZZ did not confirm the approved Agent as a private Story Room member",
   ]) assert.ok(membership.includes(contract), `Story Bridge private-membership helper is missing a required boundary: ${contract}`);
 
+  assert.equal(
+    (membership.match(/"channels", "add-member"/g) ?? []).length,
+    1,
+    "Membership confirmation may poll reads, but it must not repeat the add-member write.",
+  );
   assert.match(membership, /replace\(\/nsec1\[a-z0-9\]\+\/gi/);
   assert.ok(
     gateway.includes("message.content.startsWith(`${STORY_BRIDGE_DISPATCH_MARKER}\\n`)")

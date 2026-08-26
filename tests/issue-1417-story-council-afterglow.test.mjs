@@ -5,7 +5,7 @@ import test from "node:test";
 import {
   reduceStoryCouncilContributions,
   selectStoryCouncilSpecialists,
-} from "../core/story-workflow/story-council-core.mjs";
+} from "../core/story-workflow/story-council/core.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

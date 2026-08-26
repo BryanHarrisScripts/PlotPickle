@@ -48,6 +48,47 @@ if (-not (Test-Path $exe)) {
 Copy-Item (Join-Path $root "local-validation.mjs") (Join-Path $output "local-validation.mjs") -Force
 Copy-Item (Join-Path $root "Run-Local-Validation.cmd") (Join-Path $output "Run-Local-Validation.cmd") -Force
 
+function Copy-WorkbenchRuntimeFile([string]$RelativePath) {
+  $source = Join-Path $repoRoot $RelativePath
+  if (-not (Test-Path $source)) {
+    throw "Required Workbench runtime helper is missing: $RelativePath"
+  }
+  $destination = Join-Path $output $RelativePath
+  $destinationDirectory = Split-Path -Parent $destination
+  New-Item -ItemType Directory -Force -Path $destinationDirectory | Out-Null
+  Copy-Item $source $destination -Force
+}
+
+# The downloadable PR/release artifact must be able to run its new reviewer
+# features against an ordinary PlotPickle checkout that may not yet contain
+# the Workbench branch itself. Keep this list intentionally narrow: these are
+# read-only reviewer/runtime helpers, not a second copy of the application.
+$runtimeFiles = @(
+  "Utilities\DeveloperWorkbench\local-reviewer-inventory.mjs",
+  "Utilities\DeveloperWorkbench\second-opinion-review.mjs",
+  "Utilities\DeveloperWorkbench\workbench-repomix-evidence.mjs",
+  "Utilities\DeveloperWorkbench\workbench-cli.mjs",
+  "Utilities\DeveloperWorkbench\pi-managed-node-launch.mjs",
+  "Utilities\DeveloperWorkbench\pi-review-instructions.mjs",
+  "scripts\developer-repair-model-policy.mjs",
+  "scripts\local-repair-capability-cache.mjs",
+  "scripts\pi-managed-install.mjs",
+  "scripts\pi-worker-runtime.mjs",
+  "lib\runtime\ai\local-model\local-model-capabilities.mjs"
+)
+foreach ($relativePath in $runtimeFiles) {
+  Copy-WorkbenchRuntimeFile $relativePath
+}
+
+$runtimeManifest = [ordered]@{
+  schemaVersion = 1
+  build = $buildNumber
+  sourceSha = $commitSha
+  files = @($runtimeFiles | ForEach-Object { $_.Replace("\", "/") })
+}
+$runtimeManifest | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $output "workbench-runtime-manifest.json") -Encoding utf8
+
 Write-Host "Developer Workbench ready: $exe"
 Write-Host "Local pre-CI launcher: $(Join-Path $output 'Run-Local-Validation.cmd')"
+Write-Host "Packaged reviewer runtime helpers: $($runtimeFiles.Count)"
 Write-Host "Embedded identity: build-$buildNumber · sha-$shortSha"

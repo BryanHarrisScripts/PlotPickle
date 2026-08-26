@@ -59,3 +59,23 @@ jobs:
           name: ${{ env.WORKBENCH_ARTIFACT_NAME }}
           path: Utilities/DeveloperWorkbench/dist/win-x64/
           if-no-files-found: error
+
+  product-build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.22.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Production build
+        run: npm run build

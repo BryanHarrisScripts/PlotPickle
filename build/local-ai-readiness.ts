@@ -5,7 +5,6 @@ import { detectLocalAiInstallations, type LocalAiInstallation } from "./local-ai
 import { persistentHome } from "./local-credentials";
 import {
   localRuntimeSnapshot,
-  managedLlamaStatus,
   readLocalRuntimeSettings,
   startManagedLlama,
   type LocalRuntimeSnapshot,
@@ -268,8 +267,4 @@ export async function localAiReadinessSnapshot(options: ReadinessOptions = {}): 
   };
   await persistSafeReadiness(result);
   return result;
-}
-
-export function currentManagedLlamaStatus() {
-  return managedLlamaStatus();
 }

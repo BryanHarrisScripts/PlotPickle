@@ -58,7 +58,7 @@ async function readBody(request: IncomingMessage) {
   let bytes = 0;
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += chunk.length;
+    bytes += buffer.length;
     if (bytes > MAX_BODY) throw new Error("The Story Room access request is too large.");
     chunks.push(buffer);
   }
@@ -145,8 +145,7 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("BUZZ CLI returned invalid JSON."); }
+  return JSON.parse(result.stdout || "null") as unknown;
 }
 
 function array(value: unknown): unknown[] {

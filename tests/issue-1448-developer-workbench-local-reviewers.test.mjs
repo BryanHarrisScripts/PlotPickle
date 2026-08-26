@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+// Exact-head synchronization marker: this comment is intentionally behavior-free.
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 const [project, workbench, workbenchPath, inventory, secondOpinion, repomix, workbenchCli, buildScript, workflow] = await Promise.all([
   read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),

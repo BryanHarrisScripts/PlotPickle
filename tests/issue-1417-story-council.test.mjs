@@ -218,10 +218,12 @@ test("#1417 adapter reuses Responsibility Runs and current Agent Skills without 
     "maxCloudCostUsd: 0",
     "selectStoryCouncilSpecialists",
     "assertStoryCouncilSpecialistContracts",
-  ]) assert.ok(adapter.includes(contract), `Story Council adapter is missing reuse-first contract: ${contract}`);
+    'profile.requestedCapabilities.includes("ppf-direct-write")',
+    'profile.requestedCapabilities.includes("canon-write")',
+  ]) assert.ok(adapter.includes(contract), `Story Council adapter is missing reuse-first/authority guard: ${contract}`);
 
-  assert.doesNotMatch(adapter, /ppf-direct-write|saveActiveLibraryProject|canon-write\s*:/i,
-    "Story Council workers must not gain direct canon mutation authority");
+  assert.doesNotMatch(adapter, /saveActiveLibraryProject|saveFoundationProject|writeProject|applyCanon|acceptProposal/i,
+    "Story Council workers must not contain a direct project/canon mutation operation");
   assert.doesNotMatch(adapter, /LangGraph|Hermes|new Agent|createAgentIdentity/i,
     "Story Council must reuse the existing Agent/Responsibility architecture");
   assert.doesNotMatch(adapter, /provider:\s*["'](?:openai|minimax|anthropic)/i,

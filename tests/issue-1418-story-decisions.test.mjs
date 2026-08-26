@@ -180,10 +180,12 @@ test("Afterglow proof covers character choice, structural conflict, grouping and
 });
 
 test("Story Decision gateway and UI preserve profile, revision and no-canon boundaries", async () => {
-  const [gateway, requestContext, page, localGateway] = await Promise.all([
+  const [gateway, requestContext, profileFetch, page, dashboard, localGateway] = await Promise.all([
     readFile(new URL("../build/story-decision-gateway.ts", import.meta.url), "utf8"),
     readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
+    readFile(new URL("../core/auth/profile-request-browser.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/story-decisions/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/dashboard-story-library.tsx", import.meta.url), "utf8"),
     readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8"),
   ]);
   assert.match(requestContext, /"\/api\/story-decisions"/);
@@ -194,6 +196,8 @@ test("Story Decision gateway and UI preserve profile, revision and no-canon boun
   assert.match(gateway, /Story changed since this question was created/);
   assert.doesNotMatch(gateway, /saveFoundationProject|applyStoryCommand|PPFProject/);
   assert.match(localGateway, /registerStoryDecisionGateway\(server\)/);
+  assert.match(profileFetch, /X-PlotPickle-CSRF/);
+  assert.match(page, /authenticatedProfileFetch/);
   assert.match(page, /Story Decisions need you/);
   assert.match(page, /Accept recommendation/);
   assert.match(page, /Reject \/ keep current story/);
@@ -201,8 +205,8 @@ test("Story Decision gateway and UI preserve profile, revision and no-canon boun
   assert.match(page, /Defer/);
   assert.match(page, /Open in story/);
   assert.match(page, /Send to Story Workbench/);
-  assert.match(page, /X-PlotPickle-CSRF/);
   assert.match(page, /loadFoundationProject/);
   assert.match(page, /Story changed since this question was created/);
   assert.match(page, /does not write PPF canon/);
+  assert.match(dashboard, /Story Decisions/);
 });

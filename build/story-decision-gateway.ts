@@ -1,8 +1,7 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import path from "node:path";
 import type { ViteDevServer } from "vite";
 import {
+  createStoryDecisionFromCouncilResult,
   createStoryDecisionResponse,
   markStoryDecisionStale,
   mergeStoryDecisionRecords,
@@ -12,24 +11,18 @@ import {
   withdrawStoryDecision,
   type StoryDecisionRecord,
 } from "../core/story-workflow/story-decisions/core.mjs";
-import { persistentHome } from "./local-credentials";
+import { isLocalPlotPickleRequest } from "./portable-ppf-reader";
 import { currentProfileRequestContext } from "./profile-request-context";
 
 const API = "/api/story-decisions";
+const STORE_OBJECT_ID = "story-decisions-v1";
 const SAFE_DECISION_ID = /^story-decision-[a-z0-9]{7,20}$/i;
 const MAX_BODY_BYTES = 128 * 1024;
+const MAX_STORED_DECISIONS = 200;
 
-function profileSegment(profileId: string) {
-  return Buffer.from(profileId, "utf8").toString("base64url").slice(0, 240);
-}
-function recordsRoot(profileId: string) {
-  return path.join(persistentHome(), "story-decisions", "profiles", profileSegment(profileId), "records");
-}
-function isLocalRequest(request: IncomingMessage) {
-  const address = request.socket.remoteAddress || "";
-  if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(address)) return false;
-  return /^(?:127\.0\.0\.1|localhost|\[::1\])(?::\d+)?$/.test(request.headers.host || "");
-}
+type ProfileContext = NonNullable<ReturnType<typeof currentProfileRequestContext>>;
+type DecisionStore = Readonly<{ version: 1; records: readonly StoryDecisionRecord[] }>;
+
 function send(response: ServerResponse, status: number, value: Record<string, unknown>) {
   response.statusCode = status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -37,6 +30,7 @@ function send(response: ServerResponse, status: number, value: Record<string, un
   response.setHeader("X-Content-Type-Options", "nosniff");
   response.end(JSON.stringify(value));
 }
+
 async function parseBody(request: IncomingMessage) {
   const declared = Number(request.headers["content-length"] || 0);
   if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) throw Object.assign(new Error("Story Decision request is too large."), { statusCode: 413 });
@@ -47,39 +41,85 @@ async function parseBody(request: IncomingMessage) {
   }
   try { return JSON.parse(text || "{}"); } catch { throw Object.assign(new Error("Story Decision request must be valid JSON."), { statusCode: 400 }); }
 }
-async function readRecord(profileId: string, decisionId: string): Promise<StoryDecisionRecord | null> {
-  if (!SAFE_DECISION_ID.test(decisionId)) return null;
-  try {
-    const source = JSON.parse(await readFile(path.join(recordsRoot(profileId), `${decisionId}.json`), "utf8"));
-    return normalizeStoryDecisionRecord(source);
-  } catch { return null; }
+
+async function readStore(profile: ProfileContext): Promise<DecisionStore> {
+  const value = await profile.privateStorage.readPrivateJson(profile.authContext, {
+    domain: "indexes",
+    objectId: STORE_OBJECT_ID,
+  });
+  if (value === null) return { version: 1, records: [] };
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Encrypted Story Decision store is invalid.");
+  const source = value as { readonly version?: unknown; readonly records?: unknown };
+  if (source.version !== 1 || !Array.isArray(source.records)) throw new Error("Encrypted Story Decision store version is invalid.");
+  return {
+    version: 1,
+    records: source.records.slice(-MAX_STORED_DECISIONS).map((record) => normalizeStoryDecisionRecord(record)),
+  };
 }
-async function writeRecord(profileId: string, recordInput: StoryDecisionRecord) {
+
+async function writeStore(profile: ProfileContext, records: readonly StoryDecisionRecord[]) {
+  const ranked = rankStoryDecisions(records).slice(0, MAX_STORED_DECISIONS);
+  await profile.privateStorage.writePrivateJson(profile.authContext, {
+    domain: "indexes",
+    objectId: STORE_OBJECT_ID,
+    value: { version: 1, records: ranked },
+  });
+  return ranked;
+}
+
+async function readRecord(profile: ProfileContext, decisionId: string) {
+  if (!SAFE_DECISION_ID.test(decisionId)) return null;
+  const store = await readStore(profile);
+  return store.records.find((record) => record.decisionId === decisionId) ?? null;
+}
+
+async function writeRecord(profile: ProfileContext, recordInput: StoryDecisionRecord) {
   const record = normalizeStoryDecisionRecord(recordInput);
-  const root = recordsRoot(profileId);
-  await mkdir(root, { recursive: true });
-  const target = path.join(root, `${record.decisionId}.json`);
-  const temporary = `${target}.${process.pid}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
-  await rename(temporary, target);
+  const store = await readStore(profile);
+  const next = store.records.filter((item) => item.decisionId !== record.decisionId);
+  await writeStore(profile, [record, ...next]);
   return record;
 }
-async function listRecords(profileId: string, projectId = "") {
-  const root = recordsRoot(profileId);
-  let names: string[] = [];
-  try { names = (await readdir(root)).filter((name) => /^story-decision-[a-z0-9]{7,20}\.json$/i.test(name)); } catch { return []; }
-  const records = (await Promise.all(names.slice(-250).map((name) => readRecord(profileId, name.slice(0, -5))))).filter((record): record is StoryDecisionRecord => Boolean(record));
-  return rankStoryDecisions(records.filter((record) => !projectId || record.projectId === projectId)).slice(0, 100);
+
+async function listRecords(profile: ProfileContext, projectId = "") {
+  const store = await readStore(profile);
+  return rankStoryDecisions(store.records.filter((record) => !projectId || record.projectId === projectId)).slice(0, 100);
 }
-async function upsertRecord(profileId: string, candidateInput: unknown) {
+
+async function upsertRecord(profile: ProfileContext, candidateInput: unknown) {
   const candidate = normalizeStoryDecisionRecord(candidateInput);
-  const records = await listRecords(profileId, candidate.projectId);
-  const existing = records.find((record) => record.problemKey === candidate.problemKey && ["new", "reviewing", "deferred", "stale"].includes(record.status));
-  if (!existing) return writeRecord(profileId, candidate);
+  const store = await readStore(profile);
+  const existing = store.records.find((record) => record.projectId === candidate.projectId && record.problemKey === candidate.problemKey && ["new", "reviewing", "deferred", "stale"].includes(record.status));
+  if (!existing) {
+    await writeStore(profile, [candidate, ...store.records]);
+    return candidate;
+  }
   const result = mergeStoryDecisionRecords(existing, candidate);
-  await writeRecord(profileId, result.existing);
-  if (result.incoming) return writeRecord(profileId, result.incoming);
-  return result.existing;
+  const withoutExistingOrIncoming = store.records.filter((record) => record.decisionId !== existing.decisionId && record.decisionId !== candidate.decisionId);
+  const next = result.incoming
+    ? [result.incoming, result.existing, ...withoutExistingOrIncoming]
+    : [result.existing, ...withoutExistingOrIncoming];
+  await writeStore(profile, next);
+  return result.incoming ?? result.existing;
+}
+
+function councilDecisionInput(body: Record<string, unknown>) {
+  return {
+    projectId: body.projectId,
+    councilResult: body.councilResult,
+    councilResultId: body.councilResultId,
+    question: body.question,
+    whyHuman: body.whyHuman,
+    proposedChange: body.proposedChange,
+    alternatives: body.alternatives,
+    visualContext: body.visualContext,
+    transcriptRef: body.transcriptRef,
+    blockedByHuman: body.blockedByHuman,
+    priority: body.priority,
+    severity: body.severity,
+    problemSignature: body.problemSignature,
+    choiceFamily: body.choiceFamily,
+  };
 }
 
 export function registerStoryDecisionGateway(server: ViteDevServer) {
@@ -89,7 +129,7 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
     let url: URL;
     try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
     if (url.pathname !== API) { next(); return; }
-    if (!isLocalRequest(request)) {
+    if (!isLocalPlotPickleRequest(request)) {
       send(response, 403, { ok: false, message: "Story Decisions are available only from the local PlotPickle application." });
       return;
     }
@@ -98,19 +138,18 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
       send(response, 401, { ok: false, message: "Unlock a PlotPickle Human profile before using Story Decisions." });
       return;
     }
-    const profileId = profile.profileId;
 
     void (async () => {
       if (request.method === "GET") {
         const decisionId = url.searchParams.get("decisionId") || "";
         if (decisionId) {
-          const record = await readRecord(profileId, decisionId);
+          const record = await readRecord(profile, decisionId);
           if (!record) { send(response, 404, { ok: false, message: "That Story Decision was not found." }); return; }
           send(response, 200, { ok: true, decision: record });
           return;
         }
         const projectId = (url.searchParams.get("projectId") || "").trim().slice(0, 180);
-        const decisions = await listRecords(profileId, projectId);
+        const decisions = await listRecords(profile, projectId);
         send(response, 200, { ok: true, decisions, attentionCount: storyDecisionAttentionCount(decisions) });
         return;
       }
@@ -121,30 +160,40 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
 
       const body = await parseBody(request) as Record<string, unknown>;
       const action = String(body.action || "");
+      if (action === "ingest-council") {
+        const candidate = createStoryDecisionFromCouncilResult(councilDecisionInput(body));
+        if (!candidate) {
+          send(response, 200, { ok: true, created: false, reason: "human-judgment-not-required", writesCanon: false });
+          return;
+        }
+        const decision = await upsertRecord(profile, candidate);
+        send(response, 200, { ok: true, created: true, decision, attentionRequired: ["new", "reviewing", "deferred"].includes(decision.status), writesCanon: false });
+        return;
+      }
       if (action === "upsert") {
-        const decision = await upsertRecord(profileId, body.decision);
+        const decision = await upsertRecord(profile, body.decision);
         send(response, 200, { ok: true, decision, writesCanon: false });
         return;
       }
       const decisionId = String(body.decisionId || "");
-      const existing = await readRecord(profileId, decisionId);
+      const existing = await readRecord(profile, decisionId);
       if (!existing) { send(response, 404, { ok: false, message: "That Story Decision was not found." }); return; }
 
       if (action === "respond") {
         const supplied = (body.response && typeof body.response === "object" ? body.response : {}) as Record<string, unknown>;
         const suppliedProfileId = String(supplied.humanProfileId || "");
-        if (suppliedProfileId && suppliedProfileId !== profileId) {
+        if (suppliedProfileId && suppliedProfileId !== profile.profileId) {
           send(response, 403, { ok: false, message: "Story Decision response profile does not match the active Human profile." });
           return;
         }
         try {
-          const result = createStoryDecisionResponse(existing, { ...supplied, humanProfileId: profileId });
-          await writeRecord(profileId, result.decision);
+          const result = createStoryDecisionResponse(existing, { ...supplied, humanProfileId: profile.profileId });
+          await writeRecord(profile, result.decision);
           send(response, 200, { ok: true, decision: result.decision, response: result.response, writesCanon: false, next: "story-workbench-validation" });
         } catch (error) {
           if ((error as { code?: string }).code === "STORY_DECISION_STALE") {
             const currentRevision = String(supplied.currentRevision || "");
-            const stale = await writeRecord(profileId, markStoryDecisionStale(existing, currentRevision));
+            const stale = await writeRecord(profile, markStoryDecisionStale(existing, currentRevision));
             send(response, 409, { ok: false, message: "Story changed since this question was created.", decision: stale, refreshRequired: true });
             return;
           }
@@ -153,7 +202,7 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
         return;
       }
       if (action === "withdraw") {
-        const decision = await writeRecord(profileId, withdrawStoryDecision(existing, String(body.currentRevision || existing.baseRevision)));
+        const decision = await writeRecord(profile, withdrawStoryDecision(existing, String(body.currentRevision || existing.baseRevision)));
         send(response, 200, { ok: true, decision, writesCanon: false });
         return;
       }

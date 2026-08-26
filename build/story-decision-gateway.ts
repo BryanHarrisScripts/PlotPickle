@@ -58,7 +58,12 @@ async function readStore(profile: ProfileContext): Promise<DecisionStore> {
 }
 
 async function writeStore(profile: ProfileContext, records: readonly StoryDecisionRecord[]) {
-  const ranked = rankStoryDecisions(records).slice(0, MAX_STORED_DECISIONS);
+  const unique = new Map<string, StoryDecisionRecord>();
+  for (const input of records) {
+    const record = normalizeStoryDecisionRecord(input);
+    if (!unique.has(record.decisionId)) unique.set(record.decisionId, record);
+  }
+  const ranked = rankStoryDecisions([...unique.values()]).slice(0, MAX_STORED_DECISIONS);
   await profile.privateStorage.writePrivateJson(profile.authContext, {
     domain: "indexes",
     objectId: STORE_OBJECT_ID,
@@ -89,13 +94,24 @@ async function listRecords(profile: ProfileContext, projectId = "") {
 async function upsertRecord(profile: ProfileContext, candidateInput: unknown) {
   const candidate = normalizeStoryDecisionRecord(candidateInput);
   const store = await readStore(profile);
-  const existing = store.records.find((record) => record.projectId === candidate.projectId && record.problemKey === candidate.problemKey && ["new", "reviewing", "deferred", "stale"].includes(record.status));
+
+  const exact = store.records.find((record) => record.decisionId === candidate.decisionId);
+  if (exact && ["answered", "superseded", "withdrawn", "stale"].includes(exact.status)) {
+    return exact;
+  }
+
+  const existing = exact ?? store.records.find((record) =>
+    record.projectId === candidate.projectId
+    && record.problemKey === candidate.problemKey
+    && ["new", "reviewing", "deferred"].includes(record.status));
   if (!existing) {
     await writeStore(profile, [candidate, ...store.records]);
     return candidate;
   }
+
   const result = mergeStoryDecisionRecords(existing, candidate);
-  const withoutExistingOrIncoming = store.records.filter((record) => record.decisionId !== existing.decisionId && record.decisionId !== candidate.decisionId);
+  const withoutExistingOrIncoming = store.records.filter((record) =>
+    record.decisionId !== existing.decisionId && record.decisionId !== candidate.decisionId);
   const next = result.incoming
     ? [result.incoming, result.existing, ...withoutExistingOrIncoming]
     : [result.existing, ...withoutExistingOrIncoming];

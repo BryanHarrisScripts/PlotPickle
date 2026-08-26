@@ -35,8 +35,11 @@ function validListingId(value: unknown) {
   return typeof value === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value);
 }
 
-function validRoomName(value: unknown) {
-  return typeof value === "string" && /^[a-z0-9][a-z0-9-]{2,71}$/.test(value);
+function validStoredRoomName(value: unknown) {
+  return typeof value === "string"
+    && value.trim().length > 0
+    && value.trim().length <= 160
+    && !/[\u0000-\u001f\u007f]/.test(value);
 }
 
 function validTimestamp(value: unknown) {
@@ -73,7 +76,7 @@ export function normalizeBuzzStoryRoomBindings(value: unknown): BuzzStoryRoomBin
       || !validRoomId(item.roomId)
       || !validChannelId(item.channelId)
       || !validListingId(item.listingId)
-      || !validRoomName(item.lastKnownName)
+      || !validStoredRoomName(item.lastKnownName)
       || !validTimestamp(item.createdAt)
       || !validTimestamp(item.updatedAt)) {
       throw new Error("A saved BUZZ Story Room identity is invalid.");
@@ -84,7 +87,7 @@ export function normalizeBuzzStoryRoomBindings(value: unknown): BuzzStoryRoomBin
       roomId: item.roomId,
       channelId: item.channelId,
       listingId: item.listingId,
-      lastKnownName: item.lastKnownName,
+      lastKnownName: item.lastKnownName.trim(),
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     } satisfies BuzzStoryRoomBinding;

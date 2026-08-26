@@ -70,28 +70,13 @@ test("#1417 Afterglow v9 routes one bounded problem to two distinct specialists 
   assert.equal(plan.coordinatorAgentId, "sage-brinewick");
 });
 
-test("#1417 Afterglow v9 exercise uses the stable reference, task-scoped Context and existing Run/Graph architecture", async () => {
-  const [exercise, council, contextEngine, graph, reference] = await Promise.all([
-    read("modules/story-workflow/afterglow-v9-story-council.ts"),
+test("#1417 Afterglow proof composes the stable reference with the generic Context/Run/Graph architecture without feature-domain coupling", async () => {
+  const [council, contextEngine, graph, reference] = await Promise.all([
     read("modules/story-workflow/story-council.ts"),
     read("lib/agents/context/context-engine.ts"),
     read("lib/agents/responsibility/responsibility-graph.ts"),
     read("modules/library/reference/afterglow-v9-foundations.ts"),
   ]);
-
-  for (const contract of [
-    "createAfterglowV9FoundationsReference",
-    "story-council:afterglow-v9:ren-motivation",
-    '"character:ren"',
-    "selectedEvidence: selected",
-    ".slice(0, 6)",
-    'sourceType: "ppf-canon"',
-    'sourceType: "curriculum-current"',
-    "createStoryCouncilContextPacket",
-    "createStoryCouncilParentRun",
-    "createStoryCouncilResponsibilityRuns",
-    "createStoryCouncilGraph",
-  ]) assert.ok(exercise.includes(contract), `Afterglow Story Council exercise is missing: ${contract}`);
 
   for (const contract of [
     "assembleContextPacket",
@@ -107,9 +92,10 @@ test("#1417 Afterglow v9 exercise uses the stable reference, task-scoped Context
   assert.match(contextEngine, /task-scoped|budgetCharacters/);
   assert.match(graph, /maxParallelism/);
   assert.match(reference, /createAfterglowV9FoundationsReference/);
-  assert.doesNotMatch(exercise, /data\/afterglow-complete|messages send|channels add-member|provider:\s*["'](?:openai|minimax|anthropic)/i,
-    "Afterglow Council proof must reuse the bounded reference and must not pull the full source, mutate BUZZ membership, or force cloud");
-  assert.doesNotMatch(council, /saveActiveLibraryProject|ppf-direct-write|canon-write\s*:/i,
+  assert.match(reference, /referenceFixture/);
+  assert.doesNotMatch(council, /modules\/library|\.\.\/library\/reference|data\/afterglow-complete/i,
+    "Story Council production code must stay generic; Afterglow remains a bounded reference/UAT input");
+  assert.doesNotMatch(council, /saveActiveLibraryProject|saveFoundationProject|writeProject|applyCanon|acceptProposal/i,
     "Story Council execution remains proposal/evidence only");
 });
 

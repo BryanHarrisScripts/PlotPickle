@@ -5,6 +5,7 @@ import {
   dedupeStoryBridgeContributions,
   encodeStoryBridgeDispatchEnvelope,
   normalizeStoryBridgeContribution,
+  storyBridgeResultMatchesRequest,
   STORY_BRIDGE_DISPATCH_MARKER,
   STORY_BRIDGE_RESULT_MARKER,
   type StoryBridgeRequest,
@@ -406,9 +407,8 @@ async function collect(request: IncomingMessage, bridge: StoryBridgeRequest, cur
   const room = await storyRoom(request, bridge, false);
   if (!room?.id) return { ...fallback(bridge, "The private project Story Room is not available."), ...observability(bridge, startedAt) };
   const messages = await recentMessages(request, room.id);
-  const requestToken = `\"requestId\":\"${bridge.requestId}\"`;
   const contributions = messages.flatMap((message) => {
-    if (!message.content.startsWith(`${STORY_BRIDGE_RESULT_MARKER}\n`) || !message.content.includes(requestToken)) return [];
+    if (!storyBridgeResultMatchesRequest(message.content, bridge.requestId)) return [];
     return [normalizeStoryBridgeContribution({
       request: bridge,
       envelope: message.content,

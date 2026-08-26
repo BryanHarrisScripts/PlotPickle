@@ -3,12 +3,13 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
-const [project, workbench, inventory, secondOpinion, repomix, buildScript, workflow] = await Promise.all([
+const [project, workbench, inventory, secondOpinion, repomix, workbenchCli, buildScript, workflow] = await Promise.all([
   read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),
   read("Utilities/DeveloperWorkbench/WorkbenchV2.cs"),
   read("Utilities/DeveloperWorkbench/local-reviewer-inventory.mjs"),
   read("Utilities/DeveloperWorkbench/second-opinion-review.mjs"),
   read("Utilities/DeveloperWorkbench/workbench-repomix-evidence.mjs"),
+  read("Utilities/DeveloperWorkbench/workbench-cli.mjs"),
   read("Utilities/DeveloperWorkbench/build.ps1"),
   read(".github/workflows/developer-workbench.yml"),
 ]);
@@ -72,6 +73,20 @@ test("#1448 Repomix evidence is targeted and credential-safe", () => {
   assert.match(workbench, /Repomix context/);
 });
 
+test("#1448 helper file IO stays inside host-selected repository and Workbench temp roots", () => {
+  assert.match(workbenchCli, /os\.tmpdir\(\)/);
+  assert.match(workbenchCli, /PlotPickle["', ]*,[ "']DeveloperWorkbench/);
+  assert.match(workbenchCli, /path\.relative\(root, candidate\)/);
+  assert.match(workbenchCli, /requiredWorkbenchTempPath/);
+  assert.match(workbenchCli, /requireCurrentRepository/);
+  assert.match(workbenchCli, /path\.resolve\(process\.cwd\(\)\)/);
+  assert.match(workbenchCli, /repositoryPath must match the host-selected working directory/);
+  assert.match(secondOpinion, /requiredWorkbenchTempPath\(process\.argv, "--input"\)/);
+  assert.match(secondOpinion, /requireCurrentRepository\(reviewPackage\)/);
+  assert.match(repomix, /requiredWorkbenchTempPath\(process\.argv, "--input"\)/);
+  assert.match(repomix, /requireCurrentRepository\(reviewPackage\)/);
+});
+
 test("#1448 published Windows package carries the upgraded reviewer runtime helpers", () => {
   for (const helper of [
     "local-reviewer-inventory.mjs",
@@ -87,6 +102,11 @@ test("#1448 published Windows package carries the upgraded reviewer runtime help
     "local-model-capabilities.mjs",
   ]) assert.match(buildScript, new RegExp(helper.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(buildScript, /workbench-runtime-manifest\.json/);
+});
+
+test("#1448 Workbench resolves packaged reviewer helpers before repository copies", () => {
+  assert.match(workbench, /AppContext\.BaseDirectory/);
+  assert.match(workbench, /ResolveWorkbenchHelper/);
 });
 
 test("#1448 Windows Workbench CI executes the new focused regression", () => {

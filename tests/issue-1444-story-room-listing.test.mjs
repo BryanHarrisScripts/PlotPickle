@@ -37,3 +37,34 @@ test("#1444 does not pretend Open supports automatic admission in the listing co
   assert.match(source, /const requestsOpen = accessMode === "listed" && published/);
   assert.doesNotMatch(source, /autoJoin|automaticAdmission|grantMembership/);
 });
+
+test("#1444 listing writes require the live verified BUZZ Story Room owner", async () => {
+  const [gateway, authority] = await Promise.all([
+    read("build/buzz-story-room-listing-gateway.ts"),
+    read("build/buzz-story-room-owner-authority.ts"),
+  ]);
+  assert.match(gateway, /assertBuzzStoryRoomOwner\(binding\.channelId, owner\.pubkey\)/);
+  assert.match(authority, /\["channels", "members", "--channel", channelId\]/);
+  assert.match(authority, /membership\.role !== "owner"/);
+  assert.match(authority, /signerPubkey !== expectedPubkey/);
+  assert.match(authority, /boundPubkey !== expectedPubkey/);
+  assert.match(authority, /PlotPickle did not publish anything/);
+  assert.doesNotMatch(authority, /shell\s*:\s*true/);
+});
+
+test("#1444 listing records stay profile-private and are keyed by the immutable listing id", async () => {
+  const gateway = await read("build/buzz-story-room-listing-gateway.ts");
+  assert.match(gateway, /LISTING_OBJECT_PREFIX = "story-room-listing-v1-"/);
+  assert.match(gateway, /domain: "buzz"/);
+  assert.match(gateway, /objectId: listingObjectId\(binding\)/);
+  assert.match(gateway, /listing\.listingId !== binding\.listingId/);
+  assert.match(gateway, /listing\.projectId !== binding\.projectId/);
+});
+
+test("#1444 server capability-gates Open and never silently publishes it", async () => {
+  const gateway = await read("build/buzz-story-room-listing-gateway.ts");
+  assert.match(gateway, /capabilities: \{ openMembership: false \}/);
+  assert.match(gateway, /if \(mode === "open"\)/);
+  assert.match(gateway, /Choose Listed instead/);
+  assert.match(gateway, /published: accessMode === "listed"/);
+});

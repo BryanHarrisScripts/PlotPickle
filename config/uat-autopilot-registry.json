@@ -61,6 +61,7 @@
         "tests/issue-1377-unified-ai-compute-settings.test.mjs",
         "tests/issue-1395-sage-plan-setup-entry.test.mjs",
         "tests/issue-1399-story-pickle-agents.test.mjs",
+        "tests/issue-1442-buzz-recommended-configuration.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/automatic-local-model-capabilities.test.mjs",
         "tests/issue-879-visual-continuity.test.mjs"

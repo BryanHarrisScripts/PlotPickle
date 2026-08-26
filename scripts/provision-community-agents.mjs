@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { buildPlotPickleBuzzAgentInstructions } from "../lib/buzz/plotpickle-agent-configuration-core.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
@@ -132,17 +133,6 @@ function provisionerEnv() {
   };
 }
 
-function profilePrompt(profile, publicBio) {
-  return [
-    `You are ${profile.displayName}, ${profile.title}, an official public Agent for this PlotPickle Community.`,
-    publicBio,
-    `Responsibility: ${profile.responsibility}`,
-    `Authority: ${profile.creativeAuthority}.`,
-    `Verification boundary: ${profile.verificationContract}`,
-    "Never sign or speak as the connected Human. Never treat BUZZ discussion as accepted PPF canon unless the Human explicitly approves it through PlotPickle.",
-  ].join("\n\n");
-}
-
 const AVATAR_MIME_TYPES = new Map([
   [".jpeg", "image/jpeg"],
   [".jpg", "image/jpeg"],
@@ -223,13 +213,14 @@ async function writeMissingAgentTeam(agents) {
 }
 
 async function main() {
-  const [plugin, guildhall, cleanup, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
+  const [plugin, guildhall, cleanup, baseProfiles, communityProfiles, publicProfiles, recommendedConfiguration, state] = await Promise.all([
     json(pluginPath),
     json(guildhallPath),
     json(path.join(root, "config", "buzz-community-cleanup.json")),
     json(path.join(root, "config", "agent-profiles.json")),
     json(path.join(root, "config", "agent-profile-extensions", "community.json")),
     json(path.join(root, "config", "agent-profile-extensions", "public.json")),
+    json(path.join(root, "config", "buzz-agent-recommended.json")),
     loadState(),
   ]);
   if (plugin.schemaVersion !== 1 || !Array.isArray(plugin.rooms) || !Array.isArray(plugin.agents)) {
@@ -259,7 +250,11 @@ async function main() {
       avatarRef: presentation.avatarRef,
       roomIds,
       configuredPubkey: presentation.officialBuzzIdentity?.pubkey || null,
-      prompt: profilePrompt(profile, presentation.publicBio),
+      prompt: buildPlotPickleBuzzAgentInstructions({
+        configuration: recommendedConfiguration,
+        profile,
+        publicBio: presentation.publicBio,
+      }),
     };
   });
 

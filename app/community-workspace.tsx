@@ -17,10 +17,10 @@ import {
   buzzStoryRoomDisplayName,
 } from "../lib/buzz/story-room-identity";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
+import CommunityStoryRoomDirectory from "../modules/community/story-room-directory";
 import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
-import CommunityStoryRoomDirectory from "./community-story-room-directory";
 import ConnectedStudiosPanel from "./connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";

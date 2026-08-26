@@ -164,12 +164,12 @@ export default function BuzzLiveHealthCard() {
     ? `${local.actorCount} active evidence source${local.actorCount === 1 ? "" : "s"} · ${local.recentEvidenceCount} recent event${local.recentEvidenceCount === 1 ? "" : "s"} · ${local.verifiedEvidenceCount} verified`
     : localHealth?.message || "No local coordination evidence has been observed yet.";
   const roundTripCopy = roundTripState === "testing"
-    ? "Testing signed send-and-read round trip…"
+    ? { title: "Testing live BUZZ connection", detail: "PlotPickle is signing a Great Hall connection probe and reading that exact message back." }
     : roundTripState === "passed"
-      ? result?.message || "Signed test message received from BUZZ."
+      ? { title: "BUZZ transport reachable", detail: result?.message || "Signed test message received from BUZZ." }
       : roundTripState === "failed"
-        ? result?.message || "Signed BUZZ round trip failed."
-        : "Use the signed round-trip test when you want deeper proof than the automatic read-only diagnostics.";
+        ? { title: "Round-trip failed", detail: result?.message || "PlotPickle could not prove a signed BUZZ round trip." }
+        : { title: "Not tested yet", detail: "Use Test live BUZZ connection when you want signed send-and-read proof in addition to the automatic read-only diagnostics." };
 
   return <section className={`${styles.statusCard} ${liveStyles.statusCard}`} aria-labelledby="buzz-live-health-title" data-buzz-diagnostics="true">
     <div>
@@ -189,8 +189,8 @@ export default function BuzzLiveHealthCard() {
       {diagnostics?.checkedAt ? <small>Last checked {new Date(diagnostics.checkedAt).toLocaleTimeString()}.</small> : null}
 
       <div className={liveStyles.proofBlock}>
-        <p><strong>Signed live proof</strong></p>
-        <small>{roundTripCopy}</small>
+        <p><strong>Signed live proof · {roundTripCopy.title}</strong></p>
+        <small>{roundTripCopy.detail}</small>
         {result?.receivedAt ? <small> Signed test message received {new Date(result.receivedAt).toLocaleString()} via {result.room || "Great Hall"}.</small> : null}
       </div>
 
@@ -202,7 +202,7 @@ export default function BuzzLiveHealthCard() {
 
       <div className={`${styles.actions} ${liveStyles.actions}`}>
         <button type="button" disabled={roundTripState === "testing"} onClick={() => void testLiveBuzz()}>
-          {roundTripState === "testing" ? "Testing live BUZZ…" : "Test signed BUZZ round trip"}
+          {roundTripState === "testing" ? "Testing live BUZZ…" : "Test live BUZZ connection"}
         </button>
         <button type="button" disabled={diagnosticBusy} onClick={() => void refreshDiagnostics()}>{diagnosticBusy ? "Refreshing…" : "Refresh diagnostics"}</button>
         <button type="button" onClick={() => void refreshLocalHealth()}>Refresh local coordination</button>

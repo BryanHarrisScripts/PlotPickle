@@ -4,17 +4,18 @@ import test from "node:test";
 
 const gateway = await readFile(new URL("../build/story-workflow-buzz-bridge-gateway.ts", import.meta.url), "utf8");
 
-test("#1422 Story Bridge preflight requires the verified Human signer and lets real BUZZ operations determine transport health", () => {
-  const statusReady = gateway.match(/function statusReady\(status: BuzzStatus\) \{([\s\S]*?)\n\}/)?.[1] || "";
+test("#1422 Story Bridge uses the authoritative Human identity guard before real BUZZ transport", () => {
+  const identityReady = gateway.match(/function humanIdentityReady\(identity: HumanBuzzIdentity\) \{([\s\S]*?)\n\}/)?.[1] || "";
 
-  assert.match(statusReady, /status\.connection\?\.configured/);
-  assert.match(statusReady, /status\.connection\?\.identityConfigured/);
-  assert.match(statusReady, /status\.connection\?\.identityVerified/);
-  assert.doesNotMatch(statusReady, /status\.cli|status\.relay/,
-    "Story Bridge must not block a verified Human signer on generic CLI/HTTP health heuristics before the real BUZZ operation runs.");
-
+  assert.match(identityReady, /identity\.ready/);
+  assert.match(identityReady, /identity\.identityVerified/);
+  assert.match(identityReady, /identity\.humanCommunityAllowed/);
+  assert.match(identityReady, /identity\.kind === \"human\"/);
+  assert.match(gateway, /\/api\/local-buzz\/human-identity/,
+    "Story Bridge must use the same authoritative Human identity guard as Profile, Community, and Settings.");
+  assert.doesNotMatch(gateway, /localJson<BuzzStatus>\(request, \"\/api\/local-buzz\/status\"/,
+    "Story Bridge must not infer Human signer authority from the generic BUZZ connection summary.");
   assert.match(gateway, /The connected Human BUZZ transport identity is not verified\./);
-  assert.doesNotMatch(gateway, /BUZZ is unavailable or the connected Human transport identity is not verified/);
 
   for (const realOperation of [
     "/api/local-buzz/rooms?projectPrefix=",

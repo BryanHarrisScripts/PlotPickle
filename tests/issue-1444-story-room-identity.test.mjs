@@ -66,3 +66,43 @@ test("#1444 Community uses the identity gateway and displays the clean alias rat
   assert.match(vite, /buzzStoryRoomIdentityGateway/);
   assert.match(vite, /buzzStoryRoomIdentityGateway\(\)/);
 });
+
+test("#1444 Phase B stores listing policy in the active profile and binds it to the immutable primary Story Room", async () => {
+  const gateway = await read("build/buzz-story-room-listing-gateway.ts");
+  assert.match(gateway, /currentProfileRequestContext/);
+  assert.match(gateway, /objectId: BINDINGS_OBJECT_ID/);
+  assert.match(gateway, /candidate\.channelId === channelId/);
+  assert.match(gateway, /binding\.roomId !== "story"/);
+  assert.match(gateway, /LISTING_OBJECT_PREFIX/);
+  assert.match(gateway, /listing\.listingId !== binding\.listingId \|\| listing\.projectId !== binding\.projectId/);
+});
+
+test("#1444 Phase B requires the verified profile-bound Human BUZZ signer and refuses owner substitution", async () => {
+  const gateway = await read("build/buzz-story-room-listing-gateway.ts");
+  assert.match(gateway, /identityRole !== "human"/);
+  assert.match(gateway, /publicKeyFromPrivateKey/);
+  assert.match(gateway, /boundPubkey !== pubkey/);
+  assert.match(gateway, /listing\.ownerPublicKey !== owner\.pubkey/);
+  assert.doesNotMatch(gateway, /ownerPublicKey: body\./);
+  assert.doesNotMatch(gateway, /ownerDisplayName: body\./);
+});
+
+test("#1444 Phase B keeps Closed fail-safe, exposes a bounded preview, and capability-gates Open", async () => {
+  const [gateway, listing, component, vite] = await Promise.all([
+    read("build/buzz-story-room-listing-gateway.ts"),
+    read("lib/buzz/story-room-listing.ts"),
+    read("app/community-story-room-listing.tsx"),
+    read("vite.config.ts"),
+  ]);
+  assert.match(gateway, /capabilities: \{ openMembership: false \}/);
+  assert.match(gateway, /Open Story Room admission is not available yet/);
+  assert.match(gateway, /published: accessMode === "listed"/);
+  assert.match(gateway, /publicBuzzStoryRoomListing/);
+  assert.match(listing, /if \(!normalized\.published \|\| normalized\.accessMode === "closed"\) return null/);
+  assert.doesNotMatch(listing, /channelId:/);
+  assert.match(component, /Exactly what other people can see/);
+  assert.match(component, /Open · unavailable until BUZZ supports safe admission/);
+  assert.match(component, /Channel identity is not published/);
+  assert.match(vite, /buzzStoryRoomListingGateway/);
+  assert.match(vite, /buzzStoryRoomListingGateway\(\)/);
+});

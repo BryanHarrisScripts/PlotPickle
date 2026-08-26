@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
+import CommunityStoryRoomListing from "./community-story-room-listing";
 import styles from "./community-story-room-access.module.css";
 
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
@@ -84,31 +85,34 @@ export default function CommunityStoryRoomAccess({ channel, greatHallMembers, de
     } finally { setBusy(""); }
   }
 
-  return <section className={styles.card} aria-label="Story Room access">
-    <header>
-      <div>
-        <span>Buzz access</span>
-        <h3>One room, two interfaces.</h3>
-        <p>This is a real private BUZZ channel. Anyone you grant access to here sees the same conversation in Buzz Desktop and PlotPickle; messages posted from either side stay in this one room.</p>
+  return <>
+    <CommunityStoryRoomListing channel={channel} />
+    <section className={styles.card} aria-label="Story Room access">
+      <header>
+        <div>
+          <span>Buzz access</span>
+          <h3>One room, two interfaces.</h3>
+          <p>This is a real private BUZZ channel. Anyone you grant access to here sees the same conversation in Buzz Desktop and PlotPickle; messages posted from either side stay in this one room.</p>
+        </div>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh access</button>
+      </header>
+
+      <div className={styles.memberList}>
+        {members.length ? members.map((member) => <article key={member.pubkey}>
+          <div><i data-presence={member.presence || "offline"} aria-hidden="true" /><span><strong>{member.displayName}</strong><small>{member.pubkey.slice(0, 10)}…{member.pubkey.slice(-6)}</small></span></div>
+          <button type="button" disabled={Boolean(busy)} onClick={() => void removeMember(member.pubkey)}>{busy === member.pubkey ? "Removing…" : "Remove"}</button>
+        </article>) : <p>No additional Story Room members were returned yet. The room owner can still use the channel.</p>}
       </div>
-      <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh access</button>
-    </header>
 
-    <div className={styles.memberList}>
-      {members.length ? members.map((member) => <article key={member.pubkey}>
-        <div><i data-presence={member.presence || "offline"} aria-hidden="true" /><span><strong>{member.displayName}</strong><small>{member.pubkey.slice(0, 10)}…{member.pubkey.slice(-6)}</small></span></div>
-        <button type="button" disabled={Boolean(busy)} onClick={() => void removeMember(member.pubkey)}>{busy === member.pubkey ? "Removing…" : "Remove"}</button>
-      </article>) : <p>No additional Story Room members were returned yet. The room owner can still use the channel.</p>}
-    </div>
+      <div className={styles.controls}>
+        <label><span>Share with an existing Great Hall member</span><select value={selectedPubkey} onChange={(event) => setSelectedPubkey(event.target.value)} disabled={!available.length}><option value="">{available.length ? "Choose member" : "Everyone in the Great Hall already has access"}</option>{available.map((member) => <option key={member.pubkey} value={member.pubkey}>{member.displayName}</option>)}</select></label>
+        <label><span>Room role</span><select value={role} onChange={(event) => setRole(event.target.value)}><option value="member">Member</option><option value="guest">Guest</option><option value="admin">Admin</option><option value="bot">Bot</option></select></label>
+        <button type="button" disabled={!selectedPubkey || Boolean(busy)} onClick={() => void addMember()}>{busy === "add" ? "Granting…" : "Grant Story Room access"}</button>
+        {desktopUrl ? <a href={desktopUrl}>Open the community in Buzz Desktop</a> : null}
+      </div>
 
-    <div className={styles.controls}>
-      <label><span>Share with an existing Great Hall member</span><select value={selectedPubkey} onChange={(event) => setSelectedPubkey(event.target.value)} disabled={!available.length}><option value="">{available.length ? "Choose member" : "Everyone in the Great Hall already has access"}</option>{available.map((member) => <option key={member.pubkey} value={member.pubkey}>{member.displayName}</option>)}</select></label>
-      <label><span>Room role</span><select value={role} onChange={(event) => setRole(event.target.value)}><option value="member">Member</option><option value="guest">Guest</option><option value="admin">Admin</option><option value="bot">Bot</option></select></label>
-      <button type="button" disabled={!selectedPubkey || Boolean(busy)} onClick={() => void addMember()}>{busy === "add" ? "Granting…" : "Grant Story Room access"}</button>
-      {desktopUrl ? <a href={desktopUrl}>Open the community in Buzz Desktop</a> : null}
-    </div>
-
-    <p className={styles.note}>BUZZ enforces the actual channel permissions. If your connected identity is not an owner/admin for this room, BUZZ will refuse the membership change rather than PlotPickle pretending it succeeded.</p>
-    {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-  </section>;
+      <p className={styles.note}>BUZZ enforces the actual channel permissions. If your connected identity is not an owner/admin for this room, BUZZ will refuse the membership change rather than PlotPickle pretending it succeeded.</p>
+      {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+    </section>
+  </>;
 }

@@ -125,13 +125,15 @@ function storyRefsArePrivate(refs) {
 }
 
 function councilWorkText(workItem) {
-  return [
+  const parts = [
     workItem?.frontier,
     workItem?.curriculumRequirementId,
     workItem?.reason,
     ...(workItem?.targetRefs || []),
     ...(workItem?.evidenceRefs || []),
-  ].join(" ").toLowerCase();
+  ];
+  const text = parts.join(" ");
+  return text.toLowerCase();
 }
 
 export function storyCouncilSpecialistByAgentId(agentId) {

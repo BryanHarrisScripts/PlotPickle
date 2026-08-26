@@ -40,6 +40,10 @@ function openWorkspace(workspace: string, section?: string) {
   window.location.assign(`/?workspace=${encodeURIComponent(workspace)}`);
 }
 
+function openStoryDecisions() {
+  window.location.assign("/story-decisions");
+}
+
 function loadAfterglow() {
   window.localStorage.setItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY, "true");
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(createAfterglowProject()));
@@ -178,6 +182,7 @@ export default function DashboardStoryLibrary({
             <button type="button" onClick={() => onOpenSection("world")}>New Location / World</button>
             <button type="button" onClick={() => onOpenSection("characters")}>New Character</button>
             <button type="button" onClick={() => onOpenSection("blocks")}>24 Blocks</button>
+            <button type="button" onClick={openStoryDecisions}>Story Decisions</button>
             <button type="button" onClick={onOpenEngines}>Creative Tools</button>
           </section>
 

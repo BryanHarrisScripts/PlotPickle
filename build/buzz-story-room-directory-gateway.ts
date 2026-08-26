@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { verifyNostrEventSignature } from "../core/buzz/nostr-event-verification.mjs";
 import { BUZZ_COMMUNITY_CHANNELS } from "../lib/buzz/buzz-guildhall";
+import { buzzChannelMemberPubkeys } from "../lib/buzz/membership/buzz-channel-members";
 import {
   normalizeStoryRoomAccessDecision,
   normalizeStoryRoomAccessRequest,
@@ -21,37 +21,30 @@ import {
   type StoryRoomAccessDecision,
   type StoryRoomAccessRequest,
   type StoryRoomDirectoryAnnouncement,
-  type StoryRoomDirectoryListing,
 } from "../lib/buzz/story-room-directory";
 import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
 import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { redactBuzzDiagnostic } from "./buzz-cli-failure";
-import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
-import { isLocalRequest, readBody, sendJson, validChannelId } from "./buzz-story-room-access-gateway";
+import {
+  isLocalRequest,
+  readBody,
+  runStoryRoomBuzz,
+  sendJson,
+  storyRoomBuzzArray,
+  storyRoomBuzzFirstString,
+  validChannelId,
+  verifiedStoryRoomBuzzConnection,
+  type BuzzConnection,
+} from "./buzz-story-room-access-gateway";
 import { assertBuzzStoryRoomOwner } from "./buzz-story-room-owner-authority";
-import { readCredentialJson } from "./local-credentials";
 import { currentProfileRequestContext } from "./profile-request-context";
 
 const API = "/api/local-buzz/story-room-directory";
-const CONNECTION_FILE = "buzz-connection.json";
 const BINDINGS_OBJECT_ID = "story-room-bindings-v1";
-const MAX_COMMAND_OUTPUT = 4 * 1024 * 1024;
 const MAX_DIRECTORY_MESSAGES = 120;
 const MAX_DM_MESSAGES = 80;
 const REQUEST_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-type BuzzConnection = {
-  version: 1;
-  mode: "existing-relay" | "managed";
-  relayUrl: string;
-  community: string;
-  identityLabel: string;
-  cliPath: string;
-  privateKey: string;
-  verifiedAt: string;
-  verificationVersion?: 2;
-};
-type CommandResult = { stdout: string; stderr: string; code: number };
 type BuzzChannel = { id: string; name: string; archived: boolean };
 type BuzzDm = { id: string; participants: string[] };
 type SignedMessage = {
@@ -77,138 +70,39 @@ function safeError(error: unknown) {
   return redactBuzzDiagnostic(error instanceof Error ? error.message : "Story Rooms Directory is unavailable.").slice(0, 700);
 }
 
-function validConnection(value: unknown): value is BuzzConnection {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const item = value as Partial<BuzzConnection>;
-  return item.version === 1
-    && (item.mode === "existing-relay" || item.mode === "managed")
-    && typeof item.relayUrl === "string"
-    && typeof item.community === "string"
-    && typeof item.identityLabel === "string"
-    && typeof item.cliPath === "string"
-    && typeof item.privateKey === "string"
-    && typeof item.verifiedAt === "string";
-}
-
-async function verifiedConnection() {
-  const value = await readCredentialJson<unknown>(CONNECTION_FILE);
-  if (!validConnection(value)
-    || value.verificationVersion !== 2
-    || !value.verifiedAt
-    || !value.privateKey) {
-    throw new Error("Verify your Human BUZZ identity before using the Story Rooms Directory.");
-  }
-  const pubkey = publicKeyFromPrivateKey(value.privateKey);
+async function verifiedDirectoryConnection() {
+  const connection = await verifiedStoryRoomBuzzConnection();
+  const pubkey = publicKeyFromPrivateKey(connection.privateKey);
   if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("The verified Human BUZZ identity could not be resolved.");
-  return { connection: value, pubkey };
-}
-
-function relayHttpUrl(value: string) {
-  const url = new URL(value);
-  if (url.protocol === "ws:") url.protocol = "http:";
-  if (url.protocol === "wss:") url.protocol = "https:";
-  return url.toString().replace(/\/$/, "");
-}
-
-function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
-  return new Promise<CommandResult>((resolve, reject) => {
-    const child = spawn(executable, args, {
-      env: { ...process.env, ...env },
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-    let bytes = 0;
-    let settled = false;
-    const finish = (error?: Error, result?: CommandResult) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      if (error) reject(error); else resolve(result as CommandResult);
-    };
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      finish(new Error("BUZZ CLI did not finish within the allowed time."));
-    }, 45_000);
-    const collect = (target: Buffer[], chunk: Buffer) => {
-      bytes += chunk.length;
-      if (bytes <= MAX_COMMAND_OUTPUT) target.push(chunk);
-      else {
-        child.kill("SIGKILL");
-        finish(new Error("BUZZ CLI returned too much output."));
-      }
-    };
-    child.stdout.on("data", (chunk: Buffer) => collect(stdout, chunk));
-    child.stderr.on("data", (chunk: Buffer) => collect(stderr, chunk));
-    child.once("error", () => finish(new Error("BUZZ CLI is not installed or could not start.")));
-    child.once("close", (code) => {
-      const result = {
-        stdout: Buffer.concat(stdout).toString("utf8").trim(),
-        stderr: Buffer.concat(stderr).toString("utf8").trim(),
-        code: code ?? 1,
-      };
-      if (result.code !== 0) finish(new Error(result.stderr || result.stdout || `BUZZ CLI exited with code ${result.code}.`));
-      else finish(undefined, result);
-    });
-  });
-}
-
-async function runBuzz(connection: BuzzConnection, args: string[]) {
-  const resolution = await resolveBuzzCliExecutable(connection.cliPath);
-  const result = await command(resolution.executable, args, {
-    BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
-    BUZZ_PRIVATE_KEY: connection.privateKey,
-  });
-  try {
-    return JSON.parse(result.stdout || "null") as unknown;
-  } catch (error) {
-    throw new Error(`BUZZ CLI returned invalid JSON: ${error instanceof Error ? error.message : "parse failure"}`);
-  }
-}
-
-function array(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value;
-  if (!value || typeof value !== "object") return [];
-  const item = value as Record<string, unknown>;
-  for (const key of ["channels", "dms", "messages", "items", "data", "results"]) {
-    if (Array.isArray(item[key])) return item[key] as unknown[];
-  }
-  return [];
-}
-
-function firstString(item: Record<string, unknown>, keys: string[]) {
-  for (const key of keys) {
-    const value = item[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return "";
+  return { connection, pubkey };
 }
 
 function channelsFrom(value: unknown): BuzzChannel[] {
-  return array(value).flatMap((entry) => {
+  return storyRoomBuzzArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
-    const id = firstString(item, ["channel_id", "id", "channelId", "uuid"]);
-    const name = firstString(item, ["name", "title", "slug"]);
+    const id = storyRoomBuzzFirstString(item, ["channel_id", "id", "channelId", "uuid"]);
+    const name = storyRoomBuzzFirstString(item, ["name", "title", "slug"]);
     return id && name ? [{ id, name, archived: item.archived === true }] : [];
   });
 }
 
 function dmsFrom(value: unknown): BuzzDm[] {
-  return array(value).flatMap((entry) => {
+  return storyRoomBuzzArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
-    const id = firstString(item, ["dm_id", "channel_id", "id", "channelId"]);
+    const id = storyRoomBuzzFirstString(item, ["dm_id", "channel_id", "id", "channelId"]);
     const participants = Array.isArray(item.participants)
-      ? item.participants.filter((candidate): candidate is string => typeof candidate === "string" && /^[a-f0-9]{64}$/i.test(candidate)).map((candidate) => candidate.toLowerCase())
+      ? item.participants
+        .filter((candidate): candidate is string => typeof candidate === "string" && /^[a-f0-9]{64}$/i.test(candidate))
+        .map((candidate) => candidate.toLowerCase())
       : [];
     return id ? [{ id, participants }] : [];
   });
 }
 
 function signedMessages(value: unknown): SignedMessage[] {
-  return array(value).flatMap((entry) => {
+  return storyRoomBuzzArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
     const candidate = {
@@ -220,27 +114,26 @@ function signedMessages(value: unknown): SignedMessage[] {
       kind: Number(item.kind),
       tags: Array.isArray(item.tags) ? item.tags as string[][] : [],
     };
-    const verification = verifyNostrEventSignature(candidate);
-    return verification.valid ? [candidate] : [];
+    return verifyNostrEventSignature(candidate).valid ? [candidate] : [];
   });
 }
 
 async function greatHall(connection: BuzzConnection) {
   const definition = BUZZ_COMMUNITY_CHANNELS.find((room) => room.id === "great-hall");
   if (!definition) throw new Error("PlotPickle Great Hall configuration is unavailable.");
-  const channels = channelsFrom(await runBuzz(connection, ["channels", "search", "--query", definition.name, "--exact"]));
+  const channels = channelsFrom(await runStoryRoomBuzz(connection, ["channels", "search", "--query", definition.name, "--exact"]));
   const channel = channels.find((candidate) => candidate.name === definition.name && !candidate.archived);
   if (!channel) throw new Error("Prepare the PlotPickle Great Hall before using the Story Rooms Directory.");
   return channel;
 }
 
 async function sendMessage(connection: BuzzConnection, channelId: string, content: string) {
-  await runBuzz(connection, ["messages", "send", "--channel", channelId, "--content", content]);
+  await runStoryRoomBuzz(connection, ["messages", "send", "--channel", channelId, "--content", content]);
 }
 
 async function directoryState(connection: BuzzConnection) {
   const hall = await greatHall(connection);
-  const messages = signedMessages(await runBuzz(connection, ["messages", "get", "--channel", hall.id, "--limit", String(MAX_DIRECTORY_MESSAGES)]));
+  const messages = signedMessages(await runStoryRoomBuzz(connection, ["messages", "get", "--channel", hall.id, "--limit", String(MAX_DIRECTORY_MESSAGES)]));
   const latest = new Map<string, { eventAt: number; announcement: StoryRoomDirectoryAnnouncement }>();
   let invalidMarkedEvents = 0;
   for (const message of messages) {
@@ -272,19 +165,20 @@ function deterministicRequestId(listingId: string, requesterPublicKey: string) {
 }
 
 async function dmWith(connection: BuzzConnection, participant: string) {
-  const opened = await runBuzz(connection, ["dms", "open", "--pubkey", participant]);
+  const opened = await runStoryRoomBuzz(connection, ["dms", "open", "--pubkey", participant]);
   if (!opened || typeof opened !== "object" || Array.isArray(opened)) throw new Error("BUZZ did not return the private request route.");
-  const id = firstString(opened as Record<string, unknown>, ["dm_id", "channel_id", "id"]);
+  const id = storyRoomBuzzFirstString(opened as Record<string, unknown>, ["dm_id", "channel_id", "id"]);
   if (!id) throw new Error("BUZZ opened the private request route but did not return its identifier.");
   return id;
 }
 
 async function requestState(connection: BuzzConnection, dmId: string, requestId: string, listingId: string) {
-  const messages = signedMessages(await runBuzz(connection, ["messages", "get", "--channel", dmId, "--limit", String(MAX_DM_MESSAGES)]));
+  const messages = signedMessages(await runStoryRoomBuzz(connection, ["messages", "get", "--channel", dmId, "--limit", String(MAX_DM_MESSAGES)]));
   let request: StoryRoomAccessRequest | null = null;
   let requestEventAt = -1;
   let decision: StoryRoomAccessDecision | null = null;
   let decisionEventAt = -1;
+  let invalidMarkedEvents = 0;
   for (const message of messages) {
     if (message.content.startsWith(STORY_ROOM_ACCESS_REQUEST_MARKER)) {
       let parsed: StoryRoomAccessRequest;
@@ -293,9 +187,13 @@ async function requestState(connection: BuzzConnection, dmId: string, requestId:
         if (!value) continue;
         parsed = value;
       } catch {
+        invalidMarkedEvents += 1;
         continue;
       }
-      if (parsed.requestId === requestId && parsed.listingId === listingId && parsed.requesterPublicKey === message.pubkey && message.created_at >= requestEventAt) {
+      if (parsed.requestId === requestId
+        && parsed.listingId === listingId
+        && parsed.requesterPublicKey === message.pubkey
+        && message.created_at >= requestEventAt) {
         request = parsed;
         requestEventAt = message.created_at;
       }
@@ -307,38 +205,51 @@ async function requestState(connection: BuzzConnection, dmId: string, requestId:
         if (!value) continue;
         parsed = value;
       } catch {
+        invalidMarkedEvents += 1;
         continue;
       }
-      if (parsed.requestId === requestId && parsed.listingId === listingId && parsed.ownerPublicKey === message.pubkey && message.created_at >= decisionEventAt) {
+      if (parsed.requestId === requestId
+        && parsed.listingId === listingId
+        && parsed.ownerPublicKey === message.pubkey
+        && message.created_at >= decisionEventAt) {
         decision = parsed;
         decisionEventAt = message.created_at;
       }
     }
   }
   if (!request) return null;
-  if (decision && decisionEventAt >= requestEventAt) return { request, decision, status: decision.status } satisfies RequestState;
+  const correlatedDecision = decision
+    && decision.requesterPublicKey === request.requesterPublicKey
+    && decision.ownerPublicKey === request.ownerPublicKey
+    && decisionEventAt >= requestEventAt
+    ? decision
+    : null;
+  if (correlatedDecision) return { request, decision: correlatedDecision, status: correlatedDecision.status, invalidMarkedEvents };
   return {
     request,
     decision: null,
     status: Date.parse(request.expiresAt) <= Date.now() ? "expired" : "pending",
-  } satisfies RequestState;
+    invalidMarkedEvents,
+  };
 }
 
 async function listDirectory() {
-  const { connection, pubkey } = await verifiedConnection();
+  const { connection, pubkey } = await verifiedDirectoryConnection();
   const state = await directoryState(connection);
   return {
     ok: true,
     listings: state.listings,
     viewerPublicKey: pubkey,
     invalidMarkedEvents: state.invalidMarkedEvents,
-    capabilities: { openMembership: false },
-    message: state.listings.length ? `${state.listings.length} owner-approved Story Room listing${state.listings.length === 1 ? "" : "s"} available.` : "No Story Rooms are listed for discovery right now.",
+    capabilities: { openMembership: false, federatedPublication: false },
+    message: state.listings.length
+      ? `${state.listings.length} owner-approved Story Room listing${state.listings.length === 1 ? "" : "s"} available.`
+      : "No Story Rooms are listed for discovery right now.",
   };
 }
 
 async function publishAnnouncement(body: Record<string, unknown>) {
-  const { connection, pubkey } = await verifiedConnection();
+  const { connection, pubkey } = await verifiedDirectoryConnection();
   const announcement = normalizeStoryRoomDirectoryAnnouncement(body.announcement);
   if (announcement.ownerPublicKey !== pubkey) throw new Error("Only the verified Story Room owner may publish or close this directory listing.");
   if (announcement.type === "listing" && announcement.accessMode === "open") {
@@ -346,11 +257,17 @@ async function publishAnnouncement(body: Record<string, unknown>) {
   }
   const hall = await greatHall(connection);
   await sendMessage(connection, hall.id, serializeStoryRoomDirectoryAnnouncement(announcement));
-  return { ok: true, announcement, message: announcement.type === "closed" ? "Story Room removed from public discovery." : "Owner-approved Story Room metadata published to the signed directory." };
+  return {
+    ok: true,
+    announcement,
+    message: announcement.type === "closed"
+      ? "Story Room removed from public discovery."
+      : "Owner-approved Story Room metadata published to the signed directory.",
+  };
 }
 
 async function requestAccess(body: Record<string, unknown>) {
-  const { connection, pubkey } = await verifiedConnection();
+  const { connection, pubkey } = await verifiedDirectoryConnection();
   const listingId = text(body.listingId).toLowerCase();
   const ownerPublicKey = text(body.ownerPublicKey).toLowerCase();
   const state = await directoryState(connection);
@@ -361,7 +278,9 @@ async function requestAccess(body: Record<string, unknown>) {
   const dmId = await dmWith(connection, listing.ownerPublicKey);
   const requestId = deterministicRequestId(listing.listingId, pubkey);
   const existing = await requestState(connection, dmId, requestId, listing.listingId);
-  if (existing && existing.status !== "expired") return { ok: true, request: existing.request, status: existing.status, message: `Your Story Room access request is ${existing.status}.` };
+  if (existing && existing.status !== "expired") {
+    return { ok: true, request: existing.request, status: existing.status, message: `Your Story Room access request is ${existing.status}.` };
+  }
   const now = new Date();
   const request = normalizeStoryRoomAccessRequest({
     version: STORY_ROOM_DIRECTORY_VERSION,
@@ -390,30 +309,26 @@ async function mappedOwnerBinding(channelValue: unknown, listingIdValue: unknown
 }
 
 function memberPubkeys(value: unknown) {
-  const source = Array.isArray(value) ? value : array(value);
-  return source.flatMap((entry) => {
-    if (typeof entry === "string" && /^[a-f0-9]{64}$/i.test(entry)) return [entry.toLowerCase()];
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
-    const pubkey = firstString(entry as Record<string, unknown>, ["pubkey", "public_key", "id"]).toLowerCase();
-    return /^[a-f0-9]{64}$/.test(pubkey) ? [pubkey] : [];
-  });
+  return buzzChannelMemberPubkeys(value).map((pubkey) => pubkey.toLowerCase());
 }
 
 async function applyMembershipDecision(connection: BuzzConnection, channelId: string, requesterPublicKey: string, status: "approved" | "revoked") {
-  const before = memberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channelId]));
+  const before = memberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channelId]));
   if (status === "approved" && !before.includes(requesterPublicKey)) {
-    await runBuzz(connection, ["channels", "add-member", "--channel", channelId, "--pubkey", requesterPublicKey, "--role", "member"]);
+    await runStoryRoomBuzz(connection, ["channels", "add-member", "--channel", channelId, "--pubkey", requesterPublicKey, "--role", "member"]);
   }
   if (status === "revoked" && before.includes(requesterPublicKey)) {
-    await runBuzz(connection, ["channels", "remove-member", "--channel", channelId, "--pubkey", requesterPublicKey]);
+    await runStoryRoomBuzz(connection, ["channels", "remove-member", "--channel", channelId, "--pubkey", requesterPublicKey]);
   }
-  const after = memberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channelId]));
+  const after = memberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channelId]));
   const expected = status === "approved";
-  if (after.includes(requesterPublicKey) !== expected) throw new Error(`BUZZ did not confirm that Story Room access was ${status === "approved" ? "granted" : "revoked"}.`);
+  if (after.includes(requesterPublicKey) !== expected) {
+    throw new Error(`BUZZ did not confirm that Story Room access was ${status === "approved" ? "granted" : "revoked"}.`);
+  }
 }
 
 async function decideAccess(body: Record<string, unknown>) {
-  const { connection, pubkey } = await verifiedConnection();
+  const { connection, pubkey } = await verifiedDirectoryConnection();
   const request = normalizeStoryRoomAccessRequest(body.request);
   if (request.ownerPublicKey !== pubkey) throw new Error("Only the verified Story Room owner may decide this access request.");
   const status = body.status === "approved" || body.status === "declined" || body.status === "revoked" ? body.status : "";
@@ -424,8 +339,12 @@ async function decideAccess(body: Record<string, unknown>) {
   if (!live || live.request.requesterPublicKey !== request.requesterPublicKey || live.request.ownerPublicKey !== pubkey) {
     throw new Error("PlotPickle could not verify the requester's signed BUZZ access request.");
   }
-  if (status === "approved" && Date.parse(live.request.expiresAt) <= Date.now()) throw new Error("This Story Room access request has expired. Ask the requester to submit it again.");
-  if (status === "approved" || status === "revoked") await applyMembershipDecision(connection, binding.channelId, request.requesterPublicKey, status);
+  if (status === "approved" && Date.parse(live.request.expiresAt) <= Date.now()) {
+    throw new Error("This Story Room access request has expired. Ask the requester to submit it again.");
+  }
+  if (status === "approved" || status === "revoked") {
+    await applyMembershipDecision(connection, binding.channelId, request.requesterPublicKey, status);
+  }
   const decision = normalizeStoryRoomAccessDecision({
     version: STORY_ROOM_DIRECTORY_VERSION,
     type: "decision",
@@ -437,11 +356,20 @@ async function decideAccess(body: Record<string, unknown>) {
     decidedAt: new Date().toISOString(),
   });
   await sendMessage(connection, dmId, serializeStoryRoomAccessDecision(decision));
-  return { ok: true, decision, status, message: status === "approved" ? "BUZZ confirmed membership before PlotPickle recorded approval." : status === "revoked" ? "BUZZ confirmed Story Room access was revoked." : "Access request declined. No Story Room membership was granted." };
+  return {
+    ok: true,
+    decision,
+    status,
+    message: status === "approved"
+      ? "BUZZ confirmed membership before PlotPickle recorded approval."
+      : status === "revoked"
+        ? "BUZZ confirmed Story Room access was revoked."
+        : "Access request declined. No Story Room membership was granted.",
+  };
 }
 
 async function ownerRequests(channelValue: unknown) {
-  const { connection, pubkey } = await verifiedConnection();
+  const { connection, pubkey } = await verifiedDirectoryConnection();
   const channelId = validChannelId(channelValue);
   const context = currentProfileRequestContext();
   if (!context) throw new Error("Unlock a PlotPickle Human profile before reviewing Story Room requests.");
@@ -449,32 +377,48 @@ async function ownerRequests(channelValue: unknown) {
   const binding = normalizeBuzzStoryRoomBindings(saved).find((candidate) => candidate.channelId === channelId && candidate.roomId === "story");
   if (!binding) throw new Error("That channel is not this profile's mapped primary Story Room.");
   await assertBuzzStoryRoomOwner(binding.channelId, pubkey);
-  const dms = dmsFrom(await runBuzz(connection, ["dms", "list", "--limit", "40"])).slice(0, 24);
+  const dms = dmsFrom(await runStoryRoomBuzz(connection, ["dms", "list", "--limit", "40"])).slice(0, 24);
   const states: RequestState[] = [];
+  let invalidMarkedEvents = 0;
   for (const dm of dms) {
-    const messages = signedMessages(await runBuzz(connection, ["messages", "get", "--channel", dm.id, "--limit", String(MAX_DM_MESSAGES)]));
+    const messages = signedMessages(await runStoryRoomBuzz(connection, ["messages", "get", "--channel", dm.id, "--limit", String(MAX_DM_MESSAGES)]));
     const requests = new Map<string, StoryRoomAccessRequest>();
     const decisions = new Map<string, StoryRoomAccessDecision>();
     for (const message of messages) {
       if (message.content.startsWith(STORY_ROOM_ACCESS_REQUEST_MARKER)) {
         try {
           const request = parseStoryRoomAccessRequest(message.content);
-          if (request && request.listingId === binding.listingId && request.ownerPublicKey === pubkey && request.requesterPublicKey === message.pubkey) requests.set(request.requestId, request);
+          if (request
+            && request.listingId === binding.listingId
+            && request.ownerPublicKey === pubkey
+            && request.requesterPublicKey === message.pubkey) {
+            requests.set(request.requestId, request);
+          }
         } catch {
-          // Invalid marked events are ignored but never treated as authority.
+          invalidMarkedEvents += 1;
         }
       }
       if (message.content.startsWith(STORY_ROOM_ACCESS_DECISION_MARKER)) {
         try {
           const decision = parseStoryRoomAccessDecision(message.content);
-          if (decision && decision.listingId === binding.listingId && decision.ownerPublicKey === pubkey && message.pubkey === pubkey) decisions.set(decision.requestId, decision);
+          if (decision
+            && decision.listingId === binding.listingId
+            && decision.ownerPublicKey === pubkey
+            && message.pubkey === pubkey) {
+            decisions.set(decision.requestId, decision);
+          }
         } catch {
-          // Invalid marked events are ignored but never treated as authority.
+          invalidMarkedEvents += 1;
         }
       }
     }
     for (const request of requests.values()) {
-      const decision = decisions.get(request.requestId) ?? null;
+      const candidate = decisions.get(request.requestId) ?? null;
+      const decision = candidate
+        && candidate.requesterPublicKey === request.requesterPublicKey
+        && candidate.ownerPublicKey === request.ownerPublicKey
+        ? candidate
+        : null;
       states.push({
         request,
         decision,
@@ -483,7 +427,15 @@ async function ownerRequests(channelValue: unknown) {
     }
   }
   states.sort((left, right) => Date.parse(right.request.requestedAt) - Date.parse(left.request.requestedAt));
-  return { ok: true, requests: states, listingId: binding.listingId, message: states.length ? `${states.length} Story Room access request${states.length === 1 ? "" : "s"} found.` : "No Story Room access requests yet." };
+  return {
+    ok: true,
+    requests: states,
+    listingId: binding.listingId,
+    invalidMarkedEvents,
+    message: states.length
+      ? `${states.length} Story Room access request${states.length === 1 ? "" : "s"} found.`
+      : "No Story Room access requests yet.",
+  };
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {

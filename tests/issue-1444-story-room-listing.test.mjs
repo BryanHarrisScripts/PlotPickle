@@ -68,3 +68,11 @@ test("#1444 server capability-gates Open and never silently publishes it", async
   assert.match(gateway, /Choose Listed instead/);
   assert.match(gateway, /published: accessMode === "listed"/);
 });
+
+test("#1444 never derives public directory text from a private or legacy BUZZ room name", async () => {
+  const gateway = await read("build/buzz-story-room-listing-gateway.ts");
+  assert.match(gateway, /suggestedTitle: ""/);
+  assert.doesNotMatch(gateway, /suggestedStoryTitle/);
+  assert.doesNotMatch(gateway, /lastKnownName\.replace/);
+  assert.match(gateway, /explicitly enters and saves directory metadata/);
+});

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
+import { CommunityStoryRoomOwnerRequests } from "../modules/community/story-room-directory";
 import CommunityStoryRoomListing from "./community-story-room-listing";
-import CommunityStoryRoomOwnerRequests from "./community-story-room-owner-requests";
 import styles from "./community-story-room-access.module.css";
 
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };

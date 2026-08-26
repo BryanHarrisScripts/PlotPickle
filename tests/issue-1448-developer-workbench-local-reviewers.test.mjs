@@ -3,12 +3,13 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
-const [project, workbench, inventory, secondOpinion, repomix, workflow] = await Promise.all([
+const [project, workbench, inventory, secondOpinion, repomix, buildScript, workflow] = await Promise.all([
   read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),
   read("Utilities/DeveloperWorkbench/WorkbenchV2.cs"),
   read("Utilities/DeveloperWorkbench/local-reviewer-inventory.mjs"),
   read("Utilities/DeveloperWorkbench/second-opinion-review.mjs"),
   read("Utilities/DeveloperWorkbench/workbench-repomix-evidence.mjs"),
+  read("Utilities/DeveloperWorkbench/build.ps1"),
   read(".github/workflows/developer-workbench.yml"),
 ]);
 
@@ -69,6 +70,23 @@ test("#1448 Repomix evidence is targeted and credential-safe", () => {
   assert.match(repomix, /\*\*\/secrets\.json/);
   assert.doesNotMatch(repomix, /"build\/\*\*"/);
   assert.match(workbench, /Repomix context/);
+});
+
+test("#1448 published Windows package carries the upgraded reviewer runtime helpers", () => {
+  for (const helper of [
+    "local-reviewer-inventory.mjs",
+    "second-opinion-review.mjs",
+    "workbench-repomix-evidence.mjs",
+    "workbench-cli.mjs",
+    "pi-managed-node-launch.mjs",
+    "pi-review-instructions.mjs",
+    "developer-repair-model-policy.mjs",
+    "local-repair-capability-cache.mjs",
+    "pi-managed-install.mjs",
+    "pi-worker-runtime.mjs",
+    "local-model-capabilities.mjs",
+  ]) assert.match(buildScript, new RegExp(helper.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(buildScript, /workbench-runtime-manifest\.json/);
 });
 
 test("#1448 Windows Workbench CI executes the new focused regression", () => {

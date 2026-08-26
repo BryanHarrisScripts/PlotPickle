@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AiRoutingPanel from "../../ai-routing-panel";
+import LocalAiReadinessSummary from "../../local-ai-readiness-summary";
 import LocalRuntimePanel from "../../local-runtime-panel";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
@@ -199,6 +200,8 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
         </div>
         <button type="button" onClick={() => openAdvanced()} aria-expanded={advancedOpen}>Advanced Options</button>
       </section>
+
+      {mode === "local" && activeCapability === "writing" ? <LocalAiReadinessSummary onOpenAdvanced={() => openAdvanced()} /> : null}
 
       <AiRoutingPanel
         capability={capability.routingCapability}

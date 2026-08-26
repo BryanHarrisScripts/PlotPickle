@@ -238,6 +238,23 @@ export function normalizeStoryDecisionRecord(input) {
   };
 }
 
+export function supersedeStoryDecision(input, replacementDecisionId, now) {
+  const decision = normalizeStoryDecisionRecord(input);
+  const replacement = decisionString(replacementDecisionId, 180);
+  const updatedAt = decisionIso(now);
+  return normalizeStoryDecisionRecord({
+    ...decision,
+    status: "superseded",
+    updatedAt,
+    resolvedAt: updatedAt,
+    history: [...decision.history, {
+      at: updatedAt,
+      event: replacement ? `superseded:${replacement}` : "superseded",
+      revision: decision.baseRevision,
+    }],
+  });
+}
+
 export function mergeStoryDecisionRecords(existingInput, incomingInput, input = {}) {
   const existing = normalizeStoryDecisionRecord(existingInput);
   const incoming = normalizeStoryDecisionRecord(incomingInput);
@@ -246,7 +263,9 @@ export function mergeStoryDecisionRecords(existingInput, incomingInput, input = 
     const stale = markStoryDecisionStale(existing, incoming.baseRevision, input.now);
     return { existing: stale, incoming, merged: false };
   }
-  if (existing.groupKey !== incoming.groupKey) return { existing, incoming, merged: false };
+  if (existing.groupKey !== incoming.groupKey) {
+    return { existing: supersedeStoryDecision(existing, incoming.decisionId, input.now), incoming, merged: false };
+  }
   const updatedAt = decisionIso(input.now);
   return {
     existing: normalizeStoryDecisionRecord({

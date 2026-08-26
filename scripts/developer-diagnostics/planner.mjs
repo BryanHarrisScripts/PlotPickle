@@ -7,7 +7,13 @@ function unique(values) {
 function matchesOwnedDomain(file, areaId) {
   const normalized = normalizeRepositoryPath(file);
   const [root, domain] = normalized.split("/");
-  return (root === "lib" || root === "modules") && domain === areaId;
+  if ((root === "lib" || root === "modules") && domain === areaId) return true;
+  if (areaId === "buzz") {
+    return normalized.startsWith("app/community-")
+      || normalized.startsWith("build/buzz-")
+      || normalized.startsWith("tests/issue-1444-");
+  }
+  return false;
 }
 
 export function planChangedTests(files, registry, options = {}) {

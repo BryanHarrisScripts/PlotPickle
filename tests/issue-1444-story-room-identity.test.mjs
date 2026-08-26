@@ -8,7 +8,7 @@ test("#1444 gives the primary private room a clean Human-facing name without usi
   const source = await read("lib/buzz/story-room-identity.ts");
   assert.match(source, /PRIMARY_PRIVATE_STORY_ROOM_ID[^\n]+"story"/);
   assert.match(source, /`\$\{buzzStoryTitleSlug\(project\)\}-story-default`/);
-  assert.match(source, /buzzLegacyStoryRoomName[\s\S]+return buzzRoomName\(project, roomId\)/);
+  assert.match(source, /export const buzzLegacyStoryRoomName = buzzRoomName;/);
   assert.match(source, /projectId: string/);
   assert.match(source, /channelId: string/);
   assert.match(source, /listingId: string/);
@@ -43,9 +43,16 @@ test("#1444 rename detection keeps access bound to the mapped channel instead of
     read("build/buzz-story-room-access-gateway.ts"),
   ]);
   assert.match(identityGateway, /channel\.name !== existingBinding\.lastKnownName/);
-  assert.match(identityGateway, /lastKnownName: safeRoomName\(channel\.name\)/);
+  assert.match(identityGateway, /lastKnownName: parseStoryRoomName\(channel\.name, "Stored room name"\)/);
   assert.match(accessGateway, /mappedStoryRoomChannelIds/);
   assert.match(accessGateway, /if \(mappedChannelIds\.has\(channel\.id\)\) return channel/);
+});
+
+test("#1444 identity gateway does not copy generic local-gateway helper functions", async () => {
+  const gateway = await read("build/buzz-story-room-identity-gateway.ts");
+  assert.doesNotMatch(gateway, /function (?:isLocalRequest|sendJson|safeError|relayHttpUrl|validConnection|readBody|firstString|safeRoomName)\b/);
+  assert.doesNotMatch(gateway, /const collect\s*=/);
+  assert.match(gateway, /return JSON\.parse\(result\.stdout \|\| "null"\) as unknown;/);
 });
 
 test("#1444 Community uses the identity gateway and displays the clean alias rather than the BUZZ storage name", async () => {

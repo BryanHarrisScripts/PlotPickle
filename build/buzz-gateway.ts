@@ -140,16 +140,6 @@ function integer(value: unknown, fallback: number) {
   return Number.isInteger(parsed) ? parsed : fallback;
 }
 
-function messageMentionPubkeys(value: unknown) {
-  const source = Array.isArray(value) ? value : [];
-  const mentions = [...new Set(source.map(text).filter(Boolean).map((pubkey) => pubkey.toLowerCase()))];
-  if (mentions.length > 16) throw new Error("Buzz messages may explicitly address at most 16 identities.");
-  for (const pubkey of mentions) {
-    if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Buzz explicit mentions must be 64-character hexadecimal public keys.");
-  }
-  return mentions;
-}
-
 function normalizeRelayUrl(value: unknown) {
   const source = text(value);
   if (!source) throw new Error("Enter a Buzz relay address.");
@@ -870,6 +860,16 @@ async function listMessages(channelValue: unknown, limitValue: unknown) {
   if (!/^[A-Za-z0-9-]{8,128}$/.test(channel)) throw new Error("Choose a valid Buzz channel.");
   const limit = Math.min(100, Math.max(1, integer(limitValue, 40)));
   return messagesFrom(await runBuzz(connection, ["messages", "get", "--channel", channel, "--limit", String(limit)]));
+}
+
+function messageMentionPubkeys(value: unknown) {
+  const source = Array.isArray(value) ? value : [];
+  const mentions = [...new Set(source.map(text).filter(Boolean).map((pubkey) => pubkey.toLowerCase()))];
+  if (mentions.length > 16) throw new Error("Buzz messages may explicitly address at most 16 identities.");
+  for (const pubkey of mentions) {
+    if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Buzz explicit mentions must be 64-character hexadecimal public keys.");
+  }
+  return mentions;
 }
 
 async function sendMessage(body: Record<string, unknown>) {

@@ -2,7 +2,7 @@ import type {
   StoryHumanGate,
   StoryResultKind,
   StoryWorkItem,
-} from "./story-workflow-core.mjs";
+} from "../story-workflow-core.mjs";
 
 export type StoryCouncilDecisionClass =
   | "no-action"

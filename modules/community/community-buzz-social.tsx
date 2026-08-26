@@ -79,6 +79,18 @@ function chronological(messages: readonly BuzzMessage[]) {
   return [...messages].sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime());
 }
 
+function sameBuzzMessages(left: readonly BuzzMessage[], right: readonly BuzzMessage[]) {
+  if (left.length !== right.length) return false;
+  return left.every((message, index) => {
+    const candidate = right[index];
+    return Boolean(candidate)
+      && message.id === candidate.id
+      && message.content === candidate.content
+      && message.author === candidate.author
+      && message.createdAt === candidate.createdAt;
+  });
+}
+
 function isLegacyOperationalDump(message: BuzzMessage) {
   const content = String(message.content || "");
   return /plotpickle-live-activity:/i.test(content)
@@ -200,6 +212,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   const [notice, setNotice] = useState("");
   const loadedChannelRef = useRef("");
   const messageCountRef = useRef(0);
+  const refreshInFlightRef = useRef(false);
   const timelineEndRef = useRef<HTMLSpanElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -207,19 +220,22 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   const channelId = target?.channelId || "";
 
   const refresh = useCallback(async (quiet = false) => {
+    if (quiet && document.visibilityState !== "visible") return;
+    if (refreshInFlightRef.current) return;
     if (!channelId) {
       loadedChannelRef.current = "";
       messageCountRef.current = 0;
-      setMessages([]);
+      setMessages((current) => current.length ? [] : current);
       return;
     }
+    refreshInFlightRef.current = true;
     try {
       const next = await readMessages(channelId);
       const firstReadForChannel = loadedChannelRef.current !== channelId;
       const conversationAdvanced = !firstReadForChannel && next.length > messageCountRef.current;
       loadedChannelRef.current = channelId;
       messageCountRef.current = next.length;
-      setMessages(next);
+      setMessages((current) => sameBuzzMessages(current, next) ? current : next);
       if (conversationAdvanced) window.requestAnimationFrame(() => {
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         timelineEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
@@ -227,6 +243,8 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       if (!quiet) setNotice("Conversation refreshed from BUZZ.");
     } catch (error) {
       if (!quiet) setNotice(error instanceof Error ? error.message : "BUZZ conversation could not be loaded.");
+    } finally {
+      refreshInFlightRef.current = false;
     }
   }, [channelId]);
 

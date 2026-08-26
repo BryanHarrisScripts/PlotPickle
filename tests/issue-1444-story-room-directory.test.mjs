@@ -46,13 +46,12 @@ test("#1444 keeps Open capability-gated instead of simulating automatic admissio
 });
 
 test("#1444 provides visitor directory cards and explicit owner decisions", async () => {
-  const visitor = await read("app/community-story-room-directory.tsx");
-  const owner = await read("app/community-story-room-owner-requests.tsx");
-  assert.match(visitor, />Story Rooms Directory</);
-  assert.match(visitor, />Request Access</);
-  assert.match(owner, />Approve</);
-  assert.match(owner, />Decline</);
-  assert.match(owner, />Revoke access</);
+  const ui = await read("modules/community/story-room-directory.tsx");
+  assert.match(ui, />Story Rooms Directory</);
+  assert.match(ui, />Request Access</);
+  assert.match(ui, />Approve</);
+  assert.match(ui, />Decline</);
+  assert.match(ui, />Revoke access</);
 });
 
 test("#1444 registers the directory gateway in the local Vite boundary", async () => {

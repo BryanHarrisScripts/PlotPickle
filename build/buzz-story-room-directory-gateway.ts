@@ -44,6 +44,8 @@ const BINDINGS_OBJECT_ID = "story-room-bindings-v1";
 const MAX_DIRECTORY_MESSAGES = 120;
 const MAX_DM_MESSAGES = 80;
 const REQUEST_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MEMBERSHIP_CONFIRM_ATTEMPTS = 8;
+const MEMBERSHIP_CONFIRM_DELAY_MS = 750;
 
 type BuzzChannel = { id: string; name: string; archived: boolean };
 type BuzzDm = { id: string; participants: string[] };
@@ -68,6 +70,10 @@ function text(value: unknown) {
 
 function safeError(error: unknown) {
   return redactBuzzDiagnostic(error instanceof Error ? error.message : "Story Rooms Directory is unavailable.").slice(0, 700);
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function verifiedDirectoryConnection() {
@@ -248,10 +254,22 @@ async function listDirectory() {
   };
 }
 
+async function ownerBindingForListing(listingIdValue: unknown, ownerPublicKey: string) {
+  const listingId = text(listingIdValue).toLowerCase();
+  const context = currentProfileRequestContext();
+  if (!context) throw new Error("Unlock a PlotPickle Human profile before publishing Story Room directory state.");
+  const saved = await context.privateStorage.readPrivateJson(context.authContext, { domain: "buzz", objectId: BINDINGS_OBJECT_ID });
+  const binding = normalizeBuzzStoryRoomBindings(saved).find((candidate) => candidate.listingId === listingId && candidate.roomId === "story");
+  if (!binding) throw new Error("This directory listing does not match the profile's immutable primary Story Room binding.");
+  await assertBuzzStoryRoomOwner(binding.channelId, ownerPublicKey);
+  return binding;
+}
+
 async function publishAnnouncement(body: Record<string, unknown>) {
   const { connection, pubkey } = await verifiedDirectoryConnection();
   const announcement = normalizeStoryRoomDirectoryAnnouncement(body.announcement);
   if (announcement.ownerPublicKey !== pubkey) throw new Error("Only the verified Story Room owner may publish or close this directory listing.");
+  await ownerBindingForListing(announcement.listingId, pubkey);
   if (announcement.type === "listing" && announcement.accessMode === "open") {
     throw new Error("Open Story Room admission remains capability-gated. Publish as Listed instead.");
   }
@@ -312,6 +330,15 @@ function memberPubkeys(value: unknown) {
   return buzzChannelMemberPubkeys(value).map((pubkey) => pubkey.toLowerCase());
 }
 
+async function waitForMembershipState(connection: BuzzConnection, channelId: string, requesterPublicKey: string, expectedPresent: boolean) {
+  for (let attempt = 0; attempt < MEMBERSHIP_CONFIRM_ATTEMPTS; attempt += 1) {
+    const members = memberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channelId]));
+    if (members.includes(requesterPublicKey) === expectedPresent) return true;
+    if (attempt + 1 < MEMBERSHIP_CONFIRM_ATTEMPTS) await delay(MEMBERSHIP_CONFIRM_DELAY_MS);
+  }
+  return false;
+}
+
 async function applyMembershipDecision(connection: BuzzConnection, channelId: string, requesterPublicKey: string, status: "approved" | "revoked") {
   const before = memberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channelId]));
   if (status === "approved" && !before.includes(requesterPublicKey)) {
@@ -320,10 +347,9 @@ async function applyMembershipDecision(connection: BuzzConnection, channelId: st
   if (status === "revoked" && before.includes(requesterPublicKey)) {
     await runStoryRoomBuzz(connection, ["channels", "remove-member", "--channel", channelId, "--pubkey", requesterPublicKey]);
   }
-  const after = memberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channelId]));
-  const expected = status === "approved";
-  if (after.includes(requesterPublicKey) !== expected) {
-    throw new Error(`BUZZ did not confirm that Story Room access was ${status === "approved" ? "granted" : "revoked"}.`);
+  const confirmed = await waitForMembershipState(connection, channelId, requesterPublicKey, status === "approved");
+  if (!confirmed) {
+    throw new Error(`BUZZ did not confirm that Story Room access was ${status === "approved" ? "granted" : "revoked"} after bounded membership verification.`);
   }
 }
 

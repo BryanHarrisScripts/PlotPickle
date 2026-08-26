@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
+import { localAiReadinessSnapshot } from "./local-ai-readiness";
 import { localGpuSchedulerState } from "./local-gpu-resource-manager";
 import {
   localRuntimeSnapshot,
@@ -14,6 +15,8 @@ import {
 const API_ROOT = "/api/local-ai/runtime";
 const SETTINGS_PATH = `${API_ROOT}/settings`;
 const INSTALL_PLAN_PATH = `${API_ROOT}/install-plan`;
+const READINESS_PATH = `${API_ROOT}/readiness`;
+const STARTUP_READINESS_PATH = `${READINESS_PATH}/startup`;
 const ROLE_LOAD_PREFIX = `${API_ROOT}/model/`;
 
 function isLoopback(value: string | undefined) {
@@ -97,7 +100,12 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
     const roleToLoad = requestedRole(pathname);
-    if (pathname !== API_ROOT && pathname !== SETTINGS_PATH && pathname !== INSTALL_PLAN_PATH && !roleToLoad) {
+    if (pathname !== API_ROOT
+      && pathname !== SETTINGS_PATH
+      && pathname !== INSTALL_PLAN_PATH
+      && pathname !== READINESS_PATH
+      && pathname !== STARTUP_READINESS_PATH
+      && !roleToLoad) {
       next();
       return;
     }
@@ -109,6 +117,16 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
       if (pathname === API_ROOT && request.method === "GET") {
         const snapshot = await localRuntimeSnapshot();
         sendJson(response, 200, { ok: true, ...snapshot, scheduler: localGpuSchedulerState() });
+        return;
+      }
+      if (pathname === READINESS_PATH && request.method === "GET") {
+        const readiness = await localAiReadinessSnapshot({ probeInference: true });
+        sendJson(response, 200, { ok: true, readiness });
+        return;
+      }
+      if (pathname === STARTUP_READINESS_PATH && request.method === "POST") {
+        const readiness = await localAiReadinessSnapshot({ attemptManagedStart: true, probeInference: true });
+        sendJson(response, 200, { ok: true, readiness });
         return;
       }
       if (pathname === SETTINGS_PATH && request.method === "POST") {

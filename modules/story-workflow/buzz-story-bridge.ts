@@ -9,6 +9,7 @@ import {
 } from "../../core/story-workflow/buzz-story-bridge-core.mjs";
 import type { StoryWorkItem } from "../../core/story-workflow/story-workflow-core.mjs";
 import {
+  AGENT_PROFILES,
   agentExecutionContexts,
   agentProfileById,
   officialAgentPublicIdentity,
@@ -43,6 +44,36 @@ function localBuzzAgentIdentities() {
     && __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__
     ? __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__
     : {};
+}
+
+function resolvedPublicBuzzSigner(profileId: string) {
+  const identity = officialAgentPublicIdentity(profileId);
+  return resolveBuzzAgentIdentityBinding({
+    profileId,
+    configuredPubkey: identity?.pubkey ?? "",
+    localBindings: localBuzzAgentIdentities(),
+  });
+}
+
+export function storyBridgeAgentSignerDiagnostics() {
+  const requiredProfiles = AGENT_PROFILES.filter((profile) => agentExecutionContexts(profile.id).includes("public-buzz"));
+  const bindings = requiredProfiles.map((profile) => {
+    try {
+      const pubkey = resolvedPublicBuzzSigner(profile.id);
+      return { profileId: profile.id, displayName: profile.displayName, ready: Boolean(pubkey) };
+    } catch {
+      return { profileId: profile.id, displayName: profile.displayName, ready: false };
+    }
+  });
+  const boundCount = bindings.filter((binding) => binding.ready).length;
+  const tamsinReady = bindings.some((binding) => binding.profileId === "tamsin-hearthquill" && binding.ready);
+  return {
+    ready: requiredProfiles.length > 0 && boundCount === requiredProfiles.length,
+    requiredCount: requiredProfiles.length,
+    boundCount,
+    tamsinReady,
+    bindings,
+  };
 }
 
 function contextItems(packet: ContextPacket) {
@@ -89,12 +120,7 @@ export function prepareStoryBridgeRequest(input: {
   }
 
   const roomId = bridgeRoomFor(input.workItem);
-  const identity = officialAgentPublicIdentity(profile.id);
-  const expectedAgentPubkey = resolveBuzzAgentIdentityBinding({
-    profileId: profile.id,
-    configuredPubkey: identity?.pubkey ?? "",
-    localBindings: localBuzzAgentIdentities(),
-  });
+  const expectedAgentPubkey = resolvedPublicBuzzSigner(profile.id);
   return createStoryBridgeRequest({
     projectId: input.project.id,
     projectRoomPrefix: buzzProjectSlug(input.project),

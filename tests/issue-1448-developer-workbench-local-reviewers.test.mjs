@@ -3,9 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
-const [project, workbench, inventory, secondOpinion, repomix, workbenchCli, buildScript, workflow] = await Promise.all([
+const [project, workbench, workbenchPath, inventory, secondOpinion, repomix, workbenchCli, buildScript, workflow] = await Promise.all([
   read("Utilities/DeveloperWorkbench/DeveloperWorkbench.csproj"),
   read("Utilities/DeveloperWorkbench/WorkbenchV2.cs"),
+  read("Utilities/DeveloperWorkbench/WorkbenchPath.cs"),
   read("Utilities/DeveloperWorkbench/local-reviewer-inventory.mjs"),
   read("Utilities/DeveloperWorkbench/second-opinion-review.mjs"),
   read("Utilities/DeveloperWorkbench/workbench-repomix-evidence.mjs"),
@@ -104,9 +105,15 @@ test("#1448 published Windows package carries the upgraded reviewer runtime help
   assert.match(buildScript, /workbench-runtime-manifest\.json/);
 });
 
-test("#1448 Workbench resolves packaged reviewer helpers before repository copies", () => {
-  assert.match(workbench, /AppContext\.BaseDirectory/);
-  assert.match(workbench, /ResolveWorkbenchHelper/);
+test("#1448 Workbench falls back to packaged reviewer helpers without changing the selected repository", () => {
+  assert.match(workbenchPath, /global using Path = PlotPickle\.DeveloperWorkbench\.WorkbenchPath/);
+  assert.match(workbenchPath, /AppContext\.BaseDirectory/);
+  assert.match(workbenchPath, /PackagedReviewerHelpers/);
+  assert.match(workbenchPath, /local-reviewer-inventory\.mjs/);
+  assert.match(workbenchPath, /second-opinion-review\.mjs/);
+  assert.match(workbenchPath, /workbench-repomix-evidence\.mjs/);
+  assert.match(workbenchPath, /File\.Exists\(regular\)/);
+  assert.match(workbenchPath, /File\.Exists\(packaged\) \? packaged : regular/);
 });
 
 test("#1448 Windows Workbench CI executes the new focused regression", () => {

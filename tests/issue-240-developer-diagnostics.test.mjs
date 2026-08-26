@@ -48,6 +48,14 @@ test("changed-file planning is deterministic, explainable and never broadens to 
   assert.equal(plan.requiresHumanApprovalForFullSuite, true);
 });
 
+test("nested domain-owned files map to their registered diagnostic area", () => {
+  const plan = planChangedTests(["lib/buzz/story-room-directory.ts"], registry, { source: "test" });
+  assert.equal(plan.safeFallback, null);
+  assert.ok(plan.areas.some((area) => area.id === "buzz"));
+  assert.ok(plan.suites.includes("tests/issue-210-managed-buzz-runtime.test.mjs"));
+  assert.doesNotMatch(plan.commandText, /npm test/);
+});
+
 test("unmapped or unavailable changes stop instead of silently running everything", () => {
   const noFiles = planChangedTests([], registry, { source: "unavailable" });
   assert.match(noFiles.safeFallback, /full suite was not selected automatically/i);

@@ -15,7 +15,7 @@ const MAX_BODY = 64 * 1024;
 const MAX_COMMAND_OUTPUT = 2 * 1024 * 1024;
 const VALID_ROLES = new Set(["owner", "admin", "member", "guest", "bot"]);
 
-type BuzzConnection = {
+export type BuzzConnection = {
   version: 1;
   mode: "existing-relay" | "managed";
   relayUrl: string;
@@ -139,7 +139,7 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
   });
 }
 
-async function runBuzz(connection: BuzzConnection, args: string[]) {
+export async function runStoryRoomBuzz(connection: BuzzConnection, args: string[]) {
   if (!connection.privateKey) throw new Error("Authorize PlotPickle with your BUZZ identity before managing Story Room access.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
@@ -150,24 +150,24 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
   return JSON.parse(output) as unknown;
 }
 
-function array(value: unknown): unknown[] {
+export function storyRoomBuzzArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== "object") return [];
   const item = value as Record<string, unknown>;
-  for (const key of ["channels", "items", "data", "results", "users", "presence"]) if (Array.isArray(item[key])) return item[key] as unknown[];
+  for (const key of ["channels", "items", "data", "results", "users", "presence", "dms", "messages"]) if (Array.isArray(item[key])) return item[key] as unknown[];
   return [];
 }
-function firstString(item: Record<string, unknown>, keys: string[]) {
+export function storyRoomBuzzFirstString(item: Record<string, unknown>, keys: string[]) {
   for (const key of keys) { const value = item[key]; if (typeof value === "string" && value.trim()) return value.trim(); }
   return "";
 }
 function channelsFrom(value: unknown): BuzzChannel[] {
-  return array(value).flatMap((entry) => {
+  return storyRoomBuzzArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
-    const id = firstString(item, ["channel_id", "id", "channelId", "uuid"]);
-    const name = firstString(item, ["name", "title", "slug"]);
-    return id && name ? [{ id, name, description: firstString(item, ["description", "purpose", "topic"]) }] : [];
+    const id = storyRoomBuzzFirstString(item, ["channel_id", "id", "channelId", "uuid"]);
+    const name = storyRoomBuzzFirstString(item, ["name", "title", "slug"]);
+    return id && name ? [{ id, name, description: storyRoomBuzzFirstString(item, ["description", "purpose", "topic"]) }] : [];
   });
 }
 export function validChannelId(value: unknown) {
@@ -180,7 +180,7 @@ function validPubkey(value: unknown) {
   if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Choose an existing BUZZ member with a valid public key.");
   return pubkey;
 }
-async function verifiedConnection() {
+export async function verifiedStoryRoomBuzzConnection() {
   const connection = await readConnection();
   if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) throw new Error("Verify BUZZ before managing Story Room access.");
   return connection;
@@ -193,7 +193,7 @@ async function mappedStoryRoomChannelIds() {
 }
 async function storyRoom(connection: BuzzConnection, channelId: string) {
   const [channels, mappedChannelIds] = await Promise.all([
-    runBuzz(connection, ["--format", "compact", "channels", "list"]).then(channelsFrom),
+    runStoryRoomBuzz(connection, ["--format", "compact", "channels", "list"]).then(channelsFrom),
     mappedStoryRoomChannelIds(),
   ]);
   const channel = channels.find((item) => item.id === channelId);
@@ -204,48 +204,48 @@ async function storyRoom(connection: BuzzConnection, channelId: string) {
   return channel;
 }
 async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Promise<BuzzMember[]> {
-  const pubkeys = buzzChannelMemberPubkeys(await runBuzz(connection, ["channels", "members", "--channel", channel.id]));
+  const pubkeys = buzzChannelMemberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channel.id]));
   if (!pubkeys.length) return [];
   const userArgs = ["--format", "compact", "users", "get"];
   for (const pubkey of pubkeys) userArgs.push("--pubkey", pubkey);
   const [profilesRaw, presenceRaw] = await Promise.all([
-    runBuzz(connection, userArgs),
-    runBuzz(connection, ["users", "presence", "--pubkeys", pubkeys.join(",")]).catch(() => []),
+    runStoryRoomBuzz(connection, userArgs),
+    runStoryRoomBuzz(connection, ["users", "presence", "--pubkeys", pubkeys.join(",")]).catch(() => []),
   ]);
-  const profiles = array(profilesRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
-  const presence = array(presenceRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+  const profiles = storyRoomBuzzArray(profilesRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+  const presence = storyRoomBuzzArray(presenceRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
   return pubkeys.map((pubkey) => {
-    const profile = profiles.find((item) => firstString(item, ["pubkey"]) === pubkey);
-    const state = presence.find((item) => firstString(item, ["pubkey"]) === pubkey);
+    const profile = profiles.find((item) => storyRoomBuzzFirstString(item, ["pubkey"]) === pubkey);
+    const state = presence.find((item) => storyRoomBuzzFirstString(item, ["pubkey"]) === pubkey);
     const rawUpdated = state?.updated_at ?? state?.updatedAt;
     return {
       pubkey,
-      displayName: profile ? firstString(profile, ["display_name", "name"]) || `${pubkey.slice(0, 8)}…` : `${pubkey.slice(0, 8)}…`,
-      presence: state ? firstString(state, ["status"]) || "offline" : "offline",
+      displayName: profile ? storyRoomBuzzFirstString(profile, ["display_name", "name"]) || `${pubkey.slice(0, 8)}…` : `${pubkey.slice(0, 8)}…`,
+      presence: state ? storyRoomBuzzFirstString(state, ["status"]) || "offline" : "offline",
       updatedAt: typeof rawUpdated === "number" ? new Date(rawUpdated * 1000).toISOString() : text(rawUpdated),
     };
   });
 }
 
 async function status(channelValue: unknown) {
-  const connection = await verifiedConnection();
+  const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(channelValue));
   return { ok: true, channel, members: await loadMembers(connection, channel), message: "Story Room membership is current. Members see the same private channel in PlotPickle and Buzz Desktop." };
 }
 async function addMember(body: Record<string, unknown>) {
-  const connection = await verifiedConnection();
+  const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(body.channel));
   const pubkey = validPubkey(body.pubkey);
   const role = text(body.role).toLowerCase() || "member";
   if (!VALID_ROLES.has(role)) throw new Error("Choose a valid Story Room role.");
-  await runBuzz(connection, ["channels", "add-member", "--channel", channel.id, "--pubkey", pubkey, "--role", role]);
+  await runStoryRoomBuzz(connection, ["channels", "add-member", "--channel", channel.id, "--pubkey", pubkey, "--role", role]);
   return status(channel.id);
 }
 async function removeMember(body: Record<string, unknown>) {
-  const connection = await verifiedConnection();
+  const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(body.channel));
   const pubkey = validPubkey(body.pubkey);
-  await runBuzz(connection, ["channels", "remove-member", "--channel", channel.id, "--pubkey", pubkey]);
+  await runStoryRoomBuzz(connection, ["channels", "remove-member", "--channel", channel.id, "--pubkey", pubkey]);
   return status(channel.id);
 }
 

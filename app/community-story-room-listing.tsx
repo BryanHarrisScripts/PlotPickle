@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
 import { humanBuzzFingerprint } from "../lib/buzz/buzz-story-room";
+import type { StoryRoomDirectoryAnnouncement } from "../lib/buzz/story-room-directory";
 import type { BuzzStoryRoomAccessMode, BuzzStoryRoomListing } from "../lib/buzz/story-room-listing";
 import styles from "./community-story-room-listing.module.css";
 
@@ -47,6 +48,50 @@ async function request(path: string, init?: RequestInit) {
   return body;
 }
 
+function directoryAnnouncement(payload: ListingPayload): StoryRoomDirectoryAnnouncement | null {
+  const listing = payload.listing;
+  if (!listing) return null;
+  if (listing.accessMode === "closed") {
+    return {
+      version: 1,
+      type: "closed",
+      listingId: listing.listingId,
+      ownerPublicKey: listing.ownerPublicKey,
+      updatedAt: listing.updatedAt,
+    };
+  }
+  const preview = payload.publicPreview;
+  if (!preview || preview.accessMode !== "listed") return null;
+  return {
+    version: 1,
+    type: "listing",
+    listingId: preview.listingId,
+    title: preview.title,
+    description: preview.description,
+    genre: preview.genre,
+    ownerDisplayName: preview.ownerDisplayName,
+    ownerPublicKey: preview.ownerPublicKey,
+    hostingCommunityName: preview.hostingCommunityName,
+    accessMode: "listed",
+    requestsOpen: preview.requestsOpen,
+    updatedAt: preview.updatedAt,
+  };
+}
+
+async function publishDirectory(payload: ListingPayload) {
+  const announcement = directoryAnnouncement(payload);
+  if (!announcement) throw new Error("PlotPickle could not prepare the signed directory announcement for this listing state.");
+  const response = await authenticatedProfileFetch("/api/local-buzz/story-room-directory", {
+    method: "POST",
+    cache: "no-store",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "publish", announcement }),
+  });
+  const body = await response.json() as { message?: string };
+  if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
+  return body.message || "Story Rooms Directory updated.";
+}
+
 export default function CommunityStoryRoomListing({ channel }: Props) {
   const [payload, setPayload] = useState<ListingPayload | null>(null);
   const [accessMode, setAccessMode] = useState<BuzzStoryRoomAccessMode>("closed");
@@ -56,6 +101,7 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
   const [requestsOpen, setRequestsOpen] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [directorySyncWarning, setDirectorySyncWarning] = useState("");
 
   const fingerprint = useMemo(() => humanBuzzFingerprint(payload?.defaults.ownerPublicKey || ""), [payload?.defaults.ownerPublicKey]);
 
@@ -78,6 +124,7 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
   useEffect(() => {
     setPayload(null);
     setNotice("");
+    setDirectorySyncWarning("");
     void refresh(false).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room listing could not be loaded."));
   }, [channel.id]);
 
@@ -97,7 +144,15 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
         }),
       });
       apply(next);
-      setNotice(next.message);
+      try {
+        const publicationMessage = await publishDirectory(next);
+        setDirectorySyncWarning("");
+        setNotice(`${next.message} ${publicationMessage}`);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "The signed directory update failed.";
+        setDirectorySyncWarning("Directory not synchronized: the local owner setting was saved, but BUZZ did not confirm the public directory update. A previous public listing may still be visible. Retry Save & withdraw/publish until synchronization succeeds.");
+        setNotice(detail);
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Story Room listing could not be saved.");
     } finally {
@@ -133,9 +188,11 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
     </div>
 
     <div className={styles.actions}>
-      <button type="button" disabled={!payload || busy || !title.trim()} onClick={() => void save()}>{busy ? "Saving…" : accessMode === "closed" ? "Save Closed listing" : "Save owner-approved listing"}</button>
+      <button type="button" disabled={!payload || busy || !title.trim()} onClick={() => void save()}>{busy ? "Saving…" : accessMode === "closed" ? "Save & withdraw listing" : "Save & publish listing"}</button>
       <p>Open is capability-gated. PlotPickle will not simulate automatic admission or silently fall back while claiming the room is Open.</p>
     </div>
+
+    {directorySyncWarning ? <p className={styles.notice} role="alert">{directorySyncWarning}</p> : null}
 
     <div className={styles.preview}>
       <span>Exactly what other people can see</span>

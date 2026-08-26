@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
+import { CommunityStoryRoomOwnerRequests } from "../modules/community/story-room-directory";
 import CommunityStoryRoomListing from "./community-story-room-listing";
 import styles from "./community-story-room-access.module.css";
 
@@ -87,6 +88,7 @@ export default function CommunityStoryRoomAccess({ channel, greatHallMembers, de
 
   return <>
     <CommunityStoryRoomListing channel={channel} />
+    <CommunityStoryRoomOwnerRequests channel={channel} />
     <section className={styles.card} aria-label="Story Room access">
       <header>
         <div>
@@ -111,7 +113,7 @@ export default function CommunityStoryRoomAccess({ channel, greatHallMembers, de
         {desktopUrl ? <a href={desktopUrl}>Open the community in Buzz Desktop</a> : null}
       </div>
 
-      <p className={styles.note}>BUZZ enforces the actual channel permissions. If your connected identity is not an owner/admin for this room, BUZZ will refuse the membership change rather than PlotPickle pretending it succeeded.</p>
+      <p className={styles.note}>Directory approval always grants the normal member role. Elevated admin/bot access remains a separate explicit owner action here. BUZZ enforces the actual channel permissions and PlotPickle never claims success before BUZZ confirms the membership state.</p>
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
     </section>
   </>;

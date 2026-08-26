@@ -4,12 +4,24 @@ function unique(values) {
   return [...new Set(values)];
 }
 
+function matchesOwnedDomain(file, areaId) {
+  const normalized = normalizeRepositoryPath(file);
+  const [root, domain] = normalized.split("/");
+  if ((root === "lib" || root === "modules") && domain === areaId) return true;
+  if (areaId === "buzz") {
+    return normalized.startsWith("app/community-")
+      || normalized.startsWith("build/buzz-")
+      || normalized.startsWith("tests/issue-1444-");
+  }
+  return false;
+}
+
 export function planChangedTests(files, registry, options = {}) {
   const normalizedFiles = unique(files.map(normalizeRepositoryPath).filter(Boolean)).sort();
   const matchedAreas = [];
 
   for (const area of registry.areas) {
-    const triggers = normalizedFiles.filter((file) => matchesAnyPattern(file, area.patterns));
+    const triggers = normalizedFiles.filter((file) => matchesAnyPattern(file, area.patterns) || matchesOwnedDomain(file, area.id));
     if (!triggers.length) continue;
     matchedAreas.push({
       id: area.id,

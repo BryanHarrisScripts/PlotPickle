@@ -17,6 +17,7 @@ import {
   buzzStoryRoomDisplayName,
 } from "../lib/buzz/story-room-identity";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
+import CommunityStoryRoomDirectory from "../modules/community/story-room-directory";
 import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
@@ -82,7 +83,7 @@ type StoryRoomRecord = {
   created?: boolean;
   mappedFromLegacy?: boolean;
 };
-type UtilityView = "social" | "story-rooms" | "studios" | "agents";
+type UtilityView = "social" | "directory" | "story-rooms" | "studios" | "agents";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await authenticatedProfileFetch(`${BUZZ_API}${path}`, {
@@ -330,6 +331,13 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             </div>
           </section>
 
+          <section aria-labelledby="community-discovery-heading">
+            <div className={navigationStyles.railHeader}><b id="community-discovery-heading">Discover</b></div>
+            <div className={navigationStyles.subDestinationList}>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "directory" ? "page" : undefined} onClick={() => { setUtilityView("directory"); setSelectedTarget(null); }}><span>Story Rooms Directory</span><small>REQUEST ACCESS</small></button>
+            </div>
+          </section>
+
           <section aria-labelledby="community-dms-heading">
             <div className={navigationStyles.railHeader}><b id="community-dms-heading">Direct Messages</b></div>
             <div className={navigationStyles.subDestinationList}>
@@ -351,6 +359,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
       <div className={navigationStyles.communityContent}>
         {!connected ? <section className={styles.setupCard}><div><span>Community requires BUZZ</span><h2>Connect your BUZZ identity from Profile.</h2><p>PlotPickle remains usable without BUZZ. Community conversation turns on when the active Human has a verified BUZZ identity.</p></div><button type="button" onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}>Open Profile</button></section>
         : !operational ? <section className={styles.setupCard}><div><span>Prepare {COMMUNITY_BBS_NAME}</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking Community"}</h2><p>PlotPickle will prepare the missing BUZZ rooms once. The normal user view will still show only the useful Community rooms contributed by the active Community plugin.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Prepare Community"}</button></section>
+        : utilityView === "directory" ? <CommunityStoryRoomDirectory />
         : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
         : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster /></main>
         : utilityView === "story-rooms" ? <main className={styles.stack}>

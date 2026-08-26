@@ -75,8 +75,7 @@ test("#1448 Repomix evidence is targeted and credential-safe", () => {
 });
 
 test("#1448 helper file IO stays inside host-selected repository and Workbench temp roots", () => {
-  assert.match(workbenchCli, /os\.tmpdir\(\)/);
-  assert.match(workbenchCli, /PlotPickle["', ]*,[ "']DeveloperWorkbench/);
+  assert.match(workbenchCli, /path\.resolve\(os\.tmpdir\(\), "PlotPickle", "DeveloperWorkbench"\)/);
   assert.match(workbenchCli, /path\.relative\(root, candidate\)/);
   assert.match(workbenchCli, /requiredWorkbenchTempPath/);
   assert.match(workbenchCli, /requireCurrentRepository/);

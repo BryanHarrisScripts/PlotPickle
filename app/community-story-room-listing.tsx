@@ -101,6 +101,7 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
   const [requestsOpen, setRequestsOpen] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [directorySyncWarning, setDirectorySyncWarning] = useState("");
 
   const fingerprint = useMemo(() => humanBuzzFingerprint(payload?.defaults.ownerPublicKey || ""), [payload?.defaults.ownerPublicKey]);
 
@@ -123,6 +124,7 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
   useEffect(() => {
     setPayload(null);
     setNotice("");
+    setDirectorySyncWarning("");
     void refresh(false).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room listing could not be loaded."));
   }, [channel.id]);
 
@@ -142,10 +144,17 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
         }),
       });
       apply(next);
-      const publicationMessage = await publishDirectory(next);
-      setNotice(`${next.message} ${publicationMessage}`);
+      try {
+        const publicationMessage = await publishDirectory(next);
+        setDirectorySyncWarning("");
+        setNotice(`${next.message} ${publicationMessage}`);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "The signed directory update failed.";
+        setDirectorySyncWarning("Directory not synchronized: the local owner setting was saved, but BUZZ did not confirm the public directory update. A previous public listing may still be visible. Retry Save & withdraw/publish until synchronization succeeds.");
+        setNotice(detail);
+      }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Story Room listing could not be saved and published.");
+      setNotice(error instanceof Error ? error.message : "Story Room listing could not be saved.");
     } finally {
       setBusy(false);
     }
@@ -182,6 +191,8 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
       <button type="button" disabled={!payload || busy || !title.trim()} onClick={() => void save()}>{busy ? "Saving…" : accessMode === "closed" ? "Save & withdraw listing" : "Save & publish listing"}</button>
       <p>Open is capability-gated. PlotPickle will not simulate automatic admission or silently fall back while claiming the room is Open.</p>
     </div>
+
+    {directorySyncWarning ? <p className={styles.notice} role="alert">{directorySyncWarning}</p> : null}
 
     <div className={styles.preview}>
       <span>Exactly what other people can see</span>

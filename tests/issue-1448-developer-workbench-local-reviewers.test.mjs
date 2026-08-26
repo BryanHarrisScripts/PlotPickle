@@ -49,6 +49,9 @@ test("#1448 second opinion is bounded, independent and Human-incorporated", () =
   assert.match(secondOpinion, /runManagedPiReadOnly/);
   assert.match(secondOpinion, /read, grep, find, and ls/);
   assert.match(secondOpinion, /Do not expose chain-of-thought/);
+  assert.match(secondOpinion, /safeErrorMessage/);
+  assert.match(secondOpinion, /MAX_ERROR_CHARS = 1_000/);
+  assert.doesNotMatch(secondOpinion, /error\.stack/);
   for (const section of [
     "LIKELY ROOT CAUSE",
     "MISSING EVIDENCE / COMPONENTS",

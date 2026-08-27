@@ -10,7 +10,7 @@ import {
 import {
   contextStrategyForTask,
   selectAdaptiveContextCandidates,
-} from "../../lib/adaptive-context-strategies";
+} from "../../lib/agents/context/adaptive-context-strategies";
 import type { CurriculumRetrieval } from "./curriculum-retrieval";
 
 const SAGE_CONTEXT_BUDGET = 10_500;

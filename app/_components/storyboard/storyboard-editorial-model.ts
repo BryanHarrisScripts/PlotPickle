@@ -1,4 +1,5 @@
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { PPFProject } from "@/core/project/project";
 import { AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID } from "@/data/afterglow-reference-identity";
 import { createAfterglowStoryboardFrames } from "@/data/afterglow-storyboard";
@@ -22,8 +23,13 @@ export function storyboardTargetSourceKey(targetId: string) {
   return `storyboard-target:${targetId}`;
 }
 
+export function storyboardAnchorTargetRef(targetId: string, miniBlockNumber: number) {
+  return `storyboard-anchor:${targetId}:mini-${miniBlockNumber}`;
+}
+
+/** Compatibility name retained while older callers migrate from frame=anchor wording. */
 export function storyboardFrameTargetRef(targetId: string, miniBlockNumber: number) {
-  return `storyboard-frame:${targetId}:mini-${miniBlockNumber}`;
+  return storyboardAnchorTargetRef(targetId, miniBlockNumber);
 }
 
 function observedReferenceSourceKey(sourceRef: string) {
@@ -39,6 +45,29 @@ function hashText(value: string) {
   return (hash >>> 0).toString(36).padStart(7, "0");
 }
 
+function targetBlockNumber(targetId: string) {
+  const match = targetId.match(/^block:block-(\d{2})$/);
+  return match ? Number(match[1]) : 0;
+}
+
+function sourceEvidenceForAnchor(project: PPFProject, targetId: string, miniBlockNumber: number) {
+  const blockNumber = targetBlockNumber(targetId);
+  if (!blockNumber) return [];
+  const screenplay = normalizeProjectSourceEvidence(
+    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
+  ).screenplay;
+  return (screenplay?.passages ?? [])
+    .filter((passage) => passage.blockNumber === blockNumber && passage.miniBlockNumber === miniBlockNumber)
+    .map((passage) => ({
+      id: passage.id,
+      type: passage.type,
+      text: passage.text,
+      sceneId: passage.sceneId,
+      sceneNumber: passage.sceneNumber,
+    }))
+    .sort((left, right) => left.id.localeCompare(right.id));
+}
+
 function artifactTargetsFrame(
   artifact: FoundationsVisualArtifact,
   targetId: string,
@@ -47,16 +76,16 @@ function artifactTargetsFrame(
   const keys = artifact.sourceDecisionKeys ?? [];
   return artifact.workflow === STORYBOARD_REFERENCE_WORKFLOW
     && keys.includes(storyboardTargetSourceKey(targetId))
-    && keys.includes(storyboardFrameTargetRef(targetId, miniBlockNumber));
+    && keys.includes(storyboardAnchorTargetRef(targetId, miniBlockNumber));
 }
 
 function acceptedTargetScopedVisualIds(project: PPFProject, targetId: string, miniBlockNumber: number) {
   const targetKey = storyboardTargetSourceKey(targetId);
-  const frameKey = storyboardFrameTargetRef(targetId, miniBlockNumber);
+  const anchorKey = storyboardAnchorTargetRef(targetId, miniBlockNumber);
   const foundationAccepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
   const worldAccepted = new Set(project.build.world.acceptedVisualArtifactIds);
   const matchesTarget = (keys: readonly string[] | undefined) => (
-    (keys ?? []).includes(frameKey) || (keys ?? []).includes(targetKey)
+    (keys ?? []).includes(anchorKey) || (keys ?? []).includes(targetKey)
   );
 
   return [
@@ -90,9 +119,10 @@ export function storyboardFrameDependencySourceKey(
     state: target?.state ?? "missing",
     storyboardAllowed: target?.storyboardAllowed ?? false,
     provenance: (target?.provenance ?? []).map((item) => `${item.source}:${item.ref}`).sort(),
+    sourceEvidence: sourceEvidenceForAnchor(project, targetId, miniBlockNumber),
     scopedAcceptedVisuals: acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber),
   });
-  return `${STORYBOARD_UPSTREAM_PREFIX}${storyboardFrameTargetRef(targetId, miniBlockNumber)}:${hashText(snapshot)}`;
+  return `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${hashText(snapshot)}`;
 }
 
 export function storyboardArtifactStaleReasons(
@@ -102,13 +132,13 @@ export function storyboardArtifactStaleReasons(
   artifact: FoundationsVisualArtifact | null,
 ) {
   if (!artifact) return [];
-  const prefix = `${STORYBOARD_UPSTREAM_PREFIX}${storyboardFrameTargetRef(targetId, miniBlockNumber)}:`;
+  const prefix = `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:`;
   const recorded = (artifact.sourceDecisionKeys ?? []).find((key) => key.startsWith(prefix));
   if (!recorded) return [];
   const current = storyboardFrameDependencySourceKey(project, targetId, miniBlockNumber);
   return recorded === current
     ? []
-    : [`Upstream story or visual identity evidence changed for ${storyboardFrameTargetRef(targetId, miniBlockNumber)}. Review this kept frame before carrying it forward.`];
+    : [`Upstream story or visual identity evidence changed for ${storyboardAnchorTargetRef(targetId, miniBlockNumber)}. Review this kept visual anchor before carrying it forward.`];
 }
 
 function acceptedArtifactForSource(
@@ -128,8 +158,7 @@ function acceptedArtifactForSource(
 
 export function storyboardReferenceCandidates(project: PPFProject, targetId: string): readonly StoryboardEditorialCandidate[] {
   if (project.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID) return [];
-  const match = targetId.match(/^block:block-(\d{2})$/);
-  const blockNumber = match ? Number(match[1]) : 0;
+  const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];
 
   return createAfterglowStoryboardFrames(blockNumber).map((frame) => {
@@ -171,10 +200,11 @@ export function createStoryboardReferenceArtifact(input: {
     input.targetId,
     input.candidate.miniBlockNumber,
   );
+  const anchorRef = storyboardAnchorTargetRef(input.targetId, input.candidate.miniBlockNumber);
   return {
     id: `storyboard-${input.candidate.id}-${input.project.revision + 1}`,
     assetUrl: input.candidate.assetUrl,
-    prompt: `Adopt the bundled observed Storyboard reference ${input.candidate.sourceRef} for ${storyboardFrameTargetRef(input.targetId, input.candidate.miniBlockNumber)}. This Human Keep decision approves the visual projection only; it does not rewrite story canon.`,
+    prompt: `Adopt the bundled observed Storyboard reference ${input.candidate.sourceRef} for ${anchorRef}. This Human Keep decision approves the current preferred visual projection for the anchor only; it does not rewrite story canon or prohibit later variations.`,
     createdAt: input.occurredAt,
     provider: "bundled-reference",
     model: "",
@@ -182,7 +212,7 @@ export function createStoryboardReferenceArtifact(input: {
     narrativeIntention: input.candidate.caption,
     sourceDecisionKeys: [
       storyboardTargetSourceKey(input.targetId),
-      storyboardFrameTargetRef(input.targetId, input.candidate.miniBlockNumber),
+      anchorRef,
       storyboardFrameDependencySourceKey(input.project, input.targetId, input.candidate.miniBlockNumber),
       observedReferenceSourceKey(input.candidate.sourceRef),
       `ppf-revision:${input.project.revision}`,

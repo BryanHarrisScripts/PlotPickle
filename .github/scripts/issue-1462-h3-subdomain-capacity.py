@@ -19,6 +19,7 @@ def replace(path: str, old: str, new: str, *, required: bool = True) -> None:
     write(path, content.replace(old, new))
 
 
+(ROOT / "build/ai/h3").mkdir(parents=True, exist_ok=True)
 subprocess.run([
     "git", "mv",
     "build/ai/comfyui-h3-native-gateway.ts",

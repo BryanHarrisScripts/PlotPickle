@@ -59,7 +59,7 @@ test("#1420 readiness aggregates stale text Blocks without converting them into 
 
   assert.match(readiness, /CanonicalReadinessState = BuildStoryEvidenceState \| "current" \| "needs-review"/);
   assert.match(readiness, /backgroundText\.reviewState === "needs-review"/);
-  assert.match(readiness, /textNeedsReview \?\s*"needs-review"/);
+  assert.match(readiness, /textNeedsReview\s*\?\s*"needs-review"/);
   assert.match(readiness, /dependency-backed PPF change/);
   assert.match(readiness, /observed source screenplay text remains unchanged/);
   assert.doesNotMatch(readiness, /movie complete|completion percentage|rewrite screenplay/i);

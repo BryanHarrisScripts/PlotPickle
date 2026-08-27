@@ -6,7 +6,7 @@ import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirr
 import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
-import { registerLtxLocalVideoGateway } from "./comfyui-ltx-local-gateway";
+import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
 import { registerSdxlLocalImageGateway } from "./comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./comfyui-sdxl-starter-gateway";

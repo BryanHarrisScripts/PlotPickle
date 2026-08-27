@@ -7,13 +7,13 @@ import {
   probeLtxVideo,
   readLtxStore,
   type LtxJob,
-} from "./comfyui-ltx-local-provider";
+} from "../comfyui-ltx-local-provider";
 import {
   holdLocalGpuMediaLease,
   releaseLocalGpuMediaLease,
-} from "./local-gpu-resource-manager";
-import { readMediaRoutingStore } from "./media-routing-store";
-import type { VideoGenerationInput } from "./media-provider-common";
+} from "../local-gpu-resource-manager";
+import { readMediaRoutingStore } from "../media-routing-store";
+import type { VideoGenerationInput } from "../media-provider-common";
 
 const PROFILE_PATH = "/api/local-ai/ltx-video";
 const MANIFEST_PATH = `${PROFILE_PATH}/manifest`;

@@ -251,7 +251,7 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
 test("issue #300 adds a native H3 provider without cloud credentials or silent installation", async () => {
   const [provider, gateway, localGateway] = await Promise.all([
     source("build/comfyui-h3-native-provider.ts"),
-    source("build/comfyui-h3-native-gateway.ts"),
+    source("build/ai/comfyui-h3-native-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
   for (const contract of [

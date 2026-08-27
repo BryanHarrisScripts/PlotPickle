@@ -58,7 +58,7 @@ test("focused Windows ComfyUI verification runs API readiness before live routes
 test("native H3 presents current live readiness separately from historical output", async () => {
   const [provider, gateway, panel] = await Promise.all([
     read("build/comfyui-h3-native-provider.ts"),
-    read("build/comfyui-h3-native-gateway.ts"),
+    read("build/ai/comfyui-h3-native-gateway.ts"),
     read("app/h3-native-panel.tsx"),
   ]);
   assert.match(provider, /\/system_stats/);

@@ -58,7 +58,7 @@ test("focused verifier matches PlotPickle's existing ComfyUI backend contracts",
     source("scripts/verify-comfyui-live.mjs"),
     source("build/media-routing-gateway.ts"),
     source("build/comfyui-media-provider.ts"),
-    source("build/comfyui-h3-native-gateway.ts"),
+    source("build/ai/comfyui-h3-native-gateway.ts"),
   ]);
 
   for (const endpoint of [

@@ -228,3 +228,30 @@ Behavior boundary:
 - The starter still downloads through the reviewed PowerShell installer with `shell: false`, accepts no caller-supplied URL/path/command, and preserves partial-file size/hash verification before activation.
 - No compatibility shim remains at either retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
+
+## #1462 — Native H3 gateway slice
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/comfyui-h3-native-gateway.ts` → `build/ai/comfyui-h3-native-gateway.ts`
+- `build/comfyui-h3-native-provider.ts` intentionally remains at the root until AI subdomain capacity is created; moving both now would exceed the ratified 16-direct-source ceiling.
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts` imports the canonical AI-owned H3 gateway without changing registration order.
+- the moved gateway reaches the still-root-owned native H3 provider through one explicit parent import.
+
+Source-contract consumers updated:
+- `tests/comfyui-live-verification.test.mjs`
+- `tests/issue-258-creative-compute-paths.test.mjs`
+- `tests/issue-973-comfyui-api-readiness.test.mjs`
+- `tests/issue-1462-h3-native-gateway-move.test.mjs`
+
+Behavior boundary:
+- Native H3 remains loopback/same-origin only and keeps the existing 4 MB request bound.
+- ComfyUI remains fixed to `http://127.0.0.1:8188`; activation still requires the reviewed local readiness prerequisites.
+- H3 setup still installs no weights or custom nodes and executes no downloaded code.
+- `/api/local-ai/generate/video` and native H3 job polling behavior remain unchanged.
+- No compatibility shim remains at the retired gateway root path.
+- This move brings `build/ai` to, but not beyond, the ratified direct-source ceiling; the provider requires a later bounded AI subdomain-capacity move.
+- The larger `phase1-build-ai` batch intentionally remains incomplete.

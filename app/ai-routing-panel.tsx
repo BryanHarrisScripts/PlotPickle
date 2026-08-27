@@ -6,7 +6,7 @@ import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./ai-routing-panel.module.css";
 
 type Capability = AiSourceCapability;
-type ProviderTarget = "ollama" | "openai" | "minimax" | "comfyui";
+type ProviderTarget = "ollama" | "openai" | "gemini" | "minimax" | "comfyui";
 type Locality = "local" | "cloud";
 type OptionState = {
   configured: boolean;
@@ -21,7 +21,7 @@ type OptionState = {
 
 type RoutingStatus = {
   choice: {
-    text: "ollama" | "openai" | "minimax" | "off";
+    text: "ollama" | "openai" | "gemini" | "minimax" | "off";
     image: "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
     video: "comfyui-native" | "minimax" | "openai" | "off";
   };
@@ -40,6 +40,7 @@ const API = "/api/ai-routing";
 const PROVIDER_TARGET_LABELS: Record<ProviderTarget, string> = {
   ollama: "Ollama",
   openai: "OpenAI",
+  gemini: "Google Gemini",
   minimax: "MiniMax",
   comfyui: "ComfyUI",
 };
@@ -94,6 +95,7 @@ function canonicalTarget(value: string): ProviderTarget | null {
   const target = value.trim().toLowerCase();
   if (target.includes("ollama")) return "ollama";
   if (target.includes("openai")) return "openai";
+  if (target.includes("gemini")) return "gemini";
   if (target.includes("minimax")) return "minimax";
   if (target.includes("comfy")) return "comfyui";
   return null;
@@ -268,7 +270,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
   const cloudActive = activeOptions.filter((option) => option.locality === "cloud").length;
   const sourceMode = localActive && cloudActive ? "HYBRID" : localActive ? "LOCAL" : cloudActive ? "CLOUD" : "NO AI / MANUAL";
   const filteredTitle = capabilityFilter ? CAPABILITY_NAMES[capabilityFilter] : "Writing, Images & Video";
-  const filteredLocation = locality === "local" ? "Local Compute" : locality === "cloud" ? "Cloud Compute" : "AI Routing";
+  const filteredLocation = locality === "local" ? "Local Compute" : locality === "cloud" ? "Remote Compute" : "AI Routing";
 
   return (
     <section className={styles.panel} aria-labelledby="ai-routing-title" data-routing-locality={locality || "all"} data-routing-capability={capabilityFilter || "all"}>
@@ -277,7 +279,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
           <p>Settings · {filteredLocation}</p>
           <h1 id="ai-routing-title">{locality ? `${filteredTitle} setup` : "Choose where writing, images and video are created."}</h1>
           <span>{locality
-            ? `Only ${locality === "local" ? "on-device" : "online"} ${capabilityFilter ? CAPABILITY_NAMES[capabilityFilter].toLowerCase() : "AI"} routes are shown here. A route becomes selectable only after its real setup and test are ready.`
+            ? `Only ${locality === "local" ? "on-device" : "remote/cloud"} ${capabilityFilter ? CAPABILITY_NAMES[capabilityFilter].toLowerCase() : "AI"} routes are shown here. A route becomes selectable only after its real setup and test are ready.`
             : "Each job has one active choice. Select the route you want; Off and Manual Import are explicit safe choices rather than hidden switch behaviour."}</span>
         </div>
         <div className={styles.presetActions}>
@@ -308,11 +310,11 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
                 <h3>{label.title}</h3>
                 <dl>
                   <div><dt>Model / workflow</dt><dd>{option.model || (selected === "off" ? "Off" : selected === "manual" ? "Manual Import" : "Not selected")}</dd></div>
-                  <div><dt>Location</dt><dd>{option.locality === "cloud" ? "Cloud" : option.locality === "local" ? "This computer" : option.locality}</dd></div>
+                  <div><dt>Location</dt><dd>{option.locality === "cloud" ? "Remote / cloud" : option.locality === "local" ? "This computer" : option.locality}</dd></div>
                   <div><dt>Last successful test</dt><dd>{formatDate(option.verifiedAt)}</dd></div>
                   <div><dt>Cost</dt><dd>{option.cost}</dd></div>
                 </dl>
-                {locality && option.locality !== locality ? <p>The active route currently belongs to {option.locality === "cloud" ? "Cloud Compute" : "Local Compute"}. Choose a ready option below to switch this capability.</p> : null}
+                {locality && option.locality !== locality ? <p>The active route currently belongs to {option.locality === "cloud" ? "Remote Compute" : "Local Compute"}. Choose a ready option below to switch this capability.</p> : null}
                 {!option.ready && selected !== "off" && selected !== "manual" ? <p>{option.error || "This active route still needs setup or a successful test."}</p> : null}
                 {setupButtons(selected, option, "Open")}
               </article>
@@ -323,8 +325,8 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
 
       {locality !== "local" ? (
         <section className={styles.consent} aria-labelledby="cloud-consent-title">
-          <div><h2 id="cloud-consent-title">Cloud-provider consent</h2><p>These confirmations matter only when you choose a cloud route. Choosing a provider does not itself run a paid generation.</p></div>
-          <label><input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.target.checked)} /><span><strong>I understand cloud API requests can incur charges.</strong><small>PlotPickle uses only the account and protected connection you configured.</small></span></label>
+          <div><h2 id="cloud-consent-title">Remote/cloud provider consent</h2><p>These confirmations matter only when you choose a remote provider route. Choosing a provider does not itself run a paid generation.</p></div>
+          <label><input type="checkbox" checked={paidAcknowledged} onChange={(event) => setPaidAcknowledged(event.target.checked)} /><span><strong>I understand remote provider API requests can incur charges.</strong><small>PlotPickle uses only the account and protected connection you configured.</small></span></label>
           {!capabilityFilter || capabilityFilter === "video" ? <label><input type="checkbox" checked={dataSharingAcknowledged} onChange={(event) => setDataSharingAcknowledged(event.target.checked)} /><span><strong>I understand cloud video sends the prompt and selected reference image.</strong><small>Local media routes keep generation on this computer.</small></span></label> : null}
         </section>
       ) : null}
@@ -336,7 +338,7 @@ export default function AiRoutingPanel({ capability: capabilityFilter, locality,
           return (
             <fieldset className={styles.group} key={capability}>
               <legend>{title}</legend>
-              <p>{description} {locality ? `Choose one ${locality === "local" ? "local" : "cloud"} option below.` : "Choose one option below."}</p>
+              <p>{description} {locality ? `Choose one ${locality === "local" ? "local" : "remote/cloud"} option below.` : "Choose one option below."}</p>
               {options.length ? (
                 <ul className={styles.options}>
                   {options.map(([route, option]) => {

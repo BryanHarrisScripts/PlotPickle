@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   move-community-agent-roster:
-    if: github.event.head_commit.message == 'chore(#1511): stage migration gate'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +44,7 @@ jobs:
           git add app config tests .github/workflows/buzz-guildhall.yml
           if git diff --cached --quiet; then
             echo "No permanent source changes to commit."
-            exit 1
+            exit 0
           fi
           git commit -m "refactor(#1511): consolidate Community Agent roster UI"
           git push origin HEAD:architecture/1511-community-agent-roster

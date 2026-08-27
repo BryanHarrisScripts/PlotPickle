@@ -38,6 +38,7 @@ replace(
 
 for path in [
     "config/credential-boundary.registry.json",
+    "tests/issue-177-graphic-novel-queue.test.mjs",
     "tests/issue-254-graphic-novel-asset-versions.test.mjs",
     "tests/issue-299-credential-boundary-audit.test.mjs",
 ]:
@@ -55,7 +56,7 @@ write(contract_path, contract)
 
 log_path = "docs/architecture/PHASE-1-MOVE-LOG.md"
 log = read(log_path)
-log += '''\n\n## #1462 — Local AI base slice\n\nStatus: **candidate; AI batch remains in progress**\n\nMove boundary:\n- `build/local-ai-gateway-base.ts` → `build/ai/local-ai-gateway-base.ts`\n\nRuntime/import consumers updated:\n- `build/local-ai-gateway.ts` imports the base implementation from the AI domain.\n- the moved implementation reaches root-owned credential storage through an explicit parent import.\n\nCredential / source-contract consumers updated:\n- `config/credential-boundary.registry.json`\n- `tests/issue-254-graphic-novel-asset-versions.test.mjs`\n- `tests/issue-299-credential-boundary-audit.test.mjs`\n- `tests/issue-1462-build-domain-consolidation.test.mjs`\n\nBehavior boundary:\n- Local-only request checks, request-size bounds, provider redaction, image serialization and asset/video persistence remain unchanged.\n- Credential ownership and encrypted storage behavior remain unchanged; only the registry source path follows the implementation move.\n- No compatibility shim remains at `build/local-ai-gateway-base.ts`.\n- `build/ai/` returns to the ratified maximum of 16 direct source files, so subsequent AI moves must create or use bounded AI subdomains rather than weaken the ceiling.\n- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified root AI source is moved and exact-head green.\n'''
+log += '''\n\n## #1462 — Local AI base slice\n\nStatus: **candidate; AI batch remains in progress**\n\nMove boundary:\n- `build/local-ai-gateway-base.ts` → `build/ai/local-ai-gateway-base.ts`\n\nRuntime/import consumers updated:\n- `build/local-ai-gateway.ts` imports the base implementation from the AI domain.\n- the moved implementation reaches root-owned credential storage through an explicit parent import.\n\nCredential / source-contract consumers updated:\n- `config/credential-boundary.registry.json`\n- `tests/issue-177-graphic-novel-queue.test.mjs`\n- `tests/issue-254-graphic-novel-asset-versions.test.mjs`\n- `tests/issue-299-credential-boundary-audit.test.mjs`\n- `tests/issue-1462-build-domain-consolidation.test.mjs`\n\nBehavior boundary:\n- Local-only request checks, request-size bounds, provider redaction, image serialization and asset/video persistence remain unchanged.\n- Credential ownership and encrypted storage behavior remain unchanged; only the registry source path follows the implementation move.\n- No compatibility shim remains at `build/local-ai-gateway-base.ts`.\n- `build/ai/` returns to the ratified maximum of 16 direct source files, so subsequent AI moves must create or use bounded AI subdomains rather than weaken the ceiling.\n- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified root AI source is moved and exact-head green.\n'''
 write(log_path, log)
 
 allowed_old_path_files = {

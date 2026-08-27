@@ -15,18 +15,14 @@ import {
 import styles from "./progressive-story-map.module.css";
 
 const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
-  defined: "Defined",
-  observed: "Observed",
-  emerging: "Emerging",
-  missing: "Missing",
-  locked: "Locked",
+  defined: "DEFINED",
+  observed: "OBSERVED",
+  emerging: "EMERGING",
+  missing: "MISSING",
+  locked: "LOCKED",
 };
 
-type SequenceShiftOption = {
-  readonly id: string;
-  readonly from: string;
-  readonly to: string;
-};
+type SequenceShiftOption = { readonly id: string; readonly from: string; readonly to: string };
 
 const SEQUENCE_SHIFT_OPTIONS: readonly SequenceShiftOption[] = [
   { id: "fear-courage", from: "Fear", to: "Courage" },
@@ -43,24 +39,16 @@ const SEQUENCE_SHIFT_OPTIONS: readonly SequenceShiftOption[] = [
   { id: "old-self-new-self", from: "Old Self", to: "New Self" },
 ];
 
-const STRUCTURAL_MARKERS: Readonly<Record<number, {
-  readonly badge: "A1 TP" | "A2 TP" | "A3 TP" | "FINALE";
-  readonly meaning: string;
-}>> = {
+const STRUCTURAL_MARKERS: Readonly<Record<number, { readonly badge: "A1 TP" | "A2 TP" | "A3 TP" | "FINALE"; readonly meaning: string }>> = {
   3: { badge: "A1 TP", meaning: "Act 1 turning point after Sequence 03 / Card 06" },
   6: { badge: "A2 TP", meaning: "Act 2 turning point after Sequence 06 / Card 12" },
   9: { badge: "A3 TP", meaning: "Act 3 turning point after Sequence 09 / Card 18" },
   12: { badge: "FINALE", meaning: "Finale and story resolution after Sequence 12 / Card 24" },
 };
 
-function sequenceId(number: number) {
-  return `sequence-${String(number).padStart(2, "0")}`;
-}
-
+function sequenceId(number: number) { return `sequence-${String(number).padStart(2, "0")}`; }
 function shiftOption(id: string | undefined, sequenceNumber: number) {
-  return SEQUENCE_SHIFT_OPTIONS.find((option) => option.id === id)
-    ?? SEQUENCE_SHIFT_OPTIONS[sequenceNumber - 1]
-    ?? SEQUENCE_SHIFT_OPTIONS[0];
+  return SEQUENCE_SHIFT_OPTIONS.find((option) => option.id === id) ?? SEQUENCE_SHIFT_OPTIONS[sequenceNumber - 1] ?? SEQUENCE_SHIFT_OPTIONS[0];
 }
 
 export default function ProgressiveStoryMap({ project }: { readonly project: PPFProject }) {
@@ -68,13 +56,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
     const blocks = storyMap.blocks.filter((block) => block.sequenceNumber === number);
-    return {
-      number,
-      id: sequenceId(number),
-      title: blocks[0]?.sequenceTitle ?? `Sequence ${number}`,
-      blocks,
-      marker: STRUCTURAL_MARKERS[number],
-    };
+    return { number, id: sequenceId(number), title: blocks[0]?.sequenceTitle ?? `Sequence ${number}`, blocks, marker: STRUCTURAL_MARKERS[number] };
   }), [storyMap.blocks]);
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [openShiftSequence, setOpenShiftSequence] = useState<number | null>(null);
@@ -82,9 +64,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
   const selected = storyMap.blocks.find((block) => block.number === selectedBlockNumber) ?? storyMap.blocks[0];
   const persistedShifts = project.foundations.lessons[FOUNDATION_SEQUENCE_SHIFT_METADATA_ID]?.answers ?? {};
 
-  useEffect(() => {
-    setLocalShifts({});
-  }, [project.revision]);
+  useEffect(() => { setLocalShifts({}); }, [project.revision]);
 
   const saveSequenceShift = (sequenceNumber: number, shiftId: string) => {
     const id = sequenceId(sequenceNumber);
@@ -120,54 +100,20 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
           const currentShift = shiftOption(localShifts[sequence.id] ?? persistedShifts[sequence.id], sequence.number);
           const shiftOpen = openShiftSequence === sequence.number;
           return (
-            <section
-              className={`${styles.sequenceSlot} ${sequence.marker ? styles.sequenceSlotWithMarker : ""}`.trim()}
-              data-sequence={sequence.number}
-              key={sequence.id}
-            >
+            <section className={`${styles.sequenceSlot} ${sequence.marker ? styles.sequenceSlotWithMarker : ""}`.trim()} data-sequence={sequence.number} key={sequence.id}>
               <div className={styles.sequenceBox}>
                 <header className={styles.sequenceHeader}>
-                  <div className={styles.sequenceIdentity}>
-                    <strong>S{String(sequence.number).padStart(2, "0")}</strong>
-                    <span>{sequence.title}</span>
-                  </div>
-                  <div className={styles.shiftControl} onKeyDown={(event) => {
-                    if (event.key === "Escape") setOpenShiftSequence(null);
-                  }}>
+                  <div className={styles.sequenceIdentity}><strong>S{String(sequence.number).padStart(2, "0")}</strong><span>{sequence.title}</span></div>
+                  <div className={styles.shiftControl} onKeyDown={(event) => { if (event.key === "Escape") setOpenShiftSequence(null); }}>
                     <span className={styles.shiftPrefix}>Shift:</span>
-                    <button
-                      aria-expanded={shiftOpen}
-                      aria-haspopup="listbox"
-                      aria-label={`Shift: ${currentShift.from} to ${currentShift.to}`}
-                      className={styles.shiftButton}
-                      onClick={() => setOpenShiftSequence(shiftOpen ? null : sequence.number)}
-                      onKeyDown={(event) => {
-                        if (event.key === "ArrowDown") {
-                          event.preventDefault();
-                          setOpenShiftSequence(sequence.number);
-                        }
-                      }}
-                      type="button"
-                    >
-                      <span className={styles.shiftFrom}>{currentShift.from}</span>
-                      <span aria-hidden="true" className={styles.shiftArrow}>→</span>
-                      <span className={styles.shiftTo}>{currentShift.to}</span>
-                      <span aria-hidden="true" className={styles.shiftChevron}>▾</span>
+                    <button aria-expanded={shiftOpen} aria-haspopup="listbox" aria-label={`Shift: ${currentShift.from} to ${currentShift.to}`} className={styles.shiftButton} onClick={() => setOpenShiftSequence(shiftOpen ? null : sequence.number)} onKeyDown={(event) => { if (event.key === "ArrowDown") { event.preventDefault(); setOpenShiftSequence(sequence.number); } }} type="button">
+                      <span className={styles.shiftFrom}>{currentShift.from}</span><span aria-hidden="true" className={styles.shiftArrow}>→</span><span className={styles.shiftTo}>{currentShift.to}</span><span aria-hidden="true" className={styles.shiftChevron}>▾</span>
                     </button>
                     {shiftOpen ? (
                       <div aria-label={`Sequence ${sequence.number} shift options`} className={styles.shiftMenu} role="listbox">
                         {SEQUENCE_SHIFT_OPTIONS.map((option) => (
-                          <button
-                            aria-selected={option.id === currentShift.id}
-                            className={styles.shiftOption}
-                            key={option.id}
-                            onClick={() => saveSequenceShift(sequence.number, option.id)}
-                            role="option"
-                            type="button"
-                          >
-                            <span className={styles.shiftFrom}>{option.from}</span>
-                            <span aria-hidden="true" className={styles.shiftArrow}>→</span>
-                            <span className={styles.shiftTo}>{option.to}</span>
+                          <button aria-selected={option.id === currentShift.id} className={styles.shiftOption} key={option.id} onClick={() => saveSequenceShift(sequence.number, option.id)} role="option" type="button">
+                            <span className={styles.shiftFrom}>{option.from}</span><span aria-hidden="true" className={styles.shiftArrow}>→</span><span className={styles.shiftTo}>{option.to}</span>
                           </button>
                         ))}
                       </div>
@@ -176,33 +122,14 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                 </header>
                 <div className={styles.sequenceBlocks}>
                   {sequence.blocks.map((block) => (
-                    <button
-                      aria-pressed={selected.number === block.number}
-                      className={styles.block}
-                      data-state={block.state}
-                      key={block.id}
-                      onClick={() => setSelectedBlockNumber(block.number)}
-                      type="button"
-                    >
+                    <button aria-pressed={selected.number === block.number} className={styles.block} data-state={block.state} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
                       <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                       <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
-                      <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}>
-                        <i aria-hidden="true" className={styles.statusDot} />
-                        {block.state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : null}
-                        <strong>{STATE_LABELS[block.state]}</strong>
-                      </span>
+                      <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
                       {block.observedPassageCount ? <small>{block.observedPassageCount} source passage{block.observedPassageCount === 1 ? "" : "s"}</small> : <small>Not enough information yet</small>}
                       <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
                         {block.miniBlocks.map((mini) => (
-                          <span
-                            aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`}
-                            className={styles.miniStep}
-                            data-state={mini.state}
-                            key={mini.id}
-                            title={`${mini.label}: ${STATE_LABELS[mini.state]}`}
-                          >
-                            {mini.state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : mini.number}
-                          </span>
+                          <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>
                         ))}
                       </span>
                     </button>
@@ -211,9 +138,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
               </div>
               {sequence.marker ? (
                 <div aria-label={sequence.marker.meaning} className={styles.turningPoint} data-marker={sequence.marker.badge} title={sequence.marker.meaning}>
-                  {sequence.marker.badge === "FINALE"
-                    ? <strong className={styles.finale}>FINALE</strong>
-                    : <><strong>{sequence.marker.badge.slice(0, 2)}</strong><span>TP</span></>}
+                  {sequence.marker.badge === "FINALE" ? <strong className={styles.finale}>FINALE</strong> : <><strong>{sequence.marker.badge.slice(0, 2)}</strong><span>TP</span></>}
                 </div>
               ) : null}
             </section>
@@ -222,37 +147,26 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       </div>
 
       <div className={styles.legend} aria-label="24/96 evidence states">
-        {(Object.keys(STATE_LABELS) as BuildStoryEvidenceState[]).map((state) => (
-          <span data-state={state} key={state}>
-            {state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : <i aria-hidden="true" className={styles.legendDot} />}
-            {STATE_LABELS[state]}
-          </span>
-        ))}
+        {(Object.keys(STATE_LABELS) as BuildStoryEvidenceState[]).map((state) => <span data-state={state} key={state}><i aria-hidden="true" className={styles.legendDot} />{STATE_LABELS[state]}</span>)}
       </div>
 
       <article className={styles.inspector} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
-          <span data-state={selected.state}>{STATE_LABELS[selected.state]}</span>
+          <span aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
         </header>
         <p>{selected.sequencePurpose}</p>
         <div className={styles.explainGrid}>
           <section>
             <h4>What PlotPickle knows</h4>
             <p>{selected.mappingNote}</p>
-            {selected.observedExcerpts.length ? (
-              <ul>{selected.observedExcerpts.map((item, index) => <li key={`${selected.id}-evidence-${index}`}>{item}</li>)}</ul>
-            ) : <p className={styles.unresolved}>No direct screenplay passage or accepted structural decision currently defines this Block.</p>}
+            {selected.observedExcerpts.length ? <ul>{selected.observedExcerpts.map((item, index) => <li key={`${selected.id}-evidence-${index}`}>{item}</li>)}</ul> : <p className={styles.unresolved}>No direct screenplay passage or accepted structural decision currently defines this Block.</p>}
           </section>
           <section>
             <h4>Mini-Block resolution</h4>
             <ol className={styles.miniInspector}>
               {selected.miniBlocks.map((mini) => (
-                <li data-state={mini.state} key={mini.id}>
-                  <span>{mini.number}. {mini.label}</span>
-                  <strong>{STATE_LABELS[mini.state]}</strong>
-                  <small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small>
-                </li>
+                <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
               ))}
             </ol>
           </section>

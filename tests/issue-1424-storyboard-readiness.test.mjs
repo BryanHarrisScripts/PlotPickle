@@ -6,8 +6,11 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const workspacePath = "app/_components/storyboard/storyboard-readiness-workspace.tsx";
 
 test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", async () => {
-  const route = await read("app/storyboard/page.tsx");
-  const workspace = await read(workspacePath);
+  const [route, workspace, readiness] = await Promise.all([
+    read("app/storyboard/page.tsx"),
+    read(workspacePath),
+    read("modules/build/visual-readiness.ts"),
+  ]);
 
   assert.match(route, /loadFoundationProject/);
   assert.match(route, /PPFProject/);
@@ -15,34 +18,49 @@ test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", 
   assert.doesNotMatch(route, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 
   assert.match(workspace, /deriveVisualReadiness/);
+  assert.match(workspace, /readiness\.targets/);
   assert.match(workspace, /target\.storyboardAllowed/);
   assert.match(workspace, /missingPrerequisites/);
-  assert.match(workspace, /target\.provenance/);
-  assert.match(workspace, /Locked or missing targets stay truthful/);
+  assert.match(workspace, /A tab is always inspectable; only earned targets become authorable/);
+  assert.match(readiness, /readonly provenance: readonly VisualReadinessProvenance\[\]/);
+  assert.match(readiness, /provenance: block\.observedPassageCount/);
 });
 
-test("#1424 preserves the old Storyboard implementation for bounded adaptation instead of rebuilding it", async () => {
-  const workspace = await read(workspacePath);
-  const legacyBoard = await read("app/visual-storyboard.tsx");
-  const audit = await read("docs/architecture/visual-pipeline-reuse-audit-1423.md");
-  const phaseBoundary = await read("docs/architecture/storyboard-readoption-1424.md");
+test("#1424 preserves reusable Storyboard identity and editorial behavior instead of restoring legacy authority", async () => {
+  const [workspace, editorial, legacyBoard, audit, phaseBoundary] = await Promise.all([
+    read(workspacePath),
+    read("app/_components/storyboard/storyboard-editorial-workspace.tsx"),
+    read("app/visual-storyboard.tsx"),
+    read("docs/architecture/visual-pipeline-reuse-audit-1423.md"),
+    read("docs/architecture/storyboard-readoption-1424.md"),
+  ]);
 
   assert.match(legacyBoard, /storyboardIdentityInputs/);
   assert.match(legacyBoard, /VisualFrame/);
   assert.match(legacyBoard, /VisualMediaVersion/);
   assert.match(legacyBoard, /approvedCharacterReferenceImages/);
   assert.match(audit, /`app\/visual-storyboard\.tsx` \| Adapt in Phase 8/);
-  assert.match(workspace, /VisualFrame.*VisualMediaVersion/);
-  assert.match(workspace, /Keep\/Change\/Compare/);
+  assert.match(workspace, /StoryboardEditorialWorkspace/);
+  assert.match(workspace, /storyboardReferenceCandidates/);
+  assert.match(editorial, />Keep</);
+  assert.match(editorial, />Change</);
+  assert.match(editorial, />Compare</);
   assert.match(phaseBoundary, /profile-owned PPF -> #1423 visual readiness -> Storyboard target availability/);
+  assert.doesNotMatch(workspace, /PlotPickleProject|storyboardExploration|plotpickle\.project\.v1/);
 });
 
-test("#1424 readiness gate remains non-authoritative and generation-free", async () => {
-  const route = await read("app/storyboard/page.tsx");
-  const workspace = await read(workspacePath);
-  const combined = `${route}\n${workspace}`;
+test("#1424 tab inspection remains non-canonical while explicit Human Keep owns visual approval", async () => {
+  const [route, workspace, editorial] = await Promise.all([
+    read("app/storyboard/page.tsx"),
+    read(workspacePath),
+    read("app/_components/storyboard/storyboard-editorial-workspace.tsx"),
+  ]);
+  const inspectionSurface = `${route}\n${workspace}`;
 
-  assert.doesNotMatch(combined, /saveFoundationProject|writeFile|database|sqlite/);
-  assert.doesNotMatch(combined, /\/api\/local-ai\/generate/);
-  assert.match(workspace, /writes no visual canon and triggers no media generation/);
+  assert.doesNotMatch(inspectionSurface, /saveFoundationProject|writeFile|database|sqlite/);
+  assert.doesNotMatch(inspectionSurface, /\/api\/local-ai\/generate/);
+  assert.match(workspace, /inspecting a tab never promotes reference material or changes story canon/);
+  assert.match(editorial, /saveFoundationProject\(next\)/);
+  assert.match(editorial, /Human Keep decision/);
+  assert.doesNotMatch(editorial, /\/api\/local-ai\/generate/);
 });

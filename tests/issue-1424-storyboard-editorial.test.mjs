@@ -52,14 +52,37 @@ test("#1424 keeps Change and Compare exploratory while Keep is the explicit appr
   assert.match(editorial, /No reference is promoted merely because it exists/);
 });
 
-test("#1424 activates the editorial loop only behind the previously proven Block 17 readiness target", async () => {
+test("#1424 renders Storyboard as 24 Block tabs with four Mini-Block slots per selected Block", async () => {
   const workspace = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
+  const css = await read("app/_components/storyboard/storyboard-readiness-workspace.module.css");
+
+  assert.match(workspace, /Storyboard · 24 Blocks \/ 96 Mini-Blocks/);
+  assert.match(workspace, /useState\(1\)/, "Block 01 must be the default Storyboard tab.");
+  assert.match(workspace, /role="tablist"/);
+  assert.match(workspace, /role="tab"/);
+  assert.match(workspace, /role="tabpanel"/);
+  assert.match(workspace, /\[1, 2, 3, 4\]\.map/);
+  assert.match(workspace, /Visual slots<\/dt><dd>96/);
+  assert.match(workspace, /A tab is always inspectable; only earned targets become authorable/);
+  assert.match(workspace, /const canReviewReference = Boolean\(selectedTarget\.storyboardAllowed && reference\)/);
+  assert.match(workspace, /disabled=\{!canReviewReference\}/);
+  assert.match(workspace, /Awaiting candidate/);
+  assert.match(workspace, /Locked by BUILD/);
+  assert.match(css, /grid-template-columns: repeat\(24/);
+  assert.match(css, /grid-template-columns: repeat\(4/);
+});
+
+test("#1424 uses the same five saturated evidence colours as BUILD and never restores legacy Storyboard authority", async () => {
+  const workspace = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
+  const css = await read("app/_components/storyboard/storyboard-readiness-workspace.module.css");
   const page = await read("app/storyboard/page.tsx");
 
-  assert.match(workspace, /AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER/);
-  assert.match(workspace, /target\.storyboardAllowed/);
+  for (const label of ["DEFINED", "OBSERVED", "EMERGING", "MISSING", "LOCKED"]) assert.ok(workspace.includes(label));
+  for (const colour of ["#35d779", "#3bb8ff", "#f6a93b", "#ff4d6d", "#a875ff"]) assert.ok(css.includes(colour));
   assert.match(workspace, /StoryboardEditorialWorkspace/);
+  assert.match(workspace, /storyboardReferenceCandidates/);
   assert.match(workspace, /onProjectChange/);
   assert.match(page, /onProjectChange=\{setProject\}/);
+  assert.doesNotMatch(workspace, /PlotPickleProject|plotpickle\.project\.v1|localStorage/);
   assert.doesNotMatch(page, /PlotPickleProject|plotpickle\.project\.v1|localStorage/);
 });

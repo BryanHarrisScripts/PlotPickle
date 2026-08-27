@@ -115,7 +115,7 @@ test("#1283 Great Hall is normal readable BUZZ conversation and legacy verificat
 
 test("#1283 internal Agent and verification activity never falls back to the Human BUZZ signer", async () => {
   const [mirror, activity, verifier] = await Promise.all([
-    read("build/buzz-agent-activity-mirror.ts"),
+    read("build/buzz/buzz-agent-activity-mirror.ts"),
     read("scripts/buzz-live-activity.mjs"),
     read("scripts/verify-buzz-live-activity.mjs"),
   ]);

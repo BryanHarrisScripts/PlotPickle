@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
 import { FOUNDATION_SEQUENCE_SHIFT_METADATA_ID } from "../../../core/contracts/foundation-plan";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import type { PPFProject } from "../../../core/project/project";
@@ -8,6 +9,11 @@ import {
   loadFoundationProject,
   saveFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
+import {
+  deriveVisualStoryDecisionMarkers,
+  type VisualStoryDecisionMarker,
+  type VisualStoryDecisionSource,
+} from "../decisions/visual-story-decision-markers";
 import {
   deriveProgressiveStoryMap,
   type BuildStoryEvidenceState,
@@ -23,6 +29,7 @@ const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
 };
 
 type SequenceShiftOption = { readonly id: string; readonly from: string; readonly to: string };
+type StoryDecisionListResponse = { readonly decisions?: readonly VisualStoryDecisionSource[]; readonly message?: string };
 
 const SEQUENCE_SHIFT_OPTIONS: readonly SequenceShiftOption[] = [
   { id: "fear-courage", from: "Fear", to: "Courage" },
@@ -50,6 +57,11 @@ function sequenceId(number: number) { return `sequence-${String(number).padStart
 function shiftOption(id: string | undefined, sequenceNumber: number) {
   return SEQUENCE_SHIFT_OPTIONS.find((option) => option.id === id) ?? SEQUENCE_SHIFT_OPTIONS[sequenceNumber - 1] ?? SEQUENCE_SHIFT_OPTIONS[0];
 }
+function decisionAction(marker: VisualStoryDecisionMarker) {
+  return marker.needsWorkbench
+    ? { href: `/story-workbench?decisionId=${encodeURIComponent(marker.decisionId)}`, label: "Open Workbench" }
+    : { href: "/story-decisions", label: marker.stale ? "Review stale Decision" : "Open Story Decisions" };
+}
 
 export default function ProgressiveStoryMap({ project }: { readonly project: PPFProject }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
@@ -61,10 +73,39 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [openShiftSequence, setOpenShiftSequence] = useState<number | null>(null);
   const [localShifts, setLocalShifts] = useState<Readonly<Record<string, string>>>({});
+  const [decisionMarkers, setDecisionMarkers] = useState<readonly VisualStoryDecisionMarker[]>([]);
+  const [decisionMarkerError, setDecisionMarkerError] = useState("");
+  const markersByBlock = useMemo(() => {
+    const grouped = new Map<string, VisualStoryDecisionMarker[]>();
+    for (const marker of decisionMarkers) {
+      const current = grouped.get(marker.blockId) ?? [];
+      current.push(marker);
+      grouped.set(marker.blockId, current);
+    }
+    return grouped;
+  }, [decisionMarkers]);
   const selected = storyMap.blocks.find((block) => block.number === selectedBlockNumber) ?? storyMap.blocks[0];
+  const selectedDecisionMarkers = markersByBlock.get(selected.id) ?? [];
   const persistedShifts = project.foundations.lessons[FOUNDATION_SEQUENCE_SHIFT_METADATA_ID]?.answers ?? {};
 
   useEffect(() => { setLocalShifts({}); }, [project.revision]);
+  useEffect(() => {
+    let cancelled = false;
+    setDecisionMarkerError("");
+    void authenticatedProfileFetch(`/api/story-decisions?projectId=${encodeURIComponent(project.id)}`, { cache: "no-store" })
+      .then(async (response) => {
+        const body = await response.json() as StoryDecisionListResponse;
+        if (!response.ok) throw new Error(body.message || "Story Decision markers could not be loaded.");
+        if (!cancelled) setDecisionMarkers(deriveVisualStoryDecisionMarkers(body.decisions ?? [], project.revision));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDecisionMarkers([]);
+          setDecisionMarkerError("Story Decision markers are temporarily unavailable.");
+        }
+      });
+    return () => { cancelled = true; };
+  }, [project.id, project.revision]);
 
   const saveSequenceShift = (sequenceNumber: number, shiftId: string) => {
     const id = sequenceId(sequenceNumber);
@@ -121,19 +162,22 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                   </div>
                 </header>
                 <div className={styles.sequenceBlocks}>
-                  {sequence.blocks.map((block) => (
-                    <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
-                      <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
-                      <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
-                      <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
-                      {block.observedPassageCount ? <small>{block.observedPassageCount} source passage{block.observedPassageCount === 1 ? "" : "s"}</small> : <small>Not enough information yet</small>}
-                      <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
-                        {block.miniBlocks.map((mini) => (
-                          <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>
-                        ))}
-                      </span>
-                    </button>
-                  ))}
+                  {sequence.blocks.map((block) => {
+                    const blockDecisionCount = markersByBlock.get(block.id)?.length ?? 0;
+                    return (
+                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
+                        <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
+                        <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
+                        <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
+                        <small>{block.observedPassageCount ? `${block.observedPassageCount} source passage${block.observedPassageCount === 1 ? "" : "s"}` : "Not enough information yet"}{blockDecisionCount ? ` · ${blockDecisionCount} Story Decision${blockDecisionCount === 1 ? "" : "s"}` : ""}</small>
+                        <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
+                          {block.miniBlocks.map((mini) => (
+                            <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>
+                          ))}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               {sequence.marker ? (
@@ -169,6 +213,18 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                 <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
               ))}
             </ol>
+          </section>
+          <section data-story-decision-target={selected.id}>
+            <h4>Story Decisions</h4>
+            {decisionMarkerError ? <p className={styles.unresolved}>{decisionMarkerError}</p> : selectedDecisionMarkers.length ? (
+              <ul>
+                {selectedDecisionMarkers.map((marker) => {
+                  const action = decisionAction(marker);
+                  return <li key={`${selected.id}-${marker.decisionId}`}><strong>{marker.stale ? "STALE" : marker.needsWorkbench ? "WORKBENCH" : "NEEDS HUMAN"} · {marker.severity}</strong><br /><span>{marker.question}</span><br /><a href={action.href}>{action.label}</a></li>;
+                })}
+              </ul>
+            ) : <p className={styles.unresolved}>No active Story Decision targets this Block.</p>}
+            <p>These markers are read-only review records. They do not change PPF canon; answered choices still require Story Workbench validation.</p>
           </section>
           <section className={styles.textProjection} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state}>
             <header className={styles.textProjectionHeader}>

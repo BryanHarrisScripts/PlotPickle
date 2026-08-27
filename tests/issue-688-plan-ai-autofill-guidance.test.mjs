@@ -68,7 +68,7 @@ test("PLAN recovers failed Quality fields through the Fast local role before giv
 test("a PPF can be reduced to read-only story evidence for PLAN Foundations", async () => {
   const [gateway, reader, context, localGateway] = await Promise.all([
     read("build/foundations-ppf-gateway.ts"),
-    read("build/portable-ppf-reader.ts"),
+    read("build/projects/portable-ppf-reader.ts"),
     read("lib/projects/canon/foundation-source-context.ts"),
     read("build/local-ai-gateway.ts"),
   ]);

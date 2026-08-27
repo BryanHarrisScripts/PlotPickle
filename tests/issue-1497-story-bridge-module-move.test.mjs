@@ -29,7 +29,13 @@ test("#1497 preserves Story Bridge evidence-only and Human-authority boundaries"
   assert.match(bridge, /signature proves authorship, never truth and never permission to mutate PPF/);
 });
 
-test("#1497 keeps the Phase 0 source-to-target architecture record intact", async () => {
+test("#1497 preserves the Phase 0 record and marks the machine-readable move complete", async () => {
   const target = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
   assert.match(target, /`modules\/story-workflow\/buzz-story-bridge\.ts` → `modules\/story-workflow\/bridge\/`/);
+
+  const contract = JSON.parse(await source("config/repository-architecture-target.json"));
+  const batch = contract.moveBatches.find((item) => item.id === "phase2-modules-story-bridge");
+  assert.equal(batch?.status, "completed");
+  assert.deepEqual(batch?.completedSources, ["modules/story-workflow/buzz-story-bridge.ts"]);
+  assert.deepEqual(batch?.completedTargets, ["modules/story-workflow/bridge/buzz-story-bridge.ts"]);
 });

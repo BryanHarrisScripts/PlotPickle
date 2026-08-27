@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
-import { storyboardReferenceCandidates } from "./storyboard-editorial-model";
+import { storyboardFrameTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
 import styles from "./storyboard-readiness-workspace.module.css";
 
 const STATE_LABELS = {
@@ -33,6 +33,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
+  const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
   const selectedReferences = useMemo(
@@ -40,8 +41,11 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     [project, selectedTarget],
   );
 
-  function openEditorial() {
-    document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function openEditorial(candidateId: string) {
+    setRequestedCandidateId(candidateId);
+    window.requestAnimationFrame(() => {
+      document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   return (
@@ -80,7 +84,10 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
               className={styles.blockTab}
               data-state={target.state}
               key={target.id}
-              onClick={() => setSelectedBlockNumber(number)}
+              onClick={() => {
+                setSelectedBlockNumber(number);
+                setRequestedCandidateId(undefined);
+              }}
               role="tab"
               type="button"
             >
@@ -118,10 +125,15 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
               const reference = selectedReferences.find((candidate) => candidate.miniBlockNumber === miniNumber);
               const canReviewReference = Boolean(selectedTarget.storyboardAllowed && reference);
               return (
-                <article className={styles.miniBlock} data-authorable={selectedTarget.storyboardAllowed ? "true" : "false"} key={miniNumber}>
+                <article
+                  className={styles.miniBlock}
+                  data-authorable={selectedTarget.storyboardAllowed ? "true" : "false"}
+                  data-story-decision-target={storyboardFrameTargetRef(selectedTarget.id, miniNumber)}
+                  key={miniNumber}
+                >
                   <div className={styles.miniPreview}>
                     {reference
-                      ? <img alt={reference.caption} src={reference.assetUrl} />
+                      ? <img alt={reference.caption} decoding="async" loading="lazy" src={reference.assetUrl} />
                       : <span aria-hidden="true" className={styles.emptyFrame}>+</span>}
                   </div>
                   <header>
@@ -134,8 +146,14 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                   <p>{reference?.caption || (selectedTarget.storyboardAllowed
                     ? "Visual slot is ready, but no candidate has been attached yet."
                     : "Visual slot reserved. BUILD evidence must mature before authoring begins.")}</p>
-                  <button disabled={!canReviewReference} onClick={canReviewReference ? openEditorial : undefined} type="button">
-                    {reference ? "Review visual" : selectedTarget.storyboardAllowed ? "Awaiting candidate" : "Locked by BUILD"}
+                  <button
+                    disabled={!canReviewReference}
+                    onClick={reference && canReviewReference ? () => openEditorial(reference.id) : undefined}
+                    type="button"
+                  >
+                    {reference
+                      ? reference.acceptedArtifactId ? "Review kept visual" : "Review visual"
+                      : selectedTarget.storyboardAllowed ? "Awaiting candidate" : "Locked by BUILD"}
                   </button>
                 </article>
               );
@@ -148,6 +166,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
         <div id="storyboard-editorial">
           <StoryboardEditorialWorkspace
             project={project}
+            requestedCandidateId={requestedCandidateId}
             target={selectedTarget}
             onProjectChange={onProjectChange}
             onOpenBuild={onOpenBuild}
@@ -156,7 +175,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
       ) : null}
 
       <footer className={styles.footer}>
-        Storyboard is a 24-tab visual workbench: one Block per tab, four Mini-Blocks per Block, 96 visual slots total. Existing frame identity and Keep / Change / Compare semantics remain behind canonical PPF targets; inspecting a tab never promotes reference material or changes story canon.
+        Storyboard is a 24-tab visual workbench: one Block per tab, four independently reviewable Mini-Block frames per Block, 96 visual slots total. Existing frame identity and Keep / Change / Compare semantics remain behind canonical PPF targets; inspecting a tab never promotes reference material or changes story canon.
       </footer>
     </main>
   );

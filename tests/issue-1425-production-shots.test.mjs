@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-const contractPath = "core/contracts/previs.ts";
+const contractPath = "core/contracts/previs/index.ts";
 const projectPath = "core/project/project.ts";
 const commandPath = "core/contracts/story-command.ts";
 const reducerPath = "core/project/apply-command.ts";

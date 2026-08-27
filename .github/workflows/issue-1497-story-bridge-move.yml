@@ -1,0 +1,122 @@
+name: Issue 1497 Story Bridge Move
+
+on:
+  push:
+    branches:
+      - architecture/1497-story-bridge-module
+
+permissions:
+  contents: write
+
+jobs:
+  apply-story-bridge-move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: architecture/1497-story-bridge-module
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply ratified Story Bridge module move
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f modules/story-workflow/bridge/buzz-story-bridge.ts ] \
+            && [ ! -f modules/story-workflow/buzz-story-bridge.ts ] \
+            && [ -f tests/issue-1497-story-bridge-module-move.test.mjs ]; then
+            echo "#1497 move already applied."
+            exit 0
+          fi
+
+          mkdir -p modules/story-workflow/bridge
+          git mv modules/story-workflow/buzz-story-bridge.ts modules/story-workflow/bridge/buzz-story-bridge.ts
+
+          python - <<'PY'
+          from pathlib import Path
+
+          moved_path = Path('modules/story-workflow/bridge/buzz-story-bridge.ts')
+          moved = moved_path.read_text(encoding='utf-8')
+          if 'from "../../core/' not in moved or 'from "../../lib/' not in moved:
+              raise SystemExit('Expected Story Bridge root-relative imports were not found before the move')
+          moved = moved.replace('from "../../core/', 'from "../../../core/')
+          moved = moved.replace('from "../../lib/', 'from "../../../lib/')
+          moved_path.write_text(moved, encoding='utf-8')
+
+          gateway_path = Path('build/story-workflow-buzz-bridge-gateway.ts')
+          gateway = gateway_path.read_text(encoding='utf-8')
+          old_import = '../modules/story-workflow/buzz-story-bridge'
+          new_import = '../modules/story-workflow/bridge/buzz-story-bridge'
+          if old_import not in gateway:
+              raise SystemExit('Expected Story Bridge module import not found in gateway')
+          gateway_path.write_text(gateway.replace(old_import, new_import), encoding='utf-8')
+
+          old_path = 'modules/story-workflow/buzz-story-bridge.ts'
+          new_path = 'modules/story-workflow/bridge/buzz-story-bridge.ts'
+          consumers = [
+              Path('tests/issue-1422-buzz-agent-identity-binding.test.mjs'),
+              Path('tests/issue-1422-buzz-story-bridge-hardening.test.mjs'),
+              Path('tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs'),
+              Path('tests/issue-1422-buzz-story-bridge.test.mjs'),
+          ]
+          for path in consumers:
+              text = path.read_text(encoding='utf-8')
+              if old_path not in text:
+                  raise SystemExit(f'Expected old Story Bridge path not found in {path}')
+              path.write_text(text.replace(old_path, new_path), encoding='utf-8')
+          PY
+
+          cat > tests/issue-1497-story-bridge-module-move.test.mjs <<'EOF'
+          import assert from "node:assert/strict";
+          import { access, readFile } from "node:fs/promises";
+          import test from "node:test";
+
+          const root = new URL("..", import.meta.url);
+          const source = (path) => readFile(new URL(path, root), "utf8");
+
+          test("#1497 moves the Story Bridge adapter to its ratified module owner", async () => {
+            await assert.rejects(access(new URL("modules/story-workflow/buzz-story-bridge.ts", root)));
+            const bridge = await source("modules/story-workflow/bridge/buzz-story-bridge.ts");
+            assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/buzz\/agent-identity-binding\.mjs"/);
+            assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/buzz-story-bridge-core\.mjs"/);
+            assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/story-workflow-core\.mjs"/);
+            assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/lib\/agents\/agent-profiles"/);
+          });
+
+          test("#1497 retargets the only runtime consumer without a compatibility shim", async () => {
+            const gateway = await source("build/story-workflow-buzz-bridge-gateway.ts");
+            assert.match(gateway, /\.\.\/modules\/story-workflow\/bridge\/buzz-story-bridge/);
+            assert.doesNotMatch(gateway, /\.\.\/modules\/story-workflow\/buzz-story-bridge["']/);
+          });
+
+          test("#1497 preserves Story Bridge evidence-only and Human-authority boundaries", async () => {
+            const bridge = await source("modules/story-workflow/bridge/buzz-story-bridge.ts");
+            assert.match(bridge, /privacyClass: "private-project"/);
+            assert.match(bridge, /federation: "private-only"/);
+            assert.match(bridge, /agentExecutionContexts\(profile\.id\)\.includes\("public-buzz"\)/);
+            assert.match(bridge, /signatureVerified: contribution\.provenance\.signatureVerified/);
+            assert.match(bridge, /signature proves authorship, never truth and never permission to mutate PPF/);
+          });
+
+          test("#1497 keeps the Phase 0 source-to-target architecture record intact", async () => {
+            const target = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
+            assert.match(target, /`modules\/story-workflow\/buzz-story-bridge\.ts` → `modules\/story-workflow\/bridge\/`/);
+          });
+          EOF
+
+          node --test \
+            tests/issue-1422-buzz-agent-identity-binding.test.mjs \
+            tests/issue-1422-buzz-story-bridge-hardening.test.mjs \
+            tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs \
+            tests/issue-1422-buzz-story-bridge.test.mjs \
+            tests/issue-1497-story-bridge-module-move.test.mjs
+          git diff --check
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(#1497): move Story Bridge module to bridge domain"
+          git push origin HEAD:architecture/1497-story-bridge-module

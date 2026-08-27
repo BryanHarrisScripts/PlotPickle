@@ -27,6 +27,9 @@ export type ProgressiveStoryTextProjection = {
   readonly sourceKind: "observed-screenplay" | "none";
   readonly sourceFileName: string;
   readonly placementReviewed: boolean;
+  readonly reviewState: "current" | "needs-review";
+  readonly staleAtRevision: number | null;
+  readonly staleReasonRefs: readonly string[];
   readonly passageCount: number;
   readonly passages: readonly ProgressiveStoryTextPassage[];
 };
@@ -65,6 +68,7 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
     (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
   ).screenplay;
   const passages = screenplay?.passages ?? [];
+  const projectionReviews = screenplay?.projectionReviews ?? [];
   const reviewedMapping = screenplay?.analysisStatus === "reviewed";
 
   const blocks = Array.from({ length: 24 }, (_, index): ProgressiveStoryBlock => {
@@ -73,6 +77,7 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
     const sequenceIndex = Math.floor(index / 2);
     const [sequenceTitle, sequencePurpose] = sequenceTemplates[sequenceIndex];
     const blockPassages = passages.filter((passage) => passage.blockNumber === number);
+    const projectionReview = projectionReviews.find((review) => review.blockNumber === number && review.state === "needs-review") ?? null;
     const state: BuildStoryEvidenceState = blockPassages.length
       ? reviewedMapping ? "observed" : "emerging"
       : "missing";
@@ -82,6 +87,9 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
       sourceKind: blockPassages.length ? "observed-screenplay" : "none",
       sourceFileName: screenplay?.sourceFileName ?? "",
       placementReviewed: reviewedMapping,
+      reviewState: projectionReview ? "needs-review" : "current",
+      staleAtRevision: projectionReview?.atRevision ?? null,
+      staleReasonRefs: projectionReview?.reasonRefs ?? [],
       passageCount: blockPassages.length,
       passages: blockPassages.slice(0, 6).map((passage) => ({
         id: passage.id,

@@ -1,6 +1,7 @@
 import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import { buildFoundationPlanLessons } from "../../../core/contracts/foundation-plan";
+import { markImportedScreenplayProjectionStale } from "../../../core/contracts/imported-screenplay-evidence";
 import { buildWorldPlanLessons } from "../../../core/contracts/world-plan";
 import type { StoryCommand } from "../../../core/contracts/story-command";
 import { applyStoryCommand } from "../../../core/project/apply-command";
@@ -222,7 +223,15 @@ export function applyStoryWorkbenchReview(input: {
     throw new Error("Story Workbench does not have one explicit editable canonical target to apply.");
   }
   const occurredAt = input.occurredAt ?? new Date().toISOString();
-  const project = applyStoryCommand(input.project, commandForTarget(input.prepared.selectedTarget, input.prepared.package.operation.value, occurredAt));
+  const appliedProject = applyStoryCommand(input.project, commandForTarget(input.prepared.selectedTarget, input.prepared.package.operation.value, occurredAt));
+  const project = {
+    ...appliedProject,
+    sourceEvidence: markImportedScreenplayProjectionStale(
+      (input.project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
+      input.prepared.impact.explainableRefs,
+      appliedProject.revision,
+    ),
+  };
   return {
     project,
     applied: true as const,

@@ -96,18 +96,34 @@ function findingGroupFingerprint(change, side) {
   return change?.[side]?.groupFingerprint || change?.groupFingerprint || "";
 }
 
+function findingContentFingerprint(change, side) {
+  const finding = change?.[side];
+  if (!finding) return "";
+  const location = finding.primaryLocation || finding.locations?.[0] || {};
+  const evidence = Array.isArray(finding.evidence) ? finding.evidence.map((item) => String(item)) : [];
+  const message = String(finding.message || "");
+  if (!message && evidence.length === 0) return "";
+  return JSON.stringify({
+    ruleId: String(change?.ruleId || finding.ruleId || ""),
+    line: Number(location.line || 0),
+    column: Number(location.column || 0),
+    message,
+    evidence,
+  });
+}
+
 function renamePreservesExistingFinding(report, change, findingPath, changedEntries) {
   if (change?.status !== "added") return false;
   const rename = changedEntries.find((entry) => entry.status.charAt(0) === "R" && entry.targetPath === findingPath);
   if (!rename) return false;
-  const groupFingerprint = findingGroupFingerprint(change, "head");
-  if (!groupFingerprint) return false;
   const sourceReport = (report?.paths || []).find((pathReport) => pathReport?.path === rename.sourcePath);
-  return (sourceReport?.changes || []).some((candidate) => (
-    candidate?.status === "resolved"
-    && candidate?.ruleId === change?.ruleId
-    && findingGroupFingerprint(candidate, "base") === groupFingerprint
-  ));
+  const groupFingerprint = findingGroupFingerprint(change, "head");
+  const contentFingerprint = findingContentFingerprint(change, "head");
+  return (sourceReport?.changes || []).some((candidate) => {
+    if (candidate?.status !== "resolved" || candidate?.ruleId !== change?.ruleId) return false;
+    if (groupFingerprint) return findingGroupFingerprint(candidate, "base") === groupFingerprint;
+    return Boolean(contentFingerprint) && findingContentFingerprint(candidate, "base") === contentFingerprint;
+  });
 }
 
 function findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths) {
@@ -206,7 +222,7 @@ async function main() {
       scannerExitCode: delta.status,
       authoritative: false,
       evidence: path.relative(repoRoot, deltaReport).replaceAll("\\", "/"),
-      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
+      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path, or for non-group findings when rule, message, evidence and line/column are unchanged. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 
     if (!passed) {

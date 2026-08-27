@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate canonical visual readiness contract
-        run: node --test tests/issue-1423-visual-readiness.test.mjs
+        run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs
       - name: Validate existing visual identity and progressive BUILD contracts
         run: node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
       - name: Production build

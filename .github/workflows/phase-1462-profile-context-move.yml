@@ -185,6 +185,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A build/auth/profile-request-context.ts build/profile-request-context.ts build/buzz-story-room-access-gateway.ts build/buzz-story-room-directory-gateway.ts build/buzz-story-room-identity-gateway.ts build/buzz-story-room-listing-gateway.ts build/buzz/buzz-profile-migration-gateway.ts build/local-credentials.ts build/story-decisions/gateway.ts build/story-workflow-buzz-bridge-gateway.ts vite.config.ts .github/workflows/buzz-profile-agent-scope.yml .github/workflows/profile-experience.yml .github/workflows/story-bridge.yml tests/buzz-profile-csrf-browser.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1144-buzz-profile-migration-contract.test.mjs tests/issue-1418-story-decisions.test.mjs tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs tests/issue-1462-profile-request-context-move.test.mjs docs/architecture/PHASE-1-MOVE-LOG.md
+          git add -A
           git commit -m "refactor(architecture): move profile request context into auth domain"
           git push origin HEAD:arch/1462-profile-request-context

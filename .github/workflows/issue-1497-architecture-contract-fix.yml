@@ -1,0 +1,53 @@
+name: Issue 1497 Architecture Contract Fix
+
+on:
+  push:
+    branches:
+      - architecture/1497-story-bridge-module
+
+permissions:
+  contents: write
+
+jobs:
+  record-completed-move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: architecture/1497-story-bridge-module
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Record completed Story Bridge move and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'config/repository-architecture-target.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const batch = config.moveBatches.find((item) => item.id === 'phase2-modules-story-bridge');
+          if (!batch) throw new Error('phase2-modules-story-bridge batch not found');
+          Object.assign(batch, {
+            status: 'completed',
+            completedAt: '2026-08-27',
+            completedSources: ['modules/story-workflow/buzz-story-bridge.ts'],
+            completedTargets: ['modules/story-workflow/bridge/buzz-story-bridge.ts'],
+          });
+          fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`);
+          NODE
+
+          node --test \
+            tests/issue-1461-repository-architecture-inventory.test.mjs \
+            tests/issue-1497-story-bridge-module-move.test.mjs
+          git diff --check
+
+          git rm .github/workflows/issue-1497-architecture-contract-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/repository-architecture-target.json
+          git commit -m "fix(#1497): record Story Bridge architecture move complete"
+          git push origin HEAD:architecture/1497-story-bridge-module

@@ -1,0 +1,32 @@
+name: Release 1490 Version Sync
+
+on:
+  push:
+    branches:
+      - release/1490-version-whats-new
+
+permissions:
+  contents: write
+
+jobs:
+  sync-version:
+    if: github.event.head_commit.message != 'chore(release): sync rc.4.0.2 manifests'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/1490-version-whats-new
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synchronize package manifests
+        run: npm version 1.0.0-rc.4.0.2 --no-git-tag-version
+      - name: Commit synchronized manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(release): sync rc.4.0.2 manifests"
+          git push origin HEAD:release/1490-version-whats-new

@@ -17,7 +17,7 @@ test("#1420 stores screenplay staleness as bounded projection provenance, not re
   assert.match(evidence, /ImportedScreenplayProjectionReview/);
   assert.match(evidence, /state: "needs-review"/);
   assert.match(evidence, /projectionReviews\?: readonly ImportedScreenplayProjectionReview\[\]/);
-  assert.match(evidence, /\^ppf:build:block:\(\\d\{1,2\}\)/);
+  assert.match(evidence, /\^ppf:\(\?:build:block:\|structure:block\[-:\]\)\(\\d\{1,2\}\)/);
   assert.match(evidence, /\^block-\(\\d\{1,2\}\)/);
   assert.match(evidence, /number >= 1 && number <= 24/);
   assert.match(evidence, /affectedBlocks = \[\.\.\.new Set\(refs\.map\(projectionBlockNumber\)\.filter\(Boolean\)\)\]/);

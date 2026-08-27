@@ -242,7 +242,7 @@ test("#1155 managed consumers use run-scoped endpoint context and direct mode ha
     read("scripts/run-exhaustive-ui-uat.mjs"),
     read("build/local-instance-proof-gateway.ts"),
     read("build/buzz-community-gateway.ts"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
   ]);
   assert.match(core, /reserveLoopbackPort/);
   assert.match(runtime, /--strictPort/);

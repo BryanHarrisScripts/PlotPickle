@@ -17,7 +17,7 @@ test("#1067 keeps PlotPickle Community reads and writes on real BUZZ message/for
   const [gateway, communityGateway, workspace, social, storyAccess] = await Promise.all([
     read("build/buzz-gateway.ts"),
     read("build/buzz-community-gateway.ts"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("app/_components/community/community-story-room-access.tsx"),
   ]);
@@ -38,7 +38,7 @@ test("#1067 never introduces a second Community message database or automatic PP
   const [config, gateway, workspace] = await Promise.all([
     read("config/buzz-guildhall.json").then(JSON.parse),
     read("build/buzz-gateway.ts"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
   ]);
   assert.equal(config.conversationMirror.explicitShareOnly, true);
   assert.equal(config.privacy.explicitProjectContextApprovalRequired, true);

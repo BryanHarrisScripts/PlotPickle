@@ -7,7 +7,7 @@ const SOCIAL = "modules/community/community-buzz-social.tsx";
 
 test("#1129 keeps Great Hall as a real BUZZ-backed PlotPickle room", async () => {
   const [workspace, social, mirror, playhouse] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read(SOCIAL),
     read("config/buzz-guildhall.json").then(JSON.parse),
     read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
@@ -23,7 +23,7 @@ test("#1129 keeps Great Hall as a real BUZZ-backed PlotPickle room", async () =>
 
 test("#1129 exposes four Human-purpose rooms and native Direct Messages instead of a second social backend", async () => {
   const [workspace, social, gateway, playhouse] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read(SOCIAL),
     read("build/buzz-guildhall-gateway.ts"),
     read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
@@ -59,7 +59,7 @@ test("#1129 mirrors streams and DMs through BUZZ messages while forums publish B
 
 test("#1129 requires the verified Human BUZZ signer for messages and DM creation", async () => {
   const [workspace, guard] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("build/buzz-human-identity-guard.ts"),
   ]);
   assert.match(workspace, /isKnownHumanBuzzIdentity\(humanIdentity\)/);
@@ -85,7 +85,7 @@ test("#1129 keeps Huddle voice native to BUZZ instead of faking a browser audio 
 
 test("#1129 excludes peer compute and keeps PPF out of the social write path", async () => {
   const [workspace, social, gateway, reuse] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read(SOCIAL),
     read("build/buzz-guildhall-gateway.ts"),
     read("docs/third-party/buzz-community-reuse.md"),

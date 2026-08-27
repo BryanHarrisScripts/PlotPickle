@@ -27,7 +27,7 @@ test("#1444 persists Story Room identity inside the active Human profile and res
 test("#1444 maps an existing legacy project room before creating anything new", async () => {
   const [gateway, community] = await Promise.all([
     read("build/buzz-story-room-identity-gateway.ts"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
   ]);
   assert.match(gateway, /channels\.find\(\(candidate\) => candidate\.name === room\.legacyName\)/);
   assert.match(gateway, /if \(!channel && request\.createMissing\)/);
@@ -57,7 +57,7 @@ test("#1444 identity gateway does not copy generic local-gateway helper function
 
 test("#1444 Community uses the identity gateway and displays the clean alias rather than the BUZZ storage name", async () => {
   const [community, vite] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("vite.config.ts"),
   ]);
   assert.match(community, /"\/story-room-identity"/);

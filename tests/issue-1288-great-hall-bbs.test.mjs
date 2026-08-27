@@ -6,10 +6,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1288 keeps the graphic-led BBS centre and three-column Community shell as the shared room foundation", async () => {
   const [workspace, social, socialStyles, navigationStyles] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("modules/community/community-buzz-social.module.css"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
   ]);
 
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/u);
@@ -25,7 +25,7 @@ test("#1288 enlarges Community typography and adds the terminal identity prompt"
   const [social, socialStyles, navigationStyles] = await Promise.all([
     read("modules/community/community-buzz-social.tsx"),
     read("modules/community/community-buzz-social.module.css"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
   ]);
 
   assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*16px;/su);
@@ -39,7 +39,7 @@ test("#1288 enlarges Community typography and adds the terminal identity prompt"
 
 test("#1288 carries Human and BUZZ profile avatars into Community while keeping Agent portraits separate", async () => {
   const [workspace, social, gateway] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-community-gateway.ts"),
   ]);

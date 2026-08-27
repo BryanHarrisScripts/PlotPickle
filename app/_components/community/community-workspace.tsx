@@ -2,26 +2,26 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PPFProject } from "../core/project/project";
-import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
-import { loadFoundationProject } from "../core/storage/foundation-project-browser";
-import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz/buzz-default-community";
+import type { PPFProject } from "../../../core/project/project";
+import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
+import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../../../lib/buzz/buzz-default-community";
 import {
   BUZZ_STORY_ROOMS,
   isKnownHumanBuzzIdentity,
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
-} from "../lib/buzz/buzz-story-room";
+} from "../../../lib/buzz/buzz-story-room";
 import {
   buzzLegacyStoryRoomName,
   buzzStoryRoomDisplayName,
-} from "../lib/buzz/story-room-identity";
-import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
-import CommunityStoryRoomDirectory from "../modules/community/story-room-directory";
-import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
-import CommunityAgentRoster from "./_components/community/community-agent-roster";
-import CommunityStoryRoomAccess from "./_components/community/community-story-room-access";
-import ConnectedStudiosPanel from "./connected-studios-panel";
+} from "../../../lib/buzz/story-room-identity";
+import CommunityBuzzSocial, { type CommunitySocialTarget } from "../../../modules/community/community-buzz-social";
+import CommunityStoryRoomDirectory from "../../../modules/community/story-room-directory";
+import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../../../plugins/plotpickle-playhouse";
+import CommunityAgentRoster from "./community-agent-roster";
+import CommunityStoryRoomAccess from "./community-story-room-access";
+import ConnectedStudiosPanel from "../../connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 

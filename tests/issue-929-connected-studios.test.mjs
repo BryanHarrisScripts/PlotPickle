@@ -38,7 +38,7 @@ test("moderation and relationships attach to immutable Studio ID", async () => {
 
 test("Connected Studios UI is a community directory and returns to Hall 1 Great Hall", async () => {
   const [workspace, panel, styles] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("app/connected-studios-panel.tsx"),
     read("app/connected-studios-panel.module.css"),
   ]);

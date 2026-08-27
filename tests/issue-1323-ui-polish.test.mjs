@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1323 Community rail uses the Community name and concise room purposes", async () => {
-  const workspace = await read("app/community-workspace.tsx");
+  const workspace = await read("app/_components/community/community-workspace.tsx");
   assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY\.name/);
   assert.match(workspace, /community\?\.community \|\| COMMUNITY_BBS_NAME/);
   assert.match(workspace, /"great-hall": "Welcome, questions & general chat"/);

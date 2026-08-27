@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1283/#1323 Community rail uses the configured BUZZ Community name while the connected BUZZ relay remains authoritative", async () => {
   const [workspace, social, defaultCommunity] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("lib/buzz/buzz-default-community.ts"),
   ]);

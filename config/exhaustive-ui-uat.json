@@ -13,7 +13,7 @@
       "id": "community",
       "label": "COMMUNITY",
       "route": "/?workspace=community",
-      "sourceFiles": ["app/community-workspace.tsx", "app/_components/community/community-public-conversations-rail.tsx", "app/_components/community/community-public-conversations-rail.module.css", "app/buzz-community-workspace.tsx", "app/_components/community/community-agent-roster.tsx", "app/_components/community/community-story-room-access.tsx", "app/workspace-continuity.css"],
+      "sourceFiles": ["app/_components/community/community-workspace.tsx", "app/_components/community/community-public-conversations-rail.tsx", "app/_components/community/community-public-conversations-rail.module.css", "app/buzz-community-workspace.tsx", "app/_components/community/community-agent-roster.tsx", "app/_components/community/community-story-room-access.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 70,
       "testDuplicateInstances": false
     },

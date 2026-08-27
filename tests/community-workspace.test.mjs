@@ -26,8 +26,8 @@ test("Community remains a native PlotPickle workspace in the revised workflow or
 
 test("Community uses the existing three-column shell with one simple room rail", async () => {
   const [workspace, navigationStyles, socialStyles, continuity] = await Promise.all([
-    read("app/community-workspace.tsx"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-workspace.tsx"),
+    read("app/_components/community/community-navigation.module.css"),
     read("modules/community/community-buzz-social.module.css"),
     read("app/workspace-continuity.css"),
   ]);
@@ -47,7 +47,7 @@ test("Community uses the existing three-column shell with one simple room rail",
 
 test("normal Community rail exposes plugin-contributed Human-purpose rooms instead of internal architecture", async () => {
   const [workspace, plugin] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
   assert.deepEqual(plugin.rooms.map((room) => [room.id, room.label]), [
@@ -66,8 +66,8 @@ test("normal Community rail exposes plugin-contributed Human-purpose rooms inste
 
 test("Community rail shows the real Community name and room-purpose descriptions instead of Agent names", async () => {
   const [workspace, navigationStyles, defaultCommunity] = await Promise.all([
-    read("app/community-workspace.tsx"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-workspace.tsx"),
+    read("app/_components/community/community-navigation.module.css"),
     read("lib/buzz/buzz-default-community.ts"),
   ]);
   assert.match(defaultCommunity, /name:\s*"PlotPickle Community BBS"/);
@@ -81,7 +81,7 @@ test("Community rail shows the real Community name and room-purpose descriptions
 
 test("Great Hall uses the same readable BUZZ social surface as other public rooms", async () => {
   const [workspace, social] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.match(workspace, /chooseRoom\("great-hall"\)/);
@@ -94,7 +94,7 @@ test("Great Hall uses the same readable BUZZ social surface as other public room
 
 test("Community caller comes from the authoritative Human BUZZ identity and Profile is the setup surface", async () => {
   const [workspace, guard] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("build/buzz-human-identity-guard.ts"),
   ]);
   assert.match(workspace, /request<HumanBuzzIdentity & \{ ok: true \}>\("\/human-identity"\)/);
@@ -107,7 +107,7 @@ test("Community caller comes from the authoritative Human BUZZ identity and Prof
 
 test("canonical public rooms and DMs use real BUZZ stream and DM contracts", async () => {
   const [workspace, social, gateway, cleanup] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-guildhall-gateway.ts"),
     read("config/buzz-community-cleanup.json").then(JSON.parse),
@@ -170,7 +170,7 @@ test("Community preserves local credential, agent separation, and no-secret boun
   const [gateway, guard, workspace] = await Promise.all([
     read("build/buzz-guildhall-gateway.ts"),
     read("build/buzz-human-identity-guard.ts"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
   ]);
   assert.match(gateway, /readCredentialJson/);
   assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/);
@@ -184,7 +184,7 @@ test("Community preserves local credential, agent separation, and no-secret boun
 
 test("Community conversation cannot become PPF canon or peer compute implicitly", async () => {
   const [workspace, social, reuse] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("docs/third-party/buzz-community-reuse.md"),
   ]);

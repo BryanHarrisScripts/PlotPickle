@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("#1283 makes Human-purpose BUZZ rooms and Direct Messages first-class without the legacy terminal", async () => {
-  const source = await read("app/community-workspace.tsx");
+  const source = await read("app/_components/community/community-workspace.tsx");
   assert.match(source, /data-community-native-buzz="true"/);
   assert.match(source, /aria-label="Community rooms and Direct Messages"/);
   assert.match(source, />Rooms</);
@@ -15,7 +15,7 @@ test("#1283 makes Human-purpose BUZZ rooms and Direct Messages first-class witho
 });
 
 test("#1283 opens the verified Great Hall through the normal BUZZ conversation surface", async () => {
-  const source = await read("app/community-workspace.tsx");
+  const source = await read("app/_components/community/community-workspace.tsx");
   assert.match(source, /const greatHallDefinition = PUBLIC_ROOMS\.find\(\(room\) => room\.id === "great-hall"\)/);
   assert.match(source, /chooseRoom\("great-hall"\)/);
   assert.match(source, /data-community-bbs-server="true"/);
@@ -25,7 +25,7 @@ test("#1283 opens the verified Great Hall through the normal BUZZ conversation s
 });
 
 test("#1283 derives Community readiness from the verified Human identity and prepared plugin rooms", async () => {
-  const source = await read("app/community-workspace.tsx");
+  const source = await read("app/_components/community/community-workspace.tsx");
   assert.match(source, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
   assert.match(source, /const operational = Boolean\(guildhall\?\.operational\)/);
   assert.match(source, /BUZZ CONNECTED/);
@@ -35,7 +35,7 @@ test("#1283 derives Community readiness from the verified Human identity and pre
 });
 
 test("#1283 preserves one Private Story Room, Connected Studios and Agents beside plugin rooms", async () => {
-  const source = await read("app/community-workspace.tsx");
+  const source = await read("app/_components/community/community-workspace.tsx");
   for (const label of ["Private Story Room", "Connected Studios", "Agents"]) {
     assert.match(source, new RegExp(label), `Missing PlotPickle destination ${label}`);
   }
@@ -77,7 +77,7 @@ test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatme
 test("current Community conversation uses real BUZZ routes rather than fake users or a second backend", async () => {
   const [terminal, workspace, social, communityGateway] = await Promise.all([
     read("app/_components/community/community-backdoor-terminal.tsx"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-community-gateway.ts"),
   ]);

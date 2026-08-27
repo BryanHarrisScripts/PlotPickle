@@ -68,8 +68,8 @@ test("issue #376 separates installed configured running ready active and off", a
 
 test("issue #376 detects only reviewed local Ollama and ComfyUI installations", async () => {
   const [detector, gateway, host] = await Promise.all([
-    source("build/local-ai-installation-status.ts"),
-    source("build/local-ai-installation-gateway.ts"),
+    source("build/ai/local-ai-installation-status.ts"),
+    source("build/ai/local-ai-installation-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
   for (const contract of [
@@ -82,7 +82,7 @@ test("issue #376 detects only reviewed local Ollama and ComfyUI installations", 
   ]) assert.ok(detector.includes(contract), `Missing local installation detector contract: ${contract}`);
   for (const contract of [
     'const API_PATH = "/api/local-ai/installations"',
-    'const OLLAMA_URL = "http://127.0.0.1:11434/api/tags"',
+    'const OLLAMA_COMPAT_URL = "http://127.0.0.1:11434/v1/models"',
     'const COMFYUI_URL = "http://127.0.0.1:8188/system_stats"',
     "isLocalRequest(request)",
     "AbortSignal.timeout(1_500)",

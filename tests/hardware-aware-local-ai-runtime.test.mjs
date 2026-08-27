@@ -162,7 +162,7 @@ test("visual continuity controls remain above provider/model selection and reach
 
 test("settings detect multiple runtimes, capability slots and advanced overrides", async () => {
   const [installation, runtime, panel] = await Promise.all([
-    read("build/local-ai-installation-gateway.ts"),
+    read("build/ai/local-ai-installation-gateway.ts"),
     read("build/local-runtime-gateway.ts"),
     read("app/local-runtime-panel.tsx"),
   ]);

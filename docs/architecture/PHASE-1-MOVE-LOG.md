@@ -172,7 +172,7 @@ Behavior boundary:
 
 ## #1462 — Local AI readiness and installation slice
 
-Status: **candidate; AI batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/local-ai-installation-status.ts` → `build/ai/local-ai-installation-status.ts`
@@ -197,4 +197,34 @@ Behavior boundary:
 - Readiness inference remains restricted to HTTP(S) loopback endpoints, uses the existing bounded `/chat/completions` POST probe with a 12-second timeout, and never accepts a caller-supplied remote endpoint.
 - Managed llama.cpp startup/fallback semantics remain unchanged, and readiness evidence remains private under the persistent runtime directory with file mode `0o600`.
 - No compatibility shim remains at any retired root path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
+
+## #1462 — ComfyUI setup gateways
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/comfyui-onboarding-gateway.ts` → `build/ai/comfyui-onboarding-gateway.ts`
+- `build/comfyui-sdxl-starter-gateway.ts` → `build/ai/comfyui-sdxl-starter-gateway.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts` imports both canonical AI-owned setup gateways.
+- the moved onboarding gateway reaches the shared root-owned ComfyUI diagnostics helper through an explicit parent import.
+
+Source-contract consumers updated:
+- `tests/issue-946-comfyui-settings-onboarding.test.mjs`
+- `tests/issue-1022-sdxl-starter-checkpoint.test.mjs`
+- `tests/issue-1026-comfyui-runtime-settings.test.mjs`
+- `tests/issue-1083-comfy-mcp-management-adapter.test.mjs`
+- `tests/issue-1226-release-security-cleanup.test.mjs`
+- `tests/issue-1255-comfyui-real-machine.test.mjs`
+- `tests/issue-1462-comfyui-setup-move.test.mjs`
+
+Behavior boundary:
+- ComfyUI onboarding remains local/same-origin and does not activate or start anything without the existing explicit approval POST.
+- Passive installation inspection remains GET-only; managed Comfy MCP/comfy-cli lifecycle remains preferred before the existing Windows Desktop fallback.
+- Setup continues to use fixed loopback `http://127.0.0.1:8188`, bounded process output/timeouts and shell-free command execution.
+- The reviewed SDXL starter remains Windows-only, loopback/same-origin, explicit-approval gated and pinned to the same 6.94 GB SDXL 1.0 file, SHA-256 and OpenRAIL++ license.
+- The starter still downloads through the reviewed PowerShell installer with `shell: false`, accepts no caller-supplied URL/path/command, and preserves partial-file size/hash verification before activation.
+- No compatibility shim remains at either retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

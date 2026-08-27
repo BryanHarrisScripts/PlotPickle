@@ -12,7 +12,7 @@ const SIZE = "6938078334";
 test("issue #1022 pins one reviewed official SDXL 1.0 starter", async () => {
   const [installer, gateway] = await Promise.all([
     source("scripts/install-comfyui-sdxl-starter.ps1"),
-    source("build/comfyui-sdxl-starter-gateway.ts"),
+    source("build/ai/comfyui-sdxl-starter-gateway.ts"),
   ]);
 
   for (const value of [FILE_NAME, SHA256, SIZE, "OpenRAIL++", "stabilityai/stable-diffusion-xl-base-1.0"]) {
@@ -42,7 +42,7 @@ test("issue #1022 resolves the checkpoint destination from Comfy Desktop configu
 test("issue #1022 requires explicit approval and only activates a size/hash verified file", async () => {
   const [installer, gateway] = await Promise.all([
     source("scripts/install-comfyui-sdxl-starter.ps1"),
-    source("build/comfyui-sdxl-starter-gateway.ts"),
+    source("build/ai/comfyui-sdxl-starter-gateway.ts"),
   ]);
 
   assert.match(installer, /\[switch\]\$Approved/);

@@ -3,7 +3,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { diagnoseComfyUI, launchComfyWithManagedCli } from "./comfyui-connection-diagnostics";
+import { diagnoseComfyUI, launchComfyWithManagedCli } from "../comfyui-connection-diagnostics";
 
 const execFileAsync = promisify(execFile);
 const START_PATH = "/api/media-routing/comfyui/start";

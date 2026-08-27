@@ -36,7 +36,7 @@ test("ComfyUI activation is delayed until the local engine, image nodes, and che
 });
 
 test("the local onboarding gateway passively detects installation and requires consent before starting", async () => {
-  const gateway = await source("build/comfyui-onboarding-gateway.ts");
+  const gateway = await source("build/ai/comfyui-onboarding-gateway.ts");
 
   for (const contract of [
     "/api/media-routing/comfyui/start",
@@ -76,7 +76,7 @@ test("ComfyUI onboarding is registered before the catch-all media-routing gatewa
 test("no H3 or large optional model pack is silently installed as part of ComfyUI recovery", async () => {
   const [panel, gateway, starter] = await Promise.all([
     source("app/media-routing-panel.tsx"),
-    source("build/comfyui-onboarding-gateway.ts"),
+    source("build/ai/comfyui-onboarding-gateway.ts"),
     source("scripts/start-comfyui-background.ps1"),
   ]);
   const combined = `${panel}\n${gateway}\n${starter}`;

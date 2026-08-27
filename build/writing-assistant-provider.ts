@@ -50,6 +50,7 @@ function providerName(profile: ProviderProfile) {
         : "local OpenAI-compatible runtime";
   if (profile.provider === "ollama") return "Ollama";
   if (profile.provider === "openai") return "OpenAI";
+  if (profile.provider === "gemini") return "Google Gemini";
   return "MiniMax";
 }
 
@@ -136,6 +137,17 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
     return chatCompletionText(value);
   }
 
+  if (profile.provider === "gemini") {
+    const value = await providerJson(compatibleChatEndpoint(profile), profile, {
+      model: profile.textModel,
+      messages: [
+        { role: "system", content: instructions.slice(0, 6_000) },
+        { role: "user", content: prompt.slice(0, 64_000) },
+      ],
+    });
+    return chatCompletionText(value);
+  }
+
   // Every local runtime, including legacy Ollama, enters PlotPickle through the
   // OpenAI-compatible chat-completions contract. Runtime-specific lifecycle and
   // installation logic stays below this provider boundary.
@@ -153,7 +165,16 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
 
 export async function testAssistantProfile(store: ProfileStore, provider: TextProvider) {
   const profile = store.profiles[provider];
-  if (!profile) throw new Error(`Configure ${provider === "local" ? "a local runtime" : provider === "ollama" ? "Ollama" : provider === "openai" ? "OpenAI" : "MiniMax"} before testing it.`);
+  const label = provider === "local"
+    ? "a local runtime"
+    : provider === "ollama"
+      ? "Ollama"
+      : provider === "openai"
+        ? "OpenAI"
+        : provider === "gemini"
+          ? "Google Gemini"
+          : "MiniMax";
+  if (!profile) throw new Error(`Configure ${label} before testing it.`);
   const started = Date.now();
   const attemptedAt = new Date().toISOString();
   try {

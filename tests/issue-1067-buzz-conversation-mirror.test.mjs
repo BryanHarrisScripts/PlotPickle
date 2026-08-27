@@ -51,7 +51,7 @@ test("#1067 requires real owner-approved BUZZ identities for agent provenance", 
   const [config, rosterGateway, roster] = await Promise.all([
     read("config/buzz-guildhall.json").then(JSON.parse),
     read("build/buzz-agent-roster-gateway.ts"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
   ]);
   assert.equal(config.conversationMirror.agentIdentityPolicy, "own-signed-buzz-identity");
   assert.equal(config.conversationMirror.agentImpersonationFallback, false);

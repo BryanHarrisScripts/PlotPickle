@@ -73,7 +73,7 @@ test("#1281 operational Agents remain internal instead of becoming PlotPicklePla
 test("#1281 connected BUZZ private key is explicitly Human authority and never an official Agent signer", async () => {
   const [gateway, ui] = await Promise.all([
     read("build/buzz-agent-roster-gateway.ts"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
   ]);
 
   assert.match(gateway, /The Human signer authenticates this read-only query\. It is never used to sign as a PlotPickle Agent\./);
@@ -88,7 +88,7 @@ test("#1281 connected BUZZ private key is explicitly Human authority and never a
 
 test("#1281 Community surfaces only canonical public personalities and BUZZ status uses the same contract", async () => {
   const [ui, gateway] = await Promise.all([
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("build/buzz-agent-roster-gateway.ts"),
   ]);
 

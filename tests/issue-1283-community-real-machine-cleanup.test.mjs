@@ -31,7 +31,7 @@ test("#1283 Community rooms and Agent membership come from a reusable plugin rat
   const [workspace, social, roster, pluginCode, pluginConfig] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("plugins/plotpickle-playhouse/index.ts"),
     readJson("plugins/plotpickle-playhouse/community.json"),
   ]);
@@ -139,7 +139,7 @@ test("#1283 one Private Story Room replaces the six-Hall presentation without de
 test("#1283 Agent and Help presentation uses current lore art and the same plugin directory", async () => {
   const [portrait, roster, help, pluginConfig] = await Promise.all([
     read("components/agent-portrait.tsx"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("app/settings-helper-directory.tsx"),
     readJson("plugins/plotpickle-playhouse/community.json"),
   ]);

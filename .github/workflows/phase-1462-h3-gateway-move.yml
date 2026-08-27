@@ -135,6 +135,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add build/ai/comfyui-h3-native-gateway.ts build/comfyui-h3-native-gateway.ts build/local-ai-gateway.ts tests/comfyui-live-verification.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs tests/issue-1462-h3-native-gateway-move.test.mjs docs/architecture/PHASE-1-MOVE-LOG.md
+          git add build/ai/comfyui-h3-native-gateway.ts build/local-ai-gateway.ts tests/comfyui-live-verification.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs tests/issue-1462-h3-native-gateway-move.test.mjs docs/architecture/PHASE-1-MOVE-LOG.md
           git commit -m "refactor(architecture): move native H3 gateway into AI domain"
           git push origin HEAD:arch/1462-ai-h3-gateway

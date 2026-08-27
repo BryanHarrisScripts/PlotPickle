@@ -1,7 +1,7 @@
 import type { PPFProject } from "@/core/project/project";
 import { deriveProgressiveStoryMap, type BuildStoryEvidenceState } from "@/modules/build/progressive-story-map";
 
-export type CanonicalReadinessState = BuildStoryEvidenceState | "current";
+export type CanonicalReadinessState = BuildStoryEvidenceState | "current" | "needs-review";
 
 export type CanonicalReadinessItem = {
   readonly id: string;
@@ -31,12 +31,15 @@ export function deriveCanonicalScreenplayReadiness(project: PPFProject): Canonic
   const emerging = countBlocks(blockStates, "emerging");
   const missing = countBlocks(blockStates, "missing");
   const locked = countBlocks(blockStates, "locked");
+  const textNeedsReview = storyMap.blocks.filter((block) => block.backgroundText.reviewState === "needs-review").length;
   const shots = project.production.shots;
   const timedShots = shots.filter((shot) => shot.durationSeconds !== null).length;
   const approvedShots = shots.filter((shot) => shot.reviewState === "approved").length;
-  const sourceState: CanonicalReadinessState = storyMap.importedSourceFileName
-    ? emerging > 0 ? "emerging" : "observed"
-    : "missing";
+  const sourceState: CanonicalReadinessState = textNeedsReview
+    ? "needs-review"
+    : storyMap.importedSourceFileName
+      ? emerging > 0 ? "emerging" : "observed"
+      : "missing";
 
   return {
     projectTitle: project.title,
@@ -64,7 +67,9 @@ export function deriveCanonicalScreenplayReadiness(project: PPFProject): Canonic
         label: "Background story text",
         state: sourceState,
         evidence: storyMap.importedSourceFileName
-          ? `${storyMap.observedPassageCount} bounded source passage${storyMap.observedPassageCount === 1 ? "" : "s"} from ${storyMap.importedSourceFileName}. ${emerging > 0 ? "Some Block placement still requires Human review." : "Current imported placement is reviewed."}`
+          ? textNeedsReview
+            ? `${textNeedsReview} Block text projection${textNeedsReview === 1 ? " needs" : "s need"} Human review after a dependency-backed PPF change. The observed source screenplay text remains unchanged.`
+            : `${storyMap.observedPassageCount} bounded source passage${storyMap.observedPassageCount === 1 ? "" : "s"} from ${storyMap.importedSourceFileName}. ${emerging > 0 ? "Some Block placement still requires Human review." : "Current imported placement is reviewed."}`
           : "No imported screenplay evidence is attached to the active PPF. PlotPickle does not infer a finished screenplay from visual progress.",
         href: "/?workspace=build",
         action: "Inspect source text",

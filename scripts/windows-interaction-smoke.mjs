@@ -122,13 +122,16 @@ function findBrowserExecutable() {
     path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Microsoft", "Edge", "Application", "msedge.exe"),
     path.join(process.env.LOCALAPPDATA || "", "Microsoft", "Edge", "Application", "msedge.exe"),
   ].filter(Boolean);
-  const candidates = communityEdgeMode ? edgeCandidates : [
+  const defaultCandidates = [
     process.env.CHROME_PATH,
-    ...edgeCandidates,
+    process.env.EDGE_PATH,
     path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Google", "Chrome", "Application", "chrome.exe"),
     path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Google", "Chrome", "Application", "chrome.exe"),
+    path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Microsoft", "Edge", "Application", "msedge.exe"),
+    path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Microsoft", "Edge", "Application", "msedge.exe"),
     path.join(process.env.LOCALAPPDATA || "", "Google", "Chrome", "Application", "chrome.exe"),
   ].filter(Boolean);
+  const candidates = communityEdgeMode ? edgeCandidates : defaultCandidates;
   const executable = candidates.find((candidate) => existsSync(candidate));
   if (!executable) throw new Error(`${communityEdgeMode ? "Microsoft Edge" : "Chrome or Edge"} was not found. Checked: ${candidates.join(", ")}`);
   return executable;

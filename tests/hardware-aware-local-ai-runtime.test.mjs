@@ -126,7 +126,7 @@ test("SDXL is the default 8 GB image route and SD3.5 is only experimental", asyn
 test("LTX-Video 2B is the default lightweight local video path while H3 stays override-compatible", async () => {
   const [catalog, ltx, gateway, composition] = await Promise.all([
     read("lib/runtime/ai/local-runtime.ts"),
-    read("build/comfyui-ltx-local-provider.ts"),
+    read("build/ai/comfyui-ltx-local-provider.ts"),
     read("build/ai/comfyui-ltx-local-gateway.ts"),
     read("build/local-ai-gateway.ts"),
   ]);

@@ -21,7 +21,7 @@ The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, 
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, visual board, diagnostics and specialist labs.
 
-Current application version: `1.0.0-rc.4.0.1`
+Current application version: `1.0.0-rc.4.0.2`
 
 Current released project schema: `1.7.0`
 

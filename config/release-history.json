@@ -2,6 +2,35 @@
   "schemaVersion": 1,
   "releases": [
     {
+      "id": "2026-08-27-story-community-reliability",
+      "label": "2026.08.27 · Story Workflow & Community Reliability",
+      "version": "1.0.0-rc.4.0.2",
+      "date": "2026-08-27",
+      "title": "Story collaboration, Human decisions and local-first reliability moved forward together",
+      "summary": "PlotPickle now connects more of the story workflow through Community and review surfaces while strengthening local AI readiness and reorganizing runtime ownership without intentionally changing product behavior.",
+      "added": [
+        "Story Rooms gained owner-controlled directory and access-request foundations for private Community collaboration.",
+        "Story Council findings can flow into grouped Human Story Decisions and Story Workbench review instead of becoming direct canon changes.",
+        "Hardware-aware local AI readiness now gives clearer guidance for supported local providers and optional creative runtimes."
+      ],
+      "changed": [
+        "Local AI, Ollama and ComfyUI setup/recovery paths are more explicit, local-first and easier to diagnose.",
+        "Runtime code is being consolidated into bounded AI, BUZZ and project domains to make PlotPickle safer to maintain without redesigning user behavior.",
+        "Architecture phases now close only after their full acceptance criteria are satisfied; individual green PRs complete bounded batches, not whole phases."
+      ],
+      "fixed": [
+        "The displayed PlotPickle build and the newest What’s New entry are now kept in sync by deterministic regression coverage.",
+        "Architecture sequencing now keeps the real Afterglow convergence proof behind the visual-first phase and multi-Human UAT before final Windows shipping."
+      ],
+      "references": [
+        "#1415",
+        "#1444",
+        "#1460",
+        "#1490",
+        "PR #1481–#1489"
+      ]
+    },
+    {
       "id": "2026-08-19-visual-writer",
       "label": "2026.08.19 · Visual Writer & Avery",
       "date": "2026-08-19",
@@ -18,7 +47,16 @@
         "PlotPickle helpers now share one 8-bit lorebound visual identity."
       ],
       "fixed": [],
-      "references": ["#1030", "#1029", "PR #1053", "PR #1055", "PR #1057", "PR #1058", "PR #1059", "PR #1062"]
+      "references": [
+        "#1030",
+        "#1029",
+        "PR #1053",
+        "PR #1055",
+        "PR #1057",
+        "PR #1058",
+        "PR #1059",
+        "PR #1062"
+      ]
     },
     {
       "id": "2026-08-19-local-ai-settings",
@@ -40,7 +78,12 @@
         "AI Routing setup buttons no longer bounce back to the Settings landing page.",
         "Settings AI Routing and ComfyUI surfaces use the current PlotPickle dark visual system consistently."
       ],
-      "references": ["#1026", "#1046", "PR #1060", "PR #1061"]
+      "references": [
+        "#1026",
+        "#1046",
+        "PR #1060",
+        "PR #1061"
+      ]
     },
     {
       "id": "2026-08-18-local-creative-foundation",
@@ -62,7 +105,16 @@
         "Windows verification gained watchdogs and bounded cleanup so a stalled child process cannot silently hang the whole run.",
         "Managed ComfyUI readiness better distinguishes installed, stopped, provisioning and ready states on Windows."
       ],
-      "references": ["PR #1002", "PR #1009", "PR #1011", "PR #1014", "PR #1015", "PR #1017", "PR #1023", "PR #1032"]
+      "references": [
+        "PR #1002",
+        "PR #1009",
+        "PR #1011",
+        "PR #1014",
+        "PR #1015",
+        "PR #1017",
+        "PR #1023",
+        "PR #1032"
+      ]
     }
   ]
 }

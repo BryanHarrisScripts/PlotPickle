@@ -61,3 +61,15 @@ test("#1047 releases are curated user-facing entries rather than build/commit au
   assert.doesNotMatch(panel, /fetch\(|Date\.now|performance\.now|git log/i);
   assert.match(panel, /Dependency bumps and routine commits are intentionally excluded/);
 });
+
+
+test("#1490 newest What's New release matches the canonical application build", async () => {
+  const [history, packageManifest, panel] = await Promise.all([
+    readJson("config/release-history.json"),
+    readJson("package.json"),
+    read("modules/dashboard/ui/release-history/index.tsx"),
+  ]);
+  assert.equal(history.releases[0].version, packageManifest.version);
+  assert.equal(history.releases[0].date, "2026-08-27");
+  assert.match(panel, /release\.version/);
+});

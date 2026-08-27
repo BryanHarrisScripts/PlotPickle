@@ -14,18 +14,18 @@ test("#1396 starts the rc.4.0.x approved-build sequence from one canonical packa
     source("docs/specification/VERSIONING.md"),
   ]);
 
-  assert.equal(packageManifest.version, "1.0.0-rc.4.0.1");
+  assert.equal(packageManifest.version, "1.0.0-rc.4.0.2");
   assert.equal(lockManifest.version, packageManifest.version);
   assert.equal(lockManifest.packages[""].version, packageManifest.version);
   assert.match(adapter, /import packageManifest from "\.\.\/\.\.\/package\.json"/);
   assert.match(adapter, /PLOTPICKLE_VERSION = packageManifest\.version/);
-  assert.match(documentation, /next approved build is `1\.0\.0-rc\.4\.0\.2`/i);
+  assert.match(documentation, /next approved build is `1\.0\.0-rc\.4\.0\.3`/i);
 });
 
 test("#1396 semantic ordering is newer than rc.3 and satisfies rc.4 plugin minima", async () => {
-  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.1", "1.0.0-rc.3") > 0);
-  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.1", "1.0.0-rc.4") > 0);
-  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.2", "1.0.0-rc.4.0.1") > 0);
+  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.2", "1.0.0-rc.3") > 0);
+  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.2", "1.0.0-rc.4") > 0);
+  assert.ok(compareSemanticVersions("1.0.0-rc.4.0.3", "1.0.0-rc.4.0.2") > 0);
 
   const [packageManifest, pluginPlatform, playhouse] = await Promise.all([
     source("package.json").then(JSON.parse),

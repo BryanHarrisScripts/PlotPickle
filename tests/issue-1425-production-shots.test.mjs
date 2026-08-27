@@ -71,7 +71,7 @@ test("#1425 marks only shots whose Storyboard dependency changed as needing revi
   assert.match(model, /shotNeedsReview/);
   assert.match(workspace, /data-stale=\{anchor\.staleShotIds\.includes\(shot\.id\)/);
   assert.match(workspace, /This shot needs review because its approved Storyboard dependency changed/);
-  assert.match(workspace, /saving below is an explicit Human confirmation/);
+  assert.match(workspace, /Saving below is an explicit Human confirmation/);
   assert.match(workspace, /storyboardArtifactId: selectedAnchor\.storyboardArtifactId/);
   assert.match(workspace, /storyboardDependencyKey: selectedAnchor\.storyboardDependencyKey/);
 });

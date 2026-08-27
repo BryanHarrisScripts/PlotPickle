@@ -33,7 +33,7 @@ import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
 import { collaborationAccessGuard } from "./build/collaboration-access-guard";
 import { collaborationInvitationGateway } from "./build/collaboration-invitation-gateway";
-import { afterglowProjectGateway } from "./build/afterglow-project-gateway";
+import { afterglowProjectGateway } from "./build/projects/afterglow-project-gateway";
 import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
@@ -77,7 +77,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1 ? [{ binding: d1, database_name: "site-creator-d1", database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID }] : [],
-  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
+  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2", bucket_name: "site-creator-r2" }] : [],
 };
 
 export default defineConfig(async ({ command }) => {

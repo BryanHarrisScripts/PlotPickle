@@ -100,7 +100,7 @@ test("#1422 affected Human decisions carry only changed refs and updated evidenc
 
 test("#1422 server dispatch re-authorizes the exact persisted Run context before BUZZ transport", async () => {
   const [adapter, gateway] = await Promise.all([
-    read("modules/story-workflow/buzz-story-bridge.ts"),
+    read("modules/story-workflow/bridge/buzz-story-bridge.ts"),
     read("build/story-workflow-buzz-bridge-gateway.ts"),
   ]);
 

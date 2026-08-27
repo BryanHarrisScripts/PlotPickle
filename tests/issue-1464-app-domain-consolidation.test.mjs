@@ -113,3 +113,38 @@ test("#1464 retires the Community public-conversations root bridge without chang
   assert.ok(remainingCommunityRoots.length > 0, "retiring one bridge must not pretend the wider Community batch is complete");
   assert.ok(!remainingCommunityRoots.includes("community-public-conversations-rail.tsx"));
 });
+
+test("#1464 gives direct-root Dashboard UI one canonical product-surface owner", async () => {
+  const sourceFiles = [
+    "dashboard-afterglow.module.css",
+    "dashboard-command-centre.module.css",
+    "dashboard-command-centre.tsx",
+    "dashboard-story-library.module.css",
+    "dashboard-story-library.tsx",
+  ];
+
+  for (const file of sourceFiles) {
+    await assert.rejects(access(new URL(`app/${file}`, root)));
+    await access(new URL(`app/_components/dashboard/${file}`, root));
+  }
+
+  const [commandCentre, storyLibrary, architectureText] = await Promise.all([
+    read("app/_components/dashboard/dashboard-command-centre.tsx"),
+    read("app/_components/dashboard/dashboard-story-library.tsx"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(commandCentre, /from "\.\/dashboard-story-library"/);
+  assert.match(storyLibrary, /from "\.\/dashboard-story-library\.module\.css"/);
+  assert.match(storyLibrary, /aria-label="PlotPickle Studio Dashboard"/);
+
+  const architecture = JSON.parse(architectureText);
+  const dashboardBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-dashboard-components");
+  assert.ok(dashboardBatch, "the ratified Dashboard batch must remain governed");
+  assert.equal(dashboardBatch.status, "completed");
+  assert.deepEqual(dashboardBatch.completedSources, sourceFiles.map((file) => `app/${file}`));
+  assert.deepEqual(dashboardBatch.completedTargets, sourceFiles.map((file) => `app/_components/dashboard/${file}`));
+
+  const appEntries = await readdir(new URL("app/", root));
+  assert.deepEqual(appEntries.filter((name) => name.startsWith("dashboard-")), []);
+});

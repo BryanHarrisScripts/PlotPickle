@@ -204,7 +204,7 @@ test("Story Decision gateway and UI preserve profile, encrypted storage, revisio
     readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
     readFile(new URL("../core/auth/profile-request-browser.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/story-decisions/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/dashboard-story-library.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/_components/dashboard/dashboard-story-library.tsx", import.meta.url), "utf8"),
     readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8"),
   ]);
   assert.match(requestContext, /"\/api\/story-decisions"/);

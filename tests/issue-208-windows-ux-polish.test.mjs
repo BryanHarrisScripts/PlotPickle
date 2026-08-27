@@ -21,7 +21,7 @@ test("Graphic Novel language and entire-cast regeneration replace the old Comic 
 });
 
 test("Dashboard separates loaded source, local storage, GitHub repository and approved story", async () => {
-  const dashboard = await read("app/dashboard-command-centre.tsx");
+  const dashboard = await read("app/_components/dashboard/dashboard-command-centre.tsx");
   assert.match(dashboard, /Current project source/);
   assert.match(dashboard, /Local project on this device/);
   assert.match(dashboard, /Repository configured; local project still loaded/);
@@ -60,7 +60,7 @@ test("Refresh actions share an accessible glyph component", async () => {
     read("app/refresh-action.tsx"),
     read("app/ai-pitch-deck-workspace.tsx"),
     read("app/collab-workspace.tsx"),
-    read("app/dashboard-command-centre.tsx"),
+    read("app/_components/dashboard/dashboard-command-centre.tsx"),
   ]);
   assert.match(component, /aria-label=\{text\}/);
   assert.match(component, /aria-busy/);

@@ -7,8 +7,8 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #355 preserves the read-only Dashboard boundary", async () => {
   const [dashboard, studio, setup, registryText] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
-    source("app/dashboard-story-library.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-story-library.tsx"),
     source("app/setup-connections-dashboard.tsx"),
     source("config/ui-ux-screen-registry.json"),
   ]);
@@ -36,8 +36,8 @@ test("issue #355 retains truthful loading and live-check states in the setup sur
 
 test("issue #355 supplies semantic Studio Dashboard navigation and story architecture", async () => {
   const [entry, studio] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
-    source("app/dashboard-story-library.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-story-library.tsx"),
   ]);
   assert.match(entry, /<DashboardStoryLibrary/);
   assert.match(studio, /aria-label="PlotPickle Studio Dashboard"/);
@@ -50,7 +50,7 @@ test("issue #355 supplies semantic Studio Dashboard navigation and story archite
 
 test("issue #355 keeps focus and alternate-rendering behaviour available in legacy setup surfaces", async () => {
   const [dashboardCss, setupCss] = await Promise.all([
-    source("app/dashboard-command-centre.module.css"),
+    source("app/_components/dashboard/dashboard-command-centre.module.css"),
     source("app/setup-connections-dashboard.module.css"),
   ]);
   const css = `${dashboardCss}\n${setupCss}`;

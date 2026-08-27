@@ -58,8 +58,8 @@ test("#447 Plan default canvas exposes story direction and the 4\/24\/96 archite
 
 test("#447 keeps Dashboard and Plan as separate Studio surfaces", async () => {
   const [entry, dashboard, plan] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
-    source("app/dashboard-story-library.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-story-library.tsx"),
     source("app/project-overview.tsx"),
   ]);
 

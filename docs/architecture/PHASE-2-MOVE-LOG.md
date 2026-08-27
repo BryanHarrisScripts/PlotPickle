@@ -17,4 +17,21 @@ Behavior and authority preserved:
 - Agent Profile and bounded Context contracts remain unchanged;
 - no compatibility shim remains at the retired root path.
 
-This is the first bounded Phase 2 structural slice and does not close #1463. Remaining ratified Story Council, Story Bridge and Story Workflow root moves stay queued for subsequent coherent slices.
+## Story Council adapter slice
+
+Source: `modules/story-workflow/story-council.ts`
+Target: `modules/story-workflow/council/story-council.ts`
+
+Consumers/path assertions updated:
+- `tests/issue-1417-story-council.test.mjs`
+- `tests/issue-1417-story-council-afterglow.test.mjs`
+
+Behavior and authority preserved:
+- Story Council remains proposal/evidence only and cannot mutate PPF/canon directly;
+- specialist selection continues to use approved Agent Profiles and bounded Context packets;
+- Responsibility Runs and Graph limits remain unchanged, including zero paid-cloud budget;
+- writer approval remains the verification boundary for creative proposals;
+- BUZZ signed provenance remains evidence only and never canon authority;
+- no compatibility shim remains at the retired root path.
+
+The ratified `phase2-modules-story-council` batch is now complete. Remaining Story Bridge and Story Workflow root moves stay queued as separate coherent #1463 slices.

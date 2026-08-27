@@ -1,26 +1,26 @@
-import type { StoryWorkItem } from "../../core/story-workflow/story-workflow-core.mjs";
+import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import {
   STORY_COUNCIL_SPECIALISTS,
   selectStoryCouncilSpecialists,
   storyCouncilSpecialistByAgentId,
   type StoryCouncilPlan,
-} from "../../core/story-workflow/story-council/core.mjs";
+} from "../../../core/story-workflow/story-council/core.mjs";
 import {
   CONTEXT_AUTHORITY,
   assembleContextPacket,
   type ContextItemInput,
   type ContextPacket,
-} from "../../lib/agents/context/context-engine";
-import { agentProfileById } from "../../lib/agents/agent-profiles";
+} from "../../../lib/agents/context/context-engine";
+import { agentProfileById } from "../../../lib/agents/agent-profiles";
 import {
   createResponsibilityGraph,
   type ResponsibilityGraphDefinition,
-} from "../../lib/agents/responsibility/responsibility-graph";
+} from "../../../lib/agents/responsibility/responsibility-graph";
 import {
   createResponsibilityRun,
   type ResponsibilityRun,
   type ResponsibilityRunContextRef,
-} from "../../lib/agents/responsibility/responsibility-runs";
+} from "../../../lib/agents/responsibility/responsibility-runs";
 
 export type StoryCouncilRunAssignment = {
   readonly agentId: string;

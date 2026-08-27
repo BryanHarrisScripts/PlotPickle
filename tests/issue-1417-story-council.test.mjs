@@ -208,7 +208,7 @@ test("#1417 deterministic council reduction preserves agreement and creative dis
 });
 
 test("#1417 adapter reuses Responsibility Runs and current Agent Skills without making BUZZ or canon a worker authority", async () => {
-  const adapter = await read("modules/story-workflow/story-council.ts");
+  const adapter = await read("modules/story-workflow/council/story-council.ts");
   for (const contract of [
     "agentProfileById",
     "createResponsibilityRun",

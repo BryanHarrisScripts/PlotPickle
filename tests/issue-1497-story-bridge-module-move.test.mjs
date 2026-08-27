@@ -35,6 +35,8 @@ test("#1497 preserves the Phase 0 record and marks the machine-readable move com
 
   const contract = JSON.parse(await source("config/repository-architecture-target.json"));
   const batch = contract.moveBatches.find((item) => item.id === "phase2-modules-story-bridge");
+  assert.equal(batch?.sourceRoot, "modules/story-workflow");
+  assert.equal(batch?.targetRoot, "modules/story-workflow/bridge");
   assert.equal(batch?.status, "completed");
   assert.deepEqual(batch?.completedSources, ["modules/story-workflow/buzz-story-bridge.ts"]);
   assert.deepEqual(batch?.completedTargets, ["modules/story-workflow/bridge/buzz-story-bridge.ts"]);

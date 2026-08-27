@@ -66,7 +66,8 @@ test("#1423 Afterglow v9 proof maps character, location, Block and visual refere
   assert.match(afterglowProof, /approved: false/g);
   assert.match(afterglowProof, /createAfterglowStoryboardFrames/);
   assert.match(afterglowStoryboard, /afterglow-block-\$\{blockNumber\}-mini-\$\{miniBlockNumber\}/);
-  assert.match(afterglowComplete, /Block 17/);
+  assert.match(afterglowComplete, /const blockNumber = index \+ 1/);
+  assert.match(afterglowComplete, /"Lost and Found in Venice Beach",\s*"Waves of Connections"/);
   assert.match(afterglowComplete, /venice-beach/);
   assert.match(afterglowComplete, /characterIds/);
 });

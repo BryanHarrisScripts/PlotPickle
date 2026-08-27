@@ -47,6 +47,20 @@
   font-weight: 800;
 }
 
+.stale {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(246, 169, 59, 0.52);
+  border-radius: 12px;
+  color: #ffd7a0;
+  background: rgba(246, 169, 59, 0.09);
+}
+
+.stale span {
+  color: #cdbb9f;
+}
+
 .focus {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);

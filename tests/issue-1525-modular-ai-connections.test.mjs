@@ -30,7 +30,7 @@ test("#1525 preserves explicit local and paid-cloud authority boundaries", async
 });
 
 test("#1525 adds Gemini as an independent Writing provider instead of replacing OpenAI", async () => {
-  const [store, provider, gateway, routing, registry, compute, panel] = await Promise.all([
+  const [store, provider, gateway, routing, registry, compute, panel, consoleUi] = await Promise.all([
     read("build/writing-assistant-store.ts"),
     read("build/writing-assistant-provider.ts"),
     read("build/writing-assistant-gateway.ts"),
@@ -38,6 +38,7 @@ test("#1525 adds Gemini as an independent Writing provider instead of replacing 
     read("config/ai-source-registry.json"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/settings/ai-provider/gemini-provider-setup-panel.tsx"),
+    read("app/writing-assistant-console.tsx"),
   ]);
 
   assert.match(store, /"local" \| "ollama" \| "openai" \| "minimax" \| "gemini"/);
@@ -53,6 +54,10 @@ test("#1525 adds Gemini as an independent Writing provider instead of replacing 
   assert.match(panel, /DEFAULT_BASE_URL = "https:\/\/generativelanguage\.googleapis\.com\/v1beta\/openai"/);
   assert.match(panel, /DEFAULT_MODEL = "gemini-3\.7-flash"/);
   assert.match(panel, /This first slice enables Writing\/Reasoning only/);
+  assert.match(consoleUi, /type ProviderId = "ollama" \| "openai" \| "gemini" \| "minimax"/);
+  assert.match(consoleUi, /providerOrder: ProviderId\[\] = \["ollama", "openai", "gemini", "minimax"\]/);
+  assert.match(consoleUi, /label: "Google Gemini"/);
+  assert.match(consoleUi, /settingsTarget: "Google Gemini"/);
 });
 
 test("#1525 Gemini setup keeps cloud activation explicit", async () => {

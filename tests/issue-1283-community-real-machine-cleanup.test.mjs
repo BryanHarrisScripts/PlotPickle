@@ -29,7 +29,7 @@ const PUBLIC_ROOMS = [
 
 test("#1283 Community rooms and Agent membership come from a reusable plugin rather than app hard-coding", async () => {
   const [workspace, social, roster, pluginCode, pluginConfig] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("app/_components/community/community-agent-roster.tsx"),
     read("plugins/plotpickle-playhouse/index.ts"),
@@ -57,7 +57,7 @@ test("#1283 Community rooms and Agent membership come from a reusable plugin rat
 
 test("#1283 normal Community rail is Human-purpose rooms rather than internal architecture", async () => {
   const [workspace, pluginConfig] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     readJson("plugins/plotpickle-playhouse/community.json"),
   ]);
   assert.equal(pluginConfig.rooms.length, 4);
@@ -103,7 +103,7 @@ test("#1283 reusable BUZZ provisioner consumes plugin contributions and fails cl
 
 test("#1283 Great Hall is normal readable BUZZ conversation and legacy verification dumps are hidden", async () => {
   const [workspace, social] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
@@ -128,7 +128,7 @@ test("#1283 internal Agent and verification activity never falls back to the Hum
 });
 
 test("#1283 one Private Story Room replaces the six-Hall presentation without deleting compatibility rooms", async () => {
-  const workspace = await read("app/community-workspace.tsx");
+  const workspace = await read("app/_components/community/community-workspace.tsx");
   assert.match(workspace, /PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story"/);
   assert.match(workspace, /Private Story Room/);
   assert.match(workspace, /BUZZ_STORY_ROOMS\.map/);

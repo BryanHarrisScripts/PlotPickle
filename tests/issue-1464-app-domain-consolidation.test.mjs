@@ -15,14 +15,14 @@ test("#1509 gives Story Room Community UI one canonical owner without changing a
   await access(new URL("app/_components/community/community-story-room-listing.tsx", root));
 
   const [workspace, accessUi, listing, architectureText] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("app/_components/community/community-story-room-access.tsx"),
     read("app/_components/community/community-story-room-listing.tsx"),
     read("config/repository-architecture-target.json"),
   ]);
 
-  assert.match(workspace, /\.\/_components\/community\/community-story-room-access/);
-  assert.doesNotMatch(workspace, /from "\.\/community-story-room-access"/);
+  assert.match(workspace, /from "\.\/community-story-room-access"/);
+  assert.doesNotMatch(workspace, /\.\/_components\/community\/community-story-room-access/);
   assert.match(accessUi, /from "\.\.\/\.\.\/\.\.\/core\/auth\/profile-request-browser"/);
   assert.match(accessUi, /from "\.\.\/\.\.\/\.\.\/modules\/community\/story-room-directory"/);
   assert.match(accessUi, /from "\.\/community-story-room-listing"/);
@@ -35,11 +35,11 @@ test("#1509 gives Story Room Community UI one canonical owner without changing a
   const architecture = JSON.parse(architectureText);
   const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
   assert.ok(communityBatch, "the ratified Community batch must remain governed");
-  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+  assert.equal(communityBatch.status, "completed");
 
   const appEntries = await readdir(new URL("app/", root));
   const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
-  assert.ok(remainingCommunityRoots.length > 0, "this bounded slice must not pretend the whole Community batch is finished");
+  assert.deepEqual(remainingCommunityRoots.sort(), ["community-presence"], "the framework route directory remains outside the direct-file batch");
   assert.ok(!remainingCommunityRoots.includes("community-story-room-access.tsx"));
   assert.ok(!remainingCommunityRoots.includes("community-story-room-access.module.css"));
   assert.ok(!remainingCommunityRoots.includes("community-story-room-listing.tsx"));
@@ -52,13 +52,13 @@ test("#1511 gives the Community Agent roster one canonical UI owner without chan
   await access(new URL("app/_components/community/community-agent-roster.module.css", root));
 
   const [workspace, roster, architectureText] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("app/_components/community/community-agent-roster.tsx"),
     read("config/repository-architecture-target.json"),
   ]);
 
-  assert.match(workspace, /\.\/_components\/community\/community-agent-roster/);
-  assert.doesNotMatch(workspace, /from "\.\/community-agent-roster"/);
+  assert.match(workspace, /from "\.\/community-agent-roster"/);
+  assert.doesNotMatch(workspace, /\.\/_components\/community\/community-agent-roster/);
   assert.match(roster, /from "\.\.\/\.\.\/\.\.\/core\/auth\/profile-request-browser"/);
   assert.match(roster, /from "\.\.\/\.\.\/\.\.\/lib\/buzz\/community-agent-roster"/);
   assert.match(roster, /authenticatedProfileFetch/);
@@ -69,11 +69,11 @@ test("#1511 gives the Community Agent roster one canonical UI owner without chan
   const architecture = JSON.parse(architectureText);
   const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
   assert.ok(communityBatch, "the ratified Community batch must remain governed");
-  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+  assert.equal(communityBatch.status, "completed");
 
   const appEntries = await readdir(new URL("app/", root));
   const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
-  assert.ok(remainingCommunityRoots.length > 0, "the roster leaf move must not pretend the wider Community batch is complete");
+  assert.deepEqual(remainingCommunityRoots.sort(), ["community-presence"], "the framework route directory remains outside the direct-file batch");
   assert.ok(!remainingCommunityRoots.includes("community-agent-roster.tsx"));
   assert.ok(!remainingCommunityRoots.includes("community-agent-roster.module.css"));
 });
@@ -106,11 +106,11 @@ test("#1464 retires the Community public-conversations root bridge without chang
   const architecture = JSON.parse(architectureText);
   const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
   assert.ok(communityBatch, "the ratified Community batch must remain governed");
-  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+  assert.equal(communityBatch.status, "completed");
 
   const appEntries = await readdir(new URL("app/", root));
   const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
-  assert.ok(remainingCommunityRoots.length > 0, "retiring one bridge must not pretend the wider Community batch is complete");
+  assert.deepEqual(remainingCommunityRoots.sort(), ["community-presence"], "the framework route directory remains outside the direct-file batch");
   assert.ok(!remainingCommunityRoots.includes("community-public-conversations-rail.tsx"));
 });
 
@@ -136,13 +136,72 @@ test("#1464 gives the Community backdoor terminal one canonical UI owner", async
   const architecture = JSON.parse(architectureText);
   const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
   assert.ok(communityBatch, "the ratified Community batch must remain governed");
-  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while the workspace root remains");
+  assert.equal(communityBatch.status, "completed");
 
   const appEntries = await readdir(new URL("app/", root));
   const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
-  assert.ok(remainingCommunityRoots.length > 0, "the terminal leaf move must not pretend the wider Community batch is complete");
+  assert.deepEqual(remainingCommunityRoots.sort(), ["community-presence"], "the framework route directory remains outside the direct-file batch");
   assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.tsx"));
   assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.module.css"));
+});
+
+test("#1464 completes the direct-root Community UI batch while preserving the framework route", async () => {
+  const sourceFiles = [
+    "community-workspace.tsx",
+    "community-agent-roster.tsx",
+    "community-backdoor-terminal.tsx",
+    "community-story-room-access.tsx",
+    "community-story-room-listing.tsx",
+    "community-public-conversations-rail.tsx",
+    "community-workspace.module.css",
+    "community-navigation.module.css",
+    "community-agent-roster.module.css",
+    "community-backdoor-terminal.module.css",
+    "community-story-room-access.module.css",
+    "community-story-room-listing.module.css",
+    "community-public-conversations-rail.module.css",
+  ];
+
+  for (const file of sourceFiles) {
+    await assert.rejects(access(new URL(`app/${file}`, root)));
+    await access(new URL(`app/_components/community/${file}`, root));
+  }
+  await access(new URL("app/community-presence/page.tsx", root));
+
+  const [page, workspace, uatText, workflow, architectureText] = await Promise.all([
+    read("app/page.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
+    read("config/exhaustive-ui-uat.json"),
+    read(".github/workflows/buzz-guildhall.yml"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(page, /from "\.\/_components\/community\/community-workspace"/);
+  assert.doesNotMatch(page, /from "\.\/community-workspace"/);
+  assert.match(workspace, /from "\.\.\/\.\.\/\.\.\/core\/auth\/profile-request-browser"/);
+  assert.match(workspace, /from "\.\/community-agent-roster"/);
+  assert.match(workspace, /from "\.\/community-story-room-access"/);
+  assert.match(workspace, /from "\.\.\/\.\.\/connected-studios-panel"/);
+
+  const uat = JSON.parse(uatText);
+  const communityScreen = uat.screens.find((item) => item.id === "community");
+  assert.ok(communityScreen, "Community UAT surface must remain registered");
+  assert.ok(communityScreen.sourceFiles.includes("app/_components/community/community-workspace.tsx"));
+  assert.ok(!communityScreen.sourceFiles.includes("app/community-workspace.tsx"));
+  assert.match(workflow, /app\/_components\/community\/community-workspace\.tsx/);
+  assert.match(workflow, /app\/_components\/community\/community-workspace\.module\.css/);
+  assert.match(workflow, /app\/_components\/community\/community-navigation\.module\.css/);
+  assert.doesNotMatch(workflow, /app\/community-(?:workspace|navigation)/);
+
+  const architecture = JSON.parse(architectureText);
+  const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
+  assert.ok(communityBatch, "the ratified Community batch must remain governed");
+  assert.equal(communityBatch.status, "completed");
+  assert.deepEqual(communityBatch.completedSources, sourceFiles.map((file) => `app/${file}`));
+  assert.deepEqual(communityBatch.completedTargets, sourceFiles.map((file) => `app/_components/community/${file}`));
+
+  const appEntries = await readdir(new URL("app/", root));
+  assert.deepEqual(appEntries.filter((name) => name.startsWith("community-")).sort(), ["community-presence"]);
 });
 
 test("#1464 gives direct-root Dashboard UI one canonical product-surface owner", async () => {

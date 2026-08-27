@@ -16,9 +16,9 @@ test("#1295 evolves the Great Hall artwork into the shared 16/32-bit BBS room pr
 
 test("#1295 bundles an open-licensed terminal font and applies one coherent BBS type system", async () => {
   const [workspaceStyles, socialStyles, navigationStyles, font, license] = await Promise.all([
-    read("app/community-workspace.module.css"),
+    read("app/_components/community/community-workspace.module.css"),
     read("modules/community/community-buzz-social.module.css"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
     stat(new URL("../public/assets/fonts/vt323/VT323-Regular.ttf", import.meta.url)),
     read("public/assets/fonts/vt323/OFL.txt"),
   ]);
@@ -36,7 +36,7 @@ test("#1295 matches the supplied three-column hierarchy while preserving readabl
   const [social, socialStyles, navigationStyles] = await Promise.all([
     read("modules/community/community-buzz-social.tsx"),
     read("modules/community/community-buzz-social.module.css"),
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
   ]);
 
   assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/su);

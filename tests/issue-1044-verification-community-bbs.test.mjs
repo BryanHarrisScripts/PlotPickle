@@ -29,7 +29,7 @@ test("#1044 retries only transient BUZZ transport failures", async () => {
 
 test("#1044/#1283/#1323 configured BUZZ Community naming owns the visible Community identity while BUZZ remains the transport source of truth", async () => {
   const [workspace, social, defaultCommunity] = await Promise.all([
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("lib/buzz/buzz-default-community.ts"),
   ]);

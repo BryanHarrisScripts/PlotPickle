@@ -6,7 +6,7 @@ const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.met
 
 test("#1102/#1103 Community inherits the canonical PlotPickle desktop columns instead of declaring 19/81", async () => {
   const [communityCss, continuity] = await Promise.all([
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
     read("app/workspace-continuity.css"),
   ]);
 
@@ -20,7 +20,7 @@ test("#1102/#1103 Community inherits the canonical PlotPickle desktop columns in
 
 test("#1102/#1103 terminal screen and command rail use the inherited centre/right tracks on desktop", async () => {
   const [css, terminal] = await Promise.all([
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
     read("app/_components/community/community-backdoor-terminal.tsx"),
   ]);
 
@@ -33,7 +33,7 @@ test("#1102/#1103 terminal screen and command rail use the inherited centre/righ
 });
 
 test("#1283/#1323 keeps the Community rail truthful about verified Human identity and configured Community presentation", async () => {
-  const workspace = await read("app/community-workspace.tsx");
+  const workspace = await read("app/_components/community/community-workspace.tsx");
   assert.match(workspace, /data-community-native-buzz="true"/);
   assert.match(workspace, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
   assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY\.name/);
@@ -43,7 +43,7 @@ test("#1283/#1323 keeps the Community rail truthful about verified Human identit
 });
 
 test("#1283 replaces internal Channels and Forums with plugin rooms, Direct Messages and simple PlotPickle tools", async () => {
-  const workspace = await read("app/community-workspace.tsx");
+  const workspace = await read("app/_components/community/community-workspace.tsx");
   assert.match(workspace, /aria-label="Community rooms and Direct Messages"/);
   for (const label of ["Rooms", "Direct Messages", "Private Story Room", "Connected Studios", "Agents"]) {
     assert.match(workspace, new RegExp(label), `missing Community destination ${label}`);
@@ -57,7 +57,7 @@ test("#1283 replaces internal Channels and Forums with plugin rooms, Direct Mess
 
 test("#1102/#1103 preserve keyboard safety and use the shared shell collapse breakpoint", async () => {
   const [css, terminal, continuity] = await Promise.all([
-    read("app/community-navigation.module.css"),
+    read("app/_components/community/community-navigation.module.css"),
     read("app/_components/community/community-backdoor-terminal.tsx"),
     read("app/workspace-continuity.css"),
   ]);

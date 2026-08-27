@@ -9,7 +9,7 @@ test("BUZZ browser mutations inherit the active Human CSRF proof without weakeni
     read("core/auth/profile-request-browser.ts"),
     read("app/buzz-settings-panel.tsx"),
     read("app/buzz-live-health-card.tsx"),
-    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("app/_components/community/community-story-room-access.tsx"),
     read("app/_components/community/community-agent-roster.tsx"),

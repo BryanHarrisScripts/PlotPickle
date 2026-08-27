@@ -18,21 +18,6 @@ function integer(value, fallback = -1) {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
-function stable(value) {
-  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
-  if (!value || typeof value !== "object") return JSON.stringify(value);
-  return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => `${JSON.stringify(key)}:${stable(child)}`).join(",")}}`;
-}
-
-function hashText(value) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16).padStart(8, "0");
-}
-
 function axis(id, status, summary, blocking = false) {
   return { id, status, summary: text(summary, 1_200), blocking: Boolean(blocking) };
 }
@@ -53,9 +38,10 @@ export function normalizeStoryChangePackage(input) {
   const requiresCanonApply = MATERIAL_RESPONSE_CLASSES.has(responseClass);
   if (requiresCanonApply && (!targetRef || !value)) throw new Error("A material Story Change Package requires one explicit target and proposed value.");
   const createdAt = text(input.createdAt, 60) || new Date().toISOString();
+  const generatedPackageId = `story-change-${decisionId}-${responseId}-${baseRevision}`.replace(/[^a-zA-Z0-9._:-]+/g, "-").slice(0, 180);
   return {
     schemaVersion: STORY_WORKBENCH_VERSION,
-    packageId: text(input.packageId, 180) || `story-change-${hashText(stable({ projectId, decisionId, responseId, baseRevision, targetRef, value }))}`,
+    packageId: text(input.packageId, 180) || generatedPackageId,
     projectId,
     decisionId,
     responseId,

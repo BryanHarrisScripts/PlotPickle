@@ -91,7 +91,7 @@ test("#1444 Phase B keeps Closed fail-safe, exposes a bounded preview, and capab
   const [gateway, listing, component, vite] = await Promise.all([
     read("build/buzz-story-room-listing-gateway.ts"),
     read("lib/buzz/story-room-listing.ts"),
-    read("app/community-story-room-listing.tsx"),
+    read("app/_components/community/community-story-room-listing.tsx"),
     read("vite.config.ts"),
   ]);
   assert.match(gateway, /capabilities: \{ openMembership: false \}/);

@@ -8,7 +8,7 @@ import {
   reduceStoryResults,
   requeueAffectedStoryWorkItems,
   storyWorkItemId,
-} from "../core/story-workflow/story-workflow-core.mjs";
+} from "../core/story-workflow/runtime/story-workflow-core.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -167,7 +167,7 @@ test("#1416 requeues only affected dependencies after one accepted story change"
 test("#1416 adapter derives work from live Foundations and reuses Context, Responsibility Run and graph authority", async () => {
   const [adapter, core, foundationPlan, contextEngine, runs, graph] = await Promise.all([
     read("modules/story-workflow/runtime/foundations-story-workflow.ts"),
-    read("core/story-workflow/story-workflow-core.mjs"),
+    read("core/story-workflow/runtime/story-workflow-core.mjs"),
     read("core/contracts/foundation-plan.ts"),
     read("lib/agents/context/context-engine.ts"),
     read("lib/agents/responsibility/responsibility-runs.ts"),

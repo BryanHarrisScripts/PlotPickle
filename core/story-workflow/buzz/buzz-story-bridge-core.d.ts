@@ -1,4 +1,4 @@
-import type { StoryResult } from "../story-workflow-core.mjs";
+import type { StoryResult } from "../runtime/story-workflow-core.mjs";
 
 export type StoryBridgePrivacyClass = "private-project" | "human-purpose" | "public-great-hall" | "guildhall";
 export type StoryBridgeState = "ready" | "degraded-local" | "blocked" | "accepted" | "stale" | "rejected" | "unverified";

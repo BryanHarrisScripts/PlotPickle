@@ -12,7 +12,7 @@ import {
   planStoryWorkItems,
   type StoryWorkItem,
   type StoryWorkflowRequirement,
-} from "../../../core/story-workflow/story-workflow-core.mjs";
+} from "../../../core/story-workflow/runtime/story-workflow-core.mjs";
 import {
   CONTEXT_AUTHORITY,
   assembleContextPacket,

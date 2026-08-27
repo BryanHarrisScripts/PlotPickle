@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
 import type { PPFProject } from "../../../core/project/project";
-import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
+import type { StoryWorkItem } from "../../../core/story-workflow/runtime/story-workflow-core.mjs";
 import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
 import { createFoundationsStoryResponsibilityRun } from "../runtime/foundations-story-workflow";
 

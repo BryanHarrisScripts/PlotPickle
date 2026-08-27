@@ -1,83 +1,4 @@
-from pathlib import Path
-import subprocess
-
-root = Path('.')
-
-source_mjs = root / 'core/story-workflow/story-workflow-core.mjs'
-target_mjs = root / 'core/story-workflow/runtime/story-workflow-core.mjs'
-source_dts = root / 'core/story-workflow/story-workflow-core.d.ts'
-target_dts = root / 'core/story-workflow/runtime/story-workflow-core.d.ts'
-
-target_mjs.parent.mkdir(parents=True, exist_ok=True)
-subprocess.run(['git', 'mv', str(source_mjs), str(target_mjs)], check=True)
-subprocess.run(['git', 'mv', str(source_dts), str(target_dts)], check=True)
-
-# Core siblings use a short relative import back to the generic workflow core.
-for path in [
-    'core/story-workflow/story-council/core.mjs',
-    'core/story-workflow/story-council/core.d.ts',
-    'core/story-workflow/buzz/buzz-story-bridge-core.mjs',
-    'core/story-workflow/buzz/buzz-story-bridge-core.d.ts',
-]:
-    file = root / path
-    text = file.read_text()
-    old = '../story-workflow-core.mjs'
-    new = '../runtime/story-workflow-core.mjs'
-    if old not in text:
-        raise SystemExit(f'Missing expected Story Workflow core import in {path}')
-    file.write_text(text.replace(old, new))
-
-# Product/module/test consumers carry the repository path in their relative import.
-for path in [
-    'modules/story-workflow/council/story-council-runtime.ts',
-    'modules/story-workflow/bridge/buzz-story-bridge.ts',
-    'modules/story-workflow/workbench/workflow.ts',
-    'modules/story-workflow/council/story-council.ts',
-    'modules/story-workflow/runtime/foundations-story-workflow.ts',
-    'modules/story-workflow/ui/foundations-story-workflow-panel.tsx',
-    'modules/story-workflow/ui/foundations-buzz-story-live-test.tsx',
-    'tests/issue-1416-story-workflow-engine.test.mjs',
-]:
-    file = root / path
-    text = file.read_text()
-    old = 'core/story-workflow/story-workflow-core.mjs'
-    new = 'core/story-workflow/runtime/story-workflow-core.mjs'
-    if old not in text:
-        raise SystemExit(f'Missing expected Story Workflow core path in {path}')
-    file.write_text(text.replace(old, new))
-
-# Earlier architecture regressions are hardcoded path consumers and must follow the new canonical owner.
-legacy_regex_updates = {
-    'tests/issue-1497-story-bridge-module-move.test.mjs': [
-        ('core\\/story-workflow\\/buzz-story-bridge-core', 'core\\/story-workflow\\/buzz\\/buzz-story-bridge-core'),
-        ('core\\/story-workflow\\/story-workflow-core', 'core\\/story-workflow\\/runtime\\/story-workflow-core'),
-    ],
-    'tests/issue-1499-foundations-story-runtime-move.test.mjs': [
-        ('core\\/story-workflow\\/story-workflow-core', 'core\\/story-workflow\\/runtime\\/story-workflow-core'),
-    ],
-    'tests/issue-1502-buzz-story-core-move.test.mjs': [
-        ('from "../story-workflow-core.mjs"', 'from "../runtime/story-workflow-core.mjs"'),
-    ],
-}
-for path, replacements in legacy_regex_updates.items():
-    file = root / path
-    text = file.read_text()
-    for old, new in replacements:
-        if old not in text:
-            raise SystemExit(f'Missing expected hardcoded path in {path}: {old}')
-        text = text.replace(old, new)
-    file.write_text(text)
-
-config = root / 'config/repository-architecture-target.json'
-text = config.read_text()
-old = '{"id":"phase2-core-story-runtime","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/runtime","directFilesOnly":true,"selector":{"prefixes":["story-workflow-core"]}}'
-new = '{"id":"phase2-core-story-runtime","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/runtime","directFilesOnly":true,"selector":{"prefixes":["story-workflow-core"]},"status":"completed","completedAt":"2026-08-27","completedSources":["core/story-workflow/story-workflow-core.d.ts","core/story-workflow/story-workflow-core.mjs"],"completedTargets":["core/story-workflow/runtime/story-workflow-core.d.ts","core/story-workflow/runtime/story-workflow-core.mjs"]}'
-if old not in text:
-    raise SystemExit('Expected phase2-core-story-runtime contract line was not found')
-config.write_text(text.replace(old, new, 1))
-
-regression = root / 'tests/issue-1504-story-runtime-core-move.test.mjs'
-regression.write_text(r'''import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -175,4 +96,3 @@ test("#1504 marks the final Phase 2 move batch complete while preserving the Pha
   const history = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
   assert.ok(history.includes('legacy root `core/story-workflow/story-workflow-core.*` → `core/story-workflow/runtime/`'));
 });
-''')

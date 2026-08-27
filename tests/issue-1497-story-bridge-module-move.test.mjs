@@ -9,8 +9,8 @@ test("#1497 moves the Story Bridge adapter to its ratified module owner", async 
   await assert.rejects(access(new URL("modules/story-workflow/buzz-story-bridge.ts", root)));
   const bridge = await source("modules/story-workflow/bridge/buzz-story-bridge.ts");
   assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/buzz\/agent-identity-binding\.mjs"/);
-  assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/buzz-story-bridge-core\.mjs"/);
-  assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/story-workflow-core\.mjs"/);
+  assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/buzz\/buzz-story-bridge-core\.mjs"/);
+  assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/runtime\/story-workflow-core\.mjs"/);
   assert.match(bridge, /from "\.\.\/\.\.\/\.\.\/lib\/agents\/agent-profiles"/);
 });
 

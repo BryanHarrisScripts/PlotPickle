@@ -21,7 +21,8 @@
 .eyebrow,
 .blockKicker,
 .anchorHeader span,
-.timelinePreview header span {
+.timelinePreview header span,
+.shotEditor header span {
   color: #69e3d3;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -30,7 +31,8 @@
 
 .hero h1,
 .blockHeader h2,
-.timelinePreview h2 {
+.timelinePreview h2,
+.shotEditor h2 {
   margin: 6px 0 10px;
   font-weight: 500;
 }
@@ -104,7 +106,12 @@
   cursor: pointer;
 }
 
-.workspace button:hover,
+.workspace button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.workspace button:hover:not(:disabled),
 .workspace button:focus-visible {
   border-color: #69e3d3;
   outline: none;
@@ -147,7 +154,8 @@
 [data-state="locked"] { color: var(--locked); }
 
 .blockWorkspace,
-.timelinePreview {
+.timelinePreview,
+.shotEditor {
   border: 1px solid #23483e;
   border-radius: 16px;
   background: #071310;
@@ -156,7 +164,8 @@
 }
 
 .blockHeader,
-.timelinePreview > header {
+.timelinePreview > header,
+.shotEditor > header {
   display: flex;
   justify-content: space-between;
   gap: 18px;
@@ -180,7 +189,6 @@
 
 .anchorCard {
   display: grid;
-  grid-template-rows: auto auto 1fr auto auto;
   gap: 10px;
   padding: 12px;
   border: 1px solid #24483f;
@@ -247,6 +255,88 @@
   padding: 8px;
 }
 
+.shotList {
+  display: grid;
+  gap: 6px;
+}
+
+.shotList button {
+  width: 100%;
+  text-align: left;
+  font-size: 0.76rem;
+}
+
+.shotList button[data-stale="true"] {
+  border-color: var(--missing);
+  color: var(--missing);
+}
+
+.anchorActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.anchorActions button {
+  flex: 1 1 120px;
+}
+
+.shotEditor {
+  margin-top: 16px;
+}
+
+.staleNotice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--missing);
+  border-radius: 9px;
+  background: #1a0c0e;
+  color: var(--missing);
+  line-height: 1.45;
+}
+
+.shotForm {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.shotForm label {
+  display: grid;
+  gap: 6px;
+  color: #91b4a9;
+  font-size: 0.76rem;
+}
+
+.shotForm input,
+.shotForm select,
+.shotForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #294c43;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #081512;
+  color: #e8f5f0;
+  font: inherit;
+}
+
+.shotForm input:focus,
+.shotForm select:focus,
+.shotForm textarea:focus {
+  border-color: #69e3d3;
+  outline: none;
+}
+
+.shotForm textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.fullField {
+  grid-column: 1 / -1;
+}
+
 .timelinePreview {
   margin-top: 16px;
 }
@@ -275,6 +365,12 @@
   color: #92b4a9;
 }
 
+.message {
+  min-height: 1.4em;
+  margin: 14px 4px 0;
+  color: #69e3d3;
+}
+
 .footer {
   padding: 18px 4px 4px;
   font-size: 0.8rem;
@@ -283,14 +379,18 @@
 @media (max-width: 1100px) {
   .anchorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero { grid-template-columns: 1fr; }
+  .shotForm { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 700px) {
   .workspace { padding: 16px; }
   .anchorGrid,
   .timelineRail,
-  .summary { grid-template-columns: 1fr; }
+  .summary,
+  .shotForm { grid-template-columns: 1fr; }
   .notice,
   .blockHeader,
-  .timelinePreview > header { flex-direction: column; }
+  .timelinePreview > header,
+  .shotEditor > header { flex-direction: column; }
+  .fullField { grid-column: auto; }
 }

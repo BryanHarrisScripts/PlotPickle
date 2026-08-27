@@ -42,7 +42,8 @@ test("#1425 keeps 24\/96 as provenance anchors rather than a fixed clip quota", 
   assert.match(model, /No duration or motion is inferred/);
   assert.match(workspace, /24 Blocks \/ 96 canonical timing anchors/);
   assert.match(workspace, /0 \/ 1 \/ many/);
-  assert.match(workspace, /Duration<\/dt><dd>Not inferred/);
+  assert.match(workspace, /Authored time/);
+  assert.match(workspace, /placeholder="Not inferred"/);
   assert.match(workspace, /final clip count is intentionally flexible/);
   assert.match(workspace, /denser or lighter by Mini-Block, Block, Sequence or Act/);
 });
@@ -66,6 +67,7 @@ test("#1425 preserves shared five-state language and truthful media placeholders
   assert.match(workspace, /REFERENCE ONLY/);
   assert.match(workspace, /NO TIMING YET/);
   assert.match(workspace, /loading="lazy"/);
-  assert.match(workspace, /Timeline stays empty until timing is actually authored/);
-  assert.doesNotMatch(`${model}\n${workspace}`, /\/api\/.*generate|Render MP4|saveFoundationProject/);
+  assert.match(workspace, /Timing grows from authored Production Shots/);
+  assert.match(workspace, /durationSeconds: parsedDuration/);
+  assert.doesNotMatch(`${model}\n${workspace}`, /\/api\/.*generate|Render MP4/);
 });

@@ -41,6 +41,9 @@ test("#1404 reuses the Windows interaction harness for focused Microsoft Edge Co
     "performance.timeOrigin",
     "STATUS_ACCESS_VIOLATION",
     "communityStableMs",
+    "establishVerificationSyntheticHuman",
+    "PLOTPICKLE_VERIFICATION_AUTH_COOKIE",
+    "Network.setCookie",
   ]) assert.ok(smoke.includes(contract), `Windows interaction smoke is missing Community Edge contract: ${contract}`);
   assert.match(smoke, /data-workspace-nav-id=.*community/);
   assert.match(smoke, /data-community-native-buzz=.*true/);

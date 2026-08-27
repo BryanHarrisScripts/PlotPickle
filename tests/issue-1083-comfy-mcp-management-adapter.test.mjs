@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("#1083 treats Comfy MCP as an optional management adapter, not the image-generation authority", async () => {
   const [diagnostics, providerGateway, localAi] = await Promise.all([
-    source("build/comfyui-connection-diagnostics.ts"),
+    source("build/ai/comfyui-connection-diagnostics.ts"),
     source("build/ai/provider-diagnostics-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
@@ -20,7 +20,7 @@ test("#1083 treats Comfy MCP as an optional management adapter, not the image-ge
 });
 
 test("#1083 verifies the official local MCP prerequisites and preserves direct fallback", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
   assert.match(diagnostics, /COMFY_MCP_MINIMUM_CLI_VERSION = "1\.14\.0"/);
   assert.match(diagnostics, /probeExecutableVersion\("comfy-mcp"\)/);
   assert.match(diagnostics, /process\.env\.COMFY_BIN\?\.trim\(\) \|\| "comfy"/);
@@ -32,7 +32,7 @@ test("#1083 verifies the official local MCP prerequisites and preserves direct f
 
 test("#1083 never invokes management commands through a shell and bounds their output/time", async () => {
   const [diagnostics, onboarding] = await Promise.all([
-    source("build/comfyui-connection-diagnostics.ts"),
+    source("build/ai/comfyui-connection-diagnostics.ts"),
     source("build/ai/comfyui-onboarding-gateway.ts"),
   ]);
   assert.match(diagnostics, /execFileAsync\(comfyBin, \["launch", "--background"\]/);
@@ -57,7 +57,7 @@ test("#1083 prefers managed comfy-cli lifecycle only when the Comfy MCP stack is
 
 test("#1083 keeps ComfyUI local and never silently promotes a failed local setup to cloud", async () => {
   const [diagnostics, onboarding, panel] = await Promise.all([
-    source("build/comfyui-connection-diagnostics.ts"),
+    source("build/ai/comfyui-connection-diagnostics.ts"),
     source("build/ai/comfyui-onboarding-gateway.ts"),
     source("app/media-routing-panel.tsx"),
   ]);
@@ -69,7 +69,7 @@ test("#1083 keeps ComfyUI local and never silently promotes a failed local setup
 });
 
 test("#1083 exposes only bounded hardware facts and does not return raw ComfyUI system command details", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
   assert.match(diagnostics, /gpuName: string/);
   assert.match(diagnostics, /totalVramMb: number \| null/);
   assert.match(diagnostics, /freeVramMb: number \| null/);
@@ -96,7 +96,7 @@ test("#1083 shows the normalized Comfy management and safe GPU facts in Settings
 
 test("#1083 normalizes service, checkpoint and node problems into actionable setup blockers", async () => {
   const [diagnostics, host] = await Promise.all([
-    source("build/comfyui-connection-diagnostics.ts"),
+    source("build/ai/comfyui-connection-diagnostics.ts"),
     source("app/configuration-dashboard-host.tsx"),
   ]);
   assert.match(diagnostics, /ComfySetupBlockerKind = "service" \| "checkpoint" \| "image-node" \| "workflow-node"/);
@@ -116,7 +116,7 @@ test("#1083 normalizes service, checkpoint and node problems into actionable set
 
 test("#1083 does not give creative agents custom-node install, partner-credit or arbitrary MCP authority", async () => {
   const [diagnostics, onboarding] = await Promise.all([
-    source("build/comfyui-connection-diagnostics.ts"),
+    source("build/ai/comfyui-connection-diagnostics.ts"),
     source("build/ai/comfyui-onboarding-gateway.ts"),
   ]);
   for (const forbidden of ["install_node", "partner_generate", "auth_login", "download_model", "run_workflow", "run_template"]) {

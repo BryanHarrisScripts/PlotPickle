@@ -55,7 +55,7 @@ test("#1026 normal Windows startup cannot wait on optional companion or ComfyUI 
 test("#1026 explicit ComfyUI start uses the reviewed managed engine headlessly and preserves Desktop model paths", async () => {
   const [starter, onboarding] = await Promise.all([
     read("scripts/start-comfyui-background.ps1"),
-    read("build/comfyui-onboarding-gateway.ts"),
+    read("build/ai/comfyui-onboarding-gateway.ts"),
   ]);
 
   const managedStart = starter.indexOf("if (-not $mainPath -and $desktopExe -and $managedInstalled.Count -gt 0)");

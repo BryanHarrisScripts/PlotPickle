@@ -10,6 +10,12 @@ const moved = [
   ["build/portable-ppf-reader.ts", "build/projects/portable-ppf-reader.ts"],
 ];
 
+const buzzSupportMoved = [
+  ["build/buzz-agent-identity-binding-loader.ts", "build/buzz/buzz-agent-identity-binding-loader.ts"],
+  ["build/buzz-bundle-normalizer.ts", "build/buzz/buzz-bundle-normalizer.ts"],
+  ["build/buzz-profile-migration-gateway.ts", "build/buzz/buzz-profile-migration-gateway.ts"],
+];
+
 test("#1462 Projects batch retires flat build sources into the ratified domain without compatibility shims", async () => {
   for (const [source, target] of moved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
@@ -59,4 +65,36 @@ test("#1462 architecture inventory records the Projects batch as completed rathe
   assert.match(inventory, /Completed move source still exists/);
   assert.match(inventory, /Completed move target does not exist/);
   assert.match(inventory, /batch\.status === "completed"/);
+});
+
+test("#1462 BUZZ support slice retires selected flat build files while the larger BUZZ batch remains bounded", async () => {
+  for (const [source, target] of buzzSupportMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must remain retired after the BUZZ support move`);
+    await access(new URL(target, root));
+  }
+
+  const [vite, route, storyBridge, identityContract, normalizerContract, migrationContract] = await Promise.all([
+    read("vite.config.ts"),
+    read("app/api/buzz-agent-public-identities/route.ts"),
+    read(".github/workflows/story-bridge.yml"),
+    read("tests/issue-1422-buzz-agent-identity-binding.test.mjs"),
+    read("tests/issue-216-buzz-integration-fix.test.mjs"),
+    read("tests/issue-1144-buzz-profile-migration-contract.test.mjs"),
+  ]);
+
+  assert.match(vite, /\.\/build\/buzz\/buzz-profile-migration-gateway/);
+  assert.match(vite, /\.\/build\/buzz\/buzz-bundle-normalizer/);
+  assert.match(vite, /\.\/build\/buzz\/buzz-agent-identity-binding-loader/);
+  assert.match(route, /build\/buzz\/buzz-agent-identity-binding-loader/);
+  assert.match(storyBridge, /build\/buzz\/buzz-agent-identity-binding-loader\.ts/);
+  assert.match(identityContract, /build\/buzz\/buzz-agent-identity-binding-loader\.ts/);
+  assert.match(normalizerContract, /build\/buzz\/buzz-bundle-normalizer\.ts/);
+  assert.match(migrationContract, /build\/buzz\/buzz-profile-migration-gateway\.ts/);
+
+  const combined = [vite, route, storyBridge, identityContract, normalizerContract, migrationContract].join("\n");
+  for (const [source] of buzzSupportMoved) assert.doesNotMatch(combined, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  const config = JSON.parse(await read("config/repository-architecture-target.json"));
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-buzz");
+  assert.notEqual(batch?.status, "completed", "the BUZZ batch must not claim completion until every ratified buzz-* source is moved");
 });

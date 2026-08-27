@@ -41,7 +41,9 @@ jobs:
         run: |
           git config user.name "PlotPickle Architecture Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add app config tests .github/workflows/buzz-guildhall.yml
+          # Workflow path filters are updated separately through the GitHub connector;
+          # the Actions token intentionally cannot write workflow files.
+          git add app config tests
           if git diff --cached --quiet; then
             echo "No permanent source changes to commit."
             exit 0

@@ -96,6 +96,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-routing": "local-compute",
   "settings-ollama": "local-compute",
   "settings-openai": "cloud-compute",
+  "settings-gemini": "cloud-compute",
   "settings-minimax": "cloud-compute",
   "settings-comfyui": "comfyui",
   "settings-images": "local-compute",
@@ -115,6 +116,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   media: "local-compute",
   comfyui: "comfyui",
   openai: "cloud-compute",
+  gemini: "cloud-compute",
   minimax: "cloud-compute",
 };
 

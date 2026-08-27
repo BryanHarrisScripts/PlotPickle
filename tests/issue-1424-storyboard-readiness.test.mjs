@@ -3,13 +3,15 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const workspacePath = "app/_components/storyboard/storyboard-readiness-workspace.tsx";
 
 test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", async () => {
   const route = await read("app/storyboard/page.tsx");
-  const workspace = await read("app/storyboard-readiness-workspace.tsx");
+  const workspace = await read(workspacePath);
 
   assert.match(route, /loadFoundationProject/);
   assert.match(route, /PPFProject/);
+  assert.match(route, /_components\/storyboard\/storyboard-readiness-workspace/);
   assert.doesNotMatch(route, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 
   assert.match(workspace, /deriveVisualReadiness/);
@@ -20,7 +22,7 @@ test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", 
 });
 
 test("#1424 preserves the old Storyboard implementation for bounded adaptation instead of rebuilding it", async () => {
-  const workspace = await read("app/storyboard-readiness-workspace.tsx");
+  const workspace = await read(workspacePath);
   const legacyBoard = await read("app/visual-storyboard.tsx");
   const audit = await read("docs/architecture/visual-pipeline-reuse-audit-1423.md");
   const phaseBoundary = await read("docs/architecture/storyboard-readoption-1424.md");
@@ -37,7 +39,7 @@ test("#1424 preserves the old Storyboard implementation for bounded adaptation i
 
 test("#1424 readiness gate remains non-authoritative and generation-free", async () => {
   const route = await read("app/storyboard/page.tsx");
-  const workspace = await read("app/storyboard-readiness-workspace.tsx");
+  const workspace = await read(workspacePath);
   const combined = `${route}\n${workspace}`;
 
   assert.doesNotMatch(combined, /saveFoundationProject|writeFile|database|sqlite/);

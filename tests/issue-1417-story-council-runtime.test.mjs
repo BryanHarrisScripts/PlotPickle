@@ -70,7 +70,7 @@ test("#1417 Mastra keeps the existing approved role but switches marked Council 
 });
 
 test("#1417 host adapter binds model content back to canonical work item/profile context", async () => {
-  const runtime = await read("modules/story-workflow/story-council-runtime.ts");
+  const runtime = await read("modules/story-workflow/council/story-council-runtime.ts");
   for (const contract of [
     "profile.runtimeRoleId",
     "profile.requestedModelRole",

@@ -1,15 +1,15 @@
-import type { StoryWorkItem } from "../../core/story-workflow/story-workflow-core.mjs";
+import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import {
   parseStoryCouncilRuntimeText,
   storyCouncilRuntimeMessage,
-} from "../../core/story-workflow/story-council/runtime-protocol.mjs";
+} from "../../../core/story-workflow/story-council/runtime-protocol.mjs";
 import {
   normalizeStoryCouncilContribution,
   storyCouncilSpecialistByAgentId,
   type StoryCouncilContribution,
-} from "../../core/story-workflow/story-council/core.mjs";
-import type { ContextPacket } from "../../lib/agents/context/context-engine";
-import { agentProfileById } from "../../lib/agents/agent-profiles";
+} from "../../../core/story-workflow/story-council/core.mjs";
+import type { ContextPacket } from "../../../lib/agents/context/context-engine";
+import { agentProfileById } from "../../../lib/agents/agent-profiles";
 
 export function storyCouncilRuntimeRequest(input: {
   readonly workItem: StoryWorkItem;

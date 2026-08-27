@@ -5,6 +5,7 @@ type ReleaseEntry = {
   id: string;
   label: string;
   date: string;
+  version?: string;
   title: string;
   summary: string;
   added: string[];
@@ -49,7 +50,7 @@ export default function ReleaseHistoryPanel() {
               <div>
                 <p>{index === 0 ? "Latest release" : "Earlier release"} · {release.date}</p>
                 <h3>{release.title}</h3>
-                <span>{release.label}</span>
+                <span>{release.label}{release.version ? ` · v${release.version}` : ""}</span>
               </div>
               {index === 0 ? <strong>NEWEST</strong> : null}
             </header>

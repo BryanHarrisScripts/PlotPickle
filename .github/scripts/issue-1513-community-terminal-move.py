@@ -106,7 +106,7 @@ test("#1513 gives the Community backdoor terminal one canonical UI owner without
   assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.tsx"));
   assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.module.css"));
 });
-''' + "\n"
+'''
     architecture_test.write_text(architecture_text, encoding="utf-8")
 
 # Final local structural assertions before tests/build run.

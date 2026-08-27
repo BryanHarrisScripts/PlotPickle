@@ -31,6 +31,7 @@ export default function StoryboardPage() {
   return (
     <StoryboardReadinessWorkspace
       project={project}
+      onProjectChange={setProject}
       onOpenBuild={() => window.location.assign("/?workspace=build")}
     />
   );

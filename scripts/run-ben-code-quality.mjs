@@ -149,6 +149,12 @@ function findingContentFingerprint(change, side) {
   });
 }
 
+function resolvedFindingMatches(candidate, change, groupFingerprint, contentFingerprint) {
+  if (candidate?.status !== "resolved" || candidate?.ruleId !== change?.ruleId) return false;
+  if (groupFingerprint) return findingGroupFingerprint(candidate, "base") === groupFingerprint;
+  return Boolean(contentFingerprint) && findingContentFingerprint(candidate, "base") === contentFingerprint;
+}
+
 function renamePreservesExistingFinding(report, change, findingPath, changedEntries) {
   if (change?.status !== "added") return false;
   const rename = changedEntries.find((entry) => entry.status.charAt(0) === "R" && entry.targetPath === findingPath);
@@ -156,10 +162,23 @@ function renamePreservesExistingFinding(report, change, findingPath, changedEntr
   const sourceReport = (report?.paths || []).find((pathReport) => pathReport?.path === rename.sourcePath);
   const groupFingerprint = findingGroupFingerprint(change, "head");
   const contentFingerprint = findingContentFingerprint(change, "head");
-  return (sourceReport?.changes || []).some((candidate) => {
-    if (candidate?.status !== "resolved" || candidate?.ruleId !== change?.ruleId) return false;
-    if (groupFingerprint) return findingGroupFingerprint(candidate, "base") === groupFingerprint;
-    return Boolean(contentFingerprint) && findingContentFingerprint(candidate, "base") === contentFingerprint;
+  return (sourceReport?.changes || []).some((candidate) => resolvedFindingMatches(candidate, change, groupFingerprint, contentFingerprint));
+}
+
+export function changedPathRelocationPreservesExistingFinding(report, change, findingPath, changedEntries) {
+  if (change?.status !== "added") return false;
+  const targetWasAdded = changedEntries.some((entry) => {
+    const kind = entry.status.charAt(0);
+    return (kind === "A" || kind === "C") && entry.targetPath === findingPath;
+  });
+  if (!targetWasAdded) return false;
+
+  const groupFingerprint = findingGroupFingerprint(change, "head");
+  const contentFingerprint = findingContentFingerprint(change, "head");
+  const changedPathSet = new Set(changedEntries.flatMap((entry) => [entry.sourcePath, entry.targetPath]).filter(Boolean));
+  return (report?.paths || []).some((sourceReport) => {
+    if (!sourceReport?.path || sourceReport.path === findingPath || !changedPathSet.has(sourceReport.path)) return false;
+    return (sourceReport.changes || []).some((candidate) => resolvedFindingMatches(candidate, change, groupFingerprint, contentFingerprint));
   });
 }
 
@@ -180,6 +199,7 @@ function relevantDeltaFindings(report, changedEntries, changedPaths) {
       if (!failOn.has(change?.status)) continue;
       const findingPath = change?.head?.path || change?.path || pathReport?.path || "";
       if (renamePreservesExistingFinding(report, change, findingPath, changedEntries)) continue;
+      if (changedPathRelocationPreservesExistingFinding(report, change, findingPath, changedEntries)) continue;
       if (findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths)) relevant.push(change);
     }
   }
@@ -260,7 +280,7 @@ async function main() {
       scannerExitCode: delta.status,
       authoritative: false,
       evidence: path.relative(repoRoot, deltaReport).replaceAll("\\", "/"),
-      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path, or for non-group findings when rule, message, evidence and line/column are unchanged. Directory fan-out blocks when a directory actually grows, except a ratified architecture target remains non-blocking while its direct source-file count stays within the explicit repository architecture ceiling; exceeding that ceiling remains blocking. BEN cannot waive tests, Full Verification or repository merge gates.",
+      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding when the same rule/group fingerprint is resolved at the old path and added at the new path; bounded changed-path relocations receive the same treatment when the destination is added and an equivalent finding is resolved on another changed path. For non-group findings the rule, message, evidence and line/column must remain unchanged. Directory fan-out blocks when a directory actually grows, except a ratified architecture target remains non-blocking while its direct source-file count stays within the explicit repository architecture ceiling; exceeding that ceiling remains blocking. BEN cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 
     if (!passed) {

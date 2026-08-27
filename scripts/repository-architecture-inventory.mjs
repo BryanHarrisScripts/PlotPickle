@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CONFIG_PATH = "config/repository-architecture-target.json";
-const SKIP = new Set([".git", "node_modules", ".next", ".vinext", "dist", "coverage", ".artifacts", ".wrangler"]);
+const SKIP = new Set([".git", "node_modules", ".next", ".vinext", ".sites-runtime", "dist", "coverage", ".artifacts", ".wrangler"]);
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"];
 const RESOLVABLE_EXTENSIONS = [...SOURCE_EXTENSIONS, ".json"];
 const TEXT_EXTENSIONS = new Set([...SOURCE_EXTENSIONS, ".json", ".md", ".yml", ".yaml", ".toml", ".txt", ".css", ".scss", ".ps1", ".cmd", ".bat"]);

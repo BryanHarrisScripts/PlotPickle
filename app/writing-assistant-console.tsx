@@ -129,6 +129,16 @@ function initialMessages() {
   }
 }
 
+function persistMessages(messages: Message[]) {
+  try {
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-30)));
+  } catch (error) {
+    if (error instanceof DOMException) return false;
+    throw error;
+  }
+  return true;
+}
+
 async function jsonRequest<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
     method,
@@ -171,7 +181,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   }, []);
 
   useEffect(() => {
-    try { window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-30))); } catch { return; }
+    persistMessages(messages);
   }, [messages]);
 
   function refreshDashboardLights() {

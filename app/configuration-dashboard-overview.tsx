@@ -6,14 +6,15 @@ import styles from "./configuration-dashboard-overview.module.css";
 export type ConfigurationDashboardVariant = "live" | "marketing";
 type ServiceState = "connected" | "optional" | "error" | "supported";
 
-type ServiceId = "ollama" | "openai" | "minimax" | "comfyui" | "github" | "buzz" | "google";
+type ServiceId = "ollama" | "openai" | "gemini" | "minimax" | "comfyui" | "github" | "buzz" | "google";
 type ServiceSnapshot = Record<ServiceId, ServiceState>;
 
-const serviceIds: ServiceId[] = ["ollama", "openai", "minimax", "comfyui", "github", "buzz", "google"];
+const serviceIds: ServiceId[] = ["ollama", "openai", "gemini", "minimax", "comfyui", "github", "buzz", "google"];
 
 const defaultLiveSnapshot: ServiceSnapshot = {
   ollama: "optional",
   openai: "optional",
+  gemini: "optional",
   minimax: "optional",
   comfyui: "optional",
   github: "optional",
@@ -24,6 +25,7 @@ const defaultLiveSnapshot: ServiceSnapshot = {
 const supportedSnapshot: ServiceSnapshot = {
   ollama: "supported",
   openai: "supported",
+  gemini: "supported",
   minimax: "supported",
   comfyui: "supported",
   github: "supported",
@@ -47,15 +49,19 @@ const services: Array<{
 }> = [
   { id: "ollama", label: "Ollama Local LLM", detail: "Private writing and planning on this computer", symbol: "O", target: "Local writing & planning · Ollama" },
   { id: "openai", label: "OpenAI API", detail: "Cloud text, vision and image generation", symbol: "AI", target: "Cloud images & video" },
+  { id: "gemini", label: "Google Gemini", detail: "Provider-cloud writing and reasoning through your Gemini API account", symbol: "G", target: "Google Gemini" },
   { id: "minimax", label: "MiniMax API", detail: "MiniMax-M3 text · image-01 · MiniMax-H3 video", symbol: "M", target: "Cloud images & video" },
   { id: "comfyui", label: "ComfyUI", detail: "Local and hybrid image workflows for cost control", symbol: "C", target: "Local image generation · ComfyUI" },
   { id: "github", label: "GitHub Story Repository", detail: "Story history, proposals and collaboration", symbol: "GH", target: "GitHub account & story repository" },
   { id: "buzz", label: "Buzz Account & Community", detail: "Writers’ Room discussion and rooms", symbol: "B", target: "Buzz community" },
-  { id: "google", label: "Google Calendar & Meet", detail: "Scheduling and meetings", symbol: "G", target: "Google Calendar & Meet" },
+  { id: "google", label: "Google Calendar & Meet", detail: "Scheduling and meetings", symbol: "GC", target: "Google Calendar & Meet" },
 ];
 
 function stateFromArticle(article: Element | undefined): ServiceState {
   if (!article) return "optional";
+  const declared = article.getAttribute("data-state");
+  if (declared === "ready") return "connected";
+  if (declared === "error") return "error";
   const text = article.textContent || "";
   if (/previously working connection has failed|needs repair|connection needs repair/i.test(text)) return "error";
   if (/verified and working|running locally|ready without ai/i.test(text)) return "connected";
@@ -69,6 +75,12 @@ function findArticle(root: HTMLElement, phrase: string) {
   });
 }
 
+function findProviderArticle(root: HTMLElement, phrase: string) {
+  return Array.from(root.querySelectorAll("article[data-state]")).find((article) => (
+    article.querySelector("strong")?.textContent?.includes(phrase)
+  ));
+}
+
 function readLiveSnapshot(root: HTMLElement): ServiceSnapshot {
   const ollamaArticle = findArticle(root, "Local writing & planning · Ollama");
   const comfyArticle = findArticle(root, "Local image generation · ComfyUI");
@@ -76,6 +88,7 @@ function readLiveSnapshot(root: HTMLElement): ServiceSnapshot {
   const buzzArticle = findArticle(root, "Buzz community");
   const googleArticle = findArticle(root, "Google Calendar & Meet");
   const cloudArticle = findArticle(root, "Cloud images & video");
+  const geminiArticle = findProviderArticle(root, "Google Gemini");
   const cloudState = stateFromArticle(cloudArticle);
   const cloudIdentity = cloudArticle?.querySelector("dd")?.textContent || "";
 
@@ -86,6 +99,7 @@ function readLiveSnapshot(root: HTMLElement): ServiceSnapshot {
     buzz: stateFromArticle(buzzArticle),
     google: stateFromArticle(googleArticle),
     openai: /openai|chatgpt/i.test(cloudIdentity) ? cloudState : "optional",
+    gemini: stateFromArticle(geminiArticle),
     minimax: /minimax/i.test(cloudIdentity) ? cloudState : "optional",
   };
 }

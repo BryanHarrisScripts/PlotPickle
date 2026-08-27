@@ -27,8 +27,8 @@ test("#1425 opens Previs from the canonical PPF instead of legacy project storag
   assert.doesNotMatch(model, /ensureProductionWorkspace|createShotFromFrame|PlotPickleProject|plotpickle\.project\.v1|localStorage/);
 
   assert.match(audit, /24 Blocks \/ 96 Mini-Blocks/);
-  assert.match(audit, /zero, one, or many/);
-  assert.match(audit, /canonical story address/);
+  assert.match(audit, /zero\/one\/many|no production shot yet, one shot, or many/);
+  assert.match(audit, /canonical story-address/);
 });
 
 test("#1425 keeps 24\/96 as provenance anchors rather than a fixed clip quota", async () => {

@@ -11,7 +11,7 @@ import {
   withdrawStoryDecision,
   type StoryDecisionRecord,
 } from "../../core/story-workflow/story-decisions/core.mjs";
-import { isLocalPlotPickleRequest } from "../portable-ppf-reader";
+import { isLocalPlotPickleRequest } from "../projects/portable-ppf-reader";
 import { currentProfileRequestContext } from "../profile-request-context";
 
 const API = "/api/story-decisions";

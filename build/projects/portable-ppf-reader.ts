@@ -1,7 +1,7 @@
 import type { IncomingMessage } from "node:http";
-import { parsePortableProjectFile } from "../lib/projects/persistence/project-package";
-import { projectFromPackage } from "../lib/projects/canon/ppf-exchange";
-import type { PlotPickleProject } from "../lib/projects/project";
+import { parsePortableProjectFile } from "../../lib/projects/persistence/project-package";
+import { projectFromPackage } from "../../lib/projects/canon/ppf-exchange";
+import type { PlotPickleProject } from "../../lib/projects/project";
 
 export const MAX_LOCAL_PPF_BYTES = 48 * 1024 * 1024;
 

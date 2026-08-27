@@ -4,7 +4,7 @@ import {
   AFTERGLOW_PROJECT_ID,
   AFTERGLOW_PROJECT_TITLE,
   AFTERGLOW_REPOSITORY_FULL_NAME,
-} from "../lib/afterglow-persistence";
+} from "../../lib/afterglow-persistence";
 
 const API = "/api/local-afterglow";
 

@@ -18,8 +18,8 @@ function versionAtLeast(actual, minimum) {
 test("#1226 removes residual weak/dynamic security sinks", async () => {
   const [coreModel, onboarding, starter, spawnCommand] = await Promise.all([
     read("lib/projects/core-model.ts"),
-    read("build/comfyui-onboarding-gateway.ts"),
-    read("build/comfyui-sdxl-starter-gateway.ts"),
+    read("build/ai/comfyui-onboarding-gateway.ts"),
+    read("build/ai/comfyui-sdxl-starter-gateway.ts"),
     read("scripts/spawn-command.mjs"),
   ]);
 

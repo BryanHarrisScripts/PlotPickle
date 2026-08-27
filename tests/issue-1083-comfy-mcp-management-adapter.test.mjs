@@ -33,7 +33,7 @@ test("#1083 verifies the official local MCP prerequisites and preserves direct f
 test("#1083 never invokes management commands through a shell and bounds their output/time", async () => {
   const [diagnostics, onboarding] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),
-    source("build/comfyui-onboarding-gateway.ts"),
+    source("build/ai/comfyui-onboarding-gateway.ts"),
   ]);
   assert.match(diagnostics, /execFileAsync\(comfyBin, \["launch", "--background"\]/);
   assert.match(diagnostics, /windowsHide: true/);
@@ -44,7 +44,7 @@ test("#1083 never invokes management commands through a shell and bounds their o
 });
 
 test("#1083 prefers managed comfy-cli lifecycle only when the Comfy MCP stack is ready", async () => {
-  const onboarding = await source("build/comfyui-onboarding-gateway.ts");
+  const onboarding = await source("build/ai/comfyui-onboarding-gateway.ts");
   const managedIndex = onboarding.indexOf("launchComfyWithManagedCli()");
   const fallbackIndex = onboarding.indexOf("return startWithDesktopFallback()");
   assert.ok(managedIndex >= 0 && fallbackIndex > managedIndex, "Managed lifecycle must run before Desktop fallback");
@@ -58,7 +58,7 @@ test("#1083 prefers managed comfy-cli lifecycle only when the Comfy MCP stack is
 test("#1083 keeps ComfyUI local and never silently promotes a failed local setup to cloud", async () => {
   const [diagnostics, onboarding, panel] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),
-    source("build/comfyui-onboarding-gateway.ts"),
+    source("build/ai/comfyui-onboarding-gateway.ts"),
     source("app/media-routing-panel.tsx"),
   ]);
   assert.match(diagnostics, /LOOPBACK_HOSTS = new Set\(\["127\.0\.0\.1", "localhost", "\[::1\]", "::1"\]\)/);
@@ -117,7 +117,7 @@ test("#1083 normalizes service, checkpoint and node problems into actionable set
 test("#1083 does not give creative agents custom-node install, partner-credit or arbitrary MCP authority", async () => {
   const [diagnostics, onboarding] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),
-    source("build/comfyui-onboarding-gateway.ts"),
+    source("build/ai/comfyui-onboarding-gateway.ts"),
   ]);
   for (const forbidden of ["install_node", "partner_generate", "auth_login", "download_model", "run_workflow", "run_template"]) {
     assert.equal(diagnostics.includes(forbidden), false, `${forbidden} must not enter the host management adapter`);

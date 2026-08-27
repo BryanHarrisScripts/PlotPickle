@@ -20,7 +20,7 @@ export interface CurriculumGuideAnswer {
   readonly text: string;
   readonly sourceLessonIds: readonly string[];
   readonly sourceReferenceIds: readonly string[];
-  readonly provider: "local-runtime" | "openai" | "minimax" | "ollama";
+  readonly provider: "local-runtime" | "openai" | "gemini" | "minimax" | "ollama";
   readonly runtimeProvider?: string;
   readonly model: string;
 }

@@ -1,17 +1,17 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { readCredentialJson, writeCredentialJson } from "./local-credentials";
-import { normalizedUrl as normalizeProviderUrl } from "./media-provider-common";
+import { readCredentialJson, writeCredentialJson } from "../local-credentials";
+import { normalizedUrl as normalizeProviderUrl } from "../media-provider-common";
 import {
   readMediaRoutingStore,
   writeMediaRoutingStore,
   type CloudMediaProvider,
-} from "./media-routing-store";
+} from "../media-routing-store";
 import {
   readSynchronizedAssistantStore,
   writeAssistantStore,
   type TextProvider,
-} from "./writing-assistant-store";
+} from "../writing-assistant-store";
 
 const CATALOG_PATH = "/api/ai-model-catalog";
 const SELECT_PATH = `${CATALOG_PATH}/select`;

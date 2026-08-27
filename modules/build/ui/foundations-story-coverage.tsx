@@ -10,19 +10,13 @@ import ProgressiveStoryMap from "./progressive-story-map";
 import styles from "./foundations-story-coverage.module.css";
 
 const STATE_LABELS: Readonly<Record<FoundationsStoryEvidenceState, string>> = {
-  defined: "Defined",
-  observed: "Observed",
-  emerging: "Emerging",
-  missing: "Missing",
+  defined: "DEFINED",
+  observed: "OBSERVED",
+  emerging: "EMERGING",
+  missing: "MISSING",
 };
 
-export default function FoundationsStoryCoverage({
-  curriculum,
-  project,
-}: {
-  readonly curriculum: readonly CurriculumLesson[];
-  readonly project: PPFProject;
-}) {
+export default function FoundationsStoryCoverage({ curriculum, project }: { readonly curriculum: readonly CurriculumLesson[]; readonly project: PPFProject }) {
   const coverage = deriveFoundationsStoryCoverage(curriculum, project);
   const supported = coverage.defined + coverage.observed;
 
@@ -34,24 +28,22 @@ export default function FoundationsStoryCoverage({
           <h2 id="foundations-story-coverage-title">Story Coverage</h2>
           <p>See what the writer has defined, what an immutable reference source directly supports, which ideas are still proposals, and which decisions remain intentionally open.</p>
         </div>
-        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
-          <strong>{coverage.percent}%</strong>
-          <span>{supported} of {coverage.total} decisions supported</span>
-        </div>
+        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}><strong>{coverage.percent}%</strong><span>{supported} of {coverage.total} decisions supported</span></div>
       </header>
 
       <dl className={styles.summary} aria-label="Foundations story evidence totals">
-        <div data-state="defined"><dt>Defined</dt><dd>{coverage.defined}</dd><small>Saved Human decisions or explicit reference-fixture decisions</small></div>
-        <div data-state="observed"><dt>Observed</dt><dd>{coverage.observed}</dd><small>Directly supported by immutable reference/source evidence</small></div>
-        <div data-state="emerging"><dt>Emerging</dt><dd>{coverage.emerging}</dd><small>Draft/import proposals awaiting a decision</small></div>
-        <div data-state="missing"><dt>Missing</dt><dd>{coverage.missing}</dd><small>No usable story support yet</small></div>
+        <div data-state="defined"><dt>DEFINED</dt><dd>{coverage.defined}</dd><small>Saved Human decisions or explicit reference-fixture decisions</small></div>
+        <div data-state="observed"><dt>OBSERVED</dt><dd>{coverage.observed}</dd><small>Directly supported by immutable reference/source evidence</small></div>
+        <div data-state="emerging"><dt>EMERGING</dt><dd>{coverage.emerging}</dd><small>Draft/import proposals awaiting a decision</small></div>
+        <div data-state="missing"><dt>MISSING</dt><dd>{coverage.missing}</dd><small>No usable story support yet</small></div>
       </dl>
 
       <div className={styles.legend} aria-label="Story evidence meanings">
-        <span data-state="defined"><i aria-hidden="true">✓</i><strong>Defined</strong> is an explicit working decision. Reference fixtures label synthetic decisions so they are never mistaken for screenplay evidence.</span>
-        <span data-state="observed"><i aria-hidden="true">●</i><strong>Observed</strong> is directly supported by the immutable imported/reference source.</span>
-        <span data-state="emerging"><i aria-hidden="true">~</i><strong>Emerging</strong> is useful proposal/import interpretation that still needs Human acceptance.</span>
-        <span data-state="missing"><i aria-hidden="true">○</i><strong>Missing</strong> means PlotPickle leaves the decision open instead of inventing filler.</span>
+        <span data-state="defined"><i aria-hidden="true">●</i><strong>DEFINED</strong> is an explicit working decision.</span>
+        <span data-state="observed"><i aria-hidden="true">●</i><strong>OBSERVED</strong> is directly supported by immutable imported/reference evidence.</span>
+        <span data-state="emerging"><i aria-hidden="true">●</i><strong>EMERGING</strong> is a useful proposal that still needs Human acceptance.</span>
+        <span data-state="missing"><i aria-hidden="true">●</i><strong>MISSING</strong> leaves the decision open instead of inventing filler.</span>
+        <span data-state="locked"><i aria-hidden="true">●</i><strong>LOCKED</strong> means the target is visible but a later prerequisite still prevents editing.</span>
       </div>
 
       <ProgressiveStoryMap project={project} />

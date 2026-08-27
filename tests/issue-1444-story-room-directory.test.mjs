@@ -39,7 +39,7 @@ test("#1444 approval is successful only after BUZZ confirms normal membership", 
 
 test("#1444 keeps Open capability-gated instead of simulating automatic admission", async () => {
   const gateway = await read("build/buzz-story-room-directory-gateway.ts");
-  const ownerUi = await read("app/community-story-room-listing.tsx");
+  const ownerUi = await read("app/_components/community/community-story-room-listing.tsx");
   assert.match(gateway, /capabilities: \{ openMembership: false \}/);
   assert.match(gateway, /Open Story Room admission remains capability-gated/);
   assert.match(ownerUi, /Open · unavailable until BUZZ supports safe admission/);

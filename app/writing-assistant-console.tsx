@@ -171,7 +171,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   }, []);
 
   useEffect(() => {
-    try { window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-30))); } catch { /* Session persistence is optional. */ }
+    try { window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-30))); } catch { return; }
   }, [messages]);
 
   function refreshDashboardLights() {

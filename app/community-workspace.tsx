@@ -19,7 +19,7 @@ import {
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
 import CommunityStoryRoomDirectory from "../modules/community/story-room-directory";
 import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../plugins/plotpickle-playhouse";
-import CommunityAgentRoster from "./community-agent-roster";
+import CommunityAgentRoster from "./_components/community/community-agent-roster";
 import CommunityStoryRoomAccess from "./_components/community/community-story-room-access";
 import ConnectedStudiosPanel from "./connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";

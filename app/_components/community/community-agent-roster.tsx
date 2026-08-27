@@ -1,18 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import AgentPortrait from "../components/agent-portrait";
-import { authenticatedProfileFetch } from "../core/auth/profile-request-browser";
-import { normalizeFoundationProject } from "../core/project/project";
-import { loadFoundationProject } from "../core/storage/foundation-project-browser";
-import { publicAgentByProfileId } from "../lib/plugin-platform";
+import AgentPortrait from "../../../components/agent-portrait";
+import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
+import { normalizeFoundationProject } from "../../../core/project/project";
+import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
+import { publicAgentByProfileId } from "../../../lib/plugin-platform";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,
   type BuzzNativeAgentState,
   type WritingAssistantStatus,
-} from "../lib/buzz/community-agent-roster";
-import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
+} from "../../../lib/buzz/community-agent-roster";
+import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../../../plugins/plotpickle-playhouse";
 import styles from "./community-agent-roster.module.css";
 
 type TracePayload = {

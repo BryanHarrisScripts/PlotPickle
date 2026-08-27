@@ -69,7 +69,7 @@ test("Guildhall preserves internal specialist contracts while remote bootstrap p
 test("legacy specialist bridge remains bounded while current Community conversation UI exposes Critics Circle only", async () => {
   const [gateway, ui] = await Promise.all([
     read("build/buzz/buzz-specialist-gateway.ts"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
   ]);
   const firstMessage = gateway.indexOf('localJson(request, "/api/local-buzz/messages"');
   const agentCall = gateway.indexOf('localJson<AgentResponse>(request, "/api/writing-assistant/chat"');
@@ -94,7 +94,7 @@ test("legacy specialist bridge remains bounded while current Community conversat
 test("project context federation remains opt-in for the Community specialist and private contact data is redacted", async () => {
   const [gateway, ui] = await Promise.all([
     read("build/buzz/buzz-specialist-gateway.ts"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
   ]);
 
   assert.match(gateway, /body\.shareProjectContext === true/);
@@ -137,8 +137,8 @@ test("untrusted room text cannot grant provider spending PPF or developer author
 test("Community profile cards show avatar role runtime/model memory scope skills and Critics Circle conversation UI", async () => {
   const [model, ui, css] = await Promise.all([
     read("lib/buzz/community-agent-roster.ts"),
-    read("app/community-agent-roster.tsx"),
-    read("app/community-agent-roster.module.css"),
+    read("app/_components/community/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.module.css"),
   ]);
   for (const field of ["avatarInitials", "activeRuntimeProvider", "activeModel", "requestedCapabilities", "projectMemoryScope", "projectMemoryPolicy", "skillUris"]) {
     assert.match(model, new RegExp(field));

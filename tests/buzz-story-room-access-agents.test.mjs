@@ -46,7 +46,7 @@ test("Story Room access remains local, private and enforced by BUZZ permissions"
 test("PlotPickle agents can have visible BUZZ identities without moving reasoning or authority out of Mastra and the host", async () => {
   const [gateway, roster, config] = await Promise.all([
     read("build/buzz-agent-roster-gateway.ts"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("config/buzz-guildhall.json"),
   ]);
 

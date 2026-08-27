@@ -44,3 +44,36 @@ test("#1509 gives Story Room Community UI one canonical owner without changing a
   assert.ok(!remainingCommunityRoots.includes("community-story-room-access.module.css"));
   assert.ok(!remainingCommunityRoots.includes("community-story-room-listing.tsx"));
 });
+
+test("#1511 gives the Community Agent roster one canonical UI owner without changing Agent authority", async () => {
+  await assert.rejects(access(new URL("app/community-agent-roster.tsx", root)));
+  await assert.rejects(access(new URL("app/community-agent-roster.module.css", root)));
+  await access(new URL("app/_components/community/community-agent-roster.tsx", root));
+  await access(new URL("app/_components/community/community-agent-roster.module.css", root));
+
+  const [workspace, roster, architectureText] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(workspace, /\.\/_components\/community\/community-agent-roster/);
+  assert.doesNotMatch(workspace, /from "\.\/community-agent-roster"/);
+  assert.match(roster, /from "\.\.\/\.\.\/\.\.\/core\/auth\/profile-request-browser"/);
+  assert.match(roster, /from "\.\.\/\.\.\/\.\.\/lib\/buzz\/community-agent-roster"/);
+  assert.match(roster, /authenticatedProfileFetch/);
+  assert.match(roster, /Project sharing is off by default/);
+  assert.match(roster, /The connected Human signer is never an Agent signer/);
+  assert.match(roster, /PPF unchanged/);
+
+  const architecture = JSON.parse(architectureText);
+  const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
+  assert.ok(communityBatch, "the ratified Community batch must remain governed");
+  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+
+  const appEntries = await readdir(new URL("app/", root));
+  const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
+  assert.ok(remainingCommunityRoots.length > 0, "the roster leaf move must not pretend the wider Community batch is complete");
+  assert.ok(!remainingCommunityRoots.includes("community-agent-roster.tsx"));
+  assert.ok(!remainingCommunityRoots.includes("community-agent-roster.module.css"));
+});

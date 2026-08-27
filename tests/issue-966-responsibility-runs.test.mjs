@@ -104,7 +104,7 @@ test("Run records persist under the local PlotPickle home and are queryable/cont
 
 test("Responsibility Run activity remains understandable while the simplified public Agent roster omits operator controls", async () => {
   const [roster, activity] = await Promise.all([
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("app/responsibility-run-activity.tsx"),
   ]);
   assert.doesNotMatch(roster, /ResponsibilityRunActivity/);

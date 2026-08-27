@@ -84,7 +84,7 @@ test("#1279 official BUZZ Agent lookup matches public signer instead of Human ow
 
 test("#1279 Community shows official Agent state without requiring ownedByMe", async () => {
   const [ui, roster] = await Promise.all([
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("lib/buzz/community-agent-roster.ts"),
   ]);
   assert.match(ui, /officialIdentity \|\| identity\.ownedByMe/);

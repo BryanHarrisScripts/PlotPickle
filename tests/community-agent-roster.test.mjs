@@ -23,11 +23,11 @@ test("the canonical Agent Contract registry includes every active slim-product a
 test("Community shows a live roster sourced from Agent Contracts plus Mastra activity and BUZZ presence", async () => {
   const [workspace, roster, model] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
     read("lib/buzz/community-agent-roster.ts"),
   ]);
 
-  assert.match(workspace, /import CommunityAgentRoster from "\.\/community-agent-roster"/);
+  assert.match(workspace, /import CommunityAgentRoster from "\.\/_components\/community\/community-agent-roster"/);
   assert.match(workspace, /<CommunityAgentRoster \/>/);
   assert.match(roster, /\/api\/writing-assistant\/status/);
   assert.match(roster, /\/api\/writing-assistant\/traces/);

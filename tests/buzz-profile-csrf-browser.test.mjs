@@ -12,7 +12,7 @@ test("BUZZ browser mutations inherit the active Human CSRF proof without weakeni
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("app/_components/community/community-story-room-access.tsx"),
-    read("app/community-agent-roster.tsx"),
+    read("app/_components/community/community-agent-roster.tsx"),
   ]);
 
   assert.match(helper, /fetch\("\/api\/auth\/profile"[\s\S]*credentials:\s*"same-origin"/u);

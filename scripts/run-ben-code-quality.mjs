@@ -104,13 +104,9 @@ const ratifiedArchitectureTargets = ratifiedTargetDirectories(architecturePolicy
 
 function directSourceFileCount(directoryPath) {
   const normalized = String(directoryPath || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
-  try {
-    return readdirSync(path.join(repoRoot, normalized), { withFileTypes: true })
-      .filter((entry) => entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name)))
-      .length;
-  } catch {
-    return null;
-  }
+  return readdirSync(path.join(repoRoot, normalized), { withFileTypes: true })
+    .filter((entry) => entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name)))
+    .length;
 }
 
 export function directoryFanoutWithinRatifiedCeiling(directoryPath, directSourceCount = directSourceFileCount(directoryPath)) {

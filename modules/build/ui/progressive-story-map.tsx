@@ -226,11 +226,12 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
             ) : <p className={styles.unresolved}>No active Story Decision targets this Block.</p>}
             <p>These markers are read-only review records. They do not change PPF canon; answered choices still require Story Workbench validation.</p>
           </section>
-          <section className={styles.textProjection} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state}>
+          <section className={styles.textProjection} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state} data-text-review={selected.backgroundText.reviewState}>
             <header className={styles.textProjectionHeader}>
               <div><h4>Background story text</h4><p>Same canonical Block · read-only source projection</p></div>
-              <strong data-state={selected.backgroundText.state}>{STATE_LABELS[selected.backgroundText.state]}</strong>
+              <div><strong data-state={selected.backgroundText.state}>{STATE_LABELS[selected.backgroundText.state]}</strong><br /><small>{selected.backgroundText.reviewState === "needs-review" ? "NEEDS REVIEW" : "CURRENT"}</small></div>
             </header>
+            {selected.backgroundText.reviewState === "needs-review" ? <p className={styles.unresolved} role="status"><strong>Needs Human review.</strong> This Block changed upstream at PPF revision {selected.backgroundText.staleAtRevision ?? project.revision}. The source screenplay below has not been rewritten.</p> : null}
             {selected.backgroundText.passages.length ? (
               <ol className={styles.sourcePassages}>
                 {selected.backgroundText.passages.map((passage) => (
@@ -245,7 +246,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
             )}
             <p className={styles.textProvenance}>
               {selected.backgroundText.sourceKind === "observed-screenplay"
-                ? `Source: ${selected.backgroundText.sourceFileName}. Observed source text is shown without rewriting. ${selected.backgroundText.placementReviewed ? "Its Block placement has been Human-reviewed." : "Its suggested Block placement still requires Human review."}`
+                ? `Source: ${selected.backgroundText.sourceFileName}. Observed source text is shown without rewriting. ${selected.backgroundText.reviewState === "needs-review" ? `This projection needs review against PPF revision ${selected.backgroundText.staleAtRevision ?? project.revision}; only this dependency-backed Block was marked stale.` : selected.backgroundText.placementReviewed ? "Its Block placement has been Human-reviewed." : "Its suggested Block placement still requires Human review."}`
                 : "No source screenplay passage currently supports this exact Block. The text projection remains missing instead of generating filler."}
             </p>
           </section>

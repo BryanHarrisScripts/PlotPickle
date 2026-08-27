@@ -661,11 +661,8 @@ watchdog = setTimeout(() => {
     console.error(`Could not write emergency smoke evidence: ${error instanceof Error ? error.message : String(error)}`);
   }
   for (const child of processes) {
-    try {
-      spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
-    } catch (error) {
-      console.error(`Could not terminate timed-out smoke child ${child.pid}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
+    killer.once("error", () => undefined);
   }
   process.exit(124);
 }, totalTimeoutMs + 10_000);

@@ -12,7 +12,7 @@ import {
   persistActiveProfileProject,
   PROFILE_PRIVATE_SAVE_STATE_EVENT,
 } from "@/core/storage/profile-private-browser";
-import CommunityPublicConversationsRail from "./community-public-conversations-rail";
+import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
 import styles from "./plotpickle-workspace-shell.module.css";
 
 export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";

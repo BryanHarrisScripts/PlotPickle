@@ -15,7 +15,8 @@ test("#1424 reuses bundled Afterglow references through the bounded local asset 
 
   assert.match(model, /createAfterglowStoryboardFrames/);
   assert.match(model, /\/api\/local-ai\/assets\/storyboard-reference\?block=/);
-  assert.match(model, /AFTERGLOW_V9_FOUNDATIONS_WORKING_TITLE/);
+  assert.match(model, /AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
+  assert.match(model, /project\.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
   assert.match(model, /STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1"/);
 });
 

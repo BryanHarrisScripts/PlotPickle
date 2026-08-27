@@ -7,7 +7,7 @@ import {
   probeLtxVideo,
   readLtxStore,
   type LtxJob,
-} from "../comfyui-ltx-local-provider";
+} from "./comfyui-ltx-local-provider";
 import {
   holdLocalGpuMediaLease,
   releaseLocalGpuMediaLease,

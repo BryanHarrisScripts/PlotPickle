@@ -1,14 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { persistentHome, readCredentialJson, writeCredentialJson } from "./local-credentials";
+import { persistentHome, readCredentialJson, writeCredentialJson } from "../local-credentials";
 import {
   ASSET_PATH,
   assetsDirectory,
   saveGeneratedAsset,
   safeAssetStem,
   type VideoGenerationInput,
-} from "./media-provider-common";
+} from "../media-provider-common";
 
 const STORE_FILE = "ltx-video-local.json";
 const JOB_FILE = "ltx-video-jobs.json";

@@ -97,16 +97,18 @@ Behavior boundary:
 - No compatibility shim remains at either retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every ratified direct AI source is moved and exact-head green.
 
-## #1462 — LTX local-video gateway slice
+## #1462 — LTX local-video pair
 
-Status: **completed by this slice; AI batch remains in progress**
+Status: **provider candidate; gateway completed and merged; AI batch remains in progress**
 
 Move boundary:
 - `build/comfyui-ltx-local-gateway.ts` → `build/ai/comfyui-ltx-local-gateway.ts`
+- `build/comfyui-ltx-local-provider.ts` → `build/ai/comfyui-ltx-local-provider.ts`
 
 Runtime/import consumers updated:
 - `build/local-ai-gateway.ts`
-- the moved gateway now reaches the still-root provider and shared media/GPU helpers through explicit parent imports.
+- the AI-owned gateway now imports the AI-owned provider directly.
+- the moved provider reaches root-owned credential and media helpers through explicit parent imports.
 
 Source-contract / CI path consumers updated:
 - `tests/hardware-aware-local-ai-runtime.test.mjs`
@@ -116,5 +118,6 @@ Behavior boundary:
 - The LTX route remains local-only and same-origin guarded.
 - LTX remains the default local video path only while `videoRoute === "none"`.
 - GPU media leasing, the 30-minute local render window, body bounds and validated `ltx-*` job IDs remain unchanged.
-- No compatibility shim remains at the retired root gateway path.
-- `build/comfyui-ltx-local-provider.ts` intentionally remains at root for the next isolated AI move slice; the larger `phase1-build-ai` batch remains incomplete.
+- Provider validation still rejects unsafe network/installer/code-execution nodes, restricts ComfyUI to `http://127.0.0.1:8188`, and keeps private directory/file modes.
+- No compatibility shim remains at either retired LTX root path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

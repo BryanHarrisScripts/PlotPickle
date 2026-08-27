@@ -11,7 +11,7 @@ import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./comfyui-sdxl-starter-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
-import { registerProviderModelCatalogGateway } from "./provider-model-catalog-gateway";
+import { registerProviderModelCatalogGateway } from "./ai/provider-model-catalog-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerLazyFramesGateway } from "./lazy-frames-gateway";
 import { registerOllamaBootstrapGateway } from "./ai/ollama-bootstrap-gateway";

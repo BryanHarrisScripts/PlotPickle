@@ -1,7 +1,7 @@
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import type { LocalRuntimeKind } from "../lib/runtime/ai/local-runtime";
 
-export type TextProvider = "local" | "ollama" | "openai" | "minimax";
+export type TextProvider = "local" | "ollama" | "openai" | "minimax" | "gemini";
 export type ActiveTextProvider = TextProvider | "disabled";
 
 export type ProviderProfile = {
@@ -37,7 +37,7 @@ type LegacyAiConnection = {
 
 const STORE_FILE = "writing-assistant-profiles.json";
 const LEGACY_FILE = "ai-connection.json";
-export const TEXT_PROVIDERS: TextProvider[] = ["local", "ollama", "openai", "minimax"];
+export const TEXT_PROVIDERS: TextProvider[] = ["local", "ollama", "openai", "minimax", "gemini"];
 
 export function isTextProvider(value: unknown): value is TextProvider {
   return typeof value === "string" && TEXT_PROVIDERS.includes(value as TextProvider);
@@ -100,7 +100,7 @@ function normalizeStore(value: unknown): ProfileStore {
 function legacyProfile(value: unknown): ProviderProfile | null {
   if (!value || typeof value !== "object") return null;
   const item = value as LegacyAiConnection;
-  if ((item.provider !== "ollama" && item.provider !== "openai" && item.provider !== "minimax")
+  if ((item.provider !== "ollama" && item.provider !== "openai" && item.provider !== "minimax" && item.provider !== "gemini")
     || typeof item.baseUrl !== "string"
     || typeof item.textModel !== "string"
     || !item.textModel.trim()

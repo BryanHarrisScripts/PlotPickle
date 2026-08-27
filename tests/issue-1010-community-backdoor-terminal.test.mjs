@@ -47,7 +47,7 @@ test("#1283 preserves one Private Story Room, Connected Studios and Agents besid
 });
 
 test("terminal provides keyboard-first controls and Enter-to-send without stealing typing shortcuts", async () => {
-  const source = await read("app/community-backdoor-terminal.tsx");
+  const source = await read("app/_components/community/community-backdoor-terminal.tsx");
   for (const command of ["W", "A", "B", "T", "R", "H", "X"]) {
     assert.match(source, new RegExp(`key: "${command}"`), `Missing terminal command ${command}`);
   }
@@ -62,7 +62,7 @@ test("terminal provides keyboard-first controls and Enter-to-send without steali
 });
 
 test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatment while commands stay on the right", async () => {
-  const source = await read("app/community-backdoor-terminal.tsx");
+  const source = await read("app/_components/community/community-backdoor-terminal.tsx");
   assert.match(source, /const COMMUNITY_BBS_ASCII = String\.raw/);
   assert.match(source, /PLOTPICKLE COMMUNITY BBS/);
   assert.match(source, /ROOM-FIRST TERMINAL/);
@@ -76,7 +76,7 @@ test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatme
 
 test("current Community conversation uses real BUZZ routes rather than fake users or a second backend", async () => {
   const [terminal, workspace, social, communityGateway] = await Promise.all([
-    read("app/community-backdoor-terminal.tsx"),
+    read("app/_components/community/community-backdoor-terminal.tsx"),
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-community-gateway.ts"),
@@ -95,7 +95,7 @@ test("current Community conversation uses real BUZZ routes rather than fake user
 });
 
 test("TALK is honest about shared human routes and agent home-room addressing", async () => {
-  const source = await read("app/community-backdoor-terminal.tsx");
+  const source = await read("app/_components/community/community-backdoor-terminal.tsx");
   assert.match(source, /SIGNED BUZZ HOME ROOM/);
   assert.match(source, /ADDRESSED GREAT HALL ROUTE · SHARED, NOT 1:1 DM/);
   assert.match(source, /actor\.primaryChannel/);
@@ -104,8 +104,8 @@ test("TALK is honest about shared human routes and agent home-room addressing", 
 
 test("terminal is a themed UI and never exposes an operating-system shell", async () => {
   const [source, css] = await Promise.all([
-    read("app/community-backdoor-terminal.tsx"),
-    read("app/community-backdoor-terminal.module.css"),
+    read("app/_components/community/community-backdoor-terminal.tsx"),
+    read("app/_components/community/community-backdoor-terminal.module.css"),
   ]);
   assert.match(source, /THIS TERMINAL NEVER EXECUTES OS\/SHELL COMMANDS/);
   assert.doesNotMatch(source, /child_process|spawn\(|exec\(|powershell|cmd\.exe|bash\b|xterm/i);

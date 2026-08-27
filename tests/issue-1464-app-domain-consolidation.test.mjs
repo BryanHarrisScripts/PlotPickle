@@ -114,6 +114,37 @@ test("#1464 retires the Community public-conversations root bridge without chang
   assert.ok(!remainingCommunityRoots.includes("community-public-conversations-rail.tsx"));
 });
 
+test("#1464 gives the Community backdoor terminal one canonical UI owner", async () => {
+  await assert.rejects(access(new URL("app/community-backdoor-terminal.tsx", root)));
+  await assert.rejects(access(new URL("app/community-backdoor-terminal.module.css", root)));
+  await access(new URL("app/_components/community/community-backdoor-terminal.tsx", root));
+  await access(new URL("app/_components/community/community-backdoor-terminal.module.css", root));
+
+  const [terminal, workflow, architectureText] = await Promise.all([
+    read("app/_components/community/community-backdoor-terminal.tsx"),
+    read(".github/workflows/buzz-guildhall.yml"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(terminal, /from "\.\.\/\.\.\/\.\.\/lib\/buzz\/buzz-guildhall"/);
+  assert.match(terminal, /from "\.\.\/\.\.\/\.\.\/lib\/buzz\/buzz-story-room"/);
+  assert.doesNotMatch(terminal, /from "\.\.\/lib\/buzz\//);
+  assert.match(terminal, /THIS TERMINAL NEVER EXECUTES OS\/SHELL COMMANDS/);
+  assert.match(workflow, /app\/_components\/community\/community-backdoor-terminal\.tsx/);
+  assert.doesNotMatch(workflow, /app\/community-backdoor-terminal\.tsx/);
+
+  const architecture = JSON.parse(architectureText);
+  const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
+  assert.ok(communityBatch, "the ratified Community batch must remain governed");
+  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while the workspace root remains");
+
+  const appEntries = await readdir(new URL("app/", root));
+  const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
+  assert.ok(remainingCommunityRoots.length > 0, "the terminal leaf move must not pretend the wider Community batch is complete");
+  assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.tsx"));
+  assert.ok(!remainingCommunityRoots.includes("community-backdoor-terminal.module.css"));
+});
+
 test("#1464 gives direct-root Dashboard UI one canonical product-surface owner", async () => {
   const sourceFiles = [
     "dashboard-afterglow.module.css",

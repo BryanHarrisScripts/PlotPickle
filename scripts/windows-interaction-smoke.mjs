@@ -7,6 +7,7 @@ import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { establishVerificationSyntheticHuman } from "./full-verification-auth.mjs";
 
 const root = path.resolve(process.argv[2] ?? ".");
 const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports", "windows-interaction-smoke"));
@@ -328,8 +329,9 @@ async function inspectPage(client, events, eventStart, expectedOrigin) {
   if (page.overlay) failures.push("A runtime-error overlay is visible.");
   for (const message of page.scriptErrors) failures.push(`Window error: ${message}`);
   for (const event of events.slice(eventStart)) {
-    if (event.kind === "response") { try { if (new URL(event.url).origin === expectedOrigin && event.status >= 400) failures.push(`${event.status} ${event.url}`); } catch {} }
-    else failures.push(event.message);
+    if (event.kind === "response") {
+      if (URL.canParse(event.url) && new URL(event.url).origin === expectedOrigin && event.status >= 400) failures.push(`${event.status} ${event.url}`);
+    } else failures.push(event.message);
   }
   return { ...page, failures: [...new Set(failures)] };
 }
@@ -480,6 +482,7 @@ async function main() {
   try {
     const response = await waitForHttp(baseUrl);
     if (!response.ok) throw new Error(`Packaged server returned ${response.status} ${response.statusText}.`);
+    const verificationAuth = communityEdgeMode ? await establishVerificationSyntheticHuman({ baseUrl, home }) : null;
     const browserArgs = [
       "--headless=new",
       `--remote-debugging-port=${debugPort}`,
@@ -506,6 +509,19 @@ async function main() {
       client.send("Inspector.enable"),
       client.send("Page.setDownloadBehavior", { behavior: "deny" }).catch(() => ({})),
     ]);
+    if (verificationAuth) {
+      const cookieHeader = verificationAuth.environment.PLOTPICKLE_VERIFICATION_AUTH_COOKIE;
+      const separator = cookieHeader.indexOf("=");
+      if (separator <= 0) throw new Error("Synthetic Human authentication returned an invalid session cookie.");
+      const cookieResult = await client.send("Network.setCookie", {
+        name: cookieHeader.slice(0, separator),
+        value: cookieHeader.slice(separator + 1),
+        url: baseUrl,
+        httpOnly: true,
+        sameSite: "Strict",
+      });
+      if (cookieResult.success === false) throw new Error("Could not install the synthetic Human session cookie in Microsoft Edge.");
+    }
     await client.send("Page.addScriptToEvaluateOnNewDocument", { source: guardScript });
 
     const events = [];
@@ -644,7 +660,13 @@ watchdog = setTimeout(() => {
   } catch (error) {
     console.error(`Could not write emergency smoke evidence: ${error instanceof Error ? error.message : String(error)}`);
   }
-  for (const child of processes) { try { spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {} }
+  for (const child of processes) {
+    try {
+      spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
+    } catch (error) {
+      console.error(`Could not terminate timed-out smoke child ${child.pid}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
   process.exit(124);
 }, totalTimeoutMs + 10_000);
 watchdog.unref();

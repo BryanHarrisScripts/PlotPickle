@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { ComfyWorkflow } from "./media-routing-store";
+import type { ComfyWorkflow } from "../media-routing-store";
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_BASE_URL = "http://127.0.0.1:8188";

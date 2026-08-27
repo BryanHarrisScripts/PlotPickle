@@ -25,7 +25,12 @@
     "shared-core": "Small stable cross-domain contracts that genuinely have multiple owners"
   },
   "structuralCeilings": {
-    "governedRoots": ["build", "core", "modules", "lib"],
+    "governedRoots": [
+      "build",
+      "core",
+      "modules",
+      "lib"
+    ],
     "maxDirectSourceFiles": 16,
     "maxDirectChildDirectories": 20,
     "maxRelativeDepth": 4,
@@ -34,34 +39,272 @@
     "deepTreeEvidenceThreshold": 6,
     "singleFileDirectoryRule": "Avoid one-file folders unless the folder is a stable route, package, protocol, generated boundary or explicitly documented ownership seam.",
     "exceptions": [
-      { "path": "app", "reason": "Next.js route topology is semantic; Phase 3 governs private component grouping without changing URLs." },
-      { "path": "tests", "reason": "Deterministic issue/regression inventory is intentionally broad and historical." },
-      { "path": "docs", "reason": "Documentation depth follows subject hierarchy rather than runtime ownership." },
-      { "path": "public", "reason": "Static assets are grouped by product/asset needs rather than source-code fan-out." },
-      { "path": ".agents", "reason": "Agent Skill packages are stable package boundaries." },
-      { "path": ".github", "reason": "Workflow and repository-control layout follows GitHub conventions." }
+      {
+        "path": "app",
+        "reason": "Next.js route topology is semantic; Phase 3 governs private component grouping without changing URLs."
+      },
+      {
+        "path": "tests",
+        "reason": "Deterministic issue/regression inventory is intentionally broad and historical."
+      },
+      {
+        "path": "docs",
+        "reason": "Documentation depth follows subject hierarchy rather than runtime ownership."
+      },
+      {
+        "path": "public",
+        "reason": "Static assets are grouped by product/asset needs rather than source-code fan-out."
+      },
+      {
+        "path": ".agents",
+        "reason": "Agent Skill packages are stable package boundaries."
+      },
+      {
+        "path": ".github",
+        "reason": "Workflow and repository-control layout follows GitHub conventions."
+      }
     ]
   },
   "targetTree": {
-    "build": ["ai/", "auth/", "buzz/", "projects/", "runtime/", "startup/", "storage/", "story/", "verification/"],
-    "core": ["auth/", "project/", "storage/", "story-workflow/buzz/", "story-workflow/council/", "story-workflow/decisions/", "story-workflow/runtime/"],
-    "modules": ["story-workflow/bridge/", "story-workflow/council/", "story-workflow/decisions/", "story-workflow/runtime/", "story-workflow/ui/", "<other feature modules remain domain-owned>"],
-    "app": ["<route directories stay in place>", "_components/community/", "_components/dashboard/", "_components/learn/", "_components/settings/", "_components/story/", "_components/verification/"],
-    "lib": ["agents/", "buzz/", "projects/", "runtime/", "verification/", "<existing ratified domain directories>", "<root only for true shared platform entry points>"],
-    "scripts": ["developer/", "runtime/", "verification/", "release/", "<keep one-off entry scripts at root only when they are public developer commands>"]
+    "build": [
+      "ai/",
+      "auth/",
+      "buzz/",
+      "projects/",
+      "runtime/",
+      "startup/",
+      "storage/",
+      "story/",
+      "verification/"
+    ],
+    "core": [
+      "auth/",
+      "project/",
+      "storage/",
+      "story-workflow/buzz/",
+      "story-workflow/council/",
+      "story-workflow/decisions/",
+      "story-workflow/runtime/"
+    ],
+    "modules": [
+      "story-workflow/bridge/",
+      "story-workflow/council/",
+      "story-workflow/decisions/",
+      "story-workflow/runtime/",
+      "story-workflow/ui/",
+      "<other feature modules remain domain-owned>"
+    ],
+    "app": [
+      "<route directories stay in place>",
+      "_components/community/",
+      "_components/dashboard/",
+      "_components/learn/",
+      "_components/settings/",
+      "_components/story/",
+      "_components/verification/"
+    ],
+    "lib": [
+      "agents/",
+      "buzz/",
+      "projects/",
+      "runtime/",
+      "verification/",
+      "<existing ratified domain directories>",
+      "<root only for true shared platform entry points>"
+    ],
+    "scripts": [
+      "developer/",
+      "runtime/",
+      "verification/",
+      "release/",
+      "<keep one-off entry scripts at root only when they are public developer commands>"
+    ]
   },
   "moveBatches": [
-    {"id":"phase1-build-buzz","phase":1,"domain":"buzz","sourceRoot":"build","targetRoot":"build/buzz","directFilesOnly":true,"selector":{"prefixes":["buzz-"]}},
-    {"id":"phase1-build-ai","phase":1,"domain":"ai","sourceRoot":"build","targetRoot":"build/ai","directFilesOnly":true,"selector":{"prefixes":["ai-","comfyui-","deepseek-","ollama-","local-ai-","creative-compute-","hardware-aware-","model-"]}},
-    {"id":"phase1-build-profile-auth","phase":1,"domain":"auth","sourceRoot":"build","targetRoot":"build/auth","directFilesOnly":true,"selector":{"prefixes":["profile-","auth-","server-session-"]}},
-    {"id":"phase1-build-projects","phase":1,"domain":"projects","sourceRoot":"build","targetRoot":"build/projects","directFilesOnly":true,"selector":{"files":["afterglow-project-gateway.ts"],"prefixes":["project-","portable-ppf-"]},"status":"completed","completedAt":"2026-08-27","completedSources":["build/afterglow-project-gateway.ts","build/portable-ppf-reader.ts"],"completedTargets":["build/projects/afterglow-project-gateway.ts","build/projects/portable-ppf-reader.ts"]},
-    {"id":"phase2-modules-story-council","phase":2,"domain":"story","sourceRoot":"modules/story-workflow","targetRoot":"modules/story-workflow/council","directFilesOnly":true,"selector":{"prefixes":["story-council"]},"status":"completed","completedAt":"2026-08-27","completedSources":["modules/story-workflow/story-council-runtime.ts","modules/story-workflow/story-council.ts"],"completedTargets":["modules/story-workflow/council/story-council-runtime.ts","modules/story-workflow/council/story-council.ts"]},
-    {"id":"phase2-modules-story-bridge","phase":2,"domain":"story","sourceRoot":"modules/story-workflow","targetRoot":"modules/story-workflow/bridge","directFilesOnly":true,"selector":{"files":["buzz-story-bridge.ts"]}},
-    {"id":"phase2-modules-story-runtime","phase":2,"domain":"story","sourceRoot":"modules/story-workflow","targetRoot":"modules/story-workflow/runtime","directFilesOnly":true,"selector":{"files":["foundations-story-workflow.ts"]}},
-    {"id":"phase2-core-story-buzz","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/buzz","directFilesOnly":true,"selector":{"prefixes":["buzz-story-bridge-core"]}},
-    {"id":"phase2-core-story-runtime","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/runtime","directFilesOnly":true,"selector":{"prefixes":["story-workflow-core"]}},
-    {"id":"phase3-app-community-components","phase":3,"domain":"ui","sourceRoot":"app","targetRoot":"app/_components/community","directFilesOnly":true,"selector":{"prefixes":["community-"]}},
-    {"id":"phase3-app-dashboard-components","phase":3,"domain":"ui","sourceRoot":"app","targetRoot":"app/_components/dashboard","directFilesOnly":true,"selector":{"prefixes":["dashboard-"]}},
+    {
+      "id": "phase1-build-buzz",
+      "phase": 1,
+      "domain": "buzz",
+      "sourceRoot": "build",
+      "targetRoot": "build/buzz",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "buzz-"
+        ]
+      }
+    },
+    {
+      "id": "phase1-build-ai",
+      "phase": 1,
+      "domain": "ai",
+      "sourceRoot": "build",
+      "targetRoot": "build/ai",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "ai-",
+          "comfyui-",
+          "deepseek-",
+          "ollama-",
+          "local-ai-",
+          "creative-compute-",
+          "hardware-aware-",
+          "model-"
+        ]
+      }
+    },
+    {
+      "id": "phase1-build-profile-auth",
+      "phase": 1,
+      "domain": "auth",
+      "sourceRoot": "build",
+      "targetRoot": "build/auth",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "profile-",
+          "auth-",
+          "server-session-"
+        ]
+      }
+    },
+    {
+      "id": "phase1-build-projects",
+      "phase": 1,
+      "domain": "projects",
+      "sourceRoot": "build",
+      "targetRoot": "build/projects",
+      "directFilesOnly": true,
+      "selector": {
+        "files": [
+          "afterglow-project-gateway.ts"
+        ],
+        "prefixes": [
+          "project-",
+          "portable-ppf-"
+        ]
+      },
+      "status": "completed",
+      "completedAt": "2026-08-27",
+      "completedSources": [
+        "build/afterglow-project-gateway.ts",
+        "build/portable-ppf-reader.ts"
+      ],
+      "completedTargets": [
+        "build/projects/afterglow-project-gateway.ts",
+        "build/projects/portable-ppf-reader.ts"
+      ]
+    },
+    {
+      "id": "phase2-modules-story-council",
+      "phase": 2,
+      "domain": "story",
+      "sourceRoot": "modules/story-workflow",
+      "targetRoot": "modules/story-workflow/council",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "story-council"
+        ]
+      },
+      "status": "completed",
+      "completedAt": "2026-08-27",
+      "completedSources": [
+        "modules/story-workflow/story-council-runtime.ts",
+        "modules/story-workflow/story-council.ts"
+      ],
+      "completedTargets": [
+        "modules/story-workflow/council/story-council-runtime.ts",
+        "modules/story-workflow/council/story-council.ts"
+      ]
+    },
+    {
+      "id": "phase2-modules-story-bridge",
+      "phase": 2,
+      "domain": "story",
+      "sourceRoot": "modules/story-workflow",
+      "targetRoot": "modules/story-workflow/bridge",
+      "directFilesOnly": true,
+      "selector": {
+        "files": [
+          "buzz-story-bridge.ts"
+        ]
+      },
+      "status": "completed",
+      "completedAt": "2026-08-27",
+      "completedSources": [
+        "modules/story-workflow/buzz-story-bridge.ts"
+      ],
+      "completedTargets": [
+        "modules/story-workflow/bridge/buzz-story-bridge.ts"
+      ]
+    },
+    {
+      "id": "phase2-modules-story-runtime",
+      "phase": 2,
+      "domain": "story",
+      "sourceRoot": "modules/story-workflow",
+      "targetRoot": "modules/story-workflow/runtime",
+      "directFilesOnly": true,
+      "selector": {
+        "files": [
+          "foundations-story-workflow.ts"
+        ]
+      }
+    },
+    {
+      "id": "phase2-core-story-buzz",
+      "phase": 2,
+      "domain": "story",
+      "sourceRoot": "core/story-workflow",
+      "targetRoot": "core/story-workflow/buzz",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "buzz-story-bridge-core"
+        ]
+      }
+    },
+    {
+      "id": "phase2-core-story-runtime",
+      "phase": 2,
+      "domain": "story",
+      "sourceRoot": "core/story-workflow",
+      "targetRoot": "core/story-workflow/runtime",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "story-workflow-core"
+        ]
+      }
+    },
+    {
+      "id": "phase3-app-community-components",
+      "phase": 3,
+      "domain": "ui",
+      "sourceRoot": "app",
+      "targetRoot": "app/_components/community",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "community-"
+        ]
+      }
+    },
+    {
+      "id": "phase3-app-dashboard-components",
+      "phase": 3,
+      "domain": "ui",
+      "sourceRoot": "app",
+      "targetRoot": "app/_components/dashboard",
+      "directFilesOnly": true,
+      "selector": {
+        "prefixes": [
+          "dashboard-"
+        ]
+      }
+    },
     {
       "id": "phase4-retire-agent-compatibility-bridges",
       "phase": 4,
@@ -69,14 +312,40 @@
       "sourceRoot": "lib",
       "targetRoot": "lib/agents",
       "directFilesOnly": true,
-      "selector": {"files":["adaptive-context-strategies.ts","adaptive-context-strategy-core.mjs","agent-orchestration.ts","agent-profiles.ts","agent-window-status.mjs"]},
-      "targetMap": {"adaptive-context-strategies.ts":"lib/agents/context/adaptive-context-strategies.ts","adaptive-context-strategy-core.mjs":"lib/agents/context/adaptive-context-strategy-core.mjs","agent-orchestration.ts":"lib/agents/agent-orchestration.ts","agent-profiles.ts":"lib/agents/agent-profiles.ts","agent-window-status.mjs":"lib/agents/agent-window-status.mjs"},
+      "selector": {
+        "files": [
+          "adaptive-context-strategies.ts",
+          "adaptive-context-strategy-core.mjs",
+          "agent-orchestration.ts",
+          "agent-profiles.ts",
+          "agent-window-status.mjs"
+        ]
+      },
+      "targetMap": {
+        "adaptive-context-strategies.ts": "lib/agents/context/adaptive-context-strategies.ts",
+        "adaptive-context-strategy-core.mjs": "lib/agents/context/adaptive-context-strategy-core.mjs",
+        "agent-orchestration.ts": "lib/agents/agent-orchestration.ts",
+        "agent-profiles.ts": "lib/agents/agent-profiles.ts",
+        "agent-window-status.mjs": "lib/agents/agent-window-status.mjs"
+      },
       "mode": "retire-bridge",
       "targetMustExist": true,
       "status": "completed",
       "completedAt": "2026-08-27",
-      "completedSources": ["lib/adaptive-context-strategies.ts","lib/adaptive-context-strategy-core.mjs","lib/agent-orchestration.ts","lib/agent-profiles.ts","lib/agent-window-status.mjs"],
-      "completedTargets": ["lib/agents/context/adaptive-context-strategies.ts","lib/agents/context/adaptive-context-strategy-core.mjs","lib/agents/agent-orchestration.ts","lib/agents/agent-profiles.ts","lib/agents/agent-window-status.mjs"]
+      "completedSources": [
+        "lib/adaptive-context-strategies.ts",
+        "lib/adaptive-context-strategy-core.mjs",
+        "lib/agent-orchestration.ts",
+        "lib/agent-profiles.ts",
+        "lib/agent-window-status.mjs"
+      ],
+      "completedTargets": [
+        "lib/agents/context/adaptive-context-strategies.ts",
+        "lib/agents/context/adaptive-context-strategy-core.mjs",
+        "lib/agents/agent-orchestration.ts",
+        "lib/agents/agent-profiles.ts",
+        "lib/agents/agent-window-status.mjs"
+      ]
     }
   ]
 }

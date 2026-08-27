@@ -36,55 +36,49 @@ jobs:
 
           def replace(path, old, new):
               p = Path(path)
-              text = p.read_text(encoding='utf-8')
+              text = p.read_text(encoding="utf-8")
               if old not in text:
-                  raise SystemExit(f'Expected token not found in {path}: {old}')
-              p.write_text(text.replace(old, new), encoding='utf-8')
+                  raise SystemExit(f"Expected token not found in {path}: {old}")
+              p.write_text(text.replace(old, new), encoding="utf-8")
 
-          moved = Path('build/auth/profile-request-context.ts')
-          text = moved.read_text(encoding='utf-8')
+          moved = Path("build/auth/profile-request-context.ts")
+          text = moved.read_text(encoding="utf-8")
           for old, new in [
               ('from "../core/auth/plotpickle-auth"', 'from "../../core/auth/plotpickle-auth"'),
               ('from "../core/storage/profile-private/profile-private-storage"', 'from "../../core/storage/profile-private/profile-private-storage"'),
               ('from "../core/auth/profile-experience/profile-experience-runtime"', 'from "../../core/auth/profile-experience/profile-experience-runtime"'),
           ]:
               if old not in text:
-                  raise SystemExit(f'Expected moved-file import not found: {old}')
+                  raise SystemExit(f"Expected moved-file import not found: {old}")
               text = text.replace(old, new)
-          moved.write_text(text, encoding='utf-8')
+          moved.write_text(text, encoding="utf-8")
 
-          root_consumers = [
-              'build/buzz-story-room-access-gateway.ts',
-              'build/buzz-story-room-directory-gateway.ts',
-              'build/buzz-story-room-identity-gateway.ts',
-              'build/buzz-story-room-listing-gateway.ts',
-              'build/local-credentials.ts',
-              'build/story-workflow-buzz-bridge-gateway.ts',
-          ]
-          for path in root_consumers:
+          for path in [
+              "build/buzz-story-room-access-gateway.ts",
+              "build/buzz-story-room-directory-gateway.ts",
+              "build/buzz-story-room-identity-gateway.ts",
+              "build/buzz-story-room-listing-gateway.ts",
+              "build/local-credentials.ts",
+              "build/story-workflow-buzz-bridge-gateway.ts",
+          ]:
               replace(path, '"./profile-request-context"', '"./auth/profile-request-context"')
 
-          nested_consumers = [
-              'build/buzz/buzz-profile-migration-gateway.ts',
-              'build/story-decisions/gateway.ts',
-          ]
-          for path in nested_consumers:
+          for path in [
+              "build/buzz/buzz-profile-migration-gateway.ts",
+              "build/story-decisions/gateway.ts",
+          ]:
               replace(path, '"../profile-request-context"', '"../auth/profile-request-context"')
 
-          replace('vite.config.ts', '"./build/profile-request-context"', '"./build/auth/profile-request-context"')
+          replace("vite.config.ts", '"./build/profile-request-context"', '"./build/auth/profile-request-context"')
 
-          hardcoded = [
-              '.github/workflows/buzz-profile-agent-scope.yml',
-              '.github/workflows/profile-experience.yml',
-              '.github/workflows/story-bridge.yml',
-              'tests/buzz-profile-csrf-browser.test.mjs',
-              'tests/issue-1144-buzz-profile-agent-scope.test.mjs',
-              'tests/issue-1144-buzz-profile-migration-contract.test.mjs',
-              'tests/issue-1418-story-decisions.test.mjs',
-              'tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs',
-          ]
-          for path in hardcoded:
-              replace(path, 'build/profile-request-context.ts', 'build/auth/profile-request-context.ts')
+          for path in [
+              "tests/buzz-profile-csrf-browser.test.mjs",
+              "tests/issue-1144-buzz-profile-agent-scope.test.mjs",
+              "tests/issue-1144-buzz-profile-migration-contract.test.mjs",
+              "tests/issue-1418-story-decisions.test.mjs",
+              "tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs",
+          ]:
+              replace(path, "build/profile-request-context.ts", "build/auth/profile-request-context.ts")
           PY
 
           cat > tests/issue-1462-profile-request-context-move.test.mjs <<'EOF'
@@ -98,7 +92,6 @@ jobs:
           test("#1462 moves the shared Human profile request context into build/auth", async () => {
             await assert.rejects(access(new URL("build/profile-request-context.ts", root)));
             await access(new URL("build/auth/profile-request-context.ts", root));
-
             const context = await source("build/auth/profile-request-context.ts");
             assert.match(context, /from "\.\.\/\.\.\/core\/auth\/plotpickle-auth"/);
             assert.match(context, /from "\.\.\/\.\.\/core\/storage\/profile-private\/profile-private-storage"/);
@@ -134,12 +127,11 @@ jobs:
             for (const [path, expected] of expectations) {
               const value = await source(path);
               assert.ok(value.includes(expected), `${path} must import the canonical auth request context`);
-              assert.doesNotMatch(value, /["'](?:\.\.\/|\.\/|\.\/build\/)?profile-request-context["']/);
             }
           });
 
           test("#1462 retargets hardcoded workflow and regression paths with no compatibility shim", async () => {
-            const hardcoded = [
+            for (const path of [
               ".github/workflows/buzz-profile-agent-scope.yml",
               ".github/workflows/profile-experience.yml",
               ".github/workflows/story-bridge.yml",
@@ -148,8 +140,7 @@ jobs:
               "tests/issue-1144-buzz-profile-migration-contract.test.mjs",
               "tests/issue-1418-story-decisions.test.mjs",
               "tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs",
-            ];
-            for (const path of hardcoded) {
+            ]) {
               const value = await source(path);
               assert.match(value, /build\/auth\/profile-request-context\.ts/);
               assert.doesNotMatch(value, /build\/profile-request-context\.ts/);

@@ -32,8 +32,8 @@ test("#1462 preserves native H3 local-only authority and reviewed request bounds
 });
 
 test("#1462 keeps build/ai at the ratified direct-source ceiling rather than moving the H3 provider early", async () => {
-  const inventory = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
-  assert.match(inventory, /16/);
+  const target = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
+  assert.match(target, /no more than \*\*16 direct source files\*\*/);
   const provider = await source("build/comfyui-h3-native-provider.ts");
   assert.match(provider, /minimax-h3-native/);
 });

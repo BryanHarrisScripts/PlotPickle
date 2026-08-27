@@ -16,6 +16,8 @@ const actionTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIME
 const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 60), 60);
 const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 240), 240);
 const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 3), 3);
+const communityEdgeMode = process.env.PLOTPICKLE_SMOKE_COMMUNITY_EDGE === "1";
+const communityStableMs = 5_000;
 const deadline = Date.now() + totalTimeoutMs;
 const appDirectory = path.join(root, "app");
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
@@ -114,17 +116,21 @@ function startLoggedProcess(command, args, options, logPath) {
 }
 
 function findBrowserExecutable() {
-  const candidates = [
-    process.env.CHROME_PATH,
+  const edgeCandidates = [
     process.env.EDGE_PATH,
-    path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Google", "Chrome", "Application", "chrome.exe"),
-    path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Google", "Chrome", "Application", "chrome.exe"),
     path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Microsoft", "Edge", "Application", "msedge.exe"),
     path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Microsoft", "Edge", "Application", "msedge.exe"),
+    path.join(process.env.LOCALAPPDATA || "", "Microsoft", "Edge", "Application", "msedge.exe"),
+  ].filter(Boolean);
+  const candidates = communityEdgeMode ? edgeCandidates : [
+    process.env.CHROME_PATH,
+    ...edgeCandidates,
+    path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Google", "Chrome", "Application", "chrome.exe"),
+    path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Google", "Chrome", "Application", "chrome.exe"),
     path.join(process.env.LOCALAPPDATA || "", "Google", "Chrome", "Application", "chrome.exe"),
   ].filter(Boolean);
   const executable = candidates.find((candidate) => existsSync(candidate));
-  if (!executable) throw new Error(`Chrome or Edge was not found. Checked: ${candidates.join(", ")}`);
+  if (!executable) throw new Error(`${communityEdgeMode ? "Microsoft Edge" : "Chrome or Edge"} was not found. Checked: ${candidates.join(", ")}`);
   return executable;
 }
 
@@ -141,7 +147,7 @@ async function walk(directory) {
 
 async function discoverRoutes() {
   const pages = await walk(appDirectory);
-  const routes = new Set(["/", "/?workspace=dashboard", "/?workspace=settings"]);
+  const routes = new Set(["/", "/?workspace=dashboard", "/?workspace=settings", "/?workspace=community"]);
   const dynamicRoutes = [];
   for (const page of pages) {
     const directory = path.relative(appDirectory, path.dirname(page));
@@ -196,14 +202,18 @@ class CdpClient {
 
 async function waitForDebugger(port) {
   const stopAt = Date.now() + 30_000;
+  let lastError = "Debugger endpoint did not respond.";
   while (Date.now() < stopAt) {
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(2_000) });
       if (response.ok) return response.json();
-    } catch {}
+      lastError = `${response.status} ${response.statusText}`;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
     await delay(250);
   }
-  throw new Error("Chrome DevTools Protocol did not become available.");
+  throw new Error(`Chrome DevTools Protocol did not become available: ${lastError}`);
 }
 
 async function createTarget(port, url) {
@@ -286,14 +296,18 @@ async function evaluate(client, expression) {
 
 async function waitForReady(client, expectedOrigin, timeoutMs = actionTimeoutMs) {
   const stopAt = Date.now() + timeoutMs;
+  let lastError = "Page did not expose a ready document.";
   while (Date.now() < stopAt) {
     try {
       const state = await evaluate(client, `({ readyState: document.readyState, url: location.href, body: Boolean(document.body) })`);
       if (state?.body && state.readyState !== "loading" && new URL(state.url).origin === expectedOrigin) { await delay(100); return state; }
-    } catch {}
+      lastError = `Unexpected state: ${JSON.stringify(state)}`;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
     await delay(75);
   }
-  throw new Error(`Browser did not become ready within ${timeoutMs} ms.`);
+  throw new Error(`Browser did not become ready within ${timeoutMs} ms: ${lastError}`);
 }
 
 async function navigate(client, url, expectedOrigin) { await client.send("Page.navigate", { url }); await waitForReady(client, expectedOrigin); }
@@ -350,6 +364,68 @@ async function runRepositoryCollabScenario(client, events, baseUrl, baseOrigin) 
   return { passed: failures.length === 0, finalState: panel.finalState, failures };
 }
 
+async function runCommunityEdgeScenario(client, events, baseUrl, baseOrigin) {
+  const eventStart = events.length;
+  await navigate(client, `${baseUrl}/?workspace=dashboard`, baseOrigin);
+  const waitUntil = Date.now() + 15_000;
+  let initialState = null;
+  while (Date.now() < waitUntil) {
+    initialState = await evaluate(client, `(() => ({
+      url: location.href,
+      timeOrigin: performance.timeOrigin,
+      dashboard: document.querySelector('[data-active-workspace="dashboard"]') !== null
+    }))()`);
+    if (initialState?.dashboard) break;
+    await delay(200);
+  }
+  const failures = [];
+  if (!initialState?.dashboard) {
+    failures.push(`Dashboard did not mount before Community navigation: ${JSON.stringify(initialState)}`);
+    return { passed: false, failures };
+  }
+
+  const clicked = await evaluate(client, `(() => {
+    const button = document.querySelector('[data-workspace-nav-id="community"] button');
+    if (!(button instanceof HTMLButtonElement) || button.disabled) return false;
+    button.click();
+    return true;
+  })()`);
+  if (!clicked) {
+    failures.push("Community navigation control was not available in Microsoft Edge.");
+    return { passed: false, failures };
+  }
+
+  const communityDeadline = Date.now() + 20_000;
+  let communityState = null;
+  while (Date.now() < communityDeadline) {
+    communityState = await evaluate(client, `(() => ({
+      url: location.href,
+      timeOrigin: performance.timeOrigin,
+      active: document.querySelector('[data-active-workspace="community"]') !== null,
+      community: document.querySelector('[data-community-native-buzz="true"]') !== null,
+      body: (document.body?.innerText || '').slice(0, 1200)
+    }))()`);
+    if (communityState?.active && communityState?.community && String(communityState.url).includes("workspace=community")) break;
+    await delay(200);
+  }
+  if (!communityState?.active || !communityState?.community) failures.push(`Community did not mount after navigation: ${JSON.stringify(communityState)}`);
+  if (communityState?.timeOrigin !== initialState.timeOrigin) failures.push("Community navigation performed a full document reload instead of an in-document workspace transition.");
+  if (/STATUS_ACCESS_VIOLATION|Can't open this page/i.test(communityState?.body || "")) failures.push("Microsoft Edge rendered a browser crash page while opening Community.");
+
+  await delay(communityStableMs);
+  const stableState = await evaluate(client, `(() => ({
+    active: document.querySelector('[data-active-workspace="community"]') !== null,
+    community: document.querySelector('[data-community-native-buzz="true"]') !== null,
+    body: (document.body?.innerText || '').slice(0, 1200)
+  }))()`);
+  if (!stableState?.active || !stableState?.community) failures.push(`Community did not remain mounted for ${communityStableMs} ms.`);
+  if (/STATUS_ACCESS_VIOLATION|Can't open this page/i.test(stableState?.body || "")) failures.push("Microsoft Edge became a browser crash page after Community mounted.");
+  for (const event of events.slice(eventStart)) {
+    if (event.kind === "renderer-crash" || event.kind === "exception") failures.push(event.message);
+  }
+  return { passed: failures.length === 0, url: communityState?.url || "", documentTimeOrigin: initialState.timeOrigin, failures: [...new Set(failures)] };
+}
+
 async function writeReports(report) {
   await mkdir(reportDirectory, { recursive: true });
   await writeFile(path.join(reportDirectory, "windows-interaction-smoke.json"), `${JSON.stringify(report, null, 2)}\n`);
@@ -361,7 +437,8 @@ async function writeReports(report) {
     `Required assets: ${report.assets.filter((item) => item.passed).length}/${report.assets.length} passed`,
     `Safe actions: ${report.actions.filter((item) => item.passed).length}/${report.actions.length} passed`,
     `UI states visited: ${report.statesVisited}`,
-    `Repository & Collab: ${report.scenarios.repositoryAndCollab?.passed ? "PASS" : "FAIL"}`,
+    `Repository & Collab: ${report.scenarios.repositoryAndCollab ? (report.scenarios.repositoryAndCollab.passed ? "PASS" : "FAIL") : "NOT RUN"}`,
+    `Community Edge: ${report.scenarios.communityEdge ? (report.scenarios.communityEdge.passed ? "PASS" : "FAIL") : "NOT RUN"}`,
     "",
     "## Failures",
     "",
@@ -384,7 +461,7 @@ async function main() {
   const browserExecutable = findBrowserExecutable();
   const report = {
     generatedAt: new Date().toISOString(), platform: `${process.platform}-${process.arch}`, node: process.version,
-    root, baseUrl, browserExecutable,
+    root, baseUrl, browserExecutable, communityEdgeMode,
     limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, maximumStates, maximumActions, maximumDepth },
     routes: [], dynamicRoutes: [], assets: [], actions: [], skippedActions: [], scenarios: {}, statesVisited: 0,
     passed: false, failures: [], progress: "starting",
@@ -400,109 +477,139 @@ async function main() {
   try {
     const response = await waitForHttp(baseUrl);
     if (!response.ok) throw new Error(`Packaged server returned ${response.status} ${response.statusText}.`);
-    browser = startLoggedProcess(browserExecutable, ["--headless=new", `--remote-debugging-port=${debugPort}`, "--remote-debugging-address=127.0.0.1", `--user-data-dir=${browserProfile}`, "--no-first-run", "--no-default-browser-check", "--disable-gpu", "--disable-background-networking", "--disable-component-update", "--disable-features=TranslateUI", "--window-size=1440,1000", "about:blank"], { cwd: root, windowsHide: true, env: { ...process.env, TEMP: temporaryRoot, TMP: temporaryRoot } }, path.join(reportDirectory, "browser.log"));
+    const browserArgs = [
+      "--headless=new",
+      `--remote-debugging-port=${debugPort}`,
+      "--remote-debugging-address=127.0.0.1",
+      `--user-data-dir=${browserProfile}`,
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-features=TranslateUI",
+      "--window-size=1440,1000",
+      ...(communityEdgeMode ? [`--app=${baseUrl}/?workspace=dashboard`] : ["--disable-gpu", "about:blank"]),
+    ];
+    browser = startLoggedProcess(browserExecutable, browserArgs, { cwd: root, windowsHide: true, env: { ...process.env, TEMP: temporaryRoot, TMP: temporaryRoot } }, path.join(reportDirectory, "browser.log"));
     await waitForDebugger(debugPort);
     const target = await createTarget(debugPort, `${baseUrl}/?workspace=dashboard`);
     client = new CdpClient(target.webSocketDebuggerUrl);
     await client.connect();
-    await Promise.all([client.send("Page.enable"), client.send("Runtime.enable"), client.send("Log.enable"), client.send("Network.enable"), client.send("Page.setDownloadBehavior", { behavior: "deny" }).catch(() => ({}))]);
+    await Promise.all([
+      client.send("Page.enable"),
+      client.send("Runtime.enable"),
+      client.send("Log.enable"),
+      client.send("Network.enable"),
+      client.send("Inspector.enable"),
+      client.send("Page.setDownloadBehavior", { behavior: "deny" }).catch(() => ({})),
+    ]);
     await client.send("Page.addScriptToEvaluateOnNewDocument", { source: guardScript });
 
     const events = [];
+    client.on("Inspector.targetCrashed", (entry) => events.push({ kind: "renderer-crash", message: `Browser renderer crashed: ${JSON.stringify(entry)}` }));
     client.on("Runtime.exceptionThrown", (entry) => events.push({ kind: "exception", message: entry.exceptionDetails?.exception?.description || entry.exceptionDetails?.text || "Runtime exception" }));
     client.on("Runtime.consoleAPICalled", (entry) => { if (entry.type === "error" || entry.type === "assert") events.push({ kind: "console", message: entry.args?.map((arg) => arg.value ?? arg.description ?? "").join(" ") || "Console error" }); });
     client.on("Log.entryAdded", ({ entry }) => { if (entry.level === "error") events.push({ kind: "log", message: entry.text || "Browser log error" }); });
     client.on("Network.responseReceived", ({ response: item }) => { if (Number(item.status) >= 400) events.push({ kind: "response", status: Number(item.status), url: item.url }); });
     client.on("Network.loadingFailed", (entry) => { if (entry.errorText !== "net::ERR_ABORTED") events.push({ kind: "loading", message: `${entry.errorText || "Network loading failed"}` }); });
 
-    report.progress = "routes";
-    const inventory = await discoverRoutes();
-    report.dynamicRoutes = inventory.dynamicRoutes;
-    for (const route of inventory.routes) {
-      if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached during route checks.");
-      const eventStart = events.length;
-      try {
-        await withTimeout(navigate(client, new URL(route, `${baseUrl}/`).href, baseOrigin), actionTimeoutMs, `Route ${route}`);
-        const inspection = await inspectPage(client, events, eventStart, baseOrigin);
-        report.routes.push({ route, passed: inspection.failures.length === 0, ...inspection, body: undefined });
-      } catch (error) { report.routes.push({ route, passed: false, failures: [error instanceof Error ? error.message : String(error)] }); }
-    }
-
-    report.progress = "assets";
-    for (const asset of requiredAssets) {
-      try { const assetResponse = await fetch(new URL(asset, baseUrl), { signal: AbortSignal.timeout(5_000) }); const bytes = (await assetResponse.arrayBuffer()).byteLength; report.assets.push({ path: asset, status: assetResponse.status, bytes, passed: assetResponse.ok && bytes > 0 }); }
-      catch (error) { report.assets.push({ path: asset, status: null, bytes: 0, passed: false, error: error instanceof Error ? error.message : String(error) }); }
-    }
-
-    report.progress = "repository-and-collab";
-    report.scenarios.repositoryAndCollab = await runRepositoryCollabScenario(client, events, baseUrl, baseOrigin);
-
-    report.progress = "interaction-crawl";
-    const workspaceUrl = `${baseUrl}/?workspace=dashboard`;
-    const queue = [{ path: [], depth: 0 }];
-    const queuedStateKeys = new Set();
-    const visitedStates = new Set();
-    const testedActions = new Set();
-    async function replay(actionPath) {
-      await navigate(client, workspaceUrl, baseOrigin);
-      for (const action of actionPath) {
-        const result = await evaluate(client, performScript(action));
-        if (!result?.ok) throw new Error(`Could not replay ${normalizeText(action.text)}: ${result?.reason || "unknown"}`);
-        await waitForReady(client, baseOrigin);
-      }
-    }
-
-    while (queue.length && visitedStates.size < maximumStates && report.actions.length < maximumActions) {
-      if (Date.now() >= deadline) { report.failures.push("The total smoke-test deadline was reached before the interaction queue completed."); break; }
-      const state = queue.shift();
-      try { await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), "Replay interaction path"); }
-      catch (error) { report.failures.push(`State replay failed: ${error instanceof Error ? error.message : String(error)}`); continue; }
-      const stateValue = await evaluate(client, stateExpression);
-      const currentKey = stateKey(stateValue);
-      if (visitedStates.has(currentKey)) continue;
-      visitedStates.add(currentKey);
-      report.statesVisited = visitedStates.size;
-      const candidates = await evaluate(client, candidateScript);
-
-      for (const candidate of candidates) {
-        if (Date.now() >= deadline || report.actions.length >= maximumActions) break;
-        const candidateKey = `${currentKey}|${candidate.base}|${candidate.occurrence}`;
-        if (testedActions.has(candidateKey)) continue;
-        testedActions.add(candidateKey);
-        const classification = classifyAction(candidate, baseOrigin);
-        if (classification !== "safe") { report.skippedActions.push({ state: stateValue, action: candidate, reason: classification }); continue; }
+    if (communityEdgeMode) {
+      report.progress = "community-edge";
+      report.scenarios.communityEdge = await runCommunityEdgeScenario(client, events, baseUrl, baseOrigin);
+      report.statesVisited = report.scenarios.communityEdge.passed ? 2 : 1;
+      if (!report.scenarios.communityEdge.passed) report.failures.push("Dashboard → Community managed Edge scenario failed.");
+      report.progress = "complete";
+      report.passed = report.failures.length === 0;
+    } else {
+      report.progress = "routes";
+      const inventory = await discoverRoutes();
+      report.dynamicRoutes = inventory.dynamicRoutes;
+      for (const route of inventory.routes) {
+        if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached during route checks.");
         const eventStart = events.length;
         try {
-          await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), `Prepare ${normalizeText(candidate.text)}`);
-          const result = await withTimeout(evaluate(client, performScript(candidate)), actionTimeoutMs, `Activate ${normalizeText(candidate.text)}`);
-          if (!result?.ok) throw new Error(result?.reason || "The control did not activate.");
-          await waitForReady(client, baseOrigin);
+          await withTimeout(navigate(client, new URL(route, `${baseUrl}/`).href, baseOrigin), actionTimeoutMs, `Route ${route}`);
           const inspection = await inspectPage(client, events, eventStart, baseOrigin);
-          const nextState = await evaluate(client, stateExpression);
-          const nextKey = stateKey(nextState);
-          const passed = inspection.failures.length === 0;
-          report.actions.push({ state: stateValue, action: candidate, result, nextState, passed, failures: inspection.failures });
-          if (passed && nextKey !== currentKey && !visitedStates.has(nextKey) && !queuedStateKeys.has(nextKey) && state.depth < maximumDepth) {
-            queuedStateKeys.add(nextKey);
-            queue.push({ path: [...state.path, candidate], depth: state.depth + 1 });
-          }
-        } catch (error) {
-          report.actions.push({ state: stateValue, action: candidate, passed: false, failures: [error instanceof Error ? error.message : String(error)] });
+          report.routes.push({ route, passed: inspection.failures.length === 0, ...inspection, body: undefined });
+        } catch (error) { report.routes.push({ route, passed: false, failures: [error instanceof Error ? error.message : String(error)] }); }
+      }
+
+      report.progress = "assets";
+      for (const asset of requiredAssets) {
+        try { const assetResponse = await fetch(new URL(asset, baseUrl), { signal: AbortSignal.timeout(5_000) }); const bytes = (await assetResponse.arrayBuffer()).byteLength; report.assets.push({ path: asset, status: assetResponse.status, bytes, passed: assetResponse.ok && bytes > 0 }); }
+        catch (error) { report.assets.push({ path: asset, status: null, bytes: 0, passed: false, error: error instanceof Error ? error.message : String(error) }); }
+      }
+
+      report.progress = "repository-and-collab";
+      report.scenarios.repositoryAndCollab = await runRepositoryCollabScenario(client, events, baseUrl, baseOrigin);
+
+      report.progress = "interaction-crawl";
+      const workspaceUrl = `${baseUrl}/?workspace=dashboard`;
+      const queue = [{ path: [], depth: 0 }];
+      const queuedStateKeys = new Set();
+      const visitedStates = new Set();
+      const testedActions = new Set();
+      async function replay(actionPath) {
+        await navigate(client, workspaceUrl, baseOrigin);
+        for (const action of actionPath) {
+          const result = await evaluate(client, performScript(action));
+          if (!result?.ok) throw new Error(`Could not replay ${normalizeText(action.text)}: ${result?.reason || "unknown"}`);
+          await waitForReady(client, baseOrigin);
         }
       }
-    }
 
-    const failedRoutes = report.routes.filter((item) => !item.passed);
-    const failedAssets = report.assets.filter((item) => !item.passed);
-    const failedActions = report.actions.filter((item) => !item.passed);
-    if (!report.scenarios.repositoryAndCollab.passed) report.failures.push("Settings → Repository & Collab scenario failed.");
-    if (visitedStates.size >= maximumStates) report.failures.push(`State limit reached (${maximumStates}); the interaction inventory may be incomplete.`);
-    if (report.actions.length >= maximumActions) report.failures.push(`Action limit reached (${maximumActions}); the interaction inventory may be incomplete.`);
-    if (failedRoutes.length) report.failures.push(`${failedRoutes.length} route smoke check(s) failed.`);
-    if (failedAssets.length) report.failures.push(`${failedAssets.length} required asset check(s) failed.`);
-    if (failedActions.length) report.failures.push(`${failedActions.length} safe interaction(s) failed.`);
-    report.progress = "complete";
-    report.passed = report.failures.length === 0;
+      while (queue.length && visitedStates.size < maximumStates && report.actions.length < maximumActions) {
+        if (Date.now() >= deadline) { report.failures.push("The total smoke-test deadline was reached before the interaction queue completed."); break; }
+        const state = queue.shift();
+        try { await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), "Replay interaction path"); }
+        catch (error) { report.failures.push(`State replay failed: ${error instanceof Error ? error.message : String(error)}`); continue; }
+        const stateValue = await evaluate(client, stateExpression);
+        const currentKey = stateKey(stateValue);
+        if (visitedStates.has(currentKey)) continue;
+        visitedStates.add(currentKey);
+        report.statesVisited = visitedStates.size;
+        const candidates = await evaluate(client, candidateScript);
+
+        for (const candidate of candidates) {
+          if (Date.now() >= deadline || report.actions.length >= maximumActions) break;
+          const candidateKey = `${currentKey}|${candidate.base}|${candidate.occurrence}`;
+          if (testedActions.has(candidateKey)) continue;
+          testedActions.add(candidateKey);
+          const classification = classifyAction(candidate, baseOrigin);
+          if (classification !== "safe") { report.skippedActions.push({ state: stateValue, action: candidate, reason: classification }); continue; }
+          const eventStart = events.length;
+          try {
+            await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), `Prepare ${normalizeText(candidate.text)}`);
+            const result = await withTimeout(evaluate(client, performScript(candidate)), actionTimeoutMs, `Activate ${normalizeText(candidate.text)}`);
+            if (!result?.ok) throw new Error(result?.reason || "The control did not activate.");
+            await waitForReady(client, baseOrigin);
+            const inspection = await inspectPage(client, events, eventStart, baseOrigin);
+            const nextState = await evaluate(client, stateExpression);
+            const nextKey = stateKey(nextState);
+            const passed = inspection.failures.length === 0;
+            report.actions.push({ state: stateValue, action: candidate, result, nextState, passed, failures: inspection.failures });
+            if (passed && nextKey !== currentKey && !visitedStates.has(nextKey) && !queuedStateKeys.has(nextKey) && state.depth < maximumDepth) {
+              queuedStateKeys.add(nextKey);
+              queue.push({ path: [...state.path, candidate], depth: state.depth + 1 });
+            }
+          } catch (error) {
+            report.actions.push({ state: stateValue, action: candidate, passed: false, failures: [error instanceof Error ? error.message : String(error)] });
+          }
+        }
+      }
+
+      const failedRoutes = report.routes.filter((item) => !item.passed);
+      const failedAssets = report.assets.filter((item) => !item.passed);
+      const failedActions = report.actions.filter((item) => !item.passed);
+      if (!report.scenarios.repositoryAndCollab.passed) report.failures.push("Settings → Repository & Collab scenario failed.");
+      if (visitedStates.size >= maximumStates) report.failures.push(`State limit reached (${maximumStates}); the interaction inventory may be incomplete.`);
+      if (report.actions.length >= maximumActions) report.failures.push(`Action limit reached (${maximumActions}); the interaction inventory may be incomplete.`);
+      if (failedRoutes.length) report.failures.push(`${failedRoutes.length} route smoke check(s) failed.`);
+      if (failedAssets.length) report.failures.push(`${failedAssets.length} required asset check(s) failed.`);
+      if (failedActions.length) report.failures.push(`${failedActions.length} safe interaction(s) failed.`);
+      report.progress = "complete";
+      report.passed = report.failures.length === 0;
+    }
   } catch (error) {
     fatalError = error;
     report.failures.push(error instanceof Error ? error.message : String(error));

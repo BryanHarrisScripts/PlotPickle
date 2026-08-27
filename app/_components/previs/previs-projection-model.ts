@@ -1,4 +1,5 @@
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import type { ProductionShotIntent } from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessState } from "@/modules/build/visual-readiness";
 import {
@@ -20,8 +21,11 @@ export type PrevisAnchorProjection = {
   readonly timingAllowed: boolean;
   readonly storyboardAssetUrl: string;
   readonly storyboardArtifactId: string | null;
+  readonly storyboardDependencyKey: string;
   readonly observedReference: boolean;
   readonly staleBecause: readonly string[];
+  readonly shots: readonly ProductionShotIntent[];
+  readonly staleShotIds: readonly string[];
   readonly reason: string;
 };
 
@@ -39,6 +43,7 @@ export type PrevisProjection = {
   readonly blocks: readonly PrevisBlockProjection[];
   readonly timingReadyAnchors: number;
   readonly totalAnchors: number;
+  readonly totalShots: number;
 };
 
 function blockNumberFromTargetId(targetId: string) {
@@ -61,6 +66,10 @@ function draftStoryboardArtifactForFrame(
   )) ?? null;
 }
 
+function storyboardDependencyKey(artifact: FoundationsVisualArtifact | null) {
+  return (artifact?.sourceDecisionKeys ?? []).find((key) => key.startsWith("storyboard-upstream:")) ?? "";
+}
+
 function anchorState(input: {
   readonly blockState: VisualReadinessState;
   readonly storyboardAllowed: boolean;
@@ -74,6 +83,39 @@ function anchorState(input: {
   if (input.draft) return "emerging";
   if (input.blockState === "emerging") return "emerging";
   return "missing";
+}
+
+export function shotNeedsReview(anchor: PrevisAnchorProjection, shot: ProductionShotIntent) {
+  return !anchor.timingAllowed
+    || shot.storyboardArtifactId !== anchor.storyboardArtifactId
+    || shot.storyboardDependencyKey !== anchor.storyboardDependencyKey;
+}
+
+export function createProductionShotForAnchor(
+  project: PPFProject,
+  anchor: PrevisAnchorProjection,
+  occurredAt: string,
+): ProductionShotIntent | null {
+  if (!anchor.timingAllowed || !anchor.storyboardArtifactId || !anchor.storyboardDependencyKey) return null;
+  const nextOrder = anchor.shots.reduce((maximum, shot) => Math.max(maximum, shot.order), 0) + 1;
+  return {
+    id: `previs-shot-${anchor.blockNumber}-${anchor.miniBlockNumber}-${project.revision + 1}-${nextOrder}`,
+    anchorRef: anchor.id,
+    storyboardArtifactId: anchor.storyboardArtifactId,
+    storyboardDependencyKey: anchor.storyboardDependencyKey,
+    order: nextOrder,
+    shotSize: "Wide",
+    angle: "Eye level",
+    movement: "Locked",
+    lens: "Natural perspective",
+    visualIntent: "",
+    durationSeconds: null,
+    transitionIn: "",
+    transitionOut: "",
+    reviewState: "planned",
+    createdAt: occurredAt,
+    updatedAt: occurredAt,
+  };
 }
 
 export function derivePrevisProjection(project: PPFProject): PrevisProjection {
@@ -100,6 +142,18 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         hasObservedReference: Boolean(observed),
       });
       const timingAllowed = Boolean(kept && staleBecause.length === 0 && target.storyboardAllowed);
+      const anchorId = storyboardAnchorTargetRef(target.id, miniBlockNumber);
+      const dependencyKey = storyboardDependencyKey(kept);
+      const shots = project.production.shots
+        .filter((shot) => shot.anchorRef === anchorId)
+        .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+      const staleShotIds = shots
+        .filter((shot) => (
+          !timingAllowed
+          || shot.storyboardArtifactId !== kept?.id
+          || shot.storyboardDependencyKey !== dependencyKey
+        ))
+        .map((shot) => shot.id);
       const reason = !target.storyboardAllowed
         ? target.missingPrerequisites.join(" · ") || "Storyboard evidence has not earned this Previs anchor yet."
         : staleBecause.length
@@ -111,7 +165,7 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
               : "This canonical anchor has no approved Storyboard visual yet.";
 
       return {
-        id: storyboardAnchorTargetRef(target.id, miniBlockNumber),
+        id: anchorId,
         targetId: target.id,
         blockNumber,
         miniBlockNumber,
@@ -120,8 +174,11 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         timingAllowed,
         storyboardAssetUrl: kept?.assetUrl || draft?.assetUrl || observed?.assetUrl || "",
         storyboardArtifactId: kept?.id ?? null,
+        storyboardDependencyKey: dependencyKey,
         observedReference: Boolean(observed && !kept),
         staleBecause,
+        shots,
+        staleShotIds,
         reason,
       };
     });
@@ -149,5 +206,6 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
     blocks,
     timingReadyAnchors: blocks.flatMap((block) => block.anchors).filter((anchor) => anchor.timingAllowed).length,
     totalAnchors: blocks.reduce((sum, block) => sum + block.anchors.length, 0),
+    totalShots: project.production.shots.length,
   };
 }

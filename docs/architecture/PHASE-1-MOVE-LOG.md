@@ -229,22 +229,26 @@ Behavior boundary:
 - No compatibility shim remains at either retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
 
-## #1462 — Native H3 gateway slice
+## #1462 — Native H3 subdomain capacity slice
 
 Status: **candidate; AI batch remains in progress**
 
 Move boundary:
-- `build/comfyui-h3-native-gateway.ts` → `build/ai/comfyui-h3-native-gateway.ts`
-- `build/comfyui-h3-native-provider.ts` intentionally remains at the root until AI subdomain capacity is created; moving both now would exceed the ratified 16-direct-source ceiling.
+- `build/ai/comfyui-h3-native-gateway.ts` → `build/ai/h3/comfyui-h3-native-gateway.ts`
+- `build/comfyui-h3-native-provider.ts` → `build/ai/h3/comfyui-h3-native-provider.ts`
 
 Runtime/import consumers updated:
-- `build/local-ai-gateway.ts` imports the canonical AI-owned H3 gateway without changing registration order.
-- the moved gateway reaches the still-root-owned native H3 provider through one explicit parent import.
+- `build/local-ai-gateway.ts` imports the H3 gateway from its bounded AI subdomain without changing registration order.
+- `build/ai-routing-gateway.ts` imports the H3 provider from the same bounded AI subdomain.
+- the H3 gateway imports its colocated provider directly.
+- the H3 provider reaches root-owned credential and media helpers through explicit two-level parent imports.
 
-Source-contract consumers updated:
+Source-contract / registry consumers updated:
+- `config/credential-boundary.registry.json`
 - `tests/comfyui-live-verification.test.mjs`
 - `tests/issue-258-creative-compute-paths.test.mjs`
 - `tests/issue-973-comfyui-api-readiness.test.mjs`
+- `tests/issue-300-native-h3-credential-registry.test.mjs`
 - `tests/issue-1462-h3-native-gateway-move.test.mjs`
 
 Behavior boundary:
@@ -252,6 +256,7 @@ Behavior boundary:
 - ComfyUI remains fixed to `http://127.0.0.1:8188`; activation still requires the reviewed local readiness prerequisites.
 - H3 setup still installs no weights or custom nodes and executes no downloaded code.
 - `/api/local-ai/generate/video` and native H3 job polling behavior remain unchanged.
-- No compatibility shim remains at the retired gateway root path.
-- This move brings `build/ai` to, but not beyond, the ratified direct-source ceiling; the provider requires a later bounded AI subdomain-capacity move.
-- The larger `phase1-build-ai` batch intentionally remains incomplete.
+- Credential ownership, redaction, local job persistence and media output rules remain unchanged.
+- No compatibility shim remains at the retired root or direct-AI H3 paths.
+- Moving the H3 pair under `build/ai/h3/` reduces direct `build/ai` pressure below the ratified 16-source ceiling and creates capacity for the remaining Phase 1 AI moves.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

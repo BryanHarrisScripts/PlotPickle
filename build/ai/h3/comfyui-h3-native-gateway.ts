@@ -9,7 +9,7 @@ import {
   readNativeH3Store,
   writeNativeH3Store,
   type H3NativeInput,
-} from "../comfyui-h3-native-provider";
+} from "./comfyui-h3-native-provider";
 
 const API = "/api/media-routing/comfyui/h3/native";
 const LEGACY_API = "/api/media-routing/comfyui/h3-native";

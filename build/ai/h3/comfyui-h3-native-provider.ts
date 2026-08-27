@@ -1,14 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { readCredentialJson, writeCredentialJson } from "./local-credentials";
+import { readCredentialJson, writeCredentialJson } from "../../local-credentials";
 import {
   ASSET_PATH,
   assetsDirectory,
   safeAssetStem,
   saveGeneratedAsset,
   type VideoGenerationInput,
-} from "./media-provider-common";
+} from "../../media-provider-common";
 
 const STORE_FILE = "h3-native-routing.json";
 const JOBS_FILE = "h3-native-jobs.json";

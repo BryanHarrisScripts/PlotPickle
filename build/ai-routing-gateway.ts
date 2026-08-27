@@ -31,7 +31,7 @@ import {
   type VideoGenerationInput,
 } from "./media-provider-common";
 
-export type TextRoute = "ollama" | "openai" | "minimax" | "off";
+export type TextRoute = "ollama" | "openai" | "minimax" | "gemini" | "off";
 export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
 export type VideoRoute = "comfyui-native" | "minimax" | "openai" | "off";
 
@@ -112,7 +112,7 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
 }
 
 function textRoute(value: ActiveTextProvider): TextRoute | null {
-  if (value === "ollama" || value === "openai" || value === "minimax") return value;
+  if (value === "ollama" || value === "openai" || value === "minimax" || value === "gemini") return value;
   if (value === "disabled") return "off";
   return null;
 }
@@ -120,7 +120,7 @@ function textRoute(value: ActiveTextProvider): TextRoute | null {
 function normalizeChoice(value: unknown): RoutingChoice | null {
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<RoutingChoice>;
-  if (!["ollama", "openai", "minimax", "off"].includes(String(item.text))) return null;
+  if (!["ollama", "openai", "minimax", "gemini", "off"].includes(String(item.text))) return null;
   if (!["comfyui", "ollama-comfyui", "openai", "minimax", "manual"].includes(String(item.image))) return null;
   if (!["comfyui-native", "minimax", "openai", "off"].includes(String(item.video))) return null;
   return {
@@ -215,6 +215,7 @@ async function statusBody() {
   const ollama = assistant.profiles.ollama;
   const openAiText = assistant.profiles.openai;
   const minimaxText = assistant.profiles.minimax;
+  const geminiText = assistant.profiles.gemini;
   const checkpoint = media.comfyui.checkpoint || comfy.checkpoints[0] || "";
   const comfyImageConfigured = Boolean(comfy.reachable && checkpoint);
   const comfyImageReady = Boolean(comfyImageConfigured && comfy.imageNodesReady && media.comfyui.imageVerifiedAt);
@@ -248,6 +249,12 @@ async function statusBody() {
           locality: "cloud",
           cost: "Paid API usage",
           settingsTarget: "minimax",
+        },
+        gemini: {
+          ...textProfileState(geminiText),
+          locality: "cloud",
+          cost: "Provider account usage",
+          settingsTarget: "gemini",
         },
         off: {
           configured: true,
@@ -345,8 +352,8 @@ async function selectRoute(body: Record<string, unknown>) {
   ]);
 
   if (capability === "text") {
-    if (route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose Ollama, OpenAI, MiniMax or Off for text.");
-    if (route === "openai" || route === "minimax") requirePaidConsent(body);
+    if (route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "gemini" && route !== "off") throw new Error("Choose Ollama, OpenAI, Google Gemini, MiniMax or Off for text.");
+    if (route === "openai" || route === "minimax" || route === "gemini") requirePaidConsent(body);
     assistantResult.store.activeProvider = route === "off" ? "disabled" : route;
     assistantResult.store.explicitlyDisabled = route === "off";
     choice.text = route;

@@ -7,7 +7,7 @@
     "video": "off"
   },
   "capabilities": [
-    { "id": "text", "label": "Writing", "description": "Choose one writing and planning engine: Ollama, OpenAI, MiniMax Text, or Off." },
+    { "id": "text", "label": "Writing", "description": "Choose one writing and planning engine: Ollama, OpenAI, Google Gemini, MiniMax Text, or Off." },
     { "id": "image", "label": "Images", "description": "Choose ComfyUI, Ollama-assisted ComfyUI, OpenAI, MiniMax, or Manual Import." },
     { "id": "video", "label": "Video", "description": "Choose local ComfyUI H3, OpenAI Video, MiniMax H3 cloud, or Off." }
   ],
@@ -78,6 +78,17 @@
       }
     },
     {
+      "id": "gemini",
+      "label": "Google Gemini",
+      "kind": "cloud",
+      "cost": "provider-account",
+      "requiresConsent": true,
+      "probe": {
+        "configuration": "encrypted-local-api-key",
+        "health": "provider-account-test"
+      }
+    },
+    {
       "id": "minimax",
       "label": "MiniMax",
       "kind": "cloud",
@@ -112,6 +123,14 @@
       "label": "OpenAI · Cloud",
       "description": "Use the selected OpenAI text model through the user-owned API account.",
       "providerIds": ["openai"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "text.gemini",
+      "capability": "text",
+      "label": "Google Gemini · Provider Cloud",
+      "description": "Use the configured Gemini writing model through Google's OpenAI-compatible API contract and the user-owned API key.",
+      "providerIds": ["gemini"],
       "selectableWhen": "ready"
     },
     {

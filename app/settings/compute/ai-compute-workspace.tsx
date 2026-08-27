@@ -6,13 +6,14 @@ import LocalAiReadinessSummary from "../../local-ai-readiness-summary";
 import LocalRuntimePanel from "../../local-runtime-panel";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
+import GeminiProviderSetupPanel from "../ai-provider/gemini-provider-setup-panel";
 import CloudModelCatalogPanel from "./cloud-model-catalog-panel";
 import LocalModelCatalogPanel from "./local-model-catalog-panel";
 import styles from "./ai-compute-workspace.module.css";
 
 type ComputeMode = "local" | "cloud";
 type ComputeCapability = "writing" | "images" | "video";
-type ProviderTarget = "ollama" | "openai" | "minimax" | "comfyui";
+type ProviderTarget = "ollama" | "openai" | "gemini" | "minimax" | "comfyui";
 type ComputeFocus = "sage-plan";
 
 type CapabilityDefinition = {
@@ -29,21 +30,21 @@ const CAPABILITIES: CapabilityDefinition[] = [
     routingCapability: "text",
     label: "Writing",
     localDetail: "Use this computer for Sage, PLAN and story work.",
-    cloudDetail: "Use an explicitly connected online model for writing and planning.",
+    cloudDetail: "Use an explicitly connected remote model for writing and planning.",
   },
   {
     id: "images",
     routingCapability: "image",
     label: "Images",
     localDetail: "Generate artwork on this computer with a verified local image route.",
-    cloudDetail: "Use an explicitly connected online image provider.",
+    cloudDetail: "Use an explicitly connected remote image provider or compute service.",
   },
   {
     id: "video",
     routingCapability: "video",
     label: "Video",
     localDetail: "Use a supported local video route when this Node can provide one.",
-    cloudDetail: "Use an explicitly connected online video provider with the existing consent gates.",
+    cloudDetail: "Use an explicitly connected remote video provider with the existing consent gates.",
   },
 ];
 
@@ -54,6 +55,7 @@ const LEGACY_CAPABILITY_TARGETS: Record<string, ComputeCapability> = {
   "settings-routing": "writing",
   "settings-ollama": "writing",
   "settings-openai": "writing",
+  "settings-gemini": "writing",
   "settings-minimax": "writing",
   "settings-images": "images",
   "settings-video": "video",
@@ -84,10 +86,35 @@ function modeCopy(mode: ComputeMode) {
       }
     : {
         eyebrow: "Settings · AI Compute",
-        title: "Cloud Compute",
-        detail: "Use online AI services you deliberately connect. Provider credentials stay protected, paid routes remain explicit, and a failed local route never silently becomes a cloud request.",
-        badge: "ONLINE SERVICES",
+        title: "Remote Compute",
+        detail: "Connect a private server, managed cloud server farm, or provider cloud deliberately. PlotPickle keeps execution location separate from connection method and model/provider identity.",
+        badge: "REMOTE / CLOUD",
       };
+}
+
+function RemoteExecutionGuide() {
+  return (
+    <section className={styles.connectionMethods} aria-labelledby="remote-execution-title">
+      <header>
+        <p>Where it runs</p>
+        <h3 id="remote-execution-title">Choose the kind of remote compute you are connecting.</h3>
+      </header>
+      <div>
+        <article data-available="true">
+          <strong>My Private Server</strong>
+          <span>A machine or LAN/server environment you control. Common connections include an OpenAI-compatible API from vLLM, llama.cpp, LM Studio or another private runtime.</span>
+        </article>
+        <article data-available="true">
+          <strong>Cloud Server Farm</strong>
+          <span>A managed GPU or inference platform such as AtlasCloud. PlotPickle connects through the farm&apos;s supported API, OpenAI-compatible endpoint or MCP service while keeping cost and data-sharing explicit.</span>
+        </article>
+        <article data-available="true">
+          <strong>Provider Cloud</strong>
+          <span>A direct model provider such as Google Gemini, OpenAI or MiniMax. PlotPickle uses the provider&apos;s supported API and never silently promotes local work to a paid route.</span>
+        </article>
+      </div>
+    </section>
+  );
 }
 
 export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode; focus?: ComputeFocus }) {
@@ -157,13 +184,16 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
     return (
       <div className={styles.advancedStack}>
         <section className={styles.connectionMethods} aria-labelledby="cloud-connection-methods-title">
-          <header><p>Connection methods</p><h3 id="cloud-connection-methods-title">Choose the secure connection your provider supports.</h3></header>
+          <header><p>How PlotPickle connects</p><h3 id="cloud-connection-methods-title">Use the connection contract the selected service supports.</h3></header>
           <div>
-            <article data-available="true"><strong>API key</strong><span>Available for the current OpenAI and MiniMax provider adapters. The saved secret remains protected and is never displayed after storage.</span></article>
-            <article data-available="false"><strong>MCP / OAuth</strong><span>Shown as a supported connection class, but no current OpenAI or MiniMax OAuth/MCP provider adapter is registered here. PlotPickle will not pretend an OAuth connection exists.</span></article>
+            <article data-available="true"><strong>Provider API</strong><span>Direct provider connections use the provider&apos;s supported API contract.</span></article>
+            <article data-available="true"><strong>API key</strong><span>The API key is a protected user-owned credential. Credentials stay outside story projects and never define where compute runs.</span></article>
+            <article data-available="true"><strong>OpenAI-Compatible API</strong><span>Private servers and cloud server farms can expose one compatible endpoint without becoming an OpenAI provider.</span></article>
+            <article data-available="false"><strong>MCP</strong><span>MCP is a connection mechanism for tools/services, not an AI model identity. It remains unavailable until a real MCP adapter is registered.</span></article>
           </div>
         </section>
         <CloudModelCatalogPanel capability={activeCapability} />
+        {activeCapability === "writing" ? <GeminiProviderSetupPanel /> : null}
         <AiProviderSetupPanel provider="openai" />
         <AiProviderSetupPanel provider="minimax" />
       </div>
@@ -202,6 +232,7 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
       </section>
 
       {mode === "local" && activeCapability === "writing" ? <LocalAiReadinessSummary onOpenAdvanced={() => openAdvanced()} /> : null}
+      {mode === "cloud" ? <RemoteExecutionGuide /> : null}
 
       <AiRoutingPanel
         capability={capability.routingCapability}
@@ -211,7 +242,7 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
 
       <details id={`${mode}-compute-advanced`} className={styles.advanced} open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
         <summary>
-          <span><strong>Advanced Options</strong><small>{mode === "local" ? "Models, runtimes and expert diagnostics" : "Provider credentials, models, endpoints and MCP/OAuth availability"}</small></span>
+          <span><strong>Advanced Options</strong><small>{mode === "local" ? "Models, runtimes and expert diagnostics" : "Provider credentials, models, endpoints and connection methods"}</small></span>
           {providerFocus ? <em>Requested: {providerFocus}</em> : null}
         </summary>
         <div className={styles.advancedBody}>
@@ -220,10 +251,10 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
       </details>
 
       <footer className={styles.boundary}>
-        <strong>{mode === "local" ? "Local means this Node." : "Cloud means explicitly connected online services."}</strong>
+        <strong>{mode === "local" ? "Local means this Node." : "Remote describes execution location, not provider identity."}</strong>
         <span>{mode === "local"
           ? "No local failure silently promotes work to a paid provider."
-          : "Credentials stay outside story projects, and paid generation still requires the existing explicit consent boundaries."}</span>
+          : "Private servers, cloud server farms and direct provider clouds remain separate choices; paid routes remain explicit, with user-owned credentials and paid-use consent."}</span>
       </footer>
     </section>
   );

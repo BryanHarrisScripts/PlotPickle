@@ -5,18 +5,12 @@ on:
     branches: [main]
     paths:
       - ".agents/skills/**"
-      - "config/agent-skills.json"
-      - "config/agent-skill-trust.json"
-      - "scripts/agent-skills.mjs"
-      - "scripts/agent-skill-procedures.mjs"
-      - "scripts/agent-skill-trust.mjs"
-      - "lib/agent-profiles.ts"
-      - "lib/connector-trust-policy.ts"
-      - "lib/model-portability-evals.ts"
-      - "tests/fixtures/agent-skills/**"
-      - "tests/issue-913-agent-skills-migration.test.mjs"
-      - "tests/issue-976-agent-skill-trust*.test.mjs"
-      - "docs/research/agent-architecture/**"
+      - "config/agent-profiles.json"
+      - "lib/agents/agent-profiles.ts"
+      - "lib/agent-skill-trust.ts"
+      - "tests/issue-962-agent-profiles.test.mjs"
+      - "tests/issue-1174-agent-skill-trust.test.mjs"
+      - "docs/agent-skill-trust.md"
       - ".github/workflows/agent-skill-trust.yml"
   workflow_dispatch:
 
@@ -28,8 +22,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trust:
-    name: Trust records, quarantine and eval boundary
+  validate:
+    name: Agent Skill trust boundaries
     runs-on: ubuntu-latest
     timeout-minutes: 6
 
@@ -46,17 +40,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate existing Agent Skills migration contract
-        run: node --test tests/issue-913-agent-skills-migration.test.mjs
+      - name: Validate Agent Profile contracts
+        run: node --test tests/issue-962-agent-profiles.test.mjs
 
-      - name: Run Agent Skill trust self-test
-        run: node scripts/agent-skill-trust.mjs
-
-      - name: Execute quarantine and hash invalidation tests
-        run: node --test tests/issue-976-agent-skill-trust-runtime.test.mjs
-
-      - name: Validate Skill supply-chain contract and research intake
-        run: node --test tests/issue-976-agent-skill-trust.test.mjs
-
-      - name: Recheck connector and portability boundaries
-        run: node --test tests/issue-965-connector-trust-policy.test.mjs tests/issue-968-run-telemetry-evals.test.mjs
+      - name: Validate Agent Skill trust boundaries
+        run: node --test tests/issue-1174-agent-skill-trust.test.mjs

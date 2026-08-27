@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
-import StoryboardReadinessWorkspace from "../storyboard-readiness-workspace";
+import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 
 export default function StoryboardPage() {
   const [project, setProject] = useState<PPFProject | null>(null);

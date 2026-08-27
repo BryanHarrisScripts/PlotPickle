@@ -366,11 +366,15 @@
 
 .lesson {
   min-width: 0;
+  box-sizing: border-box;
   overflow-y: auto;
+  margin: 12px 14px;
   padding: 52px clamp(32px, 5vw, 84px) 80px;
+  border: 1px solid rgba(53, 201, 184, 0.22);
+  border-radius: 18px;
   background:
-    radial-gradient(circle at 50% 0, rgba(53, 201, 184, 0.055), transparent 30rem),
-    var(--matte);
+    radial-gradient(circle at 50% 0, rgba(53, 201, 184, 0.075), transparent 30rem),
+    #0d0f10;
 }
 
 .applyLearningAction {

@@ -28,7 +28,7 @@ test("#1404 Node 24 server smoke compiles the Community query-state workspace", 
 test("#1404 managed browser smoke uses Edge app mode and observes renderer crashes", async () => {
   const smoke = await source("scripts/windows-community-edge-smoke.mjs");
   for (const contract of [
-    "Microsoft\\Edge\\Application\\msedge.exe",
+    '"Microsoft", "Edge", "Application", "msedge.exe"',
     "--app=",
     "--user-data-dir=",
     "--headless=new",

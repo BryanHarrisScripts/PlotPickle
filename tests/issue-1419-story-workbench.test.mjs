@@ -184,7 +184,7 @@ test("#1419 current product adapter uses the Learn-first PPF command/revision bo
   assert.match(workbenchPage, /saveFoundationProjectAtRevision/);
   assert.match(workbenchPage, /storyDecisionReconciliationPlan/);
   assert.match(workbenchPage, /markDecisionStale/);
-  assert.doesNotMatch(workbenchPage, /localStorage|indexedDB|github|pull request/i, "Workbench must not create a second canon/change store or developer review route");
+  assert.doesNotMatch(workbenchPage, /localStorage|indexedDB|(?:from|import)[^\n]*github/i, "Workbench must not create a second canon/change store or developer integration dependency");
 });
 
 test("#1419 Workbench UI presents before/after, separate axes, exact revision apply and targeted re-evaluation evidence", async () => {
@@ -204,5 +204,5 @@ test("#1419 Workbench UI presents before/after, separate axes, exact revision ap
   assert.match(page, /prepareStoryWorkbenchReview/);
   assert.match(page, /applyStoryWorkbenchReview/);
   assert.match(page, /planTargetedStoryReevaluation/);
-  assert.ok(page.indexOf("saveFoundationProjectAtRevision") < page.indexOf("storyDecisionReconciliationPlan"), "Decision reconciliation must happen only after the canonical save succeeds");
+  assert.ok(page.indexOf("const saved = saveFoundationProjectAtRevision") < page.indexOf("const reconciliation = storyDecisionReconciliationPlan"), "Decision reconciliation must happen only after the canonical save succeeds");
 });

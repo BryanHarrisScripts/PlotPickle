@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1255 reuses the reviewed local-tool detector to distinguish installed-stopped from not-installed", async () => {
   const [gateway, installer] = await Promise.all([
-    read("build/comfyui-onboarding-gateway.ts"),
+    read("build/ai/comfyui-onboarding-gateway.ts"),
     read("scripts/install-local-ai-tool.ps1"),
   ]);
 
@@ -64,7 +64,7 @@ test("#1255 local image readiness requires real ComfyUI nodes checkpoint a retur
 
 test("#1255 start remains explicit and never silently installs optional H3 or cloud model packs", async () => {
   const [gateway, starter, panel] = await Promise.all([
-    read("build/comfyui-onboarding-gateway.ts"),
+    read("build/ai/comfyui-onboarding-gateway.ts"),
     read("scripts/start-comfyui-background.ps1"),
     read("app/media-routing-panel.tsx"),
   ]);

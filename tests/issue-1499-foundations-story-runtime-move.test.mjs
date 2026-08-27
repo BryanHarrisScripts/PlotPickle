@@ -27,6 +27,8 @@ test("#1499 retargets all three live module consumers", async () => {
 
 test("#1499 preserves proposal-only Story Workflow authority boundaries", async () => {
   const runtime = await source("modules/story-workflow/runtime/foundations-story-workflow.ts");
+  assert.match(runtime, /FOUNDATIONS_STORY_WORKFLOW_PROFILE_ID = "tamsin-hearthquill"/);
+  assert.match(runtime, /FOUNDATIONS_STORY_WORKFLOW_FRONTIER = "Foundations"/);
   assert.match(runtime, /priority: waitingHuman \? "blocking" : "high"/);
   assert.match(runtime, /Only queued Story Work Items may start a Responsibility Run/);
   assert.match(runtime, /Creative changes remain proposals\. Never write PPF\/canon directly/);

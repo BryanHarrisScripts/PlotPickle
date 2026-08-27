@@ -27,22 +27,8 @@ export function storyboardAnchorTargetRef(targetId: string, miniBlockNumber: num
   return `storyboard-anchor:${targetId}:mini-${miniBlockNumber}`;
 }
 
-/** Compatibility name retained while older callers migrate from frame=anchor wording. */
-export function storyboardFrameTargetRef(targetId: string, miniBlockNumber: number) {
-  return storyboardAnchorTargetRef(targetId, miniBlockNumber);
-}
-
 function observedReferenceSourceKey(sourceRef: string) {
   return `observed-reference:${sourceRef}`;
-}
-
-function hashText(value: string) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(36).padStart(7, "0");
 }
 
 function targetBlockNumber(targetId: string) {
@@ -122,7 +108,11 @@ export function storyboardFrameDependencySourceKey(
     sourceEvidence: sourceEvidenceForAnchor(project, targetId, miniBlockNumber),
     scopedAcceptedVisuals: acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber),
   });
-  return `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${hashText(snapshot)}`;
+  const checksum = Array.from(snapshot).reduce(
+    (value, character, index) => (((value * 33) ^ character.charCodeAt(0) ^ index) >>> 0),
+    5381,
+  ).toString(36);
+  return `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${checksum}`;
 }
 
 export function storyboardArtifactStaleReasons(

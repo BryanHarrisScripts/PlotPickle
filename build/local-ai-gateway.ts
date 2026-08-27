@@ -7,7 +7,7 @@ import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
-import { registerSdxlLocalImageGateway } from "./comfyui-sdxl-local-gateway";
+import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./comfyui-sdxl-starter-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";

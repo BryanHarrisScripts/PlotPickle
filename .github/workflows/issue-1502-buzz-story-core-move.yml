@@ -6,7 +6,6 @@ on:
       - architecture/1502-buzz-story-core
     paths:
       - ".github/workflows/issue-1502-buzz-story-core-move.yml"
-      - ".github/scripts/issue-1502-buzz-story-core-move.py"
   workflow_dispatch:
 
 permissions:
@@ -38,11 +37,11 @@ jobs:
       - name: Diff hygiene
         run: git diff --check
 
-      - name: Commit permanent move and remove helpers
+      - name: Commit permanent source move
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/issue-1502-buzz-story-core-move.yml .github/scripts/issue-1502-buzz-story-core-move.py
+          git rm .github/scripts/issue-1502-buzz-story-core-move.py
           git add -A
           git commit -m "refactor(#1502): move BUZZ Story Bridge core to owned domain"
           git push origin HEAD:architecture/1502-buzz-story-core

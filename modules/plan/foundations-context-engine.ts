@@ -6,7 +6,7 @@ import {
   contextItem,
   contextReceiptSummary,
   type ContextPacket,
-} from "../../lib/context-engine";
+} from "../../lib/agents/context/context-engine";
 
 const PLAN_CONTEXT_BUDGET = 46_000;
 

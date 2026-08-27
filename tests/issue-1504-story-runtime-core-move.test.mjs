@@ -81,6 +81,14 @@ test("#1504 retargets every known direct consumer without a root compatibility s
   }
 });
 
+test("#1504 retargets Story Bridge CI to the runtime-owned core paths", async () => {
+  const workflow = await source(".github/workflows/story-bridge.yml");
+  assert.ok(workflow.includes('core/story-workflow/runtime/story-workflow-core.mjs'));
+  assert.ok(workflow.includes('core/story-workflow/runtime/story-workflow-core.d.ts'));
+  assert.ok(!workflow.includes('core/story-workflow/story-workflow-core.mjs'));
+  assert.ok(!workflow.includes('core/story-workflow/story-workflow-core.d.ts'));
+});
+
 test("#1504 marks the final Phase 2 move batch complete while preserving the Phase 0 historical map", async () => {
   const architecture = JSON.parse(await source("config/repository-architecture-target.json"));
   const batch = architecture.moveBatches.find((item) => item.id === "phase2-core-story-runtime");

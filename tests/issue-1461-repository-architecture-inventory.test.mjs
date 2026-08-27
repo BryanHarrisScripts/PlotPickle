@@ -29,7 +29,12 @@ test("#1461 ratifies deterministic bounded structural batches for Architecture P
   const report = await runRepositoryArchitectureInventory({ writeArtifact: false });
   const phases = new Set(report.batches.map((batch) => batch.phase));
   assert.deepEqual([...phases].sort(), [1, 2, 3, 4]);
-  assert.ok(report.batches.every((batch) => batch.moveCount > 0), JSON.stringify(report.batches, null, 2));
+  assert.ok(report.batches.every((batch) => batch.moveCount > 0 || batch.status === "completed"), JSON.stringify(report.batches, null, 2));
+
+  const completedProjects = report.batches.find((batch) => batch.id === "phase1-build-projects");
+  assert.equal(completedProjects?.status, "completed");
+  assert.equal(completedProjects?.moveCount, 0, "completed Project sources must no longer expand from build/");
+  assert.equal(completedProjects?.completedTargetCount, 2);
 
   const sources = report.plannedMoves.map((move) => move.source);
   assert.equal(new Set(sources).size, sources.length, "one current source must not belong to multiple move batches");

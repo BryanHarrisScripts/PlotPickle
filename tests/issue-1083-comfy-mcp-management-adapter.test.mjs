@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("#1083 treats Comfy MCP as an optional management adapter, not the image-generation authority", async () => {
   const [diagnostics, providerGateway, localAi] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),
-    source("build/provider-diagnostics-gateway.ts"),
+    source("build/ai/provider-diagnostics-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
   assert.match(diagnostics, /adapter: "comfy-mcp" \| "direct-api"/);

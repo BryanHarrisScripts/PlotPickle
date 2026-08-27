@@ -7,6 +7,9 @@ const readiness = read("modules/build/visual-readiness.ts");
 const progressive = read("modules/build/progressive-story-map.ts");
 const visualIdentity = read("lib/projects/visual/character-visual-identity.ts");
 const storyboard = read("app/visual-storyboard.tsx");
+const afterglowProof = read("modules/library/reference/afterglow-v9-visual-readiness.ts");
+const afterglowStoryboard = read("data/afterglow-storyboard.ts");
+const afterglowComplete = read("data/afterglow-complete.ts");
 
 test("#1423 defines one curriculum-to-visual readiness contract without a second canon store", () => {
   assert.match(readiness, /VisualReadinessSnapshot/);
@@ -51,4 +54,19 @@ test("#1423 staleness is targeted and explainable", () => {
   assert.match(readiness, /affectedTargetIds/);
   assert.match(readiness, /staleBecause/);
   assert.match(readiness, /affected\.has\(target\.id\)/);
+});
+
+test("#1423 Afterglow v9 proof maps character, location, Block and visual reference without accepting legacy art as canon", () => {
+  assert.match(afterglowProof, /AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER = 17/);
+  assert.match(afterglowProof, /id: "ren"/);
+  assert.match(afterglowProof, /kind: "character"/);
+  assert.match(afterglowProof, /id: "venice-beach"/);
+  assert.match(afterglowProof, /kind: "location"/);
+  assert.match(afterglowProof, /kind: "reference"/);
+  assert.match(afterglowProof, /approved: false/g);
+  assert.match(afterglowProof, /createAfterglowStoryboardFrames/);
+  assert.match(afterglowStoryboard, /afterglow-block-\$\{blockNumber\}-mini-\$\{miniBlockNumber\}/);
+  assert.match(afterglowComplete, /Block 17/);
+  assert.match(afterglowComplete, /venice-beach/);
+  assert.match(afterglowComplete, /characterIds/);
 });

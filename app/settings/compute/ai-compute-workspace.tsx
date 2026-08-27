@@ -6,13 +6,14 @@ import LocalAiReadinessSummary from "../../local-ai-readiness-summary";
 import LocalRuntimePanel from "../../local-runtime-panel";
 import SageFastModelSetup from "../../sage-fast-model-setup";
 import AiProviderSetupPanel from "../ai-provider/ai-provider-setup-panel";
+import GeminiProviderSetupPanel from "../ai-provider/gemini-provider-setup-panel";
 import CloudModelCatalogPanel from "./cloud-model-catalog-panel";
 import LocalModelCatalogPanel from "./local-model-catalog-panel";
 import styles from "./ai-compute-workspace.module.css";
 
 type ComputeMode = "local" | "cloud";
 type ComputeCapability = "writing" | "images" | "video";
-type ProviderTarget = "ollama" | "openai" | "minimax" | "comfyui";
+type ProviderTarget = "ollama" | "openai" | "gemini" | "minimax" | "comfyui";
 type ComputeFocus = "sage-plan";
 
 type CapabilityDefinition = {
@@ -54,6 +55,7 @@ const LEGACY_CAPABILITY_TARGETS: Record<string, ComputeCapability> = {
   "settings-routing": "writing",
   "settings-ollama": "writing",
   "settings-openai": "writing",
+  "settings-gemini": "writing",
   "settings-minimax": "writing",
   "settings-images": "images",
   "settings-video": "video",
@@ -190,6 +192,7 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
           </div>
         </section>
         <CloudModelCatalogPanel capability={activeCapability} />
+        {activeCapability === "writing" ? <GeminiProviderSetupPanel /> : null}
         <AiProviderSetupPanel provider="openai" />
         <AiProviderSetupPanel provider="minimax" />
       </div>

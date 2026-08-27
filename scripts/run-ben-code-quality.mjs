@@ -92,6 +92,24 @@ function pathIntersectsChange(findingPath, changedPaths) {
   ));
 }
 
+function findingGroupFingerprint(change, side) {
+  return change?.[side]?.groupFingerprint || change?.groupFingerprint || "";
+}
+
+function renamePreservesExistingFinding(report, change, findingPath, changedEntries) {
+  if (change?.status !== "added") return false;
+  const rename = changedEntries.find((entry) => entry.status.charAt(0) === "R" && entry.targetPath === findingPath);
+  if (!rename) return false;
+  const groupFingerprint = findingGroupFingerprint(change, "head");
+  if (!groupFingerprint) return false;
+  const sourceReport = (report?.paths || []).find((pathReport) => pathReport?.path === rename.sourcePath);
+  return (sourceReport?.changes || []).some((candidate) => (
+    candidate?.status === "resolved"
+    && candidate?.ruleId === change?.ruleId
+    && findingGroupFingerprint(candidate, "base") === groupFingerprint
+  ));
+}
+
 function findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths) {
   if (!pathIntersectsChange(findingPath, changedPaths)) return false;
   if (change?.ruleId === "structure.directory-fanout-hotspot" && change?.scope === "directory") {
@@ -107,6 +125,7 @@ function relevantDeltaFindings(report, changedEntries, changedPaths) {
     for (const change of pathReport?.changes || []) {
       if (!failOn.has(change?.status)) continue;
       const findingPath = change?.head?.path || change?.path || pathReport?.path || "";
+      if (renamePreservesExistingFinding(report, change, findingPath, changedEntries)) continue;
       if (findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths)) relevant.push(change);
     }
   }
@@ -187,7 +206,7 @@ async function main() {
       scannerExitCode: delta.status,
       authoritative: false,
       evidence: path.relative(repoRoot, deltaReport).replaceAll("\\", "/"),
-      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
+      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 
     if (!passed) {

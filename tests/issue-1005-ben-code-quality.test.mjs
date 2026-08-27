@@ -94,7 +94,7 @@ test("BEN pins slop-scan and fails CI only on added or worsened delta findings",
   assert.match(policy.authority.meaning, /merge pull requests/i);
 });
 
-test("BEN runner is pinned, produces machine-readable evidence, and cannot become merge authority", async () => {
+test("BEN runner is pinned, rename-aware, produces machine-readable evidence, and cannot become merge authority", async () => {
   const source = await read("scripts/run-ben-code-quality.mjs");
   assert.match(source, /policy\.slopScan\.package/);
   assert.match(source, /policy\.slopScan\.version/);
@@ -105,6 +105,10 @@ test("BEN runner is pinned, produces machine-readable evidence, and cannot becom
   assert.match(source, /"--head"/);
   assert.match(source, /"--fail-on"/);
   assert.match(source, /"worktree", "add", "--detach"/);
+  assert.match(source, /"diff", "--name-status", "-M"/);
+  assert.match(source, /renamePreservesExistingFinding/);
+  assert.match(source, /candidate\?\.status === "resolved"/);
+  assert.match(source, /findingGroupFingerprint\(candidate, "base"\) === groupFingerprint/);
   assert.match(source, /ben-result\.json/);
   assert.match(source, /authoritative: false/);
   assert.doesNotMatch(source, /merge_pull_request|create_pull_request|update_ref|ppf-direct-write|credential-read/);

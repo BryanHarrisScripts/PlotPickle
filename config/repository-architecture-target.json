@@ -85,7 +85,17 @@
       "sourceRoot": "build",
       "targetRoot": "build/projects",
       "directFilesOnly": true,
-      "selector": { "files": ["afterglow-project-gateway.ts"], "prefixes": ["project-", "portable-ppf-"] }
+      "selector": { "files": ["afterglow-project-gateway.ts"], "prefixes": ["project-", "portable-ppf-"] },
+      "status": "completed",
+      "completedAt": "2026-08-27",
+      "completedSources": [
+        "build/afterglow-project-gateway.ts",
+        "build/portable-ppf-reader.ts"
+      ],
+      "completedTargets": [
+        "build/projects/afterglow-project-gateway.ts",
+        "build/projects/portable-ppf-reader.ts"
+      ]
     },
     {
       "id": "phase2-modules-story-council",

@@ -179,7 +179,7 @@ test("phase 5 exposes View, Copy, Reset and sample Graphic Novel actions without
 });
 
 test("phase 5 locks the original Afterglow gateway and removes credential or write paths", async () => {
-  const gateway = await source("build/afterglow-project-gateway.ts");
+  const gateway = await source("build/projects/afterglow-project-gateway.ts");
   for (const contract of [
     'const API = "/api/local-afterglow"',
     'request.method === "GET"',

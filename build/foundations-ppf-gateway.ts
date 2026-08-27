@@ -5,7 +5,7 @@ import {
   isLocalPlotPickleRequest,
   openLocalPpf,
   readLocalPpfRequest,
-} from "./portable-ppf-reader";
+} from "./projects/portable-ppf-reader";
 
 const FOUNDATIONS_PPF_PATH = "/api/plan/foundations/ppf-context";
 

@@ -19,7 +19,7 @@ test("#1067 keeps PlotPickle Community reads and writes on real BUZZ message/for
     read("build/buzz-community-gateway.ts"),
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
-    read("app/community-story-room-access.tsx"),
+    read("app/_components/community/community-story-room-access.tsx"),
   ]);
   assert.match(gateway, /runBuzz\(connection, \["messages", "get", "--channel", channel, "--limit", String\(limit\)\]\)/);
   assert.match(gateway, /const args = \["messages", "send", "--channel", channel, "--content", content\]/);

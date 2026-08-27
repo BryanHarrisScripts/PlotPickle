@@ -8,7 +8,7 @@ test("Story Rooms are the same private BUZZ channels in PlotPickle and Buzz Desk
   const [workspace, contract, access, gateway, vite] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("lib/buzz/buzz-story-room.ts"),
-    read("app/community-story-room-access.tsx"),
+    read("app/_components/community/community-story-room-access.tsx"),
     read("build/buzz-story-room-access-gateway.ts"),
     read("vite.config.ts"),
   ]);
@@ -32,7 +32,7 @@ test("Story Rooms are the same private BUZZ channels in PlotPickle and Buzz Desk
 test("Story Room access remains local, private and enforced by BUZZ permissions", async () => {
   const [gateway, access] = await Promise.all([
     read("build/buzz-story-room-access-gateway.ts"),
-    read("app/community-story-room-access.tsx"),
+    read("app/_components/community/community-story-room-access.tsx"),
   ]);
 
   assert.match(gateway, /if \(!isLocalRequest\(request\)\)/);

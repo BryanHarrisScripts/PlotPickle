@@ -9,13 +9,14 @@ on:
       - "build/buzz-story-room-access-gateway.ts"
       - "build/buzz-story-room-listing-gateway.ts"
       - "build/buzz-story-room-owner-authority.ts"
-      - "app/community-story-room-access.tsx"
-      - "app/community-story-room-listing.tsx"
+      - "app/_components/community/community-story-room-access.tsx"
+      - "app/_components/community/community-story-room-access.module.css"
       - "app/_components/community/community-story-room-listing.tsx"
       - "app/_components/community/community-story-room-listing.module.css"
       - "tests/issue-1444-story-room-identity.test.mjs"
       - "tests/issue-1444-story-room-listing.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
+      - "tests/issue-1464-app-domain-consolidation.test.mjs"
       - ".github/workflows/story-room-directory.yml"
   workflow_dispatch:
 
@@ -39,3 +40,4 @@ jobs:
           tests/issue-1444-story-room-identity.test.mjs
           tests/issue-1444-story-room-listing.test.mjs
           tests/buzz-story-room-access-agents.test.mjs
+          tests/issue-1464-app-domain-consolidation.test.mjs

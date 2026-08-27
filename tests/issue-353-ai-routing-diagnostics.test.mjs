@@ -118,7 +118,7 @@ test("issue #353 discovers selects persists and tests Ollama models", async () =
 test("issue #353 separates ComfyUI service reachability from capability readiness", async () => {
   const [diagnostics, gateway, panel] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),
-    source("build/provider-diagnostics-gateway.ts"),
+    source("build/ai/provider-diagnostics-gateway.ts"),
     source("app/media-routing-panel.tsx"),
   ]);
   for (const contract of [

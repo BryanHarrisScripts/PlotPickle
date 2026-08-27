@@ -102,7 +102,7 @@ export default function StoryboardEditorialWorkspace({
         <div>
           <p className={styles.kicker}>Storyboard editorial · canonical target</p>
           <h2 id="storyboard-editorial-title">{target.label}</h2>
-          <p>Reuse the bundled Afterglow references as observed candidates. Keep approves a visual projection only; Change and Compare remain exploratory.</p>
+          <p>Reuse the bundled Afterglow references as observed candidates. A Human Keep decision approves a visual projection only; Change and Compare remain exploratory.</p>
         </div>
         <span className={styles.status}>{current ? "1 kept reference" : "No kept reference"}</span>
       </header>

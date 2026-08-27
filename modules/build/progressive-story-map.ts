@@ -12,6 +12,25 @@ export type ProgressiveMiniBlock = {
   readonly observedPassageCount: number;
 };
 
+export type ProgressiveStoryTextPassage = {
+  readonly id: string;
+  readonly type: string;
+  readonly text: string;
+  readonly sceneNumber: number;
+  readonly miniBlockNumber: number;
+};
+
+export type ProgressiveStoryTextProjection = {
+  /** The same canonical Block id used by the visual projection. */
+  readonly targetRef: string;
+  readonly state: "observed" | "emerging" | "missing";
+  readonly sourceKind: "observed-screenplay" | "none";
+  readonly sourceFileName: string;
+  readonly placementReviewed: boolean;
+  readonly passageCount: number;
+  readonly passages: readonly ProgressiveStoryTextPassage[];
+};
+
 export type ProgressiveStoryBlock = {
   readonly id: string;
   readonly number: number;
@@ -21,9 +40,9 @@ export type ProgressiveStoryBlock = {
   readonly sequencePurpose: string;
   readonly state: BuildStoryEvidenceState;
   readonly observedPassageCount: number;
-  readonly observedExcerpts: readonly string[];
   readonly mappingNote: string;
   readonly miniBlocks: readonly ProgressiveMiniBlock[];
+  readonly backgroundText: ProgressiveStoryTextProjection;
 };
 
 export type ProgressiveStoryMap = {
@@ -35,11 +54,6 @@ export type ProgressiveStoryMap = {
 };
 
 const MINI_LABELS = ["Promise", "Progress", "Pressure", "Payoff"] as const;
-
-function excerpt(value: string) {
-  const text = value.replace(/\s+/g, " ").trim();
-  return text.length <= 180 ? text : `${text.slice(0, 177).trimEnd()}…`;
-}
 
 /**
  * Foundations exposes the whole story topology but does not invent structure.
@@ -55,12 +69,28 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
 
   const blocks = Array.from({ length: 24 }, (_, index): ProgressiveStoryBlock => {
     const number = index + 1;
+    const blockId = `block-${String(number).padStart(2, "0")}`;
     const sequenceIndex = Math.floor(index / 2);
     const [sequenceTitle, sequencePurpose] = sequenceTemplates[sequenceIndex];
     const blockPassages = passages.filter((passage) => passage.blockNumber === number);
     const state: BuildStoryEvidenceState = blockPassages.length
       ? reviewedMapping ? "observed" : "emerging"
       : "missing";
+    const backgroundText: ProgressiveStoryTextProjection = {
+      targetRef: blockId,
+      state: blockPassages.length ? reviewedMapping ? "observed" : "emerging" : "missing",
+      sourceKind: blockPassages.length ? "observed-screenplay" : "none",
+      sourceFileName: screenplay?.sourceFileName ?? "",
+      placementReviewed: reviewedMapping,
+      passageCount: blockPassages.length,
+      passages: blockPassages.slice(0, 6).map((passage) => ({
+        id: passage.id,
+        type: passage.type,
+        text: passage.text,
+        sceneNumber: passage.sceneNumber,
+        miniBlockNumber: passage.miniBlockNumber,
+      })),
+    };
     const miniBlocks = MINI_LABELS.map((label, miniIndex): ProgressiveMiniBlock => {
       const miniNumber = miniIndex + 1;
       const miniPassages = blockPassages.filter((passage) => passage.miniBlockNumber === miniNumber);
@@ -75,7 +105,7 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
       };
     });
     return {
-      id: `block-${String(number).padStart(2, "0")}`,
+      id: blockId,
       number,
       act: Math.floor(sequenceIndex / 3) + 1,
       sequenceNumber: sequenceIndex + 1,
@@ -83,13 +113,13 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
       sequencePurpose,
       state,
       observedPassageCount: blockPassages.length,
-      observedExcerpts: blockPassages.slice(0, 4).map((passage) => excerpt(passage.text)),
       mappingNote: blockPassages.length
         ? reviewedMapping
           ? "Direct screenplay passages support this reviewed story position."
           : "Direct screenplay passages are present, but placement remains importer-suggested and requires Human review."
         : "No screenplay passage or Human-approved structural decision currently supports this Block. PlotPickle leaves it unresolved.",
       miniBlocks,
+      backgroundText,
     };
   });
 

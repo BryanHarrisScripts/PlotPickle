@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
-import { storyboardFrameTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
+import { storyboardAnchorTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
 import styles from "./storyboard-readiness-workspace.module.css";
 
 const STATE_LABELS = {
@@ -52,16 +52,16 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Storyboard · 24 Blocks / 96 Mini-Blocks</span>
+          <span className={styles.eyebrow}>Storyboard · 24 Blocks / 96 Mini-Block anchors</span>
           <h1 id="storyboard-readiness-title">Build the story one visual beat at a time.</h1>
           <p>
-            Each tab is one canonical Block. Open any Block to inspect its four Mini-Block visual slots. The full Storyboard stays visible while the PPF readiness contract decides which slots are ready for active visual work.
+            Each tab is one canonical Block. Its four Mini-Blocks are stable visual addresses, not a fixed final-frame quota. The 24/96 scaffold keeps every visual traceable while candidates and later visual beats can expand where the story needs more coverage.
           </p>
         </div>
         <dl className={styles.summary}>
           <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{project.revision}</dd></div>
-          <div><dt>Visual slots</dt><dd>96</dd></div>
+          <div><dt>Visual anchors</dt><dd>96</dd></div>
           <div><dt>Ready Blocks</dt><dd>{readyCount} / {blocks.length}</dd></div>
         </dl>
       </header>
@@ -120,7 +120,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
             </span>
           </header>
 
-          <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual slots`}>
+          <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual anchors`}>
             {[1, 2, 3, 4].map((miniNumber) => {
               const reference = selectedReferences.find((candidate) => candidate.miniBlockNumber === miniNumber);
               const canReviewReference = Boolean(selectedTarget.storyboardAllowed && reference);
@@ -128,7 +128,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                 <article
                   className={styles.miniBlock}
                   data-authorable={selectedTarget.storyboardAllowed ? "true" : "false"}
-                  data-story-decision-target={storyboardFrameTargetRef(selectedTarget.id, miniNumber)}
+                  data-story-decision-target={storyboardAnchorTargetRef(selectedTarget.id, miniNumber)}
                   key={miniNumber}
                 >
                   <div className={styles.miniPreview}>
@@ -138,14 +138,14 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                   </div>
                   <header>
                     <div>
-                      <span>Mini-Block</span>
+                      <span>Mini-Block anchor</span>
                       <strong>{selectedNumber}.{miniNumber}</strong>
                     </div>
                     <i aria-label={`Status: ${STATE_LABELS[selectedTarget.state]}`} className={styles.stateLight} data-state={selectedTarget.state} />
                   </header>
                   <p>{reference?.caption || (selectedTarget.storyboardAllowed
-                    ? "Visual slot is ready, but no candidate has been attached yet."
-                    : "Visual slot reserved. BUILD evidence must mature before authoring begins.")}</p>
+                    ? "Visual anchor is ready, but no candidate has been attached yet."
+                    : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
                   <button
                     disabled={!canReviewReference}
                     onClick={reference && canReviewReference ? () => openEditorial(reference.id) : undefined}
@@ -175,7 +175,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
       ) : null}
 
       <footer className={styles.footer}>
-        Storyboard is a 24-tab visual workbench: one Block per tab, four independently reviewable Mini-Block frames per Block, 96 visual slots total. Existing frame identity and Keep / Change / Compare semantics remain behind canonical PPF targets; inspecting a tab never promotes reference material or changes story canon.
+        Storyboard starts from 24 Block tabs and 96 canonical Mini-Block anchors so visual intent never loses its story address. The final image count is intentionally flexible: an anchor may have no visual yet, one preferred visual, or multiple candidates and later visual beats as the story develops.
       </footer>
     </main>
   );

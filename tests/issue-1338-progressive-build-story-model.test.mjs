@@ -56,10 +56,11 @@ test("issue #1338/#1410 exposes visible Story Coverage and 24/96 explainability 
   ]);
   for (const contract of [
     "Story Coverage",
-    "Defined",
-    "Observed",
-    "Emerging",
-    "Missing",
+    "DEFINED",
+    "OBSERVED",
+    "EMERGING",
+    "MISSING",
+    "LOCKED",
     'data-story-coverage="live-foundations"',
     "explicit reference-fixture decisions",
     "Directly supported by immutable reference/source evidence",
@@ -72,23 +73,30 @@ test("issue #1338/#1410 exposes visible Story Coverage and 24/96 explainability 
     "generated wireframe frames",
     "<ProgressiveStoryMap project={project} />",
   ]) assert.ok(component.includes(contract), `Live BUILD evidence UI is missing: ${contract}`);
-  for (const contract of ["panel", "score", "summary", "lessonGrid", "decision", 'data-state="observed"', "@media (forced-colors: active)"]) {
+  for (const contract of ["panel", "score", "summary", "lessonGrid", "decision", 'data-state="observed"']) {
     assert.ok(css.includes(contract), `Live BUILD Story Coverage styling is missing: ${contract}`);
+  }
+  for (const colour of ["#35d779", "#3bb8ff", "#f6a93b", "#ff4d6d", "#a875ff"]) {
+    assert.ok(css.includes(colour), `Live BUILD shared evidence colour is missing: ${colour}`);
+    assert.ok(mapCss.includes(colour), `24/96 shared evidence colour is missing: ${colour}`);
   }
   for (const contract of [
     'data-progressive-story-map="24x96"',
     "24 Blocks / 96 Mini-Blocks",
-    "Observed",
-    "Locked",
+    "OBSERVED",
+    "LOCKED",
     "Not enough information yet",
     "Selected story position",
     "screenplay text is observed evidence",
   ]) assert.ok(mapComponent.includes(contract), `24/96 BUILD UI is missing: ${contract}`);
+  assert.match(mapComponent, /className=\{styles\.statusDot\}/);
+  assert.doesNotMatch(mapComponent, /<strong>\{STATE_LABELS\[block\.state\]\}<\/strong>/,
+    "Living story cards use the colour-coded status light rather than repeating a label.");
   assert.match(mapModel, /Array\.from\(\{ length: 24 \}/);
   assert.match(mapModel, /\["Promise", "Progress", "Pressure", "Payoff"\]/);
   assert.match(mapModel, /analysisStatus === "reviewed"/);
   assert.match(mapModel, /placement remains importer-suggested and requires Human review/);
-  assert.match(mapCss, /grid-template-columns: repeat\(3/);
+  assert.match(mapCss, /grid-template-columns:\s*repeat\(3/);
 });
 
 test("issue #1357/#1392/#1402 groups the 24 Blocks and keeps the approved side markers", async () => {
@@ -110,15 +118,11 @@ test("issue #1357/#1392/#1402 groups the 24 Blocks and keeps the approved side m
     "FINALE",
   ]) assert.ok(mapComponent.includes(contract), `BUILD sequence/turning-point contract is missing: ${contract}`);
   assert.doesNotMatch(mapComponent, /ABSOLUTE_TURNING_POINTS|turningPointSpacer/);
-  for (const contract of [
-    ".sequenceSlot",
-    ".sequenceSlotWithMarker",
-    ".sequenceBox",
-    ".sequenceBlocks",
-    ".turningPoint",
-    "grid-template-columns: repeat(3, minmax(0, 1fr))",
-    "grid-template-columns: repeat(2, minmax(0, 1fr))",
-  ]) assert.ok(mapCss.includes(contract), `BUILD sequence/turning-point styling is missing: ${contract}`);
+  for (const contract of [".sequenceSlot", ".sequenceSlotWithMarker", ".sequenceBox", ".sequenceBlocks", ".turningPoint"]) {
+    assert.ok(mapCss.includes(contract), `BUILD sequence/turning-point styling is missing: ${contract}`);
+  }
+  assert.match(mapCss, /grid-template-columns:\s*repeat\(3\s*,\s*minmax\(0\s*,\s*1fr\)\)/);
+  assert.match(mapCss, /grid-template-columns:\s*repeat\(2\s*,\s*minmax\(0\s*,\s*1fr\)\)/);
   assert.doesNotMatch(mapCss, /\.turningPointSpacer/);
 });
 

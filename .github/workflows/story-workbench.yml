@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Story Workbench package, review, revision, impact and convergence contracts
-        run: node --test tests/issue-1419-story-workbench.test.mjs tests/issue-1420-workbench-visual-impact.test.mjs
+        run: node --test tests/issue-1419-story-workbench.test.mjs tests/issue-1420-workbench-visual-impact.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs
       - name: Validate upstream Story Decision and Story Workflow contracts
         run: node --test tests/issue-1418-story-decisions.test.mjs tests/issue-1418-story-decisions-workflow-source.test.mjs tests/issue-1416-story-workflow-engine.test.mjs
       - name: Validate current PPF revision and profile-library persistence contracts

@@ -15,11 +15,11 @@ import {
 import styles from "./progressive-story-map.module.css";
 
 const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
-  defined: "Defined",
-  observed: "Observed",
-  emerging: "Emerging",
-  missing: "Missing",
-  locked: "Locked",
+  defined: "DEFINED",
+  observed: "OBSERVED",
+  emerging: "EMERGING",
+  missing: "MISSING",
+  locked: "LOCKED",
 };
 
 type SequenceShiftOption = {
@@ -188,8 +188,6 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                       <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
                       <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}>
                         <i aria-hidden="true" className={styles.statusDot} />
-                        {block.state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : null}
-                        <strong>{STATE_LABELS[block.state]}</strong>
                       </span>
                       {block.observedPassageCount ? <small>{block.observedPassageCount} source passage{block.observedPassageCount === 1 ? "" : "s"}</small> : <small>Not enough information yet</small>}
                       <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
@@ -201,7 +199,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                             key={mini.id}
                             title={`${mini.label}: ${STATE_LABELS[mini.state]}`}
                           >
-                            {mini.state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : mini.number}
+                            {mini.number}
                           </span>
                         ))}
                       </span>
@@ -224,7 +222,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       <div className={styles.legend} aria-label="24/96 evidence states">
         {(Object.keys(STATE_LABELS) as BuildStoryEvidenceState[]).map((state) => (
           <span data-state={state} key={state}>
-            {state === "locked" ? <i aria-hidden="true" className={styles.lockIcon} /> : <i aria-hidden="true" className={styles.legendDot} />}
+            <i aria-hidden="true" className={styles.legendDot} />
             {STATE_LABELS[state]}
           </span>
         ))}
@@ -233,7 +231,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       <article className={styles.inspector} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
-          <span data-state={selected.state}>{STATE_LABELS[selected.state]}</span>
+          <span aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
         </header>
         <p>{selected.sequencePurpose}</p>
         <div className={styles.explainGrid}>
@@ -250,7 +248,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
               {selected.miniBlocks.map((mini) => (
                 <li data-state={mini.state} key={mini.id}>
                   <span>{mini.number}. {mini.label}</span>
-                  <strong>{STATE_LABELS[mini.state]}</strong>
+                  <i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} />
                   <small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small>
                 </li>
               ))}

@@ -1,0 +1,132 @@
+name: Issue 1495 Housekeeping Apply
+
+on:
+  push:
+    branches:
+      - housekeeping/1495-login-learn-root
+
+permissions:
+  contents: write
+
+jobs:
+  apply-housekeeping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: housekeeping/1495-login-learn-root
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Apply bounded housekeeping changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q 'data-profile-access-boundary="locked"' app/profile-access/profile-access-boundary.tsx \
+            && [ -f tests/issue-1495-housekeeping.test.mjs ]; then
+            echo "#1495 housekeeping already applied."
+            exit 0
+          fi
+
+          python - <<'PY'
+          from pathlib import Path
+
+          boundary_path = Path('app/profile-access/profile-access-boundary.tsx')
+          boundary = boundary_path.read_text(encoding='utf-8')
+          old_boundary = '<main className={styles.boundary}>'
+          boundary_count = boundary.count(old_boundary)
+          if boundary_count < 5:
+              raise SystemExit(f'Expected at least five locked profile surfaces; found {boundary_count}')
+          boundary = boundary.replace(
+              old_boundary,
+              '<main className={styles.boundary} data-profile-access-boundary="locked">',
+          )
+          boundary_path.write_text(boundary, encoding='utf-8')
+
+          anchor_path = Path('app/ui-continuity-anchor.tsx')
+          anchor = anchor_path.read_text(encoding='utf-8')
+          old_anchor = '''    const refresh = () => {\n      setStandalone(Boolean(!document.querySelector('[data-ui-continuity-shell="v1"], [data-plotpickle-global-nav="v2"]')));'''
+          new_anchor = '''    const refresh = () => {\n      const profileLocked = Boolean(document.querySelector('[data-profile-access-boundary="locked"]'));\n      setStandalone(Boolean(\n        !profileLocked\n        && !document.querySelector('[data-ui-continuity-shell="v1"], [data-plotpickle-global-nav="v2"]'),\n      ));'''
+          if old_anchor not in anchor:
+              raise SystemExit('Expected standalone Settings-anchor refresh block not found')
+          anchor_path.write_text(anchor.replace(old_anchor, new_anchor), encoding='utf-8')
+
+          css_path = Path('modules/learn/ui/learn-workspace.module.css')
+          css = css_path.read_text(encoding='utf-8')
+          old_lesson = '''.lesson {\n  min-width: 0;\n  overflow-y: auto;\n  padding: 52px clamp(32px, 5vw, 84px) 80px;\n  background:\n    radial-gradient(circle at 50% 0, rgba(53, 201, 184, 0.055), transparent 30rem),\n    var(--matte);\n}'''
+          new_lesson = '''.lesson {\n  min-width: 0;\n  box-sizing: border-box;\n  overflow-y: auto;\n  margin: 12px 14px;\n  padding: 52px clamp(32px, 5vw, 84px) 80px;\n  border: 1px solid rgba(53, 201, 184, 0.22);\n  border-radius: 18px;\n  background:\n    radial-gradient(circle at 50% 0, rgba(53, 201, 184, 0.075), transparent 30rem),\n    #0d0f10;\n}'''
+          if old_lesson not in css:
+              raise SystemExit('Expected Learn center lesson surface block not found')
+          css_path.write_text(css.replace(old_lesson, new_lesson), encoding='utf-8')
+          PY
+
+          git rm --ignore-unmatch -- \
+            issue-52-validation.log \
+            issue-53-validation.log \
+            issue-54-validation.log \
+            issue-55-validation.log \
+            issue-56-validation.log \
+            issue-58-validation.log \
+            issue-59-validation.log \
+            issues-60-62-validation.log
+
+          cat > tests/issue-1495-housekeeping.test.mjs <<'EOF'
+          import assert from "node:assert/strict";
+          import { access, readFile } from "node:fs/promises";
+          import test from "node:test";
+
+          const root = new URL("..", import.meta.url);
+          const source = (path) => readFile(new URL(path, root), "utf8");
+
+          test("#1495 keeps Settings off every locked profile-access surface", async () => {
+            const boundary = await source("app/profile-access/profile-access-boundary.tsx");
+            const lockedSurfaces = boundary.match(/<main className=\{styles\.boundary\} data-profile-access-boundary="locked">/g) ?? [];
+            assert.ok(lockedSurfaces.length >= 5, "all non-ready profile screens must declare the locked boundary");
+            assert.doesNotMatch(boundary, /<main className=\{styles\.boundary\}>/);
+
+            const anchor = await source("app/ui-continuity-anchor.tsx");
+            assert.match(anchor, /data-profile-access-boundary="locked"/);
+            assert.match(anchor, /const profileLocked = Boolean/);
+            assert.match(anchor, /!profileLocked/);
+            assert.match(anchor, /if \(!standalone\) return null/);
+          });
+
+          test("#1495 gives the Learn center lesson an intentional rounded page surface", async () => {
+            const css = await source("modules/learn/ui/learn-workspace.module.css");
+            const lesson = css.match(/\.lesson \{([\s\S]*?)\n\}/)?.[1] ?? "";
+            assert.match(lesson, /margin: 12px 14px/);
+            assert.match(lesson, /border: 1px solid rgba\(53, 201, 184, 0\.22\)/);
+            assert.match(lesson, /border-radius: 18px/);
+            assert.match(lesson, /overflow-y: auto/);
+            assert.match(lesson, /#0d0f10/);
+            assert.match(css, /grid-template-columns: minmax\(240px, 19%\) minmax\(440px, 56%\) minmax\(310px, 25%\)/);
+          });
+
+          test("#1495 removes tracked root validation logs while keeping logs ignored", async () => {
+            const debris = [
+              "issue-52-validation.log",
+              "issue-53-validation.log",
+              "issue-54-validation.log",
+              "issue-55-validation.log",
+              "issue-56-validation.log",
+              "issue-58-validation.log",
+              "issue-59-validation.log",
+              "issues-60-62-validation.log",
+            ];
+            for (const path of debris) {
+              await assert.rejects(access(new URL(path, root)), `${path} must not remain at repository root`);
+            }
+            const gitignore = await source(".gitignore");
+            assert.match(gitignore, /^\*\.log$/m);
+          });
+          EOF
+
+          node --test tests/issue-1495-housekeeping.test.mjs
+          git diff --check
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(#1495): clean locked UI Learn surface and root debris"
+          git push origin HEAD:housekeeping/1495-login-learn-root

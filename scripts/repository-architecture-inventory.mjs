@@ -140,6 +140,18 @@ function assessPlan(config, files, moves, evidence) {
   const fileSet = new Set(files.map((file) => file.path));
   for (const batch of config.moveBatches) {
     const matched = moves.filter((move) => move.batchId === batch.id);
+    if (batch.status === "completed") {
+      if (matched.length) issues.push(`Completed move batch ${batch.id} still matches ${matched.length} old source file(s).`);
+      const completedSources = Array.isArray(batch.completedSources) ? batch.completedSources : [];
+      const completedTargets = Array.isArray(batch.completedTargets) ? batch.completedTargets : [];
+      if (!completedSources.length || completedSources.length !== completedTargets.length) {
+        issues.push(`Completed move batch ${batch.id} must record one destination for every completed source.`);
+        continue;
+      }
+      for (const source of completedSources) if (fileSet.has(source)) issues.push(`Completed move source still exists: ${source}`);
+      for (const target of completedTargets) if (!fileSet.has(target)) issues.push(`Completed move target does not exist: ${target}`);
+      continue;
+    }
     if (!matched.length && batch.allowEmpty !== true) issues.push(`Move batch ${batch.id} matches no current files.`);
   }
   for (const move of moves) if (!fileSet.has(move.source)) issues.push(`Planned move source does not exist: ${move.source}`);
@@ -179,14 +191,16 @@ function markdown(report) {
     "## Evidenced hotspots", "",
     ...(report.hotspots.length ? report.hotspots.map((item) => `- ${item.type}: ${item.path}/ = ${item.value}${item.exempt ? " (documented exception)" : ""}`) : ["- None at the current evidence thresholds."]), "",
     "## Ratified move batches", "",
-    ...report.batches.map((batch) => `- Phase ${batch.phase} — ${batch.id} (${batch.mode}): ${batch.moveCount} current file(s) → ${batch.targetRoot}/; ${batch.directConsumerCount} direct import consumer(s); ${batch.hardcodedConsumerCount} hardcoded path consumer(s).`), "",
+    ...report.batches.map((batch) => batch.status === "completed"
+      ? `- Phase ${batch.phase} — ${batch.id} (completed): ${batch.completedTargetCount} file(s) now under ${batch.targetRoot}/.`
+      : `- Phase ${batch.phase} — ${batch.id} (${batch.mode}): ${batch.moveCount} current file(s) → ${batch.targetRoot}/; ${batch.directConsumerCount} direct import consumer(s); ${batch.hardcodedConsumerCount} hardcoded path consumer(s).`), "",
     "## Structural ceilings for Phase 5 enforcement", "",
     `- governed direct source-file ceiling: ${report.structuralCeilings.maxDirectSourceFiles}`,
     `- governed direct child-directory ceiling: ${report.structuralCeilings.maxDirectChildDirectories}`,
     `- governed relative nesting ceiling: ${report.structuralCeilings.maxRelativeDepth}`,
     `- single-file directory rule: ${report.structuralCeilings.singleFileDirectoryRule}`, "",
     "## Plan validation", "",
-    ...(report.planIssues.length ? report.planIssues.map((issue) => `- FAIL — ${issue}`) : ["- PASS — every declared move batch has deterministic current-path expansion and consumer evidence."]), "",
+    ...(report.planIssues.length ? report.planIssues.map((issue) => `- FAIL — ${issue}`) : ["- PASS — active move batches have deterministic current-path expansion, and completed batches have verified source retirement/destinations."]), "",
   ];
   return lines.join("\n");
 }
@@ -205,9 +219,11 @@ export async function runRepositoryArchitectureInventory({ writeArtifact = true 
       phase: batch.phase,
       domain: batch.domain,
       mode: batch.mode ?? "move",
+      status: batch.status ?? "planned",
       sourceRoot: batch.sourceRoot,
       targetRoot: batch.targetRoot,
       moveCount: items.length,
+      completedTargetCount: Array.isArray(batch.completedTargets) ? batch.completedTargets.length : 0,
       directConsumerCount: new Set(items.flatMap((item) => item.directImportConsumers)).size,
       hardcodedConsumerCount: new Set(items.flatMap((item) => item.hardcodedPathConsumers)).size,
     };

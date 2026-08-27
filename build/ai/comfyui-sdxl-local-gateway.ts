@@ -1,9 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { probeComfyUI } from "./comfyui-media-provider";
+import { probeComfyUI } from "../comfyui-media-provider";
 import { generateSdxlImage } from "./comfyui-sdxl-local-provider";
-import { readMediaRoutingStore, writeMediaRoutingStore } from "./media-routing-store";
-import type { ImageGenerationInput } from "./media-provider-common";
+import { readMediaRoutingStore, writeMediaRoutingStore } from "../media-routing-store";
+import type { ImageGenerationInput } from "../media-provider-common";
 
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const TEST_IMAGE_PATH = "/api/media-routing/test/image";

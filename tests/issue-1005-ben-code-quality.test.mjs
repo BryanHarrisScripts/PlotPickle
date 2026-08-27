@@ -94,10 +94,17 @@ test("BEN pins slop-scan and fails CI only on added or worsened delta findings",
   assert.match(policy.authority.meaning, /merge pull requests/i);
 });
 
-test("BEN runner is pinned, rename-aware, produces machine-readable evidence, and cannot become merge authority", async () => {
+test("BEN runner is pinned, rename-aware, architecture-ceiling-aware, produces machine-readable evidence, and cannot become merge authority", async () => {
   const source = await read("scripts/run-ben-code-quality.mjs");
   assert.match(source, /policy\.slopScan\.package/);
   assert.match(source, /policy\.slopScan\.version/);
+  assert.match(source, /repository-architecture-target\.json/);
+  assert.match(source, /architecturePolicy/);
+  assert.match(source, /ratifiedTargetDirectories/);
+  assert.match(source, /directoryFanoutWithinRatifiedCeiling/);
+  assert.match(source, /maxDirectSourceFiles/);
+  assert.match(source, /directoryGrew/);
+  assert.match(source, /return !directoryFanoutWithinRatifiedCeiling\(findingPath\)/);
   assert.match(source, /"--yes"/);
   assert.match(source, /"scan"/);
   assert.match(source, /"delta"/);
@@ -117,6 +124,7 @@ test("BEN runner is pinned, rename-aware, produces machine-readable evidence, an
   assert.match(source, /evidence,/);
   assert.match(source, /findingContentFingerprint\(candidate, "base"\) === contentFingerprint/);
   assert.match(source, /non-group findings when rule, message, evidence and line\/column are unchanged/);
+  assert.match(source, /ratified architecture target remains non-blocking while its direct source-file count stays within the explicit repository architecture ceiling/);
   assert.match(source, /ben-result\.json/);
   assert.match(source, /authoritative: false/);
   assert.doesNotMatch(source, /merge_pull_request|create_pull_request|update_ref|ppf-direct-write|credential-read/);
@@ -126,4 +134,16 @@ test("BEN runner is pinned, rename-aware, produces machine-readable evidence, an
     encoding: "utf8",
   });
   assert.equal(check.status, 0, check.stderr || check.stdout);
+});
+
+test("BEN preserves the ratified direct-source ceiling without creating a blanket fan-out waiver", async () => {
+  const architecture = JSON.parse(await read("config/repository-architecture-target.json"));
+  const ceiling = architecture.structuralCeilings.maxDirectSourceFiles;
+  assert.equal(ceiling, 16);
+
+  const { directoryFanoutWithinRatifiedCeiling } = await import("../scripts/run-ben-code-quality.mjs");
+  assert.equal(directoryFanoutWithinRatifiedCeiling("build/ai", 7), true);
+  assert.equal(directoryFanoutWithinRatifiedCeiling("build/ai", ceiling), true);
+  assert.equal(directoryFanoutWithinRatifiedCeiling("build/ai", ceiling + 1), false);
+  assert.equal(directoryFanoutWithinRatifiedCeiling("build/not-a-ratified-target", 1), false);
 });

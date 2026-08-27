@@ -69,6 +69,14 @@ replace(
 replace_tracked_refs(OLD_TSX, NEW_TSX)
 replace_tracked_refs(OLD_CSS, NEW_CSS)
 
+# This contract asserts the workspace import itself, rather than the source file path.
+# Retarget that structural assertion to the canonical Community owner as part of the move.
+replace(
+    "tests/community-agent-roster.test.mjs",
+    'assert.match(workspace, /import CommunityAgentRoster from "\\.\\/community-agent-roster"/);',
+    'assert.match(workspace, /import CommunityAgentRoster from "\\.\\/_components\\/community\\/community-agent-roster"/);',
+)
+
 regression_path = "tests/issue-1464-app-domain-consolidation.test.mjs"
 regression = read(regression_path)
 addition = r'''

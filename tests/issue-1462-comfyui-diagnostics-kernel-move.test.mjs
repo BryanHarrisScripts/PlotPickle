@@ -5,22 +5,20 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const read = (relative) => readFile(new URL(relative, root), "utf8");
 
-test("#1462 gives the ComfyUI diagnostics implementation an AI-domain owner", async () => {
+test("#1462 gives the ComfyUI diagnostics implementation one AI-domain owner and retires the root bridge", async () => {
   await access(new URL("build/ai/comfyui-connection-diagnostics.ts", root));
-  const [diagnostics, provider, onboarding, bridge] = await Promise.all([
+  await assert.rejects(access(new URL("build/comfyui-connection-diagnostics.ts", root)));
+  const [diagnostics, provider, onboarding, routing] = await Promise.all([
     read("build/ai/comfyui-connection-diagnostics.ts"),
     read("build/ai/provider-diagnostics-gateway.ts"),
     read("build/ai/comfyui-onboarding-gateway.ts"),
-    read("build/comfyui-connection-diagnostics.ts"),
+    read("build/ai-routing-gateway.ts"),
   ]);
 
   assert.match(provider, /from "\.\/comfyui-connection-diagnostics"/);
   assert.match(onboarding, /from "\.\/comfyui-connection-diagnostics"/);
-  assert.match(bridge, /Temporary #1462 compatibility bridge/);
-  assert.match(bridge, /build\/ai-routing-gateway\.ts moves to its ratified AI owner/);
-  assert.match(bridge, /export \* from "\.\/ai\/comfyui-connection-diagnostics"/);
-  assert.doesNotMatch(bridge, /function\s+diagnoseComfyUI|function\s+normalizeLocalComfyUrl/);
-
+  assert.match(routing, /from "\.\/ai\/comfyui-connection-diagnostics"/);
+  assert.doesNotMatch(routing, /from "\.\/comfyui-connection-diagnostics"/);
   assert.match(diagnostics, /import type \{ ComfyWorkflow \} from "\.\.\/media-routing-store"/);
 });
 

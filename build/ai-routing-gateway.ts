@@ -6,7 +6,7 @@ import {
   readNativeH3Store,
   writeNativeH3Store,
 } from "./comfyui-h3-native-provider";
-import { diagnoseComfyUI } from "./comfyui-connection-diagnostics";
+import { diagnoseComfyUI } from "./ai/comfyui-connection-diagnostics";
 import { generateComfyImage } from "./comfyui-media-provider";
 import {
   readMediaRoutingStore,

@@ -41,9 +41,15 @@ test("#1461 ratifies deterministic bounded structural batches for Architecture P
   assert.ok(report.plannedMoves.every((move) => move.source !== move.target));
   assert.ok(report.plannedMoves.every((move) => Array.isArray(move.directImportConsumers) && Array.isArray(move.hardcodedPathConsumers)));
 
+  const phase4 = report.batches.find((batch) => batch.id === "phase4-retire-agent-compatibility-bridges");
   const bridgeRetirement = report.plannedMoves.filter((move) => move.batchId === "phase4-retire-agent-compatibility-bridges");
-  assert.ok(bridgeRetirement.length >= 1, "Phase 4 must keep inventorying any compatibility bridges that remain until the batch is marked completed");
-  assert.ok(bridgeRetirement.every((move) => move.mode === "retire-bridge" && move.target.startsWith("lib/agents/")));
+  if (phase4?.status === "completed") {
+    assert.equal(bridgeRetirement.length, 0, "completed Phase 4 bridges must no longer remain in the planned move inventory");
+    assert.equal(phase4.completedTargetCount, 5);
+  } else {
+    assert.ok(bridgeRetirement.length >= 1, "Phase 4 must keep inventorying any compatibility bridges that remain until the batch is marked completed");
+    assert.ok(bridgeRetirement.every((move) => move.mode === "retire-bridge" && move.target.startsWith("lib/agents/")));
+  }
 });
 
 test("#1461 target architecture defines balanced ceilings and explicit semantic exceptions", async () => {

@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #374 preserves user-selected loopback ComfyUI ports", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
 
   for (const contract of [
     'const DEFAULT_PORT = "8188"',
@@ -21,7 +21,7 @@ test("issue #374 preserves user-selected loopback ComfyUI ports", async () => {
 });
 
 test("issue #374 probes safe loopback alternatives without allowing remote hosts", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
 
   for (const contract of [
     "export function localComfyCandidates",
@@ -38,7 +38,7 @@ test("issue #374 probes safe loopback alternatives without allowing remote hosts
 });
 
 test("issue #374 separates service reachability from generation readiness", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
 
   for (const contract of [
     'export type ComfyConnectionState = "ready" | "running-setup" | "not-listening" | "timeout" | "invalid-response"',
@@ -51,7 +51,7 @@ test("issue #374 separates service reachability from generation readiness", asyn
 });
 
 test("issue #374 gives actionable stopped wrong-port timeout and invalid-response guidance", async () => {
-  const diagnostics = await source("build/comfyui-connection-diagnostics.ts");
+  const diagnostics = await source("build/ai/comfyui-connection-diagnostics.ts");
 
   for (const phrase of [
     "ComfyUI may be installed but not running, or it may be using another local port",

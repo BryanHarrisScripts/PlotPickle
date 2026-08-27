@@ -114,6 +114,7 @@ test("BEN runner is pinned, rename-aware, architecture-ceiling-aware, produces m
   assert.match(source, /"worktree", "add", "--detach"/);
   assert.match(source, /"diff", "--name-status", "-M"/);
   assert.match(source, /renamePreservesExistingFinding/);
+  assert.match(source, /changedPathRelocationPreservesExistingFinding/);
   assert.match(source, /candidate\?\.status !== "resolved"/);
   assert.match(source, /findingGroupFingerprint\(candidate, "base"\) === groupFingerprint/);
   assert.match(source, /findingContentFingerprint/);
@@ -123,7 +124,7 @@ test("BEN runner is pinned, rename-aware, architecture-ceiling-aware, produces m
   assert.match(source, /message,/);
   assert.match(source, /evidence,/);
   assert.match(source, /findingContentFingerprint\(candidate, "base"\) === contentFingerprint/);
-  assert.match(source, /non-group findings when rule, message, evidence and line\/column are unchanged/);
+  assert.match(source, /bounded changed-path relocations receive the same treatment/);
   assert.match(source, /ratified architecture target remains non-blocking while its direct source-file count stays within the explicit repository architecture ceiling/);
   assert.match(source, /ben-result\.json/);
   assert.match(source, /authoritative: false/);
@@ -146,4 +147,39 @@ test("BEN preserves the ratified direct-source ceiling without creating a blanke
   assert.equal(directoryFanoutWithinRatifiedCeiling("build/ai", ceiling), true);
   assert.equal(directoryFanoutWithinRatifiedCeiling("build/ai", ceiling + 1), false);
   assert.equal(directoryFanoutWithinRatifiedCeiling("build/not-a-ratified-target", 1), false);
+});
+
+test("BEN treats an equivalent finding moved through an explicitly changed path as relocation, not new slop", async () => {
+  const { changedPathRelocationPreservesExistingFinding } = await import("../scripts/run-ben-code-quality.mjs");
+  const groupFingerprint = "structure.duplicate-function-signatures:group:example";
+  const report = {
+    paths: [
+      {
+        path: "build/old-owner.ts",
+        changes: [
+          {
+            status: "resolved",
+            ruleId: "structure.duplicate-function-signatures",
+            base: { groupFingerprint },
+          },
+        ],
+      },
+      {
+        path: "build/ai/new-owner.ts",
+        changes: [],
+      },
+    ],
+  };
+  const added = {
+    status: "added",
+    ruleId: "structure.duplicate-function-signatures",
+    head: { path: "build/ai/new-owner.ts", groupFingerprint },
+  };
+  const changedEntries = [
+    { status: "M", sourcePath: "build/old-owner.ts", targetPath: "build/old-owner.ts" },
+    { status: "A", sourcePath: "", targetPath: "build/ai/new-owner.ts" },
+  ];
+
+  assert.equal(changedPathRelocationPreservesExistingFinding(report, added, "build/ai/new-owner.ts", changedEntries), true);
+  assert.equal(changedPathRelocationPreservesExistingFinding(report, { ...added, head: { ...added.head, groupFingerprint: "different" } }, "build/ai/new-owner.ts", changedEntries), false);
 });

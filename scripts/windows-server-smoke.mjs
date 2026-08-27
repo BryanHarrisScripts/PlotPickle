@@ -6,6 +6,7 @@ const root = path.resolve(process.argv[2] ?? ".");
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
 const url = "http://127.0.0.1:4173/";
 const navigationProbeUrl = new URL("/library", url).href;
+const communityProbeUrl = new URL("/?workspace=community", url).href;
 const logFile = path.join(root, "windows-server-smoke.log");
 const timeoutMs = 120_000;
 
@@ -52,6 +53,7 @@ function saveLog(summary) {
       `Root: ${root}`,
       `URL: ${url}`,
       `Navigation probe: ${navigationProbeUrl}`,
+      `Community probe: ${communityProbeUrl}`,
       `Result: ${summary}`,
       `Exit code: ${exitCode ?? "running"}`,
       `Exit signal: ${exitSignal ?? "none"}`,
@@ -128,6 +130,14 @@ try {
     throw new Error(`PlotPickle navigation probe failed: ${lastResponse}`);
   }
 
+  // Compile the Community query-state workspace too. The renderer-level Edge
+  // smoke separately clicks into this surface; this probe makes sure its module
+  // graph is exercised by the Node 24/Vinext startup gate as well.
+  const communityResponse = await probe(communityProbeUrl);
+  if (!communityResponse.ok) {
+    throw new Error(`PlotPickle Community probe failed: ${lastResponse}`);
+  }
+
   // Let Vite/Vinext flush request diagnostics before evaluating the startup log.
   await new Promise((resolve) => setTimeout(resolve, 750));
   const findings = startupOutputFindings(output);
@@ -136,7 +146,7 @@ try {
   }
 
   saveLog(lastResponse);
-  console.log(`PlotPickle root and navigation probes passed with clean startup diagnostics.`);
+  console.log(`PlotPickle root, navigation and Community probes passed with clean startup diagnostics.`);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   saveLog(message);

@@ -34,6 +34,7 @@ import {
 const API_ROOT = "/api/writing-assistant";
 const STATUS_PATH = `${API_ROOT}/status`;
 const ACTIVE_PATH = `${API_ROOT}/active`;
+const PROVIDER_PATH = `${API_ROOT}/provider`;
 const TEST_PATH = `${API_ROOT}/test`;
 const CHAT_PATH = `${API_ROOT}/chat`;
 const OLLAMA_PATH = `${API_ROOT}/ollama`;
@@ -97,6 +98,14 @@ function localProfileFromExecution(
   };
 }
 
+function isCloudTextProvider(value: unknown): value is "openai" | "minimax" | "gemini" {
+  return value === "openai" || value === "minimax" || value === "gemini";
+}
+
+function providerLabel(provider: "openai" | "minimax" | "gemini") {
+  return provider === "openai" ? "OpenAI" : provider === "gemini" ? "Google Gemini" : "MiniMax";
+}
+
 async function synchronizeLocalFastProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"]) {
   const snapshot = await localRuntimeSnapshot();
   if (!snapshot.activeRuntime.reachable || !snapshot.roles.fast.available) return snapshot;
@@ -122,6 +131,7 @@ async function handleStatus(response: ServerResponse) {
       ollama: publicProfile(store.profiles.ollama, store.activeProvider),
       openai: publicProfile(store.profiles.openai, store.activeProvider),
       minimax: publicProfile(store.profiles.minimax, store.activeProvider),
+      gemini: publicProfile(store.profiles.gemini, store.activeProvider),
     },
     localRuntime: {
       ready: localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available,
@@ -150,7 +160,7 @@ async function handleStatus(response: ServerResponse) {
 async function handleActive(request: IncomingMessage, response: ServerResponse) {
   const body = await readBody(request);
   const requested = body.provider;
-  if (requested !== "disabled" && !isTextProvider(requested)) throw new Error("Choose Local Runtime, Ollama, OpenAI, MiniMax or Off.");
+  if (requested !== "disabled" && !isTextProvider(requested)) throw new Error("Choose Local Runtime, Ollama, OpenAI, Google Gemini, MiniMax or Off.");
   const { store } = await readSynchronizedAssistantStore();
   if (requested === "local") {
     const execution = await localTextExecutionProfile("fast");
@@ -162,6 +172,50 @@ async function handleActive(request: IncomingMessage, response: ServerResponse) 
   store.explicitlyDisabled = requested === "disabled";
   await writeAssistantStore(store);
   sendJson(response, 200, { ok: true, activeProvider: store.activeProvider });
+}
+
+async function handleProvider(request: IncomingMessage, response: ServerResponse) {
+  const body = await readBody(request);
+  const provider = body.provider;
+  if (!isCloudTextProvider(provider)) throw new Error("Choose OpenAI, Google Gemini or MiniMax before saving a cloud writing provider.");
+  const baseUrl = typeof body.baseUrl === "string" ? normalizedProviderUrl(body.baseUrl) : "";
+  const textModel = typeof body.textModel === "string" ? body.textModel.trim() : "";
+  if (!baseUrl) throw new Error("Enter the provider API address.");
+  if (!textModel) throw new Error("Choose a writing model.");
+
+  const { store } = await readSynchronizedAssistantStore();
+  const existing = store.profiles[provider];
+  const apiKey = typeof body.apiKey === "string" && body.apiKey.trim()
+    ? body.apiKey.trim()
+    : existing?.apiKey || "";
+  if (!apiKey) throw new Error(`Enter the ${providerLabel(provider)} API key owned by the current user.`);
+
+  const profile: ProviderProfile = {
+    provider,
+    baseUrl,
+    textModel,
+    apiKey,
+    configuredAt: new Date().toISOString(),
+    assistantVerifiedAt: "",
+    lastAttemptAt: "",
+    lastLatencyMs: 0,
+    lastPreview: "",
+    lastError: "",
+  };
+  store.profiles[provider] = profile;
+  await writeAssistantStore(store);
+  const result = await testAssistantProfile(store, provider);
+  sendJson(response, 200, {
+    ok: true,
+    provider,
+    configured: true,
+    ready: true,
+    baseUrl: result.profile.baseUrl,
+    model: result.profile.textModel,
+    latencyMs: result.profile.lastLatencyMs,
+    verifiedAt: result.profile.assistantVerifiedAt,
+    text: result.text,
+  });
 }
 
 async function refreshLocalProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"], role: LocalTextRole) {
@@ -293,7 +347,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const explicit = isTextProvider(body.provider) ? body.provider : null;
   const requestedProvider = explicit || store.activeProvider;
-  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI or MiniMax first.");
+  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI, Google Gemini or MiniMax first.");
   const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
     ? body.agentId as PlotPickleAgentId
     : "creative-director";
@@ -377,6 +431,7 @@ async function routeAssistant(request: IncomingMessage, response: ServerResponse
   try {
     if (pathname === STATUS_PATH && request.method === "GET") return await handleStatus(response);
     if (pathname === ACTIVE_PATH && request.method === "POST") return await handleActive(request, response);
+    if (pathname === PROVIDER_PATH && request.method === "POST") return await handleProvider(request, response);
     if (pathname === TEST_PATH && request.method === "POST") return await handleTest(request, response);
     if (pathname === CHAT_PATH && request.method === "POST") return await handleChat(request, response);
     if (pathname === OLLAMA_CONNECTION_PATH && request.method === "POST") return await handleOllamaConnection(request, response);

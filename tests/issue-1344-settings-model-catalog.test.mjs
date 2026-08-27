@@ -39,7 +39,7 @@ test("#1344 local catalog is searchable, filtered and writes through canonical l
 test("#1344 cloud catalog discovers provider models and updates canonical writing/media profiles", async () => {
   const [cloud, gateway, rootGateway] = await Promise.all([
     read("app/settings/compute/cloud-model-catalog-panel.tsx"),
-    read("build/provider-model-catalog-gateway.ts"),
+    read("build/ai/provider-model-catalog-gateway.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
 
@@ -79,7 +79,7 @@ test("#1344 provider connection stays separate from normal model selection", asy
 test("#1344 model choice itself never changes routing or runs paid generation", async () => {
   const [cloud, gateway] = await Promise.all([
     read("app/settings/compute/cloud-model-catalog-panel.tsx"),
-    read("build/provider-model-catalog-gateway.ts"),
+    read("build/ai/provider-model-catalog-gateway.ts"),
   ]);
 
   assert.match(cloud, /Choosing a model changes configuration only/);

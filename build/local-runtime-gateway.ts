@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
-import { localAiReadinessSnapshot } from "./local-ai-readiness";
+import { localAiReadinessSnapshot } from "./ai/local-ai-readiness";
 import { localGpuSchedulerState } from "./local-gpu-resource-manager";
 import {
   localRuntimeSnapshot,

@@ -15,7 +15,7 @@ import { registerProviderModelCatalogGateway } from "./provider-model-catalog-ga
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerLazyFramesGateway } from "./lazy-frames-gateway";
 import { registerOllamaBootstrapGateway } from "./ai/ollama-bootstrap-gateway";
-import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
+import { registerLocalAiInstallationGateway } from "./ai/local-ai-installation-gateway";
 import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
 import { registerPlotPickleNodeTopologyGateway } from "./node-topology-gateway";
 import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";

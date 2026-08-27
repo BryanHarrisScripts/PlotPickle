@@ -199,6 +199,6 @@
     "providerModules": "build/ai-source-probes/{providerId}.ts",
     "routeGroups": ["text", "image", "video"],
     "uiConsumers": ["app/ai-routing-panel.tsx"],
-    "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/local-ai-installation-gateway.ts"]
+    "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/ai/local-ai-installation-gateway.ts"]
   }
 }

@@ -1,14 +1,14 @@
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { LOCAL_MODEL_CATALOG, type LocalRuntimeKind, type LocalTextRole } from "../lib/runtime/ai/local-runtime";
+import { LOCAL_MODEL_CATALOG, type LocalRuntimeKind, type LocalTextRole } from "../../lib/runtime/ai/local-runtime";
 import { detectLocalAiInstallations, type LocalAiInstallation } from "./local-ai-installation-status";
-import { persistentHome } from "./local-credentials";
+import { persistentHome } from "../local-credentials";
 import {
   localRuntimeSnapshot,
   readLocalRuntimeSettings,
   startManagedLlama,
   type LocalRuntimeSnapshot,
-} from "./local-runtime-manager";
+} from "../local-runtime-manager";
 
 export const LOCAL_AI_READINESS_SCHEMA_VERSION = 1 as const;
 export const LOCAL_AI_READINESS_FILE = "local-ai-readiness.json";

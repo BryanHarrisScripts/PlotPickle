@@ -1,9 +1,8 @@
 import { createAfterglowStoryboardFrames } from "../../../data/afterglow-storyboard";
-import type { LegacyVisualIdentityEvidence } from "../../build/visual-readiness";
 
 export const AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER = 17 as const;
 
-export function createAfterglowV9VisualReadinessEvidence(): readonly LegacyVisualIdentityEvidence[] {
+export function createAfterglowV9VisualReadinessEvidence() {
   const [frame] = createAfterglowStoryboardFrames(AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER);
 
   return [

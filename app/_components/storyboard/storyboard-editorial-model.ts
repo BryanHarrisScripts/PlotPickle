@@ -1,7 +1,7 @@
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import type { PPFProject } from "@/core/project/project";
+import { AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID } from "@/data/afterglow-reference-identity";
 import { createAfterglowStoryboardFrames } from "@/data/afterglow-storyboard";
-import { AFTERGLOW_V9_FOUNDATIONS_WORKING_TITLE } from "@/modules/library/reference/afterglow-v9-foundations";
 
 export const STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1" as const;
 
@@ -40,7 +40,7 @@ function acceptedArtifactForSource(project: PPFProject, targetId: string, source
 }
 
 export function storyboardReferenceCandidates(project: PPFProject, targetId: string): readonly StoryboardEditorialCandidate[] {
-  if (project.title !== AFTERGLOW_V9_FOUNDATIONS_WORKING_TITLE) return [];
+  if (project.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID) return [];
   const match = targetId.match(/^block:block-(\d{2})$/);
   const blockNumber = match ? Number(match[1]) : 0;
   if (!blockNumber) return [];

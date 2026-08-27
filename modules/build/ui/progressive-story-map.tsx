@@ -122,7 +122,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                 </header>
                 <div className={styles.sequenceBlocks}>
                   {sequence.blocks.map((block) => (
-                    <button aria-pressed={selected.number === block.number} className={styles.block} data-state={block.state} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
+                    <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
                       <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                       <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
                       <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
@@ -150,7 +150,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
         {(Object.keys(STATE_LABELS) as BuildStoryEvidenceState[]).map((state) => <span data-state={state} key={state}><i aria-hidden="true" className={styles.legendDot} />{STATE_LABELS[state]}</span>)}
       </div>
 
-      <article className={styles.inspector} data-selected-block={selected.number}>
+      <article className={styles.inspector} data-canonical-story-id={selected.id} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
           <span aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
@@ -158,9 +158,9 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
         <p>{selected.sequencePurpose}</p>
         <div className={styles.explainGrid}>
           <section>
-            <h4>What PlotPickle knows</h4>
+            <h4>Visual story state</h4>
             <p>{selected.mappingNote}</p>
-            {selected.observedExcerpts.length ? <ul>{selected.observedExcerpts.map((item, index) => <li key={`${selected.id}-evidence-${index}`}>{item}</li>)}</ul> : <p className={styles.unresolved}>No direct screenplay passage or accepted structural decision currently defines this Block.</p>}
+            <p className={styles.canonicalRef}>Canonical target: <code>{selected.id}</code></p>
           </section>
           <section>
             <h4>Mini-Block resolution</h4>
@@ -169,6 +169,29 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                 <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
               ))}
             </ol>
+          </section>
+          <section className={styles.textProjection} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state}>
+            <header className={styles.textProjectionHeader}>
+              <div><h4>Background story text</h4><p>Same canonical Block · read-only source projection</p></div>
+              <strong data-state={selected.backgroundText.state}>{STATE_LABELS[selected.backgroundText.state]}</strong>
+            </header>
+            {selected.backgroundText.passages.length ? (
+              <ol className={styles.sourcePassages}>
+                {selected.backgroundText.passages.map((passage) => (
+                  <li key={passage.id}>
+                    <small>Scene {passage.sceneNumber || "—"} · Mini-Block {passage.miniBlockNumber} · {passage.type}</small>
+                    <p>{passage.text}</p>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className={styles.unresolved}>No observed screenplay text is attached to this Block. PlotPickle does not fabricate background script text.</p>
+            )}
+            <p className={styles.textProvenance}>
+              {selected.backgroundText.sourceKind === "observed-screenplay"
+                ? `Source: ${selected.backgroundText.sourceFileName}. Observed source text is shown without rewriting. ${selected.backgroundText.placementReviewed ? "Its Block placement has been Human-reviewed." : "Its suggested Block placement still requires Human review."}`
+                : "No source screenplay passage currently supports this exact Block. The text projection remains missing instead of generating filler."}
+            </p>
           </section>
         </div>
         {storyMap.importedSourceFileName ? <p className={styles.provenance}>Source: {storyMap.importedSourceFileName}. The screenplay text is observed evidence; a suggested 24/96 placement does not become canon until the Human reviews it.</p> : <p className={styles.provenance}>Current frontier: Foundations. PLAN decisions remain global story context until later Structure work earns exact Block placement.</p>}

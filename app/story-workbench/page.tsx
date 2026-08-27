@@ -6,7 +6,7 @@ import { authenticatedProfileFetch } from "@/core/auth/profile-request-browser";
 import type { StoryDecisionRecord } from "@/core/story-workflow/story-decisions/core.mjs";
 import { storyDecisionReconciliationPlan } from "@/core/story-workflow/workbench/core.mjs";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
-import { saveFoundationProjectAtRevision } from "@/core/storage/revision-safe-project-browser";
+import { saveFoundationProjectAtRevision } from "@/core/storage/project-library/revision-safe-browser";
 import {
   applyStoryWorkbenchReview,
   planTargetedStoryReevaluation,
@@ -97,12 +97,11 @@ export default function StoryWorkbenchPage() {
 
   const project = useMemo(() => {
     void projectTick;
-    try { return loadFoundationProject(); } catch { return null; }
+    return loadFoundationProject();
   }, [projectTick]);
   const prepared = useMemo(() => {
-    if (!project || !decision) return null;
-    try { return prepareStoryWorkbenchReview({ project, decision, selectedTargetRef, editedValue: draftValue }); }
-    catch { return null; }
+    if (!decision) return null;
+    return prepareStoryWorkbenchReview({ project, decision, selectedTargetRef, editedValue: draftValue });
   }, [decision, draftValue, project, selectedTargetRef]);
 
   async function completeReview() {
@@ -169,7 +168,7 @@ export default function StoryWorkbenchPage() {
     }
   }
 
-  if (!decision || !project || !prepared) {
+  if (!decision || !prepared) {
     return <main className={styles.page}><div className={styles.empty}><h1>Story Workbench</h1><p>{notice}</p><Link href="/story-decisions">Back to Story Decisions</Link></div></main>;
   }
 

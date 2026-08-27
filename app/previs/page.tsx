@@ -31,6 +31,7 @@ export default function PrevisPage() {
   return (
     <PrevisReadinessWorkspace
       project={project}
+      onProjectChange={setProject}
       onOpenStoryboard={() => window.location.assign("/storyboard")}
       onOpenBuild={() => window.location.assign("/?workspace=build")}
     />

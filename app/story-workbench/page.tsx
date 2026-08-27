@@ -15,6 +15,7 @@ import {
   storyWorkbenchTargets,
 } from "@/modules/story-workflow/workbench/workflow";
 import styles from "./story-workbench.module.css";
+import { deriveWorkbenchProjectionImpacts } from "./visual-impact";
 
 type DecisionResponse = { ok?: boolean; decision?: StoryDecisionRecord; message?: string };
 type ListResponse = { ok?: boolean; decisions?: StoryDecisionRecord[]; attentionCount?: number; message?: string };
@@ -103,6 +104,11 @@ export default function StoryWorkbenchPage() {
     if (!decision) return null;
     return prepareStoryWorkbenchReview({ project, decision, selectedTargetRef, editedValue: draftValue });
   }, [decision, draftValue, project, selectedTargetRef]);
+  const projectionImpacts = useMemo(() => prepared ? deriveWorkbenchProjectionImpacts({
+    selectedTargetRef: prepared.selectedTarget?.targetRef || selectedTargetRef,
+    explainableRefs: prepared.impact.explainableRefs,
+    requiresCanonApply: prepared.package.requiresCanonApply,
+  }) : [], [prepared, selectedTargetRef]);
 
   async function completeReview() {
     if (!decision || busy) return;
@@ -196,8 +202,13 @@ export default function StoryWorkbenchPage() {
     <section className={styles.axes}><h2>Validation</h2><div>{prepared.review.axes.map((axis) => <article key={axis.id} data-status={axis.status}><header><strong>{axis.id.replaceAll("-", " ")}</strong><b>{axis.status}</b></header><p>{axis.summary}</p></article>)}</div></section>
 
     <div className={styles.columns}>
+      <section><h2>Projection impact preview</h2>{projectionImpacts.length ? <ul>{projectionImpacts.map((impact) => <li data-projection-impact={impact.state} key={`${impact.id}:${impact.ref}`}><Link href={impact.href}>{impact.label}</Link> · <strong>{impact.state.replaceAll("-", " ")}</strong><br /><small>{impact.ref}</small><br />{impact.explanation}</li>)}</ul> : <p>No downstream projection is claimed affected without dependency evidence.</p>}<p><strong>Preview only.</strong> Workbench does not regenerate media or rewrite script text.</p></section>
       <section><h2>What may be re-evaluated</h2>{prepared.impact.explainableRefs.length ? <ul>{prepared.impact.explainableRefs.map((ref) => <li key={ref}>{ref}</li>)}</ul> : <p>Nothing. This response does not change canon.</p>}</section>
+    </div>
+
+    <div className={styles.columns}>
       <section><h2>What Workbench will not do</h2><ul><li>No full-story restart by default.</li><li>No automatic storyboard/script regeneration.</li><li>No GitHub PR or developer-agent approval.</li><li>No second PPF or hidden Workbench canon store.</li></ul></section>
+      <section><h2>Human authority</h2><p>The preview explains possible effects before apply. Canon moves only when the Human completes this revision-checked Workbench action, and only dependency-backed projections may be marked stale afterward.</p></section>
     </div>
 
     <section className={styles.apply}><div><strong>{prepared.review.blockingFindingCount ? `${prepared.review.blockingFindingCount} blocking finding${prepared.review.blockingFindingCount === 1 ? "" : "s"}` : "Ready for Human completion"}</strong><p>{prepared.package.requiresCanonApply ? "Apply performs one revision-checked Story Command, then refreshes only evidenced dependencies." : "Your reject/keep-current response completes without a canonical write."}</p></div><button type="button" disabled={busy || !prepared.review.canComplete || (prepared.package.requiresCanonApply && !prepared.review.canApply)} onClick={() => void completeReview()}>{busy ? "Rechecking exact revision…" : prepared.package.requiresCanonApply ? "Apply change" : "Complete no-change review"}</button></section>

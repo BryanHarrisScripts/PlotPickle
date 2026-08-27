@@ -9,7 +9,7 @@ import {
   STORY_BRIDGE_DISPATCH_MARKER,
   STORY_BRIDGE_RESULT_MARKER,
   type StoryBridgeRequest,
-} from "../core/story-workflow/buzz-story-bridge-core.mjs";
+} from "../core/story-workflow/buzz/buzz-story-bridge-core.mjs";
 import { agentProfileById } from "../lib/agents/agent-profiles";
 import {
   prepareStoryBridgeRequest,

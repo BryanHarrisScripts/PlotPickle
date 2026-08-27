@@ -6,7 +6,7 @@ import {
   createAffectedStoryBridgeUpdate,
   createStoryBridgeRequest,
   dedupeStoryBridgeContributions,
-} from "../core/story-workflow/buzz-story-bridge-core.mjs";
+} from "../core/story-workflow/buzz/buzz-story-bridge-core.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

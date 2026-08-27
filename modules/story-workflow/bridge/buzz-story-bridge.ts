@@ -6,7 +6,7 @@ import {
   createStoryBridgeRequest,
   type StoryBridgeContribution,
   type StoryBridgeRequest,
-} from "../../../core/story-workflow/buzz-story-bridge-core.mjs";
+} from "../../../core/story-workflow/buzz/buzz-story-bridge-core.mjs";
 import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import {
   AGENT_PROFILES,

@@ -1,5 +1,5 @@
-import { normalizeStoryResult } from "./story-workflow-core.mjs";
-import { normalizeNostrEvent, verifyNostrEventSignature } from "../buzz/nostr-event-verification.mjs";
+import { normalizeStoryResult } from "../story-workflow-core.mjs";
+import { normalizeNostrEvent, verifyNostrEventSignature } from "../../buzz/nostr-event-verification.mjs";
 
 export const STORY_BRIDGE_VERSION = 1;
 export const STORY_BRIDGE_DISPATCH_MARKER = "PLOTPICKLE-STORY-BRIDGE-DISPATCH v1";

@@ -64,7 +64,7 @@ test("issue #374 gives actionable stopped wrong-port timeout and invalid-respons
 
 test("issue #374 continues to persist diagnostics and refresh Dashboard status", async () => {
   const [gateway, panel] = await Promise.all([
-    source("build/provider-diagnostics-gateway.ts"),
+    source("build/ai/provider-diagnostics-gateway.ts"),
     source("app/media-routing-panel.tsx"),
   ]);
 

@@ -9,7 +9,7 @@ on:
       - "build/foundations-ppf-gateway.ts"
       - "build/library-ppf-import-gateway.ts"
       - "build/local-ai-gateway.ts"
-      - "build/portable-ppf-reader.ts"
+      - "build/projects/portable-ppf-reader.ts"
       - "core/contracts/foundation-plan.ts"
       - "core/contracts/imported-screenplay-evidence/**"
       - "core/project/project.ts"

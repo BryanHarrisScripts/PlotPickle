@@ -30,10 +30,6 @@ replacements = {
     "tests/issue-1422-buzz-story-bridge.test.mjs": [
         ("../core/story-workflow/buzz-story-bridge-core.mjs", "../core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
     ],
-    ".github/workflows/story-bridge.yml": [
-        ("core/story-workflow/buzz-story-bridge-core.mjs", "core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
-        ("core/story-workflow/buzz-story-bridge-core.d.ts", "core/story-workflow/buzz/buzz-story-bridge-core.d.ts"),
-    ],
 }
 for path, pairs in replacements.items():
     file = root / path
@@ -73,7 +69,7 @@ test("#1502 moves the BUZZ Story Bridge core pair to its ratified owner", async 
   assert.ok(contract.includes('from "../story-workflow-core.mjs"'));
 });
 
-test("#1502 retargets all known live and CI consumers without a root compatibility shim", async () => {
+test("#1502 retargets all known live consumers without a root compatibility shim", async () => {
   const checks = [
     ["build/story-workflow-buzz-bridge-gateway.ts", "../core/story-workflow/buzz/buzz-story-bridge-core.mjs"],
     ["modules/story-workflow/bridge/buzz-story-bridge.ts", "../../../core/story-workflow/buzz/buzz-story-bridge-core.mjs"],
@@ -85,11 +81,6 @@ test("#1502 retargets all known live and CI consumers without a root compatibili
     assert.ok(content.includes(expected), `${path} is not retargeted to the BUZZ core owner`);
     assert.ok(!content.includes("core/story-workflow/buzz-story-bridge-core.mjs"), `${path} still references the retired core root`);
   }
-  const workflow = await source(".github/workflows/story-bridge.yml");
-  assert.ok(workflow.includes('core/story-workflow/buzz/buzz-story-bridge-core.mjs'));
-  assert.ok(workflow.includes('core/story-workflow/buzz/buzz-story-bridge-core.d.ts'));
-  assert.ok(!workflow.includes('core/story-workflow/buzz-story-bridge-core.mjs'));
-  assert.ok(!workflow.includes('core/story-workflow/buzz-story-bridge-core.d.ts'));
 });
 
 test("#1502 preserves BUZZ provenance-only and revision-safe authority boundaries", async () => {

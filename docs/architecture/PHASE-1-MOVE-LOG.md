@@ -146,7 +146,7 @@ Behavior boundary:
 
 ## #1462 — SDXL local-image pair
 
-Status: **candidate; AI batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/comfyui-sdxl-local-gateway.ts` → `build/ai/comfyui-sdxl-local-gateway.ts`
@@ -168,4 +168,33 @@ Behavior boundary:
 - Provider access remains restricted to local ComfyUI on `http://127.0.0.1:8188` with the existing four-minute render timeout.
 - Provider-independent visual continuity, approved reference upload, VAE reference conditioning and saved PNG output remain unchanged.
 - No compatibility shim remains at either retired SDXL root path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
+
+## #1462 — Local AI readiness and installation slice
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/local-ai-installation-status.ts` → `build/ai/local-ai-installation-status.ts`
+- `build/local-ai-installation-gateway.ts` → `build/ai/local-ai-installation-gateway.ts`
+- `build/local-ai-readiness.ts` → `build/ai/local-ai-readiness.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts` imports the canonical installation gateway from the AI domain.
+- `build/local-runtime-gateway.ts` imports the canonical readiness service from the AI domain.
+- the AI-owned readiness service imports the AI-owned installation detector directly and reaches shared root-owned runtime/credential helpers through explicit parent imports.
+
+Source-contract / registry consumers updated:
+- `config/ai-source-registry.json`
+- `tests/issue-376-ai-source-console.test.mjs`
+- `tests/hardware-aware-local-ai-runtime.test.mjs`
+- `tests/issue-1462-local-ai-readiness-installation-move.test.mjs`
+
+Behavior boundary:
+- Installation detection remains local-only, cached for 30 seconds, and limited to reviewed executable paths, command lookup and Windows uninstall registration.
+- Installation status remains a loopback/same-origin GET at `/api/local-ai/installations`; llama.cpp, LM Studio, Ollama and ComfyUI probes remain fixed to reviewed loopback endpoints with the existing 1.5-second timeout.
+- Ollama installation status continues using its current OpenAI-compatible `/v1/models` loopback probe; the source-contract test no longer asserts the older `/api/tags` probe.
+- Readiness inference remains restricted to HTTP(S) loopback endpoints, uses the existing bounded `/chat/completions` POST probe with a 12-second timeout, and never accepts a caller-supplied remote endpoint.
+- Managed llama.cpp startup/fallback semantics remain unchanged, and readiness evidence remains private under the persistent runtime directory with file mode `0o600`.
+- No compatibility shim remains at any retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

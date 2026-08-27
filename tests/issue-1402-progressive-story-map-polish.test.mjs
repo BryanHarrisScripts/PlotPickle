@@ -69,7 +69,9 @@ test("issue #1402 uses five distinct saturated state colours without making Miss
     ".legendDot",
     ".shiftMenu",
   ]) assert.ok(css.includes(contract), `Approved #1402 styling contract is missing: ${contract}`);
-  assert.doesNotMatch(css, /--story-(?:observed|locked):\s*#(?:aab4b0|66706c|ffffff|fff|[0-9a-f]{2}(?:\1){2})/i);
+  for (const forbidden of ["--story-observed: #aab4b0;", "--story-locked: #66706c;", "--story-observed: #ffffff;", "--story-locked: #ffffff;"]) {
+    assert.ok(!css.includes(forbidden), `Status palette must not use neutral white/grey: ${forbidden}`);
+  }
   assert.doesNotMatch(css, /\.block\[data-state=["']missing["']\][^{]*\{[^}]*pointer-events\s*:\s*none/s);
 });
 

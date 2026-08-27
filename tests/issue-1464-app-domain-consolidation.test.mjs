@@ -77,3 +77,39 @@ test("#1511 gives the Community Agent roster one canonical UI owner without chan
   assert.ok(!remainingCommunityRoots.includes("community-agent-roster.tsx"));
   assert.ok(!remainingCommunityRoots.includes("community-agent-roster.module.css"));
 });
+
+test("#1464 retires the Community public-conversations root bridge without changing the rendered rail owner", async () => {
+  await assert.rejects(access(new URL("app/community-public-conversations-rail.tsx", root)));
+  await access(new URL("app/_components/community/community-public-conversations-rail.tsx", root));
+  await access(new URL("app/_components/community/community-public-conversations-rail.module.css", root));
+
+  const [shell, rail, uatText, architectureText] = await Promise.all([
+    read("app/plotpickle-workspace-shell.tsx"),
+    read("app/_components/community/community-public-conversations-rail.tsx"),
+    read("config/exhaustive-ui-uat.json"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(shell, /\.\/_components\/community\/community-public-conversations-rail/);
+  assert.doesNotMatch(shell, /from "\.\/community-public-conversations-rail"/);
+  assert.match(rail, /View all Great Hall conversations/);
+  assert.match(rail, /data-community-public-action-status/);
+
+  const uat = JSON.parse(uatText);
+  const communityScreen = uat.screens.find((item) => item.id === "community");
+  assert.ok(communityScreen, "Community UAT surface must remain registered");
+  assert.ok(communityScreen.sourceFiles.includes("app/_components/community/community-public-conversations-rail.tsx"));
+  assert.ok(communityScreen.sourceFiles.includes("app/_components/community/community-public-conversations-rail.module.css"));
+  assert.ok(!communityScreen.sourceFiles.includes("app/community-public-conversations-rail.tsx"));
+  assert.ok(!communityScreen.sourceFiles.includes("app/community-public-conversations-rail.module.css"));
+
+  const architecture = JSON.parse(architectureText);
+  const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
+  assert.ok(communityBatch, "the ratified Community batch must remain governed");
+  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+
+  const appEntries = await readdir(new URL("app/", root));
+  const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
+  assert.ok(remainingCommunityRoots.length > 0, "retiring one bridge must not pretend the wider Community batch is complete");
+  assert.ok(!remainingCommunityRoots.includes("community-public-conversations-rail.tsx"));
+});

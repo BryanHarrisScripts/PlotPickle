@@ -65,7 +65,7 @@ test("issue #358 offers a reviewed optional GitHub CLI installation", async () =
 test("issue #358 installs the starter only through allowlisted loopback Ollama APIs", async () => {
   const [installer, gateway, host] = await Promise.all([
     source("scripts/install-local-ai-tool.ps1"),
-    source("build/ollama-bootstrap-gateway.ts"),
+    source("build/ai/ollama-bootstrap-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
   for (const contract of [

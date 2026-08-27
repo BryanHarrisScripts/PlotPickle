@@ -43,24 +43,26 @@ test("#1424 preserves reusable Storyboard identity and editorial behavior instea
   assert.match(workspace, /StoryboardEditorialWorkspace/);
   assert.match(workspace, /storyboardReferenceCandidates/);
   assert.match(editorial, />Keep</);
-  assert.match(editorial, />Change</);
+  assert.match(editorial, />Change \/ Try</);
   assert.match(editorial, />Compare</);
+  assert.match(editorial, /same Mini-Block anchor/);
   assert.match(phaseBoundary, /profile-owned PPF -> #1423 visual readiness -> Storyboard target availability/);
   assert.doesNotMatch(workspace, /PlotPickleProject|storyboardExploration|plotpickle\.project\.v1/);
 });
 
 test("#1424 tab inspection remains non-canonical while explicit Human Keep owns visual approval", async () => {
-  const [route, workspace, editorial] = await Promise.all([
+  const [route, workspace, editorial, model] = await Promise.all([
     read("app/storyboard/page.tsx"),
     read(workspacePath),
     read("app/_components/storyboard/storyboard-editorial-workspace.tsx"),
+    read("app/_components/storyboard/storyboard-editorial-model.ts"),
   ]);
   const inspectionSurface = `${route}\n${workspace}`;
 
   assert.doesNotMatch(inspectionSurface, /saveFoundationProject|writeFile|database|sqlite/);
   assert.doesNotMatch(inspectionSurface, /\/api\/local-ai\/generate/);
-  assert.match(workspace, /inspecting a tab never promotes reference material or changes story canon/);
+  assert.match(workspace, /The final image count is intentionally flexible/);
   assert.match(editorial, /saveFoundationProject\(next\)/);
-  assert.match(editorial, /Human Keep decision/);
+  assert.match(model, /Human Keep decision/);
   assert.doesNotMatch(editorial, /\/api\/local-ai\/generate/);
 });

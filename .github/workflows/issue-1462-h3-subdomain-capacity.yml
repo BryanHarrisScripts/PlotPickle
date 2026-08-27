@@ -57,4 +57,4 @@ jobs:
           git commit -m "refactor(#1462): create H3 AI subdomain capacity"
           git push origin HEAD:arch/1462-ai-h3-subdomain-capacity
 
-# retry 2: create target subdomain before git mv
+# retry 3: permit only intentional historical H3 path references

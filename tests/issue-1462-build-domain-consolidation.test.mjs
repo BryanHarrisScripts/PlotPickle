@@ -26,6 +26,10 @@ const deepSeekAiMoved = [
   ["build/deepseek-harness-gateway.ts", "build/ai/deepseek-harness-gateway.ts"],
 ];
 
+const ltxGatewayAiMoved = [
+  ["build/comfyui-ltx-local-gateway.ts", "build/ai/comfyui-ltx-local-gateway.ts"],
+];
+
 test("#1462 Projects batch retires flat build sources into the ratified domain without compatibility shims", async () => {
   for (const [source, target] of moved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
@@ -172,4 +176,30 @@ test("#1462 DeepSeek AI slice retires the optional harness pair without changing
   const config = JSON.parse(await read("config/repository-architecture-target.json"));
   const batch = config.moveBatches.find((item) => item.id === "phase1-build-ai");
   assert.notEqual(batch?.status, "completed", "the AI batch must stay open until every ratified root AI source is moved");
+});
+
+test("#1462 LTX gateway slice retires the root gateway without changing local video authority or GPU serialization", async () => {
+  for (const [source, target] of ltxGatewayAiMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must be retired after the LTX gateway move`);
+    await access(new URL(target, root));
+  }
+
+  const [localAi, gateway, hardwareContract] = await Promise.all([
+    read("build/local-ai-gateway.ts"),
+    read("build/ai/comfyui-ltx-local-gateway.ts"),
+    read("tests/hardware-aware-local-ai-runtime.test.mjs"),
+  ]);
+
+  assert.match(localAi, /\.\/ai\/comfyui-ltx-local-gateway/);
+  assert.doesNotMatch(localAi, /\.\/comfyui-ltx-local-gateway["']/);
+  assert.match(gateway, /\.\.\/comfyui-ltx-local-provider/);
+  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(gateway, /videoRoute === "none"/);
+  assert.match(gateway, /holdLocalGpuMediaLease/);
+  assert.match(gateway, /LOCAL_VIDEO_WAIT_MS = 30 \* 60_000/);
+  assert.match(hardwareContract, /build\/ai\/comfyui-ltx-local-gateway\.ts/);
+
+  const config = JSON.parse(await read("config/repository-architecture-target.json"));
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-ai");
+  assert.notEqual(batch?.status, "completed", "the AI batch must remain open while the LTX provider and other ratified AI roots remain");
 });

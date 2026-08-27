@@ -78,7 +78,7 @@ Behavior boundary:
 
 ## #1462 — DeepSeek AI slice
 
-Status: **candidate; AI batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/deepseek-harness-runtime.ts` → `build/ai/deepseek-harness-runtime.ts`
@@ -96,3 +96,25 @@ Behavior boundary:
 - Status remains a local GET and launch remains an explicit local POST through the existing gateway boundary.
 - No compatibility shim remains at either retired root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every ratified direct AI source is moved and exact-head green.
+
+## #1462 — LTX local-video gateway slice
+
+Status: **completed by this slice; AI batch remains in progress**
+
+Move boundary:
+- `build/comfyui-ltx-local-gateway.ts` → `build/ai/comfyui-ltx-local-gateway.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts`
+- the moved gateway now reaches the still-root provider and shared media/GPU helpers through explicit parent imports.
+
+Source-contract / CI path consumers updated:
+- `tests/hardware-aware-local-ai-runtime.test.mjs`
+- `tests/issue-1462-build-domain-consolidation.test.mjs`
+
+Behavior boundary:
+- The LTX route remains local-only and same-origin guarded.
+- LTX remains the default local video path only while `videoRoute === "none"`.
+- GPU media leasing, the 30-minute local render window, body bounds and validated `ltx-*` job IDs remain unchanged.
+- No compatibility shim remains at the retired root gateway path.
+- `build/comfyui-ltx-local-provider.ts` intentionally remains at root for the next isolated AI move slice; the larger `phase1-build-ai` batch remains incomplete.

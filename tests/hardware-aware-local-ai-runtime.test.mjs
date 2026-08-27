@@ -127,7 +127,7 @@ test("LTX-Video 2B is the default lightweight local video path while H3 stays ov
   const [catalog, ltx, gateway, composition] = await Promise.all([
     read("lib/runtime/ai/local-runtime.ts"),
     read("build/comfyui-ltx-local-provider.ts"),
-    read("build/comfyui-ltx-local-gateway.ts"),
+    read("build/ai/comfyui-ltx-local-gateway.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
   assert.match(catalog, /LTX-Video 2B 0\.9\.8 Distilled/);

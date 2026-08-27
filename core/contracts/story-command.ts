@@ -1,5 +1,6 @@
 import type { FoundationsVisualArtifact, WorldVisualArtifact } from "./build-progress";
 import type { FoundationDraftProposal } from "./foundation-plan";
+import type { ProductionShotIntent } from "./previs";
 
 export type StoryCommand =
   | {
@@ -79,6 +80,16 @@ export type StoryCommand =
   | {
       readonly type: "foundations.visual.unaccept";
       readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "previs.shot.store";
+      readonly shot: ProductionShotIntent;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "previs.shot.remove";
+      readonly shotId: string;
       readonly occurredAt: string;
     }
   | {

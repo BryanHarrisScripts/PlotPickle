@@ -19,7 +19,7 @@ import {
   planStoryWorkItems,
   type StoryWorkItem,
 } from "../../../core/story-workflow/story-workflow-core.mjs";
-import { buildFoundationsStoryWorkflowRequirements } from "../foundations-story-workflow";
+import { buildFoundationsStoryWorkflowRequirements } from "../runtime/foundations-story-workflow";
 
 export type StoryWorkbenchTarget = Readonly<{
   targetRef: string;

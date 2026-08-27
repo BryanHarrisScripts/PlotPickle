@@ -33,7 +33,7 @@ test("fresh image routing stays local-first while cloud providers remain explici
 
 test("the baseline ComfyUI image path accepts a pencil-sketch prompt through the standard local workflow", async () => {
   const [provider, gateway] = await Promise.all([
-    source("build/comfyui-media-provider.ts"),
+    source("build/ai/comfyui-media-provider.ts"),
     source("build/media-routing-gateway.ts"),
   ]);
 

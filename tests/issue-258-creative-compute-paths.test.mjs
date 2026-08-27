@@ -172,7 +172,7 @@ test("phase 3 preserves direct OpenAI image and MiniMax image-01 and H3 executio
 });
 
 test("phase 3 runs a reviewed ComfyUI image workflow and captures returned assets", async () => {
-  const comfy = await source("build/comfyui-media-provider.ts");
+  const comfy = await source("build/ai/comfyui-media-provider.ts");
   for (const contract of [
     "http://127.0.0.1:8188",
     "CheckpointLoaderSimple",
@@ -196,7 +196,7 @@ test("phase 3 runs a reviewed ComfyUI image workflow and captures returned asset
 
 test("phase 3 locks the ComfyUI H3 route behind verified nodes key and returned paid test asset", async () => {
   const [comfy, gateway] = await Promise.all([
-    source("build/comfyui-media-provider.ts"),
+    source("build/ai/comfyui-media-provider.ts"),
     source("build/media-routing-gateway.ts"),
   ]);
   for (const contract of [

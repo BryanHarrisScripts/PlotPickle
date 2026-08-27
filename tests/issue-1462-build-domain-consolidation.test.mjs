@@ -35,6 +35,44 @@ const profileAuthMoved = [
   ["build/profile-request-context.ts", "build/auth/profile-request-context.ts"],
 ];
 
+const comfyMediaMoved = [
+  ["build/comfyui-media-provider.ts", "build/ai/comfyui-media-provider.ts"],
+];
+
+test("#1462 ComfyUI media provider moves under AI ownership without changing local media authority", async () => {
+  for (const [source, target] of comfyMediaMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
+    await access(new URL(target, root));
+  }
+
+  const [routing, mediaRouting, sdxl, provider, realMachineContract, configText] = await Promise.all([
+    read("build/ai-routing-gateway.ts"),
+    read("build/media-routing-gateway.ts"),
+    read("build/ai/comfyui-sdxl-local-gateway.ts"),
+    read("build/ai/comfyui-media-provider.ts"),
+    read("tests/issue-1255-comfyui-real-machine.test.mjs"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(routing, /\.\/ai\/comfyui-media-provider/);
+  assert.match(mediaRouting, /\.\/ai\/comfyui-media-provider/);
+  assert.match(sdxl, /\.\/comfyui-media-provider/);
+  assert.match(provider, /\.\.\/local-credentials/);
+  assert.match(provider, /DEFAULT_BASE_URL = "http:\/\/127\.0\.0\.1:8188"/);
+  assert.match(provider, /IMAGE_TIMEOUT_MS = 240_000/);
+  assert.match(provider, /mode: 0o700/);
+  assert.match(provider, /mode: 0o600/);
+  assert.match(realMachineContract, /build\/ai\/comfyui-media-provider\.ts/);
+
+  assert.doesNotMatch([routing, mediaRouting].join("\n"), /from "\.\/comfyui-media-provider"/);
+  assert.doesNotMatch(sdxl, /from "\.\.\/comfyui-media-provider"/);
+  assert.doesNotMatch(realMachineContract, /build\/comfyui-media-provider\.ts/);
+
+  const config = JSON.parse(configText);
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-ai");
+  assert.notEqual(batch?.status, "completed", "the AI batch must remain open while three ratified root sources remain");
+});
+
 test("#1462 Profile auth batch gives the request context one canonical owner without changing session authority", async () => {
   for (const [source, target] of profileAuthMoved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);

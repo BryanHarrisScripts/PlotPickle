@@ -7,8 +7,8 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("DeepSeek Harness is an optional local-only gateway and never part of normal startup", async () => {
   const [localGateway, gateway, runtime] = await Promise.all([
     read("build/local-ai-gateway.ts"),
-    read("build/deepseek-harness-gateway.ts"),
-    read("build/deepseek-harness-runtime.ts"),
+    read("build/ai/deepseek-harness-gateway.ts"),
+    read("build/ai/deepseek-harness-runtime.ts"),
   ]);
 
   assert.match(localGateway, /registerDeepSeekHarnessGateway/);
@@ -24,7 +24,7 @@ test("DeepSeek Harness is an optional local-only gateway and never part of norma
 });
 
 test("DSH detection distinguishes running, installed, available and not installed states", async () => {
-  const runtime = await read("build/deepseek-harness-runtime.ts");
+  const runtime = await read("build/ai/deepseek-harness-runtime.ts");
 
   assert.match(runtime, /"running" \| "installed" \| "available" \| "not-installed"/);
   assert.match(runtime, /runCommand\("ollama", \["--version"\]/);
@@ -36,7 +36,7 @@ test("DSH detection distinguishes running, installed, available and not installe
 
 test("launching DSH is an explicit user action through Ollama", async () => {
   const [runtime, panel] = await Promise.all([
-    read("build/deepseek-harness-runtime.ts"),
+    read("build/ai/deepseek-harness-runtime.ts"),
     read("app/deepseek-harness-panel.tsx"),
   ]);
 

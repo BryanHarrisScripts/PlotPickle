@@ -53,7 +53,7 @@ Behavior boundary:
 
 ## #1462 — BUZZ advisory slice
 
-Status: **candidate; BUZZ batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/buzz-agent-activity-mirror.ts` → `build/buzz/buzz-agent-activity-mirror.ts`
@@ -75,3 +75,24 @@ Behavior boundary:
 - Specialist BUZZ messages remain advisory, project-context sharing remains explicit, and the bridge reports `ppfChanged: false`.
 - No compatibility shim remains at the retired root paths.
 - The larger `phase1-build-buzz` batch intentionally remains incomplete until every ratified direct `build/buzz-*` source is moved and exact-head green.
+
+## #1462 — DeepSeek AI slice
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/deepseek-harness-runtime.ts` → `build/ai/deepseek-harness-runtime.ts`
+- `build/deepseek-harness-gateway.ts` → `build/ai/deepseek-harness-gateway.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts`
+
+Source-contract / CI path consumers updated:
+- `tests/issue-624-deepseek-harness-runtime.test.mjs`
+- `tests/issue-1462-build-domain-consolidation.test.mjs`
+
+Behavior boundary:
+- DeepSeek Harness remains an optional local adapter and is never auto-installed or auto-launched during normal startup.
+- Status remains a local GET and launch remains an explicit local POST through the existing gateway boundary.
+- No compatibility shim remains at either retired root path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every ratified direct AI source is moved and exact-head green.

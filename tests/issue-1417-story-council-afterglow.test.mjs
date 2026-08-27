@@ -72,7 +72,7 @@ test("#1417 Afterglow v9 routes one bounded problem to two distinct specialists 
 
 test("#1417 Afterglow proof composes the stable reference with the generic Context/Run/Graph architecture without feature-domain coupling", async () => {
   const [council, contextEngine, graph, reference] = await Promise.all([
-    read("modules/story-workflow/story-council.ts"),
+    read("modules/story-workflow/council/story-council.ts"),
     read("lib/agents/context/context-engine.ts"),
     read("lib/agents/responsibility/responsibility-graph.ts"),
     read("modules/library/reference/afterglow-v9-foundations.ts"),

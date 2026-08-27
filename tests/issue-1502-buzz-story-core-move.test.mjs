@@ -10,9 +10,9 @@ test("#1502 moves the BUZZ Story Bridge core pair to its ratified owner", async 
   await assert.rejects(access(new URL("core/story-workflow/buzz-story-bridge-core.d.ts", root)));
   const implementation = await source("core/story-workflow/buzz/buzz-story-bridge-core.mjs");
   const contract = await source("core/story-workflow/buzz/buzz-story-bridge-core.d.ts");
-  assert.ok(implementation.includes('from "../story-workflow-core.mjs"'));
+  assert.ok(implementation.includes('from "../runtime/story-workflow-core.mjs"'));
   assert.ok(implementation.includes('from "../../buzz/nostr-event-verification.mjs"'));
-  assert.ok(contract.includes('from "../story-workflow-core.mjs"'));
+  assert.ok(contract.includes('from "../runtime/story-workflow-core.mjs"'));
 });
 
 test("#1502 retargets all known live and CI consumers without a root compatibility shim", async () => {

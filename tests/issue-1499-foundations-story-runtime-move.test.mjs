@@ -9,7 +9,7 @@ test("#1499 moves the Foundations Story Workflow adapter to its runtime owner", 
   await assert.rejects(access(new URL("modules/story-workflow/foundations-story-workflow.ts", root)));
   const runtime = await source("modules/story-workflow/runtime/foundations-story-workflow.ts");
   assert.match(runtime, /from "\.\.\/\.\.\/\.\.\/adapters\/curriculum\/current-catalog"/);
-  assert.match(runtime, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/story-workflow-core\.mjs"/);
+  assert.match(runtime, /from "\.\.\/\.\.\/\.\.\/core\/story-workflow\/runtime\/story-workflow-core\.mjs"/);
   assert.match(runtime, /from "\.\.\/\.\.\/\.\.\/lib\/agents\/context\/context-engine"/);
 });
 

@@ -8,7 +8,7 @@ import {
   normalizeStoryResult,
   type StoryResult,
   type StoryWorkItem,
-} from "../../../core/story-workflow/story-workflow-core.mjs";
+} from "../../../core/story-workflow/runtime/story-workflow-core.mjs";
 import {
   loadFoundationProject,
   saveFoundationProject,

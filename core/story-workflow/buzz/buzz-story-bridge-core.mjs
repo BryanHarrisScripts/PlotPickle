@@ -1,4 +1,4 @@
-import { normalizeStoryResult } from "../story-workflow-core.mjs";
+import { normalizeStoryResult } from "../runtime/story-workflow-core.mjs";
 import { normalizeNostrEvent, verifyNostrEventSignature } from "../../buzz/nostr-event-verification.mjs";
 
 export const STORY_BRIDGE_VERSION = 1;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./writing-assistant-console.module.css";
 
-type ProviderId = "ollama" | "openai" | "minimax";
+type ProviderId = "ollama" | "openai" | "gemini" | "minimax";
 type ActiveProvider = ProviderId | "disabled";
 type Message = {
   id: string;
@@ -76,7 +76,7 @@ const STATUS_PATH = "/api/writing-assistant/status";
 const STARTER_MODEL_PATH = "/api/ollama-bootstrap/starter-model";
 const SESSION_KEY = "plotpickle.writing-assistant.session";
 const TEST_PROMPT = "Introduce yourself to a new PlotPickle writer.";
-const providerOrder: ProviderId[] = ["ollama", "openai", "minimax"];
+const providerOrder: ProviderId[] = ["ollama", "openai", "gemini", "minimax"];
 
 const providerCopy: Record<ProviderId, { label: string; short: string; description: string; settingsTarget: string }> = {
   ollama: {
@@ -90,6 +90,12 @@ const providerCopy: Record<ProviderId, { label: string; short: string; descripti
     short: "OpenAI",
     description: "Cloud writing assistance using your separate OpenAI API account.",
     settingsTarget: "Cloud images & video",
+  },
+  gemini: {
+    label: "Google Gemini",
+    short: "Gemini",
+    description: "Provider-cloud writing assistance using your protected Gemini API connection.",
+    settingsTarget: "Google Gemini",
   },
   minimax: {
     label: "MiniMax Text",
@@ -448,7 +454,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
 
       <form className={styles.composer} onSubmit={sendMessage}>
         <label htmlFor="writing-assistant-prompt">Question</label>
-        <textarea id="writing-assistant-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Select a text engine to begin." : "Ask Ollama or your cloud model a question…"} disabled={working || !status || status.activeProvider === "disabled"} rows={3} />
+        <textarea id="writing-assistant-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Select a text engine to begin." : "Ask your selected writing model a question…"} disabled={working || !status || status.activeProvider === "disabled"} rows={3} />
         <div><span>This temporary console is local UI state. Answers do not become story canon automatically.</span><button type="submit" disabled={working || !prompt.trim() || !status || status.activeProvider === "disabled"}>Send</button></div>
       </form>
 

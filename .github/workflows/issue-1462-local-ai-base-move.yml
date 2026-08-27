@@ -1,0 +1,59 @@
+name: Issue 1462 Local AI Base Move
+
+on:
+  push:
+    branches:
+      - arch/1462-ai-local-base
+    paths:
+      - ".github/workflows/issue-1462-local-ai-base-move.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  move-local-ai-base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arch/1462-ai-local-base
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Apply bounded Local AI base move
+        run: python .github/scripts/issue-1462-local-ai-base-move.py
+
+      - name: Focused Local AI, credential and architecture regressions
+        run: >-
+          node --test
+          tests/issue-1462-build-domain-consolidation.test.mjs
+          tests/issue-254-graphic-novel-asset-versions.test.mjs
+          tests/issue-299-credential-boundary-audit.test.mjs
+          tests/issue-1461-repository-architecture-inventory.test.mjs
+          tests/hardware-aware-local-ai-runtime.test.mjs
+
+      - name: Credential boundary audit
+        run: npm run audit:credentials
+
+      - name: Production build
+        run: npm run build
+
+      - name: Diff hygiene
+        run: git diff --check
+
+      - name: Commit permanent Local AI base move
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/scripts/issue-1462-local-ai-base-move.py
+          git add -A
+          git commit -m "refactor(#1462): move Local AI gateway base"
+          git push origin HEAD:arch/1462-ai-local-base

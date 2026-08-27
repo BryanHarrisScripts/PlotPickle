@@ -5,7 +5,7 @@ import { registerAgentObservabilityGateway } from "./agent-observability-gateway
 import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirror";
 import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
-import { registerNativeH3Gateway } from "./ai/comfyui-h3-native-gateway";
+import { registerNativeH3Gateway } from "./ai/h3/comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
 import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./ai/comfyui-onboarding-gateway";

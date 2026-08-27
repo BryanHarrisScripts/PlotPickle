@@ -250,8 +250,8 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
 
 test("issue #300 adds a native H3 provider without cloud credentials or silent installation", async () => {
   const [provider, gateway, localGateway] = await Promise.all([
-    source("build/comfyui-h3-native-provider.ts"),
-    source("build/ai/comfyui-h3-native-gateway.ts"),
+    source("build/ai/h3/comfyui-h3-native-provider.ts"),
+    source("build/ai/h3/comfyui-h3-native-gateway.ts"),
     source("build/local-ai-gateway.ts"),
   ]);
   for (const contract of [
@@ -322,7 +322,7 @@ test("issue #300 exposes truthful native H3 status diagnostics and official setu
 });
 
 test("issue #300 validates official provenance workflow placeholders model directories and version gates", async () => {
-  const provider = await source("build/comfyui-h3-native-provider.ts");
+  const provider = await source("build/ai/h3/comfyui-h3-native-provider.ts");
   for (const contract of [
     "https://github.com/MiniMax-AI/",
     "https://huggingface.co/MiniMaxAI/",

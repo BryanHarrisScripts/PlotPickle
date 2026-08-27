@@ -162,7 +162,7 @@ test("#1419 convergence telemetry reports evidence counts without inventing a st
 test("#1419 current product adapter uses the Learn-first PPF command/revision boundary, not the legacy full-project or GitHub path", async () => {
   const [workflow, revisionSave, decisionsPage, workbenchPage] = await Promise.all([
     read("modules/story-workflow/workbench/workflow.ts"),
-    read("core/storage/revision-safe-project-browser.ts"),
+    read("core/storage/project-library/revision-safe-browser.ts"),
     read("app/story-decisions/page.tsx"),
     read("app/story-workbench/page.tsx"),
   ]);

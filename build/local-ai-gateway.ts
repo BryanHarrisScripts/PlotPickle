@@ -14,7 +14,7 @@ import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gatew
 import { registerProviderModelCatalogGateway } from "./provider-model-catalog-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerLazyFramesGateway } from "./lazy-frames-gateway";
-import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
+import { registerOllamaBootstrapGateway } from "./ai/ollama-bootstrap-gateway";
 import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
 import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
 import { registerPlotPickleNodeTopologyGateway } from "./node-topology-gateway";

@@ -99,7 +99,7 @@ Behavior boundary:
 
 ## #1462 — LTX local-video pair
 
-Status: **provider candidate; gateway completed and merged; AI batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/comfyui-ltx-local-gateway.ts` → `build/ai/comfyui-ltx-local-gateway.ts`
@@ -120,4 +120,26 @@ Behavior boundary:
 - GPU media leasing, the 30-minute local render window, body bounds and validated `ltx-*` job IDs remain unchanged.
 - Provider validation still rejects unsafe network/installer/code-execution nodes, restricts ComfyUI to `http://127.0.0.1:8188`, and keeps private directory/file modes.
 - No compatibility shim remains at either retired LTX root path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
+
+## #1462 — Ollama starter bootstrap slice
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/ollama-bootstrap-gateway.ts` → `build/ai/ollama-bootstrap-gateway.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts`
+- the moved gateway reaches the reviewed starter-model configuration through `../../config/ollama-starter-model.json`.
+
+Source-contract / CI path consumers updated:
+- `tests/issue-358-companion-inventory-ollama-bootstrap.test.mjs`
+- `tests/issue-1462-ollama-bootstrap-move.test.mjs`
+
+Behavior boundary:
+- The starter-model action remains available only through `/api/ollama-bootstrap/starter-model` and requires a local same-origin POST.
+- Ollama remains fixed to loopback `http://127.0.0.1:11434`; callers cannot supply an arbitrary model or endpoint.
+- The reviewed starter model remains configuration-owned, pulls remain non-streaming with the existing 15-minute timeout, and failure does not remove No AI mode.
+- No compatibility shim remains at the retired root gateway path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

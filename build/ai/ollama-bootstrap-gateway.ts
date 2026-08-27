@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import starterSource from "../config/ollama-starter-model.json";
+import starterSource from "../../config/ollama-starter-model.json";
 
 const API_PATH = "/api/ollama-bootstrap/starter-model";
 const OLLAMA_BASE_URL = "http://127.0.0.1:11434";

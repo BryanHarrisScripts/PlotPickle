@@ -19,7 +19,7 @@ on:
       - "build/profile-request-context.ts"
       - "build/startup/**"
       - "scripts/windows-server-smoke.mjs"
-      - "scripts/windows-community-edge-smoke.mjs"
+      - "scripts/windows-interaction-smoke.mjs"
       - "Start-PlotPickle.bat"
       - "vite.config.ts"
       - "public/assets/workflow-relics/library.svg"
@@ -77,6 +77,9 @@ jobs:
         run: node scripts/windows-server-smoke.mjs .
       - name: Validate managed Edge Community navigation
         if: matrix.os == 'windows-latest'
-        run: node scripts/windows-community-edge-smoke.mjs .
+        env:
+          PLOTPICKLE_SMOKE_COMMUNITY_EDGE: "1"
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "120000"
+        run: node scripts/windows-interaction-smoke.mjs . reports/windows-community-edge
       - name: Production build
         run: npm run build

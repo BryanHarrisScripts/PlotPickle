@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -44,6 +45,12 @@ test("#1404 reuses the Windows interaction harness for focused Microsoft Edge Co
   assert.match(smoke, /data-workspace-nav-id=.*community/);
   assert.match(smoke, /data-community-native-buzz=.*true/);
   assert.match(smoke, /communityEdgeMode \? \[`--app=\$\{baseUrl\}\/\?workspace=dashboard`\] : \["--disable-gpu", "about:blank"\]/);
+
+  const syntax = spawnSync(process.execPath, ["--check", "scripts/windows-interaction-smoke.mjs"], {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  assert.equal(syntax.status, 0, syntax.stderr || syntax.stdout);
 });
 
 test("#1404 does not add a second root-level CDP smoke implementation", async () => {

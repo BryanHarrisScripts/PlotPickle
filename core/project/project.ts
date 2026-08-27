@@ -15,6 +15,11 @@ import {
   type FoundationPlanState,
 } from "../contracts/foundation-plan";
 import {
+  createEmptyPrevisProductionState,
+  normalizePrevisProductionState,
+  type PrevisProductionState,
+} from "../contracts/previs";
+import {
   createEmptyWorldLessonAnswers,
   createEmptyWorldPlanState,
   isUsableWorldAnswer,
@@ -41,6 +46,7 @@ export interface PPFProject {
   readonly foundations: FoundationPlanState;
   readonly world: WorldPlanState;
   readonly build: BuildProgressState;
+  readonly production: PrevisProductionState;
 }
 
 export function createEmptyProject(input: {
@@ -65,6 +71,7 @@ export function createEmptyProject(input: {
     foundations: createEmptyFoundationPlanState(),
     world: createEmptyWorldPlanState(),
     build: createEmptyBuildProgressState(),
+    production: createEmptyPrevisProductionState(),
   };
 }
 
@@ -409,5 +416,6 @@ export function normalizeFoundationProject(value: unknown): PPFProject {
     foundations: normalizeFoundations(source.foundations),
     world: normalizeWorld(source.world),
     build: normalizeBuild(source.build),
+    production: normalizePrevisProductionState(source.production),
   };
 }

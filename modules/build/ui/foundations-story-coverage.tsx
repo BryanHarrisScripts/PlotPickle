@@ -16,7 +16,13 @@ const STATE_LABELS: Readonly<Record<FoundationsStoryEvidenceState, string>> = {
   missing: "MISSING",
 };
 
-export default function FoundationsStoryCoverage({ curriculum, project }: { readonly curriculum: readonly CurriculumLesson[]; readonly project: PPFProject }) {
+export default function FoundationsStoryCoverage({
+  curriculum,
+  project,
+}: {
+  readonly curriculum: readonly CurriculumLesson[];
+  readonly project: PPFProject;
+}) {
   const coverage = deriveFoundationsStoryCoverage(curriculum, project);
   const supported = coverage.defined + coverage.observed;
 
@@ -28,7 +34,10 @@ export default function FoundationsStoryCoverage({ curriculum, project }: { read
           <h2 id="foundations-story-coverage-title">Story Coverage</h2>
           <p>See what the writer has defined, what an immutable reference source directly supports, which ideas are still proposals, and which decisions remain intentionally open.</p>
         </div>
-        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}><strong>{coverage.percent}%</strong><span>{supported} of {coverage.total} decisions supported</span></div>
+        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
+          <strong>{coverage.percent}%</strong>
+          <span>{supported} of {coverage.total} decisions supported</span>
+        </div>
       </header>
 
       <dl className={styles.summary} aria-label="Foundations story evidence totals">
@@ -40,7 +49,7 @@ export default function FoundationsStoryCoverage({ curriculum, project }: { read
 
       <div className={styles.legend} aria-label="Story evidence meanings">
         <span data-state="defined"><i aria-hidden="true">●</i><strong>DEFINED</strong> is an explicit working decision.</span>
-        <span data-state="observed"><i aria-hidden="true">●</i><strong>OBSERVED</strong> is directly supported by immutable imported/reference evidence.</span>
+        <span aria-label="Observed source evidence" data-state="observed"><i aria-hidden="true">●</i><strong>OBSERVED</strong> is directly supported by immutable imported/reference evidence.</span>
         <span data-state="emerging"><i aria-hidden="true">●</i><strong>EMERGING</strong> is a useful proposal that still needs Human acceptance.</span>
         <span data-state="missing"><i aria-hidden="true">●</i><strong>MISSING</strong> leaves the decision open instead of inventing filler.</span>
         <span data-state="locked"><i aria-hidden="true">●</i><strong>LOCKED</strong> means the target is visible but a later prerequisite still prevents editing.</span>
@@ -60,7 +69,10 @@ export default function FoundationsStoryCoverage({ curriculum, project }: { read
             <div className={styles.decisions}>
               {lesson.decisions.map((decision) => (
                 <article className={styles.decision} data-state={decision.state} key={decision.id}>
-                  <header><strong>{decision.prompt}</strong><span data-state={decision.state}>{STATE_LABELS[decision.state]}</span></header>
+                  <header>
+                    <strong>{decision.prompt}</strong>
+                    <span data-state={decision.state}>{STATE_LABELS[decision.state]}</span>
+                  </header>
                   <p>{decision.reason}</p>
                   {decision.excerpt ? <blockquote>{decision.excerpt}</blockquote> : null}
                   <small>{decision.sourceLabel}</small>

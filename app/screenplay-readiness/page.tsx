@@ -2,40 +2,35 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
-import { assessScreenplayReadiness, readinessDestinations } from "../beginner-experience";
+import type { PPFProject } from "@/core/project/project";
+import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { deriveCanonicalScreenplayReadiness } from "./canonical-readiness";
 import styles from "./screenplay-readiness.module.css";
 
-const STORAGE_KEY = "plotpickle.project.v1";
+function safeFileName(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "plotpickle-project";
+}
 
-function readinessHref(href: string) {
-  if (href === "/core-model") return "/?workspace=1&tab=planner&section=coreModel";
-  if (href.startsWith("/?") && !href.includes("workspace=1")) return href.replace("/?", "/?workspace=1&");
-  return href;
+function isSupportedState(state: string) {
+  return state === "current" || state === "defined" || state === "observed";
 }
 
 export default function ScreenplayReadinessPage() {
-  const [project, setProject] = useState<PlotPickleProject | null>(null);
-  const [intentional, setIntentional] = useState<string[]>([]);
+  const [project, setProject] = useState<PPFProject | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setProject(normalizePlotPickleProject(JSON.parse(raw)));
-      try { setIntentional(JSON.parse(localStorage.getItem("plotpickle.readiness.intentional.v1") || "[]")); } catch { setIntentional([]); }
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The active PlotPickle project could not be opened.");
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
-  const items = useMemo(() => project ? assessScreenplayReadiness(project).map((item) => intentional.includes(item.id) ? { ...item, status: "intentional" as const, kind: "intentional-choice" as const } : item) : [], [project, intentional]);
-  const destinations = useMemo(() => readinessDestinations(items), [items]);
-  const categories = [...new Set(items.map((item) => item.category))];
-
-  function toggleIntentional(id: string) {
-    const next = intentional.includes(id) ? intentional.filter((item) => item !== id) : [...intentional, id];
-    setIntentional(next);
-    localStorage.setItem("plotpickle.readiness.intentional.v1", JSON.stringify(next));
-  }
+  const readiness = useMemo(() => project ? deriveCanonicalScreenplayReadiness(project) : null, [project]);
 
   function saveBackup() {
     if (!project) return;
@@ -43,23 +38,42 @@ export default function ScreenplayReadinessPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${(project.metadata.title || "plotpickle-project").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.plotpickle.json`;
+    anchor.download = `${safeFileName(project.title)}.ppf.json`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
 
-  if (!project) return <main className={styles.page}><h1>Is my screenplay ready?</h1><p>Load or create a project first.</p><Link href="/welcome">Open Welcome</Link></main>;
+  if (error) return <main className={styles.page}><h1>Story readiness</h1><p role="alert">{error}</p><Link href="/start-here">Open Start Here</Link></main>;
+  if (!project || !readiness) return <main className={styles.page}><h1>Story readiness</h1><p>Opening the active canonical PPF…</p></main>;
 
-  return <main className={styles.page}>
-    <header className={styles.header}><div><Link href="/start-here">Start Here</Link> / Finish and share</div><h1>Is my screenplay ready?</h1><p>Readiness is a stated next use, not a single quality score. Required technical problems, craft review, optional enhancement and intentional choices stay separate.</p></header>
+  return <main className={styles.page} data-canonical-project-id={project.id}>
+    <header className={styles.header}>
+      <div><Link href="/start-here">Start Here</Link> / Finish and share</div>
+      <h1>Story readiness</h1>
+      <p>Readiness is shown as canonical story coverage, source-text evidence and production timing—not one score. Visual and background-text surfaces read the same active PPF.</p>
+      <p><strong>{readiness.projectTitle}</strong> · PPF revision {readiness.revision} · current frontier {readiness.frontier}</p>
+    </header>
 
-    <section className={styles.destinations} aria-label="Readiness destinations">{destinations.map((destination) => <article key={destination.id} className={destination.ready ? styles.ready : styles.notReady}><strong>{destination.label}</strong><span>{destination.ready ? "Ready" : "Not yet"}</span><p>{destination.reason}</p></article>)}</section>
+    <section className={styles.destinations} aria-label="Canonical readiness projections">
+      {readiness.items.map((item) => <article key={item.id} className={isSupportedState(item.state) ? styles.ready : styles.notReady} data-readiness-state={item.state}>
+        <strong>{item.label}</strong><span>{item.state.toUpperCase()}</span><p>{item.evidence}</p>
+      </article>)}
+    </section>
 
-    <section className={styles.review}>{categories.map((category) => <div key={category} className={styles.category}><h2>{category}</h2>{items.filter((item) => item.category === category).map((item) => <article key={item.id} className={styles.item}>
-      <div><span className={styles.badge}>{item.kind.replace(/-/g, " ")}</span><h3>{item.label}</h3><p>{item.evidence}</p></div>
-      <div className={styles.itemActions}><Link href={readinessHref(item.href)}>Open exact item</Link><button onClick={() => toggleIntentional(item.id)}>{intentional.includes(item.id) ? "Restore review" : "Mark intentional"}</button></div>
-    </article>)}</div>)}</section>
+    <section className={styles.review}>
+      <div className={styles.category}>
+        <h2>Same story, different projections</h2>
+        {readiness.items.map((item) => <article key={item.id} className={styles.item} data-canonical-readiness-item={item.id}>
+          <div><span className={styles.badge}>{item.state}</span><h3>{item.label}</h3><p>{item.evidence}</p></div>
+          <div className={styles.itemActions}><Link href={item.href}>{item.action}</Link></div>
+        </article>)}
+      </div>
+    </section>
 
-    <section className={styles.finalActions}><h2>Next actions</h2><div><Link href="/?workspace=1&tab=planner&section=coreModel">Create a revision snapshot</Link><Link href="/?workspace=1&tab=script&view=reader">Export a reader draft</Link><Link href="/?workspace=1&tab=script&view=writer">Export a submission draft</Link><Link href="/?workspace=1&tab=engines">Prepare a table-read package</Link><Link href="/pitch-review">Open Pitch & Review</Link><Link href="/?workspace=1&tab=planner&section=storyboard">Open Production</Link><button onClick={saveBackup}>Save a backup</button></div></section>
+    <section className={styles.finalActions}>
+      <h2>Next actions</h2>
+      <p>These open projections of the same PPF. Story and screenplay completion are never inferred from visual progress alone.</p>
+      <div><Link href="/?workspace=build">Open visual BUILD</Link><Link href="/storyboard">Open Storyboard</Link><Link href="/previs">Open Previs</Link><button onClick={saveBackup}>Save PPF backup</button></div>
+    </section>
   </main>;
 }

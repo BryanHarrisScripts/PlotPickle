@@ -1,16 +1,22 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const policyPath = path.join(repoRoot, "config", "ben-code-quality.json");
-const policy = JSON.parse(await readFile(policyPath, "utf8"));
+const architecturePolicyPath = path.join(repoRoot, "config", "repository-architecture-target.json");
+const [policy, architecturePolicy] = await Promise.all([
+  readFile(policyPath, "utf8").then(JSON.parse),
+  readFile(architecturePolicyPath, "utf8").then(JSON.parse),
+]);
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
+const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
@@ -82,6 +88,41 @@ function directoryGrew(directoryPath, changedEntries) {
   });
 }
 
+function ratifiedTargetDirectories(config) {
+  const targets = new Set();
+  for (const [root, entries] of Object.entries(config?.targetTree || {})) {
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      const normalized = String(entry || "").trim().replace(/\/$/, "");
+      if (!normalized || normalized.includes("<")) continue;
+      targets.add(path.posix.join(root, normalized));
+    }
+  }
+  return targets;
+}
+
+const ratifiedArchitectureTargets = ratifiedTargetDirectories(architecturePolicy);
+
+function directSourceFileCount(directoryPath) {
+  const normalized = String(directoryPath || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
+  try {
+    return readdirSync(path.join(repoRoot, normalized), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name)))
+      .length;
+  } catch {
+    return null;
+  }
+}
+
+export function directoryFanoutWithinRatifiedCeiling(directoryPath, directSourceCount = directSourceFileCount(directoryPath)) {
+  const normalized = String(directoryPath || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
+  if (!ratifiedArchitectureTargets.has(normalized)) return false;
+  const ceiling = Number(architecturePolicy?.structuralCeilings?.maxDirectSourceFiles);
+  return Number.isInteger(directSourceCount)
+    && Number.isFinite(ceiling)
+    && directSourceCount >= 0
+    && directSourceCount <= ceiling;
+}
+
 function pathIntersectsChange(findingPath, changedPaths) {
   const normalized = String(findingPath || "").trim().replaceAll("\\", "/").replace(/\/$/, "");
   if (!normalized) return true;
@@ -129,7 +170,8 @@ function renamePreservesExistingFinding(report, change, findingPath, changedEntr
 function findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths) {
   if (!pathIntersectsChange(findingPath, changedPaths)) return false;
   if (change?.ruleId === "structure.directory-fanout-hotspot" && change?.scope === "directory") {
-    return directoryGrew(findingPath, changedEntries);
+    if (!directoryGrew(findingPath, changedEntries)) return false;
+    return !directoryFanoutWithinRatifiedCeiling(findingPath);
   }
   return true;
 }
@@ -222,7 +264,7 @@ async function main() {
       scannerExitCode: delta.status,
       authoritative: false,
       evidence: path.relative(repoRoot, deltaReport).replaceAll("\\", "/"),
-      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path, or for non-group findings when rule, message, evidence and line/column are unchanged. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
+      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Git-detected renames preserve an existing finding only when the same rule/group fingerprint is resolved at the old path and added at the new path, or for non-group findings when rule, message, evidence and line/column are unchanged. Directory fan-out blocks when a directory actually grows, except a ratified architecture target remains non-blocking while its direct source-file count stays within the explicit repository architecture ceiling; exceeding that ceiling remains blocking. BEN cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 
     if (!passed) {
@@ -243,7 +285,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  await main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}

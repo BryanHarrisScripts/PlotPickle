@@ -21,7 +21,7 @@ test("#1102/#1103 Community inherits the canonical PlotPickle desktop columns in
 test("#1102/#1103 terminal screen and command rail use the inherited centre/right tracks on desktop", async () => {
   const [css, terminal] = await Promise.all([
     read("app/community-navigation.module.css"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("app/_components/community/community-backdoor-terminal.tsx"),
   ]);
 
   assert.match(css, /@media \(min-width:\s*901px\)[\s\S]*data-community-terminal="backdoor-v1"[\s\S]*grid-template-columns:\s*subgrid\s*!important;/);
@@ -58,7 +58,7 @@ test("#1283 replaces internal Channels and Forums with plugin rooms, Direct Mess
 test("#1102/#1103 preserve keyboard safety and use the shared shell collapse breakpoint", async () => {
   const [css, terminal, continuity] = await Promise.all([
     read("app/community-navigation.module.css"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("app/_components/community/community-backdoor-terminal.tsx"),
     read("app/workspace-continuity.css"),
   ]);
   assert.match(css, /@media \(max-width:\s*900px\)[\s\S]*\.communityContent\s*\{[^}]*display:\s*block;/);

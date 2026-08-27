@@ -63,14 +63,15 @@ test("#1377 beginner view keeps expert detail behind one Advanced Options disclo
   assert.match(css, /@media \(max-width: 780px\)/);
 });
 
-test("#1377 Cloud Compute presents API and MCP OAuth truthfully without inventing an OAuth provider", async () => {
+test("#1377 and #1525 present remote connection methods truthfully without inventing MCP support", async () => {
   const compute = await read("app/settings/compute/ai-compute-workspace.tsx");
 
-  assert.match(compute, /<strong>API key<\/strong>/);
-  assert.match(compute, /<strong>MCP \/ OAuth<\/strong>/);
-  assert.match(compute, /no current OpenAI or MiniMax OAuth\/MCP provider adapter is registered here/);
-  assert.match(compute, /PlotPickle will not pretend an OAuth connection exists/);
-  assert.match(compute, /credentials stay protected/i);
+  assert.match(compute, /<strong>Provider API<\/strong>/);
+  assert.match(compute, /<strong>OpenAI-Compatible API<\/strong>/);
+  assert.match(compute, /<strong>MCP<\/strong>/);
+  assert.match(compute, /MCP is a connection mechanism for tools\/services, not an AI model identity/);
+  assert.match(compute, /It remains unavailable until a real MCP adapter is registered/);
+  assert.match(compute, /protected user-owned credential/);
 });
 
 test("#1377 preserves old Settings links while moving their destination into the current focused owner", async () => {

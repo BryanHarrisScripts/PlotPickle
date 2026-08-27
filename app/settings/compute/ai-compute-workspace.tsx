@@ -186,7 +186,8 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
         <section className={styles.connectionMethods} aria-labelledby="cloud-connection-methods-title">
           <header><p>How PlotPickle connects</p><h3 id="cloud-connection-methods-title">Use the connection contract the selected service supports.</h3></header>
           <div>
-            <article data-available="true"><strong>Provider API</strong><span>Direct provider connections use a protected user-owned credential and the provider&apos;s supported API contract.</span></article>
+            <article data-available="true"><strong>Provider API</strong><span>Direct provider connections use the provider&apos;s supported API contract.</span></article>
+            <article data-available="true"><strong>API key</strong><span>When a provider requires authentication, the credential stays user-owned and protected; it does not define where compute runs.</span></article>
             <article data-available="true"><strong>OpenAI-Compatible API</strong><span>Private servers and cloud server farms can expose one compatible endpoint without becoming an OpenAI provider.</span></article>
             <article data-available="false"><strong>MCP</strong><span>MCP is a connection mechanism for tools/services, not an AI model identity. It remains unavailable until a real MCP adapter is registered.</span></article>
           </div>
@@ -253,7 +254,7 @@ export default function AiComputeWorkspace({ mode, focus }: { mode: ComputeMode;
         <strong>{mode === "local" ? "Local means this Node." : "Remote describes execution location, not provider identity."}</strong>
         <span>{mode === "local"
           ? "No local failure silently promotes work to a paid provider."
-          : "Private servers, cloud server farms and direct provider clouds remain separate choices; credentials and paid-use consent stay explicit."}</span>
+          : "Private servers, cloud server farms and direct provider clouds remain separate choices; paid routes remain explicit, with user-owned credentials and paid-use consent."}</span>
       </footer>
     </section>
   );

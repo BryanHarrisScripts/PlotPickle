@@ -12,7 +12,7 @@ import {
   type StoryDecisionRecord,
 } from "../../core/story-workflow/story-decisions/core.mjs";
 import { isLocalPlotPickleRequest } from "../projects/portable-ppf-reader";
-import { currentProfileRequestContext } from "../profile-request-context";
+import { currentProfileRequestContext } from "../auth/profile-request-context";
 
 const API = "/api/story-decisions";
 const STORE_OBJECT_ID = "story-decisions-v1";

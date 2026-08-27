@@ -255,3 +255,26 @@ Behavior boundary:
 - No compatibility shim remains at the retired gateway root path.
 - This move brings `build/ai` to, but not beyond, the ratified direct-source ceiling; the provider requires a later bounded AI subdomain-capacity move.
 - The larger `phase1-build-ai` batch intentionally remains incomplete.
+
+## #1462 — Human profile request-context slice
+
+Status: **candidate; profile/auth batch completed by this move pending exact-head CI; Phase 1 remains in progress**
+
+Move boundary:
+- `build/profile-request-context.ts` → `build/auth/profile-request-context.ts`
+
+Consumer boundary:
+- all nine direct runtime importers retarget to the canonical auth-owned path in the same change;
+- all eight hardcoded workflow/test path consumers retarget in the same change;
+- no compatibility shim remains at the retired root path.
+
+Authority preserved:
+- `AsyncLocalStorage` remains the request-scoped Human profile context carrier;
+- `/api/local-buzz`, `/api/story-workflow/buzz-bridge`, and `/api/story-decisions` retain the same authenticated profile scope;
+- the existing session boundary remains the only request authorization authority;
+- CSRF rejection, active `profileId`, profile-private storage, no-store responses, and nosniff responses are unchanged;
+- no BUZZ, Story Room, Story Decisions, Story Bridge, credential-storage or Vite behavior is redesigned by this move.
+
+Phase boundary:
+- this is the only ratified `phase1-build-profile-auth` source move;
+- completion of this bounded batch does not close #1462 because AI and BUZZ work remains.

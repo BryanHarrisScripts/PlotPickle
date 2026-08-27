@@ -3,7 +3,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID }
 import { access, chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const PROTECTED_FORMAT = "plotpickle-protected-credential";
 const DPAPI_ENTROPY = "PlotPickle local credential v1";

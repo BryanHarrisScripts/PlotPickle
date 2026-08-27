@@ -168,7 +168,7 @@ test("#1144 bounds Merrin to granted room content and gives Node operational age
 
 test("#1144 resolves the live Human signer from cookie-backed AuthContext rather than browser-selected profile or process-global caller state", async () => {
   const [contextSource, credentialSource, viteSource] = await Promise.all([
-    readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
+    readFile(new URL("../build/auth/profile-request-context.ts", import.meta.url), "utf8"),
     readFile(new URL("../build/local-credentials.ts", import.meta.url), "utf8"),
     readFile(new URL("../vite.config.ts", import.meta.url), "utf8"),
   ]);

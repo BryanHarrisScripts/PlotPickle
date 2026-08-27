@@ -1,0 +1,140 @@
+name: Phase 1462 H3 Gateway Move
+
+on:
+  push:
+    branches:
+      - arch/1462-ai-h3-gateway
+
+permissions:
+  contents: write
+
+jobs:
+  apply-move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arch/1462-ai-h3-gateway
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Apply bounded H3 gateway move
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f build/comfyui-h3-native-gateway.ts ]; then
+            echo "H3 gateway move already applied."
+            exit 0
+          fi
+
+          git mv build/comfyui-h3-native-gateway.ts build/ai/comfyui-h3-native-gateway.ts
+
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              "build/ai/comfyui-h3-native-gateway.ts": [
+                  ('from "./comfyui-h3-native-provider"', 'from "../comfyui-h3-native-provider"'),
+              ],
+              "build/local-ai-gateway.ts": [
+                  ('from "./comfyui-h3-native-gateway"', 'from "./ai/comfyui-h3-native-gateway"'),
+              ],
+              "tests/comfyui-live-verification.test.mjs": [
+                  ('build/comfyui-h3-native-gateway.ts', 'build/ai/comfyui-h3-native-gateway.ts'),
+              ],
+              "tests/issue-258-creative-compute-paths.test.mjs": [
+                  ('build/comfyui-h3-native-gateway.ts', 'build/ai/comfyui-h3-native-gateway.ts'),
+              ],
+              "tests/issue-973-comfyui-api-readiness.test.mjs": [
+                  ('build/comfyui-h3-native-gateway.ts', 'build/ai/comfyui-h3-native-gateway.ts'),
+              ],
+          }
+
+          for file_name, pairs in replacements.items():
+              path = Path(file_name)
+              text = path.read_text(encoding="utf-8")
+              for old, new in pairs:
+                  if old not in text:
+                      raise SystemExit(f"Expected token not found in {file_name}: {old}")
+                  text = text.replace(old, new)
+              path.write_text(text, encoding="utf-8")
+          PY
+
+          cat > tests/issue-1462-h3-native-gateway-move.test.mjs <<'EOF'
+          import assert from "node:assert/strict";
+          import { access, readFile } from "node:fs/promises";
+          import test from "node:test";
+
+          const root = new URL("..", import.meta.url);
+          const source = (path) => readFile(new URL(path, root), "utf8");
+
+          test("#1462 moves the native H3 gateway into the AI domain without moving its provider yet", async () => {
+            await assert.rejects(access(new URL("build/comfyui-h3-native-gateway.ts", root)));
+            await access(new URL("build/ai/comfyui-h3-native-gateway.ts", root));
+            await access(new URL("build/comfyui-h3-native-provider.ts", root));
+
+            const [gateway, localGateway] = await Promise.all([
+              source("build/ai/comfyui-h3-native-gateway.ts"),
+              source("build/local-ai-gateway.ts"),
+            ]);
+            assert.match(gateway, /from "\.\.\/comfyui-h3-native-provider"/);
+            assert.match(localGateway, /from "\.\/ai\/comfyui-h3-native-gateway"/);
+            assert.doesNotMatch(localGateway, /from "\.\/comfyui-h3-native-gateway"/);
+          });
+
+          test("#1462 preserves native H3 local-only authority and reviewed request bounds", async () => {
+            const gateway = await source("build/ai/comfyui-h3-native-gateway.ts");
+            assert.match(gateway, /const API = "\/api\/media-routing\/comfyui\/h3\/native"/);
+            assert.match(gateway, /const MAX_REQUEST_BYTES = 4 \* 1024 \* 1024/);
+            assert.match(gateway, /value === "127\.0\.0\.1"/);
+            assert.match(gateway, /http:\/\/127\.0\.0\.1:8188/);
+            assert.match(gateway, /installsWeights: false/);
+            assert.match(gateway, /installsCustomNodes: false/);
+            assert.match(gateway, /executesDownloadedCode: false/);
+            assert.doesNotMatch(gateway, /child_process|spawn\(|exec\(|git clone|pip install/i);
+          });
+
+          test("#1462 keeps build/ai at the ratified direct-source ceiling rather than moving the H3 provider early", async () => {
+            const inventory = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
+            assert.match(inventory, /16/);
+            const provider = await source("build/comfyui-h3-native-provider.ts");
+            assert.match(provider, /minimax-h3-native/);
+          });
+          EOF
+
+          cat >> docs/architecture/PHASE-1-MOVE-LOG.md <<'EOF'
+
+          ## #1462 — Native H3 gateway slice
+
+          Status: **candidate; AI batch remains in progress**
+
+          Move boundary:
+          - `build/comfyui-h3-native-gateway.ts` → `build/ai/comfyui-h3-native-gateway.ts`
+          - `build/comfyui-h3-native-provider.ts` intentionally remains at the root until AI subdomain capacity is created; moving both now would exceed the ratified 16-direct-source ceiling.
+
+          Runtime/import consumers updated:
+          - `build/local-ai-gateway.ts` imports the canonical AI-owned H3 gateway without changing registration order.
+          - the moved gateway reaches the still-root-owned native H3 provider through one explicit parent import.
+
+          Source-contract consumers updated:
+          - `tests/comfyui-live-verification.test.mjs`
+          - `tests/issue-258-creative-compute-paths.test.mjs`
+          - `tests/issue-973-comfyui-api-readiness.test.mjs`
+          - `tests/issue-1462-h3-native-gateway-move.test.mjs`
+
+          Behavior boundary:
+          - Native H3 remains loopback/same-origin only and keeps the existing 4 MB request bound.
+          - ComfyUI remains fixed to `http://127.0.0.1:8188`; activation still requires the reviewed local readiness prerequisites.
+          - H3 setup still installs no weights or custom nodes and executes no downloaded code.
+          - `/api/local-ai/generate/video` and native H3 job polling behavior remain unchanged.
+          - No compatibility shim remains at the retired gateway root path.
+          - This move brings `build/ai` to, but not beyond, the ratified direct-source ceiling; the provider requires a later bounded AI subdomain-capacity move.
+          - The larger `phase1-build-ai` batch intentionally remains incomplete.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build/ai/comfyui-h3-native-gateway.ts build/comfyui-h3-native-gateway.ts build/local-ai-gateway.ts tests/comfyui-live-verification.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs tests/issue-1462-h3-native-gateway-move.test.mjs docs/architecture/PHASE-1-MOVE-LOG.md
+          git commit -m "refactor(architecture): move native H3 gateway into AI domain"
+          git push origin HEAD:arch/1462-ai-h3-gateway

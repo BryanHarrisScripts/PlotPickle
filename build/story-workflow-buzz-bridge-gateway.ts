@@ -15,7 +15,7 @@ import {
   prepareStoryBridgeRequest,
   storyBridgeAgentSignerDiagnostics,
 } from "../modules/story-workflow/bridge/buzz-story-bridge";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 import { ensurePrivateBuzzAgentMembership } from "./story-workflow/buzz-private-room-membership";
 
 const API = "/api/story-workflow/buzz-bridge";

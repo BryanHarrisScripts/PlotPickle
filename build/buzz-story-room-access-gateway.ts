@@ -6,7 +6,7 @@ import { buzzChannelMemberPubkeys } from "../lib/buzz/membership/buzz-channel-me
 import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const API = "/api/local-buzz/story-room-access";
 const CONNECTION_FILE = "buzz-connection.json";

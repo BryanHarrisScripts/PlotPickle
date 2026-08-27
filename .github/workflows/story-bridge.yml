@@ -16,7 +16,7 @@ on:
       - "lib/buzz/**"
       - "app/buzz-live-health-card.tsx"
       - "app/buzz-live-health-card.module.css"
-      - "build/profile-request-context.ts"
+      - "build/auth/profile-request-context.ts"
       - "build/buzz/buzz-agent-identity-binding-loader.ts"
       - "build/story-workflow-buzz-bridge-gateway.ts"
       - "build/responsibility-run-gateway.ts"

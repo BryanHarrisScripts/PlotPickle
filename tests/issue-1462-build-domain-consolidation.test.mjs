@@ -31,6 +31,50 @@ const ltxAiMoved = [
   ["build/comfyui-ltx-local-provider.ts", "build/ai/comfyui-ltx-local-provider.ts"],
 ];
 
+const profileAuthMoved = [
+  ["build/profile-request-context.ts", "build/auth/profile-request-context.ts"],
+];
+
+test("#1462 Profile auth batch gives the request context one canonical owner without changing session authority", async () => {
+  for (const [source, target] of profileAuthMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
+    await access(new URL(target, root));
+  }
+
+  const [vite, context, credentials, decisions, migration, profileWorkflow, bridgeWorkflow, scopeWorkflow, configText] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/auth/profile-request-context.ts"),
+    read("build/local-credentials.ts"),
+    read("build/story-decisions/gateway.ts"),
+    read("build/buzz/buzz-profile-migration-gateway.ts"),
+    read(".github/workflows/profile-experience.yml"),
+    read(".github/workflows/story-bridge.yml"),
+    read(".github/workflows/buzz-profile-agent-scope.yml"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(vite, /\.\/build\/auth\/profile-request-context/);
+  assert.match(credentials, /\.\/auth\/profile-request-context/);
+  assert.match(decisions, /\.\.\/auth\/profile-request-context/);
+  assert.match(migration, /\.\.\/auth\/profile-request-context/);
+  assert.match(context, /\.\.\/\.\.\/core\/auth\/profile-experience\/profile-experience-runtime/);
+  assert.match(context, /AsyncLocalStorage<ProfileRequestContext>/);
+  assert.match(context, /boundary\.authorizeRequest/);
+  assert.match(context, /runtime\.auth\.getAuthStatus\(authContext\)/);
+  assert.doesNotMatch([vite, credentials, decisions, migration].join("\n"), /(?:build\/|\.\.?\/)profile-request-context/);
+
+  for (const workflow of [profileWorkflow, bridgeWorkflow, scopeWorkflow]) {
+    assert.match(workflow, /build\/auth\/profile-request-context\.ts/);
+    assert.doesNotMatch(workflow, /build\/profile-request-context\.ts/);
+  }
+
+  const config = JSON.parse(configText);
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-profile-auth");
+  assert.equal(batch?.status, "completed");
+  assert.deepEqual(batch?.completedSources, profileAuthMoved.map(([source]) => source));
+  assert.deepEqual(batch?.completedTargets, profileAuthMoved.map(([, target]) => target));
+});
+
 test("#1462 Projects batch retires flat build sources into the ratified domain without compatibility shims", async () => {
   for (const [source, target] of moved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);

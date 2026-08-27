@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1422 Story Bridge is protected by the same active-Human profile scope as BUZZ APIs", async () => {
-  const context = await read("build/profile-request-context.ts");
+  const context = await read("build/auth/profile-request-context.ts");
   assert.match(context, /PROFILE_SCOPED_API_PREFIXES[\s\S]*"\/api\/local-buzz"[\s\S]*"\/api\/story-workflow\/buzz-bridge"/u);
   assert.match(context, /requiresProfileScope\(url\.pathname\)/u);
   assert.match(context, /boundary\.authorizeRequest\(sessionRequest\(request, origin\)\)/u);

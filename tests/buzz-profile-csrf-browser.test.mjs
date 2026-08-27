@@ -38,7 +38,7 @@ test("BUZZ browser mutations inherit the active Human CSRF proof without weakeni
 
 test("BUZZ profile authorization reports missing or expired CSRF proof clearly in development", async () => {
   const [context, boundary] = await Promise.all([
-    read("build/profile-request-context.ts"),
+    read("build/auth/profile-request-context.ts"),
     read("core/auth/server-session/server-session-boundary-core.mjs"),
   ]);
   assert.match(boundary, /CSRF_REJECTED[\s\S]*The request CSRF proof is invalid/u);

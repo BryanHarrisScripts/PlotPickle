@@ -14,7 +14,7 @@ import { redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { isLocalRequest, readBody, sendJson, validChannelId } from "./buzz-story-room-access-gateway";
 import { assertBuzzStoryRoomOwner } from "./buzz-story-room-owner-authority";
 import { readCredentialJson } from "./local-credentials";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const API = "/api/local-buzz/story-room-listing";
 const CONNECTION_FILE = "buzz-connection.json";

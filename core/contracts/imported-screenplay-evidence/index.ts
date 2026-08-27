@@ -221,7 +221,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
 
 function projectionBlockNumber(value: string) {
   const ref = cleanText(value, 240);
-  const ppfMatch = /^ppf:build:block:(\d{1,2})(?::|$)/i.exec(ref);
+  const ppfMatch = /^ppf:(?:build:block:|structure:block[-:])(\d{1,2})(?::|$)/i.exec(ref);
   const blockMatch = /^block-(\d{1,2})(?::|$)/i.exec(ref);
   const number = Number(ppfMatch?.[1] ?? blockMatch?.[1] ?? "");
   return Number.isInteger(number) && number >= 1 && number <= 24 ? number : 0;

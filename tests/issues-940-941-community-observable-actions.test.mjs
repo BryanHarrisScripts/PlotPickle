@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #940 public-conversations Refresh leaves a settled observable completion status", async () => {
-  const rail = await source("app/community-public-conversations-rail.tsx");
+  const rail = await source("app/_components/community/community-public-conversations-rail.tsx");
 
   for (const contract of [
     "Recent public conversations refreshed at",
@@ -20,7 +20,7 @@ test("issue #940 public-conversations Refresh leaves a settled observable comple
 });
 
 test("issue #941 View all Great Hall conversations reports settled navigation through Hall 1 even when already active", async () => {
-  const rail = await source("app/community-public-conversations-rail.tsx");
+  const rail = await source("app/_components/community/community-public-conversations-rail.tsx");
 
   for (const contract of [
     "View all Great Hall conversations",

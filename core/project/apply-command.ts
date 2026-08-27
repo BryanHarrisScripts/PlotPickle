@@ -258,6 +258,22 @@ export function applyStoryCommand(
           },
         },
       };
+    case "previs.shot.store": {
+      const existing = project.production.shots.filter((shot) => shot.id !== command.shot.id);
+      return {
+        ...base,
+        production: {
+          shots: [command.shot, ...existing].slice(0, 500),
+        },
+      };
+    }
+    case "previs.shot.remove":
+      return {
+        ...base,
+        production: {
+          shots: project.production.shots.filter((shot) => shot.id !== command.shotId),
+        },
+      };
     case "world.lesson.open":
       return {
         ...base,

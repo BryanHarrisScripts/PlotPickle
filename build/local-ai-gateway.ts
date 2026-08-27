@@ -10,7 +10,7 @@ import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
 import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./ai/comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./ai/comfyui-sdxl-starter-gateway";
-import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
+import { registerProviderDiagnosticsGateway } from "./ai/provider-diagnostics-gateway";
 import { registerProviderModelCatalogGateway } from "./ai/provider-model-catalog-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerLazyFramesGateway } from "./lazy-frames-gateway";

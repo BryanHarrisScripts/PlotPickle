@@ -2,7 +2,7 @@
 
 import process from "node:process";
 import { pathToFileURL } from "node:url";
-import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
+import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agents/agent-window-status.mjs";
 import { publishAgentEvent } from "../lib/verification/production-supervisor-bus.mjs";
 import { buildVideoProductionPlan } from "../lib/video-production.mjs";
 

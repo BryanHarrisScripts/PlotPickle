@@ -1,5 +1,5 @@
 import type { ViteDevServer } from "vite";
-import type { BuzzGuildhallEventInput } from "../lib/buzz/buzz-guildhall";
+import type { BuzzGuildhallEventInput } from "../../lib/buzz/buzz-guildhall";
 
 type ActivityDefinition = Pick<BuzzGuildhallEventInput, "type" | "actorId"> & { label: string };
 

@@ -68,7 +68,7 @@ test("Guildhall preserves internal specialist contracts while remote bootstrap p
 
 test("legacy specialist bridge remains bounded while current Community conversation UI exposes Critics Circle only", async () => {
   const [gateway, ui] = await Promise.all([
-    read("build/buzz-specialist-gateway.ts"),
+    read("build/buzz/buzz-specialist-gateway.ts"),
     read("app/community-agent-roster.tsx"),
   ]);
   const firstMessage = gateway.indexOf('localJson(request, "/api/local-buzz/messages"');
@@ -93,7 +93,7 @@ test("legacy specialist bridge remains bounded while current Community conversat
 
 test("project context federation remains opt-in for the Community specialist and private contact data is redacted", async () => {
   const [gateway, ui] = await Promise.all([
-    read("build/buzz-specialist-gateway.ts"),
+    read("build/buzz/buzz-specialist-gateway.ts"),
     read("app/community-agent-roster.tsx"),
   ]);
 
@@ -116,7 +116,7 @@ test("project context federation remains opt-in for the Community specialist and
 
 test("untrusted room text cannot grant provider spending PPF or developer authority through the specialist bridge", async () => {
   const [gateway, profilesRaw] = await Promise.all([
-    read("build/buzz-specialist-gateway.ts"),
+    read("build/buzz/buzz-specialist-gateway.ts"),
     read("config/agent-profiles.json"),
   ]);
   const profiles = JSON.parse(profilesRaw).profiles;

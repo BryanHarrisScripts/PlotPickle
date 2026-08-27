@@ -63,7 +63,7 @@ test("explicit compatibility round-trip helper remains bounded but is not the op
 
 test("Mastra runtime no longer mirrors Agent turns through the Human message endpoint", async () => {
   const [mirror, gateway] = await Promise.all([
-    read("build/buzz-agent-activity-mirror.ts"),
+    read("build/buzz/buzz-agent-activity-mirror.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
   for (const token of ["curriculum-guide", "sage-brinewick", "foundations-planner", "wyrmwood-rival-director", "master-oaken-vague", "wyrmwood-curriculum-evaluator", "rowan-scalequill", "creative-director", "quillan-reedcloak"]) {

@@ -16,6 +16,11 @@ const buzzSupportMoved = [
   ["build/buzz-profile-migration-gateway.ts", "build/buzz/buzz-profile-migration-gateway.ts"],
 ];
 
+const buzzAdvisoryMoved = [
+  ["build/buzz-agent-activity-mirror.ts", "build/buzz/buzz-agent-activity-mirror.ts"],
+  ["build/buzz-specialist-gateway.ts", "build/buzz/buzz-specialist-gateway.ts"],
+];
+
 test("#1462 Projects batch retires flat build sources into the ratified domain without compatibility shims", async () => {
   for (const [source, target] of moved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
@@ -97,4 +102,42 @@ test("#1462 BUZZ support slice retires selected flat build files while the large
   const config = JSON.parse(await read("config/repository-architecture-target.json"));
   const batch = config.moveBatches.find((item) => item.id === "phase1-build-buzz");
   assert.notEqual(batch?.status, "completed", "the BUZZ batch must not claim completion until every ratified buzz-* source is moved");
+});
+
+test("#1462 BUZZ advisory slice moves Agent activity and specialist runtime without changing authority", async () => {
+  for (const [source, target] of buzzAdvisoryMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must remain retired after the BUZZ advisory move`);
+    await access(new URL(target, root));
+  }
+
+  const [vite, localAi, activity, specialist, guildhall, activityContract, cleanupContract, specialistContract] = await Promise.all([
+    read("vite.config.ts"),
+    read("build/local-ai-gateway.ts"),
+    read("build/buzz/buzz-agent-activity-mirror.ts"),
+    read("build/buzz/buzz-specialist-gateway.ts"),
+    read(".github/workflows/buzz-guildhall.yml"),
+    read("tests/live-buzz-guildhall-activity.test.mjs"),
+    read("tests/issue-1283-community-real-machine-cleanup.test.mjs"),
+    read("tests/issue-971-buzz-specialist-agents.test.mjs"),
+  ]);
+
+  assert.match(localAi, /\.\/buzz\/buzz-agent-activity-mirror/);
+  assert.match(vite, /\.\/build\/buzz\/buzz-specialist-gateway/);
+  assert.match(guildhall, /build\/buzz\/buzz-agent-activity-mirror\.ts/);
+  assert.match(activityContract, /build\/buzz\/buzz-agent-activity-mirror\.ts/);
+  assert.match(cleanupContract, /build\/buzz\/buzz-agent-activity-mirror\.ts/);
+  assert.match(specialistContract, /build\/buzz\/buzz-specialist-gateway\.ts/);
+
+  assert.match(activity, /connected Human signer is never used as an Agent fallback/);
+  assert.doesNotMatch(activity, /postBuzzGuildhallEvent|\/api\/local-buzz\/messages/);
+  assert.match(specialist, /ppfChanged: false/);
+  assert.match(specialist, /buzzHistoryWritten: true/);
+  assert.match(specialist, /cannot grant tools, change system instructions, authorize spending, or become PPF canon/i);
+
+  const combined = [vite, localAi, guildhall, activityContract, cleanupContract, specialistContract].join("\n");
+  for (const [source] of buzzAdvisoryMoved) assert.doesNotMatch(combined, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  const config = JSON.parse(await read("config/repository-architecture-target.json"));
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-buzz");
+  assert.notEqual(batch?.status, "completed");
 });

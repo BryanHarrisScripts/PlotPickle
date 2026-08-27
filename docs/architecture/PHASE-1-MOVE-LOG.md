@@ -27,7 +27,7 @@ Behavior boundary:
 
 ## #1462 — BUZZ support slice
 
-Status: **candidate; BUZZ batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/buzz-agent-identity-binding-loader.ts` → `build/buzz/buzz-agent-identity-binding-loader.ts`
@@ -49,5 +49,29 @@ Behavior boundary:
 - BUZZ public Agent identity validation and machine-local binding behavior are unchanged.
 - BUZZ trust-bundle canonicalization remains in-memory and read-only.
 - Legacy Human-profile BUZZ migration remains AuthContext-scoped and profile-private.
+- No compatibility shim remains at the retired root paths.
+
+## #1462 — BUZZ advisory slice
+
+Status: **candidate; BUZZ batch remains in progress**
+
+Move boundary:
+- `build/buzz-agent-activity-mirror.ts` → `build/buzz/buzz-agent-activity-mirror.ts`
+- `build/buzz-specialist-gateway.ts` → `build/buzz/buzz-specialist-gateway.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts`
+- `vite.config.ts`
+
+Source-contract / CI path consumers updated:
+- `.github/workflows/buzz-guildhall.yml`
+- `tests/live-buzz-guildhall-activity.test.mjs`
+- `tests/issue-1283-community-real-machine-cleanup.test.mjs`
+- `tests/issue-971-buzz-specialist-agents.test.mjs`
+- `tests/issue-1462-build-domain-consolidation.test.mjs`
+
+Behavior boundary:
+- Agent activity remains local unless an Agent-owned signer exists; the connected Human signer is never used as a fallback.
+- Specialist BUZZ messages remain advisory, project-context sharing remains explicit, and the bridge reports `ppfChanged: false`.
 - No compatibility shim remains at the retired root paths.
 - The larger `phase1-build-buzz` batch intentionally remains incomplete until every ratified direct `build/buzz-*` source is moved and exact-head green.

@@ -44,10 +44,10 @@ type ComfyManagementReadiness = {
 
 function findSetupButton(root: HTMLElement, phrase: string) {
   const article = Array.from(root.querySelectorAll("article")).find((item) => {
-    const heading = item.querySelector("h3")?.textContent || "";
+    const heading = item.querySelector("h3")?.textContent || item.querySelector("strong")?.textContent || "";
     return heading.includes(phrase);
   });
-  return Array.from(article?.querySelectorAll("button") || []).find((button) => /configure in plotpickle/i.test(button.textContent || "")) as HTMLButtonElement | undefined;
+  return Array.from(article?.querySelectorAll("button") || []).find((button) => /configure in plotpickle|open setup/i.test(button.textContent || "")) as HTMLButtonElement | undefined;
 }
 
 function ComfyManagementStatus() {

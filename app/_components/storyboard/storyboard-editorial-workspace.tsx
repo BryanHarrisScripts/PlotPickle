@@ -10,8 +10,8 @@ import type { VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import {
   createStoryboardReferenceArtifact,
   currentStoryboardArtifactForFrame,
+  storyboardAnchorTargetRef,
   storyboardArtifactStaleReasons,
-  storyboardFrameTargetRef,
   storyboardReferenceCandidates,
   STORYBOARD_REFERENCE_WORKFLOW,
 } from "./storyboard-editorial-model";
@@ -47,6 +47,10 @@ export default function StoryboardEditorialWorkspace({
 
   const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[0] ?? null;
   const selectedMiniBlockNumber = selected?.miniBlockNumber ?? 1;
+  const anchorCandidates = useMemo(
+    () => candidates.filter((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber),
+    [candidates, selectedMiniBlockNumber],
+  );
   const current = useMemo(
     () => currentStoryboardArtifactForFrame(project, target.id, selectedMiniBlockNumber),
     [project, selectedMiniBlockNumber, target.id],
@@ -58,25 +62,25 @@ export default function StoryboardEditorialWorkspace({
 
   if (!selected || !target.storyboardAllowed) return null;
 
-  const frameTargetRef = storyboardFrameTargetRef(target.id, selected.miniBlockNumber);
+  const anchorTargetRef = storyboardAnchorTargetRef(target.id, selected.miniBlockNumber);
   const selectedIsStale = staleReasons.length > 0;
   const selectedIsKept = Boolean(selected.acceptedArtifactId) && !selectedIsStale;
   const keptCount = candidates.filter((candidate) => candidate.acceptedArtifactId).length;
 
   function keepSelected() {
     if (selectedIsKept) {
-      setMessage(`${selected.label} is already the Human-kept Storyboard reference for this frame.`);
+      setMessage(`${selected.label} is already the Human-kept Storyboard reference for this anchor.`);
       return;
     }
 
     const now = new Date().toISOString();
     let next = project;
-    const frameKey = storyboardFrameTargetRef(target.id, selected.miniBlockNumber);
+    const anchorKey = storyboardAnchorTargetRef(target.id, selected.miniBlockNumber);
     const accepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
     const currentlyAccepted = project.build.foundations.visualArtifacts.filter((artifact) => (
       accepted.has(artifact.id)
       && artifact.workflow === STORYBOARD_REFERENCE_WORKFLOW
-      && (artifact.sourceDecisionKeys ?? []).includes(frameKey)
+      && (artifact.sourceDecisionKeys ?? []).includes(anchorKey)
     ));
 
     for (const artifact of currentlyAccepted) {
@@ -105,34 +109,38 @@ export default function StoryboardEditorialWorkspace({
     });
     saveFoundationProject(next);
     onProjectChange(next);
-    setMessage(`${selected.label} kept. PlotPickle recorded this frame approval in the canonical PPF without changing story canon.`);
+    setMessage(`${selected.label} kept as the current preferred visual for this anchor. PlotPickle did not change story canon or remove room for later variations.`);
   }
 
   function changeCandidate() {
-    const index = candidates.findIndex((candidate) => candidate.id === selected.id);
-    const next = candidates[(index + 1) % candidates.length];
+    if (anchorCandidates.length < 2) {
+      setMessage("No alternate visual is attached to this Mini-Block anchor yet. Change/Try remains non-canonical until another candidate exists.");
+      return;
+    }
+    const index = anchorCandidates.findIndex((candidate) => candidate.id === selected.id);
+    const next = anchorCandidates[(index + 1) % anchorCandidates.length];
     setSelectedId(next.id);
-    setMessage(`Changed the working frame to ${next.label}. Existing kept PPF choices are unchanged until you choose Keep on that frame.`);
+    setMessage(`Changed the working visual to ${next.label}. The kept PPF choice is unchanged until you choose Keep.`);
   }
 
   return (
     <section
       className={styles.editorial}
       aria-labelledby="storyboard-editorial-title"
-      data-story-decision-target={frameTargetRef}
+      data-story-decision-target={anchorTargetRef}
     >
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>Storyboard editorial · canonical frame target</p>
+          <p className={styles.kicker}>Storyboard editorial · canonical Mini-Block anchor</p>
           <h2 id="storyboard-editorial-title">{selected.label}</h2>
-          <p>Review one Mini-Block frame at a time. Keep approves only this frame; Change moves to another frame in the Block, and Compare shows the four-frame sequence without changing canon.</p>
+          <p>Each Mini-Block is a stable visual address, not a one-frame quota. Keep chooses the current preferred visual for this anchor; Change/Try and Compare stay within the same anchor as more variations accumulate.</p>
         </div>
-        <span className={styles.status}>{keptCount} / 4 kept{selectedIsStale ? " · selected needs review" : ""}</span>
+        <span className={styles.status}>{keptCount} / 4 anchors with kept visuals{selectedIsStale ? " · selected needs review" : ""}</span>
       </header>
 
       {selectedIsStale ? (
         <div className={styles.stale} role="status">
-          <strong>Kept frame needs review.</strong>
+          <strong>Kept visual needs review.</strong>
           <span>{staleReasons.join(" ")}</span>
         </div>
       ) : null}
@@ -144,12 +152,12 @@ export default function StoryboardEditorialWorkspace({
         <div className={styles.details}>
           <div>
             <p className={styles.kicker}>{selectedIsStale ? "Kept · needs review" : selectedIsKept ? "Kept" : "Observed reference"}</p>
-            <h3>{frameTargetRef}</h3>
+            <h3>{anchorTargetRef}</h3>
           </div>
           <p>{selected.caption}</p>
           <div className={styles.actions} aria-label="Storyboard editorial decisions">
             <button disabled={selectedIsKept} onClick={keepSelected} type="button">Keep</button>
-            <button onClick={changeCandidate} type="button">Change</button>
+            <button onClick={changeCandidate} type="button">Change / Try</button>
             <button onClick={() => setComparing((value) => !value)} type="button">Compare</button>
           </div>
           <button className={styles.secondary} onClick={onOpenBuild} type="button">Change the upstream story in BUILD</button>
@@ -158,12 +166,12 @@ export default function StoryboardEditorialWorkspace({
       </div>
 
       {comparing ? (
-        <div className={styles.compare} aria-label="Storyboard four-frame Block comparison">
-          {candidates.map((candidate) => (
+        <div className={styles.compare} aria-label="Storyboard variations for this Mini-Block anchor">
+          {anchorCandidates.map((candidate) => (
             <button
               className={styles.candidate}
               data-selected={candidate.id === selected.id ? "true" : "false"}
-              data-story-decision-target={storyboardFrameTargetRef(target.id, candidate.miniBlockNumber)}
+              data-story-decision-target={anchorTargetRef}
               key={candidate.id}
               onClick={() => setSelectedId(candidate.id)}
               type="button"
@@ -177,7 +185,7 @@ export default function StoryboardEditorialWorkspace({
       ) : null}
 
       <p className={styles.boundary}>
-        This reuses the previous Storyboard's Keep / Change / Compare editorial behavior without its legacy project store. Change is the non-canonical Try-equivalent for moving among available frame choices; no reference is promoted merely because it is viewed, and no paid media generation occurs here.
+        The 24/96 model supplies canonical addresses, not a fixed final image count. Candidates and later visual beats may expand beneath an anchor; viewing, changing or comparing them never promotes a reference or silently rewrites story canon.
       </p>
     </section>
   );

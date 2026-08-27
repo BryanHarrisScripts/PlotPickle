@@ -34,7 +34,6 @@ import {
 const API_ROOT = "/api/writing-assistant";
 const STATUS_PATH = `${API_ROOT}/status`;
 const ACTIVE_PATH = `${API_ROOT}/active`;
-const PROVIDER_PATH = `${API_ROOT}/provider`;
 const TEST_PATH = `${API_ROOT}/test`;
 const CHAT_PATH = `${API_ROOT}/chat`;
 const OLLAMA_PATH = `${API_ROOT}/ollama`;
@@ -56,6 +55,8 @@ function isLocalRequest(request: IncomingMessage) {
   if (!origin) return true;
   try { return new URL(origin).host === hostUrl.host; } catch { return false; }
 }
+
+const PROVIDER_PATH = `${API_ROOT}/provider`;
 
 function sendJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
   response.statusCode = status;

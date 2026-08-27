@@ -1,32 +1,32 @@
-import { plotPickleCurriculum } from "../../adapters/curriculum/current-catalog";
+import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
 import {
   buildFoundationPlanLessons,
   isUsableFoundationAnswer,
   type FoundationPlanField,
   type FoundationPlanLesson,
-} from "../../core/contracts/foundation-plan";
-import type { CurriculumLesson } from "../../core/contracts/curriculum";
-import type { ProjectSourceEvidence } from "../../core/contracts/imported-screenplay-evidence";
-import type { PPFProject } from "../../core/project/project";
+} from "../../../core/contracts/foundation-plan";
+import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import type { ProjectSourceEvidence } from "../../../core/contracts/imported-screenplay-evidence";
+import type { PPFProject } from "../../../core/project/project";
 import {
   planStoryWorkItems,
   type StoryWorkItem,
   type StoryWorkflowRequirement,
-} from "../../core/story-workflow/story-workflow-core.mjs";
+} from "../../../core/story-workflow/story-workflow-core.mjs";
 import {
   CONTEXT_AUTHORITY,
   assembleContextPacket,
   type ContextItemInput,
   type ContextPacket,
-} from "../../lib/agents/context/context-engine";
+} from "../../../lib/agents/context/context-engine";
 import {
   createResponsibilityGraph,
   type ResponsibilityGraphDefinition,
-} from "../../lib/agents/responsibility/responsibility-graph";
+} from "../../../lib/agents/responsibility/responsibility-graph";
 import {
   createResponsibilityRun,
   type ResponsibilityRun,
-} from "../../lib/agents/responsibility/responsibility-runs";
+} from "../../../lib/agents/responsibility/responsibility-runs";
 
 export const FOUNDATIONS_STORY_WORKFLOW_PROFILE_ID = "tamsin-hearthquill" as const;
 export const FOUNDATIONS_STORY_WORKFLOW_FRONTIER = "Foundations" as const;

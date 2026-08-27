@@ -6,7 +6,7 @@ import { authenticatedProfileFetch } from "../../../core/auth/profile-request-br
 import type { PPFProject } from "../../../core/project/project";
 import type { StoryWorkItem } from "../../../core/story-workflow/story-workflow-core.mjs";
 import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
-import { createFoundationsStoryResponsibilityRun } from "../foundations-story-workflow";
+import { createFoundationsStoryResponsibilityRun } from "../runtime/foundations-story-workflow";
 
 type RunResponse = {
   readonly ok?: boolean;

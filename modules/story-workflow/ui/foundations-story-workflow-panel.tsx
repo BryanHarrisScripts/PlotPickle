@@ -18,7 +18,7 @@ import {
   planFoundationsStoryWork,
   resolveFoundationsStoryWorkItem,
   storyWorkflowActivitySummary,
-} from "../foundations-story-workflow";
+} from "../runtime/foundations-story-workflow";
 import FoundationsBuzzStoryLiveTest from "./foundations-buzz-story-live-test";
 import styles from "./foundations-story-workflow-panel.module.css";
 

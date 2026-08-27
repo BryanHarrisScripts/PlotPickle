@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Plugin } from "vite";
-import { agentProfileById } from "../lib/agent-profiles";
-import { assembleContextPacket, contextReceiptSummary, type ContextItemInput } from "../lib/context-engine";
+import { agentProfileById } from "../../lib/agent-profiles";
+import { assembleContextPacket, contextReceiptSummary, type ContextItemInput } from "../../lib/context-engine";
 
 const API = "/api/local-buzz/specialists";
 const MAX_BODY = 384 * 1024;

@@ -107,8 +107,16 @@ test("BEN runner is pinned, rename-aware, produces machine-readable evidence, an
   assert.match(source, /"worktree", "add", "--detach"/);
   assert.match(source, /"diff", "--name-status", "-M"/);
   assert.match(source, /renamePreservesExistingFinding/);
-  assert.match(source, /candidate\?\.status === "resolved"/);
+  assert.match(source, /candidate\?\.status !== "resolved"/);
   assert.match(source, /findingGroupFingerprint\(candidate, "base"\) === groupFingerprint/);
+  assert.match(source, /findingContentFingerprint/);
+  assert.match(source, /primaryLocation \|\| finding\.locations\?\.\[0\]/);
+  assert.match(source, /line: Number\(location\.line \|\| 0\)/);
+  assert.match(source, /column: Number\(location\.column \|\| 0\)/);
+  assert.match(source, /message,/);
+  assert.match(source, /evidence,/);
+  assert.match(source, /findingContentFingerprint\(candidate, "base"\) === contentFingerprint/);
+  assert.match(source, /non-group findings when rule, message, evidence and line\/column are unchanged/);
   assert.match(source, /ben-result\.json/);
   assert.match(source, /authoritative: false/);
   assert.doesNotMatch(source, /merge_pull_request|create_pull_request|update_ref|ppf-direct-write|credential-read/);

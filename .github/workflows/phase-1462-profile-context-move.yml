@@ -1,0 +1,190 @@
+name: Phase 1462 Profile Request Context Move
+
+on:
+  push:
+    branches:
+      - arch/1462-profile-request-context
+
+permissions:
+  contents: write
+
+jobs:
+  apply-move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arch/1462-profile-request-context
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Apply bounded profile request-context move
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f build/profile-request-context.ts ]; then
+            echo "Profile request-context move already applied."
+            exit 0
+          fi
+
+          mkdir -p build/auth
+          git mv build/profile-request-context.ts build/auth/profile-request-context.ts
+
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Expected token not found in {path}: {old}')
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          moved = Path('build/auth/profile-request-context.ts')
+          text = moved.read_text(encoding='utf-8')
+          for old, new in [
+              ('from "../core/auth/plotpickle-auth"', 'from "../../core/auth/plotpickle-auth"'),
+              ('from "../core/storage/profile-private/profile-private-storage"', 'from "../../core/storage/profile-private/profile-private-storage"'),
+              ('from "../core/auth/profile-experience/profile-experience-runtime"', 'from "../../core/auth/profile-experience/profile-experience-runtime"'),
+          ]:
+              if old not in text:
+                  raise SystemExit(f'Expected moved-file import not found: {old}')
+              text = text.replace(old, new)
+          moved.write_text(text, encoding='utf-8')
+
+          root_consumers = [
+              'build/buzz-story-room-access-gateway.ts',
+              'build/buzz-story-room-directory-gateway.ts',
+              'build/buzz-story-room-identity-gateway.ts',
+              'build/buzz-story-room-listing-gateway.ts',
+              'build/local-credentials.ts',
+              'build/story-workflow-buzz-bridge-gateway.ts',
+          ]
+          for path in root_consumers:
+              replace(path, '"./profile-request-context"', '"./auth/profile-request-context"')
+
+          nested_consumers = [
+              'build/buzz/buzz-profile-migration-gateway.ts',
+              'build/story-decisions/gateway.ts',
+          ]
+          for path in nested_consumers:
+              replace(path, '"../profile-request-context"', '"../auth/profile-request-context"')
+
+          replace('vite.config.ts', '"./build/profile-request-context"', '"./build/auth/profile-request-context"')
+
+          hardcoded = [
+              '.github/workflows/buzz-profile-agent-scope.yml',
+              '.github/workflows/profile-experience.yml',
+              '.github/workflows/story-bridge.yml',
+              'tests/buzz-profile-csrf-browser.test.mjs',
+              'tests/issue-1144-buzz-profile-agent-scope.test.mjs',
+              'tests/issue-1144-buzz-profile-migration-contract.test.mjs',
+              'tests/issue-1418-story-decisions.test.mjs',
+              'tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs',
+          ]
+          for path in hardcoded:
+              replace(path, 'build/profile-request-context.ts', 'build/auth/profile-request-context.ts')
+          PY
+
+          cat > tests/issue-1462-profile-request-context-move.test.mjs <<'EOF'
+          import assert from "node:assert/strict";
+          import { access, readFile } from "node:fs/promises";
+          import test from "node:test";
+
+          const root = new URL("..", import.meta.url);
+          const source = (path) => readFile(new URL(path, root), "utf8");
+
+          test("#1462 moves the shared Human profile request context into build/auth", async () => {
+            await assert.rejects(access(new URL("build/profile-request-context.ts", root)));
+            await access(new URL("build/auth/profile-request-context.ts", root));
+
+            const context = await source("build/auth/profile-request-context.ts");
+            assert.match(context, /from "\.\.\/\.\.\/core\/auth\/plotpickle-auth"/);
+            assert.match(context, /from "\.\.\/\.\.\/core\/storage\/profile-private\/profile-private-storage"/);
+            assert.match(context, /from "\.\.\/\.\.\/core\/auth\/profile-experience\/profile-experience-runtime"/);
+          });
+
+          test("#1462 preserves the Human session, CSRF and private-storage authority boundary", async () => {
+            const context = await source("build/auth/profile-request-context.ts");
+            assert.match(context, /new AsyncLocalStorage<ProfileRequestContext>/);
+            assert.match(context, /"\/api\/local-buzz"/);
+            assert.match(context, /"\/api\/story-workflow\/buzz-bridge"/);
+            assert.match(context, /"\/api\/story-decisions"/);
+            assert.match(context, /authorizeRequest\(sessionRequest\(request, origin\)\)/);
+            assert.match(context, /runtime\.auth\.getAuthStatus\(authContext\)\.profile\?\.profileId/);
+            assert.match(context, /privateStorage: runtime\.privateStorage/);
+            assert.match(context, /code === "CSRF_REJECTED"/);
+            assert.match(context, /Cache-Control", "no-store"/);
+            assert.match(context, /X-Content-Type-Options", "nosniff"/);
+          });
+
+          test("#1462 retargets every runtime importer to the canonical auth-owned context", async () => {
+            const expectations = new Map([
+              ["build/buzz-story-room-access-gateway.ts", '"./auth/profile-request-context"'],
+              ["build/buzz-story-room-directory-gateway.ts", '"./auth/profile-request-context"'],
+              ["build/buzz-story-room-identity-gateway.ts", '"./auth/profile-request-context"'],
+              ["build/buzz-story-room-listing-gateway.ts", '"./auth/profile-request-context"'],
+              ["build/local-credentials.ts", '"./auth/profile-request-context"'],
+              ["build/story-workflow-buzz-bridge-gateway.ts", '"./auth/profile-request-context"'],
+              ["build/buzz/buzz-profile-migration-gateway.ts", '"../auth/profile-request-context"'],
+              ["build/story-decisions/gateway.ts", '"../auth/profile-request-context"'],
+              ["vite.config.ts", '"./build/auth/profile-request-context"'],
+            ]);
+            for (const [path, expected] of expectations) {
+              const value = await source(path);
+              assert.ok(value.includes(expected), `${path} must import the canonical auth request context`);
+              assert.doesNotMatch(value, /["'](?:\.\.\/|\.\/|\.\/build\/)?profile-request-context["']/);
+            }
+          });
+
+          test("#1462 retargets hardcoded workflow and regression paths with no compatibility shim", async () => {
+            const hardcoded = [
+              ".github/workflows/buzz-profile-agent-scope.yml",
+              ".github/workflows/profile-experience.yml",
+              ".github/workflows/story-bridge.yml",
+              "tests/buzz-profile-csrf-browser.test.mjs",
+              "tests/issue-1144-buzz-profile-agent-scope.test.mjs",
+              "tests/issue-1144-buzz-profile-migration-contract.test.mjs",
+              "tests/issue-1418-story-decisions.test.mjs",
+              "tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs",
+            ];
+            for (const path of hardcoded) {
+              const value = await source(path);
+              assert.match(value, /build\/auth\/profile-request-context\.ts/);
+              assert.doesNotMatch(value, /build\/profile-request-context\.ts/);
+            }
+          });
+          EOF
+
+          cat >> docs/architecture/PHASE-1-MOVE-LOG.md <<'EOF'
+
+          ## #1462 — Human profile request-context slice
+
+          Status: **candidate; profile/auth batch completed by this move pending exact-head CI; Phase 1 remains in progress**
+
+          Move boundary:
+          - `build/profile-request-context.ts` → `build/auth/profile-request-context.ts`
+
+          Consumer boundary:
+          - all nine direct runtime importers retarget to the canonical auth-owned path in the same change;
+          - all eight hardcoded workflow/test path consumers retarget in the same change;
+          - no compatibility shim remains at the retired root path.
+
+          Authority preserved:
+          - `AsyncLocalStorage` remains the request-scoped Human profile context carrier;
+          - `/api/local-buzz`, `/api/story-workflow/buzz-bridge`, and `/api/story-decisions` retain the same authenticated profile scope;
+          - the existing session boundary remains the only request authorization authority;
+          - CSRF rejection, active `profileId`, profile-private storage, no-store responses, and nosniff responses are unchanged;
+          - no BUZZ, Story Room, Story Decisions, Story Bridge, credential-storage or Vite behavior is redesigned by this move.
+
+          Phase boundary:
+          - this is the only ratified `phase1-build-profile-auth` source move;
+          - completion of this bounded batch does not close #1462 because AI and BUZZ work remains.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A build/auth/profile-request-context.ts build/profile-request-context.ts build/buzz-story-room-access-gateway.ts build/buzz-story-room-directory-gateway.ts build/buzz-story-room-identity-gateway.ts build/buzz-story-room-listing-gateway.ts build/buzz/buzz-profile-migration-gateway.ts build/local-credentials.ts build/story-decisions/gateway.ts build/story-workflow-buzz-bridge-gateway.ts vite.config.ts .github/workflows/buzz-profile-agent-scope.yml .github/workflows/profile-experience.yml .github/workflows/story-bridge.yml tests/buzz-profile-csrf-browser.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1144-buzz-profile-migration-contract.test.mjs tests/issue-1418-story-decisions.test.mjs tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs tests/issue-1462-profile-request-context-move.test.mjs docs/architecture/PHASE-1-MOVE-LOG.md
+          git commit -m "refactor(architecture): move profile request context into auth domain"
+          git push origin HEAD:arch/1462-profile-request-context

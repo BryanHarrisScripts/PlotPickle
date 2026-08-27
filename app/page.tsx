@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-location-assign-relative-destination -- navigation deliberately reloads profile-owned project state */
+/* eslint-disable @next/next/no-location-assign-relative-destination -- project-state-sensitive navigation deliberately reloads profile-owned project state */
 
 import { useEffect, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
@@ -105,7 +105,18 @@ function navigateWorkspace(workspace: Workspace) {
     destination.searchParams.delete("section");
     destination.searchParams.delete("lesson");
   }
-  window.location.assign(`${destination.pathname}${destination.search}`);
+  const href = `${destination.pathname}${destination.search}`;
+  if (workspace === "community") {
+    // Community is already a client workspace inside this root page. Reloading
+    // the whole document here needlessly re-enters Vinext/RSC while the managed
+    // Edge renderer is switching into its heaviest local BUZZ surface. Keep the
+    // URL/history truthful and let the existing popstate synchronizer mount the
+    // Community workspace without a document-level RSC reload.
+    window.history.pushState({ plotpickleWorkspace: workspace }, "", href);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    return;
+  }
+  window.location.assign(href);
 }
 
 export default function Home() {

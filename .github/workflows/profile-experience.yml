@@ -8,6 +8,8 @@ on:
       - "app/api/auth/profile-presentation/**"
       - "app/profile-access/**"
       - "app/layout.tsx"
+      - "app/page.tsx"
+      - "app/community-*.tsx"
       - "app/sage-settings-workspace.tsx"
       - "app/settings-dark-surface-guard.css"
       - "app/settings-panel.tsx"
@@ -17,15 +19,18 @@ on:
       - "build/profile-request-context.ts"
       - "build/startup/**"
       - "scripts/windows-server-smoke.mjs"
+      - "scripts/windows-interaction-smoke.mjs"
       - "Start-PlotPickle.bat"
       - "vite.config.ts"
       - "public/assets/workflow-relics/library.svg"
       - "public/assets/workflow-relics/profile.svg"
       - "core/auth/**"
       - "core/storage/**"
+      - "modules/community/**"
       - "modules/learn/ui/learn-workspace.tsx"
       - "modules/wyrmwood/ui/wyrmwood-workspace.tsx"
       - "tests/issue-614-startup-health-warning-cleanup.test.mjs"
+      - "tests/issue-1404-community-edge-navigation.test.mjs"
       - "tests/windows-native-runtime.test.mjs"
       - "tests/issue-1143-profile-experience.test.mjs"
       - "tests/issue-1144-buzz-profile-agent-scope.test.mjs"
@@ -64,11 +69,17 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate profile experience
-        run: npm run test:profile-experience && node --test tests/issue-1210-ui-housekeeping.test.mjs tests/issue-1212-profile-buzz-identity.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1279-official-agents-lore-avatar.test.mjs
+        run: npm run test:profile-experience && node --test tests/issue-1210-ui-housekeeping.test.mjs tests/issue-1212-profile-buzz-identity.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1279-official-agents-lore-avatar.test.mjs tests/issue-1404-community-edge-navigation.test.mjs
       - name: Validate Auth and session dependencies
         run: npm run test:auth-core && npm run test:profile-vault && npm run test:profile-storage && npm run test:server-session
       - name: Validate clean Windows Vite startup
         if: matrix.os == 'windows-latest'
         run: node scripts/windows-server-smoke.mjs .
+      - name: Validate managed Edge Community navigation
+        if: matrix.os == 'windows-latest'
+        env:
+          PLOTPICKLE_SMOKE_COMMUNITY_EDGE: "1"
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "120000"
+        run: node scripts/windows-interaction-smoke.mjs . reports/windows-community-edge
       - name: Production build
         run: npm run build

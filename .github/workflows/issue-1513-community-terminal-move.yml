@@ -1,0 +1,53 @@
+name: Issue 1513 Community Terminal Move
+
+on:
+  push:
+    branches:
+      - architecture/1513-community-terminal
+
+permissions:
+  contents: write
+
+jobs:
+  move-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: architecture/1513-community-terminal
+          fetch-depth: 0
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Move Community terminal into canonical owner
+        run: python .github/scripts/issue-1513-community-terminal-move.py
+
+      - name: Validate focused Community contracts
+        run: node --test tests/issue-1010-community-backdoor-terminal.test.mjs tests/issue-1066-community-three-column-shell.test.mjs tests/community-workspace.test.mjs tests/issue-1464-app-domain-consolidation.test.mjs
+
+      - name: Validate diff hygiene
+        run: git diff --check
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified structural move
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app tests .github/workflows/buzz-guildhall.yml
+          if git diff --cached --quiet; then
+            echo "No structural changes to commit."
+            exit 0
+          fi
+          git commit -m "refactor(#1513): move Community terminal UI"
+          git push origin HEAD:architecture/1513-community-terminal

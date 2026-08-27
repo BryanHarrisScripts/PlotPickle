@@ -64,7 +64,7 @@ test("#1422 Settings diagnostics exercise the real profile-scoped Story Bridge w
 });
 
 test("#1422 Agent signer diagnostics cover every public-BUZZ profile and require Tamsin", async () => {
-  const adapter = await read("modules/story-workflow/buzz-story-bridge.ts");
+  const adapter = await read("modules/story-workflow/bridge/buzz-story-bridge.ts");
   assert.match(adapter, /AGENT_PROFILES\.filter\(\(profile\) => agentExecutionContexts\(profile\.id\)\.includes\("public-buzz"\)\)/u);
   assert.match(adapter, /boundCount === requiredProfiles\.length/u);
   assert.match(adapter, /profileId === "tamsin-hearthquill" && binding\.ready/u);

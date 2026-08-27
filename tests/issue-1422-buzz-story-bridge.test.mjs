@@ -284,7 +284,7 @@ test("#1422 deduplicates reconnect/retry contributions and creates only bounded 
 
 test("#1422 reuses Agent, Context, Responsibility Run and BUZZ room boundaries without creating a chat-to-canon path", async () => {
   const [adapter, gateway, profiles, publicProfiles, storyRoom, connectorPolicy] = await Promise.all([
-    read("modules/story-workflow/buzz-story-bridge.ts"),
+    read("modules/story-workflow/bridge/buzz-story-bridge.ts"),
     read("build/story-workflow-buzz-bridge-gateway.ts"),
     read("lib/agents/agent-profiles.ts"),
     read("config/agent-profile-extensions/public.json"),

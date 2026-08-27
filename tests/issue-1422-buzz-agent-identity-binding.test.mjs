@@ -60,7 +60,7 @@ test("returns no signer for invalid or absent local state", () => {
 test("publishes verified local signer bindings into the Vite server runtime consumed by Story Bridge", async () => {
   const [loader, adapter, vite] = await Promise.all([
     read("build/buzz/buzz-agent-identity-binding-loader.ts"),
-    read("modules/story-workflow/buzz-story-bridge.ts"),
+    read("modules/story-workflow/bridge/buzz-story-bridge.ts"),
     read("vite.config.ts"),
   ]);
   const runtimeKey = "__PLOTPICKLE_BUZZ_AGENT_IDENTITIES_RUNTIME__";

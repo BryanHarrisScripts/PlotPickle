@@ -28,12 +28,11 @@ test("issue #1402 matches the approved 12-sequence shift and marker language", a
   ]) assert.ok(board.includes(contract), `Approved #1402 board contract is missing: ${contract}`);
 });
 
-test("issue #1402 renders status dots, locked cues, mini-step states, and the legend below the board", async () => {
+test("issue #1402 renders accessible status lights, mini-step states, and the five-state legend below the board", async () => {
   const board = await source("modules/build/ui/progressive-story-map.tsx");
   for (const contract of [
     "statusLine",
     "statusDot",
-    "lockIcon",
     "miniStep",
     'aria-label={`Status: ${STATE_LABELS[block.state]}',
     'aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`}',
@@ -42,19 +41,25 @@ test("issue #1402 renders status dots, locked cues, mini-step states, and the le
     "Not enough information yet",
   ]) assert.ok(board.includes(contract), `Accessible #1402 status contract is missing: ${contract}`);
 
+  for (const label of ["DEFINED", "OBSERVED", "EMERGING", "MISSING", "LOCKED"]) {
+    assert.ok(board.includes(label), `The standardized five-state label ${label} is missing.`);
+  }
+  assert.doesNotMatch(board, /<strong>\{STATE_LABELS\[block\.state\]\}<\/strong>/,
+    "Living story cards must show the colour light without repeating the state word.");
+
   const mapIndex = board.indexOf('className={styles.map}');
   const legendIndex = board.indexOf('className={styles.legend}');
   assert.ok(mapIndex >= 0 && legendIndex > mapIndex, "The five-state legend must appear below the 24-card board.");
 });
 
-test("issue #1402 uses the approved status and shift palette without making Missing a disabled state", async () => {
+test("issue #1402 uses five distinct non-grey status colours without making Missing a disabled state", async () => {
   const css = await source("modules/build/ui/progressive-story-map.module.css");
   for (const contract of [
     "--story-defined: #35d779;",
-    "--story-observed: #aab4b0;",
-    "--story-emerging: #e6a64c;",
-    "--story-missing: #ff4050;",
-    "--story-locked: #66706c;",
+    "--story-observed: #3bb8ff;",
+    "--story-emerging: #f6a93b;",
+    "--story-missing: #ff4d6d;",
+    "--story-locked: #a875ff;",
     "--story-orange: #ff922f;",
     "--story-teal: #47d7ca;",
     ".statusDot",
@@ -62,6 +67,8 @@ test("issue #1402 uses the approved status and shift palette without making Miss
     ".legendDot",
     ".shiftMenu",
   ]) assert.ok(css.includes(contract), `Approved #1402 styling contract is missing: ${contract}`);
+  assert.doesNotMatch(css, /--story-(?:observed|locked):\s*#(?:[0-9a-f]{2})\1\1/i,
+    "Observed and Locked must not fall back to a neutral grey palette.");
   assert.doesNotMatch(css, /\.block\[data-state=["']missing["']\][^{]*\{[^}]*pointer-events\s*:\s*none/s);
 });
 

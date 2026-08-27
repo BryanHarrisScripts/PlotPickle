@@ -71,5 +71,5 @@ test("#1420 Afterglow vertical proof remains Human-gated and revision-safe throu
   assert.match(workbench, /applyStoryCommand/);
   assert.match(workbenchPage, /saveFoundationProjectAtRevision/);
   assert.match(workbenchPage, /Only dependency-backed story work was re-evaluated; unrelated completed work stayed current/);
-  assert.doesNotMatch(workbenchPage, /automatic storyboard\/script regeneration/i);
+  assert.match(workbenchPage, /No automatic storyboard\/script regeneration/);
 });

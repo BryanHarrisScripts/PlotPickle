@@ -19,7 +19,7 @@ import { buzzStoryRoomIdentityGateway } from "./build/buzz-story-room-identity-g
 import { buzzStoryRoomListingGateway } from "./build/buzz-story-room-listing-gateway";
 import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gateway";
 import { buzzStoryRoomDirectoryGateway } from "./build/buzz-story-room-directory-gateway";
-import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
+import { buzzSpecialistGateway } from "./build/buzz/buzz-specialist-gateway";
 import { buzzBundleNormalizer } from "./build/buzz/buzz-bundle-normalizer";
 import { storyWorkflowBuzzBridgeGateway } from "./build/story-workflow-buzz-bridge-gateway";
 import { loadLocalBuzzAgentIdentityBindings } from "./build/buzz/buzz-agent-identity-binding-loader";

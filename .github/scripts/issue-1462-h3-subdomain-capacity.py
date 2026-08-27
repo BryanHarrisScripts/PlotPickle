@@ -12,50 +12,22 @@ def write(path: str, content: str) -> None:
     (ROOT / path).write_text(content, encoding="utf-8")
 
 
-def replace(path: str, old: str, new: str, *, required: bool = True) -> None:
+def replace(path: str, old: str, new: str) -> None:
     content = read(path)
-    if required and old not in content:
+    if old not in content:
         raise SystemExit(f"Expected text not found in {path}: {old}")
     write(path, content.replace(old, new))
 
 
 (ROOT / "build/ai/h3").mkdir(parents=True, exist_ok=True)
-subprocess.run([
-    "git", "mv",
-    "build/ai/comfyui-h3-native-gateway.ts",
-    "build/ai/h3/comfyui-h3-native-gateway.ts",
-], check=True)
-subprocess.run([
-    "git", "mv",
-    "build/comfyui-h3-native-provider.ts",
-    "build/ai/h3/comfyui-h3-native-provider.ts",
-], check=True)
+subprocess.run(["git", "mv", "build/ai/comfyui-h3-native-gateway.ts", "build/ai/h3/comfyui-h3-native-gateway.ts"], check=True)
+subprocess.run(["git", "mv", "build/comfyui-h3-native-provider.ts", "build/ai/h3/comfyui-h3-native-provider.ts"], check=True)
 
-replace(
-    "build/ai/h3/comfyui-h3-native-gateway.ts",
-    'from "../comfyui-h3-native-provider"',
-    'from "./comfyui-h3-native-provider"',
-)
-replace(
-    "build/ai/h3/comfyui-h3-native-provider.ts",
-    'from "./local-credentials"',
-    'from "../../local-credentials"',
-)
-replace(
-    "build/ai/h3/comfyui-h3-native-provider.ts",
-    'from "./media-provider-common"',
-    'from "../../media-provider-common"',
-)
-replace(
-    "build/local-ai-gateway.ts",
-    'from "./ai/comfyui-h3-native-gateway"',
-    'from "./ai/h3/comfyui-h3-native-gateway"',
-)
-replace(
-    "build/ai-routing-gateway.ts",
-    'from "./comfyui-h3-native-provider"',
-    'from "./ai/h3/comfyui-h3-native-provider"',
-)
+replace("build/ai/h3/comfyui-h3-native-gateway.ts", 'from "../comfyui-h3-native-provider"', 'from "./comfyui-h3-native-provider"')
+replace("build/ai/h3/comfyui-h3-native-provider.ts", 'from "./local-credentials"', 'from "../../local-credentials"')
+replace("build/ai/h3/comfyui-h3-native-provider.ts", 'from "./media-provider-common"', 'from "../../media-provider-common"')
+replace("build/local-ai-gateway.ts", 'from "./ai/comfyui-h3-native-gateway"', 'from "./ai/h3/comfyui-h3-native-gateway"')
+replace("build/ai-routing-gateway.ts", 'from "./comfyui-h3-native-provider"', 'from "./ai/h3/comfyui-h3-native-provider"')
 
 for path in [
     "config/credential-boundary.registry.json",
@@ -65,14 +37,8 @@ for path in [
     "tests/issue-300-native-h3-credential-registry.test.mjs",
 ]:
     content = read(path)
-    content = content.replace(
-        "build/ai/comfyui-h3-native-gateway.ts",
-        "build/ai/h3/comfyui-h3-native-gateway.ts",
-    )
-    content = content.replace(
-        "build/comfyui-h3-native-provider.ts",
-        "build/ai/h3/comfyui-h3-native-provider.ts",
-    )
+    content = content.replace("build/ai/comfyui-h3-native-gateway.ts", "build/ai/h3/comfyui-h3-native-gateway.ts")
+    content = content.replace("build/comfyui-h3-native-provider.ts", "build/ai/h3/comfyui-h3-native-provider.ts")
     write(path, content)
 
 write(
@@ -89,17 +55,21 @@ start = log.index(heading)
 new_section = '''## #1462 — Native H3 subdomain capacity slice\n\nStatus: **candidate; AI batch remains in progress**\n\nMove boundary:\n- `build/ai/comfyui-h3-native-gateway.ts` → `build/ai/h3/comfyui-h3-native-gateway.ts`\n- `build/comfyui-h3-native-provider.ts` → `build/ai/h3/comfyui-h3-native-provider.ts`\n\nRuntime/import consumers updated:\n- `build/local-ai-gateway.ts` imports the H3 gateway from its bounded AI subdomain without changing registration order.\n- `build/ai-routing-gateway.ts` imports the H3 provider from the same bounded AI subdomain.\n- the H3 gateway imports its colocated provider directly.\n- the H3 provider reaches root-owned credential and media helpers through explicit two-level parent imports.\n\nSource-contract / registry consumers updated:\n- `config/credential-boundary.registry.json`\n- `tests/comfyui-live-verification.test.mjs`\n- `tests/issue-258-creative-compute-paths.test.mjs`\n- `tests/issue-973-comfyui-api-readiness.test.mjs`\n- `tests/issue-300-native-h3-credential-registry.test.mjs`\n- `tests/issue-1462-h3-native-gateway-move.test.mjs`\n\nBehavior boundary:\n- Native H3 remains loopback/same-origin only and keeps the existing 4 MB request bound.\n- ComfyUI remains fixed to `http://127.0.0.1:8188`; activation still requires the reviewed local readiness prerequisites.\n- H3 setup still installs no weights or custom nodes and executes no downloaded code.\n- `/api/local-ai/generate/video` and native H3 job polling behavior remain unchanged.\n- Credential ownership, redaction, local job persistence and media output rules remain unchanged.\n- No compatibility shim remains at the retired root or direct-AI H3 paths.\n- Moving the H3 pair under `build/ai/h3/` reduces direct `build/ai` pressure below the ratified 16-source ceiling and creates capacity for the remaining Phase 1 AI moves.\n- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.\n'''
 write(log_path, log[:start] + new_section)
 
-# Fail closed if any retired exact path survives in tracked text files.
-for retired in [
-    "build/ai/comfyui-h3-native-gateway.ts",
-    "build/comfyui-h3-native-provider.ts",
-]:
-    result = subprocess.run(
-        ["git", "grep", "-n", "--fixed-strings", retired, "--", "."],
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        raise SystemExit(f"Retired H3 path remains:\n{result.stdout}")
+# Retired paths are allowed only in the migration record, the absence regression,
+# and this temporary migration runner. Any other tracked occurrence is stale.
+allowed_retired_reference_files = {
+    ".github/scripts/issue-1462-h3-subdomain-capacity.py",
+    "docs/architecture/PHASE-1-MOVE-LOG.md",
+    "tests/issue-1462-h3-native-gateway-move.test.mjs",
+}
+for retired in ["build/ai/comfyui-h3-native-gateway.ts", "build/comfyui-h3-native-provider.ts"]:
+    result = subprocess.run(["git", "grep", "-n", "--fixed-strings", retired, "--", "."], text=True, capture_output=True)
     if result.returncode not in (0, 1):
         raise SystemExit(result.stderr)
+    unexpected = []
+    for line in result.stdout.splitlines():
+        path = line.split(":", 1)[0]
+        if path not in allowed_retired_reference_files:
+            unexpected.append(line)
+    if unexpected:
+        raise SystemExit("Unexpected retired H3 path remains:\n" + "\n".join(unexpected))

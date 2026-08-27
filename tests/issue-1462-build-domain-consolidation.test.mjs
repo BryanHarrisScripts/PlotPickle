@@ -21,6 +21,11 @@ const buzzAdvisoryMoved = [
   ["build/buzz-specialist-gateway.ts", "build/buzz/buzz-specialist-gateway.ts"],
 ];
 
+const deepSeekAiMoved = [
+  ["build/deepseek-harness-runtime.ts", "build/ai/deepseek-harness-runtime.ts"],
+  ["build/deepseek-harness-gateway.ts", "build/ai/deepseek-harness-gateway.ts"],
+];
+
 test("#1462 Projects batch retires flat build sources into the ratified domain without compatibility shims", async () => {
   for (const [source, target] of moved) {
     await assert.rejects(access(new URL(source, root)), `${source} must be retired after the move`);
@@ -140,4 +145,31 @@ test("#1462 BUZZ advisory slice moves Agent activity and specialist runtime with
   const config = JSON.parse(await read("config/repository-architecture-target.json"));
   const batch = config.moveBatches.find((item) => item.id === "phase1-build-buzz");
   assert.notEqual(batch?.status, "completed");
+});
+
+test("#1462 DeepSeek AI slice retires the optional harness pair without changing startup or local-control boundaries", async () => {
+  for (const [source, target] of deepSeekAiMoved) {
+    await assert.rejects(access(new URL(source, root)), `${source} must be retired after the DeepSeek AI move`);
+    await access(new URL(target, root));
+  }
+
+  const [localAi, gateway, runtime, deepSeekContract] = await Promise.all([
+    read("build/local-ai-gateway.ts"),
+    read("build/ai/deepseek-harness-gateway.ts"),
+    read("build/ai/deepseek-harness-runtime.ts"),
+    read("tests/issue-624-deepseek-harness-runtime.test.mjs"),
+  ]);
+
+  assert.match(localAi, /\.\/ai\/deepseek-harness-gateway/);
+  assert.doesNotMatch(localAi, /\.\/deepseek-harness-gateway["']/);
+  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(gateway, /pathname === LAUNCH_PATH && request\.method === "POST"/);
+  assert.match(runtime, /optional: true/);
+  assert.match(runtime, /autoInstallOnStartup: false/);
+  assert.match(deepSeekContract, /build\/ai\/deepseek-harness-gateway\.ts/);
+  assert.match(deepSeekContract, /build\/ai\/deepseek-harness-runtime\.ts/);
+
+  const config = JSON.parse(await read("config/repository-architecture-target.json"));
+  const batch = config.moveBatches.find((item) => item.id === "phase1-build-ai");
+  assert.notEqual(batch?.status, "completed", "the AI batch must stay open until every ratified root AI source is moved");
 });

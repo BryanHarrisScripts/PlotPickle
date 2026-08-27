@@ -3,7 +3,7 @@ import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base"
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
 import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
 import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirror";
-import { registerDeepSeekHarnessGateway } from "./deepseek-harness-gateway";
+import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./comfyui-ltx-local-gateway";

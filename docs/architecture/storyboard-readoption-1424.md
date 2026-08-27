@@ -6,6 +6,8 @@ The first bounded slice establishes a canonical entry gate:
 
 `profile-owned PPF -> #1423 visual readiness -> Storyboard target availability`
 
+The active readiness UI is owned by `app/_components/storyboard/`; the framework route at `app/storyboard/page.tsx` only loads the canonical profile-owned PPF and composes that surface. This keeps new Storyboard UI out of the crowded `app/` root.
+
 The existing `app/visual-storyboard.tsx`, `VisualFrame`, `VisualMediaVersion`, approved character references, frame/version concepts and editorial candidate behavior remain preserved for adaptation behind this gate.
 
 This slice deliberately does not:

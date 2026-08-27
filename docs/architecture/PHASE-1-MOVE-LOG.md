@@ -124,7 +124,7 @@ Behavior boundary:
 
 ## #1462 — Ollama starter bootstrap slice
 
-Status: **candidate; AI batch remains in progress**
+Status: **completed and merged**
 
 Move boundary:
 - `build/ollama-bootstrap-gateway.ts` → `build/ai/ollama-bootstrap-gateway.ts`
@@ -142,4 +142,30 @@ Behavior boundary:
 - Ollama remains fixed to loopback `http://127.0.0.1:11434`; callers cannot supply an arbitrary model or endpoint.
 - The reviewed starter model remains configuration-owned, pulls remain non-streaming with the existing 15-minute timeout, and failure does not remove No AI mode.
 - No compatibility shim remains at the retired root gateway path.
+- The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.
+
+## #1462 — SDXL local-image pair
+
+Status: **candidate; AI batch remains in progress**
+
+Move boundary:
+- `build/comfyui-sdxl-local-gateway.ts` → `build/ai/comfyui-sdxl-local-gateway.ts`
+- `build/comfyui-sdxl-local-provider.ts` → `build/ai/comfyui-sdxl-local-provider.ts`
+
+Runtime/import consumers updated:
+- `build/local-ai-gateway.ts`
+- the AI-owned gateway imports the AI-owned provider directly and reaches shared ComfyUI/media helpers through explicit parent imports.
+- the moved provider reaches the shared media/continuity helper through an explicit parent import.
+
+Source-contract / CI path consumers updated:
+- `tests/hardware-aware-local-ai-runtime.test.mjs`
+- `tests/issue-1462-sdxl-local-move.test.mjs`
+
+Behavior boundary:
+- Local image generation remains restricted to loopback/same-origin POST requests and the existing 256 KB request bound.
+- SDXL remains active only when `imageRoute === "comfyui"`; checkpoint discovery and the SD3.5 advanced-override boundary are unchanged.
+- The test image remains a single low-quality request, and the local profile remains `SDXL 1.0`.
+- Provider access remains restricted to local ComfyUI on `http://127.0.0.1:8188` with the existing four-minute render timeout.
+- Provider-independent visual continuity, approved reference upload, VAE reference conditioning and saved PNG output remain unchanged.
+- No compatibility shim remains at either retired SDXL root path.
 - The larger `phase1-build-ai` batch intentionally remains incomplete until every remaining ratified direct AI source is moved and exact-head green.

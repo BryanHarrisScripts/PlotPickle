@@ -5,11 +5,11 @@ import {
   createLegacyCredentialMigrationSource,
   credentialFilePath,
   persistentHome,
-} from "./local-credentials";
+} from "../local-credentials";
 import {
   currentProfileRequestContext,
   profileRequestScope,
-} from "./profile-request-context";
+} from "../profile-request-context";
 
 const API = "/api/local-buzz/profile-migration";
 const CONNECTION_FILE = "buzz-connection.json";

@@ -24,7 +24,7 @@ test("issue #216 makes Buzz hydration deterministic", async () => {
 
 test("issue #216 canonicalizes Windows text line endings without rewriting tracked files", async () => {
   const [normalizer, gateway, vite, attributes] = await Promise.all([
-    source("build/buzz-bundle-normalizer.ts"),
+    source("build/buzz/buzz-bundle-normalizer.ts"),
     source("build/buzz-gateway.ts"),
     source("vite.config.ts"),
     source(".gitattributes"),

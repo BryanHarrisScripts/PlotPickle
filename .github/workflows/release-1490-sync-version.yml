@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   sync-version:
-    if: github.event.head_commit.message != 'chore(release): sync rc.4.0.2 manifests'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,9 +19,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Stop after synchronized manifest commit
+        id: guard
+        shell: bash
+        run: |
+          if [ "$(git log -1 --pretty=%s)" = "chore(release): sync rc.4.0.2 manifests" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Synchronize package manifests
+        if: steps.guard.outputs.skip != 'true'
         run: npm version 1.0.0-rc.4.0.2 --no-git-tag-version
       - name: Commit synchronized manifests
+        if: steps.guard.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

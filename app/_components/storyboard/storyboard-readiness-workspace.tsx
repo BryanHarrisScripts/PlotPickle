@@ -2,6 +2,8 @@
 
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
+import { AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER } from "@/modules/library/reference/afterglow-v9-visual-readiness";
+import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import styles from "./storyboard-readiness-workspace.module.css";
 
 function blockNumber(target: VisualReadinessTarget) {
@@ -13,8 +15,9 @@ function stateLabel(target: VisualReadinessTarget) {
   return target.storyboardAllowed ? "Ready for Storyboard" : target.state.charAt(0).toUpperCase() + target.state.slice(1);
 }
 
-export default function StoryboardReadinessWorkspace({ project, onOpenBuild }: {
+export default function StoryboardReadinessWorkspace({ project, onProjectChange, onOpenBuild }: {
   readonly project: PPFProject;
+  readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenBuild: () => void;
 }) {
   const readiness = deriveVisualReadiness({ project });
@@ -22,6 +25,9 @@ export default function StoryboardReadinessWorkspace({ project, onOpenBuild }: {
     .filter((target) => target.kind === "block")
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
+  const editorialTarget = blocks.find((target) => (
+    blockNumber(target) === AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER && target.storyboardAllowed
+  )) ?? null;
 
   return (
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
@@ -70,8 +76,17 @@ export default function StoryboardReadinessWorkspace({ project, onOpenBuild }: {
         })}
       </section>
 
+      {editorialTarget ? (
+        <StoryboardEditorialWorkspace
+          project={project}
+          target={editorialTarget}
+          onProjectChange={onProjectChange}
+          onOpenBuild={onOpenBuild}
+        />
+      ) : null}
+
       <footer className={styles.footer}>
-        Existing `VisualFrame` / `VisualMediaVersion` identity, approved references and Keep/Change/Compare behavior remain preserved for the next bounded adaptation slice. This gate writes no visual canon and triggers no media generation.
+        Existing `VisualFrame` / `VisualMediaVersion` identity and Keep/Change/Compare semantics are being re-adopted behind canonical targets. This readiness gate writes no visual canon and triggers no media generation; an explicit Human Keep decision records only the approved visual projection in PPF.
       </footer>
     </main>
   );

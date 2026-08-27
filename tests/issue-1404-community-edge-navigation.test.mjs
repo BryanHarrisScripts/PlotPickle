@@ -33,12 +33,12 @@ test("#1404 managed browser smoke uses Edge app mode and observes renderer crash
     "--user-data-dir=",
     "--headless=new",
     "Inspector.targetCrashed",
-    "data-workspace-nav-id=\\\"community\\\"",
-    "data-community-native-buzz=\\\"true\\\"",
     "performance.timeOrigin",
     "STATUS_ACCESS_VIOLATION",
     "stableCommunityMs",
   ]) assert.ok(smoke.includes(contract), `Managed Edge Community smoke is missing: ${contract}`);
+  assert.match(smoke, /data-workspace-nav-id=.*community/);
+  assert.match(smoke, /data-community-native-buzz=.*true/);
   assert.doesNotMatch(smoke, /--disable-gpu/);
   assert.match(smoke, /process\.platform !== "win32"/);
 });

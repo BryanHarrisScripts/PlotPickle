@@ -1,7 +1,7 @@
 import {
   loadLocalBuzzAgentIdentityBindings,
   saveLocalBuzzAgentIdentityBinding,
-} from "../../../build/buzz-agent-identity-binding-loader";
+} from "../../../build/buzz/buzz-agent-identity-binding-loader";
 import {
   getProfileExperienceRuntime,
   requestBoundary,

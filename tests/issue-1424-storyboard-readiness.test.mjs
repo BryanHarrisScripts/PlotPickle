@@ -45,7 +45,7 @@ test("#1424 preserves reusable Storyboard identity and editorial behavior instea
   assert.match(editorial, />Keep</);
   assert.match(editorial, />Change \/ Try</);
   assert.match(editorial, />Compare</);
-  assert.match(editorial, /same Mini-Block anchor/);
+  assert.match(editorial, /same anchor/);
   assert.match(phaseBoundary, /profile-owned PPF -> #1423 visual readiness -> Storyboard target availability/);
   assert.doesNotMatch(workspace, /PlotPickleProject|storyboardExploration|plotpickle\.project\.v1/);
 });

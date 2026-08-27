@@ -23,6 +23,7 @@ test("#1424 preserves the old Storyboard implementation for bounded adaptation i
   const workspace = await read("app/storyboard-readiness-workspace.tsx");
   const legacyBoard = await read("app/visual-storyboard.tsx");
   const audit = await read("docs/architecture/visual-pipeline-reuse-audit-1423.md");
+  const phaseBoundary = await read("docs/architecture/storyboard-readoption-1424.md");
 
   assert.match(legacyBoard, /storyboardIdentityInputs/);
   assert.match(legacyBoard, /VisualFrame/);
@@ -31,6 +32,7 @@ test("#1424 preserves the old Storyboard implementation for bounded adaptation i
   assert.match(audit, /`app\/visual-storyboard\.tsx` \| Adapt in Phase 8/);
   assert.match(workspace, /VisualFrame.*VisualMediaVersion/);
   assert.match(workspace, /Keep\/Change\/Compare/);
+  assert.match(phaseBoundary, /profile-owned PPF -> #1423 visual readiness -> Storyboard target availability/);
 });
 
 test("#1424 readiness gate remains non-authoritative and generation-free", async () => {

@@ -57,7 +57,7 @@ test("focused verifier matches PlotPickle's existing ComfyUI backend contracts",
   const [verifier, mediaGateway, comfyProvider, nativeGateway] = await Promise.all([
     source("scripts/verify-comfyui-live.mjs"),
     source("build/media-routing-gateway.ts"),
-    source("build/comfyui-media-provider.ts"),
+    source("build/ai/comfyui-media-provider.ts"),
     source("build/ai/h3/comfyui-h3-native-gateway.ts"),
   ]);
 

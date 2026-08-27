@@ -2,15 +2,15 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { persistentHome } from "./local-credentials";
-import type { ComfyWorkflow, MediaProfile } from "./media-routing-store";
+import { persistentHome } from "../local-credentials";
+import type { ComfyWorkflow, MediaProfile } from "../media-routing-store";
 import {
   safeAssetStem,
   saveGeneratedAsset,
   videoSourceReference,
   type ImageGenerationInput,
   type VideoGenerationInput,
-} from "./media-provider-common";
+} from "../media-provider-common";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:8188";
 const REQUEST_TIMEOUT_MS = 5_000;

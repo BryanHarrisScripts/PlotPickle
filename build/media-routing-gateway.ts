@@ -15,7 +15,7 @@ import {
   queryComfyVideo,
   validateH3Workflow,
   workflowNodeClasses,
-} from "./comfyui-media-provider";
+} from "./ai/comfyui-media-provider";
 import {
   publicMediaProfile,
   readMediaRoutingStore,

@@ -27,7 +27,7 @@ test("#1462 SDXL pair retires root paths while preserving local image and contin
   assert.match(host, /\.\/ai\/comfyui-sdxl-local-gateway/);
   assert.doesNotMatch(host, /\.\/comfyui-sdxl-local-gateway["']/);
   assert.match(gateway, /\.\/comfyui-sdxl-local-provider/);
-  assert.match(gateway, /\.\.\/comfyui-media-provider/);
+  assert.match(gateway, /\.\/comfyui-media-provider/);
   assert.match(gateway, /\.\.\/media-routing-store/);
   assert.match(gateway, /\.\.\/media-provider-common/);
   assert.match(gateway, /isLocalRequest\(request\)/);

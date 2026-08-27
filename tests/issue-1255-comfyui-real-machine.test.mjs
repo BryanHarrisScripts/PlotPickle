@@ -46,7 +46,7 @@ test("#1255 Settings keeps ComfyUI setup in place and reports the real local sta
 
 test("#1255 local image readiness requires real ComfyUI nodes checkpoint a returned image test and local asset evidence", async () => {
   const [provider, panel, routing] = await Promise.all([
-    read("build/comfyui-media-provider.ts"),
+    read("build/ai/comfyui-media-provider.ts"),
     read("app/media-routing-panel.tsx"),
     read("build/ai-routing-gateway.ts"),
   ]);

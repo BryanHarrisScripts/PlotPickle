@@ -25,29 +25,37 @@ test("#1404 Node 24 server smoke compiles the Community query-state workspace", 
   assert.match(smoke, /root, navigation and Community probes passed/);
 });
 
-test("#1404 managed browser smoke uses Edge app mode and observes renderer crashes", async () => {
-  const smoke = await source("scripts/windows-community-edge-smoke.mjs");
+test("#1404 reuses the Windows interaction harness for focused Microsoft Edge Community liveness", async () => {
+  const smoke = await source("scripts/windows-interaction-smoke.mjs");
   for (const contract of [
+    "PLOTPICKLE_SMOKE_COMMUNITY_EDGE",
     '"Microsoft", "Edge", "Application", "msedge.exe"',
+    "communityEdgeMode ? edgeCandidates",
     "--app=",
     "--user-data-dir=",
     "--headless=new",
+    "createTarget",
     "Inspector.targetCrashed",
+    "runCommunityEdgeScenario",
     "performance.timeOrigin",
     "STATUS_ACCESS_VIOLATION",
-    "stableCommunityMs",
-  ]) assert.ok(smoke.includes(contract), `Managed Edge Community smoke is missing: ${contract}`);
+    "communityStableMs",
+  ]) assert.ok(smoke.includes(contract), `Windows interaction smoke is missing Community Edge contract: ${contract}`);
   assert.match(smoke, /data-workspace-nav-id=.*community/);
   assert.match(smoke, /data-community-native-buzz=.*true/);
-  assert.doesNotMatch(smoke, /--disable-gpu/);
-  assert.match(smoke, /process\.platform !== "win32"/);
+  assert.match(smoke, /communityEdgeMode \? \[`--app=\$\{baseUrl\}\/\?workspace=dashboard`\] : \["--disable-gpu", "about:blank"\]/);
 });
 
-test("#1404 Profile Experience runs the Community regression and managed Edge smoke on Windows", async () => {
+test("#1404 does not add a second root-level CDP smoke implementation", async () => {
+  await assert.rejects(source("scripts/windows-community-edge-smoke.mjs"), /ENOENT/);
+});
+
+test("#1404 Profile Experience runs the focused mode through the existing interaction harness on Windows", async () => {
   const workflow = await source(".github/workflows/profile-experience.yml");
   assert.match(workflow, /tests\/issue-1404-community-edge-navigation\.test\.mjs/);
-  assert.match(workflow, /scripts\/windows-community-edge-smoke\.mjs/);
+  assert.match(workflow, /scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(workflow, /PLOTPICKLE_SMOKE_COMMUNITY_EDGE: "1"/);
   assert.match(workflow, /Validate managed Edge Community navigation/);
-  assert.match(workflow, /node scripts\/windows-community-edge-smoke\.mjs \./);
+  assert.match(workflow, /node scripts\/windows-interaction-smoke\.mjs \. reports\/windows-community-edge/);
   assert.match(workflow, /if: matrix\.os == 'windows-latest'/);
 });

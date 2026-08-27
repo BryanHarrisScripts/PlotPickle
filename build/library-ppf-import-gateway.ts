@@ -5,7 +5,7 @@ import {
   isLocalPlotPickleRequest,
   openLocalPpf,
   readLocalPpfRequest,
-} from "./portable-ppf-reader";
+} from "./projects/portable-ppf-reader";
 
 const LIBRARY_PPF_IMPORT_PATH = "/api/library/import/ppf";
 

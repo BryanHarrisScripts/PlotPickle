@@ -201,7 +201,7 @@ test("Afterglow proof covers character choice, structural conflict, grouping and
 test("Story Decision gateway and UI preserve profile, encrypted storage, revision and no-canon boundaries", async () => {
   const [gateway, requestContext, profileFetch, page, dashboard, localGateway] = await Promise.all([
     readFile(new URL("../build/story-decisions/gateway.ts", import.meta.url), "utf8"),
-    readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
+    readFile(new URL("../build/auth/profile-request-context.ts", import.meta.url), "utf8"),
     readFile(new URL("../core/auth/profile-request-browser.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/story-decisions/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/_components/dashboard/dashboard-story-library.tsx", import.meta.url), "utf8"),

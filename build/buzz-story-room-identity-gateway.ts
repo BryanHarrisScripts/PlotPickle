@@ -11,7 +11,7 @@ import {
 import { BUZZ_STORY_ROOMS, type BuzzStoryRoomId } from "../lib/buzz/buzz-story-room";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const API = "/api/local-buzz/story-room-identity";
 const CONNECTION_FILE = "buzz-connection.json";

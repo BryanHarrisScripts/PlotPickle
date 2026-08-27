@@ -9,7 +9,7 @@ import {
 import {
   currentProfileRequestContext,
   profileRequestScope,
-} from "../profile-request-context";
+} from "../auth/profile-request-context";
 
 const API = "/api/local-buzz/profile-migration";
 const CONNECTION_FILE = "buzz-connection.json";

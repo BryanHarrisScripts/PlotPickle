@@ -37,7 +37,7 @@ import {
   type BuzzConnection,
 } from "./buzz-story-room-access-gateway";
 import { assertBuzzStoryRoomOwner } from "./buzz-story-room-owner-authority";
-import { currentProfileRequestContext } from "./profile-request-context";
+import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const API = "/api/local-buzz/story-room-directory";
 const BINDINGS_OBJECT_ID = "story-room-bindings-v1";

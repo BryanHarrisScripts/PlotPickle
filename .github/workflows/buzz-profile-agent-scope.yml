@@ -6,7 +6,7 @@ on:
     paths:
       - "build/buzz-*.ts"
       - "build/local-credentials.ts"
-      - "build/profile-request-context.ts"
+      - "build/auth/profile-request-context.ts"
       - "core/agents/**"
       - "core/auth/**"
       - "core/storage/profile-private/**"

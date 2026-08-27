@@ -16,7 +16,7 @@ on:
       - "app/plotpickle-workspace-shell.tsx"
       - "build/buzz-profile-identity-gateway.ts"
       - "build/local-credentials.ts"
-      - "build/profile-request-context.ts"
+      - "build/auth/profile-request-context.ts"
       - "build/startup/**"
       - "scripts/windows-server-smoke.mjs"
       - "scripts/windows-interaction-smoke.mjs"

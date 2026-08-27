@@ -1,9 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import type { AuthContext } from "../core/auth/plotpickle-auth";
-import type { ProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage";
-import { getProfileExperienceRuntime } from "../core/auth/profile-experience/profile-experience-runtime";
+import type { AuthContext } from "../../core/auth/plotpickle-auth";
+import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
+import { getProfileExperienceRuntime } from "../../core/auth/profile-experience/profile-experience-runtime";
 
 const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-buzz",

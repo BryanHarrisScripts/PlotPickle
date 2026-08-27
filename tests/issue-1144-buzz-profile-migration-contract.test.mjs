@@ -17,7 +17,7 @@ test("#1144 legacy BUZZ migration targets only the active AuthContext profile an
 test("#1144 migration reads the legacy single-user source only outside the per-request Human context", async () => {
   const [migrationSource, contextSource] = await Promise.all([
     readFile(new URL("../build/buzz/buzz-profile-migration-gateway.ts", import.meta.url), "utf8"),
-    readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
+    readFile(new URL("../build/auth/profile-request-context.ts", import.meta.url), "utf8"),
   ]);
   assert.match(migrationSource, /createLegacyCredentialMigrationSource\(\[CONNECTION_FILE\]\)/);
   assert.match(migrationSource, /profileRequestScope\.exit\(\(\) => legacy\.listCredentials\(\)\)/);

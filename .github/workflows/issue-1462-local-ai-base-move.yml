@@ -35,6 +35,7 @@ jobs:
         run: >-
           node --test
           tests/issue-1462-build-domain-consolidation.test.mjs
+          tests/issue-177-graphic-novel-queue.test.mjs
           tests/issue-254-graphic-novel-asset-versions.test.mjs
           tests/issue-299-credential-boundary-audit.test.mjs
           tests/issue-1461-repository-architecture-inventory.test.mjs
@@ -57,3 +58,5 @@ jobs:
           git add -A
           git commit -m "refactor(#1462): move Local AI gateway base"
           git push origin HEAD:arch/1462-ai-local-base
+
+# retry 2: include the remaining Graphic Novel source contract

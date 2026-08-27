@@ -1,0 +1,46 @@
+import assert from "node:assert/strict";
+import { access, readFile, readdir } from "node:fs/promises";
+import test from "node:test";
+
+const root = new URL("../", import.meta.url);
+const read = (path) => readFile(new URL(path, root), "utf8");
+
+test("#1509 gives Story Room Community UI one canonical owner without changing authority", async () => {
+  await assert.rejects(access(new URL("app/community-story-room-access.tsx", root)));
+  await assert.rejects(access(new URL("app/community-story-room-access.module.css", root)));
+  await assert.rejects(access(new URL("app/community-story-room-listing.tsx", root)));
+
+  await access(new URL("app/_components/community/community-story-room-access.tsx", root));
+  await access(new URL("app/_components/community/community-story-room-access.module.css", root));
+  await access(new URL("app/_components/community/community-story-room-listing.tsx", root));
+
+  const [workspace, accessUi, listing, architectureText] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/_components/community/community-story-room-access.tsx"),
+    read("app/_components/community/community-story-room-listing.tsx"),
+    read("config/repository-architecture-target.json"),
+  ]);
+
+  assert.match(workspace, /\.\/_components\/community\/community-story-room-access/);
+  assert.doesNotMatch(workspace, /from "\.\/community-story-room-access"/);
+  assert.match(accessUi, /from "\.\.\/\.\.\/\.\.\/core\/auth\/profile-request-browser"/);
+  assert.match(accessUi, /from "\.\.\/\.\.\/\.\.\/modules\/community\/story-room-directory"/);
+  assert.match(accessUi, /from "\.\/community-story-room-listing"/);
+  assert.match(accessUi, /authenticatedProfileFetch/);
+  assert.match(accessUi, /CommunityStoryRoomOwnerRequests/);
+  assert.match(accessUi, /aria-label="Story Room access"/);
+  assert.match(accessUi, /BUZZ enforces the actual channel permissions/);
+  assert.match(listing, /Story Room/);
+
+  const architecture = JSON.parse(architectureText);
+  const communityBatch = architecture.moveBatches.find((item) => item.id === "phase3-app-community-components");
+  assert.ok(communityBatch, "the ratified Community batch must remain governed");
+  assert.notEqual(communityBatch.status, "completed", "Community phase must remain open while other root Community UI remains");
+
+  const appEntries = await readdir(new URL("app/", root));
+  const remainingCommunityRoots = appEntries.filter((name) => name.startsWith("community-"));
+  assert.ok(remainingCommunityRoots.length > 0, "this bounded slice must not pretend the whole Community batch is finished");
+  assert.ok(!remainingCommunityRoots.includes("community-story-room-access.tsx"));
+  assert.ok(!remainingCommunityRoots.includes("community-story-room-access.module.css"));
+  assert.ok(!remainingCommunityRoots.includes("community-story-room-listing.tsx"));
+});

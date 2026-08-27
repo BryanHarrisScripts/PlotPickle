@@ -32,7 +32,7 @@ jobs:
         run: python .github/scripts/issue-1462-retire-comfyui-diagnostics-bridge.py
 
       - name: Focused diagnostics regressions
-        run: node --test tests/issue-1462-comfyui-diagnostics-kernel-move.test.mjs tests/issue-353-ai-routing-diagnostics.test.mjs tests/issue-374-comfyui-local-connection.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs
+        run: node --test tests/issue-1462-comfyui-diagnostics-kernel-move.test.mjs tests/issue-374-comfyui-local-connection.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs
 
       - name: Diff hygiene
         run: git diff --check

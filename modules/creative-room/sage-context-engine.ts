@@ -6,7 +6,7 @@ import {
   contextReceiptSummary,
   type ContextItemInput,
   type ContextPacket,
-} from "../../lib/context-engine";
+} from "../../lib/agents/context/context-engine";
 import {
   contextStrategyForTask,
   selectAdaptiveContextCandidates,

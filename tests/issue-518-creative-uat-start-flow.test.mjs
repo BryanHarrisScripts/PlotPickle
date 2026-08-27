@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-const dashboardUrl = new URL("../app/dashboard-story-library.tsx", import.meta.url);
+const dashboardUrl = new URL("../app/_components/dashboard/dashboard-story-library.tsx", import.meta.url);
 const actionsUrl = new URL("../scripts/creative-uat/browser-actions.mjs", import.meta.url);
 const runtimeUrl = new URL("../scripts/creative-uat/mcp-runtime.mjs", import.meta.url);
 const powershellUrl = new URL("../scripts/run-creative-writer-uat.ps1", import.meta.url);

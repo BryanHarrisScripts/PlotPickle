@@ -164,7 +164,7 @@ test("phase 5 saves Make My Own Copy through the normal local project service be
 test("phase 5 exposes View, Copy, Reset and sample Graphic Novel actions without an original-repository switch", async () => {
   const [banner, dashboard] = await Promise.all([
     source("app/afterglow-example-boundary.tsx"),
-    source("app/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
   ]);
   for (const phrase of [
     "Afterglow — PlotPickle Example Story",
@@ -204,7 +204,7 @@ test("phase 5 removes the old persistence hook while retaining the focused regre
 
 test("phase 5 preserves shared dashboard accessibility and treatment guidance", async () => {
   const [dashboard, page] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
     source("app/page.tsx"),
   ]);
   assert.match(dashboard, /RefreshAction/);

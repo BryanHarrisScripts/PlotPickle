@@ -54,7 +54,7 @@ test("issue #360 exposes only loopback local system telemetry and refuses invent
 test("issue #360 keeps Compute Hub read-only and available without mounting it in the Studio Dashboard", async () => {
   const [hub, dashboard, css] = await Promise.all([
     source("app/compute-hub-dashboard.tsx"),
-    source("app/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
     source("app/compute-hub-dashboard.module.css"),
   ]);
 

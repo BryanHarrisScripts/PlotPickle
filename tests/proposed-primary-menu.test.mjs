@@ -110,7 +110,7 @@ test("Suggest Report issue drafts redact credentials and preserve human triage",
 });
 
 test("the Dashboard command centre has responsive local styling", async () => {
-  const css = await source("app/dashboard-command-centre.module.css");
+  const css = await source("app/_components/dashboard/dashboard-command-centre.module.css");
   assert.match(css, /grid-template-columns:250px minmax\(0,1fr\)/);
   assert.match(css, /@media\(max-width:1100px\)/);
   assert.match(css, /@media\(max-width:700px\)/);

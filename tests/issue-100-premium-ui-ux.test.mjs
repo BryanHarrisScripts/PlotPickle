@@ -36,8 +36,8 @@ test("issue #100 centers the application menu through one shared premium shell",
 
 test("issue #100 dashboard uses accessible green yellow and red status states", async () => {
   const [dashboard, css] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
-    source("app/dashboard-command-centre.module.css"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.module.css"),
   ]);
   for (const tone of ["green", "yellow", "red"]) {
     assert.match(dashboard, new RegExp(`${tone}: \\{ icon:`));
@@ -50,8 +50,8 @@ test("issue #100 dashboard uses accessible green yellow and red status states", 
 
 test("issue #100 long dashboard and reports workspaces use left-side section navigation", async () => {
   const [dashboard, dashboardCss, reports, reportCss] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
-    source("app/dashboard-command-centre.module.css"),
+    source("app/_components/dashboard/dashboard-command-centre.tsx"),
+    source("app/_components/dashboard/dashboard-command-centre.module.css"),
     source("app/settings-project-tools.tsx"),
     source("app/settings-project-tools.module.css"),
   ]);

@@ -1,18 +1,25 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- bundled Storyboard references are local PlotPickle assets. */
+
+import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
-import { AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER } from "@/modules/library/reference/afterglow-v9-visual-readiness";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
+import { storyboardReferenceCandidates } from "./storyboard-editorial-model";
 import styles from "./storyboard-readiness-workspace.module.css";
+
+const STATE_LABELS = {
+  defined: "DEFINED",
+  observed: "OBSERVED",
+  emerging: "EMERGING",
+  missing: "MISSING",
+  locked: "LOCKED",
+} as const;
 
 function blockNumber(target: VisualReadinessTarget) {
   const match = target.id.match(/^block:block-(\d{2})$/);
   return match ? Number(match[1]) : 0;
-}
-
-function stateLabel(target: VisualReadinessTarget) {
-  return target.storyboardAllowed ? "Ready for Storyboard" : target.state.charAt(0).toUpperCase() + target.state.slice(1);
 }
 
 export default function StoryboardReadinessWorkspace({ project, onProjectChange, onOpenBuild }: {
@@ -25,68 +32,124 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     .filter((target) => target.kind === "block")
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
-  const editorialTarget = blocks.find((target) => (
-    blockNumber(target) === AFTERGLOW_V9_VISUAL_READINESS_BLOCK_NUMBER && target.storyboardAllowed
-  )) ?? null;
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
+  const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
+  const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
+  const selectedReferences = useMemo(
+    () => selectedTarget ? storyboardReferenceCandidates(project, selectedTarget.id) : [],
+    [project, selectedTarget],
+  );
 
   return (
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Storyboard · Phase 8 re-adoption</span>
-          <h1 id="storyboard-readiness-title">Sketch only what the story has earned.</h1>
+          <span className={styles.eyebrow}>Storyboard · 24 Blocks / 96 Mini-Blocks</span>
+          <h1 id="storyboard-readiness-title">Build the story one visual beat at a time.</h1>
           <p>
-            Storyboard now reads the canonical PPF readiness contract. Existing Storyboard frames, assets and editorial tools are being re-adopted behind this gate rather than reviving a second project store.
+            Each tab is one canonical Block. Open any Block to inspect its four Mini-Block visual slots. The full Storyboard stays visible while the PPF readiness contract decides which slots are ready for active visual work.
           </p>
         </div>
         <dl className={styles.summary}>
           <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{project.revision}</dd></div>
-          <div><dt>Curriculum frontier</dt><dd>{readiness.curriculumFrontier}</dd></div>
-          <div><dt>Storyboard-ready Blocks</dt><dd>{readyCount} / {blocks.length}</dd></div>
+          <div><dt>Visual slots</dt><dd>96</dd></div>
+          <div><dt>Ready Blocks</dt><dd>{readyCount} / {blocks.length}</dd></div>
         </dl>
       </header>
 
       <section className={styles.notice} aria-label="Storyboard authority boundary">
-        <strong>{readiness.storyboardAllowed ? "Storyboard has eligible targets." : "Storyboard is visible, but no Block is authorable yet."}</strong>
-        <span>Locked or missing targets stay truthful. PlotPickle does not fabricate scene or frame readiness from early curriculum decisions.</span>
+        <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "Storyboard is visible, but visual authoring is still gated."}</strong>
+        <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED use the same colour language as BUILD. A tab is always inspectable; only earned targets become authorable.</span>
         <button type="button" onClick={onOpenBuild}>Open BUILD evidence</button>
       </section>
 
-      <section className={styles.board} aria-label="Canonical Storyboard readiness by Block">
+      <nav aria-label="Storyboard Block tabs" className={styles.tabRail} role="tablist">
         {blocks.map((target) => {
           const number = blockNumber(target);
+          const selected = number === selectedNumber;
           return (
-            <article className={styles.card} data-storyboard-allowed={target.storyboardAllowed ? "true" : "false"} key={target.id}>
-              <header>
-                <span>Block {String(number).padStart(2, "0")}</span>
-                <strong>{stateLabel(target)}</strong>
-              </header>
-              <h2>{target.label.replace(/^Block \d+: /, "")}</h2>
-              <p>{target.storyboardAllowed
-                ? "Human-reviewed structural placement exists for this canonical target."
-                : target.missingPrerequisites.join(" · ") || "Storyboard prerequisites remain unresolved."}</p>
-              <dl>
-                <div><dt>Evidence</dt><dd>{target.state}</dd></div>
-                <div><dt>Frontier</dt><dd>{target.curriculumFrontier}</dd></div>
-                <div><dt>Provenance</dt><dd>{target.provenance.length ? target.provenance.map((item) => item.source).join(" · ") : "No accepted placement evidence"}</dd></div>
-              </dl>
-            </article>
+            <button
+              aria-controls="storyboard-block-panel"
+              aria-label={`Block ${String(number).padStart(2, "0")}, ${STATE_LABELS[target.state]}`}
+              aria-selected={selected}
+              className={styles.blockTab}
+              data-state={target.state}
+              key={target.id}
+              onClick={() => setSelectedBlockNumber(number)}
+              role="tab"
+              type="button"
+            >
+              <i aria-hidden="true" className={styles.stateLight} />
+              <span>{String(number).padStart(2, "0")}</span>
+            </button>
           );
         })}
-      </section>
+      </nav>
 
-      {editorialTarget ? (
+      {selectedTarget ? (
+        <section
+          aria-label={`Block ${String(selectedNumber).padStart(2, "0")} Storyboard workspace`}
+          className={styles.blockWorkspace}
+          data-state={selectedTarget.state}
+          id="storyboard-block-panel"
+          role="tabpanel"
+        >
+          <header className={styles.blockHeader}>
+            <div>
+              <p className={styles.blockKicker}>Block {String(selectedNumber).padStart(2, "0")}</p>
+              <h2>{selectedTarget.label.replace(/^Block \d+: /, "")}</h2>
+              <p>{selectedTarget.storyboardAllowed
+                ? "This Block has enough reviewed structural evidence to begin visual decisions."
+                : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
+            </div>
+            <span aria-label={`Status: ${STATE_LABELS[selectedTarget.state]}`} className={styles.blockState} data-state={selectedTarget.state}>
+              <i aria-hidden="true" className={styles.stateLight} />
+              <strong>{STATE_LABELS[selectedTarget.state]}</strong>
+            </span>
+          </header>
+
+          <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual slots`}>
+            {[1, 2, 3, 4].map((miniNumber) => {
+              const reference = selectedReferences.find((candidate) => candidate.miniBlockNumber === miniNumber);
+              return (
+                <article className={styles.miniBlock} data-authorable={selectedTarget.storyboardAllowed ? "true" : "false"} key={miniNumber}>
+                  <div className={styles.miniPreview}>
+                    {reference
+                      ? <img alt={reference.caption} src={reference.assetUrl} />
+                      : <span aria-hidden="true" className={styles.emptyFrame}>+</span>}
+                  </div>
+                  <header>
+                    <div>
+                      <span>Mini-Block</span>
+                      <strong>{selectedNumber}.{miniNumber}</strong>
+                    </div>
+                    <i aria-label={`Status: ${STATE_LABELS[selectedTarget.state]}`} className={styles.stateLight} data-state={selectedTarget.state} />
+                  </header>
+                  <p>{reference?.caption || (selectedTarget.storyboardAllowed
+                    ? "Visual slot ready for its first frame, composition or candidate."
+                    : "Visual slot reserved. BUILD evidence must mature before authoring begins.")}</p>
+                  <button disabled={!selectedTarget.storyboardAllowed} type="button">
+                    {reference ? "Open visual" : "Start visual"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {selectedTarget?.storyboardAllowed ? (
         <StoryboardEditorialWorkspace
           project={project}
-          target={editorialTarget}
+          target={selectedTarget}
           onProjectChange={onProjectChange}
           onOpenBuild={onOpenBuild}
         />
       ) : null}
 
       <footer className={styles.footer}>
-        Existing `VisualFrame` / `VisualMediaVersion` identity and Keep/Change/Compare semantics are being re-adopted behind canonical targets. This readiness gate writes no visual canon and triggers no media generation; an explicit Human Keep decision records only the approved visual projection in PPF.
+        Storyboard is a 24-tab visual workbench: one Block per tab, four Mini-Blocks per Block, 96 visual slots total. Existing frame identity and Keep / Change / Compare semantics remain behind canonical PPF targets; inspecting a tab never promotes reference material or changes story canon.
       </footer>
     </main>
   );

@@ -10,7 +10,7 @@ import {
   normalizeStoryBridgeContribution,
   storyBridgeResultMatchesRequest,
   STORY_BRIDGE_RESULT_MARKER,
-} from "../core/story-workflow/buzz-story-bridge-core.mjs";
+} from "../core/story-workflow/buzz/buzz-story-bridge-core.mjs";
 import {
   canonicalNostrEventId,
   verifyNostrEventSignature,

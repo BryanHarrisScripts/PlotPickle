@@ -1,58 +1,4 @@
-from pathlib import Path
-
-root = Path(".")
-source_mjs = root / "core/story-workflow/buzz-story-bridge-core.mjs"
-target_mjs = root / "core/story-workflow/buzz/buzz-story-bridge-core.mjs"
-source_dts = root / "core/story-workflow/buzz-story-bridge-core.d.ts"
-target_dts = root / "core/story-workflow/buzz/buzz-story-bridge-core.d.ts"
-
-target_mjs.parent.mkdir(parents=True, exist_ok=True)
-mjs = source_mjs.read_text()
-mjs = mjs.replace('from "./story-workflow-core.mjs"', 'from "../story-workflow-core.mjs"')
-mjs = mjs.replace('from "../buzz/nostr-event-verification.mjs"', 'from "../../buzz/nostr-event-verification.mjs"')
-target_mjs.write_text(mjs)
-source_mjs.unlink()
-
-dts = source_dts.read_text().replace('from "./story-workflow-core.mjs"', 'from "../story-workflow-core.mjs"')
-target_dts.write_text(dts)
-source_dts.unlink()
-
-replacements = {
-    "build/story-workflow-buzz-bridge-gateway.ts": [
-        ("../core/story-workflow/buzz-story-bridge-core.mjs", "../core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
-    ],
-    "modules/story-workflow/bridge/buzz-story-bridge.ts": [
-        ("../../../core/story-workflow/buzz-story-bridge-core.mjs", "../../../core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
-    ],
-    "tests/issue-1422-buzz-story-bridge-hardening.test.mjs": [
-        ("../core/story-workflow/buzz-story-bridge-core.mjs", "../core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
-    ],
-    "tests/issue-1422-buzz-story-bridge.test.mjs": [
-        ("../core/story-workflow/buzz-story-bridge-core.mjs", "../core/story-workflow/buzz/buzz-story-bridge-core.mjs"),
-    ],
-}
-for path, pairs in replacements.items():
-    file = root / path
-    text = file.read_text()
-    original = text
-    for old, new in pairs:
-        if old not in text:
-            raise SystemExit(f"Missing expected path in {path}: {old}")
-        text = text.replace(old, new)
-    if text == original:
-        raise SystemExit(f"No change made to {path}")
-    file.write_text(text)
-
-config = root / "config/repository-architecture-target.json"
-text = config.read_text()
-old = '{"id":"phase2-core-story-buzz","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/buzz","directFilesOnly":true,"selector":{"prefixes":["buzz-story-bridge-core"]}}'
-new = '{"id":"phase2-core-story-buzz","phase":2,"domain":"story","sourceRoot":"core/story-workflow","targetRoot":"core/story-workflow/buzz","directFilesOnly":true,"selector":{"prefixes":["buzz-story-bridge-core"]},"status":"completed","completedAt":"2026-08-27","completedSources":["core/story-workflow/buzz-story-bridge-core.d.ts","core/story-workflow/buzz-story-bridge-core.mjs"],"completedTargets":["core/story-workflow/buzz/buzz-story-bridge-core.d.ts","core/story-workflow/buzz/buzz-story-bridge-core.mjs"]}'
-if old not in text:
-    raise SystemExit("Expected phase2-core-story-buzz contract line was not found")
-config.write_text(text.replace(old, new, 1))
-
-test = root / "tests/issue-1502-buzz-story-core-move.test.mjs"
-test.write_text(r'''import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -113,4 +59,3 @@ test("#1502 records exact completion while preserving the Phase 0 historical map
   const history = await source("docs/architecture/REPOSITORY-ARCHITECTURE-TARGET.md");
   assert.ok(history.includes('legacy root `core/story-workflow/buzz-story-bridge-core.*` → existing `core/story-workflow/buzz/`'));
 });
-''')

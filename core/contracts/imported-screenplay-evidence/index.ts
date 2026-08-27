@@ -10,6 +10,13 @@ export type ImportedScreenplayPassage = {
   readonly sceneId: string | null;
 };
 
+export type ImportedScreenplayProjectionReview = {
+  readonly blockNumber: number;
+  readonly state: "needs-review";
+  readonly atRevision: number;
+  readonly reasonRefs: readonly string[];
+};
+
 export type ImportedScreenplayEvidence = {
   readonly sourceFileName: string;
   readonly sourceFormat: string;
@@ -19,6 +26,7 @@ export type ImportedScreenplayEvidence = {
   readonly storedPassageCount: number;
   readonly passagesTruncated: boolean;
   readonly passages: readonly ImportedScreenplayPassage[];
+  readonly projectionReviews?: readonly ImportedScreenplayProjectionReview[];
 };
 
 export type ReferenceFixtureFieldKind = "observed" | "synthetic-reference";
@@ -90,6 +98,18 @@ function normalizePassage(value: unknown): ImportedScreenplayPassage | null {
     miniBlockNumber: boundedInteger(source.miniBlockNumber, 1, 4),
     sceneNumber: boundedInteger(source.sceneNumber, 0, 9999),
     sceneId: cleanText(source.sceneId, 240) || null,
+  };
+}
+
+function normalizeProjectionReview(value: unknown): ImportedScreenplayProjectionReview | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Partial<ImportedScreenplayProjectionReview>;
+  if (source.state !== "needs-review") return null;
+  return {
+    blockNumber: boundedInteger(source.blockNumber, 1, 24),
+    state: "needs-review",
+    atRevision: boundedInteger(source.atRevision, 0, 1000000),
+    reasonRefs: cleanStringArray(source.reasonRefs, 64),
   };
 }
 
@@ -169,6 +189,14 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
       .slice(0, 2500)
     : [];
+  const projectionReviews = Array.isArray(screenplay.projectionReviews)
+    ? screenplay.projectionReviews
+      .map(normalizeProjectionReview)
+      .filter((item): item is ImportedScreenplayProjectionReview => Boolean(item))
+      .filter((item, index, all) => all.findLastIndex((candidate) => candidate.blockNumber === item.blockNumber) === index)
+      .sort((left, right) => left.blockNumber - right.blockNumber)
+      .slice(0, 24)
+    : [];
   const analysisStatus: ImportedScreenplayEvidenceState = screenplay.analysisStatus === "reviewed"
     ? "reviewed"
     : screenplay.analysisStatus === "suggested"
@@ -185,7 +213,48 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       storedPassageCount: passages.length,
       passagesTruncated: Boolean(screenplay.passagesTruncated) || totalPassageCount > passages.length,
       passages,
+      projectionReviews,
     },
     referenceFixture,
+  };
+}
+
+function projectionBlockNumber(value: string) {
+  const ref = cleanText(value, 240);
+  const ppfMatch = /^ppf:build:block:(\d{1,2})(?::|$)/i.exec(ref);
+  const blockMatch = /^block-(\d{1,2})(?::|$)/i.exec(ref);
+  const number = Number(ppfMatch?.[1] ?? blockMatch?.[1] ?? "");
+  return Number.isInteger(number) && number >= 1 && number <= 24 ? number : 0;
+}
+
+/**
+ * Mark only dependency-backed screenplay Block projections for Human review.
+ * Source passages remain immutable evidence; this records projection provenance
+ * inside the same PPF rather than rewriting text or creating a second script store.
+ */
+export function markImportedScreenplayProjectionStale(
+  value: unknown,
+  affectedRefs: readonly string[],
+  atRevision: number,
+): ProjectSourceEvidence {
+  const evidence = normalizeProjectSourceEvidence(value);
+  if (!evidence.screenplay) return evidence;
+  const refs = cleanStringArray(affectedRefs, 128);
+  const affectedBlocks = [...new Set(refs.map(projectionBlockNumber).filter(Boolean))];
+  if (!affectedBlocks.length) return evidence;
+  const existing = evidence.screenplay.projectionReviews ?? [];
+  const retained = existing.filter((review) => !affectedBlocks.includes(review.blockNumber));
+  const reviews = affectedBlocks.map((blockNumber): ImportedScreenplayProjectionReview => ({
+    blockNumber,
+    state: "needs-review",
+    atRevision: boundedInteger(atRevision, 0, 1000000),
+    reasonRefs: refs.filter((ref) => projectionBlockNumber(ref) === blockNumber),
+  }));
+  return {
+    ...evidence,
+    screenplay: {
+      ...evidence.screenplay,
+      projectionReviews: [...retained, ...reviews].sort((left, right) => left.blockNumber - right.blockNumber),
+    },
   };
 }

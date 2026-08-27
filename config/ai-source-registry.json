@@ -129,7 +129,7 @@
       "id": "text.gemini",
       "capability": "text",
       "label": "Google Gemini · Provider Cloud",
-      "description": "Use the configured Gemini writing model through Google&apos;s OpenAI-compatible API contract and the user-owned API key.",
+      "description": "Use the configured Gemini writing model through Google's OpenAI-compatible API contract and the user-owned API key.",
       "providerIds": ["gemini"],
       "selectableWhen": "ready"
     },

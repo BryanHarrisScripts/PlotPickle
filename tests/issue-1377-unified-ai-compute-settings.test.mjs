@@ -102,7 +102,7 @@ test("#1344 model catalogs extend the shared Compute workspace instead of restor
     read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/settings/compute/local-model-catalog-panel.tsx"),
     read("app/settings/compute/cloud-model-catalog-panel.tsx"),
-    read("build/provider-model-catalog-gateway.ts"),
+    read("build/ai/provider-model-catalog-gateway.ts"),
   ]);
 
   assert.match(compute, /<LocalModelCatalogPanel \/>/);

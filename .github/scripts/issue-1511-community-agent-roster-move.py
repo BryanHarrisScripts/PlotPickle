@@ -38,6 +38,14 @@ def replace_tracked_refs(old: str, new: str) -> None:
         write(path, content.replace(old, new))
 
 
+old_exists = (ROOT / OLD_TSX).exists() or (ROOT / OLD_CSS).exists()
+new_exists = (ROOT / NEW_TSX).exists() and (ROOT / NEW_CSS).exists()
+if not old_exists and new_exists:
+    print("Community Agent roster is already migrated; no transformation needed.")
+    raise SystemExit(0)
+if not old_exists or new_exists:
+    raise SystemExit("Community Agent roster source/target state is inconsistent; refusing partial migration.")
+
 subprocess.run(["git", "mv", OLD_TSX, NEW_TSX], check=True)
 subprocess.run(["git", "mv", OLD_CSS, NEW_CSS], check=True)
 

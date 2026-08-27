@@ -10,7 +10,7 @@ on:
       - "scripts/agent-skills.mjs"
       - "scripts/agent-skill-procedures.mjs"
       - "scripts/agent-skill-trust.mjs"
-      - "lib/agent-profiles.ts"
+      - "lib/agents/agent-profiles.ts"
       - "lib/connector-trust-policy.ts"
       - "lib/model-portability-evals.ts"
       - "tests/fixtures/agent-skills/**"

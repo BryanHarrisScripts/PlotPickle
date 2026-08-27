@@ -42,7 +42,7 @@ test("#1461 ratifies deterministic bounded structural batches for Architecture P
   assert.ok(report.plannedMoves.every((move) => Array.isArray(move.directImportConsumers) && Array.isArray(move.hardcodedPathConsumers)));
 
   const bridgeRetirement = report.plannedMoves.filter((move) => move.batchId === "phase4-retire-agent-compatibility-bridges");
-  assert.ok(bridgeRetirement.length >= 5);
+  assert.ok(bridgeRetirement.length >= 1, "Phase 4 must keep inventorying any compatibility bridges that remain until the batch is marked completed");
   assert.ok(bridgeRetirement.every((move) => move.mode === "retire-bridge" && move.target.startsWith("lib/agents/")));
 });
 

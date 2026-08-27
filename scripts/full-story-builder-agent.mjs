@@ -3,7 +3,7 @@ import os from "node:os";
 import { pathToFileURL } from "node:url";
 import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../modules/learn/full-story-builder.mjs";
 import { mergeLearnProjectWithFullStory } from "../modules/learn/learn-full-story-merge.mjs";
-import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
+import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agents/agent-window-status.mjs";
 
 const DEFAULT_SERVER = "http://127.0.0.1:4173";
 const POLL_MS = 2_000;

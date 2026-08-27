@@ -6,10 +6,10 @@ on:
     paths:
       - "config/agent-orchestration.json"
       - "config/agent-profiles.json"
-      - "lib/agent-orchestration.ts"
-      - "lib/context-engine.ts"
+      - "lib/agents/agent-orchestration.ts"
+      - "lib/agents/context/context-engine.ts"
       - "lib/adaptive-context-strategy-core.mjs"
-      - "lib/adaptive-context-strategies.ts"
+      - "lib/agents/context/adaptive-context-strategies.ts"
       - "lib/harness-improvement-core.mjs"
       - "lib/harness-improvement-proposals.ts"
       - "lib/responsibility-runs.ts"

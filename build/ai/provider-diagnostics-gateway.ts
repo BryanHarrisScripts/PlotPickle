@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { diagnoseComfyUI, normalizeLocalComfyUrl } from "../comfyui-connection-diagnostics";
+import { diagnoseComfyUI, normalizeLocalComfyUrl } from "./comfyui-connection-diagnostics";
 import { readMediaRoutingStore, writeMediaRoutingStore } from "../media-routing-store";
 
 const API_ROOT = "/api/provider-diagnostics";

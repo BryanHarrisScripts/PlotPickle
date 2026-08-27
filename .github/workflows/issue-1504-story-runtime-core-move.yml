@@ -1,0 +1,47 @@
+name: Issue 1504 Story Runtime Core Move
+
+on:
+  push:
+    branches:
+      - architecture/1504-story-workflow-runtime-core
+    paths:
+      - ".github/workflows/issue-1504-story-runtime-core-move.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-story-runtime-core-move:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: architecture/1504-story-workflow-runtime-core
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Apply final ratified Story Workflow core move
+        run: python .github/scripts/issue-1504-story-runtime-core-move.py
+
+      - name: Focused Phase 2 regression gate
+        run: node --test tests/issue-1416-story-workflow-engine.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1497-story-bridge-module-move.test.mjs tests/issue-1499-foundations-story-runtime-move.test.mjs tests/issue-1502-buzz-story-core-move.test.mjs tests/issue-1504-story-runtime-core-move.test.mjs
+
+      - name: Diff hygiene
+        run: git diff --check
+
+      - name: Commit permanent source move
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/scripts/issue-1504-story-runtime-core-move.py
+          git add -A
+          git commit -m "refactor(#1504): move Story Workflow core to runtime owner"
+          git push origin HEAD:architecture/1504-story-workflow-runtime-core

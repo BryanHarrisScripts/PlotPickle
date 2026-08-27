@@ -16,6 +16,9 @@ test("#1461 inventories repository breadth, fan-out and depth without treating h
   for (const root of ["app", "core", "modules", "lib", "build", "scripts", "tests", "docs", "public"]) {
     assert.ok(roots.has(root), `${root}/ must appear in the complete top-level inventory`);
   }
+  for (const generated of [".sites-runtime", ".vinext", ".next", "node_modules", ".artifacts"]) {
+    assert.equal(roots.has(generated), false, `${generated}/ is generated runtime/build state and must not contaminate repository architecture evidence`);
+  }
 
   const build = roots.get("build");
   assert.ok(build.directSourceFiles >= 18, `build/ should remain evidenced as a flat-root hotspot until Phase 1; saw ${build.directSourceFiles}`);

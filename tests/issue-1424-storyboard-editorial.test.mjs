@@ -64,7 +64,10 @@ test("#1424 renders Storyboard as 24 Block tabs with four Mini-Block slots per s
   assert.match(workspace, /\[1, 2, 3, 4\]\.map/);
   assert.match(workspace, /Visual slots<\/dt><dd>96/);
   assert.match(workspace, /A tab is always inspectable; only earned targets become authorable/);
-  assert.match(workspace, /disabled=!\{selectedTarget\.storyboardAllowed\}|disabled=\{!selectedTarget\.storyboardAllowed\}/);
+  assert.match(workspace, /const canReviewReference = Boolean\(selectedTarget\.storyboardAllowed && reference\)/);
+  assert.match(workspace, /disabled=\{!canReviewReference\}/);
+  assert.match(workspace, /Awaiting candidate/);
+  assert.match(workspace, /Locked by BUILD/);
   assert.match(css, /grid-template-columns: repeat\(24/);
   assert.match(css, /grid-template-columns: repeat\(4/);
 });

@@ -114,7 +114,7 @@ test("SDXL is the default 8 GB image route and SD3.5 is only experimental", asyn
   const [catalog, store, gateway] = await Promise.all([
     read("lib/runtime/ai/local-runtime.ts"),
     read("build/media-routing-store.ts"),
-    read("build/comfyui-sdxl-local-gateway.ts"),
+    read("build/ai/comfyui-sdxl-local-gateway.ts"),
   ]);
   assert.match(store, /imageRoute: "comfyui"/);
   assert.match(gateway, /SDXL_PATTERN/);
@@ -144,7 +144,7 @@ test("visual continuity controls remain above provider/model selection and reach
   const [contracts, common, sdxl] = await Promise.all([
     read("lib/runtime/ai/contracts.ts"),
     read("build/media-provider-common.ts"),
-    read("build/comfyui-sdxl-local-provider.ts"),
+    read("build/ai/comfyui-sdxl-local-provider.ts"),
   ]);
   assert.match(contracts, /IdentityLock/);
   assert.match(common, /approvedCharacterReferences/);

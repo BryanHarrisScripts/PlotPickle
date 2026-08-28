@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
@@ -13,9 +14,21 @@ import {
   PROFILE_PRIVATE_SAVE_STATE_EVENT,
 } from "@/core/storage/profile-private-browser";
 import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
+import {
+  GLOBAL_SHORTCUTS,
+  PLOTPICKLE_OPEN_NODE_EVENT,
+  PLOTPICKLE_OPEN_PROFILE_EVENT,
+  WORKFLOW_SHORTCUTS,
+  globalShortcutBlocked,
+  shortcutForKey,
+  type GlobalShortcut,
+  type RootWorkspace,
+} from "./navigation/global-shortcuts";
 import styles from "./plotpickle-workspace-shell.module.css";
 
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";
+export type { RootWorkspace } from "./navigation/global-shortcuts";
+
+export const ROOT_NAV_ITEMS = WORKFLOW_SHORTCUTS;
 
 type NodeLifecycle = { readonly state: string; readonly lastError: string; readonly inProgress: boolean };
 type NodeStatus = {
@@ -27,31 +40,6 @@ type ProfileStatus = { readonly authenticated: boolean; readonly profile: { read
 type TopologyStatus = { readonly currentNode?: { readonly readiness?: string; readonly capabilities?: readonly string[] } };
 
 const NODE_CONTROL_HEADERS = { "Content-Type": "application/json", "X-PlotPickle-Node-Control": "confirmed" } as const;
-
-export const ROOT_NAV_ITEMS = [
-  { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
-  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Stories", selectable: true },
-  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
-  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
-  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
-  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: true },
-  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Sketch", selectable: false },
-  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Previs", detail: "Visualize", selectable: false },
-  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft", selectable: false },
-  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Polish", selectable: false },
-  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
-  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
-  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "KPI", selectable: true },
-  { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "Settings", detail: "Config", selectable: true },
-] as const;
-
-type RootNavItem = (typeof ROOT_NAV_ITEMS)[number];
-
-function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
-  return id === "dashboard" || id === "learn" || id === "plan" || id === "build"
-    || id === "wyrmwood" || id === "library" || id === "community" || id === "settings";
-}
 
 async function responseJson(response: Response) {
   try { return await response.json() as Record<string, unknown>; }
@@ -127,6 +115,14 @@ function NodeControl() {
       window.removeEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, saveChanged);
     };
   }, []);
+  useEffect(() => {
+    const openNode = () => {
+      setOpen(true);
+      void refresh().catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)));
+    };
+    window.addEventListener(PLOTPICKLE_OPEN_NODE_EVENT, openNode);
+    return () => window.removeEventListener(PLOTPICKLE_OPEN_NODE_EVENT, openNode);
+  }, [refresh]);
 
   async function shutDown() {
     if (busy || node?.lifecycle.inProgress) return;
@@ -181,8 +177,9 @@ function NodeControl() {
     <button
       type="button"
       className={styles.nodeButton}
-      aria-label={`PlotPickle Node ${node?.node.shortId || "control"}`}
+      aria-label={`PlotPickle Node ${node?.node.shortId || "control"}. Shortcut N.`}
       aria-expanded={open}
+      title="Node · Profile home · N"
       onClick={() => {
         const next = !open;
         setOpen(next);
@@ -194,7 +191,7 @@ function NodeControl() {
       <small>{node?.node.shortId || "PP-····"}</small>
     </button>
 
-    {open ? <section className={styles.nodePanel} aria-label="PlotPickle Node control panel">
+    {open ? <section className={styles.nodePanel} aria-label="PlotPickle Node control panel" data-disable-global-shortcuts="true">
       <header className={styles.nodePanelHeader}><div><small>LOCAL NODE</small><strong>{node?.node.shortId || "PlotPickle Node"}</strong></div><button type="button" onClick={() => setOpen(false)} aria-label="Close Node panel">Close</button></header>
       <dl className={styles.nodeRows}>
         <div><dt>Full Node ID</dt><dd className={styles.nodeId}>{node?.node.id || "Loading…"}</dd></div>
@@ -223,20 +220,49 @@ export default function PlotPickleWorkspaceShell({
   readonly children: ReactNode;
   readonly onNavigate: (workspace: RootWorkspace) => void;
 }) {
+  const router = useRouter();
+
+  const runShortcut = useCallback((shortcut: GlobalShortcut) => {
+    if (shortcut.action.kind === "workspace") {
+      onNavigate(shortcut.action.workspace);
+      return;
+    }
+    if (shortcut.action.kind === "route") {
+      router.push(shortcut.action.href);
+      return;
+    }
+    if (shortcut.action.kind === "node") {
+      window.dispatchEvent(new Event(PLOTPICKLE_OPEN_NODE_EVENT));
+      return;
+    }
+    window.dispatchEvent(new Event(PLOTPICKLE_OPEN_PROFILE_EVENT));
+  }, [onNavigate, router]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (globalShortcutBlocked(event)) return;
+      const shortcut = shortcutForKey(event.key);
+      if (!shortcut) return;
+      event.preventDefault();
+      runShortcut(shortcut);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [runShortcut]);
+
   return (
     <div className={styles.shell} data-active-workspace={activeWorkspace}>
       <nav
         aria-label="PlotPickle global workflow"
         className={styles.navigator}
-        data-plotpickle-global-nav="v2"
+        data-plotpickle-global-nav="v3"
       >
         <NodeControl />
 
         <div className={styles.scroller}>
           <ol className={styles.list} data-workspace-navigation="true">
-            {ROOT_NAV_ITEMS.map((item) => {
-              const active = item.id === activeWorkspace;
-              const selectable = item.selectable && isRootWorkspace(item.id);
+            {WORKFLOW_SHORTCUTS.map((item) => {
+              const active = item.action.kind === "workspace" && item.action.workspace === activeWorkspace;
               return (
                 <li
                   className={active ? styles.active : undefined}
@@ -245,19 +271,30 @@ export default function PlotPickleWorkspaceShell({
                 >
                   <button
                     aria-current={active ? "page" : undefined}
-                    disabled={!selectable || active}
-                    onClick={() => { if (selectable) onNavigate(item.id); }}
-                    title={`${item.label} · ${item.detail}`}
+                    disabled={active}
+                    onClick={() => runShortcut(item)}
+                    title={`${item.label} · ${item.detail} · ${item.key}`}
                     type="button"
                   >
                     <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={item.relic} width={44} />
-                    <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail}</small></span>
+                    <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail} · {item.key}</small></span>
                   </button>
                 </li>
               );
             })}
           </ol>
         </div>
+
+        <details className={styles.shortcutHelp} data-disable-global-shortcuts="true" data-global-shortcut-help="true">
+          <summary aria-label="Keyboard shortcuts">Keys</summary>
+          <div className={styles.shortcutHelpPanel}>
+            <strong>Keyboard navigation</strong>
+            <p>Single letters work when you are not typing or using a dialog.</p>
+            <ul>
+              {GLOBAL_SHORTCUTS.map((shortcut) => <li key={shortcut.id}><kbd>{shortcut.key}</kbd><span>{shortcut.label}</span><small>{shortcut.detail}</small></li>)}
+            </ul>
+          </div>
+        </details>
       </nav>
 
       <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>

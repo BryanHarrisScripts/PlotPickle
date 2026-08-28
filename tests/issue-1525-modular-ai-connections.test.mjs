@@ -72,3 +72,36 @@ test("#1525 Gemini setup keeps cloud activation explicit", async () => {
   assert.match(panel, /Choosing Gemini as the active Writing route remains a separate explicit action/);
   assert.doesNotMatch(panel, /\/api\/writing-assistant\/active/);
 });
+
+test("#1525 overview answers what, where, how and which provider from live authorities", async () => {
+  const overview = await read("app/settings-readiness-overview.tsx");
+
+  assert.match(overview, /\/api\/ai-routing\/status/);
+  assert.match(overview, /data-connection-map/);
+  assert.match(overview, />1 · What?</);
+  assert.match(overview, />2 · Where?</);
+  assert.match(overview, />3 · How?</);
+  assert.match(overview, />4 · Which?</);
+  assert.match(overview, /Text \/ Reasoning/);
+  assert.match(overview, /Images/);
+  assert.match(overview, /Video \/ Motion/);
+  assert.match(overview, /Tools \/ External Services/);
+  assert.match(overview, /This Computer, My Private Server or Cloud/);
+  assert.match(overview, /Local Runtime, Provider API, OpenAI-Compatible API or MCP/);
+});
+
+test("#1525 overview exposes health, privacy, cost and ownership facts without a second settings store", async () => {
+  const overview = await read("app/settings-readiness-overview.tsx");
+
+  assert.match(overview, /Open Source/);
+  assert.match(overview, /Proprietary/);
+  assert.match(overview, /Offline capable/);
+  assert.match(overview, /Internet required/);
+  assert.match(overview, /Data stays local/);
+  assert.match(overview, /Provider processes data/);
+  assert.match(overview, /Metered or Paid/);
+  assert.match(overview, /Configured — run the connection test/);
+  assert.match(overview, /Needs setup — configure and test this route/);
+  assert.match(overview, /MCP is a connection mechanism for Tools \/ External Services/);
+  assert.doesNotMatch(overview, /localStorage|indexedDB|sessionStorage/);
+});

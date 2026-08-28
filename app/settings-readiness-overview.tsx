@@ -21,6 +21,22 @@ type BuzzStatus = {
   cli?: { available?: boolean };
   managed?: { running?: boolean; reachable?: boolean };
 };
+type RouteOption = {
+  configured?: boolean;
+  ready?: boolean;
+  model?: string;
+  verifiedAt?: string;
+  error?: string;
+  locality?: string;
+  cost?: string;
+  settingsTarget?: string;
+};
+type CapabilityRoute = { selected?: string; options?: Record<string, RouteOption> };
+type AiRoutingStatus = {
+  text?: CapabilityRoute;
+  image?: CapabilityRoute;
+  video?: CapabilityRoute;
+};
 
 type Readiness = {
   id: string;
@@ -31,11 +47,37 @@ type Readiness = {
   facts: Array<[string, string]>;
 };
 
+type ConnectionRow = {
+  id: string;
+  capability: string;
+  state: State;
+  where: string;
+  connection: string;
+  provider: string;
+  model: string;
+  trust: string[];
+  health: string;
+  section: string;
+};
+
 const STATE_LABELS: Record<State, string> = {
   checking: "Checking",
   ready: "Ready",
-  attention: "Needs attention",
+  attention: "Needs setup",
   unavailable: "Unavailable",
+};
+
+const ROUTE_LABELS: Record<string, string> = {
+  ollama: "Ollama",
+  openai: "OpenAI",
+  gemini: "Google Gemini",
+  minimax: "MiniMax",
+  comfyui: "ComfyUI",
+  "ollama-comfyui": "Ollama + ComfyUI",
+  "comfyui-native": "ComfyUI",
+  manual: "Manual import",
+  off: "Off / No AI",
+  none: "Not configured",
 };
 
 async function getJson<T>(path: string): Promise<T> {
@@ -45,24 +87,90 @@ async function getJson<T>(path: string): Promise<T> {
   return body;
 }
 
+function routeOption(route: CapabilityRoute | undefined) {
+  const selected = route?.selected || "";
+  return { selected, option: selected ? route?.options?.[selected] : undefined };
+}
+
+function routeLabel(route: string, option?: RouteOption) {
+  const target = String(option?.settingsTarget || "").trim();
+  if (target) return target;
+  return ROUTE_LABELS[route] || route || "Not configured";
+}
+
+function routeState(route: CapabilityRoute | undefined, checking: boolean): State {
+  if (!route) return checking ? "checking" : "unavailable";
+  const { selected, option } = routeOption(route);
+  if (!selected || selected === "off" || selected === "none") return "attention";
+  if (selected === "manual") return "ready";
+  if (option?.ready) return "ready";
+  return option?.configured || option?.error ? "attention" : "attention";
+}
+
+function routeWhere(route: string, option?: RouteOption) {
+  if (route === "manual" || route === "off" || route === "none" || !route) return "Not required";
+  if (option?.locality === "local") return "This Computer";
+  if (option?.locality === "cloud") return "Remote / Cloud";
+  return "Configured route";
+}
+
+function routeConnection(route: string, option?: RouteOption) {
+  if (route === "manual") return "Manual import";
+  if (route === "off" || route === "none" || !route) return "None";
+  if (option?.locality === "local" || /ollama|comfyui/i.test(route)) return "Local Runtime";
+  return "Provider API";
+}
+
+function routeTrust(route: string, option?: RouteOption) {
+  if (route === "manual" || route === "off" || route === "none" || !route) return ["Human-controlled", "No provider request"];
+  if (option?.locality === "local") {
+    return [
+      /ollama|comfyui/i.test(route) ? "Open Source" : "Local runtime",
+      "Offline capable",
+      "Data stays local",
+      "Uses your hardware",
+    ];
+  }
+  return [
+    /openai|gemini|minimax/i.test(route) ? "Proprietary" : "Remote service",
+    option?.cost || "Metered or Paid",
+    "Internet required",
+    "Provider processes data",
+  ];
+}
+
+function routeHealth(route: CapabilityRoute | undefined, checking: boolean) {
+  if (!route) return checking ? "Checking connection status…" : "Status endpoint unavailable.";
+  const { selected, option } = routeOption(route);
+  if (!selected || selected === "off" || selected === "none") return "Optional — no active route selected.";
+  if (selected === "manual") return "Ready — manual import does not require a provider connection.";
+  if (option?.ready) return option.verifiedAt ? `Connected — last successful test ${option.verifiedAt}.` : "Connected — route is ready.";
+  if (option?.error) return option.error;
+  if (option?.configured) return "Configured — run the connection test before using this route.";
+  return "Needs setup — configure and test this route.";
+}
+
 export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section: string) => void }) {
   const [localAi, setLocalAi] = useState<LocalAiStatus | null>(null);
   const [media, setMedia] = useState<MediaStatus | null>(null);
   const [buzz, setBuzz] = useState<BuzzStatus | null>(null);
+  const [routing, setRouting] = useState<AiRoutingStatus | null>(null);
   const [failed, setFailed] = useState<string[]>([]);
   const [checking, setChecking] = useState(true);
 
   const refresh = useCallback(async () => {
     setChecking(true);
-    const [aiResult, mediaResult, buzzResult] = await Promise.allSettled([
+    const [aiResult, mediaResult, buzzResult, routingResult] = await Promise.allSettled([
       getJson<LocalAiStatus>("/api/local-ai/runtime"),
       getJson<MediaStatus>("/api/media-routing/status"),
       getJson<BuzzStatus>("/api/local-buzz/status"),
+      getJson<AiRoutingStatus>("/api/ai-routing/status"),
     ]);
     const failures: string[] = [];
     if (aiResult.status === "fulfilled") setLocalAi(aiResult.value); else { setLocalAi(null); failures.push("Local AI"); }
     if (mediaResult.status === "fulfilled") setMedia(mediaResult.value); else { setMedia(null); failures.push("Media"); }
     if (buzzResult.status === "fulfilled") setBuzz(buzzResult.value); else { setBuzz(null); failures.push("BUZZ"); }
+    if (routingResult.status === "fulfilled") setRouting(routingResult.value); else { setRouting(null); failures.push("AI routing"); }
     setFailed(failures);
     setChecking(false);
   }, []);
@@ -148,6 +256,44 @@ export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section
     ];
   }, [buzz, checking, localAi, media]);
 
+  const connections = useMemo<ConnectionRow[]>(() => {
+    const makeAiRow = (id: "text" | "image" | "video", capability: string): ConnectionRow => {
+      const route = routing?.[id];
+      const { selected, option } = routeOption(route);
+      return {
+        id,
+        capability,
+        state: routeState(route, checking),
+        where: routeWhere(selected, option),
+        connection: routeConnection(selected, option),
+        provider: routeLabel(selected, option),
+        model: option?.model || (selected === "manual" ? "Manual import" : "Not selected"),
+        trust: routeTrust(selected, option),
+        health: routeHealth(route, checking),
+        section: option?.locality === "cloud" ? "cloud-compute" : "local-compute",
+      };
+    };
+
+    const buzzReady = Boolean(buzz?.connection?.configured && buzz?.connection?.identityVerified && buzz?.relay?.reachable && buzz?.cli?.available);
+    return [
+      makeAiRow("text", "Text / Reasoning"),
+      makeAiRow("image", "Images"),
+      makeAiRow("video", "Video / Motion"),
+      {
+        id: "tools",
+        capability: "Tools / External Services",
+        state: !buzz ? (checking ? "checking" : "unavailable") : buzzReady ? "ready" : "attention",
+        where: buzz?.connection?.configured ? "Remote / Community" : "Not configured",
+        connection: "Signed BUZZ transport",
+        provider: buzz?.connection?.community || "Optional services",
+        model: "Not an AI model",
+        trust: ["Human-controlled membership", "Internet required when enabled", "No direct canon mutation"],
+        health: buzzReady ? "Connected — BUZZ identity, relay and CLI are ready." : "Optional — configure BUZZ only when Community tools are wanted.",
+        section: "buzz",
+      },
+    ];
+  }, [buzz, checking, routing]);
+
   const next = cards.find((card) => card.state === "attention" || card.state === "unavailable");
 
   return (
@@ -155,22 +301,62 @@ export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section
       <header className={styles.heading}>
         <div>
           <p>Settings overview</p>
-          <h2 id="settings-readiness-title">What is ready, and what needs attention?</h2>
-          <span>These statuses are read from PlotPickle's existing local runtime, media-routing and BUZZ authorities. The overview does not store a second copy of setup state.</span>
+          <h2 id="settings-readiness-title">What is PlotPickle using?</h2>
+          <span>One live map separates capability, execution location, connection method and provider/model. Status comes from PlotPickle&apos;s existing runtime, routing, media and BUZZ authorities rather than a second configuration store.</span>
         </div>
         <button type="button" onClick={() => void refresh()} disabled={checking}>{checking ? "Checking…" : "Refresh status"}</button>
       </header>
 
-      <div className={styles.grid}>
-        {cards.map((card) => (
-          <article className={styles.card} key={card.id} data-capability={card.id}>
-            <header><h3>{card.label}</h3><span className={styles.badge} data-state={card.state} role="status">{STATE_LABELS[card.state]}</span></header>
-            <span>{card.summary}</span>
-            <dl className={styles.meta}>{card.facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-            <button type="button" onClick={() => onOpen(card.section)}>Configure and test {card.label}</button>
-          </article>
-        ))}
-      </div>
+      <section className={styles.connectionMap} data-connection-map aria-labelledby="settings-connection-map-title">
+        <header>
+          <p>Connections / Compute Map</p>
+          <h3 id="settings-connection-map-title">Four questions, in order.</h3>
+          <span>A beginner can read left to right. Technical endpoint, port, model ID and authentication details stay in Advanced Options.</span>
+        </header>
+        <div className={styles.questionGrid} aria-label="Connection setup questions">
+          <article><strong>1 · What?</strong><span>Text, Images, Video or Tools</span></article>
+          <article><strong>2 · Where?</strong><span>This Computer, My Private Server or Cloud</span></article>
+          <article><strong>3 · How?</strong><span>Local Runtime, Provider API, OpenAI-Compatible API or MCP</span></article>
+          <article><strong>4 · Which?</strong><span>Provider, runtime, model or service</span></article>
+        </div>
+        <div className={styles.connectionTable}>
+          {connections.map((row) => (
+            <article className={styles.connectionRow} data-capability={row.id} key={row.id}>
+              <header>
+                <div><strong>{row.capability}</strong><small>{row.provider}</small></div>
+                <span className={styles.badge} data-state={row.state} role="status">{STATE_LABELS[row.state]}</span>
+              </header>
+              <dl className={styles.connectionFacts}>
+                <div><dt>Where</dt><dd>{row.where}</dd></div>
+                <div><dt>How</dt><dd>{row.connection}</dd></div>
+                <div><dt>Model / service</dt><dd>{row.model}</dd></div>
+                <div><dt>Health</dt><dd>{row.health}</dd></div>
+              </dl>
+              <div className={styles.trustList} aria-label={`${row.capability} trust and cost facts`}>
+                {row.trust.map((fact) => <span key={fact}>{fact}</span>)}
+              </div>
+              <button type="button" onClick={() => onOpen(row.section)}>Set up or change {row.capability}</button>
+            </article>
+          ))}
+        </div>
+        <p className={styles.mcpNote}><strong>MCP is a connection mechanism for Tools / External Services.</strong> It is not an AI model provider and remains an advanced option only when a real MCP adapter is available.</p>
+      </section>
+
+      <section aria-labelledby="settings-detailed-readiness-title">
+        <header className={styles.subheading}>
+          <div><p>Detailed readiness</p><h3 id="settings-detailed-readiness-title">What needs attention?</h3></div>
+        </header>
+        <div className={styles.grid}>
+          {cards.map((card) => (
+            <article className={styles.card} key={card.id} data-capability={card.id}>
+              <header><h3>{card.label}</h3><span className={styles.badge} data-state={card.state} role="status">{STATE_LABELS[card.state]}</span></header>
+              <span>{card.summary}</span>
+              <dl className={styles.meta}>{card.facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+              <button type="button" onClick={() => onOpen(card.section)}>Configure and test {card.label}</button>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className={styles.next}>
         <strong>{failed.length ? `Could not read: ${failed.join(", ")}. ` : next ? `Configure next: ${next.label}. ` : "Core setup looks ready. "}</strong>

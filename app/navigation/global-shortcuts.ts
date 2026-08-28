@@ -27,7 +27,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "plan", key: "P", label: "Plan", detail: "Design", relic: "/assets/workflow-relics/plan.webp", action: { kind: "workspace", workspace: "plan" } },
   { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", action: { kind: "workspace", workspace: "build" } },
   { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", action: { kind: "route", href: "/storyboard" } },
-  { id: "previs", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", action: { kind: "route", href: "/previs" } },
+  { id: "graphic-novel", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", action: { kind: "route", href: "/previs" } },
   { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", action: { kind: "route", href: "/pageflow" } },
   { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", action: { kind: "route", href: "/edit" } },
   { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", action: { kind: "route", href: "/pitch-review" } },

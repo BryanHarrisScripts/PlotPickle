@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { performance } from "node:perf_hooks";
+import { measureStoryWorkflowContract } from "./measure-story-workflow-contract.mjs";
 
 const args = process.argv.slice(2);
 const getArg = (name, fallback = null) => {
@@ -76,10 +77,22 @@ for (const [label, pathname] of routes) {
   navigation.push(await measureRequest(label, pathname));
 }
 
+const workflowMode = mode === "story-workflow-local" || mode === "buzz-enabled-story-council";
+const workflow = workflowMode
+  ? measureStoryWorkflowContract({
+      projectId: "afterglow-v9",
+      baseRevision: Number(process.env.PLOTPICKLE_PPF_START_REVISION || 9),
+      changedRefs: ["ppf:foundations:ren-motivation"],
+    })
+  : {
+      status: "not-requested-for-mode",
+      note: "Use story-workflow-local or buzz-enabled-story-council mode to capture deterministic workflow planning and targeted re-evaluation evidence.",
+    };
+
 const memoryAfter = process.memoryUsage();
 const failedRoutes = navigation.filter((entry) => !entry.ok);
 const evidence = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   benchmarkIssue: 1411,
   authoritative: process.platform === "win32" && !allowNonWindows,
   mode,
@@ -112,10 +125,7 @@ const evidence = {
       heapUsedAfterBytes: memoryAfter.heapUsed,
     },
   },
-  workflow: {
-    status: "not-captured-by-foundation-runner",
-    note: "Story Workflow, Story Council, Workbench apply and targeted/full rerun metrics are appended by later #1411 slices; this runner does not fabricate them.",
-  },
+  workflow,
   budgets: {
     status: "unratified",
     note: "Hard thresholds are intentionally absent until repeated real-machine baseline samples establish variance.",
@@ -123,6 +133,7 @@ const evidence = {
   result: {
     routeFailures: failedRoutes.length,
     harnessHealthy: failedRoutes.length === 0,
+    workflowBounded: workflow.status !== "captured-deterministic-contract" || workflow.comparison.targetedIsBounded,
   },
 };
 
@@ -131,5 +142,9 @@ await writeFile(output, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
 console.log(`Performance evidence written to ${output}`);
 if (failedRoutes.length > 0) {
   console.error(`Benchmark route failures: ${failedRoutes.map((entry) => `${entry.label}:${entry.status ?? entry.error}`).join(", ")}`);
+  process.exitCode = 1;
+}
+if (workflow.status === "captured-deterministic-contract" && !workflow.comparison.targetedIsBounded) {
+  console.error("Targeted Story Workflow re-evaluation was not bounded relative to the deterministic full audit.");
   process.exitCode = 1;
 }

@@ -1,5 +1,10 @@
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
-import type { ProductionShotIntent } from "@/core/contracts/previs";
+import {
+  RENDER_MINI_BLOCK_SECONDS,
+  renderClipSlotsForAnchor,
+  type ProductionShotIntent,
+  type RenderClipSlot,
+} from "@/core/contracts/previs";
 import type { PPFProject } from "@/core/project/project";
 import { deriveVisualReadiness, type VisualReadinessState } from "@/modules/build/visual-readiness";
 import {
@@ -26,6 +31,9 @@ export type PrevisAnchorProjection = {
   readonly staleBecause: readonly string[];
   readonly shots: readonly ProductionShotIntent[];
   readonly staleShotIds: readonly string[];
+  readonly authoredDurationSeconds: number;
+  readonly renderClips: readonly RenderClipSlot[];
+  readonly renderPlanReady: boolean;
   readonly reason: string;
 };
 
@@ -42,8 +50,11 @@ export type PrevisProjection = {
   readonly projectRevision: number;
   readonly blocks: readonly PrevisBlockProjection[];
   readonly timingReadyAnchors: number;
+  readonly renderPlanReadyAnchors: number;
   readonly totalAnchors: number;
   readonly totalShots: number;
+  readonly totalRenderClips: number;
+  readonly totalRenderKeyframes: number;
 };
 
 function blockNumberFromTargetId(targetId: string) {
@@ -83,6 +94,10 @@ function anchorState(input: {
   if (input.draft) return "emerging";
   if (input.blockState === "emerging") return "emerging";
   return "missing";
+}
+
+function authoredDurationSeconds(shots: readonly ProductionShotIntent[]) {
+  return Math.round(shots.reduce((total, shot) => total + (shot.durationSeconds ?? 0), 0) * 100) / 100;
 }
 
 export function shotNeedsReview(anchor: PrevisAnchorProjection, shot: ProductionShotIntent) {
@@ -154,12 +169,19 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
           || shot.storyboardDependencyKey !== dependencyKey
         ))
         .map((shot) => shot.id);
+      const authoredDuration = authoredDurationSeconds(shots);
+      const allShotsTimed = shots.length > 0 && shots.every((shot) => Boolean(shot.durationSeconds && shot.durationSeconds > 0));
+      const renderClips = renderClipSlotsForAnchor(blockNumber, miniBlockNumber);
+      const renderPlanReady = timingAllowed
+        && staleShotIds.length === 0
+        && allShotsTimed
+        && Math.abs(authoredDuration - RENDER_MINI_BLOCK_SECONDS) < 0.01;
       const reason = !target.storyboardAllowed
         ? target.missingPrerequisites.join(" · ") || "Storyboard evidence has not earned this Previs anchor yet."
         : staleBecause.length
           ? "The kept Storyboard visual changed upstream and needs Human review before timing continues."
           : timingAllowed
-            ? "Approved Storyboard visual is ready for timing. No duration or motion is inferred until the Human plans it."
+            ? "Approved Storyboard visual is ready for Human-authored Previs. Complete 75 seconds of creative timing to unlock its fixed 25 × 3-second Render Plan."
             : observed
               ? "Observed Storyboard reference is visible, but it must be kept in Storyboard before Previs timing begins."
               : "This canonical anchor has no approved Storyboard visual yet.";
@@ -179,6 +201,9 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         staleBecause,
         shots,
         staleShotIds,
+        authoredDurationSeconds: authoredDuration,
+        renderClips,
+        renderPlanReady,
         reason,
       };
     });
@@ -200,12 +225,17 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
     };
   });
 
+  const allAnchors = blocks.flatMap((block) => block.anchors);
+  const totalRenderClips = allAnchors.reduce((sum, anchor) => sum + anchor.renderClips.length, 0);
   return {
     projectId: project.id,
     projectRevision: project.revision,
     blocks,
-    timingReadyAnchors: blocks.flatMap((block) => block.anchors).filter((anchor) => anchor.timingAllowed).length,
-    totalAnchors: blocks.reduce((sum, block) => sum + block.anchors.length, 0),
+    timingReadyAnchors: allAnchors.filter((anchor) => anchor.timingAllowed).length,
+    renderPlanReadyAnchors: allAnchors.filter((anchor) => anchor.renderPlanReady).length,
+    totalAnchors: allAnchors.length,
     totalShots: project.production.shots.length,
+    totalRenderClips,
+    totalRenderKeyframes: totalRenderClips ? totalRenderClips + 1 : 0,
   };
 }

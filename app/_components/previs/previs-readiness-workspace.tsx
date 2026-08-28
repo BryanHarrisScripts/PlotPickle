@@ -3,7 +3,16 @@
 /* eslint-disable @next/next/no-img-element -- Previs keyframes are lazy local PlotPickle assets. */
 
 import { useMemo, useState, type FormEvent } from "react";
-import type { ProductionShotIntent, ProductionShotReviewState } from "@/core/contracts/previs";
+import {
+  RENDER_CLIP_SECONDS,
+  RENDER_CLIPS_PER_BLOCK,
+  RENDER_CLIPS_PER_FEATURE,
+  RENDER_CLIPS_PER_MINI_BLOCK,
+  RENDER_KEYFRAMES_PER_FEATURE,
+  RENDER_MINI_BLOCK_SECONDS,
+  type ProductionShotIntent,
+  type ProductionShotReviewState,
+} from "@/core/contracts/previs";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -22,10 +31,6 @@ const STATE_LABELS = {
   missing: "MISSING",
   locked: "LOCKED",
 } as const;
-
-function authoredDuration(shots: readonly ProductionShotIntent[]) {
-  return shots.reduce((total, shot) => total + (shot.durationSeconds ?? 0), 0);
-}
 
 export default function PrevisReadinessWorkspace({
   project,
@@ -61,12 +66,12 @@ export default function PrevisReadinessWorkspace({
     const now = new Date().toISOString();
     const shot = createProductionShotForAnchor(project, anchor, now);
     if (!shot) {
-      setMessage("Keep a current Storyboard visual before adding Production Shots to this anchor.");
+      setMessage("Keep a current Storyboard visual before adding a creative Previs shot to this anchor.");
       return;
     }
     commit({ type: "previs.shot.store", shot, occurredAt: now });
     setSelectedShotId(shot.id);
-    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Timing is still blank until you author it.`);
+    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Author the creative timing until this Mini-Block totals ${RENDER_MINI_BLOCK_SECONDS}s.`);
   }
 
   function saveShot(event: FormEvent<HTMLFormElement>) {
@@ -92,7 +97,7 @@ export default function PrevisReadinessWorkspace({
       updatedAt: now,
     };
     commit({ type: "previs.shot.store", shot, occurredAt: now });
-    setMessage(`Shot ${shot.order} saved. This Human save confirms the current Storyboard dependency for this shot only.`);
+    setMessage(`Shot ${shot.order} saved. When this Mini-Block reaches ${RENDER_MINI_BLOCK_SECONDS}s of reviewed Previs timing, PlotPickle can hand it to the fixed ${RENDER_CLIPS_PER_MINI_BLOCK}-clip Render Plan.`);
   }
 
   function removeShot() {
@@ -100,31 +105,32 @@ export default function PrevisReadinessWorkspace({
     const now = new Date().toISOString();
     commit({ type: "previs.shot.remove", shotId: selectedShot.id, occurredAt: now });
     setSelectedShotId("");
-    setMessage("Production Shot removed. Storyboard and story canon were not changed.");
+    setMessage("Creative Previs shot removed. Storyboard, Render Plan addresses and story canon were not changed.");
   }
 
   return (
     <main className={styles.workspace} aria-labelledby="previs-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Previs · 24 Blocks / 96 canonical timing anchors</span>
-          <h1 id="previs-title">See how the visual story plays over time.</h1>
+          <span className={styles.eyebrow}>Previs · 24 Blocks / 96 Mini-Blocks / {RENDER_CLIPS_PER_FEATURE.toLocaleString()} render clips</span>
+          <h1 id="previs-title">See how the visual story plays before PlotPickle renders it.</h1>
           <p>
-            Previs uses the same Block and Mini-Block addresses as Storyboard, but the final clip count is intentionally flexible. One anchor can carry several shots or variations while another may need only one—or none yet.
+            Storyboard and Visualize establish what the film looks like. Previs authors camera and editorial timing. Render Plan then maps every 75-second Mini-Block onto exactly 25 technical 3-second generation clips. A creative shot may span one clip or several; the clip grid is production plumbing, not a second storytelling structure.
           </p>
         </div>
         <dl className={styles.summary}>
           <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{projection.projectRevision}</dd></div>
-          <div><dt>Story anchors</dt><dd>{projection.totalAnchors}</dd></div>
-          <div><dt>Production shots</dt><dd>{projection.totalShots}</dd></div>
+          <div><dt>Mini-Blocks</dt><dd>{projection.totalAnchors}</dd></div>
+          <div><dt>Render clips</dt><dd>{projection.totalRenderClips || RENDER_CLIPS_PER_FEATURE}</dd></div>
+          <div><dt>Boundary keyframes</dt><dd>{projection.totalRenderKeyframes || RENDER_KEYFRAMES_PER_FEATURE}</dd></div>
         </dl>
       </header>
 
-      <section className={styles.notice} aria-label="Previs authority boundary">
+      <section className={styles.notice} aria-label="Previs and Render Plan authority boundary">
         <div>
-          <strong>Storyboard approval unlocks timing; it does not create timing automatically.</strong>
-          <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED use the same colour language as BUILD and Storyboard.</span>
+          <strong>Storyboard → Visualize → Previs → Render Plan → Generate.</strong>
+          <span>Previs decides creative camera timing. Render Plan only divides the approved 75-second Mini-Block into deterministic 3-second generation addresses.</span>
         </div>
         <div className={styles.noticeActions}>
           <button type="button" onClick={() => onOpenStoryboard()}>Open Storyboard</button>
@@ -166,7 +172,7 @@ export default function PrevisReadinessWorkspace({
             <div>
               <p className={styles.blockKicker}>Block {String(selectedBlock.blockNumber).padStart(2, "0")}</p>
               <h2>{selectedBlock.label.replace(/^Block \d+: /, "")}</h2>
-              <p>Four Mini-Block anchors keep timing traceable. Shot and clip density may expand or contract underneath them as the sequence finds its real rhythm.</p>
+              <p>Four 75-second Mini-Blocks preserve story structure. Each becomes a fixed {RENDER_CLIPS_PER_MINI_BLOCK} × {RENDER_CLIP_SECONDS}s Render Plan, for {RENDER_CLIPS_PER_BLOCK} generation clips per five-minute Block.</p>
             </div>
             <span aria-label={`Status: ${STATE_LABELS[selectedBlock.state]}`} className={styles.blockState} data-state={selectedBlock.state}>
               <i aria-hidden="true" className={styles.stateLight} />
@@ -181,11 +187,11 @@ export default function PrevisReadinessWorkspace({
                   {anchor.storyboardAssetUrl
                     ? <img alt={`Storyboard keyframe for ${selectedBlock.blockNumber}.${anchor.miniBlockNumber}`} decoding="async" loading="lazy" src={anchor.storyboardAssetUrl} />
                     : <span className={styles.emptyVideo}>VIDEO / ANIMATIC</span>}
-                  <span className={styles.videoBadge}>{anchor.timingAllowed ? "READY FOR SHOTS" : anchor.observedReference ? "REFERENCE ONLY" : "NO TIMING YET"}</span>
+                  <span className={styles.videoBadge}>{anchor.renderPlanReady ? "RENDER PLAN READY" : anchor.timingAllowed ? "PREVIS OPEN" : anchor.observedReference ? "REFERENCE ONLY" : "NO TIMING YET"}</span>
                 </div>
                 <header className={styles.anchorHeader}>
                   <div>
-                    <span>Mini-Block anchor</span>
+                    <span>Mini-Block</span>
                     <strong>{selectedBlock.blockNumber}.{anchor.miniBlockNumber}</strong>
                   </div>
                   <span aria-label={`Status: ${STATE_LABELS[anchor.state]}`} className={styles.anchorState} data-state={anchor.state}>
@@ -195,11 +201,11 @@ export default function PrevisReadinessWorkspace({
                 </header>
                 <p>{anchor.reason}</p>
                 <dl className={styles.anchorMeta}>
-                  <div><dt>Shots</dt><dd>{anchor.shots.length}</dd></div>
-                  <div><dt>Clip density</dt><dd>0 / 1 / many</dd></div>
-                  <div><dt>Authored time</dt><dd>{authoredDuration(anchor.shots) || "—"}{authoredDuration(anchor.shots) ? "s" : ""}</dd></div>
+                  <div><dt>Creative shots</dt><dd>{anchor.shots.length}</dd></div>
+                  <div><dt>Render clips</dt><dd>{anchor.renderClips.length} × {RENDER_CLIP_SECONDS}s</dd></div>
+                  <div><dt>Previs timing</dt><dd>{anchor.authoredDurationSeconds}/{RENDER_MINI_BLOCK_SECONDS}s</dd></div>
                 </dl>
-                <div className={styles.shotList} aria-label={`Production Shots for ${anchor.blockNumber}.${anchor.miniBlockNumber}`}>
+                <div className={styles.shotList} aria-label={`Creative Previs shots for ${anchor.blockNumber}.${anchor.miniBlockNumber}`}>
                   {anchor.shots.map((shot) => (
                     <button
                       data-stale={anchor.staleShotIds.includes(shot.id) ? "true" : "false"}
@@ -212,7 +218,7 @@ export default function PrevisReadinessWorkspace({
                   ))}
                 </div>
                 <div className={styles.anchorActions}>
-                  <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add Production Shot</button>
+                  <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add creative shot</button>
                   <button type="button" onClick={() => anchor.storyboardAllowed ? onOpenStoryboard(anchor) : onOpenBuild()}>
                     {anchor.storyboardAllowed ? "Open Storyboard" : "Review BUILD"}
                   </button>
@@ -227,11 +233,11 @@ export default function PrevisReadinessWorkspace({
         <section className={styles.shotEditor} aria-labelledby="production-shot-title">
           <header>
             <div>
-              <span>Production Shot · {selectedAnchor.blockNumber}.{selectedAnchor.miniBlockNumber}</span>
+              <span>Creative Previs Shot · {selectedAnchor.blockNumber}.{selectedAnchor.miniBlockNumber}</span>
               <h2 id="production-shot-title">Shot {selectedShot.order}</h2>
             </div>
             <div className={styles.noticeActions}>
-              <button type="button" onClick={() => onOpenStoryboard(selectedAnchor)}>Open owning Storyboard anchor</button>
+              <button type="button" onClick={() => onOpenStoryboard(selectedAnchor)}>Open owning Storyboard Mini-Block</button>
               <button type="button" onClick={removeShot}>Remove shot</button>
             </div>
           </header>
@@ -243,39 +249,39 @@ export default function PrevisReadinessWorkspace({
             <label>Angle<input name="angle" defaultValue={selectedShot.angle} /></label>
             <label>Movement<input name="movement" defaultValue={selectedShot.movement} /></label>
             <label>Lens<input name="lens" defaultValue={selectedShot.lens} /></label>
-            <label>Duration seconds<input name="durationSeconds" type="number" min="0.01" step="0.01" defaultValue={selectedShot.durationSeconds ?? ""} placeholder="Not inferred" /></label>
+            <label>Duration seconds<input name="durationSeconds" type="number" min="0.01" step="0.01" defaultValue={selectedShot.durationSeconds ?? ""} placeholder={`Mini-Block total must reach ${RENDER_MINI_BLOCK_SECONDS}s`} /></label>
             <label>Status<select name="reviewState" defaultValue={selectedShot.reviewState}><option value="planned">Planned</option><option value="approved">Approved</option><option value="omitted">Omitted</option></select></label>
             <label>Transition in<input name="transitionIn" defaultValue={selectedShot.transitionIn} placeholder="Optional" /></label>
             <label>Transition out<input name="transitionOut" defaultValue={selectedShot.transitionOut} placeholder="Optional" /></label>
             <label className={styles.fullField}>Visual / production intent<textarea name="visualIntent" defaultValue={selectedShot.visualIntent} placeholder="Camera, movement or execution intent. Story changes belong upstream." /></label>
-            <div className={styles.fullField}><button type="submit">Save Production Shot</button></div>
+            <div className={styles.fullField}><button type="submit">Save creative shot</button></div>
           </form>
         </section>
       ) : null}
 
-      <section className={styles.timelinePreview} aria-label="Previs timeline projection">
+      <section className={styles.timelinePreview} aria-label="Previs to Render Plan projection">
         <header>
           <div>
-            <span>Temporal projection</span>
-            <h2>Timing grows from authored Production Shots.</h2>
+            <span>Previs → Render Plan</span>
+            <h2>Creative timing flows onto a fixed generation grid.</h2>
           </div>
-          <strong>{selectedBlock?.anchors.reduce((sum, anchor) => sum + anchor.shots.length, 0) ?? 0} shots in this Block</strong>
+          <strong>{RENDER_CLIPS_PER_BLOCK} fixed render clips in this Block</strong>
         </header>
         <div className={styles.timelineRail}>
           {(selectedBlock?.anchors ?? []).map((anchor) => (
             <div className={styles.timelineAnchor} data-state={anchor.state} key={anchor.id}>
               <i aria-hidden="true" className={styles.stateLight} />
               <span>{anchor.blockNumber}.{anchor.miniBlockNumber}</span>
-              <small>{anchor.shots.length ? `${anchor.shots.length} shot${anchor.shots.length === 1 ? "" : "s"} · ${authoredDuration(anchor.shots) || 0}s authored` : anchor.timingAllowed ? "Ready for shots" : "Placeholder"}</small>
+              <small>{anchor.renderPlanReady ? `${RENDER_CLIPS_PER_MINI_BLOCK} render clips ready` : `${anchor.authoredDurationSeconds}/${RENDER_MINI_BLOCK_SECONDS}s Previs · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved clips`}</small>
             </div>
           ))}
         </div>
-        <p>Production Shots add timing and camera execution intent only. They retain stable Storyboard refs, allow variable density, and do not duplicate screenplay, character, location or story canon.</p>
+        <p>Creative shots are not the render quota. PlotPickle preserves Human-authored camera intent, then maps the complete 75-second Mini-Block onto Clip 01–25. Each clip has a stable address and shares its boundary keyframe with the next clip, enabling surgical regeneration without rebuilding the whole sequence.</p>
       </section>
 
       <p className={styles.message} role="status">{message}</p>
       <footer className={styles.footer}>
-        The 24/96 structure is provenance, not a production quota. Previs can become denser or lighter by Mini-Block, Block, Sequence or Act while every timed shot remains traceable to the canonical PPF story evidence it serves.
+        The default two-hour production grid is deterministic: 24 Blocks → 96 Mini-Blocks → {RENDER_CLIPS_PER_FEATURE.toLocaleString()} × {RENDER_CLIP_SECONDS}s render clips → {RENDER_KEYFRAMES_PER_FEATURE.toLocaleString()} shared boundary keyframes. Story canon remains upstream; Previs remains Human-authored; Render Plan remains technical.
       </footer>
     </main>
   );

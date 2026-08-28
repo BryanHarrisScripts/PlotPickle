@@ -41,21 +41,21 @@ test("#1425 persists Production Shots in the canonical PPF command path", async 
   assert.doesNotMatch(`${contract}\n${workspace}`, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 });
 
-test("#1425 allows zero, one or many shots beneath one stable Mini-Block anchor", async () => {
+test("#1425 allows zero, one or many creative shots beneath one stable Mini-Block anchor", async () => {
   const [contract, model, workspace] = await Promise.all([
     read(contractPath),
     read(modelPath),
     read(workspacePath),
   ]);
 
-  assert.match(contract, /Zero\/one\/many shots may share an anchor/);
+  assert.match(contract, /Zero\/one\/many creative shots may share an anchor/);
   assert.match(model, /project\.production\.shots\s*\.filter\(\(shot\) => shot\.anchorRef === anchorId\)/);
   assert.match(model, /nextOrder = anchor\.shots\.reduce/);
   assert.match(model, /durationSeconds: null/);
-  assert.match(workspace, /Clip density<\/dt><dd>0 \/ 1 \/ many/);
-  assert.match(workspace, /Add Production Shot/);
-  assert.match(workspace, /placeholder="Not inferred"/);
-  assert.match(workspace, /Timing is still blank until you author it/);
+  assert.match(workspace, /Creative shots<\/dt><dd>\{anchor\.shots\.length\}/);
+  assert.match(workspace, /Add creative shot/);
+  assert.match(workspace, /Mini-Block total must reach/);
+  assert.match(workspace, /Author the creative timing until this Mini-Block totals/);
   assert.doesNotMatch(`${model}\n${workspace}`, /defaultFrameSeconds|targetMinutes|estimatedSeconds/);
 });
 
@@ -76,7 +76,7 @@ test("#1425 marks only shots whose Storyboard dependency changed as needing revi
   assert.match(workspace, /storyboardDependencyKey: selectedAnchor\.storyboardDependencyKey/);
 });
 
-test("#1425 Production Shots add execution timing without becoming a second story model", async () => {
+test("#1425 creative Previs shots add execution timing without becoming a second story model", async () => {
   const [contract, workspace] = await Promise.all([
     read(contractPath),
     read(workspacePath),
@@ -86,6 +86,7 @@ test("#1425 Production Shots add execution timing without becoming a second stor
     assert.match(contract, new RegExp(`${field}:`));
   }
   assert.match(workspace, /Story changes belong upstream/);
-  assert.match(workspace, /do not duplicate screenplay, character, location or story canon/);
+  assert.match(workspace, /Story canon remains upstream/);
+  assert.match(workspace, /clip grid is production plumbing, not a second storytelling structure/);
   assert.doesNotMatch(workspace, /\/api\/.*generate|Render MP4|provider.*generate/i);
 });

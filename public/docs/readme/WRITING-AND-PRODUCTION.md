@@ -126,7 +126,7 @@ The guided engine order is:
 
 **Structure → Resonance → Voiceprint → PageFlow → DraftLens → CraftLoop → Specialist Labs**
 
-- **Structure Engine** expands the spine into 12 sequences, a flexible scene plan, 96 mini-blocks, beat and shot targets, and a complete Story Clock.
+- **Structure Engine** expands the spine into 12 sequences, a flexible scene plan, 96 mini-blocks, beat planning and a complete Story Clock. It no longer treats editorial shot count as the 24/96 production quota.
 - **Resonance Engine** aligns the central question with character choices, motifs, opening and closing images, and consequences.
 - **Voiceprint Engine** develops character-specific speech from history, status, worldview, rhythm, vocabulary, emotion, and pressure.
 - **PageFlow Engine** turns planning into visible, active, actor-playable screenplay description.
@@ -136,19 +136,22 @@ The guided engine order is:
 
 The suggested order is not mandatory. Writers may enter whichever engine or lab addresses the current story problem. The complete Diagnostic Craft workspace is available at `/diagnostics`.
 
-## Complete structural hierarchy
+## Complete structural and production hierarchy
 
-**4 Acts → 12 Sequences → 24 Blocks → Flexible Scenes → 96 Mini-Blocks → Beats → Shots**
+**4 Acts → 12 Sequences → 24 Blocks → Flexible Scenes → 96 Mini-Blocks → Storyboard → Visualize → Previs → Render Plan → Generate**
 
-At the original 120-minute preset, the default reference model provides:
+At the original 120-minute preset, the default production model provides:
 
 - 30 minutes per act;
 - 10 minutes per sequence;
 - 5 minutes per block;
 - an initial two-scene distribution per block, producing a 48-scene starting template;
 - 75 seconds per mini-block;
-- 4 beats and 16 shots per mini-block;
-- 384 beat targets and 1,536 shot targets overall; and
-- approximately 4.69 seconds average shot length.
+- **25 technical 3-second render clips per mini-block**;
+- **100 render clips per block**;
+- **2,400 render clips across the complete 2-hour feature**; and
+- **2,401 shared boundary keyframes** for first-frame/last-frame continuity across the full render grid.
 
-These are editable planning references, not mandatory filmmaking rules.
+Previs still allows the Human to choose the real creative shots, framing, movement, transitions and editorial rhythm. A creative shot can span one render clip or several. The fixed clip grid is the technical generation layer beneath Previs, not a second story structure.
+
+Because every clip has a stable Block → Mini-Block → Clip address, PlotPickle can re-render one weak 3-second section without rebuilding the surrounding sequence. Provider cost is calculated from current provider pricing and the selected render plan; no universal dollar amount is hard-coded into the 24/96 architecture.

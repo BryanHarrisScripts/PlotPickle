@@ -31,7 +31,7 @@ test("#1425 opens Previs from the canonical PPF instead of legacy project storag
   assert.match(audit, /canonical story-address/);
 });
 
-test("#1425 keeps 24\/96 as provenance anchors rather than a fixed clip quota", async () => {
+test("#1425 keeps creative Previs shots flexible while #1421 derives a fixed technical render grid", async () => {
   const [model, workspace] = await Promise.all([
     read(modelPath),
     read(workspacePath),
@@ -39,13 +39,17 @@ test("#1425 keeps 24\/96 as provenance anchors rather than a fixed clip quota", 
 
   assert.match(model, /\[1, 2, 3, 4\]\.map/);
   assert.match(model, /timingAllowed = Boolean\(kept/);
-  assert.match(model, /No duration or motion is inferred/);
-  assert.match(workspace, /24 Blocks \/ 96 canonical timing anchors/);
-  assert.match(workspace, /0 \/ 1 \/ many/);
-  assert.match(workspace, /Authored time/);
-  assert.match(workspace, /placeholder="Not inferred"/);
-  assert.match(workspace, /final clip count is intentionally flexible/);
-  assert.match(workspace, /denser or lighter by Mini-Block, Block, Sequence or Act/);
+  assert.match(model, /renderClipSlotsForAnchor\(blockNumber, miniBlockNumber\)/);
+  assert.match(model, /allShotsTimed/);
+  assert.match(model, /Math\.abs\(authoredDuration - RENDER_MINI_BLOCK_SECONDS\) < 0\.01/);
+  assert.match(model, /durationSeconds: null/);
+  assert.match(workspace, /24 Blocks \/ 96 Mini-Blocks/);
+  assert.match(workspace, /Creative shots<\/dt>/);
+  assert.match(workspace, /Render clips<\/dt>/);
+  assert.match(workspace, /Previs timing<\/dt>/);
+  assert.match(workspace, /Mini-Block total must reach/);
+  assert.match(workspace, /creative shot may span one clip or several/i);
+  assert.match(workspace, /Creative shots are not the render quota/);
 });
 
 test("#1425 preserves shared five-state language and truthful media placeholders", async () => {
@@ -67,7 +71,8 @@ test("#1425 preserves shared five-state language and truthful media placeholders
   assert.match(workspace, /REFERENCE ONLY/);
   assert.match(workspace, /NO TIMING YET/);
   assert.match(workspace, /loading="lazy"/);
-  assert.match(workspace, /Timing grows from authored Production Shots/);
+  assert.match(workspace, /Creative timing flows onto a fixed generation grid/);
+  assert.match(workspace, /Previs → Render Plan/);
   assert.match(workspace, /durationSeconds: parsedDuration/);
   assert.doesNotMatch(`${model}\n${workspace}`, /\/api\/.*generate|Render MP4/);
 });

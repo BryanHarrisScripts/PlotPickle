@@ -1,3 +1,65 @@
+export const RENDER_CLIP_SECONDS = 3 as const;
+export const RENDER_CLIPS_PER_MINI_BLOCK = 25 as const;
+export const RENDER_MINI_BLOCK_SECONDS = RENDER_CLIP_SECONDS * RENDER_CLIPS_PER_MINI_BLOCK;
+export const RENDER_MINI_BLOCKS_PER_BLOCK = 4 as const;
+export const RENDER_BLOCKS_PER_FEATURE = 24 as const;
+export const RENDER_CLIPS_PER_BLOCK = RENDER_CLIPS_PER_MINI_BLOCK * RENDER_MINI_BLOCKS_PER_BLOCK;
+export const RENDER_CLIPS_PER_FEATURE = RENDER_CLIPS_PER_BLOCK * RENDER_BLOCKS_PER_FEATURE;
+export const RENDER_KEYFRAMES_PER_FEATURE = RENDER_CLIPS_PER_FEATURE + 1;
+
+export interface RenderClipSlot {
+  readonly id: string;
+  readonly anchorRef: string;
+  readonly blockNumber: number;
+  readonly miniBlockNumber: number;
+  readonly clipNumber: number;
+  readonly globalClipNumber: number;
+  readonly startSecond: number;
+  readonly endSecond: number;
+  readonly startKeyframeNumber: number;
+  readonly endKeyframeNumber: number;
+}
+
+function renderAnchorRef(blockNumber: number, miniBlockNumber: number) {
+  return `storyboard-anchor:block:block-${String(blockNumber).padStart(2, "0")}:mini-${miniBlockNumber}`;
+}
+
+export function renderClipSlotsForAnchor(blockNumber: number, miniBlockNumber: number): readonly RenderClipSlot[] {
+  if (!Number.isInteger(blockNumber) || blockNumber < 1 || blockNumber > RENDER_BLOCKS_PER_FEATURE) return [];
+  if (!Number.isInteger(miniBlockNumber) || miniBlockNumber < 1 || miniBlockNumber > RENDER_MINI_BLOCKS_PER_BLOCK) return [];
+  const miniBlockIndex = ((blockNumber - 1) * RENDER_MINI_BLOCKS_PER_BLOCK) + (miniBlockNumber - 1);
+  const firstGlobalClipNumber = (miniBlockIndex * RENDER_CLIPS_PER_MINI_BLOCK) + 1;
+  const anchorRef = renderAnchorRef(blockNumber, miniBlockNumber);
+
+  return Array.from({ length: RENDER_CLIPS_PER_MINI_BLOCK }, (_, index) => {
+    const clipNumber = index + 1;
+    const globalClipNumber = firstGlobalClipNumber + index;
+    return {
+      id: `render-clip:block-${String(blockNumber).padStart(2, "0")}:mini-${miniBlockNumber}:clip-${String(clipNumber).padStart(2, "0")}`,
+      anchorRef,
+      blockNumber,
+      miniBlockNumber,
+      clipNumber,
+      globalClipNumber,
+      startSecond: (globalClipNumber - 1) * RENDER_CLIP_SECONDS,
+      endSecond: globalClipNumber * RENDER_CLIP_SECONDS,
+      startKeyframeNumber: globalClipNumber - 1,
+      endKeyframeNumber: globalClipNumber,
+    };
+  });
+}
+
+export function renderGridSummary() {
+  return {
+    clipSeconds: RENDER_CLIP_SECONDS,
+    clipsPerMiniBlock: RENDER_CLIPS_PER_MINI_BLOCK,
+    miniBlockSeconds: RENDER_MINI_BLOCK_SECONDS,
+    clipsPerBlock: RENDER_CLIPS_PER_BLOCK,
+    clipsPerFeature: RENDER_CLIPS_PER_FEATURE,
+    keyframesPerFeature: RENDER_KEYFRAMES_PER_FEATURE,
+  } as const;
+}
+
 export type ProductionShotReviewState = "planned" | "approved" | "omitted";
 
 export interface ProductionShotIntent {
@@ -8,7 +70,7 @@ export interface ProductionShotIntent {
   readonly storyboardArtifactId: string;
   /** Snapshot of the owning Storyboard dependency key when this shot was last reviewed. */
   readonly storyboardDependencyKey: string;
-  /** Variable shot order inside the owning anchor. Zero/one/many shots may share an anchor. */
+  /** Variable creative shot order inside the owning anchor. Zero/one/many creative shots may share an anchor. */
   readonly order: number;
   readonly shotSize: string;
   readonly angle: string;
@@ -16,7 +78,7 @@ export interface ProductionShotIntent {
   readonly lens: string;
   /** Human-authored production/composition intent only; story canon stays upstream. */
   readonly visualIntent: string;
-  /** Null until the Human authors timing. Previs never infers duration from the 24/96 scaffold. */
+  /** Null until the Human authors timing. Creative shots may span one or more fixed 3-second render clips. */
   readonly durationSeconds: number | null;
   readonly transitionIn: string;
   readonly transitionOut: string;

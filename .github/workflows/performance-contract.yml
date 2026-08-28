@@ -1,0 +1,38 @@
+name: Performance Contract
+
+on:
+  pull_request:
+    paths:
+      - "scripts/performance/**"
+      - "tests/issue-1411-performance-benchmark.test.mjs"
+      - ".github/workflows/performance-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  performance-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate deterministic performance contract
+        run: node --test tests/issue-1411-performance-benchmark.test.mjs
+      - name: Validate non-authoritative harness boundary
+        shell: bash
+        run: |
+          set +e
+          node scripts/performance/run-real-machine-benchmark.mjs --mode warm-persistent-runtime > /tmp/perf.out 2>&1
+          code=$?
+          set -e
+          test "$code" -ne 0
+          grep -q "authoritative benchmark must run on Windows" /tmp/perf.out

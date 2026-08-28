@@ -5,15 +5,15 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Dashboard is a real root workspace and LEARN remains the default entry", async () => {
-  const [page, shell] = await Promise.all([
+  const [page, navigation] = await Promise.all([
     read("app/page.tsx"),
-    read("app/plotpickle-workspace-shell.tsx"),
+    read("app/navigation/global-shortcuts.ts"),
   ]);
 
-  assert.match(shell, /RootWorkspace = [^;]*"dashboard"/);
-  assert.match(shell, /RootWorkspace = [^;]*"build"/);
-  assert.match(shell, /id: "dashboard"[^\n]*selectable: true/);
-  assert.match(shell, /id: "build"[^\n]*selectable: true/);
+  assert.match(navigation, /RootWorkspace = [^;]*"dashboard"/);
+  assert.match(navigation, /RootWorkspace = [^;]*"build"/);
+  assert.match(navigation, /id: "dashboard"[^\n]*workspace: "dashboard"/);
+  assert.match(navigation, /id: "build"[^\n]*workspace: "build"/);
   assert.match(page, /requested === "dashboard"/);
   assert.match(page, /requested === "build"/);
   assert.match(page, /workspace === "dashboard"/);

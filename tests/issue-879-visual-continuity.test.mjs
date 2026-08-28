@@ -108,14 +108,22 @@ test("exhaustive UAT reads the shared continuity layer on every active screen", 
   }
 });
 
-test("Dashboard and BUILD are active while later production workspaces remain parked", async () => {
-  const shell = await read("app/plotpickle-workspace-shell.tsx");
+test("Dashboard, BUILD and approved production shortcuts expose real destinations", async () => {
+  const navigation = await read("app/navigation/global-shortcuts.ts");
 
   for (const id of ["dashboard", "build"]) {
-    assert.match(shell, new RegExp(`id: "${id}"[^\\n]+selectable: true`));
+    assert.match(navigation, new RegExp(`id: "${id}"[^\\n]+kind: "workspace"[^\\n]+workspace: "${id}"`));
   }
-  for (const id of ["storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports"]) {
-    assert.match(shell, new RegExp(`id: "${id}"[^\\n]+selectable: false`));
+  for (const [id, href] of [
+    ["storyboard", "/storyboard"],
+    ["graphic-novel", "/previs"],
+    ["write", "/pageflow"],
+    ["edit", "/edit"],
+    ["feedback", "/pitch-review"],
+    ["refine", "/diagnostics"],
+    ["reports", "/production"],
+  ]) {
+    assert.match(navigation, new RegExp(`id: "${id}"[^\\n]+kind: "route"[^\\n]+href: "${href.replaceAll("/", "\\/")}"`));
   }
 });
 

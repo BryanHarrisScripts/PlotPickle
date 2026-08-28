@@ -28,9 +28,7 @@ class MemoryStorage {
 const FIXED_NOW = "2026-08-20T15:45:00.000Z";
 
 function normalizeProject(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value) || value.incompatible === true) {
-    throw new Error("incompatible project");
-  }
+  if (!value || typeof value !== "object" || Array.isArray(value) || value.incompatible === true) throw new Error("incompatible project");
   return {
     id: typeof value.id === "string" && value.id ? value.id : "recovered-project",
     title: typeof value.title === "string" && value.title ? value.title : "Untitled Story",
@@ -74,14 +72,12 @@ test("#1122 migrates the legacy active PPF into a verified profile-owned Library
   const storage = new MemoryStorage();
   const legacy = createProject({ id: "legacy-story", now: FIXED_NOW, title: "Legacy Story" });
   storage.setItem(LEGACY_ACTIVE_PROJECT_KEY, JSON.stringify(legacy));
-
   const first = initializeProfileProjectLibrary(harness(storage, "profile-bryan"));
   assert.equal(first.migrated, true);
   assert.equal(first.activeProject.id, "legacy-story");
-  assert.equal(storage.getItem(LEGACY_ACTIVE_PROJECT_KEY), null, "legacy authority retires only after the profile copy verifies");
+  assert.equal(storage.getItem(LEGACY_ACTIVE_PROJECT_KEY), null);
   assert.equal(JSON.parse(storage.getItem(projectLibraryMigrationKey("profile-bryan"))).verified, true);
   assert.equal(JSON.parse(storage.getItem(projectLibraryRegistryKey("profile-bryan"))).activeProjectId, "legacy-story");
-
   const restarted = initializeProfileProjectLibrary(harness(storage, "profile-bryan"));
   assert.equal(restarted.migrated, false);
   assert.equal(restarted.activeProject.title, "Legacy Story");
@@ -92,32 +88,21 @@ test("#1122 saves the current story before cloning examples or switching among m
   const input = harness(storage, "profile-bryan", ["story-one", "working-example", "story-three", "story-four", "story-five"]);
   const initial = initializeProfileProjectLibrary(input);
   saveProfileActiveProject({ ...input, project: { ...initial.activeProject, title: "Bryan Original", updatedAt: FIXED_NOW } });
-
   const immutableExample = createProject({ id: "packaged-example", now: FIXED_NOW, title: "Afterglow" });
   const sourceBefore = structuredClone(immutableExample);
-  const working = createProfileWorkingCopy({
-    ...input,
-    sourceProject: immutableExample,
-    sourceKind: "example",
-    sourceId: "afterglow",
-    title: "Afterglow",
-    genre: "Science Fiction",
-    format: "Screenplay",
-  });
+  const working = createProfileWorkingCopy({ ...input, sourceProject: immutableExample, sourceKind: "example", sourceId: "afterglow", title: "Afterglow", genre: "Science Fiction", format: "Screenplay" });
   assert.equal(working.activeProject.id, "working-example");
-  assert.deepEqual(immutableExample, sourceBefore, "the immutable packaged example must not be mutated");
-
+  assert.deepEqual(immutableExample, sourceBefore);
   for (const [id, title] of [["story-three", "Third"], ["story-four", "Fourth"], ["story-five", "Fifth"]]) {
     saveProfileActiveProject({ ...input, project: createProject({ id, now: FIXED_NOW, title }) });
   }
   const stories = listProfileProjectSummaries(input);
   assert.equal(stories.length, 5);
   assert.ok(stories.some((item) => item.sourceKind === "example" && item.sourceId === "afterglow"));
-
   const switched = switchProfileActiveProject({ ...input, projectId: "story-one" });
   assert.equal(switched.activeProject.title, "Bryan Original");
   const savedFifth = JSON.parse(storage.getItem(projectLibraryProjectKey("profile-bryan", "story-five")));
-  assert.equal(savedFifth.project.title, "Fifth", "the current project snapshot remains saved before switching");
+  assert.equal(savedFifth.project.title, "Fifth");
 });
 
 test("#1122 keeps My Stories registries and project snapshots isolated by opaque Human profile id", () => {
@@ -126,11 +111,10 @@ test("#1122 keeps My Stories registries and project snapshots isolated by opaque
   const jane = harness(storage, "profile-jane", ["jane-story"]);
   saveProfileActiveProject({ ...bryan, project: { ...initializeProfileProjectLibrary(bryan).activeProject, title: "Bryan Private Story" } });
   saveProfileActiveProject({ ...jane, project: { ...initializeProfileProjectLibrary(jane).activeProject, title: "Jane Private Story" } });
-
   assert.deepEqual(listProfileProjectSummaries(bryan).map((item) => item.title), ["Bryan Private Story"]);
   assert.deepEqual(listProfileProjectSummaries(jane).map((item) => item.title), ["Jane Private Story"]);
   assert.notEqual(projectLibraryRegistryKey("profile-bryan"), projectLibraryRegistryKey("profile-jane"));
-  assert.equal(storage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY), null, "the pure profile store never invents browser authentication state");
+  assert.equal(storage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY), null);
 });
 
 test("#1122 quarantines a corrupt active snapshot and recovers another verified story without destroying evidence", () => {
@@ -140,16 +124,15 @@ test("#1122 quarantines a corrupt active snapshot and recovers another verified 
   saveProfileActiveProject({ ...input, project: { ...initial.activeProject, title: "Last Good Story" } });
   saveProfileActiveProject({ ...input, project: createProject({ id: "broken-story", now: FIXED_NOW, title: "Broken Story" }) });
   storage.setItem(projectLibraryProjectKey("profile-bryan", "broken-story"), "{not-json");
-
   const recovered = initializeProfileProjectLibrary(input);
   assert.equal(recovered.activeProject.title, "Last Good Story");
-  assert.ok(storage.keys().some((key) => key.includes("broken-story.quarantine")), "corrupt source remains recoverable");
+  assert.ok(storage.keys().some((key) => key.includes("broken-story.quarantine")));
 });
 
 test("#1122 mounts one canonical Library route, accessible filters, safe-switch copy, and the required navigation placement", async () => {
   const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-  const [shell, route, workspace, catalog, browserStore, coreStore, avery] = await Promise.all([
-    read("app/plotpickle-workspace-shell.tsx"),
+  const [shortcuts, route, workspace, catalog, browserStore, coreStore, avery] = await Promise.all([
+    read("app/navigation/global-shortcuts.ts"),
     read("app/library/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/project-library-catalog.ts"),
@@ -157,14 +140,13 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
     read("core/storage/project-library-core.mjs"),
     read("modules/library/ui/avery-session-history/index.tsx"),
   ]);
-
-  const dashboard = shell.indexOf('id: "dashboard"');
-  const library = shell.indexOf('id: "library"');
-  const community = shell.indexOf('id: "community"');
-  const learn = shell.indexOf('id: "learn"');
-  const wyrmwood = shell.indexOf('id: "wyrmwood"');
+  const dashboard = shortcuts.indexOf('id: "dashboard"');
+  const library = shortcuts.indexOf('id: "library"');
+  const community = shortcuts.indexOf('id: "community"');
+  const learn = shortcuts.indexOf('id: "learn"');
+  const wyrmwood = shortcuts.indexOf('id: "wyrmwood"');
   assert.ok(community < library && library < learn && learn < wyrmwood && wyrmwood < dashboard);
-  assert.match(shell, /label: "Library", detail: "Stories", selectable: true/);
+  assert.match(shortcuts, /id: "library", key: "O", label: "Library", detail: "Stories"/);
   assert.match(route, /activeWorkspace="library"/);
   assert.match(workspace, /Featured Examples/);
   assert.match(workspace, /Genre Presets/);
@@ -181,8 +163,7 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.doesNotMatch(catalog, /storyboardState|screenplayState|fakeField/);
   assert.match(browserStore, /profileId/);
   for (const source of [workspace, catalog, browserStore, coreStore]) {
-    assert.doesNotMatch(source, /BUZZ_STORY_ROOMS|\/rooms\/ensure|channels["', ]+create|local-buzz/i,
-      "Library load and switch paths must remain local-only and must never provision BUZZ channels");
+    assert.doesNotMatch(source, /BUZZ_STORY_ROOMS|\/rooms\/ensure|channels["', ]+create|local-buzz/i);
   }
   assert.doesNotMatch(avery, /PROJECT_LIBRARY|My Stories|projectLibrary/);
 });

@@ -10,6 +10,7 @@ import {
 } from "../scripts/workspace-navigation-uat.mjs";
 
 const shellSource = await readFile(new URL("../app/plotpickle-workspace-shell.tsx", import.meta.url), "utf8");
+const shortcutSource = await readFile(new URL("../app/navigation/global-shortcuts.ts", import.meta.url), "utf8");
 const shellCss = await readFile(new URL("../app/plotpickle-workspace-shell.module.css", import.meta.url), "utf8");
 
 const canonicalIds = [
@@ -51,8 +52,9 @@ const canonicalLabels = [
 const canonicalGaps = [];
 
 function sourceNavigationItems(source) {
-  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "([^"]+)", selectable: (?:true|false) \}/g)]
-    .map((match) => ({ id: match[1], label: match[2], detail: match[3] }));
+  return [...source.matchAll(/\{ id: "([^"]+)", key: "[A-Z]", label: "([^"]+)", detail: "([^"]+)", relic: "[^"]+", action:/g)]
+    .map((match) => ({ id: match[1], label: match[2], detail: match[3] }))
+    .filter((item) => !["node", "profile"].includes(item.id));
 }
 
 test("canonical navigation contract preserves the revised order and labels", () => {
@@ -60,19 +62,19 @@ test("canonical navigation contract preserves the revised order and labels", () 
   assert.deepEqual(EXPECTED_NAVIGATION_LABELS, canonicalLabels);
   assert.deepEqual(EXPECTED_NAVIGATION_GAPS, canonicalGaps);
 
-  const sourceItems = sourceNavigationItems(shellSource);
+  const sourceItems = sourceNavigationItems(shortcutSource);
   assert.deepEqual(sourceItems.map((item) => item.id), canonicalIds);
   assert.deepEqual(sourceItems.map((item) => item.label), canonicalLabels);
 });
 
 test("#1341 keeps Library and Dashboard titles while using their approved subtitles", () => {
-  const sourceItems = sourceNavigationItems(shellSource);
+  const sourceItems = sourceNavigationItems(shortcutSource);
   assert.deepEqual(sourceItems.find((item) => item.id === "library"), { id: "library", label: "Library", detail: "Stories" });
   assert.deepEqual(sourceItems.find((item) => item.id === "dashboard"), { id: "dashboard", label: "Dashboard", detail: "KPI" });
 });
 
 test("workspace shell exposes stable UAT hooks without legacy visual gap groups", () => {
-  assert.match(shellSource, /data-plotpickle-global-nav="v2"/);
+  assert.match(shellSource, /data-plotpickle-global-nav="v3"/);
   assert.match(shellSource, /data-workspace-navigation="true"/);
   assert.match(shellSource, /data-workspace-nav-id=\{item\.id\}/);
   assert.doesNotMatch(shellSource, /data-navigation-gap-after|navigationBreakAfter|groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);

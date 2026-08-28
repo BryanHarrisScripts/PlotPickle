@@ -49,19 +49,21 @@ test("the standalone header exposes a dedicated lore-style Settings SVG and uses
 });
 
 test("workspace=settings opens an Overview-first compute setup inside the shared root navigator", async () => {
-  const [page, shell, settings, compute] = await Promise.all([
+  const [page, shell, navigation, settings, compute] = await Promise.all([
     read("app/page.tsx"),
     read("app/plotpickle-workspace-shell.tsx"),
+    read("app/navigation/global-shortcuts.ts"),
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/compute/ai-compute-workspace.tsx"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
-  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
+  assert.match(navigation, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
   assert.match(page, /requested === "settings"/);
   assert.match(page, /workspace === "settings"/);
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);
   assert.match(page, /<SageSettingsWorkspace \/>/);
-  assert.match(shell, /label: "Settings", detail: "Config", selectable: true/);
+  assert.match(shell, /data-plotpickle-global-nav="v3"/);
+  assert.match(navigation, /id: "settings", key: "T", label: "Settings", detail: "Config"[\s\S]*workspace: "settings"/);
   assert.match(settings, /Settings · Overview/);
   assert.match(settings, /<h2 id="settings-quick-steps">Quick Setup<\/h2>/);
   assert.match(settings, /Step 1:<\/strong> Open Local Compute/);

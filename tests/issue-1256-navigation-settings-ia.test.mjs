@@ -5,12 +5,13 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function navItems(source) {
-  return [...source.matchAll(/\{ id: "([^"]+)", relic: "[^"]+", label: "([^"]+)", detail: "[^"]+", selectable: (?:true|false) \}/g)]
-    .map((match) => ({ id: match[1], label: match[2] }));
+  return [...source.matchAll(/\{ id: "([^"]+)", key: "[A-Z]", label: "([^"]+)", detail: "[^"]+", relic: "[^"]+", action:/g)]
+    .map((match) => ({ id: match[1], label: match[2] }))
+    .filter((item) => !["node", "profile"].includes(item.id));
 }
 
 test("#1256 global workflow navigation follows the attended UAT order", async () => {
-  const source = await read("app/plotpickle-workspace-shell.tsx");
+  const source = await read("app/navigation/global-shortcuts.ts");
   assert.deepEqual(navItems(source).map((item) => item.label), [
     "Community",
     "Library",

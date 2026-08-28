@@ -29,12 +29,12 @@ test("#1210 Profile stays auth-safe while presenting compact lore chrome and an 
 });
 
 test("#1210 Library uses the lore relic family without changing Library navigation", async () => {
-  const [shell, relic] = await Promise.all([
-    read("app/plotpickle-workspace-shell.tsx"),
+  const [navigation, relic] = await Promise.all([
+    read("app/navigation/global-shortcuts.ts"),
     read("public/assets/workflow-relics/library.svg"),
   ]);
 
-  assert.match(shell, /id:\s*"library"[\s\S]*relic:\s*"\/assets\/workflow-relics\/library\.svg"[\s\S]*selectable:\s*true/u);
+  assert.match(navigation, /id:\s*"library"[\s\S]*key:\s*"O"[\s\S]*relic:\s*"\/assets\/workflow-relics\/library\.svg"[\s\S]*workspace:\s*"library"/u);
   assert.match(relic, /viewBox="0 0 96 96"/u);
   assert.match(relic, /<title id="title">Library relic<\/title>/u);
   assert.match(relic, /open brass-bound book/u);

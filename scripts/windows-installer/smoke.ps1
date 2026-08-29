@@ -92,7 +92,7 @@ function Stop-PlotPickleTree {
   if ($null -eq $Process) { return }
   if (-not $Process.HasExited) {
     & (Join-Path $env:SystemRoot "System32\taskkill.exe") /PID $Process.Id /T /F | Out-Null
-    $Process.WaitForExit(10_000) | Out-Null
+    $Process.WaitForExit(10000) | Out-Null
   }
   Wait-ForShutdown
 }

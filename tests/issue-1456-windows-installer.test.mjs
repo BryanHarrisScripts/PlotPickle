@@ -101,8 +101,10 @@ test("#1456 installed-app smoke covers real launch, junction-safe upgrade and un
   for (const contract of [
     "/VERYSILENT",
     "PlotPickle.exe",
+    'Join-Path $env:LOCALAPPDATA "PlotPickle-Installer-Smoke-$PID"',
     "runtime\\node\\node.exe",
     "node_modules\\vite\\package.json",
+    "worker\\index.ts",
     "--verify-install",
     "Start-InstalledPlotPickle",
     "Wait-ForStartup",

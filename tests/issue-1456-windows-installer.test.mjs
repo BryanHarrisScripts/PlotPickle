@@ -14,6 +14,8 @@ test("#1456 native Windows launcher is a hidden self-contained WinExe", async ()
   assert.match(project, /<PublishSingleFile>true<\/PublishSingleFile>/);
   assert.match(project, /<SelfContained>true<\/SelfContained>/);
   assert.match(launcher, /CreateNoWindow = true/);
+  assert.match(launcher, /Arguments = \\$"\/d \/s \/c/);
+  assert.doesNotMatch(launcher, /ArgumentList\\.Add/);
   assert.match(launcher, /WindowStyle = ProcessWindowStyle\.Hidden/);
   assert.match(launcher, /runtime", "node/);
   assert.match(launcher, /startInfo\.Environment\["PATH"\] = bundledNode/);
@@ -104,6 +106,7 @@ test("#1456 installed-app smoke covers real launch, junction-safe upgrade and un
     "--verify-install",
     "Start-InstalledPlotPickle",
     "Wait-ForStartup",
+    "Write-LauncherDiagnostics",
     "plotpickle-startup-v4",
     "Resolve-PersistentRuntimeModules",
     "Upgrade wrote the new payload through the previous persistent-runtime junction",

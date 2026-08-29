@@ -137,3 +137,8 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
   assert.doesNotMatch(interactionSmoke, /withTimeout\(navigate\(client, new URL\(route/);
   assert.match(interactionSmoke, /this\.pending\.delete\(id\);[\s\S]*exceeded \$\{timeoutMs\} ms/);
 });
+
+test("#1456 installed and CI runtimes skip developer-repair bootstrap", async () => {
+  const discovery = await source("build/uat-discovery-plugin.ts");
+  assert.match(discovery, /PLOTPICKLE_INSTALLED === "1" \|\| process\.env\.CI === "true"/);
+});

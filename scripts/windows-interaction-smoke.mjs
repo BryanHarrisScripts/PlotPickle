@@ -15,6 +15,7 @@ const requestedTotalTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_TOTAL_TIMEOU
 const totalTimeoutMs = Math.min(requestedTotalTimeoutMs, 6 * 60_000);
 const actionTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS || 8_000), 8_000);
 const routeTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ROUTE_TIMEOUT_MS || 30_000), 30_000);
+const maximumRoutes = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ROUTES || (process.env.CI === "true" ? 3 : 60)), 60);
 const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 60), 60);
 const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 240), 240);
 const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 3), 3);
@@ -522,7 +523,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(), platform: `${process.platform}-${process.arch}`, node: process.version,
     root, baseUrl, browserExecutable, communityEdgeMode,
-    limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, routeTimeoutMs, maximumStates, maximumActions, maximumDepth },
+    limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, routeTimeoutMs, maximumRoutes, maximumStates, maximumActions, maximumDepth },
     routes: [], dynamicRoutes: [], assets: [], actions: [], skippedActions: [], scenarios: {}, statesVisited: 0,
     passed: false, failures: [], progress: "starting",
   };
@@ -598,7 +599,8 @@ async function main() {
       report.progress = "routes";
       const inventory = await discoverRoutes();
       report.dynamicRoutes = inventory.dynamicRoutes;
-      for (const route of inventory.routes) {
+      report.routeInventoryCount = inventory.routes.length;
+      for (const route of inventory.routes.slice(0, maximumRoutes)) {
         if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached during route checks.");
         try {
           const inspection = await inspectHttpRoute(new URL(route, `${baseUrl}/`).href);

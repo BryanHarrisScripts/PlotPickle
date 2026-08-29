@@ -93,11 +93,8 @@ internal static class Program
             RedirectStandardInput = true,
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
+            Arguments = $"/d /s /c \"\"{launcher}\" --installed\"",
         };
-        startInfo.ArgumentList.Add("/d");
-        startInfo.ArgumentList.Add("/s");
-        startInfo.ArgumentList.Add("/c");
-        startInfo.ArgumentList.Add($"\"{launcher}\" --installed");
 
         var existingPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
         startInfo.Environment["PATH"] = bundledNode + Path.PathSeparator + existingPath;

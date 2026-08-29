@@ -39,6 +39,12 @@ test("#1456 installer stage bundles Node and dependencies instead of requiring d
   ]) assert.ok(stage.includes(contract), `Missing installer staging contract: ${contract}`);
 });
 
+test("#1456 release package includes root-level UI and community dependencies", async () => {
+  const packagePlatform = await source("scripts/package-platform.mjs");
+  assert.match(packagePlatform, /"components"/);
+  assert.match(packagePlatform, /"plugins"/);
+});
+
 test("#1456 installer is per-user, creates normal shortcuts and leaves user data outside the app directory", async () => {
   const installer = await source("windows/installer/PlotPickle.iss");
   assert.match(installer, /DefaultDirName=\{localappdata\}\\Programs\\PlotPickle/);

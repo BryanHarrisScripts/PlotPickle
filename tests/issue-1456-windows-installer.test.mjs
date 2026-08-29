@@ -141,6 +141,9 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
   assert.match(interactionSmoke, /inventory\.routes\.slice\(0, maximumRoutes\)/);
   assert.match(interactionSmoke, /async function inspectHttpRoute\(url\)/);
   assert.match(interactionSmoke, /signal: AbortSignal\.timeout\(routeTimeoutMs\)/);
+  assert.match(interactionSmoke, /client\.send\("Page\.navigate", \{ url \}, routeTimeoutMs\)/);
+  assert.match(interactionSmoke, /waitForReady\(client, expectedOrigin, routeTimeoutMs\)/);
+  assert.equal(interactionSmoke.match(/routeTimeoutMs \+ actionTimeoutMs \* state\.path\.length/g)?.length, 2);
   assert.match(interactionSmoke, /inspectHttpRoute\(new URL\(route/);
   assert.doesNotMatch(interactionSmoke, /withTimeout\(navigate\(client, new URL\(route/);
   assert.match(interactionSmoke, /this\.pending\.delete\(id\);[\s\S]*exceeded \$\{timeoutMs\} ms/);

@@ -113,6 +113,7 @@ test("#1456 installed-app smoke covers real launch, junction-safe upgrade and un
     "Uninstall removed PlotPickle user data",
     "Uninstall followed the application junction and damaged the persistent runtime",
   ]) assert.ok(smoke.includes(contract), `Missing installer-smoke contract: ${contract}`);
+  assert.doesNotMatch(smoke, /\b\d+_\d+\b/, "PowerShell numeric literals must not use JavaScript-style separators.");
   assert.ok(smoke.match(/Install-PlotPickle/g).length >= 3, "Installer smoke must install and then exercise an in-place upgrade.");
 });
 

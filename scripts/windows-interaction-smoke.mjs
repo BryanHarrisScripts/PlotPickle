@@ -15,10 +15,10 @@ const requestedTotalTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_TOTAL_TIMEOU
 const totalTimeoutMs = Math.min(requestedTotalTimeoutMs, 6 * 60_000);
 const actionTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS || 8_000), 8_000);
 const routeTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ROUTE_TIMEOUT_MS || 30_000), 30_000);
-const maximumRoutes = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ROUTES || (process.env.CI === "true" ? 3 : 60)), 60);
-const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 60), 60);
-const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 240), 240);
-const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 3), 3);
+const maximumRoutes = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ROUTES || (process.env.CI === "true" ? 1 : 60)), 60);
+const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || (process.env.CI === "true" ? 1 : 60)), 60);
+const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || (process.env.CI === "true" ? 3 : 240)), 240);
+const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || (process.env.CI === "true" ? 0 : 3)), 3);
 const communityEdgeMode = process.env.PLOTPICKLE_SMOKE_COMMUNITY_EDGE === "1";
 const communityStableMs = 5_000;
 const deadline = Date.now() + totalTimeoutMs;

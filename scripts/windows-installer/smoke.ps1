@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $setup = (Resolve-Path $SetupPath).Path
-$installRoot = Join-Path $env:TEMP "PlotPickle-Installer-Smoke-$PID"
+$installRoot = Join-Path $env:LOCALAPPDATA "PlotPickle-Installer-Smoke-$PID"
 $userDataRoot = Join-Path $env:LOCALAPPDATA "PlotPickle"
 $markerDirectory = Join-Path $userDataRoot "projects"
 $marker = Join-Path $markerDirectory "installer-smoke-preserve.marker"
@@ -44,7 +44,8 @@ function Assert-InstalledPayload {
     "installer-manifest.json",
     "runtime\node\node.exe",
     "runtime\node\npm.cmd",
-    "node_modules\vite\package.json"
+    "node_modules\vite\package.json",
+    "worker\index.ts"
   )) {
     $candidate = Join-Path $installRoot $required
     if (-not (Test-Path $candidate)) { throw "Installed payload is missing $required" }

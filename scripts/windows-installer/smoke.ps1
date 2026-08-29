@@ -66,6 +66,17 @@ function Wait-ForStartup {
   throw "Installed PlotPickle did not become ready at $baseUrl $lastError"
 }
 
+function Write-LauncherDiagnostics {
+  $launcherLog = Join-Path $userDataRoot "logs\launcher.log"
+  if (Test-Path $launcherLog) {
+    Write-Host "Installed launcher diagnostics:"
+    Get-Content $launcherLog | ForEach-Object { Write-Host $_ }
+  }
+  else {
+    Write-Warning "Installed launcher log was not created at $launcherLog"
+  }
+}
+
 function Wait-ForShutdown {
   $deadline = (Get-Date).AddSeconds(20)
   while ((Get-Date) -lt $deadline) {
@@ -81,6 +92,7 @@ function Start-InstalledPlotPickle {
   $process = Start-Process -FilePath $launcher -PassThru -WindowStyle Hidden
   try { Wait-ForStartup }
   catch {
+    Write-LauncherDiagnostics
     Stop-PlotPickleTree $process
     throw
   }

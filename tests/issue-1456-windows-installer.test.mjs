@@ -141,6 +141,10 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
   assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_STATES \|\| \(process\.env\.CI === "true" \? 1 : 60\)/);
   assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_ACTIONS \|\| \(process\.env\.CI === "true" \? 3 : 240\)/);
   assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_DEPTH \|\| \(process\.env\.CI === "true" \? 0 : 3\)/);
+  assert.match(interactionSmoke, /PLOTPICKLE_INSTALLED: "1"/);
+  assert.doesNotMatch(interactionSmoke, /runRepositoryCollabScenario/);
+  assert.match(interactionSmoke, /process\.env\.CI !== "true" && visitedStates\.size >= maximumStates/);
+  assert.match(interactionSmoke, /process\.env\.CI !== "true" && report\.actions\.length >= maximumActions/);
   assert.match(interactionSmoke, /inventory\.routes\.slice\(0, maximumRoutes\)/);
   assert.match(interactionSmoke, /async function inspectHttpRoute\(url\)/);
   assert.match(interactionSmoke, /signal: AbortSignal\.timeout\(routeTimeoutMs\)/);

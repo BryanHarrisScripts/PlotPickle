@@ -360,7 +360,7 @@ async function waitForReady(client, expectedOrigin, timeoutMs = actionTimeoutMs)
   throw new Error(`Browser did not become ready within ${timeoutMs} ms: ${lastError}`);
 }
 
-async function navigate(client, url, expectedOrigin) { await client.send("Page.navigate", { url }); await waitForReady(client, expectedOrigin); }
+async function navigate(client, url, expectedOrigin) { await client.send("Page.navigate", { url }, routeTimeoutMs); await waitForReady(client, expectedOrigin, routeTimeoutMs); }
 async function withTimeout(promise, ms, label) {
   let timer;
   try {
@@ -635,7 +635,7 @@ async function main() {
       while (queue.length && visitedStates.size < maximumStates && report.actions.length < maximumActions) {
         if (Date.now() >= deadline) { report.failures.push("The total smoke-test deadline was reached before the interaction queue completed."); break; }
         const state = queue.shift();
-        try { await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), "Replay interaction path"); }
+        try { await withTimeout(replay(state.path), routeTimeoutMs + actionTimeoutMs * state.path.length, "Replay interaction path"); }
         catch (error) { report.failures.push(`State replay failed: ${error instanceof Error ? error.message : String(error)}`); continue; }
         const stateValue = await evaluate(client, stateExpression);
         const currentKey = stateKey(stateValue);
@@ -653,7 +653,7 @@ async function main() {
           if (classification !== "safe") { report.skippedActions.push({ state: stateValue, action: candidate, reason: classification }); continue; }
           const eventStart = events.length;
           try {
-            await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), `Prepare ${normalizeText(candidate.text)}`);
+            await withTimeout(replay(state.path), routeTimeoutMs + actionTimeoutMs * state.path.length, `Prepare ${normalizeText(candidate.text)}`);
             const result = await withTimeout(evaluate(client, performScript(candidate)), actionTimeoutMs, `Activate ${normalizeText(candidate.text)}`);
             if (!result?.ok) throw new Error(result?.reason || "The control did not activate.");
             await waitForReady(client, baseOrigin);

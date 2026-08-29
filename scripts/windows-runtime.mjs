@@ -78,11 +78,8 @@ function samePath(left, right) {
 }
 
 function realPathOrNull(item) {
-  try {
-    return realpathSync.native(item);
-  } catch {
-    return null;
-  }
+  if (!existsSync(item)) return null;
+  return realpathSync.native(item);
 }
 
 function coreReady(modulesPath) {
@@ -157,12 +154,8 @@ function verifyModules(modulesPath, { quiet = false } = {}) {
 function installedRolldownVersion(modulesPath) {
   const manifestPath = path.join(modulesPath, "rolldown", "package.json");
   if (!existsSync(manifestPath)) return "";
-  try {
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    return typeof manifest.version === "string" ? manifest.version : "";
-  } catch {
-    return "";
-  }
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return typeof manifest.version === "string" ? manifest.version : "";
 }
 
 function repairNativeBinding(modulesPath) {

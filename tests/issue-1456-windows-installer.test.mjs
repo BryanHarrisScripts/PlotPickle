@@ -137,7 +137,10 @@ test("#1456 exact Windows CI builds and exercises the distributable installer", 
   assert.match(workflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(workflow, /PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "360000"/);
   assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_ROUTE_TIMEOUT_MS \|\| 30_000/);
-  assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_ROUTES \|\| \(process\.env\.CI === "true" \? 3 : 60\)/);
+  assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_ROUTES \|\| \(process\.env\.CI === "true" \? 1 : 60\)/);
+  assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_STATES \|\| \(process\.env\.CI === "true" \? 1 : 60\)/);
+  assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_ACTIONS \|\| \(process\.env\.CI === "true" \? 3 : 240\)/);
+  assert.match(interactionSmoke, /PLOTPICKLE_SMOKE_MAX_DEPTH \|\| \(process\.env\.CI === "true" \? 0 : 3\)/);
   assert.match(interactionSmoke, /inventory\.routes\.slice\(0, maximumRoutes\)/);
   assert.match(interactionSmoke, /async function inspectHttpRoute\(url\)/);
   assert.match(interactionSmoke, /signal: AbortSignal\.timeout\(routeTimeoutMs\)/);

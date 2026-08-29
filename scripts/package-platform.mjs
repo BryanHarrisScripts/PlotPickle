@@ -18,7 +18,9 @@ rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });
 
 const runtimeDirectories = [
+  ".agents",
   ".openai",
+  "adapters",
   "app",
   "build",
   "config",
@@ -26,7 +28,9 @@ const runtimeDirectories = [
   "data",
   "db",
   "docs",
+  "learn",
   "lib",
+  "modules",
   "public",
   "runtime",
   "schema",

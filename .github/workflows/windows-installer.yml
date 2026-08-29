@@ -1,0 +1,92 @@
+name: Windows Installer
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-installer.yml"
+      - "windows/**"
+      - "scripts/windows-installer/**"
+      - "scripts/package-platform.mjs"
+      - "scripts/package-smoke.mjs"
+      - "scripts/windows-interaction-smoke.mjs"
+      - "scripts/windows-runtime.mjs"
+      - "Start-PlotPickle.bat"
+      - "tests/issue-1456-windows-installer.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer:
+    name: Build and validate PlotPickleSetup.exe
+    runs-on: windows-latest
+    timeout-minutes: 50
+
+    steps:
+      - name: Check out exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+
+      - name: Use .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install exact dependency tree
+        shell: pwsh
+        run: npm ci --include=dev
+
+      - name: Validate installer source contracts
+        shell: pwsh
+        run: node --test tests/issue-1456-windows-installer.test.mjs
+
+      - name: Install Inno Setup compiler
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build PlotPickleSetup.exe
+        shell: pwsh
+        run: ./scripts/windows-installer/build.ps1
+
+      - name: Run packaged Windows interaction smoke
+        shell: pwsh
+        env:
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "360000"
+        run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
+
+      - name: Run install and uninstall smoke
+        shell: pwsh
+        run: ./scripts/windows-installer/smoke.ps1 -SetupPath releases/windows-installer/PlotPickleSetup.exe
+
+      - name: Upload interaction evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-installer-interaction-${{ github.event.pull_request.head.sha || github.sha }}
+          path: reports/windows-installer-interaction/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload PlotPickle installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-installer-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            releases/windows-installer/PlotPickleSetup.exe
+            releases/windows-installer/PlotPickleSetup.exe.sha256
+          if-no-files-found: error
+          retention-days: 14

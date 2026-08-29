@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  cpSync,
   copyFileSync,
   existsSync,
   lstatSync,
@@ -231,6 +232,16 @@ function createJunction(target, link) {
   symlinkSync(target, link, "junction");
 }
 
+function moveDirectory(source, target) {
+  try {
+    renameSync(source, target);
+  } catch (error) {
+    if (error?.code !== "EXDEV") throw error;
+    cpSync(source, target, { recursive: true, errorOnExist: true, force: false });
+    rmSync(source, { recursive: true, force: true });
+  }
+}
+
 function copyRuntimeManifests(info) {
   mkdirSync(info.runtimeDir, { recursive: true });
   copyFileSync(packageFile, path.join(info.runtimeDir, "package.json"));
@@ -254,7 +265,7 @@ function prepare() {
 
     if (!alreadyLinked && !stat.isSymbolicLink()) {
       if (!entryExists(info.runtimeModules)) {
-        renameSync(info.appModules, info.runtimeModules);
+        moveDirectory(info.appModules, info.runtimeModules);
         migrated = true;
         reused = runtimeReady(info.runtimeModules);
       } else if (runtimeReady(info.runtimeModules)) {
@@ -262,7 +273,7 @@ function prepare() {
         reused = true;
       } else if (runtimeReady(info.appModules)) {
         rmSync(info.runtimeModules, { recursive: true, force: true });
-        renameSync(info.appModules, info.runtimeModules);
+        moveDirectory(info.appModules, info.runtimeModules);
         migrated = true;
         reused = true;
       } else {

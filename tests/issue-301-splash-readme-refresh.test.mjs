@@ -59,20 +59,19 @@ test("issue #301 keeps collaboration and feedback human controlled", async () =>
   ]) assert.ok(splash.includes(phrase), `Missing collaboration boundary: ${phrase}`);
 });
 
-test("issue #301 aligns README product truth with the splash", async () => {
+test("issue #301 keeps README aligned to the current tester-facing product truth", async () => {
   const readme = await source("README.md");
   for (const phrase of [
-    "Suggest / Report",
-    "clickable Settings sitemap",
-    "guarded native MiniMax H3",
-    "official-source manifest",
-    "8 GB VRAM system is treated as constrained",
-    "A GitHub account and one story repository",
-    "A Buzz or BuilderLab account",
-    "The user’s own provider account, API key, billing",
-    "Windows, macOS and Linux packaging validation",
-    "GNU AGPLv3 or later",
-  ]) assert.ok(readme.includes(phrase), `README is missing refreshed product truth: ${phrase}`);
+    "PlotPickleSetup.exe",
+    "do not need to install Git, Node.js, npm, Rust",
+    "81-lesson writing curriculum",
+    "No silent local-to-paid-cloud fallback",
+    "24 Story Blocks",
+    "96 Mini-Blocks",
+    "2,400 technical 3-second render clips",
+    "Settings → Help",
+    "AGPL-3.0-or-later",
+  ]) assert.ok(readme.includes(phrase), `README is missing current shipping truth: ${phrase}`);
   assert.doesNotMatch(readme, /no active API connects it to Graphic Novel generation yet|Universal native H3 support is available/i);
 });
 

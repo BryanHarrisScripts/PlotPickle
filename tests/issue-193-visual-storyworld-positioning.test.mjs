@@ -74,20 +74,21 @@ test("issue #193 gives every existing visual function one role without adding an
   ]) assert.ok(documentation.includes(boundary), `Missing non-duplication boundary: ${boundary}`);
 });
 
-test("issue #193 records closed renderer phases and current optional connections", async () => {
+test("issue #193 keeps the public README focused on current product and optional connections", async () => {
   const [readme, about, documentation, splash] = await Promise.all([
     source("README.md"),
     source("app/about/page.tsx"),
     source("docs/issue-193-visual-storyworld-positioning.md"),
     source("app/marketing-splash-base.tsx"),
   ]);
-  assert.match(readme, /## The visual storyworld core/);
+  assert.match(readme, /## What PlotPickle does/);
+  assert.match(readme, /### Storyboard, Previs and Render Plan/);
+  assert.match(readme, /## Optional companions/);
+  assert.match(readme, /BUZZ.*optional|optional services[\s\S]*BUZZ/i);
+  assert.match(readme, /PlotPickleSetup\.exe/);
   assert.match(about, /Complete visual storyworld core/);
   assert.match(about, /STORYWORLD_CORE_LOOP\.map/);
   assert.match(documentation, /Issues #196, #199, #198, #197 and #200 were closed as not planned/);
-  for (const label of ["Story & Art", "Repository & Collab", "Scheduling & Meetings", "Media & Film Engines", "Buzz"]) {
-    assert.ok(`${readme}\n${documentation}\n${splash}`.includes(label), `Missing optional connection: ${label}`);
-  }
   assert.match(splash, /Buzz is dormant by default/);
   assert.match(splash, /Native bundled Buzz binaries are not advertised as shipped/);
 });
@@ -103,11 +104,11 @@ test("issue #193 updates metadata and top-level product documentation", async ()
     assert.match(text, /AI-native visual writing and creative direction/i);
   }
   assert.match(brief, /visual storyworld collaboration and previsualization engine/i);
-  assert.match(readme, /local-first, AI-native visual writing and creative direction studio/i);
+  assert.match(readme, /visual writing and creative-direction studio/i);
   assert.match(layout, /Shape the story, see the world and direct what comes next/i);
   assert.match(welcome, /From first idea to a visible storyworld/);
-  assert.match(readme, /PPF is the portable creative source of truth/);
-  assert.match(readme, /Buzz: optional and dormant by default/);
+  assert.match(readme, /PPF is PlotPickle's canonical creative record/);
+  assert.match(readme, /Community and BUZZ/);
   assert.match(brief, /Completed visual storyworld core/);
   assert.match(brief, /must not claim that it can render a complete movie/);
 });

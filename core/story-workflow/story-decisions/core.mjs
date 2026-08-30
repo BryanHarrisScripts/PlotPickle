@@ -1,3 +1,8 @@
+import {
+  authorizeStoryDecisionAuthority,
+  storyDecisionAuthorityAudit,
+} from "./autonomous-authority.mjs";
+
 export const STORY_DECISION_VERSION = 1;
 
 export const STORY_DECISION_STATUSES = Object.freeze([
@@ -323,27 +328,49 @@ export function createStoryDecisionResponse(input, responseInput) {
     error.code = "STORY_DECISION_STALE";
     throw error;
   }
-  const humanProfileId = decisionString(responseInput?.humanProfileId, 180);
-  if (!humanProfileId) throw new Error("Story Decision response requires authenticated Human profile authority.");
+  const legacyHumanProfileId = decisionString(responseInput?.humanProfileId, 180);
+  const authorityInput = responseInput?.authority ?? {
+    authorityClass: "authenticated-human",
+    humanProfileId: legacyHumanProfileId,
+  };
+  const authority = authorizeStoryDecisionAuthority(
+    authorityInput,
+    responseInput?.autonomousPolicy,
+    decision.projectId,
+  );
+  const authorityAudit = storyDecisionAuthorityAudit(authority);
   if (["answered", "superseded", "withdrawn", "stale"].includes(decision.status)) throw new Error(`Story Decision cannot be answered from status ${decision.status}.`);
   const selectedAlternativeId = decisionString(responseInput?.selectedAlternativeId, 180);
   const replacementContent = decisionString(responseInput?.replacementContent, 6_000);
   if (responseClass === "select-alternative" && !selectedAlternativeId) throw new Error("Selecting an alternative requires selectedAlternativeId.");
   if (["modify-proposal", "freeform-decision"].includes(responseClass) && !replacementContent) throw new Error(`${responseClass} requires writer-entered replacement content.`);
   const respondedAt = decisionIso(responseInput?.respondedAt);
+  const rationale = decisionString(responseInput?.rationale, 2_000);
+  if (authority.delegated && !rationale) {
+    throw new Error("Delegated autonomous Story Decision responses require a concise audit rationale.");
+  }
   const status = responseClass === "defer" ? "deferred" : responseClass === "request-alternatives" ? "reviewing" : "answered";
+  const authorityIdentity = authority.delegated ? authority.operatorId : authority.humanProfileId;
   const response = {
-    responseId: `story-response-${hashText(`${decision.decisionId}|${respondedAt}|${humanProfileId}|${responseClass}`)}`,
+    responseId: `story-response-${hashText(`${decision.decisionId}|${respondedAt}|${authority.authorityClass}|${authorityIdentity}|${responseClass}`)}`,
     decisionId: decision.decisionId,
     responseClass,
-    humanProfileId,
-    humanAuthority: "authenticated-human",
+    authorityClass: authority.authorityClass,
+    authority: authorityAudit,
+    humanProfileId: authority.humanProfileId,
+    humanAuthority: authority.authorityClass === "authenticated-human" ? "authenticated-human" : "",
+    autonomousRunId: authority.autonomousRunId,
+    operatorId: authority.operatorId,
+    modelRole: authority.modelRole,
+    modelId: authority.modelId,
+    provider: authority.provider,
+    runtime: authority.runtime,
     baseRevision: decision.baseRevision,
     currentRevision,
     selectedProposalId: decisionString(responseInput?.selectedProposalId, 180),
     selectedAlternativeId,
     replacementContent,
-    rationale: decisionString(responseInput?.rationale, 2_000),
+    rationale,
     respondedAt,
     requiresWorkbenchValidation: true,
     writesCanon: false,

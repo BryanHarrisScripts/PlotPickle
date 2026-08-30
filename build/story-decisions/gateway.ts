@@ -198,13 +198,21 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
 
       if (action === "respond") {
         const supplied = (body.response && typeof body.response === "object" ? body.response : {}) as Record<string, unknown>;
+        if (supplied.authorityClass === "delegated-autonomous-operator" || supplied.authority || supplied.autonomousPolicy) {
+          send(response, 403, { ok: false, message: "The Human Story Decision route cannot claim delegated autonomous authority." });
+          return;
+        }
         const suppliedProfileId = String(supplied.humanProfileId || "");
         if (suppliedProfileId && suppliedProfileId !== profile.profileId) {
           send(response, 403, { ok: false, message: "Story Decision response profile does not match the active Human profile." });
           return;
         }
         try {
-          const result = createStoryDecisionResponse(existing, { ...supplied, humanProfileId: profile.profileId });
+          const result = createStoryDecisionResponse(existing, {
+            ...supplied,
+            humanProfileId: profile.profileId,
+            authority: { authorityClass: "authenticated-human", humanProfileId: profile.profileId },
+          });
           await writeRecord(profile, result.decision);
           send(response, 200, { ok: true, decision: result.decision, response: result.response, writesCanon: false, next: "story-workbench-validation" });
         } catch (error) {

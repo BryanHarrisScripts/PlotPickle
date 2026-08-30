@@ -46,6 +46,14 @@ type DecisionResponse = Readonly<{
   responseId?: unknown;
   responseClass?: unknown;
   humanProfileId?: unknown;
+  authorityClass?: unknown;
+  authority?: unknown;
+  autonomousRunId?: unknown;
+  operatorId?: unknown;
+  modelRole?: unknown;
+  modelId?: unknown;
+  provider?: unknown;
+  runtime?: unknown;
   replacementContent?: unknown;
   selectedAlternativeId?: unknown;
   rationale?: unknown;
@@ -169,6 +177,14 @@ export function prepareStoryWorkbenchReview(input: {
     predictedImpactRefs: input.decision.predictedImpactRefs,
     provenance: {
       humanProfileId: response.humanProfileId,
+      authorityClass: response.authorityClass,
+      authority: response.authority,
+      autonomousRunId: response.autonomousRunId,
+      operatorId: response.operatorId,
+      modelRole: response.modelRole,
+      modelId: response.modelId,
+      provider: response.provider,
+      runtime: response.runtime,
       runRefs: input.decision.origin.runIds,
       councilResultId: input.decision.origin.councilResultId,
       rationale: response.rationale,

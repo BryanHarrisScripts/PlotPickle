@@ -21,7 +21,15 @@ export type StoryChangePackage = Readonly<{
   evidenceRefs: readonly string[];
   predictedImpactRefs: readonly string[];
   provenance: Readonly<{
+    authorityClass: "authenticated-human" | "delegated-autonomous-operator";
+    authority: Readonly<Record<string, unknown>>;
     humanProfileId: string;
+    autonomousRunId: string;
+    operatorId: string;
+    modelRole: string;
+    modelId: string;
+    provider: string;
+    runtime: string;
     runRefs: readonly string[];
     councilResultId: string;
     rationale: string;

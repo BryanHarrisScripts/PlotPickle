@@ -1,5 +1,6 @@
 export type StoryDecisionStatus = "new" | "reviewing" | "deferred" | "answered" | "superseded" | "stale" | "withdrawn";
 export type StoryDecisionResponseClass = "accept-proposal" | "select-alternative" | "modify-proposal" | "reject-proposal" | "keep-current" | "request-alternatives" | "defer" | "freeform-decision";
+export type StoryDecisionAuthorityClass = "authenticated-human" | "delegated-autonomous-operator";
 export type StoryDecisionRecord = {
   readonly schemaVersion: 1;
   readonly decisionId: string;

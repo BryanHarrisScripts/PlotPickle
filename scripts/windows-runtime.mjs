@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  cpSync,
   copyFileSync,
   existsSync,
   lstatSync,
@@ -77,11 +78,8 @@ function samePath(left, right) {
 }
 
 function realPathOrNull(item) {
-  try {
-    return realpathSync.native(item);
-  } catch {
-    return null;
-  }
+  if (!existsSync(item)) return null;
+  return realpathSync.native(item);
 }
 
 function coreReady(modulesPath) {
@@ -156,12 +154,8 @@ function verifyModules(modulesPath, { quiet = false } = {}) {
 function installedRolldownVersion(modulesPath) {
   const manifestPath = path.join(modulesPath, "rolldown", "package.json");
   if (!existsSync(manifestPath)) return "";
-  try {
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    return typeof manifest.version === "string" ? manifest.version : "";
-  } catch {
-    return "";
-  }
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return typeof manifest.version === "string" ? manifest.version : "";
 }
 
 function repairNativeBinding(modulesPath) {
@@ -231,6 +225,16 @@ function createJunction(target, link) {
   symlinkSync(target, link, "junction");
 }
 
+function moveDirectory(source, target) {
+  try {
+    renameSync(source, target);
+  } catch (error) {
+    if (error?.code !== "EXDEV") throw error;
+    cpSync(source, target, { recursive: true, errorOnExist: true, force: false });
+    rmSync(source, { recursive: true, force: true });
+  }
+}
+
 function copyRuntimeManifests(info) {
   mkdirSync(info.runtimeDir, { recursive: true });
   copyFileSync(packageFile, path.join(info.runtimeDir, "package.json"));
@@ -254,7 +258,7 @@ function prepare() {
 
     if (!alreadyLinked && !stat.isSymbolicLink()) {
       if (!entryExists(info.runtimeModules)) {
-        renameSync(info.appModules, info.runtimeModules);
+        moveDirectory(info.appModules, info.runtimeModules);
         migrated = true;
         reused = runtimeReady(info.runtimeModules);
       } else if (runtimeReady(info.runtimeModules)) {
@@ -262,7 +266,7 @@ function prepare() {
         reused = true;
       } else if (runtimeReady(info.appModules)) {
         rmSync(info.runtimeModules, { recursive: true, force: true });
-        renameSync(info.appModules, info.runtimeModules);
+        moveDirectory(info.appModules, info.runtimeModules);
         migrated = true;
         reused = true;
       } else {

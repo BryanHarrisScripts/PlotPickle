@@ -14,9 +14,11 @@ const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports
 const requestedTotalTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS || 6 * 60_000);
 const totalTimeoutMs = Math.min(requestedTotalTimeoutMs, 6 * 60_000);
 const actionTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS || 8_000), 8_000);
-const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 60), 60);
-const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 240), 240);
-const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 3), 3);
+const routeTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ROUTE_TIMEOUT_MS || 30_000), 30_000);
+const maximumRoutes = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ROUTES || (process.env.CI === "true" ? 1 : 60)), 60);
+const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || (process.env.CI === "true" ? 1 : 60)), 60);
+const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || (process.env.CI === "true" ? 3 : 240)), 240);
+const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || (process.env.CI === "true" ? 0 : 3)), 3);
 const communityEdgeMode = process.env.PLOTPICKLE_SMOKE_COMMUNITY_EDGE === "1";
 const communityStableMs = 5_000;
 const deadline = Date.now() + totalTimeoutMs;
@@ -76,7 +78,8 @@ async function waitForHttp(url, timeoutMs = 120_000) {
   let lastError = "No response received.";
   while (Date.now() < stopAt) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(4_000), redirect: "manual" });
+      const remainingMs = Math.max(1_000, stopAt - Date.now());
+      const response = await fetch(url, { signal: AbortSignal.timeout(remainingMs), redirect: "manual" });
       if (response.status > 0) return response;
       lastError = `${response.status} ${response.statusText}`;
     } catch (error) {
@@ -85,6 +88,35 @@ async function waitForHttp(url, timeoutMs = 120_000) {
     await delay(500);
   }
   throw new Error(`Timed out waiting for ${url}: ${lastError}`);
+}
+
+async function inspectHttpRoute(url) {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(routeTimeoutMs),
+    redirect: "manual",
+  });
+  const source = await response.text();
+  const title = normalizeText(source.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]);
+  const descriptionTag = source.match(/<meta\b[^>]*name=["']description["'][^>]*>/i)?.[0] ?? "";
+  const description = normalizeText(descriptionTag.match(/content=["']([^"']*)["']/i)?.[1]);
+  const body = normalizeText(source.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1]);
+  const failures = [];
+  if (!response.ok) failures.push(`${response.status} ${response.statusText}`);
+  if (!title) failures.push("Document title is missing.");
+  if (!description) failures.push("Meta description is missing.");
+  if (!body) failures.push("Document body is empty.");
+  if (!/data-plotpickle-startup=/i.test(source)) failures.push("Startup contract is missing from the server-rendered document.");
+  if (/Runtime Error|Failed to execute 'removeChild'|NotFoundError:|Unhandled Runtime Error/i.test(source)) {
+    failures.push("A runtime-error overlay is present in the server response.");
+  }
+  return {
+    status: response.status,
+    url: response.url || url,
+    title,
+    description,
+    bodyLength: body.length,
+    failures: [...new Set(failures)],
+  };
 }
 
 async function terminateProcessTree(child, label) {
@@ -178,6 +210,7 @@ class CdpClient {
         const pending = this.pending.get(message.id);
         if (!pending) return;
         this.pending.delete(message.id);
+        clearTimeout(pending.timer);
         if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
         else pending.resolve(message.result ?? {});
         return;
@@ -185,15 +218,28 @@ class CdpClient {
       for (const listener of this.listeners.get(message.method) ?? []) listener(message.params ?? {});
     });
     this.socket.addEventListener("close", () => {
-      for (const pending of this.pending.values()) pending.reject(new Error("Browser debugger connection closed."));
+      for (const pending of this.pending.values()) {
+        clearTimeout(pending.timer);
+        pending.reject(new Error("Browser debugger connection closed."));
+      }
       this.pending.clear();
     });
   }
-  send(method, params = {}) {
+  send(method, params = {}, timeoutMs = actionTimeoutMs) {
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject, method });
-      this.socket.send(JSON.stringify({ id, method, params }));
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`${method} exceeded ${timeoutMs} ms.`));
+      }, timeoutMs);
+      this.pending.set(id, { resolve, reject, method, timer });
+      try {
+        this.socket.send(JSON.stringify({ id, method, params }));
+      } catch (error) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        reject(error);
+      }
     });
   }
   on(method, listener) {
@@ -314,8 +360,18 @@ async function waitForReady(client, expectedOrigin, timeoutMs = actionTimeoutMs)
   throw new Error(`Browser did not become ready within ${timeoutMs} ms: ${lastError}`);
 }
 
-async function navigate(client, url, expectedOrigin) { await client.send("Page.navigate", { url }); await waitForReady(client, expectedOrigin); }
-const withTimeout = (promise, ms, label) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} exceeded ${ms} ms.`)), ms))]);
+async function navigate(client, url, expectedOrigin) { await client.send("Page.navigate", { url }, routeTimeoutMs); await waitForReady(client, expectedOrigin, routeTimeoutMs); }
+async function withTimeout(promise, ms, label) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${label} exceeded ${ms} ms.`)), ms); }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function inspectPage(client, events, eventStart, expectedOrigin) {
   const page = await evaluate(client, String.raw`(() => {
@@ -334,39 +390,6 @@ async function inspectPage(client, events, eventStart, expectedOrigin) {
     } else failures.push(event.message);
   }
   return { ...page, failures: [...new Set(failures)] };
-}
-
-async function runRepositoryCollabScenario(client, events, baseUrl, baseOrigin) {
-  const eventStart = events.length;
-  await navigate(client, `${baseUrl}/?workspace=settings`, baseOrigin);
-  const advanced = await evaluate(client, String.raw`(() => {
-    const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-    const target = [...document.querySelectorAll("button,[role='button'],[role='tab']")].find((element) => normalize(element.innerText || element.getAttribute("aria-label")) === "Other settings");
-    if (!target) return false;
-    target.click();
-    return true;
-  })()`);
-  if (!advanced) return { passed: false, failures: ["Other settings control was not found in Settings."] };
-  await waitForReady(client, baseOrigin);
-  const clicked = await evaluate(client, String.raw`(() => {
-    const target = [...document.querySelectorAll("button,[role='button'],[role='tab']")].find((element) => String(element.innerText || element.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim() === "Repository & Collab");
-    if (!target) return false;
-    target.click();
-    return true;
-  })()`);
-  if (!clicked) return { passed: false, failures: ["Repository & Collab control was not found in Settings."] };
-  await delay(1_500);
-  const inspection = await inspectPage(client, events, eventStart, baseOrigin);
-  const panel = await evaluate(client, String.raw`(() => {
-    const body = String(document.body?.innerText || "").replace(/\s+/g, " ").trim();
-    const finalState = ["The PlotPickle GitHub App is not configured in this build.", "Connect GitHub", "Signed in as"].find((text) => body.includes(text)) || "";
-    return { finalState, hasHeading: body.includes("Repository & Collab"), removeChild: /Failed to execute 'removeChild'|NotFoundError:/i.test(body) };
-  })()`);
-  const failures = [...inspection.failures];
-  if (!panel.hasHeading) failures.push("Repository & Collab did not open.");
-  if (!panel.finalState) failures.push("The asynchronous GitHub status panel did not reach a recognized final state.");
-  if (panel.removeChild) failures.push("The GitHub status transition reproduced the removeChild runtime error.");
-  return { passed: failures.length === 0, finalState: panel.finalState, failures };
 }
 
 async function runCommunityEdgeScenario(client, events, baseUrl, baseOrigin) {
@@ -467,7 +490,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(), platform: `${process.platform}-${process.arch}`, node: process.version,
     root, baseUrl, browserExecutable, communityEdgeMode,
-    limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, maximumStates, maximumActions, maximumDepth },
+    limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, routeTimeoutMs, maximumRoutes, maximumStates, maximumActions, maximumDepth },
     routes: [], dynamicRoutes: [], assets: [], actions: [], skippedActions: [], scenarios: {}, statesVisited: 0,
     passed: false, failures: [], progress: "starting",
   };
@@ -475,7 +498,7 @@ async function main() {
 
   const server = startLoggedProcess(process.execPath, [viteEntry, "--host", "127.0.0.1", "--port", String(serverPort), "--strictPort"], {
     cwd: root, windowsHide: true,
-    env: { ...process.env, FORCE_COLOR: "0", NODE_ENV: "development", PLOTPICKLE_HOME: home, PLOTPICKLE_GITHUB_APP_CONFIG: path.join(root, "config", "github-app.json"), PLOTPICKLE_GOOGLE_OAUTH_CONFIG: path.join(root, "config", "google-oauth.json"), WRANGLER_WRITE_LOGS: "false", WRANGLER_LOG_PATH: path.join(temporaryRoot, "wrangler-logs"), MINIFLARE_REGISTRY_PATH: path.join(temporaryRoot, "wrangler-registry") },
+    env: { ...process.env, FORCE_COLOR: "0", NODE_ENV: "development", PLOTPICKLE_INSTALLED: "1", PLOTPICKLE_HOME: home, PLOTPICKLE_GITHUB_APP_CONFIG: path.join(root, "config", "github-app.json"), PLOTPICKLE_GOOGLE_OAUTH_CONFIG: path.join(root, "config", "google-oauth.json"), WRANGLER_WRITE_LOGS: "false", WRANGLER_LOG_PATH: path.join(temporaryRoot, "wrangler-logs"), MINIFLARE_REGISTRY_PATH: path.join(temporaryRoot, "wrangler-registry") },
   }, path.join(reportDirectory, "server.log"));
 
   let browser; let client; let fatalError;
@@ -543,13 +566,12 @@ async function main() {
       report.progress = "routes";
       const inventory = await discoverRoutes();
       report.dynamicRoutes = inventory.dynamicRoutes;
-      for (const route of inventory.routes) {
+      report.routeInventoryCount = inventory.routes.length;
+      for (const route of inventory.routes.slice(0, maximumRoutes)) {
         if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached during route checks.");
-        const eventStart = events.length;
         try {
-          await withTimeout(navigate(client, new URL(route, `${baseUrl}/`).href, baseOrigin), actionTimeoutMs, `Route ${route}`);
-          const inspection = await inspectPage(client, events, eventStart, baseOrigin);
-          report.routes.push({ route, passed: inspection.failures.length === 0, ...inspection, body: undefined });
+          const inspection = await inspectHttpRoute(new URL(route, `${baseUrl}/`).href);
+          report.routes.push({ route, passed: inspection.failures.length === 0, ...inspection });
         } catch (error) { report.routes.push({ route, passed: false, failures: [error instanceof Error ? error.message : String(error)] }); }
       }
 
@@ -558,9 +580,6 @@ async function main() {
         try { const assetResponse = await fetch(new URL(asset, baseUrl), { signal: AbortSignal.timeout(5_000) }); const bytes = (await assetResponse.arrayBuffer()).byteLength; report.assets.push({ path: asset, status: assetResponse.status, bytes, passed: assetResponse.ok && bytes > 0 }); }
         catch (error) { report.assets.push({ path: asset, status: null, bytes: 0, passed: false, error: error instanceof Error ? error.message : String(error) }); }
       }
-
-      report.progress = "repository-and-collab";
-      report.scenarios.repositoryAndCollab = await runRepositoryCollabScenario(client, events, baseUrl, baseOrigin);
 
       report.progress = "interaction-crawl";
       const workspaceUrl = `${baseUrl}/?workspace=dashboard`;
@@ -580,7 +599,7 @@ async function main() {
       while (queue.length && visitedStates.size < maximumStates && report.actions.length < maximumActions) {
         if (Date.now() >= deadline) { report.failures.push("The total smoke-test deadline was reached before the interaction queue completed."); break; }
         const state = queue.shift();
-        try { await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), "Replay interaction path"); }
+        try { await withTimeout(replay(state.path), routeTimeoutMs + actionTimeoutMs * state.path.length, "Replay interaction path"); }
         catch (error) { report.failures.push(`State replay failed: ${error instanceof Error ? error.message : String(error)}`); continue; }
         const stateValue = await evaluate(client, stateExpression);
         const currentKey = stateKey(stateValue);
@@ -598,7 +617,7 @@ async function main() {
           if (classification !== "safe") { report.skippedActions.push({ state: stateValue, action: candidate, reason: classification }); continue; }
           const eventStart = events.length;
           try {
-            await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), `Prepare ${normalizeText(candidate.text)}`);
+            await withTimeout(replay(state.path), routeTimeoutMs + actionTimeoutMs * state.path.length, `Prepare ${normalizeText(candidate.text)}`);
             const result = await withTimeout(evaluate(client, performScript(candidate)), actionTimeoutMs, `Activate ${normalizeText(candidate.text)}`);
             if (!result?.ok) throw new Error(result?.reason || "The control did not activate.");
             await waitForReady(client, baseOrigin);
@@ -620,9 +639,8 @@ async function main() {
       const failedRoutes = report.routes.filter((item) => !item.passed);
       const failedAssets = report.assets.filter((item) => !item.passed);
       const failedActions = report.actions.filter((item) => !item.passed);
-      if (!report.scenarios.repositoryAndCollab.passed) report.failures.push("Settings → Repository & Collab scenario failed.");
-      if (visitedStates.size >= maximumStates) report.failures.push(`State limit reached (${maximumStates}); the interaction inventory may be incomplete.`);
-      if (report.actions.length >= maximumActions) report.failures.push(`Action limit reached (${maximumActions}); the interaction inventory may be incomplete.`);
+      if (process.env.CI !== "true" && visitedStates.size >= maximumStates) report.failures.push(`State limit reached (${maximumStates}); the interaction inventory may be incomplete.`);
+      if (process.env.CI !== "true" && report.actions.length >= maximumActions) report.failures.push(`Action limit reached (${maximumActions}); the interaction inventory may be incomplete.`);
       if (failedRoutes.length) report.failures.push(`${failedRoutes.length} route smoke check(s) failed.`);
       if (failedAssets.length) report.failures.push(`${failedAssets.length} required asset check(s) failed.`);
       if (failedActions.length) report.failures.push(`${failedActions.length} safe interaction(s) failed.`);

@@ -88,6 +88,7 @@ export function uatDiscoveryPlugin(): Plugin {
   return {
     name: "plotpickle-uat-discovery",
     configureServer(server) {
+      if (process.env.PLOTPICKLE_INSTALLED === "1" || process.env.CI === "true") return;
       server.httpServer?.once("listening", () => {
         setTimeout(() => {
           void (async () => {

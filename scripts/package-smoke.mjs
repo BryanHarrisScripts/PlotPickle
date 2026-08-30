@@ -9,29 +9,40 @@ assert.equal(manifest.product, "PlotPickle");
 assert.equal(manifest.projectFormat, ".ppf");
 assert.equal(manifest.localOnly, true);
 for (const file of [
+  ".agents/skills/sage-brinewick/SKILL.md",
   ".openai/hosting.json",
-  "package.json",
-  "package-lock.json",
-  "vite.config.ts",
-  "README.md",
-  "worker/index.ts",
-  "db/index.ts",
-  "lib/projects/persistence/project-package.ts",
+  "adapters/curriculum/current-catalog.ts",
+  "app/simple-start.tsx",
   "build/local-project-gateway.ts",
   "build/github-app-public-config.ts",
   "build/google-oauth-public-config.ts",
   "build/google-desktop-oauth.ts",
+  "components/agent-portrait.tsx",
+  "components/agent-portrait.module.css",
   "config/github-app.json",
   "config/google-oauth.json",
   "config/buzz-desktop.json",
+  "core/project/project.ts",
+  "db/index.ts",
+  "learn/index.json",
+  "lib/projects/persistence/project-package.ts",
+  "modules/library/import/rich-ppf-to-library-project.ts",
+  "modules/story-workflow/bridge/buzz-story-bridge.ts",
+  "package.json",
+  "package-lock.json",
+  "plugins/plotpickle-playhouse/index.ts",
+  "README.md",
   "schema/plotpickle-github-app-public-config.schema.json",
   "schema/plotpickle-google-oauth-public-config.schema.json",
+  "scripts/agent-skills.mjs",
   "scripts/github-app-registration.mjs",
   "scripts/google-oauth-registration.mjs",
   "scripts/install-buzz-desktop.ps1",
   "scripts/install-local-ai-tool.ps1",
   "scripts/windows-runtime.mjs",
   "scripts/windows-server-smoke.mjs",
+  "vite.config.ts",
+  "worker/index.ts",
 ]) {
   assert.ok(existsSync(path.join(folder, file)), `Missing packaged file: ${file}`);
 }
@@ -80,14 +91,16 @@ assert.equal(manifest.googleOAuth?.registrationStatus, googleOAuth.registrationS
 assert.equal(manifest.googleOAuth?.applicationType, "desktop");
 
 const buzzDesktop = JSON.parse(readFileSync(path.join(folder, "config", "buzz-desktop.json"), "utf8"));
-assert.equal(buzzDesktop.releaseTag, "desktop-v0.5.3");
-assert.equal(buzzDesktop.version, "0.5.3");
-assert.equal(buzzDesktop.sourceCommit, "3a96ace");
-assert.equal(buzzDesktop.windows.asset, "Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
+assert.equal(buzzDesktop.schemaVersion, 2);
+assert.match(buzzDesktop.version, /^\d+\.\d+\.\d+$/);
+assert.equal(buzzDesktop.releaseTag, `desktop-v${buzzDesktop.version}`);
+assert.match(buzzDesktop.sourceCommit, /^[0-9a-f]{7,40}$/i);
+assert.equal(buzzDesktop.windows.asset, `Buzz_${buzzDesktop.version}_x64-setup_alpha-unsigned.exe`);
 assert.equal(
   buzzDesktop.windows.downloadUrl,
-  "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe",
+  `https://github.com/block/buzz/releases/download/${buzzDesktop.releaseTag}/${buzzDesktop.windows.asset}`,
 );
+assert.match(buzzDesktop.windows.sha256, /^[0-9a-f]{64}$/i);
 assert.equal(buzzDesktop.windows.unsigned, true);
 
 const launcher = manifest.platform === "windows" ? "Start-PlotPickle.bat" : manifest.platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";
@@ -108,10 +121,10 @@ if (manifest.platform === "windows") {
     .join("\n");
 
   assert.match(launcherSource, /title PlotPickle - Local App/);
-  assert.match(launcherSource, /\[STEP 1 OF 3\] Preparing the required local runtime/);
-  assert.match(launcherSource, /\[STEP 2 OF 3\] Checking required PlotPickle components/);
-  assert.match(launcherSource, /\[STEP 3 OF 3\] Starting the private local server/);
-  assert.match(launcherSource, /PlotPickle is already running/);
+  assert.match(launcherSource, /\[STEP 1 OF 3\][^\r\n]*Preparing the required local runtime/);
+  assert.match(launcherSource, /\[STEP 2 OF 3\][^\r\n]*Checking required PlotPickle components/);
+  assert.match(launcherSource, /\[STEP 3 OF 3\][^\r\n]*Starting the private local server/);
+  assert.match(launcherSource, /current PlotPickle build is already running/);
   assert.match(launcherSource, /--strictPort/);
   assert.match(launcherSource, /READY_TIMEOUT_SECONDS=60/);
   assert.match(launcherSource, /independent Settings pages/);

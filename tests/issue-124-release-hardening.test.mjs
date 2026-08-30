@@ -18,7 +18,7 @@ test("issue #124 makes Build the only full structural arrangement workspace", as
   assert.match(engines, /Build owns arrangement\. Refine reads the same structure for diagnosis\./);
   assert.match(engines, /onOpenBuild/);
   assert.match(page, /<EngineHub onOpenBuild=/);
-  assert.match(readme, /Structural arrangement belongs only to Build/);
+  assert.match(readme, /BUILD shows what the current story actually supports/);
 });
 
 test("issue #124 moves all mini-blocks through one stable-ID canonical ordering path", async () => {

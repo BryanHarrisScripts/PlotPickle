@@ -15,7 +15,6 @@ import {
 } from "@/core/storage/profile-private-browser";
 import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
 import {
-  GLOBAL_SHORTCUTS,
   PLOTPICKLE_OPEN_NODE_EVENT,
   PLOTPICKLE_OPEN_PROFILE_EVENT,
   WORKFLOW_SHORTCUTS,
@@ -177,9 +176,9 @@ function NodeControl() {
     <button
       type="button"
       className={styles.nodeButton}
-      aria-label={`PlotPickle Node ${node?.node.shortId || "control"}. Shortcut N.`}
+      aria-label={`PlotPickle Node ${node?.node.shortId || "control"}`}
       aria-expanded={open}
-      title="Node · Profile home · N"
+      title="Node · Profile home"
       onClick={() => {
         const next = !open;
         setOpen(next);
@@ -213,10 +212,12 @@ function NodeControl() {
 
 export default function PlotPickleWorkspaceShell({
   activeWorkspace,
+  activeShortcutId,
   children,
   onNavigate,
 }: {
   readonly activeWorkspace: RootWorkspace;
+  readonly activeShortcutId?: string;
   readonly children: ReactNode;
   readonly onNavigate: (workspace: RootWorkspace) => void;
 }) {
@@ -251,7 +252,7 @@ export default function PlotPickleWorkspaceShell({
   }, [runShortcut]);
 
   return (
-    <div className={styles.shell} data-active-workspace={activeWorkspace}>
+    <div className={styles.shell} data-active-workspace={activeWorkspace} data-active-shortcut={activeShortcutId || activeWorkspace}>
       <nav
         aria-label="PlotPickle global workflow"
         className={styles.navigator}
@@ -262,7 +263,9 @@ export default function PlotPickleWorkspaceShell({
         <div className={styles.scroller}>
           <ol className={styles.list} data-workspace-navigation="true">
             {WORKFLOW_SHORTCUTS.map((item) => {
-              const active = item.action.kind === "workspace" && item.action.workspace === activeWorkspace;
+              const active = activeShortcutId
+                ? item.id === activeShortcutId
+                : item.action.kind === "workspace" && item.action.workspace === activeWorkspace;
               return (
                 <li
                   className={active ? styles.active : undefined}
@@ -273,28 +276,17 @@ export default function PlotPickleWorkspaceShell({
                     aria-current={active ? "page" : undefined}
                     disabled={active}
                     onClick={() => runShortcut(item)}
-                    title={`${item.label} · ${item.detail} · ${item.key}`}
+                    title={`${item.label} · ${item.detail}`}
                     type="button"
                   >
                     <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={item.relic} width={44} />
-                    <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail} · {item.key}</small></span>
+                    <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail}</small></span>
                   </button>
                 </li>
               );
             })}
           </ol>
         </div>
-
-        <details className={styles.shortcutHelp} data-disable-global-shortcuts="true" data-global-shortcut-help="true">
-          <summary aria-label="Keyboard shortcuts">Keys</summary>
-          <div className={styles.shortcutHelpPanel}>
-            <strong>Keyboard navigation</strong>
-            <p>Single letters work when you are not typing or using a dialog.</p>
-            <ul>
-              {GLOBAL_SHORTCUTS.map((shortcut) => <li key={shortcut.id}><kbd>{shortcut.key}</kbd><span>{shortcut.label}</span><small>{shortcut.detail}</small></li>)}
-            </ul>
-          </div>
-        </details>
       </nav>
 
       <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>

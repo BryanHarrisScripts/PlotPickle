@@ -1,0 +1,221 @@
+.buildStageNav {
+  position: sticky;
+  z-index: var(--pp-z-sticky);
+  top: 0;
+  display: flex;
+  min-height: 52px;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--pp-line);
+  background: rgba(7, 7, 7, 0.97);
+  color: var(--pp-text);
+}
+
+.buildStageNav > div {
+  display: grid;
+  min-width: 150px;
+  align-content: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-right: 1px solid var(--pp-line);
+}
+
+.buildStageNav > div span {
+  color: var(--pp-teal);
+  font-size: var(--pp-text-xs);
+  font-weight: 900;
+  letter-spacing: var(--pp-tracking-label);
+}
+
+.buildStageNav > div strong {
+  color: var(--pp-paper);
+  font-size: var(--pp-text-sm);
+}
+
+.buildStageNav button {
+  min-width: max-content;
+  padding: 0 14px;
+  border: 0;
+  border-right: 1px solid var(--pp-line);
+  background: transparent;
+  color: var(--pp-muted);
+  font: inherit;
+  font-size: var(--pp-text-xs);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.buildStageNav button:hover,
+.buildStageNav button:focus-visible {
+  background: var(--pp-surface-hover);
+  color: var(--pp-orange-bright);
+}
+
+.keyboardHelp {
+  display: grid;
+  gap: var(--pp-space-4);
+  margin: 0 0 var(--pp-space-6);
+  padding: var(--pp-space-5);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface);
+  color: var(--pp-text);
+}
+
+.keyboardHelp header {
+  display: grid;
+  gap: var(--pp-space-2);
+}
+
+.keyboardHelp header > span {
+  color: var(--pp-teal);
+  font-size: var(--pp-text-xs);
+  font-weight: 900;
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
+}
+
+.keyboardHelp h2,
+.keyboardHelp p {
+  margin: 0;
+}
+
+.keyboardHelp h2 { color: var(--pp-paper); }
+.keyboardHelp p { color: var(--pp-muted); }
+
+.keyboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--pp-space-2);
+}
+
+.keyboardGrid > div {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--pp-space-2);
+  align-items: center;
+  padding: var(--pp-space-2);
+  border: 1px solid var(--pp-line);
+  background: var(--pp-surface-raised);
+}
+
+.keyboardGrid kbd {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--pp-line-strong);
+  background: var(--pp-matte);
+  color: var(--pp-orange-bright);
+  font: inherit;
+  font-weight: 900;
+}
+
+.keyboardGrid span,
+.keyboardGrid strong,
+.keyboardGrid small { display: block; }
+.keyboardGrid strong { color: var(--pp-text); font-size: var(--pp-text-xs); }
+.keyboardGrid small { color: var(--pp-dim); font-size: 0.625rem; }
+
+/* Final tester-facing surface guard. Standalone studios and the legacy Write /
+   Feedback hosts must consume the approved matte-black, teal and orange system
+   instead of retaining their historical light, purple, blue or gold palettes. */
+:global(.standalone-studio-surface),
+:global(.feedback-studio-shell),
+:global(.workspace[data-write-studio="true"]) {
+  background:
+    radial-gradient(circle at 48% 0%, rgba(34, 191, 174, 0.055), transparent 34rem),
+    var(--pp-matte) !important;
+  color: var(--pp-text) !important;
+  font-family: var(--pp-font-body) !important;
+}
+
+:global(.standalone-studio-surface) :is(section, article, aside, details, nav),
+:global(.feedback-studio-shell) :is(section, article, aside, details, nav),
+:global(.workspace[data-write-studio="true"]) :is(section, article, aside, details, nav) {
+  border-color: var(--pp-line) !important;
+  background-color: var(--pp-surface) !important;
+  color: var(--pp-text) !important;
+  box-shadow: none !important;
+}
+
+:global(.standalone-studio-surface) :is(h1, h2, h3, h4, strong, th),
+:global(.feedback-studio-shell) :is(h1, h2, h3, h4, strong, th),
+:global(.workspace[data-write-studio="true"]) :is(h1, h2, h3, h4, strong, th) {
+  color: var(--pp-paper) !important;
+  font-family: var(--pp-font-display) !important;
+}
+
+:global(.standalone-studio-surface) :is(p, small, dd, td, li),
+:global(.feedback-studio-shell) :is(p, small, dd, td, li),
+:global(.workspace[data-write-studio="true"]) :is(p, small, dd, td, li) {
+  color: var(--pp-muted) !important;
+}
+
+:global(.standalone-studio-surface) :is(input, textarea, select),
+:global(.feedback-studio-shell) :is(input, textarea, select),
+:global(.workspace[data-write-studio="true"]) :is(input, textarea, select) {
+  border-color: var(--pp-line) !important;
+  border-radius: var(--pp-radius-control) !important;
+  background: var(--pp-surface-raised) !important;
+  color: var(--pp-text) !important;
+  caret-color: var(--pp-orange);
+}
+
+:global(.standalone-studio-surface) :is(a, button),
+:global(.feedback-studio-shell) :is(a, button),
+:global(.workspace[data-write-studio="true"]) :is(a, button) {
+  border-color: var(--pp-line-strong) !important;
+  border-radius: var(--pp-radius-control) !important;
+  background-color: var(--pp-surface-raised) !important;
+  color: var(--pp-orange-bright) !important;
+  box-shadow: none !important;
+}
+
+:global(.standalone-studio-surface) :is(a, button):hover,
+:global(.feedback-studio-shell) :is(a, button):hover,
+:global(.workspace[data-write-studio="true"]) :is(a, button):hover {
+  background: var(--pp-surface-hover) !important;
+  color: var(--pp-teal-bright) !important;
+}
+
+:global(.standalone-studio-surface) :is(a, button):focus-visible,
+:global(.feedback-studio-shell) :is(a, button):focus-visible,
+:global(.workspace[data-write-studio="true"]) :is(a, button):focus-visible {
+  outline: 2px solid var(--pp-teal) !important;
+  outline-offset: 2px;
+}
+
+:global(.feedback-studio-shell) [class*="aiRecord"] {
+  border-left-color: var(--pp-orange) !important;
+  background: linear-gradient(90deg, rgba(255, 122, 61, 0.07), var(--pp-surface) 32%) !important;
+}
+
+:global(.feedback-studio-shell) [class*="humanRecord"] {
+  border-left-color: var(--pp-teal) !important;
+  background: linear-gradient(90deg, rgba(34, 191, 174, 0.07), var(--pp-surface) 32%) !important;
+}
+
+:global(.feedback-studio-shell) [class*="selectedRecord"],
+:global(.workspace[data-write-studio="true"]) [class*="activeMode"],
+:global(.workspace[data-write-studio="true"]) [class*="activeBlock"],
+:global(.workspace[data-write-studio="true"]) [class*="activeMini"] {
+  border-color: var(--pp-teal) !important;
+  background: rgba(34, 191, 174, 0.10) !important;
+  color: var(--pp-teal-bright) !important;
+}
+
+:global(.feedback-studio-shell) .feedback-story-identity strong,
+:global(.feedback-studio-shell) .feedback-category-rail span,
+:global(.feedback-studio-shell) .feedback-studio-actions button,
+:global(.workspace[data-write-studio="true"]) [class*="elementMeta"] span,
+:global(.workspace[data-write-studio="true"]) [class*="miniGrid"] span {
+  color: var(--pp-orange-bright) !important;
+}
+
+@media (max-width: 760px) {
+  .buildStageNav > div { min-width: 128px; }
+  .buildStageNav button { padding: 0 10px; }
+  .keyboardGrid { grid-template-columns: 1fr 1fr; }
+}

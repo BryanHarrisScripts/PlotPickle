@@ -6,6 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const registryPath = "app/navigation/global-shortcuts.ts";
 const shellPath = "app/plotpickle-workspace-shell.tsx";
+const releaseBoundaryPath = "app/navigation/release-experience-boundary.tsx";
 const profilePath = "app/profile-access/profile-identity-overlay.tsx";
 
 const expected = [
@@ -67,13 +68,17 @@ test("#1528 never steals letters from typing, controls, modified chords, repeat 
   assert.match(registry, /data-command-palette-open='true'/);
 });
 
-test("#1528 uses the same registry for visible shortcut help and rail tooltips", async () => {
-  const shell = await read(shellPath);
+test("#1528 keeps navigation labels uncluttered and moves shortcut discovery to Settings Help", async () => {
+  const [shell, releaseBoundary] = await Promise.all([read(shellPath), read(releaseBoundaryPath)]);
   assert.match(shell, /WORKFLOW_SHORTCUTS\.map/);
-  assert.match(shell, /GLOBAL_SHORTCUTS\.map/);
-  assert.match(shell, /data-global-shortcut-help="true"/);
-  assert.match(shell, /title=\{`\$\{item\.label\} · \$\{item\.detail\} · \$\{item\.key\}`\}/);
-  assert.match(shell, /<kbd>\{shortcut\.key\}<\/kbd>/);
+  assert.match(shell, /<small>\{item\.detail\}<\/small>/);
+  assert.doesNotMatch(shell, /item\.detail\} · \$\{item\.key/);
+  assert.doesNotMatch(shell, /data-global-shortcut-help/);
+  assert.doesNotMatch(shell, /<kbd>\{shortcut\.key\}<\/kbd>/);
+  assert.match(releaseBoundary, /SettingsKeyboardShortcutsHost/);
+  assert.match(releaseBoundary, /GLOBAL_SHORTCUTS\.map/);
+  assert.match(releaseBoundary, /dataset\.settingsKeyboardShortcuts/);
+  assert.match(releaseBoundary, /<kbd>\{shortcut\.key\}<\/kbd>/);
 });
 
 test("#1528 opens Node and Human Profile as UI actions without changing story canon", async () => {

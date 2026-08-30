@@ -1,3 +1,8 @@
+import {
+  normalizeStoryDecisionAuthority,
+  storyDecisionAuthorityAudit,
+} from "../story-decisions/autonomous-authority.mjs";
+
 export const STORY_WORKBENCH_VERSION = 1;
 export const STORY_WORKBENCH_AXIS_STATUSES = ["PASS", "FINDINGS", "NOT APPLICABLE"];
 
@@ -39,6 +44,19 @@ export function normalizeStoryChangePackage(input) {
   if (requiresCanonApply && (!targetRef || !value)) throw new Error("A material Story Change Package requires one explicit target and proposed value.");
   const createdAt = text(input.createdAt, 60) || new Date().toISOString();
   const generatedPackageId = `story-change-${decisionId}-${responseId}-${baseRevision}`.replace(/[^a-zA-Z0-9._:-]+/g, "-").slice(0, 180);
+  const provenanceInput = input.provenance && typeof input.provenance === "object" && !Array.isArray(input.provenance) ? input.provenance : {};
+  const authority = normalizeStoryDecisionAuthority(provenanceInput.authority ?? {
+    authorityClass: provenanceInput.authorityClass || "authenticated-human",
+    humanProfileId: provenanceInput.humanProfileId,
+    delegated: provenanceInput.authorityClass === "delegated-autonomous-operator",
+    autonomousRunId: provenanceInput.autonomousRunId,
+    operatorId: provenanceInput.operatorId,
+    modelRole: provenanceInput.modelRole,
+    modelId: provenanceInput.modelId,
+    provider: provenanceInput.provider,
+    runtime: provenanceInput.runtime,
+  });
+  const authorityAudit = storyDecisionAuthorityAudit(authority);
   return {
     schemaVersion: STORY_WORKBENCH_VERSION,
     packageId: text(input.packageId, 180) || generatedPackageId,
@@ -59,7 +77,15 @@ export function normalizeStoryChangePackage(input) {
     evidenceRefs: strings(input.evidenceRefs),
     predictedImpactRefs: strings(input.predictedImpactRefs),
     provenance: {
-      humanProfileId: text(input.provenance?.humanProfileId, 180),
+      authorityClass: authority.authorityClass,
+      authority: authorityAudit,
+      humanProfileId: authority.humanProfileId,
+      autonomousRunId: authority.autonomousRunId,
+      operatorId: authority.operatorId,
+      modelRole: authority.modelRole,
+      modelId: authority.modelId,
+      provider: authority.provider,
+      runtime: authority.runtime,
       runRefs: strings(input.provenance?.runRefs, 64, 180),
       councilResultId: text(input.provenance?.councilResultId, 180),
       rationale: text(input.provenance?.rationale, 2_000),
@@ -79,6 +105,8 @@ export function reviewStoryChangePackage(input) {
   const importedEvidenceTarget = Boolean(input.importedEvidenceTarget);
   const lockedPrerequisite = Boolean(input.lockedPrerequisite);
   const exactRevision = currentRevision === storyPackage.baseRevision;
+  const delegated = storyPackage.provenance.authorityClass === "delegated-autonomous-operator";
+  const authorityLabel = delegated ? "The delegated autonomous response" : "The Human response";
 
   const axes = [
     axis("canon-authority", projectMatches && exactRevision && !derivedTarget && !importedEvidenceTarget ? "PASS" : "FINDINGS",
@@ -86,7 +114,7 @@ export function reviewStoryChangePackage(input) {
         : !exactRevision ? `This package was reviewed at revision ${storyPackage.baseRevision}; the active story is revision ${currentRevision}. Recompute before applying.`
           : derivedTarget ? "Derived graph/index data is read-only evidence and cannot be targeted as canon."
             : importedEvidenceTarget ? "Imported screenplay/source evidence cannot be overwritten as project canon."
-              : storyPackage.requiresCanonApply ? "The Human response targets the active canonical PPF through the Story Command boundary." : "The Human chose to keep/reject the proposed change; no canonical mutation is required.", true),
+              : storyPackage.requiresCanonApply ? `${authorityLabel} targets the active canonical PPF through the Story Command boundary.` : `${authorityLabel} keeps/rejects the proposed change; no canonical mutation is required.`, true),
     axis("curriculum-spec", targetOwned && frontierEditable && !lockedPrerequisite ? "PASS" : "FINDINGS",
       !targetOwned ? "The requested target is not a current canonical curriculum field."
         : lockedPrerequisite ? "The target belongs to a Locked prerequisite/frontier and cannot be changed through Workbench."

@@ -30,7 +30,7 @@ export function normalizeStoryDecisionAuthority(input) {
   }
 
   if (authorityClass === "authenticated-human") {
-    const humanProfileId = requireAuthorityString(input, "humanProfileId", "Human profile authority", 180);
+    const humanProfileId = requireAuthorityString(input, "humanProfileId", "authenticated Human profile authority", 180);
     if (authorityString(input.autonomousRunId, 180) || authorityString(input.operatorId, 180)) {
       throw new Error("Authenticated Human authority cannot carry autonomous operator identity.");
     }
@@ -60,11 +60,31 @@ export function normalizeStoryDecisionAuthority(input) {
     delegated: true,
     autonomousRunId: requireAuthorityString(input, "autonomousRunId", "autonomous run ID", 180),
     operatorId: requireAuthorityString(input, "operatorId", "autonomous operator ID", 180),
-    modelRole: authorityString(input.modelRole, 120),
+    modelRole: requireAuthorityString(input, "modelRole", "autonomous model role", 120),
     modelId: requireAuthorityString(input, "modelId", "autonomous model ID", 240),
     provider: requireAuthorityString(input, "provider", "autonomous provider", 120),
     runtime: requireAuthorityString(input, "runtime", "autonomous runtime", 180),
   };
+}
+
+export function authorizeStoryDecisionAuthority(input, policyInput, projectId) {
+  const authority = normalizeStoryDecisionAuthority(input);
+  if (authority.authorityClass === "authenticated-human") return authority;
+
+  const policy = policyInput && typeof policyInput === "object" && !Array.isArray(policyInput) ? policyInput : {};
+  if (policy.enabled !== true || policy.allowStoryDecisionResponses !== true) {
+    throw new Error("Delegated autonomous Story Decision authority is not enabled by run policy.");
+  }
+  const policyRunId = requireAuthorityString(policy, "autonomousRunId", "autonomous policy run ID", 180);
+  if (policyRunId !== authority.autonomousRunId) {
+    throw new Error("Delegated autonomous Story Decision authority does not match the enabled run policy.");
+  }
+  const expectedProjectId = authorityString(projectId, 180);
+  const policyProjectId = requireAuthorityString(policy, "projectId", "autonomous policy project ID", 180);
+  if (!expectedProjectId || policyProjectId !== expectedProjectId) {
+    throw new Error("Delegated autonomous Story Decision authority is not enabled for this project.");
+  }
+  return authority;
 }
 
 export function storyDecisionAuthorityAudit(input) {

@@ -12,7 +12,7 @@ import {
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
-export const PLOTPICKLE_MANAGED_PI_VERSION = "0.84.2";
+export const PLOTPICKLE_MANAGED_PI_VERSION = "0.84.4";
 export const PLOTPICKLE_MANAGED_PI_PACKAGE = `${PI_CODING_AGENT_PACKAGE}@${PLOTPICKLE_MANAGED_PI_VERSION}`;
 
 function versionTuple(value) {

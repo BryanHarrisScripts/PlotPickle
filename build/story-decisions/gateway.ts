@@ -120,6 +120,41 @@ async function upsertRecord(profile: ProfileContext, candidateInput: unknown) {
   return result.incoming ?? result.existing;
 }
 
+export async function respondAutonomousStoryDecisionThroughGateway(input: Readonly<{
+  profile: ProfileContext;
+  decisionId: string;
+  response: Readonly<Record<string, unknown>>;
+  authority: Readonly<Record<string, unknown>>;
+  serverPolicy: Readonly<Record<string, unknown>>;
+}>) {
+  if (input.authority.authorityClass !== "delegated-autonomous-operator") {
+    throw new Error("Autonomous Story Decision gateway requires delegated autonomous authority.");
+  }
+  const existing = await readRecord(input.profile, input.decisionId);
+  if (!existing) throw Object.assign(new Error("That Story Decision was not found."), { statusCode: 404 });
+  try {
+    const result = createStoryDecisionResponse(existing, {
+      ...input.response,
+      authority: input.authority,
+      autonomousPolicy: input.serverPolicy,
+    });
+    await writeRecord(input.profile, result.decision);
+    return {
+      ok: true,
+      decision: result.decision,
+      response: result.response,
+      writesCanon: false as const,
+      next: "story-workbench-validation" as const,
+    };
+  } catch (error) {
+    if ((error as { code?: string }).code === "STORY_DECISION_STALE") {
+      const currentRevision = String(input.response.currentRevision || "");
+      await writeRecord(input.profile, markStoryDecisionStale(existing, currentRevision));
+    }
+    throw error;
+  }
+}
+
 function councilDecisionInput(body: Record<string, unknown>) {
   return {
     projectId: body.projectId,

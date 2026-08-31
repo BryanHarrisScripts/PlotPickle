@@ -52,6 +52,45 @@ test("#1553 profile boundary visibly distinguishes autonomous Guest from Human",
   assert.match(profileRoute, /autonomousGuest/);
 });
 
+test("#1553 Guest Story Decisions use isolated non-canon storage instead of Human private storage", async () => {
+  const [requestScope, gateway, store] = await Promise.all([
+    read("build/auth/profile-request-context.ts"),
+    read("build/story-decisions/gateway.ts"),
+    read("build/story-decisions/autonomous-guest-store.ts"),
+  ]);
+  assert.match(requestScope, /autonomousGuestRequestScope/);
+  assert.match(requestScope, /AUTONOMOUS_GUEST_SCOPED_API_PREFIXES = \["\/api\/story-decisions"\]/);
+  assert.match(requestScope, /getAutonomousGuestAuthority\(origin, runtime\.accessMode\)/);
+  assert.match(gateway, /currentAutonomousGuestRequestContext/);
+  assert.match(gateway, /autonomousGuestStorageScope/);
+  assert.match(gateway, /Autonomous Guest cannot use the Human Story Decision response route/);
+  assert.match(gateway, /Autonomous Guest lifecycle changes must use the delegated Story Decision operator/);
+  assert.match(store, /"autonomous-guest", authority\.workspaceId/);
+  assert.match(store, /humanProfileId !== ""/);
+  assert.doesNotMatch(store, /readCredentialJson|writeCredentialJson|privateStorage|profileCredentialsDirectory|authenticated-human/i);
+});
+
+test("#1553 Guest AI routing status is credential-free and precedes the normal provider router", async () => {
+  const [statusGateway, localGateway] = await Promise.all([
+    read("build/ai/autonomous-guest-routing-status.ts"),
+    read("build/local-ai-gateway.ts"),
+  ]);
+  assert.match(statusGateway, /humanCredentialsInherited: false/);
+  assert.match(statusGateway, /silentPaidFallback: false/);
+  assert.match(statusGateway, /text: "off", image: "manual", video: "off"/);
+  assert.match(statusGateway, /getAutonomousGuestAuthority/);
+  assert.doesNotMatch(statusGateway, /readCredentialJson|writeCredentialJson|apiKey|readMediaRoutingStore|readSynchronizedAssistantStore/);
+  assert.match(localGateway, /registerAutonomousGuestRoutingStatus\(server\); registerAiRoutingGateway\(server\)/);
+});
+
+test("#1553 Guest acceptance Node identity does not require encrypted Studio credentials", async () => {
+  const source = await read("build/node-topology-gateway.ts");
+  assert.match(source, /autonomousAcceptanceNodeIdentity/);
+  assert.match(source, /PLOTPICKLE_ACCEPTANCE_MODE !== "1"/);
+  assert.match(source, /nodeId: authority\.workspaceId/);
+  assert.match(source, /const autonomous = autonomousAcceptanceNodeIdentity\(origin\);\s*if \(autonomous\) return autonomous/);
+});
+
 test("#1553 reference process explicitly enables Guest authority without a Human profile", async () => {
   const source = await read("scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs");
   assert.match(source, /PLOTPICKLE_AUTONOMOUS_GUEST_ENABLED: "true"/);

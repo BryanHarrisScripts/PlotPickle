@@ -1,6 +1,6 @@
 import Link from "next/link";
-import AutonomousGuestSchedulerSettings from "../../autonomous-guest-scheduler-settings";
-import styles from "../../autonomous-guest-scheduler-settings.module.css";
+import AutonomousGuestSchedulerSettings from "./scheduler-settings";
+import styles from "./scheduler-settings.module.css";
 
 export default function AutonomousGuestTaskSchedulerSettingsPage() {
   return (

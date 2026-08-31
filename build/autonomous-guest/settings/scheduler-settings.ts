@@ -1,19 +1,17 @@
 import type { Schedule } from "@mastra/core/storage";
+import { computeNextFireAt, validateCron } from "@mastra/core/workflows";
 import type { AutonomousGuestAuthority } from "../../../core/auth/autonomous-guest/guest-authority";
+import { AutonomousGuestFileSchedulesStorage } from "../mastra-file-schedules-storage";
 import {
-  cancelAutonomousGuestTask,
-} from "../task-lifecycle";
+  AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID,
+  autonomousGuestTaskScheduleId,
+  autonomousGuestTaskWakePayload,
+  wakeAutonomousGuestTask,
+} from "../mastra-task-scheduler";
+import { cancelAutonomousGuestTask } from "../task-lifecycle";
 import { readAutonomousGuestTaskLedger, type AutonomousGuestTask } from "../task-ledger";
 import {
-  cancelAutonomousGuestTaskSchedule,
-  pauseAutonomousGuestTaskSchedule,
-  resumeAutonomousGuestTaskSchedule,
-  runAutonomousGuestTaskScheduleNow,
-  scheduleAutonomousGuestTaskCron,
-  AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID,
-} from "../mastra-task-scheduler";
-import { createAutonomousGuestSchedulerRuntime } from "../mastra-wake-runtime";
-import {
+  createAutonomousGuestStoredRoutePolicyResolver,
   readAutonomousGuestRunPolicy,
   writeAutonomousGuestRunPolicy,
 } from "../policy/run-policy-store";
@@ -28,6 +26,7 @@ const SAFE_ACTIONS = new Set([
   "resume",
   "cancel",
 ]);
+const TERMINAL_TASK_STATES = new Set(["completed", "cancelled", "expired", "failed"]);
 
 export type AutonomousGuestSchedulerSettingsAction = Readonly<{
   action: string;
@@ -43,13 +42,9 @@ function assertAuthority(authority: AutonomousGuestAuthority) {
   }
 }
 
-function schedulerRuntime(authority: AutonomousGuestAuthority) {
+function scheduleStore(authority: AutonomousGuestAuthority) {
   assertAuthority(authority);
-  const runtime = createAutonomousGuestSchedulerRuntime();
-  if (runtime.authority.autonomousRunId !== authority.autonomousRunId || runtime.authority.workspaceId !== authority.workspaceId) {
-    throw new Error("Autonomous Guest scheduler Settings do not match the current Guest namespace.");
-  }
-  return runtime;
+  return new AutonomousGuestFileSchedulesStorage(authority);
 }
 
 function scheduleTaskId(schedule: Schedule) {
@@ -82,13 +77,26 @@ function taskSummary(task: AutonomousGuestTask, schedule?: Schedule) {
   });
 }
 
+async function requiredTask(authority: AutonomousGuestAuthority, taskId: string) {
+  const tasks = await readAutonomousGuestTaskLedger(authority);
+  const task = tasks.find((item) => item.taskId === taskId);
+  if (!task) throw new Error("Autonomous Guest scheduler task does not exist in this Guest namespace.");
+  return task;
+}
+
+async function requiredSchedule(store: AutonomousGuestFileSchedulesStorage, authority: AutonomousGuestAuthority, taskId: string) {
+  const schedule = await store.getSchedule(autonomousGuestTaskScheduleId(authority, taskId));
+  if (!schedule) throw new Error("Autonomous Guest scheduler task does not have a schedule.");
+  return schedule;
+}
+
 export async function readAutonomousGuestSchedulerSettings(authority: AutonomousGuestAuthority) {
   assertAuthority(authority);
-  const runtime = schedulerRuntime(authority);
+  const schedulesStore = scheduleStore(authority);
   const [tasks, policy, schedules] = await Promise.all([
     readAutonomousGuestTaskLedger(authority),
     readAutonomousGuestRunPolicy(authority),
-    runtime.schedules.listSchedules({ workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID }),
+    schedulesStore.listSchedules({ workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID }),
   ]);
   const scheduleByTask = new Map(schedules.map((schedule) => [scheduleTaskId(schedule), schedule]));
   const counts = Object.freeze({
@@ -102,7 +110,7 @@ export async function readAutonomousGuestSchedulerSettings(authority: Autonomous
     .filter((schedule) => schedule.status === "active" && Number.isFinite(schedule.nextFireAt))
     .reduce<number | null>((current, schedule) => current == null || schedule.nextFireAt < current ? schedule.nextFireAt : current, null);
   const activeTasks = tasks
-    .filter((task) => !["completed", "cancelled", "expired", "failed"].includes(task.state))
+    .filter((task) => !TERMINAL_TASK_STATES.has(task.state))
     .sort((left, right) => right.priority - left.priority || Date.parse(left.notBefore) - Date.parse(right.notBefore))
     .slice(0, ACTIVE_TASK_LIMIT)
     .map((task) => taskSummary(task, scheduleByTask.get(task.taskId)));
@@ -158,28 +166,56 @@ export async function applyAutonomousGuestSchedulerSettingsAction(
 
   const taskId = String(input.taskId || "");
   if (!/^guest-task-[a-f0-9-]{36}$/i.test(taskId)) throw new Error("Autonomous Guest scheduler task ID is invalid.");
-  const runtime = schedulerRuntime(authority);
+  const task = await requiredTask(authority, taskId);
+  const schedulesStore = scheduleStore(authority);
+  const id = autonomousGuestTaskScheduleId(authority, taskId);
 
   if (action === "schedule-cron") {
+    if (TERMINAL_TASK_STATES.has(task.state)) throw new Error("Terminal Autonomous Guest tasks cannot receive a new schedule.");
     const cron = String(input.cron || "").trim();
-    const timezone = String(input.timezone || "").trim();
+    const timezone = String(input.timezone || "").trim() || undefined;
     if (!cron || cron.length > 160) throw new Error("Autonomous Guest scheduler cron is missing or too long.");
-    if (timezone.length > 100) throw new Error("Autonomous Guest scheduler timezone is too long.");
-    await scheduleAutonomousGuestTaskCron({ authority, schedules: runtime.mastra.schedules, taskId, cron, timezone: timezone || undefined });
-  } else if (action === "run-now") {
-    await runAutonomousGuestTaskScheduleNow({ authority, schedules: runtime.mastra.schedules, taskId });
-  } else if (action === "pause") {
-    await pauseAutonomousGuestTaskSchedule({ authority, schedules: runtime.mastra.schedules, taskId });
-  } else if (action === "resume") {
-    await resumeAutonomousGuestTaskSchedule({ authority, schedules: runtime.mastra.schedules, taskId });
-  } else if (action === "cancel") {
-    const schedules = await runtime.schedules.listSchedules({ workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID });
-    const hasSchedule = schedules.some((schedule) => scheduleTaskId(schedule) === taskId);
-    if (hasSchedule) {
-      await cancelAutonomousGuestTaskSchedule({ authority, schedules: runtime.mastra.schedules, taskId });
+    if ((timezone || "").length > 100) throw new Error("Autonomous Guest scheduler timezone is too long.");
+    validateCron(cron, timezone);
+    const now = Date.now();
+    const nextFireAt = computeNextFireAt(cron, { timezone, after: now });
+    const target = {
+      type: "workflow" as const,
+      workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID,
+      inputData: autonomousGuestTaskWakePayload(task),
+    };
+    const existing = await schedulesStore.getSchedule(id);
+    if (existing) {
+      await schedulesStore.updateSchedule(id, { cron, timezone, status: "active", nextFireAt, target });
     } else {
-      await cancelAutonomousGuestTask(authority, taskId);
+      await schedulesStore.createSchedule({
+        id,
+        target,
+        cron,
+        timezone,
+        status: "active",
+        nextFireAt,
+        createdAt: now,
+        updatedAt: now,
+      });
     }
+  } else if (action === "run-now") {
+    await wakeAutonomousGuestTask({
+      authority,
+      payload: autonomousGuestTaskWakePayload(task),
+      resolvePolicy: createAutonomousGuestStoredRoutePolicyResolver(authority),
+    });
+  } else if (action === "pause") {
+    await requiredSchedule(schedulesStore, authority, taskId);
+    await schedulesStore.updateSchedule(id, { status: "paused" });
+  } else if (action === "resume") {
+    const schedule = await requiredSchedule(schedulesStore, authority, taskId);
+    const nextFireAt = computeNextFireAt(schedule.cron, { timezone: schedule.timezone, after: Date.now() });
+    await schedulesStore.updateSchedule(id, { status: "active", nextFireAt });
+  } else if (action === "cancel") {
+    const schedule = await schedulesStore.getSchedule(id);
+    await cancelAutonomousGuestTask(authority, taskId);
+    if (schedule) await schedulesStore.deleteSchedule(id);
   }
 
   return readAutonomousGuestSchedulerSettings(authority);

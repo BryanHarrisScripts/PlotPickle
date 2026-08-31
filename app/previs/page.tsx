@@ -29,11 +29,13 @@ export default function PrevisPage() {
   }
 
   return (
-    <PrevisReadinessWorkspace
-      project={project}
-      onProjectChange={setProject}
-      onOpenStoryboard={() => window.location.assign("/storyboard")}
-      onOpenBuild={() => window.location.assign("/?workspace=build")}
-    />
+    <div data-canonical-project-id={project.id}>
+      <PrevisReadinessWorkspace
+        project={project}
+        onProjectChange={setProject}
+        onOpenStoryboard={() => window.location.assign("/storyboard")}
+        onOpenBuild={() => window.location.assign("/?workspace=build")}
+      />
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => readFile(path.join(root, file), "utf8");
+const schedulerPanelPath = "app/settings/autonomous-guest/scheduler-settings.tsx";
 
 async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -22,7 +23,7 @@ test("#1569 scheduler is discoverable through Settings and has its own bounded r
   const [sitemap, page, panel] = await Promise.all([
     read("app/settings-sitemap.tsx"),
     read("app/settings/autonomous-guest/page.tsx"),
-    read("app/autonomous-guest-scheduler-settings.tsx"),
+    read(schedulerPanelPath),
   ]);
   assert.match(sitemap, /label="Autonomous Guest"/);
   assert.match(sitemap, /meta="Agents"/);
@@ -34,7 +35,7 @@ test("#1569 scheduler is discoverable through Settings and has its own bounded r
 });
 
 test("#1569 Settings shows required bounded status, history and controls", async () => {
-  const source = await read("app/autonomous-guest-scheduler-settings.tsx");
+  const source = await read(schedulerPanelPath);
   for (const label of ["Pending", "Running", "Blocked", "Recent history", "Run now", "Schedule", "Pause", "Resume", "Cancel task", "Disable scheduling"]) {
     assert.match(source, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
@@ -47,7 +48,7 @@ test("#1569 Settings shows required bounded status, history and controls", async
 test("#1569 scheduler controls do not appear on creative product surfaces", async () => {
   const appRoot = path.join(root, "app");
   const allowed = new Set([
-    path.join(appRoot, "autonomous-guest-scheduler-settings.tsx"),
+    path.join(root, schedulerPanelPath),
     path.join(appRoot, "settings-sitemap.tsx"),
     path.join(appRoot, "settings", "autonomous-guest", "page.tsx"),
     path.join(appRoot, "api", "autonomous-guest", "scheduler", "route.ts"),

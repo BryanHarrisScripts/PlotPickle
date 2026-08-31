@@ -1,7 +1,7 @@
 import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
-import { registerAutonomousGuestRoutingStatus } from "./ai/autonomous-guest-routing-status";
+import { registerAutonomousGuestRoutingStatus } from "./auth/autonomous-guest-ai-routing-status";
 import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
 import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirror";
 import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";

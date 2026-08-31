@@ -80,5 +80,5 @@ export function persistAutonomousGuestLibrary() {
 export function clearAutonomousGuestBrowser() {
   const workspaceId = activeWorkspaceId;
   activeWorkspaceId = "";
-  if (workspaceId) removeGuestSessionKeys(workspaceId);
+  removeGuestSessionKeys(workspaceId);
 }

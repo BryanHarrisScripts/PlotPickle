@@ -12,6 +12,7 @@ import {
   type AutonomousGuestTaskPolicyResolver,
   type AutonomousGuestWakePayload,
 } from "./mastra-task-scheduler";
+import { recoverAndReconcileAutonomousGuestSchedulerAfterRestart } from "./recovery/schedule-reconciliation";
 
 export type AutonomousGuestWakeResult = Readonly<{
   taskId: string;
@@ -110,6 +111,11 @@ export function createAutonomousGuestSchedulerRuntime(resolvePolicy: AutonomousG
 
 export async function startAutonomousGuestSchedulerRuntime(resolvePolicy: AutonomousGuestTaskPolicyResolver) {
   const runtime = createAutonomousGuestSchedulerRuntime(resolvePolicy);
+  const restartRecovery = await recoverAndReconcileAutonomousGuestSchedulerAfterRestart({
+    authority: runtime.authority,
+    schedules: runtime.schedules,
+    resolvePolicy,
+  });
   await runtime.mastra.startWorkers();
-  return runtime;
+  return Object.freeze({ ...runtime, restartRecovery });
 }

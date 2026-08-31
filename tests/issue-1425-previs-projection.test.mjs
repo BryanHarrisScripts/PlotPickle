@@ -18,6 +18,7 @@ test("#1425 opens Previs from the canonical PPF instead of legacy project storag
   assert.match(route, /loadFoundationProject/);
   assert.match(route, /PPFProject/);
   assert.match(route, /_components\/previs\/previs-readiness-workspace/);
+  assert.match(route, /data-canonical-project-id=\{project\.id\}/);
   assert.doesNotMatch(route, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 
   assert.match(model, /deriveVisualReadiness/);

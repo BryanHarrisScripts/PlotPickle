@@ -67,18 +67,22 @@ test("#1569 Settings API derives current Guest authority and never inherits Huma
   assert.doesNotMatch(source, /authenticated-human|humanProfileId|readCredentialJson|writeCredentialJson|apiKey|password|privateKey|BUZZ/i);
 });
 
-test("#1569 Settings reuses durable schedule storage and current policy without constructing full Mastra runtime", async () => {
-  const source = await read("build/autonomous-guest/settings/scheduler-settings.ts");
-  assert.match(source, /AutonomousGuestFileSchedulesStorage/);
+test("#1569 Settings reuses the same durable schedule file and current policy without bundling Mastra", async () => {
+  const [source, cron] = await Promise.all([
+    read("build/autonomous-guest/settings/scheduler-settings.ts"),
+    read("build/autonomous-guest/settings/bounded-cron.ts"),
+  ]);
+  assert.match(source, /readAutonomousGuestScheduleFileState/);
+  assert.match(source, /mutateAutonomousGuestScheduleFileState/);
   assert.match(source, /readAutonomousGuestTaskLedger/);
   assert.match(source, /readAutonomousGuestRunPolicy/);
   assert.match(source, /writeAutonomousGuestRunPolicy/);
-  assert.match(source, /computeNextFireAt/);
-  assert.match(source, /validateCron/);
+  assert.match(source, /nextAutonomousGuestBoundedCronFireAt/);
   assert.match(source, /wakeAutonomousGuestTask/);
   assert.match(source, /HISTORY_LIMIT = 12/);
   assert.match(source, /ACTIVE_TASK_LIMIT = 24/);
-  assert.doesNotMatch(source, /createAutonomousGuestSchedulerRuntime|new Mastra\(|startWorkers\(/);
+  assert.match(cron, /MAX_LOOKAHEAD_MINUTES = 90 \* 24 \* 60/);
+  assert.doesNotMatch(source, /@mastra\/core|AutonomousGuestFileSchedulesStorage|createAutonomousGuestSchedulerRuntime|new Mastra\(|startWorkers\(/);
   assert.doesNotMatch(source, /executeRoute|playwright|applyStory|writeProject|saveFoundationProject|ppf|canonStore|database|sqlite/i);
   assert.doesNotMatch(source, /chainOfThought|reasoningTrace|modelOutput|apiKey|password|privateKey|BUZZ/i);
 });

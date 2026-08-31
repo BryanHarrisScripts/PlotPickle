@@ -1,6 +1,7 @@
 import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
+import { registerAutonomousGuestRoutingStatus } from "./auth/autonomous-guest-ai-routing-status";
 import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
 import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirror";
 import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
@@ -53,7 +54,7 @@ export function localAiGateway(): Plugin {
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
     registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerPlotPickleNodeTopologyGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerStoryDecisionGateway(server); registerDeepSeekHarnessGateway(server);
-    registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
+    registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAutonomousGuestRoutingStatus(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerComfyUiSdxlStarterGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);

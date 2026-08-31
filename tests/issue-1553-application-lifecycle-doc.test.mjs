@@ -8,6 +8,7 @@ test("#1553 lifecycle reference documentation names the executable proof and clo
   const document = await read("docs/developer/AUTONOMOUS-APPLICATION-LIFECYCLE-REFERENCE.md");
   assert.match(document, /run-autonomous-story-reference\.mjs/);
   assert.match(document, /managed-plotpickle-application-process-plus-fresh-playwright-mcp/);
-  assert.match(document, /deterministic Afterglow working-copy inputs/);
+  assert.match(document, /deterministic Afterglow v9 working copy/);
+  assert.match(document, /autonomous-story-reference\.yml/);
   assert.match(document, /contract-only pass must not be presented as a completed story reference run/i);
 });

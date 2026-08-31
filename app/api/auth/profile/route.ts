@@ -1,4 +1,5 @@
 import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
+import { getAutonomousGuestAuthority } from "../../../../core/auth/autonomous-guest/guest-authority";
 import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
@@ -39,9 +40,11 @@ function errorResponse(error: unknown) {
 export async function GET(request: Request) {
   try {
     const runtimeState = await getProfileExperienceRuntime();
-    const boundary = runtimeState.boundaryFor(originOf(request));
+    const origin = originOf(request);
+    const boundary = runtimeState.boundaryFor(origin);
     const publicStatus = runtimeState.auth.getAuthStatus();
     const readiness = boundary.readiness();
+    const autonomousGuest = getAutonomousGuestAuthority(origin, runtimeState.accessMode);
     let profile: ProfileSummary | null = null;
     let csrfToken = null;
     let authContext = null;
@@ -53,9 +56,9 @@ export async function GET(request: Request) {
       csrfToken = runtimeState.auth.createBrowserSession(authContext).csrfToken;
       sessions = await boundary.listSessions(requestBoundary(request));
     } catch {
-      // An absent, expired or revoked cookie is the normal locked state.
+      // An absent, expired or revoked cookie is the normal locked Human state.
     }
-    const result: ProfileExperienceStatus = {
+    const result: ProfileExperienceStatus & { readonly autonomousGuest: ReturnType<typeof getAutonomousGuestAuthority> } = {
       configured: publicStatus.configured === true,
       authenticated: Boolean(authContext),
       accessMode: runtimeState.accessMode,
@@ -65,6 +68,7 @@ export async function GET(request: Request) {
       sessions,
       serverReady: readiness.ready,
       readinessReasons: readiness.reasons,
+      autonomousGuest,
     };
     return response(result);
   } catch (error) {

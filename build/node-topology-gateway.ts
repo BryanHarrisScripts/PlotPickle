@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
+import { getAutonomousGuestAuthority } from "../core/auth/autonomous-guest/guest-authority";
 import { resetProfileExperienceRuntime } from "../core/auth/profile-experience/profile-experience-runtime";
 import { createPlotPickleNodeShutdownLifecycle } from "../core/runtime/plotpickle-node-control-core.mjs";
 import { createLocalDesktopPlotPickleNode, type PlotPickleNodeHardwareSummary } from "../lib/runtime/plotpickle-node-topology";
@@ -56,7 +57,19 @@ async function boundedBody(request: IncomingMessage) {
   return chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown> : {};
 }
 
-async function plotPickleNodeIdentity() {
+function autonomousAcceptanceNodeIdentity(origin: string): NodeIdentity | null {
+  if (process.env.PLOTPICKLE_ACCEPTANCE_MODE !== "1") return null;
+  const authority = getAutonomousGuestAuthority(origin, "desktop-loopback");
+  if (!authority) return null;
+  return Object.freeze({
+    nodeId: authority.workspaceId,
+    shortId: `AG-${authority.workspaceId.slice(-4).toUpperCase()}`,
+  });
+}
+
+async function plotPickleNodeIdentity(origin: string) {
+  const autonomous = autonomousAcceptanceNodeIdentity(origin);
+  if (autonomous) return autonomous;
   if (!identityPromise) {
     identityPromise = (async () => {
       const existing = await readPublicStudioIdentity();
@@ -102,7 +115,7 @@ function publicNodeControlSnapshot(identity: NodeIdentity) {
 }
 
 async function handleTopology(request: IncomingMessage, response: ServerResponse) {
-  const [identity, runtime] = await Promise.all([plotPickleNodeIdentity(), localRuntimeSnapshot()]);
+  const [identity, runtime] = await Promise.all([plotPickleNodeIdentity(requestOrigin(request)), localRuntimeSnapshot()]);
   const hardware: PlotPickleNodeHardwareSummary = {
     platform: process.platform,
     architecture: process.arch,
@@ -143,7 +156,7 @@ async function handleTopology(request: IncomingMessage, response: ServerResponse
 }
 
 async function handleNodeControl(request: IncomingMessage, response: ServerResponse, server: ViteDevServer) {
-  const identity = await plotPickleNodeIdentity();
+  const identity = await plotPickleNodeIdentity(requestOrigin(request));
   if (request.method === "GET") { sendJson(response, 200, publicNodeControlSnapshot(identity)); return; }
   if (request.method !== "POST") { sendJson(response, 405, { ok: false, message: "Method not allowed." }); return; }
   if (request.headers[NODE_CONTROL_HEADER] !== "confirmed") {

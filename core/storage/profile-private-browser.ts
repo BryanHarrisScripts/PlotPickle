@@ -133,10 +133,14 @@ export async function flushProfilePrivateWrites() {
   await pendingWrite;
 }
 
-export function clearProfilePrivateBrowser() {
+export function releaseProfilePrivateBrowserAuthority() {
   csrfToken = "";
   hydrated = { project: null, wyrmwood: null };
   pendingWrite = Promise.resolve();
   saveState = Object.freeze({ state: "saved", message: "Saved" });
+}
+
+export function clearProfilePrivateBrowser() {
+  releaseProfilePrivateBrowserAuthority();
   window.sessionStorage.clear();
 }

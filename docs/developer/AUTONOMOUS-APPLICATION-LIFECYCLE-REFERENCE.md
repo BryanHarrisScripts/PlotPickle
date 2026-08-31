@@ -2,19 +2,31 @@
 
 ## Purpose
 
-This is the final application-process lifecycle slice for #1553 after the browser/MCP restart proof merged in #1559.
+This is the final application-process lifecycle proof for #1553 after the browser/MCP restart proof merged in #1559 and the real application restart controller merged through #1561.
 
-The existing route runner already proves that canonical visual surfaces can be reopened through a fresh Playwright MCP process using one persistent browser profile. That proof deliberately reported `applicationProcessRestarted: false` because the PlotPickle application server itself remained alive.
+The existing route runner proves that canonical visual surfaces can be reopened through a fresh Playwright MCP process using one persistent browser profile. The reference controller additionally owns the PlotPickle application process, verifies that process actually exits, starts a new process on the same loopback endpoint, reruns the existing autonomous route proof, and compares bounded canonical project/revision/state signatures across the application-process boundary.
 
-This slice adds a one-command reference controller that owns the local PlotPickle application process, verifies that process actually exits, starts a new process on the same loopback endpoint, reruns the existing autonomous route proof, and compares the same bounded canonical project/revision/state signatures across the application-process boundary.
+The reference command also creates or reuses its deterministic Afterglow v9 working copy through the normal Library UI. It selects the packaged immutable Afterglow example through `Load & Explore`, confirms `Save & Switch`, and then verifies the resulting active Library project before route execution begins. No Human preload step or direct storage mutation is required.
 
 ## Reference command
 
 ```text
-node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs --route-inputs <path-to-run-inputs.json>
+node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs
 ```
 
+Optional `--route-inputs <path>` remains available when a run has earned dynamic route inputs such as a Story Decision identifier. Missing dynamic inputs must remain truthful prerequisite skips rather than fabricated state.
+
 The controller starts PlotPickle through the repository-local Vite entry on the configured loopback acceptance URL. It does not use `Start-PlotPickle.bat` because the reference run must remain cross-platform for CI/developer verification; the Windows launcher and installer continue to own normal Windows startup.
+
+## Working-copy boundary
+
+Before the route proof starts, the reference command must prove:
+
+1. the packaged source catalog item is `afterglow-v9`;
+2. the source remains immutable;
+3. the working copy was created or reused through the normal Library UI;
+4. the active Library card exposes a concrete working-copy project id;
+5. no browser-storage, database, PPF or fixture shortcut was used by the reference controller.
 
 ## Lifecycle boundary
 
@@ -36,23 +48,25 @@ The final evidence boundary is named:
 
 ## Safety and authority boundaries
 
-The lifecycle controller does not:
+The reference controller does not:
 
-- write PPF;
+- write PPF directly;
 - mutate browser storage directly;
 - mutate a database or test fixture;
 - claim authenticated Human authority;
 - persist hidden reasoning or model output;
 - silently enable cloud or paid providers.
 
-It only owns the local application child process and delegates product-route verification to the already merged autonomous route runner.
+It owns only the local application child process and browser-driving reference harness; actual project creation occurs through Library and product-route verification remains delegated to the existing autonomous route runner.
 
-## Deterministic verification
+## Verification
 
-`tests/issue-1553-application-lifecycle.test.mjs` verifies the process lifecycle independently with a real child HTTP process. The test proves the first process exits, the endpoint becomes unavailable, a new process takes ownership of the endpoint, and the new process receives a distinct bounded process identity.
+`tests/issue-1553-application-lifecycle.test.mjs` verifies the process lifecycle independently with a real child HTTP process. It proves the first process exits, the endpoint becomes unavailable, a new process takes ownership of the endpoint, and the new process receives a distinct bounded process identity.
 
-The same test also source-checks the real reference controller for the expected Vite, route-runner, fresh-MCP, and no-direct-state-mutation boundaries.
+`tests/issue-1553-afterglow-reference-bootstrap.test.mjs` verifies that the reference run uses Library `Load & Explore -> Save & Switch`, recognizes the immutable Afterglow source, and contains no direct project/storage mutation path.
 
-## Remaining truth condition
+`.github/workflows/autonomous-story-reference.yml` executes the real one-command Afterglow reference on an exact pull-request head and uploads bounded evidence even when the run finds a truthful blocker.
 
-This slice makes the full application lifecycle proof executable. Closing #1553 still requires the reference command to be run against the deterministic Afterglow working-copy inputs with exact-head tests, BEN, production build, and required CI green. A contract-only pass must not be presented as a completed story reference run.
+## Closure truth condition
+
+#1553 should close only when the real exact-head reference workflow succeeds together with BEN, production build and the required PlotPickle CI. A contract-only pass must not be presented as a completed story reference run. Any route that cannot operate because a real prerequisite is absent must be reported as such rather than manufactured for the test.

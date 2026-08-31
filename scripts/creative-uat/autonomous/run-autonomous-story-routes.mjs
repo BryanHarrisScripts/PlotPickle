@@ -8,6 +8,10 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
+  captureAutonomousRouteOperationProbe,
+  evaluateAutonomousRouteOperation,
+} from "../../../lib/verification/autonomous-route-operations.mjs";
+import {
   assessAutonomousRoute,
   autonomousContractTestsFromRegistry,
   autonomousStoryRoutes,
@@ -31,11 +35,13 @@ const baseUrl = optionValues.get("--base-url") || process.env.PLOTPICKLE_ACCEPTA
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const artifactRoot = path.resolve(optionValues.get("--artifact-root") || path.join(localRoot, "PlotPickle", "uat-autonomous-story"));
 const routeInputsPath = optionValues.get("--route-inputs") || "";
+const explicitProjectId = optionValues.get("--project-id") || process.env.PLOTPICKLE_AUTONOMOUS_PROJECT_ID || "";
 const contractsOnly = argv.includes("--contracts-only");
 const registryPath = path.join(repoRoot, "config", "uat-autopilot-registry.json");
 const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
 const reportPath = path.join(artifactRoot, "autonomous-story-routes.md");
 const jsonPath = path.join(artifactRoot, "autonomous-story-routes.json");
+const bootstrapReportPath = path.join(artifactRoot, "afterglow-working-copy-bootstrap.json");
 const persistentBrowserProfile = path.join(artifactRoot, "browser-profile");
 const restartSurfaceIds = Object.freeze(["visual-readiness", "storyboard", "previs-animatic"]);
 const autonomousRunContracts = Object.freeze(["tests/issue-1553-autonomous-convergence-restart.test.mjs"]);
@@ -58,6 +64,16 @@ async function loadRouteInputs() {
   const parsed = JSON.parse(await readFile(path.resolve(routeInputsPath), "utf8"));
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("--route-inputs must name a JSON object.");
   return parsed;
+}
+
+async function loadExpectedProjectId() {
+  if (explicitProjectId.trim()) return explicitProjectId.trim();
+  try {
+    const bootstrap = JSON.parse(await readFile(bootstrapReportPath, "utf8"));
+    return String(bootstrap?.projectId || "").trim();
+  } catch {
+    return "";
+  }
 }
 
 function persistentMcpArgs(args) {
@@ -102,7 +118,7 @@ async function closeBrowserSession(session, label) {
   await session?.client?.close();
 }
 
-async function inspectRoutesWithSession(session, registry, routeInputs) {
+async function inspectRoutesWithSession(session, registry, routeInputs, operationContext) {
   const results = [];
   for (const route of autonomousStoryRoutes(registry)) {
     const materialized = materializeAutonomousRoute(route, routeInputs);
@@ -122,6 +138,7 @@ async function inspectRoutesWithSession(session, registry, routeInputs) {
       error: "",
       timingMs: 0,
     };
+    let action = {};
     try {
       await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
       const state = await waitForRenderedArea(session.client, { ...route, route: materialized.route });
@@ -134,11 +151,15 @@ async function inspectRoutesWithSession(session, registry, routeInputs) {
         const consoleText = resultText(await session.client.call("browser_console_messages", toolArguments(session.toolMap.get("browser_console_messages"), { level: "error", all: false })));
         evidence.consoleErrors = consoleHasErrors(consoleText);
       }
+      if (route.operation === "operate") {
+        const probe = await captureAutonomousRouteOperationProbe(session, route);
+        action = evaluateAutonomousRouteOperation(route, evidence, probe, operationContext);
+      }
     } catch (error) {
       evidence.error = error instanceof Error ? error.message : String(error);
     }
     evidence.timingMs = Date.now() - startedAt;
-    results.push(assessAutonomousRoute(route, evidence));
+    results.push(assessAutonomousRoute(route, evidence, action));
   }
   return results;
 }
@@ -228,12 +249,12 @@ function compareRestartSurfaces(before, after) {
   };
 }
 
-async function inspectRoutes(registry, routeInputs) {
+async function inspectRoutes(registry, routeInputs, operationContext) {
   const first = await startBrowserSession();
   let results = [];
   let before = [];
   try {
-    results = await inspectRoutesWithSession(first, registry, routeInputs);
+    results = await inspectRoutesWithSession(first, registry, routeInputs, operationContext);
     before = await captureResumeSurfaces(first, registry, routeInputs);
   } finally {
     await closeBrowserSession(first, "Autonomous route first-session");
@@ -275,7 +296,7 @@ function markdownReport({ generatedAt, mode, routes, results, summary, contracts
     lines.push("", "## Fresh-session restart proof", "", `Verified: ${restartProof.verified ? "yes" : "no"}`, `Boundary: ${restartProof.boundary}`, "Application process restart remains a separate lifecycle proof required by the Slice E controller.");
     for (const message of restartProof.mismatches || []) lines.push(`- ${message}`);
   }
-  lines.push("", "The machine report stores readiness terms, bounded canonical identifiers/counts/revisions and digests, not page text, hidden reasoning, credentials or story content.", "");
+  lines.push("", "The machine report stores readiness terms, bounded canonical identifiers/counts/revisions and operation receipts, not page text, hidden reasoning, credentials or story content.", "");
   return lines.join("\n");
 }
 
@@ -287,7 +308,10 @@ async function main() {
   const routes = autonomousStoryRoutes(registry);
   const contracts = await runContracts([...new Set([...autonomousContractTestsFromRegistry(registry), ...autonomousRunContracts])]);
   const routeInputs = await loadRouteInputs();
-  const live = contractsOnly ? { results: [], restartProof: { attempted: false, verified: false } } : await inspectRoutes(registry, routeInputs);
+  const expectedProjectId = await loadExpectedProjectId();
+  if (!contractsOnly && !expectedProjectId) throw new Error("Live autonomous route operation requires the Afterglow working-copy project id from bootstrap or --project-id.");
+  const operationContext = { expectedProjectId };
+  const live = contractsOnly ? { results: [], restartProof: { attempted: false, verified: false } } : await inspectRoutes(registry, routeInputs, operationContext);
   const routeSummary = summarizeAutonomousRouteResults(live.results);
   const restartBlockers = !contractsOnly && live.restartProof?.verified !== true
     ? (live.restartProof?.mismatches?.length ? live.restartProof.mismatches : ["Fresh-session restart proof did not verify."])
@@ -298,17 +322,18 @@ async function main() {
   const generatedAt = new Date().toISOString();
   const mode = contractsOnly ? "contracts-only" : "autonomous-route-live";
   const machine = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt,
     target: baseUrl,
     mode,
     overall: summary.overall,
     summary,
     contracts,
+    operationContext: { expectedProjectId },
     restartProof: live.restartProof,
     routePlan: routes.map(({ id, label, order, route, routeTemplate, operation, prerequisites }) => ({ id, label, order, canonicalRoute: route || routeTemplate, operation, prerequisites })),
     results: live.results,
-    evidencePolicy: "No page text, hidden reasoning, credentials or private story content is persisted.",
+    evidencePolicy: "No page text, hidden reasoning, credentials or private story content is persisted; operation evidence is bounded to route ids, project/revision identifiers, counts and outcomes.",
   };
   await writeFile(jsonPath, `${JSON.stringify(machine, null, 2)}\n`, "utf8");
   await writeFile(reportPath, markdownReport({ generatedAt, mode, routes, results: live.results, summary, contracts, restartProof: live.restartProof }), "utf8");

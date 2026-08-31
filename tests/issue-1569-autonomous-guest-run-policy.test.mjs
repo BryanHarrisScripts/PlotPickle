@@ -5,9 +5,15 @@ import test from "node:test";
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 test("#1569 current Guest run policy is durable, bounded and namespace-scoped", async () => {
-  const source = await read("build/autonomous-guest/policy/run-policy-store.ts");
+  const [source, storage] = await Promise.all([
+    read("build/autonomous-guest/policy/run-policy-store.ts"),
+    read("build/autonomous-guest/storage/workspace-storage.ts"),
+  ]);
   assert.match(source, /run-policy\.json/);
-  assert.match(source, /"autonomous-guest", authority\.workspaceId/);
+  assert.match(source, /autonomousGuestWorkspaceStorageDirectory/);
+  assert.match(storage, /"autonomous-guest", authority\.workspaceId/);
+  assert.match(storage, /delegated-guest-autonomous-operator/);
+  assert.match(storage, /guest-auto-\[a-f0-9\]/i);
   assert.match(source, /MAX_BYTES = 256 \* 1024/);
   assert.match(source, /mode: 0o600/);
   assert.match(source, /writeFile\(temporary/);

@@ -241,9 +241,7 @@ export async function applyAutonomousGuestSchedulerSettingsAction(
       updatedAt: now,
     });
     await mutateAutonomousGuestScheduleFileState(authority, (state) => {
-      const index = state.schedules.findIndex((item) => {
-        try { return parseSchedule(authority, item).id === id; } catch { return false; }
-      });
+      const index = state.schedules.findIndex((item) => parseSchedule(authority, item).id === id);
       if (index >= 0) {
         const existing = parseSchedule(authority, state.schedules[index]);
         state.schedules[index] = { ...schedule, createdAt: existing.createdAt };

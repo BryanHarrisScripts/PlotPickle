@@ -1,15 +1,17 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { getAutonomousGuestAuthority, type AutonomousGuestAuthority } from "../../core/auth/autonomous-guest/guest-authority";
 import type { AuthContext } from "../../core/auth/plotpickle-auth";
-import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
 import { getProfileExperienceRuntime } from "../../core/auth/profile-experience/profile-experience-runtime";
+import type { ProfilePrivateStorageService } from "../../core/storage/profile-private/profile-private-storage";
 
 const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-buzz",
   "/api/story-workflow/buzz-bridge",
   "/api/story-decisions",
 ] as const;
+const AUTONOMOUS_GUEST_SCOPED_API_PREFIXES = ["/api/story-decisions"] as const;
 
 type ProfileRequestContext = Readonly<{
   authContext: AuthContext;
@@ -17,7 +19,12 @@ type ProfileRequestContext = Readonly<{
   privateStorage: ProfilePrivateStorageService;
 }>;
 
+type AutonomousGuestRequestContext = Readonly<{
+  authority: AutonomousGuestAuthority;
+}>;
+
 export const profileRequestScope = new AsyncLocalStorage<ProfileRequestContext>();
+export const autonomousGuestRequestScope = new AsyncLocalStorage<AutonomousGuestRequestContext>();
 
 function headerRecord(headers: IncomingHttpHeaders) {
   const result: Record<string, string | readonly string[] | undefined> = {};
@@ -81,8 +88,16 @@ function requiresProfileScope(pathname: string) {
   return PROFILE_SCOPED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+function allowsAutonomousGuestScope(pathname: string) {
+  return AUTONOMOUS_GUEST_SCOPED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 export function currentProfileRequestContext() {
   return profileRequestScope.getStore() ?? null;
+}
+
+export function currentAutonomousGuestRequestContext() {
+  return autonomousGuestRequestScope.getStore() ?? null;
 }
 
 export function profileScopedBuzzRequestContext(): Plugin {
@@ -100,6 +115,14 @@ export function profileScopedBuzzRequestContext(): Plugin {
         void (async () => {
           const origin = requestOrigin(request);
           const runtime = await getProfileExperienceRuntime();
+          const autonomousGuest = allowsAutonomousGuestScope(url.pathname)
+            ? getAutonomousGuestAuthority(origin, runtime.accessMode)
+            : null;
+          if (autonomousGuest) {
+            autonomousGuestRequestScope.run(Object.freeze({ authority: autonomousGuest }), next);
+            return;
+          }
+
           const boundary = runtime.boundaryFor(origin);
           const { authContext } = await boundary.authorizeRequest(sessionRequest(request, origin));
           const profileId = runtime.auth.getAuthStatus(authContext).profile?.profileId;

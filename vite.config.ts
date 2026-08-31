@@ -7,6 +7,7 @@ import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { localProfileAuthGateway } from "./build/local-profile-auth-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/auth/profile-request-context";
+import { autonomousGuestReferenceTaskGateway } from "./build/autonomous-guest/reference/reference-task-gateway";
 import { buzzProfileMigrationGateway } from "./build/buzz/buzz-profile-migration-gateway";
 import { buzzProfileIdentityGateway } from "./build/buzz-profile-identity-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
@@ -115,6 +116,7 @@ export default defineConfig(async ({ command }) => {
     },
     plugins: [
       localInstanceProofGateway(),
+      autonomousGuestReferenceTaskGateway(),
       localProfileAuthGateway(),
       localConnectionsGateway(),
       writerInResidenceGateway(),

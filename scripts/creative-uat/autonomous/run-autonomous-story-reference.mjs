@@ -29,6 +29,7 @@ const routeRunner = path.join(repoRoot, "scripts", "creative-uat", "autonomous",
 const routeReportPath = path.join(artifactRoot, "autonomous-story-routes.json");
 const reportPath = path.join(artifactRoot, "autonomous-story-reference.md");
 const jsonPath = path.join(artifactRoot, "autonomous-story-reference.json");
+const referenceTasksUrl = new URL("/api/autonomous-guest/reference-tasks", baseUrl).toString();
 
 function runChild(command, args) {
   return new Promise((resolve) => {
@@ -69,8 +70,29 @@ async function runRoutePass(label) {
   return { label, child, report, error: "" };
 }
 
+async function referenceTaskAction(input) {
+  const response = await fetch(referenceTasksUrl, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(30_000),
+  });
+  const value = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(value?.message || `Autonomous Guest reference task API returned ${response.status}.`);
+  return value;
+}
+
 function continuitySurfaces(report) {
   return Array.isArray(report?.restartProof?.surfaces) ? report.restartProof.surfaces : [];
+}
+
+function canonicalRevision(report, projectId) {
+  const surface = continuitySurfaces(report).find((candidate) => candidate?.projectId === projectId && candidate?.revision);
+  return String(surface?.revision || "").trim();
+}
+
+function routeResult(report, routeId) {
+  return Array.isArray(report?.results) ? report.results.find((result) => result?.id === routeId) || null : null;
 }
 
 function compareAcrossApplicationRestart(beforeReport, afterReport, lifecycleRestart) {
@@ -135,6 +157,13 @@ function markdownReport(machine) {
     `Boundary: ${machine.restartProof.boundary}`,
     `State continuity verified: ${machine.restartProof.verified ? "yes" : "no"}`,
     "",
+    "## Durable Guest task proof",
+    "",
+    `Initialized before restart: ${machine.taskLedgerProof.initialized ? "yes" : "no"}`,
+    `Claimed after restart: ${machine.taskLedgerProof.claimedAfterRestart ? "yes" : "no"}`,
+    `Completed from operated route receipt: ${machine.taskLedgerProof.completedFromOperatedRoute ? "yes" : "no"}`,
+    `Final state: ${machine.taskLedgerProof.finalState || "unavailable"}`,
+    "",
     "## Route passes",
     "",
     `Before restart: ${machine.routePasses.before.overall || "unknown"} (exit ${machine.routePasses.before.exitCode})`,
@@ -144,7 +173,7 @@ function markdownReport(machine) {
     lines.push("", "## Blockers", "");
     for (const mismatch of machine.blockers) lines.push(`- ${mismatch}`);
   }
-  lines.push("", "Evidence contains bounded autonomous Guest authority, process identities, working-copy identity, canonical project/revision/state digests and route outcomes only; no hidden reasoning, credentials or private Human story text is stored.", "");
+  lines.push("", "Evidence contains bounded autonomous Guest authority, process identities, working-copy identity, canonical project/revision/state digests, task lifecycle state and route outcomes only; no hidden reasoning, credentials or private Human story text is stored.", "");
   return lines.join("\n");
 }
 
@@ -165,6 +194,10 @@ async function main() {
   let lifecycleRestart = null;
   let after = null;
   let finalStop = null;
+  let initializedTask = null;
+  let claimedTask = null;
+  let completedTask = null;
+  let finalTaskStatus = null;
   try {
     firstStart = await lifecycle.start();
     bootstrap = await runAfterglowBootstrap();
@@ -172,8 +205,31 @@ async function main() {
       throw new Error(bootstrap.error || bootstrap.child.error || "Afterglow working copy was not created through the normal Library flow.");
     }
     before = await runRoutePass("before application restart");
+    const currentRevision = canonicalRevision(before?.report, bootstrap.report.projectId);
+    if (!currentRevision) throw new Error("Autonomous reference could not derive the real Afterglow PPF revision before task scheduling.");
+    initializedTask = await referenceTaskAction({
+      action: "initialize",
+      projectId: bootstrap.report.projectId,
+      currentRevision,
+      routeIds: ["library"],
+    });
     lifecycleRestart = await lifecycle.restart();
+    claimedTask = await referenceTaskAction({ action: "claim", routeId: "library" });
+    if (claimedTask?.state !== "running" || !claimedTask?.taskId || !claimedTask?.leaseId) {
+      throw new Error("Autonomous Guest Library reference task did not survive restart into a claimable running lease.");
+    }
     after = await runRoutePass("after application restart");
+    const library = routeResult(after?.report, "library");
+    completedTask = await referenceTaskAction({
+      action: "finish",
+      routeId: "library",
+      taskId: claimedTask.taskId,
+      leaseId: claimedTask.leaseId,
+      disposition: library?.disposition || "failed-defect",
+      actionId: library?.action?.actionId || "",
+      revision: library?.action?.revision || "",
+    });
+    finalTaskStatus = await referenceTaskAction({ action: "status" });
   } finally {
     finalStop = await lifecycle.stop();
   }
@@ -198,14 +254,30 @@ async function main() {
     autonomousRunId,
     operatorId: autonomousOperatorId,
   };
+  const finalLibraryTask = Array.isArray(finalTaskStatus?.tasks)
+    ? finalTaskStatus.tasks.find((task) => task?.routeId === "library") || null
+    : null;
+  const taskLedgerProof = {
+    routeId: "library",
+    taskId: String(finalLibraryTask?.taskId || claimedTask?.taskId || ""),
+    initialized: Array.isArray(initializedTask?.tasks) && initializedTask.tasks.some((task) => task?.routeId === "library"),
+    claimedAfterRestart: claimedTask?.state === "running" && Boolean(claimedTask?.leaseId),
+    completedFromOperatedRoute: completedTask?.state === "completed" && finalLibraryTask?.resultRefs?.includes("disposition:operated") === true,
+    attempt: Number(finalLibraryTask?.attempt || 0),
+    finalState: String(finalLibraryTask?.state || completedTask?.state || ""),
+    resultRefs: Array.isArray(finalLibraryTask?.resultRefs) ? finalLibraryTask.resultRefs : [],
+  };
   const blockers = [...restartProof.mismatches];
   if (!afterglowBootstrap.ready || afterglowBootstrap.sourceCatalogId !== "afterglow-v9" || afterglowBootstrap.sourceImmutable !== true) blockers.push("The deterministic Afterglow working copy was not proven through the normal immutable Library source flow.");
   if (routePasses.before.exitCode !== 0 || routePasses.before.overall === "FAIL") blockers.push("The pre-restart autonomous route pass did not complete successfully.");
   if (routePasses.after.exitCode !== 0 || routePasses.after.overall === "FAIL") blockers.push("The post-restart autonomous route pass did not complete successfully.");
+  if (!taskLedgerProof.initialized || !taskLedgerProof.claimedAfterRestart || !taskLedgerProof.completedFromOperatedRoute || taskLedgerProof.finalState !== "completed") {
+    blockers.push("The #1553 one-command reference did not prove a durable Guest task survived restart and completed from a real operated route receipt.");
+  }
   if (finalStop?.stopped !== true || finalStop?.endpointUnavailable !== true) blockers.push("The final PlotPickle application process did not stop cleanly.");
 
   const machine = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
     overall: blockers.length ? "FAIL" : "PASS",
@@ -216,6 +288,7 @@ async function main() {
       restart: lifecycleRestart,
       finalStop,
     },
+    taskLedgerProof,
     routePasses,
     restartProof,
     blockers: [...new Set(blockers)],

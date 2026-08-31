@@ -12,7 +12,9 @@ on:
       - 'build/autonomous-guest/**'
       - 'core/auth/autonomous-guest/**'
       - 'scripts/creative-uat/autonomous/application-lifecycle.mjs'
+      - 'scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs'
       - 'tests/issue-1569-autonomous-guest-*.test.mjs'
+      - 'vite.config.ts'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +40,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Guest task ledger, lifecycle and Mastra scheduling contracts
-        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs tests/issue-1569-autonomous-guest-mastra-wake-runtime.test.mjs tests/issue-1569-autonomous-guest-route-policy-recovery.test.mjs tests/issue-1569-autonomous-guest-restart-ordering.test.mjs tests/issue-1569-autonomous-guest-run-policy.test.mjs tests/issue-1569-autonomous-guest-settings.test.mjs
+        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs tests/issue-1569-autonomous-guest-mastra-wake-runtime.test.mjs tests/issue-1569-autonomous-guest-route-policy-recovery.test.mjs tests/issue-1569-autonomous-guest-restart-ordering.test.mjs tests/issue-1569-autonomous-guest-run-policy.test.mjs tests/issue-1569-autonomous-guest-settings.test.mjs tests/issue-1569-autonomous-guest-reference-runner.test.mjs
       - name: Verify production build
         run: npm run build

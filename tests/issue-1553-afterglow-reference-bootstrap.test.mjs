@@ -16,6 +16,9 @@ test("#1553 autonomous reference bootstraps immutable Afterglow through the real
   assert.match(bootstrap, /Load & Explore/);
   assert.match(bootstrap, /Save & Switch/);
   assert.match(bootstrap, /browser_click/);
+  assert.match(bootstrap, /openMyStories/);
+  assert.match(bootstrap, /My Stories/);
+  assert.match(bootstrap, /Library My Stories active card/);
   assert.match(bootstrap, /data-library-story-id/);
   assert.match(bootstrap, /sourceImmutable:\s*true/);
   assert.match(reference, /bootstrap-afterglow-working-copy\.mjs/);
@@ -24,6 +27,8 @@ test("#1553 autonomous reference bootstraps immutable Afterglow through the real
   assert.match(reference, /sourceCatalogId !== "afterglow-v9"/);
   assert.match(library, /createLibraryWorkingCopy/);
   assert.match(library, /createAfterglowV9FoundationsReference/);
+  assert.match(library, /My Stories/);
+  assert.match(library, /data-library-story-id/);
   assert.match(catalog, /id: "afterglow-v9"/);
   assert.match(catalog, /reference-afterglow-v9-source/);
 

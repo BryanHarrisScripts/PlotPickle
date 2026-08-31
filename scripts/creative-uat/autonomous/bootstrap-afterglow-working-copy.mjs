@@ -93,11 +93,33 @@ async function openLibrary(session) {
   });
 }
 
+async function openMyStories(session) {
+  const snapshot = resultText(await session.client.call("browser_snapshot", {}));
+  const myStoriesRef = extractRef(snapshot, "My Stories", ["button"]);
+  if (!myStoriesRef) throw new Error("Library did not expose the My Stories shelf through its visible filter.");
+  await session.client.call("browser_click", toolArguments(session.toolMap.get("browser_click"), {
+    ref: myStoriesRef,
+    element: "My Stories",
+  }));
+  await waitForRenderedArea(session.client, {
+    id: "library-afterglow-my-stories",
+    route: "/library",
+    requiredTerms: ["My Stories", "Active story"],
+    minimumTextLength: 350,
+  });
+}
+
+async function inspectAfterglowFromMyStories(session) {
+  await openMyStories(session);
+  return inspectActiveAfterglow(session);
+}
+
 async function bootstrap(session) {
   await openLibrary(session);
-  let active = await inspectActiveAfterglow(session);
-  if (active.active && active.projectId) return { action: "reused-existing-working-copy", ...active };
+  let active = await inspectAfterglowFromMyStories(session);
+  if (active.active && active.projectId) return { action: "reused-existing-working-copy", verifiedThrough: "Library My Stories active card", ...active };
 
+  await openLibrary(session);
   const launchRaw = resultText(await session.client.call("browser_evaluate", {
     function: `() => {
       const card = document.querySelector('[data-library-catalog-id="afterglow-v9"]');
@@ -118,9 +140,9 @@ async function bootstrap(session) {
   }));
 
   await openLibrary(session);
-  active = await inspectActiveAfterglow(session);
-  if (!active.active || !active.projectId) throw new Error("Afterglow working copy was not active after the normal Library Save & Switch flow.");
-  return { action: "created-working-copy-through-library", ...active };
+  active = await inspectAfterglowFromMyStories(session);
+  if (!active.active || !active.projectId) throw new Error("Afterglow working copy was not active on the Library My Stories shelf after the normal Save & Switch flow.");
+  return { action: "created-working-copy-through-library", verifiedThrough: "Library My Stories active card", ...active };
 }
 
 async function main() {

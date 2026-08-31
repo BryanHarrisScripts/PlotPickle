@@ -5,7 +5,7 @@ import {
   finishAutonomousGuestReferenceRouteTask,
   initializeAutonomousGuestReferenceTasks,
   readAutonomousGuestReferenceTaskStatus,
-} from "../../../../build/autonomous-guest/reference-route-tasks";
+} from "../../../../build/autonomous-guest/reference/reference-route-tasks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

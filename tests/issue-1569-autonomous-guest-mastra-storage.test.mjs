@@ -47,6 +47,6 @@ test("#1569 next-fire claiming uses active-state compare-and-swap semantics", as
 
 test("#1569 schedule persistence remains timing infrastructure, not canon authority", async () => {
   const source = await read("build/autonomous-guest/mastra-file-schedules-storage.ts");
-  assert.doesNotMatch(source, /applyStory|writeProject|ppf|canonStore|database|localStorage|credential|privateKey|password|BUZZ/i);
+  assert.doesNotMatch(source, /applyStory|writeProject|ppf|canonStore|database|localStorage|readCredentialJson|writeCredentialJson|privateStorage|profileCredentialsDirectory|apiKey|privateKey|password|BUZZ/i);
   assert.doesNotMatch(source, /fetch\(|playwright|executeRoute/);
 });

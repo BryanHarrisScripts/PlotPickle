@@ -1,5 +1,162 @@
 {
   "schemaVersion": 1,
+  "autonomousStoryRoutes": [
+    {
+      "id": "library",
+      "label": "Library working copy",
+      "order": 10,
+      "route": "/library",
+      "operation": "operate",
+      "requiredTerms": ["Library", "My Stories"],
+      "minimumTextLength": 500,
+      "prerequisites": [],
+      "tests": ["tests/issue-1122-library-persistence.test.mjs"]
+    },
+    {
+      "id": "learn",
+      "label": "LEARN curriculum and frontier",
+      "order": 20,
+      "route": "/?workspace=learn",
+      "operation": "inspect",
+      "requiredTerms": ["Foundations", "Learn"],
+      "minimumTextLength": 1200,
+      "prerequisites": [],
+      "tests": ["tests/issue-444-phase-b-learn.test.mjs"]
+    },
+    {
+      "id": "plan",
+      "label": "PLAN structured story decisions",
+      "order": 30,
+      "route": "/?workspace=plan&section=foundations",
+      "operation": "operate",
+      "requiredTerms": ["Foundations", "Plan"],
+      "minimumTextLength": 700,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-617-plan-selective-ai-drafting.test.mjs"]
+    },
+    {
+      "id": "build",
+      "label": "BUILD story structure",
+      "order": 40,
+      "route": "/?workspace=build&block=1&mini=1",
+      "operation": "operate",
+      "requiredTerms": ["Build", "sequence"],
+      "minimumTextLength": 500,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-114-build-workspace.test.mjs"]
+    },
+    {
+      "id": "story-decisions",
+      "label": "Story Decisions",
+      "order": 50,
+      "route": "/story-decisions",
+      "operation": "operate",
+      "requiredTerms": ["Story Decisions", "Decision"],
+      "minimumTextLength": 300,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-1420-visible-story-decisions.test.mjs", "tests/issue-1553-autonomous-story-decision-authority.test.mjs"]
+    },
+    {
+      "id": "story-workbench",
+      "label": "Story Workbench",
+      "order": 60,
+      "routeTemplate": "/story-workbench?decisionId={decisionId}",
+      "routeInputs": ["decisionId"],
+      "operation": "operate",
+      "requiredTerms": ["Story Workbench", "revision"],
+      "minimumTextLength": 300,
+      "prerequisites": ["answered-story-decision"],
+      "tests": ["tests/issue-1419-story-workbench.test.mjs", "tests/issue-1553-autonomous-story-decision-authority.test.mjs"]
+    },
+    {
+      "id": "visual-readiness",
+      "label": "Canonical visual readiness",
+      "order": 70,
+      "route": "/screenplay-readiness",
+      "operation": "inspect",
+      "requiredTerms": ["Story readiness", "canonical", "Storyboard", "Previs"],
+      "minimumTextLength": 400,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-1423-visual-readiness.test.mjs"]
+    },
+    {
+      "id": "storyboard",
+      "label": "Storyboard",
+      "order": 80,
+      "route": "/storyboard",
+      "operation": "operate",
+      "requiredTerms": ["Storyboard", "24 Blocks"],
+      "minimumTextLength": 400,
+      "prerequisites": ["storyboard-allowed-target"],
+      "tests": ["tests/issue-1424-storyboard-readiness.test.mjs", "tests/issue-1424-storyboard-editorial.test.mjs"]
+    },
+    {
+      "id": "production-shots",
+      "label": "Production Shots",
+      "order": 90,
+      "route": "/previs",
+      "operation": "operate",
+      "requiredTerms": ["Creative shots", "Render clips"],
+      "minimumTextLength": 500,
+      "prerequisites": ["kept-storyboard-reference"],
+      "tests": ["tests/issue-1425-production-shots.test.mjs"]
+    },
+    {
+      "id": "previs-animatic",
+      "label": "Previs and Animatic",
+      "order": 100,
+      "route": "/previs",
+      "operation": "operate",
+      "requiredTerms": ["Previs", "Creative timing", "Render Plan"],
+      "minimumTextLength": 500,
+      "prerequisites": ["production-shot"],
+      "tests": ["tests/issue-1425-previs-projection.test.mjs", "tests/issue-1421-render-plan-grid.test.mjs"]
+    },
+    {
+      "id": "write",
+      "label": "Write screenplay projection",
+      "order": 110,
+      "route": "/?workspace=write",
+      "operation": "operate",
+      "requiredTerms": ["Write", "screenplay"],
+      "minimumTextLength": 500,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+    },
+    {
+      "id": "edit",
+      "label": "Edit screenplay projection",
+      "order": 120,
+      "route": "/edit",
+      "operation": "operate",
+      "requiredTerms": ["Edit", "screenplay"],
+      "minimumTextLength": 300,
+      "prerequisites": ["screenplay-content"],
+      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+    },
+    {
+      "id": "refine",
+      "label": "Refine diagnostics",
+      "order": 130,
+      "route": "/?workspace=refine",
+      "operation": "operate",
+      "requiredTerms": ["Refine", "Diagnose"],
+      "minimumTextLength": 500,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+    },
+    {
+      "id": "reports",
+      "label": "Reports and final evidence",
+      "order": 140,
+      "route": "/?workspace=reports",
+      "operation": "inspect",
+      "requiredTerms": ["Reports"],
+      "minimumTextLength": 500,
+      "prerequisites": ["active-working-copy"],
+      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+    }
+  ],
   "areas": [
     {
       "id": "startup",

@@ -8,6 +8,11 @@ import {
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "@/core/storage/project-library-browser";
 import { PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
 import {
+  clearAutonomousGuestBrowser,
+  hydrateAutonomousGuestBrowser,
+  persistAutonomousGuestLibrary,
+} from "@/core/storage/autonomous-guest-browser";
+import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,
   hydrateProfilePrivateBrowser,
@@ -17,6 +22,16 @@ import {
 import styles from "./profile-access-boundary.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
+type AutonomousGuest = {
+  readonly active: true;
+  readonly authorityClass: "delegated-guest-autonomous-operator";
+  readonly delegated: true;
+  readonly humanProfileId: "";
+  readonly workspaceId: string;
+  readonly autonomousRunId: string;
+  readonly operatorId: string;
+  readonly accessMode: "desktop-loopback";
+};
 type Status = {
   readonly configured: boolean;
   readonly authenticated: boolean;
@@ -26,8 +41,9 @@ type Status = {
   readonly csrfToken: string | null;
   readonly serverReady: boolean;
   readonly readinessReasons: readonly string[];
+  readonly autonomousGuest: AutonomousGuest | null;
 };
-type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "ready" | "server-unavailable";
+type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "autonomous-guest" | "ready" | "server-unavailable";
 type Recovery = { readonly profile: Profile; readonly secret: string; readonly password: string; readonly guestDraft: string; readonly migrateLegacyBrowser: boolean };
 
 async function profileRequest(action: string, payload: Record<string, unknown> = {}, csrfToken?: string | null) {
@@ -44,6 +60,7 @@ async function profileRequest(action: string, payload: Record<string, unknown> =
 
 function clearPrivateScreen() {
   clearProfilePrivateBrowser();
+  clearAutonomousGuestBrowser();
   window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
   document.title = "PlotPickle — Profile locked";
   window.history.replaceState({ profileBoundary: "locked" }, "", "/");
@@ -91,6 +108,7 @@ function PasswordField({ value, onChange, purpose = "current", confirm = false }
 export default function ProfileAccessBoundary({ children }: { readonly children: ReactNode }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [screen, setScreen] = useState<Screen>("loading");
+  const [autonomousGuest, setAutonomousGuest] = useState<AutonomousGuest | null>(null);
   const [selected, setSelected] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -108,6 +126,16 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     const next = await result.json() as Status;
     if (!result.ok) throw new Error("The local profile service is unavailable.");
     setStatus(next);
+    if (next.autonomousGuest?.active) {
+      clearProfilePrivateBrowser();
+      hydrateAutonomousGuestBrowser(next.autonomousGuest.workspaceId);
+      setAutonomousGuest(next.autonomousGuest);
+      document.title = "PlotPickle - Autonomous Guest Story Run";
+      setScreen("autonomous-guest");
+      return;
+    }
+    setAutonomousGuest(null);
+    clearAutonomousGuestBrowser();
     if (next.authenticated && next.profile) {
       await hydrateProfilePrivateBrowser(next.profile.profileId, next.csrfToken || "");
       document.title = "PlotPickle - AI-native Visual Writing and Creative Direction";
@@ -122,16 +150,35 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     return () => window.clearTimeout(start);
   }, [refresh]);
   useEffect(() => {
-    const persist = () => void persistActiveProfileProject().catch(() => undefined);
+    const persist = () => {
+      if (screen === "autonomous-guest") {
+        persistAutonomousGuestLibrary();
+        return;
+      }
+      if (screen === "ready") void persistActiveProfileProject().catch(() => undefined);
+    };
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
-  }, []);
+  }, [screen]);
   useEffect(() => {
-    if (screen !== "ready") return;
+    if (screen !== "ready" && screen !== "autonomous-guest") return;
     const heartbeat = window.setInterval(() => {
       void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" })
         .then((result) => result.json() as Promise<Status>)
         .then((next) => {
+          if (screen === "autonomous-guest") {
+            if (next.autonomousGuest?.active && next.autonomousGuest.workspaceId === autonomousGuest?.workspaceId) {
+              setStatus(next);
+              setAutonomousGuest(next.autonomousGuest);
+              return;
+            }
+            persistAutonomousGuestLibrary();
+            clearAutonomousGuestBrowser();
+            setAutonomousGuest(null);
+            setStatus(next);
+            setScreen(lockedScreen(next));
+            return;
+          }
           if (next.authenticated) { setStatus(next); return; }
           clearPrivateScreen(); setStatus(next); setSelected(null); setBootstrapProof("");
           setScreen(lockedScreen(next));
@@ -139,16 +186,17 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
         .catch(() => undefined);
     }, 30_000);
     return () => window.clearInterval(heartbeat);
-  }, [screen]);
+  }, [screen, autonomousGuest?.workspaceId]);
   useEffect(() => {
     const handleAction = (event: Event) => {
+      if (screen === "autonomous-guest") return;
       const action = (event as CustomEvent<string>).detail;
       if (action === "add-profile") { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); return; }
       if (action === "lock" || action === "logout" || action === "switch-profile") void leave(action);
     };
     window.addEventListener("plotpickle:profile-action", handleAction);
     return () => window.removeEventListener("plotpickle:profile-action", handleAction);
-  });
+  }, [screen]);
 
   async function signIn(event?: FormEvent) {
     event?.preventDefault();
@@ -217,6 +265,10 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
+  }
+
+  if (screen === "autonomous-guest" && autonomousGuest) {
+    return <><div className={styles.activeHuman} data-autonomous-guest-authority={autonomousGuest.authorityClass} aria-label="Active PlotPickle autonomous Guest"><div><span>Guest Autonomous</span><strong>{autonomousGuest.operatorId}</strong><small>Isolated from Human profiles, credentials and BUZZ identity</small></div></div>{children}</>;
   }
 
   if (screen === "ready" && status?.profile) {

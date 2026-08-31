@@ -18,15 +18,17 @@ function processIdentity(generation, child, startedAt) {
 }
 
 async function endpointResponds(fetchImpl, url, timeoutMs) {
-  try {
-    const response = await fetchImpl(url, {
-      redirect: "manual",
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
+  return fetchImpl(url, {
+    redirect: "manual",
+    signal: AbortSignal.timeout(timeoutMs),
+  }).then(
+    (response) => response.ok,
+    (error) => {
+      const name = String(error?.name || "");
+      if (name === "AbortError" || name === "TimeoutError" || error instanceof TypeError) return false;
+      throw error;
+    },
+  );
 }
 
 export function resolveManagedPlotPickleTarget(baseUrl) {

@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/autonomous-guest-task-ledger.yml'
+      - 'app/autonomous-guest-scheduler-settings.*'
+      - 'app/api/autonomous-guest/scheduler/**'
+      - 'app/settings/autonomous-guest/**'
+      - 'app/settings-sitemap.tsx'
       - 'build/autonomous-guest/**'
       - 'core/auth/autonomous-guest/**'
       - 'scripts/creative-uat/autonomous/application-lifecycle.mjs'
@@ -34,6 +38,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Guest task ledger, lifecycle and Mastra scheduling contracts
-        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs tests/issue-1569-autonomous-guest-mastra-wake-runtime.test.mjs tests/issue-1569-autonomous-guest-route-policy-recovery.test.mjs tests/issue-1569-autonomous-guest-restart-ordering.test.mjs tests/issue-1569-autonomous-guest-run-policy.test.mjs
+        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs tests/issue-1569-autonomous-guest-mastra-wake-runtime.test.mjs tests/issue-1569-autonomous-guest-route-policy-recovery.test.mjs tests/issue-1569-autonomous-guest-restart-ordering.test.mjs tests/issue-1569-autonomous-guest-run-policy.test.mjs tests/issue-1569-autonomous-guest-settings.test.mjs
       - name: Verify production build
         run: npm run build

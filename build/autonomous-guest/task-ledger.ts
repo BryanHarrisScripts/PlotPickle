@@ -92,6 +92,14 @@ function safeToken(value: string, label: string, allowEmpty = false) {
   return normalized;
 }
 
+function safeTargetRoute(value: string) {
+  const normalized = String(value || "").trim();
+  if (!normalized.startsWith("/") || normalized.startsWith("//") || normalized.length > 512 || /[\u0000-\u001f\u007f]/.test(normalized)) {
+    throw new Error("Autonomous Guest task target route is missing or invalid.");
+  }
+  return normalized;
+}
+
 function safeRefs(values: readonly string[] | undefined, label: string) {
   const refs = [...(values || [])].map((value) => safeToken(value, label));
   if (refs.length > 64) throw new Error(`Autonomous Guest task ${label} exceeds its bounded size.`);
@@ -139,7 +147,7 @@ function parseTask(value: unknown, authority: AutonomousGuestAuthority): Autonom
     guestWorkspaceId: authority.workspaceId,
     projectId: safeToken(String(item.projectId || ""), "project ID"),
     taskKind: safeToken(String(item.taskKind || ""), "kind"),
-    targetRoute: safeToken(String(item.targetRoute || ""), "target route"),
+    targetRoute: safeTargetRoute(String(item.targetRoute || "")),
     baseRevision: safeToken(String(item.baseRevision || ""), "base revision", true),
     dependencyRefs: safeRefs(item.dependencyRefs, "dependency reference"),
     notBefore: normalizedTimestamp(String(item.notBefore || ""), new Date(0).toISOString()),
@@ -215,7 +223,7 @@ export async function enqueueAutonomousGuestTask(authority: AutonomousGuestAutho
     guestWorkspaceId: authority.workspaceId,
     projectId: safeToken(input.projectId, "project ID"),
     taskKind: safeToken(input.taskKind, "kind"),
-    targetRoute: safeToken(input.targetRoute, "target route"),
+    targetRoute: safeTargetRoute(input.targetRoute),
     baseRevision: safeToken(input.baseRevision || "", "base revision", true),
     dependencyRefs: safeRefs(input.dependencyRefs, "dependency reference"),
     notBefore: normalizedTimestamp(input.notBefore, now),

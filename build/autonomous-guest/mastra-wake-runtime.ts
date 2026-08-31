@@ -12,6 +12,7 @@ import {
   type AutonomousGuestTaskPolicyResolver,
   type AutonomousGuestWakePayload,
 } from "./mastra-task-scheduler";
+import { createAutonomousGuestStoredRoutePolicyResolver } from "./policy/run-policy-store";
 import { recoverAndReconcileAutonomousGuestSchedulerAfterRestart } from "./recovery/schedule-reconciliation";
 
 export type AutonomousGuestWakeResult = Readonly<{
@@ -92,10 +93,11 @@ export function createAutonomousGuestWakeWorkflow(resolvePolicy: AutonomousGuest
     .commit();
 }
 
-export function createAutonomousGuestSchedulerRuntime(resolvePolicy: AutonomousGuestTaskPolicyResolver) {
+export function createAutonomousGuestSchedulerRuntime(resolvePolicy?: AutonomousGuestTaskPolicyResolver) {
   const authority = currentAutonomousGuestAuthority();
+  const effectiveResolvePolicy = resolvePolicy ?? createAutonomousGuestStoredRoutePolicyResolver(authority);
   const { storage, schedules } = createAutonomousGuestMastraScheduleStorage(authority);
-  const wakeWorkflow = createAutonomousGuestWakeWorkflow(resolvePolicy);
+  const wakeWorkflow = createAutonomousGuestWakeWorkflow(effectiveResolvePolicy);
   const mastra = new Mastra({
     workflows: { [AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID]: wakeWorkflow },
     storage,
@@ -106,15 +108,16 @@ export function createAutonomousGuestSchedulerRuntime(resolvePolicy: AutonomousG
     mastra,
     schedules,
     wakeWorkflow,
+    resolvePolicy: effectiveResolvePolicy,
   });
 }
 
-export async function startAutonomousGuestSchedulerRuntime(resolvePolicy: AutonomousGuestTaskPolicyResolver) {
+export async function startAutonomousGuestSchedulerRuntime(resolvePolicy?: AutonomousGuestTaskPolicyResolver) {
   const runtime = createAutonomousGuestSchedulerRuntime(resolvePolicy);
   const restartRecovery = await recoverAndReconcileAutonomousGuestSchedulerAfterRestart({
     authority: runtime.authority,
     schedules: runtime.schedules,
-    resolvePolicy,
+    resolvePolicy: runtime.resolvePolicy,
   });
   await runtime.mastra.startWorkers();
   return Object.freeze({ ...runtime, restartRecovery });

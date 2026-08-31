@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { AutonomousGuestAuthority } from "../../../core/auth/autonomous-guest/guest-authority";
-import { persistentHome } from "../../local-credentials";
 import type { AutonomousGuestTask } from "../task-ledger";
 import type { AutonomousGuestTaskPolicySnapshot } from "../task-lifecycle";
 import {
@@ -10,6 +9,7 @@ import {
   resolveAutonomousGuestRouteTaskPolicy,
   type AutonomousGuestRunPolicy,
 } from "../recovery/route-task-policy";
+import { autonomousGuestWorkspaceStorageDirectory } from "../storage/workspace-storage";
 
 const FORMAT = "plotpickle-autonomous-guest-run-policy";
 const VERSION = 1 as const;
@@ -43,13 +43,8 @@ function safeRefs(values: readonly string[], label: string) {
   return Object.freeze([...new Set(values.map((value) => safeToken(value, label)))]);
 }
 
-function policyDirectory(authority: AutonomousGuestAuthority) {
-  assertAuthority(authority);
-  return path.join(persistentHome(), "autonomous-guest", authority.workspaceId);
-}
-
 function policyPath(authority: AutonomousGuestAuthority) {
-  return path.join(policyDirectory(authority), "run-policy.json");
+  return path.join(autonomousGuestWorkspaceStorageDirectory(authority), "run-policy.json");
 }
 
 function validatePolicy(authority: AutonomousGuestAuthority, value: AutonomousGuestRunPolicy): AutonomousGuestRunPolicy {
@@ -79,7 +74,7 @@ function validatePolicy(authority: AutonomousGuestAuthority, value: AutonomousGu
 
 export async function writeAutonomousGuestRunPolicy(authority: AutonomousGuestAuthority, value: AutonomousGuestRunPolicy) {
   const policy = validatePolicy(authority, value);
-  const directory = policyDirectory(authority);
+  const directory = autonomousGuestWorkspaceStorageDirectory(authority);
   const target = policyPath(authority);
   const source = `${JSON.stringify({
     format: FORMAT,

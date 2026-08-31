@@ -67,20 +67,28 @@ test("#1569 Settings API derives current Guest authority and never inherits Huma
   assert.doesNotMatch(source, /authenticated-human|humanProfileId|readCredentialJson|writeCredentialJson|apiKey|password|privateKey|BUZZ/i);
 });
 
-test("#1569 Settings service reuses ledger, durable policy and Mastra controls without executing story routes", async () => {
+test("#1569 Settings reuses durable schedule storage and current policy without constructing full Mastra runtime", async () => {
   const source = await read("build/autonomous-guest/settings/scheduler-settings.ts");
+  assert.match(source, /AutonomousGuestFileSchedulesStorage/);
   assert.match(source, /readAutonomousGuestTaskLedger/);
   assert.match(source, /readAutonomousGuestRunPolicy/);
   assert.match(source, /writeAutonomousGuestRunPolicy/);
-  assert.match(source, /scheduleAutonomousGuestTaskCron/);
-  assert.match(source, /runAutonomousGuestTaskScheduleNow/);
-  assert.match(source, /pauseAutonomousGuestTaskSchedule/);
-  assert.match(source, /resumeAutonomousGuestTaskSchedule/);
-  assert.match(source, /cancelAutonomousGuestTaskSchedule/);
+  assert.match(source, /computeNextFireAt/);
+  assert.match(source, /validateCron/);
+  assert.match(source, /wakeAutonomousGuestTask/);
   assert.match(source, /HISTORY_LIMIT = 12/);
   assert.match(source, /ACTIVE_TASK_LIMIT = 24/);
+  assert.doesNotMatch(source, /createAutonomousGuestSchedulerRuntime|new Mastra\(|startWorkers\(/);
   assert.doesNotMatch(source, /executeRoute|playwright|applyStory|writeProject|saveFoundationProject|ppf|canonStore|database|sqlite/i);
   assert.doesNotMatch(source, /chainOfThought|reasoningTrace|modelOutput|apiKey|password|privateKey|BUZZ/i);
+});
+
+test("#1569 run-now is a wake/revalidation only and cannot acquire execution authority", async () => {
+  const source = await read("build/autonomous-guest/settings/scheduler-settings.ts");
+  assert.match(source, /action === "run-now"/);
+  assert.match(source, /wakeAutonomousGuestTask/);
+  assert.match(source, /createAutonomousGuestStoredRoutePolicyResolver\(authority\)/);
+  assert.doesNotMatch(source, /acquireAutonomousGuestTaskLease|completeAutonomousGuestTask|failAutonomousGuestTask/);
 });
 
 test("#1569 disabling scheduling preserves ledger and history rather than deleting evidence", async () => {

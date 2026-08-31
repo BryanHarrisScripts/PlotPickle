@@ -79,21 +79,16 @@ function zonedParts(timestamp: number, timezone?: string) {
       weekday: date.getUTCDay(),
     };
   }
-  let formatter: Intl.DateTimeFormat;
-  try {
-    formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      hourCycle: "h23",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      weekday: "short",
-    });
-  } catch {
-    throw new Error("Autonomous Guest scheduler timezone is invalid.");
-  }
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    weekday: "short",
+  });
   const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
   const weekday = WEEKDAYS[String(parts.weekday || "")];
   if (weekday === undefined) throw new Error("Autonomous Guest scheduler could not resolve the requested timezone.");

@@ -78,6 +78,11 @@ test("#1553 route runner reuses Playwright readiness helpers without private-sta
   assert.match(runner, /render-readiness\.mjs/);
   assert.match(runner, /waitForRenderedArea/);
   assert.match(runner, /evidencePolicy/);
+  assert.match(runner, /issue-1553-autonomous-convergence-restart\.test\.mjs/);
+  assert.match(runner, /--user-data-dir/);
+  assert.match(runner, /fresh-playwright-mcp-process-shared-browser-profile/);
+  assert.match(runner, /applicationProcessRestarted: false/);
+  assert.match(runner, /requiresApplicationLifecycleProof: true/);
   assert.doesNotMatch(runner, /localStorage|indexedDB|saveFoundationProject|applyStoryCommand|sqlite|database/i);
   assert.doesNotMatch(runner, /writeFile\([^\n]+snapshot|browser_take_screenshot/);
 });

@@ -11,6 +11,7 @@ on:
       - 'app/profile-access/**'
       - 'app/api/auth/profile/**'
       - 'core/auth/autonomous-guest/**'
+      - 'core/storage/profile-private-browser.ts'
       - 'modules/library/**'
       - 'lib/verification/autonomous-story-routes.mjs'
       - 'config/uat-autopilot-registry.json'

@@ -8,6 +8,13 @@ import { deriveVisualReadiness } from "@/modules/build/visual-readiness";
 export const STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1" as const;
 const STORYBOARD_UPSTREAM_PREFIX = "storyboard-upstream:" as const;
 
+export type StoryboardApprovalAuthority = Readonly<{
+  readonly authorityClass: "authenticated-human" | "delegated-autonomous-operator";
+  readonly humanProfileId?: string;
+  readonly autonomousRunId?: string;
+  readonly operatorId?: string;
+}>;
+
 export type StoryboardEditorialCandidate = {
   readonly id: string;
   readonly targetId: string;
@@ -29,6 +36,29 @@ export function storyboardAnchorTargetRef(targetId: string, miniBlockNumber: num
 
 function observedReferenceSourceKey(sourceRef: string) {
   return `observed-reference:${sourceRef}`;
+}
+
+function approvalValue(value: unknown, maximum = 180) {
+  return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maximum);
+}
+
+function approvalDescription(authority?: StoryboardApprovalAuthority) {
+  if (authority?.authorityClass !== "delegated-autonomous-operator") return "Human Keep decision";
+  const operatorId = approvalValue(authority.operatorId);
+  const autonomousRunId = approvalValue(authority.autonomousRunId);
+  const identity = [operatorId ? `operator ${operatorId}` : "", autonomousRunId ? `run ${autonomousRunId}` : ""].filter(Boolean).join(", ");
+  return `delegated autonomous Keep decision${identity ? ` (${identity})` : ""}`;
+}
+
+function approvalSourceKeys(authority?: StoryboardApprovalAuthority) {
+  if (authority?.authorityClass !== "delegated-autonomous-operator") return [];
+  const operatorId = approvalValue(authority.operatorId);
+  const autonomousRunId = approvalValue(authority.autonomousRunId);
+  return [
+    "authority:delegated-autonomous-operator",
+    autonomousRunId ? `autonomous-run:${autonomousRunId}` : "",
+    operatorId ? `autonomous-operator:${operatorId}` : "",
+  ].filter(Boolean);
 }
 
 function targetBlockNumber(targetId: string) {
@@ -184,6 +214,7 @@ export function createStoryboardReferenceArtifact(input: {
   readonly targetId: string;
   readonly candidate: StoryboardEditorialCandidate;
   readonly occurredAt: string;
+  readonly approvalAuthority?: StoryboardApprovalAuthority;
 }): FoundationsVisualArtifact {
   const current = currentStoryboardArtifactForFrame(
     input.project,
@@ -191,10 +222,11 @@ export function createStoryboardReferenceArtifact(input: {
     input.candidate.miniBlockNumber,
   );
   const anchorRef = storyboardAnchorTargetRef(input.targetId, input.candidate.miniBlockNumber);
+  const approval = approvalDescription(input.approvalAuthority);
   return {
     id: `storyboard-${input.candidate.id}-${input.project.revision + 1}`,
     assetUrl: input.candidate.assetUrl,
-    prompt: `Adopt the bundled observed Storyboard reference ${input.candidate.sourceRef} for ${anchorRef}. This Human Keep decision approves the current preferred visual projection for the anchor only; it does not rewrite story canon or prohibit later variations.`,
+    prompt: `Adopt the bundled observed Storyboard reference ${input.candidate.sourceRef} for ${anchorRef}. This ${approval} approves the current preferred visual projection for the anchor only; it does not rewrite story canon or prohibit later variations.`,
     createdAt: input.occurredAt,
     provider: "bundled-reference",
     model: "",
@@ -206,6 +238,7 @@ export function createStoryboardReferenceArtifact(input: {
       storyboardFrameDependencySourceKey(input.project, input.targetId, input.candidate.miniBlockNumber),
       observedReferenceSourceKey(input.candidate.sourceRef),
       `ppf-revision:${input.project.revision}`,
+      ...approvalSourceKeys(input.approvalAuthority),
     ],
     workflow: STORYBOARD_REFERENCE_WORKFLOW,
     reviewState: "draft",

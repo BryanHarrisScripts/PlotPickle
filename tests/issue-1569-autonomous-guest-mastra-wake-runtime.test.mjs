@@ -7,7 +7,8 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#1569 wake runtime registers one deterministic workflow with durable schedule storage", async () => {
   const source = await read("build/autonomous-guest/mastra-wake-runtime.ts");
   assert.match(source, /createAutonomousGuestMastraScheduleStorage\(authority\)/);
-  assert.match(source, /createAutonomousGuestWakeWorkflow\(resolvePolicy\)/);
+  assert.match(source, /const effectiveResolvePolicy = resolvePolicy \?\? createAutonomousGuestStoredRoutePolicyResolver\(authority\)/);
+  assert.match(source, /createAutonomousGuestWakeWorkflow\(effectiveResolvePolicy\)/);
   assert.match(source, /workflows: \{ \[AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID\]: wakeWorkflow \}/);
   assert.match(source, /storage,/);
   assert.match(source, /await runtime\.mastra\.startWorkers\(\)/);

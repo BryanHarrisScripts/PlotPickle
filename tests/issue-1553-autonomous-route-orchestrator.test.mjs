@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { evaluateAutonomousRouteOperation } from "../lib/verification/autonomous-route-operations.mjs";
+import {
+  evaluateAutonomousRouteOperation,
+  parseAutonomousOperationProbeResult,
+} from "../lib/verification/autonomous-route-operations.mjs";
 import {
   assessAutonomousRoute,
   autonomousContractTestsFromRegistry,
@@ -42,7 +45,8 @@ test("#1553 materializes dynamic Workbench routes only from explicit run inputs"
 
 test("#1553 inspect routes may be entered, but operate routes require a bounded operation receipt", () => {
   const inspectRoute = registry.autonomousStoryRoutes.find((entry) => entry.id === "learn");
-  const inspectBody = `${inspectRoute.requiredTerms.join(" ")} `.repeat(40);
+  const inspectSeed = `${inspectRoute.requiredTerms.join(" ")} `;
+  const inspectBody = inspectSeed.repeat(Math.ceil(inspectRoute.minimumTextLength / inspectSeed.length) + 1);
   const inspectEvidence = {
     reached: true,
     resolvedRoute: "/?workspace=learn",
@@ -99,6 +103,21 @@ test("#1553 inspect routes may be entered, but operate routes require a bounded 
     "skipped-prerequisite": 1,
     "failed-defect": 1,
   });
+});
+
+test("#1553 operation probe parser reads the bounded Playwright Result object", () => {
+  const parsed = parseAutonomousOperationProbeResult([
+    "### Result",
+    '{"projectId":"project-afterglow","revision":"1","decisionQueueError":"brace { inside string }","actionableDecisionCount":0}',
+    "### Ran Playwright code",
+    "```js",
+    "await page.evaluate(() => ({ ignored: true }));",
+    "```",
+  ].join("\n"));
+  assert.equal(parsed.projectId, "project-afterglow");
+  assert.equal(parsed.revision, "1");
+  assert.equal(parsed.decisionQueueError, "brace { inside string }");
+  assert.equal(parsed.actionableDecisionCount, 0);
 });
 
 test("#1553 route operation policy accepts a proven no-change queue and rejects unoperated Decisions", () => {

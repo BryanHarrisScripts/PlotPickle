@@ -18,6 +18,7 @@ import {
   hydrateProfilePrivateBrowser,
   migrateLegacyBrowserProjects,
   persistActiveProfileProject,
+  releaseProfilePrivateBrowserAuthority,
 } from "@/core/storage/profile-private-browser";
 import styles from "./profile-access-boundary.module.css";
 
@@ -127,7 +128,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (!result.ok) throw new Error("The local profile service is unavailable.");
     setStatus(next);
     if (next.autonomousGuest?.active) {
-      clearProfilePrivateBrowser();
+      releaseProfilePrivateBrowserAuthority();
       hydrateAutonomousGuestBrowser(next.autonomousGuest.workspaceId);
       setAutonomousGuest(next.autonomousGuest);
       document.title = "PlotPickle - Autonomous Guest Story Run";

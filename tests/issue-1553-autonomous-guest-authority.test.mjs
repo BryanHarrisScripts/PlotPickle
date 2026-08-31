@@ -14,13 +14,15 @@ test("#1553 autonomous Guest authority is explicit, loopback-only and never Huma
   assert.doesNotMatch(source, /createFirstProfile|createProfile\(|authenticate\(|password|recoverySecret|BUZZ/i);
 });
 
-test("#1553 autonomous Guest browser checkpoint is isolated to its own Library namespace", async () => {
-  const source = await read("core/storage/autonomous-guest-browser.ts");
+test("#1553 autonomous Guest browser checkpoint is isolated and survives its own full navigation", async () => {
+  const source = await read("core/auth/autonomous-guest/guest-workspace-browser.ts");
   assert.match(source, /plotpickle\.autonomous-guest\.workspace\.v1/);
   assert.match(source, /plotpickle\.library\.profile\.v1/);
   assert.match(source, /guest-auto-\[a-f0-9\]\{24\}/i);
   assert.match(source, /window\.localStorage\.setItem/);
-  assert.match(source, /window\.sessionStorage\.clear/);
+  assert.match(source, /removeGuestSessionKeys/);
+  assert.match(source, /window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\) === normalized\) return/);
+  assert.doesNotMatch(source, /sessionStorage\.clear/);
   assert.doesNotMatch(source, /profile-private|csrf|credential|password|buzz|indexedDB|database/i);
 });
 
@@ -33,6 +35,7 @@ test("#1553 profile boundary visibly distinguishes autonomous Guest from Human",
   assert.match(boundary, />Guest Autonomous</);
   assert.match(boundary, /Isolated from Human profiles, credentials and BUZZ identity/);
   assert.match(boundary, /data-autonomous-guest-authority/);
+  assert.match(boundary, /@\/core\/auth\/autonomous-guest\/guest-workspace-browser/);
   assert.match(boundary, /hydrateAutonomousGuestBrowser/);
   assert.match(boundary, /persistAutonomousGuestLibrary/);
   assert.match(profileRoute, /getAutonomousGuestAuthority/);

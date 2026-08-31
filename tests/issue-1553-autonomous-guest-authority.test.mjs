@@ -72,7 +72,7 @@ test("#1553 Guest Story Decisions use isolated non-canon storage instead of Huma
 
 test("#1553 Guest AI routing status is credential-free and precedes the normal provider router", async () => {
   const [statusGateway, localGateway] = await Promise.all([
-    read("build/ai/autonomous-guest-routing-status.ts"),
+    read("build/auth/autonomous-guest-ai-routing-status.ts"),
     read("build/local-ai-gateway.ts"),
   ]);
   assert.match(statusGateway, /humanCredentialsInherited: false/);

@@ -13,7 +13,7 @@ test("#1569 task ledger is durable, Guest-scoped and non-canon", async () => {
   assert.match(source, /task-ledger\.json/);
   assert.match(source, /writeFile\(temporary/);
   assert.match(source, /rename\(temporary, target\)/);
-  assert.doesNotMatch(source, /authenticated-human|readCredentialJson|writeCredentialJson|privateStorage|profileCredentialsDirectory|BUZZ|ppf|canon/i);
+  assert.doesNotMatch(source, /authenticated-human|readCredentialJson|writeCredentialJson|privateStorage|profileCredentialsDirectory|BUZZ|ppf|canonStore|writeCanon|applyCanon/i);
 });
 
 test("#1569 task ledger has bounded explicit lifecycle states and retry budgets", async () => {

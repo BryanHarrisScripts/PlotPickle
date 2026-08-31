@@ -29,10 +29,12 @@ export default function StoryboardPage() {
   }
 
   return (
-    <StoryboardReadinessWorkspace
-      project={project}
-      onProjectChange={setProject}
-      onOpenBuild={() => window.location.assign("/?workspace=build")}
-    />
+    <div data-canonical-project-id={project.id}>
+      <StoryboardReadinessWorkspace
+        project={project}
+        onProjectChange={setProject}
+        onOpenBuild={() => window.location.assign("/?workspace=build")}
+      />
+    </div>
   );
 }

@@ -7,7 +7,6 @@ on:
       - '.github/workflows/autonomous-guest-task-ledger.yml'
       - 'app/autonomous-guest-scheduler-settings.*'
       - 'app/api/autonomous-guest/scheduler/**'
-      - 'app/api/autonomous-guest/reference-tasks/**'
       - 'app/settings/autonomous-guest/**'
       - 'app/settings-sitemap.tsx'
       - 'build/autonomous-guest/**'
@@ -15,6 +14,7 @@ on:
       - 'scripts/creative-uat/autonomous/application-lifecycle.mjs'
       - 'scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs'
       - 'tests/issue-1569-autonomous-guest-*.test.mjs'
+      - 'vite.config.ts'
   workflow_dispatch:
 
 permissions:

@@ -36,18 +36,24 @@ function localOrigin(request: IncomingMessage) {
   return origin.origin;
 }
 
-async function readBody(request: IncomingMessage) {
-  const chunks: Buffer[] = [];
-  let bytes = 0;
-  for await (const chunk of request) {
-    const part = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += part.length;
-    if (bytes > MAX_BODY) throw new Error("Autonomous Guest reference task request is too large.");
-    chunks.push(part);
+function parseRequestObject(source: string) {
+  const parsed: unknown = JSON.parse(source || "{}");
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Autonomous Guest reference task request is invalid.");
   }
-  const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Autonomous Guest reference task request is invalid.");
   return parsed as Record<string, unknown>;
+}
+
+async function readReferenceRequest(request: IncomingMessage) {
+  let bytes = 0;
+  const chunks: Buffer[] = [];
+  for await (const raw of request) {
+    const chunk = Buffer.from(raw);
+    bytes += chunk.byteLength;
+    if (bytes > MAX_BODY) throw new Error("Autonomous Guest reference task request is too large.");
+    chunks.push(chunk);
+  }
+  return parseRequestObject(Buffer.concat(chunks).toString("utf8"));
 }
 
 function stringRecord(value: unknown) {
@@ -77,7 +83,7 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
       send(response, 405, { code: "AUTONOMOUS_GUEST_REFERENCE_METHOD", message: "Autonomous Guest reference tasks support GET and POST only." });
       return;
     }
-    const input = await readBody(request);
+    const input = await readReferenceRequest(request);
     const action = String(input.action || "");
     if (action === "initialize") {
       const routeIds = Array.isArray(input.routeIds) ? input.routeIds.map(String) : [];

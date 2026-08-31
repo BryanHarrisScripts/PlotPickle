@@ -21,6 +21,8 @@ const baseUrl = optionValues.get("--base-url") || process.env.PLOTPICKLE_ACCEPTA
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const artifactRoot = path.resolve(optionValues.get("--artifact-root") || path.join(localRoot, "PlotPickle", "uat-autonomous-story-reference"));
 const routeInputsPath = optionValues.get("--route-inputs") || "";
+const autonomousRunId = optionValues.get("--autonomous-run-id") || process.env.PLOTPICKLE_AUTONOMOUS_RUN_ID || "afterglow-reference-v1";
+const autonomousOperatorId = optionValues.get("--autonomous-operator-id") || process.env.PLOTPICKLE_AUTONOMOUS_OPERATOR_ID || "plotpickle-autonomous-reference";
 const bootstrapRunner = path.join(repoRoot, "scripts", "creative-uat", "autonomous", "bootstrap-afterglow-working-copy.mjs");
 const bootstrapReportPath = path.join(artifactRoot, "afterglow-working-copy-bootstrap.json");
 const routeRunner = path.join(repoRoot, "scripts", "creative-uat", "autonomous", "run-autonomous-story-routes.mjs");
@@ -114,6 +116,13 @@ function markdownReport(machine) {
     `Generated: ${machine.generatedAt}`,
     `Target: ${machine.target}`,
     "",
+    "## Authority",
+    "",
+    `Authority class: ${machine.authority.authorityClass}`,
+    `Delegated: ${machine.authority.delegated ? "yes" : "no"}`,
+    `Human profile authority: ${machine.authority.humanProfileId ? "present" : "none"}`,
+    `Run: ${machine.authority.autonomousRunId}`,
+    "",
     "## Afterglow working copy",
     "",
     `Ready: ${machine.afterglowBootstrap.ready ? "yes" : "no"}`,
@@ -135,13 +144,21 @@ function markdownReport(machine) {
     lines.push("", "## Blockers", "");
     for (const mismatch of machine.blockers) lines.push(`- ${mismatch}`);
   }
-  lines.push("", "Evidence contains bounded process identities, working-copy identity, canonical project/revision/state digests and route outcomes only; no hidden reasoning, credentials or private story text is stored.", "");
+  lines.push("", "Evidence contains bounded autonomous Guest authority, process identities, working-copy identity, canonical project/revision/state digests and route outcomes only; no hidden reasoning, credentials or private Human story text is stored.", "");
   return lines.join("\n");
 }
 
 async function main() {
   await mkdir(artifactRoot, { recursive: true });
-  const lifecycle = createManagedPlotPickleLifecycle({ repoRoot, baseUrl });
+  const lifecycle = createManagedPlotPickleLifecycle({
+    repoRoot,
+    baseUrl,
+    env: {
+      PLOTPICKLE_AUTONOMOUS_GUEST_ENABLED: "true",
+      PLOTPICKLE_AUTONOMOUS_RUN_ID: autonomousRunId,
+      PLOTPICKLE_AUTONOMOUS_OPERATOR_ID: autonomousOperatorId,
+    },
+  });
   let firstStart = null;
   let bootstrap = null;
   let before = null;
@@ -174,6 +191,13 @@ async function main() {
     sourceImmutable: bootstrap?.report?.sourceImmutable === true,
     workingCopyCreatedThrough: bootstrap?.report?.workingCopyCreatedThrough || "",
   };
+  const authority = {
+    authorityClass: "delegated-guest-autonomous-operator",
+    delegated: true,
+    humanProfileId: "",
+    autonomousRunId,
+    operatorId: autonomousOperatorId,
+  };
   const blockers = [...restartProof.mismatches];
   if (!afterglowBootstrap.ready || afterglowBootstrap.sourceCatalogId !== "afterglow-v9" || afterglowBootstrap.sourceImmutable !== true) blockers.push("The deterministic Afterglow working copy was not proven through the normal immutable Library source flow.");
   if (routePasses.before.exitCode !== 0 || routePasses.before.overall === "FAIL") blockers.push("The pre-restart autonomous route pass did not complete successfully.");
@@ -181,10 +205,11 @@ async function main() {
   if (finalStop?.stopped !== true || finalStop?.endpointUnavailable !== true) blockers.push("The final PlotPickle application process did not stop cleanly.");
 
   const machine = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
     overall: blockers.length ? "FAIL" : "PASS",
+    authority,
     afterglowBootstrap,
     applicationLifecycle: {
       initialProcess: firstStart,
@@ -194,7 +219,7 @@ async function main() {
     routePasses,
     restartProof,
     blockers: [...new Set(blockers)],
-    evidencePolicy: "No page text, hidden reasoning, credentials or private story content is persisted by the autonomous reference controller.",
+    evidencePolicy: "No page text, hidden reasoning, credentials or private Human story content is persisted by the autonomous reference controller.",
   };
   await writeFile(jsonPath, `${JSON.stringify(machine, null, 2)}\n`, "utf8");
   await writeFile(reportPath, markdownReport(machine), "utf8");

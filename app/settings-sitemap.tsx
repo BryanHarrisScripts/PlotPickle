@@ -227,6 +227,13 @@ export default function SettingsSitemap({
         <header><span>03</span><div><h2 id="sitemap-configuration">Configuration</h2><p>Open every Settings area, including local runtime, storage, credentials, GitHub, Google, Buzz, AI and media-engine boundaries.</p></div></header>
         <div className={styles.grid}>
           <SiteCard
+            label="Autonomous Guest"
+            description="Inspect the durable Task Scheduler for the current delegated Guest run without granting new story, Human-profile or provider authority."
+            meta="Agents"
+            status={{ label: "Configure", tone: "ready", detail: "Task Scheduler controls are intentionally available only under Settings." }}
+            action={<Link href="/settings/autonomous-guest">Open Task Scheduler</Link>}
+          />
+          <SiteCard
             label="AI Routing"
             description="Choose one provider independently for text, images and video, including low-cost local routes, paid cloud routes and Off states."
             meta="AI & Media"

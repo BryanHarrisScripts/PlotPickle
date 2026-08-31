@@ -30,13 +30,13 @@ function assertAuthority(authority: AutonomousGuestAuthority) {
   }
 }
 
-function scheduleId(authority: AutonomousGuestAuthority, taskId: string) {
+export function autonomousGuestTaskScheduleId(authority: AutonomousGuestAuthority, taskId: string) {
   assertAuthority(authority);
   if (!/^guest-task-[a-f0-9-]{36}$/i.test(taskId)) throw new Error("Autonomous Guest schedule task ID is invalid.");
   return `plotpickle-guest-wake-${authority.workspaceId}-${taskId}`;
 }
 
-function wakePayload(task: AutonomousGuestTask): AutonomousGuestWakePayload {
+export function autonomousGuestTaskWakePayload(task: AutonomousGuestTask): AutonomousGuestWakePayload {
   return Object.freeze({
     taskId: task.taskId,
     autonomousRunId: task.autonomousRunId,
@@ -66,13 +66,13 @@ export async function scheduleAutonomousGuestTaskCron(input: Readonly<{
   if (["completed", "cancelled", "expired", "failed"].includes(task.state)) {
     throw new Error("Terminal Autonomous Guest tasks cannot receive a new schedule.");
   }
-  const id = scheduleId(input.authority, task.taskId);
+  const id = autonomousGuestTaskScheduleId(input.authority, task.taskId);
   await input.schedules.create({
     id,
     workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID,
     cron: input.cron,
     timezone: input.timezone,
-    inputData: wakePayload(task),
+    inputData: autonomousGuestTaskWakePayload(task),
   });
   return Object.freeze({
     scheduleId: id,
@@ -87,7 +87,7 @@ export async function runAutonomousGuestTaskScheduleNow(input: Readonly<{
   taskId: string;
 }>) {
   await taskForAuthority(input.authority, input.taskId);
-  await input.schedules.run(scheduleId(input.authority, input.taskId));
+  await input.schedules.run(autonomousGuestTaskScheduleId(input.authority, input.taskId));
 }
 
 export async function pauseAutonomousGuestTaskSchedule(input: Readonly<{
@@ -96,7 +96,7 @@ export async function pauseAutonomousGuestTaskSchedule(input: Readonly<{
   taskId: string;
 }>) {
   await taskForAuthority(input.authority, input.taskId);
-  await input.schedules.pause(scheduleId(input.authority, input.taskId));
+  await input.schedules.pause(autonomousGuestTaskScheduleId(input.authority, input.taskId));
 }
 
 export async function resumeAutonomousGuestTaskSchedule(input: Readonly<{
@@ -105,7 +105,7 @@ export async function resumeAutonomousGuestTaskSchedule(input: Readonly<{
   taskId: string;
 }>) {
   await taskForAuthority(input.authority, input.taskId);
-  await input.schedules.resume(scheduleId(input.authority, input.taskId));
+  await input.schedules.resume(autonomousGuestTaskScheduleId(input.authority, input.taskId));
 }
 
 export async function cancelAutonomousGuestTaskSchedule(input: Readonly<{
@@ -116,7 +116,7 @@ export async function cancelAutonomousGuestTaskSchedule(input: Readonly<{
 }>) {
   await taskForAuthority(input.authority, input.taskId);
   const cancelled = await cancelAutonomousGuestTask(input.authority, input.taskId, input.at);
-  await input.schedules.delete(scheduleId(input.authority, input.taskId));
+  await input.schedules.delete(autonomousGuestTaskScheduleId(input.authority, input.taskId));
   return cancelled;
 }
 

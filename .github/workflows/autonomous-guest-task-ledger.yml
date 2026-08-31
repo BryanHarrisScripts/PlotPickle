@@ -33,6 +33,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Guest task ledger, lifecycle and Mastra scheduling contracts
-        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs
+        run: node --test tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs
       - name: Verify production build
         run: npm run build

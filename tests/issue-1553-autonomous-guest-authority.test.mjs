@@ -26,6 +26,16 @@ test("#1553 autonomous Guest browser checkpoint is isolated and survives its own
   assert.doesNotMatch(source, /profile-private|csrf|credential|password|buzz|indexedDB|database/i);
 });
 
+test("#1553 Guest drops Human vault authority without erasing the Guest story session", async () => {
+  const [boundary, privateBrowser] = await Promise.all([
+    read("app/profile-access/profile-access-boundary.tsx"),
+    read("core/storage/profile-private-browser.ts"),
+  ]);
+  assert.match(boundary, /releaseProfilePrivateBrowserAuthority\(\);\s*hydrateAutonomousGuestBrowser/);
+  assert.match(privateBrowser, /export function releaseProfilePrivateBrowserAuthority\(\)/);
+  assert.match(privateBrowser, /export function clearProfilePrivateBrowser\(\) \{\s*releaseProfilePrivateBrowserAuthority\(\);\s*window\.sessionStorage\.clear\(\);/);
+});
+
 test("#1553 profile boundary visibly distinguishes autonomous Guest from Human", async () => {
   const [boundary, profileRoute] = await Promise.all([
     read("app/profile-access/profile-access-boundary.tsx"),

@@ -1,11 +1,11 @@
-import { getAutonomousGuestAuthority } from "../../../../../core/auth/autonomous-guest/guest-authority";
-import { getProfileExperienceRuntime } from "../../../../../core/auth/profile-experience/profile-experience-runtime";
+import { getAutonomousGuestAuthority } from "../../../../core/auth/autonomous-guest/guest-authority";
+import { getProfileExperienceRuntime } from "../../../../core/auth/profile-experience/profile-experience-runtime";
 import {
   claimAutonomousGuestReferenceRouteTask,
   finishAutonomousGuestReferenceRouteTask,
   initializeAutonomousGuestReferenceTasks,
   readAutonomousGuestReferenceTaskStatus,
-} from "../../../../../build/autonomous-guest/reference-route-tasks";
+} from "../../../../build/autonomous-guest/reference-route-tasks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

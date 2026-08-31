@@ -34,9 +34,11 @@ export type AutonomousGuestTask = Readonly<{
   baseRevision: string;
   dependencyRefs: readonly string[];
   notBefore: string;
+  expiresAt: string;
   priority: number;
   attempt: number;
   maxAttempts: number;
+  affectsCanon: boolean;
   providerPolicyRef: string;
   dedupeKey: string;
   state: AutonomousGuestTaskState;
@@ -58,8 +60,10 @@ export type EnqueueAutonomousGuestTaskInput = Readonly<{
   baseRevision?: string;
   dependencyRefs?: readonly string[];
   notBefore?: string;
+  expiresAt?: string;
   priority?: number;
   maxAttempts?: number;
+  affectsCanon?: boolean;
   providerPolicyRef?: string;
   dedupeKey: string;
   parentTaskId?: string;
@@ -113,6 +117,10 @@ function normalizedTimestamp(value: string | undefined, fallback: string) {
   return date.toISOString();
 }
 
+function optionalTimestamp(value: string | undefined) {
+  return value ? normalizedTimestamp(value, "") : "";
+}
+
 function taskDirectory(authority: AutonomousGuestAuthority) {
   assertAuthority(authority);
   return path.join(persistentHome(), "autonomous-guest", authority.workspaceId);
@@ -151,21 +159,23 @@ function parseTask(value: unknown, authority: AutonomousGuestAuthority): Autonom
     baseRevision: safeToken(String(item.baseRevision || ""), "base revision", true),
     dependencyRefs: safeRefs(item.dependencyRefs, "dependency reference"),
     notBefore: normalizedTimestamp(String(item.notBefore || ""), new Date(0).toISOString()),
+    expiresAt: optionalTimestamp(item.expiresAt),
     priority,
     attempt,
     maxAttempts,
+    affectsCanon: item.affectsCanon === true,
     providerPolicyRef: safeToken(String(item.providerPolicyRef || ""), "provider policy reference", true),
     dedupeKey: safeToken(String(item.dedupeKey || ""), "dedupe key"),
     state: item.state,
     createdAt: normalizedTimestamp(String(item.createdAt || ""), new Date(0).toISOString()),
-    startedAt: item.startedAt ? normalizedTimestamp(item.startedAt, "") : "",
-    completedAt: item.completedAt ? normalizedTimestamp(item.completedAt, "") : "",
+    startedAt: optionalTimestamp(item.startedAt),
+    completedAt: optionalTimestamp(item.completedAt),
     lastFailureClass: safeToken(String(item.lastFailureClass || ""), "failure class", true),
     resultRefs: safeRefs(item.resultRefs, "result reference"),
     parentTaskId: safeToken(String(item.parentTaskId || ""), "parent task ID", true),
     childTaskIds: safeRefs(item.childTaskIds, "child task ID"),
     leaseId: safeToken(String(item.leaseId || ""), "lease ID", true),
-    leaseExpiresAt: item.leaseExpiresAt ? normalizedTimestamp(item.leaseExpiresAt, "") : "",
+    leaseExpiresAt: optionalTimestamp(item.leaseExpiresAt),
   });
 }
 
@@ -217,6 +227,8 @@ export async function enqueueAutonomousGuestTask(authority: AutonomousGuestAutho
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 10) throw new Error("Autonomous Guest task retry budget must be between 1 and 10 attempts.");
   const priority = input.priority ?? 0;
   if (!Number.isInteger(priority) || priority < -100 || priority > 100) throw new Error("Autonomous Guest task priority must be between -100 and 100.");
+  const expiresAt = optionalTimestamp(input.expiresAt);
+  if (expiresAt && new Date(expiresAt).getTime() <= new Date(now).getTime()) throw new Error("Autonomous Guest task expiry must be in the future.");
   const task: AutonomousGuestTask = Object.freeze({
     taskId: `guest-task-${randomUUID()}`,
     autonomousRunId: authority.autonomousRunId,
@@ -227,9 +239,11 @@ export async function enqueueAutonomousGuestTask(authority: AutonomousGuestAutho
     baseRevision: safeToken(input.baseRevision || "", "base revision", true),
     dependencyRefs: safeRefs(input.dependencyRefs, "dependency reference"),
     notBefore: normalizedTimestamp(input.notBefore, now),
+    expiresAt,
     priority,
     attempt: 0,
     maxAttempts,
+    affectsCanon: input.affectsCanon === true,
     providerPolicyRef: safeToken(input.providerPolicyRef || "", "provider policy reference", true),
     dedupeKey,
     state: "pending",
@@ -245,6 +259,39 @@ export async function enqueueAutonomousGuestTask(authority: AutonomousGuestAutho
   });
   await writeLedger(authority, [...tasks, task]);
   return task;
+}
+
+export async function commitAutonomousGuestTaskTransition(authority: AutonomousGuestAuthority, input: Readonly<{
+  taskId: string;
+  expectedState: AutonomousGuestTaskState;
+  expectedAttempt: number;
+  expectedLeaseId?: string;
+  next: AutonomousGuestTask;
+}>) {
+  const tasks = await readAutonomousGuestTaskLedger(authority);
+  const index = tasks.findIndex((task) => task.taskId === input.taskId);
+  if (index < 0) throw new Error("Autonomous Guest task does not exist in this Guest namespace.");
+  const current = tasks[index];
+  if (current.state !== input.expectedState || current.attempt !== input.expectedAttempt) {
+    throw new Error("Autonomous Guest task changed before the requested transition could commit.");
+  }
+  if (input.expectedLeaseId !== undefined && current.leaseId !== input.expectedLeaseId) {
+    throw new Error("Autonomous Guest task lease changed before the requested transition could commit.");
+  }
+  const next = parseTask(input.next, authority);
+  const immutableIdentityMatches = next.taskId === current.taskId
+    && next.autonomousRunId === current.autonomousRunId
+    && next.guestWorkspaceId === current.guestWorkspaceId
+    && next.projectId === current.projectId
+    && next.taskKind === current.taskKind
+    && next.targetRoute === current.targetRoute
+    && next.dedupeKey === current.dedupeKey
+    && next.createdAt === current.createdAt;
+  if (!immutableIdentityMatches) throw new Error("Autonomous Guest task identity cannot change during a lifecycle transition.");
+  const updated = [...tasks];
+  updated[index] = next;
+  await writeLedger(authority, updated);
+  return next;
 }
 
 export async function recoverAbandonedAutonomousGuestTasks(authority: AutonomousGuestAuthority, at = new Date()) {

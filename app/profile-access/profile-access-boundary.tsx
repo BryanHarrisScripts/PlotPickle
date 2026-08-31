@@ -11,7 +11,7 @@ import {
   clearAutonomousGuestBrowser,
   hydrateAutonomousGuestBrowser,
   persistAutonomousGuestLibrary,
-} from "@/core/storage/autonomous-guest-browser";
+} from "@/core/auth/autonomous-guest/guest-workspace-browser";
 import {
   clearProfilePrivateBrowser,
   flushProfilePrivateWrites,

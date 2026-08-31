@@ -15,6 +15,7 @@ test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", 
   assert.match(route, /loadFoundationProject/);
   assert.match(route, /PPFProject/);
   assert.match(route, /_components\/storyboard\/storyboard-readiness-workspace/);
+  assert.match(route, /data-canonical-project-id=\{project\.id\}/);
   assert.doesNotMatch(route, /plotpickle\.project\.v1|PlotPickleProject|localStorage/);
 
   assert.match(workspace, /deriveVisualReadiness/);

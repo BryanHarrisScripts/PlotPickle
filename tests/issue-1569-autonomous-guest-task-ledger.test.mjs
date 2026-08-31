@@ -28,6 +28,19 @@ test("#1569 task ledger has bounded explicit lifecycle states and retry budgets"
   assert.match(source, /TERMINAL_STATES/);
 });
 
+test("#1569 tasks accept canonical PlotPickle route paths without accepting remote URLs", async () => {
+  const [source, registry] = await Promise.all([
+    read("build/autonomous-guest/task-ledger.ts"),
+    read("config/uat-autopilot-registry.json"),
+  ]);
+  assert.match(source, /function safeTargetRoute/);
+  assert.match(source, /normalized\.startsWith\("\/"\)/);
+  assert.match(source, /normalized\.startsWith\("\/\/"\)/);
+  assert.match(source, /targetRoute: safeTargetRoute/);
+  assert.match(registry, /"route": "\/library"/);
+  assert.match(registry, /"route": "\/\?workspace=plan&section=foundations"/);
+});
+
 test("#1569 duplicate pending work is idempotent", async () => {
   const source = await read("build/autonomous-guest/task-ledger.ts");
   assert.match(source, /tasks\.find\(\(task\) => task\.dedupeKey === dedupeKey && !TERMINAL_STATES\.has\(task\.state\)\)/);

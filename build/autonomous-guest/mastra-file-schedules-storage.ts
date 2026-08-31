@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
 import {
   MastraCompositeStore,
   SchedulesStorage,
@@ -12,26 +10,15 @@ import {
   type ScheduleUpdate,
 } from "@mastra/core/storage";
 import type { AutonomousGuestAuthority } from "../../core/auth/autonomous-guest/guest-authority";
-import { persistentHome } from "../local-credentials";
 import { AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID } from "./mastra-task-scheduler";
+import {
+  MAX_AUTONOMOUS_GUEST_SCHEDULE_TRIGGERS,
+  mutateAutonomousGuestScheduleFileState,
+  readAutonomousGuestScheduleFileState,
+} from "./storage/schedule-file-state";
 
-const FORMAT = "plotpickle-autonomous-guest-mastra-schedules";
-const VERSION = 1 as const;
-const MAX_BYTES = 2 * 1024 * 1024;
-const MAX_SCHEDULES = 256;
-const MAX_TRIGGERS = 2048;
 const SAFE_SCHEDULE_ID = /^[a-z0-9][a-z0-9._:-]{2,511}$/i;
 const SAFE_TASK_ID = /^guest-task-[a-f0-9-]{36}$/i;
-
-type ScheduleEnvelope = Readonly<{
-  format: typeof FORMAT;
-  version: typeof VERSION;
-  workspaceId: string;
-  autonomousRunId: string;
-  savedAt: string;
-  schedules: readonly Schedule[];
-  triggers: readonly ScheduleTrigger[];
-}>;
 
 type WakePayload = Readonly<{
   taskId: string;
@@ -57,15 +44,6 @@ function assertAuthority(authority: AutonomousGuestAuthority) {
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function scheduleDirectory(authority: AutonomousGuestAuthority) {
-  assertAuthority(authority);
-  return path.join(persistentHome(), "autonomous-guest", authority.workspaceId);
-}
-
-function scheduleStatePath(authority: AutonomousGuestAuthority) {
-  return path.join(scheduleDirectory(authority), "mastra-schedules.json");
 }
 
 function wakePayload(target: Schedule["target"]): WakePayload {
@@ -124,80 +102,30 @@ function validateTrigger(authority: AutonomousGuestAuthority, value: ScheduleTri
 }
 
 export class AutonomousGuestFileSchedulesStorage extends SchedulesStorage {
-  private mutation: Promise<void> = Promise.resolve();
-
   constructor(private readonly authority: AutonomousGuestAuthority) {
     super();
     assertAuthority(authority);
   }
 
   private async readState(): Promise<MutableScheduleState> {
-    try {
-      const source = await readFile(scheduleStatePath(this.authority), "utf8");
-      if (Buffer.byteLength(source, "utf8") > MAX_BYTES) {
-        throw new Error("Autonomous Guest Mastra schedule storage exceeds its bounded size.");
-      }
-      const parsed: unknown = JSON.parse(source);
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("Autonomous Guest Mastra schedule storage is invalid.");
-      }
-      const envelope = parsed as Partial<ScheduleEnvelope>;
-      if (
-        envelope.format !== FORMAT ||
-        envelope.version !== VERSION ||
-        envelope.workspaceId !== this.authority.workspaceId ||
-        envelope.autonomousRunId !== this.authority.autonomousRunId ||
-        !Array.isArray(envelope.schedules) ||
-        !Array.isArray(envelope.triggers)
-      ) {
-        throw new Error("Autonomous Guest Mastra schedule storage does not match this Guest namespace.");
-      }
-      if (envelope.schedules.length > MAX_SCHEDULES || envelope.triggers.length > MAX_TRIGGERS) {
-        throw new Error("Autonomous Guest Mastra schedule storage exceeds its bounded record count.");
-      }
-      return {
-        schedules: envelope.schedules.map((item) => validateSchedule(this.authority, item)),
-        triggers: envelope.triggers.map((item) => validateTrigger(this.authority, item)),
-      };
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") return { schedules: [], triggers: [] };
-      throw error;
-    }
-  }
-
-  private async writeState(state: MutableScheduleState) {
-    if (state.schedules.length > MAX_SCHEDULES || state.triggers.length > MAX_TRIGGERS) {
-      throw new Error("Autonomous Guest Mastra schedule storage exceeds its bounded record count.");
-    }
-    const directory = scheduleDirectory(this.authority);
-    const target = scheduleStatePath(this.authority);
-    const source = `${JSON.stringify({
-      format: FORMAT,
-      version: VERSION,
-      workspaceId: this.authority.workspaceId,
-      autonomousRunId: this.authority.autonomousRunId,
-      savedAt: new Date().toISOString(),
-      schedules: state.schedules,
-      triggers: state.triggers,
-    } satisfies ScheduleEnvelope, null, 2)}\n`;
-    if (Buffer.byteLength(source, "utf8") > MAX_BYTES) {
-      throw new Error("Autonomous Guest Mastra schedule storage exceeds its bounded size.");
-    }
-    await mkdir(directory, { recursive: true, mode: 0o700 });
-    const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
-    await writeFile(temporary, source, { encoding: "utf8", mode: 0o600 });
-    await rename(temporary, target);
+    const state = await readAutonomousGuestScheduleFileState(this.authority);
+    return {
+      schedules: state.schedules.map((item) => validateSchedule(this.authority, item as Schedule)),
+      triggers: state.triggers.map((item) => validateTrigger(this.authority, item as ScheduleTrigger)),
+    };
   }
 
   private mutate<T>(operation: (state: MutableScheduleState) => Promise<T> | T): Promise<T> {
-    const result = this.mutation.then(async () => {
-      const state = await this.readState();
+    return mutateAutonomousGuestScheduleFileState(this.authority, async (raw) => {
+      const state: MutableScheduleState = {
+        schedules: raw.schedules.map((item) => validateSchedule(this.authority, item as Schedule)),
+        triggers: raw.triggers.map((item) => validateTrigger(this.authority, item as ScheduleTrigger)),
+      };
       const value = await operation(state);
-      await this.writeState(state);
+      raw.schedules = state.schedules.map(cloneJson);
+      raw.triggers = state.triggers.map(cloneJson);
       return value;
     });
-    this.mutation = result.then(() => undefined, () => undefined);
-    return result;
   }
 
   async dangerouslyClearAll(): Promise<void> {
@@ -297,10 +225,10 @@ export class AutonomousGuestFileSchedulesStorage extends SchedulesStorage {
     });
     await this.mutate((state) => {
       state.triggers.push(validated);
-      if (state.triggers.length > MAX_TRIGGERS) {
+      if (state.triggers.length > MAX_AUTONOMOUS_GUEST_SCHEDULE_TRIGGERS) {
         state.triggers = state.triggers
           .sort((a, b) => b.actualFireAt - a.actualFireAt)
-          .slice(0, MAX_TRIGGERS);
+          .slice(0, MAX_AUTONOMOUS_GUEST_SCHEDULE_TRIGGERS);
       }
     });
   }

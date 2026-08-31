@@ -6,7 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1569 reference task bridge stays inside Guest authority and registered routes", async () => {
   const [service, api] = await Promise.all([
-    read("build/autonomous-guest/reference-route-tasks.ts"),
+    read("build/autonomous-guest/reference/reference-route-tasks.ts"),
     read("app/api/autonomous-guest/reference-tasks/route.ts"),
   ]);
 

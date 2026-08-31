@@ -4,10 +4,11 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1569 reference task bridge stays inside Guest authority and registered routes", async () => {
-  const [service, api] = await Promise.all([
+test("#1569 reference task bridge stays inside the local Guest authority and registered routes", async () => {
+  const [service, gateway, vite] = await Promise.all([
     read("build/autonomous-guest/reference/reference-route-tasks.ts"),
-    read("app/api/autonomous-guest/reference-tasks/route.ts"),
+    read("build/autonomous-guest/reference/reference-task-gateway.ts"),
+    read("vite.config.ts"),
   ]);
 
   for (const contract of [
@@ -22,11 +23,19 @@ test("#1569 reference task bridge stays inside Guest authority and registered ro
     "disposition:operated",
   ]) assert.ok(service.includes(contract), `Reference task service is missing ${contract}`);
 
-  assert.ok(api.includes("getAutonomousGuestAuthority"));
-  assert.ok(api.includes('action === "initialize"'));
-  assert.ok(api.includes('action === "claim"'));
-  assert.ok(api.includes('action === "finish"'));
-  assert.doesNotMatch(service + api, /saveActiveLibraryProject|applyStoryCommand|writeCanon|canon-write|authenticated-human|BUZZ_AUTH_TAG|private[_-]?key/i);
+  for (const contract of [
+    "getAutonomousGuestAuthority",
+    '"desktop-loopback"',
+    "LOOPBACK",
+    "autonomousGuestReferenceTaskGateway",
+    'action === "initialize"',
+    'action === "claim"',
+    'action === "finish"',
+  ]) assert.ok(gateway.includes(contract), `Reference task gateway is missing ${contract}`);
+
+  assert.ok(vite.includes('import { autonomousGuestReferenceTaskGateway } from "./build/autonomous-guest/reference/reference-task-gateway"'));
+  assert.ok(vite.includes("autonomousGuestReferenceTaskGateway()"));
+  assert.doesNotMatch(service + gateway, /saveActiveLibraryProject|applyStoryCommand|writeCanon|canon-write|authenticated-human|BUZZ_AUTH_TAG|private[_-]?key/i);
 });
 
 test("#1569 one-command Afterglow reference consumes one durable real-route task across application restart", async () => {

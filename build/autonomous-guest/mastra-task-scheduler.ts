@@ -14,7 +14,7 @@ export const AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID = "plotpickle-autonomous-guest-ta
 
 type MastraSchedules = Mastra["schedules"];
 
-type AutonomousGuestWakePayload = Readonly<{
+export type AutonomousGuestWakePayload = Readonly<{
   taskId: string;
   autonomousRunId: string;
   guestWorkspaceId: string;

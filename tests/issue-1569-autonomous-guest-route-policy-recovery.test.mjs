@@ -3,10 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const routePolicyPath = "build/autonomous-guest/recovery/route-task-policy.ts";
+const restartRecoveryPath = "build/autonomous-guest/recovery/restart-recovery.ts";
 
 test("#1569 route tasks are derived from the existing autonomous route registry", async () => {
   const [source, registry] = await Promise.all([
-    read("build/autonomous-guest/route-task-policy.ts"),
+    read(routePolicyPath),
     read("config/uat-autopilot-registry.json"),
   ]);
   assert.match(source, /uat-autopilot-registry\.json/);
@@ -19,7 +21,7 @@ test("#1569 route tasks are derived from the existing autonomous route registry"
 });
 
 test("#1569 dynamic route inputs are bounded and materialized without remote targets", async () => {
-  const source = await read("build/autonomous-guest/route-task-policy.ts");
+  const source = await read(routePolicyPath);
   assert.match(source, /SAFE_ROUTE_INPUT/);
   assert.match(source, /encodeURIComponent\(value\)/);
   assert.match(source, /materialized\.replaceAll/);
@@ -28,7 +30,7 @@ test("#1569 dynamic route inputs are bounded and materialized without remote tar
 });
 
 test("#1569 current run policy remains authoritative for route, revision, prerequisites and provider budget", async () => {
-  const source = await read("build/autonomous-guest/route-task-policy.ts");
+  const source = await read(routePolicyPath);
   assert.match(source, /resolveAutonomousGuestRouteTaskPolicy/);
   assert.match(source, /runPolicy\.allowedRouteIds\.includes\(route\.id\)/);
   assert.match(source, /currentRevision: runPolicy\.currentRevision/);
@@ -41,7 +43,7 @@ test("#1569 current run policy remains authoritative for route, revision, prereq
 });
 
 test("#1569 restart recovery handles abandoned leases but never revalidates terminal or active running work", async () => {
-  const source = await read("build/autonomous-guest/restart-recovery.ts");
+  const source = await read(restartRecoveryPath);
   assert.match(source, /recoverAbandonedAutonomousGuestTasks\(input\.authority, at\)/);
   assert.match(source, /TERMINAL_STATES\.has\(task\.state\) \|\| task\.state === "running"/);
   assert.match(source, /new Date\(task\.notBefore\)\.getTime\(\) > at\.getTime\(\)/);
@@ -51,7 +53,7 @@ test("#1569 restart recovery handles abandoned leases but never revalidates term
 });
 
 test("#1569 completed task replay is fail-closed across restart recovery", async () => {
-  const source = await read("build/autonomous-guest/restart-recovery.ts");
+  const source = await read(restartRecoveryPath);
   assert.match(source, /completedTaskIdsPreserved/);
   assert.match(source, /afterTask\.state !== "completed"/);
   assert.match(source, /afterTask\.attempt !== beforeTask\.attempt/);
@@ -61,7 +63,7 @@ test("#1569 completed task replay is fail-closed across restart recovery", async
 });
 
 test("#1569 restart recovery evidence contains bounded identifiers and states, not story or reasoning content", async () => {
-  const source = await read("build/autonomous-guest/restart-recovery.ts");
+  const source = await read(restartRecoveryPath);
   assert.match(source, /AutonomousGuestRestartRecoveryEvidence/);
   assert.match(source, /autonomousRunId/);
   assert.match(source, /guestWorkspaceId/);

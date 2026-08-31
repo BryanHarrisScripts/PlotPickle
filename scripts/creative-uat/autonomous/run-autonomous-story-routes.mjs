@@ -68,12 +68,8 @@ async function loadRouteInputs() {
 
 async function loadExpectedProjectId() {
   if (explicitProjectId.trim()) return explicitProjectId.trim();
-  try {
-    const bootstrap = JSON.parse(await readFile(bootstrapReportPath, "utf8"));
-    return String(bootstrap?.projectId || "").trim();
-  } catch {
-    return "";
-  }
+  const bootstrap = JSON.parse(await readFile(bootstrapReportPath, "utf8"));
+  return String(bootstrap?.projectId || "").trim();
 }
 
 function persistentMcpArgs(args) {
@@ -308,7 +304,7 @@ async function main() {
   const routes = autonomousStoryRoutes(registry);
   const contracts = await runContracts([...new Set([...autonomousContractTestsFromRegistry(registry), ...autonomousRunContracts])]);
   const routeInputs = await loadRouteInputs();
-  const expectedProjectId = await loadExpectedProjectId();
+  const expectedProjectId = contractsOnly ? "" : await loadExpectedProjectId();
   if (!contractsOnly && !expectedProjectId) throw new Error("Live autonomous route operation requires the Afterglow working-copy project id from bootstrap or --project-id.");
   const operationContext = { expectedProjectId };
   const live = contractsOnly ? { results: [], restartProof: { attempted: false, verified: false } } : await inspectRoutes(registry, routeInputs, operationContext);
@@ -338,6 +334,7 @@ async function main() {
   await writeFile(jsonPath, `${JSON.stringify(machine, null, 2)}\n`, "utf8");
   await writeFile(reportPath, markdownReport({ generatedAt, mode, routes, results: live.results, summary, contracts, restartProof: live.restartProof }), "utf8");
   process.stdout.write(`Autonomous story routes ${summary.overall}: ${live.results.length} result(s). Report: ${reportPath}\n`);
+  for (const blocker of summary.blockers || []) process.stderr.write(`Autonomous story route blocker: ${blocker}\n`);
   process.exitCode = summary.overall === "FAIL" ? 1 : 0;
 }
 

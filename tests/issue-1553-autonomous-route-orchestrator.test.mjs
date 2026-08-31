@@ -42,12 +42,13 @@ test("#1553 materializes dynamic Workbench routes only from explicit run inputs"
 
 test("#1553 inspect routes may be entered, but operate routes require a bounded operation receipt", () => {
   const inspectRoute = registry.autonomousStoryRoutes.find((entry) => entry.id === "learn");
+  const inspectBody = `${inspectRoute.requiredTerms.join(" ")} `.repeat(40);
   const inspectEvidence = {
     reached: true,
     resolvedRoute: "/?workspace=learn",
     url: "http://127.0.0.1:4173/?workspace=learn",
-    bodyText: `${"Learn Curriculum ".repeat(30)}`,
-    bodyLength: 500,
+    bodyText: inspectBody,
+    bodyLength: inspectBody.length,
     consoleErrors: false,
     timingMs: 42,
   };

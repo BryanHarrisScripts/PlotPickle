@@ -19,7 +19,7 @@ test("#1569 a schedule targets a deterministic wake workflow rather than an agen
   const source = await read("build/autonomous-guest/mastra-task-scheduler.ts");
   assert.match(source, /AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID = "plotpickle-autonomous-guest-task-wake"/);
   assert.match(source, /workflowId: AUTONOMOUS_GUEST_WAKE_WORKFLOW_ID/);
-  assert.match(source, /inputData: wakePayload\(task\)/);
+  assert.match(source, /inputData: autonomousGuestTaskWakePayload\(task\)/);
   assert.doesNotMatch(source, /agentId|prompt|generate\(|stream\(|model:/i);
 });
 

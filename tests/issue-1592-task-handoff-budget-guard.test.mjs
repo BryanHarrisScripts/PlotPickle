@@ -41,7 +41,7 @@ function handoff(overrides = {}) {
     allowedTools: ["repository-reader", "test-runner"],
     allowedProviderIds: ["plotpickle-local"],
     providerPolicyRef: "policy:local-maintainer",
-    credentialAccessRefs: [],
+    credentialAccessRefs: ["credential:local-model"],
     budgets: {
       maximumAttempts: 2,
       maximumWallClockMs: 600_000,
@@ -73,6 +73,8 @@ test("#1592 final acceptance handoff is exact-head, harness-owned and non-self-a
   assert.equal(task.budgets.maximumChangedFiles, 4);
   assert.equal(task.budgets.maximumDiffLines, 300);
   assert.deepEqual(task.allowedTools, ["repository-reader", "test-runner"]);
+  assert.deepEqual(task.allowedProviderIds, ["plotpickle-local"]);
+  assert.deepEqual(task.credentialAccessRefs, ["credential:local-model"]);
   assert.deepEqual(task.permittedSkills.map((item) => item.key), ["ben-code-quality@1.2.0"]);
   assert.equal(task.sourceEditingAuthorityGranted, false);
   assert.equal(task.separateCodingAuthorityRequiredForMutation, true);
@@ -97,6 +99,8 @@ test("#1592 final acceptance budget evaluator permits only exact-head in-scope b
     childAgents: 0,
     toolIds: ["repository-reader", "test-runner"],
     skillVersionKeys: ["ben-code-quality@1.2.0"],
+    providerIds: ["plotpickle-local"],
+    credentialRefs: ["credential:local-model"],
     touchedFiles: ["build/autonomous-guest/maintainer/task/handoff.mjs", "tests/issue-1592-task-handoff-budget-guard.test.mjs"],
     routeIds: ["story-workbench"],
   });
@@ -125,6 +129,8 @@ test("#1592 final acceptance deterministically stops loops, drift and unauthoriz
     childAgents: 1,
     toolIds: ["repository-writer"],
     skillVersionKeys: ["unapproved-skill@9.9.9"],
+    providerIds: ["unapproved-cloud"],
+    credentialRefs: ["credential:unapproved"],
     touchedFiles: ["modules/wyrmwood/rival-director.ts"],
     routeIds: ["community-great-hall"],
     separateCodingAuthorityActive: false,
@@ -147,6 +153,8 @@ test("#1592 final acceptance deterministically stops loops, drift and unauthoriz
     "child-agent-delegation-missing",
     "tool-scope-exceeded",
     "skill-scope-exceeded",
+    "provider-scope-exceeded",
+    "credential-scope-exceeded",
     "file-scope-exceeded",
     "route-scope-exceeded",
   ]) assert.ok(result.violations.includes(expected), expected);
@@ -171,7 +179,7 @@ test("#1592 final acceptance rejects stale snapshots, silent delegation and unbo
         maximumChildAgents: 0,
       },
     }),
-    /attempt budget must be between one and three|attempt budget must be between 1 and 3/,
+    /attempt budget must be between 1 and 3/,
   );
   assert.throws(
     () => handoff({

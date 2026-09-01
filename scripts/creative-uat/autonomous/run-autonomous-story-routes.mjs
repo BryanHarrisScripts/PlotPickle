@@ -340,7 +340,25 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
         function: "() => ({ route: location.pathname + location.search })",
       }))).route;
       if (currentRoute !== materialized.route) {
-        await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
+        let openedThroughProductLink = false;
+        if (route.id === "story-workbench") {
+          const clicked = extractPageState(resultText(await session.client.call("browser_evaluate", {
+            function: `() => {
+              const expected = ${JSON.stringify(materialized.route)};
+              const link = [...document.querySelectorAll('a[href]')].find((item) => {
+                const target = new URL(item.href, location.href);
+                return target.pathname + target.search === expected;
+              });
+              if (!link) return { clicked: false };
+              link.click();
+              return { clicked: true };
+            }`,
+          })));
+          openedThroughProductLink = clicked.clicked === true;
+        }
+        if (!openedThroughProductLink) {
+          await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
+        }
       }
       const state = await waitForRenderedArea(
         session.client,

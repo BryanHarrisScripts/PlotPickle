@@ -13,6 +13,7 @@ $userDataRoot = Join-Path $env:LOCALAPPDATA "PlotPickle"
 $markerDirectory = Join-Path $userDataRoot "projects"
 $marker = Join-Path $markerDirectory "installer-smoke-preserve.marker"
 $baseUrl = "http://127.0.0.1:4173/"
+$startupRequestTimeoutSeconds = 30
 $launcherProcess = $null
 $runtimeModules = $null
 $runtimeMarker = $null
@@ -57,7 +58,7 @@ function Wait-ForStartup {
   $lastError = "No response received."
   while ((Get-Date) -lt $deadline) {
     try {
-      $response = Invoke-WebRequest -UseBasicParsing -Uri $baseUrl -TimeoutSec 5
+      $response = Invoke-WebRequest -UseBasicParsing -Uri $baseUrl -TimeoutSec $startupRequestTimeoutSeconds
       if ($response.StatusCode -ge 200 -and $response.Content -match "plotpickle-startup-v4") { return }
       $lastError = "The response did not contain the installed startup contract."
     }

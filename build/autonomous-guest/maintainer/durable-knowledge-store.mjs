@@ -32,10 +32,6 @@ function checkedText(value, label, pattern, maximum = 240, allowEmpty = false) {
   return normalized;
 }
 
-function checkedSha(value, label) {
-  return checkedText(value, label, SHA, 40).toLowerCase();
-}
-
 function checkedTimestamp(value, label, allowEmpty = false) {
   const normalized = String(value ?? "").trim();
   if (allowEmpty && normalized === "") return "";
@@ -115,8 +111,8 @@ function checkedRecord(value) {
     kind,
     domain,
     summary: checkedSummary(value.summary),
-    exactSourceCommitSha: checkedSha(value.exactSourceCommitSha, "source commit"),
-    verifiedThroughCommitSha: checkedSha(value.verifiedThroughCommitSha, "verified-through commit"),
+    exactSourceCommitSha: checkedText(value.exactSourceCommitSha, "source commit", SHA, 40).toLowerCase(),
+    verifiedThroughCommitSha: checkedText(value.verifiedThroughCommitSha, "verified-through commit", SHA, 40).toLowerCase(),
     evidence: checkedEvidence(value.evidence),
     freshnessPaths: checkedList(value.freshnessPaths, "freshness path", SAFE_PATH, 64),
     applicabilityRefs: checkedList(value.applicabilityRefs, "applicability reference", SAFE_REF),
@@ -300,8 +296,8 @@ export function createMaintainerKnowledgeStore({ root }) {
       return record;
     },
     async verifyFreshness({ fromCommitSha, toCommitSha, changedPaths, verifiedAt }) {
-      const from = checkedSha(fromCommitSha, "freshness source commit");
-      const to = checkedSha(toCommitSha, "freshness target commit");
+      const from = checkedText(fromCommitSha, "freshness source commit", SHA, 40).toLowerCase();
+      const to = checkedText(toCommitSha, "freshness target commit", SHA, 40).toLowerCase();
       const paths = checkedList(changedPaths, "changed path", SAFE_PATH, 256);
       const at = checkedTimestamp(verifiedAt, "freshness verification");
       const store = await readStore(root);
@@ -328,7 +324,7 @@ export function createMaintainerKnowledgeStore({ root }) {
     },
     async retrieveForTask(task) {
       if (!task || typeof task !== "object") throw new Error("Maintainer knowledge retrieval requires a bounded task contract.");
-      const exactCommitSha = checkedSha(task.exactCommitSha, "task commit");
+      const exactCommitSha = checkedText(task.exactCommitSha, "task commit", SHA, 40).toLowerCase();
       const domains = checkedList(task.domains, "task domain", SAFE_ID, 16);
       if (!domains.length || domains.some((domain) => !ALLOWED_DOMAINS.has(domain))) throw new Error("Maintainer knowledge retrieval requires valid bounded task domains.");
       const contextRefs = checkedList(task.contextRefs || [], "task context reference", SAFE_REF);

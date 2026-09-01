@@ -37,10 +37,17 @@ jobs:
     timeout-minutes: 50
 
     steps:
-      - name: Check out exact head
+      - name: Check out bounded caller head
+        if: ${{ inputs.exact_head != '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.exact_head || github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.exact_head }}
+
+      - name: Check out exact head
+        if: ${{ inputs.exact_head == '' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4

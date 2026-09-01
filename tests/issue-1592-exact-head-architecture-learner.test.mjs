@@ -83,7 +83,7 @@ test("#1592 Slice B remains read-only and cannot admit or operationalize learned
 });
 
 test("#1592 Slice B CLI binds evidence to a clean real Git head", async () => {
-  const source = await readFile(new URL("../scripts/run-maintainer-architecture-learner.mjs", import.meta.url), "utf8");
+  const source = await readFile(new URL("../scripts/autonomous-qa/run-maintainer-architecture-learner.mjs", import.meta.url), "utf8");
   assert.match(source, /git.*rev-parse.*HEAD/s);
   assert.match(source, /git.*status.*--porcelain.*--untracked-files=all/s);
   assert.match(source, /requires a clean exact-head repository checkout/);

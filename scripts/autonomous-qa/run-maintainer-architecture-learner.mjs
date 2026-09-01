@@ -3,11 +3,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { createExactHeadArchitectureSnapshot } from "../build/autonomous-guest/maintainer/architecture-learner.mjs";
-import { runRepositoryArchitectureInventory } from "./repository-architecture-inventory.mjs";
+import { createExactHeadArchitectureSnapshot } from "../../build/autonomous-guest/maintainer/architecture-learner.mjs";
+import { runRepositoryArchitectureInventory } from "../repository-architecture-inventory.mjs";
 
 const run = promisify(execFile);
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const expectedIndex = process.argv.indexOf("--exact-head");
 const expectedHead = expectedIndex >= 0 ? process.argv[expectedIndex + 1] : "";
 const [{ stdout }, { stdout: statusOutput }] = await Promise.all([

@@ -41,7 +41,7 @@ jobs:
           PLOTPICKLE_AUTONOMOUS_RUN_ID: github-${{ github.run_id }}
           PLOTPICKLE_WORKSPACE_ID: repository-${{ github.repository_id }}
           PLOTPICKLE_OPERATOR_ID: architecture-learner
-        run: node scripts/run-maintainer-architecture-learner.mjs --exact-head ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/autonomous-qa/run-maintainer-architecture-learner.mjs --exact-head ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify production build
         run: npm run build
       - name: Upload architecture evidence

@@ -10,6 +10,7 @@ const SHA = /^[a-f0-9]{40}$/i;
 const SAFE_ID = /^[a-z0-9][a-z0-9._:-]{2,179}$/i;
 const SAFE_REF = /^[a-z0-9][a-z0-9._:/@#-]{1,239}$/i;
 const SAFE_PATH = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[a-z0-9._@/-]{1,240}$/i;
+const SAFE_SKILL_VERSION_KEY = /^[a-z0-9][a-z0-9._:-]{1,119}@(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9a-z.-]+)?$/i;
 const ALLOWED_KINDS = new Set(["architecture-fact", "operational-procedure", "defect-lesson", "skill-proposal"]);
 const ALLOWED_DOMAINS = new Set([
   "ai", "auth", "buzz", "story", "storage", "projects", "startup", "runtime",
@@ -95,7 +96,7 @@ function checkedRecord(value) {
   if ((state === "stale") !== Boolean(staleAt && staleByCommitSha)) {
     throw new Error("Maintainer stale knowledge requires its exact invalidation commit and timestamp.");
   }
-  const skillVersionKey = checkedText(value.skillVersionKey, "skill version key", SAFE_ID, 180, true);
+  const skillVersionKey = checkedText(value.skillVersionKey, "skill version key", SAFE_SKILL_VERSION_KEY, 200, true);
   if ((kind === "skill-proposal") !== Boolean(skillVersionKey)) {
     throw new Error("Maintainer skill knowledge requires one approved skill version key only.");
   }
@@ -236,6 +237,7 @@ function assertApprovalForProposal(proposal, approval, skillProposal) {
       || skillProposal.skillProposalId !== approval.skillProposalId
       || skillProposal.learningProposalId !== proposal.proposalId
       || skillProposal.exactCommitSha !== proposal.exactCommitSha
+      || skillProposal.versionKey !== approval.skillVersionKey
       || skillProposal.state !== "observed"
       || skillProposal.skillActivationAllowed !== false
       || skillProposal.operationalAuthorityGranted !== false
@@ -330,7 +332,7 @@ export function createMaintainerKnowledgeStore({ root }) {
       const domains = checkedList(task.domains, "task domain", SAFE_ID, 16);
       if (!domains.length || domains.some((domain) => !ALLOWED_DOMAINS.has(domain))) throw new Error("Maintainer knowledge retrieval requires valid bounded task domains.");
       const contextRefs = checkedList(task.contextRefs || [], "task context reference", SAFE_REF);
-      const allowedSkills = new Set(checkedList(task.allowedSkillVersionKeys || [], "allowed skill version", SAFE_ID));
+      const allowedSkills = new Set(checkedList(task.allowedSkillVersionKeys || [], "allowed skill version", SAFE_SKILL_VERSION_KEY));
       const maximumItems = Number(task.maximumItems ?? 16);
       if (!Number.isInteger(maximumItems) || maximumItems < 1 || maximumItems > 32) throw new Error("Maintainer knowledge retrieval maximum must be between 1 and 32.");
       const store = await readStore(root);

@@ -17,38 +17,87 @@ export function summarize(values) {
   };
 }
 
+const startupFields = [
+  "sourceCheckStartedMs",
+  "runtimePreparationStartedMs",
+  "runtimeReadyMs",
+  "agentSkillsCheckStartedMs",
+  "agentSkillsReadyMs",
+  "viteLaunchStartedMs",
+  "viteReadyMs",
+  "firstValidHttpResponseMs",
+  "firstUsableCoreWorkspaceMs",
+];
+const startupModes = new Set(["fresh-runtime", "fresh-optimizer", "warm-persistent-runtime"]);
+
+function analyzeMode(mode, evidenceList) {
+  const healthy = evidenceList.filter((entry) =>
+    entry.result?.harnessHealthy === true &&
+    (!startupModes.has(mode) || entry.result?.startupHealthy === true)
+  );
+  const identities = new Set(healthy.map((entry) => JSON.stringify({
+    version: entry.environment?.plotpickleVersion ?? null,
+    commit: entry.environment?.commit ?? null,
+    node: entry.environment?.node ?? null,
+    arch: entry.environment?.arch ?? null,
+    fixture: entry.environment?.afterglowFixture ?? null,
+    curriculum: entry.environment?.curriculumIdentity ?? null,
+    ppfRevision: entry.environment?.ppfStartingRevision ?? null,
+    buzzMode: entry.environment?.buzzMode ?? null,
+    optionalIntegrations: entry.environment?.optionalIntegrations ?? [],
+  })));
+  const identityStable = identities.size <= 1;
+  const routeLabels = new Set(healthy.flatMap((entry) => entry.measurements?.navigation?.map((item) => item.label) ?? []));
+  const navigation = Object.fromEntries([...routeLabels].sort().map((label) => [
+    label,
+    summarize(healthy.flatMap((entry) => (entry.measurements?.navigation ?? []).filter((item) => item.label === label && item.ok).map((item) => item.elapsedMs))),
+  ]));
+  const startup = Object.fromEntries(startupFields.map((field) => [
+    field,
+    summarize(healthy.map((entry) => entry.measurements?.startup?.[field])),
+  ]));
+  const memoryRss = summarize(healthy.map((entry) => entry.measurements?.memory?.rssAfterBytes));
+  const readyForBudgetRatification = healthy.length >= 3 && identityStable;
+  return {
+    mode,
+    authoritativeSampleCount: evidenceList.length,
+    healthySampleCount: healthy.length,
+    identityStable,
+    readyForBudgetRatification,
+    startup,
+    navigation,
+    memoryRss,
+  };
+}
+
 export function analyzeBaselines(evidenceList) {
   const authoritative = evidenceList.filter((entry) =>
     entry?.benchmarkIssue === 1411 &&
     entry?.authoritative === true &&
-    entry?.environment?.platform === "win32"
+    entry?.environment?.platform === "win32" &&
+    entry?.environment?.arch === "x64" &&
+    entry?.environment?.node === "v24.19.0"
   );
-  const identities = new Set(authoritative.map((entry) => JSON.stringify({
-    version: entry.environment?.plotpickleVersion ?? null,
-    fixture: entry.environment?.afterglowFixture ?? null,
-    curriculum: entry.environment?.curriculumIdentity ?? null,
-    ppfRevision: entry.environment?.ppfStartingRevision ?? null,
-    mode: entry.mode ?? null,
-  })));
-  const identityStable = identities.size <= 1;
-  const routeLabels = new Set(authoritative.flatMap((entry) => entry.measurements?.navigation?.map((item) => item.label) ?? []));
-  const navigation = Object.fromEntries([...routeLabels].sort().map((label) => [
-    label,
-    summarize(authoritative.flatMap((entry) => (entry.measurements?.navigation ?? []).filter((item) => item.label === label && item.ok).map((item) => item.elapsedMs))),
+  const grouped = Map.groupBy(authoritative, (entry) => entry.mode ?? "unknown");
+  const modes = Object.fromEntries([...grouped.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([mode, entries]) => [
+    mode,
+    analyzeMode(mode, entries),
   ]));
-  const memoryRss = summarize(authoritative.map((entry) => entry.measurements?.memory?.rssAfterBytes));
-  const readyForBudgetRatification = authoritative.length >= 3 && identityStable;
+  const analyzedModes = Object.keys(modes);
+  const readyModes = analyzedModes.filter((mode) => modes[mode].readyForBudgetRatification);
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     benchmarkIssue: 1411,
     authoritativeSampleCount: authoritative.length,
-    identityStable,
-    readyForBudgetRatification,
-    navigation,
-    memoryRss,
-    budgetGuidance: readyForBudgetRatification
-      ? "Repeated authoritative Windows samples exist with one stable workload identity. Human review may now ratify tolerances; this analyzer does not invent them."
-      : "Keep budgets unratified until at least three authoritative Windows samples share one workload identity.",
+    rejectedEvidenceCount: evidenceList.length - authoritative.length,
+    modeSeparationEnforced: true,
+    analyzedModes,
+    readyModes,
+    modes,
+    readyForBudgetRatification: analyzedModes.length > 0 && readyModes.length === analyzedModes.length,
+    budgetGuidance: readyModes.length > 0
+      ? `Human review may ratify tolerances only for these independently repeated modes: ${readyModes.join(", ")}. This analyzer does not invent them.`
+      : "Keep budgets unratified until at least three authoritative Windows samples share one workload identity within the same startup mode.",
   };
 }
 

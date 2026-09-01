@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 
 import { analyzeBaselines, summarize } from "../scripts/performance/analyze-real-machine-baselines.mjs";
 import { measureStoryWorkflowContract } from "../scripts/performance/measure-story-workflow-contract.mjs";
-import { isolatedBenchmarkEnvironment, observeStartupOutput } from "../scripts/performance/run-windows-startup-benchmark.mjs";
+import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath } from "../scripts/performance/run-windows-startup-benchmark.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -47,28 +48,78 @@ test("#1411 workflow benchmark stays explicit about deterministic planning limit
 });
 
 test("#1411 baseline analyzer requires repeated authoritative Windows samples before ratification", () => {
-  const sample = (elapsedMs) => ({
+  const sample = (elapsedMs, mode = "warm-persistent-runtime") => ({
     benchmarkIssue: 1411,
     authoritative: true,
-    mode: "warm-persistent-runtime",
-    environment: { platform: "win32", plotpickleVersion: "1.0.0", afterglowFixture: "afterglow-v9", curriculumIdentity: "curriculum-a", ppfStartingRevision: "9" },
-    measurements: { navigation: [{ label: "dashboard", ok: true, elapsedMs }], memory: { rssAfterBytes: 1000 + elapsedMs } },
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "exact-head", plotpickleVersion: "1.0.0", afterglowFixture: "afterglow-v9", curriculumIdentity: "curriculum-a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    mode,
+    measurements: {
+      navigation: [{ label: "dashboard", ok: true, elapsedMs }],
+      memory: { rssAfterBytes: 1000 + elapsedMs },
+      startup: { viteReadyMs: elapsedMs * 2, firstUsableCoreWorkspaceMs: elapsedMs * 3 },
+    },
+    result: { harnessHealthy: true, startupHealthy: true },
   });
   const two = analyzeBaselines([sample(100), sample(120)]);
   assert.equal(two.readyForBudgetRatification, false);
   const three = analyzeBaselines([sample(100), sample(120), sample(110)]);
   assert.equal(three.readyForBudgetRatification, true);
-  assert.equal(three.identityStable, true);
-  assert.equal(three.navigation.dashboard.samples, 3);
+  assert.deepEqual(three.readyModes, ["warm-persistent-runtime"]);
+  assert.equal(three.modes["warm-persistent-runtime"].identityStable, true);
+  assert.equal(three.modes["warm-persistent-runtime"].navigation.dashboard.samples, 3);
+  assert.equal(three.modes["warm-persistent-runtime"].startup.viteReadyMs.samples, 3);
+  assert.equal(three.modes["warm-persistent-runtime"].startup.firstUsableCoreWorkspaceMs.mean, 330);
 });
 
 test("#1411 baseline analyzer rejects mixed workload identity and ignores non-authoritative evidence", () => {
-  const base = { benchmarkIssue: 1411, authoritative: true, mode: "warm-persistent-runtime", environment: { platform: "win32", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9" }, measurements: { navigation: [], memory: {} } };
+  const base = { benchmarkIssue: 1411, authoritative: true, mode: "warm-persistent-runtime", environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "exact-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] }, measurements: { navigation: [], memory: {} }, result: { harnessHealthy: true, startupHealthy: true } };
   const mixed = analyzeBaselines([base, base, { ...base, environment: { ...base.environment, curriculumIdentity: "b" } }, { ...base, authoritative: false }]);
   assert.equal(mixed.authoritativeSampleCount, 3);
-  assert.equal(mixed.identityStable, false);
+  assert.equal(mixed.modes["warm-persistent-runtime"].identityStable, false);
   assert.equal(mixed.readyForBudgetRatification, false);
   assert.deepEqual(summarize([10, 20, 30]), { samples: 3, min: 10, max: 30, mean: 20, standardDeviation: 8.16 });
+});
+
+test("#1411 analyzer never combines fresh, optimizer and warm startup samples", () => {
+  const sample = (mode, elapsedMs) => ({
+    benchmarkIssue: 1411,
+    authoritative: true,
+    mode,
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "exact-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { navigation: [{ label: "dashboard", ok: true, elapsedMs }], startup: { firstUsableCoreWorkspaceMs: elapsedMs }, memory: {} },
+    result: { harnessHealthy: true, startupHealthy: true },
+  });
+  const report = analyzeBaselines([
+    sample("fresh-runtime", 30000),
+    sample("fresh-optimizer", 15000),
+    sample("warm-persistent-runtime", 8000),
+  ]);
+  assert.equal(report.modeSeparationEnforced, true);
+  assert.deepEqual(report.analyzedModes, ["fresh-optimizer", "fresh-runtime", "warm-persistent-runtime"]);
+  assert.equal(report.modes["fresh-runtime"].startup.firstUsableCoreWorkspaceMs.mean, 30000);
+  assert.equal(report.modes["fresh-optimizer"].startup.firstUsableCoreWorkspaceMs.mean, 15000);
+  assert.equal(report.modes["warm-persistent-runtime"].startup.firstUsableCoreWorkspaceMs.mean, 8000);
+  assert.equal(report.readyForBudgetRatification, false);
+});
+
+test("#1411 analyzer excludes wrong-runtime and unhealthy samples from ratification", () => {
+  const base = {
+    benchmarkIssue: 1411,
+    authoritative: true,
+    mode: "warm-persistent-runtime",
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "exact-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { navigation: [{ label: "dashboard", ok: true, elapsedMs: 10 }], startup: { firstUsableCoreWorkspaceMs: 20 }, memory: {} },
+    result: { harnessHealthy: true, startupHealthy: true },
+  };
+  const report = analyzeBaselines([
+    base,
+    { ...base, environment: { ...base.environment, node: "v22.13.0" } },
+    { ...base, result: { harnessHealthy: false, startupHealthy: false } },
+  ]);
+  assert.equal(report.authoritativeSampleCount, 2);
+  assert.equal(report.rejectedEvidenceCount, 1);
+  assert.equal(report.modes["warm-persistent-runtime"].healthySampleCount, 1);
+  assert.equal(report.readyForBudgetRatification, false);
 });
 
 test("#1411 real launcher phases are timestamped from truthful Windows startup output", () => {
@@ -106,11 +157,19 @@ test("#1411 Windows workflow separates fresh startup from repeated warm samples"
   ]);
   assert.match(workflow, /node-version: "24\.19\.0"/);
   assert.match(workflow, /--mode fresh-runtime/);
+  assert.match(workflow, /--mode fresh-optimizer/);
   assert.match(workflow, /--mode warm-persistent-runtime/);
   assert.match(workflow, /analyze-real-machine-baselines\.mjs/);
   assert.match(workflow, /github\.event\.pull_request\.head\.sha \|\| github\.sha/);
   assert.match(launcher, /PLOTPICKLE_PERFORMANCE_BENCHMARK/);
   assert.match(launcher, /browser launch and optional companion maintenance are suppressed/);
+});
+
+test("#1411 fresh-optimizer mode clears only the bounded Vite optimizer cache", async () => {
+  assert.equal(optimizerCachePath("benchmark-root"), path.join("benchmark-root", "node_modules", ".vite"));
+  const source = await read("scripts/performance/run-windows-startup-benchmark.mjs");
+  assert.match(source, /mode === "fresh-optimizer"/);
+  assert.match(source, /rm\(optimizerCachePath\(\), \{ recursive: true, force: true \}\)/);
 });
 
 test("#1411 benchmark startup disables remote telemetry and strips Cloudflare credentials", () => {

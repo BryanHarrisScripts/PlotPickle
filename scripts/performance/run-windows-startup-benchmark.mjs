@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { performance } from "node:perf_hooks";
@@ -55,6 +55,16 @@ export function observeStartupOutput(phases, text, nowMs) {
   return phases;
 }
 
+export function optimizerCachePath(root = repoRoot) {
+  return path.join(root, "node_modules", ".vite");
+}
+
+async function prepareBenchmarkMode() {
+  if (mode === "fresh-optimizer") {
+    await rm(optimizerCachePath(), { recursive: true, force: true });
+  }
+}
+
 async function waitForPlotPickle(started, child, outputTail) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -94,6 +104,7 @@ async function runEvidence() {
   if (process.platform !== "win32" && !allowNonWindows) {
     throw new Error("#1411 real launcher benchmark must run on Windows.");
   }
+  await prepareBenchmarkMode();
   const child = spawn(process.platform === "win32" ? "cmd.exe" : "bash", process.platform === "win32"
     ? ["/d", "/s", "/c", "Start-PlotPickle.bat"]
     : ["-lc", "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort"], {

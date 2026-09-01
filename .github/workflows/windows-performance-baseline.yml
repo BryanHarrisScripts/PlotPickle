@@ -56,7 +56,7 @@ jobs:
           PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
           PLOTPICKLE_BUZZ_MODE: disabled
         run: node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output .artifacts/performance/fresh-runtime.json
-      - name: Capture repeated warm startup samples
+      - name: Capture separated optimizer and warm startup samples
         if: github.event_name == 'workflow_dispatch'
         shell: pwsh
         env:
@@ -68,14 +68,18 @@ jobs:
           PLOTPICKLE_BUZZ_MODE: disabled
         run: |
           $samples = [int]"${{ inputs.warm_samples }}"
-          $files = @()
+          $files = @(".artifacts/performance/fresh-runtime.json")
+          $optimizerFile = ".artifacts/performance/fresh-optimizer.json"
+          node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-optimizer --output $optimizerFile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $files += $optimizerFile
           1..$samples | ForEach-Object {
             $file = ".artifacts/performance/warm-persistent-runtime-$_.json"
             node scripts/performance/run-windows-startup-benchmark.mjs --mode warm-persistent-runtime --output $file
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $files += $file
           }
-          node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/warm-baseline-analysis.json
+          node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/startup-mode-baseline-analysis.json
       - name: Upload bounded performance evidence
         if: always()
         uses: actions/upload-artifact@v4

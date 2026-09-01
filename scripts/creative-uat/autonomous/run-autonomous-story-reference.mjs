@@ -27,6 +27,7 @@ const bootstrapRunner = path.join(repoRoot, "scripts", "creative-uat", "autonomo
 const bootstrapReportPath = path.join(artifactRoot, "afterglow-working-copy-bootstrap.json");
 const routeRunner = path.join(repoRoot, "scripts", "creative-uat", "autonomous", "run-autonomous-story-routes.mjs");
 const routeReportPath = path.join(artifactRoot, "autonomous-story-routes.json");
+const generatedRouteInputsPath = path.join(artifactRoot, "autonomous-route-inputs.json");
 const reportPath = path.join(artifactRoot, "autonomous-story-reference.md");
 const jsonPath = path.join(artifactRoot, "autonomous-story-reference.json");
 const referenceTasksUrl = new URL("/api/autonomous-guest/reference-tasks", baseUrl).toString();
@@ -56,9 +57,9 @@ async function runAfterglowBootstrap() {
   return { child, report, error: "" };
 }
 
-async function runRoutePass(label) {
+async function runRoutePass(label, inputsPath = routeInputsPath) {
   const args = [routeRunner, "--base-url", baseUrl, "--artifact-root", artifactRoot];
-  if (routeInputsPath) args.push("--route-inputs", routeInputsPath);
+  if (inputsPath) args.push("--route-inputs", inputsPath);
   process.stdout.write(`Autonomous reference ${label}: running registered PlotPickle routes.\n`);
   const child = await runChild(process.execPath, args);
   let report = null;
@@ -205,6 +206,11 @@ async function main() {
       throw new Error(bootstrap.error || bootstrap.child.error || "Afterglow working copy was not created through the normal Library flow.");
     }
     before = await runRoutePass("before application restart");
+    const operatedDecision = routeResult(before?.report, "story-decisions")?.action;
+    if (!operatedDecision?.decisionId || !["applied", "completed-no-change"].includes(operatedDecision.outcome)) {
+      throw new Error("Autonomous reference did not earn and operate a Story Decision before restart.");
+    }
+    await writeFile(generatedRouteInputsPath, `${JSON.stringify({ decisionId: operatedDecision.decisionId }, null, 2)}\n`, "utf8");
     const currentRevision = canonicalRevision(before?.report, bootstrap.report.projectId);
     if (!currentRevision) throw new Error("Autonomous reference could not derive the real Afterglow PPF revision before task scheduling.");
     initializedTask = await referenceTaskAction({
@@ -218,7 +224,7 @@ async function main() {
     if (claimedTask?.state !== "running" || !claimedTask?.taskId || !claimedTask?.leaseId) {
       throw new Error("Autonomous Guest Library reference task did not survive restart into a claimable running lease.");
     }
-    after = await runRoutePass("after application restart");
+    after = await runRoutePass("after application restart", generatedRouteInputsPath);
     const library = routeResult(after?.report, "library");
     completedTask = await referenceTaskAction({
       action: "finish",
@@ -257,6 +263,18 @@ async function main() {
   const finalLibraryTask = Array.isArray(finalTaskStatus?.tasks)
     ? finalTaskStatus.tasks.find((task) => task?.routeId === "library") || null
     : null;
+  const beforeDecision = routeResult(before?.report, "story-decisions");
+  const beforeWorkbench = routeResult(before?.report, "story-workbench");
+  const afterWorkbench = routeResult(after?.report, "story-workbench");
+  const decisionWorkbenchProof = {
+    decisionId: String(beforeDecision?.action?.decisionId || ""),
+    decisionOutcome: String(beforeDecision?.action?.outcome || ""),
+    decisionOperated: beforeDecision?.disposition === "operated" && beforeDecision?.action?.succeeded === true,
+    workbenchOperatedBeforeRestart: beforeWorkbench?.disposition === "operated" && beforeWorkbench?.action?.succeeded === true,
+    workbenchOperatedAfterRestart: afterWorkbench?.disposition === "operated" && afterWorkbench?.action?.succeeded === true,
+    canonChanged: beforeDecision?.action?.writesCanon === true,
+    resultingRevision: String(beforeDecision?.action?.revision || ""),
+  };
   const taskLedgerProof = {
     routeId: "library",
     taskId: String(finalLibraryTask?.taskId || claimedTask?.taskId || ""),
@@ -274,10 +292,16 @@ async function main() {
   if (!taskLedgerProof.initialized || !taskLedgerProof.claimedAfterRestart || !taskLedgerProof.completedFromOperatedRoute || taskLedgerProof.finalState !== "completed") {
     blockers.push("The #1553 one-command reference did not prove a durable Guest task survived restart and completed from a real operated route receipt.");
   }
+  if (!decisionWorkbenchProof.decisionId || !decisionWorkbenchProof.decisionOperated || !decisionWorkbenchProof.workbenchOperatedBeforeRestart || !decisionWorkbenchProof.workbenchOperatedAfterRestart) {
+    blockers.push("The autonomous reference did not earn, answer and carry one Story Decision through the real Story Workbench route across restart.");
+  }
+  if (decisionWorkbenchProof.decisionOutcome !== "applied" || !decisionWorkbenchProof.canonChanged || !decisionWorkbenchProof.resultingRevision) {
+    blockers.push("The autonomous Story Workbench did not prove one revision-safe canonical change.");
+  }
   if (finalStop?.stopped !== true || finalStop?.endpointUnavailable !== true) blockers.push("The final PlotPickle application process did not stop cleanly.");
 
   const machine = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
     overall: blockers.length ? "FAIL" : "PASS",
@@ -289,6 +313,7 @@ async function main() {
       finalStop,
     },
     taskLedgerProof,
+    decisionWorkbenchProof,
     routePasses,
     restartProof,
     blockers: [...new Set(blockers)],

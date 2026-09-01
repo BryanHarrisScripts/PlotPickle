@@ -1,0 +1,49 @@
+name: Evidence-Learning Maintainer
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "build/autonomous-guest/maintainer/**"
+      - "core/auth/autonomous-guest/**"
+      - "config/repository-architecture-target.json"
+      - "scripts/repository-architecture-inventory.mjs"
+      - "tests/issue-1592-*.test.mjs"
+      - ".github/workflows/evidence-learning-maintainer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-learning-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Verify evidence-learning contract
+        run: node --test tests/issue-1592-evidence-learning-contract.test.mjs
+      - name: Verify ratified architecture inventory
+        run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1220-architecture-health.test.mjs
+      - name: Generate exact-head architecture evidence
+        run: node scripts/repository-architecture-inventory.mjs
+      - name: Verify production build
+        run: npm run build
+      - name: Upload architecture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-learning-architecture-${{ github.run_id }}
+          path: .artifacts/repository-architecture
+          if-no-files-found: warn
+          retention-days: 5

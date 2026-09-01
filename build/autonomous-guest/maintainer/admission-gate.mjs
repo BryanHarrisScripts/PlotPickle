@@ -32,15 +32,10 @@ function exactSha(value, label) {
   return normalized;
 }
 
-function safeId(value, label) {
+function checkedToken(value, label, pattern) {
   const normalized = String(value || "").trim();
-  if (!SAFE_ID.test(normalized)) throw new Error(`Maintainer harness ${label} is missing or invalid.`);
-  return normalized;
-}
-
-function safeRef(value, label) {
-  const normalized = String(value || "").trim();
-  if (!SAFE_REF.test(normalized)) throw new Error(`Maintainer harness ${label} is missing or invalid.`);
+  const accepted = pattern.test(normalized);
+  if (!accepted) throw new Error(`Maintainer harness ${label} is missing or invalid.`);
   return normalized;
 }
 
@@ -66,7 +61,7 @@ function assertHarnessAuthority(authority, learningProposal, skillProposal) {
     || authority.serverOwned !== true
     || authority.humanProfileId !== ""
   ) throw new Error("Maintainer promotion requires server-owned harness approver authority without Human credentials.");
-  const approverId = safeId(authority.approverId, "approver ID");
+  const approverId = checkedToken(authority.approverId, "approver ID", SAFE_ID);
   if (approverId === learningProposal?.proposedBy?.operatorId) {
     throw new Error("Maintainer proposer and harness approver must be separate authorities.");
   }
@@ -77,10 +72,10 @@ function assertHarnessAuthority(authority, learningProposal, skillProposal) {
 }
 
 function validatePolicy(policy, action, learningProposal, skillProposal) {
-  const policyId = safeId(policy?.policyId, "policy ID");
+  const policyId = checkedToken(policy?.policyId, "policy ID", SAFE_ID);
   const policyVersion = String(policy?.policyVersion || "").trim();
   if (!POLICY_VERSION.test(policyVersion)) throw new Error("Maintainer harness policy version is missing or invalid.");
-  const policyRef = safeRef(policy?.policyRef, "policy reference");
+  const policyRef = checkedToken(policy?.policyRef, "policy reference", SAFE_REF);
   const allowedDomains = safeTokens(policy?.allowedDomains || [], "allowed domains");
   const allowedKinds = safeTokens(policy?.allowedLearningKinds || [], "allowed learning kinds");
   const requiredCheckKinds = safeTokens(policy?.requiredCheckKinds || [], "required deterministic checks");
@@ -130,14 +125,14 @@ function validateLearningProposal(learningProposal, exactCommitSha) {
   if (learningProposal.exactCommitSha !== exactCommitSha) {
     throw new Error("Maintainer learning evidence is stale for the exact head.");
   }
-  safeId(learningProposal.proposalId, "learning proposal ID");
-  safeId(learningProposal.dedupeKey, "learning dedupe key");
-  safeId(learningProposal.domain, "learning domain");
-  safeId(learningProposal.kind, "learning kind");
+  checkedToken(learningProposal.proposalId, "learning proposal ID", SAFE_ID);
+  checkedToken(learningProposal.dedupeKey, "learning dedupe key", SAFE_ID);
+  checkedToken(learningProposal.domain, "learning domain", SAFE_ID);
+  checkedToken(learningProposal.kind, "learning kind", SAFE_ID);
   if (!Array.isArray(learningProposal.evidence) || !learningProposal.evidence.length || learningProposal.evidence.length > MAX_ITEMS) {
     throw new Error("Maintainer promotion requires bounded learning provenance evidence.");
   }
-  for (const item of learningProposal.evidence) safeRef(item?.ref, "learning evidence reference");
+  for (const item of learningProposal.evidence) checkedToken(item?.ref, "learning evidence reference", SAFE_REF);
 }
 
 function validateSkillProposal(skillProposal, learningProposal, architectureSnapshot, exactCommitSha) {
@@ -168,7 +163,7 @@ function validateDeterministicChecks(checks, exactCommitSha, requiredCheckKinds,
   }
   const seenIds = new Set();
   const normalized = checks.map((check) => {
-    const checkId = safeId(check?.checkId, "deterministic check ID");
+    const checkId = checkedToken(check?.checkId, "deterministic check ID", SAFE_ID);
     if (seenIds.has(checkId)) throw new Error("Maintainer deterministic check IDs must be unique.");
     seenIds.add(checkId);
     if (!MAINTAINER_DETERMINISTIC_CHECK_KINDS.includes(check?.kind)) throw new Error("Maintainer deterministic check kind is invalid.");
@@ -181,7 +176,7 @@ function validateDeterministicChecks(checks, exactCommitSha, requiredCheckKinds,
     return Object.freeze({
       checkId,
       kind: check.kind,
-      ref: safeRef(check.ref, "deterministic check reference"),
+      ref: checkedToken(check.ref, "deterministic check reference", SAFE_REF),
       commitSha: exactCommitSha,
       status: "passed",
       authority: "deterministic",

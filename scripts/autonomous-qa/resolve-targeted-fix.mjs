@@ -15,12 +15,6 @@ const TESTER_ADAPTERS = Object.freeze({
   "adversarial-boundary": "deterministic-boundary",
 });
 
-function exactSha(value, label) {
-  const normalized = String(value || "").trim().toLowerCase();
-  if (!SHA.test(normalized)) throw new Error(`Autonomous QA targeted fix requires an exact ${label} commit SHA.`);
-  return normalized;
-}
-
 function repositoryName(value) {
   const normalized = String(value || "").trim();
   if (!REPOSITORY.test(normalized)) throw new Error("Autonomous QA targeted fix requires an owner/repository identity.");
@@ -61,7 +55,8 @@ function parseAutonomousDefectIssue(issue) {
   const testerRole = field(body, "Tester role");
   const adapter = TESTER_ADAPTERS[testerRole];
   if (!adapter) throw new Error(`Autonomous QA targeted fix defect has an unsupported tester role: ${testerRole}.`);
-  const failingCommitSha = exactSha(field(body, "Exact failing commit"), "failing");
+  const failingCommitSha = String(field(body, "Exact failing commit") || "").trim().toLowerCase();
+  if (!SHA.test(failingCommitSha)) throw new Error("Autonomous QA targeted fix requires an exact failing commit SHA.");
   const routeId = field(body, "Route", true);
   const reproductionRefs = refsBetween(body, "Reproduction evidence", "Machine evidence");
   if (!reproductionRefs.length) throw new Error("Autonomous QA targeted fix defect has no bounded reproduction evidence.");
@@ -91,7 +86,8 @@ async function githubIssue(fetchImpl, token, repository, issueNumber) {
 
 export async function resolveAutonomousQaTargetedFix({ pullRequest, repository, token, fetchImpl = fetch }) {
   const repo = repositoryName(repository);
-  const fixCommitSha = exactSha(pullRequest?.head?.sha, "fix head");
+  const fixCommitSha = String(pullRequest?.head?.sha || "").trim().toLowerCase();
+  if (!SHA.test(fixCommitSha)) throw new Error("Autonomous QA targeted fix requires an exact fix head commit SHA.");
   if (String(pullRequest?.base?.ref || "") !== "main") {
     throw new Error("Autonomous QA targeted fix is limited to pull requests targeting main.");
   }

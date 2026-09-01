@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1571 local QA scheduling reuses the existing Guest Mastra runtime and current policy", async () => {
-  const source = await read("build/autonomous-guest/qa/campaign-runtime.ts");
+  const source = await read("build/autonomous-guest/qa/runtime/campaign-runtime.ts");
   assert.ok(source.includes("startAutonomousGuestSchedulerRuntime"));
   assert.ok(source.includes("createAutonomousQaTaskPolicyResolver"));
   assert.ok(source.includes("getAutonomousGuestAuthority"));

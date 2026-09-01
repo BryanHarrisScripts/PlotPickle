@@ -5,7 +5,7 @@ import {
   createMaintainerBoundedRepairRequest,
   createMaintainerDefectLearningInput,
   createMaintainerQaAnalysisPackage,
-} from "../build/autonomous-guest/maintainer/qa-repair-handoff.mjs";
+} from "../build/autonomous-guest/maintainer/qa/repair-handoff.mjs";
 
 const FAILING_SHA = "a".repeat(40);
 const OTHER_SHA = "b".repeat(40);

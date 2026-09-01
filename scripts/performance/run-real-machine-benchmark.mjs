@@ -34,7 +34,7 @@ if (process.platform !== "win32" && !allowNonWindows) {
 }
 
 const packageJson = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));
-const gitSha = process.env.GITHUB_SHA || process.env.PLOTPICKLE_COMMIT || null;
+const gitSha = process.env.PLOTPICKLE_COMMIT || process.env.GITHUB_SHA || null;
 const startedAt = new Date().toISOString();
 const memoryBefore = process.memoryUsage();
 
@@ -42,8 +42,8 @@ const routes = [
   ["dashboard", "/"],
   ["library", "/library"],
   ["learn", "/learn"],
-  ["plan", "/plan"],
-  ["build", "/build"],
+  ["plan", "/?workspace=plan"],
+  ["build", "/?workspace=build"],
   ["story-decisions", "/story-decisions"],
   ["story-workbench", "/story-workbench"],
 ];

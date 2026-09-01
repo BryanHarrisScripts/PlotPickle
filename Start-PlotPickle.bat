@@ -290,8 +290,12 @@ if exist "%VITE_NATIVE_REPORT%" (
   echo !WARNING! Vite compatibility report helper is missing; startup will continue.
 )
 
-call :open_when_ready
-call :start_deferred_companion_maintenance
+if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" (
+  echo !INFO! Performance benchmark owns readiness measurement; browser launch and optional companion maintenance are suppressed.
+) else (
+  call :open_when_ready
+  call :start_deferred_companion_maintenance
+)
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"

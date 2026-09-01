@@ -1,0 +1,86 @@
+name: Windows Performance Baseline
+
+on:
+  pull_request:
+    paths:
+      - "Start-PlotPickle.bat"
+      - "scripts/performance/**"
+      - "tests/issue-1411-performance-benchmark.test.mjs"
+      - ".github/workflows/windows-performance-baseline.yml"
+  workflow_dispatch:
+    inputs:
+      warm_samples:
+        description: Repeated warm persistent-runtime samples
+        required: true
+        default: "3"
+        type: choice
+        options:
+          - "3"
+          - "5"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-performance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-real-machine:
+    name: Capture real Windows launcher evidence
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - name: Check out exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+      - name: Install exact dependency tree
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate performance contracts
+        shell: pwsh
+        run: node --test tests/issue-1411-performance-benchmark.test.mjs
+      - name: Capture fresh-runtime startup
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
+          PLOTPICKLE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          PLOTPICKLE_AFTERGLOW_FIXTURE: afterglow-v9
+          PLOTPICKLE_PPF_START_REVISION: "9"
+          PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
+          PLOTPICKLE_BUZZ_MODE: disabled
+        run: node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output .artifacts/performance/fresh-runtime.json
+      - name: Capture repeated warm startup samples
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
+          PLOTPICKLE_COMMIT: ${{ github.sha }}
+          PLOTPICKLE_AFTERGLOW_FIXTURE: afterglow-v9
+          PLOTPICKLE_PPF_START_REVISION: "9"
+          PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
+          PLOTPICKLE_BUZZ_MODE: disabled
+        run: |
+          $samples = [int]"${{ inputs.warm_samples }}"
+          $files = @()
+          1..$samples | ForEach-Object {
+            $file = ".artifacts/performance/warm-persistent-runtime-$_.json"
+            node scripts/performance/run-windows-startup-benchmark.mjs --mode warm-persistent-runtime --output $file
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $files += $file
+          }
+          node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/warm-baseline-analysis.json
+      - name: Upload bounded performance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-performance-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .artifacts/performance/*.json
+          if-no-files-found: error
+          retention-days: 14

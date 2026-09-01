@@ -6,6 +6,7 @@ on:
       - "scripts/performance/**"
       - "tests/issue-1411-performance-benchmark.test.mjs"
       - ".github/workflows/performance-contract.yml"
+      - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
 
 permissions:

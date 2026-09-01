@@ -1,12 +1,11 @@
 import { createHash } from "node:crypto";
 
-import { createMaintainerLearningProposal } from "./learning-evidence.ts";
-
 const SHA = /^[a-f0-9]{40}$/i;
 const SAFE_ID = /^[a-z0-9][a-z0-9._:-]{2,179}$/i;
 const SAFE_REF = /^[a-z0-9][a-z0-9._:/@#-]{1,239}$/i;
 const SAFE_PATH = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[a-z0-9._@/-]{1,240}$/i;
 const MAX_REFS = 64;
+const MAX_HANDOFF_REFS = 32;
 const MAX_PATHS = 16;
 
 function exactSha(value, label) {
@@ -28,6 +27,12 @@ function boundedList(values, label, pattern = SAFE_REF, maximum = MAX_REFS, allo
     throw new Error(`Maintainer QA handoff ${label} requires a bounded${allowEmpty ? "" : " non-empty"} list.`);
   }
   return Object.freeze([...new Set(values.map((value) => boundedToken(value, label, pattern)))].sort());
+}
+
+function timestamp(value) {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) throw new Error("Maintainer QA handoff learning timestamp is invalid.");
+  return parsed.toISOString();
 }
 
 function ownsPath(pathname, ownershipPaths) {
@@ -55,10 +60,10 @@ export function createMaintainerQaAnalysisPackage({ defect, exactCommitSha, arch
   if (exactHeadObservations.some((item) => item.testerRole !== defect.testerRole || item.routeId !== defect.routeId || item.assertionRef !== defect.assertionRef)) {
     throw new Error("Maintainer QA analysis reproduction evidence does not match the defect fingerprint contract.");
   }
-  const reproductionRefs = boundedList(exactHeadObservations.flatMap((item) => item.reproductionRefs || []), "reproduction references");
-  const evidenceRefs = boundedList(exactHeadObservations.flatMap((item) => item.evidenceRefs || []), "evidence references");
+  const reproductionRefs = boundedList(exactHeadObservations.flatMap((item) => item.reproductionRefs || []), "reproduction references", SAFE_REF, MAX_HANDOFF_REFS);
+  const evidenceRefs = boundedList(exactHeadObservations.flatMap((item) => item.evidenceRefs || []), "evidence references", SAFE_REF, MAX_HANDOFF_REFS);
   const ownershipPaths = boundedList(ownership.ownershipPaths || [], "ownership paths", SAFE_PATH, MAX_PATHS);
-  const freshnessPaths = boundedList(ownership.changedPathInvalidationInputs || [], "freshness paths", SAFE_PATH, MAX_REFS);
+  const freshnessPaths = boundedList(ownership.changedPathInvalidationInputs || [], "freshness paths", SAFE_PATH, MAX_HANDOFF_REFS);
   const fingerprint = boundedToken(defect.fingerprint, "defect fingerprint", SAFE_ID, 180);
   const material = JSON.stringify({ fingerprint, commitSha, domain: domainId, reproductionRefs, evidenceRefs });
 
@@ -92,26 +97,25 @@ export function createMaintainerQaAnalysisPackage({ defect, exactCommitSha, arch
   });
 }
 
-export function createMaintainerDefectLearningProposal({ authority, analysis, proposalId, createdAt }) {
+export function createMaintainerDefectLearningInput({ analysis, proposalId, createdAt }) {
   if (analysis?.state !== "reproduced" || analysis.repairAuthorityGranted !== false || analysis.testerRepairAuthorityGranted !== false) {
     throw new Error("Maintainer defect learning requires a reproduced read-only QA analysis package.");
   }
-  const evidence = [
-    { kind: "defect", ref: analysis.defectFingerprint },
-    { kind: "test", ref: analysis.assertionRef },
-    ...analysis.evidenceRefs.map((ref) => ({ kind: "artifact", ref })),
-  ];
-  return createMaintainerLearningProposal(authority, {
-    proposalId,
+  return Object.freeze({
+    proposalId: boundedToken(proposalId, "learning proposal ID", SAFE_ID, 180),
     kind: "defect-lesson",
     summary: `Reproduced ${analysis.defectFingerprint} on ${analysis.routeId || "the bounded product route"}; expected ${analysis.expectedRef} but observed ${analysis.actualRef}.`,
-    exactCommitSha: analysis.exactCommitSha,
-    domain: analysis.domain,
-    evidence,
+    exactCommitSha: exactSha(analysis.exactCommitSha, "learning source"),
+    domain: boundedToken(analysis.domain, "learning domain", SAFE_ID, 180),
+    evidence: Object.freeze([
+      Object.freeze({ kind: "defect", ref: analysis.defectFingerprint }),
+      Object.freeze({ kind: "test", ref: analysis.assertionRef }),
+      ...analysis.evidenceRefs.map((ref) => Object.freeze({ kind: "artifact", ref })),
+    ]),
     freshnessPaths: analysis.freshnessPaths,
-    applicabilityRefs: [analysis.assertionRef, ...analysis.reproductionRefs],
-    exclusionRefs: [],
-    createdAt,
+    applicabilityRefs: Object.freeze([analysis.assertionRef, ...analysis.reproductionRefs]),
+    exclusionRefs: Object.freeze([]),
+    createdAt: timestamp(createdAt),
   });
 }
 
@@ -126,6 +130,12 @@ export function createMaintainerBoundedRepairRequest({
   if (analysis?.state !== "reproduced" || learningProposal?.kind !== "defect-lesson" || learningProposal.state !== "observed") {
     throw new Error("Maintainer repair requests require reproduced QA evidence and an observed defect lesson.");
   }
+  if (
+    learningProposal.sourceMutationAllowed !== false
+    || learningProposal.selfApprovalAllowed !== false
+    || learningProposal.operationalAuthorityGranted !== false
+    || learningProposal.aiSelfCertified !== false
+  ) throw new Error("Maintainer repair requests reject self-authorizing or operational learning proposals.");
   if (
     learningProposal.exactCommitSha !== analysis.exactCommitSha
     || learningProposal.domain !== analysis.domain

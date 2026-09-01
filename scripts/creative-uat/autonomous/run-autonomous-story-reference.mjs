@@ -224,7 +224,7 @@ async function main() {
     if (claimedTask?.state !== "running" || !claimedTask?.taskId || !claimedTask?.leaseId) {
       throw new Error("Autonomous Guest Library reference task did not survive restart into a claimable running lease.");
     }
-    after = await runRoutePass("after application restart", generatedRouteInputsPath);
+    after = await runRoutePass("after application restart");
     const library = routeResult(after?.report, "library");
     completedTask = await referenceTaskAction({
       action: "finish",
@@ -265,13 +265,17 @@ async function main() {
     : null;
   const beforeDecision = routeResult(before?.report, "story-decisions");
   const beforeWorkbench = routeResult(before?.report, "story-workbench");
+  const afterDecision = routeResult(after?.report, "story-decisions");
   const afterWorkbench = routeResult(after?.report, "story-workbench");
   const decisionWorkbenchProof = {
     decisionId: String(beforeDecision?.action?.decisionId || ""),
     decisionOutcome: String(beforeDecision?.action?.outcome || ""),
     decisionOperated: beforeDecision?.disposition === "operated" && beforeDecision?.action?.succeeded === true,
     workbenchOperatedBeforeRestart: beforeWorkbench?.disposition === "operated" && beforeWorkbench?.action?.succeeded === true,
-    workbenchOperatedAfterRestart: afterWorkbench?.disposition === "operated" && afterWorkbench?.action?.succeeded === true,
+    decisionPersistedAfterRestart: afterDecision?.disposition === "operated"
+      && afterDecision?.action?.outcome === "verified-existing-autonomous-decision"
+      && afterDecision?.action?.decisionId === beforeDecision?.action?.decisionId,
+    workbenchAfterRestart: String(afterWorkbench?.disposition || ""),
     canonChanged: beforeDecision?.action?.writesCanon === true,
     resultingRevision: String(beforeDecision?.action?.revision || ""),
   };
@@ -292,8 +296,8 @@ async function main() {
   if (!taskLedgerProof.initialized || !taskLedgerProof.claimedAfterRestart || !taskLedgerProof.completedFromOperatedRoute || taskLedgerProof.finalState !== "completed") {
     blockers.push("The #1553 one-command reference did not prove a durable Guest task survived restart and completed from a real operated route receipt.");
   }
-  if (!decisionWorkbenchProof.decisionId || !decisionWorkbenchProof.decisionOperated || !decisionWorkbenchProof.workbenchOperatedBeforeRestart || !decisionWorkbenchProof.workbenchOperatedAfterRestart) {
-    blockers.push("The autonomous reference did not earn, answer and carry one Story Decision through the real Story Workbench route across restart.");
+  if (!decisionWorkbenchProof.decisionId || !decisionWorkbenchProof.decisionOperated || !decisionWorkbenchProof.workbenchOperatedBeforeRestart || !decisionWorkbenchProof.decisionPersistedAfterRestart) {
+    blockers.push("The autonomous reference did not earn and answer one Story Decision, apply it through the real Story Workbench route, and recover that answered Decision after restart.");
   }
   if (decisionWorkbenchProof.decisionOutcome !== "applied" || !decisionWorkbenchProof.canonChanged || !decisionWorkbenchProof.resultingRevision) {
     blockers.push("The autonomous Story Workbench did not prove one revision-safe canonical change.");

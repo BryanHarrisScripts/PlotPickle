@@ -16,6 +16,12 @@ on:
       - "package-lock.json"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      exact_head:
+        description: Optional exact commit SHA supplied by a bounded caller.
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -34,7 +40,7 @@ jobs:
       - name: Check out exact head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.exact_head || github.event.pull_request.head.sha || github.sha }}
 
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4
@@ -77,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: plotpickle-windows-installer-interaction-${{ github.event.pull_request.head.sha || github.sha }}
+          name: plotpickle-windows-installer-interaction-${{ inputs.exact_head || github.event.pull_request.head.sha || github.sha }}
           path: reports/windows-installer-interaction/
           if-no-files-found: warn
           retention-days: 14
@@ -85,7 +91,7 @@ jobs:
       - name: Upload PlotPickle installer
         uses: actions/upload-artifact@v4
         with:
-          name: plotpickle-windows-installer-${{ github.event.pull_request.head.sha || github.sha }}
+          name: plotpickle-windows-installer-${{ inputs.exact_head || github.event.pull_request.head.sha || github.sha }}
           path: |
             releases/windows-installer/PlotPickleSetup.exe
             releases/windows-installer/PlotPickleSetup.exe.sha256

@@ -180,7 +180,6 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
   const decisions = Array.isArray(listed.decisions) ? listed.decisions : [];
   let decision = decisions.find((item) => item?.status === "answered");
   if (decision) {
-    routeInputs.decisionId = decision.decisionId;
     return {
       attempted: true,
       succeeded: true,
@@ -232,6 +231,7 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
     maxEvaluationAttempts: 2,
     minimumConfidence: 0.75,
   };
+  let operatedWorkbenchEvidence = null;
   const result = await operateAutonomousStoryDecision({
     decision,
     currentRevision,
@@ -264,6 +264,18 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
         minimumTextLength: 500,
       }, { timeoutMs: 30_000 });
       const state = await waitForWorkbenchState(session, (candidate) => candidate.ready === true, "Story Workbench preparation failed");
+      const rendered = extractPageState(resultText(await session.client.call("browser_evaluate", {
+        function: "() => ({ url: location.href, bodyText: (document.body.innerText || '').replace(/\\s+/g, ' ').trim(), bodyLength: (document.body.innerText || '').trim().length })",
+      })));
+      operatedWorkbenchEvidence = {
+        reached: true,
+        resolvedRoute: route,
+        url: String(rendered.url || new URL(route, baseUrl).toString()),
+        bodyText: String(rendered.bodyText || ""),
+        bodyLength: Number(rendered.bodyLength || String(rendered.bodyText || "").length),
+        consoleErrors: false,
+        error: "",
+      };
       return {
         package: {
           packageId: state.packageId,
@@ -299,6 +311,13 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
   });
 
   routeInputs.decisionId = decision.decisionId;
+  if (operatedWorkbenchEvidence) {
+    operationContext.workbenchOperation = {
+      decisionId: decision.decisionId,
+      revision: result.receipt?.resultingRevision || currentRevision,
+      evidence: operatedWorkbenchEvidence,
+    };
+  }
   return {
     attempted: true,
     succeeded: result.status === "applied" || result.status === "completed-no-change",
@@ -336,6 +355,25 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
     };
     let action = {};
     try {
+      const operatedWorkbench = route.id === "story-workbench"
+        && operationContext.workbenchOperation?.decisionId === routeInputs.decisionId
+        ? operationContext.workbenchOperation
+        : null;
+      if (operatedWorkbench) {
+        Object.assign(evidence, operatedWorkbench.evidence, { resolvedRoute: materialized.route });
+        action = {
+          attempted: true,
+          succeeded: true,
+          actionId: "apply-story-workbench-review",
+          operatorId: "plotpickle-autonomous-route-controller",
+          outcome: "applied",
+          canonicalProjectId: operationContext.expectedProjectId,
+          decisionId: operatedWorkbench.decisionId,
+          revision: operatedWorkbench.revision,
+          writesCanon: true,
+          error: "",
+        };
+      } else {
       const currentRoute = extractPageState(resultText(await session.client.call("browser_evaluate", {
         function: "() => ({ route: location.pathname + location.search })",
       }))).route;
@@ -381,6 +419,7 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
           const probe = await captureAutonomousRouteOperationProbe(session, route);
           action = evaluateAutonomousRouteOperation(route, evidence, probe, operationContext);
         }
+      }
       }
     } catch (error) {
       evidence.error = error instanceof Error ? error.message : String(error);

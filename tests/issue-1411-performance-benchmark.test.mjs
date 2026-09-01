@@ -20,12 +20,14 @@ test("#1411 benchmark runner preserves authoritative Windows and no-fake-budget 
 test("#1411 benchmark identifies canonical modes and core workspace routes", async () => {
   const source = await read("scripts/performance/run-real-machine-benchmark.mjs");
   for (const mode of ["warm-persistent-runtime", "fresh-optimizer", "fresh-runtime", "story-workflow-local", "buzz-enabled-story-council"]) assert.ok(source.includes(mode));
-  for (const route of ["/library", "/learn", "/plan", "/build", "/story-decisions", "/story-workbench"]) assert.ok(source.includes(route));
+  for (const route of ["/library", "/learn", "/?workspace=plan", "/?workspace=build", "/story-decisions", "/story-workbench"]) assert.ok(source.includes(route));
+  assert.doesNotMatch(source, /\["plan", "\/plan"\]|\["build", "\/build"\]/);
 });
 
 test("#1411 evidence records reproducibility identity and process memory reliability", async () => {
   const source = await read("scripts/performance/run-real-machine-benchmark.mjs");
   for (const field of ["plotpickleVersion", "commit", "afterglowFixture", "ppfStartingRevision", "curriculumIdentity", "buzzMode", "optionalIntegrations", "process-only"]) assert.ok(source.includes(field));
+  assert.match(source, /process\.env\.PLOTPICKLE_COMMIT \|\| process\.env\.GITHUB_SHA/);
 });
 
 test("#1411 deterministic Afterglow workflow comparison proves targeted re-evaluation stays bounded", () => {

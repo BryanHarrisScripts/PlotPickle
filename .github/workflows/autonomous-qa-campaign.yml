@@ -3,13 +3,11 @@ name: Autonomous QA Campaign
 on:
   pull_request:
     branches: [main]
-    paths:
-      - '.github/workflows/autonomous-qa-campaign.yml'
-      - 'build/autonomous-guest/qa/**'
-      - 'build/autonomous-guest/recovery/**'
-      - 'core/auth/autonomous-guest/**'
-      - 'config/uat-autopilot-registry.json'
-      - 'tests/issue-1571-autonomous-qa-*.test.mjs'
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 7 * * *'
+    - cron: '43 8 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -38,3 +36,13 @@ jobs:
         run: node --test tests/issue-1571-autonomous-qa-*.test.mjs
       - name: Verify production build
         run: npm run build
+
+  deep-afterglow:
+    name: deep-afterglow
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.schedule == '43 8 * * 0'
+    uses: ./.github/workflows/autonomous-story-reference.yml
+
+  windows-install:
+    name: windows-install
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '43 8 * * 0'
+    uses: ./.github/workflows/windows-installer.yml

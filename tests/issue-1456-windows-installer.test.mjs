@@ -97,7 +97,10 @@ test("#1456 release build produces a signing-ready PlotPickleSetup.exe determini
 });
 
 test("#1456 installed-app smoke covers real launch, junction-safe upgrade and uninstall preservation", async () => {
-  const smoke = await source("scripts/windows-installer/smoke.ps1");
+  const [smoke, launcher] = await Promise.all([
+    source("scripts/windows-installer/smoke.ps1"),
+    source("Start-PlotPickle.bat"),
+  ]);
   for (const contract of [
     "/VERYSILENT",
     "PlotPickle.exe",
@@ -118,6 +121,10 @@ test("#1456 installed-app smoke covers real launch, junction-safe upgrade and un
     "Uninstall removed PlotPickle user data",
     "Uninstall followed the application junction and damaged the persistent runtime",
   ]) assert.ok(smoke.includes(contract), `Missing installer-smoke contract: ${contract}`);
+  assert.match(smoke, /\$startupRequestTimeoutSeconds = 30/);
+  assert.match(smoke, /-Uri \$baseUrl -TimeoutSec \$startupRequestTimeoutSeconds/);
+  assert.match(launcher, /set "READY_REQUEST_TIMEOUT_SECONDS=30"/);
+  assert.match(launcher, /:open_when_ready[\s\S]*-Uri \$base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%/);
   assert.doesNotMatch(smoke, /\b\d+_\d+\b/, "PowerShell numeric literals must not use JavaScript-style separators.");
   assert.ok(smoke.match(/Install-PlotPickle/g).length >= 3, "Installer smoke must install and then exercise an in-place upgrade.");
 });

@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { analyzeBaselines, summarize } from "../scripts/performance/analyze-real-machine-baselines.mjs";
+import { browserRoutes, findPerformanceBrowser } from "../scripts/performance/measure-browser-responsiveness.mjs";
 import { measureStoryWorkflowContract } from "../scripts/performance/measure-story-workflow-contract.mjs";
 import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath } from "../scripts/performance/run-windows-startup-benchmark.mjs";
 
@@ -21,7 +22,7 @@ test("#1411 benchmark runner preserves authoritative Windows and no-fake-budget 
 test("#1411 benchmark identifies canonical modes and core workspace routes", async () => {
   const source = await read("scripts/performance/run-real-machine-benchmark.mjs");
   for (const mode of ["warm-persistent-runtime", "fresh-optimizer", "fresh-runtime", "story-workflow-local", "buzz-enabled-story-council"]) assert.ok(source.includes(mode));
-  for (const route of ["/library", "/learn", "/?workspace=plan", "/?workspace=build", "/story-decisions", "/story-workbench"]) assert.ok(source.includes(route));
+  for (const route of ["/library", "/?workspace=learn", "/?workspace=plan", "/?workspace=build", "/story-decisions", "/story-workbench"]) assert.ok(source.includes(route));
   assert.doesNotMatch(source, /\["plan", "\/plan"\]|\["build", "\/build"\]/);
 });
 
@@ -57,6 +58,10 @@ test("#1411 baseline analyzer requires repeated authoritative Windows samples be
       navigation: [{ label: "dashboard", ok: true, elapsedMs }],
       memory: { rssAfterBytes: 1000 + elapsedMs },
       startup: { viteReadyMs: elapsedMs * 2, firstUsableCoreWorkspaceMs: elapsedMs * 3 },
+      browser: {
+        firstAccess: [{ label: "dashboard", ready: true, usefulInteractiveMs: elapsedMs * 4, firstContentfulPaintMs: elapsedMs, interactiveControlCount: 10 }],
+        repeatedAccess: [{ label: "dashboard", ready: true, usefulInteractiveMs: elapsedMs * 2, firstContentfulPaintMs: elapsedMs / 2, interactiveControlCount: 10 }],
+      },
     },
     result: { harnessHealthy: true, startupHealthy: true },
   });
@@ -69,6 +74,8 @@ test("#1411 baseline analyzer requires repeated authoritative Windows samples be
   assert.equal(three.modes["warm-persistent-runtime"].navigation.dashboard.samples, 3);
   assert.equal(three.modes["warm-persistent-runtime"].startup.viteReadyMs.samples, 3);
   assert.equal(three.modes["warm-persistent-runtime"].startup.firstUsableCoreWorkspaceMs.mean, 330);
+  assert.equal(three.modes["warm-persistent-runtime"].browser.firstAccess.dashboard.usefulInteractiveMs.mean, 440);
+  assert.equal(three.modes["warm-persistent-runtime"].browser.repeatedAccess.dashboard.usefulInteractiveMs.mean, 220);
 });
 
 test("#1411 baseline analyzer rejects mixed workload identity and ignores non-authoritative evidence", () => {
@@ -170,6 +177,26 @@ test("#1411 fresh-optimizer mode clears only the bounded Vite optimizer cache", 
   const source = await read("scripts/performance/run-windows-startup-benchmark.mjs");
   assert.match(source, /mode === "fresh-optimizer"/);
   assert.match(source, /rm\(optimizerCachePath\(\), \{ recursive: true, force: true \}\)/);
+});
+
+test("#1411 browser evidence uses canonical current routes and reports truthful headless reliability", async () => {
+  assert.deepEqual(browserRoutes.map(({ label, path: routePath }) => [label, routePath]), [
+    ["dashboard", "/?workspace=dashboard"],
+    ["library", "/library"],
+    ["learn", "/?workspace=learn"],
+    ["plan", "/?workspace=plan"],
+    ["build", "/?workspace=build"],
+    ["story-decisions", "/story-decisions"],
+    ["story-workbench", "/story-workbench"],
+  ]);
+  assert.equal(findPerformanceBrowser({ CHROME_PATH: "C:\\Browser\\chrome.exe" }, (candidate) => candidate === "C:\\Browser\\chrome.exe"), "C:\\Browser\\chrome.exe");
+  const source = await read("scripts/performance/measure-browser-responsiveness.mjs");
+  assert.match(source, /headless-browser-cdp-useful-interactive-contract/);
+  assert.match(source, /managedLauncherBrowser: false/);
+  assert.match(source, /firstAccess/);
+  assert.match(source, /repeatedAccess/);
+  assert.match(source, /interactiveControlCount/);
+  assert.match(source, /firstContentfulPaintMs/);
 });
 
 test("#1411 benchmark startup disables remote telemetry and strips Cloudflare credentials", () => {

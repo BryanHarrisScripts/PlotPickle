@@ -103,3 +103,15 @@ test("#1571 publisher refuses observations that do not reproduce on the same exa
     /same exact build/,
   );
 });
+
+test("#1571 publisher rejects model-invented severity labels", async () => {
+  await assert.rejects(
+    () => publishAutonomousQaDefect({
+      candidate: { ...candidate, severity: "catastrophic" },
+      repository: "BryanHarrisScripts/PlotPickle",
+      token: "test-token",
+      fetchImpl: async () => response(200, []),
+    }),
+    /severity is invalid/,
+  );
+});

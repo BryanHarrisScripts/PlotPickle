@@ -56,6 +56,8 @@ test("#1553 route controller uses the bounded operator, Guest gateway and real W
   assert.match(reference, /generatedRouteInputsPath/);
   assert.match(reference, /decisionWorkbenchProof/);
   assert.match(reference, /workbenchOperatedBeforeRestart/);
-  assert.match(reference, /workbenchOperatedAfterRestart/);
+  assert.match(reference, /decisionPersistedAfterRestart/);
   assert.match(reference, /one revision-safe canonical change/);
+  assert.match(runner, /operatedWorkbenchEvidence/);
+  assert.match(runner, /apply-story-workbench-review/);
 });

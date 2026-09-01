@@ -64,7 +64,7 @@ jobs:
         run: node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs --artifact-root "$RUNNER_TEMP/plotpickle-autonomous-story-reference"
       - name: Upload bounded reference evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autonomous-story-reference-${{ github.run_id }}
           path: ${{ runner.temp }}/plotpickle-autonomous-story-reference

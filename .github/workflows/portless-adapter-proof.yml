@@ -103,7 +103,7 @@ jobs:
             --artifact .artifacts/portless/windows-acceptance.json
 
       - name: Upload sanitized Windows acceptance and package metadata
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: portless-1156-windows-${{ github.run_id }}
           path: |

@@ -173,7 +173,7 @@ jobs:
 
       - name: Upload focused UAT evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: focused-uat-${{ github.run_id }}
           path: .artifacts/uat-focused

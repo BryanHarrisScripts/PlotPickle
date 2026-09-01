@@ -46,7 +46,7 @@ jobs:
         run: npm run build
       - name: Upload architecture evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evidence-learning-architecture-${{ github.run_id }}
           path: .artifacts/repository-architecture

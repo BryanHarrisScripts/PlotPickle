@@ -54,7 +54,7 @@ jobs:
         run: ./Utilities/DeveloperWorkbench/build.ps1
 
       - name: Upload Windows Workbench
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.WORKBENCH_ARTIFACT_NAME }}
           path: Utilities/DeveloperWorkbench/dist/win-x64/

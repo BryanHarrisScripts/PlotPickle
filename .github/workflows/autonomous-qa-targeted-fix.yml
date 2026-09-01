@@ -85,7 +85,7 @@ jobs:
         run: node scripts/autonomous-qa/run-focused-targeted-rerun.mjs "$RUNNER_TEMP/plotpickle-autonomous-qa-targeted-focused"
       - name: Upload focused rerun evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autonomous-qa-targeted-focused-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
           path: ${{ runner.temp }}/plotpickle-autonomous-qa-targeted-focused
@@ -148,7 +148,7 @@ jobs:
           mkdir -p .artifacts/autonomous-qa-targeted-fix
           node -e 'const fs=require("node:fs"); const value={schemaVersion:1,campaignType:"targeted-rerun",defectFingerprint:process.env.FINGERPRINT,testerRole:process.env.TESTER_ROLE,adapter:process.env.ADAPTER,failingCommitSha:process.env.FAILING_HEAD,fixCommitSha:process.env.FIX_HEAD,linkedIssueNumber:Number(process.env.LINKED_ISSUE),reproductionPassed:true,selectedAdapterPassed:true,deterministicGateRequired:true,repairAuthorityGranted:false,aiSelfCertified:false}; fs.writeFileSync(".artifacts/autonomous-qa-targeted-fix/result.json",JSON.stringify(value,null,2)+"\n");'
       - name: Upload targeted verification evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autonomous-qa-targeted-fix-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
           path: .artifacts/autonomous-qa-targeted-fix/result.json

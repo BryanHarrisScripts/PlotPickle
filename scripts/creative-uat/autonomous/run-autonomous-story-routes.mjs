@@ -274,6 +274,7 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
         bodyText: String(rendered.bodyText || ""),
         bodyLength: Number(rendered.bodyLength || String(rendered.bodyText || "").length),
         consoleErrors: false,
+        readinessVerified: true,
         error: "",
       };
       return {

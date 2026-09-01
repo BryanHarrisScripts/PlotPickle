@@ -24,6 +24,21 @@
     "release": "GitHub Actions, packaging, release and security CI",
     "shared-core": "Small stable cross-domain contracts that genuinely have multiple owners"
   },
+  "domainOwnership": {
+    "ai": ["build/ai", "lib/runtime/ai", "app/ai-routing", "app/settings/ai-provider"],
+    "auth": ["core/auth", "build/auth", "app/api/auth", "app/profile-access"],
+    "buzz": ["core/buzz", "build/buzz", "lib/buzz", "app/buzz", "modules/community"],
+    "story": ["core/story-workflow", "build/story-workflow", "build/story-decisions", "modules/story-workflow", "app/story-decisions", "app/story-workbench"],
+    "storage": ["core/storage", "build/autonomous-guest/storage", "lib/projects/persistence"],
+    "projects": ["core/project", "build/projects", "lib/projects", "modules/library", "app/library"],
+    "startup": ["build/startup", "scripts/windows-installer"],
+    "runtime": ["core/runtime", "lib/runtime", "build/autonomous-guest"],
+    "verification": ["lib/verification", "app/verification-inbox", "scripts/casebook", "scripts/creative-uat", "build/autonomous-guest/qa"],
+    "ui": ["app", "modules/dashboard/ui", "modules/learn/ui", "modules/library/ui", "modules/plan/ui", "modules/wyrmwood/ui"],
+    "developer": ["AGENTS.md", ".agents", "config/agent-skills.json", "scripts/developer-diagnostics", "scripts/pi"],
+    "release": [".github/workflows", "scripts/package-platform.mjs", "scripts/windows-installer"],
+    "shared-core": ["core/contracts", "core/node-boundary", "core/security"]
+  },
   "structuralCeilings": {
     "governedRoots": ["build", "core", "modules", "lib"],
     "maxDirectSourceFiles": 16,

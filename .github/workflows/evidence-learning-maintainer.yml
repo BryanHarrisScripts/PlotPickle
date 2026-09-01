@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -32,11 +33,15 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Verify evidence-learning contract
-        run: node --test tests/issue-1592-evidence-learning-contract.test.mjs
+        run: node --test tests/issue-1592-evidence-learning-contract.test.mjs tests/issue-1592-exact-head-architecture-learner.test.mjs
       - name: Verify ratified architecture inventory
         run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1220-architecture-health.test.mjs
       - name: Generate exact-head architecture evidence
-        run: node scripts/repository-architecture-inventory.mjs
+        env:
+          PLOTPICKLE_AUTONOMOUS_RUN_ID: github-${{ github.run_id }}
+          PLOTPICKLE_WORKSPACE_ID: repository-${{ github.repository_id }}
+          PLOTPICKLE_OPERATOR_ID: architecture-learner
+        run: node scripts/run-maintainer-architecture-learner.mjs --exact-head ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify production build
         run: npm run build
       - name: Upload architecture evidence

@@ -162,6 +162,32 @@ function assessPlan(config, files, moves, evidence) {
   return issues;
 }
 
+function assessDomainOwnership(config, files, metrics) {
+  const issues = [];
+  const repositoryPaths = new Set([
+    ...files.map((file) => file.path),
+    ...metrics.map((item) => item.directory),
+  ]);
+  const declaredDomains = Object.keys(config.domains ?? {});
+  const ownershipDomains = Object.keys(config.domainOwnership ?? {});
+  for (const domain of declaredDomains) {
+    const paths = config.domainOwnership?.[domain];
+    if (!Array.isArray(paths) || !paths.length || paths.length > 16) {
+      issues.push(`Architecture domain ${domain} must declare between 1 and 16 bounded ownership paths.`);
+      continue;
+    }
+    for (const ownedPath of paths) {
+      if (typeof ownedPath !== "string" || ownedPath.startsWith("/") || ownedPath.includes("..") || !repositoryPaths.has(ownedPath)) {
+        issues.push(`Architecture domain ${domain} declares missing or unsafe ownership path: ${ownedPath}`);
+      }
+    }
+  }
+  for (const domain of ownershipDomains) {
+    if (!declaredDomains.includes(domain)) issues.push(`Domain ownership is declared for unknown architecture domain: ${domain}`);
+  }
+  return issues;
+}
+
 function hotspots(metrics, config) {
   const exceptions = new Set((config.structuralCeilings.exceptions ?? []).map((item) => item.path));
   const top = metrics.filter((item) => !item.directory.includes("/"));
@@ -210,7 +236,10 @@ export async function runRepositoryArchitectureInventory({ writeArtifact = true 
   const metrics = directoryMetrics(files);
   const expandedMoves = expandMoves(files, config);
   const moveEvidence = await buildDependencyEvidence(files, expandedMoves);
-  const planIssues = assessPlan(config, files, expandedMoves, moveEvidence);
+  const planIssues = [
+    ...assessPlan(config, files, expandedMoves, moveEvidence),
+    ...assessDomainOwnership(config, files, metrics),
+  ];
   const topLevel = metrics.filter((item) => !item.directory.includes("/")).sort((a, b) => b.totalFiles - a.totalFiles || a.directory.localeCompare(b.directory));
   const batches = config.moveBatches.map((batch) => {
     const items = moveEvidence.filter((item) => item.batchId === batch.id);
@@ -236,6 +265,7 @@ export async function runRepositoryArchitectureInventory({ writeArtifact = true 
     topLevel,
     hotspots: hotspots(metrics, config),
     domains: config.domains,
+    domainOwnership: config.domainOwnership,
     targetTree: config.targetTree,
     structuralCeilings: config.structuralCeilings,
     batches,

@@ -7,10 +7,12 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { operateAutonomousStoryDecision } from "../../../core/story-workflow/story-decisions/autonomous-operator.mjs";
 import {
   captureAutonomousRouteOperationProbe,
   evaluateAutonomousRouteOperation,
 } from "../../../lib/verification/autonomous-route-operations.mjs";
+import { createAfterglowAutonomousCouncilResult } from "./afterglow-autonomous-council.mjs";
 import {
   assessAutonomousRoute,
   autonomousContractTestsFromRegistry,
@@ -114,6 +116,204 @@ async function closeBrowserSession(session, label) {
   await session?.client?.close();
 }
 
+async function browserJson(session, input) {
+  const raw = resultText(await session.client.call("browser_evaluate", {
+    function: `async () => {
+      const input = ${JSON.stringify(input)};
+      try {
+        const response = await fetch(input.url, {
+          method: input.method || 'GET',
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: input.body ? { 'Content-Type': 'application/json', Accept: 'application/json' } : { Accept: 'application/json' },
+          body: input.body ? JSON.stringify(input.body) : undefined
+        });
+        const payload = await response.json();
+        return { ok: response.ok, status: response.status, payload };
+      } catch (error) {
+        return { ok: false, status: 0, payload: { message: error instanceof Error ? error.message : String(error) } };
+      }
+    }`,
+  }));
+  const state = extractPageState(raw);
+  if (state.ok !== true) throw new Error(state.payload?.message || `Story Decision API returned HTTP ${state.status || 0}.`);
+  return state.payload || {};
+}
+
+async function workbenchState(session) {
+  const raw = resultText(await session.client.call("browser_evaluate", {
+    function: `() => {
+      const root = document.querySelector('[data-story-workbench-decision-id]');
+      const notice = document.querySelector('[role="status"]')?.textContent?.trim() || '';
+      if (!root) return { ready: false, notice };
+      return {
+        ready: true,
+        decisionId: root.getAttribute('data-story-workbench-decision-id') || '',
+        packageId: root.getAttribute('data-story-workbench-package-id') || '',
+        baseRevision: root.getAttribute('data-story-workbench-base-revision') || '',
+        currentRevision: root.getAttribute('data-story-workbench-current-revision') || '',
+        canComplete: root.getAttribute('data-story-workbench-can-complete') === 'true',
+        canApply: root.getAttribute('data-story-workbench-can-apply') === 'true',
+        applied: root.getAttribute('data-story-workbench-applied') === 'true',
+        resultingRevision: root.getAttribute('data-story-workbench-resulting-revision') || '',
+        notice
+      };
+    }`,
+  }));
+  return extractPageState(raw);
+}
+
+async function waitForWorkbenchState(session, predicate, label, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  let state = {};
+  while (Date.now() < deadline) {
+    state = await workbenchState(session);
+    if (predicate(state)) return state;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`${label}: ${state.notice || "Workbench state did not become ready."}`);
+}
+
+async function operateStoryDecisionRoute(session, routeInputs, operationContext) {
+  const projectId = operationContext.expectedProjectId;
+  const listed = await browserJson(session, { url: `/api/story-decisions?projectId=${encodeURIComponent(projectId)}` });
+  const decisions = Array.isArray(listed.decisions) ? listed.decisions : [];
+  let decision = decisions.find((item) => item?.status === "answered");
+  if (decision) {
+    routeInputs.decisionId = decision.decisionId;
+    return {
+      attempted: true,
+      succeeded: true,
+      actionId: "operate-delegated-story-decision",
+      operatorId: "plotpickle-autonomous-route-controller",
+      outcome: "verified-existing-autonomous-decision",
+      canonicalProjectId: projectId,
+      revision: String(decision.baseRevision || ""),
+      writesCanon: false,
+      decisionId: decision.decisionId,
+      error: "",
+    };
+  }
+
+  decision = decisions.find((item) => ["new", "reviewing", "deferred"].includes(String(item?.status || "")));
+  if (!decision) {
+    const probe = await captureAutonomousRouteOperationProbe(session, { id: "story-decisions", operation: "operate" });
+    const currentRevision = String(probe.revision || "");
+    const council = createAfterglowAutonomousCouncilResult({
+      projectId,
+      revision: currentRevision,
+      recordedAt: new Date().toISOString(),
+    });
+    const ingested = await browserJson(session, {
+      url: "/api/story-decisions",
+      method: "POST",
+      body: { action: "ingest-council", ...council },
+    });
+    decision = ingested.decision;
+  }
+  if (!decision?.decisionId) throw new Error("Autonomous Story Council did not earn a Story Decision identifier.");
+
+  const currentRevision = String(decision.baseRevision || "");
+  const authority = {
+    authorityClass: "delegated-autonomous-operator",
+    delegated: true,
+    autonomousRunId: process.env.PLOTPICKLE_AUTONOMOUS_RUN_ID || "afterglow-reference-v1",
+    operatorId: process.env.PLOTPICKLE_AUTONOMOUS_OPERATOR_ID || "plotpickle-autonomous-reference",
+    modelRole: "quality",
+    modelId: "plotpickle-deterministic-decision-policy-v1",
+    provider: "plotpickle-local",
+    runtime: "autonomous-route-controller",
+  };
+  const autonomousPolicy = {
+    enabled: true,
+    allowStoryDecisionResponses: true,
+    autonomousRunId: authority.autonomousRunId,
+    projectId,
+    maxEvaluationAttempts: 2,
+    minimumConfidence: 0.75,
+  };
+  const result = await operateAutonomousStoryDecision({
+    decision,
+    currentRevision,
+    authority,
+    autonomousPolicy,
+    evidence: {},
+    recordedAt: new Date().toISOString(),
+  }, {
+    async evaluateDecision() {
+      return {
+        responseClass: "accept-proposal",
+        confidence: 0.91,
+        rationale: "Two bounded source-backed Council positions support the clarification; the independent alternative remains recorded in provenance.",
+      };
+    },
+    async respondThroughDecisionGateway(request) {
+      return browserJson(session, {
+        url: "/api/story-decisions",
+        method: "POST",
+        body: { action: "respond-autonomous", decisionId: request.decisionId, response: request.response },
+      });
+    },
+    async prepareStoryWorkbench(request) {
+      const route = `/story-workbench?decisionId=${encodeURIComponent(request.decision.decisionId)}`;
+      await session.client.call("browser_navigate", { url: new URL(route, baseUrl).toString() });
+      await waitForRenderedArea(session.client, {
+        id: "autonomous-story-workbench-prepare",
+        route,
+        requiredTerms: ["Story Workbench", "Validation"],
+        minimumTextLength: 500,
+      });
+      const state = await waitForWorkbenchState(session, (candidate) => candidate.ready === true, "Story Workbench preparation failed");
+      return {
+        package: {
+          packageId: state.packageId,
+          decisionId: state.decisionId,
+          baseRevision: state.baseRevision,
+        },
+        review: { canComplete: state.canComplete, canApply: state.canApply },
+        impact: { staleProjectionRefs: request.decision.predictedImpactRefs || [] },
+      };
+    },
+    async applyStoryWorkbench() {
+      const clicked = extractPageState(resultText(await session.client.call("browser_evaluate", {
+        function: `() => {
+          const button = [...document.querySelectorAll('button')].find((item) => ['Apply change', 'Complete no-change review'].includes((item.textContent || '').trim()));
+          if (!button || button.disabled) return { clicked: false };
+          button.click();
+          return { clicked: true };
+        }`,
+      })));
+      if (clicked.clicked !== true) throw new Error("Story Workbench did not expose an enabled canonical apply action.");
+      const state = await waitForWorkbenchState(
+        session,
+        (candidate) => candidate.applied === true || /current story was kept unchanged/i.test(candidate.notice || ""),
+        "Story Workbench apply failed",
+      );
+      return {
+        applied: state.applied === true,
+        revision: state.resultingRevision || state.currentRevision,
+        changedRefs: state.applied === true ? [...decision.targetRefs, ...decision.predictedImpactRefs] : [],
+        staleProjectionRefs: state.applied === true ? decision.predictedImpactRefs : [],
+      };
+    },
+  });
+
+  routeInputs.decisionId = decision.decisionId;
+  return {
+    attempted: true,
+    succeeded: result.status === "applied" || result.status === "completed-no-change",
+    actionId: "operate-delegated-story-decision",
+    operatorId: "plotpickle-autonomous-route-controller",
+    outcome: result.status,
+    canonicalProjectId: projectId,
+    revision: result.receipt?.resultingRevision || currentRevision,
+    writesCanon: result.receipt?.canonChanged === true,
+    decisionId: decision.decisionId,
+    receipt: result.receipt,
+    error: result.blocker?.message || "",
+  };
+}
+
 async function inspectRoutesWithSession(session, registry, routeInputs, operationContext) {
   const results = [];
   for (const route of autonomousStoryRoutes(registry)) {
@@ -148,8 +348,12 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
         evidence.consoleErrors = consoleHasErrors(consoleText);
       }
       if (route.operation === "operate") {
-        const probe = await captureAutonomousRouteOperationProbe(session, route);
-        action = evaluateAutonomousRouteOperation(route, evidence, probe, operationContext);
+        if (route.id === "story-decisions") {
+          action = await operateStoryDecisionRoute(session, routeInputs, operationContext);
+        } else {
+          const probe = await captureAutonomousRouteOperationProbe(session, route);
+          action = evaluateAutonomousRouteOperation(route, evidence, probe, operationContext);
+        }
       }
     } catch (error) {
       evidence.error = error instanceof Error ? error.message : String(error);

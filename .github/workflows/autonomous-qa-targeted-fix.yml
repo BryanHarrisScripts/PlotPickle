@@ -1,0 +1,156 @@
+name: Autonomous QA Targeted Fix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: autonomous-qa-targeted-fix-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  resolve:
+    name: Resolve linked autonomous defect
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matched: ${{ steps.resolve.outputs.matched }}
+      adapter: ${{ steps.resolve.outputs.adapter }}
+      tester_role: ${{ steps.resolve.outputs.tester_role }}
+      fingerprint: ${{ steps.resolve.outputs.fingerprint }}
+      fix_head: ${{ steps.resolve.outputs.fix_head }}
+      failing_head: ${{ steps.resolve.outputs.failing_head }}
+      linked_issue_number: ${{ steps.resolve.outputs.linked_issue_number }}
+    steps:
+      - name: Checkout exact fix head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Resolve bounded targeted rerun
+        id: resolve
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/autonomous-qa/resolve-targeted-fix.mjs
+
+  targeted-windows:
+    name: Targeted Fresh Install rerun
+    needs: resolve
+    if: needs.resolve.outputs.matched == 'true' && needs.resolve.outputs.adapter == 'windows-installer'
+    uses: ./.github/workflows/windows-installer.yml
+    with:
+      exact_head: ${{ needs.resolve.outputs.fix_head }}
+
+  targeted-story:
+    name: Targeted autonomous story rerun
+    needs: resolve
+    if: needs.resolve.outputs.matched == 'true' && needs.resolve.outputs.adapter == 'autonomous-story-reference'
+    uses: ./.github/workflows/autonomous-story-reference.yml
+    with:
+      exact_head: ${{ needs.resolve.outputs.fix_head }}
+
+  targeted-focused-uat:
+    name: Targeted Beginner Writer rerun
+    needs: resolve
+    if: needs.resolve.outputs.matched == 'true' && needs.resolve.outputs.adapter == 'focused-uat'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact fix head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.fix_head }}
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Verify production build
+        run: npm run build
+      - name: Run real focused UAT through managed PlotPickle lifecycle
+        env:
+          FORCE_COLOR: '0'
+          PLOTPICKLE_ACCEPTANCE_MODE: '1'
+        run: node scripts/autonomous-qa/run-focused-targeted-rerun.mjs "$RUNNER_TEMP/plotpickle-autonomous-qa-targeted-focused"
+      - name: Upload focused rerun evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-qa-targeted-focused-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
+          path: ${{ runner.temp }}/plotpickle-autonomous-qa-targeted-focused
+          if-no-files-found: warn
+          retention-days: 5
+
+  targeted-boundary:
+    name: Targeted Adversarial Boundary rerun
+    needs: resolve
+    if: needs.resolve.outputs.matched == 'true' && needs.resolve.outputs.adapter == 'deterministic-boundary'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact fix head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.fix_head }}
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Rerun existing Guest and revision-boundary contracts
+        run: node --test tests/issue-1553-autonomous-story-decision-authority.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs
+
+  targeted-result:
+    name: Targeted fix deterministic result
+    needs: [resolve, targeted-windows, targeted-story, targeted-focused-uat, targeted-boundary]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.matched == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require selected existing tester adapter to pass
+        env:
+          ADAPTER: ${{ needs.resolve.outputs.adapter }}
+          WINDOWS_RESULT: ${{ needs.targeted-windows.result }}
+          STORY_RESULT: ${{ needs.targeted-story.result }}
+          FOCUSED_RESULT: ${{ needs.targeted-focused-uat.result }}
+          BOUNDARY_RESULT: ${{ needs.targeted-boundary.result }}
+        run: |
+          case "$ADAPTER" in
+            windows-installer) RESULT="$WINDOWS_RESULT" ;;
+            autonomous-story-reference) RESULT="$STORY_RESULT" ;;
+            focused-uat) RESULT="$FOCUSED_RESULT" ;;
+            deterministic-boundary) RESULT="$BOUNDARY_RESULT" ;;
+            *) echo "Unknown autonomous QA adapter: $ADAPTER" >&2; exit 1 ;;
+          esac
+          test "$RESULT" = "success"
+      - name: Write bounded targeted verification evidence
+        env:
+          FINGERPRINT: ${{ needs.resolve.outputs.fingerprint }}
+          TESTER_ROLE: ${{ needs.resolve.outputs.tester_role }}
+          ADAPTER: ${{ needs.resolve.outputs.adapter }}
+          FAILING_HEAD: ${{ needs.resolve.outputs.failing_head }}
+          FIX_HEAD: ${{ needs.resolve.outputs.fix_head }}
+          LINKED_ISSUE: ${{ needs.resolve.outputs.linked_issue_number }}
+        run: |
+          mkdir -p .artifacts/autonomous-qa-targeted-fix
+          node -e 'const fs=require("node:fs"); const value={schemaVersion:1,campaignType:"targeted-rerun",defectFingerprint:process.env.FINGERPRINT,testerRole:process.env.TESTER_ROLE,adapter:process.env.ADAPTER,failingCommitSha:process.env.FAILING_HEAD,fixCommitSha:process.env.FIX_HEAD,linkedIssueNumber:Number(process.env.LINKED_ISSUE),reproductionPassed:true,selectedAdapterPassed:true,deterministicGateRequired:true,repairAuthorityGranted:false,aiSelfCertified:false}; fs.writeFileSync(".artifacts/autonomous-qa-targeted-fix/result.json",JSON.stringify(value,null,2)+"\n");'
+      - name: Upload targeted verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-qa-targeted-fix-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
+          path: .artifacts/autonomous-qa-targeted-fix/result.json
+          if-no-files-found: error
+          retention-days: 5

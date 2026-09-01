@@ -39,7 +39,7 @@ function closingIssueNumbers(body) {
 
 function field(body, label, allowEmpty = false) {
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const value = String(body || "").match(new RegExp(`^- ${escaped}: \\`([^\\`]+)\\`$`, "mi"))?.[1]?.trim() || "";
+  const value = String(body || "").match(new RegExp("^- " + escaped + ": `([^`]+)`$", "mi"))?.[1]?.trim() || "";
   if (!value && !allowEmpty) throw new Error(`Autonomous QA targeted fix defect is missing ${label}.`);
   return value;
 }

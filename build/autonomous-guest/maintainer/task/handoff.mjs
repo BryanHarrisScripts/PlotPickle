@@ -193,6 +193,8 @@ export function evaluateMaintainerTaskBudget(handoff, usage = {}) {
   });
   const usedTools = boundedList(usage.toolIds || [], { label: "used tools", pattern: SAFE_ID, maximum: 64, allowEmpty: true });
   const usedSkills = boundedList(usage.skillVersionKeys || [], { label: "used skill versions", pattern: SAFE_REF, maximum: 32, allowEmpty: true });
+  const usedProviders = boundedList(usage.providerIds || [], { label: "used providers", pattern: SAFE_ID, maximum: 24, allowEmpty: true });
+  const usedCredentialRefs = boundedList(usage.credentialRefs || [], { label: "used credential references", pattern: SAFE_REF, maximum: 16, allowEmpty: true });
   const touchedFiles = boundedList(usage.touchedFiles || [], { label: "touched files", pattern: SAFE_PATH, maximum: 64, allowEmpty: true });
   const touchedRoutes = boundedList(usage.routeIds || [], { label: "used routes", pattern: SAFE_REF, maximum: 48, allowEmpty: true });
   const violations = [];
@@ -212,6 +214,8 @@ export function evaluateMaintainerTaskBudget(handoff, usage = {}) {
   if (counters.childAgents > 0 && handoff.childAgentDelegationAllowed !== true) violations.push("child-agent-delegation-missing");
   if (usedTools.some((tool) => !handoff.allowedTools.includes(tool))) violations.push("tool-scope-exceeded");
   if (usedSkills.some((skill) => !handoff.permittedSkills.some((entry) => entry.key === skill))) violations.push("skill-scope-exceeded");
+  if (usedProviders.some((provider) => !handoff.allowedProviderIds.includes(provider))) violations.push("provider-scope-exceeded");
+  if (usedCredentialRefs.some((ref) => !handoff.credentialAccessRefs.includes(ref))) violations.push("credential-scope-exceeded");
   if (touchedFiles.some((file) => !pathAllowed(file, handoff.allowedFiles))) violations.push("file-scope-exceeded");
   if (touchedRoutes.some((route) => !handoff.allowedRoutes.includes(route))) violations.push("route-scope-exceeded");
 

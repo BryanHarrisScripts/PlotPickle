@@ -35,6 +35,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate autonomous QA campaign contracts
-        run: node --test tests/issue-1571-autonomous-qa-campaign-contract.test.mjs
+        run: node --test tests/issue-1571-autonomous-qa-*.test.mjs
       - name: Verify production build
         run: npm run build

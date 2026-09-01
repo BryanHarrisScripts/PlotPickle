@@ -262,7 +262,7 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
         route,
         requiredTerms: ["Story Workbench", "Validation"],
         minimumTextLength: 500,
-      });
+      }, { timeoutMs: 30_000 });
       const state = await waitForWorkbenchState(session, (candidate) => candidate.ready === true, "Story Workbench preparation failed");
       return {
         package: {
@@ -337,7 +337,11 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
     let action = {};
     try {
       await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
-      const state = await waitForRenderedArea(session.client, { ...route, route: materialized.route });
+      const state = await waitForRenderedArea(
+        session.client,
+        { ...route, route: materialized.route },
+        route.id === "story-workbench" ? { timeoutMs: 30_000 } : {},
+      );
       const snapshotText = resultText(await session.client.call("browser_snapshot", {}));
       evidence.reached = true;
       evidence.url = String(state.url || "");

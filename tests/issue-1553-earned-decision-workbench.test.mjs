@@ -29,11 +29,12 @@ test("#1553 deterministic Afterglow Council earns a real revision-bound Decision
 });
 
 test("#1553 route controller uses the bounded operator, Guest gateway and real Workbench apply surface", async () => {
-  const [runner, gateway, workbench, reference] = await Promise.all([
+  const [runner, gateway, workbench, reference, routes] = await Promise.all([
     read("scripts/creative-uat/autonomous/run-autonomous-story-routes.mjs"),
     read("build/story-decisions/gateway.ts"),
     read("app/story-workbench/page.tsx"),
     read("scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs"),
+    read("lib/verification/autonomous-story-routes.mjs"),
   ]);
   assert.match(runner, /operateAutonomousStoryDecision/);
   assert.match(runner, /createAfterglowAutonomousCouncilResult/);
@@ -60,4 +61,7 @@ test("#1553 route controller uses the bounded operator, Guest gateway and real W
   assert.match(reference, /one revision-safe canonical change/);
   assert.match(runner, /operatedWorkbenchEvidence/);
   assert.match(runner, /apply-story-workbench-review/);
+  assert.match(runner, /readinessVerified: true/);
+  assert.match(routes, /contractVerified: readinessVerified/);
+  assert.match(routes, /!readinessVerified && bodyLength/);
 });

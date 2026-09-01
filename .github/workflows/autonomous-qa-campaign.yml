@@ -1,0 +1,40 @@
+name: Autonomous QA Campaign
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/autonomous-qa-campaign.yml'
+      - 'build/autonomous-guest/qa/**'
+      - 'build/autonomous-guest/recovery/**'
+      - 'core/auth/autonomous-guest/**'
+      - 'config/uat-autopilot-registry.json'
+      - 'tests/issue-1571-autonomous-qa-*.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autonomous-qa-campaign-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-and-build:
+    name: contract-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate autonomous QA campaign contracts
+        run: node --test tests/issue-1571-autonomous-qa-campaign-contract.test.mjs
+      - name: Verify production build
+        run: npm run build

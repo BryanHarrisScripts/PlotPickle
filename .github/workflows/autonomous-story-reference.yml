@@ -40,12 +40,12 @@ jobs:
     steps:
       - name: Checkout bounded caller head
         if: ${{ inputs.exact_head != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.exact_head }}
       - name: Checkout exact head
         if: ${{ inputs.exact_head == '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Use Node.js 22

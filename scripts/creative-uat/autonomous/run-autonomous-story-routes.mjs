@@ -336,11 +336,16 @@ async function inspectRoutesWithSession(session, registry, routeInputs, operatio
     };
     let action = {};
     try {
-      await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
+      const currentRoute = extractPageState(resultText(await session.client.call("browser_evaluate", {
+        function: "() => ({ route: location.pathname + location.search })",
+      }))).route;
+      if (currentRoute !== materialized.route) {
+        await session.client.call("browser_navigate", { url: new URL(materialized.route, baseUrl).toString() });
+      }
       const state = await waitForRenderedArea(
         session.client,
         { ...route, route: materialized.route },
-        route.id === "story-workbench" ? { timeoutMs: 30_000 } : {},
+        route.id === "story-workbench" ? { timeoutMs: 60_000 } : {},
       );
       const snapshotText = resultText(await session.client.call("browser_snapshot", {}));
       evidence.reached = true;

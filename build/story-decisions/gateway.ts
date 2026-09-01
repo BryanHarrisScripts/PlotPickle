@@ -277,6 +277,45 @@ export function registerStoryDecisionGateway(server: ViteDevServer) {
       const existing = await readRecord(scope, decisionId);
       if (!existing) { send(response, 404, { ok: false, message: "That Story Decision was not found." }); return; }
 
+      if (action === "respond-autonomous") {
+        if (scope.kind !== "autonomous-guest" || !scope.guestAuthority) {
+          send(response, 403, { ok: false, message: "Delegated autonomous Story Decision response requires an explicitly enabled autonomous Guest run." });
+          return;
+        }
+        const guest = scope.guestAuthority;
+        const authority = Object.freeze({
+          authorityClass: "delegated-autonomous-operator",
+          delegated: true,
+          humanProfileId: "",
+          autonomousRunId: guest.autonomousRunId,
+          operatorId: guest.operatorId,
+          modelRole: "quality",
+          modelId: "plotpickle-deterministic-decision-policy-v1",
+          provider: "plotpickle-local",
+          runtime: "autonomous-route-controller",
+        });
+        const serverPolicy = Object.freeze({
+          enabled: true,
+          allowStoryDecisionResponses: true,
+          autonomousRunId: guest.autonomousRunId,
+          projectId: existing.projectId,
+          maxEvaluationAttempts: 2,
+          minimumConfidence: 0.75,
+        });
+        const supplied = body.response && typeof body.response === "object" && !Array.isArray(body.response)
+          ? body.response as Record<string, unknown>
+          : {};
+        const result = await respondAutonomousStoryDecisionThroughGateway({
+          guestAuthority: guest,
+          decisionId,
+          response: supplied,
+          authority,
+          serverPolicy,
+        });
+        send(response, 200, { ...result, authorityScope: scope.kind });
+        return;
+      }
+
       if (action === "respond") {
         if (scope.kind !== "human" || !scope.profile) {
           send(response, 403, { ok: false, message: "Autonomous Guest cannot use the Human Story Decision response route." });

@@ -179,7 +179,17 @@ export default function StoryWorkbenchPage() {
   }
 
   const responseClass = String((decision.response as Record<string, unknown> | null)?.responseClass || "").replaceAll("-", " ");
-  return <main className={styles.page}>
+  return <main
+    className={styles.page}
+    data-story-workbench-decision-id={decision.decisionId}
+    data-story-workbench-package-id={prepared.package.packageId}
+    data-story-workbench-base-revision={prepared.package.baseRevision}
+    data-story-workbench-current-revision={project.revision}
+    data-story-workbench-can-complete={prepared.review.canComplete ? "true" : "false"}
+    data-story-workbench-can-apply={prepared.review.canApply ? "true" : "false"}
+    data-story-workbench-applied={completion?.applied ? "true" : "false"}
+    data-story-workbench-resulting-revision={completion?.revision ?? ""}
+  >
     <header className={styles.hero}>
       <div><p>Story / Workbench</p><h1>Review the exact change before canon moves.</h1><span>{decision.question}</span></div>
       <div className={styles.links}><Link href="/story-decisions">Story Decisions</Link><Link href="/?workspace=plan">Open PLAN</Link></div>

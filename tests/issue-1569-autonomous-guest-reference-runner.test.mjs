@@ -44,7 +44,7 @@ test("#1569 one-command Afterglow reference consumes one durable real-route task
   const initialize = source.indexOf('action: "initialize"');
   const restart = source.indexOf("lifecycleRestart = await lifecycle.restart()");
   const claim = source.indexOf('action: "claim", routeId: "library"');
-  const secondPass = source.indexOf('runRoutePass("after application restart")');
+  const secondPass = source.indexOf('runRoutePass("after application restart"');
   const finish = source.indexOf('action: "finish"');
 
   assert.ok(initialize >= 0 && restart > initialize, "The durable task must be initialized before the real application restart.");

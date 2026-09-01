@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   createMaintainerBoundedRepairRequest,
-  createMaintainerDefectLearningProposal,
+  createMaintainerDefectLearningInput,
   createMaintainerQaAnalysisPackage,
 } from "../build/autonomous-guest/maintainer/qa-repair-handoff.mjs";
 
@@ -79,6 +79,27 @@ function architecture(overrides = {}) {
   };
 }
 
+function observedLearning(input, overrides = {}) {
+  return {
+    schemaVersion: 1,
+    ...input,
+    dedupeKey: "maintainer-learning-1234567890abcdef1234567890abcdef",
+    state: "observed",
+    proposedBy: {
+      authorityClass: authority.authorityClass,
+      autonomousRunId: authority.autonomousRunId,
+      workspaceId: authority.workspaceId,
+      operatorId: authority.operatorId,
+      humanProfileId: "",
+    },
+    sourceMutationAllowed: false,
+    selfApprovalAllowed: false,
+    operationalAuthorityGranted: false,
+    aiSelfCertified: false,
+    ...overrides,
+  };
+}
+
 function approval(learning, overrides = {}) {
   return {
     schemaVersion: 1,
@@ -106,7 +127,7 @@ function approval(learning, overrides = {}) {
   };
 }
 
-test("#1592 Slice F converts exact-head reproduced QA evidence into read-only maintainer learning", () => {
+test("#1592 Slice F converts exact-head reproduced QA evidence into bounded canonical learning input", () => {
   const analysis = createMaintainerQaAnalysisPackage({
     defect: defect(),
     exactCommitSha: FAILING_SHA,
@@ -123,35 +144,36 @@ test("#1592 Slice F converts exact-head reproduced QA evidence into read-only ma
   assert.equal(analysis.operationalAuthorityGranted, false);
   assert.equal(analysis.aiSelfCertified, false);
 
-  const learning = createMaintainerDefectLearningProposal({
-    authority,
+  const learningInput = createMaintainerDefectLearningInput({
     analysis,
     proposalId: "maintainer-defect-lesson-1592",
     createdAt: "2026-09-01T13:30:00.000Z",
   });
-  assert.equal(learning.kind, "defect-lesson");
-  assert.equal(learning.state, "observed");
-  assert.equal(learning.exactCommitSha, FAILING_SHA);
-  assert.ok(learning.evidence.some((item) => item.kind === "defect" && item.ref === analysis.defectFingerprint));
-  assert.equal(learning.sourceMutationAllowed, false);
-  assert.equal(learning.selfApprovalAllowed, false);
-  assert.equal(learning.operationalAuthorityGranted, false);
-  assert.equal(learning.aiSelfCertified, false);
+  assert.equal(learningInput.kind, "defect-lesson");
+  assert.equal(learningInput.exactCommitSha, FAILING_SHA);
+  assert.ok(learningInput.evidence.some((item) => item.kind === "defect" && item.ref === analysis.defectFingerprint));
+  assert.ok(learningInput.evidence.length <= 64);
+  assert.ok(learningInput.freshnessPaths.length <= 32);
+  assert.ok(learningInput.applicabilityRefs.length <= 64);
+  assert.equal("state" in learningInput, false);
+  assert.equal("sourceMutationAllowed" in learningInput, false);
+  assert.equal("selfApprovalAllowed" in learningInput, false);
+  assert.equal("operationalAuthorityGranted" in learningInput, false);
+  assert.equal("aiSelfCertified" in learningInput, false);
 });
 
-test("#1592 Slice F emits only a bounded #1451 repair request and grants no actor repair authority", () => {
+test("#1592 Slice F emits only a bounded #1451 repair request after canonical observed learning", () => {
   const analysis = createMaintainerQaAnalysisPackage({
     defect: defect(),
     exactCommitSha: FAILING_SHA,
     architectureSnapshot: architecture(),
     domain: "developer",
   });
-  const learning = createMaintainerDefectLearningProposal({
-    authority,
+  const learning = observedLearning(createMaintainerDefectLearningInput({
     analysis,
     proposalId: "maintainer-defect-lesson-repair-1592",
     createdAt: "2026-09-01T13:31:00.000Z",
-  });
+  }));
   const request = createMaintainerBoundedRepairRequest({
     analysis,
     learningProposal: learning,
@@ -203,12 +225,11 @@ test("#1592 Slice F fails closed for flaky, stale, cross-boundary or self-author
     architectureSnapshot: architecture(),
     domain: "developer",
   });
-  const learning = createMaintainerDefectLearningProposal({
-    authority,
+  const learning = observedLearning(createMaintainerDefectLearningInput({
     analysis,
     proposalId: "maintainer-defect-lesson-failclosed-1592",
     createdAt: "2026-09-01T13:32:00.000Z",
-  });
+  }));
 
   assert.throws(
     () => createMaintainerBoundedRepairRequest({
@@ -219,6 +240,16 @@ test("#1592 Slice F fails closed for flaky, stale, cross-boundary or self-author
       deterministicGateRefs: ["ci:exact-head"],
     }),
     /escapes the verified ownership boundary/,
+  );
+  assert.throws(
+    () => createMaintainerBoundedRepairRequest({
+      analysis,
+      learningProposal: observedLearning(learning, { sourceMutationAllowed: true }),
+      harnessDecision: approval(learning),
+      targetPaths: ["build/autonomous-guest/qa/fix-verification.ts"],
+      deterministicGateRefs: ["ci:exact-head"],
+    }),
+    /reject self-authorizing or operational learning proposals/,
   );
   assert.throws(
     () => createMaintainerBoundedRepairRequest({

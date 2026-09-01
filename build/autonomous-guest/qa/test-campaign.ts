@@ -119,6 +119,7 @@ const MAX_DURATION_MS = 4 * 60 * 60 * 1000;
 const MAX_REQUESTS = 2_000;
 const MAX_TOKENS = 2_000_000;
 const MAX_CLOUD_COST_USD = 1_000;
+const MAX_TOKEN_LENGTH = 240;
 
 function assertGuestAuthority(authority: AutonomousGuestAuthority) {
   if (authority.authorityClass !== "delegated-guest-autonomous-operator" || authority.delegated !== true || authority.humanProfileId !== "") {
@@ -128,6 +129,7 @@ function assertGuestAuthority(authority: AutonomousGuestAuthority) {
 
 function safeToken(value: string, label: string, allowEmpty = false) {
   const normalized = String(value || "").trim();
+  if (normalized.length > MAX_TOKEN_LENGTH) throw new Error(`Autonomous QA ${label} exceeds its bounded length.`);
   if (allowEmpty && normalized === "") return "";
   if (!SAFE_TOKEN.test(normalized)) throw new Error(`Autonomous QA ${label} is missing or invalid.`);
   return normalized;

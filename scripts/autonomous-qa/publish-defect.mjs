@@ -6,6 +6,8 @@ const FINGERPRINT = /^qa-defect-[a-f0-9]{32}$/;
 const SAFE_REF = /^[a-z0-9][a-z0-9._:/-]{1,239}$/i;
 const MAX_REFS = 64;
 const MAX_OBSERVATIONS = 8;
+const MAX_ISSUE_PAGES = 10;
+const SEVERITIES = new Set(["blocker", "critical", "major", "minor"]);
 
 function safeToken(value, label, allowEmpty = false) {
   const normalized = String(value || "").trim();
@@ -40,9 +42,11 @@ function validateCandidate(value) {
   if (new Set(observations.map((item) => `${item.commitSha}:${item.buildId}`)).size !== 1) {
     throw new Error("Autonomous QA defect publication observations must reproduce on the same exact build.");
   }
+  const severity = safeToken(value.severity, "severity");
+  if (!SEVERITIES.has(severity)) throw new Error("Autonomous QA defect publication severity is invalid.");
   return Object.freeze({
     fingerprint: value.fingerprint,
-    severity: safeToken(value.severity, "severity"),
+    severity,
     testerRole: safeToken(value.testerRole, "tester role"),
     routeId: safeToken(value.routeId, "route ID", true),
     assertionRef: safeToken(value.assertionRef, "assertion reference"),
@@ -105,13 +109,24 @@ async function githubRequest(fetchImpl, token, url, init = {}) {
   return response.status === 204 ? {} : response.json();
 }
 
+async function listOpenIssues(fetchImpl, token, apiRoot) {
+  const issues = [];
+  for (let page = 1; page <= MAX_ISSUE_PAGES; page += 1) {
+    const batch = await githubRequest(fetchImpl, token, `${apiRoot}/issues?state=open&per_page=100&sort=updated&direction=desc&page=${page}`);
+    if (!Array.isArray(batch)) throw new Error("GitHub defect publication received an invalid Issue list.");
+    issues.push(...batch);
+    if (batch.length < 100) return issues;
+  }
+  throw new Error("GitHub defect publication exceeded its bounded open-Issue search.");
+}
+
 export async function publishAutonomousQaDefect({ candidate: rawCandidate, repository, token, fetchImpl = fetch }) {
   const candidate = validateCandidate(rawCandidate);
   if (candidate.disposition === "record-flaky") return candidate;
   const repo = repositoryName(repository);
   if (!String(token || "").trim()) throw new Error("Autonomous QA defect publication requires a GitHub token.");
   const apiRoot = `https://api.github.com/repos/${repo}`;
-  const issues = await githubRequest(fetchImpl, token, `${apiRoot}/issues?state=open&per_page=100&sort=updated&direction=desc`);
+  const issues = await listOpenIssues(fetchImpl, token, apiRoot);
   const fingerprintMarker = marker(candidate.fingerprint);
   const existing = issues.find((issue) => !issue.pull_request && String(issue.body || "").includes(fingerprintMarker));
   if (existing) {

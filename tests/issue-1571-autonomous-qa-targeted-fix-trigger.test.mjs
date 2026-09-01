@@ -179,7 +179,9 @@ test("#1571 targeted workflow reuses exact-head adapters and preserves tester/re
 
   for (const reusable of [storyWorkflow, windowsWorkflow]) {
     assert.match(reusable, /exact_head:/);
-    assert.match(reusable, /ref: \$\{\{ inputs\.exact_head \|\| github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+    assert.match(reusable, /if: \$\{\{ inputs\.exact_head != '' \}\}/);
+    assert.match(reusable, /ref: \$\{\{ inputs\.exact_head \}\}/);
+    assert.match(reusable, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   }
   assert.match(focusedWrapper, /createManagedPlotPickleLifecycle/);
   assert.match(focusedWrapper, /run-uat-autopilot\.mjs/);

@@ -22,7 +22,7 @@ concurrency:
 jobs:
   inventory:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,6 +35,8 @@ jobs:
         run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs
       - name: Emit exact-head machine-readable inventory
         run: node scripts/runtime-weight/inventory.mjs --output .artifacts/runtime-weight/inventory.json
+      - name: Validate production build
+        run: npm run build
       - name: Upload inventory evidence
         uses: actions/upload-artifact@v4
         with:

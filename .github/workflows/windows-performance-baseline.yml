@@ -103,7 +103,7 @@ jobs:
       - name: Evaluate ratified startup budgets
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline') ||
-          (github.event_name == 'pull_request' && startsWith(github.head_ref, 'baseline/1411-'))
+          (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'baseline/1411-'))
         shell: pwsh
         run: |
           $files = @()
@@ -137,7 +137,7 @@ jobs:
       - name: Evaluate ratified local Story Workflow budgets
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local') ||
-          (github.event_name == 'pull_request' && startsWith(github.head_ref, 'baseline/1411-'))
+          (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'baseline/1411-'))
         shell: pwsh
         run: |
           $files = Get-ChildItem .artifacts/performance/story-workflow-local-*.json | Where-Object { $_.Name -match '^story-workflow-local-\d+\.json$' } | ForEach-Object { $_.FullName }

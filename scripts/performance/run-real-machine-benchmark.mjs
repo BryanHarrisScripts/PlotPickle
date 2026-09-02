@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { performance } from "node:perf_hooks";
+import { classifyMeasuredWork } from "./classify-measured-work.mjs";
 import { measureStoryWorkflowContract } from "./measure-story-workflow-contract.mjs";
 
 const args = process.argv.slice(2);
@@ -136,6 +137,8 @@ const evidence = {
     workflowBounded: workflow.status !== "captured-deterministic-contract" || workflow.comparison.targetedIsBounded,
   },
 };
+evidence.measurements.workClassification = classifyMeasuredWork(evidence);
+evidence.result.workClassificationComplete = evidence.measurements.workClassification.validation.complete;
 
 await mkdir(path.dirname(output), { recursive: true });
 await writeFile(output, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "benchmarkIssue": 1411,
+  "baselineVersion": "1411-2026-09-02-a7741f4",
+  "evidence": {
+    "sourcePullRequest": 1623,
+    "sourceHeadSha": "a7741f473fe8e20e8e643b4922f3dee9d4eda772",
+    "artifactId": 9840160725,
+    "artifactDigest": "sha256:efbd544427ec779b59a78018bea35ac9f83130467d81fe6a8a0142ddbee7d7fa"
+  },
+  "identity": {
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "afterglowFixture": "afterglow-v9",
+    "ppfStartingRevision": "9",
+    "curriculumIdentity": "afterglow-v9-current-catalog",
+    "buzzMode": "disabled",
+    "minimumHealthySamplesPerMode": 3
+  },
+  "derivation": {
+    "timingWarning": "observed max + max(2 standard deviations, 10% of observed max), rounded upward",
+    "timingHard": "observed max + max(4 standard deviations, 25% of observed max), rounded upward",
+    "note": "Timing tolerance widens with observed Windows-runner variance. Structural idle and workflow invariants remain hard limits."
+  },
+  "scopes": {
+    "startup": ["fresh-runtime", "fresh-optimizer", "warm-persistent-runtime"],
+    "story-workflow-local": ["story-workflow-local"]
+  },
+  "modes": {
+    "fresh-runtime": {
+      "startup": {
+        "viteReadyMs": {"warningMax": 33000, "hardMax": 41000},
+        "firstUsableCoreWorkspaceMs": {"warningMax": 38000, "hardMax": 48000},
+        "firstBrowserUsefulWorkspaceMs": {"warningMax": 69000, "hardMax": 86000}
+      },
+      "repeatedUsefulInteractiveMs": {
+        "build": {"warningMax": 1600, "hardMax": 1800},
+        "dashboard": {"warningMax": 1200, "hardMax": 1400},
+        "learn": {"warningMax": 1600, "hardMax": 1800},
+        "library": {"warningMax": 1300, "hardMax": 1400},
+        "plan": {"warningMax": 1700, "hardMax": 2000},
+        "story-decisions": {"warningMax": 1000, "hardMax": 1100},
+        "story-workbench": {"warningMax": 800, "hardMax": 900},
+        "storyboard": {"warningMax": 1400, "hardMax": 1600}
+      }
+    },
+    "fresh-optimizer": {
+      "startup": {
+        "viteReadyMs": {"warningMax": 22000, "hardMax": 24000},
+        "firstUsableCoreWorkspaceMs": {"warningMax": 26000, "hardMax": 29000},
+        "firstBrowserUsefulWorkspaceMs": {"warningMax": 61000, "hardMax": 71000}
+      },
+      "repeatedUsefulInteractiveMs": {
+        "build": {"warningMax": 1700, "hardMax": 1900},
+        "dashboard": {"warningMax": 1300, "hardMax": 1500},
+        "learn": {"warningMax": 1700, "hardMax": 1900},
+        "library": {"warningMax": 1100, "hardMax": 1200},
+        "plan": {"warningMax": 1800, "hardMax": 2000},
+        "story-decisions": {"warningMax": 1000, "hardMax": 1200},
+        "story-workbench": {"warningMax": 1100, "hardMax": 1200},
+        "storyboard": {"warningMax": 1400, "hardMax": 1600}
+      }
+    },
+    "warm-persistent-runtime": {
+      "startup": {
+        "viteReadyMs": {"warningMax": 16000, "hardMax": 18000},
+        "firstUsableCoreWorkspaceMs": {"warningMax": 20000, "hardMax": 22000},
+        "firstBrowserUsefulWorkspaceMs": {"warningMax": 51000, "hardMax": 59000}
+      },
+      "repeatedUsefulInteractiveMs": {
+        "build": {"warningMax": 2700, "hardMax": 3400},
+        "dashboard": {"warningMax": 1800, "hardMax": 2200},
+        "learn": {"warningMax": 4900, "hardMax": 6500},
+        "library": {"warningMax": 1700, "hardMax": 2000},
+        "plan": {"warningMax": 6500, "hardMax": 8800},
+        "story-decisions": {"warningMax": 1400, "hardMax": 1600},
+        "story-workbench": {"warningMax": 1200, "hardMax": 1300},
+        "storyboard": {"warningMax": 2200, "hardMax": 2600}
+      }
+    },
+    "story-workflow-local": {
+      "startup": {
+        "viteReadyMs": {"warningMax": 16000, "hardMax": 18000},
+        "firstUsableCoreWorkspaceMs": {"warningMax": 19000, "hardMax": 22000},
+        "firstBrowserUsefulWorkspaceMs": {"warningMax": 65000, "hardMax": 73000}
+      },
+      "repeatedUsefulInteractiveMs": {
+        "build": {"warningMax": 1500, "hardMax": 1700},
+        "dashboard": {"warningMax": 1800, "hardMax": 2200},
+        "learn": {"warningMax": 1800, "hardMax": 2000},
+        "library": {"warningMax": 1300, "hardMax": 1500},
+        "plan": {"warningMax": 2100, "hardMax": 2500},
+        "story-decisions": {"warningMax": 1100, "hardMax": 1200},
+        "story-workbench": {"warningMax": 900, "hardMax": 1000},
+        "storyboard": {"warningMax": 1300, "hardMax": 1500}
+      },
+      "workflowHardMax": {
+        "workItemRatio": 0.60,
+        "specialistRatio": 0.75,
+        "contextByteRatio": 0.60
+      },
+      "workflowRequirements": {
+        "allSamplesBounded": true,
+        "allSamplesPreserveUnaffected": true
+      }
+    }
+  },
+  "sharedHardLimits": {
+    "idle": {
+      "sameOriginRequestCount": 0,
+      "apiRequestCount": 0,
+      "externalRequestCount": 0,
+      "domMutationCount": 0,
+      "explicitAgentOrModelProcessCount": 0
+    },
+    "processMemory": {
+      "workingSetAfterBytes": {"warningMax": 1610612736, "hardMax": 1879048192},
+      "workingSetDeltaBytes": {"warningMax": 33554432, "hardMax": 67108864}
+    }
+  }
+}

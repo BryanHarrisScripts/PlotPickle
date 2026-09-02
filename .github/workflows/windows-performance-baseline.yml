@@ -6,6 +6,7 @@ on:
       - "Start-PlotPickle.bat"
       - "scripts/performance/**"
       - "tests/issue-1411-performance-benchmark.test.mjs"
+      - "tests/issue-1624-performance-budgets.test.mjs"
       - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
     inputs:
@@ -53,7 +54,7 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate performance contracts
         shell: pwsh
-        run: node --test tests/issue-1411-performance-benchmark.test.mjs
+        run: node --test tests/issue-1411-performance-benchmark.test.mjs tests/issue-1624-performance-budgets.test.mjs
       - name: Capture fresh-runtime startup
         if: github.event_name == 'pull_request' || inputs.profile == 'startup-baseline'
         shell: pwsh
@@ -99,6 +100,17 @@ jobs:
             $files += $file
           }
           node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/startup-mode-baseline-analysis.json
+      - name: Evaluate ratified startup budgets
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline') ||
+          (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'baseline/1411-'))
+        shell: pwsh
+        run: |
+          $files = @()
+          $files += Get-ChildItem .artifacts/performance/fresh-runtime*.json | Where-Object { $_.Name -notmatch 'analysis' } | ForEach-Object { $_.FullName }
+          $files += Get-ChildItem .artifacts/performance/fresh-optimizer-*.json | ForEach-Object { $_.FullName }
+          $files += Get-ChildItem .artifacts/performance/warm-persistent-runtime-*.json | ForEach-Object { $_.FullName }
+          node scripts/performance/ratified/evaluate-performance-budgets.mjs @files --scope startup --output .artifacts/performance/startup-budget-evaluation.json
       - name: Capture repeated local Story Workflow samples
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local') ||
@@ -122,6 +134,14 @@ jobs:
             $files += $file
           }
           node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/story-workflow-local-baseline-analysis.json
+      - name: Evaluate ratified local Story Workflow budgets
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local') ||
+          (github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'baseline/1411-'))
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem .artifacts/performance/story-workflow-local-*.json | Where-Object { $_.Name -match '^story-workflow-local-\d+\.json$' } | ForEach-Object { $_.FullName }
+          node scripts/performance/ratified/evaluate-performance-budgets.mjs @files --scope story-workflow-local --output .artifacts/performance/story-workflow-local-budget-evaluation.json
       - name: Upload bounded performance evidence
         if: always()
         uses: actions/upload-artifact@v4

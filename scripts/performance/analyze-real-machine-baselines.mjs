@@ -30,6 +30,7 @@ const startupFields = [
   "firstBrowserUsefulWorkspaceMs",
 ];
 const startupModes = new Set(["fresh-runtime", "fresh-optimizer", "warm-persistent-runtime"]);
+const workflowModes = new Set(["story-workflow-local", "buzz-enabled-story-council"]);
 
 function summarizeBrowserPass(evidenceList, pass) {
   const labels = new Set(evidenceList.flatMap((entry) => entry.measurements?.browser?.[pass]?.map((item) => item.label) ?? []));
@@ -83,10 +84,48 @@ function summarizeProcessIdle(evidenceList) {
   };
 }
 
+function summarizeWorkflow(evidenceList) {
+  const captured = evidenceList.filter((entry) => entry.workflow?.status === "captured-deterministic-contract");
+  return {
+    reliability: "deterministic-local-planning-and-invalidation-contract",
+    samples: captured.length,
+    paidCloudRequired: false,
+    fullAudit: {
+      elapsedMs: summarize(captured.map((entry) => entry.workflow?.fullAudit?.elapsedMs)),
+      workItemCount: summarize(captured.map((entry) => entry.workflow?.fullAudit?.workItemCount)),
+      specialistCount: summarize(captured.map((entry) => entry.workflow?.fullAudit?.specialistCount)),
+      contextBytes: summarize(captured.map((entry) => entry.workflow?.fullAudit?.contextBytes)),
+    },
+    targetedReevaluation: {
+      elapsedMs: summarize(captured.map((entry) => entry.workflow?.targetedReevaluation?.elapsedMs)),
+      workItemCount: summarize(captured.map((entry) => entry.workflow?.targetedReevaluation?.workItemCount)),
+      specialistCount: summarize(captured.map((entry) => entry.workflow?.targetedReevaluation?.specialistCount)),
+      contextBytes: summarize(captured.map((entry) => entry.workflow?.targetedReevaluation?.contextBytes)),
+      preservedUnaffectedSamples: captured.filter((entry) => entry.workflow?.targetedReevaluation?.preservedUnaffected === true).length,
+    },
+    comparison: {
+      workItemRatio: summarize(captured.map((entry) => entry.workflow?.comparison?.workItemRatio)),
+      specialistRatio: summarize(captured.map((entry) => entry.workflow?.comparison?.specialistRatio)),
+      contextByteRatio: summarize(captured.map((entry) => entry.workflow?.comparison?.contextByteRatio)),
+      boundedSamples: captured.filter((entry) => entry.workflow?.comparison?.targetedIsBounded === true).length,
+    },
+    note: "This aggregates deterministic local planning and invalidation work only. It does not claim live model latency, network transport or creative quality.",
+  };
+}
+
 function analyzeMode(mode, evidenceList) {
   const healthy = evidenceList.filter((entry) =>
     entry.result?.harnessHealthy === true &&
-    (!startupModes.has(mode) || entry.result?.startupHealthy === true)
+    (!startupModes.has(mode) || entry.result?.startupHealthy === true) &&
+    (!workflowModes.has(mode) || (
+      entry.result?.workflowBounded === true &&
+      entry.workflow?.status === "captured-deterministic-contract" &&
+      entry.workflow?.paidCloudRequired === false &&
+      (mode !== "story-workflow-local" || (
+        entry.environment?.buzzMode === "disabled" &&
+        (entry.environment?.optionalIntegrations?.length ?? 0) === 0
+      ))
+    ))
   );
   const identities = new Set(healthy.map((entry) => JSON.stringify({
     version: entry.environment?.plotpickleVersion ?? null,
@@ -98,6 +137,10 @@ function analyzeMode(mode, evidenceList) {
     ppfRevision: entry.environment?.ppfStartingRevision ?? null,
     buzzMode: entry.environment?.buzzMode ?? null,
     optionalIntegrations: entry.environment?.optionalIntegrations ?? [],
+    workflowWorkload: entry.workflow?.workload ?? null,
+    workflowBaseRevision: entry.workflow?.baseRevision ?? null,
+    workflowChangedRefs: entry.workflow?.changedRefs ?? [],
+    workflowProviderRoute: entry.workflow?.providerRoute ?? null,
   })));
   const identityStable = identities.size <= 1;
   const routeLabels = new Set(healthy.flatMap((entry) => entry.measurements?.navigation?.map((item) => item.label) ?? []));
@@ -117,6 +160,7 @@ function analyzeMode(mode, evidenceList) {
     idle: summarizeBrowserIdle(healthy),
   };
   const processIdle = summarizeProcessIdle(healthy);
+  const workflow = summarizeWorkflow(healthy);
   const readyForBudgetRatification = healthy.length >= 3 && identityStable;
   return {
     mode,
@@ -128,6 +172,7 @@ function analyzeMode(mode, evidenceList) {
     navigation,
     browser,
     processIdle,
+    workflow,
     memoryRss,
   };
 }

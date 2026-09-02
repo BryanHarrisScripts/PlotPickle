@@ -66,17 +66,19 @@ jobs:
           PLOTPICKLE_BUZZ_MODE: disabled
         run: node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output .artifacts/performance/fresh-runtime.json
       - name: Capture separated optimizer and warm startup samples
-        if: github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline'
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline') ||
+          (github.event_name == 'pull_request' && startsWith(github.head_ref, 'baseline/1411-'))
         shell: pwsh
         env:
           PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
-          PLOTPICKLE_COMMIT: ${{ github.sha }}
+          PLOTPICKLE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           PLOTPICKLE_AFTERGLOW_FIXTURE: afterglow-v9
           PLOTPICKLE_PPF_START_REVISION: "9"
           PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
           PLOTPICKLE_BUZZ_MODE: disabled
         run: |
-          $samples = [int]"${{ inputs.sample_count }}"
+          $samples = if ("${{ github.event_name }}" -eq "pull_request") { 3 } else { [int]"${{ inputs.sample_count }}" }
           $files = @(".artifacts/performance/fresh-runtime.json")
           $optimizerFile = ".artifacts/performance/fresh-optimizer.json"
           node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-optimizer --output $optimizerFile
@@ -90,18 +92,20 @@ jobs:
           }
           node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/startup-mode-baseline-analysis.json
       - name: Capture repeated local Story Workflow samples
-        if: github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local'
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local') ||
+          (github.event_name == 'pull_request' && startsWith(github.head_ref, 'baseline/1411-'))
         shell: pwsh
         env:
           PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
-          PLOTPICKLE_COMMIT: ${{ github.sha }}
+          PLOTPICKLE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           PLOTPICKLE_AFTERGLOW_FIXTURE: afterglow-v9
           PLOTPICKLE_PPF_START_REVISION: "9"
           PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
           PLOTPICKLE_BUZZ_MODE: disabled
           PLOTPICKLE_OPTIONAL_INTEGRATIONS: ""
         run: |
-          $samples = [int]"${{ inputs.sample_count }}"
+          $samples = if ("${{ github.event_name }}" -eq "pull_request") { 3 } else { [int]"${{ inputs.sample_count }}" }
           $files = @()
           1..$samples | ForEach-Object {
             $file = ".artifacts/performance/story-workflow-local-$_.json"

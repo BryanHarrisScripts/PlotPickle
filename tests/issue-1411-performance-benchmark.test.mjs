@@ -4,6 +4,11 @@ import path from "node:path";
 import test from "node:test";
 
 import { analyzeBaselines, summarize } from "../scripts/performance/analyze-real-machine-baselines.mjs";
+import {
+  classifyMeasuredWork,
+  measuredWorkDefinitions,
+  validateWorkClassification,
+} from "../scripts/performance/contracts/classify-measured-work.mjs";
 import { browserRoutes, findPerformanceBrowser } from "../scripts/performance/measure-browser-responsiveness.mjs";
 import { measureStoryWorkflowContract } from "../scripts/performance/measure-story-workflow-contract.mjs";
 import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath } from "../scripts/performance/run-windows-startup-benchmark.mjs";
@@ -46,6 +51,41 @@ test("#1411 workflow benchmark stays explicit about deterministic planning limit
   assert.match(source, /Live model latency, retries and network transport remain separate real-machine measurements/);
   assert.match(source, /affectedStoryWorkItemIds/);
   assert.match(source, /requeueAffectedStoryWorkItems/);
+});
+
+test("#1616 classifies every significant measured activity without changing runtime authority", () => {
+  const classification = classifyMeasuredWork({
+    environment: { buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { startup: { browserSuppressed: true, optionalCompanionMaintenanceSuppressed: true }, browser: {}, processIdle: {} },
+    workflow: { status: "captured-deterministic-contract" },
+  });
+  assert.equal(classification.validation.complete, true);
+  assert.deepEqual(classification.validation.unclassifiedObservedWork, []);
+  assert.equal(classification.authority, "classification-evidence-only");
+  assert.equal(classification.changesRuntimeBehavior, false);
+  assert.deepEqual([...new Set(measuredWorkDefinitions.map((item) => item.category))].sort(), [
+    "developer-diagnostic-only",
+    "optional-integration",
+    "required-before-core-readiness",
+    "required-deferrable-after-readiness",
+    "workflow-triggered",
+  ]);
+  assert.deepEqual(validateWorkClassification(), []);
+  assert.ok(classification.items.every((item) => item.evidenceRefs.length > 0 && item.rationale));
+  assert.equal(classification.items.find((item) => item.id === "optional-companion-maintenance")?.activeInSample, false);
+  assert.equal(classification.items.find((item) => item.id === "managed-browser-opening")?.activeInSample, false);
+  assert.equal(classification.items.find((item) => item.id === "manual-developer-agents-and-uat")?.activeInSample, false);
+  assert.equal(classification.items.find((item) => item.id === "targeted-story-reevaluation")?.activeInSample, true);
+});
+
+test("#1616 classification rejects missing categories and duplicate work identities", () => {
+  const invalid = [
+    { ...measuredWorkDefinitions[0] },
+    { ...measuredWorkDefinitions[0] },
+  ];
+  const errors = validateWorkClassification(invalid);
+  assert.ok(errors.some((error) => error.includes("duplicated")));
+  assert.ok(errors.some((error) => error.includes("No work is classified")));
 });
 
 test("#1411 baseline analyzer requires repeated authoritative Windows samples before ratification", () => {

@@ -17,6 +17,8 @@ export const browserRoutes = Object.freeze([
   { label: "story-workbench", path: "/story-workbench" },
 ]);
 
+export const idleWindowMs = 5_000;
+const idleSettleMs = 1_000;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function choosePort() {
@@ -77,6 +79,7 @@ class CdpClient {
     this.url = url;
     this.nextId = 1;
     this.pending = new Map();
+    this.eventHandlers = new Map();
   }
 
   async connect() {
@@ -88,16 +91,22 @@ class CdpClient {
     });
     this.socket.addEventListener("message", (event) => {
       const message = JSON.parse(String(event.data));
-      if (!message.id) return;
-      const pending = this.pending.get(message.id);
-      if (!pending) return;
-      this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
-      else pending.resolve(message.result ?? {});
+      if (message.id) {
+        const pending = this.pending.get(message.id);
+        if (!pending) return;
+        this.pending.delete(message.id);
+        if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
+        else pending.resolve(message.result ?? {});
+        return;
+      }
+      const handlers = this.eventHandlers.get(message.method);
+      if (!handlers) return;
+      for (const handler of handlers) handler(message.params ?? {});
     });
     this.socket.addEventListener("close", () => {
       for (const pending of this.pending.values()) pending.reject(new Error("#1411 browser debugger connection closed."));
       this.pending.clear();
+      this.eventHandlers.clear();
     });
   }
 
@@ -108,6 +117,16 @@ class CdpClient {
       this.pending.set(id, { resolve, reject, method });
       this.socket.send(payload);
     });
+  }
+
+  on(method, handler) {
+    const handlers = this.eventHandlers.get(method) ?? new Set();
+    handlers.add(handler);
+    this.eventHandlers.set(method, handlers);
+    return () => {
+      handlers.delete(handler);
+      if (handlers.size === 0) this.eventHandlers.delete(method);
+    };
   }
 
   close() {
@@ -226,6 +245,21 @@ const confirmAfterglowExpression = `(() => {
 
 const afterglowDashboardReadyExpression = `location.pathname === "/" && location.search === "?workspace=dashboard" && document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') === "dashboard"`;
 const browserSetupStateExpression = `(() => ({ location: location.pathname + location.search, workspace: document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') || '', body: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 700) }))()`;
+const beginIdleMutationCountExpression = `(() => {
+  globalThis.__plotpickleIdleMutationObserver?.disconnect?.();
+  globalThis.__plotpickleIdleMutationCount = 0;
+  const observer = new MutationObserver((records) => { globalThis.__plotpickleIdleMutationCount += records.length; });
+  observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
+  globalThis.__plotpickleIdleMutationObserver = observer;
+  return true;
+})()`;
+const finishIdleMutationCountExpression = `(() => {
+  const count = Number(globalThis.__plotpickleIdleMutationCount || 0);
+  globalThis.__plotpickleIdleMutationObserver?.disconnect?.();
+  delete globalThis.__plotpickleIdleMutationObserver;
+  delete globalThis.__plotpickleIdleMutationCount;
+  return count;
+})()`;
 
 async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000) {
   const deadline = Date.now() + timeoutMs;
@@ -295,6 +329,78 @@ async function measureRoute(client, baseUrl, route) {
   throw new Error(`#1411 browser route ${route.label} did not become useful and interactive within 30000 ms. Last state: ${JSON.stringify(state)}.${detail}`);
 }
 
+async function measureIdleCost(client, baseUrl) {
+  await client.send("Page.navigate", { url: new URL("/?workspace=dashboard", baseUrl).toString() });
+  await waitForBrowserValue(client, readinessExpression, "idle Dashboard");
+  await evaluate(client, "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+  await delay(idleSettleMs);
+
+  const requests = [];
+  const removeNetworkListener = client.on("Network.requestWillBeSent", (params) => {
+    const requestUrl = params.request?.url;
+    if (!requestUrl || requestUrl.startsWith("data:") || requestUrl.startsWith("blob:")) return;
+    requests.push({ url: requestUrl, method: params.request?.method ?? null, type: params.type ?? null });
+  });
+
+  await Promise.all([client.send("Network.enable"), client.send("Performance.enable")]);
+  await evaluate(client, beginIdleMutationCountExpression);
+  const before = await client.send("Performance.getMetrics");
+  const started = performance.now();
+  await delay(idleWindowMs);
+  const after = await client.send("Performance.getMetrics");
+  const observedWindowMs = Number((performance.now() - started).toFixed(2));
+  const domMutationCount = await evaluate(client, finishIdleMutationCountExpression);
+  removeNetworkListener();
+  await client.send("Network.disable");
+
+  const origin = new URL(baseUrl).origin;
+  const sameOriginPaths = new Map();
+  const externalOrigins = new Map();
+  let sameOriginRequestCount = 0;
+  let apiRequestCount = 0;
+  let externalRequestCount = 0;
+  for (const request of requests) {
+    const requestUrl = new URL(request.url);
+    if (requestUrl.origin === origin) {
+      sameOriginRequestCount += 1;
+      const pathKey = `${request.method ?? "GET"} ${requestUrl.pathname}`;
+      sameOriginPaths.set(pathKey, (sameOriginPaths.get(pathKey) ?? 0) + 1);
+      if (requestUrl.pathname.startsWith("/api/")) apiRequestCount += 1;
+    } else {
+      externalRequestCount += 1;
+      externalOrigins.set(requestUrl.origin, (externalOrigins.get(requestUrl.origin) ?? 0) + 1);
+    }
+  }
+
+  const beforeTaskDuration = (before.metrics ?? []).find((metric) => metric.name === "TaskDuration")?.value ?? null;
+  const afterTaskDuration = (after.metrics ?? []).find((metric) => metric.name === "TaskDuration")?.value ?? null;
+  const rendererTaskDurationMs = Number.isFinite(beforeTaskDuration) && Number.isFinite(afterTaskDuration)
+    ? Number(Math.max(0, (afterTaskDuration - beforeTaskDuration) * 1000).toFixed(2))
+    : null;
+
+  return {
+    reliability: "headless-browser-cdp-idle-window",
+    windowMs: idleWindowMs,
+    observedWindowMs,
+    settleBeforeWindowMs: idleSettleMs,
+    sameOriginRequestCount,
+    apiRequestCount,
+    externalRequestCount,
+    sameOriginPaths: Object.fromEntries([...sameOriginPaths.entries()].sort(([left], [right]) => left.localeCompare(right))),
+    externalOrigins: Object.fromEntries([...externalOrigins.entries()].sort(([left], [right]) => left.localeCompare(right))),
+    domMutationCount,
+    domMutationReliability: "DOM mutation proxy only; zero mutations do not prove zero React renders.",
+    rendererTaskDurationMs,
+    rendererTaskDurationReliability: "Chrome renderer TaskDuration delta; not whole-system CPU usage.",
+    modelOrAgentWakeups: {
+      value: null,
+      reliability: "not-observable-from-browser-cdp",
+      note: "This browser probe reports network and DOM/renderer activity only; hidden local model or Agent process wakeups require a separate process-level observer.",
+    },
+    activityObserved: sameOriginRequestCount > 0 || externalRequestCount > 0 || domMutationCount > 0,
+  };
+}
+
 async function stopBrowser(child) {
   if (!child?.pid || child.exitCode !== null) return;
   if (process.platform === "win32") {
@@ -347,6 +453,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       if (firstUsefulWorkspaceAtEpochMs == null) firstUsefulWorkspaceAtEpochMs = Date.now();
     }
     for (const route of browserRoutes) repeatedAccess.push(await measureRoute(client, baseUrl, route));
+    const idle = await measureIdleCost(client, baseUrl);
     return {
       reliability: "headless-browser-cdp-useful-interactive-contract",
       browser: path.basename(executable),
@@ -368,6 +475,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       firstUsefulWorkspaceAtEpochMs,
       firstAccess,
       repeatedAccess,
+      idle,
     };
   } finally {
     client?.close();

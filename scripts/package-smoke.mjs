@@ -33,6 +33,7 @@ for (const file of [
   "package.json",
   "package-lock.json",
   "plugins/plotpickle-playhouse/index.ts",
+  "public/visual-references/manifest.json",
   "README.md",
   "schema/plotpickle-github-app-public-config.schema.json",
   "schema/plotpickle-google-oauth-public-config.schema.json",
@@ -55,9 +56,25 @@ for (const excluded of [
   "docs/brand-sources/plotpickle-ouroboros-v2-master.png",
   "docs/brand-sources/plotpickle-sage-logo-reference-2026-08-13.png",
   "docs/brand-sources/sage-brinewick-v2-master.png",
+  "public/visual-references/full",
 ]) {
   assert.ok(!existsSync(path.join(folder, excluded)), `Source-only payload leaked into release: ${excluded}`);
 }
+
+const visualReferences = JSON.parse(readFileSync(path.join(folder, "public", "visual-references", "manifest.json"), "utf8"));
+assert.equal(visualReferences.length, 62, "Packaged Visual Reference Library must retain all 62 references.");
+for (const reference of visualReferences) {
+  assert.ok(reference?.image?.thumbnail, `${reference?.id ?? "<unknown>"}: packaged thumbnail locator is missing`);
+  assert.ok(reference?.image?.card, `${reference?.id ?? "<unknown>"}: packaged card locator is missing`);
+  assert.ok(!Object.prototype.hasOwnProperty.call(reference.image, "full"), `${reference.id}: packaged manifest must not advertise excluded full-resolution media`);
+  for (const variant of ["thumbnail", "card"]) {
+    const asset = reference.image[variant];
+    assert.match(asset, /^\/visual-references\/(?:thumbnail|card)\/[^/]+\.webp$/, `${reference.id}: invalid packaged ${variant} locator`);
+    const packagedPath = path.join(folder, "public", ...asset.slice(1).split("/"));
+    assert.ok(existsSync(packagedPath), `${reference.id}: packaged ${variant} locator does not resolve: ${asset}`);
+  }
+}
+
 const githubApp = JSON.parse(readFileSync(path.join(folder, "config", "github-app.json"), "utf8"));
 assert.equal(githubApp.registrationStatus, "registered", "The official PlotPickle GitHub App has not been registered for this release.");
 assert.match(githubApp.clientId, /^[A-Za-z0-9._-]{8,200}$/);

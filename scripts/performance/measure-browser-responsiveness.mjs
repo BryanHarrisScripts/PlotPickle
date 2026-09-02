@@ -126,7 +126,7 @@ const readinessExpression = `(() => {
   const routeKey = location.pathname + location.search;
   let routeReady = false;
   if (routeKey === "/?workspace=dashboard") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'));
-  else if (routeKey === "/library") routeReady = Boolean(document.querySelector('[data-library-workspace="v1"]'));
+  else if (routeKey === "/library") routeReady = Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
   else if (routeKey === "/?workspace=learn") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
   else if (routeKey === "/?workspace=plan") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Plan");
   else if (routeKey === "/?workspace=build") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Build");
@@ -148,9 +148,13 @@ const readinessExpression = `(() => {
 })()`;
 
 const loadAfterglowExpression = `(() => {
-  const card = document.querySelector('[data-library-catalog-id="afterglow-v9"]');
-  const button = card ? [...card.querySelectorAll('button')].find((item) => (item.textContent || '').trim() === 'Load & Explore') : null;
+  const button = [...document.querySelectorAll('button')].find((item) => {
+    if ((item.textContent || '').trim() !== 'Load & Explore') return false;
+    return (item.closest('article')?.textContent || '').includes('Afterglow');
+  });
   if (!button) return false;
+  const hydrated = Object.keys(button).some((key) => key.startsWith('__reactProps$') || key.startsWith('__reactFiber$'));
+  if (!hydrated) return false;
   button.click();
   return true;
 })()`;
@@ -159,11 +163,14 @@ const confirmAfterglowExpression = `(() => {
   const dialog = document.querySelector('[role="dialog"][aria-labelledby="library-load-title"]');
   const button = dialog ? [...dialog.querySelectorAll('button')].find((item) => (item.textContent || '').trim() === 'Save & Switch') : null;
   if (!button) return false;
+  const hydrated = Object.keys(button).some((key) => key.startsWith('__reactProps$') || key.startsWith('__reactFiber$'));
+  if (!hydrated) return false;
   button.click();
   return true;
 })()`;
 
 const afterglowDashboardReadyExpression = `location.pathname === "/" && location.search === "?workspace=dashboard" && Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'))`;
+const browserSetupStateExpression = `(() => ({ location: location.pathname + location.search, body: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 700) }))()`;
 
 async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000) {
   const deadline = Date.now() + timeoutMs;
@@ -177,15 +184,22 @@ async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000
     }
     await delay(100);
   }
-  const detail = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
-  throw new Error(`#1411 browser setup ${label} did not become ready within ${timeoutMs} ms.${detail}`);
+  let state = null;
+  try {
+    state = await evaluate(client, browserSetupStateExpression);
+  } catch (error) {
+    lastError ??= error;
+  }
+  const errorDetail = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
+  const stateDetail = state ? ` Last browser state: ${JSON.stringify(state)}` : "";
+  throw new Error(`#1411 browser setup ${label} did not become ready within ${timeoutMs} ms.${errorDetail}${stateDetail}`);
 }
 
 async function bootstrapAfterglowWorkingCopy(client, baseUrl) {
   await client.send("Page.navigate", { url: new URL("/library", baseUrl).toString() });
-  await waitForBrowserValue(client, readinessExpression, "Library");
-  await waitForBrowserValue(client, loadAfterglowExpression, "Afterglow Load & Explore action");
-  await waitForBrowserValue(client, confirmAfterglowExpression, "Afterglow Save & Switch confirmation");
+  await waitForBrowserValue(client, readinessExpression, "rendered Library with Featured Examples and Afterglow");
+  await waitForBrowserValue(client, loadAfterglowExpression, "hydrated Afterglow Load & Explore action");
+  await waitForBrowserValue(client, confirmAfterglowExpression, "hydrated Afterglow Save & Switch confirmation");
   await waitForBrowserValue(client, afterglowDashboardReadyExpression, "Afterglow Dashboard");
   await client.send("Page.navigate", { url: "about:blank" });
   await waitForBrowserValue(client, `document.readyState === "complete"`, "blank benchmark target");

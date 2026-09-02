@@ -41,7 +41,7 @@ const memoryBefore = process.memoryUsage();
 const routes = [
   ["dashboard", "/"],
   ["library", "/library"],
-  ["learn", "/learn"],
+  ["learn", "/?workspace=learn"],
   ["plan", "/?workspace=plan"],
   ["build", "/?workspace=build"],
   ["story-decisions", "/story-decisions"],

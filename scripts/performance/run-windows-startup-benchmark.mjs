@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
+import { measureBrowserResponsiveness } from "./measure-browser-responsiveness.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const argv = process.argv.slice(2);
@@ -114,6 +115,7 @@ async function runEvidence() {
     windowsHide: true,
   });
   const started = performance.now();
+  const startedAtEpochMs = Date.now();
   const phases = {
     launcherStartedMs: 0,
     sourceCheckStartedMs: null,
@@ -159,6 +161,12 @@ async function runEvidence() {
     });
 
     const evidence = JSON.parse(await readFile(output, "utf8"));
+    const browser = allowNonWindows ? null : await measureBrowserResponsiveness({ baseUrl });
+    if (browser) {
+      phases.firstBrowserUsefulWorkspaceMs = browser.firstUsefulWorkspaceAtEpochMs - startedAtEpochMs;
+      delete browser.firstUsefulWorkspaceAtEpochMs;
+      evidence.measurements.browser = browser;
+    }
     evidence.measurements.startup = {
       reliability: "real-launcher-http-contract",
       launcher: "Start-PlotPickle.bat",

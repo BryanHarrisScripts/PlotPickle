@@ -27,8 +27,21 @@ const startupFields = [
   "viteReadyMs",
   "firstValidHttpResponseMs",
   "firstUsableCoreWorkspaceMs",
+  "firstBrowserUsefulWorkspaceMs",
 ];
 const startupModes = new Set(["fresh-runtime", "fresh-optimizer", "warm-persistent-runtime"]);
+
+function summarizeBrowserPass(evidenceList, pass) {
+  const labels = new Set(evidenceList.flatMap((entry) => entry.measurements?.browser?.[pass]?.map((item) => item.label) ?? []));
+  return Object.fromEntries([...labels].sort().map((label) => [
+    label,
+    {
+      usefulInteractiveMs: summarize(evidenceList.flatMap((entry) => (entry.measurements?.browser?.[pass] ?? []).filter((item) => item.label === label && item.ready).map((item) => item.usefulInteractiveMs))),
+      firstContentfulPaintMs: summarize(evidenceList.flatMap((entry) => (entry.measurements?.browser?.[pass] ?? []).filter((item) => item.label === label && item.ready).map((item) => item.firstContentfulPaintMs))),
+      interactiveControlCount: summarize(evidenceList.flatMap((entry) => (entry.measurements?.browser?.[pass] ?? []).filter((item) => item.label === label && item.ready).map((item) => item.interactiveControlCount))),
+    },
+  ]));
+}
 
 function analyzeMode(mode, evidenceList) {
   const healthy = evidenceList.filter((entry) =>
@@ -57,6 +70,11 @@ function analyzeMode(mode, evidenceList) {
     summarize(healthy.map((entry) => entry.measurements?.startup?.[field])),
   ]));
   const memoryRss = summarize(healthy.map((entry) => entry.measurements?.memory?.rssAfterBytes));
+  const browser = {
+    reliability: "headless-browser-cdp-useful-interactive-contract",
+    firstAccess: summarizeBrowserPass(healthy, "firstAccess"),
+    repeatedAccess: summarizeBrowserPass(healthy, "repeatedAccess"),
+  };
   const readyForBudgetRatification = healthy.length >= 3 && identityStable;
   return {
     mode,
@@ -66,6 +84,7 @@ function analyzeMode(mode, evidenceList) {
     readyForBudgetRatification,
     startup,
     navigation,
+    browser,
     memoryRss,
   };
 }

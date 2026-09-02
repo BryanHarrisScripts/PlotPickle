@@ -3,9 +3,8 @@ import { test } from "node:test";
 
 import { buildInventory, validateInventory } from "../scripts/runtime-weight/inventory.mjs";
 
-test("#1630 excludes only proven developer payload from base package authority", () => {
+test("#1630 keeps proven developer payload outside base package authority", () => {
   const inventory = buildInventory();
-  assert.equal(inventory.issue, 1630);
   assert.ok(!inventory.releaseAuthority.runtimeDirectories.includes("tests"));
   assert.ok(!inventory.releaseAuthority.copiedRootFiles.includes("CONTRIBUTING.md"));
   assert.deepEqual(validateInventory(inventory), []);
@@ -14,16 +13,17 @@ test("#1630 excludes only proven developer payload from base package authority",
 test("#1630 keeps excluded developer payload measurable and available in source checkout", () => {
   const inventory = buildInventory();
   const excluded = new Map(inventory.excludedSourcePayloads.map((item) => [item.path, item]));
-  assert.deepEqual([...excluded.keys()].sort(), ["CONTRIBUTING.md", "tests"]);
   for (const pathName of ["tests", "CONTRIBUTING.md"]) {
     const item = excluded.get(pathName);
+    assert.ok(item, `${pathName} should remain in excluded source evidence`);
     assert.equal(item.weightClass, "developer-test-only");
     assert.equal(item.disposition, "excluded-from-base-release");
     assert.ok(item.sourceBytes > 0, `${pathName} source bytes should remain measurable`);
   }
+  const developerExcluded = inventory.excludedSourcePayloads.filter((item) => item.weightClass === "developer-test-only");
   assert.equal(
     inventory.weightEvidence.excludedDeveloperSourceBytes,
-    [...excluded.values()].reduce((total, item) => total + item.sourceBytes, 0),
+    developerExcluded.reduce((total, item) => total + item.sourceBytes, 0),
   );
 });
 

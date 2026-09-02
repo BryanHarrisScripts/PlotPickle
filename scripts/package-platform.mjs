@@ -13,6 +13,7 @@ const folderName = `PlotPickle-${platform === "macos" ? "macOS" : platform[0].to
 const stageRoot = path.join(root, "releases", "stage");
 const destination = path.join(stageRoot, folderName);
 const exclusions = new Set([".git", ".next", ".wrangler", "dist", "node_modules", "releases", ".env", ".env.local"]);
+const sourceOnlyReleaseExclusions = new Set(["docs/brand-sources"]);
 
 rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });
@@ -41,6 +42,11 @@ const runtimeDirectories = [
   "worker",
 ];
 
+function isSourceOnlyReleaseExclusion(relative) {
+  const normalized = relative.split(path.sep).join("/");
+  return [...sourceOnlyReleaseExclusions].some((excluded) => normalized === excluded || normalized.startsWith(`${excluded}/`));
+}
+
 for (const entry of runtimeDirectories) {
   const source = path.join(root, entry);
   if (!existsSync(source)) throw new Error(`Required runtime directory is missing: ${entry}`);
@@ -48,7 +54,7 @@ for (const entry of runtimeDirectories) {
     recursive: true,
     filter(item) {
       const relative = path.relative(root, item);
-      return !relative.split(path.sep).some((part) => exclusions.has(part));
+      return !relative.split(path.sep).some((part) => exclusions.has(part)) && !isSourceOnlyReleaseExclusion(relative);
     },
   });
 }

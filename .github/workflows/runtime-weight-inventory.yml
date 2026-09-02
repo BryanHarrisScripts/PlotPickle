@@ -1,0 +1,48 @@
+name: Runtime Weight Inventory
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/runtime-weight-inventory.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/package-platform.mjs"
+      - "scripts/windows-runtime.mjs"
+      - "scripts/runtime-weight/**"
+      - "Start-PlotPickle.bat"
+      - "Start-PlotPickle.command"
+      - "start-plotpickle.sh"
+      - "vite.config.ts"
+      - "postcss.config.mjs"
+      - "tests/issue-1626-runtime-weight-inventory.test.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    name: Classify current Windows release/runtime weight
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact head
+        uses: actions/checkout@v4
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+      - name: Install exact current dependency tree
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate shipped-weight classification contract
+        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs
+      - name: Capture machine-readable Windows weight evidence
+        run: node scripts/runtime-weight/inventory-runtime-weight.mjs --platform windows --output .artifacts/runtime-weight/inventory.json
+      - name: Upload bounded runtime-weight evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-weight-inventory-windows
+          path: .artifacts/runtime-weight/inventory.json
+          if-no-files-found: error
+          retention-days: 14

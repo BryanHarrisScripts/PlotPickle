@@ -15,6 +15,7 @@ import { buildInventory } from "./inventory.mjs";
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
 const publicRoot = path.join(repoRoot, "public");
+const visualReferenceFullPath = "public/visual-references/full";
 
 function measure(target) {
   if (!existsSync(target)) return { sourceBytes: null, fileCount: null };
@@ -72,7 +73,7 @@ function classification(relativePath, kind) {
       disposition: "retain-current-product",
       evidence: [
         "app/visual-reference-library.tsx fetches /visual-references/manifest.json as the bundled offline Visual Reference Library.",
-        "The current product renders reference thumbnails and selected card images from this container, so the subtree cannot be removed wholesale.",
+        "The current product renders reference thumbnails and selected card images from this container, while Slice E excludes only the unrendered full-resolution source tier.",
       ],
     };
   }
@@ -84,6 +85,7 @@ function classification(relativePath, kind) {
       disposition: "retain-active-reference",
       evidence: [
         "app/visual-reference-library.tsx fetches this manifest and uses it to populate the bundled offline Visual Reference Library.",
+        "scripts/package-platform.mjs projects only the staged copy so it advertises packaged image tiers while the source manifest retains complete derivative provenance.",
       ],
     };
   }
@@ -110,14 +112,15 @@ function classification(relativePath, kind) {
     };
   }
 
-  if (relativePath === "public/visual-references/full") {
+  if (relativePath === visualReferenceFullPath) {
     return {
-      category: "visual-reference-full-resolution-media",
+      category: "source-only-visual-reference-full-resolution-media",
       weightClass: "reference-example-payload",
-      disposition: "requires-reachability-proof",
+      disposition: "excluded-from-base-release",
       evidence: [
-        "The Visual Reference manifest records full-resolution URLs, but app/visual-reference-library.tsx currently renders thumbnail and card variants in its live UI.",
-        "This is a candidate for consumer-level reachability and optional-pack proof, not removal authorization.",
+        "app/visual-reference-library.tsx renders thumbnail and card variants and has no current full-resolution render consumer.",
+        "The source manifest and tests retain all 62 full-resolution WebPs for provenance/archive verification.",
+        "scripts/package-platform.mjs excludes this source tier and removes its locator only from the staged manifest.",
       ],
     };
   }
@@ -128,7 +131,7 @@ function classification(relativePath, kind) {
       weightClass: "reference-example-payload",
       disposition: "requires-reachability-proof",
       evidence: [
-        "The source/test suite uses this inventory report; Slice D does not yet prove a shipped product consumer.",
+        "The source/test suite uses this inventory report; Slice E does not yet prove a shipped product consumer.",
       ],
     };
   }
@@ -171,7 +174,7 @@ function classification(relativePath, kind) {
     weightClass: null,
     disposition: "requires-reachability-proof",
     evidence: [
-      "The Slice D subinventory measures this public payload but does not yet have enough consumer evidence to classify or remove it.",
+      "The public-media subinventory measures this payload but does not yet have enough consumer evidence to classify or remove it.",
     ],
   };
 }
@@ -224,11 +227,11 @@ export function buildPublicMediaInventory() {
     .map(compactCandidate);
 
   return {
-    schemaVersion: 1,
-    issue: 1639,
+    schemaVersion: 2,
+    issue: 1642,
     parentIssue: 1412,
     sourceCommit: parentInventory.sourceCommit,
-    priorInventoryIssue: parentInventory.issue,
+    priorInventoryIssue: 1639,
     releaseAuthority: {
       publicPackaged: parentInventory.releaseAuthority.runtimeDirectories.includes("public"),
       publicSourceOnlyExclusions: (parentInventory.releaseAuthority.sourceOnlyReleaseExclusions ?? []).filter((item) => item === "public" || item.startsWith("public/")),
@@ -257,7 +260,10 @@ export function validatePublicMediaInventory(inventory) {
   const failures = [];
 
   if (!inventory.releaseAuthority.publicPackaged) failures.push("public/ is no longer packaged by the base release.");
-  if ((inventory.releaseAuthority.publicSourceOnlyExclusions ?? []).length > 0) failures.push("Slice D must not exclude any public/ payload from the base release.");
+  const publicExclusions = [...(inventory.releaseAuthority.publicSourceOnlyExclusions ?? [])].sort();
+  if (JSON.stringify(publicExclusions) !== JSON.stringify([visualReferenceFullPath])) {
+    failures.push(`Slice E expects exactly one public source-only exclusion: ${visualReferenceFullPath}.`);
+  }
   if (!Number.isFinite(inventory.publicPayload.sourceBytes) || inventory.publicPayload.sourceBytes <= 0) failures.push("public/ source bytes were not measured.");
   if (inventory.reconciliation.topLevelSourceBytes !== inventory.publicPayload.sourceBytes) failures.push("Top-level public/ bytes do not reconcile to the runtime-weight public payload.");
 
@@ -297,8 +303,9 @@ export function validatePublicMediaInventory(inventory) {
       const item = inventory.visualReferenceItems.find((candidate) => candidate.path === requiredPath);
       if (!item || item.disposition !== "retain-active-reference") failures.push(`${requiredPath}: active Visual Reference Library payload is not explicitly retained`);
     }
-    const full = inventory.visualReferenceItems.find((item) => item.path === "public/visual-references/full");
-    if (!full || full.disposition !== "requires-reachability-proof") failures.push("Full-resolution Visual Reference media needs explicit reachability proof before a later split.");
+    const full = inventory.visualReferenceItems.find((item) => item.path === visualReferenceFullPath);
+    if (!full || full.disposition !== "excluded-from-base-release") failures.push("Full-resolution Visual Reference media is not recorded as excluded source-only reference weight.");
+    if (inventory.reachabilityProofQueue.some((item) => item.path === visualReferenceFullPath)) failures.push("Excluded full-resolution media must not remain in the reachability-proof queue.");
   }
 
   return failures;

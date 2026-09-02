@@ -24,6 +24,8 @@ for (const file of [
   "config/buzz-desktop.json",
   "core/project/project.ts",
   "db/index.ts",
+  "docs/architecture/six-domain-ownership.md",
+  "docs/brand/plotpickle-banner-dragon-logo.jpg",
   "learn/index.json",
   "lib/projects/persistence/project-package.ts",
   "modules/library/import/rich-ppf-to-library-project.ts",
@@ -46,8 +48,15 @@ for (const file of [
 ]) {
   assert.ok(existsSync(path.join(folder, file)), `Missing packaged file: ${file}`);
 }
-for (const excluded of ["tests", "CONTRIBUTING.md"]) {
-  assert.ok(!existsSync(path.join(folder, excluded)), `Developer-only payload leaked into release: ${excluded}`);
+for (const excluded of [
+  "tests",
+  "CONTRIBUTING.md",
+  "docs/brand-sources",
+  "docs/brand-sources/plotpickle-ouroboros-v2-master.png",
+  "docs/brand-sources/plotpickle-sage-logo-reference-2026-08-13.png",
+  "docs/brand-sources/sage-brinewick-v2-master.png",
+]) {
+  assert.ok(!existsSync(path.join(folder, excluded)), `Source-only payload leaked into release: ${excluded}`);
 }
 const githubApp = JSON.parse(readFileSync(path.join(folder, "config", "github-app.json"), "utf8"));
 assert.equal(githubApp.registrationStatus, "registered", "The official PlotPickle GitHub App has not been registered for this release.");

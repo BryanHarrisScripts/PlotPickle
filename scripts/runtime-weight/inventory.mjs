@@ -41,6 +41,11 @@ function extractCopiedRootFiles(packagerSource) {
   return quotedStrings(match[1]);
 }
 
+function extractSourceOnlyReleaseExclusions(packagerSource) {
+  const match = packagerSource.match(/const sourceOnlyReleaseExclusions\s*=\s*new Set\(\[([\s\S]*?)\]\);/);
+  return match ? quotedStrings(match[1]) : [];
+}
+
 function extractCoreReadyPackages(runtimeSource) {
   const match = runtimeSource.match(/function coreReady\([\s\S]*?return \[([\s\S]*?)\]\.every/);
   if (!match) throw new Error("Unable to read coreReady package requirements from scripts/windows-runtime.mjs.");
@@ -86,6 +91,14 @@ function totalMeasuredBytes(payloads) {
   return payloads.reduce((total, item) => total + (Number.isFinite(item.sourceBytes) ? item.sourceBytes : 0), 0);
 }
 
+function totalMeasuredBytesByWeightClass(payloads, weightClass) {
+  return totalMeasuredBytes(payloads.filter((item) => item.weightClass === weightClass));
+}
+
+function totalNestedExcludedBytes(payloads) {
+  return totalMeasuredBytes(payloads.filter((item) => item.path.includes("/")));
+}
+
 function directPackages(packageJson, contract) {
   const sections = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
   const result = [];
@@ -116,9 +129,12 @@ export function buildInventory() {
   const windowsLauncherSource = readFileSync(windowsLauncherPath, "utf8");
   const runtimeDirectories = extractRuntimeDirectories(packagerSource);
   const copiedRootFiles = extractCopiedRootFiles(packagerSource);
+  const sourceOnlyReleaseExclusions = extractSourceOnlyReleaseExclusions(packagerSource);
   const knownPaths = new Map(contract.releasePayloads.map((item) => [item.path, item]));
   const releasePayloads = measurePayloads(contract.releasePayloads);
   const excludedSourcePayloads = measurePayloads(contract.excludedSourcePayloads ?? []);
+  const classifiedSourceBytesBeforeNestedExclusions = totalMeasuredBytes(releasePayloads);
+  const nestedExcludedSourceBytes = totalNestedExcludedBytes(excludedSourcePayloads);
 
   return {
     schemaVersion: contract.schemaVersion,
@@ -136,14 +152,19 @@ export function buildInventory() {
       packager: "scripts/package-platform.mjs",
       runtimeDirectories,
       copiedRootFiles,
+      sourceOnlyReleaseExclusions,
       selectedPlatformLauncher: true,
       generatedFiles: ["release-manifest.json", "FILES.txt"],
     },
     releasePayloads,
     excludedSourcePayloads,
     weightEvidence: {
-      classifiedShippedSourceBytes: totalMeasuredBytes(releasePayloads),
-      excludedDeveloperSourceBytes: totalMeasuredBytes(excludedSourcePayloads),
+      classifiedSourceBytesBeforeNestedExclusions,
+      nestedExcludedSourceBytes,
+      classifiedShippedSourceBytes: classifiedSourceBytesBeforeNestedExclusions - nestedExcludedSourceBytes,
+      excludedBaseReleaseSourceBytes: totalMeasuredBytes(excludedSourcePayloads),
+      excludedDeveloperSourceBytes: totalMeasuredBytesByWeightClass(excludedSourcePayloads, "developer-test-only"),
+      excludedReferenceSourceBytes: totalMeasuredBytesByWeightClass(excludedSourcePayloads, "reference-example-payload"),
     },
     directPackages: directPackages(packageJson, contract),
     coverage: {
@@ -168,6 +189,7 @@ export function validateInventory(inventory) {
   const failures = [];
   const domainIds = new Set(inventory.ownershipDomains.map((item) => item.id));
   const weightClasses = new Set(inventory.weightClasses);
+  const allowedExcludedWeightClasses = new Set(["developer-test-only", "reference-example-payload"]);
   const payloadByPath = new Map(inventory.releasePayloads.map((item) => [item.path, item]));
   const packagedPaths = new Set([
     ...inventory.releaseAuthority.runtimeDirectories,
@@ -175,6 +197,7 @@ export function validateInventory(inventory) {
     "<platform-launcher>",
     ...inventory.releaseAuthority.generatedFiles,
   ]);
+  const packagerNestedExclusions = new Set(inventory.releaseAuthority.sourceOnlyReleaseExclusions ?? []);
 
   for (const pathName of inventory.releaseAuthority.runtimeDirectories) {
     if (!payloadByPath.has(pathName)) failures.push(`Unclassified packaged runtime directory: ${pathName}`);
@@ -195,13 +218,29 @@ export function validateInventory(inventory) {
     excludedPaths.add(payload.path);
     if (payloadByPath.has(payload.path)) failures.push(`${payload.path}: cannot be both shipped and excluded`);
     if (packagedPaths.has(payload.path)) failures.push(`${payload.path}: excluded source payload is still packaged`);
-    if (payload.weightClass !== "developer-test-only") failures.push(`${payload.path}: excluded source payload must be developer-test-only`);
+    if (payload.path.includes("/") && !packagerNestedExclusions.has(payload.path)) failures.push(`${payload.path}: nested excluded source payload is not enforced by the packager`);
+    if (!allowedExcludedWeightClasses.has(payload.weightClass)) failures.push(`${payload.path}: excluded source payload needs an allowed non-runtime weight class`);
     if (payload.disposition !== "excluded-from-base-release") failures.push(`${payload.path}: excluded source payload needs excluded-from-base-release disposition`);
     if (!Number.isFinite(payload.sourceBytes) || payload.sourceBytes <= 0) failures.push(`${payload.path}: excluded source bytes were not measured`);
   }
 
-  if (inventory.weightEvidence?.excludedDeveloperSourceBytes !== totalMeasuredBytes(inventory.excludedSourcePayloads ?? [])) {
+  for (const pathName of packagerNestedExclusions) {
+    if (!excludedPaths.has(pathName)) failures.push(`${pathName}: packager source-only exclusion is missing inventory evidence`);
+  }
+
+  const expectedNestedExcluded = totalNestedExcludedBytes(inventory.excludedSourcePayloads ?? []);
+  const expectedSourceBeforeNestedExclusions = totalMeasuredBytes(inventory.releasePayloads ?? []);
+  if (inventory.weightEvidence?.nestedExcludedSourceBytes !== expectedNestedExcluded) failures.push("Nested excluded source byte total is inconsistent.");
+  if (inventory.weightEvidence?.classifiedSourceBytesBeforeNestedExclusions !== expectedSourceBeforeNestedExclusions) failures.push("Pre-exclusion classified source byte total is inconsistent.");
+  if (inventory.weightEvidence?.classifiedShippedSourceBytes !== expectedSourceBeforeNestedExclusions - expectedNestedExcluded) failures.push("Classified shipped source byte total is inconsistent.");
+  if (inventory.weightEvidence?.excludedBaseReleaseSourceBytes !== totalMeasuredBytes(inventory.excludedSourcePayloads ?? [])) {
+    failures.push("Excluded base-release source byte total is inconsistent.");
+  }
+  if (inventory.weightEvidence?.excludedDeveloperSourceBytes !== totalMeasuredBytesByWeightClass(inventory.excludedSourcePayloads ?? [], "developer-test-only")) {
     failures.push("Excluded developer source byte total is inconsistent.");
+  }
+  if (inventory.weightEvidence?.excludedReferenceSourceBytes !== totalMeasuredBytesByWeightClass(inventory.excludedSourcePayloads ?? [], "reference-example-payload")) {
+    failures.push("Excluded reference source byte total is inconsistent.");
   }
 
   for (const item of inventory.directPackages) {

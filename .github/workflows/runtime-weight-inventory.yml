@@ -6,12 +6,14 @@ on:
       - "config/runtime-weight-inventory.json"
       - "docs/architecture/six-domain-ownership.md"
       - "scripts/package-platform.mjs"
+      - "scripts/package-smoke.mjs"
       - "scripts/runtime-weight/**"
       - "scripts/windows-runtime.mjs"
       - "Start-PlotPickle.bat"
       - "package.json"
       - "package-lock.json"
       - "tests/issue-1626-runtime-weight-inventory.test.mjs"
+      - "tests/issue-1630-release-weight-cut.test.mjs"
       - ".github/workflows/runtime-weight-inventory.yml"
   workflow_dispatch:
 
@@ -31,10 +33,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate Slice A inventory contract
-        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs
+      - name: Validate runtime-weight inventory contracts
+        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs
       - name: Emit exact-head machine-readable inventory
         run: node scripts/runtime-weight/inventory.mjs --output .artifacts/runtime-weight/inventory.json
+      - name: Stage representative base release
+        run: node scripts/package-platform.mjs linux
+      - name: Validate representative base release
+        run: node scripts/package-smoke.mjs releases/stage/PlotPickle-Linux
       - name: Validate production build
         run: npm run build
       - name: Upload inventory evidence

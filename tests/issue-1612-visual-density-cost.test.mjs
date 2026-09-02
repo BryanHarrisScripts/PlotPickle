@@ -35,24 +35,35 @@ test("#1411 Slice E records payload, image and DOM density without inventing a t
   assert.doesNotMatch(source, /visualStory[^\n]*(?:budget|threshold)\s*[<>=]/i);
 });
 
+test("#1411 Slice E waits for truthful rendered readiness before capturing density", async () => {
+  const source = await read("scripts/performance/measure-browser-responsiveness.mjs");
+  assert.match(source, /value && \(typeof value !== "object" \|\| value\.ready !== false\)/);
+  assert.match(source, /ready: Boolean\(ready\?\.ready\)/);
+});
+
 test("#1411 Slice E ties BUILD and Storyboard measurement to their canonical 24/96 DOM contracts", async () => {
-  const [measurement, build, storyboard] = await Promise.all([
+  const [measurement, build, storyboard, storyboardModel] = await Promise.all([
     read("scripts/performance/measure-browser-responsiveness.mjs"),
     read("modules/build/ui/progressive-story-map.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("app/_components/storyboard/storyboard-editorial-model.ts"),
   ]);
 
   assert.match(build, /data-progressive-story-map="24x96"/);
   assert.match(build, /button[^>]*data-canonical-story-id=\{block\.id\}/);
   assert.match(build, /aria-label=\{`Mini-Block \$\{mini\.number\}/);
   assert.match(measurement, /profile\.blockCount === 24 && profile\.miniBlockCount === 96/);
+  assert.match(measurement, /did not observe the canonical BUILD 24\/96 topology/);
 
   assert.match(storyboard, /aria-label="Storyboard Block tabs"/);
   assert.match(storyboard, /<dd>96<\/dd>/);
   assert.match(storyboard, /data-story-decision-target=\{storyboardAnchorTargetRef/);
+  assert.match(storyboardModel, /return `storyboard-anchor:\$\{targetId\}:mini-\$\{miniBlockNumber\}`/);
+  assert.match(measurement, /data-story-decision-target\^="storyboard-anchor:"/);
   assert.match(measurement, /profile\.storyboardBlockTabCount === 24/);
   assert.match(measurement, /profile\.visibleMiniBlockAnchorCount === 4/);
   assert.match(measurement, /profile\.declaredVisualAnchorCount === 96/);
+  assert.match(measurement, /did not observe Storyboard's 24 tabs, 96 declared anchors and four selected Mini-Block anchors/);
 });
 
 test("#1411 Slice E keeps Workbench projection evidence and Storyboard lazy imagery observable", async () => {

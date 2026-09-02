@@ -61,6 +61,28 @@ function summarizeBrowserIdle(evidenceList) {
   };
 }
 
+function summarizeProcessIdle(evidenceList) {
+  const idle = evidenceList
+    .map((entry) => entry.measurements?.processIdle)
+    .filter((entry) => entry?.reliability === "windows-cim-launcher-owned-process-tree");
+  return {
+    reliability: "windows-cim-launcher-owned-process-tree",
+    samples: idle.length,
+    observedWindowMs: summarize(idle.map((entry) => entry.observedWindowMs)),
+    cpuTimeDeltaMs: summarize(idle.map((entry) => entry.cpuTimeDeltaMs)),
+    workingSetAfterBytes: summarize(idle.map((entry) => entry.workingSetAfterBytes)),
+    workingSetDeltaBytes: summarize(idle.map((entry) => entry.workingSetDeltaBytes)),
+    activeProcessCount: summarize(idle.map((entry) => entry.activeProcessCount)),
+    processCountAfter: summarize(idle.map((entry) => entry.processCountAfter)),
+    appearedProcessCount: summarize(idle.map((entry) => entry.appearedProcessCount)),
+    disappearedProcessCount: summarize(idle.map((entry) => entry.disappearedProcessCount)),
+    explicitAgentOrModelProcessCount: summarize(idle.map((entry) => entry.explicitAgentOrModelProcessCount)),
+    observerIncludedInOwnedTree: false,
+    wholeMachineCpu: { value: null, reliability: "not-measured-by-launcher-owned-process-tree" },
+    gpuUsage: { value: null, reliability: "not-measured-by-windows-cim-process-snapshot" },
+  };
+}
+
 function analyzeMode(mode, evidenceList) {
   const healthy = evidenceList.filter((entry) =>
     entry.result?.harnessHealthy === true &&
@@ -94,6 +116,7 @@ function analyzeMode(mode, evidenceList) {
     repeatedAccess: summarizeBrowserPass(healthy, "repeatedAccess"),
     idle: summarizeBrowserIdle(healthy),
   };
+  const processIdle = summarizeProcessIdle(healthy);
   const readyForBudgetRatification = healthy.length >= 3 && identityStable;
   return {
     mode,
@@ -104,6 +127,7 @@ function analyzeMode(mode, evidenceList) {
     startup,
     navigation,
     browser,
+    processIdle,
     memoryRss,
   };
 }

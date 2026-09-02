@@ -124,12 +124,14 @@ async function evaluate(client, expression) {
 const readinessExpression = `(() => {
   const body = document.body?.innerText || "";
   const routeKey = location.pathname + location.search;
+  const shellHeader = Boolean(document.querySelector('.application-shell-header'));
+  const activeTab = (label) => [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === label);
   let routeReady = false;
-  if (routeKey === "/?workspace=dashboard") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'));
-  else if (routeKey === "/library") routeReady = Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
-  else if (routeKey === "/?workspace=learn") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
-  else if (routeKey === "/?workspace=plan") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Plan");
-  else if (routeKey === "/?workspace=build") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Build");
+  if (routeKey === "/?workspace=dashboard") routeReady = shellHeader && activeTab("Dashboard") && !body.includes("See the whole movie before you make it.");
+  else if (routeKey === "/library") routeReady = shellHeader && Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
+  else if (routeKey === "/?workspace=learn") routeReady = shellHeader && activeTab("Learn") && Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
+  else if (routeKey === "/?workspace=plan") routeReady = shellHeader && activeTab("Plan");
+  else if (routeKey === "/?workspace=build") routeReady = shellHeader && activeTab("Build");
   else if (routeKey === "/story-decisions") routeReady = body.includes("Story Decisions");
   else if (routeKey === "/story-workbench") routeReady = body.includes("Story Workbench");
   const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
@@ -223,7 +225,10 @@ const confirmAfterglowExpression = `(() => {
   return true;
 })()`;
 
-const afterglowDashboardReadyExpression = `location.pathname === "/" && location.search === "?workspace=dashboard" && Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'))`;
+const afterglowDashboardReadyExpression = `(() => {
+  const activeDashboard = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Dashboard");
+  return location.pathname === "/" && location.search === "?workspace=dashboard" && Boolean(document.querySelector('.application-shell-header')) && activeDashboard;
+})()`;
 const browserSetupStateExpression = `(() => ({ location: location.pathname + location.search, body: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 700) }))()`;
 
 async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000) {

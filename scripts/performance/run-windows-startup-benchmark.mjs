@@ -6,6 +6,7 @@ import process from "node:process";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { measureBrowserResponsiveness } from "./measure-browser-responsiveness.mjs";
+import { measureWindowsProcessIdle } from "./measure-windows-process-idle.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const argv = process.argv.slice(2);
@@ -167,6 +168,12 @@ async function runEvidence() {
       delete browser.firstUsefulWorkspaceAtEpochMs;
       evidence.measurements.browser = browser;
     }
+    evidence.measurements.processIdle = allowNonWindows
+      ? {
+          reliability: "not-captured-on-non-windows-harness",
+          note: "Launcher-owned process idle evidence is authoritative only on the Windows benchmark host.",
+        }
+      : await measureWindowsProcessIdle({ rootPid: child.pid });
     evidence.measurements.startup = {
       reliability: "real-launcher-http-contract",
       launcher: "Start-PlotPickle.bat",

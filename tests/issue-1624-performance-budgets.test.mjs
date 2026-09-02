@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { evaluatePerformanceBudgets } from "../scripts/performance/evaluate-performance-budgets.mjs";
 
-const contract = JSON.parse(await readFile(new URL("../scripts/performance/performance-budgets.json", import.meta.url), "utf8"));
+const contract = JSON.parse(await readFile(new URL("../scripts/performance/ratified/performance-budgets.json", import.meta.url), "utf8"));
 
 function sample(mode, overrides = {}) {
   const budget = contract.modes[mode];

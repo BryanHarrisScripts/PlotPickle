@@ -43,6 +43,24 @@ function summarizeBrowserPass(evidenceList, pass) {
   ]));
 }
 
+function summarizeBrowserIdle(evidenceList) {
+  const idle = evidenceList.map((entry) => entry.measurements?.browser?.idle).filter(Boolean);
+  return {
+    reliability: "headless-browser-cdp-idle-window",
+    samples: idle.length,
+    windowMs: summarize(idle.map((entry) => entry.windowMs)),
+    sameOriginRequestCount: summarize(idle.map((entry) => entry.sameOriginRequestCount)),
+    apiRequestCount: summarize(idle.map((entry) => entry.apiRequestCount)),
+    externalRequestCount: summarize(idle.map((entry) => entry.externalRequestCount)),
+    domMutationCount: summarize(idle.map((entry) => entry.domMutationCount)),
+    rendererTaskDurationMs: summarize(idle.map((entry) => entry.rendererTaskDurationMs)),
+    modelOrAgentWakeups: {
+      reliability: "not-observable-from-browser-cdp",
+      note: "Process-level model or Agent wakeups remain explicitly unclaimed by browser idle evidence.",
+    },
+  };
+}
+
 function analyzeMode(mode, evidenceList) {
   const healthy = evidenceList.filter((entry) =>
     entry.result?.harnessHealthy === true &&
@@ -74,6 +92,7 @@ function analyzeMode(mode, evidenceList) {
     reliability: "headless-browser-cdp-useful-interactive-contract",
     firstAccess: summarizeBrowserPass(healthy, "firstAccess"),
     repeatedAccess: summarizeBrowserPass(healthy, "repeatedAccess"),
+    idle: summarizeBrowserIdle(healthy),
   };
   const readyForBudgetRatification = healthy.length >= 3 && identityStable;
   return {

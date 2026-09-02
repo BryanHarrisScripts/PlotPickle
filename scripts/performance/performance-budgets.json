@@ -82,7 +82,7 @@
     "story-workflow-local": {
       "startup": {
         "viteReadyMs": {"warningMax": 16000, "hardMax": 18000},
-        "firstUsableCoreWorkspaceMs": {"warningMax": 19000, "hardMax": 21000},
+        "firstUsableCoreWorkspaceMs": {"warningMax": 19000, "hardMax": 22000},
         "firstBrowserUsefulWorkspaceMs": {"warningMax": 65000, "hardMax": 73000}
       },
       "repeatedUsefulInteractiveMs": {

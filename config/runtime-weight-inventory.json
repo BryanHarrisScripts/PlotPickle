@@ -1,8 +1,9 @@
 {
-  "schemaVersion": 1,
-  "issue": 1626,
+  "schemaVersion": 2,
+  "issue": 1630,
   "baseline": {
-    "sourceCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
+    "sourceCommit": "450087a060e437739962519577ff249d7fba21d0",
+    "priorInventoryIssue": 1626,
     "performanceIssue": 1411,
     "performanceMergeCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
     "performanceBudgetContract": "scripts/performance/ratified/performance-budgets.json"
@@ -24,7 +25,7 @@
   ],
   "releasePayloads": [
     { "path": ".agents", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["intelligence", "platform"], "evidence": ["Start-PlotPickle.bat requires the Agent Skills verifier before core server readiness."] },
-    { "path": ".openai", "kind": "directory", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Packaged by scripts/package-platform.mjs; no core readiness consumer is established in Slice A."], "disposition": "candidate-for-removal-after-reachability-proof" },
+    { "path": ".openai", "kind": "directory", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["vite.config.ts directly imports .openai/hosting.json.", "build/sites-vite-plugin.ts consumes .openai/hosting.json during the verified build.", "scripts/package-smoke.mjs requires .openai/hosting.json in every desktop package."] },
     { "path": "adapters", "kind": "directory", "weightClass": "optional-integration-runtime", "targetDomains": ["community-integrations", "intelligence"], "evidence": ["Adapter ownership is provider/integration-facing; core startup explicitly keeps optional connections independent."] },
     { "path": "app", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["experience", "story", "core"], "evidence": ["Application routes are required for the normal local writer journey."] },
     { "path": "build", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["platform", "story", "intelligence", "community-integrations"], "evidence": ["Current build/ contains product runtime gateways and remains runtime-reachable pending domain consolidation."] },
@@ -42,7 +43,6 @@
     { "path": "runtime", "kind": "directory", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform", "intelligence", "community-integrations"], "evidence": ["Runtime bundles and trust/runtime support are packaged; optional portions require later reachability proof before separation."], "disposition": "subinventory-before-split" },
     { "path": "schema", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["core", "story"], "evidence": ["Schema/contracts support canonical project and story state."] },
     { "path": "scripts", "kind": "directory", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform", "intelligence", "community-integrations", "story"], "evidence": ["Start-PlotPickle launch, runtime verification, Agent Skills, update/repair and packaging consumers execute scripts directly."], "disposition": "mixed-root-requires-runtime-subinventory" },
-    { "path": "tests", "kind": "directory", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Tests are engineering verification payload and are not required by the normal writer journey."], "disposition": "candidate-for-removal-after-packaged-smoke-proof" },
     { "path": "Utilities", "kind": "directory", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["User-facing update/repair utilities are intentionally shipped; DeveloperWorkbench content inside this root requires later subinventory."], "disposition": "subinventory-before-developer-tool-split" },
     { "path": "worker", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["platform", "intelligence"], "evidence": ["Current worker code is packaged as part of the application runtime and remains retained until reachability is proven at file level."] },
     { "path": "package.json", "kind": "file", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["Persistent runtime fingerprint and npm install policy consume package.json directly."] },
@@ -52,16 +52,19 @@
     { "path": "README.md", "kind": "file", "weightClass": "reference-example-payload", "targetDomains": ["platform"], "evidence": ["Packaged product/reference documentation."] },
     { "path": "LICENSE", "kind": "file", "weightClass": "reference-example-payload", "targetDomains": ["platform"], "evidence": ["Required distribution/legal reference material."] },
     { "path": "LICENSES.md", "kind": "file", "weightClass": "reference-example-payload", "targetDomains": ["platform"], "evidence": ["Required third-party licensing/reference material."] },
-    { "path": "CONTRIBUTING.md", "kind": "file", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Contributor documentation is developer-facing and currently packaged."], "disposition": "candidate-for-removal-after-package-policy-review" },
     { "path": "TRADEMARKS.md", "kind": "file", "weightClass": "reference-example-payload", "targetDomains": ["platform"], "evidence": ["Distribution/legal reference material."] },
     { "path": "<platform-launcher>", "kind": "generated-selection", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/package-platform.mjs copies exactly one platform launcher and startup depends on it."] },
     { "path": "release-manifest.json", "kind": "generated-file", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["Generated by scripts/package-platform.mjs to describe the release candidate."] },
     { "path": "FILES.txt", "kind": "generated-file", "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["Generated by scripts/package-platform.mjs as packaged file evidence."] }
   ],
+  "excludedSourcePayloads": [
+    { "path": "tests", "kind": "directory", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Test sources execute in developer checkout and CI, not in the normal writer runtime.", "Slice B removes tests from scripts/package-platform.mjs while keeping the source tree unchanged."], "disposition": "excluded-from-base-release" },
+    { "path": "CONTRIBUTING.md", "kind": "file", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Contributor instructions are repository/developer documentation and have no packaged runtime consumer."], "disposition": "excluded-from-base-release" }
+  ],
   "packageOverrides": {
     "next": { "weightClass": "core-runtime", "targetDomains": ["experience", "platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires next before runtime readiness."] },
     "react": { "weightClass": "core-runtime", "targetDomains": ["experience"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires react before runtime readiness."] },
-    "react-dom": { "weightClass": "core-runtime", "targetDomains": ["experience"], "evidence": ["Rendered application runtime uses React DOM; retained in Slice A pending later measured split work."] },
+    "react-dom": { "weightClass": "core-runtime", "targetDomains": ["experience"], "evidence": ["Rendered application runtime uses React DOM; retained pending later measured split work."] },
     "vite": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires vite and Start-PlotPickle.bat launches the Vite server."] },
     "vinext": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires vinext for the current source-on-machine runtime."] },
     "rolldown": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() and native binding repair require rolldown."] },

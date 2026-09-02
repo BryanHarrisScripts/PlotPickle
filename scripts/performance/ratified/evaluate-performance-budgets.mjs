@@ -4,7 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { analyzeBaselines } from "./analyze-real-machine-baselines.mjs";
+import { analyzeBaselines } from "../analyze-real-machine-baselines.mjs";
 
 const identityFields = [
   "platform",
@@ -137,7 +137,7 @@ async function main() {
     const index = args.indexOf(name);
     return index >= 0 ? args[index + 1] : fallback;
   };
-  const contractPath = option("--contract", fileURLToPath(new URL("./ratified/performance-budgets.json", import.meta.url)));
+  const contractPath = option("--contract", fileURLToPath(new URL("./performance-budgets.json", import.meta.url)));
   const scope = option("--scope");
   const output = option("--output");
   if (!scope) throw new Error("Pass --scope startup or --scope story-workflow-local.");

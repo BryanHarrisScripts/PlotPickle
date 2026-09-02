@@ -110,7 +110,7 @@ jobs:
           $files += Get-ChildItem .artifacts/performance/fresh-runtime*.json | Where-Object { $_.Name -notmatch 'analysis' } | ForEach-Object { $_.FullName }
           $files += Get-ChildItem .artifacts/performance/fresh-optimizer-*.json | ForEach-Object { $_.FullName }
           $files += Get-ChildItem .artifacts/performance/warm-persistent-runtime-*.json | ForEach-Object { $_.FullName }
-          node scripts/performance/evaluate-performance-budgets.mjs @files --scope startup --output .artifacts/performance/startup-budget-evaluation.json
+          node scripts/performance/ratified/evaluate-performance-budgets.mjs @files --scope startup --output .artifacts/performance/startup-budget-evaluation.json
       - name: Capture repeated local Story Workflow samples
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local') ||
@@ -141,7 +141,7 @@ jobs:
         shell: pwsh
         run: |
           $files = Get-ChildItem .artifacts/performance/story-workflow-local-*.json | Where-Object { $_.Name -match '^story-workflow-local-\d+\.json$' } | ForEach-Object { $_.FullName }
-          node scripts/performance/evaluate-performance-budgets.mjs @files --scope story-workflow-local --output .artifacts/performance/story-workflow-local-budget-evaluation.json
+          node scripts/performance/ratified/evaluate-performance-budgets.mjs @files --scope story-workflow-local --output .artifacts/performance/story-workflow-local-budget-evaluation.json
       - name: Upload bounded performance evidence
         if: always()
         uses: actions/upload-artifact@v4

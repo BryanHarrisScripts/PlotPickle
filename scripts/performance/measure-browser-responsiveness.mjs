@@ -49,14 +49,18 @@ export function findPerformanceBrowser(environment = process.env, fileExists = e
 
 async function waitForDebugger(port) {
   const deadline = Date.now() + 30_000;
+  let lastError = null;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(2_000) });
       if (response.ok) return;
-    } catch {}
+    } catch (error) {
+      lastError = error;
+    }
     await delay(200);
   }
-  throw new Error("#1411 browser debugger did not become ready.");
+  const detail = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
+  throw new Error(`#1411 browser debugger did not become ready.${detail}`);
 }
 
 async function createTarget(port) {
@@ -99,9 +103,10 @@ class CdpClient {
 
   send(method, params = {}) {
     const id = this.nextId++;
+    const payload = JSON.stringify({ id, method, params });
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject, method });
-      this.socket.send(JSON.stringify({ id, method, params }));
+      this.socket.send(payload);
     });
   }
 
@@ -116,44 +121,52 @@ async function evaluate(client, expression) {
   return result.result?.value;
 }
 
-function readinessExpression(route) {
-  return `(() => {
-    const body = document.body?.innerText || "";
-    const selectorReady = ${route.selector ? `Boolean(document.querySelector(${JSON.stringify(route.selector)}))` : "true"};
-    const activeTabReady = ${route.activeTab ? `[...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === ${JSON.stringify(route.activeTab)})` : "true"};
-    const textReady = ${route.text ? `body.includes(${JSON.stringify(route.text)})` : "true"};
-    const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
-    const navigation = performance.getEntriesByType('navigation')[0];
-    const firstContentfulPaint = performance.getEntriesByName('first-contentful-paint')[0];
-    return {
-      ready: document.readyState === 'complete' && body.trim().length > 40 && controls > 0 && selectorReady && activeTabReady && textReady,
-      documentReadyState: document.readyState,
-      bodyCharacters: body.length,
-      interactiveControlCount: controls,
-      domInteractiveMs: navigation?.domInteractive ?? null,
-      domContentLoadedMs: navigation?.domContentLoadedEventEnd ?? null,
-      loadEventMs: navigation?.loadEventEnd ?? null,
-      firstContentfulPaintMs: firstContentfulPaint?.startTime ?? null,
-    };
-  })()`;
-}
+const readinessExpression = `(() => {
+  const body = document.body?.innerText || "";
+  const routeKey = location.pathname + location.search;
+  let routeReady = false;
+  if (routeKey === "/?workspace=dashboard") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'));
+  else if (routeKey === "/library") routeReady = Boolean(document.querySelector('[data-library-workspace="v1"]'));
+  else if (routeKey === "/?workspace=learn") routeReady = Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
+  else if (routeKey === "/?workspace=plan") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Plan");
+  else if (routeKey === "/?workspace=build") routeReady = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Build");
+  else if (routeKey === "/story-decisions") routeReady = body.includes("Story Decisions");
+  else if (routeKey === "/story-workbench") routeReady = body.includes("Story Workbench");
+  const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
+  const navigation = performance.getEntriesByType('navigation')[0];
+  const firstContentfulPaint = performance.getEntriesByName('first-contentful-paint')[0];
+  return {
+    ready: document.readyState === 'complete' && body.trim().length > 40 && controls > 0 && routeReady,
+    documentReadyState: document.readyState,
+    bodyCharacters: body.length,
+    interactiveControlCount: controls,
+    domInteractiveMs: navigation?.domInteractive ?? null,
+    domContentLoadedMs: navigation?.domContentLoadedEventEnd ?? null,
+    loadEventMs: navigation?.loadEventEnd ?? null,
+    firstContentfulPaintMs: firstContentfulPaint?.startTime ?? null,
+  };
+})()`;
 
 async function measureRoute(client, baseUrl, route) {
   const started = performance.now();
   await client.send("Page.navigate", { url: new URL(route.path, baseUrl).toString() });
   const deadline = Date.now() + 30_000;
   let state = null;
+  let lastProbeError = null;
   while (Date.now() < deadline) {
     try {
-      state = await evaluate(client, readinessExpression(route));
+      state = await evaluate(client, readinessExpression);
       if (state?.ready) {
         await evaluate(client, "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
         return { label: route.label, path: route.path, usefulInteractiveMs: Number((performance.now() - started).toFixed(2)), ...state };
       }
-    } catch {}
+    } catch (error) {
+      lastProbeError = error;
+    }
     await delay(100);
   }
-  throw new Error(`#1411 browser route ${route.label} did not become useful and interactive within 30000 ms. Last state: ${JSON.stringify(state)}`);
+  const detail = lastProbeError instanceof Error ? ` Last probe error: ${lastProbeError.message}` : "";
+  throw new Error(`#1411 browser route ${route.label} did not become useful and interactive within 30000 ms. Last state: ${JSON.stringify(state)}.${detail}`);
 }
 
 async function stopBrowser(child) {
@@ -218,6 +231,6 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
   } finally {
     client?.close();
     await stopBrowser(child);
-    await rm(profile, { recursive: true, force: true });
+    await rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   }
 }

@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
-  "issue": 1630,
+  "schemaVersion": 3,
+  "issue": 1637,
   "baseline": {
-    "sourceCommit": "450087a060e437739962519577ff249d7fba21d0",
-    "priorInventoryIssue": 1626,
+    "sourceCommit": "28502439883a910c755327a9efc61db330ab5700",
+    "priorInventoryIssue": 1630,
     "performanceIssue": 1411,
     "performanceMergeCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
     "performanceBudgetContract": "scripts/performance/ratified/performance-budgets.json"
@@ -34,7 +34,7 @@
     { "path": "core", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["core", "story"], "evidence": ["Canonical product contracts and core story/runtime behavior are required by the base product."] },
     { "path": "data", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["story", "core"], "evidence": ["Current packaged data may contain required curriculum/project reference state; removal is not authorized before subinventory."], "disposition": "subinventory-before-split" },
     { "path": "db", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["core"], "evidence": ["Project persistence/storage is part of the supported local writer journey."] },
-    { "path": "docs", "kind": "directory", "weightClass": "reference-example-payload", "targetDomains": ["platform", "story"], "evidence": ["Documentation is packaged reference material and is not a startup readiness dependency in current launcher evidence."], "disposition": "subinventory-before-split" },
+    { "path": "docs", "kind": "directory", "weightClass": "reference-example-payload", "targetDomains": ["platform", "story"], "evidence": ["Documentation remains packaged reference material; Slice C excludes only source-only brand masters while retaining the documentation tree."], "disposition": "subinventory-before-split" },
     { "path": "learn", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["story"], "evidence": ["LEARN/curriculum is explicitly part of the core product definition in #1412."] },
     { "path": "lib", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["core", "story", "intelligence", "community-integrations", "platform"], "evidence": ["Legacy mixed root contains runtime consumers across product domains; removal or wholesale reclassification is unsafe before #1460 consolidation."], "disposition": "mixed-root-requires-domain-subinventory" },
     { "path": "modules", "kind": "directory", "weightClass": "core-runtime", "targetDomains": ["story", "core", "intelligence"], "evidence": ["Current modules contain story workflow and product contracts used by the normal journey."] },
@@ -59,7 +59,8 @@
   ],
   "excludedSourcePayloads": [
     { "path": "tests", "kind": "directory", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Test sources execute in developer checkout and CI, not in the normal writer runtime.", "Slice B removes tests from scripts/package-platform.mjs while keeping the source tree unchanged."], "disposition": "excluded-from-base-release" },
-    { "path": "CONTRIBUTING.md", "kind": "file", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Contributor instructions are repository/developer documentation and have no packaged runtime consumer."], "disposition": "excluded-from-base-release" }
+    { "path": "CONTRIBUTING.md", "kind": "file", "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Contributor instructions are repository/developer documentation and have no packaged runtime consumer."], "disposition": "excluded-from-base-release" },
+    { "path": "docs/brand-sources", "kind": "directory", "weightClass": "reference-example-payload", "targetDomains": ["experience", "platform"], "evidence": ["The directory contains master/reference branding source artwork retained for source provenance and tests.", "scripts/package-platform.mjs excludes this nested source-only directory while continuing to package docs and derived application assets."], "disposition": "excluded-from-base-release" }
   ],
   "packageOverrides": {
     "next": { "weightClass": "core-runtime", "targetDomains": ["experience", "platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires next before runtime readiness."] },

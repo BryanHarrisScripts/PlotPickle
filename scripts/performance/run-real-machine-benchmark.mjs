@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { performance } from "node:perf_hooks";
-import { classifyMeasuredWork } from "./classify-measured-work.mjs";
+import { classifyMeasuredWork } from "./contracts/classify-measured-work.mjs";
 import { measureStoryWorkflowContract } from "./measure-story-workflow-contract.mjs";
 
 const args = process.argv.slice(2);

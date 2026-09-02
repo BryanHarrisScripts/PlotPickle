@@ -8,7 +8,7 @@ import {
   classifyMeasuredWork,
   measuredWorkDefinitions,
   validateWorkClassification,
-} from "../scripts/performance/classify-measured-work.mjs";
+} from "../scripts/performance/contracts/classify-measured-work.mjs";
 import { browserRoutes, findPerformanceBrowser } from "../scripts/performance/measure-browser-responsiveness.mjs";
 import { measureStoryWorkflowContract } from "../scripts/performance/measure-story-workflow-contract.mjs";
 import { isolatedBenchmarkEnvironment, observeStartupOutput, optimizerCachePath } from "../scripts/performance/run-windows-startup-benchmark.mjs";

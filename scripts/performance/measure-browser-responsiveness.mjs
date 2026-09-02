@@ -124,14 +124,13 @@ async function evaluate(client, expression) {
 const readinessExpression = `(() => {
   const body = document.body?.innerText || "";
   const routeKey = location.pathname + location.search;
-  const shellHeader = Boolean(document.querySelector('.application-shell-header'));
-  const activeTab = (label) => [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === label);
+  const shellWorkspace = document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') || '';
   let routeReady = false;
-  if (routeKey === "/?workspace=dashboard") routeReady = shellHeader && activeTab("Dashboard") && !body.includes("See the whole movie before you make it.");
-  else if (routeKey === "/library") routeReady = shellHeader && Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
-  else if (routeKey === "/?workspace=learn") routeReady = shellHeader && activeTab("Learn") && Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
-  else if (routeKey === "/?workspace=plan") routeReady = shellHeader && activeTab("Plan");
-  else if (routeKey === "/?workspace=build") routeReady = shellHeader && activeTab("Build");
+  if (routeKey === "/?workspace=dashboard") routeReady = shellWorkspace === "dashboard" && !body.includes("See the whole movie before you make it.");
+  else if (routeKey === "/library") routeReady = shellWorkspace === "library" && Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
+  else if (routeKey === "/?workspace=learn") routeReady = shellWorkspace === "learn" && Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
+  else if (routeKey === "/?workspace=plan") routeReady = shellWorkspace === "plan";
+  else if (routeKey === "/?workspace=build") routeReady = shellWorkspace === "build";
   else if (routeKey === "/story-decisions") routeReady = body.includes("Story Decisions");
   else if (routeKey === "/story-workbench") routeReady = body.includes("Story Workbench");
   const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
@@ -225,11 +224,8 @@ const confirmAfterglowExpression = `(() => {
   return true;
 })()`;
 
-const afterglowDashboardReadyExpression = `(() => {
-  const activeDashboard = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => item.textContent?.trim() === "Dashboard");
-  return location.pathname === "/" && location.search === "?workspace=dashboard" && Boolean(document.querySelector('.application-shell-header')) && activeDashboard;
-})()`;
-const browserSetupStateExpression = `(() => ({ location: location.pathname + location.search, body: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 700) }))()`;
+const afterglowDashboardReadyExpression = `location.pathname === "/" && location.search === "?workspace=dashboard" && document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') === "dashboard"`;
+const browserSetupStateExpression = `(() => ({ location: location.pathname + location.search, workspace: document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') || '', body: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 700) }))()`;
 
 async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000) {
   const deadline = Date.now() + timeoutMs;

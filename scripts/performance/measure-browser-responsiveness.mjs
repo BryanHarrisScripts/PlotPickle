@@ -147,6 +147,60 @@ const readinessExpression = `(() => {
   };
 })()`;
 
+const ensureBenchmarkProfileExpression = `(async () => {
+  const benchmarkName = "PlotPickle Performance Benchmark";
+  const benchmarkPassphrase = "PlotPickle issue 1411 disposable performance benchmark";
+  const readStatus = async () => {
+    const response = await fetch('/api/auth/profile', { credentials: 'same-origin', cache: 'no-store' });
+    const body = await response.json();
+    return { ok: response.ok, status: response.status, body };
+  };
+  const mutate = async (action, payload) => {
+    const response = await fetch('/api/auth/profile', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const body = await response.json();
+    return { ok: response.ok, status: response.status, body };
+  };
+
+  const current = await readStatus();
+  if (!current.ok) return { ready: false, stage: 'status', status: current.status, message: current.body?.message || '' };
+  if (current.body?.authenticated) return { ready: true, action: 'reused-authenticated-session', profileId: current.body.profile?.profileId || '' };
+
+  let profile = Array.isArray(current.body?.profiles)
+    ? current.body.profiles.find((item) => item?.displayName === benchmarkName)
+    : null;
+  let action = 'unlocked-existing-benchmark-profile';
+  if (current.body?.configured !== true) {
+    const created = await mutate('create-first-profile', { displayName: benchmarkName, password: benchmarkPassphrase });
+    if (!created.ok || !created.body?.profile?.profileId) {
+      return { ready: false, stage: 'create-first-profile', status: created.status, message: created.body?.message || '' };
+    }
+    profile = created.body.profile;
+    action = 'created-and-unlocked-benchmark-profile';
+  } else if (!profile?.profileId) {
+    return {
+      ready: false,
+      stage: 'safety-boundary',
+      status: 409,
+      message: 'Configured PlotPickle Node has no disposable Performance Benchmark profile; refusing to touch existing Human profiles.',
+    };
+  }
+
+  const login = await mutate('login', { locator: profile.profileId, password: benchmarkPassphrase });
+  if (!login.ok) return { ready: false, stage: 'login', status: login.status, message: login.body?.message || '' };
+  const verified = await readStatus();
+  return {
+    ready: Boolean(verified.ok && verified.body?.authenticated && verified.body?.profile?.profileId === profile.profileId),
+    action,
+    profileId: profile.profileId,
+    accessMode: verified.body?.accessMode || '',
+  };
+})()`;
+
 const loadAfterglowExpression = `(() => {
   const button = [...document.querySelectorAll('button')].find((item) => {
     if ((item.textContent || '').trim() !== 'Load & Explore') return false;
@@ -193,6 +247,19 @@ async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000
   const errorDetail = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
   const stateDetail = state ? ` Last browser state: ${JSON.stringify(state)}` : "";
   throw new Error(`#1411 browser setup ${label} did not become ready within ${timeoutMs} ms.${errorDetail}${stateDetail}`);
+}
+
+async function ensureBenchmarkProfile(client, baseUrl) {
+  if (!process.env.PLOTPICKLE_HOME) {
+    throw new Error("#1411 browser evidence requires an explicit isolated PLOTPICKLE_HOME before it may create a disposable benchmark profile.");
+  }
+  await client.send("Page.navigate", { url: new URL("/library", baseUrl).toString() });
+  await waitForBrowserValue(client, `document.readyState === "complete" && Boolean(document.body)`, "local profile boundary");
+  const result = await evaluate(client, ensureBenchmarkProfileExpression);
+  if (!result?.ready) throw new Error(`#1411 disposable benchmark profile setup failed: ${JSON.stringify(result)}`);
+  await client.send("Page.navigate", { url: new URL("/library", baseUrl).toString() });
+  await waitForBrowserValue(client, readinessExpression, "authenticated rendered Library");
+  return result;
 }
 
 async function bootstrapAfterglowWorkingCopy(client, baseUrl) {
@@ -269,6 +336,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
     client = new CdpClient(target.webSocketDebuggerUrl);
     await client.connect();
     await Promise.all([client.send("Page.enable"), client.send("Runtime.enable")]);
+    const profileSetup = await ensureBenchmarkProfile(client, baseUrl);
     await bootstrapAfterglowWorkingCopy(client, baseUrl);
     const firstAccess = [];
     const repeatedAccess = [];
@@ -282,12 +350,19 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       reliability: "headless-browser-cdp-useful-interactive-contract",
       browser: path.basename(executable),
       managedLauncherBrowser: false,
+      profileSetup: {
+        authority: "desktop-loopback-auth-api",
+        disposableBenchmarkProfile: true,
+        existingHumanProfileBypassAllowed: false,
+        action: profileSetup.action,
+        accessMode: profileSetup.accessMode,
+      },
       fixtureSetup: {
         sourceCatalogId: "afterglow-v9",
         method: "normal-library-load-and-confirm",
         includedInRouteTiming: false,
       },
-      firstAccessBasis: "first measured navigation after canonical fixture setup",
+      firstAccessBasis: "first measured navigation after authenticated canonical fixture setup",
       viewport: { width: 1440, height: 1000 },
       firstUsefulWorkspaceAtEpochMs,
       firstAccess,

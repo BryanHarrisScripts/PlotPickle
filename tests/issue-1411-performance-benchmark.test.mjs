@@ -207,9 +207,88 @@ test("#1411 Windows workflow separates fresh startup from repeated warm samples"
   assert.match(workflow, /--mode fresh-optimizer/);
   assert.match(workflow, /--mode warm-persistent-runtime/);
   assert.match(workflow, /analyze-real-machine-baselines\.mjs/);
+  assert.match(workflow, /profile:/);
+  assert.match(workflow, /startup-baseline/);
+  assert.match(workflow, /story-workflow-local/);
+  assert.match(workflow, /--mode story-workflow-local/);
+  assert.match(workflow, /story-workflow-local-baseline-analysis\.json/);
+  assert.match(workflow, /PLOTPICKLE_BUZZ_MODE: disabled/);
+  assert.match(workflow, /PLOTPICKLE_OPTIONAL_INTEGRATIONS: ""/);
   assert.match(workflow, /github\.event\.pull_request\.head\.sha \|\| github\.sha/);
   assert.match(launcher, /PLOTPICKLE_PERFORMANCE_BENCHMARK/);
   assert.match(launcher, /browser launch and optional companion maintenance are suppressed/);
+});
+
+test("#1618 analyzer aggregates repeated bounded local Story Workflow evidence separately", () => {
+  const sample = (fullElapsedMs, targetedElapsedMs) => ({
+    benchmarkIssue: 1411,
+    authoritative: true,
+    mode: "story-workflow-local",
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "workflow-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { navigation: [], memory: {} },
+    workflow: {
+      status: "captured-deterministic-contract",
+      paidCloudRequired: false,
+      workload: "afterglow-v9-bounded-story-workflow",
+      baseRevision: 9,
+      changedRefs: ["ppf:foundations:ren-motivation"],
+      providerRoute: "deterministic-local-contract",
+      fullAudit: { elapsedMs: fullElapsedMs, workItemCount: 4, specialistCount: 3, contextBytes: 4000 },
+      targetedReevaluation: { elapsedMs: targetedElapsedMs, workItemCount: 2, specialistCount: 2, contextBytes: 2000, preservedUnaffected: true },
+      comparison: { workItemRatio: 0.5, specialistRatio: 0.6667, contextByteRatio: 0.5, targetedIsBounded: true },
+    },
+    result: { harnessHealthy: true, workflowBounded: true },
+  });
+  const report = analyzeBaselines([sample(12, 4), sample(10, 3), sample(11, 5)]);
+  const mode = report.modes["story-workflow-local"];
+  assert.equal(mode.readyForBudgetRatification, true);
+  assert.equal(mode.workflow.samples, 3);
+  assert.equal(mode.workflow.fullAudit.elapsedMs.mean, 11);
+  assert.equal(mode.workflow.targetedReevaluation.elapsedMs.mean, 4);
+  assert.equal(mode.workflow.targetedReevaluation.preservedUnaffectedSamples, 3);
+  assert.equal(mode.workflow.comparison.boundedSamples, 3);
+  assert.equal(mode.workflow.comparison.workItemRatio.mean, 0.5);
+  assert.equal(mode.workflow.paidCloudRequired, false);
+});
+
+test("#1618 analyzer rejects unbounded or paid workflow samples from ratification", () => {
+  const base = {
+    benchmarkIssue: 1411,
+    authoritative: true,
+    mode: "story-workflow-local",
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "workflow-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { navigation: [], memory: {} },
+    workflow: { status: "captured-deterministic-contract", paidCloudRequired: false, workload: "afterglow-v9-bounded-story-workflow", baseRevision: 9, changedRefs: ["ppf:foundations:ren-motivation"], providerRoute: "deterministic-local-contract", fullAudit: {}, targetedReevaluation: {}, comparison: { targetedIsBounded: true } },
+    result: { harnessHealthy: true, workflowBounded: true },
+  };
+  const report = analyzeBaselines([
+    base,
+    { ...base, result: { harnessHealthy: true, workflowBounded: false } },
+    { ...base, workflow: { ...base.workflow, paidCloudRequired: true } },
+  ]);
+  assert.equal(report.modes["story-workflow-local"].healthySampleCount, 1);
+  assert.equal(report.modes["story-workflow-local"].readyForBudgetRatification, false);
+});
+
+test("#1618 analyzer rejects mixed workflow identity and mislabeled optional activity", () => {
+  const sample = {
+    benchmarkIssue: 1411,
+    authoritative: true,
+    mode: "story-workflow-local",
+    environment: { platform: "win32", arch: "x64", node: "v24.19.0", commit: "workflow-head", plotpickleVersion: "1", afterglowFixture: "afterglow-v9", curriculumIdentity: "a", ppfStartingRevision: "9", buzzMode: "disabled", optionalIntegrations: [] },
+    measurements: { navigation: [], memory: {} },
+    workflow: { status: "captured-deterministic-contract", paidCloudRequired: false, workload: "afterglow-v9-bounded-story-workflow", baseRevision: 9, changedRefs: ["ppf:foundations:ren-motivation"], providerRoute: "deterministic-local-contract", fullAudit: {}, targetedReevaluation: {}, comparison: { targetedIsBounded: true } },
+    result: { harnessHealthy: true, workflowBounded: true },
+  };
+  const report = analyzeBaselines([
+    sample,
+    { ...sample, workflow: { ...sample.workflow, changedRefs: ["ppf:structure:block-17"] } },
+    { ...sample, environment: { ...sample.environment, buzzMode: "enabled", optionalIntegrations: ["buzz"] } },
+  ]);
+  const mode = report.modes["story-workflow-local"];
+  assert.equal(mode.healthySampleCount, 2);
+  assert.equal(mode.identityStable, false);
+  assert.equal(mode.readyForBudgetRatification, false);
 });
 
 test("#1411 fresh-optimizer mode clears only the bounded Vite optimizer cache", async () => {

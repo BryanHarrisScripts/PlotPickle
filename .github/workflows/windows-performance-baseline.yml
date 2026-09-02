@@ -9,8 +9,16 @@ on:
       - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
     inputs:
-      warm_samples:
-        description: Repeated warm persistent-runtime samples
+      profile:
+        description: Authoritative baseline profile
+        required: true
+        default: startup-baseline
+        type: choice
+        options:
+          - startup-baseline
+          - story-workflow-local
+      sample_count:
+        description: Repeated samples for the selected profile
         required: true
         default: "3"
         type: choice
@@ -47,6 +55,7 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-1411-performance-benchmark.test.mjs
       - name: Capture fresh-runtime startup
+        if: github.event_name == 'pull_request' || inputs.profile == 'startup-baseline'
         shell: pwsh
         env:
           PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
@@ -57,7 +66,7 @@ jobs:
           PLOTPICKLE_BUZZ_MODE: disabled
         run: node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output .artifacts/performance/fresh-runtime.json
       - name: Capture separated optimizer and warm startup samples
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline'
         shell: pwsh
         env:
           PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
@@ -67,7 +76,7 @@ jobs:
           PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
           PLOTPICKLE_BUZZ_MODE: disabled
         run: |
-          $samples = [int]"${{ inputs.warm_samples }}"
+          $samples = [int]"${{ inputs.sample_count }}"
           $files = @(".artifacts/performance/fresh-runtime.json")
           $optimizerFile = ".artifacts/performance/fresh-optimizer.json"
           node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-optimizer --output $optimizerFile
@@ -80,6 +89,27 @@ jobs:
             $files += $file
           }
           node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/startup-mode-baseline-analysis.json
+      - name: Capture repeated local Story Workflow samples
+        if: github.event_name == 'workflow_dispatch' && inputs.profile == 'story-workflow-local'
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\PlotPickle-Performance
+          PLOTPICKLE_COMMIT: ${{ github.sha }}
+          PLOTPICKLE_AFTERGLOW_FIXTURE: afterglow-v9
+          PLOTPICKLE_PPF_START_REVISION: "9"
+          PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
+          PLOTPICKLE_BUZZ_MODE: disabled
+          PLOTPICKLE_OPTIONAL_INTEGRATIONS: ""
+        run: |
+          $samples = [int]"${{ inputs.sample_count }}"
+          $files = @()
+          1..$samples | ForEach-Object {
+            $file = ".artifacts/performance/story-workflow-local-$_.json"
+            node scripts/performance/run-windows-startup-benchmark.mjs --mode story-workflow-local --output $file
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $files += $file
+          }
+          node scripts/performance/analyze-real-machine-baselines.mjs @files --output .artifacts/performance/story-workflow-local-baseline-analysis.json
       - name: Upload bounded performance evidence
         if: always()
         uses: actions/upload-artifact@v4

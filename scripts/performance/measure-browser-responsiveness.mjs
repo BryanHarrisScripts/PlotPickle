@@ -8,13 +8,13 @@ import process from "node:process";
 import { performance } from "node:perf_hooks";
 
 export const browserRoutes = Object.freeze([
-  { label: "dashboard", path: "/?workspace=dashboard", selector: '[aria-label="PlotPickle Studio Dashboard"]' },
-  { label: "library", path: "/library", selector: '[data-library-workspace="v1"]' },
-  { label: "learn", path: "/?workspace=learn", selector: '[aria-label="PlotPickle curriculum"]' },
-  { label: "plan", path: "/?workspace=plan", activeTab: "Plan" },
-  { label: "build", path: "/?workspace=build", activeTab: "Build" },
-  { label: "story-decisions", path: "/story-decisions", text: "Story Decisions" },
-  { label: "story-workbench", path: "/story-workbench", text: "Story Workbench" },
+  { label: "dashboard", path: "/?workspace=dashboard" },
+  { label: "library", path: "/library" },
+  { label: "learn", path: "/?workspace=learn" },
+  { label: "plan", path: "/?workspace=plan" },
+  { label: "build", path: "/?workspace=build" },
+  { label: "story-decisions", path: "/story-decisions" },
+  { label: "story-workbench", path: "/story-workbench" },
 ]);
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -147,6 +147,50 @@ const readinessExpression = `(() => {
   };
 })()`;
 
+const loadAfterglowExpression = `(() => {
+  const card = document.querySelector('[data-library-catalog-id="afterglow-v9"]');
+  const button = card ? [...card.querySelectorAll('button')].find((item) => (item.textContent || '').trim() === 'Load & Explore') : null;
+  if (!button) return false;
+  button.click();
+  return true;
+})()`;
+
+const confirmAfterglowExpression = `(() => {
+  const dialog = document.querySelector('[role="dialog"][aria-labelledby="library-load-title"]');
+  const button = dialog ? [...dialog.querySelectorAll('button')].find((item) => (item.textContent || '').trim() === 'Save & Switch') : null;
+  if (!button) return false;
+  button.click();
+  return true;
+})()`;
+
+const afterglowDashboardReadyExpression = `location.pathname === "/" && location.search === "?workspace=dashboard" && Boolean(document.querySelector('[aria-label="PlotPickle Studio Dashboard"]'))`;
+
+async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  let lastError = null;
+  while (Date.now() < deadline) {
+    try {
+      const value = await evaluate(client, expression);
+      if (value) return value;
+    } catch (error) {
+      lastError = error;
+    }
+    await delay(100);
+  }
+  const detail = lastError instanceof Error ? ` Last error: ${lastError.message}` : "";
+  throw new Error(`#1411 browser setup ${label} did not become ready within ${timeoutMs} ms.${detail}`);
+}
+
+async function bootstrapAfterglowWorkingCopy(client, baseUrl) {
+  await client.send("Page.navigate", { url: new URL("/library", baseUrl).toString() });
+  await waitForBrowserValue(client, readinessExpression, "Library");
+  await waitForBrowserValue(client, loadAfterglowExpression, "Afterglow Load & Explore action");
+  await waitForBrowserValue(client, confirmAfterglowExpression, "Afterglow Save & Switch confirmation");
+  await waitForBrowserValue(client, afterglowDashboardReadyExpression, "Afterglow Dashboard");
+  await client.send("Page.navigate", { url: "about:blank" });
+  await waitForBrowserValue(client, `document.readyState === "complete"`, "blank benchmark target");
+}
+
 async function measureRoute(client, baseUrl, route) {
   const started = performance.now();
   await client.send("Page.navigate", { url: new URL(route.path, baseUrl).toString() });
@@ -211,6 +255,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
     client = new CdpClient(target.webSocketDebuggerUrl);
     await client.connect();
     await Promise.all([client.send("Page.enable"), client.send("Runtime.enable")]);
+    await bootstrapAfterglowWorkingCopy(client, baseUrl);
     const firstAccess = [];
     const repeatedAccess = [];
     let firstUsefulWorkspaceAtEpochMs = null;
@@ -223,6 +268,12 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       reliability: "headless-browser-cdp-useful-interactive-contract",
       browser: path.basename(executable),
       managedLauncherBrowser: false,
+      fixtureSetup: {
+        sourceCatalogId: "afterglow-v9",
+        method: "normal-library-load-and-confirm",
+        includedInRouteTiming: false,
+      },
+      firstAccessBasis: "first measured navigation after canonical fixture setup",
       viewport: { width: 1440, height: 1000 },
       firstUsefulWorkspaceAtEpochMs,
       firstAccess,

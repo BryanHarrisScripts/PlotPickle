@@ -14,7 +14,7 @@ export type VisualReference = {
   category: "genre" | "emotion" | "environment" | "architecture" | "period" | "palette" | "cinematography" | "illustration";
   tags: string[];
   alt: string;
-  image: { thumbnail: string; card: string; full: string; width: number; height: number };
+  image: { thumbnail: string; card: string; full?: string; width: number; height: number };
   palette: Array<{ hex: string; label: string; proportion: number }>;
   contrast: string;
   saturation: string;

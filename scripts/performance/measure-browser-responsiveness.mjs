@@ -13,12 +13,21 @@ export const browserRoutes = Object.freeze([
   { label: "learn", path: "/?workspace=learn" },
   { label: "plan", path: "/?workspace=plan" },
   { label: "build", path: "/?workspace=build" },
+  { label: "storyboard", path: "/storyboard" },
   { label: "story-decisions", path: "/story-decisions" },
   { label: "story-workbench", path: "/story-workbench" },
 ]);
 
+export const visualSurfacePaths = Object.freeze([
+  { label: "library-reference-cards", path: "/library" },
+  { label: "build-24x96", path: "/?workspace=build" },
+  { label: "storyboard-24x96", path: "/storyboard" },
+  { label: "story-workbench-preview", path: "/story-workbench" },
+]);
+
 export const idleWindowMs = 5_000;
 const idleSettleMs = 1_000;
+const visualSettleMs = 500;
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function choosePort() {
@@ -149,7 +158,8 @@ const readinessExpression = `(() => {
   else if (routeKey === "/library") routeReady = shellWorkspace === "library" && Boolean(document.querySelector('[data-library-workspace="v1"]')) && body.includes("Featured Examples") && body.includes("Afterglow");
   else if (routeKey === "/?workspace=learn") routeReady = shellWorkspace === "learn" && Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
   else if (routeKey === "/?workspace=plan") routeReady = shellWorkspace === "plan";
-  else if (routeKey === "/?workspace=build") routeReady = shellWorkspace === "build";
+  else if (routeKey === "/?workspace=build") routeReady = shellWorkspace === "build" && Boolean(document.querySelector('[data-progressive-story-map="24x96"]'));
+  else if (routeKey === "/storyboard") routeReady = Boolean(document.querySelector('[aria-label="Storyboard Block tabs"]')) && body.includes("Visual anchors");
   else if (routeKey === "/story-decisions") routeReady = body.includes("Story Decisions");
   else if (routeKey === "/story-workbench") routeReady = body.includes("Story Workbench");
   const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
@@ -165,6 +175,51 @@ const readinessExpression = `(() => {
     loadEventMs: navigation?.loadEventEnd ?? null,
     firstContentfulPaintMs: firstContentfulPaint?.startTime ?? null,
   };
+})()`;
+
+const visualDensityExpression = `(() => {
+  const body = document.body?.innerText || "";
+  const routeKey = location.pathname + location.search;
+  const images = [...document.images];
+  const resources = performance.getEntriesByType('resource');
+  const resourceSummary = resources.reduce((summary, entry) => {
+    summary.count += 1;
+    summary.transferBytes += Number(entry.transferSize || 0);
+    summary.decodedBodyBytes += Number(entry.decodedBodySize || 0);
+    const type = entry.initiatorType || 'other';
+    summary.byType[type] = (summary.byType[type] || 0) + 1;
+    return summary;
+  }, { count: 0, transferBytes: 0, decodedBodyBytes: 0, byType: {} });
+  const profile = {
+    routeKey,
+    bodyCharacters: body.length,
+    domNodeCount: document.getElementsByTagName('*').length,
+    imageElementCount: images.length,
+    loadedImageElementCount: images.filter((image) => image.complete && image.naturalWidth > 0).length,
+    lazyImageElementCount: images.filter((image) => image.loading === 'lazy').length,
+    nonLazyImageElementCount: images.filter((image) => image.loading !== 'lazy').length,
+    resourceSummary,
+    blockCount: null,
+    miniBlockCount: null,
+    decisionTargetCount: document.querySelectorAll('[data-story-decision-target]').length,
+    projectionImpactCount: document.querySelectorAll('[data-projection-impact]').length,
+    storyboardBlockTabCount: null,
+    visibleMiniBlockAnchorCount: null,
+    declaredVisualAnchorCount: null,
+    topologyComplete: null,
+  };
+  if (routeKey === '/?workspace=build') {
+    profile.blockCount = document.querySelectorAll('[data-progressive-story-map="24x96"] button[data-canonical-story-id]').length;
+    profile.miniBlockCount = document.querySelectorAll('[data-progressive-story-map="24x96"] [aria-label^="Mini-Block "]').length;
+    profile.topologyComplete = profile.blockCount === 24 && profile.miniBlockCount === 96;
+  } else if (routeKey === '/storyboard') {
+    profile.storyboardBlockTabCount = document.querySelectorAll('[aria-label="Storyboard Block tabs"] [role="tab"]').length;
+    profile.visibleMiniBlockAnchorCount = document.querySelectorAll('[data-story-decision-target^="storyboard-anchor:"]').length;
+    const visualAnchorTerm = [...document.querySelectorAll('dt')].find((item) => (item.textContent || '').trim() === 'Visual anchors');
+    profile.declaredVisualAnchorCount = Number(visualAnchorTerm?.nextElementSibling?.textContent || 0) || null;
+    profile.topologyComplete = profile.storyboardBlockTabCount === 24 && profile.visibleMiniBlockAnchorCount === 4 && profile.declaredVisualAnchorCount === 96;
+  }
+  return profile;
 })()`;
 
 const ensureBenchmarkProfileExpression = `(async () => {
@@ -267,7 +322,7 @@ async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000
   while (Date.now() < deadline) {
     try {
       const value = await evaluate(client, expression);
-      if (value) return value;
+      if (value && (typeof value !== "object" || value.ready !== false)) return value;
     } catch (error) {
       lastError = error;
     }
@@ -327,6 +382,116 @@ async function measureRoute(client, baseUrl, route) {
   }
   const detail = lastProbeError instanceof Error ? ` Last probe error: ${lastProbeError.message}` : "";
   throw new Error(`#1411 browser route ${route.label} did not become useful and interactive within 30000 ms. Last state: ${JSON.stringify(state)}.${detail}`);
+}
+
+function summarizeNetworkRequests(requests, baseUrl) {
+  const origin = new URL(baseUrl).origin;
+  let sameOriginRequestCount = 0;
+  let apiRequestCount = 0;
+  let externalRequestCount = 0;
+  let imageRequestCount = 0;
+  let mediaRequestCount = 0;
+  let encodedDataBytes = 0;
+  const sameOriginPaths = new Map();
+  const externalOrigins = new Map();
+  for (const request of requests.values()) {
+    if (!request.url) continue;
+    let requestUrl;
+    try {
+      requestUrl = new URL(request.url);
+    } catch {
+      continue;
+    }
+    encodedDataBytes += Number(request.encodedDataLength || 0);
+    if (request.type === "Image") imageRequestCount += 1;
+    if (request.type === "Media") mediaRequestCount += 1;
+    if (requestUrl.origin === origin) {
+      sameOriginRequestCount += 1;
+      const pathKey = `${request.method ?? "GET"} ${requestUrl.pathname}`;
+      sameOriginPaths.set(pathKey, (sameOriginPaths.get(pathKey) ?? 0) + 1);
+      if (requestUrl.pathname.startsWith("/api/")) apiRequestCount += 1;
+    } else {
+      externalRequestCount += 1;
+      externalOrigins.set(requestUrl.origin, (externalOrigins.get(requestUrl.origin) ?? 0) + 1);
+    }
+  }
+  return {
+    requestCount: requests.size,
+    sameOriginRequestCount,
+    apiRequestCount,
+    externalRequestCount,
+    imageRequestCount,
+    mediaRequestCount,
+    encodedDataBytes,
+    sameOriginPaths: Object.fromEntries([...sameOriginPaths.entries()].sort(([left], [right]) => left.localeCompare(right))),
+    externalOrigins: Object.fromEntries([...externalOrigins.entries()].sort(([left], [right]) => left.localeCompare(right))),
+  };
+}
+
+async function measureVisualSurface(client, baseUrl, surface) {
+  const requests = new Map();
+  const removeRequestListener = client.on("Network.requestWillBeSent", (params) => {
+    const requestUrl = params.request?.url;
+    if (!requestUrl || (!requestUrl.startsWith("http://") && !requestUrl.startsWith("https://"))) return;
+    requests.set(params.requestId, {
+      url: requestUrl,
+      method: params.request?.method ?? null,
+      type: params.type ?? null,
+      encodedDataLength: 0,
+    });
+  });
+  const removeFinishedListener = client.on("Network.loadingFinished", (params) => {
+    const request = requests.get(params.requestId);
+    if (request) request.encodedDataLength = Number(params.encodedDataLength || 0);
+  });
+
+  await client.send("Network.enable");
+  const started = performance.now();
+  try {
+    await client.send("Page.navigate", { url: new URL(surface.path, baseUrl).toString() });
+    const ready = await waitForBrowserValue(client, readinessExpression, `${surface.label} visual profile`);
+    await evaluate(client, "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))");
+    await delay(visualSettleMs);
+    const density = await evaluate(client, visualDensityExpression);
+    const network = summarizeNetworkRequests(requests, baseUrl);
+    return {
+      reliability: "headless-browser-cdp-visual-density-profile",
+      label: surface.label,
+      path: surface.path,
+      usefulInteractiveMs: Number((performance.now() - started - visualSettleMs).toFixed(2)),
+      settleAfterInteractiveMs: visualSettleMs,
+      ...density,
+      network,
+      eagerMediaAssessment: {
+        status: "evidence-only-no-ratified-threshold",
+        note: "Request, image and payload counts are recorded as evidence. Slice E does not invent a hard eager-loading budget before repeated real-machine samples establish normal variance.",
+      },
+      ready: Boolean(ready?.ready),
+    };
+  } finally {
+    removeRequestListener();
+    removeFinishedListener();
+    await client.send("Network.disable");
+  }
+}
+
+async function measureVisualStoryCost(client, baseUrl) {
+  const surfaces = [];
+  for (const surface of visualSurfacePaths) surfaces.push(await measureVisualSurface(client, baseUrl, surface));
+  const build = surfaces.find((surface) => surface.label === "build-24x96");
+  const storyboard = surfaces.find((surface) => surface.label === "storyboard-24x96");
+  if (!build?.topologyComplete) throw new Error("#1411 visual evidence did not observe the canonical BUILD 24/96 topology.");
+  if (!storyboard?.topologyComplete) throw new Error("#1411 visual evidence did not observe Storyboard's 24 tabs, 96 declared anchors and four selected Mini-Block anchors.");
+  return {
+    reliability: "headless-browser-cdp-visual-density-profile",
+    surfaces,
+    canonicalTopologyObserved: true,
+    storyboardRenderingBoundary: {
+      declaredVisualAnchors: storyboard.declaredVisualAnchorCount,
+      renderedSelectedBlockAnchors: storyboard.visibleMiniBlockAnchorCount,
+      note: "Storyboard exposes 96 canonical visual addresses but renders only the selected Block's four Mini-Block anchor cards in this viewport; this is a bounded-rendering observation, not a claim about future Storyboard implementations.",
+    },
+  };
 }
 
 async function measureIdleCost(client, baseUrl) {
@@ -453,6 +618,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       if (firstUsefulWorkspaceAtEpochMs == null) firstUsefulWorkspaceAtEpochMs = Date.now();
     }
     for (const route of browserRoutes) repeatedAccess.push(await measureRoute(client, baseUrl, route));
+    const visualStory = await measureVisualStoryCost(client, baseUrl);
     const idle = await measureIdleCost(client, baseUrl);
     return {
       reliability: "headless-browser-cdp-useful-interactive-contract",
@@ -475,6 +641,7 @@ export async function measureBrowserResponsiveness({ baseUrl }) {
       firstUsefulWorkspaceAtEpochMs,
       firstAccess,
       repeatedAccess,
+      visualStory,
       idle,
     };
   } finally {

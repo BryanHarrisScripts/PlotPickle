@@ -5,6 +5,7 @@ on:
     paths:
       - "scripts/performance/**"
       - "tests/issue-1411-performance-benchmark.test.mjs"
+      - "tests/issue-1612-visual-density-cost.test.mjs"
       - ".github/workflows/performance-contract.yml"
       - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
@@ -27,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate deterministic performance contract
-        run: node --test tests/issue-1411-performance-benchmark.test.mjs
+        run: node --test tests/issue-1411-performance-benchmark.test.mjs tests/issue-1612-visual-density-cost.test.mjs
       - name: Validate non-authoritative harness boundary
         shell: bash
         run: |

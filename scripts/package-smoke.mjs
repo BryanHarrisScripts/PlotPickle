@@ -46,6 +46,9 @@ for (const file of [
 ]) {
   assert.ok(existsSync(path.join(folder, file)), `Missing packaged file: ${file}`);
 }
+for (const excluded of ["tests", "CONTRIBUTING.md"]) {
+  assert.ok(!existsSync(path.join(folder, excluded)), `Developer-only payload leaked into release: ${excluded}`);
+}
 const githubApp = JSON.parse(readFileSync(path.join(folder, "config", "github-app.json"), "utf8"));
 assert.equal(githubApp.registrationStatus, "registered", "The official PlotPickle GitHub App has not been registered for this release.");
 assert.match(githubApp.clientId, /^[A-Za-z0-9._-]{8,200}$/);

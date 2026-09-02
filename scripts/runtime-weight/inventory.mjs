@@ -75,6 +75,17 @@ function packageLocation(name) {
   return path.join(repoRoot, "node_modules", ...name.split("/"));
 }
 
+function measurePayloads(payloads) {
+  return payloads.map((item) => ({
+    ...item,
+    sourceBytes: item.kind === "directory" || item.kind === "file" ? measureBytes(path.join(repoRoot, item.path)) : null,
+  }));
+}
+
+function totalMeasuredBytes(payloads) {
+  return payloads.reduce((total, item) => total + (Number.isFinite(item.sourceBytes) ? item.sourceBytes : 0), 0);
+}
+
 function directPackages(packageJson, contract) {
   const sections = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
   const result = [];
@@ -89,7 +100,7 @@ function directPackages(packageJson, contract) {
         weightClass: override?.weightClass ?? null,
         disposition: override?.disposition ?? (override ? "classified" : "requires-reachability-proof"),
         targetDomains: override?.targetDomains ?? [],
-        evidence: override?.evidence ?? [`package.json ${section} declaration is direct; Slice A has not yet proven a shipped runtime consumer for ${name}.`],
+        evidence: override?.evidence ?? [`package.json ${section} declaration is direct; the current inventory has not yet proven a shipped runtime consumer for ${name}.`],
         installedBytes: measureBytes(packageLocation(name)),
       });
     }
@@ -106,6 +117,8 @@ export function buildInventory() {
   const runtimeDirectories = extractRuntimeDirectories(packagerSource);
   const copiedRootFiles = extractCopiedRootFiles(packagerSource);
   const knownPaths = new Map(contract.releasePayloads.map((item) => [item.path, item]));
+  const releasePayloads = measurePayloads(contract.releasePayloads);
+  const excludedSourcePayloads = measurePayloads(contract.excludedSourcePayloads ?? []);
 
   return {
     schemaVersion: contract.schemaVersion,
@@ -126,10 +139,12 @@ export function buildInventory() {
       selectedPlatformLauncher: true,
       generatedFiles: ["release-manifest.json", "FILES.txt"],
     },
-    releasePayloads: contract.releasePayloads.map((item) => ({
-      ...item,
-      sourceBytes: item.kind === "directory" || item.kind === "file" ? measureBytes(path.join(repoRoot, item.path)) : null,
-    })),
+    releasePayloads,
+    excludedSourcePayloads,
+    weightEvidence: {
+      classifiedShippedSourceBytes: totalMeasuredBytes(releasePayloads),
+      excludedDeveloperSourceBytes: totalMeasuredBytes(excludedSourcePayloads),
+    },
     directPackages: directPackages(packageJson, contract),
     coverage: {
       runtimeDirectoryCount: runtimeDirectories.length,
@@ -140,11 +155,26 @@ export function buildInventory() {
   };
 }
 
+function validatePayload(payload, domainIds, weightClasses, failures) {
+  if (!weightClasses.has(payload.weightClass)) failures.push(`${payload.path}: invalid weight class ${payload.weightClass}`);
+  if (!Array.isArray(payload.targetDomains) || payload.targetDomains.length === 0) failures.push(`${payload.path}: target domain ownership is missing`);
+  for (const domain of payload.targetDomains ?? []) {
+    if (!domainIds.has(domain)) failures.push(`${payload.path}: unknown target domain ${domain}`);
+  }
+  if (!Array.isArray(payload.evidence) || payload.evidence.length === 0) failures.push(`${payload.path}: evidence is missing`);
+}
+
 export function validateInventory(inventory) {
   const failures = [];
   const domainIds = new Set(inventory.ownershipDomains.map((item) => item.id));
   const weightClasses = new Set(inventory.weightClasses);
   const payloadByPath = new Map(inventory.releasePayloads.map((item) => [item.path, item]));
+  const packagedPaths = new Set([
+    ...inventory.releaseAuthority.runtimeDirectories,
+    ...inventory.releaseAuthority.copiedRootFiles,
+    "<platform-launcher>",
+    ...inventory.releaseAuthority.generatedFiles,
+  ]);
 
   for (const pathName of inventory.releaseAuthority.runtimeDirectories) {
     if (!payloadByPath.has(pathName)) failures.push(`Unclassified packaged runtime directory: ${pathName}`);
@@ -156,13 +186,22 @@ export function validateInventory(inventory) {
     if (!payloadByPath.has(generated)) failures.push(`Unclassified generated/selected release payload: ${generated}`);
   }
 
-  for (const payload of inventory.releasePayloads) {
-    if (!weightClasses.has(payload.weightClass)) failures.push(`${payload.path}: invalid weight class ${payload.weightClass}`);
-    if (!Array.isArray(payload.targetDomains) || payload.targetDomains.length === 0) failures.push(`${payload.path}: target domain ownership is missing`);
-    for (const domain of payload.targetDomains ?? []) {
-      if (!domainIds.has(domain)) failures.push(`${payload.path}: unknown target domain ${domain}`);
-    }
-    if (!Array.isArray(payload.evidence) || payload.evidence.length === 0) failures.push(`${payload.path}: evidence is missing`);
+  for (const payload of inventory.releasePayloads) validatePayload(payload, domainIds, weightClasses, failures);
+
+  const excludedPaths = new Set();
+  for (const payload of inventory.excludedSourcePayloads ?? []) {
+    validatePayload(payload, domainIds, weightClasses, failures);
+    if (excludedPaths.has(payload.path)) failures.push(`${payload.path}: duplicate excluded source payload`);
+    excludedPaths.add(payload.path);
+    if (payloadByPath.has(payload.path)) failures.push(`${payload.path}: cannot be both shipped and excluded`);
+    if (packagedPaths.has(payload.path)) failures.push(`${payload.path}: excluded source payload is still packaged`);
+    if (payload.weightClass !== "developer-test-only") failures.push(`${payload.path}: excluded source payload must be developer-test-only`);
+    if (payload.disposition !== "excluded-from-base-release") failures.push(`${payload.path}: excluded source payload needs excluded-from-base-release disposition`);
+    if (!Number.isFinite(payload.sourceBytes) || payload.sourceBytes <= 0) failures.push(`${payload.path}: excluded source bytes were not measured`);
+  }
+
+  if (inventory.weightEvidence?.excludedDeveloperSourceBytes !== totalMeasuredBytes(inventory.excludedSourcePayloads ?? [])) {
+    failures.push("Excluded developer source byte total is inconsistent.");
   }
 
   for (const item of inventory.directPackages) {

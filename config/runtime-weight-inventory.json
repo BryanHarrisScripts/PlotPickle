@@ -5,7 +5,7 @@
     "sourceCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
     "performanceIssue": 1411,
     "performanceMergeCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
-    "performanceBudgetContract": "scripts/performance/ratified/performance-budget-contract.json"
+    "performanceBudgetContract": "scripts/performance/ratified/performance-budgets.json"
   },
   "ownershipDomains": [
     { "id": "core", "name": "Core" },

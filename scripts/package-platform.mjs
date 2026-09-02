@@ -37,7 +37,6 @@ const runtimeDirectories = [
   "runtime",
   "schema",
   "scripts",
-  "tests",
   "Utilities",
   "worker",
 ];
@@ -53,7 +52,7 @@ for (const entry of runtimeDirectories) {
     },
   });
 }
-for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "README.md", "LICENSE", "LICENSES.md", "CONTRIBUTING.md", "TRADEMARKS.md"]) {
+for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "README.md", "LICENSE", "LICENSES.md", "TRADEMARKS.md"]) {
   if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }
 const launcher = platform === "windows" ? "Start-PlotPickle.bat" : platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";

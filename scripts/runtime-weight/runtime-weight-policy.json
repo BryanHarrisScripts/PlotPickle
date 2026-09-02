@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "inventoryVersion": "1412-slice-a-2026-09-02",
+  "baseline": {
+    "plotPickleCommit": "1c9ad7fefff77d3ef9ed8d7a45d4ee5005b969af",
+    "performanceIssue": 1411,
+    "performanceGatePr": 1625,
+    "performanceBaselineVersion": "1411-2026-09-02-a7741f4",
+    "purpose": "Describe the current shipped/runtime weight before any #1412 removal or deferral. This file is role evidence, not dependency version authority."
+  },
+  "roles": [
+    "core-runtime",
+    "core-maintenance-runtime-tooling",
+    "optional-integration-runtime",
+    "reference-example-payload",
+    "developer-test-only"
+  ],
+  "dispositions": [
+    "keep-current",
+    "requires-reachability-proof",
+    "requires-finer-split"
+  ],
+  "persistentRuntime": {
+    "includeDev": true,
+    "evidence": [
+      "Start-PlotPickle.bat: npm ci --prefix PLOTPICKLE_RUNTIME_DIR --include=dev",
+      "scripts/windows-runtime.mjs: runtime fingerprint and persistent node_modules junction"
+    ],
+    "currentReadinessPackages": [
+      "vite",
+      "next",
+      "react",
+      "vinext",
+      "rolldown",
+      "drizzle-kit"
+    ],
+    "nativeBindingPolicy": "scripts/windows-runtime.mjs selects the architecture-specific @rolldown Windows binding and verifies its native entry before marking the runtime ready."
+  },
+  "releasePayload": [
+    { "id": ".agents", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "PlotPickle Agent Skills/runtime procedures are a supported product contract"] },
+    { "id": ".openai", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["vite.config.ts imports ./.openai/hosting.json", "scripts/package-platform.mjs runtimeDirectories"] },
+    { "id": "adapters", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "adapter surface mixes supported core and optional provider paths"] },
+    { "id": "app", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "primary PlotPickle UI/application source"] },
+    { "id": "build", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["vite.config.ts imports local gateways/plugins from build", "scripts/package-platform.mjs runtimeDirectories"] },
+    { "id": "components", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "shared UI component source"] },
+    { "id": "config", "role": "core-maintenance-runtime-tooling", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "packager reads config/github-app.json and config/google-oauth.json"] },
+    { "id": "core", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "core authority/auth/story contracts"] },
+    { "id": "data", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "contains product data that requires later file-level reference/media separation"] },
+    { "id": "db", "role": "core-runtime", "disposition": "keep-current", "evidence": ["db/index.ts imports drizzle-orm/d1", "scripts/package-platform.mjs runtimeDirectories"] },
+    { "id": "docs", "role": "developer-test-only", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs currently ships docs wholesale", "#1412 requires separating developer documentation from user runtime while preserving any required user-facing reference material"] },
+    { "id": "learn", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "LEARN/curriculum is part of the normal supported writer journey"] },
+    { "id": "lib", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "shared product runtime modules plus optional integration adapters"] },
+    { "id": "modules", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "modular story/product source"] },
+    { "id": "plugins", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "supported plugin platform with optional plugin implementations requiring later split proof"] },
+    { "id": "public", "role": "core-runtime", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "public application assets may contain both required UI and separable reference media"] },
+    { "id": "runtime", "role": "optional-integration-runtime", "disposition": "requires-finer-split", "evidence": ["runtime currently contains runtime/buzz", "scripts/package-platform.mjs verifies the packaged BUZZ trust bundle"] },
+    { "id": "schema", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs runtimeDirectories", "project/product schema contracts"] },
+    { "id": "scripts", "role": "core-maintenance-runtime-tooling", "disposition": "requires-finer-split", "evidence": ["Start-PlotPickle.bat invokes shipped scripts/windows-runtime.mjs and startup helpers", "scripts/package-platform.mjs currently ships the entire scripts tree including developer diagnostics"] },
+    { "id": "tests", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/package-platform.mjs currently ships tests wholesale", "normal writer startup does not intentionally execute the test suite"] },
+    { "id": "Utilities", "role": "core-maintenance-runtime-tooling", "disposition": "requires-finer-split", "evidence": ["scripts/package-platform.mjs intentionally packages Utilities for local repair/update/diagnosis", "scripts/windows-runtime.mjs directs native repair to Utilities/Repair-PlotPickle.cmd"] },
+    { "id": "worker", "role": "core-runtime", "disposition": "keep-current", "evidence": ["vite.config.ts localBindingConfig main is ./worker/index.ts", "scripts/package-platform.mjs runtimeDirectories"] },
+    { "id": "package.json", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["scripts/windows-runtime.mjs hashes and copies package.json into the persistent runtime"] },
+    { "id": "package-lock.json", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["scripts/windows-runtime.mjs hashes and copies package-lock.json into the persistent runtime"] },
+    { "id": "vite.config.ts", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["local Vite/Vinext runtime loads this configuration"] },
+    { "id": "tsconfig.json", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["scripts/package-platform.mjs currently includes tsconfig.json", "TypeScript/Vite source resolution requirements must be proven before removal"] },
+    { "id": "README.md", "role": "reference-example-payload", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs currently includes README.md as release documentation"] },
+    { "id": "LICENSE", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["release legal/licensing payload"] },
+    { "id": "LICENSES.md", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["release third-party licensing payload"] },
+    { "id": "CONTRIBUTING.md", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/package-platform.mjs currently includes contributor documentation"] },
+    { "id": "TRADEMARKS.md", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["release trademark/legal payload"] },
+    { "id": "platform-launcher", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["scripts/package-platform.mjs selects Start-PlotPickle.bat, Start-PlotPickle.command, or start-plotpickle.sh"] }
+  ],
+  "packageDeclarations": {
+    "@mastra/core": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["build/mastra-agent-runtime.ts imports Agent/Mastra", "build/autonomous-guest/mastra-wake-runtime.ts imports Mastra workflows", "Start-PlotPickle.bat verifies installed Mastra version"] },
+    "ai": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["build/mastra-agent-runtime.ts imports jsonSchema from ai"] },
+    "drizzle-orm": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["db/index.ts imports drizzle-orm/d1"] },
+    "libsodium-wrappers-sumo": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["core/auth/profile-crypto-contract-core.mjs imports libsodium-wrappers-sumo", "LICENSES.md records the Auth cryptographic runtime contract"] },
+    "next": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/windows-runtime.mjs coreReady requires next", "Vinext supplies the supported Next-compatible local application runtime"] },
+    "react": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["scripts/windows-runtime.mjs coreReady requires react", "app and components import react"] },
+    "react-dom": { "declaration": "dependencies", "role": "core-runtime", "disposition": "keep-current", "evidence": ["application browser renderer dependency", "app/component React rendering path"] },
+    "@cloudflare/vite-plugin": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["vite.config.ts dynamically imports @cloudflare/vite-plugin and invokes cloudflare() for the local binding environment"] },
+    "@tailwindcss/postcss": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["postcss.config.mjs declares @tailwindcss/postcss", "current release packager does not explicitly copy postcss.config.mjs, so runtime reachability must be proven before classification changes"] },
+    "@types/node": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-setup-report.mjs labels it Node.js type definitions", "no runtime import authority inferred from package.json section alone"] },
+    "@types/react": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-setup-report.mjs labels it React type definitions"] },
+    "@types/react-dom": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-setup-report.mjs labels it React DOM type definitions"] },
+    "@vitejs/plugin-react": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-setup-report.mjs labels it React/Vite build integration", "no direct import exists in current vite.config.ts"] },
+    "@vitejs/plugin-rsc": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-setup-report.mjs labels it React Server Components integration", "Vinext/RSC transitive runtime reachability must be proven before moving it"] },
+    "drizzle-kit": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["scripts/windows-runtime.mjs coreReady currently requires drizzle-kit", "package.json db:generate uses drizzle-kit"] },
+    "eslint": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["package.json lint script invokes eslint"] },
+    "eslint-config-next": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["ESLint configuration dependency; removal requires source/CI proof"] },
+    "tailwindcss": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["postcss.config.mjs activates the Tailwind PostCSS path", "local source compilation reachability requires proof before moving it"] },
+    "typescript": { "declaration": "devDependencies", "role": "developer-test-only", "disposition": "requires-reachability-proof", "evidence": ["repository ships TypeScript source and tsconfig.json, but direct persistent-runtime consumption has not yet been proven"] },
+    "vinext": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["vite.config.ts imports vinext", "scripts/windows-runtime.mjs coreReady requires vinext"] },
+    "vite": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "keep-current", "evidence": ["vite.config.ts imports defineConfig from vite", "scripts/windows-runtime.mjs coreReady requires vite"] },
+    "wrangler": { "declaration": "devDependencies", "role": "core-maintenance-runtime-tooling", "disposition": "requires-reachability-proof", "evidence": ["vite.config.ts configures Cloudflare/Miniflare environment variables", "direct runtime use versus @cloudflare/vite-plugin transitive use requires proof"] }
+  }
+}

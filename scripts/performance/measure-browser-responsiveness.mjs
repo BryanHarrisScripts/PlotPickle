@@ -214,7 +214,7 @@ const visualDensityExpression = `(() => {
     profile.topologyComplete = profile.blockCount === 24 && profile.miniBlockCount === 96;
   } else if (routeKey === '/storyboard') {
     profile.storyboardBlockTabCount = document.querySelectorAll('[aria-label="Storyboard Block tabs"] [role="tab"]').length;
-    profile.visibleMiniBlockAnchorCount = document.querySelectorAll('[data-story-decision-target^="storyboard:"]').length;
+    profile.visibleMiniBlockAnchorCount = document.querySelectorAll('[data-story-decision-target^="storyboard-anchor:"]').length;
     const visualAnchorTerm = [...document.querySelectorAll('dt')].find((item) => (item.textContent || '').trim() === 'Visual anchors');
     profile.declaredVisualAnchorCount = Number(visualAnchorTerm?.nextElementSibling?.textContent || 0) || null;
     profile.topologyComplete = profile.storyboardBlockTabCount === 24 && profile.visibleMiniBlockAnchorCount === 4 && profile.declaredVisualAnchorCount === 96;
@@ -322,7 +322,7 @@ async function waitForBrowserValue(client, expression, label, timeoutMs = 30_000
   while (Date.now() < deadline) {
     try {
       const value = await evaluate(client, expression);
-      if (value) return value;
+      if (value && (typeof value !== "object" || value.ready !== false)) return value;
     } catch (error) {
       lastError = error;
     }
@@ -480,13 +480,15 @@ async function measureVisualStoryCost(client, baseUrl) {
   for (const surface of visualSurfacePaths) surfaces.push(await measureVisualSurface(client, baseUrl, surface));
   const build = surfaces.find((surface) => surface.label === "build-24x96");
   const storyboard = surfaces.find((surface) => surface.label === "storyboard-24x96");
+  if (!build?.topologyComplete) throw new Error("#1411 visual evidence did not observe the canonical BUILD 24/96 topology.");
+  if (!storyboard?.topologyComplete) throw new Error("#1411 visual evidence did not observe Storyboard's 24 tabs, 96 declared anchors and four selected Mini-Block anchors.");
   return {
     reliability: "headless-browser-cdp-visual-density-profile",
     surfaces,
-    canonicalTopologyObserved: Boolean(build?.topologyComplete && storyboard?.topologyComplete),
+    canonicalTopologyObserved: true,
     storyboardRenderingBoundary: {
-      declaredVisualAnchors: storyboard?.declaredVisualAnchorCount ?? null,
-      renderedSelectedBlockAnchors: storyboard?.visibleMiniBlockAnchorCount ?? null,
+      declaredVisualAnchors: storyboard.declaredVisualAnchorCount,
+      renderedSelectedBlockAnchors: storyboard.visibleMiniBlockAnchorCount,
       note: "Storyboard exposes 96 canonical visual addresses but renders only the selected Block's four Mini-Block anchor cards in this viewport; this is a bounded-rendering observation, not a claim about future Storyboard implementations.",
     },
   };

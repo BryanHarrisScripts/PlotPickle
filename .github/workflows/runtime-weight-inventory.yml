@@ -15,6 +15,7 @@ on:
       - "tests/issue-1626-runtime-weight-inventory.test.mjs"
       - "tests/issue-1630-release-weight-cut.test.mjs"
       - "tests/issue-1637-brand-master-weight-cut.test.mjs"
+      - "tests/issue-1639-public-media-subinventory.test.mjs"
       - ".github/workflows/runtime-weight-inventory.yml"
   workflow_dispatch:
 
@@ -28,6 +29,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: "24.19.0"
@@ -35,9 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate runtime-weight inventory contracts
-        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs tests/issue-1637-brand-master-weight-cut.test.mjs
+        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs tests/issue-1637-brand-master-weight-cut.test.mjs tests/issue-1639-public-media-subinventory.test.mjs
       - name: Emit exact-head machine-readable inventory
-        run: node scripts/runtime-weight/inventory.mjs --output .artifacts/runtime-weight/inventory.json
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" node scripts/runtime-weight/inventory.mjs --output .artifacts/runtime-weight/inventory.json
+      - name: Emit exact-head public media subinventory
+        run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" node scripts/runtime-weight/public-media-inventory.mjs --output .artifacts/runtime-weight/public-media.json
       - name: Stage representative base release
         run: node scripts/package-platform.mjs linux
       - name: Validate representative base release
@@ -48,5 +53,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: runtime-weight-inventory
-          path: .artifacts/runtime-weight/inventory.json
+          path: .artifacts/runtime-weight/
           if-no-files-found: error

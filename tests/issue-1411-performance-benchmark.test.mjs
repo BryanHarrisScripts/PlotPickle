@@ -186,6 +186,7 @@ test("#1411 browser evidence uses canonical current routes and reports truthful 
     ["learn", "/?workspace=learn"],
     ["plan", "/?workspace=plan"],
     ["build", "/?workspace=build"],
+    ["storyboard", "/storyboard"],
     ["story-decisions", "/story-decisions"],
     ["story-workbench", "/story-workbench"],
   ]);

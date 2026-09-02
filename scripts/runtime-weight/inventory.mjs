@@ -95,6 +95,10 @@ function totalMeasuredBytesByWeightClass(payloads, weightClass) {
   return totalMeasuredBytes(payloads.filter((item) => item.weightClass === weightClass));
 }
 
+function totalNestedExcludedBytes(payloads) {
+  return totalMeasuredBytes(payloads.filter((item) => item.path.includes("/")));
+}
+
 function directPackages(packageJson, contract) {
   const sections = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
   const result = [];
@@ -129,6 +133,8 @@ export function buildInventory() {
   const knownPaths = new Map(contract.releasePayloads.map((item) => [item.path, item]));
   const releasePayloads = measurePayloads(contract.releasePayloads);
   const excludedSourcePayloads = measurePayloads(contract.excludedSourcePayloads ?? []);
+  const classifiedSourceBytesBeforeNestedExclusions = totalMeasuredBytes(releasePayloads);
+  const nestedExcludedSourceBytes = totalNestedExcludedBytes(excludedSourcePayloads);
 
   return {
     schemaVersion: contract.schemaVersion,
@@ -153,7 +159,9 @@ export function buildInventory() {
     releasePayloads,
     excludedSourcePayloads,
     weightEvidence: {
-      classifiedShippedSourceBytes: totalMeasuredBytes(releasePayloads),
+      classifiedSourceBytesBeforeNestedExclusions,
+      nestedExcludedSourceBytes,
+      classifiedShippedSourceBytes: classifiedSourceBytesBeforeNestedExclusions - nestedExcludedSourceBytes,
       excludedBaseReleaseSourceBytes: totalMeasuredBytes(excludedSourcePayloads),
       excludedDeveloperSourceBytes: totalMeasuredBytesByWeightClass(excludedSourcePayloads, "developer-test-only"),
       excludedReferenceSourceBytes: totalMeasuredBytesByWeightClass(excludedSourcePayloads, "reference-example-payload"),
@@ -220,6 +228,11 @@ export function validateInventory(inventory) {
     if (!excludedPaths.has(pathName)) failures.push(`${pathName}: packager source-only exclusion is missing inventory evidence`);
   }
 
+  const expectedNestedExcluded = totalNestedExcludedBytes(inventory.excludedSourcePayloads ?? []);
+  const expectedSourceBeforeNestedExclusions = totalMeasuredBytes(inventory.releasePayloads ?? []);
+  if (inventory.weightEvidence?.nestedExcludedSourceBytes !== expectedNestedExcluded) failures.push("Nested excluded source byte total is inconsistent.");
+  if (inventory.weightEvidence?.classifiedSourceBytesBeforeNestedExclusions !== expectedSourceBeforeNestedExclusions) failures.push("Pre-exclusion classified source byte total is inconsistent.");
+  if (inventory.weightEvidence?.classifiedShippedSourceBytes !== expectedSourceBeforeNestedExclusions - expectedNestedExcluded) failures.push("Classified shipped source byte total is inconsistent.");
   if (inventory.weightEvidence?.excludedBaseReleaseSourceBytes !== totalMeasuredBytes(inventory.excludedSourcePayloads ?? [])) {
     failures.push("Excluded base-release source byte total is inconsistent.");
   }

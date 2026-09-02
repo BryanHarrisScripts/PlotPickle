@@ -65,7 +65,7 @@ jobs:
           PLOTPICKLE_CURRICULUM_IDENTITY: afterglow-v9-current-catalog
           PLOTPICKLE_BUZZ_MODE: disabled
         run: node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output .artifacts/performance/fresh-runtime.json
-      - name: Capture separated optimizer and warm startup samples
+      - name: Capture repeated fresh, optimizer and warm startup samples
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.profile == 'startup-baseline') ||
           (github.event_name == 'pull_request' && startsWith(github.head_ref, 'baseline/1411-'))
@@ -80,10 +80,18 @@ jobs:
         run: |
           $samples = if ("${{ github.event_name }}" -eq "pull_request") { 3 } else { [int]"${{ inputs.sample_count }}" }
           $files = @(".artifacts/performance/fresh-runtime.json")
-          $optimizerFile = ".artifacts/performance/fresh-optimizer.json"
-          node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-optimizer --output $optimizerFile
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $files += $optimizerFile
+          2..$samples | ForEach-Object {
+            $file = ".artifacts/performance/fresh-runtime-$_.json"
+            node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-runtime --output $file
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $files += $file
+          }
+          1..$samples | ForEach-Object {
+            $file = ".artifacts/performance/fresh-optimizer-$_.json"
+            node scripts/performance/run-windows-startup-benchmark.mjs --mode fresh-optimizer --output $file
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $files += $file
+          }
           1..$samples | ForEach-Object {
             $file = ".artifacts/performance/warm-persistent-runtime-$_.json"
             node scripts/performance/run-windows-startup-benchmark.mjs --mode warm-persistent-runtime --output $file

@@ -218,6 +218,8 @@ test("#1411 Windows workflow separates fresh startup from repeated warm samples"
   assert.equal(workflow.split("startsWith(github.head_ref, 'baseline/1411-')").length - 1, 2);
   assert.equal(workflow.split('$samples = if ("${{ github.event_name }}" -eq "pull_request") { 3 } else { [int]"${{ inputs.sample_count }}" }').length - 1, 2);
   assert.match(workflow, /if: github\.event_name == 'pull_request' \|\| inputs\.profile == 'startup-baseline'/);
+  assert.match(workflow, /2\.\.\$samples \| ForEach-Object \{\s+\$file = "\.artifacts\/performance\/fresh-runtime-\$_\.json"/);
+  assert.match(workflow, /1\.\.\$samples \| ForEach-Object \{\s+\$file = "\.artifacts\/performance\/fresh-optimizer-\$_\.json"/);
   assert.match(launcher, /PLOTPICKLE_PERFORMANCE_BENCHMARK/);
   assert.match(launcher, /browser launch and optional companion maintenance are suppressed/);
 });

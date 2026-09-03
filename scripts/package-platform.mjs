@@ -9,11 +9,20 @@ const root = path.resolve(scriptDirectory, "..");
 const platform = (process.argv[2] ?? "").toLowerCase();
 if (!["windows", "macos", "linux"].includes(platform)) throw new Error("Use windows, macos, or linux.");
 const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+const releaseScriptClassification = JSON.parse(readFileSync(path.join(root, "config", "release-script-classification.json"), "utf8"));
+if (!Array.isArray(releaseScriptClassification.baseUserReleaseExclusions)) {
+  throw new Error("Release script classification is missing baseUserReleaseExclusions.");
+}
+const classifiedScriptExclusions = releaseScriptClassification.baseUserReleaseExclusions.map((entry) => {
+  const classifiedPath = String(entry?.path ?? "").replaceAll("\\", "/");
+  if (!classifiedPath.startsWith("scripts/")) throw new Error(`Invalid release script exclusion: ${classifiedPath || "<empty>"}`);
+  return classifiedPath;
+});
 const folderName = `PlotPickle-${platform === "macos" ? "macOS" : platform[0].toUpperCase() + platform.slice(1)}`;
 const stageRoot = path.join(root, "releases", "stage");
 const destination = path.join(stageRoot, folderName);
 const exclusions = new Set([".git", ".next", ".wrangler", "dist", "node_modules", "releases", ".env", ".env.local"]);
-const sourceOnlyReleaseExclusions = new Set(["docs/brand-sources", "public/visual-references/full"]);
+const sourceOnlyReleaseExclusions = new Set(["docs/brand-sources", "public/visual-references/full", ...classifiedScriptExclusions]);
 
 rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });

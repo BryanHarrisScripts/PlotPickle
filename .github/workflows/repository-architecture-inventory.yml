@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate repository inventory and target architecture
-        run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs
+        run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1650-lifecycle-presentation.test.mjs tests/issue-1650-autonomous-reference-presentation.test.mjs
       - name: Preserve existing architecture health boundaries
         run: node --test tests/issue-1220-architecture-health.test.mjs
       - name: Enforce Phase 5 structural boundaries

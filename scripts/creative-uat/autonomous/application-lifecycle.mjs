@@ -52,11 +52,16 @@ export function createManagedPlotPickleLifecycle(options = {}) {
   const probeTimeoutMs = Number(options.probeTimeoutMs || 2_000);
   const command = options.command || process.execPath;
   const viteEntry = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
+  const managesVite = !Array.isArray(options.args);
   const args = Array.isArray(options.args)
     ? [...options.args]
     : [viteEntry, "--host", host, "--port", String(port), "--strictPort"];
-  if (!Array.isArray(options.args) && !existsSync(viteEntry)) {
+  if (managesVite && !existsSync(viteEntry)) {
     throw new Error(`Managed PlotPickle lifecycle requires the local Vite entry: ${viteEntry}`);
+  }
+  const readinessTarget = new URL(String(options.readinessPath || (managesVite ? "/@vite/client" : target.pathname || "/")), target.origin);
+  if (readinessTarget.origin !== target.origin) {
+    throw new Error("Managed PlotPickle readiness probe must stay on the same loopback origin.");
   }
 
   let active = null;
@@ -73,7 +78,7 @@ export function createManagedPlotPickleLifecycle(options = {}) {
       if (record.exited) {
         throw new Error(`PlotPickle application process exited before readiness (code ${record.exitCode ?? "unknown"}, signal ${record.exitSignal ?? "none"}). ${boundedLog(output, 2_000)}`);
       }
-      if (await endpointResponds(fetchImpl, target.href, probeTimeoutMs)) return;
+      if (await endpointResponds(fetchImpl, readinessTarget.href, probeTimeoutMs)) return;
       await delay(150);
     }
     throw new Error(`PlotPickle application process did not become ready within ${startupTimeoutMs}ms. ${boundedLog(output, 2_000)}`);
@@ -82,7 +87,7 @@ export function createManagedPlotPickleLifecycle(options = {}) {
   async function waitForUnavailable() {
     const started = Date.now();
     while (Date.now() - started < shutdownTimeoutMs) {
-      if (!(await endpointResponds(fetchImpl, target.href, Math.min(probeTimeoutMs, 750)))) return true;
+      if (!(await endpointResponds(fetchImpl, readinessTarget.href, Math.min(probeTimeoutMs, 750)))) return true;
       await delay(100);
     }
     return false;
@@ -133,11 +138,12 @@ export function createManagedPlotPickleLifecycle(options = {}) {
       pid: record.pid,
       processIdentity: record.processIdentity,
       endpoint: target.origin,
+      readinessEndpoint: readinessTarget.pathname,
     };
   }
 
   async function stop() {
-    if (!active) return { stopped: true, endpointUnavailable: !(await endpointResponds(fetchImpl, target.href, probeTimeoutMs)), exitCode: null, exitSignal: null };
+    if (!active) return { stopped: true, endpointUnavailable: !(await endpointResponds(fetchImpl, readinessTarget.href, probeTimeoutMs)), exitCode: null, exitSignal: null };
     const record = active;
     if (!record.exited) record.child.kill("SIGTERM");
     const stopStarted = Date.now();

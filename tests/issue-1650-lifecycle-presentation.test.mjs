@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { presentLifecycleEnvelope, presentLifecycleProof } from "../core/lifecycle/lifecycle-presentation.mjs";
@@ -141,4 +142,15 @@ test("#1650 packaged lifecycle proof restores one truthful current status plus h
   assert.equal(presentation.current.stage, "package-present-continue");
   assert.equal(presentation.history.length, 2);
   assert.equal(presentation.runId, "run-1650");
+});
+
+test("#1650 reuses the existing autonomous reference result surface instead of adding a second status authority", async () => {
+  const source = await readFile(new URL("../scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs", import.meta.url), "utf8");
+  assert.match(source, /lifecycleProof/);
+  assert.match(source, /Canonical lifecycle proven:/);
+  assert.match(source, /Autonomous policy persistence:/);
+  assert.match(source, /Human approval claimed:/);
+  assert.match(source, /Continuation after restart:/);
+  assert.match(source, /autonomous-story-reference\.json/);
+  assert.doesNotMatch(source, /lifecycle-status-database|lifecycle-status-store|second-orchestrator/);
 });

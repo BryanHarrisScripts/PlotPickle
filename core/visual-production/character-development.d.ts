@@ -14,8 +14,28 @@ export type CharacterDevelopmentStudyType = typeof CHARACTER_DEVELOPMENT_STUDY_T
 export function createCharacterDevelopmentPackage(input: Record<string, unknown>):
   | { status: "ready"; package: Record<string, unknown> & { studies: readonly Record<string, unknown>[] } }
   | { status: "blocked"; blocker: { code: string; detail: string } };
+export function recordCharacterDevelopmentStudyOutput(
+  candidatePackage: Record<string, any>,
+  studyId: string,
+  output: Record<string, unknown>,
+):
+  | { status: "ready"; package: Record<string, any> }
+  | { status: "blocked"; blocker: { code: string; detail: string } };
 export function markCharacterDevelopmentStale(candidatePackage: Record<string, any>, changedEvidenceRefs: readonly string[], reason: string): Record<string, any>;
 export function recordConsistencyFindings(candidatePackage: Record<string, any>, findings: readonly Record<string, unknown>[]): Record<string, any>;
+export function toCharacterDevelopmentBoard(candidatePackage: Record<string, any>): {
+  packageId: string;
+  projectId: string;
+  ppfBaseRevision: string;
+  characterId: string;
+  characterName: string;
+  readiness: "incomplete" | "blocked" | "ready-for-review" | "accepted";
+  missingStudyIds: string[];
+  staleStudyIds: string[];
+  blockingFindingIds: string[];
+  acceptedArtifactId: string;
+  studies: Array<Record<string, unknown>>;
+};
 export function linkAcceptedVisualArtifact(candidatePackage: Record<string, any>, artifactId: string, acceptedVisualArtifactIds: readonly string[]): Record<string, any>;
 export function toVisualReadinessEvidence(candidatePackage: Record<string, any>): {
   id: string;

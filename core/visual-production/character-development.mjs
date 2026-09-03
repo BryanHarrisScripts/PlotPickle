@@ -72,6 +72,21 @@ function normalizeAuthority(authority) {
   };
 }
 
+function sameProviderRoute(left, right) {
+  const a = normalizeProviderRoute(left);
+  const b = normalizeProviderRoute(right);
+  return a.provider === b.provider
+    && a.runtime === b.runtime
+    && a.model === b.model
+    && a.costClass === b.costClass;
+}
+
+function studyCompletion(study) {
+  if (study.stale) return "stale";
+  if (study.notApplicable === true) return "not-applicable";
+  return references(study.generatedCandidateRefs).length ? "complete" : "missing";
+}
+
 export function createCharacterDevelopmentPackage(input) {
   const projectId = identifier(input?.projectId, "");
   const ppfRevision = text(input?.ppfRevision, 120);
@@ -133,6 +148,10 @@ export function createCharacterDevelopmentPackage(input) {
         settings: {},
         parentCandidateId: "",
         generatedCandidateRefs: [],
+        coverageLabels: [],
+        summary: "",
+        notApplicable: false,
+        notApplicableReason: "",
         consistencyFindings: [],
         reviewState: "candidate",
         stale: false,
@@ -141,6 +160,78 @@ export function createCharacterDevelopmentPackage(input) {
         acceptedArtifactId: "",
         createdAt,
       })),
+    },
+  };
+}
+
+export function recordCharacterDevelopmentStudyOutput(candidatePackage, studyId, output) {
+  const normalizedStudyId = text(studyId, 320);
+  const study = candidatePackage?.studies?.find((candidate) => candidate.id === normalizedStudyId);
+  if (!study) return blocked("study-not-found", "The requested character-development study does not belong to this package.");
+
+  const exactRevision = text(output?.ppfRevision, 120);
+  if (!exactRevision || exactRevision !== candidatePackage.ppfBaseRevision) {
+    return blocked("revision-mismatch", "Generated study output must target the package's exact PPF base revision.");
+  }
+
+  const routeFailure = providerPolicy(output?.providerRoute);
+  if (routeFailure) return blocked("provider-policy", routeFailure);
+  if (!sameProviderRoute(candidatePackage.providerRoute, output?.providerRoute)) {
+    return blocked("provider-mismatch", "Generated study output must come from the host-approved provider route recorded on the package.");
+  }
+
+  const generatedCandidateRefs = references(output?.generatedCandidateRefs);
+  const notApplicable = output?.notApplicable === true;
+  const notApplicableReason = text(output?.notApplicableReason, 600);
+  const notApplicableEvidenceRefs = references(output?.notApplicableEvidenceRefs);
+  if (!generatedCandidateRefs.length && !notApplicable) {
+    return blocked("output-contract", "A study output requires generated candidate references or an evidence-backed not-applicable result.");
+  }
+  if (generatedCandidateRefs.length && notApplicable) {
+    return blocked("output-contract", "A study cannot be both generated and marked not applicable.");
+  }
+  if (notApplicable) {
+    const canonical = new Set(references(candidatePackage.canonicalEvidenceRefs));
+    if (!notApplicableReason || !notApplicableEvidenceRefs.length || notApplicableEvidenceRefs.some((ref) => !canonical.has(ref))) {
+      return blocked("output-contract", "Not-applicable studies require a reason and canonical evidence references already present on the package.");
+    }
+  }
+
+  const updatedAt = text(output?.createdAt, 80) || new Date().toISOString();
+  const updatedStudies = candidatePackage.studies.map((candidate) => {
+    if (candidate.id !== normalizedStudyId) return candidate;
+    const previousCandidate = references(candidate.generatedCandidateRefs)[0] || candidate.parentCandidateId || "";
+    return {
+      ...candidate,
+      version: Number(candidate.version || 0) + 1,
+      parentCandidateId: previousCandidate,
+      generatedCandidateRefs,
+      coverageLabels: references(output?.coverageLabels, 32),
+      summary: text(output?.summary, 800),
+      notApplicable,
+      notApplicableReason: notApplicable ? notApplicableReason : "",
+      sourceEvidenceRefs: references([
+        ...references(candidate.sourceEvidenceRefs),
+        ...notApplicableEvidenceRefs,
+      ]),
+      provider: normalizeProviderRoute(output?.providerRoute),
+      specificationFingerprint: text(output?.specificationFingerprint, 200) || candidate.specificationFingerprint,
+      seed: text(output?.seed, 120) || candidate.seed,
+      reviewState: "candidate",
+      stale: false,
+      staleReason: "",
+      changedEvidenceRefs: [],
+      createdAt: updatedAt,
+    };
+  });
+
+  return {
+    status: "ready",
+    package: {
+      ...candidatePackage,
+      packageVersion: Number(candidatePackage.packageVersion || 0) + 1,
+      reviewState: candidatePackage.acceptedArtifactId ? candidatePackage.reviewState : "candidate",
+      studies: updatedStudies,
     },
   };
 }
@@ -178,6 +269,47 @@ export function recordConsistencyFindings(candidatePackage, findings) {
     }];
   });
   return { ...candidatePackage, consistencyFindings: normalized };
+}
+
+export function toCharacterDevelopmentBoard(candidatePackage) {
+  const blockingFindingIds = (Array.isArray(candidatePackage?.consistencyFindings) ? candidatePackage.consistencyFindings : [])
+    .filter((finding) => finding?.severity === "blocking")
+    .map((finding) => text(finding?.id, 320))
+    .filter(Boolean);
+  const studies = (Array.isArray(candidatePackage?.studies) ? candidatePackage.studies : []).map((study) => ({
+    id: text(study.id, 320),
+    type: text(study.type, 80),
+    status: studyCompletion(study),
+    generatedCandidateRefs: references(study.generatedCandidateRefs),
+    coverageLabels: references(study.coverageLabels, 32),
+    summary: text(study.summary, 800),
+    notApplicableReason: study.notApplicable === true ? text(study.notApplicableReason, 600) : "",
+    sourceEvidenceRefs: references(study.sourceEvidenceRefs),
+    approvedVisualRefs: references(study.approvedVisualRefs),
+    observedRefs: references(study.observedRefs),
+    staleReason: study.stale ? text(study.staleReason, 600) : "",
+  }));
+  const missingStudyIds = studies.filter((study) => study.status === "missing").map((study) => study.id);
+  const staleStudyIds = studies.filter((study) => study.status === "stale").map((study) => study.id);
+  const accepted = Boolean(candidatePackage?.acceptedArtifactId) && candidatePackage?.reviewState === "accepted";
+  let readiness = "ready-for-review";
+  if (accepted) readiness = "accepted";
+  else if (staleStudyIds.length || blockingFindingIds.length) readiness = "blocked";
+  else if (missingStudyIds.length) readiness = "incomplete";
+
+  return {
+    packageId: text(candidatePackage?.packageId, 320),
+    projectId: text(candidatePackage?.projectId, 160),
+    ppfBaseRevision: text(candidatePackage?.ppfBaseRevision, 120),
+    characterId: text(candidatePackage?.characterId, 160),
+    characterName: text(candidatePackage?.characterName, 200),
+    readiness,
+    missingStudyIds,
+    staleStudyIds,
+    blockingFindingIds,
+    acceptedArtifactId: accepted ? text(candidatePackage.acceptedArtifactId, 320) : "",
+    studies,
+  };
 }
 
 export function linkAcceptedVisualArtifact(candidatePackage, artifactId, acceptedVisualArtifactIds) {

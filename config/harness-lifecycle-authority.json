@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "owner": "core",
+  "decisionModule": "core/lifecycle/lifecycle-authority.mjs",
+  "actions": [
+    "observe",
+    "propose",
+    "execute",
+    "use-evidence",
+    "transition",
+    "persist",
+    "continue",
+    "change-authority"
+  ],
+  "boundaries": {
+    "execution": "requires-envelope-capability-ref",
+    "evidenceReasoning": "referenced-evidence-does-not-grant-durability-or-authority",
+    "durableKnowledge": "requires-server-owned-harness-policy-approval",
+    "canonicalProjectState": "requires-explicit-human-writer-approval",
+    "resume": "exact-actor-authority-snapshot",
+    "authorityChange": "never-actor-self-service",
+    "repairReentry": "denied-when-repair-budget-exhausted"
+  },
+  "existingOwners": {
+    "guestAuthority": "core/auth/autonomous-guest/guest-authority.ts",
+    "canonicalWriter": "lib/projects/persistence/project-revisions.ts",
+    "durableKnowledge": "build/autonomous-guest/maintainer/durable-knowledge-store.mjs"
+  }
+}

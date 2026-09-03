@@ -19,6 +19,24 @@ function references(value, limit = 128) {
   return [...new Set((Array.isArray(value) ? value : []).map((item) => text(item, 320)).filter(Boolean))].slice(0, limit);
 }
 
+function evidenceList(value, limit = 32) {
+  return [...new Set((Array.isArray(value) ? value : []).map((item) => text(item, 600)).filter(Boolean))].slice(0, limit);
+}
+
+function normalizeCharacterEvidence(value) {
+  return {
+    physical: evidenceList(value?.physical),
+    performance: evidenceList(value?.performance),
+    wardrobe: evidenceList(value?.wardrobe),
+    props: evidenceList(value?.props),
+    powersEffects: evidenceList(value?.powersEffects),
+    relationships: evidenceList(value?.relationships),
+    locationsWorld: evidenceList(value?.locationsWorld),
+    visualDo: evidenceList(value?.visualDo, 24),
+    visualAvoid: evidenceList(value?.visualAvoid, 24),
+  };
+}
+
 function identifier(value, fallback) {
   const cleaned = text(value, 160).replace(/[^a-zA-Z0-9:._-]+/g, "-").replace(/^-+|-+$/g, "");
   return cleaned || fallback;
@@ -110,6 +128,7 @@ export function createCharacterDevelopmentPackage(input) {
   }
   const approvedVisualRefs = references(input?.approvedVisualRefs);
   const observedRefs = references(input?.observedRefs);
+  const characterEvidence = normalizeCharacterEvidence(input?.characterEvidence);
   const createdAt = text(input?.createdAt, 80) || new Date().toISOString();
   const packageId = `character-development:${projectId}:${characterId}:${identifier(ppfRevision, "revision")}`;
   const providerRoute = normalizeProviderRoute(input?.providerRoute);
@@ -125,6 +144,7 @@ export function createCharacterDevelopmentPackage(input) {
       characterId,
       characterName: text(input?.character?.name, 200),
       characterRole: text(input?.character?.role, 300),
+      characterEvidence,
       canonicalEvidenceRefs,
       approvedVisualRefs,
       observedRefs,

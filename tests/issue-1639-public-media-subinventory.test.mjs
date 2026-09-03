@@ -11,12 +11,11 @@ import {
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 
-test("#1639 subinventories every first-class public payload and reconciles bytes", () => {
+test("#1639 public subinventory remains complete after later bounded exclusions", () => {
   const inventory = buildPublicMediaInventory();
   const expected = readdirSync(path.join(repoRoot, "public")).sort().map((name) => `public/${name}`);
   const actual = inventory.topLevelItems.map((item) => item.path);
 
-  assert.equal(inventory.issue, 1639);
   assert.equal(inventory.parentIssue, 1412);
   assert.deepEqual(actual, expected);
   assert.equal(inventory.reconciliation.topLevelSourceBytes, inventory.publicPayload.sourceBytes);
@@ -36,7 +35,7 @@ test("#1639 keeps active Afterglow legacy visuals bundled with concrete consumer
   assert.ok(legacy.evidence.some((item) => item.includes("data/afterglow-visual-manifest.json")));
 });
 
-test("#1639 retains the active Visual Reference Library and isolates full-resolution media for later proof", () => {
+test("#1639 keeps the active Visual Reference Library tiers while preserving source measurement", () => {
   const inventory = buildPublicMediaInventory();
   const container = inventory.topLevelItems.find((item) => item.path === "public/visual-references");
   const manifest = inventory.visualReferenceItems.find((item) => item.path === "public/visual-references/manifest.json");
@@ -56,17 +55,18 @@ test("#1639 retains the active Visual Reference Library and isolates full-resolu
   }
 
   assert.ok(full);
-  assert.equal(full.disposition, "requires-reachability-proof");
+  assert.equal(full.disposition, "excluded-from-base-release");
   assert.ok(full.sourceBytes > 0);
-  assert.ok(inventory.reachabilityProofQueue.some((item) => item.path === full.path));
+  assert.ok(!inventory.reachabilityProofQueue.some((item) => item.path === full.path));
   assert.ok(!inventory.reachabilityProofQueue.some((item) => item.path === container.path));
 });
 
-test("#1639 changes evidence only and does not create a public packaging exclusion", () => {
+test("#1639 public packaging exclusions remain explicit runtime-weight evidence", () => {
   const parent = buildInventory();
   const inventory = buildPublicMediaInventory();
 
   assert.ok(parent.releaseAuthority.runtimeDirectories.includes("public"));
-  assert.deepEqual(inventory.releaseAuthority.publicSourceOnlyExclusions, []);
+  assert.deepEqual(inventory.releaseAuthority.publicSourceOnlyExclusions, ["public/visual-references/full"]);
+  assert.ok(parent.excludedSourcePayloads.some((item) => item.path === "public/visual-references/full"));
   assert.ok(inventory.reachabilityProofQueue.every((item) => item.sourceBytes >= 0));
 });

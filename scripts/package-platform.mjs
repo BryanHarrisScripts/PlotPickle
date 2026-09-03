@@ -13,7 +13,7 @@ const folderName = `PlotPickle-${platform === "macos" ? "macOS" : platform[0].to
 const stageRoot = path.join(root, "releases", "stage");
 const destination = path.join(stageRoot, folderName);
 const exclusions = new Set([".git", ".next", ".wrangler", "dist", "node_modules", "releases", ".env", ".env.local"]);
-const sourceOnlyReleaseExclusions = new Set(["docs/brand-sources"]);
+const sourceOnlyReleaseExclusions = new Set(["docs/brand-sources", "public/visual-references/full"]);
 
 rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });
@@ -58,6 +58,21 @@ for (const entry of runtimeDirectories) {
     },
   });
 }
+
+function projectPackagedVisualReferenceManifest() {
+  const manifestPath = path.join(destination, "public", "visual-references", "manifest.json");
+  const references = JSON.parse(readFileSync(manifestPath, "utf8"));
+  if (!Array.isArray(references) || references.length === 0) throw new Error("Packaged Visual Reference manifest is empty.");
+  const projected = references.map((reference) => {
+    if (!reference?.image?.thumbnail || !reference?.image?.card) throw new Error(`Visual Reference ${reference?.id ?? "<unknown>"} is missing a packaged image tier.`);
+    const { full: _sourceOnlyFull, ...packagedImage } = reference.image;
+    return { ...reference, image: packagedImage };
+  });
+  writeFileSync(manifestPath, `${JSON.stringify(projected, null, 2)}\n`);
+}
+
+projectPackagedVisualReferenceManifest();
+
 for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "README.md", "LICENSE", "LICENSES.md", "TRADEMARKS.md"]) {
   if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }

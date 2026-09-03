@@ -3,8 +3,10 @@ name: Runtime Weight Inventory
 on:
   pull_request:
     paths:
+      - "app/visual-reference-library.tsx"
       - "config/runtime-weight-inventory.json"
       - "docs/architecture/six-domain-ownership.md"
+      - "public/visual-references/manifest.json"
       - "scripts/package-platform.mjs"
       - "scripts/package-smoke.mjs"
       - "scripts/runtime-weight/**"
@@ -12,10 +14,12 @@ on:
       - "Start-PlotPickle.bat"
       - "package.json"
       - "package-lock.json"
+      - "tests/issue-57-visual-reference-library.test.mjs"
       - "tests/issue-1626-runtime-weight-inventory.test.mjs"
       - "tests/issue-1630-release-weight-cut.test.mjs"
       - "tests/issue-1637-brand-master-weight-cut.test.mjs"
       - "tests/issue-1639-public-media-subinventory.test.mjs"
+      - "tests/issue-1642-visual-reference-full-cut.test.mjs"
       - ".github/workflows/runtime-weight-inventory.yml"
   workflow_dispatch:
 
@@ -37,8 +41,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate runtime-weight inventory contracts
-        run: node --test tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs tests/issue-1637-brand-master-weight-cut.test.mjs tests/issue-1639-public-media-subinventory.test.mjs
+      - name: Validate runtime-weight and Visual Reference contracts
+        run: node --test tests/issue-57-visual-reference-library.test.mjs tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs tests/issue-1637-brand-master-weight-cut.test.mjs tests/issue-1639-public-media-subinventory.test.mjs tests/issue-1642-visual-reference-full-cut.test.mjs
       - name: Emit exact-head machine-readable inventory
         run: GITHUB_SHA="${{ github.event.pull_request.head.sha || github.sha }}" node scripts/runtime-weight/inventory.mjs --output .artifacts/runtime-weight/inventory.json
       - name: Emit exact-head public media subinventory

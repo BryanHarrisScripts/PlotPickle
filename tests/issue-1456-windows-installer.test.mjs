@@ -122,7 +122,8 @@ test("#1456 installed-app smoke covers real launch, junction-safe upgrade and un
     "Uninstall followed the application junction and damaged the persistent runtime",
   ]) assert.ok(smoke.includes(contract), `Missing installer-smoke contract: ${contract}`);
   assert.match(smoke, /\$startupRequestTimeoutSeconds = 30/);
-  assert.match(smoke, /-Uri \$baseUrl -TimeoutSec \$startupRequestTimeoutSeconds/);
+  assert.match(smoke, /\$startupProbeUserAgent = "PlotPickle-Installer-Smoke\/\$PID"/);
+  assert.match(smoke, /-Uri \$baseUrl -TimeoutSec \$startupRequestTimeoutSeconds -UserAgent \$startupProbeUserAgent/);
   assert.match(launcher, /set "READY_REQUEST_TIMEOUT_SECONDS=30"/);
   assert.match(launcher, /:open_when_ready[\s\S]*-Uri \$base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%/);
   assert.doesNotMatch(smoke, /\b\d+_\d+\b/, "PowerShell numeric literals must not use JavaScript-style separators.");

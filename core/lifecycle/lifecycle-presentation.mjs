@@ -29,8 +29,8 @@ function plainState(envelope) {
     return "awaiting-policy";
   }
   if (stopCode.startsWith("pause") || stopCode.startsWith("paused")) return "paused";
-  if (envelope.stage === "validate-repair" && envelope.validation.result === "fail" && envelope.repairBudget.attempts < envelope.repairBudget.maxAttempts && !stopCode) {
-    return "repairing";
+  if (envelope.stage === "validate-repair" && envelope.validation.result === "fail" && !stopCode) {
+    return envelope.repairBudget.attempts < envelope.repairBudget.maxAttempts ? "repairing" : "failed";
   }
   if (envelope.validation.result === "blocked" || stopCode) return "failed";
   if (envelope.stage === "package-present-continue" && envelope.nextAction.action === "continue") return "completed";

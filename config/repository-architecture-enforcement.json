@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "issue": 1466,
+  "architectureTarget": "config/repository-architecture-target.json",
+  "strategy": "Hard-enforce clean governed roots and ratchet existing build/lib debt downward; never require a big-bang move solely to satisfy a numeric ceiling.",
+  "baselineEvidence": {
+    "sourceCommit": "215973e5b9dd680f62552bc81392edea4cde7d7e",
+    "directSourceFilesBefore": {
+      "build": 84,
+      "core": 0,
+      "modules": 0,
+      "lib": 126
+    },
+    "retiredZeroConsumerCompatibilityBridges": 16
+  },
+  "legacyDirectSourceRatchets": {
+    "build": 84,
+    "lib": 110
+  },
+  "protectedDirectSourceRoots": ["build", "core", "modules", "lib"],
+  "forbiddenImports": [
+    {
+      "fromRoot": "core",
+      "toRoots": ["app", "build", "modules"],
+      "reason": "Core contracts and authority may not depend on UI, runtime gateway implementations or product feature implementations."
+    },
+    {
+      "fromRoot": "modules",
+      "toRoots": ["app"],
+      "reason": "Product modules may expose UI to app composition, but module implementation may not depend back on the Next.js app shell."
+    }
+  ],
+  "compatibilityBridgeExceptions": [
+    {
+      "path": "lib/pageflow.ts",
+      "canonicalTarget": "modules/build/pageflow.ts",
+      "ownerIssue": 1466,
+      "removalCondition": "Retarget the two remaining route consumers to @/modules/build/pageflow, then delete this bridge.",
+      "consumerPaths": ["app/pageflow/page.tsx", "app/craftloop/page.tsx"],
+      "consumerImportFragment": "@/lib/pageflow"
+    }
+  ]
+}

@@ -17,8 +17,8 @@ const importRules = [
 test("#1466 ratchets legacy governed roots without a big-bang restructure", () => {
   const report = runArchitectureEnforcement({ writeArtifact: false });
   assert.equal(report.status, "pass", report.violations.join("\n"));
-  assert.equal(report.metrics.lib.directSourceFiles, 114);
-  assert.equal(report.metrics.lib.directSourceLimit, 114);
+  assert.equal(report.metrics.lib.directSourceFiles, 108);
+  assert.equal(report.metrics.lib.directSourceLimit, 108);
   assert.equal(report.metrics.build.directSourceFiles, 84);
   assert.equal(report.metrics.build.directSourceLimit, 84);
   assert.equal(report.metrics.core.directSourceLimit, 16);

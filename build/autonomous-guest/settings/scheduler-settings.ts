@@ -17,6 +17,7 @@ import {
   readAutonomousGuestScheduleFileState,
 } from "../storage/schedule-file-state";
 import { nextAutonomousGuestBoundedCronFireAt } from "./bounded-cron";
+import { projectAutonomousGuestTaskLifecycleStatus } from "./task-lifecycle-status.mjs";
 
 const HISTORY_LIMIT = 12;
 const ACTIVE_TASK_LIMIT = 24;
@@ -103,7 +104,13 @@ function taskTimestamp(task: AutonomousGuestTask) {
   return Date.parse(task.completedAt || task.startedAt || task.createdAt) || 0;
 }
 
-function taskSummary(task: AutonomousGuestTask, schedule?: StoredGuestSchedule) {
+function taskSummary(authority: AutonomousGuestAuthority, task: AutonomousGuestTask, schedule?: StoredGuestSchedule) {
+  const normalizedSchedule = schedule ? Object.freeze({
+    status: schedule.status,
+    nextFireAt: schedule.nextFireAt,
+    cron: schedule.cron,
+    timezone: schedule.timezone || "",
+  }) : null;
   return Object.freeze({
     taskId: task.taskId,
     taskKind: task.taskKind,
@@ -113,12 +120,8 @@ function taskSummary(task: AutonomousGuestTask, schedule?: StoredGuestSchedule) 
     attempt: task.attempt,
     maxAttempts: task.maxAttempts,
     lastFailureClass: task.lastFailureClass,
-    schedule: schedule ? Object.freeze({
-      status: schedule.status,
-      nextFireAt: schedule.nextFireAt,
-      cron: schedule.cron,
-      timezone: schedule.timezone || "",
-    }) : null,
+    schedule: normalizedSchedule,
+    lifecycleStatus: projectAutonomousGuestTaskLifecycleStatus({ authority, task, schedule: normalizedSchedule }),
   });
 }
 
@@ -163,12 +166,12 @@ export async function readAutonomousGuestSchedulerSettings(authority: Autonomous
     .filter((task) => !TERMINAL_TASK_STATES.has(task.state))
     .sort((left, right) => right.priority - left.priority || Date.parse(left.notBefore) - Date.parse(right.notBefore))
     .slice(0, ACTIVE_TASK_LIMIT)
-    .map((task) => taskSummary(task, scheduleByTask.get(task.taskId)));
+    .map((task) => taskSummary(authority, task, scheduleByTask.get(task.taskId)));
   const history = tasks
     .filter((task) => ["completed", "cancelled", "expired", "failed", "blocked", "retry-wait"].includes(task.state))
     .sort((left, right) => taskTimestamp(right) - taskTimestamp(left))
     .slice(0, HISTORY_LIMIT)
-    .map((task) => taskSummary(task, scheduleByTask.get(task.taskId)));
+    .map((task) => taskSummary(authority, task, scheduleByTask.get(task.taskId)));
 
   return Object.freeze({
     available: true,

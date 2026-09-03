@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "issue": 1656,
+  "purpose": "Keep proven developer, verification and release-only script surfaces in source checkout without carrying them in the base user release.",
+  "baseUserReleaseExclusions": [
+    {
+      "path": "scripts/developer-diagnostics",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "config/repository-architecture-target.json assigns scripts/developer-diagnostics to the developer domain.",
+        "package.json exposes these commands as test/diagnostic developer workflows rather than normal startup runtime."
+      ]
+    },
+    {
+      "path": "scripts/pi",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "config/repository-architecture-target.json assigns scripts/pi to the developer domain.",
+        "Pi review is an engineering/repair workflow and is not required by the normal writer journey."
+      ]
+    },
+    {
+      "path": "scripts/autonomous-qa",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "Autonomous QA publication, targeted-fix and architecture-learning entry points are driven by GitHub workflows and regression tests.",
+        "No normal Start-PlotPickle runtime consumer requires this directory."
+      ]
+    },
+    {
+      "path": "scripts/creative-uat",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "config/repository-architecture-target.json assigns scripts/creative-uat to the verification domain.",
+        "The base product keeps runtime verification contracts but does not need the developer UAT runner implementation."
+      ]
+    },
+    {
+      "path": "scripts/runtime-weight",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "The runtime-weight scripts emit CI/benchmark evidence for #1412 and are not invoked by normal product startup."
+      ]
+    },
+    {
+      "path": "scripts/run-ben-code-quality.mjs",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "BEN is the deterministic source quality observer used by Developer Workbench and GitHub Actions.",
+        "It remains available in developer checkout and is not part of normal user runtime readiness."
+      ]
+    },
+    {
+      "path": "scripts/run-pi-code-quality-review.mjs",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "Pi code-quality review is an advisory developer-agent workflow layered on BEN, not a product runtime dependency."
+      ]
+    },
+    {
+      "path": "scripts/package-platform.mjs",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "config/repository-architecture-target.json assigns scripts/package-platform.mjs to the release domain.",
+        "It creates release payloads and is not needed after a user payload has already been staged."
+      ]
+    },
+    {
+      "path": "scripts/package-smoke.mjs",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "Package smoke validates a staged release in CI/release engineering and has no normal runtime consumer."
+      ]
+    },
+    {
+      "path": "scripts/windows-installer",
+      "weightClass": "developer-test-only",
+      "evidence": [
+        "config/repository-architecture-target.json assigns scripts/windows-installer to startup/release engineering ownership.",
+        "The directory builds and stages PlotPickleSetup.exe before distribution; the installed application does not rebuild its own installer."
+      ]
+    }
+  ],
+  "retainedRuntimeAnchors": [
+    {
+      "path": "scripts/windows-runtime.mjs",
+      "reason": "Persistent runtime fingerprint, readiness, native repair and lifecycle support."
+    },
+    {
+      "path": "scripts/configure-hardware-aware-local-ai.ps1",
+      "reason": "Supported user-facing local AI setup/maintenance path."
+    },
+    {
+      "path": "scripts/bootstrap-buzz-guildhall.mjs",
+      "reason": "Supported optional BUZZ/community activation path."
+    },
+    {
+      "path": "scripts/clean-buzz-community.mjs",
+      "reason": "Supported local BUZZ/community maintenance utility."
+    },
+    {
+      "path": "scripts/credential-boundary-audit.mjs",
+      "reason": "Release packaging invokes the credential boundary audit before the payload is finalized."
+    }
+  ]
+}

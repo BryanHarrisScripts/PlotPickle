@@ -1344,3 +1344,231 @@ This validator is an important part of the Magic-like creator architecture: a st
 The governing principle is:
 
 > STORY should maximize creator freedom while making broken game structures visible before the player has to discover them the hard way.
+
+---
+
+## 34. Million-character scalability: graph nodes are references, not resident agents
+
+STORY should be designed so that a world may eventually represent millions of characters without requiring millions of loaded objects, prompts or active AI processes.
+
+The governing distinction is:
+
+> Stored is not loaded. Loaded is not active. Active is not running inference.
+
+A character's existence in the Story Graph must not imply that its full biography, memory ledger, dialogue history, visual assets, relationship neighborhood, knowledge state and agent runtime are resident on the graph node.
+
+### Lightweight graph nodes
+
+A Story Graph character node should remain deliberately small. Its purpose is indexing, graph traversal and authoritative references.
+
+A character node may contain or directly expose only compact information such as:
+
+- character ID;
+- world ID;
+- entity type;
+- current status / availability;
+- current location reference;
+- compact state flags needed for graph queries;
+- references to important relationship edges;
+- references to Character Definition and current Character State.
+
+Heavy state should not be duplicated into every node.
+
+Conceptually:
+
+```text
+Character Graph Node
+  -> characterId
+  -> worldId
+  -> lightweight status / indexes
+  -> locationRef
+  -> relationship edge refs
+  -> definitionRef
+  -> stateRef
+```
+
+The full character is assembled only when required.
+
+### Character data should be split by responsibility
+
+A scalable character representation should separate at least:
+
+```text
+Character Definition
+  -> durable identity
+  -> role / personality anchors
+  -> wants / fears / values
+  -> stable creator-authored facts
+  -> bounded agent-template reference
+
+Character State
+  -> current location
+  -> conditions
+  -> current objectives
+  -> possessions / custody refs
+  -> current arc/state variables
+
+Memory Ledger
+  -> indexed accepted events / memories
+  -> provenance and visibility
+
+Relationships
+  -> graph edges and relationship state
+
+Knowledge
+  -> scoped fact / evidence references
+
+Visual Identity
+  -> asset references, not embedded assets
+
+Dialogue / Session History
+  -> event history or summaries, not permanent prompt text
+
+Agent Runtime Instance
+  -> temporary runtime materialization only when inference is needed
+```
+
+This prevents one giant Character object from becoming the unit of storage, graph traversal and AI context at the same time.
+
+### Activation tiers
+
+STORY should support explicit activation tiers.
+
+```text
+COLD
+  Stored/indexed character. Minimal graph/index data is available.
+  No full state hydration and no inference runtime.
+
+WARM
+  Character is relevant to the current area, search, relationship neighborhood or upcoming scene.
+  Required structured state is loaded, but no AI inference is running.
+
+HOT
+  Character is participating in the active scene.
+  Scene-relevant state, legal knowledge and relationship context are materialized.
+
+AGENT-ACTIVE
+  The character currently requires reasoning, dialogue or an autonomous move.
+  Context Engine builds the minimum authorized context and the existing AI runtime is invoked.
+```
+
+After participation, a character should be able to fall back from AGENT-ACTIVE to HOT, WARM or COLD without losing authoritative state.
+
+An inactive character therefore costs storage and indexing, not continuous inference.
+
+### Example at city scale
+
+A city may contain:
+
+```text
+2,000,000 character definitions
+12,000,000 relationship edges
+many locations, organizations and world facts
+```
+
+A particular tavern scene might materialize only:
+
+```text
+1 active location
+8 relevant characters
+26 relevant relationships
+4 objects
+3 secrets
+2 active world rules
+```
+
+Of those eight characters, perhaps only three need an inference call during a given turn.
+
+The engine must query the relevant graph neighborhood and hydrate the smallest useful working set rather than loading the city.
+
+### Background populations and promotion
+
+Not every inhabitant needs to begin as a deeply authored persistent character.
+
+STORY may support progressively richer representations such as:
+
+```text
+Background population / procedural identity
+  -> represented by world/population state until individually relevant
+
+Supporting character
+  -> lightweight persistent definition and state
+
+Named character
+  -> richer durable identity, relationships, memories and optional Agent Binding
+```
+
+If a player chooses to interact with a previously anonymous baker, guard or passenger, the engine may materialize a candidate identity under the world's rules. That generated identity remains provisional until admitted through the normal canon/session transition. Once accepted, that character can receive a persistent ID and continue to exist normally.
+
+This allows worlds to feel densely populated without pre-generating or running an agent for every possible inhabitant.
+
+### Character Continuity Envelope without node bloat
+
+Character continuity should be enforced through retrieval and validation, not by stuffing a complete continuity prompt into every graph node.
+
+When an agent-bound character becomes active, the Context Engine should construct a bounded working context from:
+
+- durable identity anchors;
+- current Character State;
+- legally available memories;
+- relevant relationship neighborhood;
+- character-visible knowledge;
+- applicable world rules;
+- active scene facts;
+- allowed Story actions;
+- bounded agent behavior configuration.
+
+Only relevant slices are materialized.
+
+A character may evolve because accepted STORY events alter state, memories, relationships or beliefs. It should not evolve because an LLM silently rewrites its durable definition.
+
+This creates the rule:
+
+> Characters may change through story events; they may not accidentally drift through context accumulation.
+
+### Sparse relationships and knowledge
+
+Large relationship and knowledge sets must remain queryable references rather than embedded arrays copied into a character payload.
+
+A character with fifty thousand known entities should not load fifty thousand relationships when entering a scene. The Context Engine should retrieve the relevant local neighborhood based on the active location, participants, objectives, rules and requested action.
+
+The same applies to memories and knowledge: retrieve what is relevant and authorized, not the entire lifetime ledger.
+
+### Scalability invariants
+
+STORY should preserve these invariants:
+
+1. A graph node is not an agent runtime.
+2. A graph node does not contain the full character history.
+3. Relationship edges reference relationship state rather than duplicating whole connected characters.
+4. Assets are referenced, not embedded in graph nodes.
+5. Memory/event history is separately indexed and retrieved on demand.
+6. AI context is assembled transiently by the Context Engine.
+7. Inference occurs only for characters that currently require it.
+8. Dormant characters retain authoritative state without consuming inference resources.
+9. Loading a local graph neighborhood must not require hydrating the entire world.
+10. World scale must not weaken character knowledge, authority or canon boundaries.
+
+### Performance design target
+
+The first STORY vertical slice does not need millions of real production records, but its contracts must avoid assumptions that require all characters or relationships to live in memory.
+
+Before the architecture is considered scale-ready, deterministic synthetic tests should prove that large indexed populations can be represented and queried while the active working set remains bounded by scene relevance rather than total world size.
+
+The desired architecture is therefore:
+
+```text
+Potentially millions of characters
+  -> lightweight indexed graph nodes / definitions
+  -> relevance query
+  -> hydrate required Character State
+  -> retrieve relevant relationships, memories and legal knowledge
+  -> Context Engine assembles bounded context
+  -> temporarily activate an approved agent runtime when needed
+  -> agent proposes action / dialogue
+  -> STORY validates and records accepted consequences
+  -> persist changed state
+  -> release runtime context and allow character to cool
+```
+
+This makes large persistent worlds compatible with PlotPickle's local-first and provider-independent architecture instead of turning every person in a world into a permanently running AI process.

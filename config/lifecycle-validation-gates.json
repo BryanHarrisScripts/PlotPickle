@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "owner": "platform",
+  "adapter": "core/lifecycle/lifecycle-validation.mjs",
+  "principle": "reuse-existing-deterministic-validators",
+  "gates": [
+    { "checkId": "ben-code-quality", "label": "BEN Code Quality", "workflowRef": ".github/workflows/ben-code-quality.yml" },
+    { "checkId": "learn-validation", "label": "LEARN Validation", "workflowRef": ".github/workflows/learn-validation.yml" },
+    { "checkId": "visual-readiness", "label": "Visual Readiness", "workflowRef": ".github/workflows/visual-readiness.yml" },
+    { "checkId": "autonomous-qa-campaign", "label": "Autonomous QA Campaign", "workflowRef": ".github/workflows/autonomous-qa-campaign.yml" },
+    { "checkId": "autonomous-qa-targeted-fix", "label": "Autonomous QA Targeted Fix", "workflowRef": ".github/workflows/autonomous-qa-targeted-fix.yml" },
+    { "checkId": "repository-architecture-inventory", "label": "Repository Architecture Inventory", "workflowRef": ".github/workflows/repository-architecture-inventory.yml" },
+    { "checkId": "story-workbench", "label": "Story Workbench", "workflowRef": ".github/workflows/story-workbench.yml" },
+    { "checkId": "story-decisions", "label": "Story Decisions", "workflowRef": ".github/workflows/story-decisions.yml" },
+    { "checkId": "hardware-aware-local-ai", "label": "Hardware-Aware Local AI", "workflowRef": ".github/workflows/hardware-aware-local-ai.yml" },
+    { "checkId": "windows-installer", "label": "Windows Installer", "workflowRef": ".github/workflows/windows-installer.yml" },
+    { "checkId": "full-verification", "label": "Full Verification", "workflowRef": ".github/workflows/full-verification-synthetic-human.yml" }
+  ]
+}

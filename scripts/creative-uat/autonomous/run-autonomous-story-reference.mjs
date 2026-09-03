@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { createAutonomousReferenceLifecycleProof } from "../../../lib/verification/autonomous-reference-lifecycle.mjs";
 import { createManagedPlotPickleLifecycle } from "./application-lifecycle.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -146,6 +147,15 @@ function markdownReport(machine) {
     `Human profile authority: ${machine.authority.humanProfileId ? "present" : "none"}`,
     `Run: ${machine.authority.autonomousRunId}`,
     "",
+    "## Lifecycle",
+    "",
+    `Canonical lifecycle proven: ${machine.lifecycleProof ? "yes" : "no"}`,
+    `Stages: ${machine.lifecycleProof?.stageSequence?.join(" → ") || "unavailable"}`,
+    `Autonomous policy persistence: ${machine.lifecycleProof?.authority?.autonomousPolicyApproved ? "yes" : "no"}`,
+    `Human approval claimed: ${machine.lifecycleProof?.authority?.humanApproved ? "yes" : "no"}`,
+    `Bounded failure/stop contract: ${machine.lifecycleProof?.boundedFailureStopProof?.contractSuitePassed ? "pass" : "unavailable"}`,
+    `Continuation after restart: ${machine.lifecycleProof?.restart?.idempotentContinuation ? "verified" : "unavailable"}`,
+    "",
     "## Afterglow working copy",
     "",
     `Ready: ${machine.afterglowBootstrap.ready ? "yes" : "no"}`,
@@ -277,6 +287,7 @@ async function main() {
       && afterDecision?.action?.decisionId === beforeDecision?.action?.decisionId,
     workbenchAfterRestart: String(afterWorkbench?.disposition || ""),
     canonChanged: beforeDecision?.action?.writesCanon === true,
+    baseRevision: String(beforeDecision?.action?.receipt?.baseRevision || ""),
     resultingRevision: String(beforeDecision?.action?.revision || ""),
   };
   const taskLedgerProof = {
@@ -304,12 +315,39 @@ async function main() {
   }
   if (finalStop?.stopped !== true || finalStop?.endpointUnavailable !== true) blockers.push("The final PlotPickle application process did not stop cleanly.");
 
+  let lifecycleProof = null;
+  try {
+    lifecycleProof = createAutonomousReferenceLifecycleProof({
+      runId: autonomousRunId,
+      operatorId: autonomousOperatorId,
+      projectId: afterglowBootstrap.projectId,
+      baseRevision: decisionWorkbenchProof.baseRevision,
+      resultingRevision: decisionWorkbenchProof.resultingRevision,
+      decisionId: decisionWorkbenchProof.decisionId,
+      taskId: taskLedgerProof.taskId,
+      workbenchEvidenceRef: `story-workbench-receipt:${decisionWorkbenchProof.decisionId}@${decisionWorkbenchProof.resultingRevision}`,
+      beforeRouteEvidenceRef: `autonomous-route-pass:before:${afterglowBootstrap.projectId}@${decisionWorkbenchProof.resultingRevision}`,
+      afterRouteEvidenceRef: `autonomous-route-pass:after:${afterglowBootstrap.projectId}@${decisionWorkbenchProof.resultingRevision}`,
+      packageRef: `autonomous-reference-package:${afterglowBootstrap.projectId}@${decisionWorkbenchProof.resultingRevision}`,
+      continuationRef: `guest-task:${taskLedgerProof.taskId}`,
+      restartVerified: restartProof.verified === true,
+      taskCompleted: taskLedgerProof.finalState === "completed" && taskLedgerProof.completedFromOperatedRoute,
+      decisionApplied: decisionWorkbenchProof.decisionOutcome === "applied" && decisionWorkbenchProof.canonChanged,
+      contractsPassed: before?.report?.contracts?.code === 0 && after?.report?.contracts?.code === 0,
+      idempotentContinuation: decisionWorkbenchProof.decisionPersistedAfterRestart && taskLedgerProof.finalState === "completed" && routePasses.after.overall !== "FAIL",
+    });
+  } catch (error) {
+    blockers.push(`Canonical lifecycle proof failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  if (!lifecycleProof) blockers.push("The real autonomous Guest reference journey did not project through all seven canonical lifecycle stages.");
+
   const machine = {
-    schemaVersion: 5,
+    schemaVersion: 6,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
     overall: blockers.length ? "FAIL" : "PASS",
     authority,
+    lifecycleProof,
     afterglowBootstrap,
     applicationLifecycle: {
       initialProcess: firstStart,

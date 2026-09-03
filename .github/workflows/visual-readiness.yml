@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate canonical visual readiness contract
-        run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs
+        run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs
       - name: Validate existing visual identity and progressive BUILD contracts
         run: node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
       - name: Production build

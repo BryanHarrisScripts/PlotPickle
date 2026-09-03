@@ -129,9 +129,15 @@ function changedImportViolations(changes, rules) {
   return violations;
 }
 
+export function isTemporaryReexportBridge(source) {
+  const lines = source.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length !== 2) return false;
+  if (!/^\/\/ Temporary Phase\b.*\bcompatibility bridge\b/i.test(lines[0])) return false;
+  return /^export \* from ["'][^"']+["'];?$/.test(lines[1]);
+}
+
 function compatibilityBridgeEvidence(policy) {
-  const libRoot = path.join(repoRoot, "lib");
-  const bridgePaths = directSourceFiles("lib").filter((relativePath) => /compatibility bridge/i.test(readFileSync(path.join(repoRoot, relativePath), "utf8")));
+  const bridgePaths = directSourceFiles("lib").filter((relativePath) => isTemporaryReexportBridge(readFileSync(path.join(repoRoot, relativePath), "utf8")));
   const exceptionByPath = new Map(policy.compatibilityBridgeExceptions.map((entry) => [entry.path, entry]));
   const violations = [];
   const evidence = [];
@@ -209,13 +215,10 @@ export function runArchitectureEnforcement({ baseRef = null, writeArtifact = tru
   return report;
 }
 
-function argumentValue(name) {
-  const index = process.argv.indexOf(name);
-  return index >= 0 ? process.argv[index + 1] : null;
-}
-
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const report = runArchitectureEnforcement({ baseRef: argumentValue("--base-ref") ?? process.env.ARCHITECTURE_BASE_REF ?? null });
+  const baseRefIndex = process.argv.indexOf("--base-ref");
+  const baseRef = baseRefIndex >= 0 ? process.argv[baseRefIndex + 1] : null;
+  const report = runArchitectureEnforcement({ baseRef: baseRef ?? process.env.ARCHITECTURE_BASE_REF ?? null });
   console.log(`Repository architecture enforcement: ${report.status}`);
   for (const [rootName, metric] of Object.entries(report.metrics)) {
     console.log(`${rootName}: direct source ${metric.directSourceFiles}/${metric.directSourceLimit}, child dirs ${metric.directChildDirectories}, depth ${metric.maxRelativeDepth}`);

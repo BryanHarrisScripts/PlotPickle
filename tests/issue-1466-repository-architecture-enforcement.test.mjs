@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   directRootAdditionViolations,
   importBoundaryViolations,
+  isTemporaryReexportBridge,
   runArchitectureEnforcement,
 } from "../scripts/developer-diagnostics/repository-architecture-enforcement.mjs";
 
@@ -38,6 +39,17 @@ test("#1466 catches forbidden inward-to-outward dependency direction", () => {
   assert.equal(coreViolations.length, 1);
   assert.match(coreViolations[0], /core -> app/);
   assert.deepEqual(importBoundaryViolations("modules/plan/example.ts", 'import { contract } from "@/core/contracts/example";\n', importRules), []);
+});
+
+test("#1466 distinguishes temporary re-export shims from files that merely discuss compatibility", () => {
+  assert.equal(
+    isTemporaryReexportBridge('// Temporary Phase 7 compatibility bridge. Remove in Phase 8 (#1309).\nexport * from "../modules/build/pageflow";\n'),
+    true,
+  );
+  assert.equal(
+    isTemporaryReexportBridge('// Compatibility bridge behavior is handled by a real implementation.\nexport function inspectBridge() { return true; }\n'),
+    false,
+  );
 });
 
 test("#1466 leaves only explicitly owned compatibility bridges", () => {

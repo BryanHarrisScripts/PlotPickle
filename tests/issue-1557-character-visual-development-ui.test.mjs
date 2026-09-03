@@ -5,7 +5,7 @@ import test from "node:test";
 import {
   CHARACTER_DEVELOPMENT_WORKSPACE_STATES,
   createCharacterDevelopmentWorkspaceProjection,
-} from "../core/visual-production/character-development-workspace.mjs";
+} from "../lib/visual-production/character-development-workspace.mjs";
 
 function projection(overrides = {}) {
   return createCharacterDevelopmentWorkspaceProjection({
@@ -83,7 +83,7 @@ test("#1557 generated candidates remain emerging and targeted stale studies over
 test("#1557 development board is projected inside the existing Character Visual Identity workspace and is read-only", async () => {
   const [component, projectionSource] = await Promise.all([
     readFile(new URL("../app/character-image-generator.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../core/visual-production/character-development-workspace.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../lib/visual-production/character-development-workspace.mjs", import.meta.url), "utf8"),
   ]);
   assert.match(component, /createCharacterDevelopmentWorkspaceProjection/);
   assert.match(component, /data-character-development-board/);

@@ -4,7 +4,7 @@
 
 Status: Architecture proposal
 
-Story: The Unwritten is PlotPickle's reusable story-game system: a framework in which people learn how stories work, assemble story elements as playable pieces, create their own worlds and characters, bind bounded AI agents to those creations, and eventually define entirely new games that still run under PlotPickle's authority model.
+Story: The Unwritten is PlotPickle's reusable story-game system: a framework in which people learn how stories work, assemble story elements as playable pieces, create their own worlds and characters, bind bounded AI agents to those creations, and eventually define entirely new AI-driven games that still run under PlotPickle's authority model.
 
 The central idea is simple:
 
@@ -22,6 +22,8 @@ Story: The Unwritten becomes the reusable story-game system.
 
 Wyrmwood remains the structured learning game and first teaching world/campaign.
 
+BUZZ remains the community, discovery, presence and multiplayer social layer.
+
 User-created worlds become additional playable universes built from the same story grammar.
 
 In product terms:
@@ -33,7 +35,15 @@ PlotPickle
   |
   +-- PLAN / BUILD ---------- creates story-world material
   |
-  +-- Story: The Unwritten - reusable story-game engine
+  +-- BUZZ ----------------- community, discovery, presence, invitations
+  |      |
+  |      +-- discover worlds and games
+  |      +-- meet creators, players and agents
+  |      +-- join rooms / communities
+  |      +-- invite people or agents
+  |      +-- launch into a playable STORY session
+  |
+  +-- Story: The Unwritten - reusable story-game engine and play surface
   |      |
   |      +-- Wyrmwood ------- teaching campaign / proving ground
   |      +-- First-party worlds
@@ -43,12 +53,11 @@ PlotPickle
   +-- Agents ---------------- characters, guides, directors, evaluators
   +-- Skills ---------------- bounded procedures available to agents
   +-- AI Runtime ------------ local/cloud provider-independent inference
-  +-- Community / BUZZ ------ sharing, discovery and multiplayer context
 ```
 
 Wyrmwood should not be discarded. It already proves several of the most important architectural ideas: deterministic game state, AI-directed situations, AI evaluation, curriculum linkage, progression, persistent history and a clear division between generative intelligence and game authority.
 
-The migration principle is therefore:
+The migration principle is:
 
 > Reuse first. Extract shared contracts only when Story: The Unwritten becomes a proven second consumer. Do not rewrite Wyrmwood merely to make the architecture look cleaner.
 
@@ -60,9 +69,7 @@ A card is the visual and interactive representation of a Story Piece.
 
 The engine must not depend on cardboard-game assumptions. A Story Piece may be displayed as a card, token, board element, character portrait, timeline event, relationship edge or world rule depending on the interface.
 
-The initial Story Piece vocabulary should remain intentionally small.
-
-Recommended foundational types:
+The initial Story Piece vocabulary should remain intentionally small:
 
 1. Character
 2. Desire
@@ -146,9 +153,9 @@ The creator makes characters, locations, objects, conflicts, secrets, rules, vis
 
 "I define how stories behave in my world."
 
-The designer composes validated rules, costs, triggers, victory conditions, scene constraints and agent roles to create a new playable game mode without replacing PlotPickle's underlying authority boundaries.
+The designer composes validated rules, costs, triggers, victory conditions, scene constraints and agent roles to create a new playable AI-driven game without replacing PlotPickle's underlying authority boundaries.
 
-This progression is fundamental. PlotPickle is not only teaching people to write a story. It is teaching them how story systems work well enough that they can eventually create their own.
+This progression is fundamental. PlotPickle is not only teaching people to write a story. It is teaching them how story systems work well enough that they can eventually create their own games.
 
 ---
 
@@ -220,23 +227,9 @@ This protects continuity and makes the same underlying game playable as text, ca
 
 A scene should have a bounded Narrative Budget so that story actions carry weight.
 
-The exact user-facing name can be determined during game design; the architectural need is what matters.
+A low-cost action might ask a question, move nearby, reveal an already-known fact or use an established object normally.
 
-A low-cost action might:
-
-- ask a question;
-- move to another nearby place;
-- reveal an already-known fact;
-- use an established object normally.
-
-A higher-cost action might:
-
-- introduce a major new character;
-- reveal a central secret;
-- permanently alter a relationship;
-- destroy an important location;
-- reverse a major objective;
-- violate an established expectation in a justified way.
+A higher-cost action might introduce a major character, reveal a central secret, permanently alter a relationship, destroy an important location, reverse a major objective or violate an established expectation in a justified way.
 
 This teaches pacing and prevents "everything happens at once" storytelling.
 
@@ -250,10 +243,9 @@ The engine must track more than score.
 
 At minimum, authoritative story state should be capable of representing:
 
-- character location;
-- character availability;
+- character location and availability;
 - goals and current objectives;
-- relationship values and relationship history;
+- relationship values and history;
 - objects and ownership/custody;
 - injuries or meaningful conditions;
 - secrets and who knows them;
@@ -316,13 +308,9 @@ This division is non-negotiable.
 - optional dramatic framing;
 - suggestions for new Story Pieces.
 
-An agent may propose that a bridge collapses.
+An agent may propose that a bridge collapses. The engine decides whether that transition is allowed and records the accepted consequence.
 
-The engine decides whether that transition is allowed and records the accepted consequence.
-
-An evaluator may judge that a player used dramatic irony effectively.
-
-The deterministic engine decides the resulting XP, progression or other mechanical reward.
+An evaluator may judge that a player used dramatic irony effectively. The deterministic engine decides the resulting XP, progression or other mechanical reward.
 
 This is the same architectural principle already demonstrated successfully in Wyrmwood and should become a defining Story: The Unwritten rule.
 
@@ -394,9 +382,7 @@ PlotPickle translates those choices into a bounded agent definition.
 
 Advanced creators may later expose more controls, but the default experience should remain narrative rather than technical.
 
-### Agent authority levels
-
-A useful initial model is:
+Useful initial authority levels:
 
 Observer — may react or advise but cannot alter authoritative game state.
 
@@ -431,7 +417,7 @@ Agent Binding: optional Elara character agent.
 
 The user can accept, change or reject the mechanics.
 
-The important rule is that generative output does not become authoritative simply because the model produced it. User confirmation or an engine-authorized creation workflow admits the piece into the world.
+Generative output does not become authoritative simply because the model produced it. User confirmation or an engine-authorized creation workflow admits the piece into the world.
 
 ---
 
@@ -494,9 +480,9 @@ DO resolve the spell effect
 THEN record the forgotten Memory in character history
 ```
 
-This gives creators expressive power while preserving deterministic validation.
-
 AI can help translate natural language into the rule grammar, but the engine validates and stores the final rule.
+
+This is the basis for users creating their own AI games without writing executable code.
 
 ---
 
@@ -515,7 +501,7 @@ StoryWorld
   Story Pieces
   world rules
   agents
-  skills references
+  skill references
   starting states
   game modes
   curriculum links
@@ -574,7 +560,7 @@ Purpose: introduce strategic competition without requiring combat.
 
 A creator defines setup, allowed pieces, rule modules and victory/end conditions.
 
-Purpose: enable the community to invent games PlotPickle did not explicitly ship.
+Purpose: enable the community to invent AI-driven games PlotPickle did not explicitly ship.
 
 Only the first one or two modes should be attempted initially.
 
@@ -587,7 +573,7 @@ Wyrmwood should become the canonical example of how a Story: The Unwritten game 
 Today it already contains:
 
 - curriculum-derived trials;
-- an AI director (Master Oaken-Vague);
+- an AI director, Master Oaken-Vague;
 - multiple rivals;
 - an AI curriculum evaluator;
 - deterministic scoring;
@@ -631,31 +617,128 @@ Visual continuity/art-direction agents can render the accepted state as characte
 
 Character agents can inhabit user-created Character pieces.
 
-BUZZ / Community can eventually provide discovery and sharing of worlds, game modes and approved public agents without becoming a peer-compute authority layer.
+BUZZ can expose the same approved public agents socially without creating a second agent identity system.
 
 ---
 
-## 19. Learning should be embedded, not bolted on
+## 19. BUZZ and STORY UI relationship
+
+BUZZ should not become the entire STORY interface.
+
+The clean product boundary is:
+
+> BUZZ is the lobby, community and agent-presence layer. STORY is the actual game table.
+
+### BUZZ owns
+
+- discovery of public worlds, campaigns and user-created games;
+- community rooms and conversation;
+- player and creator presence;
+- public agent presence;
+- invitations and session formation;
+- discussion around a world before and after play;
+- sharing Story Pieces, characters and game packages;
+- launching a player into a STORY session.
+
+### STORY owns
+
+- the active playable world;
+- Story Pieces/cards currently available or in play;
+- active human and agent characters;
+- locations and movement/state;
+- relationships;
+- objects and custody;
+- resources and narrative budget;
+- conflicts and unresolved threads;
+- scene/turn state;
+- legal actions;
+- world rules;
+- consequences;
+- knowledge visibility;
+- session history;
+- game-specific victory, loss or ending conditions.
+
+A user flow can therefore be:
+
+```text
+Great Hall / BUZZ
+  -> discover "The Last Colony"
+  -> enter its community room
+  -> meet its creator, players and public character agents
+  -> choose Play / Join Session
+  -> STORY opens the dedicated game workspace
+  -> the same approved character identities become active bounded game agents
+  -> the deterministic STORY engine governs legal state changes
+  -> accepted session outcomes become world/session history
+  -> players can return to BUZZ to discuss, share or start another session
+```
+
+This separation prevents the game from becoming merely a chat room while preserving BUZZ as the social front door.
+
+### Same agent, different context
+
+A character can exist socially in BUZZ and actively inside STORY without becoming two unrelated agents.
+
+For example, a user-created Captain Mara agent could:
+
+- appear publicly in the world's BUZZ room using approved public identity and lore;
+- answer non-secret questions within its social context;
+- join a game session when selected;
+- receive narrower session-specific knowledge inside STORY;
+- act only through legal Story actions;
+- retain only memory that the world/session canon policy admits.
+
+BUZZ presence does not grant STORY authority.
+
+STORY participation does not grant broader BUZZ, connector, tool or host authority.
+
+The existing PlotPickle agent identity, trust, Context Engine and runtime boundaries remain authoritative across both surfaces.
+
+### STORY workspace
+
+The dedicated STORY workspace should make the game state visible rather than hide everything inside prose.
+
+A first version can contain:
+
+```text
++---------------------------------------------------------------+
+| WORLD / SESSION | scene | pressure | objective | rules status |
++----------------+----------------------------------------------+
+| WORLD          |                                              |
+| locations      |              ACTIVE SCENE                    |
+| active rules   |                                              |
+| unresolved     |   characters / locations / current conflict |
+| threads        |                                              |
+|                |   playable Story Pieces / choices            |
++----------------+----------------------------------------------+
+| CHARACTERS     |   CONSEQUENCE / NARRATIVE / AGENT ACTION     |
+| human + agents |                                              |
++----------------+----------------------------------------------+
+| HAND / PIECES / ACTIONS | history | inspect | create piece    |
++---------------------------------------------------------------+
+```
+
+The exact visual language can evolve. The architectural point is that STORY provides a stateful playable surface, while BUZZ provides the surrounding social environment.
+
+### Wyrmwood UI
+
+Wyrmwood may keep its distinctive themed interface.
+
+Long term, it can consume the same STORY engine beneath its own presentation rather than being forced into the generic STORY layout.
+
+That makes Wyrmwood a first-party game built with the engine rather than the engine itself.
+
+---
+
+## 20. Learning should be embedded, not bolted on
 
 Every meaningful engine action can carry curriculum metadata.
 
-For example:
+A player establishes an object early and uses it later. The engine records a setup/payoff relationship. Sage can explain why it worked.
 
-A player establishes an object early and uses it later.
+A player reveals a fact to the audience but not the protagonist. PlotPickle can identify dramatic irony.
 
-The engine records a setup/payoff relationship.
-
-After the scene, Sage can say:
-
-"You just created a setup and payoff. The key was that the object existed before the solution needed it."
-
-A player reveals a fact to the audience but not the protagonist.
-
-PlotPickle can identify dramatic irony.
-
-A player changes a relationship through a costly action.
-
-PlotPickle can connect the result to character arc and consequence.
+A player changes a relationship through a costly action. PlotPickle can connect the result to character arc and consequence.
 
 This creates a bridge in both directions:
 
@@ -668,7 +751,7 @@ The game therefore becomes another expression of the curriculum rather than a se
 
 ---
 
-## 20. Knowledge is part of game state
+## 21. Knowledge is part of game state
 
 One of the most important engine concepts is knowledge ownership.
 
@@ -689,7 +772,7 @@ This is both a storytelling requirement and an agent-isolation requirement.
 
 ---
 
-## 21. Memory and canon admission
+## 22. Memory and canon admission
 
 Generated suggestions are not automatically canon.
 
@@ -703,7 +786,7 @@ Story: The Unwritten should follow the same evidence-learning principle used els
 
 This prevents a character agent, narrator or model hallucination from silently rewriting the world.
 
-A world can therefore distinguish:
+A world can distinguish:
 
 Established Canon
 Accepted Session State
@@ -713,43 +796,27 @@ Hypothesis
 Generated Proposal
 Rejected/Retconned Material
 
-That distinction will become increasingly important as worlds persist across many sessions and creators.
+That distinction becomes increasingly important as worlds persist across many sessions and creators.
 
 ---
 
-## 22. Visual layer
+## 23. Visual layer
 
 Cards are a useful interface because they make abstract story concepts tangible.
 
-A Character card might show:
+A Character card might show portrait, name, role, visible desire, relationship indicators, active condition, ability, cost/consequence and an agent-active indicator.
 
-- portrait;
-- name;
-- role;
-- visible desire;
-- relationship icons;
-- active condition;
-- ability;
-- cost/consequence;
-- agent-active indicator.
-
-A Location card might show:
-
-- environment art;
-- current occupants;
-- discovered exits;
-- active world rules;
-- unresolved objects or clues.
+A Location card might show environment art, current occupants, discovered exits, active world rules and unresolved objects or clues.
 
 A Secret card may be face-down or selectively visible according to knowledge state.
 
 A Relationship can appear as an edge between cards rather than requiring its own physical card in every interface.
 
-The engine must remain UI-independent so the same state can later power a board, timeline, chat scene, storyboard or cinematic workflow.
+The engine must remain UI-independent so the same state can power a board, timeline, chat scene, storyboard or cinematic workflow.
 
 ---
 
-## 23. Community-created content
+## 24. Community-created content
 
 Community sharing should eventually support:
 
@@ -769,9 +836,11 @@ Imported content does not gain additional runtime authority because another crea
 
 The recipient's PlotPickle installation remains the authority on which tools, skills, providers and capabilities are actually available.
 
+BUZZ is the natural discovery and discussion surface for this content; STORY is the execution surface.
+
 ---
 
-## 24. What not to build first
+## 25. What not to build first
 
 Do not begin with:
 
@@ -788,8 +857,6 @@ Do not begin with:
 - multiplayer networking before the single-player engine is fun;
 - AI-generated content silently admitted as canon.
 
-Those ideas can be evaluated later if real player behavior creates a reason for them.
-
 The first proof is much smaller:
 
 > Can a player assemble a handful of Story Pieces, make meaningful choices across five scenes, experience coherent consequences, learn why those choices worked, and want to play again with a different combination?
@@ -798,7 +865,7 @@ If yes, the foundation is strong.
 
 ---
 
-## 25. Minimum viable engine
+## 26. Minimum viable engine
 
 The first implementation should prove only the shared mechanics necessary for one small playable experience.
 
@@ -817,12 +884,13 @@ Recommended MVP capabilities:
 11. Persist session history.
 12. Produce a short teaching reflection after each scene or at game end.
 13. Re-enter the same world and preserve accepted canon.
+14. Launch the game from a BUZZ world/community context when available, while keeping direct local launch possible.
 
 Everything else is expansion.
 
 ---
 
-## 26. Suggested implementation ownership
+## 27. Suggested implementation ownership
 
 Follow PlotPickle's existing architecture rather than creating a new foundation root.
 
@@ -851,19 +919,24 @@ modules/
 lib/agents/
   # Existing agent/runtime integrations and bounded role implementations.
 
+lib/buzz/
+  # Existing discovery, community and agent-presence integrations.
+
 config/
   # Existing trust, skills and capability registries remain authoritative.
 ```
 
 Do not create a second agent framework inside `modules/story-the-unwritten`.
 
-The module may define game-facing bindings and adapters, but execution should route through PlotPickle's existing agent/runtime boundaries.
+Do not create a second social/community system inside STORY.
+
+The module may define game-facing bindings and adapters, but execution should route through PlotPickle's existing agent/runtime boundaries and social discovery should route through BUZZ where appropriate.
 
 Do not promote speculative abstractions into `core/` before there are real cross-module consumers.
 
 ---
 
-## 27. Proposed engine invariants
+## 28. Proposed engine invariants
 
 The following should become architectural invariants:
 
@@ -879,10 +952,13 @@ The following should become architectural invariants:
 10. Wyrmwood is preserved and reused, not rewritten merely for architectural purity.
 11. Learning metadata may enrich play but must not make a scene feel like a quiz unless the game mode intentionally does so.
 12. User-authored story/world content is never silently rewritten by repair, evaluation or agent infrastructure.
+13. BUZZ owns social discovery/presence; STORY owns authoritative active game state.
+14. BUZZ presence never implies game authority, and STORY participation never expands host authority.
+15. The same approved agent identity may appear across BUZZ and STORY with context-specific knowledge and capabilities.
 
 ---
 
-## 28. Example: a world that creates its own game
+## 29. Example: a world that creates its own game
 
 A creator makes a world called Ashfall.
 
@@ -924,7 +1000,9 @@ Later, another character sings the song.
 
 Mara may experience confusion, recognition pressure or a relationship consequence, but the agent cannot simply remember the removed fact unless a legal story event restores it.
 
-This one interaction demonstrates the whole architecture:
+Outside the active session, Mara may also have an approved public presence in Ashfall's BUZZ community. That public presence does not receive hidden game state or gain authority to change Ashfall canon.
+
+This interaction demonstrates the whole architecture:
 
 - creator-authored world rule;
 - card-like Story Pieces;
@@ -934,6 +1012,8 @@ This one interaction demonstrates the whole architecture:
 - AI performance;
 - consequence;
 - continuity;
+- BUZZ social presence;
+- STORY game authority;
 - emergent story.
 
 The system did not write the story in advance.
@@ -942,7 +1022,7 @@ The rules made the story possible.
 
 ---
 
-## 29. Why this belongs in PlotPickle
+## 30. Why this belongs in PlotPickle
 
 PlotPickle already treats storytelling as a connected system rather than a blank page.
 
@@ -953,7 +1033,7 @@ Agents can hold specialized roles.
 Skills provide bounded procedures.
 The AI runtime abstracts providers.
 Wyrmwood proves that AI creativity can coexist with deterministic game authority.
-Community provides a future path for shared worlds and creations.
+BUZZ provides community, discovery and agent presence.
 
 Story: The Unwritten connects these capabilities through play.
 
@@ -967,7 +1047,7 @@ That is the foundation:
 
 ---
 
-## 30. First implementation decision
+## 31. First implementation decision
 
 Do not begin by changing Wyrmwood.
 
@@ -977,6 +1057,8 @@ The first target should be:
 
 > A five-scene single-player story using a handful of Story Pieces, one user-created character, one bounded character agent, deterministic state/consequences, and a short LEARN-connected reflection.
 
+The first UI should be a dedicated STORY workspace, not a BUZZ chat room. BUZZ can launch into the session and provide the surrounding social/discovery experience.
+
 Once that is playable, compare the resulting engine to Wyrmwood's proven contracts and extract the shared layer that actually exists.
 
-This sequence minimizes architectural speculation while preserving the long-term goal of a common PlotPickle story-game engine.
+This sequence minimizes architectural speculation while preserving the long-term goal of a common PlotPickle story-game engine that users can use to create their own AI games.

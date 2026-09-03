@@ -75,15 +75,11 @@ export function buildReleaseScriptInventory() {
   };
 }
 
-function argumentValue(flag) {
-  const index = process.argv.indexOf(flag);
-  return index >= 0 ? process.argv[index + 1] : null;
-}
-
 async function main() {
   const inventory = buildReleaseScriptInventory();
   const json = `${JSON.stringify(inventory, null, 2)}\n`;
-  const output = argumentValue("--output");
+  const outputIndex = process.argv.indexOf("--output");
+  const output = outputIndex >= 0 ? process.argv[outputIndex + 1] : null;
   if (output) {
     const resolved = path.resolve(repoRoot, output);
     mkdirSync(path.dirname(resolved), { recursive: true });

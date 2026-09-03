@@ -46,6 +46,12 @@ A Guest persistence decision is always presented as autonomous policy and explic
 
 Consumers should persist the canonical envelope/proof and recompute presentation when opened. Do not persist a presentation label as an authority source.
 
+## Existing reference status surface
+
+The existing one-command Afterglow autonomous reference controller now writes both the canonical `lifecycleProof` and its derived `lifecyclePresentation` into `autonomous-story-reference.json`. Its existing Markdown report renders the derived plain-language status, stage/progress, active authority, validation, persistence, stop reason and next safe action, followed by the bounded technical evidence.
+
+The report does not infer lifecycle state from the active workspace, route name, provider health or visual appearance. If the canonical proof cannot be constructed, the presentation is unavailable and the run remains failed rather than manufacturing a plausible status.
+
 ## UI rule
 
 Existing Experience surfaces may render this projection when they have a canonical lifecycle envelope or proof. If no canonical lifecycle source is available, the surface must say that no active lifecycle status is available rather than guessing from workspace navigation, provider activity or visual appearance.

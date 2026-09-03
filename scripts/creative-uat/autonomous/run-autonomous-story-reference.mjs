@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { presentLifecycleProof } from "../../../core/lifecycle/lifecycle-presentation.mjs";
 import { createAutonomousReferenceLifecycleProof } from "../../../lib/verification/autonomous-reference-lifecycle.mjs";
 import { createManagedPlotPickleLifecycle } from "./application-lifecycle.mjs";
 
@@ -133,6 +134,8 @@ function compareAcrossApplicationRestart(beforeReport, afterReport, lifecycleRes
 }
 
 function markdownReport(machine) {
+  const lifecycle = machine.lifecyclePresentation?.current || null;
+  const progress = lifecycle?.progress ? `${lifecycle.progress.current}/${lifecycle.progress.total}` : "unavailable";
   const lines = [
     "# PlotPickle Autonomous Story Reference Run",
     "",
@@ -147,10 +150,24 @@ function markdownReport(machine) {
     `Human profile authority: ${machine.authority.humanProfileId ? "present" : "none"}`,
     `Run: ${machine.authority.autonomousRunId}`,
     "",
-    "## Lifecycle",
+    "## Lifecycle status",
+    "",
+    `Status: ${lifecycle?.stateLabel || "unavailable"}`,
+    `Stage: ${lifecycle?.stageLabel || "unavailable"} (${progress})`,
+    `Active authority: ${lifecycle?.authorityLabel || "unavailable"}`,
+    `Validation: ${lifecycle?.validationLabel || "unavailable"}`,
+    `Persistence: ${lifecycle?.persistenceLabel || "unavailable"}`,
+    `Stop reason: ${lifecycle?.stopReason || "none"}`,
+    `Next action: ${lifecycle?.nextActionLabel || "unavailable"}`,
+    "",
+    "### Technical lifecycle evidence",
     "",
     `Canonical lifecycle proven: ${machine.lifecycleProof ? "yes" : "no"}`,
     `Stages: ${machine.lifecycleProof?.stageSequence?.join(" → ") || "unavailable"}`,
+    `Authority class: ${lifecycle?.authorityClass || "unavailable"}`,
+    `Validation authority: ${lifecycle?.technicalEvidence?.validationAuthorityRef || "unavailable"}`,
+    `Approval reference: ${lifecycle?.technicalEvidence?.approvalRef || "none"}`,
+    `Continuation reference: ${lifecycle?.technicalEvidence?.continuationRef || "none"}`,
     `Autonomous policy persistence: ${machine.lifecycleProof?.authority?.autonomousPolicyApproved ? "yes" : "no"}`,
     `Human approval claimed: ${machine.lifecycleProof?.authority?.humanApproved ? "yes" : "no"}`,
     `Bounded failure/stop contract: ${machine.lifecycleProof?.boundedFailureStopProof?.contractSuitePassed ? "pass" : "unavailable"}`,
@@ -341,13 +358,15 @@ async function main() {
   }
   if (!lifecycleProof) blockers.push("The real autonomous Guest reference journey did not project through all seven canonical lifecycle stages.");
 
+  const lifecyclePresentation = lifecycleProof ? presentLifecycleProof(lifecycleProof) : null;
   const machine = {
-    schemaVersion: 6,
+    schemaVersion: 7,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
     overall: blockers.length ? "FAIL" : "PASS",
     authority,
     lifecycleProof,
+    lifecyclePresentation,
     afterglowBootstrap,
     applicationLifecycle: {
       initialProcess: firstStart,

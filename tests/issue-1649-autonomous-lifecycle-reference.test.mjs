@@ -132,7 +132,7 @@ test("#1649 extends the existing one-command reference controller instead of add
   assert.match(referenceRunner, /decisionPersistedAfterRestart/);
   assert.match(referenceRunner, /completedFromOperatedRoute/);
   assert.match(referenceRunner, /baseRevision: String\(beforeDecision\?\.action\?\.receipt\?\.baseRevision/);
-  assert.match(referenceRunner, /schemaVersion: 6/);
+  assert.match(referenceRunner, /schemaVersion: 7/);
   assert.match(routeRunner, /operateAutonomousStoryDecision/);
   assert.match(routeRunner, /respond-autonomous/);
   assert.match(routeRunner, /Apply change/);

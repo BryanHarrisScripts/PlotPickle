@@ -83,7 +83,7 @@ function realPathOrNull(item) {
 }
 
 function coreReady(modulesPath) {
-  return ["vite", "next", "react", "vinext", "rolldown", "drizzle-kit"].every((name) =>
+  return ["vite", "next", "react", "vinext", "rolldown"].every((name) =>
     existsSync(path.join(modulesPath, name, "package.json")),
   );
 }
@@ -182,7 +182,7 @@ function repairNativeBinding(modulesPath) {
       "install",
       "--prefix",
       runtimeDir,
-      "--include=dev",
+      "--omit=dev",
       "--prefer-offline",
       "--no-audit",
       "--no-fund",

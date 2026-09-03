@@ -229,7 +229,7 @@ test("issue #119 production planning state is backward-compatible and normalized
   assert.match(project, /stringArray\(decision\.sceneIds\)/);
 });
 
-test("issue #119 repairs the Windows Drizzle tooling verification gap", async () => {
+test("issue #119 keeps Drizzle generation available to developers without shipping it at runtime", async () => {
   const [packageText, lockText, runtime, setup] = await Promise.all([
     source("package.json"),
     source("package-lock.json"),
@@ -240,10 +240,11 @@ test("issue #119 repairs the Windows Drizzle tooling verification gap", async ()
   const lockJson = JSON.parse(lockText);
   assert.equal(packageJson.devDependencies["drizzle-kit"], "0.31.10");
   assert.equal(lockJson.packages[""].devDependencies["drizzle-kit"], "0.31.10");
-  assert.match(runtime, /\["vite", "next", "react", "vinext", "rolldown", "drizzle-kit"\]/);
+  assert.match(runtime, /\["vite", "next", "react", "vinext", "rolldown"\]/);
+  assert.doesNotMatch(runtime, /coreReady[\s\S]*?drizzle-kit/);
   assert.match(runtime, /update\(packageSource\)\.update\("\\0"\)\.update\(lockSource\)/);
   assert.match(setup, /update\(packageSource\)\.update\("\\0"\)\.update\(lockSource\)/);
-  assert.match(setup, /\["Project data build tooling", "drizzle-kit"\]/);
+  assert.doesNotMatch(setup, /\["Project data build tooling", "drizzle-kit"\]/);
 });
 
 test("issue #119 test is registered", async () => {

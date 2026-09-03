@@ -33,9 +33,12 @@ test("#1456 installer stage bundles Node and dependencies instead of requiring d
     "path.dirname(process.execPath)",
     '"node.exe", "npm.cmd"',
     "cpSync(appModules, stagedModules",
+    '"prune", "--prefix", stage, "--omit=dev"',
     "cpSync(nodeRoot, stagedNode",
     'manifest.distribution = "windows-installer"',
     "manifest.dependenciesBundled = true",
+    'manifest.dependencyProfile = "production"',
+    "manifest.developerDependenciesBundled = false",
     'manifest.userDataHome = "%LOCALAPPDATA%/PlotPickle"',
     'manifest.applicationHome = "%LOCALAPPDATA%/Programs/PlotPickle"',
   ]) assert.ok(stage.includes(contract), `Missing installer staging contract: ${contract}`);

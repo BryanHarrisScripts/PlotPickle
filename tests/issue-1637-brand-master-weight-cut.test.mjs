@@ -38,9 +38,9 @@ test("#1637 keeps brand masters in source checkout and measures them as referenc
   }
 });
 
-test("#1637 leaves runtime dependency and startup policy unchanged", () => {
+test("#1637 preserves the superseding production runtime policy", () => {
   const inventory = buildInventory();
-  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeIncludesDev, true);
+  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeOmitsDev, true);
   assert.ok(inventory.releaseAuthority.runtimeDirectories.includes(".openai"));
   assert.ok(inventory.releaseAuthority.runtimeDirectories.includes("public"));
 });

@@ -8,6 +8,16 @@ const manifest = JSON.parse(readFileSync(path.join(folder, "release-manifest.jso
 assert.equal(manifest.product, "PlotPickle");
 assert.equal(manifest.projectFormat, ".ppf");
 assert.equal(manifest.localOnly, true);
+if (manifest.distribution === "windows-installer") {
+  assert.equal(manifest.dependencyProfile, "production");
+  assert.equal(manifest.developerDependenciesBundled, false);
+  for (const required of ["@mastra/core", "vite", "vinext", "rolldown"]) {
+    assert.ok(existsSync(path.join(folder, "node_modules", ...required.split("/"))), `Missing production dependency: ${required}`);
+  }
+  for (const excluded of ["@types/react", "@types/react-dom", "drizzle-kit", "eslint", "eslint-config-next", "typescript"]) {
+    assert.ok(!existsSync(path.join(folder, "node_modules", ...excluded.split("/"))), `Developer-only dependency leaked into installer: ${excluded}`);
+  }
+}
 for (const file of [
   ".agents/skills/sage-brinewick/SKILL.md",
   ".openai/hosting.json",

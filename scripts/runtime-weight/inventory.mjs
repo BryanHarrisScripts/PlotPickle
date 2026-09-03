@@ -19,6 +19,7 @@ const packagePath = path.join(repoRoot, "package.json");
 const packagerPath = path.join(repoRoot, "scripts", "package-platform.mjs");
 const windowsRuntimePath = path.join(repoRoot, "scripts", "windows-runtime.mjs");
 const windowsLauncherPath = path.join(repoRoot, "Start-PlotPickle.bat");
+const windowsInstallerStagePath = path.join(repoRoot, "scripts", "windows-installer", "stage.mjs");
 const excludedSegments = new Set([".git", ".next", ".wrangler", "dist", "node_modules", "releases", ".env", ".env.local"]);
 
 function readJson(file) {
@@ -127,6 +128,7 @@ export function buildInventory() {
   const packagerSource = readFileSync(packagerPath, "utf8");
   const windowsRuntimeSource = readFileSync(windowsRuntimePath, "utf8");
   const windowsLauncherSource = readFileSync(windowsLauncherPath, "utf8");
+  const windowsInstallerStageSource = readFileSync(windowsInstallerStagePath, "utf8");
   const runtimeDirectories = extractRuntimeDirectories(packagerSource);
   const copiedRootFiles = extractCopiedRootFiles(packagerSource);
   const sourceOnlyReleaseExclusions = extractSourceOnlyReleaseExclusions(packagerSource);
@@ -144,7 +146,8 @@ export function buildInventory() {
     ownershipDomains: contract.ownershipDomains,
     weightClasses: contract.weightClasses,
     installationPolicy: {
-      windowsPersistentRuntimeIncludesDev: /npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev/.test(windowsLauncherSource),
+      windowsPersistentRuntimeOmitsDev: /npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev/.test(windowsLauncherSource),
+      windowsInstallerStagePrunesDev: /"prune"[\s\S]*?"--omit=dev"/.test(windowsInstallerStageSource),
       windowsCoreReadyPackages: extractCoreReadyPackages(windowsRuntimeSource),
       mastraVerifiedBeforeServerStart: windowsLauncherSource.includes("require('./node_modules/@mastra/core/package.json').version"),
     },
@@ -253,7 +256,8 @@ export function validateInventory(inventory) {
     }
   }
 
-  if (!inventory.installationPolicy.windowsPersistentRuntimeIncludesDev) failures.push("Windows persistent runtime --include=dev baseline was not detected.");
+  if (!inventory.installationPolicy.windowsPersistentRuntimeOmitsDev) failures.push("Windows persistent runtime --omit=dev policy was not detected.");
+  if (!inventory.installationPolicy.windowsInstallerStagePrunesDev) failures.push("Windows installer production prune was not detected.");
   if (!inventory.installationPolicy.mastraVerifiedBeforeServerStart) failures.push("Required @mastra/core launcher verification was not detected.");
   return failures;
 }

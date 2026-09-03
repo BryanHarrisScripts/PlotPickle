@@ -117,17 +117,22 @@ test("#1557 reaches visual readiness only through an already accepted visual art
   assert.equal(evidence.sourceRef, "character-study:sam");
 });
 
-test("#1557 is a registered reusable skill with no direct canon or storage authority", async () => {
-  const [registryText, skill, source, workflow] = await Promise.all([
+test("#1557 is a registered and trust-covered reusable skill with no direct canon or storage authority", async () => {
+  const [registryText, trustText, skill, source, workflow] = await Promise.all([
     readFile(new URL("../config/agent-skills.json", import.meta.url), "utf8"),
+    readFile(new URL("../config/agent-skill-trust.json", import.meta.url), "utf8"),
     readFile(new URL("../.agents/skills/character-visual-development/SKILL.md", import.meta.url), "utf8"),
     readFile(new URL("../core/visual-production/character-development.mjs", import.meta.url), "utf8"),
     readFile(new URL("../.github/workflows/visual-readiness.yml", import.meta.url), "utf8"),
   ]);
   const registry = JSON.parse(registryText);
+  const trust = JSON.parse(trustText);
   const entry = registry.skills.find((candidate) => candidate.id === "character-visual-development");
+  const trustRecord = trust.records.find((candidate) => candidate.uri === entry.uri);
   assert.equal(entry.uri, "skill://plotpickle/character-visual-development");
   assert.equal(entry.primaryWorker, "host");
+  assert.equal(trustRecord.evalStatus, "covered");
+  assert.equal(trustRecord.lastEvaluatedRevision, "issue-1557");
   assert.match(skill, /PPF remains the story and canon authority/i);
   assert.match(skill, /existing visual artifact acceptance path/i);
   assert.doesNotMatch(source, /applyStoryCommand|localStorage|sessionStorage|indexedDB|sqlite|database/i);

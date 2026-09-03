@@ -70,9 +70,9 @@ node scripts/run-uat-closed-loop.mjs --github-report --repair
 
 ## Developer agents
 
-The supported repository-worker candidates are Pi and Cline.
+The supported developer-agent candidates are Pi and Cline.
 
-- They are interchangeable workers, not authority boundaries or always-on product dependencies.
+- They are interchangeable repository workers, not authority boundaries or always-on product dependencies.
 - When used by bounded operational self-support, they remain harness-governed workers: they may inspect evidence, diagnose, verify and prepare bounded repairs, but they may not grant themselves source-mutation authority, durable-knowledge admission, skill installation/activation or increased operational authority.
 - Both use this `AGENTS.md` as the common rules source.
 - Shared executable developer tools should be exposed through the repository MCP boundary where that improves portability.

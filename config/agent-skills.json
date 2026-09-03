@@ -135,6 +135,19 @@
       "localOnly": true
     },
     {
+      "id": "character-visual-development",
+      "name": "Character Visual Development",
+      "description": "Develop a revision-bound candidate visual package for one canonical character without changing canon or accepting generated work.",
+      "entry": ".agents/skills/character-visual-development/SKILL.md",
+      "path": ".agents/skills/character-visual-development",
+      "uri": "skill://plotpickle/character-visual-development",
+      "roles": ["character-visual-development"],
+      "primaryWorker": "host",
+      "consumers": ["visual-director", "image-generation", "visual-qa"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
       "id": "buzz-guildhall-reporting",
       "name": "BUZZ Guildhall Reporting",
       "description": "Summarize and route minimum-necessary operational agent activity for BUZZ Guildhall without making BUZZ the agent runtime.",

@@ -2,7 +2,7 @@
 
 Issue #1647 implements Slice B of #1644. The contract is intentionally smaller than an orchestrator. It is a Core-owned envelope and transition vocabulary that existing PlotPickle owners may project into and out of without moving their authority.
 
-The executable contract lives at `core/lifecycle/lifecycle-contract.mjs`.
+The executable contract lives at `core/lifecycle/lifecycle-contract.mjs`. Slice C (#1646) adds the Core-owned authority decision gate at `core/lifecycle/lifecycle-authority.mjs`. The authority gate interprets the lifecycle envelope; it does not replace Guest delegation, PPF writer approval, the maintainer harness approver, provider policy or any other existing authority.
 
 ## Canonical stages
 
@@ -48,7 +48,7 @@ Examples of existing authoritative contracts include:
 - evidence-learning durable admission: `build/autonomous-guest/maintainer/durable-knowledge-store.mjs`
 - BUZZ history/context boundaries: `build/buzz/buzz-specialist-gateway.ts`
 
-`contractRefs` are the handoff mechanism for these owners. Slice B does not translate their internal enums into a second source of truth. Later slices may add small adapters that project existing state into this envelope.
+`contractRefs` are the handoff mechanism for these owners. The lifecycle contract does not translate their internal enums into a second source of truth. The authority gate decides whether a requested lifecycle action is compatible with the actor and current envelope, then hands permitted work back to the existing owner.
 
 ## Authority structure
 
@@ -56,15 +56,44 @@ Human, Guest, agent and system actors use the same actor shape but retain explic
 
 A Human actor must carry a Human profile reference. A Guest actor must be explicitly delegated and cannot carry a Human profile identity. Agent and system actors carry their own authority references. The lifecycle contract describes authority; it does not grant new authority.
 
-Slice C (#1646) owns applying this shared description consistently to concrete Human, Guest, Sage and other agent routes.
+The shared authority decision vocabulary is intentionally small:
+
+- `observe`
+- `propose`
+- `execute`
+- `use-evidence`
+- `transition`
+- `persist`
+- `continue`
+- `change-authority`
+
+Observe and proposal rights do not imply execution or persistence rights. Execute requires an explicit capability reference already present in the lifecycle envelope. Evidence may influence later reasoning only when referenced by the run, and that decision explicitly grants neither durable knowledge nor operational authority.
+
+`change-authority` is always denied to lifecycle actors. A Guest, Sage, another agent or a system worker cannot promote itself, convert itself into a Human actor or widen its own capabilities through lifecycle state.
+
+## Persistence and approval boundaries
+
+Persistence remains a projection to an existing owner; the lifecycle gate never writes the durable store itself.
+
+- `none`, `evidence`, and `durable-non-canon` may be handed to their existing owner only after the lifecycle has an approved persistence decision and, for persistent state, approval provenance.
+- `durable-knowledge` requires a matching server-owned `plotpickle-maintainer-harness-approver` policy approval. The proposing Guest or agent cannot approve its own durable learning. Durable admission explicitly grants no operational authority.
+- `canonical-project-state` requires a matching explicit Human writer approval for the same Human lifecycle actor. The write still occurs through the existing PPF/project revision route. Guest, agent and system actors cannot use an approval reference to impersonate Human writer authority.
+
+Autonomous policy approval and Human approval are deliberately separate result fields. A policy-approved autonomous persistence decision is never described as Human-approved.
+
+## Reconnect and continuation
+
+A resumed run may continue through its recorded `nextAction`, but reconnect cannot alter the actor snapshot. Actor ID, kind, authority class, delegation, Human profile reference, operator and authority reference must remain identical. A reconnect that changes any of those fields fails closed as an authority mismatch.
+
+This prevents a delegated Guest run from resuming as a Human, a broader agent class or another operator simply because durable task state survived restart.
 
 ## Validation and repair
 
 Validation is a projection of existing deterministic authority. Any validation result other than `not-run` requires an authoritative validation reference. An AI worker cannot make its own result authoritative by putting `pass` in this envelope.
 
-Repair carries only `attempts` and `maxAttempts`. Attempts cannot exceed the budget. The only repair loop in the stage graph is Validate/Repair back to Create/Execute, followed by a required return to Validate/Repair.
+Repair carries only `attempts` and `maxAttempts`. Attempts cannot exceed the budget. The only repair loop in the stage graph is Validate/Repair back to Create/Execute, followed by a required return to Validate/Repair. The authority gate additionally denies that backward transition once the repair budget is exhausted, so an actor cannot re-enter execution by replaying the structurally valid edge forever.
 
-Slice D (#1648) owns connecting the existing BEN, LEARN, Visual Readiness, QA, architecture, story and packaging gates to these fields.
+Slice D (#1648) owns connecting the existing BEN, LEARN, Visual Readiness, QA, architecture, story and packaging gates to these fields and adding deterministic failure fingerprints/rerun evidence.
 
 ## Persistence classes
 
@@ -82,9 +111,9 @@ A persistent projection references its existing owner. Approved durable knowledg
 
 The field ownership projection does not duplicate authority:
 
-- Core: run/project identity, lifecycle stage/transition, actor/authority description, persistence-decision projection
+- Core: run/project identity, lifecycle stage/transition, actor/authority description, persistence-decision projection and lifecycle authority decision gate
 - Story: intent and plan/decision references
-- Intelligence: capability references
+- Intelligence: capability references and bounded reasoning over approved evidence
 - Community & Integrations: integration references
 - Experience: presentation/continuation projection
 - Platform: evidence, validation and repair projection
@@ -93,7 +122,7 @@ The subsystem that owns a referenced record remains the source of truth for that
 
 ## Versioning and compatibility
 
-Schema version 1 is strict. Unknown or unsafe payload fields fail closed. The exported version policy records the current/supported version and requires either compatible additive evolution or an explicit versioned adapter for future changes. Existing subsystem contracts do not need to migrate in Slice B because this envelope references them rather than replacing them.
+Schema version 1 is strict. Unknown or unsafe payload fields fail closed. The exported version policy records the current/supported version and requires either compatible additive evolution or an explicit versioned adapter for future changes. Existing subsystem contracts do not need to migrate because this envelope references them rather than replacing them.
 
 ## Privacy and safety
 
@@ -101,4 +130,4 @@ The contract rejects credential/private-key fields, hidden reasoning/scratchpad/
 
 ## Stopping rule
 
-#1647 ends when the shared schema and transition rules are deterministic and exact-head green. It does not migrate every agent or workspace. #1646 and #1648 own authority and validation integration; #1649 proves the real Guest journey; #1650 projects plain-language status; #1651 retires only proven duplicates.
+#1647 ended with the shared schema and transition rules. #1646 ends with one deterministic Core-owned authority decision gate proving Human/Guest/agent separation, evidence-learning versus durable-learning boundaries, policy versus Human approval provenance, bounded capability execution, reconnect authority preservation and no self-promotion. It does not replace the existing authority owners. #1648 owns deterministic validation/repair integration; #1649 proves the real Guest journey; #1650 projects plain-language status; #1651 retires only proven duplicates.

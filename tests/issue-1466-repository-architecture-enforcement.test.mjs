@@ -17,14 +17,14 @@ const importRules = [
 test("#1466 ratchets legacy governed roots without a big-bang restructure", () => {
   const report = runArchitectureEnforcement({ writeArtifact: false });
   assert.equal(report.status, "pass", report.violations.join("\n"));
-  assert.equal(report.metrics.lib.directSourceFiles, 110);
-  assert.equal(report.metrics.lib.directSourceLimit, 110);
+  assert.equal(report.metrics.lib.directSourceFiles, 118);
+  assert.equal(report.metrics.lib.directSourceLimit, 118);
   assert.equal(report.metrics.build.directSourceFiles, 84);
   assert.equal(report.metrics.build.directSourceLimit, 84);
   assert.equal(report.metrics.core.directSourceLimit, 16);
   assert.equal(report.metrics.modules.directSourceLimit, 16);
   assert.deepEqual(report.baselineEvidence.directSourceFilesBefore, { build: 84, core: 0, modules: 0, lib: 126 });
-  assert.equal(report.baselineEvidence.retiredZeroConsumerCompatibilityBridges, 16);
+  assert.equal(report.baselineEvidence.retiredZeroConsumerCompatibilityBridges, 8);
 });
 
 test("#1466 blocks new direct source files from governed dumping-ground roots", () => {

@@ -11,11 +11,11 @@
       "modules": 0,
       "lib": 126
     },
-    "retiredZeroConsumerCompatibilityBridges": 16
+    "retiredZeroConsumerCompatibilityBridges": 8
   },
   "legacyDirectSourceRatchets": {
     "build": 84,
-    "lib": 110
+    "lib": 118
   },
   "protectedDirectSourceRoots": ["build", "core", "modules", "lib"],
   "forbiddenImports": [

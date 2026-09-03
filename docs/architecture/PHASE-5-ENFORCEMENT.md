@@ -12,9 +12,9 @@ The same gate enforces the ratified child-directory and practical-depth ceilings
 
 ## Transition-debt evidence
 
-The exact pre-Phase-5 inventory at `215973e5b9dd680f62552bc81392edea4cde7d7e` measured 126 direct source files in `lib/` and 84 in `build/`. Phase 5 removed 16 explicit temporary root compatibility re-exports only after repository search showed zero active consumers. Canonical implementations remain in their owning domain paths. The `lib/` ratchet therefore starts at 110, while the `build/` ratchet remains 84 pending the already-ratified BUZZ/AI move batches.
+The exact pre-Phase-5 inventory at `215973e5b9dd680f62552bc81392edea4cde7d7e` measured 126 direct source files in `lib/` and 84 in `build/`. Phase 5 removes eight explicit temporary root compatibility re-exports after repository search confirms that they have no active consumers. Canonical implementations remain in their owning domain paths. The `lib/` ratchet therefore starts at 118, while the `build/` ratchet remains 84 pending the already-ratified BUZZ/AI move batches.
 
-Surviving pre-Phase-5 compatibility bridges are legacy transition debt rather than a reason for a big-bang migration. On pull requests the gate compares temporary bridge paths with the exact base commit: existing bridge paths may disappear, but a new bridge path fails. This keeps the debt moving in one direction without forcing live consumers to move merely to make Phase 5 green.
+The same audit found eight candidate bridges from this cleanup batch that still have live consumers. Those bridges remain in place rather than forcing a broad consumer migration into Phase 5. Their existing source comments keep the Phase 8 removal ownership (#1309) visible. On pull requests the gate compares temporary bridge paths with the exact base commit: existing bridge paths may disappear, but a new bridge path fails. This keeps the debt moving in one direction without forcing live consumers to move merely to make Phase 5 green.
 
 `lib/pageflow.ts` is intentionally not deleted yet. Two active routes still import it. Its canonical target, live consumers, owning issue and removal condition are recorded in the enforcement policy; the gate will fail if that consumer-level exception becomes stale instead of letting the shim remain forever.
 

@@ -16,14 +16,17 @@
     "execution": "requires-envelope-capability-ref",
     "evidenceReasoning": "referenced-evidence-does-not-grant-durability-or-authority",
     "durableKnowledge": "requires-server-owned-harness-policy-approval",
-    "canonicalProjectState": "requires-explicit-human-writer-approval",
+    "canonicalProjectState": "requires-existing-human-writer-or-server-policy-backed-delegated-story-workbench-approval",
     "resume": "exact-actor-authority-snapshot",
     "authorityChange": "never-actor-self-service",
     "repairReentry": "denied-when-repair-budget-exhausted"
   },
   "existingOwners": {
     "guestAuthority": "core/auth/autonomous-guest/guest-authority.ts",
-    "canonicalWriter": "lib/projects/persistence/project-revisions.ts",
+    "humanCanonicalWriter": "lib/projects/persistence/project-revisions.ts",
+    "autonomousStoryDecisionAuthority": "core/story-workflow/story-decisions/autonomous-authority.mjs",
+    "autonomousStoryDecisionOperator": "core/story-workflow/story-decisions/autonomous-operator.mjs",
+    "storyWorkbench": "modules/story-workflow/workbench/workflow.ts",
     "durableKnowledge": "build/autonomous-guest/maintainer/durable-knowledge-store.mjs"
   }
 }

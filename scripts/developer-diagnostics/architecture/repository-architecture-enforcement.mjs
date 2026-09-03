@@ -46,15 +46,11 @@ function directSourceFilesAtRef(rootName, baseRef) {
 }
 
 function sourceAtRef(baseRef, relativePath) {
-  try {
-    return execFileSync("git", ["show", `${baseRef}:${relativePath}`], {
-      cwd: repoRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-  } catch {
-    return null;
-  }
+  return execFileSync("git", ["show", `${baseRef}:${relativePath}`], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 }
 
 function directChildDirectoryCount(rootName) {
@@ -164,10 +160,8 @@ export function isTemporaryReexportBridge(source) {
 }
 
 function temporaryBridgePathsAtRef(baseRef) {
-  return directSourceFilesAtRef("lib", baseRef).filter((relativePath) => {
-    const source = sourceAtRef(baseRef, relativePath);
-    return source !== null && isTemporaryReexportBridge(source);
-  });
+  return directSourceFilesAtRef("lib", baseRef)
+    .filter((relativePath) => isTemporaryReexportBridge(sourceAtRef(baseRef, relativePath)));
 }
 
 export function compatibilityBridgeRatchetViolations(currentPaths, basePaths) {

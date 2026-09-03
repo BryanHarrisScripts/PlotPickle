@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { summarizeRunTelemetry } from "../lib/runtime/run-telemetry";
-import type { ResponsibilityRunEvent } from "../lib/responsibility-runs";
+import type { ResponsibilityRunEvent } from "../lib/agents/responsibility/responsibility-runs";
 import styles from "./responsibility-run-activity.module.css";
 
 type RunState = "queued" | "preparing-context" | "working" | "verifying" | "revising" | "waiting-for-writer" | "paused" | "completed" | "failed" | "cancelled";

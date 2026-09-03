@@ -11,7 +11,7 @@ on:
       - "scripts/agent-skill-procedures.mjs"
       - "scripts/agent-skill-trust.mjs"
       - "lib/agents/agent-profiles.ts"
-      - "lib/connector-trust-policy.ts"
+      - "lib/agents/responsibility/connector-trust-policy.ts"
       - "lib/model-portability-evals.ts"
       - "tests/fixtures/agent-skills/**"
       - "tests/issue-913-agent-skills-migration.test.mjs"

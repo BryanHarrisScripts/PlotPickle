@@ -13,6 +13,7 @@ import {
   evaluateAutonomousRouteOperation,
 } from "../../../lib/verification/autonomous-route-operations.mjs";
 import { createAfterglowAutonomousCouncilResult } from "./afterglow-autonomous-council.mjs";
+import { collectAfterglowBuzzCouncilEvidence } from "./afterglow-buzz-council-live.mjs";
 import {
   assessAutonomousRoute,
   autonomousContractTestsFromRegistry,
@@ -46,7 +47,10 @@ const jsonPath = path.join(artifactRoot, "autonomous-story-routes.json");
 const bootstrapReportPath = path.join(artifactRoot, "afterglow-working-copy-bootstrap.json");
 const persistentBrowserProfile = path.join(artifactRoot, "browser-profile");
 const restartSurfaceIds = Object.freeze(["visual-readiness", "storyboard", "previs-animatic"]);
-const autonomousRunContracts = Object.freeze(["tests/issue-1553-autonomous-convergence-restart.test.mjs"]);
+const autonomousRunContracts = Object.freeze([
+  "tests/issue-1553-autonomous-convergence-restart.test.mjs",
+  "tests/issue-1583-buzz-autonomous-council.test.mjs",
+]);
 
 function runContracts(files) {
   return new Promise((resolve) => {
@@ -116,7 +120,7 @@ async function closeBrowserSession(session, label) {
   await session?.client?.close();
 }
 
-async function browserJson(session, input) {
+async function browserJsonAttempt(session, input) {
   const raw = resultText(await session.client.call("browser_evaluate", {
     function: `async () => {
       const input = ${JSON.stringify(input)};
@@ -136,7 +140,16 @@ async function browserJson(session, input) {
     }`,
   }));
   const state = extractPageState(raw);
-  if (state.ok !== true) throw new Error(state.payload?.message || `Story Decision API returned HTTP ${state.status || 0}.`);
+  return {
+    ok: state.ok === true,
+    status: Number(state.status || 0),
+    payload: state.payload && typeof state.payload === "object" ? state.payload : {},
+  };
+}
+
+async function browserJson(session, input) {
+  const state = await browserJsonAttempt(session, input);
+  if (state.ok !== true) throw new Error(state.payload?.message || `PlotPickle API returned HTTP ${state.status || 0}.`);
   return state.payload || {};
 }
 
@@ -174,45 +187,95 @@ async function waitForWorkbenchState(session, predicate, label, timeoutMs = 30_0
   throw new Error(`${label}: ${state.notice || "Workbench state did not become ready."}`);
 }
 
+function sanitizedBuzzCouncilEvidence(live, councilEvidence) {
+  return {
+    mode: councilEvidence?.mode || live?.mode || "degraded-local",
+    configured: live?.configured === true,
+    liveSatisfied: councilEvidence?.liveSatisfied === true,
+    genuineContributionCount: Number(councilEvidence?.genuineContributionCount || 0),
+    requiredContributionCount: Number(councilEvidence?.requiredContributionCount || 3),
+    missingAgentIds: Array.isArray(councilEvidence?.missingAgentIds) ? councilEvidence.missingAgentIds : (Array.isArray(live?.missingAgentIds) ? live.missingAgentIds : []),
+    contributions: Array.isArray(councilEvidence?.contributions) ? councilEvidence.contributions : [],
+    bridgeRequests: Array.isArray(live?.bridgeRequests) ? live.bridgeRequests : [],
+    polling: live?.polling || null,
+    reason: String(live?.reason || ""),
+  };
+}
+
+async function buzzCouncilForDecision(session, projectId, revision) {
+  return collectAfterglowBuzzCouncilEvidence({
+    projectId,
+    revision,
+    generatedAt: new Date().toISOString(),
+    request: (request) => browserJsonAttempt(session, request),
+  });
+}
+
 async function operateStoryDecisionRoute(session, routeInputs, operationContext) {
   const projectId = operationContext.expectedProjectId;
   const listed = await browserJson(session, { url: `/api/story-decisions?projectId=${encodeURIComponent(projectId)}` });
   const decisions = Array.isArray(listed.decisions) ? listed.decisions : [];
-  let decision = decisions.find((item) => item?.status === "answered");
-  if (decision) {
-    return {
-      attempted: true,
-      succeeded: true,
-      actionId: "operate-delegated-story-decision",
-      operatorId: "plotpickle-autonomous-route-controller",
-      outcome: "verified-existing-autonomous-decision",
-      canonicalProjectId: projectId,
-      revision: String(decision.baseRevision || ""),
-      writesCanon: false,
-      decisionId: decision.decisionId,
-      error: "",
-    };
+  const answeredDecision = decisions.find((item) => item?.status === "answered") || null;
+  let decision = decisions.find((item) => ["new", "reviewing", "deferred"].includes(String(item?.status || ""))) || null;
+
+  const probe = await captureAutonomousRouteOperationProbe(session, { id: "story-decisions", operation: "operate" });
+  const probedRevision = String(probe.revision || decision?.baseRevision || answeredDecision?.baseRevision || "");
+  if (!probedRevision) throw new Error("Autonomous Story Council could not resolve the current PPF revision.");
+  const liveBuzz = await buzzCouncilForDecision(session, projectId, probedRevision);
+  if (liveBuzz.mode === "failed-live-proof") {
+    operationContext.buzzCouncil = sanitizedBuzzCouncilEvidence(liveBuzz, null);
+    throw new Error(`Configured BUZZ Story Council live proof failed: ${liveBuzz.reason}`);
   }
 
-  decision = decisions.find((item) => ["new", "reviewing", "deferred"].includes(String(item?.status || "")));
-  if (!decision) {
-    const probe = await captureAutonomousRouteOperationProbe(session, { id: "story-decisions", operation: "operate" });
-    const currentRevision = String(probe.revision || "");
+  if (liveBuzz.liveSatisfied) {
     const council = createAfterglowAutonomousCouncilResult({
       projectId,
-      revision: currentRevision,
+      revision: probedRevision,
       recordedAt: new Date().toISOString(),
+      buzzContributions: liveBuzz.contributions,
     });
+    operationContext.buzzCouncil = sanitizedBuzzCouncilEvidence(liveBuzz, council.councilEvidence);
     const ingested = await browserJson(session, {
       url: "/api/story-decisions",
       method: "POST",
       body: { action: "ingest-council", ...council },
     });
     decision = ingested.decision;
+  } else {
+    operationContext.buzzCouncil = sanitizedBuzzCouncilEvidence(liveBuzz, null);
+    if (answeredDecision) {
+      return {
+        attempted: true,
+        succeeded: true,
+        actionId: "operate-delegated-story-decision",
+        operatorId: "plotpickle-autonomous-route-controller",
+        outcome: "verified-existing-autonomous-decision",
+        canonicalProjectId: projectId,
+        revision: String(answeredDecision.baseRevision || probedRevision),
+        writesCanon: false,
+        decisionId: answeredDecision.decisionId,
+        buzzCouncil: operationContext.buzzCouncil,
+        error: "",
+      };
+    }
+    if (!decision) {
+      const council = createAfterglowAutonomousCouncilResult({
+        projectId,
+        revision: probedRevision,
+        recordedAt: new Date().toISOString(),
+      });
+      operationContext.buzzCouncil = sanitizedBuzzCouncilEvidence(liveBuzz, council.councilEvidence);
+      const ingested = await browserJson(session, {
+        url: "/api/story-decisions",
+        method: "POST",
+        body: { action: "ingest-council", ...council },
+      });
+      decision = ingested.decision;
+    }
   }
   if (!decision?.decisionId) throw new Error("Autonomous Story Council did not earn a Story Decision identifier.");
 
-  const currentRevision = String(decision.baseRevision || "");
+  const currentRevision = String(decision.baseRevision || probedRevision);
   const authority = {
     authorityClass: "delegated-autonomous-operator",
     delegated: true,
@@ -237,14 +300,23 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
     currentRevision,
     authority,
     autonomousPolicy,
-    evidence: {},
+    evidence: {
+      buzzCouncil: operationContext.buzzCouncil?.liveSatisfied ? {
+        mode: operationContext.buzzCouncil.mode,
+        contributionIds: operationContext.buzzCouncil.contributions.map((item) => item.contributionId),
+        eventIds: operationContext.buzzCouncil.contributions.map((item) => item.eventId),
+        signatureVerified: operationContext.buzzCouncil.contributions.every((item) => item.signatureVerified === true),
+      } : null,
+    },
     recordedAt: new Date().toISOString(),
   }, {
     async evaluateDecision() {
       return {
         responseClass: "accept-proposal",
         confidence: 0.91,
-        rationale: "Two bounded source-backed Council positions support the clarification; the independent alternative remains recorded in provenance.",
+        rationale: operationContext.buzzCouncil?.liveSatisfied
+          ? "Three revision-current signed BUZZ specialist positions were verified as untrusted evidence and reduced through the existing Story Council contract before this bounded autonomous policy decision."
+          : "Two bounded source-backed Council positions support the clarification; the independent alternative remains recorded in provenance.",
       };
     },
     async respondThroughDecisionGateway(request) {
@@ -330,6 +402,7 @@ async function operateStoryDecisionRoute(session, routeInputs, operationContext)
     writesCanon: result.receipt?.canonChanged === true,
     decisionId: decision.decisionId,
     receipt: result.receipt,
+    buzzCouncil: operationContext.buzzCouncil,
     error: result.blocker?.message || "",
   };
 }
@@ -537,7 +610,7 @@ async function inspectRoutes(registry, routeInputs, operationContext) {
   return { results, restartProof: compareRestartSurfaces(before, after) };
 }
 
-function markdownReport({ generatedAt, mode, routes, results, summary, contracts, restartProof }) {
+function markdownReport({ generatedAt, mode, routes, results, summary, contracts, restartProof, buzzCouncil }) {
   const lines = [
     "# PlotPickle Autonomous Story Route Report",
     "",
@@ -547,11 +620,24 @@ function markdownReport({ generatedAt, mode, routes, results, summary, contracts
     `Target: ${baseUrl}`,
     `Contract test exit: ${contracts.code}`,
     "",
+    "## BUZZ Story Council",
+    "",
+    `Mode: ${buzzCouncil?.mode || "not-run"}`,
+    `Configured live transport: ${buzzCouncil?.configured ? "yes" : "no"}`,
+    `Genuine signed contributions: ${buzzCouncil?.genuineContributionCount || 0}/${buzzCouncil?.requiredContributionCount || 3}`,
+    `Live proof satisfied: ${buzzCouncil?.liveSatisfied ? "yes" : "no"}`,
+    `Reason: ${buzzCouncil?.reason || "Story Decisions route did not invoke the Council."}`,
+  ];
+  for (const contribution of buzzCouncil?.contributions || []) {
+    lines.push(`- ${contribution.agentProfileId}: request ${contribution.requestId}; work item ${contribution.workItemId}; revision ${contribution.baseRevision}; signature ${contribution.signatureVerified ? "verified" : "not verified"}; affected Decision ${contribution.affectedDecision ? "yes" : "no"}`);
+  }
+  lines.push(
+    "",
     "## Route coverage",
     "",
     "| Order | Surface | Canonical route | Intended operation | Result | Reason |",
     "| ---: | --- | --- | --- | --- | --- |",
-  ];
+  );
   const byId = new Map(results.map((result) => [result.id, result]));
   for (const route of routes) {
     const result = byId.get(route.id);
@@ -563,7 +649,7 @@ function markdownReport({ generatedAt, mode, routes, results, summary, contracts
     lines.push("", "## Fresh-session restart proof", "", `Verified: ${restartProof.verified ? "yes" : "no"}`, `Boundary: ${restartProof.boundary}`, "Application process restart remains a separate lifecycle proof required by the Slice E controller.");
     for (const message of restartProof.mismatches || []) lines.push(`- ${message}`);
   }
-  lines.push("", "The machine report stores readiness terms, bounded canonical identifiers/counts/revisions and operation receipts, not page text, hidden reasoning, credentials or story content.", "");
+  lines.push("", "The machine report stores readiness terms, bounded canonical identifiers/counts/revisions, signed BUZZ provenance IDs and operation receipts, not page text, hidden reasoning, credentials or private story content.", "");
   return lines.join("\n");
 }
 
@@ -577,7 +663,7 @@ async function main() {
   const routeInputs = await loadRouteInputs();
   const expectedProjectId = contractsOnly ? "" : await loadExpectedProjectId();
   if (!contractsOnly && !expectedProjectId) throw new Error("Live autonomous route operation requires the Afterglow working-copy project id from bootstrap or --project-id.");
-  const operationContext = { expectedProjectId };
+  const operationContext = { expectedProjectId, buzzCouncil: null };
   const live = contractsOnly ? { results: [], restartProof: { attempted: false, verified: false } } : await inspectRoutes(registry, routeInputs, operationContext);
   const routeSummary = summarizeAutonomousRouteResults(live.results);
   const restartBlockers = !contractsOnly && live.restartProof?.verified !== true
@@ -589,21 +675,24 @@ async function main() {
   const generatedAt = new Date().toISOString();
   const mode = contractsOnly ? "contracts-only" : "autonomous-route-live";
   const machine = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     generatedAt,
     target: baseUrl,
     mode,
     overall: summary.overall,
     summary,
     contracts,
-    operationContext: { expectedProjectId },
+    operationContext: {
+      expectedProjectId,
+      buzzCouncil: operationContext.buzzCouncil,
+    },
     restartProof: live.restartProof,
     routePlan: routes.map(({ id, label, order, route, routeTemplate, operation, prerequisites }) => ({ id, label, order, canonicalRoute: route || routeTemplate, operation, prerequisites })),
     results: live.results,
-    evidencePolicy: "No page text, hidden reasoning, credentials or private story content is persisted; operation evidence is bounded to route ids, project/revision identifiers, counts and outcomes.",
+    evidencePolicy: "No page text, hidden reasoning, credentials or private story content is persisted; BUZZ evidence is bounded to approved Agent identity, request/work-item IDs, exact revision, signature provenance and whether it affected the Story Decision.",
   };
   await writeFile(jsonPath, `${JSON.stringify(machine, null, 2)}\n`, "utf8");
-  await writeFile(reportPath, markdownReport({ generatedAt, mode, routes, results: live.results, summary, contracts, restartProof: live.restartProof }), "utf8");
+  await writeFile(reportPath, markdownReport({ generatedAt, mode, routes, results: live.results, summary, contracts, restartProof: live.restartProof, buzzCouncil: operationContext.buzzCouncil }), "utf8");
   process.stdout.write(`Autonomous story routes ${summary.overall}: ${live.results.length} result(s). Report: ${reportPath}\n`);
   for (const blocker of summary.blockers || []) process.stderr.write(`Autonomous story route blocker: ${blocker}\n`);
   process.exitCode = summary.overall === "FAIL" ? 1 : 0;

@@ -47,7 +47,7 @@ const PERSISTENCE_DECISIONS = new Set(["none", "pending", "approved", "rejected"
 const TOP_LEVEL_FIELDS = new Set([
   "schemaVersion", "runId", "projectId", "revision", "stage", "priorTransition", "actor", "intent",
   "planOrDecisionRefs", "capabilities", "contextRefs", "inputRefs", "outputRefs", "evidenceRefs",
-  "integrationRefs", "contractRefs", "validation", "repairBudget", "persistence", "stopReason", "nextAction",
+  "integrationRefs", "contractRefs", "validation", "repairBudget", "persistence", "stopReason", "nextAction", "allowedTransitions",
 ]);
 const PRIOR_TRANSITION_FIELDS = new Set(["from", "to", "at", "reasonRef"]);
 const ACTOR_FIELDS = new Set(["actorId", "kind", "authorityClass", "delegated", "humanProfileId", "operatorId", "authorityRef"]);
@@ -222,6 +222,13 @@ export function normalizeLifecycleEnvelope(value) {
     throw new Error(`Unsupported lifecycle schema version ${String(input.schemaVersion)}; expected ${PLOTPICKLE_LIFECYCLE_SCHEMA_VERSION}.`);
   }
   const currentStage = stage(input.stage);
+  const canonicalAllowedTransitions = allowedLifecycleTransitions(currentStage);
+  if (input.allowedTransitions !== undefined) {
+    const supplied = refs(input.allowedTransitions, "allowedTransitions");
+    if (supplied.length !== canonicalAllowedTransitions.length || supplied.some((item, index) => item !== canonicalAllowedTransitions[index])) {
+      throw new Error(`allowedTransitions for ${currentStage} must be derived from the canonical lifecycle transition table.`);
+    }
+  }
   const envelope = {
     schemaVersion: PLOTPICKLE_LIFECYCLE_SCHEMA_VERSION,
     runId: text(input.runId, "runId"),
@@ -244,7 +251,7 @@ export function normalizeLifecycleEnvelope(value) {
     persistence: normalizePersistence(input.persistence),
     stopReason: normalizeStopReason(input.stopReason),
     nextAction: normalizeNextAction(input.nextAction),
-    allowedTransitions: allowedLifecycleTransitions(currentStage),
+    allowedTransitions: canonicalAllowedTransitions,
   };
   return Object.freeze(envelope);
 }
@@ -264,6 +271,7 @@ export function transitionLifecycleEnvelope(value, toStage, transition = {}) {
   return normalizeLifecycleEnvelope({
     ...current,
     stage: checked.to,
+    allowedTransitions: allowedLifecycleTransitions(checked.to),
     priorTransition: {
       from: checked.from,
       to: checked.to,

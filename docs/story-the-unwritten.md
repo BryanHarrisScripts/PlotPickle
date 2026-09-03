@@ -1062,3 +1062,188 @@ The first UI should be a dedicated STORY workspace, not a BUZZ chat room. BUZZ c
 Once that is playable, compare the resulting engine to Wyrmwood's proven contracts and extract the shared layer that actually exists.
 
 This sequence minimizes architectural speculation while preserving the long-term goal of a common PlotPickle story-game engine that users can use to create their own AI games.
+
+---
+
+## 32. Fit within the PlotPickle architecture and the structural lesson from Magic
+
+Story: The Unwritten fits inside the existing PlotPickle architecture. It should not become a parallel technology stack or a second operating system beside PlotPickle.
+
+The architecture relationship is:
+
+```text
+PlotPickle = the operating system and authority model
+STORY = the universal playable-story grammar and game engine
+Wyrmwood = a first-party teaching game/world built with that engine
+BUZZ = the community, discovery and multiplayer-presence surface around it
+User Worlds = creator-built games and universes running through the same engine
+```
+
+### Experience Layer
+
+STORY becomes a first-class user-facing workspace alongside LEARN, Creative Room, Character Visual Identity and the Story Workbench.
+
+This is the actual game table. It presents Story Pieces, characters, locations, agents, relationships, current conflicts, secrets, world rules, available actions, resources and current scene state.
+
+The existing PlotPickle experience layer therefore does not need to be replaced. STORY becomes another governed experience surfaced through it.
+
+### Governed Orchestration Harness
+
+The PlotPickle harness becomes STORY's rules authority.
+
+It owns or routes:
+
+- scene and session lifecycle;
+- deterministic action validation;
+- authority checks;
+- policy and consent;
+- budget enforcement;
+- capability routing;
+- revision and provenance;
+- bounded autonomous agent participation;
+- deterministic repair and validation where appropriate.
+
+This prevents AI creativity from becoming game authority.
+
+A model can propose an outcome. The governed engine decides whether that outcome is legal, affordable, visible, permitted and canonically admissible.
+
+### Agent and Skill Mesh
+
+STORY reuses the existing Multi-Agent Creative Runtime rather than inventing a separate game-agent framework.
+
+Existing or future PlotPickle agents can become:
+
+- playable character agents;
+- rival agents;
+- world keepers;
+- directors;
+- referees;
+- curriculum guides;
+- continuity observers;
+- visual specialists;
+- factions or environmental intelligences.
+
+Skills continue to describe bounded procedures. Neither a Story Piece nor a creator-authored game can grant an agent authority beyond the PlotPickle harness.
+
+### Story / Canon / Evidence Core
+
+This layer is particularly well matched to STORY.
+
+PPF remains the durable canon authority.
+
+The Story Graph can represent causality, relationships and evolving story structure.
+
+The Context Engine can determine which facts each agent is permitted to receive.
+
+Observed references, generated candidates and accepted evidence retain their existing distinction.
+
+Generated gameplay narration is therefore not automatically truth. Accepted STORY state transitions become authoritative session state, and only approved routes may influence durable PPF canon.
+
+This is what lets STORY maintain real continuity instead of behaving like an unconstrained role-playing chatbot.
+
+### Model-Agnostic Multimodal Inference
+
+STORY remains independent of any one model or provider.
+
+Character performance, direction, evaluation, visual generation and other generative tasks may use local LLMs, OpenAI-compatible providers, Ollama, llama.cpp, vision models, ComfyUI, image providers or cloud models according to PlotPickle's existing runtime policies.
+
+The game rules do not change when the inference provider changes.
+
+A STORY world should therefore remain portable across local and cloud configurations.
+
+### Collaboration / External Evidence
+
+BUZZ occupies the social layer around STORY.
+
+BUZZ handles discovery, rooms, community, public agent presence, invitations, creator/player interaction and launching into sessions.
+
+STORY handles the authoritative active game state after play begins.
+
+A character may appear socially in BUZZ and then enter STORY as a bounded game agent, but the two contexts may expose different knowledge and capabilities.
+
+BUZZ presence never grants game authority.
+
+### Validation / Operations
+
+STORY should use the same deterministic validation philosophy as the rest of PlotPickle.
+
+Validation can eventually cover:
+
+- Story Piece contracts;
+- rule grammar;
+- world package compatibility;
+- agent bindings;
+- permissions;
+- serialization and restoration;
+- deterministic state transitions;
+- creator-built game definitions;
+- production builds and focused UAT.
+
+STORY therefore becomes another consumer of PlotPickle's existing verification architecture rather than another source of special-case validation machinery.
+
+### Structural relationship to Magic
+
+The useful comparison to Magic is structural, not cosmetic.
+
+STORY should not copy Magic's card rules, terminology, factions, resource system, collectible economy, set design or intellectual property.
+
+The architectural lesson is that a relatively stable universal rules system can support an enormous number of player-created combinations.
+
+The structural mapping is:
+
+```text
+Magic universal rules engine
+  -> STORY Rules Kernel
+
+Magic cards with standardized properties and effects
+  -> Story Pieces with standardized state, rules, triggers, costs and consequences
+
+Magic deck construction
+  -> STORY world / game / piece construction
+
+Magic turns and phases
+  -> STORY scenes and scene phases
+
+Magic zones
+  -> STORY state contexts such as active scene, world, inventory, hidden knowledge,
+     available pieces, unresolved threads and resolved history
+
+Magic effect resolution
+  -> validated STORY rule operations
+
+Magic rules judge / rules authority
+  -> deterministic PlotPickle STORY engine under the governed harness
+
+Magic card combinations and emergent strategy
+  -> combinations of Story Pieces, agents, relationships, world rules and consequences
+
+Magic expansions built on stable rules
+  -> first-party and user-created worlds, games and rule packages built on STORY grammar
+```
+
+The key difference is that STORY can move beyond deck construction into game construction.
+
+A creator may define a detective game in which evidence and knowledge determine legal actions, a political world in which autonomous faction agents negotiate and betray, a fantasy system in which magic consumes memories, or a survival game in which an environmental agent changes conditions.
+
+Those games can look and feel very different while sharing the same underlying Story Piece grammar, rule validation, agent bindings, state model, trust boundaries and provider-independent inference architecture.
+
+### What should change in the PlotPickle architecture diagram
+
+The architecture itself does not require another foundational layer.
+
+When the diagram is next revised, STORY should become visible in two places:
+
+1. STORY Workspace in the Experience Layer as the dedicated playable surface.
+2. STORY Rules Kernel / Story Piece State Machine as a governed capability beneath that surface, operating through the existing orchestration, canon, agent and validation boundaries.
+
+BUZZ remains in the Collaboration / External Evidence layer rather than being absorbed into STORY.
+
+Wyrmwood remains a product/game implemented with the engine rather than becoming the engine itself.
+
+The test for architectural health is therefore simple:
+
+> If implementing STORY requires bypassing the harness, creating a second agent system, creating a second canon store, hard-coding an AI provider, or turning BUZZ into the game engine, the implementation is going in the wrong direction.
+
+STORY should succeed by composing PlotPickle's existing architecture.
+
+That is why it is feasible now: most of the difficult infrastructure already exists. The remaining work is to define and prove the reusable game grammar that connects those capabilities into a playable creator system.

@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
 import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/connector-trust-policy";
+import { projectResponsibilityRunLifecycleStatus } from "../lib/agents/responsibility/responsibility-run-lifecycle-status.mjs";
 import {
   addResponsibilityArtifact,
   beginResponsibilityAttempt,
@@ -72,6 +73,10 @@ function validRun(value: unknown): value is ResponsibilityRun {
   return run.version === 1 && typeof run.runId === "string" && SAFE_RUN_ID.test(run.runId)
     && typeof run.goal === "string" && typeof run.profileId === "string" && typeof run.state === "string"
     && Array.isArray(run.events) && Boolean(run.limits) && Boolean(run.usage);
+}
+
+function withLifecycleStatus(run: ResponsibilityRun) {
+  return { ...run, lifecycleStatus: projectResponsibilityRunLifecycleStatus(run) };
 }
 
 async function readRun(runId: string) {
@@ -208,16 +213,16 @@ export function responsibilityRunGateway(): Plugin {
               if (requested) {
                 const run = await readRun(requested);
                 if (!run) { send(response, 404, { ok: false, message: "Responsibility Run was not found." }); return; }
-                send(response, 200, { ok: true, run });
+                send(response, 200, { ok: true, run: withLifecycleStatus(run) });
                 return;
               }
               const runs = await listRuns();
-              send(response, 200, { ok: true, runs, count: runs.length });
+              send(response, 200, { ok: true, runs: runs.map(withLifecycleStatus), count: runs.length });
               return;
             }
             if (request.method === "POST") {
               const run = await mutate(await body(request));
-              send(response, 200, { ok: true, run });
+              send(response, 200, { ok: true, run: withLifecycleStatus(run) });
               return;
             }
             send(response, 405, { ok: false, message: "Use GET or POST for Responsibility Runs." });

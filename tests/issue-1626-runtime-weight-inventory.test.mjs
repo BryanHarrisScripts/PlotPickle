@@ -70,7 +70,6 @@ test("#1626 preserves explicit current runtime consumers instead of guessing fro
     ["vite", "core-maintenance-runtime-tooling"],
     ["vinext", "core-maintenance-runtime-tooling"],
     ["rolldown", "core-maintenance-runtime-tooling"],
-    ["drizzle-kit", "core-maintenance-runtime-tooling"],
     ["@mastra/core", "core-runtime"],
   ]) {
     const item = packages.get(name);

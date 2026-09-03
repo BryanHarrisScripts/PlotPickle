@@ -32,6 +32,7 @@ for (const file of [
   "config/github-app.json",
   "config/google-oauth.json",
   "config/buzz-desktop.json",
+  "config/release-script-classification.json",
   "core/project/project.ts",
   "db/index.ts",
   "docs/architecture/six-domain-ownership.md",
@@ -69,6 +70,19 @@ for (const excluded of [
   "public/visual-references/full",
 ]) {
   assert.ok(!existsSync(path.join(folder, excluded)), `Source-only payload leaked into release: ${excluded}`);
+}
+
+const releaseScriptClassification = JSON.parse(readFileSync(path.join(folder, "config", "release-script-classification.json"), "utf8"));
+assert.equal(releaseScriptClassification.schemaVersion, 1);
+assert.equal(releaseScriptClassification.issue, 1656);
+for (const entry of releaseScriptClassification.baseUserReleaseExclusions) {
+  assert.match(entry.path, /^scripts\//, `Invalid classified script path: ${entry.path}`);
+  assert.ok(entry.evidence?.length, `Missing script exclusion evidence: ${entry.path}`);
+  assert.ok(!existsSync(path.join(folder, entry.path)), `Developer/release-only script leaked into release: ${entry.path}`);
+}
+for (const entry of releaseScriptClassification.retainedRuntimeAnchors) {
+  assert.ok(entry.reason, `Missing retained runtime reason: ${entry.path}`);
+  assert.ok(existsSync(path.join(folder, entry.path)), `Required runtime/maintenance script was removed: ${entry.path}`);
 }
 
 const visualReferences = JSON.parse(readFileSync(path.join(folder, "public", "visual-references", "manifest.json"), "utf8"));

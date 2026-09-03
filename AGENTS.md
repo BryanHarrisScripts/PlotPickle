@@ -18,7 +18,18 @@ PlotPickle is global at the foundation and modular at the feature level:
 - LEARN, PLAN, Wyrmwood, Settings, agents, and providers remain modular.
 - New capabilities should become a shared capability, module, plugin, agent, or provider adapter rather than a feature-specific special case.
 - Preserve provider independence. Do not hard-code LM Studio, llama.cpp, Ollama, or one model as the only path when an existing abstraction exists.
-- Mastra remains the application-agent runtime. Pi and Cline are developer tools outside the PlotPickle product runtime.
+- Mastra remains the application-agent runtime. Pi, BEN, Agent Skills, diagnostics and UAT/repair machinery may participate in bounded operational self-support when invoked through PlotPickle's harness, but they do not become authority boundaries or gain permission to self-authorize changes.
+
+### Where new code belongs
+
+- `app/` owns Next.js routes and app composition. Private surface components should use the existing `app/_components/<surface>/` pattern rather than adding another flat root component when an owner exists.
+- `core/` owns durable contracts, authority and inward-facing foundations. Core must not depend on `app/`, `build/` or product implementation in `modules/`.
+- `modules/` owns product-domain implementation such as LEARN, PLAN and BUILD. Modules may depend inward on core contracts; they must not depend back on the app shell.
+- `build/` owns host/runtime gateway implementation. New source belongs beneath an existing domain owner such as `build/ai/`, `build/auth/`, `build/buzz/`, `build/projects/` or `build/story/`, not directly in the root.
+- `lib/` owns shared runtime/domain implementation beneath its stable domains such as `lib/agents/`, `lib/buzz/`, `lib/projects/`, `lib/runtime/` and `lib/verification/`. Do not create a new generic root helper or catch-all shared directory.
+- `scripts/` may retain stable public command entry points, but implementation should live under an existing developer, runtime, verification, release or specialized owner when practical.
+- A compatibility bridge is temporary. It must name its canonical target, current consumers, owning issue and removal condition; delete the bridge and its exception after the final consumer moves.
+- `config/repository-architecture-target.json` is the ratified structural map. `config/repository-architecture-enforcement.json` and the Phase 5 deterministic gate prevent governed roots from silently growing back.
 
 ## Change discipline
 
@@ -61,7 +72,8 @@ node scripts/run-uat-closed-loop.mjs --github-report --repair
 
 The supported developer-agent candidates are Pi and Cline.
 
-- They are interchangeable workers, not product dependencies.
+- They are interchangeable repository workers, not authority boundaries or always-on product dependencies.
+- When used by bounded operational self-support, they remain harness-governed workers: they may inspect evidence, diagnose, verify and prepare bounded repairs, but they may not grant themselves source-mutation authority, durable-knowledge admission, skill installation/activation or increased operational authority.
 - Both use this `AGENTS.md` as the common rules source.
 - Shared executable developer tools should be exposed through the repository MCP boundary where that improves portability.
 - Pi may use the pinned project packages in `.pi/settings.json` for minimal-diff guidance, subagents, repository search, and MCP access.

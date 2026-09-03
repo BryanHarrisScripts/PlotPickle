@@ -108,6 +108,7 @@ export function createAfterglowAutonomousCouncilResult(input) {
   const result = reduceStoryCouncilContributions(positions)[0];
   if (!result?.requiresHuman) throw new Error("Afterglow autonomous Council did not produce a reviewable Story Decision.");
   const proposedChange = preferredProposal(result);
+  const mode = live.proof.liveSatisfied ? "buzz-signed" : "degraded-local";
   const contributionProofs = live.proof.contributions.map((item) => ({
     ...item,
     affectedDecision: live.proof.liveSatisfied && result.contributionIds.includes(item.contributionId),
@@ -115,19 +116,21 @@ export function createAfterglowAutonomousCouncilResult(input) {
   return {
     projectId,
     councilResult: result,
-    councilResultId: `council-result:${workItemId}:${revision}`,
+    councilResultId: `council-result:${workItemId}:${revision}:${mode}`,
     question: "Should Block 17 make Ren's protective motive more visibly causal?",
     whyHuman: live.proof.liveSatisfied
       ? "Three independently signed BUZZ specialist positions were verified as revision-current untrusted evidence; the resulting creative proposal still requires the existing Story Decision and Workbench authority path."
       : "BUZZ was unavailable for the live reference, so the bounded local Council path preserved the same Story Decision authority without claiming signed BUZZ proof.",
     proposedChange,
     alternatives: alternativesFor(result, proposedChange),
-    problemSignature: `afterglow-block-17-protective-motive:${revision}`,
+    problemSignature: live.proof.liveSatisfied
+      ? `afterglow-block-17-protective-motive:buzz-signed:${revision}`
+      : `afterglow-block-17-protective-motive:${revision}`,
     choiceFamily: "clarify-protective-motive|keep-current",
     priority: 90,
     severity: "medium",
     councilEvidence: {
-      mode: live.proof.liveSatisfied ? "buzz-signed" : "degraded-local",
+      mode,
       genuineContributionCount: live.proof.genuineContributionCount,
       requiredContributionCount: live.proof.requiredCount,
       liveSatisfied: live.proof.liveSatisfied,

@@ -1247,3 +1247,100 @@ The test for architectural health is therefore simple:
 STORY should succeed by composing PlotPickle's existing architecture.
 
 That is why it is feasible now: most of the difficult infrastructure already exists. The remaining work is to define and prove the reusable game grammar that connects those capabilities into a playable creator system.
+
+---
+
+## 33. STORY Game Validator: legal is not the same as playable
+
+Creator freedom introduces a second validation problem beyond whether a Story World is syntactically and mechanically legal.
+
+A creator can build a game that the engine is capable of executing but that is effectively impossible, contradictory, inert or overwhelmingly complex to play. For example, a world may contain unreachable victory conditions, conflicting ending rules, a cost that can never be paid, an agent with no legal actions, a required Story Piece that can never enter play, or a trigger network that technically terminates but creates an unusable amount of mechanical churn.
+
+STORY should therefore distinguish at least two questions:
+
+1. Is this game definition legal for the STORY engine?
+2. Is this configuration plausibly playable from its declared starting state?
+
+The first is a contract/rule-engine question. The second is the responsibility of a deterministic STORY Game Validator.
+
+Before a creator launches, shares or publishes a game, the validator should be able to inspect the complete game definition and report structural findings such as:
+
+- unreachable victory, loss or ending conditions;
+- contradictory or mutually exclusive required conditions;
+- circular rule dependencies;
+- excessive trigger depth or operation count;
+- impossible or permanently unavailable costs;
+- required resources with no production/source path;
+- orphaned Story Pieces that can never become relevant or enter legal play;
+- required Story Pieces that are missing from all valid starting/deployment paths;
+- agents with no legal actions in the declared starting state;
+- characters, locations or objects referenced by rules that do not exist;
+- secrets or knowledge requirements that no legal action can reveal;
+- dead-end states from which no participant can advance the game;
+- victory conditions that are reachable only by violating another mandatory rule;
+- excessive autonomous-agent fan-out or scene complexity beyond configured budgets;
+- incompatible package/schema versions;
+- imported references whose required capabilities are unavailable under host policy.
+
+Validation should produce severity rather than one undifferentiated pass/fail result.
+
+A useful model is:
+
+```text
+ERROR   -> structurally invalid or impossible to execute safely; block launch/publish
+WARNING -> executable but likely broken, unreachable, contradictory or highly confusing
+NOTE    -> unusual design that is legal but worth surfacing to the creator
+PASS    -> no deterministic structural problem found
+```
+
+The validator should not attempt to mathematically decide whether a game is artistically good, emotionally compelling or fun. Those are not deterministic properties.
+
+AI may assist after deterministic validation by explaining findings in ordinary language, suggesting repairs, simulating representative play patterns or identifying likely design friction. However, AI commentary must remain advisory. It cannot turn an invalid game into a valid one, suppress deterministic errors or silently rewrite creator-authored rules.
+
+For example:
+
+```text
+Validator finding:
+ERROR: "Escape the Citadel" requires three Gate Keys, but only two Gate Key sources exist in all reachable states.
+
+AI explanation:
+"Your players can collect at most two of the three keys required to win. You could add another key source, reduce the requirement to two, or create a rule that lets an existing key be duplicated."
+```
+
+This gives a non-programmer the benefits of a game-engine engineer without requiring them to understand dependency graphs or state-machine analysis.
+
+### Preflight and publication
+
+The first implementation should use the validator as a preflight before starting a Creator Game once custom rules are supported.
+
+Later, publication/share flows should require a deterministic validation report and compatibility check before a world/game is advertised as playable through BUZZ.
+
+Warnings may be permitted when the creator explicitly accepts them. Errors should block publication and normal play until corrected.
+
+First-party games such as Wyrmwood should also be validatable by the same underlying machinery where their contracts overlap with STORY. The validator must not become a user-only code path.
+
+### Relationship to runtime safeguards
+
+Preflight validation does not replace runtime safeguards.
+
+A game can pass static analysis and still produce an unexpected state because humans and autonomous agents combine legal actions in ways the creator did not anticipate. Therefore the runtime must still enforce bounded resolution queues, operation budgets, cycle detection, legal transitions, authority checks and deterministic failure behavior.
+
+The relationship is:
+
+```text
+Creator definition
+  -> STORY Game Validator
+       -> structural legality
+       -> reachability/dependency checks
+       -> complexity/budget checks
+       -> compatibility/authority checks
+  -> approved playable definition
+  -> STORY runtime safeguards
+  -> actual play
+```
+
+This validator is an important part of the Magic-like creator architecture: a stable engine should allow enormous combinatorial freedom, but PlotPickle should help ensure that creator-built combinations still form a coherent executable game.
+
+The governing principle is:
+
+> STORY should maximize creator freedom while making broken game structures visible before the player has to discover them the hard way.

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element, react-hooks/immutability -- Local generated assets use the loopback gateway; identity staging is committed through onImage. */
 
 import { useMemo, useState } from "react";
-import { createCharacterDevelopmentWorkspaceProjection } from "../core/visual-production/character-development-workspace.mjs";
+import { createCharacterDevelopmentWorkspaceProjection } from "../lib/visual-production/character-development-workspace.mjs";
 import type { Character, PlotPickleProject } from "@/lib/projects/project";
 import {
   approvePendingVisualIdentity,

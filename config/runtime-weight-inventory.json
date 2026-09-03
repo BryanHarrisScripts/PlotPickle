@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 5,
-  "issue": 1652,
+  "schemaVersion": 6,
+  "issue": 1654,
   "baseline": {
     "sourceCommit": "d8349dbfce541a60516dbbf5256c5130b10ff5d6",
     "priorInventoryIssue": 1639,
@@ -80,12 +80,12 @@
     "@vitejs/plugin-react": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["vinext declares @vitejs/plugin-react as a peer required by the shipped Next-to-Vite source runtime."], "disposition": "retain-current-source-runtime-peer" },
     "@vitejs/plugin-rsc": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["vinext declares @vitejs/plugin-rsc as a peer and build/startup/vite-compatibility.ts handles its shipped optimizer/runtime behavior."], "disposition": "retain-current-source-runtime-peer" },
     "wrangler": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["@cloudflare/vite-plugin declares wrangler as a peer and dependency for the shipped Miniflare/workerd local runtime used by vite.config.ts."], "disposition": "retain-current-source-runtime-peer" },
-    "@types/node": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Type declarations are consumed by TypeScript, editors and source validation; the shipped JavaScript runtime does not import them."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
-    "@types/react": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React type declarations support source development and type validation; they have no runtime import."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
-    "@types/react-dom": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React DOM type declarations support source development and type validation; they have no runtime import."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
-    "drizzle-kit": { "weightClass": "developer-test-only", "targetDomains": ["core", "platform"], "evidence": ["drizzle-kit is imported only by drizzle.config.ts and invoked by the developer db:generate command; shipped database runtime uses drizzle-orm instead."], "disposition": "remove-stale-runtime-readiness-requirement" },
-    "eslint": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint is invoked by the developer lint command and is not imported by the shipped application or startup path."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
-    "eslint-config-next": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint.config.mjs imports eslint-config-next only for developer lint validation."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
-    "typescript": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["typescript is used for source type validation and editor/developer support; Vite/Rolldown performs the shipped source transformation without importing the TypeScript compiler package."], "disposition": "exclude-from-user-runtime-after-profile-proof" }
+    "@types/node": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Type declarations are consumed by TypeScript, editors and source validation; the shipped JavaScript runtime does not import them."], "disposition": "excluded-from-user-runtime" },
+    "@types/react": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React type declarations support source development and type validation; they have no runtime import."], "disposition": "excluded-from-user-runtime" },
+    "@types/react-dom": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React DOM type declarations support source development and type validation; they have no runtime import."], "disposition": "excluded-from-user-runtime" },
+    "drizzle-kit": { "weightClass": "developer-test-only", "targetDomains": ["core", "platform"], "evidence": ["drizzle-kit is imported only by drizzle.config.ts and invoked by the developer db:generate command; shipped database runtime uses drizzle-orm instead."], "disposition": "excluded-from-user-runtime" },
+    "eslint": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint is invoked by the developer lint command and is not imported by the shipped application or startup path."], "disposition": "excluded-from-user-runtime" },
+    "eslint-config-next": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint.config.mjs imports eslint-config-next only for developer lint validation."], "disposition": "excluded-from-user-runtime" },
+    "typescript": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["typescript is used for source type validation and editor/developer support; Vite/Rolldown performs the shipped source transformation without importing the TypeScript compiler package."], "disposition": "excluded-from-user-runtime" }
   }
 }

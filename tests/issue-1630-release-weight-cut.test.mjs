@@ -36,15 +36,15 @@ test("#1630 corrects .openai reachability instead of removing a required build i
   assert.ok(openai?.evidence.some((entry) => entry.includes("package-smoke.mjs")));
 });
 
-test("#1630 leaves persistent runtime dependency policy unchanged", () => {
+test("#1630 preserves the superseding production runtime dependency policy", () => {
   const inventory = buildInventory();
-  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeIncludesDev, true);
+  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeOmitsDev, true);
+  assert.equal(inventory.installationPolicy.windowsInstallerStagePrunesDev, true);
   assert.deepEqual(inventory.installationPolicy.windowsCoreReadyPackages, [
     "vite",
     "next",
     "react",
     "vinext",
     "rolldown",
-    "drizzle-kit",
   ]);
 });

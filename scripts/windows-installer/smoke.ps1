@@ -52,6 +52,23 @@ function Assert-InstalledPayload {
     $candidate = Join-Path $installRoot $required
     if (-not (Test-Path $candidate)) { throw "Installed payload is missing $required" }
   }
+  Assert-DeveloperDependenciesExcluded (Join-Path $installRoot "node_modules")
+}
+
+function Assert-DeveloperDependenciesExcluded {
+  param([string]$ModulesPath)
+  foreach ($excluded in @(
+    "@types\react",
+    "@types\react-dom",
+    "drizzle-kit",
+    "eslint",
+    "eslint-config-next",
+    "typescript"
+  )) {
+    if (Test-Path (Join-Path $ModulesPath $excluded)) {
+      throw "Developer-only dependency leaked into the runtime: $excluded"
+    }
+  }
 }
 
 function Wait-ForStartup {
@@ -152,6 +169,7 @@ try {
 
   $launcherProcess = Start-InstalledPlotPickle
   $runtimeModules = Resolve-PersistentRuntimeModules
+  Assert-DeveloperDependenciesExcluded $runtimeModules
   foreach ($required in @("vite\package.json", "rolldown\package.json")) {
     if (-not (Test-Path (Join-Path $runtimeModules $required))) {
       throw "Persistent runtime is missing $required after first launch."

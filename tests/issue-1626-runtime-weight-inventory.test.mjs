@@ -34,9 +34,10 @@ test("#1626 covers every currently packaged top-level payload without changing p
   assert.deepEqual(validateInventory(inventory), []);
 });
 
-test("#1626 records the current Windows include-dev and readiness package baseline as evidence", () => {
+test("#1626 records the current Windows production profile and readiness baseline as evidence", () => {
   const inventory = buildInventory();
-  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeIncludesDev, true);
+  assert.equal(inventory.installationPolicy.windowsPersistentRuntimeOmitsDev, true);
+  assert.equal(inventory.installationPolicy.windowsInstallerStagePrunesDev, true);
   assert.equal(inventory.installationPolicy.mastraVerifiedBeforeServerStart, true);
   assert.deepEqual(inventory.installationPolicy.windowsCoreReadyPackages, [
     "vite",
@@ -44,7 +45,6 @@ test("#1626 records the current Windows include-dev and readiness package baseli
     "react",
     "vinext",
     "rolldown",
-    "drizzle-kit",
   ]);
 });
 

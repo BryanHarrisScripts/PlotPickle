@@ -33,8 +33,8 @@ const expectedDeveloperOnly = new Set([
 
 test("#1412 classifies every direct package from concrete reachability evidence", () => {
   const inventory = buildInventory();
-  assert.equal(inventory.schemaVersion, 5);
-  assert.equal(inventory.issue, 1652);
+  assert.equal(inventory.schemaVersion, 6);
+  assert.equal(inventory.issue, 1654);
   assert.deepEqual(validateInventory(inventory), []);
   assert.equal(inventory.directPackages.length, expectedRuntime.size + expectedDeveloperOnly.size);
   assert.ok(inventory.directPackages.every((item) => item.weightClass));
@@ -53,10 +53,10 @@ test("#1412 separates current source-runtime packages from developer-only declar
   }
 });
 
-test("#1412 records drizzle-kit as a stale readiness rule, not a product runtime dependency", () => {
+test("#1412 records drizzle-kit as excluded developer tooling, not a product runtime dependency", () => {
   const drizzleKit = buildInventory().directPackages.find((item) => item.name === "drizzle-kit");
   assert.equal(drizzleKit?.declaration, "devDependencies");
   assert.equal(drizzleKit?.weightClass, "developer-test-only");
-  assert.equal(drizzleKit?.disposition, "remove-stale-runtime-readiness-requirement");
+  assert.equal(drizzleKit?.disposition, "excluded-from-user-runtime");
   assert.ok(drizzleKit?.evidence.some((entry) => entry.includes("db:generate")));
 });

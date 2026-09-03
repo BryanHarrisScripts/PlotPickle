@@ -407,7 +407,7 @@ echo npm will show download, extraction, warning, and verification messages belo
 echo Yellow deprecation warnings do not normally mean setup failed.
 echo A red npm error means the installer will attempt a repair.
 echo.
-call npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
+call npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready
@@ -443,7 +443,7 @@ echo.
 node "%RUNTIME_MANAGER%" reset-current
 if errorlevel 1 exit /b 1
 call npm cache verify
-call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
+call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --omit=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
 if errorlevel 1 (
   echo.

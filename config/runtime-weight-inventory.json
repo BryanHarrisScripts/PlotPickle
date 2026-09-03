@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 4,
-  "issue": 1642,
+  "schemaVersion": 5,
+  "issue": 1652,
   "baseline": {
     "sourceCommit": "d8349dbfce541a60516dbbf5256c5130b10ff5d6",
     "priorInventoryIssue": 1639,
@@ -64,13 +64,28 @@
     { "path": "public/visual-references/full", "kind": "directory", "weightClass": "reference-example-payload", "targetDomains": ["experience", "story"], "evidence": ["The live Visual Reference Library renders only thumbnail and card derivatives.", "The 62 full-resolution WebPs remain in source checkout for archive/provenance verification, while scripts/package-platform.mjs excludes them from normal releases and projects the staged manifest so it advertises only packaged tiers."], "disposition": "excluded-from-base-release" }
   ],
   "packageOverrides": {
+    "@cloudflare/vite-plugin": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["vite.config.ts imports the Cloudflare Vite plugin for the shipped local server, including its Miniflare/workerd runtime."], "disposition": "retain-current-source-runtime" },
     "next": { "weightClass": "core-runtime", "targetDomains": ["experience", "platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires next before runtime readiness."] },
     "react": { "weightClass": "core-runtime", "targetDomains": ["experience"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires react before runtime readiness."] },
     "react-dom": { "weightClass": "core-runtime", "targetDomains": ["experience"], "evidence": ["Rendered application runtime uses React DOM; retained pending later measured split work."] },
     "vite": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires vite and Start-PlotPickle.bat launches the Vite server."] },
     "vinext": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() requires vinext for the current source-on-machine runtime."] },
     "rolldown": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["scripts/windows-runtime.mjs coreReady() and native binding repair require rolldown."] },
-    "drizzle-kit": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform", "core"], "evidence": ["scripts/windows-runtime.mjs coreReady() currently requires drizzle-kit before runtime readiness."], "disposition": "current-readiness-requirement-not-removal-proof" },
-    "@mastra/core": { "weightClass": "core-runtime", "targetDomains": ["intelligence"], "evidence": ["Start-PlotPickle.bat verifies @mastra/core and declares the local agent runtime required before server start."] }
+    "@mastra/core": { "weightClass": "core-runtime", "targetDomains": ["intelligence"], "evidence": ["Start-PlotPickle.bat verifies @mastra/core and build/mastra-agent-runtime.ts imports the shipped agent runtime before server start."] },
+    "ai": { "weightClass": "core-runtime", "targetDomains": ["intelligence"], "evidence": ["build/mastra-agent-runtime.ts imports jsonSchema from ai for the shipped Mastra agent runtime."] },
+    "drizzle-orm": { "weightClass": "core-runtime", "targetDomains": ["core"], "evidence": ["db/index.ts imports drizzle-orm/d1 for the shipped application database binding."] },
+    "libsodium-wrappers-sumo": { "weightClass": "core-runtime", "targetDomains": ["core"], "evidence": ["core/auth/profile-crypto-contract-core.mjs imports libsodium-wrappers-sumo for profile encryption and authentication."] },
+    "@tailwindcss/postcss": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["postcss.config.mjs loads @tailwindcss/postcss while the shipped source-on-machine Vite server compiles application styles."], "disposition": "retain-current-source-runtime" },
+    "tailwindcss": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["app/globals.css imports tailwindcss and the shipped source-on-machine Vite server processes that stylesheet."], "disposition": "retain-current-source-runtime" },
+    "@vitejs/plugin-react": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["vinext declares @vitejs/plugin-react as a peer required by the shipped Next-to-Vite source runtime."], "disposition": "retain-current-source-runtime-peer" },
+    "@vitejs/plugin-rsc": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["experience", "platform"], "evidence": ["vinext declares @vitejs/plugin-rsc as a peer and build/startup/vite-compatibility.ts handles its shipped optimizer/runtime behavior."], "disposition": "retain-current-source-runtime-peer" },
+    "wrangler": { "weightClass": "core-maintenance-runtime-tooling", "targetDomains": ["platform"], "evidence": ["@cloudflare/vite-plugin declares wrangler as a peer and dependency for the shipped Miniflare/workerd local runtime used by vite.config.ts."], "disposition": "retain-current-source-runtime-peer" },
+    "@types/node": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["Type declarations are consumed by TypeScript, editors and source validation; the shipped JavaScript runtime does not import them."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
+    "@types/react": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React type declarations support source development and type validation; they have no runtime import."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
+    "@types/react-dom": { "weightClass": "developer-test-only", "targetDomains": ["experience", "platform"], "evidence": ["React DOM type declarations support source development and type validation; they have no runtime import."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
+    "drizzle-kit": { "weightClass": "developer-test-only", "targetDomains": ["core", "platform"], "evidence": ["drizzle-kit is imported only by drizzle.config.ts and invoked by the developer db:generate command; shipped database runtime uses drizzle-orm instead."], "disposition": "remove-stale-runtime-readiness-requirement" },
+    "eslint": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint is invoked by the developer lint command and is not imported by the shipped application or startup path."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
+    "eslint-config-next": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["eslint.config.mjs imports eslint-config-next only for developer lint validation."], "disposition": "exclude-from-user-runtime-after-profile-proof" },
+    "typescript": { "weightClass": "developer-test-only", "targetDomains": ["platform"], "evidence": ["typescript is used for source type validation and editor/developer support; Vite/Rolldown performs the shipped source transformation without importing the TypeScript compiler package."], "disposition": "exclude-from-user-runtime-after-profile-proof" }
   }
 }

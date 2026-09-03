@@ -1,60 +1,14 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "issue": 1656,
-  "purpose": "Keep proven developer, verification and release-only script surfaces in source checkout without carrying them in the base user release.",
+  "purpose": "Remove only proven release/measurement implementation from the base user payload while preserving PlotPickle's bounded operational self-support system.",
+  "classificationRule": "A script is not developer-only merely because engineers use it. Diagnosis, trusted skills, evidence learning, deterministic review, bounded repair and harness-governed self-support remain operational when they contribute to the running PlotPickle system.",
   "baseUserReleaseExclusions": [
-    {
-      "path": "scripts/developer-diagnostics",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "config/repository-architecture-target.json assigns scripts/developer-diagnostics to the developer domain.",
-        "package.json exposes these commands as test/diagnostic developer workflows rather than normal startup runtime."
-      ]
-    },
-    {
-      "path": "scripts/pi",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "config/repository-architecture-target.json assigns scripts/pi to the developer domain.",
-        "Pi review is an engineering/repair workflow and is not required by the normal writer journey."
-      ]
-    },
-    {
-      "path": "scripts/autonomous-qa",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "Autonomous QA publication, targeted-fix and architecture-learning entry points are driven by GitHub workflows and regression tests.",
-        "No normal Start-PlotPickle runtime consumer requires this directory."
-      ]
-    },
-    {
-      "path": "scripts/creative-uat",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "config/repository-architecture-target.json assigns scripts/creative-uat to the verification domain.",
-        "The base product keeps runtime verification contracts but does not need the developer UAT runner implementation."
-      ]
-    },
     {
       "path": "scripts/runtime-weight",
       "weightClass": "developer-test-only",
       "evidence": [
-        "The runtime-weight scripts emit CI/benchmark evidence for #1412 and are not invoked by normal product startup."
-      ]
-    },
-    {
-      "path": "scripts/run-ben-code-quality.mjs",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "BEN is the deterministic source quality observer used by Developer Workbench and GitHub Actions.",
-        "It remains available in developer checkout and is not part of normal user runtime readiness."
-      ]
-    },
-    {
-      "path": "scripts/run-pi-code-quality-review.mjs",
-      "weightClass": "developer-test-only",
-      "evidence": [
-        "Pi code-quality review is an advisory developer-agent workflow layered on BEN, not a product runtime dependency."
+        "The runtime-weight scripts emit CI/benchmark evidence for #1412 and are not invoked by normal product startup or self-support execution."
       ]
     },
     {
@@ -62,14 +16,14 @@
       "weightClass": "developer-test-only",
       "evidence": [
         "config/repository-architecture-target.json assigns scripts/package-platform.mjs to the release domain.",
-        "It creates release payloads and is not needed after a user payload has already been staged."
+        "It creates release payloads before distribution and is not needed after a user payload has already been staged."
       ]
     },
     {
       "path": "scripts/package-smoke.mjs",
       "weightClass": "developer-test-only",
       "evidence": [
-        "Package smoke validates a staged release in CI/release engineering and has no normal runtime consumer."
+        "Package smoke validates a staged release in CI/release engineering and has no normal runtime or self-support consumer."
       ]
     },
     {
@@ -79,6 +33,36 @@
         "config/repository-architecture-target.json assigns scripts/windows-installer to startup/release engineering ownership.",
         "The directory builds and stages PlotPickleSetup.exe before distribution; the installed application does not rebuild its own installer."
       ]
+    }
+  ],
+  "operationalSelfSupportRetained": [
+    {
+      "path": "scripts/agent-skills.mjs",
+      "reason": "Loads and validates the canonical local Agent Skill registry used by PlotPickle runtime agents."
+    },
+    {
+      "path": "scripts/developer-diagnostics",
+      "reason": "Retained pending finer reachability proof because deterministic diagnosis can serve PlotPickle's bounded self-support loop, not only human development."
+    },
+    {
+      "path": "scripts/pi",
+      "reason": "Retained pending finer reachability proof because Pi is the primary worker for diagnosis, UAT repair and architecture-review skills."
+    },
+    {
+      "path": "scripts/autonomous-qa",
+      "reason": "Contains bounded autonomous QA and exact-head architecture-learning entry points used by the evidence-learning/self-support system."
+    },
+    {
+      "path": "scripts/creative-uat",
+      "reason": "Retained pending finer reachability proof because verification and repair feedback may be operational inputs to autonomous self-support."
+    },
+    {
+      "path": "scripts/run-ben-code-quality.mjs",
+      "reason": "BEN provides deterministic code-quality evidence used by bounded repair/review; it must not be removed until self-support reachability proves it unnecessary."
+    },
+    {
+      "path": "scripts/run-pi-code-quality-review.mjs",
+      "reason": "Pi review participates in the bounded repair/review stack and remains retained until its operational reachability is resolved."
     }
   ],
   "retainedRuntimeAnchors": [
@@ -102,5 +86,13 @@
       "path": "scripts/credential-boundary-audit.mjs",
       "reason": "Release packaging invokes the credential boundary audit before the payload is finalized."
     }
-  ]
+  ],
+  "authorityBoundary": {
+    "learningMayImproveUnderstanding": true,
+    "durableAdmissionRequiresHarnessApproval": true,
+    "sourceMutationMayNotBeSelfGranted": true,
+    "skillInstallationMayNotBeSelfGranted": true,
+    "skillActivationMayNotBeSelfGranted": true,
+    "operationalAuthorityMayNotBeSelfGranted": true
+  }
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "issue": 1466,
   "architectureTarget": "config/repository-architecture-target.json",
-  "strategy": "Hard-enforce clean governed roots and ratchet existing build/lib debt downward; never require a big-bang move solely to satisfy a numeric ceiling.",
+  "strategy": "Hard-enforce clean governed roots and ratchet existing build/lib and temporary-bridge debt downward; never require a big-bang move solely to satisfy a numeric ceiling.",
   "baselineEvidence": {
     "sourceCommit": "215973e5b9dd680f62552bc81392edea4cde7d7e",
     "directSourceFilesBefore": {

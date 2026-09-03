@@ -34,9 +34,9 @@ jobs:
         run: |
           BASE_REF="${{ github.event.pull_request.base.sha }}"
           if [ -n "$BASE_REF" ]; then
-            node scripts/developer-diagnostics/repository-architecture-enforcement.mjs --base-ref "$BASE_REF"
+            node scripts/developer-diagnostics/architecture/repository-architecture-enforcement.mjs --base-ref "$BASE_REF"
           else
-            node scripts/developer-diagnostics/repository-architecture-enforcement.mjs
+            node scripts/developer-diagnostics/architecture/repository-architecture-enforcement.mjs
           fi
       - name: Generate architecture inventory evidence
         run: node scripts/repository-architecture-inventory.mjs

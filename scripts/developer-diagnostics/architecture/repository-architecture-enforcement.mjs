@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(scriptDirectory, "../..");
+const repoRoot = path.resolve(scriptDirectory, "../../..");
 const sourceExtensions = new Set([".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"]);
 const ignoredDirectories = new Set([".git", ".next", "node_modules", "releases"]);
 
@@ -28,6 +28,33 @@ function directSourceFiles(rootName) {
     .filter((entry) => entry.isFile() && isSourceFile(entry.name))
     .map((entry) => `${rootName}/${entry.name}`)
     .sort();
+}
+
+function directSourceFilesAtRef(rootName, baseRef) {
+  if (!baseRef) return [];
+  const output = execFileSync("git", ["ls-tree", "-r", "--name-only", baseRef, "--", rootName], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  }).trim();
+  if (!output) return [];
+  return output
+    .split(/\r?\n/)
+    .map(normalized)
+    .filter((relativePath) => relativePath.split("/").length === 2 && isSourceFile(relativePath))
+    .sort();
+}
+
+function sourceAtRef(baseRef, relativePath) {
+  try {
+    return execFileSync("git", ["show", `${baseRef}:${relativePath}`], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    return null;
+  }
 }
 
 function directChildDirectoryCount(rootName) {
@@ -136,40 +163,61 @@ export function isTemporaryReexportBridge(source) {
   return /^export \* from ["'][^"']+["'];?$/.test(lines[1]);
 }
 
-function compatibilityBridgeEvidence(policy) {
+function temporaryBridgePathsAtRef(baseRef) {
+  return directSourceFilesAtRef("lib", baseRef).filter((relativePath) => {
+    const source = sourceAtRef(baseRef, relativePath);
+    return source !== null && isTemporaryReexportBridge(source);
+  });
+}
+
+export function compatibilityBridgeRatchetViolations(currentPaths, basePaths) {
+  const baseSet = new Set(basePaths);
+  return currentPaths
+    .filter((bridgePath) => !baseSet.has(bridgePath))
+    .map((bridgePath) => `New temporary compatibility bridge is not allowed: ${bridgePath}. Move the consumer to the canonical owner instead of adding transition debt.`);
+}
+
+function compatibilityBridgeEvidence(policy, baseRef) {
   const bridgePaths = directSourceFiles("lib").filter((relativePath) => isTemporaryReexportBridge(readFileSync(path.join(repoRoot, relativePath), "utf8")));
+  const baseBridgePaths = baseRef ? temporaryBridgePathsAtRef(baseRef) : null;
+  const retiredBridgePaths = baseBridgePaths ? baseBridgePaths.filter((bridgePath) => !bridgePaths.includes(bridgePath)) : [];
   const exceptionByPath = new Map(policy.compatibilityBridgeExceptions.map((entry) => [entry.path, entry]));
-  const violations = [];
+  const violations = baseBridgePaths ? compatibilityBridgeRatchetViolations(bridgePaths, baseBridgePaths) : [];
   const evidence = [];
-  for (const bridgePath of bridgePaths) {
-    const exception = exceptionByPath.get(bridgePath);
-    if (!exception) {
-      violations.push(`Undocumented compatibility bridge remains: ${bridgePath}. Retire it or add a narrow owned exception.`);
+
+  for (const exception of policy.compatibilityBridgeExceptions) {
+    if (!bridgePaths.includes(exception.path)) {
+      violations.push(`Compatibility bridge exception is stale because the bridge no longer exists: ${exception.path}. Remove the exception.`);
       continue;
     }
     if (!existsSync(path.join(repoRoot, exception.canonicalTarget))) {
-      violations.push(`Compatibility bridge target is missing for ${bridgePath}: ${exception.canonicalTarget}`);
+      violations.push(`Compatibility bridge target is missing for ${exception.path}: ${exception.canonicalTarget}`);
     }
     const consumers = [];
     for (const consumerPath of exception.consumerPaths) {
       const absoluteConsumer = path.join(repoRoot, consumerPath);
       if (!existsSync(absoluteConsumer)) {
-        violations.push(`Documented bridge consumer is missing for ${bridgePath}: ${consumerPath}`);
+        violations.push(`Documented bridge consumer is missing for ${exception.path}: ${consumerPath}`);
         continue;
       }
       const consumerSource = readFileSync(absoluteConsumer, "utf8");
       if (!consumerSource.includes(exception.consumerImportFragment)) {
-        violations.push(`Bridge exception for ${bridgePath} is stale: ${consumerPath} no longer uses ${exception.consumerImportFragment}. Retire the bridge.`);
+        violations.push(`Bridge exception for ${exception.path} is stale: ${consumerPath} no longer uses ${exception.consumerImportFragment}. Retire the bridge.`);
         continue;
       }
       consumers.push(consumerPath);
     }
-    evidence.push({ path: bridgePath, canonicalTarget: exception.canonicalTarget, ownerIssue: exception.ownerIssue, consumers });
+    evidence.push({ path: exception.path, canonicalTarget: exception.canonicalTarget, ownerIssue: exception.ownerIssue, consumers });
   }
-  for (const exception of policy.compatibilityBridgeExceptions) {
-    if (!bridgePaths.includes(exception.path)) violations.push(`Compatibility bridge exception is stale because the bridge no longer exists: ${exception.path}. Remove the exception.`);
-  }
-  return { bridgePaths, evidence, violations };
+
+  return {
+    bridgePaths,
+    baseBridgePaths,
+    retiredBridgePaths,
+    legacyBridgePaths: bridgePaths.filter((bridgePath) => !exceptionByPath.has(bridgePath)),
+    evidence,
+    violations,
+  };
 }
 
 export function runArchitectureEnforcement({ baseRef = null, writeArtifact = true } = {}) {
@@ -192,7 +240,7 @@ export function runArchitectureEnforcement({ baseRef = null, writeArtifact = tru
   const changes = parseChangedEntries(baseRef);
   violations.push(...directRootAdditionViolations(changes, policy.protectedDirectSourceRoots));
   violations.push(...changedImportViolations(changes, policy.forbiddenImports));
-  const bridgeEvidence = compatibilityBridgeEvidence(policy);
+  const bridgeEvidence = compatibilityBridgeEvidence(policy, baseRef);
   violations.push(...bridgeEvidence.violations);
   const report = {
     schemaVersion: 1,
@@ -204,6 +252,12 @@ export function runArchitectureEnforcement({ baseRef = null, writeArtifact = tru
     baselineEvidence: policy.baselineEvidence,
     metrics,
     changedFiles: changes.map((entry) => entry.path),
+    compatibilityBridgeRatchet: {
+      currentCount: bridgeEvidence.bridgePaths.length,
+      baseCount: bridgeEvidence.baseBridgePaths?.length ?? null,
+      retiredPaths: bridgeEvidence.retiredBridgePaths,
+      legacyPaths: bridgeEvidence.legacyBridgePaths,
+    },
     compatibilityBridges: bridgeEvidence.evidence,
     violations,
   };
@@ -223,7 +277,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   for (const [rootName, metric] of Object.entries(report.metrics)) {
     console.log(`${rootName}: direct source ${metric.directSourceFiles}/${metric.directSourceLimit}, child dirs ${metric.directChildDirectories}, depth ${metric.maxRelativeDepth}`);
   }
-  if (report.compatibilityBridges.length) console.log(`Documented compatibility bridges: ${report.compatibilityBridges.map((entry) => entry.path).join(", ")}`);
+  const bridgeRatchet = report.compatibilityBridgeRatchet;
+  const baseBridgeCount = bridgeRatchet.baseCount === null ? "n/a" : bridgeRatchet.baseCount;
+  console.log(`Temporary compatibility bridges: ${bridgeRatchet.currentCount}/${baseBridgeCount} current/base; retired in diff: ${bridgeRatchet.retiredPaths.length}`);
+  if (report.compatibilityBridges.length) console.log(`Consumer-tracked bridge exceptions: ${report.compatibilityBridges.map((entry) => entry.path).join(", ")}`);
   if (report.violations.length) {
     for (const violation of report.violations) console.error(`- ${violation}`);
     process.exitCode = 1;

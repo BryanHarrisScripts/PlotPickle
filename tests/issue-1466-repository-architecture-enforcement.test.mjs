@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  compatibilityBridgeRatchetViolations,
   directRootAdditionViolations,
   importBoundaryViolations,
   isTemporaryReexportBridge,
   runArchitectureEnforcement,
-} from "../scripts/developer-diagnostics/repository-architecture-enforcement.mjs";
+} from "../scripts/developer-diagnostics/architecture/repository-architecture-enforcement.mjs";
 
 const protectedRoots = ["build", "core", "modules", "lib"];
 const importRules = [
@@ -52,7 +53,18 @@ test("#1466 distinguishes temporary re-export shims from files that merely discu
   );
 });
 
-test("#1466 leaves only explicitly owned compatibility bridges", () => {
+test("#1466 lets legacy compatibility debt shrink but rejects a newly introduced bridge path", () => {
+  assert.deepEqual(
+    compatibilityBridgeRatchetViolations(["lib/legacy.ts"], ["lib/legacy.ts", "lib/retired.ts"]),
+    [],
+  );
+  assert.deepEqual(
+    compatibilityBridgeRatchetViolations(["lib/legacy.ts", "lib/new-bridge.ts"], ["lib/legacy.ts"]),
+    ["New temporary compatibility bridge is not allowed: lib/new-bridge.ts. Move the consumer to the canonical owner instead of adding transition debt."],
+  );
+});
+
+test("#1466 keeps consumer-level evidence for explicitly owned bridge exceptions", () => {
   const report = runArchitectureEnforcement({ writeArtifact: false });
   assert.deepEqual(report.compatibilityBridges, [
     {

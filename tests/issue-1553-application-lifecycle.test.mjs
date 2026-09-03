@@ -29,6 +29,46 @@ test("#1553 managed application lifecycle is loopback-only", () => {
   assert.throws(() => resolveManagedPlotPickleTarget("http://example.com:4173/"), /loopback/i);
 });
 
+test("#1649 managed lifecycle separates process readiness from optional application/provider health", async () => {
+  const temp = await mkdtemp(path.join(os.tmpdir(), "plotpickle-readiness-"));
+  const serverFile = path.join(temp, "server.mjs");
+  const port = await freePort();
+  await writeFile(serverFile, [
+    'import http from "node:http";',
+    'const port = Number(process.argv[2]);',
+    'const server = http.createServer((request, response) => {',
+    '  response.statusCode = request.url === "/ready" ? 200 : 503;',
+    '  response.end(request.url === "/ready" ? "process-ready" : "optional-provider-unavailable");',
+    '});',
+    'server.listen(port, "127.0.0.1");',
+    'process.on("SIGTERM", () => server.close(() => process.exit(0)));',
+  ].join("\n"), "utf8");
+
+  const lifecycle = createManagedPlotPickleLifecycle({
+    repoRoot: temp,
+    baseUrl: `http://127.0.0.1:${port}/`,
+    command: process.execPath,
+    args: [serverFile, String(port)],
+    readinessPath: "/ready",
+    startupTimeoutMs: 5_000,
+    shutdownTimeoutMs: 5_000,
+    probeTimeoutMs: 500,
+  });
+
+  try {
+    const started = await lifecycle.start();
+    assert.equal(started.started, true);
+    assert.equal(started.readinessEndpoint, "/ready");
+    assert.equal((await fetch(`http://127.0.0.1:${port}/`)).status, 503);
+    assert.equal((await fetch(`http://127.0.0.1:${port}/ready`)).ok, true);
+  } finally {
+    const stopped = await lifecycle.stop();
+    assert.equal(stopped.stopped, true);
+    assert.equal(stopped.endpointUnavailable, true);
+    await rm(temp, { recursive: true, force: true });
+  }
+});
+
 test("#1553 lifecycle proves a real process exits before a new process resumes the endpoint", async () => {
   const temp = await mkdtemp(path.join(os.tmpdir(), "plotpickle-lifecycle-"));
   const serverFile = path.join(temp, "server.mjs");
@@ -79,6 +119,8 @@ test("#1553 one-command reference run owns the PlotPickle app lifecycle without 
 
   assert.match(lifecycle, /node_modules[\s\S]*vite[\s\S]*bin[\s\S]*vite\.js/);
   assert.match(lifecycle, /--strictPort/);
+  assert.match(lifecycle, /\/@vite\/client/);
+  assert.match(lifecycle, /readinessTarget/);
   assert.match(lifecycle, /SIGTERM/);
   assert.match(lifecycle, /endpointUnavailable/);
   assert.match(reference, /createManagedPlotPickleLifecycle/);

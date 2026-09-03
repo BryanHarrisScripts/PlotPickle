@@ -18,7 +18,7 @@ PlotPickle is global at the foundation and modular at the feature level:
 - LEARN, PLAN, Wyrmwood, Settings, agents, and providers remain modular.
 - New capabilities should become a shared capability, module, plugin, agent, or provider adapter rather than a feature-specific special case.
 - Preserve provider independence. Do not hard-code LM Studio, llama.cpp, Ollama, or one model as the only path when an existing abstraction exists.
-- Mastra remains the application-agent orchestration runtime. Pi, BEN, Agent Skills, diagnostics and UAT/repair machinery may participate in bounded operational self-support when invoked through PlotPickle's harness, but they do not become authority boundaries or gain permission to self-authorize changes.
+- Mastra remains the application-agent runtime. Pi, BEN, Agent Skills, diagnostics and UAT/repair machinery may participate in bounded operational self-support when invoked through PlotPickle's harness, but they do not become authority boundaries or gain permission to self-authorize changes.
 
 ### Where new code belongs
 

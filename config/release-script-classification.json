@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 1,
   "issue": 1656,
   "purpose": "Remove only proven release/measurement implementation from the base user payload while preserving PlotPickle's bounded operational self-support system.",
   "classificationRule": "A script is not developer-only merely because engineers use it. Diagnosis, trusted skills, evidence learning, deterministic review, bounded repair and harness-governed self-support remain operational when they contribute to the running PlotPickle system.",
@@ -66,6 +66,34 @@
     }
   ],
   "retainedRuntimeAnchors": [
+    {
+      "path": "scripts/agent-skills.mjs",
+      "reason": "Canonical local Agent Skill discovery and validation."
+    },
+    {
+      "path": "scripts/developer-diagnostics",
+      "reason": "Deterministic diagnosis remains available to the bounded self-support loop."
+    },
+    {
+      "path": "scripts/pi",
+      "reason": "Primary worker implementation for diagnosis, UAT repair and architecture-review skills remains available."
+    },
+    {
+      "path": "scripts/autonomous-qa",
+      "reason": "Bounded autonomous QA and exact-head evidence-learning entry points remain available."
+    },
+    {
+      "path": "scripts/creative-uat",
+      "reason": "Verification feedback remains available to self-support until finer reachability proves safe separation."
+    },
+    {
+      "path": "scripts/run-ben-code-quality.mjs",
+      "reason": "Deterministic BEN review evidence remains available to bounded repair/review."
+    },
+    {
+      "path": "scripts/run-pi-code-quality-review.mjs",
+      "reason": "Advisory Pi review remains available to bounded repair/review."
+    },
     {
       "path": "scripts/windows-runtime.mjs",
       "reason": "Persistent runtime fingerprint, readiness, native repair and lifecycle support."

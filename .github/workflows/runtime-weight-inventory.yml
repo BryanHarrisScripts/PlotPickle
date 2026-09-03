@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "app/visual-reference-library.tsx"
+      - "config/release-script-classification.json"
       - "config/runtime-weight-inventory.json"
       - "docs/architecture/six-domain-ownership.md"
       - "public/visual-references/manifest.json"

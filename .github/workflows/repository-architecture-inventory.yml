@@ -13,21 +13,31 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
-      - name: Checkout full history
+      - name: Checkout exact head with full history
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      - name: Use Node.js 22
+      - name: Use Node.js 24.19
         uses: actions/setup-node@v4
         with:
-          node-version: 22.13.0
+          node-version: 24.19.0
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate repository inventory and target architecture
-        run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs
+        run: node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs
       - name: Preserve existing architecture health boundaries
         run: node --test tests/issue-1220-architecture-health.test.mjs
+      - name: Enforce Phase 5 structural boundaries
+        shell: bash
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.sha }}"
+          if [ -n "$BASE_REF" ]; then
+            node scripts/developer-diagnostics/repository-architecture-enforcement.mjs --base-ref "$BASE_REF"
+          else
+            node scripts/developer-diagnostics/repository-architecture-enforcement.mjs
+          fi
       - name: Generate architecture inventory evidence
         run: node scripts/repository-architecture-inventory.mjs
       - name: Production build

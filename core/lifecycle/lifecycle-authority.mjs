@@ -15,6 +15,7 @@ export const PLOTPICKLE_LIFECYCLE_AUTHORITY_ACTIONS = Object.freeze([
 ]);
 
 export const PLOTPICKLE_HARNESS_APPROVER_AUTHORITY_CLASS = "plotpickle-maintainer-harness-approver";
+export const PLOTPICKLE_DELEGATED_STORY_DECISION_AUTHORITY_CLASS = "delegated-autonomous-operator";
 
 const ACTIONS = new Set(PLOTPICKLE_LIFECYCLE_AUTHORITY_ACTIONS);
 const SAFE_PERSISTENCE_WITHOUT_DURABLE_PROMOTION = new Set(["none", "evidence", "durable-non-canon"]);
@@ -85,6 +86,29 @@ function humanWriterApprovalMatches(envelope, approval) {
   );
 }
 
+function delegatedWorkbenchApprovalMatches(envelope, approval) {
+  const evidenceRef = text(approval?.evidenceRef);
+  return Boolean(
+    approval
+    && approval.kind === "delegated-story-workbench"
+    && envelope.actor.kind === "guest"
+    && envelope.actor.delegated === true
+    && text(envelope.actor.humanProfileId) === ""
+    && approval.authorityClass === PLOTPICKLE_DELEGATED_STORY_DECISION_AUTHORITY_CLASS
+    && approval.delegated === true
+    && approval.serverPolicyApproved === true
+    && approval.workbenchValidated === true
+    && text(approval.humanProfileId) === ""
+    && text(approval.autonomousRunId) === envelope.runId
+    && text(approval.operatorId) === envelope.actor.operatorId
+    && text(approval.projectId) === envelope.projectId
+    && text(approval.approvalRef)
+    && text(approval.approvalRef) === envelope.persistence.approvalRef
+    && evidenceRef
+    && envelope.evidenceRefs.includes(evidenceRef),
+  );
+}
+
 function decidePersistence(envelope, approval) {
   const persistence = envelope.persistence;
   if (persistence.decision !== "approved") {
@@ -124,17 +148,29 @@ function decidePersistence(envelope, approval) {
   }
 
   if (persistence.classification === "canonical-project-state") {
-    if (!humanWriterApprovalMatches(envelope, approval)) {
-      return deny(envelope, "persist", "human-writer-approval-required", "Canonical project state remains behind the existing explicit Human writer approval route.", {
+    if (humanWriterApprovalMatches(envelope, approval)) {
+      return allow(envelope, "persist", "human-writer-approved-canonical-state", "The lifecycle may hand the approved canonical mutation to the existing PPF revision writer route.", {
         persistenceClass: persistence.classification,
         persistenceOwnerRef: persistence.ownerRef,
+        humanApproved: true,
+        approvalRef: persistence.approvalRef,
       });
     }
-    return allow(envelope, "persist", "human-writer-approved-canonical-state", "The lifecycle may hand the approved canonical mutation to the existing PPF revision writer route.", {
+    if (delegatedWorkbenchApprovalMatches(envelope, approval)) {
+      return allow(envelope, "persist", "delegated-workbench-approved-canonical-state", "The lifecycle recognizes the existing server-policy-backed delegated Story Decision and Story Workbench route without pretending it is Human approval.", {
+        persistenceClass: persistence.classification,
+        persistenceOwnerRef: persistence.ownerRef,
+        autonomousPolicyApproved: true,
+        humanApproved: false,
+        approvalRef: persistence.approvalRef,
+        evidenceRef: text(approval.evidenceRef),
+        resultingRevision: text(approval.resultingRevision),
+        operationalAuthorityGranted: false,
+      });
+    }
+    return deny(envelope, "persist", "canonical-persistence-approval-required", "Canonical project state requires either the existing explicit Human writer route or the existing server-policy-backed delegated Story Decision and validated Story Workbench route.", {
       persistenceClass: persistence.classification,
       persistenceOwnerRef: persistence.ownerRef,
-      humanApproved: true,
-      approvalRef: persistence.approvalRef,
     });
   }
 
@@ -158,7 +194,9 @@ export function lifecycleActorAuthorityProjection(value) {
     mayApproveOwnDurableLearning: false,
     mayChangeOwnAuthority: false,
     mayClaimHumanApproval: !guest && envelope.actor.kind === "human",
-    canonicalMutationRequiresHumanWriterApproval: true,
+    canonicalMutationRequiresExistingApprovalRoute: true,
+    canonicalMutationRequiresHumanWriterApproval: envelope.actor.kind === "human",
+    canonicalMutationMayUseDelegatedWorkbenchPolicy: guest,
     durableKnowledgeRequiresHarnessPolicyApproval: true,
   });
 }

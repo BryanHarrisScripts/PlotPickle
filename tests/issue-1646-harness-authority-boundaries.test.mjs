@@ -79,7 +79,9 @@ test("#1646 exposes one bounded authority action vocabulary without granting act
   assert.equal(projection.mayApproveOwnDurableLearning, false);
   assert.equal(projection.mayChangeOwnAuthority, false);
   assert.equal(projection.mayClaimHumanApproval, false);
-  assert.equal(projection.canonicalMutationRequiresHumanWriterApproval, true);
+  assert.equal(projection.canonicalMutationRequiresExistingApprovalRoute, true);
+  assert.equal(projection.canonicalMutationRequiresHumanWriterApproval, false);
+  assert.equal(projection.canonicalMutationMayUseDelegatedWorkbenchPolicy, true);
   assert.equal(projection.durableKnowledgeRequiresHarnessPolicyApproval, true);
 });
 
@@ -153,7 +155,7 @@ test("#1646 requires server-owned harness policy approval before evidence become
   assert.equal(approved.operationalAuthorityGranted, false);
 });
 
-test("#1646 keeps canonical project mutation behind the existing explicit Human writer route", () => {
+test("#1646 keeps the explicit Human writer route distinct and prevents Guest impersonation", () => {
   const persistence = {
     classification: "canonical-project-state",
     ownerRef: "ppf:revision-store",
@@ -167,7 +169,7 @@ test("#1646 keeps canonical project mutation behind the existing explicit Human 
     approval: { kind: "human-writer", humanProfileId: "profile-writer-1", approvalRef: "writer-approval:123" },
   });
   assert.equal(guestDenied.allowed, false);
-  assert.equal(guestDenied.code, "human-writer-approval-required");
+  assert.equal(guestDenied.code, "canonical-persistence-approval-required");
 
   const wrongHuman = decideLifecycleAuthority({
     envelope: humanEnvelope(persistence),

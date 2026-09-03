@@ -2,7 +2,7 @@
 
 Issue #1647 implements Slice B of #1644. The contract is intentionally smaller than an orchestrator. It is a Core-owned envelope and transition vocabulary that existing PlotPickle owners may project into and out of without moving their authority.
 
-The executable contract lives at `core/lifecycle/lifecycle-contract.mjs`. Slice C (#1646) adds the Core-owned authority decision gate at `core/lifecycle/lifecycle-authority.mjs`. The authority gate interprets the lifecycle envelope; it does not replace Guest delegation, PPF writer approval, the maintainer harness approver, provider policy or any other existing authority.
+The executable contract lives at `core/lifecycle/lifecycle-contract.mjs`. Slice C (#1646) adds the Core-owned authority decision gate at `core/lifecycle/lifecycle-authority.mjs`. The authority gate interprets the lifecycle envelope; it does not replace Guest delegation, Human writer approval, delegated Story Decision policy, Story Workbench validation, the maintainer harness approver, provider policy or any other existing authority.
 
 ## Canonical stages
 
@@ -41,8 +41,11 @@ Examples of existing authoritative contracts include:
 
 - Autonomous Guest authority: `core/auth/autonomous-guest/guest-authority.ts`
 - Guest durable task state and retry policy: `build/autonomous-guest/task-lifecycle.ts`
-- Responsibility Run state, limits and writer gate: `lib/agents/responsibility/responsibility-runs.ts`
-- PPF revision proposal/apply authority: `lib/projects/persistence/project-revisions.ts`
+- Responsibility Run state and limits: `lib/agents/responsibility/responsibility-runs.ts`
+- Human PPF revision proposal/apply authority: `lib/projects/persistence/project-revisions.ts`
+- Delegated autonomous Story Decision authority: `core/story-workflow/story-decisions/autonomous-authority.mjs`
+- Delegated Story Decision operation and Workbench handoff: `core/story-workflow/story-decisions/autonomous-operator.mjs`
+- Story Workbench validation/apply semantics: `modules/story-workflow/workbench/workflow.ts`
 - provider protocol/health policy: `lib/runtime/provider-harness.ts`
 - deterministic verification/finding authority: `scripts/full-verification-graph.mjs` and `scripts/verification-findings.mjs`
 - evidence-learning durable admission: `build/autonomous-guest/maintainer/durable-knowledge-store.mjs`
@@ -77,7 +80,10 @@ Persistence remains a projection to an existing owner; the lifecycle gate never 
 
 - `none`, `evidence`, and `durable-non-canon` may be handed to their existing owner only after the lifecycle has an approved persistence decision and, for persistent state, approval provenance.
 - `durable-knowledge` requires a matching server-owned `plotpickle-maintainer-harness-approver` policy approval. The proposing Guest or agent cannot approve its own durable learning. Durable admission explicitly grants no operational authority.
-- `canonical-project-state` requires a matching explicit Human writer approval for the same Human lifecycle actor. The write still occurs through the existing PPF/project revision route. Guest, agent and system actors cannot use an approval reference to impersonate Human writer authority.
+- Human `canonical-project-state` persistence may use the existing explicit Human writer approval route and PPF revision writer.
+- A delegated autonomous Guest may use the already-existing Story Decision → validated Story Workbench canonical route only when the server-owned run policy enabled that exact autonomous run/project, the actor remains non-Human, the Workbench validation completed, the approval/evidence references match the lifecycle envelope and the run/operator/project identities match. This is autonomous policy approval, not Human approval, and grants no broader operational authority.
+
+A Guest cannot borrow a Human writer approval reference. Likewise, a generic agent or arbitrary harness approval cannot stand in for the specific delegated Story Decision/Workbench route.
 
 Autonomous policy approval and Human approval are deliberately separate result fields. A policy-approved autonomous persistence decision is never described as Human-approved.
 
@@ -93,7 +99,24 @@ Validation is a projection of existing deterministic authority. Any validation r
 
 Repair carries only `attempts` and `maxAttempts`. Attempts cannot exceed the budget. The only repair loop in the stage graph is Validate/Repair back to Create/Execute, followed by a required return to Validate/Repair. The authority gate additionally denies that backward transition once the repair budget is exhausted, so an actor cannot re-enter execution by replaying the structurally valid edge forever.
 
-Slice D (#1648) owns connecting the existing BEN, LEARN, Visual Readiness, QA, architecture, story and packaging gates to these fields and adding deterministic failure fingerprints/rerun evidence.
+Slice D (#1648) maps existing BEN, LEARN, Visual Readiness, autonomous QA, architecture, Story Workbench/Decisions, Windows packaging and Full Verification owners into `core/lifecycle/lifecycle-validation.mjs`. It records check identity, exact revision/head, authoritative rerun and stable failure fingerprints without replacing those validators. The same deterministic check must verify a repair on a fresh exact revision/head, and blocked/repeated/churning failures stop.
+
+## Autonomous reference proof
+
+Slice E (#1649) projects the existing one-command Afterglow controller through this lifecycle; it does not add another route orchestrator. `scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs` still owns the reference execution and still calls the registered autonomous route runner.
+
+The lifecycle projection in `lib/verification/autonomous-reference-lifecycle.mjs` accepts completion only when existing evidence proves:
+
+- immutable Afterglow Library bootstrap and canonical project/revision identity;
+- delegated Guest authority with no Human profile identity;
+- a real Story Decision and validated Story Workbench apply through the existing delegated policy;
+- deterministic route/contract validation;
+- bounded failure/stop behavior from the existing autonomous convergence/restart contract;
+- a durable Guest route task surviving application restart;
+- post-restart Decision/task continuity without a second apply;
+- a packaged result and valid continuation reference.
+
+The seven lifecycle stages are therefore a projection of a real existing PlotPickle journey, not a demonstration-only execution path.
 
 ## Persistence classes
 
@@ -130,4 +153,4 @@ The contract rejects credential/private-key fields, hidden reasoning/scratchpad/
 
 ## Stopping rule
 
-#1647 ended with the shared schema and transition rules. #1646 ends with one deterministic Core-owned authority decision gate proving Human/Guest/agent separation, evidence-learning versus durable-learning boundaries, policy versus Human approval provenance, bounded capability execution, reconnect authority preservation and no self-promotion. It does not replace the existing authority owners. #1648 owns deterministic validation/repair integration; #1649 proves the real Guest journey; #1650 projects plain-language status; #1651 retires only proven duplicates.
+#1647 ended with the shared schema and transition rules. #1646 established the deterministic Core-owned authority decision gate. #1648 integrated deterministic validation and bounded repair. #1649 proves the existing autonomous Guest journey and composes its already-existing delegated Story Decision/Workbench authority rather than replacing it. #1650 projects plain-language status; #1651 retires only proven duplicates.

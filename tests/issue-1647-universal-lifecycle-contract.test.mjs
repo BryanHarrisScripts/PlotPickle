@@ -99,7 +99,7 @@ test("#1647 normalizes one reference-only lifecycle envelope instead of copying 
   assert.ok(envelope.contractRefs.some((ref) => ref.startsWith("responsibility-run:")));
   assert.ok(envelope.contractRefs.some((ref) => ref.startsWith("ppf-revision:")));
   assert.ok(envelope.contractRefs.some((ref) => ref.startsWith("verification:")));
-  assert.equal(normalizeLifecycleEnvelope(envelope), envelope === normalizeLifecycleEnvelope(envelope) ? envelope : envelope);
+  assert.deepEqual(normalizeLifecycleEnvelope(envelope), envelope);
 });
 
 test("#1647 allows the canonical forward path plus the bounded Validate to Create repair loop", () => {

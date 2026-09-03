@@ -88,6 +88,14 @@ Node, the local runtime/model and inference remain visible separately so a disco
 
 ## Local pre-CI validation
 
+### Optional fast pre-commit gate
+
+Run `Utilities\Enable-Developer-Hooks.cmd` once from a PlotPickle source checkout to enable the repository-local `.githooks` path. You may pass the checkout path as the first argument when the utility is launched from elsewhere.
+
+The opt-in pre-commit hook checks only the staged diff for Git integrity and confirms that the staged paths have a safe changed-test plan. It records bounded machine-readable evidence under the checkout's private Git directory. It does not change global Git configuration and does not run BEN, the production build, Repomix or model inference.
+
+This fast hook is an early feedback boundary, not release proof. Use the existing local pre-CI validation below before pushing, and keep GitHub exact-head CI as the independent merge/release authority.
+
 The Workbench package also includes `Run-Local-Validation.cmd`.
 
 Run it before pushing a repair to GitHub. It uses the Workbench's saved `Local repo` path and runs, on your machine:

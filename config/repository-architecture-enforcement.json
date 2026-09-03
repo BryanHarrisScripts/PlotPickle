@@ -15,7 +15,7 @@
   },
   "legacyDirectSourceRatchets": {
     "build": 84,
-    "lib": 114
+    "lib": 108
   },
   "protectedDirectSourceRoots": ["build", "core", "modules", "lib"],
   "forbiddenImports": [

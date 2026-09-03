@@ -17,7 +17,7 @@
     "test:changed": "node scripts/developer-diagnostics/test-changed.mjs",
     "test:diagnose": "node scripts/developer-diagnostics/run-and-summarize.mjs --",
     "test:developer-diagnostics": "node --test tests/issue-240-developer-diagnostics.test.mjs",
-    "test:local-gates": "node --test tests/issue-1451-local-gates.test.mjs",
+    "test:local-gates": "node --test tests/issue-1451-local-gates.test.mjs tests/issue-1451-workbench-gate-handoff.test.mjs",
     "test:setup-connections-dashboard": "node --test tests/issue-256-setup-connections-dashboard.test.mjs",
     "test:creative-compute-paths": "node --test tests/issue-258-creative-compute-paths.test.mjs",
     "test:minimax-byok": "node --test tests/issue-260-minimax-byok.test.mjs",

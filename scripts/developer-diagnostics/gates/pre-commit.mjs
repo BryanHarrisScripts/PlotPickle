@@ -33,12 +33,14 @@ export function normalizeStagedFiles(value) {
   return files;
 }
 
-export function buildGateResult({ status, stagedFiles = [], completedSteps = [], failure = null }) {
+export function buildGateResult({ status, indexTree = "", stagedFiles = [], completedSteps = [], failure = null }) {
   return {
     schemaVersion: 1,
     gateId: "plotpickle-pre-commit",
+    generatedAt: new Date().toISOString(),
     status,
     scope: "staged-files",
+    indexTree,
     stagedFiles: [...stagedFiles],
     completedSteps: [...completedSteps],
     failure,
@@ -69,6 +71,12 @@ function stagedFiles() {
   return normalizeStagedFiles(result.stdout);
 }
 
+function indexTree() {
+  const result = run("git", ["write-tree"]);
+  requireResult(result, "Git index-tree resolution");
+  return result.stdout.trim();
+}
+
 function failure(rule, reason, rerun) {
   return {
     rule,
@@ -80,10 +88,11 @@ function failure(rule, reason, rerun) {
 
 export function runPreCommitGate() {
   const files = stagedFiles();
+  const exactIndexTree = indexTree();
   const completedSteps = [];
 
   if (files.length === 0) {
-    const report = buildGateResult({ status: "pass", stagedFiles: files, completedSteps });
+    const report = buildGateResult({ status: "pass", indexTree: exactIndexTree, stagedFiles: files, completedSteps });
     return { report, evidence: writeEvidence(report) };
   }
 
@@ -91,6 +100,7 @@ export function runPreCommitGate() {
   if (diffCheck.status !== 0 || diffCheck.error) {
     const report = buildGateResult({
       status: "fail",
+      indexTree: exactIndexTree,
       stagedFiles: files,
       completedSteps,
       failure: failure("staged-diff-integrity", "Git found whitespace errors or unresolved conflict markers in the staged diff.", "git diff --cached --check"),
@@ -108,6 +118,7 @@ export function runPreCommitGate() {
   if (changedPlan.status !== 0 || changedPlan.error) {
     const report = buildGateResult({
       status: "fail",
+      indexTree: exactIndexTree,
       stagedFiles: files,
       completedSteps,
       failure: failure("changed-test-selection", "The staged files could not be mapped safely to focused deterministic tests.", `node scripts/developer-diagnostics/test-changed.mjs --plan --files ${files.join(",")}`),
@@ -116,7 +127,7 @@ export function runPreCommitGate() {
   }
   completedSteps.push("changed-test-selection");
 
-  const report = buildGateResult({ status: "pass", stagedFiles: files, completedSteps });
+  const report = buildGateResult({ status: "pass", indexTree: exactIndexTree, stagedFiles: files, completedSteps });
   return { report, evidence: writeEvidence(report) };
 }
 

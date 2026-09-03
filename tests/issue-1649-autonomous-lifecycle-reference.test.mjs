@@ -131,13 +131,16 @@ test("#1649 extends the existing one-command reference controller instead of add
   assert.match(referenceRunner, /afterglow-v9/);
   assert.match(referenceRunner, /decisionPersistedAfterRestart/);
   assert.match(referenceRunner, /completedFromOperatedRoute/);
+  assert.match(referenceRunner, /baseRevision: String\(beforeDecision\?\.action\?\.receipt\?\.baseRevision/);
   assert.match(referenceRunner, /schemaVersion: 6/);
   assert.match(routeRunner, /operateAutonomousStoryDecision/);
   assert.match(routeRunner, /respond-autonomous/);
   assert.match(routeRunner, /Apply change/);
+  assert.match(routeRunner, /receipt: \{ baseRevision: String\(action\.receipt\?\.baseRevision/);
   assert.match(convergenceContract, /convergence-limit/);
   assert.match(convergenceContract, /reevaluation-fanout/);
   assert.match(convergenceContract, /resume-state-mismatch/);
 
+  assert.doesNotMatch(referenceRunner, /resultingRevision[^\n]*[-+]\s*1|parseInt\([^\n]*resultingRevision|Number\([^\n]*resultingRevision/);
   assert.doesNotMatch(referenceRunner, /saveFoundationProjectAtRevision|applyStoryWorkbenchReview|respondAutonomousStoryDecisionThroughGateway/);
 });

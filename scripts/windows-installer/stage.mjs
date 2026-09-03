@@ -13,6 +13,7 @@ const root = path.resolve(scriptDirectory, "../..");
 const stage = path.join(root, "releases", "stage", "PlotPickle-Windows");
 const appModules = path.join(root, "node_modules");
 const nodeRoot = path.dirname(process.execPath);
+const npmCli = path.join(nodeRoot, "node_modules", "npm", "bin", "npm-cli.js");
 const stagedModules = path.join(stage, "node_modules");
 const stagedNode = path.join(stage, "runtime", "node");
 
@@ -22,6 +23,7 @@ assert.ok(existsSync(appModules), "node_modules is missing. Run npm ci before bu
 for (const required of ["node.exe", "npm.cmd"]) {
   assert.ok(existsSync(path.join(nodeRoot, required)), `The active Node distribution does not contain ${required}.`);
 }
+assert.ok(existsSync(npmCli), `The active Node distribution does not contain npm's JavaScript CLI: ${npmCli}`);
 for (const required of ["vite", "react", "vinext", "rolldown", "@mastra"]) {
   assert.ok(existsSync(path.join(appModules, required)), `Required installed dependency is missing: ${required}`);
 }
@@ -34,8 +36,8 @@ console.log("Bundling the verified Windows dependency tree...");
 cpSync(appModules, stagedModules, { recursive: true, dereference: false });
 console.log("Pruning developer-only dependencies from the bundled runtime...");
 const prune = spawnSync(
-  path.join(nodeRoot, "npm.cmd"),
-  ["prune", "--prefix", stage, "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false"],
+  process.execPath,
+  [npmCli, "prune", "--prefix", stage, "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false"],
   { stdio: "inherit", windowsHide: true },
 );
 assert.equal(prune.status, 0, `npm production prune failed with status ${prune.status ?? "unknown"}.`);

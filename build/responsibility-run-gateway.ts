@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
-import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/connector-trust-policy";
+import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/agents/responsibility/connector-trust-policy";
 import {
   addResponsibilityArtifact,
   beginResponsibilityAttempt,
@@ -22,7 +22,7 @@ import {
   type ResponsibilityRunHandoff,
   type ResponsibilityRunKind,
   type ResponsibilityVerificationMode,
-} from "../lib/responsibility-runs";
+} from "../lib/agents/responsibility/responsibility-runs";
 
 const API = "/api/responsibility-runs";
 const MAX_BODY = 64 * 1024;

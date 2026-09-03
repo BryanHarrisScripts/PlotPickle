@@ -1572,3 +1572,193 @@ Potentially millions of characters
 ```
 
 This makes large persistent worlds compatible with PlotPickle's local-first and provider-independent architecture instead of turning every person in a world into a permanently running AI process.
+
+---
+
+## 35. Future-proofing boundaries: preserve the paths without building them now
+
+The initial STORY vertical slice should remain deliberately small. Future-proofing does not mean implementing every future capability before the first game is playable.
+
+Instead, the early contracts should avoid decisions that make the following five capabilities impossible or require a second authority model later.
+
+These are architectural guardrails, not MVP expansion.
+
+### 35.1 Multiplayer and concurrent authority
+
+Single-player STORY can begin with one local authoritative session engine, but the state model should anticipate that multiple humans, agents or clients may eventually attempt actions against the same session.
+
+A future multiplayer implementation should preserve one authoritative ordered history rather than allowing each client to decide what happened.
+
+The design should therefore leave room for:
+
+- a monotonic session revision / sequence number;
+- every submitted action identifying the state revision it was based on;
+- unique action / command IDs for idempotency and duplicate protection;
+- one authoritative sequencer or equivalent ownership mechanism per active session;
+- deterministic acceptance, rejection or re-evaluation of stale actions;
+- ordered event publication after authoritative resolution;
+- reconnect from a checkpoint plus the accepted event stream;
+- protection against split-brain session ownership;
+- clients rendering optimistic UI only as provisional state;
+- AI agents never deciding mechanical concurrency ordering.
+
+If two players act from revision 41 and the first accepted action creates revision 42, the second action must be validated against the now-authoritative state rather than silently creating a second version of revision 42.
+
+The governing principle is:
+
+> Many participants may propose actions; only one authoritative STORY history is accepted for a session branch.
+
+This does not require multiplayer networking in the MVP. It requires only that IDs, revisions, replay and deterministic state transitions do not assume that every future action originates synchronously from one UI process.
+
+### 35.2 Long-term schema evolution and compatibility
+
+Worlds, Story Pieces, rules, sessions and portable packages may outlive the version of PlotPickle that created them.
+
+STORY should therefore treat schema evolution as a first-class compatibility concern rather than assuming all stored data always matches the newest TypeScript contract.
+
+Future-compatible design should support:
+
+- explicit schema and compatibility versions on portable/durable contracts;
+- deterministic migrations between supported schema versions;
+- compatibility ranges where safe;
+- validation before migration;
+- preserved provenance identifying the source version;
+- no silent lossy migration of creator-authored data;
+- an explicit unsupported-version result rather than best-effort corruption;
+- deprecation windows for old rule operations or package features;
+- reversible or checkpointed migration where durable canon is affected;
+- old worlds remaining readable or exportable whenever practical;
+- AI explanations assisting migration without AI becoming the migration authority.
+
+A future STORY v4 should not reinterpret a v1 creator rule merely because a model believes the newer meaning is better.
+
+The deterministic migration layer owns structural translation. Creator-authored intent remains preserved unless an authorized user chooses to change it.
+
+The governing principle is:
+
+> Version change may translate representation; it must not silently rewrite authorship or canon.
+
+### 35.3 Forks, alternate timelines and deliberate retcons
+
+Persistent story worlds naturally create a need to explore alternatives.
+
+A creator may want to ask:
+
+"What if Mara did not open the gate?"
+
+"Let us replay from scene three."
+
+"Make this session an alternate timeline rather than canon."
+
+"Retcon the king's death and continue from the corrected history."
+
+These actions must not corrupt the source world's accepted history.
+
+The architecture should leave room for explicit lineage such as:
+
+```text
+World / Canon Revision
+  -> Session Branch A
+       -> accepted continuation
+  -> Session Branch B
+       -> alternate / experimental history
+  -> Forked World
+       -> independently owned future history
+```
+
+Future branching semantics should preserve:
+
+- parent world / revision identity;
+- branch or fork identity;
+- branch creation point;
+- immutable lineage/provenance;
+- isolated state and event history after divergence;
+- explicit canonical/mainline designation where a creator wants one;
+- deliberate admission/merge rather than automatic cross-branch contamination;
+- explicit retcon events/revisions rather than silent deletion of history;
+- character memories and knowledge remaining scoped to the branch in which they occurred;
+- a fork never gaining authority to mutate its parent world.
+
+A retcon may change which facts are currently authoritative, but PlotPickle should retain enough provenance to understand that the change was deliberate.
+
+The governing principle is:
+
+> Alternative history is a branch of truth, not accidental corruption of truth.
+
+### 35.4 Compute, inference and resource governance
+
+Sparse character activation prevents millions of dormant characters from becoming millions of running agents, but a creator could still construct a scene or game mode that attempts to activate too many expensive capabilities at once.
+
+STORY should therefore leave room for deterministic resource governance above provider execution.
+
+Future runtime budgets may include:
+
+- maximum concurrent agent inference calls;
+- per-turn and per-scene agent-call budgets;
+- context/token budgets;
+- image/video generation budgets;
+- local CPU/GPU/RAM-aware concurrency limits;
+- time/deadline budgets for autonomous turns;
+- per-world or per-session cost ceilings where paid providers are enabled;
+- bounded retries and provider-failure handling;
+- queueing or deferral when resources are unavailable;
+- deterministic cancellation of work whose result is no longer relevant to the current revision;
+- user-visible explanation when a capability is unavailable or deferred.
+
+Graceful degradation should prefer actions such as queueing, pausing, using deterministic fallbacks or asking the player to continue without an optional generation step.
+
+It must not silently switch from local/private inference to a cloud provider merely to keep the game moving.
+
+Autonomous agents also remain subject to the same budgets. A rule that activates twenty directors does not create authority to spend twenty unbounded inference calls.
+
+The governing principle is:
+
+> A game may request intelligence; the PlotPickle harness decides how much computation is authorized to satisfy it.
+
+### 35.5 Creator and public-world lifecycle
+
+Once worlds, Story Pieces and character agents can move through BUZZ, the architecture must distinguish game execution from ownership, visibility and publication lifecycle.
+
+A future shared-world model should leave room for:
+
+- creator / owner provenance;
+- private, unlisted and public visibility;
+- draft versus published versions;
+- immutable published-version identifiers where reproducibility matters;
+- clone/fork permissions;
+- creator-defined sharing or reuse metadata;
+- dependency and compatibility status;
+- publication validation state;
+- deletion, withdrawal or tombstone behavior;
+- handling of worlds that depend on withdrawn assets/packages;
+- public discovery metadata that does not expose hidden canon or private state;
+- moderation/discovery controls remaining outside the STORY rules authority;
+- imported community content remaining data rather than host authority.
+
+Deleting or withdrawing a public world should not silently erase another creator's lawful independent fork or corrupt an existing saved session. Conversely, a fork should not imply ownership of the source creator's identity, private data or external assets.
+
+BUZZ may own discovery, presentation, community policy and moderation surfaces. STORY continues to own legal game execution after a specific version/package is launched.
+
+The governing principle is:
+
+> Publishing changes who may discover or reuse content; it never changes what authority that content receives inside PlotPickle.
+
+### Future-proofing acceptance rule
+
+The MVP does not need to implement multiplayer servers, migration suites, timeline merging, billing systems or a public marketplace.
+
+The architectural requirement is smaller:
+
+> Phase 0 contracts and the first vertical slice must not embed assumptions that make these five capabilities require replacing STORY's state model, authority model, identity model or canon model later.
+
+A healthy first implementation should therefore remain compatible with:
+
+```text
+one player today        -> multiple participants later
+schema v1 today         -> deterministic migrations later
+one accepted timeline   -> explicit branches/forks later
+one local inference     -> governed resource scheduling later
+private local world     -> versioned public lifecycle later
+```
+
+These future paths should extend STORY's existing grammar and harness rather than creating parallel systems.

@@ -96,6 +96,10 @@ The opt-in pre-commit hook checks only the staged diff for Git integrity and con
 
 This fast hook is an early feedback boundary, not release proof. Use the existing local pre-CI validation below before pushing, and keep GitHub exact-head CI as the independent merge/release authority.
 
+The upgraded Workbench toolbar reports this evidence separately as `LOCAL GATE GREEN`, `RED`, `STALE`, `NOT RUN`, `DISABLED` or `BLOCKED`. Refreshing local gate status does not run Pi or a model. When current evidence contains a confirmed deterministic failure, `Scan selected` includes only the bounded failure contract in the existing Pi review package. Stale, malformed, unsupported and AI-authored opinions are never treated as confirmed deterministic failure evidence.
+
+The selected local reviewer remains advisory. It can recommend the smallest repair, but it cannot waive the gate, change source, certify its own work or merge. After an approved repair, rerun the same hook; use `Run-Local-Validation.cmd` for changed tests, BEN and the verified production build before pushing.
+
 The Workbench package also includes `Run-Local-Validation.cmd`.
 
 Run it before pushing a repair to GitHub. It uses the Workbench's saved `Local repo` path and runs, on your machine:

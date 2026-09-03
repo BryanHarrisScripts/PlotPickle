@@ -9,6 +9,7 @@ on:
       - "tests/issue-1373-workbench-canonical-pi-readiness.test.mjs"
       - "tests/issue-1382-workbench-pi-stdin-eof.test.mjs"
       - "tests/issue-1448-developer-workbench-local-reviewers.test.mjs"
+      - "tests/issue-1451-workbench-gate-handoff.test.mjs"
       - ".github/workflows/developer-workbench.yml"
   workflow_dispatch:
 
@@ -43,7 +44,7 @@ jobs:
           "WORKBENCH_ARTIFACT_NAME=PlotPickle-Developer-Workbench-win-x64-build-$build-$shortSha" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Contract regression
-        run: node --test tests/issue-1349-developer-workbench.test.mjs tests/issue-1373-workbench-canonical-pi-readiness.test.mjs tests/issue-1382-workbench-pi-stdin-eof.test.mjs tests/issue-1448-developer-workbench-local-reviewers.test.mjs
+        run: node --test tests/issue-1349-developer-workbench.test.mjs tests/issue-1373-workbench-canonical-pi-readiness.test.mjs tests/issue-1382-workbench-pi-stdin-eof.test.mjs tests/issue-1448-developer-workbench-local-reviewers.test.mjs tests/issue-1451-workbench-gate-handoff.test.mjs
 
       - name: Build Windows Workbench
         shell: pwsh

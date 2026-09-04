@@ -30,6 +30,7 @@ function canOfferReturningDemo(status: ProfileStatusProbe | null) {
 export default function DemoOnboardingBoundary({ children }: { readonly children: ReactNode }) {
   const [status, setStatus] = useState<ProfileStatusProbe | null>(null);
   const [mode, setMode] = useState<EntryMode>("probing");
+  const [returningDemoVisible, setReturningDemoVisible] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -41,6 +42,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
       .then((next) => {
         if (!active) return;
         setStatus(next);
+        setReturningDemoVisible(canOfferReturningDemo(next));
         setMode(isFreshDesktop(next) ? "first-run" : "normal");
       })
       .catch(() => {
@@ -48,6 +50,19 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (mode !== "normal" || !returningDemoVisible || !canOfferReturningDemo(status)) return;
+    const dismissAfterProfileInteraction = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('[data-profile-access-boundary="locked"] button, [data-profile-access-boundary="locked"] a, [data-profile-access-boundary="locked"] input, [data-profile-access-boundary="locked"] textarea')) {
+        setReturningDemoVisible(false);
+      }
+    };
+    window.addEventListener("click", dismissAfterProfileInteraction, true);
+    return () => window.removeEventListener("click", dismissAfterProfileInteraction, true);
+  }, [mode, returningDemoVisible, status]);
 
   if (mode === "probing") {
     return (
@@ -96,7 +111,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
   return (
     <>
       {children}
-      {canOfferReturningDemo(status) ? (
+      {returningDemoVisible && canOfferReturningDemo(status) ? (
         <button type="button" className={styles.demoShortcut} onClick={() => setMode("demo")}>
           Try DEMO
         </button>

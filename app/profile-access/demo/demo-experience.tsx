@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./demo-experience.module.css";
 
 type DemoProjection = {
@@ -135,17 +135,20 @@ export default function DemoExperience({ onExit, onEnterPlotPickle }: DemoExperi
   const [showMeView, setShowMeView] = useState<ShowMeView>("authority");
   const [showMeBusy, setShowMeBusy] = useState(false);
   const [showMeError, setShowMeError] = useState("");
+  const showMeRequest = useRef(0);
 
   async function explain(current: DemoProjection, view: ShowMeView) {
+    const requestNumber = ++showMeRequest.current;
     setShowMeView(view);
     setShowMeBusy(true);
     setShowMeError("");
     try {
-      setShowMe(await requestShowMe(current.decisionHistory.map((decision) => decision.decisionId), view));
+      const projection = await requestShowMe(current.decisionHistory.map((decision) => decision.decisionId), view);
+      if (showMeRequest.current === requestNumber) setShowMe(projection);
     } catch (cause) {
-      setShowMeError(cause instanceof Error ? cause.message : String(cause));
+      if (showMeRequest.current === requestNumber) setShowMeError(cause instanceof Error ? cause.message : String(cause));
     } finally {
-      setShowMeBusy(false);
+      if (showMeRequest.current === requestNumber) setShowMeBusy(false);
     }
   }
 
@@ -290,7 +293,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle }: DemoExperi
         ) : null}
 
         {world ? (
-          <section className={styles.showMe} aria-label="Sage Show Me read-only explanation" data-sage-show-me="read-only">
+          <section className={styles.showMe} aria-label="Sage Show Me read-only explanation" data-sage-show-me="read-only" aria-busy={showMeBusy}>
             <div className={styles.showMeHeader}>
               <div><p className={styles.eyebrow}>Sage Brinewick · Show Me</p><h2>See the smallest useful explanation</h2></div>
               <span>Read-only · no model or provider required</span>
@@ -300,7 +303,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle }: DemoExperi
                 <button type="button" role="tab" aria-selected={showMeView === option.id} disabled={showMeBusy} key={option.id} onClick={() => void explain(world, option.id)}>{option.label}</button>
               ))}
             </div>
-            {showMeBusy && !showMe ? <p className={styles.showMeEmpty}>Sage is opening that view…</p> : <ShowMeCanvas projection={showMe} />}
+            {showMeBusy ? <p className={styles.showMeEmpty}>Sage is opening that view…</p> : <ShowMeCanvas projection={showMe} />}
             {showMeError ? <p role="alert" className={styles.error}>{showMeError}</p> : null}
           </section>
         ) : null}

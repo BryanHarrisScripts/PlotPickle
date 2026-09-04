@@ -53,14 +53,13 @@ export function validateStoryKnowledgeReferenceSet(references) {
 }
 
 function referenceIsVisible(reference, scope, subjectRef) {
-  if (reference.partition === "audience") return true;
+  if (scope === "audience") return reference.partition === "audience";
   if (scope === "player") return reference.partition === "player";
   if (scope === "character") {
     return reference.partition === "character" && reference.subjectRef === subjectRef;
   }
   if (scope === "agent") {
-    return (reference.partition === "character" || reference.partition === "agent-visible")
-      && reference.subjectRef === subjectRef;
+    return reference.partition === "agent-visible" && reference.subjectRef === subjectRef;
   }
   return false;
 }

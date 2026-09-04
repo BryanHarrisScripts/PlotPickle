@@ -1,0 +1,176 @@
+import type { PlotPickleProject } from "../../lib/projects/project";
+import {
+  canonicalProposalById,
+  createCanonicalProposal,
+  readCanonicalRevisionStore,
+  type CanonicalProposalRecord,
+  type CanonicalRevisionRecord,
+} from "../../lib/projects/persistence/project-revisions";
+import { readStorySessionHistory } from "./history-persistence.mjs";
+import {
+  loadStorySessionSnapshot,
+  persistStorySessionSnapshot,
+} from "./project-persistence.mjs";
+
+export const STORY_CANON_ADMISSION_SKILL_URI = "story://the-unwritten/canon-admission" as const;
+
+export type StoryCanonProposalInput = {
+  project: PlotPickleProject;
+  sessionId: string;
+  targetIds: string[];
+  requestedByProfileId: string;
+  safeSummary: string;
+  proposalId?: string;
+  proposedAt?: string;
+};
+
+export type StoryCanonProposalResult = {
+  status: "proposed";
+  project: PlotPickleProject;
+  proposal: CanonicalProposalRecord;
+  evidence: {
+    sessionId: string;
+    acceptedEventLogRef: string;
+    checkpointRef: string;
+    stateRevision: number;
+    stateHash: string;
+  };
+};
+
+export type StoryCanonAdmissionResult = {
+  status: "recorded" | "already-recorded";
+  project: PlotPickleProject;
+  proposal: CanonicalProposalRecord;
+  revision: CanonicalRevisionRecord;
+};
+
+function requireReference(value: unknown, label: string) {
+  if (typeof value !== "string" || !value.trim()) throw new Error(`${label} must be a non-empty reference.`);
+  return value.trim();
+}
+
+function uniqueReferences(values: unknown, label: string) {
+  if (!Array.isArray(values) || values.length === 0) throw new Error(`${label} must contain at least one reference.`);
+  const normalized = values.map((value, index) => requireReference(value, `${label}[${index}]`));
+  return [...new Set(normalized)];
+}
+
+function storyOutcomeFingerprint(stateHash: unknown) {
+  if (typeof stateHash !== "string" || !/^[a-f0-9]{64}$/u.test(stateHash)) {
+    throw new Error("STORY canon proposal requires a valid final checkpoint hash.");
+  }
+  return `story:${stateHash}`;
+}
+
+function completedSessionEvidence(project: PlotPickleProject, sessionId: string) {
+  const loaded = loadStorySessionSnapshot(project, sessionId);
+  if (!loaded.ok || !loaded.snapshot) {
+    throw new Error(`STORY session ${sessionId} cannot propose canon without a valid persisted snapshot.`);
+  }
+  if (loaded.snapshot.runtime.session.status !== "completed") {
+    throw new Error("Only a completed STORY session may propose an outcome for durable canon.");
+  }
+  if (loaded.snapshot.runtime.session.canonAdmissionRef !== null) {
+    throw new Error("This STORY session already records a canonical admission.");
+  }
+
+  const history = readStorySessionHistory(project, sessionId);
+  if (!history.ok || !history.history?.latestCheckpointRef) {
+    throw new Error(`STORY session ${sessionId} cannot propose canon without valid accepted history.`);
+  }
+  const checkpointRef = history.history.latestCheckpointRef;
+  const checkpoint = history.history.checkpoints[checkpointRef];
+  if (!checkpoint || checkpoint.revision !== loaded.snapshot.mechanicalState.revision) {
+    throw new Error("STORY session history does not match the persisted final state revision.");
+  }
+  if (loaded.snapshot.runtime.session.latestCheckpointRef !== checkpointRef) {
+    throw new Error("STORY session snapshot does not reference the final accepted-history checkpoint.");
+  }
+
+  return {
+    snapshot: loaded.snapshot,
+    acceptedEventLogRef: history.history.acceptedEventLogRef,
+    checkpointRef,
+    checkpoint,
+  };
+}
+
+export function proposeCompletedStorySessionOutcomeForCanon(input: StoryCanonProposalInput): StoryCanonProposalResult {
+  const sessionId = requireReference(input.sessionId, "sessionId");
+  const requestedByProfileId = requireReference(input.requestedByProfileId, "requestedByProfileId");
+  const targetIds = uniqueReferences(input.targetIds, "targetIds");
+  const summary = typeof input.safeSummary === "string" ? input.safeSummary.trim() : "";
+  if (!summary) throw new Error("A safe summary is required before a STORY outcome can be proposed for canon.");
+
+  const evidence = completedSessionEvidence(input.project, sessionId);
+  const created = createCanonicalProposal(input.project, {
+    id: input.proposalId,
+    kind: "story",
+    targetIds,
+    profileId: requestedByProfileId,
+    skillUri: STORY_CANON_ADMISSION_SKILL_URI,
+    runId: `story-session:${sessionId}`,
+    sourceKind: "system",
+    contentFingerprint: storyOutcomeFingerprint(evidence.checkpoint.stateHash),
+    safeSummary: summary,
+    generation: null,
+    contextReceipt: null,
+    generatedAt: input.proposedAt,
+  });
+
+  return {
+    status: "proposed",
+    project: created.project,
+    proposal: created.proposal,
+    evidence: {
+      sessionId,
+      acceptedEventLogRef: evidence.acceptedEventLogRef,
+      checkpointRef: evidence.checkpointRef,
+      stateRevision: evidence.checkpoint.revision,
+      stateHash: evidence.checkpoint.stateHash,
+    },
+  };
+}
+
+export function recordWriterApprovedStoryCanonAdmission(input: {
+  project: PlotPickleProject;
+  sessionId: string;
+  proposalId: string;
+}): StoryCanonAdmissionResult {
+  const sessionId = requireReference(input.sessionId, "sessionId");
+  const proposalId = requireReference(input.proposalId, "proposalId");
+  const evidence = completedSessionEvidence(input.project, sessionId);
+  const proposal = canonicalProposalById(input.project, proposalId);
+  if (!proposal || proposal.status !== "accepted" || proposal.appliedRevision === null) {
+    throw new Error("STORY can record canon admission only after the host PPF proposal is writer-approved and accepted.");
+  }
+  if (proposal.kind !== "story"
+    || proposal.sourceKind !== "system"
+    || proposal.skillUri !== STORY_CANON_ADMISSION_SKILL_URI
+    || proposal.runId !== `story-session:${sessionId}`
+    || proposal.contentFingerprint !== storyOutcomeFingerprint(evidence.checkpoint.stateHash)) {
+    throw new Error("Accepted canonical proposal does not match this STORY session outcome.");
+  }
+
+  const revisionStore = readCanonicalRevisionStore(input.project);
+  const revision = revisionStore.history.find((candidate) =>
+    candidate.proposalId === proposal.id && candidate.revision === proposal.appliedRevision) ?? null;
+  if (!revision) throw new Error("Accepted STORY canonical proposal is missing its canonical revision record.");
+
+  const existingAdmissionRef = evidence.snapshot.runtime.session.canonAdmissionRef;
+  if (existingAdmissionRef === revision.id) {
+    return { status: "already-recorded", project: input.project, proposal, revision };
+  }
+  if (existingAdmissionRef !== null) {
+    throw new Error("STORY session is already linked to a different canonical revision.");
+  }
+
+  const runtime = structuredClone(evidence.snapshot.runtime);
+  runtime.session.canonAdmissionRef = revision.id;
+  const persisted = persistStorySessionSnapshot(input.project, {
+    runtime,
+    state: evidence.snapshot.mechanicalState,
+    savedAt: revision.acceptedAt,
+  });
+  return { status: "recorded", project: persisted.project, proposal, revision };
+}

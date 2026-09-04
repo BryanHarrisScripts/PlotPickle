@@ -1,0 +1,129 @@
+.entry {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: radial-gradient(circle at 15% 5%, rgba(50, 212, 223, 0.13), transparent 32rem), #081018;
+  color: #e8f5f6;
+}
+
+.card {
+  width: min(760px, 100%);
+  display: grid;
+  gap: 20px;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid #2b4050;
+  border-radius: 22px;
+  background: #111b25;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.card h1,
+.card p {
+  margin: 0;
+}
+
+.card h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.card p,
+.card small {
+  color: #9fb5ba;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  color: #4ee8f2 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.choices button {
+  min-height: 154px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #385467;
+  border-radius: 14px;
+  background: #0d1822;
+  color: #e8f5f6;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choices button:hover,
+.choices button:focus-visible {
+  border-color: #4bbdb8;
+  background: #152630;
+}
+
+.choices button:focus-visible,
+.demoShortcut:focus-visible {
+  outline: 2px solid #dc874c;
+  outline-offset: 2px;
+}
+
+.choices strong {
+  color: #d9fffb;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.choices span {
+  color: #9fb5ba;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.demoShortcut {
+  position: fixed;
+  z-index: 10001;
+  left: 14px;
+  bottom: 14px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid #385467;
+  border-radius: 10px;
+  background: rgba(13, 24, 34, 0.96);
+  color: #d9fffb;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.demoShortcut:hover {
+  border-color: #4bbdb8;
+  background: #152630;
+}
+
+@media (max-width: 700px) {
+  .entry {
+    padding: 14px;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .choices {
+    grid-template-columns: 1fr;
+  }
+
+  .choices button {
+    min-height: 0;
+  }
+}

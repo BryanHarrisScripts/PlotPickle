@@ -64,9 +64,17 @@ The handoff contract rejects privileged fields such as AuthContext/session mater
 
 ## First-run behavior
 
-On a fresh desktop installation, the eventual UI may offer two primary choices: `DEMO — See PlotPickle work` and `ENTER PLOTPICKLE — Create your local profile`. Returning users may continue to see the existing safe profile chooser first while DEMO remains available as a secondary action.
+Phase 2 mounts a thin `DemoOnboardingBoundary` outside the existing `ProfileAccessBoundary`. The wrapper performs a read-only local profile-status probe and does not implement login, profile creation, Guest, persistence or authority decisions itself.
 
-Server-network mode keeps its existing fail-closed authentication/bootstrap behavior. DEMO must not accidentally become an anonymous remote application surface unless a later issue explicitly designs and secures that mode.
+On a fresh desktop installation it presents two primary choices: `DEMO — See PlotPickle work` and `ENTER PLOTPICKLE — Create your local profile`. Choosing ENTER simply mounts the unchanged existing profile boundary. Choosing DEMO mounts only the synthetic demo experience; the normal PlotPickle workspace and overlay hosts remain unmounted until DEMO is exited or the Human chooses to enter PlotPickle.
+
+The browser DEMO surface is projection-only and does not bundle STORY's Node-owned resolver. It calls the same-origin local `/api/demo/story` route, which runs in the Node runtime, is available only when PlotPickle is in `desktop-loopback` mode, reconstructs the synthetic world from the known seed plus the submitted ordered decision ids, and returns only the bounded fields needed by the DEMO UI. This is local application IPC over the existing loopback server, not an Internet or provider dependency. Server-network receives `DEMO_LOCAL_ONLY` and cannot use the route as anonymous remote application access.
+
+Returning locked desktop users continue to receive the existing safe profile chooser first, with `Try DEMO` available as a secondary action. Authenticated Humans and active autonomous Guest runs are not interrupted by DEMO onboarding.
+
+Server-network mode keeps its existing fail-closed authentication/bootstrap behavior. The onboarding wrapper never offers DEMO from `server-network`, so Phase 2 does not create anonymous remote application access.
+
+The interactive Phase 2 surface exposes explicit reset and exit controls. Reset reconstructs the Phase 1 world from the known seed; exit returns to the appropriate fresh-entry or existing-profile surface. The UI does not request provider setup, BUZZ identity, GitHub, Google or Internet access.
 
 ## Invariants
 
@@ -81,6 +89,7 @@ Server-network mode keeps its existing fail-closed authentication/bootstrap beha
 9. Make This Mine requires explicit Human approval and a fresh Human profile/project boundary.
 10. Portable starter content is data, never authority.
 11. Returning-user profile behavior and existing Guest behavior remain unchanged unless a later implementation phase deliberately changes presentation only.
+12. Browser DEMO code receives a bounded projection and never imports Node-only STORY mechanics directly.
 
 ## Phase 0 exit
 
@@ -89,3 +98,7 @@ Phase 0 is complete: the architecture contract is documented, executable boundar
 ## Phase 1 exit
 
 Phase 1 is complete when the bundled scenario proves both consequence paths through the production STORY reducer, private knowledge remains partitioned, every runtime reference is synthetic, reset reproduces the clean initial state, replay is deterministic from the known seed, the repository architecture audit reports no sibling-module private import or worsened STORY root fan-out, and the adapter has no Human-private, provider, connector, host-filesystem or real-canon dependency.
+
+## Phase 2 exit
+
+Phase 2 is complete when a fresh desktop Node visibly offers DEMO or the existing local-profile path, DEMO can run and reset the five-scene prepared world, exiting returns to the correct local entry surface, returning locked desktop users retain the existing chooser with DEMO secondary, authenticated/Guest behavior is not replaced, server-network remains fail-closed, and deterministic tests plus repository architecture/quality gates confirm the UI introduced no new authority path.

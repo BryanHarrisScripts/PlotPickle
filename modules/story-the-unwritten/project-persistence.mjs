@@ -9,6 +9,7 @@ export const STORY_PROJECT_EXTENSION_FIELDS = Object.freeze([
   "characterStates",
   "memoryEvents",
   "relationshipEdges",
+  "sessionHistories",
 ]);
 
 const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
@@ -80,6 +81,7 @@ const STORY_OPTIONAL_RECORD_STORES = [
   "characterStates",
   "memoryEvents",
   "relationshipEdges",
+  "sessionHistories",
 ];
 
 function isRecord(value) {

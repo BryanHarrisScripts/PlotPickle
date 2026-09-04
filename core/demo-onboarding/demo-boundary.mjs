@@ -88,6 +88,14 @@ export function createDemoReset({ boundary, initialState }) {
 
 function assertPortableStarterContent(value, trail = "starterContent") {
   if (value === null || value === undefined) return;
+  if (typeof value === "string") {
+    if (/^demo:/u.test(value.trim())) {
+      const error = new Error(`DEMO handoff cannot contain synthetic runtime ref ${trail}`);
+      error.code = "DEMO_HANDOFF_SYNTHETIC_REF";
+      throw error;
+    }
+    return;
+  }
   if (Array.isArray(value)) {
     value.forEach((entry, index) => assertPortableStarterContent(entry, `${trail}[${index}]`));
     return;

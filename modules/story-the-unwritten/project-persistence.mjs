@@ -5,6 +5,7 @@ export const STORY_PROJECT_PERSISTENCE_VERSION = 1;
 
 const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
 const STORY_SESSION_STATUSES = new Set(["ready", "active", "paused", "completed", "failed"]);
+const STORY_EXTENSION_FIELDS = ["version", "sessions"];
 const STORY_SNAPSHOT_FIELDS = [
   "version",
   "sessionId",
@@ -272,15 +273,27 @@ export function createStorySessionSnapshot({ runtime, state, savedAt }) {
   };
 }
 
+function validateCurrentExtensionStore(raw) {
+  const errors = [...unknownFieldErrors(raw, STORY_EXTENSION_FIELDS, "STORY project extension")];
+  if (!isRecord(raw.sessions)) errors.push("STORY project extension sessions must be an object");
+  return errors;
+}
+
 function readExtensionStore(project) {
   const extensions = isRecord(project?.extensions) ? project.extensions : {};
   if (!Object.prototype.hasOwnProperty.call(extensions, STORY_PROJECT_EXTENSION_KEY)) {
-    return { kind: "missing", extensions, store: null };
+    return { kind: "missing", extensions, store: null, errors: [] };
   }
   const raw = extensions[STORY_PROJECT_EXTENSION_KEY];
-  if (!isRecord(raw)) return { kind: "invalid", extensions, store: raw };
-  if (raw.version !== STORY_PROJECT_PERSISTENCE_VERSION) return { kind: "incompatible", extensions, store: raw };
-  return { kind: "ready", extensions, store: raw };
+  if (!isRecord(raw)) return { kind: "invalid", extensions, store: raw, errors: ["STORY project extension must be an object"] };
+  if (raw.version !== STORY_PROJECT_PERSISTENCE_VERSION) {
+    return Number.isSafeInteger(raw.version)
+      ? { kind: "incompatible", extensions, store: raw, errors: [] }
+      : { kind: "invalid", extensions, store: raw, errors: ["STORY project extension version is invalid"] };
+  }
+  const errors = validateCurrentExtensionStore(raw);
+  if (errors.length) return { kind: "invalid", extensions, store: raw, errors };
+  return { kind: "ready", extensions, store: raw, errors: [] };
 }
 
 export function persistStorySessionSnapshot(project, input) {
@@ -293,7 +306,16 @@ export function persistStorySessionSnapshot(project, input) {
     throw new Error("Cannot persist STORY session into malformed project extension data");
   }
   if (isRecord(existingValue) && existingValue.version !== STORY_PROJECT_PERSISTENCE_VERSION) {
-    throw new Error(`Cannot persist STORY session into incompatible project extension version ${String(existingValue.version)}`);
+    if (Number.isSafeInteger(existingValue.version)) {
+      throw new Error(`Cannot persist STORY session into incompatible project extension version ${String(existingValue.version)}`);
+    }
+    throw new Error("Cannot persist STORY session into malformed project extension data");
+  }
+  if (isRecord(existingValue)) {
+    const extensionErrors = validateCurrentExtensionStore(existingValue);
+    if (extensionErrors.length) {
+      throw new Error(`Cannot persist STORY session into malformed project extension data: ${extensionErrors.join("; ")}`);
+    }
   }
   const existing = isRecord(existingValue) ? existingValue : {};
   const sessions = isRecord(existing.sessions) ? existing.sessions : {};
@@ -343,10 +365,10 @@ export function loadStorySessionSnapshot(project, sessionId) {
   if (!isReference(sessionId)) return { ok: false, reason: "invalid-session-id", snapshot: null, errors: ["session id is required"] };
   const extension = readExtensionStore(project);
   if (extension.kind === "missing") return { ok: false, reason: "not-found", snapshot: null, errors: [] };
-  if (extension.kind === "invalid") return { ok: false, reason: "invalid-extension", snapshot: null, errors: ["STORY project extension is malformed"] };
+  if (extension.kind === "invalid") return { ok: false, reason: "invalid-extension", snapshot: null, errors: extension.errors };
   if (extension.kind === "incompatible") return { ok: false, reason: "incompatible-version", snapshot: null, errors: [] };
 
-  const sessions = isRecord(extension.store.sessions) ? extension.store.sessions : {};
+  const sessions = extension.store.sessions;
   if (!Object.prototype.hasOwnProperty.call(sessions, sessionId)) {
     return { ok: false, reason: "not-found", snapshot: null, errors: [] };
   }

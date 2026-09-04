@@ -5,6 +5,57 @@ export const STORY_PROJECT_PERSISTENCE_VERSION = 1;
 
 const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
 const STORY_SESSION_STATUSES = new Set(["ready", "active", "paused", "completed", "failed"]);
+const STORY_RUNTIME_FIELDS = ["session", "scenes"];
+const STORY_SESSION_FIELDS = [
+  "id",
+  "schemaVersion",
+  "gameDefinitionId",
+  "worldId",
+  "worldRevisionRef",
+  "ppfProjectRef",
+  "status",
+  "currentSceneId",
+  "sceneIds",
+  "stateRevision",
+  "stateZoneIndexRefs",
+  "resolutionQueue",
+  "acceptedEventLogRef",
+  "latestCheckpointRef",
+  "canonAdmissionRef",
+];
+const STORY_SCENE_FIELDS = [
+  "id",
+  "ordinal",
+  "status",
+  "participantIds",
+  "locationId",
+  "objectiveRefs",
+  "activeConflictIds",
+  "unresolvedThreadRefs",
+  "narrativeBudget",
+  "operationsUsed",
+  "checkpointRef",
+];
+const STORY_QUEUE_FIELDS = ["nextSequence", "queuedEventIds", "processedIdempotencyKeys", "triggerDepth", "limits"];
+const STORY_LIMIT_FIELDS = ["maximumTriggerDepth", "maximumOperationsPerScene", "maximumAgentCallsPerTurn"];
+const STORY_MECHANICAL_STATE_FIELDS = [
+  "revision",
+  "values",
+  "characterLocations",
+  "objectCustody",
+  "knowledgeByCharacter",
+  "relationships",
+  "openThreads",
+];
+const STORY_STATE_ZONE_FIELDS = [
+  "available",
+  "active-scene",
+  "world",
+  "custody",
+  "hidden-knowledge",
+  "unresolved-threads",
+  "resolved-history",
+];
 
 function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -38,6 +89,20 @@ function normalizeTimestamp(value) {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
 }
 
+function unknownFieldErrors(value, allowedFields, label) {
+  if (!isRecord(value)) return [];
+  const allowed = new Set(allowedFields);
+  return Object.keys(value)
+    .filter((field) => !allowed.has(field))
+    .map((field) => `${label} contains unsupported field ${field}`);
+}
+
+function validateReferenceArray(value, label) {
+  return Array.isArray(value) && value.every((item) => isReference(item))
+    ? []
+    : [`${label} must contain reference strings only`];
+}
+
 function validateReferenceMap(recordValue, label) {
   if (!isRecord(recordValue)) return [`mechanical state ${label} must be an object`];
   for (const [key, value] of Object.entries(recordValue)) {
@@ -49,6 +114,7 @@ function validateReferenceMap(recordValue, label) {
 function validateMechanicalState(state) {
   const errors = [];
   if (!isRecord(state)) return ["mechanical state must be an object"];
+  errors.push(...unknownFieldErrors(state, STORY_MECHANICAL_STATE_FIELDS, "mechanical state"));
   if (!isNonNegativeInteger(state.revision)) errors.push("mechanical state revision must be a non-negative safe integer");
 
   if (!isRecord(state.values)) {
@@ -77,28 +143,43 @@ function validateMechanicalState(state) {
     errors.push("mechanical state relationships must map relationship ids to finite numbers");
   }
 
-  if (!Array.isArray(state.openThreads) || state.openThreads.some((ref) => !isReference(ref))) {
-    errors.push("mechanical state openThreads must contain reference strings only");
-  }
+  errors.push(...validateReferenceArray(state.openThreads, "mechanical state openThreads"));
   return errors;
 }
 
 function validateResolutionQueue(queue) {
   if (!isRecord(queue)) return ["session resolutionQueue is required for resumable idempotency"];
-  const errors = [];
+  const errors = [...unknownFieldErrors(queue, STORY_QUEUE_FIELDS, "resolutionQueue")];
   if (!isNonNegativeInteger(queue.nextSequence)) errors.push("resolutionQueue nextSequence must be a non-negative safe integer");
-  if (!Array.isArray(queue.queuedEventIds) || queue.queuedEventIds.some((id) => !isReference(id))) {
-    errors.push("resolutionQueue queuedEventIds must contain reference strings only");
+  errors.push(...validateReferenceArray(queue.queuedEventIds, "resolutionQueue queuedEventIds"));
+  if (Array.isArray(queue.queuedEventIds) && queue.queuedEventIds.length > 0) {
+    errors.push("resolutionQueue must be quiescent before persistence; queued events are not persisted by this Phase 2 slice");
   }
-  if (!Array.isArray(queue.processedIdempotencyKeys) || queue.processedIdempotencyKeys.some((key) => !isReference(key))) {
-    errors.push("resolutionQueue processedIdempotencyKeys must contain non-empty strings only");
+  errors.push(...validateReferenceArray(queue.processedIdempotencyKeys, "resolutionQueue processedIdempotencyKeys"));
+  if (Array.isArray(queue.processedIdempotencyKeys)
+    && new Set(queue.processedIdempotencyKeys).size !== queue.processedIdempotencyKeys.length) {
+    errors.push("resolutionQueue processedIdempotencyKeys must not contain duplicates");
   }
-  if (!isNonNegativeInteger(queue.triggerDepth)) errors.push("resolutionQueue triggerDepth must be a non-negative safe integer");
-  if (!isRecord(queue.limits)
-    || !isPositiveInteger(queue.limits.maximumTriggerDepth)
-    || !isPositiveInteger(queue.limits.maximumOperationsPerScene)
-    || !isPositiveInteger(queue.limits.maximumAgentCallsPerTurn)) {
-    errors.push("resolutionQueue limits must contain positive finite integer budgets");
+  if (queue.triggerDepth !== 0) errors.push("resolutionQueue triggerDepth must be zero at a persisted checkpoint");
+
+  if (!isRecord(queue.limits)) {
+    errors.push("resolutionQueue limits must be an object");
+  } else {
+    errors.push(...unknownFieldErrors(queue.limits, STORY_LIMIT_FIELDS, "resolutionQueue limits"));
+    if (!isPositiveInteger(queue.limits.maximumTriggerDepth)
+      || !isPositiveInteger(queue.limits.maximumOperationsPerScene)
+      || !isPositiveInteger(queue.limits.maximumAgentCallsPerTurn)) {
+      errors.push("resolutionQueue limits must contain positive finite integer budgets");
+    }
+  }
+  return errors;
+}
+
+function validateStateZoneReferences(stateZoneIndexRefs) {
+  if (!isRecord(stateZoneIndexRefs)) return ["session stateZoneIndexRefs must remain reference-only metadata"];
+  const errors = [...unknownFieldErrors(stateZoneIndexRefs, STORY_STATE_ZONE_FIELDS, "session stateZoneIndexRefs")];
+  for (const field of STORY_STATE_ZONE_FIELDS) {
+    if (!isReference(stateZoneIndexRefs[field])) errors.push(`session stateZoneIndexRefs.${field} must be a reference`);
   }
   return errors;
 }
@@ -106,13 +187,15 @@ function validateResolutionQueue(queue) {
 function validateRuntime(runtime) {
   const errors = [];
   if (!isRecord(runtime)) return ["session runtime must be an object"];
+  errors.push(...unknownFieldErrors(runtime, STORY_RUNTIME_FIELDS, "session runtime"));
   if (!isRecord(runtime.session)) errors.push("session runtime must contain a session object");
   if (!Array.isArray(runtime.scenes) || runtime.scenes.length !== STORY_FIVE_SCENE_COUNT) {
     errors.push(`session runtime must contain exactly ${STORY_FIVE_SCENE_COUNT} scenes`);
   }
-  if (errors.length) return errors;
+  if (errors.some((error) => error.includes("must contain a session object") || error.includes("must contain exactly"))) return errors;
 
   const session = runtime.session;
+  errors.push(...unknownFieldErrors(session, STORY_SESSION_FIELDS, "session"));
   for (const field of ["id", "gameDefinitionId", "worldId", "worldRevisionRef", "ppfProjectRef", "acceptedEventLogRef", "latestCheckpointRef"]) {
     if (!isReference(session[field])) errors.push(`session ${field} must be a non-empty reference`);
   }
@@ -125,13 +208,13 @@ function validateRuntime(runtime) {
   if (session.currentSceneId !== null && !isReference(session.currentSceneId)) {
     errors.push("session currentSceneId must be null or a non-empty reference");
   }
+  if (isReference(session.currentSceneId) && Array.isArray(session.sceneIds) && !session.sceneIds.includes(session.currentSceneId)) {
+    errors.push("session currentSceneId must reference one of the persisted scenes");
+  }
   if (session.canonAdmissionRef !== null && !isReference(session.canonAdmissionRef)) {
     errors.push("session canonAdmissionRef must be null or a non-empty reference");
   }
-  if (!isRecord(session.stateZoneIndexRefs)
-    || Object.values(session.stateZoneIndexRefs).some((ref) => !isReference(ref))) {
-    errors.push("session stateZoneIndexRefs must remain reference-only metadata");
-  }
+  errors.push(...validateStateZoneReferences(session.stateZoneIndexRefs));
   errors.push(...validateResolutionQueue(session.resolutionQueue));
 
   const sceneIds = Array.isArray(session.sceneIds) ? session.sceneIds : [];
@@ -140,8 +223,13 @@ function validateRuntime(runtime) {
       errors.push("persisted scenes must retain stable ordered ids");
       return;
     }
+    errors.push(...unknownFieldErrors(scene, STORY_SCENE_FIELDS, `persisted scene ${scene.id}`));
     if (!STORY_SCENE_STATUSES.has(scene.status)) errors.push(`persisted scene ${scene.id} has unsupported status`);
     if (!isReference(scene.locationId)) errors.push(`persisted scene ${scene.id} locationId must be a reference`);
+    errors.push(...validateReferenceArray(scene.participantIds, `persisted scene ${scene.id} participantIds`));
+    errors.push(...validateReferenceArray(scene.objectiveRefs, `persisted scene ${scene.id} objectiveRefs`));
+    errors.push(...validateReferenceArray(scene.activeConflictIds, `persisted scene ${scene.id} activeConflictIds`));
+    errors.push(...validateReferenceArray(scene.unresolvedThreadRefs, `persisted scene ${scene.id} unresolvedThreadRefs`));
     if (!isNonNegativeInteger(scene.operationsUsed)) errors.push(`persisted scene ${scene.id} operationsUsed must be a non-negative safe integer`);
     if (!isPositiveInteger(scene.narrativeBudget)) errors.push(`persisted scene ${scene.id} narrativeBudget must be a positive safe integer`);
     if (!isReference(scene.checkpointRef)) errors.push(`persisted scene ${scene.id} checkpointRef must be a reference`);
@@ -175,8 +263,11 @@ export function createStorySessionSnapshot({ runtime, state, savedAt }) {
 
 function readExtensionStore(project) {
   const extensions = isRecord(project?.extensions) ? project.extensions : {};
-  const raw = isRecord(extensions[STORY_PROJECT_EXTENSION_KEY]) ? extensions[STORY_PROJECT_EXTENSION_KEY] : null;
-  if (!raw) return { kind: "missing", extensions, store: null };
+  if (!Object.prototype.hasOwnProperty.call(extensions, STORY_PROJECT_EXTENSION_KEY)) {
+    return { kind: "missing", extensions, store: null };
+  }
+  const raw = extensions[STORY_PROJECT_EXTENSION_KEY];
+  if (!isRecord(raw)) return { kind: "invalid", extensions, store: raw };
   if (raw.version !== STORY_PROJECT_PERSISTENCE_VERSION) return { kind: "incompatible", extensions, store: raw };
   return { kind: "ready", extensions, store: raw };
 }
@@ -185,11 +276,15 @@ export function persistStorySessionSnapshot(project, input) {
   if (!isRecord(project) || !isReference(project.id)) throw new Error("PlotPickle project with an id is required for STORY persistence");
   const snapshot = createStorySessionSnapshot(input);
   const extensions = isRecord(project.extensions) ? project.extensions : {};
+  const hasExisting = Object.prototype.hasOwnProperty.call(extensions, STORY_PROJECT_EXTENSION_KEY);
   const existingValue = extensions[STORY_PROJECT_EXTENSION_KEY];
-  const existing = isRecord(existingValue) ? existingValue : {};
-  if (isRecord(existingValue) && Object.keys(existingValue).length > 0 && existingValue.version !== STORY_PROJECT_PERSISTENCE_VERSION) {
+  if (hasExisting && !isRecord(existingValue)) {
+    throw new Error("Cannot persist STORY session into malformed project extension data");
+  }
+  if (isRecord(existingValue) && existingValue.version !== STORY_PROJECT_PERSISTENCE_VERSION) {
     throw new Error(`Cannot persist STORY session into incompatible project extension version ${String(existingValue.version)}`);
   }
+  const existing = isRecord(existingValue) ? existingValue : {};
   const sessions = isRecord(existing.sessions) ? existing.sessions : {};
   return {
     project: {
@@ -235,6 +330,7 @@ export function loadStorySessionSnapshot(project, sessionId) {
   if (!isReference(sessionId)) return { ok: false, reason: "invalid-session-id", snapshot: null, errors: ["session id is required"] };
   const extension = readExtensionStore(project);
   if (extension.kind === "missing") return { ok: false, reason: "not-found", snapshot: null, errors: [] };
+  if (extension.kind === "invalid") return { ok: false, reason: "invalid-extension", snapshot: null, errors: ["STORY project extension is malformed"] };
   if (extension.kind === "incompatible") return { ok: false, reason: "incompatible-version", snapshot: null, errors: [] };
 
   const sessions = isRecord(extension.store.sessions) ? extension.store.sessions : {};

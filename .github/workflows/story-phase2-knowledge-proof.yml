@@ -1,0 +1,19 @@
+name: STORY Phase 2 Knowledge Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "modules/story-the-unwritten/knowledge-projection.mjs"
+      - "tests/issue-1675-story-knowledge-isolation.test.mjs"
+      - ".github/workflows/story-phase2-knowledge-proof.yml"
+
+jobs:
+  knowledge-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/issue-1675-story-knowledge-isolation.test.mjs

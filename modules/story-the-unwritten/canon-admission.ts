@@ -65,18 +65,15 @@ function storyOutcomeFingerprint(stateHash: unknown) {
 function completedSessionEvidence(project: PlotPickleProject, sessionId: string) {
   const loaded = loadStorySessionSnapshot(project, sessionId);
   if (!loaded.ok || !loaded.snapshot) {
-    throw new Error(`STORY session ${sessionId} cannot propose canon without a valid persisted snapshot.`);
+    throw new Error(`STORY session ${sessionId} requires a valid persisted snapshot for canon review.`);
   }
   if (loaded.snapshot.runtime.session.status !== "completed") {
-    throw new Error("Only a completed STORY session may propose an outcome for durable canon.");
-  }
-  if (loaded.snapshot.runtime.session.canonAdmissionRef !== null) {
-    throw new Error("This STORY session already records a canonical admission.");
+    throw new Error("Only a completed STORY session may participate in durable canon review.");
   }
 
   const history = readStorySessionHistory(project, sessionId);
   if (!history.ok || !history.history?.latestCheckpointRef) {
-    throw new Error(`STORY session ${sessionId} cannot propose canon without valid accepted history.`);
+    throw new Error(`STORY session ${sessionId} requires valid accepted history for canon review.`);
   }
   const checkpointRef = history.history.latestCheckpointRef;
   const checkpoint = history.history.checkpoints[checkpointRef];
@@ -103,6 +100,9 @@ export function proposeCompletedStorySessionOutcomeForCanon(input: StoryCanonPro
   if (!summary) throw new Error("A safe summary is required before a STORY outcome can be proposed for canon.");
 
   const evidence = completedSessionEvidence(input.project, sessionId);
+  if (evidence.snapshot.runtime.session.canonAdmissionRef !== null) {
+    throw new Error("This STORY session already records a canonical admission.");
+  }
   const created = createCanonicalProposal(input.project, {
     id: input.proposalId,
     kind: "story",

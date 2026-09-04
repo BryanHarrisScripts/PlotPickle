@@ -39,7 +39,8 @@ test("#1692 Phase 2 returning locked desktop users keep the existing chooser wit
   const source = await read("app/profile-access/demo-onboarding-boundary.tsx");
 
   assert.match(source, /status\.configured[\s\S]*!status\.authenticated[\s\S]*!status\.autonomousGuest\?\.active/u);
-  assert.match(source, /\{children\}[\s\S]*canOfferReturningDemo\(status\)[\s\S]*Try DEMO/u);
+  assert.match(source, /returningDemoVisible && canOfferReturningDemo\(status\)[\s\S]*Try DEMO/u);
+  assert.match(source, /data-profile-access-boundary="locked"[\s\S]*setReturningDemoVisible\(false\)/u);
 });
 
 test("#1692 Phase 2 interactive DEMO reuses the core authority contract and STORY-owned prepared world", async () => {

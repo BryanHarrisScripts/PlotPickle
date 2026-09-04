@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import "./issue-1675-story-game-validator.test.mjs";
 import {
   STORY_CHARACTER_ACTIVATION_TIERS,
   STORY_CHARACTER_ACTIVATION_TRANSITIONS,

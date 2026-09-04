@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1692 Phase 5 packaged DEMO UAT script parses and drives the real first-run controls", async () => {
-  const scriptPath = new URL("../scripts/windows-installer/demo-onboarding-smoke.mjs", import.meta.url);
-  const syntax = spawnSync(process.execPath, ["--check", scriptPath.pathname], { encoding: "utf8" });
+  const scriptPath = fileURLToPath(new URL("../scripts/windows-installer/demo-onboarding-smoke.mjs", import.meta.url));
+  const syntax = spawnSync(process.execPath, ["--check", scriptPath], { encoding: "utf8" });
   assert.equal(syntax.status, 0, syntax.stderr || syntax.stdout);
 
   const source = await read("scripts/windows-installer/demo-onboarding-smoke.mjs");

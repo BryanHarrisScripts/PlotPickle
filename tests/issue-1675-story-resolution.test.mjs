@@ -7,6 +7,11 @@ import {
   resolveStoryEventBatch,
   verifyStoryResolutionReplay,
 } from "../modules/story-the-unwritten/resolution.mjs";
+import {
+  STORY_FIVE_SCENE_COUNT,
+  createFiveSceneStoryRuntime,
+  transitionFiveSceneStoryRuntime,
+} from "../modules/story-the-unwritten/session-machine.mjs";
 
 function event(id, priority, enqueueOrder, operation, overrides = {}) {
   return {
@@ -20,6 +25,23 @@ function event(id, priority, enqueueOrder, operation, overrides = {}) {
     operation,
     ...overrides,
   };
+}
+
+function fiveSceneRuntime() {
+  return createFiveSceneStoryRuntime({
+    sessionId: "session:five-scene-proof",
+    gameDefinitionId: "game:unwritten-proof",
+    worldId: "world:unwritten",
+    worldRevisionRef: "world:unwritten@1",
+    ppfProjectRef: "ppf:unwritten",
+    resolutionLimits: { maximumOperationsPerScene: 12 },
+    sceneDefinitions: Array.from({ length: STORY_FIVE_SCENE_COUNT }, (_, index) => ({
+      id: `scene:${index + 1}`,
+      locationId: `location:${index + 1}`,
+      objectiveRefs: [`objective:${index + 1}`],
+      narrativeBudget: 4,
+    })),
+  });
 }
 
 test("#1675 normalizes finite deterministic resolution limits", () => {
@@ -153,4 +175,97 @@ test("#1675 checkpoints make accepted history replayable and tamper-evident", ()
   assert.equal(first.state.revision, 9);
   assert.equal(verifyStoryResolutionReplay(first.checkpoint, replay), true);
   assert.equal(verifyStoryResolutionReplay({ ...first.checkpoint, stateHash: "tampered" }, replay), false);
+});
+
+test("#1675 Phase 1 creates exactly five ordered scenes without starting play implicitly", () => {
+  const runtime = fiveSceneRuntime();
+  assert.equal(runtime.session.status, "ready");
+  assert.equal(runtime.session.currentSceneId, null);
+  assert.equal(runtime.session.sceneIds.length, 5);
+  assert.deepEqual(runtime.scenes.map((scene) => scene.ordinal), [1, 2, 3, 4, 5]);
+  assert.deepEqual(runtime.scenes.map((scene) => scene.status), ["ready", "ready", "ready", "ready", "ready"]);
+  assert.equal(runtime.session.resolutionQueue.limits.maximumOperationsPerScene, 12);
+  assert.equal(runtime.session.canonAdmissionRef, null);
+});
+
+test("#1675 Phase 1 rejects missing, extra or duplicate scenes before a session can exist", () => {
+  const base = {
+    sessionId: "session:invalid",
+    gameDefinitionId: "game:invalid",
+    worldId: "world:invalid",
+    worldRevisionRef: "world:invalid@1",
+    ppfProjectRef: "ppf:invalid",
+  };
+  assert.throws(() => createFiveSceneStoryRuntime({ ...base, sceneDefinitions: [] }), /exactly 5/);
+  assert.throws(() => createFiveSceneStoryRuntime({
+    ...base,
+    sceneDefinitions: Array.from({ length: 6 }, (_, index) => ({ id: `scene:${index}`, locationId: "location:a" })),
+  }), /exactly 5/);
+  assert.throws(() => createFiveSceneStoryRuntime({
+    ...base,
+    sceneDefinitions: Array.from({ length: 5 }, () => ({ id: "scene:duplicate", locationId: "location:a" })),
+  }), /duplicate scene id/);
+});
+
+test("#1675 Phase 1 advances one scene at a time and completes only after scene five resolves", () => {
+  const initial = fiveSceneRuntime();
+  let result = transitionFiveSceneStoryRuntime(initial, "start-session");
+  assert.equal(result.ok, true);
+  let runtime = result.runtime;
+  assert.equal(runtime.session.currentSceneId, "scene:1");
+  assert.equal(runtime.scenes[0].status, "active");
+  assert.equal(initial.session.status, "ready");
+
+  for (let index = 0; index < STORY_FIVE_SCENE_COUNT; index += 1) {
+    assert.equal(runtime.session.currentSceneId, `scene:${index + 1}`);
+    result = transitionFiveSceneStoryRuntime(runtime, "begin-scene-resolution");
+    assert.equal(result.ok, true);
+    runtime = result.runtime;
+    assert.equal(runtime.scenes[index].status, "resolving");
+
+    if (index === 0) {
+      result = transitionFiveSceneStoryRuntime(runtime, "resume-scene");
+      assert.equal(result.ok, true);
+      runtime = result.runtime;
+      assert.equal(runtime.scenes[index].status, "active");
+      result = transitionFiveSceneStoryRuntime(runtime, "begin-scene-resolution");
+      assert.equal(result.ok, true);
+      runtime = result.runtime;
+    }
+
+    result = transitionFiveSceneStoryRuntime(runtime, "complete-scene");
+    assert.equal(result.ok, true);
+    runtime = result.runtime;
+  }
+
+  assert.equal(runtime.session.status, "completed");
+  assert.equal(runtime.session.currentSceneId, null);
+  assert.deepEqual(runtime.scenes.map((scene) => scene.status), ["resolved", "resolved", "resolved", "resolved", "resolved"]);
+});
+
+test("#1675 Phase 1 rejects scene skipping and leaves the prior runtime untouched", () => {
+  const ready = fiveSceneRuntime();
+  const premature = transitionFiveSceneStoryRuntime(ready, "complete-scene");
+  assert.equal(premature.ok, false);
+  assert.equal(premature.runtime, ready);
+
+  const started = transitionFiveSceneStoryRuntime(ready, "start-session").runtime;
+  const skipped = transitionFiveSceneStoryRuntime(started, "complete-scene");
+  assert.equal(skipped.ok, false);
+  assert.equal(skipped.runtime, started);
+  assert.equal(started.scenes[0].status, "active");
+  assert.equal(started.scenes[1].status, "ready");
+});
+
+test("#1675 Phase 1 scene failure terminates the session and cannot advance into a later scene", () => {
+  const started = transitionFiveSceneStoryRuntime(fiveSceneRuntime(), "start-session").runtime;
+  const failed = transitionFiveSceneStoryRuntime(started, "fail-scene");
+  assert.equal(failed.ok, true);
+  assert.equal(failed.runtime.session.status, "failed");
+  assert.equal(failed.runtime.scenes[0].status, "failed");
+  assert.equal(failed.runtime.scenes[1].status, "ready");
+
+  const afterFailure = transitionFiveSceneStoryRuntime(failed.runtime, "begin-scene-resolution");
+  assert.equal(afterFailure.ok, false);
+  assert.equal(afterFailure.runtime, failed.runtime);
 });

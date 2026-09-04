@@ -217,6 +217,7 @@ function validateAcceptedTransactionInput({ action, result }) {
     if (index === 0) {
       if (event?.ruleId !== null) errors.push("direct accepted event must not have a ruleId");
       if (event?.causationRef !== action.id) errors.push("direct accepted event causationRef must equal action id");
+      if (event?.idempotencyKey !== action.idempotencyKey) errors.push("direct accepted event idempotency key must equal action idempotency key");
       if (!sameRecord(event?.operation, action.operation)) errors.push("direct accepted event operation must equal action operation");
     }
     if (index > 0 && Number.isSafeInteger(events[index - 1]?.sequence)
@@ -240,8 +241,10 @@ function validateAcceptedTransactionInput({ action, result }) {
       !== stableSerialize(result.checkpoint.processedIdempotencyKeys)) {
       errors.push("session processed idempotency keys must match checkpoint");
     }
-    if (!result.checkpoint.processedIdempotencyKeys.includes(action.idempotencyKey)) {
-      errors.push("checkpoint must include the accepted action idempotency key");
+    for (const event of events) {
+      if (!result.checkpoint.processedIdempotencyKeys.includes(event.idempotencyKey)) {
+        errors.push(`checkpoint must include accepted event idempotency key ${event.idempotencyKey}`);
+      }
     }
   }
   return { ok: errors.length === 0, errors, events };
@@ -298,6 +301,7 @@ function validateHistory(history, sessionId) {
   let previousRevision = 0;
   let expectedEventOffset = 0;
   const seenIdempotencyKeys = new Set();
+  let previousCheckpoint = null;
   for (const [actionIndex, actionId] of history.actionOrder.entries()) {
     const record = history.acceptedActions[actionId];
     const validation = validateAcceptedActionRecord(record);
@@ -322,6 +326,13 @@ function validateHistory(history, sessionId) {
       const expectedSequence = record.stateRevisionBefore + index + 1;
       if (event.sequence !== expectedSequence) errors.push(`accepted event ${eventId} has a non-contiguous sequence`);
     }
+    const directEvent = history.acceptedEvents[record.acceptedEventIds[0]];
+    if (directEvent) {
+      if (directEvent.ruleId !== null) errors.push(`accepted action ${actionId} direct event must not have a ruleId`);
+      if (directEvent.causationRef !== actionId) errors.push(`accepted action ${actionId} direct event causationRef is incorrect`);
+      if (directEvent.idempotencyKey !== record.idempotencyKey) errors.push(`accepted action ${actionId} direct event idempotency key is incorrect`);
+      if (!sameRecord(directEvent.operation, record.operation)) errors.push(`accepted action ${actionId} operation does not match its direct event`);
+    }
     const lastEventId = record.acceptedEventIds.at(-1);
     const lastEvent = history.acceptedEvents[lastEventId];
     if (lastEvent?.stateRevisionAfter !== record.stateRevisionAfter) errors.push(`accepted action ${actionId} revision does not match its final event`);
@@ -342,9 +353,20 @@ function validateHistory(history, sessionId) {
         if (checkpoint.lastAcceptedEventId !== lastEventId) {
           errors.push(`accepted action ${actionId} checkpoint does not reference its final accepted event`);
         }
-        if (!checkpoint.processedIdempotencyKeys.includes(record.idempotencyKey)) {
-          errors.push(`accepted action ${actionId} checkpoint is missing its idempotency key`);
+        for (const eventId of record.acceptedEventIds) {
+          const event = history.acceptedEvents[eventId];
+          if (event?.idempotencyKey && !checkpoint.processedIdempotencyKeys.includes(event.idempotencyKey)) {
+            errors.push(`accepted action ${actionId} checkpoint is missing event idempotency key ${event.idempotencyKey}`);
+          }
         }
+        if (previousCheckpoint) {
+          for (const key of previousCheckpoint.processedIdempotencyKeys) {
+            if (!checkpoint.processedIdempotencyKeys.includes(key)) {
+              errors.push(`accepted action ${actionId} checkpoint lost prior idempotency key ${key}`);
+            }
+          }
+        }
+        previousCheckpoint = checkpoint;
       }
     }
     if (history.checkpointOrder[actionIndex] !== record.checkpointRef) {

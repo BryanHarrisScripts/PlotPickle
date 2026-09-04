@@ -277,4 +277,13 @@ test("#1675 Phase 2 rejects incompatible and corrupted stored snapshots explicit
   assert.equal(corruptedQueueResult.ok, false);
   assert.equal(corruptedQueueResult.reason, "invalid-snapshot");
   assert.ok(corruptedQueueResult.errors.some((error) => error.includes("processedIdempotencyKeys")));
+
+  const corruptedWrapper = structuredClone(saved.project);
+  corruptedWrapper.extensions[STORY_PROJECT_EXTENSION_KEY].sessions["session:phase2-proof"].wholeWorld = {
+    characters: [{ id: "character:should-not-load" }],
+  };
+  const corruptedWrapperResult = loadStorySessionSnapshot(corruptedWrapper, "session:phase2-proof");
+  assert.equal(corruptedWrapperResult.ok, false);
+  assert.equal(corruptedWrapperResult.reason, "invalid-snapshot");
+  assert.ok(corruptedWrapperResult.errors.some((error) => error.includes("unsupported field wholeWorld")));
 });

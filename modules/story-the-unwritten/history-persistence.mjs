@@ -64,10 +64,6 @@ function isNonNegativeInteger(value) {
   return Number.isSafeInteger(value) && value >= 0;
 }
 
-function isInteger(value) {
-  return Number.isSafeInteger(value);
-}
-
 function jsonClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -86,12 +82,12 @@ function sameRecord(left, right) {
   return stableSerialize(left) === stableSerialize(right);
 }
 
-function unknownFieldErrors(value, allowedFields, label) {
+function collectUnsupportedFieldErrors(value, shape) {
   if (!isRecord(value)) return [];
-  const allowed = new Set(allowedFields);
+  const allowed = new Set(shape.allowedFields);
   return Object.keys(value)
     .filter((field) => !allowed.has(field))
-    .map((field) => `${label} contains unsupported field ${field}`);
+    .map((field) => `${shape.label} contains unsupported field ${field}`);
 }
 
 function validateReferenceArray(value, label, { unique = false, sorted = false } = {}) {
@@ -118,7 +114,7 @@ export function storyCheckpointReference(sessionId, checkpoint) {
 
 function validateCheckpoint(checkpoint, sessionId) {
   if (!isRecord(checkpoint)) return { ok: false, errors: ["checkpoint must be an object"] };
-  const errors = [...unknownFieldErrors(checkpoint, CHECKPOINT_FIELDS, "checkpoint")];
+  const errors = [...collectUnsupportedFieldErrors(checkpoint, { allowedFields: CHECKPOINT_FIELDS, label: "checkpoint" })];
   if (!isNonNegativeInteger(checkpoint.revision)) errors.push("checkpoint revision must be a non-negative safe integer");
   if (typeof checkpoint.stateHash !== "string" || !/^[a-f0-9]{64}$/u.test(checkpoint.stateHash)) {
     errors.push("checkpoint stateHash must be a lowercase sha256 digest");
@@ -142,13 +138,13 @@ function validateCheckpoint(checkpoint, sessionId) {
 
 function validateAcceptedEvent(event) {
   if (!isRecord(event)) return { ok: false, errors: ["accepted event must be an object"] };
-  const errors = [...unknownFieldErrors(event, EVENT_FIELDS, "accepted event")];
+  const errors = [...collectUnsupportedFieldErrors(event, { allowedFields: EVENT_FIELDS, label: "accepted event" })];
   for (const field of ["id", "idempotencyKey", "cycleKey", "causationRef", "actionId"]) {
     if (!isReference(event[field])) errors.push(`accepted event ${field} must be a non-empty reference`);
   }
   if (event.ruleId !== null && !isReference(event.ruleId)) errors.push("accepted event ruleId must be null or a reference");
   errors.push(...validateReferenceArray(event.ancestryKeys, "accepted event ancestryKeys"));
-  if (!isInteger(event.priority)) errors.push("accepted event priority must be an integer");
+  if (!Number.isSafeInteger(event.priority)) errors.push("accepted event priority must be an integer");
   if (!isNonNegativeInteger(event.enqueueOrder)) errors.push("accepted event enqueueOrder must be a non-negative safe integer");
   if (!isNonNegativeInteger(event.triggerDepth)) errors.push("accepted event triggerDepth must be a non-negative safe integer");
   if (!Number.isSafeInteger(event.sequence) || event.sequence <= 0) errors.push("accepted event sequence must be a positive safe integer");
@@ -172,7 +168,10 @@ function validateAcceptedEvent(event) {
 
 function validateAcceptedActionRecord(action) {
   if (!isRecord(action)) return { ok: false, errors: ["accepted action record must be an object"] };
-  const errors = [...unknownFieldErrors(action, ACCEPTED_ACTION_FIELDS, "accepted action record")];
+  const errors = [...collectUnsupportedFieldErrors(action, {
+    allowedFields: ACCEPTED_ACTION_FIELDS,
+    label: "accepted action record",
+  })];
   for (const field of ["id", "sessionId", "sceneId", "actorRef", "idempotencyKey", "checkpointRef"]) {
     if (!isReference(action[field])) errors.push(`accepted action ${field} must be a non-empty reference`);
   }
@@ -285,7 +284,7 @@ function currentExtension(project) {
 
 function validateHistory(history, sessionId) {
   if (!isRecord(history)) return { ok: false, errors: ["session history must be an object"] };
-  const errors = [...unknownFieldErrors(history, HISTORY_FIELDS, "session history")];
+  const errors = [...collectUnsupportedFieldErrors(history, { allowedFields: HISTORY_FIELDS, label: "session history" })];
   if (history.version !== STORY_SESSION_HISTORY_VERSION) errors.push("session history version is incompatible");
   if (history.sessionId !== sessionId) errors.push("session history id does not match its index key");
   if (history.acceptedEventLogRef !== acceptedEventLogReference(sessionId)) errors.push("session history acceptedEventLogRef is invalid");

@@ -1,0 +1,41 @@
+name: DEMO Onboarding
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/demo-onboarding.yml"
+      - "app/api/demo/**"
+      - "app/profile-access/demo/**"
+      - "core/demo-onboarding/**"
+      - "modules/demo-onboarding/**"
+      - "modules/story-the-unwritten/demo/**"
+      - "tests/issue-1692-demo-*.test.mjs"
+      - "docs/architecture/PLOTPICKLE-DEMO-ONBOARDING.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo-onboarding:
+    name: bounded DEMO contract and experience
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.19.0"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate DEMO phases 0 through 3
+        run: >-
+          node --test
+          tests/issue-1692-demo-boundary.test.mjs
+          tests/issue-1692-demo-world.test.mjs
+          tests/issue-1692-demo-phase2-first-run-ui.test.mjs
+          tests/issue-1692-demo-phase3-sage-show-me.test.mjs

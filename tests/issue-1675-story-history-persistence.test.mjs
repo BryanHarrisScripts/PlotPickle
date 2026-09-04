@@ -284,7 +284,7 @@ test("#1675 Phase 2 conflicting accepted history cannot partially mutate the pro
   assert.deepEqual(stored.project, before);
 });
 
-test("#1675 Phase 2 corrupted event order, checkpoint linkage or snapshot linkage fails closed", () => {
+test("#1675 Phase 2 corrupted event, action, checkpoint or snapshot linkage fails closed", () => {
   const proof = persistTwo("2026-09-04T08:40:00.000Z", "2026-09-04T08:41:00.000Z");
 
   const wrongOrder = structuredClone(proof.project);
@@ -294,6 +294,14 @@ test("#1675 Phase 2 corrupted event order, checkpoint linkage or snapshot linkag
   assert.equal(wrongOrderResult.ok, false);
   assert.equal(wrongOrderResult.reason, "invalid-history");
 
+  const wrongActionOperation = structuredClone(proof.project);
+  wrongActionOperation.extensions.storyTheUnwritten.sessionHistories["session:history-proof"]
+    .acceptedActions["action:second"].operation.delta = 9;
+  const wrongActionOperationResult = readStorySessionHistory(wrongActionOperation, "session:history-proof");
+  assert.equal(wrongActionOperationResult.ok, false);
+  assert.equal(wrongActionOperationResult.reason, "invalid-history");
+  assert.ok(wrongActionOperationResult.errors.some((error) => error.includes("operation does not match its direct event")));
+
   const wrongCheckpoint = structuredClone(proof.project);
   const checkpointHistory = wrongCheckpoint.extensions.storyTheUnwritten.sessionHistories["session:history-proof"];
   const checkpointRef = checkpointHistory.latestCheckpointRef;
@@ -301,6 +309,19 @@ test("#1675 Phase 2 corrupted event order, checkpoint linkage or snapshot linkag
   const wrongCheckpointResult = readStorySessionHistory(wrongCheckpoint, "session:history-proof");
   assert.equal(wrongCheckpointResult.ok, false);
   assert.equal(wrongCheckpointResult.reason, "invalid-history");
+
+  const missingEventKey = structuredClone(proof.project);
+  const keyHistory = missingEventKey.extensions.storyTheUnwritten.sessionHistories["session:history-proof"];
+  const latestCheckpoint = keyHistory.checkpoints[keyHistory.latestCheckpointRef];
+  const finalEvent = keyHistory.acceptedEvents[keyHistory.eventOrder.at(-1)];
+  latestCheckpoint.processedIdempotencyKeys = latestCheckpoint.processedIdempotencyKeys
+    .filter((key) => key !== finalEvent.idempotencyKey);
+  missingEventKey.extensions.storyTheUnwritten.sessions["session:history-proof"]
+    .runtime.session.resolutionQueue.processedIdempotencyKeys = [...latestCheckpoint.processedIdempotencyKeys];
+  const missingEventKeyResult = readStorySessionHistory(missingEventKey, "session:history-proof");
+  assert.equal(missingEventKeyResult.ok, false);
+  assert.equal(missingEventKeyResult.reason, "invalid-history");
+  assert.ok(missingEventKeyResult.errors.some((error) => error.includes("missing event idempotency key")));
 
   const wrongSnapshot = structuredClone(proof.project);
   wrongSnapshot.extensions.storyTheUnwritten.sessions["session:history-proof"].runtime.session.latestCheckpointRef = "story-checkpoint:wrong";

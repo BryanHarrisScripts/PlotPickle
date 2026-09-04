@@ -4,6 +4,8 @@ This module owns STORY's playable-story grammar, session mechanics, rule validat
 
 Phase 0 is contract-first. `contracts.ts` defines the compile-time vocabulary and `contract-invariants.mjs` enforces the boundaries that imported or user-created data must satisfy before later engine phases consume it.
 
+`resolution.mjs` is the deterministic mechanical boundary. It orders already-derived events, enforces idempotency, trigger and operation limits, rejects cycles, commits an accepted batch atomically, and creates replay-verifiable checkpoints. Models may propose actions or explain results, but they do not control this ordering or commit path.
+
 The module follows four storage and execution separations:
 
 1. Character Definition is not mutable Character State.

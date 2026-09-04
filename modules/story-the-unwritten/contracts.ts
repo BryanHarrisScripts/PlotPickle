@@ -236,6 +236,12 @@ export interface StoryAction {
 
 export interface StoryEvent {
   readonly id: StoryId;
+  readonly idempotencyKey: string;
+  readonly cycleKey: string;
+  readonly ancestryKeys: readonly string[];
+  readonly priority: number;
+  readonly enqueueOrder: number;
+  readonly triggerDepth: number;
   readonly sequence: number;
   readonly causationRef: StoryReference;
   readonly actionId: StoryId;
@@ -244,6 +250,23 @@ export interface StoryEvent {
   readonly status: "queued" | "accepted" | "rejected";
   readonly stateRevisionBefore: number;
   readonly stateRevisionAfter: number | null;
+}
+
+export interface StoryMechanicalState {
+  readonly revision: number;
+  readonly values: Readonly<Record<StoryReference, string | number | boolean | null>>;
+  readonly characterLocations: Readonly<Record<StoryId, StoryId>>;
+  readonly objectCustody: Readonly<Record<StoryId, StoryReference>>;
+  readonly knowledgeByCharacter: Readonly<Record<StoryId, readonly StoryReference[]>>;
+  readonly relationships: Readonly<Record<StoryId, number>>;
+  readonly openThreads: readonly StoryReference[];
+}
+
+export interface StoryResolutionCheckpoint {
+  readonly revision: number;
+  readonly stateHash: string;
+  readonly processedIdempotencyKeys: readonly string[];
+  readonly lastAcceptedEventId: StoryId | null;
 }
 
 export interface StoryResolutionLimits {

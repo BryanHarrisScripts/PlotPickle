@@ -159,6 +159,7 @@ test("#1675 registers deterministic test ownership for future STORY changes", as
   assert.ok(area);
   assert.ok(area.patterns.includes("modules/story-the-unwritten/**"));
   assert.ok(area.suites.includes("tests/issue-1675-story-contracts.test.mjs"));
+  assert.ok(area.suites.includes("tests/issue-1675-story-resolution.test.mjs"));
   assert.deepEqual(area.contracts, ["story-the-unwritten.contracts"]);
   assert.ok(registry.contracts["story-the-unwritten.contracts"].owners.some(
     (owner) => owner.path === "modules/story-the-unwritten/contracts.ts",

@@ -1,0 +1,17 @@
+name: STORY README Windows Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "README.md"
+      - ".github/workflows/story-readme-windows-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  installer-proof:
+    uses: ./.github/workflows/windows-installer.yml
+    with:
+      exact_head: ${{ github.event.pull_request.head.sha }}

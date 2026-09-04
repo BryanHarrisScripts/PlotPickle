@@ -16,7 +16,7 @@ import {
   projectStoryDemoKnowledge,
   replayStoryDemoWorld,
   resetStoryDemoWorld,
-} from "../modules/demo-onboarding/story-demo-world.mjs";
+} from "../modules/story-the-unwritten/demo-world.mjs";
 
 const root = process.cwd();
 
@@ -144,11 +144,18 @@ test("#1692 Phase 1 replay is independent of action timestamps and needs no mode
   assert.deepEqual(replay.decisionHistory, first.decisionHistory);
 });
 
-test("#1692 Phase 1 demo adapter has no Human-private, connector, provider, host filesystem or real canon dependency", async () => {
-  const source = await readFile(path.join(root, "modules/demo-onboarding/story-demo-world.mjs"), "utf8");
-  assert.match(source, /story-the-unwritten\/actions\.mjs/);
-  assert.match(source, /story-the-unwritten\/resolution\.mjs/);
-  assert.match(source, /story-the-unwritten\/session-machine\.mjs/);
+test("#1692 Phase 1 ownership keeps public DEMO authority in core and STORY mechanics inside STORY", async () => {
+  const source = await readFile(path.join(root, "modules/story-the-unwritten/demo-world.mjs"), "utf8");
+  const bridge = await readFile(path.join(root, "modules/demo-onboarding/demo-boundary.mjs"), "utf8");
+  const coreBoundary = await readFile(path.join(root, "core/demo-onboarding/demo-boundary.mjs"), "utf8");
+
+  assert.match(source, /from "\.\/actions\.mjs"/u);
+  assert.match(source, /from "\.\/resolution\.mjs"/u);
+  assert.match(source, /from "\.\/session-machine\.mjs"/u);
+  assert.match(source, /core\/demo-onboarding\/demo-boundary\.mjs/u);
+  assert.equal(bridge.trim(), 'export * from "../../core/demo-onboarding/demo-boundary.mjs";');
+  assert.match(coreBoundary, /synthetic-demo-runtime/u);
+
   for (const forbidden of [
     /profile-private/u,
     /profile-experience/u,

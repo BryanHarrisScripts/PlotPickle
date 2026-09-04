@@ -298,7 +298,7 @@ function validateHistory(history, sessionId) {
   let previousRevision = 0;
   let expectedEventOffset = 0;
   const seenIdempotencyKeys = new Set();
-  for (const actionId of history.actionOrder) {
+  for (const [actionIndex, actionId] of history.actionOrder.entries()) {
     const record = history.acceptedActions[actionId];
     const validation = validateAcceptedActionRecord(record);
     if (!validation.ok) {
@@ -327,6 +327,28 @@ function validateHistory(history, sessionId) {
     if (lastEvent?.stateRevisionAfter !== record.stateRevisionAfter) errors.push(`accepted action ${actionId} revision does not match its final event`);
     if (!Object.prototype.hasOwnProperty.call(history.checkpoints, record.checkpointRef)) {
       errors.push(`accepted action ${actionId} checkpoint is missing`);
+    } else {
+      const checkpoint = history.checkpoints[record.checkpointRef];
+      const checkpointValidation = validateCheckpoint(checkpoint, sessionId);
+      if (!checkpointValidation.ok) {
+        errors.push(`accepted action ${actionId} checkpoint is invalid: ${checkpointValidation.errors.join("; ")}`);
+      } else {
+        if (record.checkpointRef !== storyCheckpointReference(sessionId, checkpoint)) {
+          errors.push(`accepted action ${actionId} checkpoint reference is incorrect`);
+        }
+        if (checkpoint.revision !== record.stateRevisionAfter) {
+          errors.push(`accepted action ${actionId} checkpoint revision does not match action revision`);
+        }
+        if (checkpoint.lastAcceptedEventId !== lastEventId) {
+          errors.push(`accepted action ${actionId} checkpoint does not reference its final accepted event`);
+        }
+        if (!checkpoint.processedIdempotencyKeys.includes(record.idempotencyKey)) {
+          errors.push(`accepted action ${actionId} checkpoint is missing its idempotency key`);
+        }
+      }
+    }
+    if (history.checkpointOrder[actionIndex] !== record.checkpointRef) {
+      errors.push(`accepted action ${actionId} checkpoint order is not aligned with action order`);
     }
     previousRevision = record.stateRevisionAfter;
     expectedEventOffset += record.acceptedEventIds.length;
@@ -336,6 +358,7 @@ function validateHistory(history, sessionId) {
   if (Object.keys(history.acceptedActions).length !== history.actionOrder.length) errors.push("session history acceptedActions contains unindexed records");
   if (Object.keys(history.acceptedEvents).length !== history.eventOrder.length) errors.push("session history acceptedEvents contains unindexed records");
   if (Object.keys(history.checkpoints).length !== history.checkpointOrder.length) errors.push("session history checkpoints contains unindexed records");
+  if (history.checkpointOrder.length !== history.actionOrder.length) errors.push("session history must contain exactly one checkpoint per accepted action");
 
   let lastCheckpoint = null;
   for (const checkpointRef of history.checkpointOrder) {

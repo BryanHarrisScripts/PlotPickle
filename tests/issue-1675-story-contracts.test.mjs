@@ -4,12 +4,16 @@ import test from "node:test";
 
 import {
   STORY_CHARACTER_ACTIVATION_TIERS,
+  STORY_CHARACTER_ACTIVATION_TRANSITIONS,
   STORY_CHARACTER_GRAPH_NODE_FIELDS,
   STORY_CONTRACT_SCHEMA_VERSION,
   STORY_SCENE_TRANSITIONS,
   STORY_VALIDATOR_SEVERITIES,
+  coolStoryCharacterActivation,
   storyValidationAllowsLaunch,
   validateStoryAgentDefinition,
+  validateStoryCharacterActivation,
+  validateStoryCharacterActivationTransition,
   validateStoryCharacterGraphNode,
   validateStorySceneTransition,
 } from "../modules/story-the-unwritten/contract-invariants.mjs";
@@ -45,6 +49,15 @@ const agentDefinition = {
     admittedByRef: "story-admission:elara",
     admittedAt: "2026-09-03T20:00:00.000Z",
   },
+};
+
+const agentActiveCharacter = {
+  characterId: "character:elara",
+  tier: "agent-active",
+  hydratedRef: "story-hydration:elara@7",
+  activeSceneId: "scene:3",
+  inferenceRequestRef: "inference:request-17",
+  budgetRef: "budget:story-turn-default",
 };
 
 test("#1675 defines module-owned versioned STORY contracts without speculative core promotion", async () => {
@@ -124,6 +137,71 @@ test("#1675 keeps user-created Story Agents as bounded data referencing host aut
     assert.equal(result.ok, false, field);
     assert.ok(result.errors.some((error) => error.includes(field)), field);
   }
+});
+
+test("#1675 activation tiers encode stored, hydrated, scene-active and inference-active as distinct states", () => {
+  const cold = {
+    characterId: "character:elara",
+    tier: "cold",
+    hydratedRef: null,
+    activeSceneId: null,
+    inferenceRequestRef: null,
+    budgetRef: null,
+  };
+  const warm = {
+    ...cold,
+    tier: "warm",
+    hydratedRef: "story-hydration:elara@7",
+  };
+  const hot = {
+    ...warm,
+    tier: "hot",
+    activeSceneId: "scene:3",
+  };
+
+  assert.equal(validateStoryCharacterActivation(cold).ok, true);
+  assert.equal(validateStoryCharacterActivation(warm).ok, true);
+  assert.equal(validateStoryCharacterActivation(hot).ok, true);
+  assert.equal(validateStoryCharacterActivation(agentActiveCharacter).ok, true);
+
+  assert.equal(validateStoryCharacterActivation({ ...cold, hydratedRef: "should-not-load" }).ok, false);
+  assert.equal(validateStoryCharacterActivation({ ...warm, activeSceneId: "scene:3" }).ok, false);
+  assert.equal(validateStoryCharacterActivation({ ...hot, inferenceRequestRef: "inference:too-early" }).ok, false);
+  assert.equal(validateStoryCharacterActivation({ ...agentActiveCharacter, budgetRef: null }).ok, false);
+});
+
+test("#1675 activation transitions require staged hydration before inference but allow bounded cooling", () => {
+  assert.deepEqual(STORY_CHARACTER_ACTIVATION_TRANSITIONS.cold, ["warm"]);
+  assert.equal(validateStoryCharacterActivationTransition("cold", "hot").ok, false);
+  assert.equal(validateStoryCharacterActivationTransition("cold", "warm").ok, true);
+  assert.equal(validateStoryCharacterActivationTransition("warm", "hot").ok, true);
+  assert.equal(validateStoryCharacterActivationTransition("hot", "agent-active").ok, true);
+  assert.equal(validateStoryCharacterActivationTransition("agent-active", "cold").ok, true);
+  assert.equal(validateStoryCharacterActivationTransition("unknown", "cold").code, "unknown-activation-tier");
+});
+
+test("#1675 cooling discards transient runtime context without touching authoritative character state", () => {
+  const authoritativeState = Object.freeze({
+    characterId: "character:elara",
+    revision: 7,
+    locationId: "location:archive",
+    knowledgeRefs: Object.freeze(["knowledge:lost-road"]),
+  });
+  const before = structuredClone(authoritativeState);
+  const result = coolStoryCharacterActivation(agentActiveCharacter);
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.activation, {
+    characterId: "character:elara",
+    tier: "cold",
+    hydratedRef: null,
+    activeSceneId: null,
+    inferenceRequestRef: null,
+    budgetRef: null,
+  });
+  assert.deepEqual(authoritativeState, before);
+  assert.equal("state" in result.activation, false);
+  assert.equal("memories" in result.activation, false);
 });
 
 test("#1675 scene transitions are deterministic and terminal states cannot reopen themselves", () => {

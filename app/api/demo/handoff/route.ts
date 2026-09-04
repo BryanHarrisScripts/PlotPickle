@@ -36,6 +36,16 @@ function errorResponse(error: unknown) {
   return response({ code, message }, 400);
 }
 
+function projectIdForHandoff(value: unknown) {
+  const handoffId = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(handoffId)) {
+    const error = new Error("The Make This Mine transaction id is invalid.");
+    (error as Error & { code?: string }).code = "DEMO_HANDOFF_ID_INVALID";
+    throw error;
+  }
+  return handoffId;
+}
+
 function normalizeDecisionIds(value: unknown) {
   if (!Array.isArray(value) || value.length !== 5
     || value.some((item) => typeof item !== "string" || !item.startsWith("demo:decision:"))) {
@@ -44,16 +54,6 @@ function normalizeDecisionIds(value: unknown) {
     throw error;
   }
   return value as string[];
-}
-
-function projectIdForHandoff(value: unknown) {
-  const handoffId = typeof value === "string" ? value.trim().toLowerCase() : "";
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(handoffId)) {
-    const error = new Error("The Make This Mine transaction id is invalid.");
-    (error as Error & { code?: string }).code = "DEMO_HANDOFF_ID_INVALID";
-    throw error;
-  }
-  return `demo-import-${handoffId}`;
 }
 
 function samePortableStarter(existing: ReturnType<typeof normalizeFoundationProject>, expected: ReturnType<typeof normalizeFoundationProject>) {

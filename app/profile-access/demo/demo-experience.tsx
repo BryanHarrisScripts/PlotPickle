@@ -213,7 +213,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
   }
 
   return (
-    <main className={styles.demo} data-demo-runtime="synthetic-demo-runtime" data-demo-storage="demo-owned-disposable">
+    <main className={styles.demo} data-demo-runtime="synthetic-demo-runtime" data-demo-storage="demo-owned-disposable" data-demo-story-status={completed ? "completed" : "playing"}>
       <section className={styles.shell}>
         <header className={styles.header}>
           <div>
@@ -228,7 +228,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
         </header>
 
         {world ? (
-          <div className={styles.progress} aria-label="Demo progress">
+          <div className={styles.progress} aria-label="Demo progress" data-demo-turns={world.evidence.turns}>
             {world.scenario.scenes.map((scene, index) => {
               const runtimeScene = world.scenes.find((item) => item.id === scene.id);
               const active = scene.id === world.session.currentSceneId;
@@ -243,7 +243,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
               <p className={styles.eyebrow}>Local deterministic DEMO</p>
               <h2>{busy ? "Preparing STORY…" : "DEMO could not start"}</h2>
               <p>{error || "Loading the prepared five-scene synthetic world through PlotPickle's local STORY runtime."}</p>
-              {!busy ? <div className={styles.actions}><button type="button" onClick={() => void load()}>Retry DEMO</button><button type="button" onClick={onExit}>Exit DEMO</button></div> : null}
+              {!busy ? <div className={styles.actions}><button type="button" onClick={() => void load()}>Retry DEMO</button><button type="button" data-demo-action="exit" onClick={onExit}>Exit DEMO</button></div> : null}
             </>
           ) : completed ? (
             <>
@@ -251,10 +251,10 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
               <h2>You just used PlotPickle's STORY engine</h2>
               <p>Your choices changed deterministic story state while the DEMO stayed inside its disposable synthetic boundary.</p>
               <div className={styles.actions}>
-                <button type="button" disabled={busy} onClick={() => onMakeThisMine(world.decisionHistory.map((decision) => decision.decisionId))}>Make This Mine</button>
-                <button type="button" disabled={busy} onClick={() => void reset()}>Reset DEMO</button>
-                <button type="button" onClick={onEnterPlotPickle}>Enter PlotPickle</button>
-                <button type="button" onClick={onExit}>Exit DEMO</button>
+                <button type="button" data-demo-action="make-this-mine" disabled={busy} onClick={() => onMakeThisMine(world.decisionHistory.map((decision) => decision.decisionId))}>Make This Mine</button>
+                <button type="button" data-demo-action="reset" disabled={busy} onClick={() => void reset()}>Reset DEMO</button>
+                <button type="button" data-demo-action="enter-plotpickle" onClick={onEnterPlotPickle}>Enter PlotPickle</button>
+                <button type="button" data-demo-action="exit" onClick={onExit}>Exit DEMO</button>
               </div>
             </>
           ) : currentScene ? (
@@ -264,7 +264,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
               <p>Choose what happens. STORY will resolve the consequence locally and advance the prepared world.</p>
               <div className={styles.choices}>
                 {currentScene.decisions.map((decision) => (
-                  <button type="button" disabled={busy} key={decision.id} onClick={() => void choose(decision.id)}>{decision.label}</button>
+                  <button type="button" data-demo-decision={decision.id} disabled={busy} key={decision.id} onClick={() => void choose(decision.id)}>{decision.label}</button>
                 ))}
               </div>
             </>
@@ -310,7 +310,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMi
           </section>
         ) : null}
 
-        {world && !completed ? <footer className={styles.footer}><button type="button" disabled={busy} onClick={() => void reset()}>Reset DEMO</button><button type="button" onClick={onExit}>Exit DEMO</button></footer> : null}
+        {world && !completed ? <footer className={styles.footer}><button type="button" data-demo-action="reset" disabled={busy} onClick={() => void reset()}>Reset DEMO</button><button type="button" data-demo-action="exit" onClick={onExit}>Exit DEMO</button></footer> : null}
       </section>
     </main>
   );

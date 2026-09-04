@@ -31,13 +31,16 @@ PlotPickle installs the application under your Windows user profile and keeps yo
 
 ### First launch
 
-On first launch:
+A fresh local installation offers two paths before any profile is required:
 
-- create or unlock your local Human profile;
-- open the bundled Afterglow example or create/import a story;
-- visit **Settings** to connect only the AI services you actually want;
-- use PlotPickle without optional BUZZ, Ollama or ComfyUI if you prefer;
-- open **Settings → Help** for keyboard shortcuts and the Helper directory.
+- **DEMO — See PlotPickle work** opens the bundled five-scene `The Lantern at the Fork` STORY experience inside a disposable synthetic boundary. It needs no AI model, provider key, BUZZ identity, GitHub, Google or Internet connection. You can make story decisions, inspect deterministic consequences with Sage Show Me, reset to the known starting state, or exit without creating a profile.
+- **ENTER PLOTPICKLE — Create your local profile** opens the normal encrypted Human profile flow.
+
+After completing all five DEMO scenes, **Make This Mine** can carry only the approved human-readable starter idea into a brand-new Human-owned PPF project. PlotPickle first requires the normal profile create/unlock flow; DEMO itself never receives private-project write authority, credentials or canon authority, and raw synthetic DEMO references are not copied into the Human project.
+
+Returning locked-profile users keep the normal profile chooser and may launch DEMO separately. DEMO cannot read or modify the existing Human project's private state.
+
+After entering PlotPickle you can open the bundled Afterglow example or create/import a story, visit **Settings** to connect only the AI services you actually want, use PlotPickle without optional BUZZ, Ollama or ComfyUI, and open **Settings → Help** for keyboard shortcuts and the Helper directory.
 
 There is no required paid AI provider and no silent local-to-paid-cloud fallback.
 
@@ -205,7 +208,7 @@ npm run build
 npm run package:windows
 ```
 
-The release workflow additionally builds and exercises the native Windows launcher and `PlotPickleSetup.exe` on a Windows GitHub runner.
+The release workflow additionally builds and exercises the native Windows launcher and `PlotPickleSetup.exe` on a Windows GitHub runner. The packaged release gate runs both the general interaction smoke and the full DEMO onboarding journey, including reset/exit, Make This Mine and locked-existing-profile isolation, before the install/uninstall smoke is accepted.
 
 ## Repository map
 
@@ -225,6 +228,7 @@ Useful starting points:
 - [Writing and Production](public/docs/readme/WRITING-AND-PRODUCTION.md)
 - [PlotPickle Product Contract](docs/PLOTPICKLE-PRODUCT-CONTRACT.md)
 - [STORY: The Unwritten architecture](docs/story-the-unwritten.md)
+- [DEMO onboarding authority and release boundary](docs/architecture/PLOTPICKLE-DEMO-ONBOARDING.md)
 - [Structure Engine](docs/architecture/structure-engine.md)
 - [Authentication threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md)
 - [Developer documentation](docs/developer/)
@@ -232,6 +236,8 @@ Useful starting points:
 ## Project status
 
 PlotPickle is actively developed and is entering real-user testing. STORY: The Unwritten now has its deterministic rules kernel and sparse persistence/canon foundation in place; creator controls, validation, bounded character agents and the dedicated playable workspace remain active development work.
+
+The first-run DEMO provides an offline deterministic way to experience the STORY engine before creating a profile. Its release gate exercises the same packaged Windows build testers receive and proves that the disposable DEMO boundary remains separate from Human-private project state.
 
 The current product priority remains getting the Windows application into testers' hands, observing real workflows and using that evidence to drive the next architecture and performance decisions.
 

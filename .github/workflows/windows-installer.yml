@@ -12,6 +12,7 @@ on:
       - "scripts/windows-runtime.mjs"
       - "Start-PlotPickle.bat"
       - "tests/issue-1456-windows-installer.test.mjs"
+      - "tests/issue-1692-demo-phase5-packaged-uat.test.mjs"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -66,7 +67,7 @@ jobs:
 
       - name: Validate installer source contracts
         shell: pwsh
-        run: node --test tests/issue-1456-windows-installer.test.mjs
+        run: node --test tests/issue-1456-windows-installer.test.mjs tests/issue-1692-demo-phase5-packaged-uat.test.mjs
 
       - name: Install Inno Setup compiler
         shell: pwsh
@@ -82,6 +83,12 @@ jobs:
           PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "360000"
         run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
 
+      - name: Run packaged DEMO onboarding UAT
+        shell: pwsh
+        env:
+          PLOTPICKLE_DEMO_SMOKE_TIMEOUT_MS: "360000"
+        run: node scripts/windows-installer/demo-onboarding-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-demo-onboarding
+
       - name: Run install and uninstall smoke
         shell: pwsh
         run: ./scripts/windows-installer/smoke.ps1 -SetupPath releases/windows-installer/PlotPickleSetup.exe
@@ -91,7 +98,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: plotpickle-windows-installer-interaction-${{ inputs.exact_head || github.event.pull_request.head.sha || github.sha }}
-          path: reports/windows-installer-interaction/
+          path: |
+            reports/windows-installer-interaction/
+            reports/windows-installer-demo-onboarding/
           if-no-files-found: warn
           retention-days: 14
 

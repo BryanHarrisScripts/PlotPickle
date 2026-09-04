@@ -180,11 +180,11 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
           <h1>See it work, or make it yours.</h1>
           <p>You can try a small disposable STORY world before creating a private local profile. DEMO needs no account, provider key, BUZZ identity, GitHub, Google, or Internet connection.</p>
           <div className={styles.choices}>
-            <button type="button" onClick={() => setMode("demo")}>
+            <button type="button" data-demo-entry-action="demo" onClick={() => setMode("demo")}>
               <strong>DEMO — See PlotPickle work</strong>
               <span>Play five prepared story decisions, see consequences change, then reset or leave with nothing private retained.</span>
             </button>
-            <button type="button" onClick={() => setMode("normal")}>
+            <button type="button" data-demo-entry-action="enter-plotpickle" onClick={() => setMode("normal")}>
               <strong>ENTER PLOTPICKLE — Create your local profile</strong>
               <span>Continue into the existing encrypted Human profile setup. No cloud account is required.</span>
             </button>
@@ -199,19 +199,19 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
     <>
       {children}
       {pendingHandoff ? (
-        <aside className={styles.handoffNotice} data-demo-handoff="pending" aria-live="polite">
+        <aside className={styles.handoffNotice} data-demo-handoff="pending" data-demo-handoff-state={handoffState} aria-live="polite">
           <strong>{handoffState === "creating" ? "Creating your Human story project…" : "Make This Mine is ready"}</strong>
           <span>{handoffError || "Create or unlock your normal PlotPickle Human profile. Your approved starter story will be created automatically after authentication."}</span>
           {handoffState !== "creating" ? (
             <div>
-              {handoffState === "error" ? <button type="button" onClick={() => { setHandoffError(""); setHandoffState("waiting"); setHandoffRetry((value) => value + 1); }}>Retry</button> : null}
-              <button type="button" onClick={cancelHandoff}>Cancel</button>
+              {handoffState === "error" ? <button type="button" data-demo-handoff-action="retry" onClick={() => { setHandoffError(""); setHandoffState("waiting"); setHandoffRetry((value) => value + 1); }}>Retry</button> : null}
+              <button type="button" data-demo-handoff-action="cancel" onClick={cancelHandoff}>Cancel</button>
             </div>
           ) : null}
         </aside>
       ) : null}
       {!pendingHandoff && returningDemoVisible && canOfferReturningDemo(status) ? (
-        <button type="button" className={styles.demoShortcut} onClick={() => setMode("demo")}>
+        <button type="button" className={styles.demoShortcut} data-demo-entry-action="demo-returning" onClick={() => setMode("demo")}>
           Try DEMO
         </button>
       ) : null}

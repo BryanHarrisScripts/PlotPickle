@@ -1,1 +1,0 @@
-Reference-only fixture coverage: audience, player, character, agent-visible, world-truth, creator-hidden.

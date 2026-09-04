@@ -48,7 +48,18 @@ Character knowledge projection reads `knowledgeByCharacter` from the production 
 
 ## Sage Show Me boundary
 
-Sage may produce read-only explanatory projections such as before/after state, decision-to-consequence flow, knowledge partitions, relationship maps or authority diagrams. This mode receives only the current demo-legal projection and gains no additional tools or write authority.
+Sage Show Me is a read-only explanatory projection, not a second Sage agent, knowledge graph or visualization authority. Phase 3 lives at `modules/story-the-unwritten/demo/show-me.mjs` because it translates the existing synthetic STORY world into small human-readable views while reusing the production STORY knowledge projection and the executable DEMO capability contract.
+
+The DEMO exposes four bounded views:
+
+1. `What changed?` compares the replayed world before and after the latest prepared decision and shows only state fields that actually moved.
+2. `Who knows what?` uses the existing STORY knowledge projection to separate shared audience knowledge from Mara-only and Rowan-only knowledge.
+3. `Story map` renders a temporary relationship view directly from current STORY character-location, object-custody and relationship state. It stores no graph of its own.
+4. `What is allowed?` derives its allowed/read-only/blocked rows from the executable DEMO allowed/forbidden capability lists rather than maintaining a second policy description.
+
+The browser never imports the Show Me authority or STORY mechanics. It asks the already-local `/api/demo/story` Node route for `action: show-me` with the current ordered demo decision ids and a supported view name. The route deterministically replays the synthetic world, reconstructs the immediately previous world where needed for before/after comparison, and returns only a human-facing explanation projection. Unsupported views fail closed.
+
+`createStoryDemoShowMe` asserts the existing `sage.explain.read` capability before projecting anything. It performs no model call, provider request, retrieval, persistence, profile access, canon admission, connector access, skill installation or authority grant. As a result the shipped DEMO can explain its deterministic state fully offline with no AI credential, while the normal Sage conversation architecture remains unchanged.
 
 ## Make This Mine handoff
 
@@ -90,6 +101,8 @@ The interactive Phase 2 surface exposes explicit reset and exit controls. Reset 
 10. Portable starter content is data, never authority.
 11. Returning-user profile behavior and existing Guest behavior remain unchanged unless a later implementation phase deliberately changes presentation only.
 12. Browser DEMO code receives a bounded projection and never imports Node-only STORY mechanics directly.
+13. Show Me derives knowledge, relationship and authority views from existing executable state/contracts and stores no parallel graph, policy or private explanation memory.
+14. Show Me is usable without an LLM and cannot gain more authority by selecting a different visual view.
 
 ## Phase 0 exit
 
@@ -102,3 +115,7 @@ Phase 1 is complete when the bundled scenario proves both consequence paths thro
 ## Phase 2 exit
 
 Phase 2 is complete when a fresh desktop Node visibly offers DEMO or the existing local-profile path, DEMO can run and reset the five-scene prepared world, exiting returns to the correct local entry surface, returning locked desktop users retain the existing chooser with DEMO secondary, authenticated/Guest behavior is not replaced, server-network remains fail-closed, and deterministic tests plus repository architecture/quality gates confirm the UI introduced no new authority path.
+
+## Phase 3 exit
+
+Phase 3 is complete when Sage Show Me can display deterministic before/after, knowledge-partition, relationship and authority projections from the current synthetic STORY world; the knowledge view proves character-private facts remain partitioned; the relationship view is derived rather than persisted; the authority view is derived from the executable DEMO capability lists; unsupported views fail closed; browser code remains projection-only; and tests prove projection does not mutate STORY state or introduce model/provider/private-profile/canon/connector/agent-authority dependencies.

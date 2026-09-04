@@ -30,6 +30,7 @@ test("#1692 Phase 4 converts a completed DEMO path into portable Human-owned sta
   });
 
   assert.equal(handoff.destination, "fresh-human-project");
+  assert.deepEqual(Object.keys(handoff.starterContent).sort(), ["foundationsBrief", "title"]);
   assert.equal(handoff.starterContent.title, "The Lantern at the Fork — My Story");
   for (const phrase of [
     "Follow the lantern",
@@ -38,11 +39,9 @@ test("#1692 Phase 4 converts a completed DEMO path into portable Human-owned sta
     "Ask Rowan to enter together",
     "Write an ending",
   ]) {
-    assert.match(handoff.starterContent.foundationsBrief, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
+    assert.ok(handoff.starterContent.foundationsBrief.includes(phrase));
   }
-  const serialized = JSON.stringify(handoff.starterContent);
-  assert.doesNotMatch(serialized, /demo:/u);
-  assert.doesNotMatch(serialized, /authContext|csrfToken|credentials|profileId|canonAuthority|agentAuthority|runtimeAuthority/u);
+  assert.doesNotMatch(JSON.stringify(handoff.starterContent), /demo:/u);
 });
 
 test("#1692 Phase 4 requires both explicit approval and a complete valid five-scene path", () => {
@@ -93,7 +92,11 @@ test("#1692 Phase 4 browser keeps approved handoff transient, waits for normal H
     read("app/profile-access/profile-access-boundary.tsx"),
   ]);
 
-  assert.match(experience, /completed \? \([\s\S]*Make This Mine[\s\S]*onMakeThisMine/u);
+  const completedBranch = experience.indexOf("completed ? (");
+  const makeThisMine = experience.indexOf("Make This Mine", completedBranch);
+  const currentSceneBranch = experience.indexOf(": currentScene ? (", completedBranch);
+  assert.ok(completedBranch >= 0 && makeThisMine > completedBranch && currentSceneBranch > makeThisMine);
+  assert.match(experience, /onMakeThisMine\(world\.decisionHistory\.map\(\(decision\) => decision\.decisionId\)\)/u);
   assert.match(onboarding, /globalThis\.crypto\.randomUUID\(\)/u);
   assert.match(onboarding, /data-demo-handoff="pending"/u);
   assert.match(onboarding, /fetch\("\/api\/auth\/profile"/u);

@@ -32,6 +32,18 @@ DEMO does not contain a second STORY engine. It must call the same deterministic
 
 DEMO may explain PPF/canon authority and may show synthetic examples of proposed durable outcomes, but it cannot read private canon or perform a PPF canon admission. Any apparent canon shown in DEMO is scenario-owned synthetic data.
 
+## Deterministic demo world
+
+Phase 1 bundles one scenario, `The Lantern at the Fork`, under `modules/demo-onboarding/story-demo-world.mjs`. It is exactly five STORY scenes and exposes two prepared decisions per scene.
+
+The adapter does not implement story mechanics. Each choice becomes a normal STORY action, production STORY rules derive the consequences, the production resolver commits the state change, and the production five-scene session machine advances the scene. Location, private knowledge, object custody, relationship strength, turn count and unresolved-thread changes therefore use the same authoritative mechanics as the real STORY runtime.
+
+The bundled seed is `plotpickle-demo-lantern-v1`. Reset recreates the initial runtime and mechanical state from that known seed. Replay accepts the same ordered decision ids and produces the same authoritative runtime, state and decision history even when proposal timestamps differ. No model, network provider or external credential is required.
+
+Every runtime, world, scene, game, Story Piece and PPF-facing reference in the scenario is synthetic and uses a `demo:` reference. The required STORY `ppfProjectRef` points only to `demo:ppf-projection:lantern-at-the-fork`; it is not a real project or canon admission path.
+
+Character knowledge projection reads `knowledgeByCharacter` from the production STORY mechanical state. An audience receives public scenario knowledge only; a character receives public knowledge plus only that character's own private refs. The DEMO layer does not create a second knowledge graph.
+
 ## Sage Show Me boundary
 
 Sage may produce read-only explanatory projections such as before/after state, decision-to-consequence flow, knowledge partitions, relationship maps or authority diagrams. This mode receives only the current demo-legal projection and gains no additional tools or write authority.
@@ -69,4 +81,8 @@ Server-network mode keeps its existing fail-closed authentication/bootstrap beha
 
 ## Phase 0 exit
 
-Phase 0 is complete when the architecture contract is documented, executable boundary constants/guards exist, tests prove denied capabilities and privileged handoff fields fail closed, and existing profile/Guest tests remain unchanged.
+Phase 0 is complete: the architecture contract is documented, executable boundary constants and guards exist, denied capabilities and privileged handoff fields fail closed, and existing profile/Guest behavior remains unchanged.
+
+## Phase 1 exit
+
+Phase 1 is complete when the bundled scenario proves both consequence paths through the production STORY reducer, private knowledge remains partitioned, every runtime reference is synthetic, reset reproduces the clean initial state, replay is deterministic from the known seed, and the adapter has no Human-private, provider, connector, host-filesystem or real-canon dependency.

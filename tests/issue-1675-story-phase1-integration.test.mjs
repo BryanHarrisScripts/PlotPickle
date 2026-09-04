@@ -188,7 +188,7 @@ test("#1675 Phase 1 accepted action and matched rules commit atomically or not a
 });
 
 test("#1675 Phase 1 action plus rule consequences share one cumulative scene operation budget", () => {
-  const runtime = createPhase1Runtime();
+  const runtime = structuredClone(createPhase1Runtime());
   runtime.session.resolutionQueue.limits.maximumOperationsPerScene = 2;
   const active = transitionFiveSceneStoryRuntime(runtime, "start-session").runtime;
   const state = createStoryMechanicalState({ values: { score: 0 } });

@@ -56,7 +56,7 @@ test("#1692 Phase 5 Windows installer compiles the real setup and runs both gene
   assert.match(workflow, /Build PlotPickleSetup\.exe/u);
   assert.match(workflow, /windows-interaction-smoke\.mjs releases\/stage\/PlotPickle-Windows/u);
   assert.match(workflow, /demo-onboarding-smoke\.mjs releases\/stage\/PlotPickle-Windows/u);
-  assert.match(workflow, /Run install and uninstall smoke/u);
+  assert.match(workflow, /smoke\.ps1 -SetupPath releases\/windows-installer\/PlotPickleSetup\.exe/u);
   assert.match(workflow, /releases\/windows-installer\/PlotPickleSetup\.exe/u);
   assert.match(workflow, /reports\/windows-installer-demo-onboarding/u);
 });

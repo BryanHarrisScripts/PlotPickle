@@ -1,0 +1,28 @@
+name: STORY Phase 2 Sparse Character Proof
+
+on:
+  pull_request:
+    paths:
+      - 'modules/story-the-unwritten/**'
+      - 'tests/issue-1675-story-*.test.mjs'
+      - '.github/workflows/story-phase2-sparse-character-proof.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  sparse-character-proof:
+    name: Exact-head sparse character persistence proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run Phase 2 persistence proofs
+        run: node --test tests/issue-1675-story-persistence.test.mjs tests/issue-1675-story-sparse-characters.test.mjs

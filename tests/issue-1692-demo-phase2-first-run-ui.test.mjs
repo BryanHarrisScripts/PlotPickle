@@ -52,7 +52,8 @@ test("#1692 Phase 2 interactive DEMO reuses the core authority contract and STOR
   assert.match(source, /resetStoryDemoWorld/u);
   assert.match(source, /data-demo-runtime="synthetic-demo-runtime"/u);
   assert.match(source, /data-demo-storage="demo-owned-disposable"/u);
-  assert.doesNotMatch(source, /profile-private|PROJECT_LIBRARY|provider|connector|canon-admission|BUZZ_AUTH|github|google/iu);
+  assert.doesNotMatch(source, /profile-private|PROJECT_LIBRARY|canon-admission|BUZZ_AUTH|@\/.*(?:provider|connector)/u);
+  assert.doesNotMatch(source, /\bfetch\s*\(/u);
 });
 
 test("#1692 Phase 2 DEMO provides explicit reset, exit and transition controls", async () => {

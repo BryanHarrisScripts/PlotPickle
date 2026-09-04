@@ -28,6 +28,12 @@ const consequenceLabels = Object.freeze({
 const knownLabels = Object.freeze({
   "demo:knowledge:lantern-flickers-near-truth": "Lantern flickers near truth",
   "demo:knowledge:gate-name": "The gate's name",
+  "demo:location:lantern-road": "Lantern road",
+  "demo:location:fork": "The fork",
+  "demo:location:ridge": "The ridge",
+  "demo:location:archive": "The archive",
+  "demo:location:archive-door": "Archive door",
+  "demo:location:unwritten-door": "The unwritten door",
   "demo:thread:unwritten-door": "The unwritten door",
   "demo:thread:second-journey": "A second journey",
 });

@@ -42,6 +42,7 @@ type ShowMeProjection = {
 type DemoExperienceProps = {
   readonly onExit: () => void;
   readonly onEnterPlotPickle: () => void;
+  readonly onMakeThisMine: (decisionIds: ReadonlyArray<string>) => void;
 };
 
 const SHOW_ME_OPTIONS: ReadonlyArray<{ readonly id: ShowMeView; readonly label: string }> = [
@@ -127,7 +128,7 @@ function ShowMeCanvas({ projection }: { readonly projection: ShowMeProjection | 
   );
 }
 
-export default function DemoExperience({ onExit, onEnterPlotPickle }: DemoExperienceProps) {
+export default function DemoExperience({ onExit, onEnterPlotPickle, onMakeThisMine }: DemoExperienceProps) {
   const [world, setWorld] = useState<DemoProjection | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -250,6 +251,7 @@ export default function DemoExperience({ onExit, onEnterPlotPickle }: DemoExperi
               <h2>You just used PlotPickle's STORY engine</h2>
               <p>Your choices changed deterministic story state while the DEMO stayed inside its disposable synthetic boundary.</p>
               <div className={styles.actions}>
+                <button type="button" disabled={busy} onClick={() => onMakeThisMine(world.decisionHistory.map((decision) => decision.decisionId))}>Make This Mine</button>
                 <button type="button" disabled={busy} onClick={() => void reset()}>Reset DEMO</button>
                 <button type="button" onClick={onEnterPlotPickle}>Enter PlotPickle</button>
                 <button type="button" onClick={onExit}>Exit DEMO</button>

@@ -10,7 +10,7 @@ DEMO is not Guest. Guest remains the existing isolated ephemeral-notes surface a
 
 ## Authority contract
 
-The executable contract lives in `modules/demo-onboarding/demo-boundary.mjs`.
+The canonical executable contract lives in `core/demo-onboarding/demo-boundary.mjs` because it is a public cross-feature authority contract. `modules/demo-onboarding/demo-boundary.mjs` is a compatibility bridge to that core-owned contract so existing Phase 0 callers do not break.
 
 A DEMO runtime has authority class `synthetic-demo-runtime`, storage scope `demo-owned-disposable`, no authenticated Human and no Human profile id. Its allowed capabilities are deliberately narrow: read/propose/resolve/reset against synthetic STORY state and read-only Sage explanation projection.
 
@@ -30,7 +30,21 @@ Reset means delete the current demo-owned mutable state and recreate it from the
 
 DEMO does not contain a second STORY engine. It must call the same deterministic STORY rules/session contracts used by production through a synthetic-data adapter.
 
+The prepared STORY adapter lives at `modules/story-the-unwritten/demo/world.mjs`. That placement is deliberate: feature modules do not import sibling private implementations, and the STORY module's already-wide root does not gain another top-level file. STORY owns the scenario adapter because it directly composes STORY's private action, resolution and session mechanics; the adapter consumes the public DEMO authority contract from `core/`.
+
 DEMO may explain PPF/canon authority and may show synthetic examples of proposed durable outcomes, but it cannot read private canon or perform a PPF canon admission. Any apparent canon shown in DEMO is scenario-owned synthetic data.
+
+## Deterministic demo world
+
+Phase 1 bundles one scenario, `The Lantern at the Fork`. It is exactly five STORY scenes and exposes two prepared decisions per scene.
+
+The adapter does not implement story mechanics. Each choice becomes a normal STORY action, production STORY rules derive the consequences, the production resolver commits the state change, and the production five-scene session machine advances the scene. Location, private knowledge, object custody, relationship strength, turn count and unresolved-thread changes therefore use the same authoritative mechanics as the real STORY runtime.
+
+The bundled seed is `plotpickle-demo-lantern-v1`. Reset recreates the initial runtime and mechanical state from that known seed. Replay accepts the same ordered decision ids and produces the same authoritative runtime, state and decision history even when proposal timestamps differ. No model, network provider or external credential is required.
+
+Every runtime, world, scene, game, Story Piece and PPF-facing reference in the scenario is synthetic and uses a `demo:` reference. The required STORY `ppfProjectRef` points only to `demo:ppf-projection:lantern-at-the-fork`; it is not a real project or canon admission path.
+
+Character knowledge projection reads `knowledgeByCharacter` from the production STORY mechanical state. An audience receives public scenario knowledge only; a character receives public knowledge plus only that character's own private refs. The DEMO layer does not create a second knowledge graph.
 
 ## Sage Show Me boundary
 
@@ -60,13 +74,18 @@ Server-network mode keeps its existing fail-closed authentication/bootstrap beha
 2. DEMO owns only synthetic disposable data.
 3. DEMO never gains private profile, credential, connector, filesystem or PPF write authority.
 4. DEMO uses production STORY contracts rather than a duplicate engine.
-5. Sage explanation is projection-only.
-6. Reset is deterministic and deletes only demo-owned mutable state.
-7. Exit can leave no retained private state.
-8. Make This Mine requires explicit Human approval and a fresh Human profile/project boundary.
-9. Portable starter content is data, never authority.
-10. Returning-user profile behavior and existing Guest behavior remain unchanged unless a later implementation phase deliberately changes presentation only.
+5. Public cross-feature DEMO authority is core-owned; STORY-private mechanics remain STORY-owned.
+6. Sage explanation is projection-only.
+7. Reset is deterministic and deletes only demo-owned mutable state.
+8. Exit can leave no retained private state.
+9. Make This Mine requires explicit Human approval and a fresh Human profile/project boundary.
+10. Portable starter content is data, never authority.
+11. Returning-user profile behavior and existing Guest behavior remain unchanged unless a later implementation phase deliberately changes presentation only.
 
 ## Phase 0 exit
 
-Phase 0 is complete when the architecture contract is documented, executable boundary constants/guards exist, tests prove denied capabilities and privileged handoff fields fail closed, and existing profile/Guest tests remain unchanged.
+Phase 0 is complete: the architecture contract is documented, executable boundary constants and guards exist, denied capabilities and privileged handoff fields fail closed, and existing profile/Guest behavior remains unchanged.
+
+## Phase 1 exit
+
+Phase 1 is complete when the bundled scenario proves both consequence paths through the production STORY reducer, private knowledge remains partitioned, every runtime reference is synthetic, reset reproduces the clean initial state, replay is deterministic from the known seed, the repository architecture audit reports no sibling-module private import or worsened STORY root fan-out, and the adapter has no Human-private, provider, connector, host-filesystem or real-canon dependency.

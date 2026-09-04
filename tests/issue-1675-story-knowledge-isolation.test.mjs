@@ -44,24 +44,22 @@ test("#1675 Phase 2 knowledge records remain reference-only and reject embedded 
   assert.match(duplicateSet.errors.join(" "), /duplicated/);
 });
 
-test("#1675 Phase 2 audience and player projections never inherit world truth or creator-hidden knowledge", () => {
+test("#1675 Phase 2 audience and player projections receive only their explicit partition", () => {
   assert.deepEqual(projectStoryKnowledgeRefs({ references, scope: "audience" }), [
     "knowledge:audience-weather",
   ]);
 
   assert.deepEqual(projectStoryKnowledgeRefs({ references: [...references].reverse(), scope: "player" }), [
-    "knowledge:audience-weather",
     "knowledge:player-map",
   ]);
 });
 
-test("#1675 Phase 2 character projection is subject-scoped and does not inherit player, agent-only or hidden facts", () => {
+test("#1675 Phase 2 character projection is subject-scoped and preserves dramatic irony", () => {
   assert.deepEqual(projectStoryKnowledgeRefs({
     references,
     scope: "character",
     subjectRef: "character:ada",
   }), [
-    "knowledge:audience-weather",
     "knowledge:character-key",
   ]);
 
@@ -71,15 +69,13 @@ test("#1675 Phase 2 character projection is subject-scoped and does not inherit 
   );
 });
 
-test("#1675 Phase 2 agent projection receives only audience plus its own character and agent-visible refs", () => {
+test("#1675 Phase 2 agent projection receives only explicitly agent-visible refs for its subject", () => {
   assert.deepEqual(projectStoryKnowledgeRefs({
     references,
     scope: "agent",
     subjectRef: "character:ada",
   }), [
     "knowledge:agent-clue",
-    "knowledge:audience-weather",
-    "knowledge:character-key",
   ]);
 
   const serialized = serializeStoryKnowledgeContext({
@@ -90,11 +86,18 @@ test("#1675 Phase 2 agent projection receives only audience plus its own charact
   assert.deepEqual(Object.keys(serialized).sort(), ["knowledgeRefs", "scope", "subjectRef"]);
   assert.equal(serialized.scope, "agent");
   assert.equal(serialized.subjectRef, "character:ada");
-  assert.equal(JSON.stringify(serialized).includes("creator-ending"), false);
-  assert.equal(JSON.stringify(serialized).includes("world-answer"), false);
-  assert.equal(JSON.stringify(serialized).includes("player-map"), false);
-  assert.equal(JSON.stringify(serialized).includes("character-rival"), false);
-  assert.equal(JSON.stringify(serialized).includes("agent-rival"), false);
+  assert.deepEqual(serialized.knowledgeRefs, ["knowledge:agent-clue"]);
+  for (const forbiddenRef of [
+    "creator-ending",
+    "world-answer",
+    "player-map",
+    "audience-weather",
+    "character-key",
+    "character-rival",
+    "agent-rival",
+  ]) {
+    assert.equal(JSON.stringify(serialized).includes(forbiddenRef), false);
+  }
 });
 
 test("#1675 Phase 2 broader contexts cannot request creator-hidden or world-truth as a serialization scope", () => {

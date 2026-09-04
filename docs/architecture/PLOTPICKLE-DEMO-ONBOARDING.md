@@ -75,7 +75,7 @@ The server reconstructs the completed synthetic STORY path from the known seed a
 
 The shared `createApprovedDemoHandoff` contract continues to reject privileged fields and now also rejects any raw starter-content string beginning with `demo:`. The authenticated route performs a second fail-closed check and refuses to save a project whose serialized normal project data still contains `demo:`.
 
-The destination is created with the normal `createEmptyProject`/`normalizeFoundationProject` contracts and saved through the existing profile-private storage service as a fresh active Human project. No existing Human project is mutated. A browser-generated transaction UUID maps deterministically to one new project id so a retry reopens the same imported project instead of creating duplicates; if that id already contains different Human project data, the handoff fails closed rather than overwriting it.
+The destination is created with the normal `createEmptyProject`/`normalizeFoundationProject` contracts and saved through the existing profile-private storage service as a fresh active Human project. No existing Human project is mutated. The browser-generated transaction UUID itself becomes the normal Human project UUID, so durable identity carries no DEMO prefix or synthetic provenance marker. A retry reuses that same UUID and reopens the same imported project instead of creating duplicates; if the UUID already contains different Human project data, the handoff fails closed rather than overwriting it.
 
 After a successful save, PlotPickle reloads the Dashboard and the normal profile-private hydration path opens the newly active project. DEMO runtime authority and synthetic identity artifacts are discarded.
 
@@ -112,6 +112,7 @@ The interactive Phase 2 surface exposes explicit reset and exit controls. Reset 
 15. Raw synthetic `demo:` runtime references never become portable starter content or durable Human project state.
 16. Make This Mine performs no profile creation/login itself; private persistence begins only after the existing Human auth boundary supplies an authenticated session and CSRF proof.
 17. A Make This Mine retry is idempotent for one approval transaction and cannot overwrite different existing Human project data.
+18. The durable Human project identifier is a normal UUID with no DEMO prefix or synthetic provenance marker.
 
 ## Phase 0 exit
 
@@ -131,4 +132,4 @@ Phase 3 is complete when Sage Show Me can display deterministic before/after, kn
 
 ## Phase 4 exit
 
-Phase 4 is complete when `Make This Mine` is available only after the five-scene DEMO completes; explicit approval exits DEMO into the unchanged Human profile create/unlock path; no handoff data is persisted before authentication; the authenticated local mutation requires the existing CSRF/session boundary; a fresh normal PPF project is created and activated without mutating another project; only the human-readable title and Foundations starter brief cross the boundary; raw synthetic refs and privileged fields fail closed; retries are idempotent and conflict-safe; server-network remains unavailable; and permanent DEMO tests prove the conversion cannot smuggle DEMO authority, hidden state or synthetic identity into Human-private storage.
+Phase 4 is complete when `Make This Mine` is available only after the five-scene DEMO completes; explicit approval exits DEMO into the unchanged Human profile create/unlock path; no handoff data is persisted before authentication; the authenticated local mutation requires the existing CSRF/session boundary; a fresh normal PPF project is created and activated without mutating another project; only the human-readable title and Foundations starter brief cross the boundary; raw synthetic refs and privileged fields fail closed; retries are idempotent and conflict-safe; the durable project id remains a provenance-neutral normal UUID; server-network remains unavailable; and permanent DEMO tests prove the conversion cannot smuggle DEMO authority, hidden state or synthetic identity into Human-private storage.

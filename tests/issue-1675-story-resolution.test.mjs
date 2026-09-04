@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  reduceStoryAction,
+  validateStoryActionForRuntime,
+} from "../modules/story-the-unwritten/actions.mjs";
+import {
   createStoryMechanicalState,
   normalizeStoryResolutionLimits,
   resolveStoryEventBatch,
@@ -42,6 +46,24 @@ function fiveSceneRuntime() {
       narrativeBudget: 4,
     })),
   });
+}
+
+function activeFiveSceneRuntime() {
+  return transitionFiveSceneStoryRuntime(fiveSceneRuntime(), "start-session").runtime;
+}
+
+function storyAction(id = "action:one", overrides = {}) {
+  return {
+    id,
+    sessionId: "session:five-scene-proof",
+    sceneId: "scene:1",
+    actorRef: "player:creator",
+    pieceId: null,
+    operation: { kind: "adjust-number", ref: "pressure:scene", delta: 1 },
+    idempotencyKey: `idempotency:${id}`,
+    proposedAt: "2026-09-04T01:00:00.000Z",
+    ...overrides,
+  };
 }
 
 test("#1675 normalizes finite deterministic resolution limits", () => {
@@ -268,4 +290,129 @@ test("#1675 Phase 1 scene failure terminates the session and cannot advance into
   const afterFailure = transitionFiveSceneStoryRuntime(failed.runtime, "begin-scene-resolution");
   assert.equal(afterFailure.ok, false);
   assert.equal(afterFailure.runtime, failed.runtime);
+});
+
+test("#1675 Phase 1 validates actions against the active session, scene and authoritative revision", () => {
+  const runtime = activeFiveSceneRuntime();
+  const state = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  assert.deepEqual(validateStoryActionForRuntime({ runtime, state, action: storyAction() }), {
+    ok: true,
+    code: "legal",
+    message: "action is structurally legal",
+  });
+
+  assert.equal(validateStoryActionForRuntime({
+    runtime,
+    state,
+    action: storyAction("action:wrong-session", { sessionId: "session:other" }),
+  }).code, "wrong-session");
+  assert.equal(validateStoryActionForRuntime({
+    runtime,
+    state,
+    action: storyAction("action:wrong-scene", { sceneId: "scene:2" }),
+  }).code, "wrong-scene");
+  assert.equal(validateStoryActionForRuntime({
+    runtime,
+    state: createStoryMechanicalState({ revision: 1 }),
+    action: storyAction("action:stale"),
+  }).code, "stale-state");
+});
+
+test("#1675 Phase 1 accepts one legal action through the deterministic reducer and synchronizes revisions", () => {
+  const runtime = activeFiveSceneRuntime();
+  const state = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  const result = reduceStoryAction({ runtime, state, action: storyAction() });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, "accepted");
+  assert.equal(result.state.values["pressure:scene"], 1);
+  assert.equal(result.state.revision, 1);
+  assert.equal(result.runtime.session.stateRevision, 1);
+  assert.equal(result.runtime.scenes[0].operationsUsed, 1);
+  assert.equal(result.runtime.session.resolutionQueue.nextSequence, 2);
+  assert.deepEqual(result.runtime.session.resolutionQueue.processedIdempotencyKeys, ["idempotency:action:one"]);
+  assert.equal(result.acceptedEvent.actionId, "action:one");
+  assert.equal(result.acceptedEvent.ruleId, null);
+  assert.equal(runtime.session.stateRevision, 0);
+  assert.equal(state.values["pressure:scene"], 0);
+});
+
+test("#1675 Phase 1 duplicate accepted actions are idempotent and do not spend the scene budget twice", () => {
+  const initialRuntime = activeFiveSceneRuntime();
+  const initialState = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  const accepted = reduceStoryAction({ runtime: initialRuntime, state: initialState, action: storyAction() });
+  const duplicate = reduceStoryAction({ runtime: accepted.runtime, state: accepted.state, action: storyAction() });
+
+  assert.equal(duplicate.ok, true);
+  assert.equal(duplicate.status, "duplicate");
+  assert.equal(duplicate.runtime, accepted.runtime);
+  assert.equal(duplicate.state, accepted.state);
+  assert.equal(duplicate.state.values["pressure:scene"], 1);
+  assert.equal(duplicate.runtime.scenes[0].operationsUsed, 1);
+});
+
+test("#1675 Phase 1 illegal or unsupported actions are atomic and preserve both runtime and state", () => {
+  const runtime = activeFiveSceneRuntime();
+  const state = createStoryMechanicalState({ values: { score: 3 } });
+  const unsupported = reduceStoryAction({
+    runtime,
+    state,
+    action: storyAction("action:unsupported", { operation: { kind: "execute-javascript", source: "score = 999" } }),
+  });
+  assert.equal(unsupported.ok, false);
+  assert.equal(unsupported.status, "illegal");
+  assert.equal(unsupported.failure.code, "operation-rejected");
+  assert.equal(unsupported.runtime, runtime);
+  assert.equal(unsupported.state, state);
+  assert.equal(state.values.score, 3);
+
+  const resolvingRuntime = transitionFiveSceneStoryRuntime(runtime, "begin-scene-resolution").runtime;
+  const duringResolution = reduceStoryAction({ runtime: resolvingRuntime, state, action: storyAction("action:late") });
+  assert.equal(duringResolution.ok, false);
+  assert.equal(duringResolution.failure.code, "scene-not-active");
+  assert.equal(duringResolution.runtime, resolvingRuntime);
+  assert.equal(duringResolution.state, state);
+});
+
+test("#1675 Phase 1 enforces the operation budget cumulatively across separate accepted actions", () => {
+  const runtime = structuredClone(activeFiveSceneRuntime());
+  runtime.session.resolutionQueue.limits.maximumOperationsPerScene = 2;
+  let state = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  let currentRuntime = runtime;
+
+  for (const id of ["action:budget-1", "action:budget-2"]) {
+    const accepted = reduceStoryAction({ runtime: currentRuntime, state, action: storyAction(id) });
+    assert.equal(accepted.status, "accepted");
+    currentRuntime = accepted.runtime;
+    state = accepted.state;
+  }
+
+  const rejected = reduceStoryAction({
+    runtime: currentRuntime,
+    state,
+    action: storyAction("action:budget-3"),
+  });
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.failure.code, "operation-budget-exceeded");
+  assert.equal(rejected.runtime, currentRuntime);
+  assert.equal(rejected.state, state);
+  assert.equal(state.values["pressure:scene"], 2);
+  assert.equal(currentRuntime.scenes[0].operationsUsed, 2);
+});
+
+test("#1675 Phase 1 action reduction is deterministic and ignores proposal timestamp for mechanical ordering", () => {
+  const runtimeA = activeFiveSceneRuntime();
+  const runtimeB = activeFiveSceneRuntime();
+  const stateA = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  const stateB = createStoryMechanicalState({ values: { "pressure:scene": 0 } });
+  const actionA = storyAction("action:deterministic", { proposedAt: "2026-09-04T01:00:00.000Z" });
+  const actionB = storyAction("action:deterministic", { proposedAt: "2099-12-31T23:59:59.999Z" });
+  const resultA = reduceStoryAction({ runtime: runtimeA, state: stateA, action: actionA });
+  const resultB = reduceStoryAction({ runtime: runtimeB, state: stateB, action: actionB });
+
+  assert.equal(resultA.status, "accepted");
+  assert.equal(resultB.status, "accepted");
+  assert.deepEqual(resultA.state, resultB.state);
+  assert.equal(resultA.checkpoint.stateHash, resultB.checkpoint.stateHash);
+  assert.deepEqual(resultA.acceptedEvent.operation, resultB.acceptedEvent.operation);
 });

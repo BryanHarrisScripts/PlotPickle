@@ -32,10 +32,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate DEMO phases 0 through 3
+      - name: Validate DEMO phases 0 through 4
         run: >-
           node --test
           tests/issue-1692-demo-boundary.test.mjs
           tests/issue-1692-demo-world.test.mjs
           tests/issue-1692-demo-phase2-first-run-ui.test.mjs
           tests/issue-1692-demo-phase3-sage-show-me.test.mjs
+          tests/issue-1692-demo-phase4-make-this-mine.test.mjs

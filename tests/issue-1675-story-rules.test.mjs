@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import "./issue-1675-story-end-conditions.test.mjs";
 import { createStoryMechanicalState } from "../modules/story-the-unwritten/resolution.mjs";
 import {
   STORY_RULE_TRIGGERS,

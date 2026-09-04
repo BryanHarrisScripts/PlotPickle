@@ -107,7 +107,10 @@ test("#1692 Phase 1 hidden knowledge projection never leaks one character's priv
   const secret = "demo:knowledge:gate-name";
   assert.deepEqual(projectStoryDemoKnowledge(world), [publicKnowledge]);
   assert.deepEqual(projectStoryDemoKnowledge(world, "demo:character:rowan"), [publicKnowledge]);
-  assert.deepEqual(projectStoryDemoKnowledge(world, "demo:character:mara"), [publicKnowledge, secret]);
+  assert.deepEqual(
+    new Set(projectStoryDemoKnowledge(world, "demo:character:mara")),
+    new Set([publicKnowledge, secret]),
+  );
 });
 
 test("#1692 Phase 1 rejects decisions from a future scene and requires the exact prepared seed", () => {

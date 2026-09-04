@@ -34,7 +34,8 @@ test("#1692 Phase 2 does not expose DEMO as anonymous server-network application
   ]);
 
   assert.match(boundary, /accessMode: "desktop-loopback" \| "server-network"/u);
-  assert.equal((boundary.match(/status\.accessMode === "desktop-loopback"/gu) || []).length, 2);
+  assert.match(boundary, /function isFreshDesktop\([\s\S]*status\.accessMode === "desktop-loopback"/u);
+  assert.match(boundary, /function canOfferReturningDemo\([\s\S]*status\?\.accessMode === "desktop-loopback"/u);
   assert.doesNotMatch(boundary, /status\.accessMode === "server-network"[\s\S]*setMode\("demo"\)/u);
   assert.match(route, /runtime = "nodejs"/u);
   assert.match(route, /runtimeState\.accessMode === "desktop-loopback"/u);

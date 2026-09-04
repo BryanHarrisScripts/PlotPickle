@@ -1,5 +1,6 @@
 import { getProfileExperienceRuntime } from "@/core/auth/profile-experience/profile-experience-runtime";
 import { createDemoBoundary } from "@/core/demo-onboarding/demo-boundary.mjs";
+import { createStoryDemoShowMe } from "@/modules/story-the-unwritten/demo/show-me.mjs";
 import {
   DEMO_STORY_SCENARIO_ID,
   DEMO_STORY_SEED,
@@ -99,6 +100,20 @@ export async function POST(request: Request) {
       }
       const world = replayStoryDemoWorld({ boundary: demoBoundary(), decisionIds: [...history, decisionId] });
       return response(projectWorld(world));
+    }
+
+    if (action === "show-me") {
+      const history = normalizeHistory(input.decisionIds);
+      const world = replayStoryDemoWorld({ boundary: demoBoundary(), decisionIds: history });
+      const previousWorld = history.length
+        ? replayStoryDemoWorld({ boundary: demoBoundary(), decisionIds: history.slice(0, -1) })
+        : null;
+      return response({
+        showMe: createStoryDemoShowMe(world, {
+          view: typeof input.view === "string" ? input.view : "change",
+          previousWorld,
+        }),
+      });
     }
 
     return response({ code: "DEMO_ACTION_UNSUPPORTED", message: "That DEMO action is unavailable." }, 400);

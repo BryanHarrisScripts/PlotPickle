@@ -52,7 +52,7 @@ function requireReference(value, label) {
   return value.trim();
 }
 
-function requireText(value, label) {
+function creatorText({ value, label }) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${label} is required`);
   return value.trim();
 }
@@ -92,7 +92,7 @@ export function createCreatorStoryPiece({
     id: requireReference(id, "Story Piece id"),
     schemaVersion: 1,
     type,
-    title: requireText(title, "Story Piece title"),
+    title: creatorText({ value: title, label: "Story Piece title" }),
     description: typeof description === "string" ? description.trim() : "",
     worldId: requireReference(worldId, "Story Piece worldId"),
     schools: textArray(schools, "Story Piece schools"),
@@ -153,7 +153,7 @@ function compileRuleControls({
   const rule = {
     id: requireReference(id, "Story Rule id"),
     schemaVersion: 1,
-    title: requireText(title, "Story Rule title"),
+    title: creatorText({ value: title, label: "Story Rule title" }),
     priority,
     when,
     if: structuredClone(conditions),

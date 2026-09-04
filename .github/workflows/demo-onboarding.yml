@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/demo-onboarding.yml"
+      - ".github/workflows/windows-installer.yml"
       - "app/api/demo/**"
       - "app/profile-access/demo/**"
       - "core/demo-onboarding/**"
       - "modules/demo-onboarding/**"
       - "modules/story-the-unwritten/demo/**"
+      - "scripts/windows-installer/demo-onboarding-smoke.mjs"
       - "tests/issue-1692-demo-*.test.mjs"
       - "docs/architecture/PLOTPICKLE-DEMO-ONBOARDING.md"
   workflow_dispatch:
@@ -32,7 +34,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate DEMO phases 0 through 4
+      - name: Validate DEMO phases 0 through 5
         run: >-
           node --test
           tests/issue-1692-demo-boundary.test.mjs
@@ -40,3 +42,4 @@ jobs:
           tests/issue-1692-demo-phase2-first-run-ui.test.mjs
           tests/issue-1692-demo-phase3-sage-show-me.test.mjs
           tests/issue-1692-demo-phase4-make-this-mine.test.mjs
+          tests/issue-1692-demo-phase5-packaged-uat.test.mjs

@@ -377,10 +377,11 @@
       "patterns": [
         "modules/story-the-unwritten/**",
         "docs/story-the-unwritten.md",
-        "tests/issue-1675-story-contracts.test.mjs"
+        "tests/issue-1675-story-*.test.mjs"
       ],
       "suites": [
         "tests/issue-1675-story-contracts.test.mjs",
+        "tests/issue-1675-story-resolution.test.mjs",
         "tests/issue-1466-repository-architecture-enforcement.test.mjs"
       ],
       "contracts": [
@@ -389,7 +390,7 @@
       "allowedPaths": [
         "modules/story-the-unwritten/**",
         "docs/story-the-unwritten.md",
-        "tests/issue-1675-story-contracts.test.mjs",
+        "tests/issue-1675-story-*.test.mjs",
         "config/developer-diagnostics.json"
       ]
     },
@@ -438,6 +439,7 @@
       ],
       "tests": [
         "tests/issue-1675-story-contracts.test.mjs",
+        "tests/issue-1675-story-resolution.test.mjs",
         "tests/issue-1466-repository-architecture-enforcement.test.mjs"
       ]
     },

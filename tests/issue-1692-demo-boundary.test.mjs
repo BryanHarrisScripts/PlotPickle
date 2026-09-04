@@ -59,6 +59,14 @@ test("#1692 Make This Mine requires explicit approval and rejects authority-bear
       (error) => error?.code === "DEMO_HANDOFF_PRIVILEGED_FIELD",
     );
   }
+  assert.throws(
+    () => createApprovedDemoHandoff({
+      approved: true,
+      sourceDemoId: "story-intro",
+      starterContent: { sourceRef: "demo:character:mara" },
+    }),
+    (error) => error?.code === "DEMO_HANDOFF_SYNTHETIC_REF",
+  );
   const handoff = createApprovedDemoHandoff({
     approved: true,
     sourceDemoId: "story-intro",

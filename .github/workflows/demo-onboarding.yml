@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Checkout exact head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4
         with:
@@ -32,10 +34,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
-      - name: Validate DEMO phases 0 through 3
+      - name: Validate DEMO phases 0 through 4
         run: >-
           node --test
           tests/issue-1692-demo-boundary.test.mjs
           tests/issue-1692-demo-world.test.mjs
           tests/issue-1692-demo-phase2-first-run-ui.test.mjs
           tests/issue-1692-demo-phase3-sage-show-me.test.mjs
+          tests/issue-1692-demo-phase4-make-this-mine.test.mjs

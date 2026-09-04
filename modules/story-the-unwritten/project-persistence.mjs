@@ -2,10 +2,17 @@ import { STORY_FIVE_SCENE_COUNT } from "./session-machine.mjs";
 
 export const STORY_PROJECT_EXTENSION_KEY = "storyTheUnwritten";
 export const STORY_PROJECT_PERSISTENCE_VERSION = 1;
+export const STORY_PROJECT_EXTENSION_FIELDS = Object.freeze([
+  "version",
+  "sessions",
+  "characterDefinitions",
+  "characterStates",
+  "memoryEvents",
+  "relationshipEdges",
+]);
 
 const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
 const STORY_SESSION_STATUSES = new Set(["ready", "active", "paused", "completed", "failed"]);
-const STORY_EXTENSION_FIELDS = ["version", "sessions"];
 const STORY_SNAPSHOT_FIELDS = [
   "version",
   "sessionId",
@@ -67,6 +74,12 @@ const STORY_STATE_ZONE_FIELDS = [
   "hidden-knowledge",
   "unresolved-threads",
   "resolved-history",
+];
+const STORY_OPTIONAL_RECORD_STORES = [
+  "characterDefinitions",
+  "characterStates",
+  "memoryEvents",
+  "relationshipEdges",
 ];
 
 function isRecord(value) {
@@ -273,10 +286,16 @@ export function createStorySessionSnapshot({ runtime, state, savedAt }) {
   };
 }
 
-function validateCurrentExtensionStore(raw) {
-  const errors = [...unknownFieldErrors(raw, STORY_EXTENSION_FIELDS, "STORY project extension")];
+export function validateStoryProjectExtensionContainer(raw) {
+  if (!isRecord(raw)) return { ok: false, errors: ["STORY project extension must be an object"] };
+  const errors = [...unknownFieldErrors(raw, STORY_PROJECT_EXTENSION_FIELDS, "STORY project extension")];
   if (!isRecord(raw.sessions)) errors.push("STORY project extension sessions must be an object");
-  return errors;
+  for (const field of STORY_OPTIONAL_RECORD_STORES) {
+    if (Object.prototype.hasOwnProperty.call(raw, field) && !isRecord(raw[field])) {
+      errors.push(`STORY project extension ${field} must be an object when present`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
 }
 
 function readExtensionStore(project) {
@@ -291,8 +310,8 @@ function readExtensionStore(project) {
       ? { kind: "incompatible", extensions, store: raw, errors: [] }
       : { kind: "invalid", extensions, store: raw, errors: ["STORY project extension version is invalid"] };
   }
-  const errors = validateCurrentExtensionStore(raw);
-  if (errors.length) return { kind: "invalid", extensions, store: raw, errors };
+  const validation = validateStoryProjectExtensionContainer(raw);
+  if (!validation.ok) return { kind: "invalid", extensions, store: raw, errors: validation.errors };
   return { kind: "ready", extensions, store: raw, errors: [] };
 }
 
@@ -312,9 +331,9 @@ export function persistStorySessionSnapshot(project, input) {
     throw new Error("Cannot persist STORY session into malformed project extension data");
   }
   if (isRecord(existingValue)) {
-    const extensionErrors = validateCurrentExtensionStore(existingValue);
-    if (extensionErrors.length) {
-      throw new Error(`Cannot persist STORY session into malformed project extension data: ${extensionErrors.join("; ")}`);
+    const validation = validateStoryProjectExtensionContainer(existingValue);
+    if (!validation.ok) {
+      throw new Error(`Cannot persist STORY session into malformed project extension data: ${validation.errors.join("; ")}`);
     }
   }
   const existing = isRecord(existingValue) ? existingValue : {};
@@ -325,6 +344,7 @@ export function persistStorySessionSnapshot(project, input) {
       extensions: {
         ...extensions,
         [STORY_PROJECT_EXTENSION_KEY]: {
+          ...existing,
           version: STORY_PROJECT_PERSISTENCE_VERSION,
           sessions: {
             ...sessions,

@@ -69,7 +69,8 @@
 }
 
 .choices button:focus-visible,
-.demoShortcut:focus-visible {
+.demoShortcut:focus-visible,
+.handoffNotice button:focus-visible {
   outline: 2px solid #dc874c;
   outline-offset: 2px;
 }
@@ -110,6 +111,53 @@
   background: #152630;
 }
 
+.handoffNotice {
+  position: fixed;
+  z-index: 10002;
+  right: 18px;
+  bottom: 18px;
+  width: min(420px, calc(100vw - 36px));
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid #385467;
+  border-radius: 14px;
+  background: rgba(13, 24, 34, 0.97);
+  color: #e8f5f6;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+}
+
+.handoffNotice span {
+  color: #9fb5ba;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.handoffNotice div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.handoffNotice button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #385467;
+  border-radius: 9px;
+  background: #12332e;
+  color: #e8f5f6;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.handoffNotice button:hover {
+  border-color: #4bbdb8;
+  background: #173f39;
+}
+
 @media (max-width: 700px) {
   .entry {
     padding: 14px;
@@ -125,5 +173,11 @@
 
   .choices button {
     min-height: 0;
+  }
+
+  .handoffNotice {
+    right: 14px;
+    bottom: 14px;
+    width: calc(100vw - 28px);
   }
 }

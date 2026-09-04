@@ -15,7 +15,7 @@ import {
 export const DEMO_STORY_SCENARIO_ID = "demo:scenario:lantern-at-the-fork";
 export const DEMO_STORY_SEED = "plotpickle-demo-lantern-v1";
 
-const PROVENANCE = Object.freeze({
+const provenance = Object.freeze({
   authorship: "engine",
   creatorRef: "demo:scenario-authority:plotpickle",
   sourceRefs: [DEMO_STORY_SCENARIO_ID],
@@ -23,72 +23,68 @@ const PROVENANCE = Object.freeze({
   admittedAt: "2026-09-04T00:00:00.000Z",
 });
 
-function rule(id, priority, choiceId, operation) {
+function rule(id, priority, decisionId, consequence) {
   return Object.freeze({
     id,
     schemaVersion: 1,
     title: id,
     priority,
     when: "action-accepted",
-    if: Object.freeze([{ kind: "value-equals", ref: "demo:value:last-choice", value: choiceId }]),
+    if: Object.freeze([{ kind: "value-equals", ref: "demo:value:last-choice", value: decisionId }]),
     cost: Object.freeze([]),
-    do: Object.freeze([Object.freeze(operation)]),
+    do: Object.freeze([
+      Object.freeze(consequence),
+      Object.freeze({ kind: "adjust-number", ref: "demo:value:turns", delta: 1 }),
+    ]),
     then: Object.freeze([]),
     enabled: true,
-    provenance: PROVENANCE,
+    provenance,
   });
 }
 
 export const DEMO_STORY_RULES = Object.freeze([
   rule("demo:rule:follow-lantern", 10, "demo:decision:follow-lantern", {
-    kind: "move-character",
-    characterId: "demo:character:mara",
-    locationId: "demo:location:fork",
+    kind: "move-character", characterId: "demo:character:mara", locationId: "demo:location:fork",
   }),
   rule("demo:rule:take-high-road", 11, "demo:decision:take-high-road", {
-    kind: "move-character",
-    characterId: "demo:character:mara",
-    locationId: "demo:location:ridge",
+    kind: "move-character", characterId: "demo:character:mara", locationId: "demo:location:ridge",
   }),
   rule("demo:rule:share-whisper", 20, "demo:decision:share-whisper", {
-    kind: "grant-knowledge",
-    characterId: "demo:character:rowan",
-    knowledgeRef: "demo:knowledge:gate-name",
+    kind: "grant-knowledge", characterId: "demo:character:rowan", knowledgeRef: "demo:knowledge:gate-name",
   }),
   rule("demo:rule:keep-whisper", 21, "demo:decision:keep-whisper", {
-    kind: "grant-knowledge",
-    characterId: "demo:character:mara",
-    knowledgeRef: "demo:knowledge:gate-name",
+    kind: "grant-knowledge", characterId: "demo:character:mara", knowledgeRef: "demo:knowledge:gate-name",
   }),
   rule("demo:rule:return-key", 30, "demo:decision:return-key", {
-    kind: "adjust-relationship",
-    relationshipId: "demo:relationship:mara-rowan",
-    delta: 1,
+    kind: "adjust-relationship", relationshipId: "demo:relationship:mara-rowan", delta: 1,
   }),
   rule("demo:rule:keep-key", 31, "demo:decision:keep-key", {
-    kind: "transfer-object",
-    objectId: "demo:object:brass-key",
-    custodianRef: "demo:character:mara",
+    kind: "transfer-object", objectId: "demo:object:brass-key", custodianRef: "demo:character:mara",
   }),
   rule("demo:rule:ask-rowan", 40, "demo:decision:ask-rowan", {
-    kind: "adjust-relationship",
-    relationshipId: "demo:relationship:mara-rowan",
-    delta: 1,
+    kind: "adjust-relationship", relationshipId: "demo:relationship:mara-rowan", delta: 1,
   }),
   rule("demo:rule:enter-alone", 41, "demo:decision:enter-alone", {
-    kind: "move-character",
-    characterId: "demo:character:mara",
-    locationId: "demo:location:archive",
+    kind: "move-character", characterId: "demo:character:mara", locationId: "demo:location:archive",
   }),
   rule("demo:rule:write-ending", 50, "demo:decision:write-ending", {
-    kind: "resolve-thread",
-    threadRef: "demo:thread:unwritten-door",
+    kind: "resolve-thread", threadRef: "demo:thread:unwritten-door",
   }),
   rule("demo:rule:leave-door-open", 51, "demo:decision:leave-door-open", {
-    kind: "open-thread",
-    threadRef: "demo:thread:second-journey",
+    kind: "open-thread", threadRef: "demo:thread:second-journey",
   }),
 ]);
+
+function scene(id, title, locationId, participants, objectiveRef, decisions) {
+  return Object.freeze({
+    id,
+    title,
+    locationId,
+    participantIds: Object.freeze(participants),
+    objectiveRefs: Object.freeze([objectiveRef]),
+    decisions: Object.freeze(decisions.map(([decisionId, label]) => Object.freeze({ id: decisionId, label }))),
+  });
+}
 
 export const DEMO_STORY_SCENARIO = Object.freeze({
   id: DEMO_STORY_SCENARIO_ID,
@@ -106,66 +102,31 @@ export const DEMO_STORY_SCENARIO = Object.freeze({
     Object.freeze({ id: "demo:secret:gate-name", type: "secret", name: "The Gate's Name" }),
   ]),
   scenes: Object.freeze([
-    Object.freeze({
-      id: "demo:scene:1",
-      title: "The Fork",
-      locationId: "demo:location:lantern-road",
-      participantIds: Object.freeze(["demo:character:mara"]),
-      objectiveRefs: Object.freeze(["demo:objective:choose-road"]),
-      decisions: Object.freeze([
-        Object.freeze({ id: "demo:decision:follow-lantern", label: "Follow the lantern" }),
-        Object.freeze({ id: "demo:decision:take-high-road", label: "Take the high road" }),
-      ]),
-    }),
-    Object.freeze({
-      id: "demo:scene:2",
-      title: "The Whisper",
-      locationId: "demo:location:fork",
-      participantIds: Object.freeze(["demo:character:mara", "demo:character:rowan"]),
-      objectiveRefs: Object.freeze(["demo:objective:handle-secret"]),
-      decisions: Object.freeze([
-        Object.freeze({ id: "demo:decision:share-whisper", label: "Tell Rowan the gate's name" }),
-        Object.freeze({ id: "demo:decision:keep-whisper", label: "Keep the gate's name private" }),
-      ]),
-    }),
-    Object.freeze({
-      id: "demo:scene:3",
-      title: "The Key",
-      locationId: "demo:location:key-stone",
-      participantIds: Object.freeze(["demo:character:mara", "demo:character:rowan"]),
-      objectiveRefs: Object.freeze(["demo:objective:decide-key"]),
-      decisions: Object.freeze([
-        Object.freeze({ id: "demo:decision:return-key", label: "Return the key to Rowan" }),
-        Object.freeze({ id: "demo:decision:keep-key", label: "Keep the key" }),
-      ]),
-    }),
-    Object.freeze({
-      id: "demo:scene:4",
-      title: "The Archive",
-      locationId: "demo:location:archive-door",
-      participantIds: Object.freeze(["demo:character:mara", "demo:character:rowan"]),
-      objectiveRefs: Object.freeze(["demo:objective:cross-threshold"]),
-      decisions: Object.freeze([
-        Object.freeze({ id: "demo:decision:ask-rowan", label: "Ask Rowan to enter together" }),
-        Object.freeze({ id: "demo:decision:enter-alone", label: "Enter alone" }),
-      ]),
-    }),
-    Object.freeze({
-      id: "demo:scene:5",
-      title: "The Unwritten Door",
-      locationId: "demo:location:unwritten-door",
-      participantIds: Object.freeze(["demo:character:mara"]),
-      objectiveRefs: Object.freeze(["demo:objective:choose-ending"]),
-      decisions: Object.freeze([
-        Object.freeze({ id: "demo:decision:write-ending", label: "Write an ending" }),
-        Object.freeze({ id: "demo:decision:leave-door-open", label: "Leave the door open" }),
-      ]),
-    }),
+    scene("demo:scene:1", "The Fork", "demo:location:lantern-road", ["demo:character:mara"], "demo:objective:choose-road", [
+      ["demo:decision:follow-lantern", "Follow the lantern"],
+      ["demo:decision:take-high-road", "Take the high road"],
+    ]),
+    scene("demo:scene:2", "The Whisper", "demo:location:fork", ["demo:character:mara", "demo:character:rowan"], "demo:objective:handle-secret", [
+      ["demo:decision:share-whisper", "Tell Rowan the gate's name"],
+      ["demo:decision:keep-whisper", "Keep the gate's name private"],
+    ]),
+    scene("demo:scene:3", "The Key", "demo:location:key-stone", ["demo:character:mara", "demo:character:rowan"], "demo:objective:decide-key", [
+      ["demo:decision:return-key", "Return the key to Rowan"],
+      ["demo:decision:keep-key", "Keep the key"],
+    ]),
+    scene("demo:scene:4", "The Archive", "demo:location:archive-door", ["demo:character:mara", "demo:character:rowan"], "demo:objective:cross-threshold", [
+      ["demo:decision:ask-rowan", "Ask Rowan to enter together"],
+      ["demo:decision:enter-alone", "Enter alone"],
+    ]),
+    scene("demo:scene:5", "The Unwritten Door", "demo:location:unwritten-door", ["demo:character:mara"], "demo:objective:choose-ending", [
+      ["demo:decision:write-ending", "Write an ending"],
+      ["demo:decision:leave-door-open", "Leave the door open"],
+    ]),
   ]),
 });
 
-const DECISIONS = new Map(
-  DEMO_STORY_SCENARIO.scenes.flatMap((scene) => scene.decisions.map((decision) => [decision.id, { ...decision, sceneId: scene.id }])),
+const decisionsById = new Map(
+  DEMO_STORY_SCENARIO.scenes.flatMap((item) => item.decisions.map((decision) => [decision.id, { ...decision, sceneId: item.id }])),
 );
 
 function requireDemoBoundary(boundary) {
@@ -185,47 +146,37 @@ function requireDemoBoundary(boundary) {
   }
 }
 
-function createRuntime() {
-  const runtime = createFiveSceneStoryRuntime({
+function initialRuntime() {
+  const ready = createFiveSceneStoryRuntime({
     sessionId: "demo:session:lantern-at-the-fork",
     gameDefinitionId: "demo:game:lantern-at-the-fork",
     worldId: "demo:world:lantern-at-the-fork",
     worldRevisionRef: "demo:world:lantern-at-the-fork@1",
     ppfProjectRef: "demo:ppf-projection:lantern-at-the-fork",
     resolutionLimits: { maximumOperationsPerScene: 8, maximumAgentCallsPerTurn: 1 },
-    sceneDefinitions: DEMO_STORY_SCENARIO.scenes.map((scene) => ({
-      id: scene.id,
-      locationId: scene.locationId,
-      participantIds: scene.participantIds,
-      objectiveRefs: scene.objectiveRefs,
+    sceneDefinitions: DEMO_STORY_SCENARIO.scenes.map((item) => ({
+      id: item.id,
+      locationId: item.locationId,
+      participantIds: item.participantIds,
+      objectiveRefs: item.objectiveRefs,
       narrativeBudget: 4,
     })),
   });
-  const started = transitionFiveSceneStoryRuntime(runtime, "start-session");
+  const started = transitionFiveSceneStoryRuntime(ready, "start-session");
   if (!started.ok) throw new Error(started.failure?.message || "The synthetic STORY session could not start");
   return started.runtime;
 }
 
-function createInitialState() {
+function initialState() {
   return createStoryMechanicalState({
-    values: {
-      "demo:value:last-choice": "demo:decision:none",
-      "demo:value:turns": 0,
-    },
+    values: { "demo:value:last-choice": "demo:decision:none", "demo:value:turns": 0 },
     characterLocations: {
       "demo:character:mara": "demo:location:lantern-road",
       "demo:character:rowan": "demo:location:fork",
     },
-    objectCustody: {
-      "demo:object:brass-key": "demo:location:key-stone",
-    },
-    knowledgeByCharacter: {
-      "demo:character:mara": [],
-      "demo:character:rowan": [],
-    },
-    relationships: {
-      "demo:relationship:mara-rowan": 0,
-    },
+    objectCustody: { "demo:object:brass-key": "demo:location:key-stone" },
+    knowledgeByCharacter: { "demo:character:mara": [], "demo:character:rowan": [] },
+    relationships: { "demo:relationship:mara-rowan": 0 },
     openThreads: ["demo:thread:unwritten-door"],
   });
 }
@@ -233,28 +184,21 @@ function createInitialState() {
 export function createStoryDemoWorld({ boundary }) {
   requireDemoBoundary(boundary);
   assertDemoCapability("story.synthetic.read");
-  return {
-    scenario: DEMO_STORY_SCENARIO,
-    boundary,
-    runtime: createRuntime(),
-    state: createInitialState(),
-    decisionHistory: [],
-  };
+  return { scenario: DEMO_STORY_SCENARIO, boundary, runtime: initialRuntime(), state: initialState(), decisionHistory: [] };
 }
 
 export function listStoryDemoDecisions(world) {
   requireDemoBoundary(world?.boundary);
   assertDemoCapability("story.synthetic.read");
-  const currentSceneId = world?.runtime?.session?.currentSceneId;
-  const scene = DEMO_STORY_SCENARIO.scenes.find((candidate) => candidate.id === currentSceneId);
-  return scene ? scene.decisions.map((decision) => ({ ...decision })) : [];
+  const current = DEMO_STORY_SCENARIO.scenes.find((item) => item.id === world?.runtime?.session?.currentSceneId);
+  return current ? current.decisions.map((decision) => ({ ...decision })) : [];
 }
 
 export function applyStoryDemoDecision(world, decisionId, { proposedAt = "2026-09-04T00:00:00.000Z" } = {}) {
   requireDemoBoundary(world?.boundary);
   assertDemoCapability("story.synthetic.propose");
   assertDemoCapability("story.synthetic.resolve");
-  const decision = DECISIONS.get(decisionId);
+  const decision = decisionsById.get(decisionId);
   if (!decision) {
     const error = new Error(`Unknown DEMO decision: ${String(decisionId)}`);
     error.code = "DEMO_DECISION_UNKNOWN";
@@ -266,6 +210,7 @@ export function applyStoryDemoDecision(world, decisionId, { proposedAt = "2026-0
     error.code = "DEMO_DECISION_WRONG_SCENE";
     throw error;
   }
+
   const turn = world.decisionHistory.length + 1;
   const result = reduceStoryActionWithRules({
     runtime: world.runtime,
@@ -288,11 +233,7 @@ export function applyStoryDemoDecision(world, decisionId, { proposedAt = "2026-0
     throw error;
   }
 
-  const nextState = structuredClone(result.state);
-  nextState.values["demo:value:turns"] = turn;
-  const nextRuntime = structuredClone(result.runtime);
-  nextRuntime.session.stateRevision = nextState.revision;
-  const resolving = transitionFiveSceneStoryRuntime(nextRuntime, "begin-scene-resolution");
+  const resolving = transitionFiveSceneStoryRuntime(result.runtime, "begin-scene-resolution");
   if (!resolving.ok) throw new Error(resolving.failure?.message || "The DEMO scene could not begin resolution");
   const completed = transitionFiveSceneStoryRuntime(resolving.runtime, "complete-scene");
   if (!completed.ok) throw new Error(completed.failure?.message || "The DEMO scene could not complete");
@@ -300,18 +241,15 @@ export function applyStoryDemoDecision(world, decisionId, { proposedAt = "2026-0
   return {
     ...world,
     runtime: completed.runtime,
-    state: nextState,
-    decisionHistory: [
-      ...world.decisionHistory,
-      {
-        turn,
-        sceneId: currentSceneId,
-        decisionId,
-        matchedRuleIds: [...result.matchedRuleIds],
-        consequenceKinds: result.acceptedRuleEvents.map((event) => event.operation.kind),
-        stateRevision: nextState.revision,
-      },
-    ],
+    state: result.state,
+    decisionHistory: [...world.decisionHistory, {
+      turn,
+      sceneId: currentSceneId,
+      decisionId,
+      matchedRuleIds: [...result.matchedRuleIds],
+      consequenceKinds: result.acceptedRuleEvents.map((event) => event.operation.kind),
+      stateRevision: result.state.revision,
+    }],
   };
 }
 
@@ -319,14 +257,16 @@ export function projectStoryDemoKnowledge(world, viewerRef = "demo:viewer:audien
   requireDemoBoundary(world?.boundary);
   assertDemoCapability("story.synthetic.read");
   const publicRefs = [...DEMO_STORY_SCENARIO.publicKnowledgeRefs];
-  if (!Object.prototype.hasOwnProperty.call(world.state.knowledgeByCharacter, viewerRef)) return publicRefs;
-  return [...new Set([...publicRefs, ...(world.state.knowledgeByCharacter[viewerRef] || [])])].sort();
+  const privateRefs = Object.prototype.hasOwnProperty.call(world.state.knowledgeByCharacter, viewerRef)
+    ? world.state.knowledgeByCharacter[viewerRef]
+    : [];
+  return [...new Set([...publicRefs, ...privateRefs])].sort();
 }
 
 export function resetStoryDemoWorld(world) {
   requireDemoBoundary(world?.boundary);
   assertDemoCapability("story.synthetic.reset");
-  createDemoReset({ boundary: world.boundary, initialState: createInitialState() });
+  createDemoReset({ boundary: world.boundary, initialState: initialState() });
   return createStoryDemoWorld({ boundary: world.boundary });
 }
 

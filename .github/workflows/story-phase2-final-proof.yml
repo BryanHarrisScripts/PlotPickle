@@ -1,0 +1,22 @@
+name: STORY Phase 2 Final Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "modules/story-the-unwritten/contract-invariants.mjs"
+      - "modules/story-the-unwritten/knowledge-projection.mjs"
+      - "modules/story-the-unwritten/scene-working-set.mjs"
+      - "tests/issue-1675-story-knowledge-isolation.test.mjs"
+      - "tests/issue-1675-story-scene-working-set.test.mjs"
+      - ".github/workflows/story-phase2-final-proof.yml"
+
+jobs:
+  phase2-final:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/issue-1675-story-knowledge-isolation.test.mjs tests/issue-1675-story-scene-working-set.test.mjs

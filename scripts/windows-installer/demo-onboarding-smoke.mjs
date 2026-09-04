@@ -23,8 +23,8 @@ if (!existsSync(viteEntry)) throw new Error(`Vite entry is missing: ${viteEntry}
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function choosePort(preferred) {
-  for (let port = preferred; port < preferred + 100; port += 1) {
+async function choosePort(preferred, span = 100) {
+  for (let port = preferred; port < preferred + span; port += 1) {
     const available = await new Promise((resolve) => {
       const server = createServer();
       server.once("error", () => resolve(false));
@@ -77,11 +77,11 @@ function startLoggedProcess(command, args, options, logPath) {
   return child;
 }
 
-async function terminateProcessTree(child) {
+async function terminateProcessTree(child, timeoutMs = 10_000) {
   if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
   await new Promise((resolve) => {
     const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" });
-    const timer = setTimeout(resolve, 10_000);
+    const timer = setTimeout(resolve, timeoutMs);
     killer.once("exit", () => { clearTimeout(timer); resolve(); });
     killer.once("error", () => { clearTimeout(timer); resolve(); });
   });
@@ -127,6 +127,7 @@ class CdpClient {
     });
   }
   on(method, listener) {
+    if (typeof listener !== "function") throw new TypeError("CDP listener must be a function.");
     const listeners = this.listeners.get(method) ?? [];
     listeners.push(listener);
     this.listeners.set(method, listeners);
@@ -134,16 +135,20 @@ class CdpClient {
   close() { this.socket?.close(); }
 }
 
-async function waitForDebugger(port) {
-  const stopAt = Date.now() + 30_000;
+async function waitForDebugger(port, timeoutMs = 30_000) {
+  const stopAt = Date.now() + timeoutMs;
+  let lastError = "Debugger endpoint did not respond.";
   while (Date.now() < stopAt) {
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(2_000) });
       if (response.ok) return response.json();
-    } catch {}
+      lastError = `${response.status} ${response.statusText}`;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
     await delay(250);
   }
-  throw new Error("Microsoft Edge DevTools endpoint did not become available.");
+  throw new Error(`Microsoft Edge DevTools endpoint did not become available: ${lastError}`);
 }
 
 async function createTarget(port, url) {
@@ -155,13 +160,13 @@ async function createTarget(port, url) {
   return response.json();
 }
 
-async function evaluate(client, expression) {
+async function evaluate(client, expression, timeoutMs = actionTimeoutMs) {
   const result = await client.send("Runtime.evaluate", {
     expression,
     awaitPromise: true,
     returnByValue: true,
     userGesture: true,
-  });
+  }, timeoutMs);
   if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || "Browser evaluation failed.");
   return result.result?.value;
 }

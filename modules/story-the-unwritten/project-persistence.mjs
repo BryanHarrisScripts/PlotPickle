@@ -5,6 +5,17 @@ export const STORY_PROJECT_PERSISTENCE_VERSION = 1;
 
 const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
 const STORY_SESSION_STATUSES = new Set(["ready", "active", "paused", "completed", "failed"]);
+const STORY_SNAPSHOT_FIELDS = [
+  "version",
+  "sessionId",
+  "worldId",
+  "gameDefinitionId",
+  "worldRevisionRef",
+  "ppfProjectRef",
+  "savedAt",
+  "runtime",
+  "mechanicalState",
+];
 const STORY_RUNTIME_FIELDS = ["session", "scenes"];
 const STORY_SESSION_FIELDS = [
   "id",
@@ -306,6 +317,8 @@ export function persistStorySessionSnapshot(project, input) {
 
 function validateStoredSnapshot(raw, requestedSessionId) {
   if (!isRecord(raw)) return { ok: false, errors: ["stored STORY snapshot must be an object"] };
+  const wrapperErrors = unknownFieldErrors(raw, STORY_SNAPSHOT_FIELDS, "stored STORY snapshot");
+  if (wrapperErrors.length) return { ok: false, errors: wrapperErrors };
   if (raw.version !== STORY_PROJECT_PERSISTENCE_VERSION) return { ok: false, errors: ["stored STORY snapshot version is incompatible"] };
   if (raw.sessionId !== requestedSessionId) return { ok: false, errors: ["stored STORY snapshot session id does not match its index key"] };
   if (!isReference(raw.worldId) || !isReference(raw.gameDefinitionId) || !isReference(raw.worldRevisionRef) || !isReference(raw.ppfProjectRef)) {

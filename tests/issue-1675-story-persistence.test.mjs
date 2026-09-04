@@ -132,6 +132,36 @@ test("#1675 Phase 2 snapshot stays sparse and does not duplicate whole-project o
   assert.equal(snapshot.mechanicalState.objectCustody["object:key"], "character:hero");
 });
 
+test("#1675 Phase 2 rejects attached whole-world or undeclared state payloads instead of serializing them", () => {
+  const accepted = acceptedState();
+  const runtime = structuredClone(accepted.runtime);
+  runtime.wholeWorld = { characters: [{ id: "character:all" }] };
+  const runtimeValidation = validateStorySessionSnapshotInput({ runtime, state: accepted.state });
+  assert.equal(runtimeValidation.ok, false);
+  assert.ok(runtimeValidation.errors.some((error) => error.includes("unsupported field wholeWorld")));
+
+  const state = structuredClone(accepted.state);
+  state.hiddenCreatorPayload = { secrets: ["should-not-be-here"] };
+  const stateValidation = validateStorySessionSnapshotInput({ runtime: accepted.runtime, state });
+  assert.equal(stateValidation.ok, false);
+  assert.ok(stateValidation.errors.some((error) => error.includes("unsupported field hiddenCreatorPayload")));
+});
+
+test("#1675 Phase 2 persists only quiescent checkpoints because queued event payloads are not stored yet", () => {
+  const accepted = acceptedState();
+  const pending = structuredClone(accepted.runtime);
+  pending.session.resolutionQueue.queuedEventIds = ["story-event:pending"];
+  const pendingValidation = validateStorySessionSnapshotInput({ runtime: pending, state: accepted.state });
+  assert.equal(pendingValidation.ok, false);
+  assert.ok(pendingValidation.errors.some((error) => error.includes("must be quiescent")));
+
+  const nested = structuredClone(accepted.runtime);
+  nested.session.resolutionQueue.triggerDepth = 1;
+  const nestedValidation = validateStorySessionSnapshotInput({ runtime: nested, state: accepted.state });
+  assert.equal(nestedValidation.ok, false);
+  assert.ok(nestedValidation.errors.some((error) => error.includes("triggerDepth must be zero")));
+});
+
 test("#1675 Phase 2 JSON project close and reopen restores the same authoritative runtime and state", () => {
   const accepted = acceptedState();
   const saved = persistStorySessionSnapshot(projectFixture(), {
@@ -191,7 +221,7 @@ test("#1675 Phase 2 refuses to persist a stale runtime/state pair instead of rep
   assert.equal(project.extensions[STORY_PROJECT_EXTENSION_KEY], undefined);
 });
 
-test("#1675 Phase 2 refuses to overwrite a future incompatible STORY extension version", () => {
+test("#1675 Phase 2 refuses to overwrite a future incompatible or malformed STORY extension", () => {
   const accepted = acceptedState();
   const project = projectFixture();
   project.extensions[STORY_PROJECT_EXTENSION_KEY] = {
@@ -206,6 +236,18 @@ test("#1675 Phase 2 refuses to overwrite a future incompatible STORY extension v
     savedAt: "2026-09-04T04:05:30.000Z",
   }), /incompatible project extension version 2/);
   assert.deepEqual(project.extensions[STORY_PROJECT_EXTENSION_KEY], before);
+
+  const malformed = projectFixture();
+  malformed.extensions[STORY_PROJECT_EXTENSION_KEY] = "corrupt";
+  const malformedLoad = loadStorySessionSnapshot(malformed, "session:phase2-proof");
+  assert.equal(malformedLoad.ok, false);
+  assert.equal(malformedLoad.reason, "invalid-extension");
+  assert.throws(() => persistStorySessionSnapshot(malformed, {
+    runtime: accepted.runtime,
+    state: accepted.state,
+    savedAt: "2026-09-04T04:05:45.000Z",
+  }), /malformed project extension data/);
+  assert.equal(malformed.extensions[STORY_PROJECT_EXTENSION_KEY], "corrupt");
 });
 
 test("#1675 Phase 2 rejects incompatible and corrupted stored snapshots explicitly", () => {

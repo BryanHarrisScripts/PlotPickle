@@ -63,15 +63,21 @@ The browser never imports the Show Me authority or STORY mechanics. It asks the 
 
 ## Make This Mine handoff
 
-DEMO cannot become a Human session in place. `Make This Mine` must cross the existing profile boundary explicitly:
+Phase 4 implements `Make This Mine` as an explicit authority crossing rather than converting the DEMO runtime into a Human session.
 
-1. leave or freeze the disposable DEMO runtime;
-2. create or unlock a real local Human profile using the existing profile flow;
-3. create a fresh Human project;
-4. copy only explicitly approved portable starter content;
-5. discard DEMO runtime authority and synthetic identity artifacts.
+The action appears only after all five prepared STORY scenes are complete. Clicking it is the Human's explicit approval to carry a small amount of portable creative material forward. The browser then leaves the DEMO surface and mounts the existing local profile create/unlock flow unchanged. The pending handoff exists only in React memory; it is not placed in localStorage, sessionStorage, Guest storage or profile-private storage before authentication.
 
-The handoff contract rejects privileged fields such as AuthContext/session material, CSRF tokens, profile ids, credentials, connector scopes, BUZZ identity, PPF/canon authority, agent authority, installed skills and host filesystem paths. A handoff requires explicit Human approval.
+While the handoff is pending, the wrapper watches the existing read-only profile status. It does not create profiles or perform login itself. Once the existing profile boundary establishes a real authenticated Human session and CSRF proof, the wrapper sends one mutation to `/api/demo/handoff`.
+
+The handoff route is Node-owned, same-origin and `desktop-loopback` only. It authorizes the request through the existing profile boundary with `{ mutation: true }`. Server-network requests fail with `DEMO_LOCAL_ONLY`.
+
+The server reconstructs the completed synthetic STORY path from the known seed and the five submitted decision ids. `modules/story-the-unwritten/demo/handoff.mjs` converts that path into only two portable fields: a human-readable project title and a human-readable Foundations brief containing the five choice labels as creative prompts. The portable payload does not contain decision ids, synthetic Story Piece refs, hidden knowledge, DEMO authority, profile/session data, credentials, connector scopes, BUZZ identity, canon authority or agent authority.
+
+The shared `createApprovedDemoHandoff` contract continues to reject privileged fields and now also rejects any raw starter-content string beginning with `demo:`. The authenticated route performs a second fail-closed check and refuses to save a project whose serialized normal project data still contains `demo:`.
+
+The destination is created with the normal `createEmptyProject`/`normalizeFoundationProject` contracts and saved through the existing profile-private storage service as a fresh active Human project. No existing Human project is mutated. A browser-generated transaction UUID maps deterministically to one new project id so a retry reopens the same imported project instead of creating duplicates; if that id already contains different Human project data, the handoff fails closed rather than overwriting it.
+
+After a successful save, PlotPickle reloads the Dashboard and the normal profile-private hydration path opens the newly active project. DEMO runtime authority and synthetic identity artifacts are discarded.
 
 ## First-run behavior
 
@@ -103,6 +109,9 @@ The interactive Phase 2 surface exposes explicit reset and exit controls. Reset 
 12. Browser DEMO code receives a bounded projection and never imports Node-only STORY mechanics directly.
 13. Show Me derives knowledge, relationship and authority views from existing executable state/contracts and stores no parallel graph, policy or private explanation memory.
 14. Show Me is usable without an LLM and cannot gain more authority by selecting a different visual view.
+15. Raw synthetic `demo:` runtime references never become portable starter content or durable Human project state.
+16. Make This Mine performs no profile creation/login itself; private persistence begins only after the existing Human auth boundary supplies an authenticated session and CSRF proof.
+17. A Make This Mine retry is idempotent for one approval transaction and cannot overwrite different existing Human project data.
 
 ## Phase 0 exit
 
@@ -119,3 +128,7 @@ Phase 2 is complete when a fresh desktop Node visibly offers DEMO or the existin
 ## Phase 3 exit
 
 Phase 3 is complete when Sage Show Me can display deterministic before/after, knowledge-partition, relationship and authority projections from the current synthetic STORY world; the knowledge view proves character-private facts remain partitioned; the relationship view is derived rather than persisted; the authority view is derived from the executable DEMO capability lists; unsupported views fail closed; browser code remains projection-only; and tests prove projection does not mutate STORY state or introduce model/provider/private-profile/canon/connector/agent-authority dependencies.
+
+## Phase 4 exit
+
+Phase 4 is complete when `Make This Mine` is available only after the five-scene DEMO completes; explicit approval exits DEMO into the unchanged Human profile create/unlock path; no handoff data is persisted before authentication; the authenticated local mutation requires the existing CSRF/session boundary; a fresh normal PPF project is created and activated without mutating another project; only the human-readable title and Foundations starter brief cross the boundary; raw synthetic refs and privileged fields fail closed; retries are idempotent and conflict-safe; server-network remains unavailable; and permanent DEMO tests prove the conversion cannot smuggle DEMO authority, hidden state or synthetic identity into Human-private storage.

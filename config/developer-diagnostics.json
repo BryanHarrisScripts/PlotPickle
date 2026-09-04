@@ -372,6 +372,28 @@
       ]
     },
     {
+      "id": "story-the-unwritten",
+      "label": "Story: The Unwritten contracts",
+      "patterns": [
+        "modules/story-the-unwritten/**",
+        "docs/story-the-unwritten.md",
+        "tests/issue-1675-story-contracts.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-1675-story-contracts.test.mjs",
+        "tests/issue-1466-repository-architecture-enforcement.test.mjs"
+      ],
+      "contracts": [
+        "story-the-unwritten.contracts"
+      ],
+      "allowedPaths": [
+        "modules/story-the-unwritten/**",
+        "docs/story-the-unwritten.md",
+        "tests/issue-1675-story-contracts.test.mjs",
+        "config/developer-diagnostics.json"
+      ]
+    },
+    {
       "id": "developer-diagnostics",
       "label": "Developer diagnostics",
       "patterns": [
@@ -399,6 +421,26 @@
     }
   ],
   "contracts": {
+    "story-the-unwritten.contracts": {
+      "owners": [
+        {
+          "path": "modules/story-the-unwritten/contracts.ts",
+          "optional": false
+        },
+        {
+          "path": "modules/story-the-unwritten/contract-invariants.mjs",
+          "optional": false
+        },
+        {
+          "path": "docs/story-the-unwritten.md",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-1675-story-contracts.test.mjs",
+        "tests/issue-1466-repository-architecture-enforcement.test.mjs"
+      ]
+    },
     "settings.navigation": {
       "owners": [
         {

@@ -6,7 +6,7 @@ import {
   serializeStoryKnowledgeContext,
   validateStoryKnowledgeReference,
   validateStoryKnowledgeReferenceSet,
-} from "../modules/story-the-unwritten/knowledge-projection.mjs";
+} from "../modules/story-the-unwritten/contract-invariants.mjs";
 
 const references = Object.freeze([
   { ref: "knowledge:audience-weather", partition: "audience", subjectRef: "world:proof" },

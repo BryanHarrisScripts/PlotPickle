@@ -248,6 +248,34 @@ test("#1675 Phase 2 refuses to overwrite a future incompatible or malformed STOR
     savedAt: "2026-09-04T04:05:45.000Z",
   }), /malformed project extension data/);
   assert.equal(malformed.extensions[STORY_PROJECT_EXTENSION_KEY], "corrupt");
+
+  const malformedSessions = projectFixture();
+  malformedSessions.extensions[STORY_PROJECT_EXTENSION_KEY] = { version: 1, sessions: "corrupt" };
+  const malformedSessionsLoad = loadStorySessionSnapshot(malformedSessions, "session:phase2-proof");
+  assert.equal(malformedSessionsLoad.ok, false);
+  assert.equal(malformedSessionsLoad.reason, "invalid-extension");
+  assert.ok(malformedSessionsLoad.errors.some((error) => error.includes("sessions must be an object")));
+  assert.throws(() => persistStorySessionSnapshot(malformedSessions, {
+    runtime: accepted.runtime,
+    state: accepted.state,
+    savedAt: "2026-09-04T04:05:50.000Z",
+  }), /malformed project extension data/);
+
+  const overloadedStore = projectFixture();
+  overloadedStore.extensions[STORY_PROJECT_EXTENSION_KEY] = {
+    version: 1,
+    sessions: {},
+    wholeWorld: { characters: [{ id: "character:all" }] },
+  };
+  const overloadedLoad = loadStorySessionSnapshot(overloadedStore, "session:phase2-proof");
+  assert.equal(overloadedLoad.ok, false);
+  assert.equal(overloadedLoad.reason, "invalid-extension");
+  assert.ok(overloadedLoad.errors.some((error) => error.includes("unsupported field wholeWorld")));
+  assert.throws(() => persistStorySessionSnapshot(overloadedStore, {
+    runtime: accepted.runtime,
+    state: accepted.state,
+    savedAt: "2026-09-04T04:05:55.000Z",
+  }), /malformed project extension data/);
 });
 
 test("#1675 Phase 2 rejects incompatible and corrupted stored snapshots explicitly", () => {

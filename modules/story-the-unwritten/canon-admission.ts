@@ -44,14 +44,16 @@ export type StoryCanonAdmissionResult = {
   revision: CanonicalRevisionRecord;
 };
 
-function requireReference(value: unknown, label: string) {
-  if (typeof value !== "string" || !value.trim()) throw new Error(`${label} must be a non-empty reference.`);
-  return value.trim();
+function requireStoryReference(input: { value: unknown; label: string }) {
+  if (typeof input.value !== "string") throw new Error(`${input.label} must be a non-empty reference.`);
+  const normalized = input.value.trim();
+  if (!normalized) throw new Error(`${input.label} must be a non-empty reference.`);
+  return normalized;
 }
 
 function uniqueReferences(values: unknown, label: string) {
   if (!Array.isArray(values) || values.length === 0) throw new Error(`${label} must contain at least one reference.`);
-  const normalized = values.map((value, index) => requireReference(value, `${label}[${index}]`));
+  const normalized = values.map((value, index) => requireStoryReference({ value, label: `${label}[${index}]` }));
   return [...new Set(normalized)];
 }
 
@@ -93,8 +95,8 @@ function completedSessionEvidence(project: PlotPickleProject, sessionId: string)
 }
 
 export function proposeCompletedStorySessionOutcomeForCanon(input: StoryCanonProposalInput): StoryCanonProposalResult {
-  const sessionId = requireReference(input.sessionId, "sessionId");
-  const requestedByProfileId = requireReference(input.requestedByProfileId, "requestedByProfileId");
+  const sessionId = requireStoryReference({ value: input.sessionId, label: "sessionId" });
+  const requestedByProfileId = requireStoryReference({ value: input.requestedByProfileId, label: "requestedByProfileId" });
   const targetIds = uniqueReferences(input.targetIds, "targetIds");
   const summary = typeof input.safeSummary === "string" ? input.safeSummary.trim() : "";
   if (!summary) throw new Error("A safe summary is required before a STORY outcome can be proposed for canon.");
@@ -137,8 +139,8 @@ export function recordWriterApprovedStoryCanonAdmission(input: {
   sessionId: string;
   proposalId: string;
 }): StoryCanonAdmissionResult {
-  const sessionId = requireReference(input.sessionId, "sessionId");
-  const proposalId = requireReference(input.proposalId, "proposalId");
+  const sessionId = requireStoryReference({ value: input.sessionId, label: "sessionId" });
+  const proposalId = requireStoryReference({ value: input.proposalId, label: "proposalId" });
   const evidence = completedSessionEvidence(input.project, sessionId);
   const proposal = canonicalProposalById(input.project, proposalId);
   if (!proposal || proposal.status !== "accepted" || proposal.appliedRevision === null) {

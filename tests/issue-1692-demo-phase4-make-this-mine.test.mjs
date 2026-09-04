@@ -117,7 +117,8 @@ test("#1692 Phase 4 retry id is deterministic per approval and cannot overwrite 
     read("app/profile-access/demo/demo-onboarding-boundary.tsx"),
   ]);
 
-  assert.match(route, /return `demo-import-\$\{handoffId\}`/u);
+  assert.match(route, /function projectIdForHandoff[\s\S]*return handoffId;/u);
+  assert.doesNotMatch(route, /demo-import/u);
   assert.match(route, /samePortableStarter/u);
   assert.match(route, /reused: true/u);
   assert.match(onboarding, /pendingHandoff\.handoffId/u);

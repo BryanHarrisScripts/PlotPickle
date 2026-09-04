@@ -191,6 +191,23 @@ test("#1675 Phase 2 refuses to persist a stale runtime/state pair instead of rep
   assert.equal(project.extensions[STORY_PROJECT_EXTENSION_KEY], undefined);
 });
 
+test("#1675 Phase 2 refuses to overwrite a future incompatible STORY extension version", () => {
+  const accepted = acceptedState();
+  const project = projectFixture();
+  project.extensions[STORY_PROJECT_EXTENSION_KEY] = {
+    version: 2,
+    sessions: { "session:future": { version: 2 } },
+  };
+  const before = structuredClone(project.extensions[STORY_PROJECT_EXTENSION_KEY]);
+
+  assert.throws(() => persistStorySessionSnapshot(project, {
+    runtime: accepted.runtime,
+    state: accepted.state,
+    savedAt: "2026-09-04T04:05:30.000Z",
+  }), /incompatible project extension version 2/);
+  assert.deepEqual(project.extensions[STORY_PROJECT_EXTENSION_KEY], before);
+});
+
 test("#1675 Phase 2 rejects incompatible and corrupted stored snapshots explicitly", () => {
   const accepted = acceptedState();
   const saved = persistStorySessionSnapshot(projectFixture(), {
@@ -211,4 +228,11 @@ test("#1675 Phase 2 rejects incompatible and corrupted stored snapshots explicit
   assert.equal(corruptedResult.ok, false);
   assert.equal(corruptedResult.reason, "invalid-snapshot");
   assert.ok(corruptedResult.errors.some((error) => error.includes("stateRevision must match")));
+
+  const corruptedQueue = structuredClone(saved.project);
+  corruptedQueue.extensions[STORY_PROJECT_EXTENSION_KEY].sessions["session:phase2-proof"].runtime.session.resolutionQueue.processedIdempotencyKeys = [null];
+  const corruptedQueueResult = loadStorySessionSnapshot(corruptedQueue, "session:phase2-proof");
+  assert.equal(corruptedQueueResult.ok, false);
+  assert.equal(corruptedQueueResult.reason, "invalid-snapshot");
+  assert.ok(corruptedQueueResult.errors.some((error) => error.includes("processedIdempotencyKeys")));
 });

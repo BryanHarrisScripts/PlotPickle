@@ -30,7 +30,7 @@ Reset means delete the current demo-owned mutable state and recreate it from the
 
 DEMO does not contain a second STORY engine. It must call the same deterministic STORY rules/session contracts used by production through a synthetic-data adapter.
 
-The prepared STORY adapter lives at `modules/story-the-unwritten/demo-world.mjs`. That placement is deliberate: feature modules do not import sibling private implementations. STORY owns the scenario adapter because it directly composes STORY's private action, resolution and session mechanics; the adapter consumes the public DEMO authority contract from `core/`.
+The prepared STORY adapter lives at `modules/story-the-unwritten/demo/world.mjs`. That placement is deliberate: feature modules do not import sibling private implementations, and the STORY module's already-wide root does not gain another top-level file. STORY owns the scenario adapter because it directly composes STORY's private action, resolution and session mechanics; the adapter consumes the public DEMO authority contract from `core/`.
 
 DEMO may explain PPF/canon authority and may show synthetic examples of proposed durable outcomes, but it cannot read private canon or perform a PPF canon admission. Any apparent canon shown in DEMO is scenario-owned synthetic data.
 
@@ -88,4 +88,4 @@ Phase 0 is complete: the architecture contract is documented, executable boundar
 
 ## Phase 1 exit
 
-Phase 1 is complete when the bundled scenario proves both consequence paths through the production STORY reducer, private knowledge remains partitioned, every runtime reference is synthetic, reset reproduces the clean initial state, replay is deterministic from the known seed, the repository architecture audit reports no sibling-module private import, and the adapter has no Human-private, provider, connector, host-filesystem or real-canon dependency.
+Phase 1 is complete when the bundled scenario proves both consequence paths through the production STORY reducer, private knowledge remains partitioned, every runtime reference is synthetic, reset reproduces the clean initial state, replay is deterministic from the known seed, the repository architecture audit reports no sibling-module private import or worsened STORY root fan-out, and the adapter has no Human-private, provider, connector, host-filesystem or real-canon dependency.

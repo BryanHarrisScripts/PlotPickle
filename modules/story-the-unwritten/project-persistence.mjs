@@ -3,6 +3,9 @@ import { STORY_FIVE_SCENE_COUNT } from "./session-machine.mjs";
 export const STORY_PROJECT_EXTENSION_KEY = "storyTheUnwritten";
 export const STORY_PROJECT_PERSISTENCE_VERSION = 1;
 
+const STORY_SCENE_STATUSES = new Set(["ready", "active", "resolving", "resolved", "failed"]);
+const STORY_SESSION_STATUSES = new Set(["ready", "active", "paused", "completed", "failed"]);
+
 function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -15,6 +18,17 @@ function isNonNegativeInteger(value) {
   return Number.isSafeInteger(value) && value >= 0;
 }
 
+function isPositiveInteger(value) {
+  return Number.isSafeInteger(value) && value > 0;
+}
+
+function isScalar(value) {
+  return value === null
+    || typeof value === "string"
+    || typeof value === "boolean"
+    || (typeof value === "number" && Number.isFinite(value));
+}
+
 function jsonClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -24,23 +38,67 @@ function normalizeTimestamp(value) {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
 }
 
+function validateReferenceMap(recordValue, label) {
+  if (!isRecord(recordValue)) return [`mechanical state ${label} must be an object`];
+  for (const [key, value] of Object.entries(recordValue)) {
+    if (!isReference(key) || !isReference(value)) return [`mechanical state ${label} must map reference ids to reference ids`];
+  }
+  return [];
+}
+
 function validateMechanicalState(state) {
   const errors = [];
   if (!isRecord(state)) return ["mechanical state must be an object"];
   if (!isNonNegativeInteger(state.revision)) errors.push("mechanical state revision must be a non-negative safe integer");
-  for (const field of ["values", "characterLocations", "objectCustody", "knowledgeByCharacter", "relationships"]) {
-    if (!isRecord(state[field])) errors.push(`mechanical state ${field} must be an object`);
+
+  if (!isRecord(state.values)) {
+    errors.push("mechanical state values must be an object");
+  } else if (Object.entries(state.values).some(([ref, value]) => !isReference(ref) || !isScalar(value))) {
+    errors.push("mechanical state values must map references to finite scalar values");
   }
-  if (!Array.isArray(state.openThreads) || state.openThreads.some((ref) => !isReference(ref))) {
-    errors.push("mechanical state openThreads must contain reference strings only");
-  }
-  if (isRecord(state.knowledgeByCharacter)) {
+
+  errors.push(...validateReferenceMap(state.characterLocations, "characterLocations"));
+  errors.push(...validateReferenceMap(state.objectCustody, "objectCustody"));
+
+  if (!isRecord(state.knowledgeByCharacter)) {
+    errors.push("mechanical state knowledgeByCharacter must be an object");
+  } else {
     for (const [characterId, knowledgeRefs] of Object.entries(state.knowledgeByCharacter)) {
       if (!isReference(characterId) || !Array.isArray(knowledgeRefs) || knowledgeRefs.some((ref) => !isReference(ref))) {
         errors.push("mechanical state knowledgeByCharacter must map character ids to reference arrays");
         break;
       }
     }
+  }
+
+  if (!isRecord(state.relationships)) {
+    errors.push("mechanical state relationships must be an object");
+  } else if (Object.entries(state.relationships).some(([relationshipId, value]) => !isReference(relationshipId) || typeof value !== "number" || !Number.isFinite(value))) {
+    errors.push("mechanical state relationships must map relationship ids to finite numbers");
+  }
+
+  if (!Array.isArray(state.openThreads) || state.openThreads.some((ref) => !isReference(ref))) {
+    errors.push("mechanical state openThreads must contain reference strings only");
+  }
+  return errors;
+}
+
+function validateResolutionQueue(queue) {
+  if (!isRecord(queue)) return ["session resolutionQueue is required for resumable idempotency"];
+  const errors = [];
+  if (!isNonNegativeInteger(queue.nextSequence)) errors.push("resolutionQueue nextSequence must be a non-negative safe integer");
+  if (!Array.isArray(queue.queuedEventIds) || queue.queuedEventIds.some((id) => !isReference(id))) {
+    errors.push("resolutionQueue queuedEventIds must contain reference strings only");
+  }
+  if (!Array.isArray(queue.processedIdempotencyKeys) || queue.processedIdempotencyKeys.some((key) => !isReference(key))) {
+    errors.push("resolutionQueue processedIdempotencyKeys must contain non-empty strings only");
+  }
+  if (!isNonNegativeInteger(queue.triggerDepth)) errors.push("resolutionQueue triggerDepth must be a non-negative safe integer");
+  if (!isRecord(queue.limits)
+    || !isPositiveInteger(queue.limits.maximumTriggerDepth)
+    || !isPositiveInteger(queue.limits.maximumOperationsPerScene)
+    || !isPositiveInteger(queue.limits.maximumAgentCallsPerTurn)) {
+    errors.push("resolutionQueue limits must contain positive finite integer budgets");
   }
   return errors;
 }
@@ -59,6 +117,7 @@ function validateRuntime(runtime) {
     if (!isReference(session[field])) errors.push(`session ${field} must be a non-empty reference`);
   }
   if (session.schemaVersion !== 1) errors.push("session schemaVersion must equal 1");
+  if (!STORY_SESSION_STATUSES.has(session.status)) errors.push("session status is unsupported");
   if (!isNonNegativeInteger(session.stateRevision)) errors.push("session stateRevision must be a non-negative safe integer");
   if (!Array.isArray(session.sceneIds) || session.sceneIds.length !== STORY_FIVE_SCENE_COUNT || session.sceneIds.some((id) => !isReference(id))) {
     errors.push(`session sceneIds must contain exactly ${STORY_FIVE_SCENE_COUNT} references`);
@@ -69,14 +128,23 @@ function validateRuntime(runtime) {
   if (session.canonAdmissionRef !== null && !isReference(session.canonAdmissionRef)) {
     errors.push("session canonAdmissionRef must be null or a non-empty reference");
   }
-  if (!isRecord(session.stateZoneIndexRefs)) errors.push("session stateZoneIndexRefs must remain reference-only metadata");
-  if (!isRecord(session.resolutionQueue)) errors.push("session resolutionQueue is required for resumable idempotency");
+  if (!isRecord(session.stateZoneIndexRefs)
+    || Object.values(session.stateZoneIndexRefs).some((ref) => !isReference(ref))) {
+    errors.push("session stateZoneIndexRefs must remain reference-only metadata");
+  }
+  errors.push(...validateResolutionQueue(session.resolutionQueue));
 
   const sceneIds = Array.isArray(session.sceneIds) ? session.sceneIds : [];
   runtime.scenes.forEach((scene, index) => {
     if (!isRecord(scene) || !isReference(scene.id) || scene.id !== sceneIds[index] || scene.ordinal !== index + 1) {
       errors.push("persisted scenes must retain stable ordered ids");
+      return;
     }
+    if (!STORY_SCENE_STATUSES.has(scene.status)) errors.push(`persisted scene ${scene.id} has unsupported status`);
+    if (!isReference(scene.locationId)) errors.push(`persisted scene ${scene.id} locationId must be a reference`);
+    if (!isNonNegativeInteger(scene.operationsUsed)) errors.push(`persisted scene ${scene.id} operationsUsed must be a non-negative safe integer`);
+    if (!isPositiveInteger(scene.narrativeBudget)) errors.push(`persisted scene ${scene.id} narrativeBudget must be a positive safe integer`);
+    if (!isReference(scene.checkpointRef)) errors.push(`persisted scene ${scene.id} checkpointRef must be a reference`);
   });
   return errors;
 }
@@ -117,7 +185,11 @@ export function persistStorySessionSnapshot(project, input) {
   if (!isRecord(project) || !isReference(project.id)) throw new Error("PlotPickle project with an id is required for STORY persistence");
   const snapshot = createStorySessionSnapshot(input);
   const extensions = isRecord(project.extensions) ? project.extensions : {};
-  const existing = isRecord(extensions[STORY_PROJECT_EXTENSION_KEY]) ? extensions[STORY_PROJECT_EXTENSION_KEY] : {};
+  const existingValue = extensions[STORY_PROJECT_EXTENSION_KEY];
+  const existing = isRecord(existingValue) ? existingValue : {};
+  if (isRecord(existingValue) && Object.keys(existingValue).length > 0 && existingValue.version !== STORY_PROJECT_PERSISTENCE_VERSION) {
+    throw new Error(`Cannot persist STORY session into incompatible project extension version ${String(existingValue.version)}`);
+  }
   const sessions = isRecord(existing.sessions) ? existing.sessions : {};
   return {
     project: {
@@ -143,6 +215,9 @@ function validateStoredSnapshot(raw, requestedSessionId) {
   if (raw.sessionId !== requestedSessionId) return { ok: false, errors: ["stored STORY snapshot session id does not match its index key"] };
   if (!isReference(raw.worldId) || !isReference(raw.gameDefinitionId) || !isReference(raw.worldRevisionRef) || !isReference(raw.ppfProjectRef)) {
     return { ok: false, errors: ["stored STORY snapshot identity references are invalid"] };
+  }
+  if (!isReference(raw.savedAt) || !Number.isFinite(Date.parse(raw.savedAt))) {
+    return { ok: false, errors: ["stored STORY snapshot savedAt timestamp is invalid"] };
   }
   const validation = validateStorySessionSnapshotInput({ runtime: raw.runtime, state: raw.mechanicalState });
   if (!validation.ok) return validation;

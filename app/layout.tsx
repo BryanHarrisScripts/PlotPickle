@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import DemoOnboardingBoundary from "./profile-access/demo-onboarding-boundary";
+import DemoOnboardingBoundary from "./profile-access/demo/demo-onboarding-boundary";
 import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";

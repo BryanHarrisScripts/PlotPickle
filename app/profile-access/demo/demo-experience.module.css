@@ -144,6 +144,13 @@
   background: #173f39;
 }
 
+.choices button:disabled,
+.actions button:disabled,
+.footer button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 .evidence {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

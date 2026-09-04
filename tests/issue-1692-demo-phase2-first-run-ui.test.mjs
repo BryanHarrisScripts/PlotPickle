@@ -11,13 +11,14 @@ test("#1692 Phase 2 mounts DEMO outside existing profile authority", async () =>
   ]);
 
   assert.match(layout, /<DemoOnboardingBoundary>[\s\S]*<ProfileAccessBoundary>[\s\S]*<\/ProfileAccessBoundary>[\s\S]*<\/DemoOnboardingBoundary>/u);
+  assert.match(layout, /profile-access\/demo\/demo-onboarding-boundary/u);
   assert.doesNotMatch(profileBoundary, /DemoExperience|DemoOnboardingBoundary|demo-onboarding/u);
   assert.match(profileBoundary, /if \(next\.accessMode === "server-network"\)[\s\S]*return next\.configured \? "login" : "create";/u);
   assert.match(profileBoundary, /setScreen\("guest"\)/u);
 });
 
 test("#1692 Phase 2 fresh desktop entry offers DEMO or the existing local profile path", async () => {
-  const source = await read("app/profile-access/demo-onboarding-boundary.tsx");
+  const source = await read("app/profile-access/demo/demo-onboarding-boundary.tsx");
 
   assert.match(source, /status\.accessMode === "desktop-loopback"[\s\S]*!status\.configured[\s\S]*!status\.authenticated/u);
   assert.match(source, /DEMO — See PlotPickle work/u);
@@ -27,42 +28,53 @@ test("#1692 Phase 2 fresh desktop entry offers DEMO or the existing local profil
 });
 
 test("#1692 Phase 2 does not expose DEMO as anonymous server-network application access", async () => {
-  const source = await read("app/profile-access/demo-onboarding-boundary.tsx");
+  const [boundary, route] = await Promise.all([
+    read("app/profile-access/demo/demo-onboarding-boundary.tsx"),
+    read("app/api/demo/story/route.ts"),
+  ]);
 
-  assert.match(source, /accessMode: "desktop-loopback" \| "server-network"/u);
-  assert.equal((source.match(/status\.accessMode === "desktop-loopback"/gu) || []).length, 2);
-  assert.doesNotMatch(source, /status\.accessMode === "server-network"[\s\S]*setMode\("demo"\)/u);
-  assert.doesNotMatch(source, /fetch\([^\n]*(?:provider|github|google|buzz)/iu);
+  assert.match(boundary, /accessMode: "desktop-loopback" \| "server-network"/u);
+  assert.equal((boundary.match(/status\.accessMode === "desktop-loopback"/gu) || []).length, 2);
+  assert.doesNotMatch(boundary, /status\.accessMode === "server-network"[\s\S]*setMode\("demo"\)/u);
+  assert.match(route, /runtime = "nodejs"/u);
+  assert.match(route, /runtimeState\.accessMode === "desktop-loopback"/u);
+  assert.match(route, /DEMO_LOCAL_ONLY/u);
+  assert.doesNotMatch(route, /profile-private|provider|connector|BUZZ_AUTH|github|google/iu);
 });
 
 test("#1692 Phase 2 returning locked desktop users keep the existing chooser with DEMO as a secondary action", async () => {
-  const source = await read("app/profile-access/demo-onboarding-boundary.tsx");
+  const source = await read("app/profile-access/demo/demo-onboarding-boundary.tsx");
 
   assert.match(source, /status\.configured[\s\S]*!status\.authenticated[\s\S]*!status\.autonomousGuest\?\.active/u);
   assert.match(source, /returningDemoVisible && canOfferReturningDemo\(status\)[\s\S]*Try DEMO/u);
   assert.match(source, /data-profile-access-boundary="locked"[\s\S]*setReturningDemoVisible\(false\)/u);
 });
 
-test("#1692 Phase 2 interactive DEMO reuses the core authority contract and STORY-owned prepared world", async () => {
-  const source = await read("app/profile-access/demo-experience.tsx");
+test("#1692 Phase 2 browser surface uses a local projection instead of bundling Node-only STORY mechanics", async () => {
+  const [client, route] = await Promise.all([
+    read("app/profile-access/demo/demo-experience.tsx"),
+    read("app/api/demo/story/route.ts"),
+  ]);
 
-  assert.match(source, /@\/core\/demo-onboarding\/demo-boundary\.mjs/u);
-  assert.match(source, /@\/modules\/story-the-unwritten\/demo\/world\.mjs/u);
-  assert.match(source, /createDemoBoundary/u);
-  assert.match(source, /applyStoryDemoDecision/u);
-  assert.match(source, /resetStoryDemoWorld/u);
-  assert.match(source, /data-demo-runtime="synthetic-demo-runtime"/u);
-  assert.match(source, /data-demo-storage="demo-owned-disposable"/u);
-  assert.doesNotMatch(source, /profile-private|PROJECT_LIBRARY|canon-admission|BUZZ_AUTH|@\/.*(?:provider|connector)/u);
-  assert.doesNotMatch(source, /\bfetch\s*\(/u);
+  assert.match(client, /fetch\("\/api\/demo\/story"/u);
+  assert.match(client, /data-demo-runtime="synthetic-demo-runtime"/u);
+  assert.match(client, /data-demo-storage="demo-owned-disposable"/u);
+  assert.doesNotMatch(client, /core\/demo-onboarding|modules\/story-the-unwritten|node:crypto|createStoryDemoWorld|applyStoryDemoDecision|resetStoryDemoWorld/u);
+
+  assert.match(route, /@\/core\/demo-onboarding\/demo-boundary\.mjs/u);
+  assert.match(route, /@\/modules\/story-the-unwritten\/demo\/world\.mjs/u);
+  assert.match(route, /createStoryDemoWorld/u);
+  assert.match(route, /replayStoryDemoWorld/u);
+  assert.match(route, /assertStoryDemoSyntheticRefs/u);
 });
 
 test("#1692 Phase 2 DEMO provides explicit reset, exit and transition controls", async () => {
-  const source = await read("app/profile-access/demo-experience.tsx");
+  const source = await read("app/profile-access/demo/demo-experience.tsx");
 
   assert.match(source, /Reset DEMO/u);
   assert.match(source, /Exit DEMO/u);
   assert.match(source, /Enter PlotPickle/u);
   assert.match(source, /onEnterPlotPickle/u);
   assert.match(source, /onExit/u);
+  assert.match(source, /action: "reset"/u);
 });

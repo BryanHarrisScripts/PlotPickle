@@ -1,4 +1,5 @@
 import { resolveStoryEventBatch } from "./resolution.mjs";
+import { deriveStoryRuleEvents } from "./rules.mjs";
 
 function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -37,6 +38,10 @@ function findCurrentScene(runtime) {
   const currentSceneId = runtime?.session?.currentSceneId;
   if (!currentSceneId || !Array.isArray(runtime?.scenes)) return null;
   return runtime.scenes.find((scene) => scene.id === currentSceneId) || null;
+}
+
+function checkpointReference(sessionId, checkpoint) {
+  return `story-checkpoint:${sessionId}:${checkpoint.revision}:${checkpoint.stateHash.slice(0, 16)}`;
 }
 
 export function validateStoryActionForRuntime({ runtime, state, action }) {
@@ -143,7 +148,7 @@ export function reduceStoryAction({ runtime, state, action }) {
   const nextRuntime = structuredClone(runtime);
   const nextSession = nextRuntime.session;
   const nextScene = findCurrentScene(nextRuntime);
-  const checkpointRef = `story-checkpoint:${nextSession.id}:${resolution.checkpoint.revision}:${resolution.checkpoint.stateHash.slice(0, 16)}`;
+  const checkpointRef = checkpointReference(nextSession.id, resolution.checkpoint);
 
   nextScene.operationsUsed += 1;
   nextScene.checkpointRef = checkpointRef;
@@ -161,6 +166,101 @@ export function reduceStoryAction({ runtime, state, action }) {
     state: resolution.state,
     acceptedEvent,
     checkpoint: resolution.checkpoint,
+    failure: null,
+  };
+}
+
+export function reduceStoryActionWithRules({ runtime, state, action, rules = [] }) {
+  const direct = reduceStoryAction({ runtime, state, action });
+  if (!direct.ok || direct.status !== "accepted") {
+    return {
+      ...direct,
+      matchedRuleIds: [],
+      acceptedRuleEvents: [],
+    };
+  }
+
+  const directSession = direct.runtime.session;
+  const directScene = findCurrentScene(direct.runtime);
+  const remainingOperations = directSession.resolutionQueue.limits.maximumOperationsPerScene - directScene.operationsUsed;
+  const derived = deriveStoryRuleEvents({
+    rules,
+    trigger: "action-accepted",
+    state: direct.state,
+    causationRef: action.id,
+    actionId: action.id,
+    nextSequence: directSession.resolutionQueue.nextSequence,
+    triggerDepth: directSession.resolutionQueue.triggerDepth,
+    ancestryKeys: [],
+  });
+
+  if (!derived.ok) {
+    return {
+      ...illegalResult(derived.failure.code, derived.failure.message, runtime, state),
+      matchedRuleIds: derived.matchedRuleIds || [],
+      acceptedRuleEvents: [],
+    };
+  }
+  if (derived.events.length > remainingOperations) {
+    return {
+      ...illegalResult(
+        "operation-budget-exceeded",
+        `action and matched rules exceed the scene operation budget of ${directSession.resolutionQueue.limits.maximumOperationsPerScene}`,
+        runtime,
+        state,
+      ),
+      matchedRuleIds: derived.matchedRuleIds,
+      acceptedRuleEvents: [],
+    };
+  }
+  if (derived.events.length === 0) {
+    return {
+      ...direct,
+      matchedRuleIds: derived.matchedRuleIds,
+      acceptedRuleEvents: [],
+    };
+  }
+
+  const ruleResolution = resolveStoryEventBatch({
+    state: direct.state,
+    events: derived.events,
+    limits: {
+      ...directSession.resolutionQueue.limits,
+      maximumOperationsPerScene: remainingOperations,
+    },
+    processedIdempotencyKeys: directSession.resolutionQueue.processedIdempotencyKeys,
+  });
+  if (!ruleResolution.ok) {
+    return {
+      ...illegalResult(ruleResolution.failure.code, ruleResolution.failure.message, runtime, state),
+      matchedRuleIds: derived.matchedRuleIds,
+      acceptedRuleEvents: [],
+    };
+  }
+
+  const nextRuntime = structuredClone(direct.runtime);
+  const nextSession = nextRuntime.session;
+  const nextScene = findCurrentScene(nextRuntime);
+  const checkpointRef = checkpointReference(nextSession.id, ruleResolution.checkpoint);
+
+  nextScene.operationsUsed += ruleResolution.acceptedEvents.length;
+  nextScene.checkpointRef = checkpointRef;
+  nextSession.stateRevision = ruleResolution.state.revision;
+  nextSession.latestCheckpointRef = checkpointRef;
+  nextSession.resolutionQueue.nextSequence = derived.nextSequence;
+  nextSession.resolutionQueue.queuedEventIds = [];
+  nextSession.resolutionQueue.processedIdempotencyKeys = [...ruleResolution.checkpoint.processedIdempotencyKeys];
+  nextSession.resolutionQueue.triggerDepth = 0;
+
+  return {
+    ok: true,
+    status: "accepted",
+    runtime: nextRuntime,
+    state: ruleResolution.state,
+    acceptedEvent: direct.acceptedEvent,
+    matchedRuleIds: derived.matchedRuleIds,
+    acceptedRuleEvents: ruleResolution.acceptedEvents,
+    checkpoint: ruleResolution.checkpoint,
     failure: null,
   };
 }

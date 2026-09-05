@@ -67,6 +67,17 @@ test("#1692 Phase 5 stable UI selectors describe behavior without exposing priva
   assert.match(onboarding, /data-demo-handoff-state=\{handoffState\}/u);
 });
 
+test("#1692 Phase 5 authenticated handoff reuses the existing local profile gateway and canonical route", async () => {
+  const gateway = await read("build/local-profile-auth-gateway.ts");
+
+  assert.match(gateway, /POST as demoHandoffPost[^\n]*app\/api\/demo\/handoff\/route/u);
+  assert.match(gateway, /DEMO_HANDOFF_API = "\/api\/demo\/handoff"/u);
+  assert.match(gateway, /\[DEMO_HANDOFF_API, Object\.freeze\(\{[\s\S]*handlers: Object\.freeze\(\{ POST: demoHandoffPost \}\)/u);
+  assert.match(gateway, /desktopLoopbackMode/u);
+  assert.match(gateway, /requestOrigin\(request\)/u);
+  assert.doesNotMatch(gateway, /createProfile|saveProject|authorizeRequest|createStoryDemoStarterHandoff/u);
+});
+
 test("#1692 Phase 5 Windows installer compiles the real setup and runs both generic and DEMO packaged interaction proofs", async () => {
   const workflow = await read(".github/workflows/windows-installer.yml");
 

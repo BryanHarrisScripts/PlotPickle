@@ -68,7 +68,10 @@ test("#1692 Phase 5 stable UI selectors describe behavior without exposing priva
 });
 
 test("#1692 Phase 5 authenticated handoff reuses the existing local profile gateway and canonical route", async () => {
-  const gateway = await read("build/local-profile-auth-gateway.ts");
+  const [gateway, route] = await Promise.all([
+    read("build/local-profile-auth-gateway.ts"),
+    read("app/api/demo/handoff/route.ts"),
+  ]);
 
   assert.match(gateway, /POST as demoHandoffPost[^\n]*app\/api\/demo\/handoff\/route/u);
   assert.match(gateway, /DEMO_HANDOFF_API = "\/api\/demo\/handoff"/u);
@@ -76,6 +79,7 @@ test("#1692 Phase 5 authenticated handoff reuses the existing local profile gate
   assert.match(gateway, /desktopLoopbackMode/u);
   assert.match(gateway, /requestOrigin\(request\)/u);
   assert.doesNotMatch(gateway, /createProfile|saveProject|authorizeRequest|createStoryDemoStarterHandoff/u);
+  assert.doesNotMatch(route, /from\s+["']@\//u, "The handoff route is imported into the packaged Vite config graph and cannot depend on the application alias resolver.");
 });
 
 test("#1692 Phase 5 Windows installer compiles the real setup and runs both generic and DEMO packaged interaction proofs", async () => {

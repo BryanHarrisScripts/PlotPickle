@@ -15,6 +15,7 @@ const totalTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_DEMO_SMOKE_TIMEOUT
 const actionTimeoutMs = 20_000;
 const routeTimeoutMs = 45_000;
 const coldDemoTimeoutMs = 90_000;
+const coldProfileTimeoutMs = 120_000;
 const deadline = Date.now() + totalTimeoutMs;
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
 const processes = new Set();
@@ -434,6 +435,12 @@ async function main() {
 
     await click(client, '[data-demo-action="make-this-mine"]', "Make This Mine");
     await waitFor(client, `document.querySelector('[data-demo-handoff="pending"]') !== null`, "Make This Mine pending Human boundary");
+    await waitFor(
+      client,
+      `document.querySelector('[data-profile-access-boundary="locked"]') !== null`,
+      "Existing Human profile boundary after Make This Mine",
+      coldProfileTimeoutMs,
+    );
     report.steps.push({ name: "Make This Mine crosses to existing Human profile boundary", passed: true });
 
     const verificationHuman = await establishVerificationSyntheticHuman({ baseUrl, home });
@@ -442,7 +449,7 @@ async function main() {
       client,
       `location.search.includes('workspace=dashboard') && document.querySelector('[data-active-workspace="dashboard"]') !== null`,
       "Dashboard after authenticated Make This Mine",
-      60_000,
+      coldProfileTimeoutMs,
     );
 
     const imported = await browserPrivateProject(client);

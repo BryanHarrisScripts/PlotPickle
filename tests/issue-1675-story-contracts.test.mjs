@@ -4,6 +4,7 @@ import test from "node:test";
 
 import "./issue-1675-story-game-validator.test.mjs";
 import "./issue-1675-story-creator-authoring.test.mjs";
+import "./issue-1675-story-creator-starter-world.test.mjs";
 import {
   STORY_CHARACTER_ACTIVATION_TIERS,
   STORY_CHARACTER_ACTIVATION_TRANSITIONS,
@@ -109,7 +110,7 @@ test("#1675 graph nodes cannot embed heavy character, relationship, memory, asse
     assets: [{ bytes: "large-payload" }],
     dialogueHistory: ["Every line ever spoken"],
     promptContext: "private prompt",
-    runtimeInstance: { model: "provider-specific-model" },
+    runtimeInstance: { model: "resident-agent" },
   })) {
     const result = validateStoryCharacterGraphNode({ ...graphNode, [field]: value });
     assert.equal(result.ok, false, field);

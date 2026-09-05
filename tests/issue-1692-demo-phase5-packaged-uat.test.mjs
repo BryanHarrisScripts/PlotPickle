@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { getDemoAccessMode } from "../core/demo-onboarding/demo-access-mode.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -30,6 +31,22 @@ test("#1692 Phase 5 packaged DEMO UAT script parses and drives the real first-ru
   assert.match(source, /anonymousPrivate\.status === 200/u);
   assert.match(source, /afterSnapshot !== privateSnapshot/u);
   assert.doesNotMatch(source, /providerCredentials|BUZZ_AUTH|connectorScopes|ppf\.canon\.write|agent\.grant-authority/u);
+});
+
+test("#1692 Phase 5 DEMO story cold path preserves access-mode semantics without hydrating private profile runtime", async () => {
+  assert.equal(getDemoAccessMode({}), "desktop-loopback");
+  assert.equal(getDemoAccessMode({ PLOTPICKLE_ACCESS_MODE: "server-network" }), "desktop-loopback");
+  assert.equal(getDemoAccessMode({
+    PLOTPICKLE_ACCESS_MODE: "server-network",
+    PLOTPICKLE_BIND_HOST: "0.0.0.0",
+    PLOTPICKLE_EXTERNAL_ORIGIN: "https://plotpickle.example",
+    PLOTPICKLE_SERVER_NETWORK_ENABLED: "true",
+  }), "server-network");
+
+  const route = await read("app/api/demo/story/route.ts");
+  assert.match(route, /getDemoAccessMode/u);
+  assert.match(route, /runtimeState\.accessMode === "desktop-loopback"/u);
+  assert.doesNotMatch(route, /getProfileExperienceRuntime|profile-private-storage|plotpickle-auth/u);
 });
 
 test("#1692 Phase 5 stable UI selectors describe behavior without exposing private authority", async () => {

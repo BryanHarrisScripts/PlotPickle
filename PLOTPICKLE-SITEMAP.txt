@@ -851,7 +851,7 @@ STORYBOARD and PREVIS visualize it.
 WRITE and EDIT express it.
 REFINE and REPORTS evaluate it.
 BUZZ connects people around it.
-WYRMWWOOD teaches through play.
+WYRMWOOD teaches through play.
 AGENTS and SKILLS act only within PlotPickle authority.
 
 The story should never need to be rebuilt merely because the Human changed workspaces.

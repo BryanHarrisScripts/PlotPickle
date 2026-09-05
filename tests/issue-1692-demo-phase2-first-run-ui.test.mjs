@@ -62,8 +62,8 @@ test("#1692 Phase 2 browser surface uses a local projection instead of bundling 
   assert.match(client, /data-demo-storage="demo-owned-disposable"/u);
   assert.doesNotMatch(client, /core\/demo-onboarding|modules\/story-the-unwritten|node:crypto|createStoryDemoWorld|applyStoryDemoDecision|resetStoryDemoWorld/u);
 
-  assert.match(route, /@\/core\/demo-onboarding\/demo-boundary\.mjs/u);
-  assert.match(route, /@\/modules\/story-the-unwritten\/demo\/world\.mjs/u);
+  assert.match(route, /core\/demo-onboarding\/demo-boundary\.mjs/u);
+  assert.match(route, /modules\/story-the-unwritten\/demo\/world\.mjs/u);
   assert.match(route, /createStoryDemoWorld/u);
   assert.match(route, /replayStoryDemoWorld/u);
   assert.match(route, /assertStoryDemoSyntheticRefs/u);

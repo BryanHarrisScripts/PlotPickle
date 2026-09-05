@@ -53,6 +53,24 @@ async function waitForHttp(url, timeoutMs = 120_000) {
   throw new Error(`Timed out waiting for ${url}: ${lastError}`);
 }
 
+async function warmDemoHandoffRoute(baseUrl) {
+  const response = await fetch(`${baseUrl}/api/demo/handoff`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Origin: baseUrl,
+    },
+    body: JSON.stringify({ action: "make-this-mine" }),
+    signal: AbortSignal.timeout(coldDemoTimeoutMs),
+  });
+  await response.arrayBuffer();
+  if (![400, 401, 403].includes(response.status)) {
+    throw new Error(`Anonymous DEMO handoff warm-up returned unexpected status ${response.status}.`);
+  }
+  return response.status;
+}
+
 function findBrowserExecutable() {
   const candidates = [
     process.env.EDGE_PATH,
@@ -354,6 +372,8 @@ async function main() {
   try {
     const response = await waitForHttp(baseUrl);
     if (!response.ok) throw new Error(`Packaged server returned ${response.status} ${response.statusText}.`);
+    const handoffWarmStatus = await warmDemoHandoffRoute(baseUrl);
+    report.steps.push({ name: "DEMO handoff route warms without anonymous authority", passed: true, status: handoffWarmStatus });
 
     browser = startLoggedProcess(browserExecutable, [
       "--headless=new",

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
-  "releaseTag": "desktop-v0.5.14",
-  "version": "0.5.14",
-  "sourceCommit": "391495e7d347d20b67e39e3c240d17ef63c5c2c0",
+  "releaseTag": "desktop-v0.5.22",
+  "version": "0.5.22",
+  "sourceCommit": "9ceb1f79bbc21785a0a075c40aecb3c058b1ea15",
   "releaseApi": "https://api.github.com/repos/block/buzz/releases?per_page=30",
   "windows": {
-    "asset": "Buzz_0.5.14_x64-setup_alpha-unsigned.exe",
-    "downloadUrl": "https://github.com/block/buzz/releases/download/desktop-v0.5.14/Buzz_0.5.14_x64-setup_alpha-unsigned.exe",
-    "sha256": "18499a628b673d4d4cb977626726071cdddab13e5ac5943b78a185308bd258a1",
+    "asset": "Buzz_0.5.22_x64-setup_alpha-unsigned.exe",
+    "downloadUrl": "https://github.com/block/buzz/releases/download/desktop-v0.5.22/Buzz_0.5.22_x64-setup_alpha-unsigned.exe",
+    "sha256": "c76aa32e75faa20aee5d8cd1c1c2c00265bc94166c3cb6a88455a6819e9ec289",
     "unsigned": true
   }
 }

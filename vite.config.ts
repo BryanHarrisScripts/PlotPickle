@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { localProfileAuthGateway } from "./build/local-profile-auth-gateway";
+import { demoOnboardingGateway } from "./build/demo-onboarding-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/auth/profile-request-context";
 import { autonomousGuestReferenceTaskGateway } from "./build/autonomous-guest/reference/reference-task-gateway";
@@ -78,7 +79,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1 ? [{ binding: d1, database_name: "site-creator-d1", database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID }] : [],
-  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
+  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2", bucket_name: "site-creator-r2" }] : [],
 };
 
 export default defineConfig(async ({ command }) => {
@@ -118,6 +119,7 @@ export default defineConfig(async ({ command }) => {
       localInstanceProofGateway(),
       autonomousGuestReferenceTaskGateway(),
       localProfileAuthGateway(),
+      demoOnboardingGateway(),
       localConnectionsGateway(),
       writerInResidenceGateway(),
       profileScopedBuzzRequestContext(),

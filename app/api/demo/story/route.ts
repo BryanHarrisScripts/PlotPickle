@@ -1,13 +1,13 @@
-import { createDemoBoundary } from "@/core/demo-onboarding/demo-boundary.mjs";
-import { getDemoAccessMode } from "@/core/demo-onboarding/demo-access-mode.mjs";
-import { createStoryDemoShowMe } from "@/modules/story-the-unwritten/demo/show-me.mjs";
+import { createDemoBoundary } from "../../../../core/demo-onboarding/demo-boundary.mjs";
+import { getDemoAccessMode } from "../../../../core/demo-onboarding/demo-access-mode.mjs";
+import { createStoryDemoShowMe } from "../../../../modules/story-the-unwritten/demo/show-me.mjs";
 import {
   DEMO_STORY_SCENARIO_ID,
   DEMO_STORY_SEED,
   assertStoryDemoSyntheticRefs,
   createStoryDemoWorld,
   replayStoryDemoWorld,
-} from "@/modules/story-the-unwritten/demo/world.mjs";
+} from "../../../../modules/story-the-unwritten/demo/world.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

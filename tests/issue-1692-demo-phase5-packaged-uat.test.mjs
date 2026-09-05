@@ -20,6 +20,8 @@ test("#1692 Phase 5 packaged DEMO UAT script parses and drives the real first-ru
     /data-demo-action=\\?"reset/u,
     /data-demo-action=\\?"exit/u,
     /data-demo-action=\\?"make-this-mine/u,
+    /data-profile-access-boundary=\\?"locked/u,
+    /coldProfileTimeoutMs/u,
     /establishVerificationSyntheticHuman/u,
     /Network\.setCookie/u,
     /\/api\/auth\/profile-private/u,

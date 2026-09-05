@@ -13,7 +13,8 @@ const root = path.resolve(process.argv[2] ?? ".");
 const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports", "windows-demo-onboarding"));
 const totalTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_DEMO_SMOKE_TIMEOUT_MS || 6 * 60_000), 6 * 60_000);
 const actionTimeoutMs = 20_000;
-const routeTimeoutMs = 90_000;
+const routeTimeoutMs = 45_000;
+const navigationCommandTimeoutMs = 10_000;
 const coldDemoTimeoutMs = 90_000;
 const coldProfileTimeoutMs = 120_000;
 const deadline = Date.now() + totalTimeoutMs;
@@ -263,8 +264,18 @@ async function browserState(client) {
 }
 
 async function navigate(client, url) {
-  await client.send("Page.navigate", { url }, routeTimeoutMs);
-  await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, `Navigation to ${url}`);
+  try {
+    await client.send("Page.navigate", { url }, navigationCommandTimeoutMs);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/^Page\.navigate exceeded \d+ ms\.$/u.test(message)) throw error;
+  }
+  await waitFor(
+    client,
+    `location.href.startsWith(${JSON.stringify(url)}) && document.readyState !== "loading" && Boolean(document.body)`,
+    `Navigation to ${url}`,
+    routeTimeoutMs,
+  );
 }
 
 async function installSessionCookie(client, baseUrl, cookieHeader) {

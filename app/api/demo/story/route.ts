@@ -1,5 +1,5 @@
-import { getProfileExperienceRuntime } from "@/core/auth/profile-experience/profile-experience-runtime";
 import { createDemoBoundary } from "@/core/demo-onboarding/demo-boundary.mjs";
+import { getDemoAccessMode } from "@/core/demo-onboarding/demo-access-mode.mjs";
 import { createStoryDemoShowMe } from "@/modules/story-the-unwritten/demo/show-me.mjs";
 import {
   DEMO_STORY_SCENARIO_ID,
@@ -25,8 +25,8 @@ function demoBoundary() {
   return createDemoBoundary({ demoId: DEMO_STORY_SCENARIO_ID, seed: DEMO_STORY_SEED });
 }
 
-async function localDemoAllowed() {
-  const runtimeState = await getProfileExperienceRuntime();
+function localDemoAllowed() {
+  const runtimeState = { accessMode: getDemoAccessMode() };
   return runtimeState.accessMode === "desktop-loopback";
 }
 
@@ -77,7 +77,7 @@ function publicError(error: unknown) {
 
 export async function GET() {
   try {
-    if (!await localDemoAllowed()) return response({ code: "DEMO_LOCAL_ONLY", message: "DEMO is available only on a local desktop PlotPickle Node." }, 403);
+    if (!localDemoAllowed()) return response({ code: "DEMO_LOCAL_ONLY", message: "DEMO is available only on a local desktop PlotPickle Node." }, 403);
     return response(projectWorld(createStoryDemoWorld({ boundary: demoBoundary() })));
   } catch (error) {
     return response({ code: "DEMO_REQUEST_REJECTED", message: publicError(error) }, 400);
@@ -86,7 +86,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    if (!await localDemoAllowed()) return response({ code: "DEMO_LOCAL_ONLY", message: "DEMO is available only on a local desktop PlotPickle Node." }, 403);
+    if (!localDemoAllowed()) return response({ code: "DEMO_LOCAL_ONLY", message: "DEMO is available only on a local desktop PlotPickle Node." }, 403);
     const input = await request.json().catch(() => ({})) as Record<string, unknown>;
     const action = typeof input.action === "string" ? input.action : "";
 

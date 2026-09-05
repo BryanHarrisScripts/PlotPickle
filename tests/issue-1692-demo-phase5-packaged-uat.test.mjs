@@ -24,13 +24,13 @@ test("#1692 Phase 5 packaged DEMO UAT script parses and drives the real first-ru
     /coldProfileTimeoutMs/u,
     /navigationCommandTimeoutMs/u,
     /Page\\.navigate exceeded/u,
-    /location\\.href\\.startsWith/u,
     /establishVerificationSyntheticHuman/u,
     /Network\.setCookie/u,
     /\/api\/auth\/profile-private/u,
     /data-demo-entry-action=\\?"demo-returning/u,
     /Network\.deleteCookies/u,
   ]) assert.match(source, contract);
+  assert.ok(source.includes("location.href.startsWith"), "Navigation must verify the browser actually reached the requested URL after a lost CDP acknowledgement.");
 
   assert.match(source, /serializedImported\.includes\("demo:"\)/u);
   assert.match(source, /anonymousPrivate\.status === 200/u);

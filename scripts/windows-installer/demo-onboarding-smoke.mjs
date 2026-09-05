@@ -40,7 +40,8 @@ async function waitForHttp(url, timeoutMs = 120_000) {
   let lastError = "No response received.";
   while (Date.now() < stopAt) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(3_000), redirect: "manual" });
+      const remainingMs = Math.max(1_000, stopAt - Date.now());
+      const response = await fetch(url, { signal: AbortSignal.timeout(Math.min(30_000, remainingMs)), redirect: "manual" });
       if (response.status > 0) return response;
       lastError = `${response.status} ${response.statusText}`;
     } catch (error) {

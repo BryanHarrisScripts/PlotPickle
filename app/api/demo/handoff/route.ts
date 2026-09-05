@@ -1,16 +1,16 @@
-import { toPublicAuthError } from "@/core/auth/plotpickle-auth";
+import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
-} from "@/core/auth/profile-experience/profile-experience-runtime";
-import { toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
-import { createDemoBoundary } from "@/core/demo-onboarding/demo-boundary.mjs";
-import { createEmptyProject, normalizeFoundationProject } from "@/core/project/project";
-import { createStoryDemoStarterHandoff } from "@/modules/story-the-unwritten/demo/handoff.mjs";
+} from "../../../../core/auth/profile-experience/profile-experience-runtime";
+import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
+import { createDemoBoundary } from "../../../../core/demo-onboarding/demo-boundary.mjs";
+import { createEmptyProject, normalizeFoundationProject } from "../../../../core/project/project";
+import { createStoryDemoStarterHandoff } from "../../../../modules/story-the-unwritten/demo/handoff.mjs";
 import {
   DEMO_STORY_SCENARIO_ID,
   DEMO_STORY_SEED,
-} from "@/modules/story-the-unwritten/demo/world.mjs";
+} from "../../../../modules/story-the-unwritten/demo/world.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

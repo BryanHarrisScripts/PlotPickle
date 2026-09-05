@@ -19,13 +19,9 @@ function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function reference(value, label) {
-  if (typeof value !== "string" || !value.trim()) throw new Error(`${label} is required`);
-  return value.trim();
-}
-
-function text(value, label) {
-  const normalized = typeof value === "string" ? value.trim() : "";
+function requiredString(value, label) {
+  if (typeof value !== "string") throw new Error(`${label} is required`);
+  const normalized = value.trim();
   if (!normalized) throw new Error(`${label} is required`);
   return normalized;
 }
@@ -46,7 +42,7 @@ function cloneFrozen(value) {
 function provenance(creatorRef) {
   return Object.freeze({
     authorship: "human",
-    creatorRef: reference(creatorRef, "creatorRef"),
+    creatorRef: requiredString(creatorRef, "creatorRef"),
     sourceRefs: Object.freeze([]),
     admittedByRef: null,
     admittedAt: null,
@@ -70,19 +66,19 @@ export function createCreatorStoryWorld({
 } = {}) {
   if (!VISIBILITIES.has(visibility)) throw new Error(`Unsupported Story World visibility ${String(visibility)}`);
   const world = {
-    id: reference(id, "Story World id"),
+    id: requiredString(id, "Story World id"),
     schemaVersion: 1,
-    title: text(title, "Story World title"),
+    title: requiredString(title, "Story World title"),
     description: typeof description === "string" ? description.trim() : "",
     visibility,
-    ppfProjectRef: reference(ppfProjectRef, "Story World ppfProjectRef"),
-    graphIndexRef: reference(graphIndexRef, "Story World graphIndexRef"),
-    pieceIndexRef: reference(pieceIndexRef, "Story World pieceIndexRef"),
-    ruleIndexRef: reference(ruleIndexRef, "Story World ruleIndexRef"),
-    assetIndexRef: reference(assetIndexRef, "Story World assetIndexRef"),
+    ppfProjectRef: requiredString(ppfProjectRef, "Story World ppfProjectRef"),
+    graphIndexRef: requiredString(graphIndexRef, "Story World graphIndexRef"),
+    pieceIndexRef: requiredString(pieceIndexRef, "Story World pieceIndexRef"),
+    ruleIndexRef: requiredString(ruleIndexRef, "Story World ruleIndexRef"),
+    assetIndexRef: requiredString(assetIndexRef, "Story World assetIndexRef"),
     compatibility: {
       storySchemaVersion: 1,
-      minimumEngineVersion: reference(minimumEngineVersion, "Story World minimumEngineVersion"),
+      minimumEngineVersion: requiredString(minimumEngineVersion, "Story World minimumEngineVersion"),
       featureIds: referenceArray(featureIds, "Story World featureIds"),
       requiredCapabilityRefs: referenceArray(requiredCapabilityRefs, "Story World requiredCapabilityRefs"),
     },
@@ -109,10 +105,10 @@ export function createCreatorStoryGameDefinition({
   creatorRef,
 } = {}) {
   const game = {
-    id: reference(id, "Story Game id"),
+    id: requiredString(id, "Story Game id"),
     schemaVersion: 1,
-    worldId: reference(worldId, "Story Game worldId"),
-    title: text(title, "Story Game title"),
+    worldId: requiredString(worldId, "Story Game worldId"),
+    title: requiredString(title, "Story Game title"),
     sceneCount: 5,
     startingPieceIds: referenceArray(startingPieceIds, "Story Game startingPieceIds"),
     ruleIds: referenceArray(ruleIds, "Story Game ruleIds"),
@@ -120,7 +116,7 @@ export function createCreatorStoryGameDefinition({
     resolutionLimits: structuredClone(resolutionLimits),
     compatibility: {
       storySchemaVersion: 1,
-      minimumEngineVersion: reference(minimumEngineVersion, "Story Game minimumEngineVersion"),
+      minimumEngineVersion: requiredString(minimumEngineVersion, "Story Game minimumEngineVersion"),
       featureIds: referenceArray(featureIds, "Story Game featureIds"),
       requiredCapabilityRefs: referenceArray(requiredCapabilityRefs, "Story Game requiredCapabilityRefs"),
     },
@@ -152,8 +148,8 @@ export function createFiveSceneCreatorStarterCollection({
   createdAt,
   checkedRevisionRef = "story:creator:starter-working",
 } = {}) {
-  const normalizedWorldId = reference(worldId, "worldId");
-  const normalizedCreatorRef = reference(creatorRef, "creatorRef");
+  const normalizedWorldId = requiredString(worldId, "worldId");
+  const normalizedCreatorRef = requiredString(creatorRef, "creatorRef");
   const ids = Object.freeze({
     character: `${normalizedWorldId}:piece:keeper`,
     location: `${normalizedWorldId}:piece:crossroads`,
@@ -301,7 +297,7 @@ export function createFiveSceneCreatorStarterCollection({
     endConditions,
     initialState,
     hostCapabilityRefs: [],
-    checkedRevisionRef: reference(checkedRevisionRef, "checkedRevisionRef"),
+    checkedRevisionRef: requiredString(checkedRevisionRef, "checkedRevisionRef"),
   });
   if (!validation.launchAllowed) {
     const blocking = validation.findings.filter((finding) => finding.severity === "error").map((finding) => finding.code);
@@ -326,7 +322,7 @@ export function loadCreatorStoryWorldBundle(bundle, {
   if (!isRecord(bundle) || !isRecord(bundle.world) || !isRecord(bundle.gameDefinition)) {
     throw new Error("Creator Story World bundle must contain world and gameDefinition records");
   }
-  const worldId = reference(bundle.world.id, "Story World id");
+  const worldId = requiredString(bundle.world.id, "Story World id");
   if (bundle.gameDefinition.worldId !== worldId) throw new Error("Story Game worldId must match the loaded Story World");
   const pieces = Array.isArray(bundle.pieces) ? bundle.pieces : [];
   const pieceIds = pieces.map((piece) => piece?.id).filter(Boolean);
@@ -340,7 +336,7 @@ export function loadCreatorStoryWorldBundle(bundle, {
     endConditions: Array.isArray(bundle.endConditions) ? bundle.endConditions : [],
     initialState: bundle.initialState ?? null,
     hostCapabilityRefs: referenceArray(hostCapabilityRefs, "hostCapabilityRefs"),
-    checkedRevisionRef: reference(checkedRevisionRef, "checkedRevisionRef"),
+    checkedRevisionRef: requiredString(checkedRevisionRef, "checkedRevisionRef"),
   });
 
   return cloneFrozen({
@@ -359,10 +355,10 @@ export function createNaturalLanguageMechanicsProposalRequest({
   return cloneFrozen({
     kind: "story-mechanics-proposal-request",
     schemaVersion: 1,
-    requestId: reference(requestId, "Mechanics proposal requestId"),
-    worldId: reference(worldId, "Mechanics proposal worldId"),
-    creatorRef: reference(creatorRef, "Mechanics proposal creatorRef"),
-    prompt: text(prompt, "Mechanics proposal prompt"),
+    requestId: requiredString(requestId, "Mechanics proposal requestId"),
+    worldId: requiredString(worldId, "Mechanics proposal worldId"),
+    creatorRef: requiredString(creatorRef, "Mechanics proposal creatorRef"),
+    prompt: requiredString(prompt, "Mechanics proposal prompt"),
     targetPieceIds: referenceArray(targetPieceIds, "Mechanics proposal targetPieceIds"),
     authoritative: false,
     allowedOutputContract: "story-rule-controls.v1",
@@ -376,8 +372,8 @@ export function createGeneratedRuleFromMechanicsProposal({ request, agentRef, pr
   if (!isRecord(proposedRuleControls)) throw new Error("Generated Story mechanics must use finite rule controls");
   return createGeneratedStoryRuleProposal({
     ...structuredClone(proposedRuleControls),
-    creatorRef: reference(agentRef, "agentRef"),
-    sourceRefs: [reference(request.requestId, "Mechanics proposal requestId")],
+    creatorRef: requiredString(agentRef, "agentRef"),
+    sourceRefs: [requiredString(request.requestId, "Mechanics proposal requestId")],
   });
 }
 
@@ -391,7 +387,7 @@ export function createValidatorExplanationRequest({ requestId, validationResult 
   return cloneFrozen({
     kind: "story-validator-explanation-request",
     schemaVersion: 1,
-    requestId: reference(requestId, "Validator explanation requestId"),
+    requestId: requiredString(requestId, "Validator explanation requestId"),
     authoritative: false,
     mayOverrideDeterministicResult: false,
     deterministicResult: validationResult,
@@ -402,7 +398,7 @@ export function attachValidatorExplanation({ request, explanation } = {}) {
   if (request?.kind !== "story-validator-explanation-request" || request?.mayOverrideDeterministicResult !== false) {
     throw new Error("A deterministic validator explanation request is required");
   }
-  const explanationText = text(explanation, "Validator explanation");
+  const explanationText = requiredString(explanation, "Validator explanation");
   return cloneFrozen({
     deterministicResult: request.deterministicResult,
     explanation: explanationText,

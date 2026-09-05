@@ -14,6 +14,7 @@ const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports
 const totalTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_DEMO_SMOKE_TIMEOUT_MS || 6 * 60_000), 6 * 60_000);
 const actionTimeoutMs = 20_000;
 const routeTimeoutMs = 45_000;
+const coldDemoTimeoutMs = 90_000;
 const deadline = Date.now() + totalTimeoutMs;
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
 const processes = new Set();
@@ -197,6 +198,51 @@ async function click(client, selector, label) {
   if (!result) throw new Error(`${label} was not available.`);
 }
 
+async function enterDemo(client, entrySelector, label) {
+  const stopAt = Math.min(Date.now() + 30_000, deadline);
+  while (Date.now() < stopAt) {
+    const mounted = await evaluate(client, `document.querySelector('[data-demo-runtime="synthetic-demo-runtime"]') !== null`);
+    if (mounted) return;
+    const available = await evaluate(client, `(() => {
+      const element = document.querySelector(${JSON.stringify(entrySelector)});
+      return element instanceof HTMLElement && !element.hasAttribute("disabled");
+    })()`);
+    if (available) await click(client, entrySelector, label);
+    await delay(350);
+  }
+  const body = await evaluate(client, `(document.body?.innerText || '').slice(0, 1600)`).catch(() => "");
+  throw new Error(`${label} did not mount the disposable DEMO runtime. Browser: ${String(body)}`);
+}
+
+async function waitForInitialWorld(client) {
+  const result = await waitFor(client, `(() => {
+    if (document.querySelector('[data-demo-turns="0"]') !== null && document.querySelector('[data-demo-decision]') !== null) {
+      return { ready: true, error: '' };
+    }
+    const runtime = document.querySelector('[data-demo-runtime="synthetic-demo-runtime"]');
+    if (!runtime) return null;
+    const alert = runtime.querySelector('[role="alert"]')?.textContent?.trim() || '';
+    const headings = [...runtime.querySelectorAll('h2')].map((item) => item.textContent?.trim() || '');
+    const failedHeading = headings.find((text) => /could not start/i.test(text)) || '';
+    if (alert || failedHeading) return { ready: false, error: alert || failedHeading };
+    return null;
+  })()`, "Initial DEMO world", coldDemoTimeoutMs);
+  if (!result?.ready) throw new Error(`Initial DEMO world failed: ${result?.error || "unknown packaged DEMO error"}`);
+}
+
+async function browserState(client) {
+  return evaluate(client, `(() => ({
+    url: location.href,
+    demoEntry: document.querySelector('[data-demo-onboarding]')?.getAttribute('data-demo-onboarding') || '',
+    demoRuntime: document.querySelector('[data-demo-runtime]')?.getAttribute('data-demo-runtime') || '',
+    demoTurns: document.querySelector('[data-demo-turns]')?.getAttribute('data-demo-turns') || '',
+    demoStatus: document.querySelector('[data-demo-story-status]')?.getAttribute('data-demo-story-status') || '',
+    handoff: document.querySelector('[data-demo-handoff]')?.getAttribute('data-demo-handoff') || '',
+    alerts: [...document.querySelectorAll('[role="alert"]')].map((item) => item.textContent?.trim() || '').filter(Boolean),
+    body: (document.body?.innerText || '').slice(0, 2000),
+  }))()`);
+}
+
 async function navigate(client, url) {
   await client.send("Page.navigate", { url }, routeTimeoutMs);
   await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, `Navigation to ${url}`);
@@ -250,6 +296,7 @@ async function writeReports(report) {
     "",
     `Result: ${report.passed ? "PASS" : "FAIL"}`,
     `Steps passed: ${report.steps.filter((step) => step.passed).length}/${report.steps.length}`,
+    `Cold DEMO start: ${Number.isFinite(report.coldDemoStartMs) ? `${report.coldDemoStartMs} ms` : "not proven"}`,
     `Human project: ${report.projectTitle || "not created"}`,
     `Existing-profile isolation: ${report.existingProfileIsolation ? "PASS" : "NOT PROVEN"}`,
     "",
@@ -281,6 +328,8 @@ async function main() {
     failures: [],
     projectTitle: null,
     existingProfileIsolation: false,
+    coldDemoStartMs: null,
+    browserState: null,
   };
 
   const server = startLoggedProcess(process.execPath, [viteEntry, "--host", "127.0.0.1", "--port", String(serverPort), "--strictPort"], {
@@ -340,8 +389,10 @@ async function main() {
     await waitFor(client, `document.querySelector('[data-demo-onboarding="fresh-desktop"]') !== null`, "Fresh desktop DEMO entry");
     report.steps.push({ name: "fresh installer offers DEMO", passed: true });
 
-    await click(client, '[data-demo-entry-action="demo"]', "Fresh DEMO entry");
-    await waitFor(client, `document.querySelector('[data-demo-runtime="synthetic-demo-runtime"]') !== null && document.querySelector('[data-demo-turns="0"]') !== null`, "Initial DEMO world");
+    const coldDemoStartedAt = Date.now();
+    await enterDemo(client, '[data-demo-entry-action="demo"]', "Fresh DEMO entry");
+    await waitForInitialWorld(client);
+    report.coldDemoStartMs = Date.now() - coldDemoStartedAt;
     report.steps.push({ name: "fresh installer enters disposable DEMO", passed: true });
 
     const firstDecision = await evaluate(client, `document.querySelector('[data-demo-decision]')?.getAttribute('data-demo-decision') || ''`);
@@ -355,7 +406,7 @@ async function main() {
     await waitFor(client, `document.querySelector('[data-demo-onboarding="fresh-desktop"]') !== null`, "Fresh entry after DEMO exit");
     report.steps.push({ name: "DEMO exit retains no required profile", passed: true });
 
-    await click(client, '[data-demo-entry-action="demo"]', "Second DEMO entry");
+    await enterDemo(client, '[data-demo-entry-action="demo"]', "Second DEMO entry");
     await waitFor(client, `document.querySelector('[data-demo-turns="0"]') !== null`, "Second DEMO clean world");
     await playFiveScenes(client, report, "Make This Mine");
     await waitFor(client, `document.querySelector('[data-sage-show-me="read-only"]') !== null`, "Sage Show Me after completion");
@@ -392,8 +443,8 @@ async function main() {
     await deleteSessionCookie(client, baseUrl);
     await navigate(client, baseUrl);
     await waitFor(client, `document.querySelector('[data-profile-access-boundary="locked"]') !== null && document.querySelector('[data-demo-entry-action="demo-returning"]') !== null`, "Locked returning profile with DEMO shortcut");
-    await click(client, '[data-demo-entry-action="demo-returning"]', "Returning-profile DEMO shortcut");
-    await waitFor(client, `document.querySelector('[data-demo-runtime="synthetic-demo-runtime"]') !== null`, "Returning-profile DEMO");
+    await enterDemo(client, '[data-demo-entry-action="demo-returning"]', "Returning-profile DEMO shortcut");
+    await waitFor(client, `document.querySelector('[data-demo-turns="0"]') !== null`, "Returning-profile DEMO world");
     const anonymousPrivate = await browserPrivateProject(client);
     if (anonymousPrivate.status === 200) throw new Error("Locked-profile DEMO unexpectedly read Human-private project state.");
     report.steps.push({ name: "returning locked DEMO cannot read Human-private project", passed: true });
@@ -422,6 +473,13 @@ async function main() {
     report.passed = true;
   } catch (error) {
     report.failures.push(error instanceof Error ? error.stack || error.message : String(error));
+    if (client) {
+      try {
+        report.browserState = await browserState(client);
+      } catch (diagnosticError) {
+        report.browserState = { diagnosticError: diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError) };
+      }
+    }
   } finally {
     client?.close();
     await terminateProcessTree(browser);

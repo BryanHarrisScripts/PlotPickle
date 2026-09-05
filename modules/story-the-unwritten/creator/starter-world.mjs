@@ -25,8 +25,9 @@ function reference(value, label) {
 }
 
 function text(value, label) {
-  if (typeof value !== "string" || !value.trim()) throw new Error(`${label} is required`);
-  return value.trim();
+  const normalized = typeof value === "string" ? value.trim() : "";
+  if (!normalized) throw new Error(`${label} is required`);
+  return normalized;
 }
 
 function referenceArray(value, label) {

@@ -1,0 +1,859 @@
+PLOTPICKLE DEFINITIVE SITEMAP
+=============================
+
+Purpose
+-------
+
+This file is the architectural sitemap and ownership map for PlotPickle.
+
+It answers four questions:
+
+1. Where does a Human go to do something?
+2. Which PlotPickle subsystem owns that capability?
+3. Which screens may link to it without duplicating it?
+4. How do STORY, Wyrmwood, BUZZ, PPF, Agents and the authoring workspaces remain one operating system rather than disconnected plugins?
+
+The governing rule is:
+
+EVERY CAPABILITY HAS ONE CANONICAL HOME.
+
+A capability may be linked or launched from several places, but it should not gain a second source of truth, second editor, second authority model, second agent runtime, second canon store or second project representation merely because another experience needs it.
+
+STORY: The Unwritten is therefore a first-class PlotPickle experience, not a loose game plugin. It consumes and contributes to PlotPickle projects through the same PPF, Plan, Build, Library, Agent, Context, canon and authority systems used by the rest of PlotPickle.
+
+Status vocabulary
+-----------------
+
+CURRENT  = present in the current product architecture or shipped surface.
+TARGET   = approved architectural destination that may still require implementation.
+LATER    = intentionally deferred extension.
+
+
+PLOTPICKLE
+==========
+
+PlotPickle
+|
++-- 00. Public / Startup
+|   |
+|   +-- Welcome                                            [CURRENT]
+|   +-- Start Here                                         [CURRENT]
+|   +-- About                                              [CURRENT]
+|   +-- Legal                                              [CURRENT]
+|   +-- Suggest / Report                                   [CURRENT]
+|   |
+|   +-- First Run                                          [CURRENT]
+|       |
+|       +-- DEMO — See PlotPickle work                     [CURRENT]
+|       |   |
+|       |   +-- Prepared STORY scenario
+|       |   |   +-- The Lantern at the Fork
+|       |   |   +-- Five deterministic scenes
+|       |   |   +-- Story Pieces
+|       |   |   +-- Decisions
+|       |   |   +-- Consequences
+|       |   |   +-- Hidden knowledge boundaries
+|       |   |   +-- Sage · Show Me
+|       |   |   +-- Reset
+|       |   |   +-- Exit
+|       |   |   +-- Make This Mine
+|       |   |
+|       |   +-- DEMO authority boundary
+|       |       +-- Synthetic disposable state only
+|       |       +-- No Human-private projects
+|       |       +-- No private profile state
+|       |       +-- No provider credentials
+|       |       +-- No BUZZ private identity
+|       |       +-- No real canon mutation
+|       |
+|       +-- ENTER PLOTPICKLE                               [CURRENT]
+|           |
+|           +-- Create local Human profile
+|           +-- Unlock local Human profile
+|           +-- Existing profile chooser
+|           +-- Existing Guest boundary
+|
++-- 01. Dashboard                                          [CURRENT]
+|   |
+|   +-- Current project
+|   +-- Recent projects
+|   +-- New project
+|   +-- Import project
+|   +-- Export project
+|   +-- Load example
+|   +-- Project status
+|   +-- Storage status
+|   +-- Collaboration status
+|   +-- Runtime / connection status
+|   +-- Resume current work
+|   +-- Launch STORY for current project                   [TARGET]
+|
++-- 02. Library                                            [CURRENT]
+|   |
+|   +-- My Stories
+|   |   |
+|   |   +-- PlotPickle Project / PPF
+|   |       |
+|   |       +-- Open
+|   |       +-- Continue authoring
+|   |       +-- Play in STORY                              [TARGET]
+|   |       +-- Duplicate
+|   |       +-- Export
+|   |       +-- Archive
+|   |
+|   +-- Examples
+|   +-- Genre presets
+|   +-- Archived stories
+|   +-- Recovery / project switching
+|   +-- Portable world packages                            [LATER]
+|
++-- 03. Learn                                              [CURRENT]
+|   |
+|   +-- Core Curriculum
+|   |   |
+|   |   +-- 81 modules
+|   |       |
+|   |       +-- Module
+|   |           +-- Lesson
+|   |               +-- Explanation
+|   |               +-- Examples
+|   |               +-- Application
+|   |               +-- Completion state
+|   |
+|   +-- Story Craft Essentials
+|   +-- Characters in Motion
+|   +-- Dialogue in Motion
+|   +-- Worked Examples
+|   +-- Working Together
+|   +-- Sage learning support
+|   +-- STORY reflection links                             [TARGET]
+|   +-- Wyrmwood curriculum links                          [CURRENT/TARGET]
+|
++-- 04. Plan                                               [CURRENT]
+|   |
+|   +-- Foundations
+|   |   |
+|   |   +-- Concept
+|   |   +-- Premise
+|   |   +-- Theme
+|   |   +-- Genre / tone / style
+|   |   +-- Character foundations
+|   |   +-- Story goals
+|   |   +-- Stakes
+|   |   +-- Central conflict
+|   |
+|   +-- World
+|   |   |
+|   |   +-- Characters
+|   |   +-- Locations
+|   |   +-- Objects
+|   |   +-- Relationships
+|   |   +-- Secrets / knowledge
+|   |   +-- Rules
+|   |   +-- History / lore
+|   |   +-- Canon
+|   |
+|   +-- Structure
+|       |
+|       +-- 4 Acts
+|           |
+|           +-- 12 Sequences
+|               |
+|               +-- 24 Blocks
+|                   |
+|                   +-- Flexible Scenes
+|                       |
+|                       +-- 96 Mini-Blocks
+|                           |
+|                           +-- Beats
+|
++-- 05. Build                                              [CURRENT]
+|   |
+|   +-- Structural arrangement
+|   |   |
+|   |   +-- Act
+|   |       +-- Sequence
+|   |           +-- Block
+|   |               +-- Scene
+|   |                   +-- Mini-Block
+|   |                       +-- Beat
+|   |
+|   +-- Storyworld map
+|   +-- Relationships
+|   +-- Hooks
+|   +-- Turns
+|   +-- Character arcs
+|   +-- Causality
+|   +-- Continuity
+|   +-- Unresolved threads
+|   +-- Canon-connected story material
+|
++-- 06. STORY: THE UNWRITTEN                              [TARGET FIRST-CLASS WORKSPACE]
+|   |
+|   +-- STORY Home
+|   |   |
+|   |   +-- Continue STORY Session
+|   |   |   |
+|   |   |   +-- Recent session
+|   |   |   +-- Existing project-linked session
+|   |   |   +-- Resume from deterministic checkpoint
+|   |   |
+|   |   +-- Play an Existing PlotPickle Story
+|   |   |   |
+|   |   |   +-- Select from Library / My Stories
+|   |   |   +-- Select current Dashboard project
+|   |   |   +-- Load the existing PPF project
+|   |   |   +-- Read existing PlotPickle-authored material
+|   |   |   |   |
+|   |   |   |   +-- Concept
+|   |   |   |   +-- Premise
+|   |   |   |   +-- Theme
+|   |   |   |   +-- Genre / tone / style
+|   |   |   |   +-- Characters
+|   |   |   |   +-- Desires / needs / goals
+|   |   |   |   +-- Relationships
+|   |   |   |   +-- Locations
+|   |   |   |   +-- Objects
+|   |   |   |   +-- Secrets / knowledge partitions
+|   |   |   |   +-- Conflicts
+|   |   |   |   +-- World rules
+|   |   |   |   +-- Existing canon
+|   |   |   |   +-- Story structure
+|   |   |   |   +-- Unresolved threads
+|   |   |   |   +-- Approved assets / references
+|   |   |   |
+|   |   |   +-- Derive a playable STORY starting state
+|   |   |   +-- Validate playable state
+|   |   |   +-- Choose starting scope / mode
+|   |   |   +-- Enter STORY game table
+|   |   |
+|   |   +-- Start New Story
+|   |   |   |
+|   |   |   +-- Create normal PlotPickle project
+|   |   |   +-- Reuse PlotPickle Plan / Foundations
+|   |   |   |   |
+|   |   |   |   +-- What is the story about?       -> Concept
+|   |   |   |   +-- Who is it about?               -> Character
+|   |   |   |   +-- What do they want?             -> Desire / Goal
+|   |   |   |   +-- What stands in the way?        -> Conflict
+|   |   |   |   +-- Where does it happen?          -> World / Location
+|   |   |   |   +-- What kind of story is it?      -> Genre / Tone / Style
+|   |   |   |
+|   |   |   +-- Minimum playable seed
+|   |   |   +-- STORY preflight
+|   |   |   +-- Enter STORY game table
+|   |   |
+|   |   +-- Play Wyrmwood
+|   |   |   +-- Wyrmwood teaching campaign
+|   |   |   +-- Curriculum-linked trials
+|   |   |   +-- Shared STORY mechanics only where proven
+|   |   |
+|   |   +-- Play a First-Party World                       [LATER]
+|   |   +-- Play a User World                              [LATER]
+|   |   +-- Join a STORY Session via BUZZ                  [LATER]
+|   |
+|   +-- STORY Project Coupling Rules
+|   |   |
+|   |   +-- STORY never creates a shadow PlotPickle project
+|   |   +-- STORY never owns a second character editor
+|   |   +-- STORY never owns a second world editor
+|   |   +-- STORY never owns a second structure editor
+|   |   +-- STORY never owns a second canon store
+|   |   +-- STORY never owns a second agent runtime
+|   |   +-- STORY never owns a second knowledge graph
+|   |   +-- STORY uses existing PlotPickle questions and fields
+|   |   +-- Missing story material routes back to the canonical
+|   |       Plan / Build owner or embeds that canonical component
+|   |
+|   +-- STORY Session Setup
+|   |   |
+|   |   +-- Source project
+|   |   +-- Starting scene / story scope
+|   |   +-- Human player role
+|   |   +-- Active characters
+|   |   +-- Bound agent characters
+|   |   +-- Available Story Pieces
+|   |   +-- Starting location
+|   |   +-- Active objectives
+|   |   +-- Active conflicts
+|   |   +-- Knowledge partitions
+|   |   +-- World rules
+|   |   +-- Narrative budget / pressure
+|   |   +-- End condition / game mode
+|   |   +-- Deterministic validator
+|   |
+|   +-- STORY Game Table
+|   |   |
+|   |   +-- World / session identity
+|   |   +-- Current scene
+|   |   +-- Objective
+|   |   +-- Pressure / narrative budget
+|   |   +-- Active characters
+|   |   +-- Current location
+|   |   +-- Relationships
+|   |   +-- Objects / custody
+|   |   +-- Conflicts
+|   |   +-- Secrets / legal knowledge
+|   |   +-- Unresolved threads
+|   |   +-- Available Story Pieces
+|   |   +-- Available actions
+|   |   +-- Inspectable mechanics
+|   |   +-- Player choice / action
+|   |   +-- Agent proposals
+|   |   +-- Deterministic resolution
+|   |   +-- Consequence
+|   |   +-- Session history
+|   |   +-- Sage reflection / Show Me
+|   |
+|   +-- STORY Scene Loop
+|   |   |
+|   |   +-- Beginning authoritative state
+|   |   +-- Human / agent action proposal
+|   |   +-- Rule validation
+|   |   +-- Deterministic resolution queue
+|   |   +-- Accepted state transition
+|   |   +-- Consequence projection
+|   |   +-- Reflection
+|   |   +-- Next scene
+|   |
+|   +-- STORY -> PPF Canon Boundary
+|   |   |
+|   |   +-- Session consequences remain STORY session state by default
+|   |   +-- Generated prose / dialogue / images are projections, not canon
+|   |   +-- Accepted STORY state retains provenance
+|   |   +-- Durable project changes require explicit admission
+|   |   +-- Human can review proposed project/canon updates
+|   |   +-- Approved changes enter the existing PPF authority path
+|   |   +-- Rejected / unapproved changes remain session history only
+|   |
+|   +-- STORY Modes
+|       |
+|       +-- Five-Scene Story                               [TARGET]
+|       +-- Wyrmwood Trials                                [CURRENT/TARGET]
+|       +-- World Session                                  [LATER]
+|       +-- Duel / Challenge                               [LATER]
+|       +-- Creator Game                                   [LATER]
+|
++-- 07. Storyboard                                         [CURRENT]
+|   |
+|   +-- Story
+|       +-- Block
+|           +-- Scene / Mini-Block
+|               +-- Frame
+|                   +-- Character references
+|                   +-- Location references
+|                   +-- Composition
+|                   +-- Continuity
+|                   +-- Approved visuals
+|
++-- 08. Previs / Graphic Novel                             [CURRENT]
+|   |
+|   +-- Previs
+|   |   |
+|   |   +-- Storyboard material
+|   |   +-- Creative shots
+|   |       +-- Framing
+|   |       +-- Camera movement
+|   |       +-- Timing
+|   |       +-- Transitions
+|   |       +-- Editorial rhythm
+|   |       +-- Render clips
+|   |   +-- Render plan
+|   |   +-- Generation
+|   |
+|   +-- Graphic Novel
+|       |
+|       +-- 24 Blocks
+|           +-- Block / Page
+|               +-- Mini-Blocks / Panels
+|                   +-- Image
+|                   +-- Dialogue
+|                   +-- Character continuity
+|                   +-- Location continuity
+|       +-- Reader
+|       +-- Export
+|
++-- 09. Write                                              [CURRENT]
+|   |
+|   +-- Treatment
+|   +-- Outline
+|   +-- Screenplay
+|       |
+|       +-- Act
+|           +-- Sequence
+|               +-- Scene
+|                   +-- Action
+|                   +-- Dialogue
+|                   +-- Character
+|                   +-- Revision history
+|
++-- 10. Edit                                               [CURRENT]
+|   |
+|   +-- Scene review
+|   +-- Dialogue review
+|   +-- Action review
+|   +-- Pacing
+|   +-- Continuity
+|   +-- Canonical screenplay
+|
++-- 11. Feedback                                           [CURRENT]
+|   |
+|   +-- Notes
+|   +-- Review evidence
+|   +-- Proposals
+|   +-- Decisions
+|   +-- Approvals
+|
++-- 12. Refine                                             [CURRENT]
+|   |
+|   +-- CraftLoop
+|   +-- DraftLens
+|   +-- PageFlow
+|   +-- Resonance
+|   +-- Voiceprint
+|   +-- Diagnostics
+|   +-- Screenplay Readiness
+|
++-- 13. Reports                                            [CURRENT]
+|   |
+|   +-- Story
+|   +-- Structure
+|   +-- Character
+|   +-- Continuity
+|   +-- Production
+|   +-- Scheduling
+|   +-- Readiness
+|   +-- Pitch / greenlight evidence
+|
++-- 14. Collaboration                                      [CURRENT]
+|   |
+|   +-- Collab
+|   |   |
+|   |   +-- Collaborators
+|   |   |   +-- Writer
+|   |   |   +-- Director
+|   |   |   +-- Producer
+|   |   |   +-- Actor
+|   |   |   +-- Reviewer
+|   |   +-- Proposals
+|   |   +-- Approvals
+|   |   +-- Meetings
+|   |   +-- Calendar
+|   |   +-- GitHub
+|   |
+|   +-- Community / BUZZ
+|       |
+|       +-- Great Hall / Guildhall
+|       +-- Communities
+|       +-- Rooms
+|       +-- Presence
+|       +-- Public conversations
+|       +-- Story rooms
+|       +-- Agent roster
+|       +-- Discover STORY worlds / games                  [LATER]
+|       +-- Invite Humans / agents                         [LATER]
+|       +-- Launch / join STORY session                    [LATER]
+|
++-- 15. Wyrmwood                                           [CURRENT]
+|   |
+|   +-- Teaching campaign / proving ground
+|   +-- Curriculum-derived trials
+|   +-- Deterministic game state
+|   +-- AI-directed situations
+|   +-- AI evaluation
+|   +-- Progression
+|   +-- Persistent history
+|   +-- STORY adapter / shared mechanics only where proven [TARGET]
+|   +-- Wyrmwood remains a product, not merely a skin
+|
++-- 16. Agents                                             [CURRENT]
+|   |
+|   +-- PlotPickle Agent Profiles
+|   +-- Guides
+|   +-- Directors
+|   +-- Evaluators
+|   +-- Resident Writer
+|   +-- UI Continuity Agent
+|   +-- Story Agent Definition / Instance                  [TARGET]
+|       |
+|       +-- World/session-scoped data
+|       +-- Character identity
+|       +-- Goals
+|       +-- Knowledge boundaries
+|       +-- Memory scope
+|       +-- Game-action permissions
+|       +-- Approved host execution template
+|       +-- No imported host authority
+|
++-- 17. Skills                                             [CURRENT]
+|   |
+|   +-- Bounded agent procedures
+|   +-- Trust / capability checks
+|   +-- STORY-usable skills only under host permission
+|
++-- 18. PPF / Project Authority                            [CURRENT]
+|   |
+|   +-- Project identity
+|   +-- Foundations
+|   +-- Story structure
+|   +-- World / canon
+|   +-- Characters
+|   +-- Relationships
+|   +-- Assets / references
+|   +-- Screenplay
+|   +-- Storyboard / visual links
+|   +-- Provenance
+|   +-- Approvals
+|   +-- STORY session admission boundary                   [TARGET]
+|
++-- 19. Context / Story Graph                              [CURRENT/TARGET]
+|   |
+|   +-- Lightweight graph/index references
+|   +-- Character Definition
+|   +-- Character State
+|   +-- Memory / Event Ledger
+|   +-- Sparse relationships
+|   +-- Knowledge references
+|   +-- Asset references
+|   +-- Activation tiers
+|       |
+|       +-- COLD
+|       +-- WARM
+|       +-- HOT
+|       +-- AGENT-ACTIVE
+|
++-- 20. AI Runtime                                         [CURRENT]
+|   |
+|   +-- Provider-independent inference
+|   +-- Local providers
+|   +-- Cloud providers
+|   +-- Hardware-aware routing
+|   +-- Text
+|   +-- Images
+|   +-- Video
+|   +-- STORY cannot choose authority through provider selection
+|
++-- 21. Settings                                           [CURRENT]
+    |
+    +-- Workspace
+    |   |
+    |   +-- General
+    |   +-- Appearance & Accessibility
+    |   +-- Project Defaults
+    |   +-- Sitemap
+    |
+    +-- Local
+    |   |
+    |   +-- PlotPickle Runtime
+    |   +-- Ollama
+    |   +-- ComfyUI
+    |   +-- Buzz Installation
+    |
+    +-- Cloud
+    |   |
+    |   +-- OpenAI
+    |   +-- MiniMax
+    |   +-- Remote Compute
+    |
+    +-- Data
+    |   |
+    |   +-- PPF Projects & Backups
+    |   +-- Databases & Migrations
+    |   +-- Retrieval & Embeddings
+    |   +-- Asset Cache
+    |
+    +-- Deploy
+    |   |
+    |   +-- Build Runtime
+    |   +-- Cloudflare & Edge
+    |   +-- Publishing Pipelines
+    |
+    +-- Repositories
+    |   |
+    |   +-- GitHub Story Repository
+    |   +-- PlotPickle Code Repository
+    |   +-- Afterglow Repository
+    |   +-- MCP Server Definitions
+    |
+    +-- Authentication
+    |   |
+    |   +-- Google Account
+    |   +-- GitHub Authorization
+    |   +-- OpenAI Credentials
+    |   +-- Credential Vault
+    |
+    +-- Agents
+    |   |
+    |   +-- Buzz Runtime
+    |   +-- Docker & Compose
+    |   +-- Agent Worktrees
+    |   +-- Prompts & Reasoning Loops
+    |   +-- Tools & MCP Hosts
+    |   +-- Autonomous Guest / Task Scheduler
+    |
+    +-- Open Source
+    |   |
+    |   +-- Models
+    |   +-- Packages
+    |   +-- Licences
+    |   +-- Evaluation / Tooling
+    |
+    +-- AI Routing
+        |
+        +-- Text
+        |   +-- Provider
+        |       +-- Model
+        |
+        +-- Images
+        |   +-- Provider
+        |       +-- Model / Workflow
+        |
+        +-- Video
+            +-- Provider
+                +-- Model / Workflow
+
+
+STORY COUPLING CONTRACT
+=======================
+
+The most important STORY navigation and architecture rule is:
+
+A STORY GAME STARTS FROM PLOTPICKLE STORY DATA WHEN THAT DATA ALREADY EXISTS.
+
+A Human who has already built a story in PlotPickle must not be asked to recreate the story in a separate STORY setup wizard.
+
+Example:
+
+Library
+  -> My Stories
+    -> "My Existing Story"
+      -> Play in STORY
+        -> PlotPickle loads that project's PPF
+        -> STORY derives the legal playable starting state
+        -> Human selects game/session scope
+        -> STORY validates it
+        -> STORY Game Table
+
+The same launch should also be available from the current project on Dashboard and from STORY Home.
+
+If the project lacks information STORY needs, STORY must reuse the canonical PlotPickle owner of that information.
+
+Example:
+
+STORY needs a central conflict
+  -> existing project has none
+    -> open or embed Plan / Foundations / Conflict
+      -> save through normal PlotPickle project authority
+        -> return to STORY preflight
+
+Do NOT create:
+
+STORY Conflict
+STORY Character
+STORY Location
+STORY Theme
+STORY World
+STORY Canon
+
+as parallel versions of existing PlotPickle concepts.
+
+Instead:
+
+PlotPickle Concept        -> used by STORY
+PlotPickle Premise        -> used by STORY
+PlotPickle Character      -> represented as a Story Piece when playable
+PlotPickle Location       -> represented as a Story Piece / scene location when playable
+PlotPickle Relationship   -> projected into STORY state
+PlotPickle Object         -> represented as a Story Piece when relevant
+PlotPickle Secret         -> projected through STORY knowledge boundaries
+PlotPickle Conflict       -> projected into active STORY pressure/objectives
+PlotPickle World Rule     -> enforced by STORY where modeled mechanically
+PlotPickle Structure      -> available to seed scene/session scope
+PlotPickle Canon / PPF    -> durable authority
+STORY Session State       -> temporary authoritative game/session state
+Approved STORY Outcome    -> may be admitted back through the existing PPF authority path
+
+This is how STORY remains coupled to the PlotPickle operating system while still being a distinct playable experience.
+
+
+STARTING A NEW STORY THROUGH STORY
+==================================
+
+A Human may also begin from STORY with no existing project.
+
+That path must still create a normal PlotPickle project and use the same PlotPickle concepts/questions already owned by Plan / Foundations.
+
+STORY Home
+  -> Start New Story
+    -> Create normal PlotPickle project
+    -> Minimal PlotPickle Foundations
+      -> What is your story about?       -> Concept
+      -> Who is it about?                -> Character
+      -> What do they want?              -> Desire / Goal
+      -> What stands in their way?       -> Conflict
+      -> Where does it happen?           -> World / Location
+      -> What kind of story is it?       -> Genre / Tone / Style
+    -> Save through normal project / PPF path
+    -> Derive minimum playable STORY state
+    -> Validate
+    -> Play
+
+The questions may be presented with a playful STORY visual treatment, but the fields, persistence and ownership remain PlotPickle's.
+
+This prevents STORY from becoming a loose plugin and means anything created while preparing to play can immediately be used by Plan, Build, Write, Storyboard, Previs, Reports and the rest of PlotPickle.
+
+
+PLAYING AN EXISTING PLOTPICKLE STORY
+====================================
+
+The existing-story path is a core requirement, not a later convenience.
+
+Minimum behavior:
+
+1. Human opens STORY Home, Dashboard or Library.
+2. Human chooses an existing PlotPickle story/project.
+3. PlotPickle loads the project's approved PPF data.
+4. STORY derives only the scene/session-relevant working set.
+5. STORY identifies any missing minimum playable information.
+6. Missing information is completed through the canonical PlotPickle Plan/Build owner.
+7. STORY performs deterministic preflight / validation.
+8. Human chooses a starting scope or mode.
+9. STORY creates a session linked to the source project.
+10. Play occurs through STORY's deterministic session state machine.
+11. STORY records actions, consequences, provenance and checkpoints.
+12. Session results do not silently rewrite durable PPF canon.
+13. Human may review selected outcomes and explicitly admit approved changes to the project.
+14. The same project can then continue through Plan, Build, Write, Storyboard, Previs, Edit, Reports or another STORY session.
+
+This creates a closed PlotPickle loop:
+
+Learn
+  -> Plan
+    -> Build
+      -> STORY
+        -> Consequence
+          -> Reflect
+            -> Approve durable changes
+              -> PPF
+                -> Write / Storyboard / Previs / Refine / Reports
+                  -> STORY again
+
+STORY is therefore both a destination and an alternate way to interact with an existing PlotPickle storyworld.
+
+
+CANONICAL OWNERSHIP RULES
+=========================
+
+1. Library owns project discovery and selection.
+2. Plan owns story foundations and world definition.
+3. Build owns structural arrangement.
+4. STORY owns playable session state, legal actions, deterministic game resolution and session consequences.
+5. PPF owns durable project/canon authority.
+6. Agents own execution identities and remain bounded by PlotPickle trust.
+7. Context Engine owns transient, minimal context assembly.
+8. BUZZ owns social discovery, presence, rooms and invitations.
+9. Wyrmwood owns its teaching-game product experience.
+10. LEARN owns curriculum.
+11. Storyboard owns visual board/frame planning.
+12. Previs owns timed production visualization.
+13. Write owns screenplay/treatment writing.
+14. Edit owns editorial review.
+15. Feedback owns review notes/proposals/approvals.
+16. Refine owns specialist craft diagnostics/refinement.
+17. Reports owns evidence/reporting views.
+18. Settings owns configuration, not story content.
+
+A new feature should be rejected or redirected if it creates a second owner for an existing concept without an explicit architecture decision.
+
+
+NAVIGATION RULES
+================
+
+A screen may appear in more than one launch path without becoming more than one capability.
+
+Examples:
+
+Library -> Story -> Play in STORY
+Dashboard -> Current Project -> Play in STORY
+STORY Home -> Play Existing Story -> Library selector
+BUZZ -> World -> Join STORY
+Wyrmwood -> Begin Trial -> STORY-compatible runtime
+
+These are launch aliases.
+
+They must converge on the same underlying owner and project/session contracts.
+
+
+DEPTH CHECK
+===========
+
+The deepest meaningful information hierarchy remains the story itself, not Settings.
+
+PlotPickle
+  -> Project
+    -> Build
+      -> Story Structure
+        -> Act
+          -> Sequence
+            -> Block
+              -> Scene
+                -> Mini-Block
+                  -> Beat
+                    -> Storyboard
+                      -> Frame / Shot
+                        -> Visual continuity / generation material
+
+STORY adds another traversal of the same storyworld rather than another copy of it:
+
+PlotPickle
+  -> Project / PPF
+    -> STORY
+      -> Session
+        -> Scene
+          -> Active Working Set
+            -> Character / Location / Object / Conflict / Secret
+              -> Legal Action
+                -> Deterministic Resolution
+                  -> Consequence
+                    -> Review / Canon Admission
+
+
+ARCHITECTURAL SANITY TEST
+=========================
+
+Before adding a new screen, route, agent, editor, game mechanic or data store, ask:
+
+1. What existing PlotPickle concept does this use?
+2. Who already owns that concept?
+3. Can this new experience project or link to the existing owner instead of duplicating it?
+4. What is the authoritative state?
+5. Is temporary state clearly separated from durable PPF canon?
+6. Is AI proposing/interpreting while deterministic code owns mechanical authority where required?
+7. Does this create a second agent runtime, knowledge graph, canon store, project model or editor?
+8. Can the Human move between STORY and the rest of PlotPickle without re-entering data?
+9. Can a project created here immediately continue through the rest of PlotPickle?
+10. Does the feature have exactly one canonical home in this sitemap?
+
+If the answer to #7 is yes without a deliberate architecture decision, the design is probably wrong.
+
+
+END STATE
+=========
+
+PlotPickle is one operating system for story creation, learning, play, visualization, production and collaboration.
+
+LEARN teaches the grammar.
+PLAN defines the story.
+BUILD structures it.
+STORY lets Humans and bounded agents inhabit and change a playable session derived from it.
+PPF decides what becomes durable truth.
+STORYBOARD and PREVIS visualize it.
+WRITE and EDIT express it.
+REFINE and REPORTS evaluate it.
+BUZZ connects people around it.
+WYRMWOOD teaches through play.
+AGENTS and SKILLS act only within PlotPickle authority.
+
+The story should never need to be rebuilt merely because the Human changed workspaces.
+
+One project. One storyworld. One authority model. Many ways to experience it.

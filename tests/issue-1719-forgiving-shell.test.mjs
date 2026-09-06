@@ -42,8 +42,9 @@ test("#1719 exposes exactly six normal areas and discloses only the active area 
 });
 
 test("#1719 makes STORY contextual from BUILD and returns STORY toward production without promoting it to permanent nav", async () => {
-  const [shell, boundary, shortcuts] = await Promise.all([
+  const [shell, storyPage, boundary, shortcuts] = await Promise.all([
     read("app/plotpickle-workspace-shell.tsx"),
+    read("app/story/page.tsx"),
     read("app/navigation/release-experience-boundary.tsx"),
     read("app/navigation/global-shortcuts.ts"),
   ]);
@@ -51,7 +52,8 @@ test("#1719 makes STORY contextual from BUILD and returns STORY toward productio
   assert.match(shell, /data-shell-primary-next="story"/);
   assert.match(shell, /router\.push\("\/story"\)/);
   assert.match(shell, /Continue to Storyboard/);
-  assert.match(boundary, /"\/story": \{ activeShortcutId: "story", rootContext: "story" \}/);
+  assert.match(storyPage, /<PlotPickleWorkspaceShell activeWorkspace="story" activeShortcutId="story"/);
+  assert.doesNotMatch(boundary, /"\/story":/);
   assert.match(shortcuts, /activeShortcutId === "story" \|\| workspace === "story"\) return "create"/);
   assert.doesNotMatch(shortcuts, /\{ id: "story", key:/);
 });

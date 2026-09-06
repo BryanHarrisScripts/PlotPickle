@@ -13,6 +13,7 @@ test("UI audit rejects preference wording and preserves named navigation landmar
   assert.match(source, /unnecessar\(\?:y\|ily\)/);
   assert.match(source, /not\\s\+necessary/);
   assert.match(source, /finding\.criterion === 15 && \/<nav/);
+  assert.match(source, /invalid\\s\+aria/);
   assert.match(source, /A named nav landmark is correct/);
 });
 

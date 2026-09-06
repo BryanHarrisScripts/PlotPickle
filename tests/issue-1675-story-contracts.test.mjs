@@ -5,6 +5,7 @@ import test from "node:test";
 import "./issue-1675-story-game-validator.test.mjs";
 import "./issue-1675-story-creator-authoring.test.mjs";
 import "./issue-1675-story-creator-starter-world.test.mjs";
+import "./issue-1675-story-character-agent-runtime.test.mjs";
 import {
   STORY_CHARACTER_ACTIVATION_TIERS,
   STORY_CHARACTER_ACTIVATION_TRANSITIONS,

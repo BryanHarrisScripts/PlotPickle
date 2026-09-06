@@ -26,6 +26,7 @@ main[data-library-workspace="v1"] > div > details:last-child > summary,
 [data-progressive-story-map="24x96"] details[data-text-projection] > summary {
   display: flex;
   min-height: var(--pp-touch-target);
+  min-width: var(--pp-touch-target);
   align-items: center;
   justify-content: space-between;
   gap: var(--pp-space-3);

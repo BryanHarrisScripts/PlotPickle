@@ -120,6 +120,19 @@ async function bootstrap(session) {
   if (active.active && active.projectId) return { action: "reused-existing-working-copy", verifiedThrough: "Library My Stories active card", ...active };
 
   await openLibrary(session);
+  const catalogSnapshot = resultText(await session.client.call("browser_snapshot", {}));
+  const featuredRef = extractRef(catalogSnapshot, "Featured Examples", ["button"]);
+  if (!featuredRef) throw new Error("Library did not expose the Featured Examples filter.");
+  await session.client.call("browser_click", toolArguments(session.toolMap.get("browser_click"), {
+    ref: featuredRef,
+    element: "Featured Examples",
+  }));
+  await waitForRenderedArea(session.client, {
+    id: "library-afterglow-featured",
+    route: "/library",
+    requiredTerms: ["Afterglow", "Load & Explore"],
+    minimumTextLength: 350,
+  });
   const launchRaw = resultText(await session.client.call("browser_evaluate", {
     function: `() => {
       const card = document.querySelector('[data-library-catalog-id="afterglow-v9"]');

@@ -168,7 +168,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                       <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
                         <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                         <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
-                        <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
+                        <span role="img" aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
                         <small>{block.observedPassageCount ? `${block.observedPassageCount} source passage${block.observedPassageCount === 1 ? "" : "s"}` : "Not enough information yet"}{blockDecisionCount ? ` · ${blockDecisionCount} Story Decision${blockDecisionCount === 1 ? "" : "s"}` : ""}</small>
                         <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
                           {block.miniBlocks.map((mini) => (
@@ -197,7 +197,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       <article className={styles.inspector} data-canonical-story-id={selected.id} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
-          <span aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
+          <span role="img" aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
         </header>
         <p>{selected.sequencePurpose}</p>
         <div className={styles.explainGrid}>
@@ -210,7 +210,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
             <h4>Mini-Block resolution</h4>
             <ol className={styles.miniInspector}>
               {selected.miniBlocks.map((mini) => (
-                <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
+                <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i role="img" aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
               ))}
             </ol>
           </section>

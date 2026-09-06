@@ -246,8 +246,8 @@ async function gatherCode(files) {
     sources.set(file, content);
     sections.push(`\n--- FILE: ${file} ---\n${content}`);
   }
-  const designContext = await readFile("app/globals.css", "utf8").catch(() => "");
-  return { codePayload: sections.join("\n"), sources, designContext: `${designContext}\n${sections.join("\n")}` };
+  const designContext = (await Promise.all(["app/globals.css", "app/design-tokens.css"].map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
+  return { codePayload: `REFERENCE DESIGN TOKENS (context only, not changed files):\n${designContext}\n${sections.join("\n")}`, sources, designContext: `${designContext}\n${sections.join("\n")}` };
 }
 
 async function callAuditModel(codePayload) {

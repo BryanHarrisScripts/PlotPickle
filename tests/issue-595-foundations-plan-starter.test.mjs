@@ -25,7 +25,7 @@ const workflowOrder = [
   "Reports",
 ];
 
-function assertWorkflowNavigation(source) {
+function assertWorkflowNavigation(source, tokenized = false) {
   const start = source.indexOf("const WORKFLOW_STAGES = [");
   const end = source.indexOf("] as const;", start);
   assert.ok(start >= 0 && end > start, "workflow stage definition should exist");
@@ -42,6 +42,11 @@ function assertWorkflowNavigation(source) {
   assert.equal((stages.match(/gapAfter: true/g) ?? []).length, 2);
   assert.match(stages, /id: "dashboard"[^\n]+gapAfter: true/);
   assert.match(stages, /id: "graphic-novel"[^\n]+gapAfter: true/);
+  if (tokenized) {
+    assert.match(source, /className=\{controlsStyles.workflowList\}/);
+    assert.match(source, /stage.gapAfter \? controlsStyles.workflowGapAfter/);
+    return;
+  }
   assert.match(source, /style=\{\{ marginRight: stage\.gapAfter \? 44 : undefined \}\}/);
   assert.match(source, /<ol style=\{\{ minWidth: 920 \}\}>/);
 }
@@ -179,10 +184,11 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra dra
   assert.match(page, /loadFoundationProject/);
   assert.match(page, /saveFoundationProject/);
   assert.match(page, /onOpenFoundationsPlan=\{openFoundationsPlan\}/);
-  assert.match(learn, /aria-label="Apply what you have learned in Foundations"/);
+  assert.ok(learn.includes('aria-label={`Apply what you have learned in ${topicName(group.topic)}`}'));
+  assert.match(page, /case "foundations":[\s\S]*?navigateGuided\("plan", "foundations", lessonId\)/);
   assert.match(learn, /type="button"/);
   assert.match(learn, /onOpenFoundationsPlan/);
-  assertWorkflowNavigation(learn);
+  assertWorkflowNavigation(learn, true);
   assertWorkflowNavigation(plan);
   assert.match(learn, /disabled=\{unavailable\}/);
   assert.match(learn, /stageId === "plan" && onOpenFoundationsPlan/);

@@ -34,7 +34,7 @@ export default function FoundationsStoryCoverage({
           <h2 id="foundations-story-coverage-title">Story Coverage</h2>
           <p>See what the writer has defined, what an immutable reference source directly supports, which ideas are still proposals, and which decisions remain intentionally open.</p>
         </div>
-        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
+        <div className={styles.score} role="img" aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
           <strong>{coverage.percent}%</strong>
           <span>{supported} of {coverage.total} decisions supported</span>
         </div>

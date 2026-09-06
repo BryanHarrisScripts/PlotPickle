@@ -15,31 +15,25 @@ test("#1323 Community rail uses the Community name and concise room purposes", a
   assert.doesNotMatch(workspace, /agentsForCommunityRoom|definition\.helpers/);
 });
 
-test("#1323 global workflow uses the approved newest compact order", async () => {
-  const [shell, css] = await Promise.all([
-    read("app/plotpickle-workspace-shell.tsx"),
-    read("app/plotpickle-workspace-shell.module.css"),
-  ]);
-  const ids = [...shell.matchAll(/\{ id: "([^"]+)", relic:/g)].map((match) => match[1]);
-  assert.deepEqual(ids, [
-    "community", "library", "learn", "wyrmwood", "plan", "build", "storyboard", "graphic-novel",
-    "write", "edit", "feedback", "refine", "reports", "dashboard", "settings",
-  ]);
-  assert.match(css, /\.list\s*\{[^}]*width:\s*max-content;[^}]*margin:\s*0 auto;/s);
-  assert.match(css, /\.list li\s*\{[^}]*width:\s*64px;[^}]*flex:\s*0 0 64px;/s);
-  assert.doesNotMatch(shell, /data-navigation-gap-after|navigationBreakAfter/);
+test("#1323 global workflow delegates grouped destinations to the canonical navigation owner", async () => {
+  const shell = await read("app/plotpickle-workspace-shell.tsx");
+  assert.match(shell, /NAVIGATION_AREAS\.map/);
+  assert.match(shell, /shortcutsForArea\(navigationAreaOption.id\)/);
+  assert.match(shell, /data-navigation-area-panel=\{navigationAreaOption.id\}/);
+  assert.match(shell, /hidden=\{navigationAreaOption.id !== activeArea\}/);
 });
 
 test("#1323 Library aligns Human stories and disclosed Avery history to one centered column", async () => {
-  const [workspace, css, averyCss] = await Promise.all([
+  const [workspace, css, averyCss, polish] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/ui/library-workspace.module.css"),
     read("modules/library/ui/avery-session-history/avery-session-history.module.css"),
+    read("app/issue-1725-polish.css"),
   ]);
   assert.match(workspace, /useState<LibraryTab>\("stories"\)/);
   assert.match(workspace, /<details className=\{styles\.averyDisclosure\}>[\s\S]*<AverySessionHistory \/>[\s\S]*<\/details>/s);
   assert.match(css, /\.hero,\s*\.libraryColumn\s*\{[^}]*width:\s*min\(100%, 980px\);[^}]*margin-right:\s*auto;[^}]*margin-left:\s*auto;/s);
-  assert.match(css, /\.averyDisclosure > summary\s*\{[^}]*min-height:\s*var\(--pp-touch-target\)/s);
+  assert.match(polish, /main\[data-library-workspace="v1"\] > div > details:last-child > summary,[\s\S]*?min-height:\s*var\(--pp-touch-target\)/s);
   assert.match(averyCss, /\.slotGrid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/s);
   assert.match(averyCss, /\.slotWrap\s*\{[^}]*min-width:\s*0;/s);
 });

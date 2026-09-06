@@ -5,6 +5,11 @@
   "policy": "New raw synchronous confirmations are prohibited. Existing entries remain behavior-preserving migration work owned by their screen-specific UI/UX audit.",
   "entries": [
     {
+      "path": "app/build-animatic-studio.tsx",
+      "owner": "Build animatic local render",
+      "registryScreen": "build"
+    },
+    {
       "path": "app/character-image-generator.tsx",
       "owner": "Storyboard character image generation",
       "registryScreen": "visuals"
@@ -45,14 +50,14 @@
       "registryScreen": "build"
     },
     {
-      "path": "app/page.tsx",
-      "owner": "Project creation, replacement and import actions",
-      "registryScreen": "dashboard"
-    },
-    {
       "path": "app/production-draft-panel.tsx",
       "owner": "Production draft editing",
       "registryScreen": "script"
+    },
+    {
+      "path": "app/profile-access/profile-identity-panel.tsx",
+      "owner": "Global Human Profile Lore Avatar generation",
+      "registryScreen": "shell-application-navigation"
     },
     {
       "path": "app/project-storage-mode-panel.tsx",
@@ -63,6 +68,11 @@
       "path": "app/settings-panel-legacy.tsx",
       "owner": "Legacy Settings compatibility surfaces",
       "registryScreen": "settings-overview-sitemap"
+    },
+    {
+      "path": "app/settings/autonomous-guest/scheduler-settings.tsx",
+      "owner": "Autonomous Guest scheduler task cancellation",
+      "registryScreen": "settings-runtime"
     },
     {
       "path": "app/specialist-labs.tsx",

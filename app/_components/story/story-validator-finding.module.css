@@ -13,7 +13,7 @@
   align-self: start;
   padding: var(--pp-space-1) var(--pp-space-2);
   border: 1px solid var(--pp-line-strong);
-  color: var(--pp-muted);
+  color: var(--pp-text);
   font-size: var(--pp-text-xs);
   letter-spacing: var(--pp-tracking-label);
   text-align: center;
@@ -21,17 +21,14 @@
 
 .finding[data-story-validator-severity="error"] .severity {
   border-color: var(--pp-danger);
-  color: var(--pp-danger);
 }
 
 .finding[data-story-validator-severity="warning"] .severity {
   border-color: var(--pp-warning);
-  color: var(--pp-warning);
 }
 
 .finding[data-story-validator-severity="pass"] .severity {
   border-color: var(--pp-success);
-  color: var(--pp-success);
 }
 
 .copy {

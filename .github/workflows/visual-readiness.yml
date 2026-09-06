@@ -114,17 +114,21 @@ jobs:
           UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
         shell: bash
         run: |
-          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-a11y-server.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-app-server.log 2>&1 &
+          APP_SERVER_PID=$!
+          ./node_modules/.bin/vite --config lib/verification/ui-experience-fixture/vite.config.ts --host 127.0.0.1 --port 4174 > /tmp/plotpickle-ui-fixture-server.log 2>&1 &
+          FIXTURE_SERVER_PID=$!
+          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true' EXIT
           if ! node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json; then
-            echo '--- PlotPickle dev server log ---'
-            cat /tmp/plotpickle-ui-a11y-server.log || true
+            echo '--- PlotPickle app server log ---'
+            cat /tmp/plotpickle-ui-app-server.log || true
             exit 1
           fi
-          if ! node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT"; then
-            echo '--- PlotPickle dev server log ---'
-            cat /tmp/plotpickle-ui-a11y-server.log || true
+          if ! node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT"; then
+            echo '--- PlotPickle app server log ---'
+            cat /tmp/plotpickle-ui-app-server.log || true
+            echo '--- PlotPickle UI fixture server log ---'
+            cat /tmp/plotpickle-ui-fixture-server.log || true
             exit 1
           fi
       - name: Production build

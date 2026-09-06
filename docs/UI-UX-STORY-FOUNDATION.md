@@ -2,7 +2,8 @@
 
 Status: Proposed companion foundation contract  
 Related issues: #1675, #1713, #1715  
-Governing documents: `docs/UI-UX-DESIGN-STANDARD.md` and `docs/story-the-unwritten.md`
+Governing documents: `docs/UI-UX-DESIGN-STANDARD.md` and `docs/story-the-unwritten.md`  
+Detailed game-primitive contract: `docs/UI-UX-STORY-GAME-PRIMITIVES.md`
 
 ## 1. Purpose
 
@@ -13,6 +14,8 @@ This document defines how the human-centered UI standard and the STORY architect
 The central rule is:
 
 > PlotPickle remains the operating system. STORY remains the reusable playable-story engine. The new UI foundation must make STORY feel native to PlotPickle while preserving STORY's deterministic state, agent, canon, scale and authority boundaries.
+
+The detailed Phase 1 mapping for Story Pieces/cards, collections, contextual game-board surfaces, deterministic resolution-chain presentation, state-gallery fixtures, accessibility, CLS and large event/world scale is defined in `docs/UI-UX-STORY-GAME-PRIMITIVES.md`.
 
 ## 2. Product relationship
 
@@ -260,6 +263,8 @@ Do not force every Story Piece into card walls merely because cards are visually
 
 All Story Piece representations must reuse PlotPickle tokens, action hierarchy, target sizing, accessibility and five-state contracts.
 
+The concrete Phase 1 component family and strategy-game-inspired mappings are defined in `docs/UI-UX-STORY-GAME-PRIMITIVES.md`.
+
 ## 10. Player, Creator and Game Designer modes
 
 STORY has three increasing levels of authorship. The UI must keep these distinct to avoid overwhelming beginners.
@@ -374,6 +379,8 @@ Therefore:
 - preserve clear loading/partial/error states for deferred data;
 - allow large worlds to feel navigable without exposing their full scale at once.
 
+For detailed collection/event scaling, virtualization, incremental updates and the boundary around 100,000+ records/events, use `docs/UI-UX-STORY-GAME-PRIMITIVES.md`.
+
 ## 14. STORY resilience and interruption
 
 STORY must obey the main UI/UX operational contract.
@@ -462,14 +469,21 @@ Recommended order:
 3. Shared action, notification, inspector, dialog, list/card/table and draft/resume primitives.
 4. Grouped navigation that has a natural contextual home for STORY without adding another equal-weight slot.
 5. STORY scene/workspace primitives:
+   - Story Piece presentation family;
+   - Story Piece collection/search/filter;
+   - scene/play surface;
    - scene header;
    - current objective/pressure;
-   - Story Piece/action collection;
+   - legal choice/action control;
+   - accepted-state marker;
+   - agent suggestion block;
+   - deterministic resolution/progress chain;
    - consequence summary;
    - active-character presentation;
    - mechanics inspector;
    - validator finding;
-   - session status/resume.
+   - session status/resume;
+   - scalable event/history list.
 6. Core writer-flow migration with STORY handoff points preserved.
 7. Wyrmwood and BUZZ integration through adapters/launch surfaces.
 8. Packaged UAT across writer and STORY paths.
@@ -490,8 +504,10 @@ The foundation should prefer reusable primitives that serve both writer workflow
 - Agent suggestion block
 - Accepted-state marker
 - Change/Consequence summary
+- Resolution/progress chain
 - Rule/Validator finding
 - Search/filter/grouping
+- Scalable event/history list
 
 STORY-specific components should be created only where STORY has a genuinely distinct interaction need.
 
@@ -528,11 +544,13 @@ At minimum verify:
 - validation findings and recovery;
 - accepted/proposed state distinction;
 - duplicate-submit/idempotency behavior;
+- deterministic resolution-chain presentation;
 - session save/resume;
 - long-content and 200% zoom;
 - reduced motion;
 - notification limits;
 - layout-shift guardrails;
+- large collection/event fixtures remain bounded/incremental;
 - direct local STORY launch;
 - BUZZ launch does not transfer authority;
 - Wyrmwood regression remains green;
@@ -552,7 +570,8 @@ This UI integration must not:
 - hydrate all world characters for navigation convenience;
 - add arbitrary executable creator rules;
 - expose technical provider configuration to ordinary players;
-- fork a separate STORY design system.
+- fork a separate STORY design system;
+- claim unproven massive real-time concurrency merely because the UI is scale-safe.
 
 ## 22. Definition of success
 
@@ -560,6 +579,6 @@ STORY is successfully integrated into the UI foundation when a new user can move
 
 A creator can progressively reveal deeper world/rule/agent controls without imposing those controls on a normal player.
 
-The same shared shell, tokens, accessibility, state, notification, resilience and verification systems govern STORY, Wyrmwood, BUZZ and the writer workflows.
+The same shared shell, tokens, accessibility, state, notification, resilience and verification systems govern STORY, Wyrmwood, BUZZ and the normal writer workflows.
 
-PlotPickle should feel like one product with several modes of working, not a collection of separate applications connected by navigation links.
+The same Phase 1 component library also contains STORY's actual playable primitives—Story Pieces, bounded collections, contextual scene surfaces, legal actions, resolution chains, consequence summaries, validator findings, agent proposals and scalable histories—so STORY does not require a later UI architecture reset.

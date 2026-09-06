@@ -197,5 +197,7 @@ test("cloud providers and legacy Ollama remain available without defining local 
   assert.match(settings, /"settings-ollama": "local-compute"/);
   assert.match(settings, /"settings-openai": "cloud-compute"/);
   assert.match(compute, /<AiRoutingPanel/);
-  assert.match(legacyRoute, /redirect\("\/\?workspace=settings#settings-routing"\)/);
+  assert.match(legacyRoute, /SageSettingsWorkspace/);
+  assert.match(legacyRoute, /searchParams\.set\("settings", "local-compute"\)/);
+  assert.doesNotMatch(legacyRoute, /redirect\(/);
 });

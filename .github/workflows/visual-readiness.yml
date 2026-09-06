@@ -116,12 +116,27 @@ jobs:
           UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
         shell: bash
         run: |
+          AUTH_HOME="${RUNNER_TEMP}/plotpickle-ui-rendered-auth"
+          AUTH_STATE_FILE="${RUNNER_TEMP}/plotpickle-ui-rendered-state-path"
           npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-app-server.log 2>&1 &
           APP_SERVER_PID=$!
           ./node_modules/.bin/vite --config lib/verification/ui-experience-fixture/vite.config.ts --host 127.0.0.1 --port 4174 > /tmp/plotpickle-ui-fixture-server.log 2>&1 &
           FIXTURE_SERVER_PID=$!
-          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true' EXIT
-          node scripts/run-ui-rendered-verification.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
+          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true; rm -rf "$AUTH_HOME" "$AUTH_STATE_FILE"' EXIT
+          UI_SERVER="http://127.0.0.1:4173" AUTH_HOME="$AUTH_HOME" AUTH_STATE_FILE="$AUTH_STATE_FILE" node --input-type=module <<'NODE'
+          import { writeFile } from "node:fs/promises";
+          import { establishVerificationSyntheticHuman } from "./scripts/full-verification-auth.mjs";
+          import { validateLocalServer, waitForUiServer } from "./lib/verification/ui-axe-audit.mjs";
+          const server = validateLocalServer(process.env.UI_SERVER);
+          await waitForUiServer(server);
+          const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: process.env.AUTH_HOME });
+          await writeFile(process.env.AUTH_STATE_FILE, auth.storageStatePath, "utf8");
+          NODE
+          STORAGE_STATE="$(cat "$AUTH_STATE_FILE")"
+          {
+            node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
+            node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+          } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
       - name: Preserve Phase 1D rendered diagnostics
         if: always() && github.event_name == 'push'
         uses: actions/upload-artifact@v4

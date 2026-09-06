@@ -43,7 +43,7 @@ export function StoryPieceCard({
     >
       <header className={styles.header}>
         <p className={styles.type}>{type}</p>
-        <span className={styles.state}>{STATE_LABELS[state]}</span>
+        <p className={styles.state}>{STATE_LABELS[state]}</p>
       </header>
       <h3 className={styles.title}>{title}</h3>
       <p className={styles.description}>{description}</p>

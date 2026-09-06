@@ -19,8 +19,8 @@ import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
 import LibraryWorkspace from "../modules/library/ui/library-workspace";
 import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
+import CollabEntryWorkspace from "./_components/collab/collab-entry-workspace";
 import CommunityWorkspace from "./_components/community/community-workspace";
-import CollabEntryWorkspace from "./collab-entry-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 

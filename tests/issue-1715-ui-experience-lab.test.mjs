@@ -58,6 +58,7 @@ test("#1715 Phase 1D STORY primitives expose semantic card and validator states 
   assert.doesNotMatch(card, /className=\{styles\.type\}/);
   assert.match(validator, /SEVERITY_LABELS/);
   assert.doesNotMatch(card, /aria-disabled/);
+  assert.doesNotMatch(card, /data-story-piece-unavailable/);
   assert.doesNotMatch(validator, /role=\{severity/);
 });
 
@@ -76,21 +77,15 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   assert.match(gallery, /data-ui-experience-probe/);
 });
 
-test("#1715 Phase 1D lab is selected at the Vite command boundary and stays disabled in production", async () => {
+test("#1715 Phase 1D lab uses the server runtime mode and stays disabled in production", async () => {
   const page = await source("app/ui-lab/page.tsx");
   const workflow = await source(".github/workflows/visual-readiness.yml");
   const viteConfig = await source("vite.config.ts");
-  const productionGate = await source("build/ui-experience-lab-gate.ts");
-  const developmentGate = await source("build/ui-experience-lab-gate.dev.ts");
 
-  assert.match(page, /UI_EXPERIENCE_LAB_ENABLED/);
-  assert.match(page, /if \(!UI_EXPERIENCE_LAB_ENABLED\) notFound\(\)/);
-  assert.doesNotMatch(page, /process\.env|import\.meta\.env/);
-  assert.match(productionGate, /UI_EXPERIENCE_LAB_ENABLED = false/);
-  assert.match(developmentGate, /UI_EXPERIENCE_LAB_ENABLED = true/);
-  assert.match(viteConfig, /command === "serve"/);
-  assert.match(viteConfig, /ui-experience-lab-gate\.dev\.ts/);
-  assert.match(viteConfig, /find: "\.\.\/\.\.\/build\/ui-experience-lab-gate"/);
+  assert.match(page, /process\.env\.NODE_ENV === "production"/);
+  assert.match(page, /notFound\(\)/);
+  assert.doesNotMatch(page, /UI_EXPERIENCE_LAB_ENABLED|import\.meta\.env|PLOTPICKLE_UI_LAB/);
+  assert.doesNotMatch(viteConfig, /ui-experience-lab-gate|UI_EXPERIENCE_LAB_DEV_GATE/);
   assert.doesNotMatch(workflow, /PLOTPICKLE_UI_LAB/);
 });
 

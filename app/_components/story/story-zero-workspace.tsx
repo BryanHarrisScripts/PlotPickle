@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { hasActiveLibraryProject, loadFoundationProject } from "@/core/storage/project-library-browser";
+import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { hasActiveLibraryProject } from "@/core/storage/project-library-browser";
 import { UiAction } from "../foundation/ui-action";
 import { UiStateSurface } from "../foundation/ui-state-surface";
 import { StoryPieceCard } from "./story-piece-card";

@@ -1,4 +1,4 @@
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build" | "story";
 
 export type GlobalShortcutAction =
   | { readonly kind: "workspace"; readonly workspace: RootWorkspace }

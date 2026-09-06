@@ -37,8 +37,8 @@ jobs:
         run: node --test tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs
       - name: Validate Phase 1D experience and STORY zero-state contract
         run: node --test tests/issue-1715-ui-experience-lab.test.mjs
-      - name: Enforce current UI continuity contract
-        run: node --test tests/issue-544-ui-continuity-agent.test.mjs
+      - name: Enforce current UI continuity and forgiving shell contracts
+        run: node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs
       - name: Enforce changed UI token/style contract
         if: github.event_name == 'pull_request'
         run: node scripts/ui-stylelint-gate.mjs --base-ref "${{ github.event.pull_request.base.sha }}"

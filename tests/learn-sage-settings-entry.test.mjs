@@ -62,7 +62,7 @@ test("workspace=settings opens an Overview-first compute setup inside the shared
   assert.match(page, /workspace === "settings"/);
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);
   assert.match(page, /<SageSettingsWorkspace \/>/);
-  assert.match(shell, /data-plotpickle-global-nav="v3"/);
+  assert.match(shell, /data-plotpickle-global-nav="v4"/);
   assert.match(navigation, /id: "settings", key: "T", label: "Settings", detail: "Config"[\s\S]*workspace: "settings"/);
   assert.match(settings, /Settings · Overview/);
   assert.match(settings, /<h2 id="settings-quick-steps">Quick Setup<\/h2>/);

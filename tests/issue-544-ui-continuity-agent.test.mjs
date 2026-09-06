@@ -3,24 +3,28 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   auditContinuitySnapshot,
-  CANONICAL_NAVIGATION_GAPS,
-  CANONICAL_NAVIGATION_LABELS,
+  MAX_TOP_LEVEL_NAVIGATION_AREAS,
   continuityReport,
   continuitySummary,
 } from "../lib/verification/ui-continuity-audit.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (name) => readFile(new URL(name, root), "utf8");
-const navigation = [...CANONICAL_NAVIGATION_LABELS];
-const navigationGaps = CANONICAL_NAVIGATION_GAPS.map((gap) => ({ ...gap }));
+const navigationAreas = ["home", "create", "produce", "review", "connect", "settings"].map((id) => ({ id }));
 
 function snapshot(overrides = {}) {
   return {
     rendered: true,
     theme: "dark",
     activeWorkspace: "dashboard",
-    navigation,
-    navigationGaps,
+    navigationAreas,
+    navigationAreaCount: 6,
+    canonicalDestinationCount: 15,
+    reachableDestinationCount: 15,
+    navigationMembershipDeterministic: true,
+    activeArea: "home",
+    activeDestination: "dashboard",
+    visibleNavigationPanels: ["home"],
     projectStrip: true,
     statusSignals: 2,
     returnControls: [],
@@ -30,20 +34,27 @@ function snapshot(overrides = {}) {
   };
 }
 
-test("#544 evaluates a conforming rendered workspace against one deterministic shell contract", () => {
+test("#544/#1719 evaluates a conforming rendered workspace against the forgiving shell contract", () => {
+  assert.equal(MAX_TOP_LEVEL_NAVIGATION_AREAS, 6);
   const screen = { id: "dashboard", label: "Dashboard", path: "/?workspace=dashboard", kind: "workspace", activeWorkspace: "dashboard" };
   const result = auditContinuitySnapshot(screen, snapshot(), snapshot().shell);
   assert.equal(result.passed, true);
   assert.deepEqual(continuitySummary([result]), { screens: 1, passed: 1, findings: 0, errors: 0, warnings: 0 });
 });
 
-test("#544 reports anchor, theme, shell, context, navigation and named-return drift without changing it", () => {
+test("#544/#1719 reports anchor, theme, shell, context, reachability, grouping, orientation and named-return drift without changing it", () => {
   const screen = { id: "edit", label: "Edit", path: "/edit", kind: "nested-workspace", activeWorkspace: "edit", returnDestination: "Write" };
   const result = auditContinuitySnapshot(screen, snapshot({
     theme: "light",
     activeWorkspace: "",
-    navigation: ["Dashboard"],
-    navigationGaps: [],
+    navigationAreas: [...navigationAreas, { id: "more" }],
+    navigationAreaCount: 7,
+    canonicalDestinationCount: 15,
+    reachableDestinationCount: 1,
+    navigationMembershipDeterministic: false,
+    activeArea: "",
+    activeDestination: "",
+    visibleNavigationPanels: [],
     projectStrip: false,
     statusSignals: 0,
     returnControls: ["Back to Dashboard"],
@@ -51,8 +62,12 @@ test("#544 reports anchor, theme, shell, context, navigation and named-return dr
     shell: null,
   }), snapshot().shell);
   const ids = new Set(result.findings.map((finding) => finding.id));
-  for (const id of ["theme", "agent-settings-position", "agent-settings-name", "shared-shell", "project-context", "status", "named-return", "navigation-order", "navigation-groups"]) assert.ok(ids.has(id), `Missing finding ${id}`);
+  for (const id of [
+    "theme", "agent-settings-position", "agent-settings-name", "shared-shell", "project-context", "status", "named-return",
+    "navigation-area-count", "navigation-reachability", "navigation-groups", "active-area", "active-destination", "active-area-panel",
+  ]) assert.ok(ids.has(id), `Missing finding ${id}`);
   assert.equal(result.passed, false);
+  assert.ok(!ids.has("navigation-order"), "The retired flat-order contract must not return");
 });
 
 test("#544 produces one human-readable advisory report with an explicit approval boundary", () => {
@@ -98,7 +113,7 @@ test("#544/#1395 keeps the Agent & Settings control fixed while Setup AI can use
   assert.match(layout, /<UiContinuityAnchor \/>/);
 });
 
-test("#544 launches concurrently beside the Full Story Builder and saves one local report", async () => {
+test("#544/#1719 launches read-only beside the Full Story Builder and audits reachability, grouped orientation and project context", async () => {
   const [batch, agent, docs] = await Promise.all([
     read("Start-PlotPickle.bat"),
     read("scripts/ui-continuity-agent.mjs"),
@@ -110,7 +125,12 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
   assert.ok(batch.indexOf("call :start_ui_continuity_agent") < batch.lastIndexOf('call "%VITE_CMD%"'));
   assert.match(agent, /ui-continuity-report\.md/);
   assert.match(agent, /writeFile\(reportPath, report, "utf8"\)/);
+  assert.match(agent, /data-navigation-area-id/);
+  assert.match(agent, /data-navigation-area-panel/);
+  assert.match(agent, /data-current-navigation-area/);
+  assert.match(agent, /navigationMembershipDeterministic/);
   assert.match(agent, /\.project-strip, \[class\*="projectStrip"\]/);
+  assert.doesNotMatch(agent, /navigationGaps|navigation-order|CANONICAL_NAVIGATION/);
   assert.doesNotMatch(agent, /applyPatch|writeFile\([^r][^e][^p][^o][^r][^t]/i);
   assert.match(docs, /It has no automatic fix path/);
 });

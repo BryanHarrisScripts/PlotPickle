@@ -28,14 +28,18 @@ const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-wor
 
 async function waitForServer(timeoutMs = 90_000) {
   const deadline = Date.now() + timeoutMs;
+  let lastError = null;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(server, { signal: AbortSignal.timeout(2_000) });
       if (response.ok || response.status < 500) return;
-    } catch {}
+    } catch (error) {
+      lastError = error;
+    }
     await delay(500);
   }
-  throw new Error(`PlotPickle did not become available at ${server.origin} within ${timeoutMs / 1000} seconds.`);
+  const detail = lastError instanceof Error ? ` Last probe: ${lastError.message}` : "";
+  throw new Error(`PlotPickle did not become available at ${server.origin} within ${timeoutMs / 1000} seconds.${detail}`);
 }
 
 function expandPluginValue(value, pluginData) {
@@ -55,35 +59,45 @@ async function renderedSnapshot(client) {
     };
     const shell = document.querySelector('[data-ui-continuity-shell="v1"]');
     const shellStyle = shell ? getComputedStyle(shell) : null;
+    const forgivingShell = document.querySelector('[data-current-navigation-area]');
     const anchor = document.querySelector('[data-ui-continuity-anchor="agent-settings"]');
     const active = document.querySelector('[data-workspace-active="true"]');
     const returnControls = [...document.querySelectorAll('button, a')]
       .filter(visible)
       .map((node) => (node.getAttribute('aria-label') || node.textContent || '').replace(/\\s+/g, ' ').trim())
       .filter((label) => /(?:back|return) to /i.test(label));
-    const navigationControls = [...document.querySelectorAll('[data-workspace-navigation="true"] [data-workspace-nav-id]')].filter(visible);
+    const navigationAreas = [...document.querySelectorAll('[data-workspace-areas="true"] [data-navigation-area-id]')].map((node) => ({
+      id: node.getAttribute('data-navigation-area-id') || '',
+      label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+      current: node.querySelector('button')?.getAttribute('aria-current') === 'location',
+    }));
+    const navigationControls = [...document.querySelectorAll('[data-workspace-navigation="true"] [data-workspace-nav-id]')];
     const navigation = navigationControls.map((node) => ({
       id: node.getAttribute('data-workspace-nav-id') || '',
       label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
       detail: (node.querySelector('small')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+      area: node.getAttribute('data-navigation-area') || '',
     }));
-    const navigationGaps = navigationControls
-      .filter((node) => node.hasAttribute('data-navigation-gap-after'))
-      .map((node) => ({
-        after: node.getAttribute('data-workspace-nav-id') || '',
-        kind: node.getAttribute('data-navigation-gap-after') || '',
-      }));
+    const reachableIds = new Set(navigation.map((item) => item.id).filter(Boolean));
+    const areaIds = new Set(navigationAreas.map((item) => item.id).filter(Boolean));
+    const navigationMembershipDeterministic = navigation.length === reachableIds.size
+      && navigation.every((item) => item.area && areaIds.has(item.area));
+    const visibleNavigationPanels = [...document.querySelectorAll('[data-navigation-area-panel]')]
+      .filter(visible)
+      .map((node) => node.getAttribute('data-navigation-area-panel') || '')
+      .filter(Boolean);
+    const visibleNavigationControls = navigationControls.filter(visible);
     const navigationOverlaps = [];
-    for (let first = 0; first < navigationControls.length; first += 1) {
-      const a = navigationControls[first].getBoundingClientRect();
-      for (let second = first + 1; second < navigationControls.length; second += 1) {
-        const b = navigationControls[second].getBoundingClientRect();
+    for (let first = 0; first < visibleNavigationControls.length; first += 1) {
+      const a = visibleNavigationControls[first].getBoundingClientRect();
+      for (let second = first + 1; second < visibleNavigationControls.length; second += 1) {
+        const b = visibleNavigationControls[second].getBoundingClientRect();
         const overlapWidth = Math.min(a.right, b.right) - Math.max(a.left, b.left);
         const overlapHeight = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
         if (overlapWidth > 2 && overlapHeight > 2) {
           navigationOverlaps.push({
-            first: (navigationControls[first].textContent || '').trim(),
-            second: (navigationControls[second].textContent || '').trim(),
+            first: (visibleNavigationControls[first].textContent || '').trim(),
+            second: (visibleNavigationControls[second].textContent || '').trim(),
             width: Math.round(overlapWidth),
             height: Math.round(overlapHeight)
           });
@@ -130,11 +144,18 @@ async function renderedSnapshot(client) {
       rendered: Boolean(document.querySelector('main, [role="main"], .workspace')) && Boolean((document.body.innerText || '').trim()),
       url: location.href,
       theme: document.documentElement.dataset.plotpickleTheme || '',
-      activeWorkspace: active?.getAttribute('data-workspace-id') || '',
+      activeWorkspace: forgivingShell?.getAttribute('data-active-workspace') || active?.getAttribute('data-workspace-id') || '',
       navigation,
-      navigationGaps,
+      navigationAreas,
+      navigationAreaCount: navigationAreas.length,
+      canonicalDestinationCount: Number(document.querySelector('[data-navigation-canonical-count]')?.getAttribute('data-navigation-canonical-count') || 0),
+      reachableDestinationCount: reachableIds.size,
+      navigationMembershipDeterministic,
+      activeArea: forgivingShell?.getAttribute('data-current-navigation-area') || '',
+      activeDestination: forgivingShell?.getAttribute('data-current-destination') || '',
+      visibleNavigationPanels,
       navigationOverlaps,
-      projectStrip: visible(document.querySelector('.project-strip, [class*="projectStrip"]')),
+      projectStrip: visible(document.querySelector('.project-strip, [class*="projectStrip"], [data-shell-project-context="true"]')),
       statusSignals: [...document.querySelectorAll('[role="status"], progress, .status-dot, [aria-live]')].filter(visible).length,
       returnControls,
       legacyPalette,
@@ -186,7 +207,7 @@ async function cleanupPluginData(pluginData) {
 async function main() {
   agentLoaded({
     name: "PlotPickle UI Continuity Agent",
-    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, global navigation order/grouping, return paths, and navigation overlap.",
+    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, canonical destination reachability, forgiving navigation groups, visible orientation, project/status context, return paths, and navigation overlap.",
     instructions: "None. This read-only audit starts automatically and never changes your story or source files.",
     automatic: true,
   });
@@ -248,7 +269,10 @@ main().then(async ({ findings, screens }) => {
   try {
     await mkdir(path.dirname(reportPath), { recursive: true });
     await writeFile(reportPath, continuityReport({ generatedAt: new Date().toISOString(), server: server.origin, results: [], runtimeError: message }), "utf8");
-  } catch {}
+  } catch (reportError) {
+    const reportMessage = reportError instanceof Error ? reportError.message : String(reportError);
+    process.stderr.write(`UI Continuity Agent could not save its failure report: ${reportMessage}\n`);
+  }
   agentNeedsAttention(`${message}\nReport: ${reportPath}`);
   process.exitCode = 1;
   if (stayOpen) await keepAgentWindowOpen("UI Continuity Agent");

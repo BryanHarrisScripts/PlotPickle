@@ -1,5 +1,13 @@
 export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build" | "story";
 
+export type NavigationAreaId = "home" | "create" | "produce" | "review" | "connect" | "settings";
+
+export type NavigationArea = {
+  readonly id: NavigationAreaId;
+  readonly label: string;
+  readonly detail: string;
+};
+
 export type GlobalShortcutAction =
   | { readonly kind: "workspace"; readonly workspace: RootWorkspace }
   | { readonly kind: "route"; readonly href: string }
@@ -12,29 +20,39 @@ export type GlobalShortcut = {
   readonly label: string;
   readonly detail: string;
   readonly relic: string;
+  readonly area?: NavigationAreaId;
   readonly action: GlobalShortcutAction;
 };
 
 export const PLOTPICKLE_OPEN_NODE_EVENT = "plotpickle:open-node";
 export const PLOTPICKLE_OPEN_PROFILE_EVENT = "plotpickle:open-profile";
 
+export const NAVIGATION_AREAS: readonly NavigationArea[] = [
+  { id: "home", label: "Home", detail: "Start and stories" },
+  { id: "create", label: "Create", detail: "Learn, plan, build" },
+  { id: "produce", label: "Produce", detail: "Story to screen" },
+  { id: "review", label: "Review", detail: "Feedback and decisions" },
+  { id: "connect", label: "Connect / Play", detail: "Community and Wyrmwood" },
+  { id: "settings", label: "Settings", detail: "Utilities" },
+] as const;
+
 export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "node", key: "N", label: "Node", detail: "Profile home", relic: "/brand/plotpickle-ouroboros-v3-transparent.png", action: { kind: "node" } },
-  { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", action: { kind: "workspace", workspace: "community" } },
-  { id: "library", key: "O", label: "Library", detail: "Stories", relic: "/assets/workflow-relics/library.svg", action: { kind: "workspace", workspace: "library" } },
-  { id: "learn", key: "L", label: "Learn", detail: "Guides", relic: "/assets/workflow-relics/learn.webp", action: { kind: "workspace", workspace: "learn" } },
-  { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", action: { kind: "workspace", workspace: "wyrmwood" } },
-  { id: "plan", key: "P", label: "Plan", detail: "Design", relic: "/assets/workflow-relics/plan.webp", action: { kind: "workspace", workspace: "plan" } },
-  { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", action: { kind: "workspace", workspace: "build" } },
-  { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", action: { kind: "route", href: "/storyboard" } },
-  { id: "graphic-novel", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", action: { kind: "route", href: "/previs" } },
-  { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", action: { kind: "route", href: "/pageflow" } },
-  { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", action: { kind: "route", href: "/edit" } },
-  { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", action: { kind: "route", href: "/pitch-review" } },
-  { id: "refine", key: "R", label: "Refine", detail: "Decide", relic: "/assets/workflow-relics/refine.webp", action: { kind: "route", href: "/diagnostics" } },
-  { id: "reports", key: "D", label: "Reports", detail: "Deliver", relic: "/assets/workflow-relics/reports.webp", action: { kind: "route", href: "/production" } },
-  { id: "dashboard", key: "K", label: "Dashboard", detail: "KPI", relic: "/assets/workflow-relics/dashboard.webp", action: { kind: "workspace", workspace: "dashboard" } },
-  { id: "settings", key: "T", label: "Settings", detail: "Config", relic: "/assets/workflow-relics/settings.svg", action: { kind: "workspace", workspace: "settings" } },
+  { id: "dashboard", key: "K", label: "Dashboard", detail: "KPI", relic: "/assets/workflow-relics/dashboard.webp", area: "home", action: { kind: "workspace", workspace: "dashboard" } },
+  { id: "library", key: "O", label: "Library", detail: "Stories", relic: "/assets/workflow-relics/library.svg", area: "home", action: { kind: "workspace", workspace: "library" } },
+  { id: "learn", key: "L", label: "Learn", detail: "Guides", relic: "/assets/workflow-relics/learn.webp", area: "create", action: { kind: "workspace", workspace: "learn" } },
+  { id: "plan", key: "P", label: "Plan", detail: "Design", relic: "/assets/workflow-relics/plan.webp", area: "create", action: { kind: "workspace", workspace: "plan" } },
+  { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", area: "create", action: { kind: "workspace", workspace: "build" } },
+  { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", area: "produce", action: { kind: "route", href: "/storyboard" } },
+  { id: "graphic-novel", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", area: "produce", action: { kind: "route", href: "/previs" } },
+  { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", area: "produce", action: { kind: "route", href: "/pageflow" } },
+  { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", area: "produce", action: { kind: "route", href: "/edit" } },
+  { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", area: "review", action: { kind: "route", href: "/pitch-review" } },
+  { id: "refine", key: "R", label: "Refine", detail: "Decide", relic: "/assets/workflow-relics/refine.webp", area: "review", action: { kind: "route", href: "/diagnostics" } },
+  { id: "reports", key: "D", label: "Reports", detail: "Deliver", relic: "/assets/workflow-relics/reports.webp", area: "review", action: { kind: "route", href: "/production" } },
+  { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", area: "connect", action: { kind: "workspace", workspace: "community" } },
+  { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", area: "connect", action: { kind: "workspace", workspace: "wyrmwood" } },
+  { id: "settings", key: "T", label: "Settings", detail: "Config", relic: "/assets/workflow-relics/settings.svg", area: "settings", action: { kind: "workspace", workspace: "settings" } },
   { id: "profile", key: "H", label: "Profile", detail: "Human identity", relic: "/assets/workflow-relics/community.svg", action: { kind: "profile" } },
 ] as const;
 
@@ -47,6 +65,20 @@ export function shortcutForKey(key: string) {
 
 export function shortcutForId(id: string) {
   return GLOBAL_SHORTCUTS.find((shortcut) => shortcut.id === id) ?? null;
+}
+
+export function shortcutForWorkspace(workspace: RootWorkspace) {
+  return WORKFLOW_SHORTCUTS.find((shortcut) => shortcut.action.kind === "workspace" && shortcut.action.workspace === workspace) ?? null;
+}
+
+export function shortcutsForArea(area: NavigationAreaId) {
+  return WORKFLOW_SHORTCUTS.filter((shortcut) => shortcut.area === area);
+}
+
+export function navigationAreaForDestination(activeShortcutId: string | undefined, workspace: RootWorkspace): NavigationAreaId {
+  if (activeShortcutId === "story" || workspace === "story") return "create";
+  const shortcut = activeShortcutId ? shortcutForId(activeShortcutId) : shortcutForWorkspace(workspace);
+  return shortcut?.area ?? "home";
 }
 
 export function isEditableShortcutTarget(target: EventTarget | null) {

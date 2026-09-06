@@ -129,7 +129,7 @@ test("#1122 quarantines a corrupt active snapshot and recovers another verified 
   assert.ok(storage.keys().some((key) => key.includes("broken-story.quarantine")));
 });
 
-test("#1122 mounts one canonical Library route, accessible filters, safe-switch copy, and the required navigation placement", async () => {
+test("#1122 mounts one canonical Library route, accessible filters, safe-switch copy, and forgiving-shell reachability", async () => {
   const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
   const [shortcuts, route, workspace, catalog, browserStore, coreStore, avery] = await Promise.all([
     read("app/navigation/global-shortcuts.ts"),
@@ -140,13 +140,9 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
     read("core/storage/project-library-core.mjs"),
     read("modules/library/ui/avery-session-history/index.tsx"),
   ]);
-  const dashboard = shortcuts.indexOf('id: "dashboard"');
-  const library = shortcuts.indexOf('id: "library"');
-  const community = shortcuts.indexOf('id: "community"');
-  const learn = shortcuts.indexOf('id: "learn"');
-  const wyrmwood = shortcuts.indexOf('id: "wyrmwood"');
-  assert.ok(community < library && library < learn && learn < wyrmwood && wyrmwood < dashboard);
-  assert.match(shortcuts, /id: "library", key: "O", label: "Library", detail: "Stories"/);
+  assert.match(shortcuts, /id: "library", key: "O", label: "Library", detail: "Stories", relic: "\/assets\/workflow-relics\/library\.svg", area: "home", action: \{ kind: "workspace", workspace: "library" \}/);
+  assert.match(shortcuts, /\{ id: "home", label: "Home"/);
+  assert.match(shortcuts, /shortcutsForArea\(area: NavigationAreaId\)[\s\S]*WORKFLOW_SHORTCUTS\.filter/);
   assert.match(route, /activeWorkspace="library"/);
   assert.match(workspace, /Featured Examples/);
   assert.match(workspace, /Genre Presets/);

@@ -96,7 +96,6 @@ export default defineConfig(async ({ command }) => {
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
-      __PLOTPICKLE_UI_LAB_ENABLED__: JSON.stringify(process.env.PLOTPICKLE_UI_LAB === "1"),
       __PLOTPICKLE_BUZZ_AGENT_IDENTITIES__: JSON.stringify(localBuzzAgentIdentities),
     },
     optimizeDeps: {

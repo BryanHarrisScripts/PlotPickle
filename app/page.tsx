@@ -21,6 +21,7 @@ import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundati
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CollabEntryWorkspace from "./_components/collab/collab-entry-workspace";
 import CommunityWorkspace from "./_components/community/community-workspace";
+import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 
@@ -138,7 +139,7 @@ export default function Home() {
   }, []);
 
   if (!storageReady) {
-    return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening PlotPickle…</main>;
+    return <main className={rootLoadingStyles.openingState}>Opening PlotPickle…</main>;
   }
 
   if (workspace === "dashboard") {

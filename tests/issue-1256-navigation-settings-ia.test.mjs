@@ -5,30 +5,21 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function navItems(source) {
-  return [...source.matchAll(/\{ id: "([^"]+)", key: "[A-Z]", label: "([^"]+)", detail: "[^"]+", relic: "[^"]+", action:/g)]
-    .map((match) => ({ id: match[1], label: match[2] }))
+  return [...source.matchAll(/\{ id: "([^"]+)", key: "([A-Z])", label: "([^"]+)", detail: "[^"]+", relic: "[^"]+", area: "([^"]+)", action:/g)]
+    .map((match) => ({ id: match[1], key: match[2], label: match[3], area: match[4] }))
     .filter((item) => !["node", "profile"].includes(item.id));
 }
 
-test("#1256 global workflow navigation follows the attended UAT order", async () => {
+test("#1256/#1719 global workflow navigation remains reachable through six forgiving areas", async () => {
   const source = await read("app/navigation/global-shortcuts.ts");
-  assert.deepEqual(navItems(source).map((item) => item.label), [
-    "Community",
-    "Library",
-    "Learn",
-    "Wyrmwood",
-    "Plan",
-    "Build",
-    "Storyboard",
-    "Previs",
-    "Write",
-    "Edit",
-    "Feedback",
-    "Refine",
-    "Reports",
-    "Dashboard",
-    "Settings",
-  ]);
+  const items = navItems(source);
+  assert.deepEqual([...new Set(items.map((item) => item.area))], ["home", "create", "produce", "review", "connect", "settings"]);
+  assert.equal(items.length, 15);
+  assert.deepEqual(items.find((item) => item.id === "settings"), { id: "settings", key: "T", label: "Settings", area: "settings" });
+  assert.deepEqual(items.find((item) => item.id === "community"), { id: "community", key: "C", label: "Community", area: "connect" });
+  for (const id of ["dashboard", "library", "learn", "plan", "build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports", "community", "wyrmwood", "settings"]) {
+    assert.ok(items.some((item) => item.id === id), `Canonical destination is not reachable: ${id}`);
+  }
 });
 
 test("#1256/#1377 Settings exposes the approved compute-first information architecture", async () => {

@@ -57,6 +57,16 @@ Include screenshots or a brief explanation of why screenshots are not applicable
 
 - [ ] **10. Audit & Test Gate Pass:** Existing UI/UX code audit, continuity tests, accessibility checks, Playwright/UAT journeys and applicable visual-regression checks pass without bypassing, suppressing or weakening rules merely to make the PR green.
 
+- [ ] **11. Form & Draft Resilience:** Relevant fields use correct native input attributes and non-disruptive validation; meaningful unsaved creative work survives routine recoverable interruption without persisting credentials or secrets in ordinary draft storage.
+
+- [ ] **12. Async & Retry Safety:** Non-idempotent actions prevent double submission; optimistic UI is limited to safe reversible actions; consequential operations use pending/pessimistic state; recoverable failures provide contextual retry without losing input or duplicating successful work.
+
+- [ ] **13. Extreme Content & Zoom:** Long/localized strings do not overlap or break layouts; readable prose uses bounded line length; task-critical UI remains usable and reachable at 200% browser zoom.
+
+- [ ] **14. Motion & Reduced Motion:** Normal motion follows the shared timing contract and every CSS/JS motion path respects `prefers-reduced-motion`, removing large spatial motion when requested.
+
+- [ ] **15. Notification Discipline:** Toasts, alert banners and modals are used for their defined roles. No more than three toasts are visible at once, duplicate notifications coalesce or queue, and blocking modals are reserved for genuinely blocking decisions.
+
 ## Release note
 
 Describe what a writer will notice, or write `No user-facing release note`.

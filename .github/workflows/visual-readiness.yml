@@ -35,6 +35,8 @@ jobs:
         run: node --test tests/issue-1715-ui-axe-accessibility.test.mjs
       - name: Validate Phase 1C resilience contract
         run: node --test tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs
+      - name: Validate Phase 1D experience and STORY zero-state contract
+        run: node --test tests/issue-1715-ui-experience-lab.test.mjs
       - name: Enforce current UI continuity contract
         run: node --test tests/issue-544-ui-continuity-agent.test.mjs
       - name: Enforce changed UI token/style contract
@@ -77,7 +79,7 @@ jobs:
           printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
           npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0
           "$UI_A11Y_ROOT/node_modules/.bin/playwright" install --with-deps chromium
-      - name: Enforce WCAG 2.2 AA with axe-core Playwright
+      - name: Enforce rendered accessibility and experience guardrails
         env:
           UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
         shell: bash
@@ -86,5 +88,6 @@ jobs:
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json
+          node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT"
       - name: Production build
         run: npm run build

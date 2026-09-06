@@ -33,6 +33,8 @@ jobs:
         run: node --test tests/issue-1715-ui-foundation.test.mjs
       - name: Validate Phase 1B axe accessibility contract
         run: node --test tests/issue-1715-ui-axe-accessibility.test.mjs
+      - name: Validate Phase 1C resilience contract
+        run: node --test tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs
       - name: Enforce current UI continuity contract
         run: node --test tests/issue-544-ui-continuity-agent.test.mjs
       - name: Enforce changed UI token/style contract

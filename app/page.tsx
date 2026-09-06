@@ -17,6 +17,7 @@ import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-worksp
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
 import LibraryWorkspace from "../modules/library/ui/library-workspace";
+import StoryWorkspace from "../modules/story-the-unwritten/ui/story-workspace";
 import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./_components/community/community-workspace";
@@ -35,6 +36,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "community") return "community";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
+  if (requested === "story") return "story";
   if (requested === "library") return "library";
   return "learn";
 }
@@ -173,6 +175,14 @@ export default function Home() {
           onOpenLearn={() => navigateWorkspace("learn")}
           onOpenPlan={() => navigateWorkspace("plan")}
         />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
+  if (workspace === "story") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="story" onNavigate={navigateWorkspace}>
+        <StoryWorkspace onOpenLearn={() => navigateWorkspace("learn")} />
       </PlotPickleWorkspaceShell>
     );
   }

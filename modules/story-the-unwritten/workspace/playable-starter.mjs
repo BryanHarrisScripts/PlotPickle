@@ -35,7 +35,10 @@ const scene = (id, title, locationId, objective, pressure, choices) => Object.fr
   unresolvedThreadRefs: Object.freeze([GATE_THREAD_REF]),
   narrativeBudget: 4,
   pressure,
-  choices: Object.freeze(choices.map((choice) => Object.freeze(choice))),
+  choices: Object.freeze(choices.map((choice) => Object.freeze({
+    ...choice,
+    after: Object.freeze((choice.after || []).map((operation) => Object.freeze(operation))),
+  }))),
 });
 
 export const STORY_WORKSPACE_SCENES = Object.freeze([
@@ -79,7 +82,15 @@ export const STORY_WORKSPACE_SCENES = Object.freeze([
     `${WORLD_ID}:objective:resolve-gate`,
     "The earlier object choice now constrains what the Keeper can do.",
     [
-      { id: "open-gate", label: "Open the gate", mechanic: "Requires custody of the Brass Key", consequence: "The sealed-gate thread resolves and the road becomes available.", requiresKey: true, operation: { kind: "set-value", ref: GATE_OPEN_REF, value: true } },
+      {
+        id: "open-gate",
+        label: "Open the gate",
+        mechanic: "Requires custody of the Brass Key",
+        consequence: "The sealed-gate thread resolves and the road becomes available.",
+        requiresKey: true,
+        operation: { kind: "set-value", ref: GATE_OPEN_REF, value: true },
+        after: [{ kind: "resolve-thread", threadRef: GATE_THREAD_REF }],
+      },
       { id: "wait-at-gate", label: "Wait at the gate", mechanic: "Opens a future thread", consequence: "The story preserves an unresolved return instead of faking access.", operation: { kind: "open-thread", threadRef: RETURN_THREAD_REF } },
     ],
   ),
@@ -90,8 +101,22 @@ export const STORY_WORKSPACE_SCENES = Object.freeze([
     `${WORLD_ID}:objective:choose-ending`,
     "The ending records what the player actually earned, not what prose wishes were true.",
     [
-      { id: "cross-threshold", label: "Cross the threshold", mechanic: "Moves the Keeper and records the ending", consequence: "The Keeper carries the accepted state into the ending.", operation: { kind: "move-character", characterId: KEEPER_ID, locationId: `${WORLD_ID}:location:beyond-gate` }, ending: "crossed" },
-      { id: "turn-back", label: "Turn back", mechanic: "Records an open ending", consequence: "The unresolved road remains available for another session.", operation: { kind: "open-thread", threadRef: RETURN_THREAD_REF }, ending: "returned" },
+      {
+        id: "cross-threshold",
+        label: "Cross the threshold",
+        mechanic: "Moves the Keeper and records the ending",
+        consequence: "The Keeper carries the accepted state into the ending.",
+        operation: { kind: "move-character", characterId: KEEPER_ID, locationId: `${WORLD_ID}:location:beyond-gate` },
+        after: [{ kind: "set-value", ref: ENDING_REF, value: "crossed" }],
+      },
+      {
+        id: "turn-back",
+        label: "Turn back",
+        mechanic: "Records an open ending",
+        consequence: "The unresolved road remains available for another session.",
+        operation: { kind: "open-thread", threadRef: RETURN_THREAD_REF },
+        after: [{ kind: "set-value", ref: ENDING_REF, value: "returned" }],
+      },
     ],
   ),
 ]);
@@ -159,6 +184,28 @@ export function legalStoryWorkspaceChoices(game) {
   }));
 }
 
+function resolveWorkspaceOperation(input) {
+  const result = reduceStoryActionWithRules({
+    runtime: input.runtime,
+    state: input.state,
+    action: {
+      id: `${STORY_WORKSPACE_SESSION_ID}:action:${input.turn}:${input.suffix}`,
+      sessionId: input.runtime.session.id,
+      sceneId: input.sceneId,
+      actorRef: KEEPER_ID,
+      pieceId: input.pieceId,
+      operation: structuredClone(input.operation),
+      idempotencyKey: `${STORY_WORKSPACE_SESSION_ID}:choice:${input.turn}:${input.suffix}`,
+      proposedAt: input.proposedAt,
+    },
+    rules: [],
+  });
+  if (!result.ok || result.status !== "accepted") {
+    throw new Error(result.failure?.message || "The STORY action could not resolve");
+  }
+  return result;
+}
+
 export function applyStoryWorkspaceChoice(game, choiceId, { proposedAt = new Date().toISOString() } = {}) {
   const active = activeStoryWorkspaceScene(game);
   if (!active) throw new Error("The STORY workspace session is already complete");
@@ -167,52 +214,37 @@ export function applyStoryWorkspaceChoice(game, choiceId, { proposedAt = new Dat
   if (!choice.legal) throw new Error(choice.blockedReason || "That STORY action is not legal in the current state");
 
   const turn = game.history.length + 1;
-  const result = reduceStoryActionWithRules({
+  const first = resolveWorkspaceOperation({
     runtime: game.runtime,
     state: game.state,
-    action: {
-      id: `${STORY_WORKSPACE_SESSION_ID}:action:${turn}:${choice.id}`,
-      sessionId: game.runtime.session.id,
-      sceneId: active.id,
-      actorRef: KEEPER_ID,
-      pieceId: KEEPER_ID,
-      operation: structuredClone(choice.operation),
-      idempotencyKey: `${STORY_WORKSPACE_SESSION_ID}:choice:${turn}:${choice.id}`,
-      proposedAt,
-    },
-    rules: [],
+    sceneId: active.id,
+    turn,
+    suffix: choice.id,
+    pieceId: KEEPER_ID,
+    operation: choice.operation,
+    proposedAt,
   });
-  if (!result.ok || result.status !== "accepted") {
-    throw new Error(result.failure?.message || "The STORY action could not resolve");
-  }
+  let runtime = first.runtime;
+  let state = first.state;
+  const acceptedOperationKinds = [first.acceptedEvent.operation.kind];
 
-  let state = result.state;
-  const acceptedEvents = [...result.acceptedRuleEvents];
-  if (choice.id === "open-gate") {
-    const threadResolution = reduceStoryActionWithRules({
-      runtime: result.runtime,
+  for (const [index, operation] of choice.after.entries()) {
+    const followup = resolveWorkspaceOperation({
+      runtime,
       state,
-      action: {
-        id: `${STORY_WORKSPACE_SESSION_ID}:action:${turn}:resolve-gate-thread`,
-        sessionId: result.runtime.session.id,
-        sceneId: active.id,
-        actorRef: KEEPER_ID,
-        pieceId: GATE_ID,
-        operation: { kind: "resolve-thread", threadRef: GATE_THREAD_REF },
-        idempotencyKey: `${STORY_WORKSPACE_SESSION_ID}:choice:${turn}:resolve-gate-thread`,
-        proposedAt,
-      },
-      rules: [],
+      sceneId: active.id,
+      turn,
+      suffix: `${choice.id}:after:${index + 1}`,
+      pieceId: choice.id === "open-gate" ? GATE_ID : KEEPER_ID,
+      operation,
+      proposedAt,
     });
-    if (!threadResolution.ok || threadResolution.status !== "accepted") {
-      throw new Error(threadResolution.failure?.message || "The gate consequence could not resolve");
-    }
-    state = threadResolution.state;
-    acceptedEvents.push(...threadResolution.acceptedRuleEvents);
+    runtime = followup.runtime;
+    state = followup.state;
+    acceptedOperationKinds.push(followup.acceptedEvent.operation.kind);
   }
-  if (choice.ending) state = createStoryMechanicalState({ ...state, values: { ...state.values, [ENDING_REF]: choice.ending } });
 
-  const resolving = transitionFiveSceneStoryRuntime(result.runtime, "begin-scene-resolution");
+  const resolving = transitionFiveSceneStoryRuntime(runtime, "begin-scene-resolution");
   if (!resolving.ok) throw new Error(resolving.failure?.message || "The STORY scene could not begin resolution");
   const completed = transitionFiveSceneStoryRuntime(resolving.runtime, "complete-scene");
   if (!completed.ok) throw new Error(completed.failure?.message || "The STORY scene could not complete");
@@ -230,9 +262,23 @@ export function applyStoryWorkspaceChoice(game, choiceId, { proposedAt = new Dat
       mechanic: choice.mechanic,
       consequence: choice.consequence,
       stateRevision: state.revision,
-      acceptedOperationKinds: Object.freeze([choice.operation.kind, ...acceptedEvents.map((event) => event.operation?.kind).filter(Boolean)]),
+      acceptedOperationKinds: Object.freeze(acceptedOperationKinds),
     })]),
   });
+}
+
+export function replayStoryWorkspaceChoices(choiceIds = []) {
+  if (!Array.isArray(choiceIds) || choiceIds.length > STORY_WORKSPACE_SCENES.length) {
+    throw new Error("STORY workspace replay accepts at most five choice ids");
+  }
+  let game = createStoryWorkspaceGame();
+  choiceIds.forEach((choiceId, index) => {
+    if (typeof choiceId !== "string" || !choiceId.trim()) throw new Error("STORY workspace replay choice ids must be strings");
+    game = applyStoryWorkspaceChoice(game, choiceId, {
+      proposedAt: `2026-09-06T00:00:0${index}.000Z`,
+    });
+  });
+  return game;
 }
 
 export function projectStoryWorkspace(game) {
@@ -264,9 +310,12 @@ export function projectStoryWorkspace(game) {
     secret: pieceById.get(SECRET_ID) ?? null,
     technique: pieceById.get(TECHNIQUE_ID) ?? null,
     availablePieces: pieces,
-    choices: legalStoryWorkspaceChoices(game),
-    rules: game.collection.rules,
-    validation: game.collection.validation,
+    choices: legalStoryWorkspaceChoices(game).map(({ operation, after, ...choice }) => choice),
+    rules: game.collection.rules.map((rule) => ({ id: rule.id, title: rule.title, when: rule.when, enabled: rule.enabled })),
+    validation: {
+      launchAllowed: game.collection.validation.launchAllowed,
+      findings: game.collection.validation.findings,
+    },
     history: game.history,
     openThreads: [...game.state.openThreads],
     gateOpen: game.state.values[GATE_OPEN_REF] === true,

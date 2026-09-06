@@ -14,7 +14,6 @@ type StandaloneTarget = {
 
 const STANDALONE_TARGETS: Readonly<Record<string, StandaloneTarget>> = {
   "/library": { activeShortcutId: "library", rootContext: "library" },
-  "/story": { activeShortcutId: "story", rootContext: "story" },
   "/storyboard": { activeShortcutId: "storyboard", rootContext: "build" },
   "/previs": { activeShortcutId: "graphic-novel", rootContext: "build" },
   "/pageflow": { activeShortcutId: "write", rootContext: "build" },

@@ -159,7 +159,9 @@ test("#664 advanced AI routing belongs to the current dark PlotPickle surface fa
     read("app/settings/compute/ai-compute-workspace.tsx"),
     read("app/ai-routing-panel.module.css"),
   ]);
-  assert.match(page, /redirect\("\/\?workspace=settings#settings-routing"\)/);
+  assert.match(page, /SageSettingsWorkspace/);
+  assert.match(page, /searchParams\.set\("settings", "local-compute"\)/);
+  assert.doesNotMatch(page, /redirect\(/);
   assert.match(settings, /"settings-routing": "local-compute"/);
   assert.match(settings, /id="settings-local-compute"/);
   assert.match(compute, /<AiRoutingPanel/);

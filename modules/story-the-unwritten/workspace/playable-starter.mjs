@@ -106,6 +106,7 @@ export const STORY_WORKSPACE_SCENES = Object.freeze([
         label: "Cross the threshold",
         mechanic: "Moves the Keeper and records the ending",
         consequence: "The Keeper carries the accepted state into the ending.",
+        requiresGateOpen: true,
         operation: { kind: "move-character", characterId: KEEPER_ID, locationId: `${WORLD_ID}:location:beyond-gate` },
         after: [{ kind: "set-value", ref: ENDING_REF, value: "crossed" }],
       },
@@ -155,6 +156,10 @@ function initialState(collection) {
   });
 }
 
+function humanizeReference(value) {
+  return String(value || "unknown").split(":").at(-1)?.replaceAll("-", " ") || "unknown";
+}
+
 export function createStoryWorkspaceGame() {
   const collection = starterCollection();
   return Object.freeze({
@@ -175,13 +180,19 @@ export function activeStoryWorkspaceScene(game) {
 export function legalStoryWorkspaceChoices(game) {
   const active = activeStoryWorkspaceScene(game);
   if (!active) return [];
-  return active.choices.map((choice) => ({
-    ...choice,
-    legal: choice.requiresKey !== true || game.state.objectCustody[KEY_ID] === KEEPER_ID,
-    blockedReason: choice.requiresKey === true && game.state.objectCustody[KEY_ID] !== KEEPER_ID
-      ? "The Keeper does not have the Brass Key."
-      : null,
-  }));
+  return active.choices.map((choice) => {
+    const missingKey = choice.requiresKey === true && game.state.objectCustody[KEY_ID] !== KEEPER_ID;
+    const gateClosed = choice.requiresGateOpen === true && game.state.values[GATE_OPEN_REF] !== true;
+    return {
+      ...choice,
+      legal: !missingKey && !gateClosed,
+      blockedReason: missingKey
+        ? "The Keeper does not have the Brass Key."
+        : gateClosed
+          ? "The gate is still sealed."
+          : null,
+    };
+  });
 }
 
 function resolveWorkspaceOperation(input) {
@@ -287,6 +298,14 @@ export function projectStoryWorkspace(game) {
   const pieceById = new Map(pieces.map((piece) => [piece.id, piece]));
   const currentSceneIndex = active ? STORY_WORKSPACE_SCENES.findIndex((candidate) => candidate.id === active.id) : STORY_WORKSPACE_SCENES.length;
   const ending = game.state.values[ENDING_REF] ?? null;
+  const currentLocation = active
+    ? pieceById.get(active.locationId) ?? {
+      id: active.locationId,
+      type: "location",
+      title: humanizeReference(active.locationId),
+      description: "The location currently loaded by the active STORY scene.",
+    }
+    : null;
   return Object.freeze({
     world: { id: game.collection.world.id, title: game.collection.world.title },
     game: { id: game.collection.gameDefinition.id, title: game.collection.gameDefinition.title },
@@ -305,12 +324,19 @@ export function projectStoryWorkspace(game) {
       unresolvedThreadRefs: active.unresolvedThreadRefs.filter((ref) => game.state.openThreads.includes(ref)),
     } : null,
     activeCharacter: pieceById.get(KEEPER_ID) ?? null,
-    activeLocation: pieceById.get(CROSSROADS_ID) ?? null,
+    activeLocation: currentLocation,
     conflict: pieceById.get(GATE_ID) ?? null,
     secret: pieceById.get(SECRET_ID) ?? null,
     technique: pieceById.get(TECHNIQUE_ID) ?? null,
     availablePieces: pieces,
-    choices: legalStoryWorkspaceChoices(game).map(({ operation, after, ...choice }) => choice),
+    choices: legalStoryWorkspaceChoices(game).map((choice) => ({
+      id: choice.id,
+      label: choice.label,
+      mechanic: choice.mechanic,
+      consequence: choice.consequence,
+      legal: choice.legal,
+      blockedReason: choice.blockedReason,
+    })),
     rules: game.collection.rules.map((rule) => ({ id: rule.id, title: rule.title, when: rule.when, enabled: rule.enabled })),
     validation: {
       launchAllowed: game.collection.validation.launchAllowed,

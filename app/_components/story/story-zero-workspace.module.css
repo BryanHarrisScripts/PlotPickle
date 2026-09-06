@@ -158,9 +158,13 @@
   background: var(--pp-surface);
 }
 
-.reassurance strong {
+.reassurance h2,
+.reassurance h4 {
+  margin: 0;
   color: var(--pp-paper);
+  font-family: var(--pp-font-display);
   font-size: var(--pp-text-md);
+  line-height: var(--pp-leading-tight);
 }
 
 .reassurance p {

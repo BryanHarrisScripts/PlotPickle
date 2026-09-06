@@ -5,18 +5,22 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("release navigation keeps the global PlotPickle rail on standalone tester-facing workspaces", async () => {
-  const [layout, boundary, shell] = await Promise.all([
+test("release navigation keeps the global PlotPickle shell on standalone tester-facing workspaces and contextual STORY", async () => {
+  const [layout, boundary, shell, shortcuts] = await Promise.all([
     source("app/layout.tsx"),
     source("app/navigation/release-experience-boundary.tsx"),
     source("app/plotpickle-workspace-shell.tsx"),
+    source("app/navigation/global-shortcuts.ts"),
   ]);
   assert.match(layout, /<ReleaseExperienceBoundary>\{children\}<\/ReleaseExperienceBoundary>/);
-  for (const route of ["/library", "/storyboard", "/previs", "/pageflow", "/edit", "/pitch-review", "/diagnostics", "/production"]) {
-    assert.ok(boundary.includes(`"${route}"`), `Standalone release route is missing the global rail: ${route}`);
+  for (const route of ["/library", "/story", "/storyboard", "/previs", "/pageflow", "/edit", "/pitch-review", "/diagnostics", "/production"]) {
+    assert.ok(boundary.includes(`"${route}"`), `Standalone release route is missing the global shell: ${route}`);
   }
+  assert.match(boundary, /"\/story": \{ activeShortcutId: "story", rootContext: "story" \}/);
+  assert.doesNotMatch(shortcuts, /\{ id: "story", key:/);
   assert.match(shell, /activeShortcutId/);
-  assert.match(shell, /data-plotpickle-global-nav="v3"/);
+  assert.match(shell, /data-plotpickle-global-nav="v4"/);
+  assert.match(shell, /data-current-navigation-area/);
 });
 
 test("release navigation gives BUILD a discoverable production stage rail instead of stacking Story Workflow before Story Coverage", async () => {
@@ -52,4 +56,3 @@ test("release navigation forces standalone Write and Feedback surfaces onto appr
   }
   assert.doesNotMatch(css, /#7d72c6|#e6f2ff|#fff0c7/);
 });
-

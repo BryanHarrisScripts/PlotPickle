@@ -83,6 +83,6 @@ jobs:
           npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-a11y-server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          node scripts/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json
+          node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json
       - name: Production build
         run: npm run build

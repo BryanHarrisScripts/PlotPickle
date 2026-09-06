@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { UiAction } from "../foundation/ui-action";
@@ -32,26 +32,30 @@ function currentProject(): StoryZeroProject | null {
   }
 }
 
-export function StoryZeroWorkspaceView({ model }: { model: StoryZeroModel }) {
+export function StoryZeroWorkspaceView({ model, embedded = false }: { model: StoryZeroModel; embedded?: boolean }) {
   const router = useRouter();
   const hasProject = model.kind === "project";
+  const loopTitleId = useId();
+  const piecesTitleId = useId();
+  const HeroHeading = embedded ? "h3" : "h1";
+  const SectionHeading = embedded ? "h4" : "h2";
 
   return (
-    <main className={styles.workspace} data-story-zero-state={model.kind}>
+    <div className={styles.workspace} data-story-zero-state={model.kind}>
       <header className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>PlotPickle / STORY — THE UNWRITTEN</p>
-          <h1>Turn what you have built into something you can play.</h1>
+          <HeroHeading>Turn what you have built into something you can play.</HeroHeading>
           <p className={styles.lede}>
             STORY turns characters, locations, objects, conflicts, secrets and rules into choices with visible consequences. Your project stays the source; play never silently rewrites canon.
           </p>
         </div>
-        <div className={styles.context} aria-label="Current STORY context">
-          <span>Project</span>
-          <strong>{hasProject ? model.project.title : model.kind === "loading" ? "Checking…" : "None selected"}</strong>
-          <span>Session</span>
-          <strong>No active STORY session</strong>
-        </div>
+        <dl className={styles.context}>
+          <dt>Project</dt>
+          <dd>{hasProject ? model.project.title : model.kind === "loading" ? "Checking…" : "None selected"}</dd>
+          <dt>Session</dt>
+          <dd>No active STORY session</dd>
+        </dl>
       </header>
 
       {model.kind === "loading" ? (
@@ -93,10 +97,10 @@ export function StoryZeroWorkspaceView({ model }: { model: StoryZeroModel }) {
         />
       ) : null}
 
-      <section className={styles.loop} aria-labelledby="story-loop-title">
+      <section className={styles.loop} aria-labelledby={loopTitleId}>
         <div className={styles.sectionHeading}>
           <p className={styles.kicker}>The loop</p>
-          <h2 id="story-loop-title">Build a little. Play it. See what changed. Keep going.</h2>
+          <SectionHeading id={loopTitleId}>Build a little. Play it. See what changed. Keep going.</SectionHeading>
         </div>
         <ol className={styles.steps}>
           <li data-current={model.kind === "empty" ? "true" : undefined}><span>1</span><div><strong>Choose</strong><p>Use the PlotPickle project you are already shaping.</p></div></li>
@@ -106,10 +110,10 @@ export function StoryZeroWorkspaceView({ model }: { model: StoryZeroModel }) {
         </ol>
       </section>
 
-      <section className={styles.pieces} aria-labelledby="story-pieces-title">
+      <section className={styles.pieces} aria-labelledby={piecesTitleId}>
         <div className={styles.sectionHeading}>
           <p className={styles.kicker}>Story Pieces</p>
-          <h2 id="story-pieces-title">Familiar story material becomes playable context.</h2>
+          <SectionHeading id={piecesTitleId}>Familiar story material becomes playable context.</SectionHeading>
           <p>These are the kinds of pieces STORY can draw from. They are examples of the grammar, not claims about your current project.</p>
         </div>
         <div className={styles.pieceGrid}>
@@ -124,7 +128,7 @@ export function StoryZeroWorkspaceView({ model }: { model: StoryZeroModel }) {
         <strong>Play safely.</strong>
         <p>AI may suggest. STORY validates and resolves. PPF remains the durable canon authority. You can explore without accidentally rewriting your story.</p>
       </aside>
-    </main>
+    </div>
   );
 }
 
@@ -136,5 +140,9 @@ export default function StoryZeroWorkspace() {
     setModel(project ? { kind: "project", project } : { kind: "empty" });
   }, []);
 
-  return <StoryZeroWorkspaceView model={model} />;
+  return (
+    <main data-story-workspace-page="true">
+      <StoryZeroWorkspaceView model={model} />
+    </main>
+  );
 }

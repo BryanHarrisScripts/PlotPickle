@@ -121,10 +121,10 @@ export default function UiExperienceGallery() {
       <section className={styles.section} aria-labelledby="gallery-story-zero">
         <header><p>STORY entry</p><h2 id="gallery-story-zero">Zero-state context variants</h2></header>
         <div className={styles.storyFrame}>
-          <StoryZeroWorkspaceView model={{ kind: "empty" }} />
+          <StoryZeroWorkspaceView embedded model={{ kind: "empty" }} />
         </div>
         <div className={styles.storyFrame}>
-          <StoryZeroWorkspaceView model={{ kind: "project", project: { id: "gallery:project", revision: "42", title: "A Very Long but Still Human Story Title That Must Never Break the Workspace" } }} />
+          <StoryZeroWorkspaceView embedded model={{ kind: "project", project: { id: "gallery:project", revision: "42", title: "A Very Long but Still Human Story Title That Must Never Break the Workspace" } }} />
         </div>
       </section>
 

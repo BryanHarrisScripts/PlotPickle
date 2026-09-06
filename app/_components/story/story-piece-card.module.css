@@ -74,7 +74,7 @@
 }
 
 .type {
-  font-family: var(--pp-font-mono);
+  font-family: var(--pp-font-body);
 }
 
 .description,

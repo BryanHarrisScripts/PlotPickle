@@ -30,14 +30,16 @@ test("#1323 global workflow uses the approved newest compact order", async () =>
   assert.doesNotMatch(shell, /data-navigation-gap-after|navigationBreakAfter/);
 });
 
-test("#1323 Library aligns header, Avery history, filters and shelves to one centered column", async () => {
+test("#1323 Library aligns Human stories and disclosed Avery history to one centered column", async () => {
   const [workspace, css, averyCss] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
     read("modules/library/ui/library-workspace.module.css"),
     read("modules/library/ui/avery-session-history/avery-session-history.module.css"),
   ]);
-  assert.match(workspace, /<div className=\{styles\.libraryColumn\}>\s*<AverySessionHistory \/>/s);
+  assert.match(workspace, /useState<LibraryTab>\("stories"\)/);
+  assert.match(workspace, /<details className=\{styles\.averyDisclosure\}>[\s\S]*<AverySessionHistory \/>[\s\S]*<\/details>/s);
   assert.match(css, /\.hero,\s*\.libraryColumn\s*\{[^}]*width:\s*min\(100%, 980px\);[^}]*margin-right:\s*auto;[^}]*margin-left:\s*auto;/s);
+  assert.match(css, /\.averyDisclosure > summary\s*\{[^}]*min-height:\s*var\(--pp-touch-target\)/s);
   assert.match(averyCss, /\.slotGrid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/s);
   assert.match(averyCss, /\.slotWrap\s*\{[^}]*min-width:\s*0;/s);
 });

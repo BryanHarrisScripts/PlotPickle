@@ -51,6 +51,7 @@ export default function ProductionPage() {
   return (
     <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
       <div style={{ maxWidth: 1700, margin: "0 auto", display: "grid", gap: 18 }}>
+        <h1>Reports</h1>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "storyboard" ? "Storyboard" : "Build"}</Link>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/structure">Structure</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/labs">Specialist Labs</Link><Link href="/pitch-review">Pitch & Review</Link></div>

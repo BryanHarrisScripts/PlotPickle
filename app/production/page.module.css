@@ -6,7 +6,6 @@
   display: grid;
   gap: var(--pp-space-4);
   width: min(100%, var(--pp-width-board));
-  margin: 0 auto;
 }
 
 .heading {

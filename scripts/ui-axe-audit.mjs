@@ -7,16 +7,11 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 export const AXE_PLAYWRIGHT_VERSION = "4.13.0";
-export const PLAYWRIGHT_TEST_VERSION = "1.62.1";
+export const PLAYWRIGHT_TEST_VERSION = "1.63.0";
 export const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const defaultRoutes = path.join(repoRoot, "config", "ui-axe-routes.json");
-
-function option(name, fallback = "") {
-  const index = process.argv.indexOf(name);
-  return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : fallback;
-}
 
 export function validateLocalServer(value) {
   const server = new URL(value);
@@ -24,10 +19,6 @@ export function validateLocalServer(value) {
     throw new Error("UI axe audit accepts only a local PlotPickle server address.");
   }
   return server;
-}
-
-export function blockingAxeViolations(result) {
-  return (result?.violations || []).filter((violation) => violation.impact !== "minor");
 }
 
 function formatViolation(route, violation) {
@@ -89,7 +80,7 @@ export async function runUiAxeAudit({ serverUrl, toolRoot, routesPath = defaultR
       }
       await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
       const result = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
-      for (const violation of blockingAxeViolations(result)) failures.push(formatViolation(route, violation));
+      for (const violation of result.violations || []) failures.push(formatViolation(route, violation));
     }
 
     await context.close();
@@ -107,10 +98,13 @@ export async function runUiAxeAudit({ serverUrl, toolRoot, routesPath = defaultR
 
 const directExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (directExecution) {
+  const serverIndex = process.argv.indexOf("--server");
+  const toolRootIndex = process.argv.indexOf("--tool-root");
+  const routesIndex = process.argv.indexOf("--routes");
   runUiAxeAudit({
-    serverUrl: option("--server", "http://127.0.0.1:4173"),
-    toolRoot: option("--tool-root"),
-    routesPath: option("--routes", defaultRoutes)
+    serverUrl: serverIndex >= 0 ? process.argv[serverIndex + 1] : "http://127.0.0.1:4173",
+    toolRoot: toolRootIndex >= 0 ? process.argv[toolRootIndex + 1] : "",
+    routesPath: routesIndex >= 0 ? process.argv[routesIndex + 1] : defaultRoutes
   }).catch((error) => {
     console.error(error.message);
     process.exitCode = 1;

@@ -63,6 +63,14 @@ test("#1715 Phase 1A keeps the enforcement runner BEN-clean", async () => {
   assert.match(runner, /const baseRefIndex = process\.argv\.indexOf\("--base-ref"\)/);
 });
 
+test("#1715 Phase 1C foundation smoke automatically discovers every foundation file", async () => {
+  const runner = await source("scripts/ui-stylelint-gate.mjs");
+  assert.match(runner, /FOUNDATION_ROOT = "app\/_components\/foundation"/);
+  assert.match(runner, /readdir\(FOUNDATION_ROOT, \{ recursive: true \}\)/);
+  assert.match(runner, /allFoundation \? await foundationFiles\(\)/);
+  assert.doesNotMatch(runner, /FOUNDATION_FILES\s*=\s*\[/);
+});
+
 test("#1715 Phase 1A action primitive exposes hierarchy and 44px target semantics", async () => {
   const component = await source("app/_components/foundation/ui-action.tsx");
   const styles = await source("app/_components/foundation/ui-action.module.css");

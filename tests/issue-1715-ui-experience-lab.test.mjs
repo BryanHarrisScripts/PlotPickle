@@ -34,16 +34,22 @@ test("#1715 Phase 1D STORY zero state reads the canonical project and exposes on
   assert.match(workspace, /router\.push\("\/\?workspace=build"\)/);
   assert.match(workspace, /No active STORY session/);
   assert.match(workspace, /play never silently rewrites canon/i);
+  assert.match(workspace, /useId/);
+  assert.match(workspace, /<dl className=\{styles\.context\}>/);
+  assert.match(workspace, /embedded \? "h3" : "h1"/);
+  assert.doesNotMatch(workspace, /id="story-(?:loop|pieces)-title"/);
   assert.doesNotMatch(workspace, /saveStory|writeStory|canonAdmission|admit.*canon/i);
 });
 
-test("#1715 Phase 1D STORY primitives expose card and validator states without color-only semantics", async () => {
+test("#1715 Phase 1D STORY primitives expose semantic card and validator states without invalid ARIA", async () => {
   const card = await source("app/_components/story/story-piece-card.tsx");
   const validator = await source("app/_components/story/story-validator-finding.tsx");
   for (const state of ["available", "selected", "illegal", "loading", "partial", "error"]) assert.match(card, new RegExp(state));
   for (const label of ["ERROR", "WARNING", "NOTE", "PASS"]) assert.match(validator, new RegExp(label));
   assert.match(card, /STATE_LABELS/);
   assert.match(validator, /SEVERITY_LABELS/);
+  assert.doesNotMatch(card, /aria-disabled/);
+  assert.doesNotMatch(validator, /role=\{severity/);
 });
 
 test("#1715 Phase 1D state gallery uses real production components and hostile fixtures", async () => {
@@ -51,6 +57,7 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   for (const component of ["UiStateSurface", "UiWorkStatus", "StoryPieceCard", "StoryValidatorFinding", "StoryZeroWorkspaceView"]) {
     assert.match(gallery, new RegExp(component));
   }
+  assert.match(gallery, /StoryZeroWorkspaceView embedded/);
   assert.match(gallery, /LONG_TOKEN/);
   assert.match(gallery, /世界の物語/);
   assert.match(gallery, /AI suggestion/);

@@ -8,6 +8,7 @@ export const STYLELINT_VERSION = "17.15.0";
 const STYLE_EXTENSIONS = new Set([".css", ".scss"]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const TOKEN_SOURCE = "app/design-tokens.css";
+const STYLE_EXEMPTION_PATTERN = /pp-ui-style-exempt:\s*[^\s].+/i;
 const FOUNDATION_FILES = [
   "app/_components/foundation/ui-action.module.css",
   "app/_components/foundation/ui-action.tsx",
@@ -22,10 +23,6 @@ function normalizedPath(file) {
 export function isUiPath(file) {
   const value = normalizedPath(file);
   return value.startsWith("app/") || value.startsWith("components/") || /(^|\/)ui\//.test(value);
-}
-
-function hasDocumentedExemption(content) {
-  return /pp-ui-style-exempt:\s*[^\s].+/i.test(content);
 }
 
 function findCssDeclarationViolations(file, content) {
@@ -67,17 +64,12 @@ function findSourceStyleViolations(file, content) {
 
 export function findTokenViolations(file, content) {
   const normalized = normalizedPath(file);
-  if (!isUiPath(normalized) || normalized === TOKEN_SOURCE || hasDocumentedExemption(content)) return [];
+  if (!isUiPath(normalized) || normalized === TOKEN_SOURCE || STYLE_EXEMPTION_PATTERN.test(content)) return [];
 
   const extension = extname(normalized).toLowerCase();
   if (STYLE_EXTENSIONS.has(extension)) return findCssDeclarationViolations(normalized, content);
   if (SOURCE_EXTENSIONS.has(extension)) return findSourceStyleViolations(normalized, content);
   return [];
-}
-
-function argumentValue(name) {
-  const index = process.argv.indexOf(name);
-  return index >= 0 ? process.argv[index + 1] : null;
 }
 
 function changedFiles(baseRef) {
@@ -132,7 +124,7 @@ export async function runUiStylelintGate({ baseRef = null, allFoundation = false
 
   for (const file of files) {
     const content = await readFile(file, "utf8");
-    if (hasDocumentedExemption(content)) continue;
+    if (STYLE_EXEMPTION_PATTERN.test(content)) continue;
     violations.push(...findTokenViolations(file, content));
     if (STYLE_EXTENSIONS.has(extname(file).toLowerCase())) styleFiles.push(file);
   }
@@ -148,8 +140,9 @@ export async function runUiStylelintGate({ baseRef = null, allFoundation = false
 
 const directExecution = process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
 if (directExecution) {
+  const baseRefIndex = process.argv.indexOf("--base-ref");
   runUiStylelintGate({
-    baseRef: argumentValue("--base-ref"),
+    baseRef: baseRefIndex >= 0 ? process.argv[baseRefIndex + 1] : null,
     allFoundation: process.argv.includes("--all-foundation")
   }).catch((error) => {
     console.error(error.message);

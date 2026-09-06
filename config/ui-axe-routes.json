@@ -6,6 +6,7 @@
     { "id": "dashboard", "label": "Dashboard", "path": "/?workspace=dashboard" },
     { "id": "learn", "label": "Learn", "path": "/?workspace=learn" },
     { "id": "build", "label": "Build", "path": "/?workspace=build" },
+    { "id": "story", "label": "STORY", "path": "/story" },
     { "id": "wyrmwood", "label": "Wyrmwood", "path": "/?workspace=wyrmwood" },
     { "id": "settings", "label": "Settings", "path": "/?workspace=settings" }
   ]

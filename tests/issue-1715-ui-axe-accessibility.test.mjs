@@ -25,6 +25,8 @@ test("#1715 Phase 1B pins official axe/playwright verification tooling", async (
   assert.doesNotMatch(runner, /impact\s*!==\s*["']minor["']/);
   assert.doesNotMatch(runner, /catch\s*\{\s*\}/);
   assert.match(runner, /let lastError = null/);
+  assert.match(runner, /storageStatePath/);
+  assert.match(runner, /storageState: storageStatePath/);
 });
 
 test("#1715 Phase 1B refuses non-local audit targets", () => {
@@ -33,21 +35,26 @@ test("#1715 Phase 1B refuses non-local audit targets", () => {
   assert.throws(() => validateLocalServer("https://example.com"), /only a local PlotPickle server/);
 });
 
-test("#1715 Phase 1B covers representative writer and game surfaces", async () => {
+test("#1715 axe coverage includes representative writer, game and STORY surfaces", async () => {
   const registry = JSON.parse(await source("config/ui-axe-routes.json"));
   assert.equal(registry.schemaVersion, 1);
   assert.equal(registry.standard, "WCAG 2.2 AA");
-  assert.deepEqual(registry.routes.map((route) => route.id), ["dashboard", "learn", "build", "wyrmwood", "settings"]);
+  assert.deepEqual(registry.routes.map((route) => route.id), ["dashboard", "learn", "build", "story", "wyrmwood", "settings"]);
+  assert.equal(registry.routes.find((route) => route.id === "story")?.path, "/story");
   assert.equal(new Set(registry.routes.map((route) => route.path)).size, registry.routes.length);
 });
 
-test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling", async () => {
+test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling and authenticates real route renders", async () => {
   const workflow = await source(".github/workflows/visual-readiness.yml");
   assert.match(workflow, /@axe-core\/playwright@4\.13\.0/);
   assert.match(workflow, /@playwright\/test@1\.63\.0/);
   assert.match(workflow, /\$\{\{ runner\.temp \}\}\/plotpickle-ui-a11y/);
+  assert.match(workflow, /establishVerificationSyntheticHuman/);
   assert.match(workflow, /lib\/verification\/ui-axe-audit\.mjs/);
+  assert.match(workflow, /lib\/verification\/ui-experience-audit\.mjs/);
   assert.match(workflow, /--routes config\/ui-axe-routes\.json/);
+  assert.match(workflow, /--storage-state "\$STORAGE_STATE"/);
+  assert.doesNotMatch(workflow, /run-ui-rendered-verification\.mjs/);
 
   const packageJson = await source("package.json");
   assert.doesNotMatch(packageJson, /@axe-core\/playwright/);

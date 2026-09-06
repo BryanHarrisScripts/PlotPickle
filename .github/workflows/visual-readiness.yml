@@ -35,6 +35,8 @@ jobs:
         run: node --test tests/issue-1715-ui-axe-accessibility.test.mjs
       - name: Validate Phase 1C resilience contract
         run: node --test tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs
+      - name: Validate Phase 1D experience and STORY zero-state contract
+        run: node --test tests/issue-1715-ui-experience-lab.test.mjs
       - name: Enforce current UI continuity contract
         run: node --test tests/issue-544-ui-continuity-agent.test.mjs
       - name: Enforce changed UI token/style contract
@@ -77,14 +79,36 @@ jobs:
           printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
           npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0
           "$UI_A11Y_ROOT/node_modules/.bin/playwright" install --with-deps chromium
-      - name: Enforce WCAG 2.2 AA with axe-core Playwright
+      - name: Enforce rendered accessibility and experience guardrails
+        id: rendered-guardrails
+        continue-on-error: true
         env:
           UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
         shell: bash
         run: |
-          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-a11y-server.log 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json
+          AUTH_HOME="${RUNNER_TEMP}/plotpickle-ui-rendered-auth"
+          AUTH_STATE_FILE="${RUNNER_TEMP}/plotpickle-ui-rendered-state-path"
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-app-server.log 2>&1 &
+          APP_SERVER_PID=$!
+          ./node_modules/.bin/vite --config lib/verification/ui-experience-fixture/vite.config.ts --host 127.0.0.1 --port 4174 > /tmp/plotpickle-ui-fixture-server.log 2>&1 &
+          FIXTURE_SERVER_PID=$!
+          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true; rm -rf "$AUTH_HOME" "$AUTH_STATE_FILE"' EXIT
+          UI_SERVER="http://127.0.0.1:4173" AUTH_HOME="$AUTH_HOME" AUTH_STATE_FILE="$AUTH_STATE_FILE" node --input-type=module <<'NODE'
+          import { writeFile } from "node:fs/promises";
+          import { establishVerificationSyntheticHuman } from "./scripts/full-verification-auth.mjs";
+          import { validateLocalServer, waitForUiServer } from "./lib/verification/ui-axe-audit.mjs";
+          const server = validateLocalServer(process.env.UI_SERVER);
+          await waitForUiServer(server);
+          const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: process.env.AUTH_HOME });
+          await writeFile(process.env.AUTH_STATE_FILE, auth.storageStatePath, "utf8");
+          NODE
+          STORAGE_STATE="$(cat "$AUTH_STATE_FILE")"
+          {
+            node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
+            node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+          } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
+      - name: Enforce rendered guardrail verdict
+        if: steps.rendered-guardrails.outcome == 'failure'
+        run: exit 1
       - name: Production build
         run: npm run build

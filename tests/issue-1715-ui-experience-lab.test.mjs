@@ -108,6 +108,8 @@ test("#1715 Phase 1D browser gate enforces CLS, 200% stress, long content and re
   assert.match(audit, /primaryWidth < 44 \|\| zoom\.primaryHeight < 44/);
   assert.match(audit, /reducedMotion: "reduce"/);
   assert.match(audit, /story\.primaryActions !== 1/);
+  assert.match(audit, /return await page\.evaluate/);
+  assert.doesNotMatch(audit, /return page\.evaluate/);
   assert.doesNotMatch(audit, /lighthouse/i);
 });
 

@@ -33,22 +33,6 @@
 .summary dd { margin: 0; color: #edf7f4; font-size: 1.5rem; font-weight: 900; }
 .summary small { color: #819691; line-height: 1.35; }
 
-.evidenceDisclosure {
-  padding-top: var(--pp-space-2);
-  border-top: 1px solid var(--pp-line);
-}
-.evidenceDisclosure > summary {
-  display: flex;
-  min-height: var(--pp-touch-target);
-  align-items: center;
-  padding: var(--pp-space-2) 0;
-  color: var(--pp-muted);
-  cursor: pointer;
-  font-weight: 800;
-}
-.evidenceDisclosure > summary:focus-visible { outline: 2px solid var(--pp-orange); outline-offset: 2px; }
-.evidenceDisclosure[open] > summary { margin-bottom: var(--pp-space-3); color: var(--pp-text); }
-
 .legend { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; }
 .legend span { --state: var(--story-defined); display: grid; grid-template-columns: auto auto 1fr; gap: 7px; align-items: start; padding: 9px 10px; border: 1px solid color-mix(in srgb,var(--state) 26%,transparent); border-radius: 10px; background: color-mix(in srgb,var(--state) 5%,rgba(3,7,7,.5)); color: #9eb2ad; font-size: .72rem; line-height: 1.45; }
 .legend span[data-state="defined"] { --state: var(--story-defined); }
@@ -59,7 +43,7 @@
 .legend i,.legend strong { color: var(--state); }
 .legend i { font-style: normal; font-weight: 900; text-shadow: 0 0 8px color-mix(in srgb,var(--state) 58%,transparent); }
 
-.lessonGrid { display: grid; gap: 8px; margin-top: var(--pp-space-3); }
+.lessonGrid { display: grid; gap: 8px; }
 .lesson { --state: var(--story-defined); overflow: hidden; border: 1px solid color-mix(in srgb,var(--state) 24%,rgba(166,201,193,.1)); border-radius: 12px; background: rgba(3,7,7,.48); }
 .lesson[data-state="defined"] { --state: var(--story-defined); }
 .lesson[data-state="observed"] { --state: var(--story-observed); }
@@ -83,7 +67,7 @@
 .decision p { margin: 0; color: #8fa49e; font-size: .73rem; line-height: 1.45; }
 .decision blockquote { margin: 0; padding: 8px 10px; border-left: 3px solid rgba(102,219,201,.34); color: #c3d4d0; background: rgba(17,29,27,.54); font-size: .72rem; line-height: 1.45; }
 .decision small { color: #6f8781; }
-.footnote { margin: var(--pp-space-3) 0 0 !important; padding-top: 2px; color: #7f948e !important; font-size: .72rem; line-height: 1.45 !important; }
+.footnote { margin: 0 !important; padding-top: 2px; color: #7f948e !important; font-size: .72rem; line-height: 1.45 !important; }
 
 @media (max-width:1180px) { .legend { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width:980px) { .summary { grid-template-columns: repeat(2,minmax(0,1fr)); } .legend { grid-template-columns: repeat(2,minmax(0,1fr)); } }

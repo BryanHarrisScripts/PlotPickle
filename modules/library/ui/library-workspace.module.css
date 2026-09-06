@@ -210,7 +210,7 @@
 
 .primaryButton,
 .secondaryButton {
-  min-height: var(--pp-touch-target);
+  min-height: 42px;
   padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 11px;
@@ -227,31 +227,6 @@
 
 .progress { height: 5px; overflow: hidden; border-radius: 99px; background: #11251f; }
 .progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #47c69d, #edc86d); }
-
-.averyDisclosure {
-  margin-top: var(--pp-space-8);
-  padding-top: var(--pp-space-2);
-  border-top: 1px solid var(--pp-line);
-}
-
-.averyDisclosure > summary {
-  display: flex;
-  min-height: var(--pp-touch-target);
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pp-space-3);
-  padding: var(--pp-space-3) 0;
-  color: var(--pp-muted);
-  cursor: pointer;
-}
-
-.averyDisclosure > summary span {
-  color: var(--pp-text);
-  font-weight: 800;
-}
-
-.averyDisclosure > summary small { color: var(--pp-dim); }
-.averyDisclosure > summary:focus-visible { outline: 2px solid var(--pp-orange); outline-offset: 2px; }
 
 .empty { padding: 50px; border: 1px dashed rgba(123, 218, 185, 0.25); border-radius: 20px; text-align: center; background: rgba(5, 18, 15, 0.6); }
 .empty h3 { margin: 0; font: 500 30px/1.2 Georgia, serif; }
@@ -290,7 +265,6 @@
   .tabs button { flex: 1 0 auto; }
   .coverage { grid-template-columns: 1fr; }
   .coverage span:last-child { grid-column: auto; }
-  .averyDisclosure > summary { align-items: flex-start; flex-direction: column; }
   .dialog > div { flex-direction: column-reverse; }
 }
 

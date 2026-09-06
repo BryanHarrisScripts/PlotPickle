@@ -28,14 +28,18 @@ const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-wor
 
 async function waitForServer(timeoutMs = 90_000) {
   const deadline = Date.now() + timeoutMs;
+  let lastError = null;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(server, { signal: AbortSignal.timeout(2_000) });
       if (response.ok || response.status < 500) return;
-    } catch {}
+    } catch (error) {
+      lastError = error;
+    }
     await delay(500);
   }
-  throw new Error(`PlotPickle did not become available at ${server.origin} within ${timeoutMs / 1000} seconds.`);
+  const detail = lastError instanceof Error ? ` Last probe: ${lastError.message}` : "";
+  throw new Error(`PlotPickle did not become available at ${server.origin} within ${timeoutMs / 1000} seconds.${detail}`);
 }
 
 function expandPluginValue(value, pluginData) {
@@ -265,7 +269,10 @@ main().then(async ({ findings, screens }) => {
   try {
     await mkdir(path.dirname(reportPath), { recursive: true });
     await writeFile(reportPath, continuityReport({ generatedAt: new Date().toISOString(), server: server.origin, results: [], runtimeError: message }), "utf8");
-  } catch {}
+  } catch (reportError) {
+    const reportMessage = reportError instanceof Error ? reportError.message : String(reportError);
+    process.stderr.write(`UI Continuity Agent could not save its failure report: ${reportMessage}\n`);
+  }
   agentNeedsAttention(`${message}\nReport: ${reportPath}`);
   process.exitCode = 1;
   if (stayOpen) await keepAgentWindowOpen("UI Continuity Agent");

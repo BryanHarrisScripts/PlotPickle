@@ -1,0 +1,130 @@
+.gallery {
+  display: grid;
+  gap: var(--pp-space-10);
+  width: min(100%, var(--pp-width-board));
+  margin: 0 auto;
+  padding: var(--pp-space-8) var(--pp-space-6) var(--pp-space-12);
+  background: var(--pp-matte);
+  color: var(--pp-text);
+}
+
+.header {
+  max-width: var(--pp-width-editor);
+}
+
+.header p,
+.section > header p {
+  margin: 0 0 var(--pp-space-2);
+  color: var(--pp-teal-bright);
+  font-size: var(--pp-text-xs);
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
+}
+
+.header h1,
+.section > header h2 {
+  margin: 0;
+  color: var(--pp-paper);
+  font-family: var(--pp-font-display);
+  line-height: var(--pp-leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.header h1 {
+  font-size: calc(var(--pp-text-lg) * 1.5);
+}
+
+.header span {
+  display: block;
+  max-width: var(--pp-width-reading);
+  margin-top: var(--pp-space-3);
+  color: var(--pp-muted);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+}
+
+.section {
+  display: grid;
+  gap: var(--pp-space-4);
+  min-width: 0;
+}
+
+.section > header h2 {
+  font-size: var(--pp-text-lg);
+}
+
+.grid,
+.cardGrid,
+.statusGrid {
+  display: grid;
+  gap: var(--pp-space-3);
+  min-width: 0;
+}
+
+.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.statusGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.stack {
+  display: grid;
+  gap: var(--pp-space-2);
+}
+
+.storyFrame {
+  min-width: 0;
+  border: 1px solid var(--pp-line);
+  overflow: hidden;
+}
+
+.probeFrame {
+  min-height: 13rem;
+  padding: var(--pp-space-3);
+  border: 1px dashed var(--pp-line-strong);
+  background: var(--pp-surface);
+}
+
+.consequenceSlot {
+  display: flex;
+  min-height: var(--pp-control-height-lg);
+  align-items: center;
+  margin-top: var(--pp-space-3);
+}
+
+@media (max-width: 64rem) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .gallery {
+    gap: var(--pp-space-8);
+    padding: var(--pp-space-6) var(--pp-space-4) var(--pp-space-8);
+  }
+
+  .header h1 {
+    font-size: var(--pp-text-lg);
+  }
+
+  .grid,
+  .cardGrid,
+  .statusGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  .storyFrame,
+  .probeFrame {
+    border-color: CanvasText;
+  }
+}

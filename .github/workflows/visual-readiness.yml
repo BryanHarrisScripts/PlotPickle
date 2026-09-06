@@ -3,8 +3,6 @@ name: Visual Readiness
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [issue/1715-phase1b-axe-accessibility]
   workflow_dispatch:
 
 permissions:

@@ -33,11 +33,12 @@ test("#1715 Phase 1B refuses non-local audit targets", () => {
   assert.throws(() => validateLocalServer("https://example.com"), /only a local PlotPickle server/);
 });
 
-test("#1715 Phase 1B covers representative writer and game surfaces", async () => {
+test("#1715 axe coverage includes representative writer, game and STORY surfaces", async () => {
   const registry = JSON.parse(await source("config/ui-axe-routes.json"));
   assert.equal(registry.schemaVersion, 1);
   assert.equal(registry.standard, "WCAG 2.2 AA");
-  assert.deepEqual(registry.routes.map((route) => route.id), ["dashboard", "learn", "build", "wyrmwood", "settings"]);
+  assert.deepEqual(registry.routes.map((route) => route.id), ["dashboard", "learn", "build", "story", "wyrmwood", "settings"]);
+  assert.equal(registry.routes.find((route) => route.id === "story")?.path, "/story");
   assert.equal(new Set(registry.routes.map((route) => route.path)).size, registry.routes.length);
 });
 

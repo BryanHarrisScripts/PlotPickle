@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { UiAction } from "../foundation/ui-action";
@@ -35,7 +35,6 @@ function currentProject(): StoryZeroProject | null {
 export function StoryZeroWorkspaceView({ model, embedded = false }: { model: StoryZeroModel; embedded?: boolean }) {
   const router = useRouter();
   const hasProject = model.kind === "project";
-  const authorityTitleId = useId();
   const HeroHeading = embedded ? "h3" : "h1";
   const SectionHeading = embedded ? "h4" : "h2";
 
@@ -123,8 +122,8 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
         </div>
       </section>
 
-      <aside className={styles.reassurance} aria-labelledby={authorityTitleId}>
-        <SectionHeading id={authorityTitleId}>Play safely.</SectionHeading>
+      <aside className={styles.reassurance}>
+        <SectionHeading>Play safely.</SectionHeading>
         <p>AI may suggest. STORY validates and resolves. PPF remains the durable canon authority. You can explore without accidentally rewriting your story.</p>
       </aside>
     </div>

@@ -25,6 +25,8 @@ test("#1715 Phase 1B pins official axe/playwright verification tooling", async (
   assert.doesNotMatch(runner, /impact\s*!==\s*["']minor["']/);
   assert.doesNotMatch(runner, /catch\s*\{\s*\}/);
   assert.match(runner, /let lastError = null/);
+  assert.match(runner, /storageStatePath/);
+  assert.match(runner, /storageState: storageStatePath/);
 });
 
 test("#1715 Phase 1B refuses non-local audit targets", () => {
@@ -42,13 +44,17 @@ test("#1715 axe coverage includes representative writer, game and STORY surfaces
   assert.equal(new Set(registry.routes.map((route) => route.path)).size, registry.routes.length);
 });
 
-test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling", async () => {
+test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling and authenticates real route renders", async () => {
   const workflow = await source(".github/workflows/visual-readiness.yml");
+  const renderedRunner = await source("scripts/run-ui-rendered-verification.mjs");
   assert.match(workflow, /@axe-core\/playwright@4\.13\.0/);
   assert.match(workflow, /@playwright\/test@1\.63\.0/);
   assert.match(workflow, /\$\{\{ runner\.temp \}\}\/plotpickle-ui-a11y/);
-  assert.match(workflow, /lib\/verification\/ui-axe-audit\.mjs/);
+  assert.match(workflow, /scripts\/run-ui-rendered-verification\.mjs/);
   assert.match(workflow, /--routes config\/ui-axe-routes\.json/);
+  assert.match(renderedRunner, /establishVerificationSyntheticHuman/);
+  assert.match(renderedRunner, /runUiAxeAudit/);
+  assert.match(renderedRunner, /storageStatePath: auth\.storageStatePath/);
 
   const packageJson = await source("package.json");
   assert.doesNotMatch(packageJson, /@axe-core\/playwright/);

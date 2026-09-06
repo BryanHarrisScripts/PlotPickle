@@ -2,7 +2,8 @@
   display: grid;
   gap: var(--pp-space-6);
   width: min(100%, var(--pp-width-editor));
-  margin: 0 auto;
+  margin-block: 0;
+  margin-inline: auto;
   padding: var(--pp-space-8) var(--pp-space-6) var(--pp-space-12);
   color: var(--pp-text);
   font-family: var(--pp-font-body);

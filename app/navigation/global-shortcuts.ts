@@ -1,4 +1,4 @@
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "collab" | "settings" | "dashboard" | "build" | "story";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "collab" | "dashboard" | "build" | "story";
 
 export type NavigationAreaId = "home" | "create" | "produce" | "review" | "connect" | "settings";
 

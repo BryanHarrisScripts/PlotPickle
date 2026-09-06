@@ -85,7 +85,11 @@ test("#544 registers canonical top-level and nested routes with read-only policy
   assert.equal(registry.autoFix, false);
   assert.equal(registry.fixApprovalRequired, true);
   assert.equal(registry.designSystem, "matte-black-teal-orange");
-  for (const id of ["dashboard", "learn", "plan", "plan-world", "storyboard", "write", "edit", "graphic-novel", "build", "feedback", "refine", "reports", "settings", "core-curriculum", "ai-routing"]) {
+  for (const id of [
+    "dashboard", "library", "learn", "plan", "plan-world", "build", "story", "core-curriculum",
+    "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports",
+    "community", "wyrmwood", "collab", "settings", "ai-routing",
+  ]) {
     assert.ok(registry.screens.some((screen) => screen.id === id), `Missing registered screen ${id}`);
   }
   assert.ok(registry.screens.filter((screen) => screen.returnDestination).every((screen) => screen.returnDestination.trim()));

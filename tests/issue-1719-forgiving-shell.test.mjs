@@ -34,7 +34,7 @@ test("#1719 exposes exactly six normal areas and discloses only the active area 
     assert.ok(shortcuts.includes(`label: "${label}"`), `Missing area ${label}`);
   }
   assert.match(shell, /NAVIGATION_AREAS\.map/);
-  assert.match(shell, /hidden=\{navigationArea\.id !== activeArea\}/);
+  assert.match(shell, /hidden=\{[^}]*\.id !== activeArea\}/);
   assert.match(shell, /data-navigation-canonical-count=\{WORKFLOW_SHORTCUTS\.length\}/);
   assert.match(shell, /data-current-navigation-area=\{activeArea\}/);
   assert.match(shell, /data-current-destination=/);

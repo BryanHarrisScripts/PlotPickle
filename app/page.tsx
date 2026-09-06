@@ -24,6 +24,7 @@ import CommunityWorkspace from "./_components/community/community-workspace";
 import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import "./issue-1725-polish.css";
 
 type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";

@@ -111,6 +111,7 @@ jobs:
       - name: Enforce rendered accessibility and experience guardrails
         env:
           UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
+          PLOTPICKLE_UI_LAB: "1"
         shell: bash
         run: |
           npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-a11y-server.log 2>&1 &

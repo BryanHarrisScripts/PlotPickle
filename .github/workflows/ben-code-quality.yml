@@ -74,7 +74,7 @@ jobs:
         run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
 
       - name: Run BEN current-tree scan
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name != 'pull_request'
         run: node scripts/run-ben-code-quality.mjs
 
       - name: Upload BEN evidence

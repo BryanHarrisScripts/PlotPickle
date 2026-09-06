@@ -20,6 +20,7 @@ import LibraryWorkspace from "../modules/library/ui/library-workspace";
 import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./_components/community/community-workspace";
+import CollabEntryWorkspace from "./collab-entry-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 
@@ -33,6 +34,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "plan") return "plan";
   if (requested === "build") return "build";
   if (requested === "community") return "community";
+  if (requested === "collab") return "collab";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   if (requested === "library") return "library";
@@ -42,6 +44,11 @@ function requestedWorkspace(): Workspace {
 function requestedSection(): GuidedSection {
   if (typeof window === "undefined") return "foundations";
   return new URLSearchParams(window.location.search).get("section") === "world" ? "world" : "foundations";
+}
+
+function currentProjectTitle() {
+  if (!hasActiveLibraryProject()) return "No active project";
+  return loadFoundationProject().title || "Untitled Story";
 }
 
 function repairPersistedProject() {
@@ -106,12 +113,9 @@ function navigateWorkspace(workspace: Workspace) {
     destination.searchParams.delete("lesson");
   }
   const href = `${destination.pathname}${destination.search}`;
-  if (workspace === "community") {
-    // Community is already a client workspace inside this root page. Reloading
-    // the whole document here needlessly re-enters Vinext/RSC while the managed
-    // Edge renderer is switching into its heaviest local BUZZ surface. Keep the
-    // URL/history truthful and let the existing popstate synchronizer mount the
-    // Community workspace without a document-level RSC reload.
+  if (workspace === "community" || workspace === "collab") {
+    // Community and Collab are client workspaces inside this root page. Keep
+    // URL/history truthful without re-entering the document-level RSC path.
     window.history.pushState({ plotpickleWorkspace: workspace }, "", href);
     window.dispatchEvent(new PopStateEvent("popstate"));
     return;
@@ -145,6 +149,22 @@ export default function Home() {
           onNavigate={navigateWorkspace}
           onNavigateGuided={navigateGuided}
         />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
+  if (workspace === "collab") {
+    return (
+      <PlotPickleWorkspaceShell
+        activeWorkspace="collab"
+        navigationArea="connect"
+        contextId="collab"
+        contextLabel="Collab"
+        contextDetail="Formal shared work routed to current capability owners"
+        contextScope="Collaboration"
+        onNavigate={navigateWorkspace}
+      >
+        <CollabEntryWorkspace projectTitle={currentProjectTitle()} />
       </PlotPickleWorkspaceShell>
     );
   }

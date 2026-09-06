@@ -7,7 +7,7 @@ import {
   AXE_TAGS,
   PLAYWRIGHT_TEST_VERSION,
   validateLocalServer
-} from "../scripts/ui-axe-audit.mjs";
+} from "../lib/verification/ui-axe-audit.mjs";
 
 async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -18,11 +18,13 @@ test("#1715 Phase 1B pins official axe/playwright verification tooling", async (
   assert.equal(PLAYWRIGHT_TEST_VERSION, "1.63.0");
   assert.deepEqual(AXE_TAGS, ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]);
 
-  const runner = await source("scripts/ui-axe-audit.mjs");
+  const runner = await source("lib/verification/ui-axe-audit.mjs");
   assert.match(runner, /toolRequire\("@axe-core\/playwright"\)/);
   assert.match(runner, /toolRequire\("@playwright\/test"\)/);
   assert.match(runner, /for \(const violation of result\.violations \|\| \[\]\)/);
   assert.doesNotMatch(runner, /impact\s*!==\s*["']minor["']/);
+  assert.doesNotMatch(runner, /catch\s*\{\s*\}/);
+  assert.match(runner, /let lastError = null/);
 });
 
 test("#1715 Phase 1B refuses non-local audit targets", () => {
@@ -44,7 +46,7 @@ test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling"
   assert.match(workflow, /@axe-core\/playwright@4\.13\.0/);
   assert.match(workflow, /@playwright\/test@1\.63\.0/);
   assert.match(workflow, /\$\{\{ runner\.temp \}\}\/plotpickle-ui-a11y/);
-  assert.match(workflow, /ui-axe-audit\.mjs/);
+  assert.match(workflow, /lib\/verification\/ui-axe-audit\.mjs/);
   assert.match(workflow, /--routes config\/ui-axe-routes\.json/);
 
   const packageJson = await source("package.json");

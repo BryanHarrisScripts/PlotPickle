@@ -857,3 +857,159 @@ AGENTS and SKILLS act only within PlotPickle authority.
 The story should never need to be rebuilt merely because the Human changed workspaces.
 
 One project. One storyworld. One authority model. Many ways to experience it.
+
+
+FORGIVING SHELL MIGRATION MAP
+==============================
+
+Status: Phase 2B / issue #1722, 2026-09-06.
+
+This section records how the definitive architecture above is presented through the forgiving shell. It is presentation and verification metadata, not a second capability map or route registry.
+
+Governing presentation rules
+----------------------------
+
+1. The authenticated creative shell exposes no more than six normal top-level areas: Home, Create, Produce, Review, Connect / Play and Settings.
+2. GLOBAL_SHORTCUTS remains the runtime source of truth for canonical global destinations and keyboard shortcuts.
+3. A contextual child may appear in the shell without becoming another global shortcut.
+4. Public / Startup / First Run / DEMO / profile-access surfaces remain outside the authenticated creative shell where that boundary protects onboarding, disposable DEMO state or Human-private identity.
+5. STORY keeps its existing self-owned single PlotPickleWorkspaceShell. The release boundary must never wrap /story a second time.
+6. Agents, Skills, PPF, Context / Story Graph and AI Runtime are capability subsystems or authority layers. Sitemap depth does not promote them into additional top-level navigation areas.
+7. A launch alias may preserve an old or convenient URL/shortcut while the shell reports the capability's truthful owner and context.
+8. Nested sitemap rows inherit their canonical owner's migration class unless they have a separately addressable route recorded below.
+
+Top-level migration classification
+----------------------------------
+
+00. Public / Startup            -> PUBLIC / STARTUP EXCEPTION
+01. Dashboard                   -> Home / Dashboard
+02. Library                     -> Home / Library
+03. Learn                       -> Create / Learn
+04. Plan                        -> Create / Plan
+05. Build                       -> Create / Build
+06. STORY: THE UNWRITTEN        -> Create / contextual STORY; self-owned shell; no permanent global shortcut
+07. Storyboard                  -> Produce / Storyboard
+08. Previs / Graphic Novel      -> Produce / Previs
+09. Write                       -> Produce / Write
+10. Edit                        -> Produce / Edit
+11. Feedback                    -> Review / Feedback
+12. Refine                      -> Review / Refine
+13. Reports                     -> Review / Reports
+14. Collaboration               -> Connect / Play; Community global, Collab contextual
+15. Wyrmwood                    -> Connect / Play / Wyrmwood
+16. Agents                      -> SUBSYSTEM / CONTEXTUAL; no new top-level area
+17. Skills                      -> SUBSYSTEM / CONTEXTUAL; no new top-level area
+18. PPF / Project Authority     -> PROJECT AUTHORITY; surfaced through project context and owning workspaces, not another nav area
+19. Context / Story Graph       -> SUBSYSTEM / CONTEXTUAL; no new top-level area
+20. AI Runtime                  -> Settings utility/configuration surface where Human configuration is required; runtime remains provider-independent
+21. Settings                    -> Settings / utility area
+
+Verified route presentation
+---------------------------
+
+Home
+  /?workspace=dashboard         -> Dashboard
+  /library                      -> Library
+  /afterglow-reconciliation     -> Afterglow Reconciliation contextual child
+
+Create
+  /?workspace=learn             -> Learn
+  /?workspace=plan              -> Plan
+  /?workspace=plan&section=world -> Plan / World
+  /?workspace=build             -> Build
+  /story                        -> STORY contextual child with its existing self-owned shell
+  /core-curriculum              -> Core Curriculum contextual child
+  /characters-in-motion         -> Characters in Motion contextual child
+  /dialogue-in-motion           -> Dialogue in Motion contextual child
+  /story-craft-essentials       -> Story Craft Essentials contextual child
+  /worked-examples              -> Worked Examples contextual child
+  /working-together             -> Working Together contextual child
+  /structure                    -> Structure contextual child of Plan
+  /voiceprint                   -> Voiceprint Planner contextual child of Plan
+  /labs?scope=plan              -> Specialist Labs contextual child of Plan
+
+Produce
+  /storyboard                   -> Storyboard
+  /previs                       -> Previs / Graphic Novel
+  /pageflow                     -> PageFlow Diagnostics launch alias from the Write shortcut
+  /edit                         -> Edit
+  /labs?scope=storyboard        -> Specialist Labs contextual child of Storyboard
+
+Review
+  /pitch-review                 -> Feedback
+  /diagnostics                  -> Refine
+  /production                   -> Reports
+  /craftloop                    -> CraftLoop contextual child of Refine
+  /draftlens                    -> DraftLens contextual child of Refine
+  /resonance                    -> Resonance contextual child of Refine
+  /screenplay-readiness         -> Screenplay Readiness contextual child of Refine
+  /labs?scope=feedback          -> Specialist Labs contextual child of Feedback
+  /labs?scope=refine            -> Specialist Labs contextual child of Refine
+
+Connect / Play
+  /?workspace=community         -> Community / BUZZ
+  /?workspace=wyrmwood          -> Wyrmwood
+  /?workspace=collab            -> Collab contextual entry
+  /buzz                         -> compatibility launch alias into Collab / BUZZ context
+  /git                          -> Native Git contextual collaboration child
+
+Settings
+  /?workspace=settings          -> Settings
+  /ai-routing                   -> AI Routing contextual utility child
+  /settings/buzz                -> BUZZ Settings contextual utility child
+
+Public / Startup exceptions
+  /welcome
+  /start-here
+  /about
+  /legal
+  /suggest-report
+  First Run / DEMO / ENTER PLOTPICKLE / profile create-unlock-chooser / Guest boundaries inherit this exception class.
+
+Ownership clarifications found during migration
+-----------------------------------------------
+
+PageFlow
+  PageFlow is a Refine diagnostic over Write-owned screenplay evidence. The existing W shortcut continues to launch /pageflow as a compatibility/convenience alias because #1719 preserved keyboard behavior. The page does not gain ownership of screenplay text, and the shell identifies the PageFlow diagnostic context rather than creating a second Write or Refine owner.
+
+Voiceprint
+  Current code identifies Voiceprint definitions as Plan-owned character voice definitions. Refine may compare screenplay text against those definitions, but Voiceprint itself remains a Plan contextual child.
+
+Labs
+  /labs is intentionally contextual. scope=plan maps to Create, scope=storyboard maps to Produce, and scope=feedback or scope=refine maps to Review. Labs does not become a seventh top-level area.
+
+Collab and BUZZ
+  Community / BUZZ remains the social owner for rooms, presence, public conversations and discovery. Formal Collab remains a distinct collaboration capability. During #1722, /?workspace=collab is restored as an authority-safe contextual entry that routes discussion to Community, review decisions to Feedback, revisions/proposals to Native Git and provider setup to Settings without mounting the retired rich-project localStorage model. Issue #1723 owns restoration of the full formal Collab UI on the current profile-owned PPF authority. /buzz remains a compatibility launch alias and does not gain project or STORY ownership.
+
+Subsystems
+  Agents, Skills, PPF, Context / Story Graph and AI Runtime keep their existing architectural ownership. They are reached through the workspaces and Settings surfaces that need them; they are not promoted simply because they have deep sitemap trees.
+
+Audit reconciliation
+--------------------
+
+The UI Continuity registry audits actual current routes rather than legacy workspace aliases. Retired audit aliases such as ?workspace=storyboard, ?workspace=write, ?workspace=pitch, ?workspace=feedback, ?workspace=refine and ?workspace=reports are not treated as canonical routes.
+
+The read-only UI Continuity Agent verifies:
+- no more than six normal areas;
+- full canonical global-destination reachability;
+- deterministic area membership;
+- current area and destination;
+- contextual child identity where applicable;
+- persistent project/save/status truth;
+- intentional Public / Startup exceptions;
+- return paths, focus/anchor protections and navigation overlap.
+
+Rendered CI keeps browser work bounded while covering one authenticated representative of every area plus STORY. Deterministic registry/source tests cover the complete migration ledger.
+
+Migration completion rule
+-------------------------
+
+A CURRENT or TARGET sitemap capability is considered migrated when its canonical owner is classified above and every separately addressable user-facing route is either:
+
+1. a canonical shared-shell destination;
+2. a contextual child in the correct forgiving area; or
+3. an explicit Public / Startup exception.
+
+This classification never changes the underlying authority merely to simplify navigation. The defining rule remains:
+
+EVERY CAPABILITY HAS ONE CANONICAL HOME.

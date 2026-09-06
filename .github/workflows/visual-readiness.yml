@@ -38,7 +38,7 @@ jobs:
       - name: Validate Phase 1D experience and STORY zero-state contract
         run: node --test tests/issue-1715-ui-experience-lab.test.mjs
       - name: Enforce current UI continuity and forgiving shell contracts
-        run: node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs
+        run: node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs tests/issue-1722-sitemap-migration.test.mjs
       - name: Enforce changed UI token/style contract
         if: github.event_name == 'pull_request'
         run: node scripts/ui-stylelint-gate.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
@@ -64,6 +64,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           node scripts/ui-ux-code-audit.mjs
+          cat audit-report.md
           node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); if(r.verdict!=='pass'){console.error(r.summary); process.exit(1)}"
       - name: Validate UI/UX audit runner safeguards
         run: node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
@@ -106,6 +107,7 @@ jobs:
           {
             node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
             node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/sitemap/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
           } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
       - name: Enforce rendered guardrail verdict
         if: steps.rendered-guardrails.outcome == 'failure'

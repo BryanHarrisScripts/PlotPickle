@@ -24,7 +24,8 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   assert.match(navigator, /aria-label="PlotPickle global workflow"/);
   assert.match(navigator, /plotpickle-ouroboros-v3-transparent\.png/);
   assert.match(navigator, /NAVIGATION_AREAS\.map/);
-  assert.match(navigator, /shortcutsForArea\(navigationArea\.id\)\.map/);
+  assert.match(navigator, /data-navigation-area-panel=/);
+  assert.match(navigator, /shortcutsForArea\([^)]*\.id\)\.map/);
 
   for (const area of ["home", "create", "produce", "review", "connect", "settings"]) {
     assert.match(registry, new RegExp(`id: "${area}"`));
@@ -41,6 +42,7 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   assert.match(registry, /id: "wyrmwood"[\s\S]*area: "connect"[\s\S]*workspace: "wyrmwood"/);
   assert.match(registry, /id: "settings"[\s\S]*area: "settings"[\s\S]*workspace: "settings"/);
   assert.doesNotMatch(registry, /\{ id: "story", key:/);
+  assert.doesNotMatch(registry, /\{ id: "collab", key:/);
 
   assert.match(registry, /key: "G", label: "Wyrmwood", detail: "Game"/);
   assert.match(registry, /key: "O", label: "Library", detail: "Stories"/);

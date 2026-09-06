@@ -6,6 +6,7 @@ import type { PPFProject } from "../../../core/project/project";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
   archiveLibraryProject,
+  createLibraryUserProject,
   createLibraryWorkingCopy,
   importLibraryProject,
   initializeProjectLibrary,
@@ -101,23 +102,23 @@ function StoryCard({ item, activeProjectId, onOpen, onArchive }: {
         <h3>{item.title}</h3>
         <p>{item.frontier} · {item.progress}% complete</p>
         <small>Last saved {displayDate(item.updatedAt)}</small>
-        <div className={styles.progress} aria-label={`${item.progress}% complete`}><i style={{ width: `${item.progress}%` }} /></div>
+        <progress className={styles.progress} max={100} value={item.progress} aria-label={`${item.progress}% complete`} />
         <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={active ? openActiveProject : onOpen} type="button">{active ? "Resume" : "Open Story"}</button>
       </div>
     </article>
   );
 }
 
-function GhostStoryCard() {
+function NewStoryCard({ onCreate }: { readonly onCreate: () => void }) {
   return (
-    <article className={`${styles.card} ${styles.ghostCard}`} data-library-ghost-card="coming-soon" aria-label="New story coming soon">
-      <div className={styles.storyVisual}><span aria-hidden="true">+</span><strong>Coming soon</strong></div>
+    <article className={`${styles.card} ${styles.ghostCard}`} data-library-new-story-card="ready">
+      <div className={styles.storyVisual}><span aria-hidden="true">+</span><strong>Ready</strong></div>
       <div className={styles.cardBody}>
-        <div className={styles.meta}><span>Story</span><span>Library space</span></div>
+        <div className={styles.meta}><span>Story</span><span>Local PPF</span></div>
         <h3>New Story</h3>
-        <p>Your active shelf is clear. A new, imported, or restored story will appear here when you are ready.</p>
-        <small>This ghost card is not a project and is never saved.</small>
-        <button className={styles.secondaryButton} disabled type="button">Coming Soon</button>
+        <p>Start a clean local PlotPickle story and move straight into LEARN. Nothing is filled in or accepted for you.</p>
+        <small>The new story uses the same profile-owned PPF authority as every other Library project.</small>
+        <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Story</button>
       </div>
     </article>
   );
@@ -150,6 +151,15 @@ export default function LibraryWorkspace() {
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
   }, []);
+
+  function createNewStory() {
+    try {
+      createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
+      window.location.assign("/?workspace=learn");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
+    }
+  }
 
   async function confirmLoad() {
     if (!pending || loadingReference) return;
@@ -234,7 +244,7 @@ export default function LibraryWorkspace() {
     <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v1">
       <header className={styles.hero}>
         <div><p className={styles.eyebrow}>Local story library</p><h1 id="library-title">Library</h1><p>Examples &amp; Stories</p></div>
-        <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Restore a story or import a .PPF when you are ready."}</small></aside>
+        <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Create, restore, or import a story when you are ready."}</small></aside>
       </header>
 
       <div className={styles.libraryColumn}>
@@ -254,8 +264,9 @@ export default function LibraryWorkspace() {
             <div className={styles.sectionHeading}>
               <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div>
               <div className={styles.storyTools}>
-                <p>Open saved Human projects here without mixing them with Avery’s read-only Writer-in-Residence sessions. Convert screenplay source files with the PlotPickle utility first, then import the resulting .PPF without turning importer suggestions into canon.</p>
+                <p>Open saved Human projects here without mixing them with Avery’s read-only Writer-in-Residence sessions. Start clean, or import a .PPF without turning importer suggestions into canon.</p>
                 <input ref={ppfInput} accept=".ppf,application/octet-stream" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
+                <button className={styles.primaryButton} onClick={createNewStory} type="button">New Story</button>
                 <button className={styles.secondaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import .PPF"}</button>
               </div>
             </div>
@@ -268,7 +279,7 @@ export default function LibraryWorkspace() {
                   onArchive={() => archiveStory(item)}
                   onOpen={() => setPending({ kind: "story", item })}
                 />
-              )) : <GhostStoryCard />}
+              )) : <NewStoryCard onCreate={createNewStory} />}
             </div>
           </section>
         ) : (

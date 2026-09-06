@@ -1,4 +1,4 @@
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build" | "story";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "collab" | "dashboard" | "build" | "story";
 
 export type NavigationAreaId = "home" | "create" | "produce" | "review" | "connect" | "settings";
 
@@ -77,6 +77,7 @@ export function shortcutsForArea(area: NavigationAreaId) {
 
 export function navigationAreaForDestination(activeShortcutId: string | undefined, workspace: RootWorkspace): NavigationAreaId {
   if (activeShortcutId === "story" || workspace === "story") return "create";
+  if (workspace === "collab") return "connect";
   const shortcut = activeShortcutId ? shortcutForId(activeShortcutId) : shortcutForWorkspace(workspace);
   return shortcut?.area ?? "home";
 }

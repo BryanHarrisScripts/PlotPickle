@@ -52,7 +52,7 @@
 
 .card[data-story-piece-state="illegal"] .state,
 .card[data-story-piece-state="error"] .state {
-  color: var(--pp-danger);
+  color: var(--pp-text);
 }
 
 .card[data-story-piece-state="partial"] .state {

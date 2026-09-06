@@ -149,7 +149,7 @@
       "id": "reports",
       "label": "Reports and final evidence",
       "order": 140,
-      "route": "/?workspace=reports",
+      "route": "/production",
       "operation": "inspect",
       "requiredTerms": ["Reports"],
       "minimumTextLength": 500,

@@ -35,8 +35,6 @@ function currentProject(): StoryZeroProject | null {
 export function StoryZeroWorkspaceView({ model, embedded = false }: { model: StoryZeroModel; embedded?: boolean }) {
   const router = useRouter();
   const hasProject = model.kind === "project";
-  const loopTitleId = useId();
-  const piecesTitleId = useId();
   const authorityTitleId = useId();
   const HeroHeading = embedded ? "h3" : "h1";
   const SectionHeading = embedded ? "h4" : "h2";
@@ -98,10 +96,10 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
         />
       ) : null}
 
-      <section className={styles.loop} aria-labelledby={loopTitleId}>
+      <section className={styles.loop}>
         <div className={styles.sectionHeading}>
           <p className={styles.kicker}>The loop</p>
-          <SectionHeading id={loopTitleId}>Build a little. Play it. See what changed. Keep going.</SectionHeading>
+          <SectionHeading>Build a little. Play it. See what changed. Keep going.</SectionHeading>
         </div>
         <ol className={styles.steps}>
           <li data-current={model.kind === "empty" ? "true" : undefined}><span>1</span><div><strong>Choose</strong><p>Use the PlotPickle project you are already shaping.</p></div></li>
@@ -111,10 +109,10 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
         </ol>
       </section>
 
-      <section className={styles.pieces} aria-labelledby={piecesTitleId}>
+      <section className={styles.pieces}>
         <div className={styles.sectionHeading}>
           <p className={styles.kicker}>Story Pieces</p>
-          <SectionHeading id={piecesTitleId}>Familiar story material becomes playable context.</SectionHeading>
+          <SectionHeading>Familiar story material becomes playable context.</SectionHeading>
           <p>These are the kinds of pieces STORY can draw from. They are examples of the grammar, not claims about your current project.</p>
         </div>
         <div className={styles.pieceGrid}>

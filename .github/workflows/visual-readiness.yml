@@ -16,10 +16,12 @@ jobs:
   visual-readiness-contract:
     name: visual-readiness-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -27,6 +29,38 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate Phase 1 UI foundation contract
+        run: node --test tests/issue-1715-ui-foundation.test.mjs
+      - name: Enforce current UI continuity contract
+        run: node --test tests/issue-544-ui-continuity-agent.test.mjs
+      - name: Enforce changed UI token/style contract
+        if: github.event_name == 'pull_request'
+        run: node scripts/ui-stylelint-gate.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+      - name: Enforce UI foundation token/style smoke gate
+        if: github.event_name != 'pull_request'
+        run: node scripts/ui-stylelint-gate.mjs --all-foundation
+      - name: Collect changed UI files for 25-point audit
+        id: ui-changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}...HEAD" \
+            | grep -E '^(app/|components/|modules/.*/ui/).*[.](css|scss|js|jsx|ts|tsx|mjs|cjs)$' > /tmp/plotpickle-ui-files.txt || true
+          {
+            echo 'files<<EOF'
+            cat /tmp/plotpickle-ui-files.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+      - name: Run required 25-point UI/UX code audit
+        if: github.event_name == 'pull_request' && steps.ui-changes.outputs.files != ''
+        env:
+          CHANGED_FILES: ${{ steps.ui-changes.outputs.files }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node scripts/ui-ux-code-audit.mjs
+          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); if(r.verdict!=='pass'){console.error(r.summary); process.exit(1)}"
+      - name: Validate UI/UX audit runner safeguards
+        run: node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
       - name: Validate canonical visual readiness contract
         run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs tests/issue-1557-character-visual-development-specifications.test.mjs tests/issue-1557-character-visual-development-ui.test.mjs
       - name: Validate existing visual identity and progressive BUILD contracts

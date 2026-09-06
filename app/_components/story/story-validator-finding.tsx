@@ -32,7 +32,6 @@ export function StoryValidatorFinding({
       {...props}
       className={classes}
       data-story-validator-severity={severity}
-      role={severity === "error" ? "alert" : "status"}
     >
       <span className={styles.severity}>{SEVERITY_LABELS[severity]}</span>
       <div className={styles.copy}>

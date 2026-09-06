@@ -1,0 +1,65 @@
+.action {
+  min-width: var(--pp-touch-target);
+  min-height: var(--pp-touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pp-space-2);
+  padding: var(--pp-space-2) var(--pp-space-4);
+  border: thin solid var(--pp-line-strong);
+  border-radius: var(--pp-radius-control);
+  font-family: var(--pp-font-body);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-tight);
+  color: var(--pp-text);
+  background: var(--pp-surface-raised);
+  cursor: pointer;
+  transition-duration: var(--pp-motion-fast);
+  transition-property: background, border-color, color;
+}
+
+.action:hover:not(:disabled) {
+  background: var(--pp-surface-hover);
+  border-color: var(--pp-teal);
+}
+
+.action:focus-visible {
+  outline: var(--pp-space-1) solid var(--pp-teal-bright);
+  outline-offset: var(--pp-space-1);
+  box-shadow: 0 0 0 var(--pp-space-1) var(--pp-focus);
+}
+
+.action:disabled {
+  color: var(--pp-dim);
+  background: var(--pp-surface);
+  border-color: var(--pp-line);
+  cursor: not-allowed;
+}
+
+.primary {
+  color: var(--pp-matte);
+  background: var(--pp-orange);
+  border-color: var(--pp-orange);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--pp-orange-bright);
+  border-color: var(--pp-orange-bright);
+}
+
+.secondary {
+  color: var(--pp-text);
+  background: var(--pp-surface-raised);
+}
+
+.tertiary {
+  color: var(--pp-teal-bright);
+  background: transparent;
+  border-color: transparent;
+}
+
+.destructive {
+  color: var(--pp-paper);
+  background: var(--pp-danger);
+  border-color: var(--pp-danger);
+}

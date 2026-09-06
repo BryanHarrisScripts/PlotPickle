@@ -45,7 +45,7 @@ test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling"
   assert.match(workflow, /@playwright\/test@1\.63\.0/);
   assert.match(workflow, /\$\{\{ runner\.temp \}\}\/plotpickle-ui-a11y/);
   assert.match(workflow, /ui-axe-audit\.mjs/);
-  assert.match(workflow, /workspace=wyrmwood/);
+  assert.match(workflow, /--routes config\/ui-axe-routes\.json/);
 
   const packageJson = await source("package.json");
   assert.doesNotMatch(packageJson, /@axe-core\/playwright/);

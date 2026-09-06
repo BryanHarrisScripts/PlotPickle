@@ -3,6 +3,8 @@ name: Visual Readiness
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [issue/1715-phase1d-state-gallery-cls-story-zero]
   workflow_dispatch:
 
 permissions:
@@ -42,6 +44,12 @@ jobs:
       - name: Enforce changed UI token/style contract
         if: github.event_name == 'pull_request'
         run: node scripts/ui-stylelint-gate.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+      - name: Enforce Phase 1D pre-PR changed UI token/style contract
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          BASE_REF="$(git merge-base origin/main HEAD)"
+          node scripts/ui-stylelint-gate.mjs --base-ref "$BASE_REF"
       - name: Enforce UI foundation token/style smoke gate
         if: github.event_name != 'pull_request'
         run: node scripts/ui-stylelint-gate.mjs --all-foundation
@@ -57,10 +65,31 @@ jobs:
             cat /tmp/plotpickle-ui-files.txt
             echo EOF
           } >> "$GITHUB_OUTPUT"
+      - name: Collect Phase 1D pre-PR UI files for 25-point audit
+        id: pre-pr-ui-changes
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          BASE_REF="$(git merge-base origin/main HEAD)"
+          git diff --name-only --diff-filter=ACMR "$BASE_REF...HEAD" \
+            | grep -E '^(app/|components/|modules/.*/ui/).*[.](css|scss|js|jsx|ts|tsx|mjs|cjs)$' > /tmp/plotpickle-ui-files.txt || true
+          {
+            echo 'files<<EOF'
+            cat /tmp/plotpickle-ui-files.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
       - name: Run required 25-point UI/UX code audit
         if: github.event_name == 'pull_request' && steps.ui-changes.outputs.files != ''
         env:
           CHANGED_FILES: ${{ steps.ui-changes.outputs.files }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node scripts/ui-ux-code-audit.mjs
+          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); if(r.verdict!=='pass'){console.error(r.summary); process.exit(1)}"
+      - name: Run Phase 1D pre-PR 25-point UI/UX code audit
+        if: github.event_name == 'push' && steps.pre-pr-ui-changes.outputs.files != ''
+        env:
+          CHANGED_FILES: ${{ steps.pre-pr-ui-changes.outputs.files }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           node scripts/ui-ux-code-audit.mjs

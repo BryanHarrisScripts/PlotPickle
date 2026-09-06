@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import "./issue-1675-story-agent-continuity.test.mjs";
 import {
   createStoryAgentActionProposal,
   resolveStoryAgentActionProposal,

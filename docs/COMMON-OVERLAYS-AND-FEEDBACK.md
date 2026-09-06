@@ -27,7 +27,10 @@ Use `notifyPlotPickle(options)` for transient feedback that does not require a d
 - Messages are dismissible.
 - Timers pause while the notification is hovered or focused.
 - Default timeouts are bounded; callers may request a longer or persistent notice with `timeoutMs`.
+- The visible queue is capped at three notices so feedback never becomes a second task list.
+- Repeated notices with the same message and tone are coalesced instead of stacking duplicates.
 - A notification never replaces inline error recovery beside the control that needs attention.
+- Success language acknowledges a real completed state; notifications must not simulate progress or use celebration to disguise uncertainty.
 
 The layer also enriches existing `.toast` status nodes with `aria-live`, `aria-atomic` and a legacy-feedback marker until their owning screen audit migrates them.
 

@@ -19,6 +19,8 @@ on:
       - "docs/architecture/MODULAR-FOUNDATION.md"
       - "tests/**"
       - ".github/workflows/ben-code-quality.yml"
+  push:
+    branches: [issue/1715-phase1d-state-gallery-cls-story-zero]
   workflow_dispatch:
 
 permissions:
@@ -73,8 +75,15 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
 
+      - name: Run Phase 1D pre-PR BEN deterministic slop delta
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          BASE_REF="$(git merge-base origin/main HEAD)"
+          node scripts/run-ben-code-quality.mjs --base-ref "$BASE_REF"
+
       - name: Run BEN current-tree scan
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_dispatch'
         run: node scripts/run-ben-code-quality.mjs
 
       - name: Upload BEN evidence

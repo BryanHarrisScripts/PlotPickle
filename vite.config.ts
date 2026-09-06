@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { localProfileAuthGateway } from "./build/local-profile-auth-gateway";
+import { demoOnboardingGateway } from "./build/startup/demo-onboarding-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/auth/profile-request-context";
 import { autonomousGuestReferenceTaskGateway } from "./build/autonomous-guest/reference/reference-task-gateway";
@@ -118,6 +119,7 @@ export default defineConfig(async ({ command }) => {
       localInstanceProofGateway(),
       autonomousGuestReferenceTaskGateway(),
       localProfileAuthGateway(),
+      demoOnboardingGateway(),
       localConnectionsGateway(),
       writerInResidenceGateway(),
       profileScopedBuzzRequestContext(),

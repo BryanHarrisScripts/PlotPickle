@@ -93,6 +93,27 @@ Server-network mode keeps its existing fail-closed authentication/bootstrap beha
 
 The interactive Phase 2 surface exposes explicit reset and exit controls. Reset reconstructs the Phase 1 world from the known seed; exit returns to the appropriate fresh-entry or existing-profile surface. The UI does not request provider setup, BUZZ identity, GitHub, Google or Internet access.
 
+## Packaged Windows UAT and release evidence
+
+Phase 5 makes the DEMO acceptance path part of the real Windows packaging gate instead of relying only on source-level assertions. The dedicated `scripts/windows-installer/demo-onboarding-smoke.mjs` journey runs against the staged Windows package built by the existing installer workflow and uses an isolated temporary PlotPickle home plus Microsoft Edge DevTools Protocol automation.
+
+The packaged journey proves the observable product path in this order:
+
+1. a fresh desktop installation visibly offers DEMO before any profile exists;
+2. DEMO starts at the known zero-turn state;
+3. a real STORY decision changes state and Reset returns to the zero-turn state;
+4. Exit returns to the fresh first-run entry without requiring a profile;
+5. a second DEMO run resolves all five scenes and keeps Sage Show Me available;
+6. Make This Mine leaves DEMO and waits at the unchanged Human profile boundary;
+7. the existing verification helper creates and authenticates an isolated synthetic Human through the real profile API, after which the pending approved handoff creates a normal Human-owned PPF project;
+8. the imported project contains the human-readable title and starter brief and contains no raw `demo:` reference;
+9. removing the browser session cookie produces a real locked returning-profile state, where Try DEMO still works but profile-private project reads are rejected;
+10. after one returning DEMO interaction and exit, restoring the Human session proves the previously imported private project is unchanged.
+
+This UAT does not inject a private project into DEMO and does not give the UAT runner a shortcut around auth. The synthetic Human is created through the same local profile APIs used by Full Verification, and the browser receives only the real HttpOnly session cookie after Make This Mine is already waiting at the profile boundary.
+
+The existing `.github/workflows/windows-installer.yml` remains the one packaging authority. It compiles `PlotPickleSetup.exe`, runs the general packaged interaction smoke, runs the focused DEMO onboarding journey against the same staged package, runs install/uninstall smoke, and uploads both interaction evidence sets plus the installer artifact. Phase 5 does not add a second packaging system.
+
 ## Invariants
 
 1. DEMO is separate from Guest and separate from authenticated Human runtime.
@@ -113,6 +134,8 @@ The interactive Phase 2 surface exposes explicit reset and exit controls. Reset 
 16. Make This Mine performs no profile creation/login itself; private persistence begins only after the existing Human auth boundary supplies an authenticated session and CSRF proof.
 17. A Make This Mine retry is idempotent for one approval transaction and cannot overwrite different existing Human project data.
 18. The durable Human project identifier is a normal UUID with no DEMO prefix or synthetic provenance marker.
+19. Packaged UAT must prove the same DEMO and Human-isolation boundaries that source tests enforce; packaging is not allowed to substitute a different authority path.
+20. Windows release readiness requires the existing installer build, general interaction smoke, focused DEMO onboarding journey and install/uninstall smoke to pass on the same exact head.
 
 ## Phase 0 exit
 
@@ -133,3 +156,7 @@ Phase 3 is complete when Sage Show Me can display deterministic before/after, kn
 ## Phase 4 exit
 
 Phase 4 is complete when `Make This Mine` is available only after the five-scene DEMO completes; explicit approval exits DEMO into the unchanged Human profile create/unlock path; no handoff data is persisted before authentication; the authenticated local mutation requires the existing CSRF/session boundary; a fresh normal PPF project is created and activated without mutating another project; only the human-readable title and Foundations starter brief cross the boundary; raw synthetic refs and privileged fields fail closed; retries are idempotent and conflict-safe; the durable project id remains a provenance-neutral normal UUID; server-network remains unavailable; and permanent DEMO tests prove the conversion cannot smuggle DEMO authority, hidden state or synthetic identity into Human-private storage.
+
+## Phase 5 exit
+
+Phase 5 is complete when the permanent DEMO gate includes the packaged-UAT contract; the exact Windows installer head compiles `PlotPickleSetup.exe`; the general packaged interaction smoke passes; the focused packaged DEMO journey proves fresh entry, deterministic interaction, reset, exit, five-scene completion, Sage Show Me, Make This Mine through real Human authentication, and locked-existing-profile isolation; the imported Human project remains free of synthetic refs and unchanged by a later DEMO run; install/uninstall smoke passes; and README/onboarding documentation describes only the behavior proven on that release head.

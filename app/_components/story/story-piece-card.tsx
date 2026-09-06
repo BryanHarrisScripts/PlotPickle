@@ -39,7 +39,7 @@ export function StoryPieceCard({
       {...props}
       className={classes}
       data-story-piece-state={state}
-      aria-disabled={unavailable ? "true" : undefined}
+      data-story-piece-unavailable={unavailable ? "true" : undefined}
     >
       <header className={styles.header}>
         <span className={styles.type}>{type}</span>

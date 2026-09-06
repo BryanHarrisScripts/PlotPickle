@@ -146,10 +146,12 @@ function LessonTopGlyph() {
 export default function LearnWorkspace({
   curriculum,
   guide,
+  onApplyLearning,
   onOpenFoundationsPlan,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
   readonly guide: CurriculumGuide;
+  readonly onApplyLearning?: (topic: string, lessonId?: string) => void;
   readonly onOpenFoundationsPlan?: (lessonId?: string) => void;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
@@ -416,6 +418,8 @@ export default function LearnWorkspace({
         <nav className={styles.lessonList} aria-label="Curriculum lessons">
           {lessonGroups.map((group) => {
             const collapsed = collapsedTopics.includes(group.topic);
+            const activeGroupLessonId = activeLesson.topic === group.topic ? activeLesson.id : undefined;
+            const applyAvailable = Boolean(onApplyLearning || (group.topic === "foundations" && onOpenFoundationsPlan));
             return (
             <section className={styles.topicGroup} data-collapsed={collapsed ? "true" : "false"} key={group.topic}>
               <button
@@ -455,26 +459,21 @@ export default function LearnWorkspace({
                 </div>
                 );
               })}
-              {collapsed ? null : group.topic === "foundations" && onOpenFoundationsPlan ? (
+              {collapsed ? null : applyAvailable ? (
                 <button
-                  aria-label="Apply what you have learned in Foundations"
+                  aria-label={`Apply what you have learned in ${topicName(group.topic)}`}
                   className={`${styles.applyLearningRow} ${styles.applyLearningAction}`}
-                  onClick={() => onOpenFoundationsPlan(
-                    activeLesson.topic === "foundations" ? activeLesson.id : undefined,
-                  )}
+                  onClick={() => {
+                    if (onApplyLearning) onApplyLearning(group.topic, activeGroupLessonId);
+                    else onOpenFoundationsPlan?.(activeGroupLessonId);
+                  }}
                   type="button"
                 >
                   <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
                   <strong>Apply what you have learned</strong>
-                  <small>Open PLAN</small>
+                  <small>Open application</small>
                 </button>
-              ) : collapsed ? null : (
-                <div className={styles.applyLearningRow} aria-label={`Apply what you have learned in ${topicName(group.topic)}`}>
-                  <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
-                  <strong>Apply what you have learned</strong>
-                  <small>Coming soon</small>
-                </div>
-              )}
+              ) : null}
               </div>
             </section>
             );

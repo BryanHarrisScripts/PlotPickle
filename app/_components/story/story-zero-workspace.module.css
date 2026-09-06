@@ -26,7 +26,9 @@
 }
 
 .hero h1,
-.sectionHeading h2 {
+.hero h3,
+.sectionHeading h2,
+.sectionHeading h4 {
   margin: 0;
   color: var(--pp-paper);
   font-family: var(--pp-font-display);
@@ -34,7 +36,8 @@
   overflow-wrap: anywhere;
 }
 
-.hero h1 {
+.hero h1,
+.hero h3 {
   max-width: var(--pp-width-editor);
   font-size: calc(var(--pp-text-lg) * 1.7);
 }
@@ -58,22 +61,25 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--pp-space-2) var(--pp-space-4);
+  margin: 0;
   padding: var(--pp-space-4);
   border: 1px solid var(--pp-line);
   background: var(--pp-surface);
 }
 
-.context span {
-  color: var(--pp-dim);
+.context dt {
+  color: var(--pp-muted);
   font-size: var(--pp-text-xs);
   letter-spacing: var(--pp-tracking-label);
   text-transform: uppercase;
 }
 
-.context strong {
+.context dd {
   min-width: 0;
+  margin: 0;
   color: var(--pp-text);
   font-size: var(--pp-text-sm);
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
@@ -87,7 +93,8 @@
   max-width: var(--pp-width-reading);
 }
 
-.sectionHeading h2 {
+.sectionHeading h2,
+.sectionHeading h4 {
   font-size: var(--pp-text-lg);
 }
 
@@ -183,7 +190,8 @@
     padding: var(--pp-space-6) var(--pp-space-4) var(--pp-space-8);
   }
 
-  .hero h1 {
+  .hero h1,
+  .hero h3 {
     font-size: var(--pp-text-lg);
   }
 

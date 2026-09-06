@@ -70,7 +70,7 @@ test("#1722 removes stale audit aliases and verifies all six areas plus Public\/
 test("#1722 restores the Collab deep link without reviving the retired rich-project mount", async () => {
   const [page, entry, legacy] = await Promise.all([
     read("app/page.tsx"),
-    read("app/collab-entry-workspace.tsx"),
+    read("app/_components/collab/collab-entry-workspace.tsx"),
     read("app/collab-workspace.tsx"),
   ]);
 
@@ -81,7 +81,7 @@ test("#1722 restores the Collab deep link without reviving the retired rich-proj
   assert.match(page, /<CollabEntryWorkspace projectTitle=\{currentProjectTitle\(\)\}/);
   assert.doesNotMatch(page, /<CollabWorkspace/);
 
-  for (const destination of ["/?workspace=community", "/?workspace=feedback", "/git", "/?workspace=settings"]) {
+  for (const destination of ["/?workspace=community", "/pitch-review", "/git", "/?workspace=settings"]) {
     assert.ok(entry.includes(destination), `Collab entry must route to canonical owner ${destination}`);
   }
   assert.match(entry, /profile-owned PPF/);

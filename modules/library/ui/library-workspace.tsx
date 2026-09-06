@@ -102,7 +102,7 @@ function StoryCard({ item, activeProjectId, onOpen, onArchive }: {
         <h3>{item.title}</h3>
         <p>{item.frontier} · {item.progress}% complete</p>
         <small>Last saved {displayDate(item.updatedAt)}</small>
-        <div className={styles.progress} aria-label={`${item.progress}% complete`}><i style={{ width: `${item.progress}%` }} /></div>
+        <progress className={styles.progress} max={100} value={item.progress} aria-label={`${item.progress}% complete`} />
         <button className={active ? styles.secondaryButton : styles.primaryButton} onClick={active ? openActiveProject : onOpen} type="button">{active ? "Resume" : "Open Story"}</button>
       </div>
     </article>

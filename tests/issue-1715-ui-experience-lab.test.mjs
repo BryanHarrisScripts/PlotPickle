@@ -76,17 +76,21 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   assert.match(gallery, /data-ui-experience-probe/);
 });
 
-test("#1715 Phase 1D lab is dev-only using Vite native mode with no custom startup plumbing", async () => {
+test("#1715 Phase 1D lab is selected at the Vite command boundary and stays disabled in production", async () => {
   const page = await source("app/ui-lab/page.tsx");
   const workflow = await source(".github/workflows/visual-readiness.yml");
   const viteConfig = await source("vite.config.ts");
-  const startupTypes = await source("startup-contract.d.ts");
-  assert.match(page, /!import\.meta\.env\.DEV/);
-  assert.match(page, /notFound\(\)/);
-  assert.doesNotMatch(page, /process\.env/);
-  assert.doesNotMatch(page, /__PLOTPICKLE_UI_LAB_ENABLED__/);
-  assert.doesNotMatch(viteConfig, /__PLOTPICKLE_UI_LAB_ENABLED__/);
-  assert.doesNotMatch(startupTypes, /__PLOTPICKLE_UI_LAB_ENABLED__/);
+  const productionGate = await source("build/ui-experience-lab-gate.ts");
+  const developmentGate = await source("build/ui-experience-lab-gate.dev.ts");
+
+  assert.match(page, /UI_EXPERIENCE_LAB_ENABLED/);
+  assert.match(page, /if \(!UI_EXPERIENCE_LAB_ENABLED\) notFound\(\)/);
+  assert.doesNotMatch(page, /process\.env|import\.meta\.env/);
+  assert.match(productionGate, /UI_EXPERIENCE_LAB_ENABLED = false/);
+  assert.match(developmentGate, /UI_EXPERIENCE_LAB_ENABLED = true/);
+  assert.match(viteConfig, /command === "serve"/);
+  assert.match(viteConfig, /ui-experience-lab-gate\.dev\.ts/);
+  assert.match(viteConfig, /find: "\.\.\/\.\.\/build\/ui-experience-lab-gate"/);
   assert.doesNotMatch(workflow, /PLOTPICKLE_UI_LAB/);
 });
 

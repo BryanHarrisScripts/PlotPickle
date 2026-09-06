@@ -106,7 +106,7 @@ jobs:
           {
             node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
             node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
-            node lib/verification/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/sitemap/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
           } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
       - name: Enforce rendered guardrail verdict
         if: steps.rendered-guardrails.outcome == 'failure'

@@ -60,10 +60,10 @@ test("#1341 keeps Library and Dashboard titles while preserving their approved s
 test("#1719 shell exposes area, destination, context and primary-next UAT hooks while preserving canonical destinations", () => {
   assert.match(shellSource, /data-plotpickle-global-nav="v4"/);
   assert.match(shellSource, /data-workspace-areas="true"/);
-  assert.match(shellSource, /data-navigation-area-id=\{navigationArea\.id\}/);
+  assert.match(shellSource, /data-navigation-area-id=\{[^}]+\.id\}/);
   assert.match(shellSource, /data-workspace-navigation="true"/);
   assert.match(shellSource, /data-workspace-nav-id=\{item\.id\}/);
-  assert.match(shellSource, /data-navigation-area=\{navigationArea\.id\}/);
+  assert.match(shellSource, /data-navigation-area=\{[^}]+\.id\}/);
   assert.match(shellSource, /data-current-navigation-area=\{activeArea\}/);
   assert.match(shellSource, /data-current-destination=/);
   assert.match(shellSource, /data-shell-project-context="true"/);

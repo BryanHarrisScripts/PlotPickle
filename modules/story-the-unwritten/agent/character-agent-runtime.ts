@@ -32,6 +32,19 @@ export const STORY_CHARACTER_AGENT_CONTEXT_BUDGET = 24_000 as const;
 
 const STORY_AGENT_CONTEXT_AUTHORITY = CONTEXT_AUTHORITY.storyKnowledgeGraph;
 
+export type StoryCharacterAutonomyMode = "manual" | "assisted" | "autonomous";
+
+export type StoryCharacterNarrativeControls = {
+  readonly wantRefs: readonly StoryReference[];
+  readonly fearRefs: readonly StoryReference[];
+  readonly unknownRefs: readonly StoryReference[];
+  readonly relationshipRefs: readonly StoryReference[];
+  readonly refusalRefs: readonly StoryReference[];
+  readonly voiceRefs: readonly StoryReference[];
+  readonly worldAbilityRefs: readonly StoryReference[];
+  readonly autonomyMode: StoryCharacterAutonomyMode;
+};
+
 export type StoryCharacterAgentTurnInput = {
   readonly definition: StoryAgentDefinition;
   readonly character: StoryCharacterDefinition;
@@ -42,6 +55,7 @@ export type StoryCharacterAgentTurnInput = {
   readonly memories: readonly StoryMemoryEventRecord[];
   readonly relationships: readonly StoryRelationshipEdge[];
   readonly knowledge: readonly StoryKnowledgeReference[];
+  readonly narrativeControls?: Partial<StoryCharacterNarrativeControls>;
   readonly worldRuleRefs?: readonly StoryReference[];
   readonly hostGrantedCapabilities?: readonly string[];
   readonly taskId?: string;
@@ -124,16 +138,21 @@ function legalKnowledgeRefs(input: StoryCharacterAgentTurnInput) {
     .map((reference) => reference.ref));
 }
 
-function narrativeControls(definition: StoryAgentDefinition) {
-  return definition.narrative ?? {
-    wantRefs: [],
-    fearRefs: [],
-    unknownRefs: [],
-    relationshipRefs: [],
-    refusalRefs: [],
-    voiceRefs: [],
-    worldAbilityRefs: [],
-    autonomyMode: "manual" as const,
+function narrativeControls(input: StoryCharacterAgentTurnInput): StoryCharacterNarrativeControls {
+  const supplied = input.narrativeControls ?? {};
+  const autonomyMode = supplied.autonomyMode ?? "manual";
+  if (!(["manual", "assisted", "autonomous"] as const).includes(autonomyMode)) {
+    throw new Error(`Unsupported STORY character autonomy mode ${String(autonomyMode)}.`);
+  }
+  return {
+    wantRefs: uniqueReferences(supplied.wantRefs ?? []),
+    fearRefs: uniqueReferences(supplied.fearRefs ?? []),
+    unknownRefs: uniqueReferences(supplied.unknownRefs ?? []),
+    relationshipRefs: uniqueReferences(supplied.relationshipRefs ?? []),
+    refusalRefs: uniqueReferences(supplied.refusalRefs ?? []),
+    voiceRefs: uniqueReferences(supplied.voiceRefs ?? []),
+    worldAbilityRefs: uniqueReferences(supplied.worldAbilityRefs ?? []),
+    autonomyMode,
   };
 }
 
@@ -151,7 +170,7 @@ function storyContextItem(id: string, content: unknown, required = false): Conte
 }
 
 function characterContextItems(input: StoryCharacterAgentTurnInput): ContextItemInput[] {
-  const narrative = narrativeControls(input.definition);
+  const narrative = narrativeControls(input);
   const memoryRefs = legalMemoryRefs(input);
   const relationshipRefs = legalRelationshipRefs(input);
   const knowledgeRefs = legalKnowledgeRefs(input);

@@ -37,6 +37,7 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
   const hasProject = model.kind === "project";
   const loopTitleId = useId();
   const piecesTitleId = useId();
+  const authorityTitleId = useId();
   const HeroHeading = embedded ? "h3" : "h1";
   const SectionHeading = embedded ? "h4" : "h2";
 
@@ -124,8 +125,8 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
         </div>
       </section>
 
-      <aside className={styles.reassurance} aria-label="STORY authority boundary">
-        <strong>Play safely.</strong>
+      <aside className={styles.reassurance} aria-labelledby={authorityTitleId}>
+        <SectionHeading id={authorityTitleId}>Play safely.</SectionHeading>
         <p>AI may suggest. STORY validates and resolves. PPF remains the durable canon authority. You can explore without accidentally rewriting your story.</p>
       </aside>
     </div>

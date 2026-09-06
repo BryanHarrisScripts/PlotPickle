@@ -35,6 +35,7 @@ test("#1715 Phase 1D STORY zero state reads the canonical project and exposes on
   assert.match(workspace, /No active STORY session/);
   assert.match(workspace, /play never silently rewrites canon/i);
   assert.match(workspace, /<dl className=\{styles\.context\}>/);
+  assert.match(workspace, /<dd aria-live="polite">/);
   assert.match(workspace, /<aside className=\{styles\.reassurance\}>/);
   assert.match(workspace, /<SectionHeading>Play safely\.<\/SectionHeading>/);
   assert.match(workspace, /embedded \? "h3" : "h1"/);
@@ -50,10 +51,9 @@ test("#1715 Phase 1D STORY primitives expose semantic card and validator states 
   for (const state of ["available", "selected", "illegal", "loading", "partial", "error"]) assert.match(card, new RegExp(state));
   for (const label of ["ERROR", "WARNING", "NOTE", "PASS"]) assert.match(validator, new RegExp(label));
   assert.match(card, /STATE_LABELS/);
-  assert.match(card, /<h3 className=\{styles\.title\}>/);
-  assert.match(card, /<span className=\{styles\.type\}>\{type\}<\/span>/);
+  assert.match(card, /<h3 className=\{styles\.title\}>\{type\}: \{title\}<\/h3>/);
   assert.match(card, /<p className=\{styles\.state\}>\{STATE_LABELS\[state\]\}<\/p>/);
-  assert.doesNotMatch(card, /<p className=\{styles\.type\}/);
+  assert.doesNotMatch(card, /className=\{styles\.type\}/);
   assert.match(validator, /SEVERITY_LABELS/);
   assert.doesNotMatch(card, /aria-disabled/);
   assert.doesNotMatch(validator, /role=\{severity/);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { hasActiveLibraryProject, loadFoundationProject } from "@/core/storage/project-library-browser";
 import { UiAction } from "../foundation/ui-action";
 import { UiStateSurface } from "../foundation/ui-state-surface";
 import { StoryPieceCard } from "./story-piece-card";
@@ -20,16 +20,13 @@ export type StoryZeroModel =
   | { kind: "project"; project: StoryZeroProject };
 
 function currentProject(): StoryZeroProject | null {
-  try {
-    const project = loadFoundationProject();
-    return {
-      id: project.id,
-      revision: String(project.revision),
-      title: project.title || "Untitled Story",
-    };
-  } catch {
-    return null;
-  }
+  if (!hasActiveLibraryProject()) return null;
+  const project = loadFoundationProject();
+  return {
+    id: project.id,
+    revision: String(project.revision),
+    title: project.title || "Untitled Story",
+  };
 }
 
 export function StoryZeroWorkspaceView({ model, embedded = false }: { model: StoryZeroModel; embedded?: boolean }) {

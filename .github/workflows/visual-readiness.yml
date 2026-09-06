@@ -16,7 +16,7 @@ jobs:
   visual-readiness-contract:
     name: visual-readiness-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,6 +31,8 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Phase 1 UI foundation contract
         run: node --test tests/issue-1715-ui-foundation.test.mjs
+      - name: Validate Phase 1B axe accessibility contract
+        run: node --test tests/issue-1715-ui-axe-accessibility.test.mjs
       - name: Enforce current UI continuity contract
         run: node --test tests/issue-544-ui-continuity-agent.test.mjs
       - name: Enforce changed UI token/style contract
@@ -65,5 +67,22 @@ jobs:
         run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs tests/issue-1557-character-visual-development-specifications.test.mjs tests/issue-1557-character-visual-development-ui.test.mjs
       - name: Validate existing visual identity and progressive BUILD contracts
         run: node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
+      - name: Install pinned axe/Playwright verification tooling
+        env:
+          UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
+        run: |
+          mkdir -p "$UI_A11Y_ROOT"
+          printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
+          npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0
+          "$UI_A11Y_ROOT/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Enforce WCAG 2.2 AA with axe-core Playwright
+        env:
+          UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
+        shell: bash
+        run: |
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-a11y-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json
       - name: Production build
         run: npm run build

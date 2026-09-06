@@ -23,6 +23,12 @@ test("UI audit rejects generic ARIA validity claims without a named aria attribu
   assert.match(source, /An ARIA validity issue must name the exact aria-\* attribute/);
 });
 
+test("UI audit does not create nested navigation landmarks for grouping divs", () => {
+  assert.match(source, /function evidenceIsInsideNavigationLandmark/);
+  assert.match(source, /before\.lastIndexOf\("<nav"\) > before\.lastIndexOf\("<\/nav>"\)/);
+  assert.match(source, /A div used only for grouping inside an existing nav is already within the navigation landmark/);
+});
+
 test("UI audit does not invent controls or application roles", () => {
   assert.match(source, /finding\.criterion === 11 && \/<div/);
   assert.match(source, /onClick\|onKeyDown\|onKeyUp\|onPointerDown/);

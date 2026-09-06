@@ -35,7 +35,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--pp-space-2);
-  align-items: baseline;
+  align-items: start;
 }
 
 .type,
@@ -61,12 +61,20 @@
 }
 
 .title {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--pp-space-1);
+  min-width: 0;
   margin: 0;
   color: var(--pp-paper);
   font-family: var(--pp-font-display);
   font-size: var(--pp-text-lg);
   line-height: var(--pp-leading-tight);
   overflow-wrap: anywhere;
+}
+
+.type {
+  font-family: var(--pp-font-mono);
 }
 
 .description,

@@ -74,15 +74,18 @@ test("LEARN removes settings, workflow separators, durations and suggested quest
   assert.doesNotMatch(css, /\.promptStarters/);
 });
 
-test("every expanded curriculum section ends with an apply-learning placeholder", async () => {
+test("every expanded curriculum section ends with an actionable apply-learning handoff", async () => {
   const workspace = await readFile(workspacePath, "utf8");
   const css = await readFile(cssPath, "utf8");
 
   assert.match(workspace, /lessonGroups\.map/);
-  assert.match(workspace, /collapsed \? null : \(\s*<div className=\{styles\.applyLearningRow\}/s);
+  assert.match(workspace, /onApplyLearning\?: \(topic: string, lessonId\?: string\) => void/);
+  assert.match(workspace, /applyAvailable/);
+  assert.match(workspace, /onApplyLearning\(group\.topic, activeGroupLessonId\)/);
   assert.match(workspace, /Apply what you have learned/);
-  assert.match(workspace, /Coming soon/);
-  assert.doesNotMatch(workspace, /className=\{styles\.applyLearningRow\}[^>]*onClick/s);
+  assert.match(workspace, /Open application/);
+  assert.doesNotMatch(workspace, /Coming soon/);
+  assert.match(workspace, /className=\{`\$\{styles\.applyLearningRow\} \$\{styles\.applyLearningAction\}`\}/);
   assert.match(css, /\.applyLearningRow \{/);
 });
 

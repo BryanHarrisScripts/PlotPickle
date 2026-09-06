@@ -42,10 +42,12 @@ export function StoryPieceCard({
       data-story-piece-unavailable={unavailable ? "true" : undefined}
     >
       <header className={styles.header}>
-        <p className={styles.type}>{type}</p>
+        <h3 className={styles.title}>
+          <span className={styles.type}>{type}</span>
+          {title}
+        </h3>
         <p className={styles.state}>{STATE_LABELS[state]}</p>
       </header>
-      <h3 className={styles.title}>{title}</h3>
       <p className={styles.description}>{description}</p>
       {meta ? <div className={styles.meta}>{meta}</div> : null}
       {action ? <div className={styles.action}>{action}</div> : null}

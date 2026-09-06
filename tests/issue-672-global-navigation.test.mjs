@@ -50,20 +50,22 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   assert.doesNotMatch(navigator, /navigationBreakAfter|data-navigation-gap-after|groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });
 
-test("#1719 global navigator is compact by disclosure, horizontally forgiving when needed, and keeps 44px targets", async () => {
+test("#1719 global navigator is compact by disclosure, horizontally forgiving when needed, and tokenized", async () => {
   const css = await read("app/plotpickle-workspace-shell.module.css");
 
   assert.match(css, /\.navigator \{[\s\S]*flex: 0 0 126px/);
   assert.match(css, /\.areaList \{[\s\S]*overflow-x: auto/);
-  assert.match(css, /\.areaList button \{[\s\S]*min-height: 44px/);
+  assert.match(css, /\.areaList button \{[\s\S]*min-height: 44px[\s\S]*padding: var\(--pp-space-/);
   assert.match(css, /\.destinationScroller \{[\s\S]*overflow-x: auto/);
   assert.match(css, /\.destinationList \{[\s\S]*width: max-content;[\s\S]*min-width: max-content/);
   assert.match(css, /\.destinationList li \{[\s\S]*width: 64px;[\s\S]*min-width: 64px;[\s\S]*flex: 0 0 64px/);
-  assert.match(css, /\.destinationList button \{[\s\S]*width: 64px;[\s\S]*min-height: 64px/);
+  assert.match(css, /\.destinationList button \{[\s\S]*width: 64px;[\s\S]*min-height: 64px[\s\S]*border-radius: var\(--pp-radius-control\)/);
   assert.match(css, /\.utilityArea \{[\s\S]*margin-left: auto/);
-  assert.match(css, /\.projectStrip \{/);
+  assert.match(css, /\.projectStrip \{[\s\S]*border-radius: var\(--pp-radius-panel\)/);
+  assert.match(css, /font-family: var\(--pp-font-code\)/);
   assert.match(css, /\.workspaceFrame :global\(nav\[aria-label="PlotPickle workflow"\]\)/);
   assert.match(css, /PlotPickle workflow and plugins/);
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.doesNotMatch(css, /groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });
 

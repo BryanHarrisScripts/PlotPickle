@@ -46,6 +46,10 @@
   text-transform: uppercase;
 }
 
+.type {
+  margin: 0;
+}
+
 .card[data-story-piece-state="selected"] .state {
   color: var(--pp-teal-bright);
 }

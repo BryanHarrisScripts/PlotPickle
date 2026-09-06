@@ -1,0 +1,79 @@
+.finding {
+  display: grid;
+  grid-template-columns: minmax(var(--pp-control-height-md), auto) minmax(0, 1fr);
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface-raised);
+  color: var(--pp-text);
+}
+
+.severity {
+  align-self: start;
+  padding: var(--pp-space-1) var(--pp-space-2);
+  border: 1px solid var(--pp-line-strong);
+  color: var(--pp-muted);
+  font-size: var(--pp-text-xs);
+  letter-spacing: var(--pp-tracking-label);
+  text-align: center;
+}
+
+.finding[data-story-validator-severity="error"] .severity {
+  border-color: var(--pp-danger);
+  color: var(--pp-danger);
+}
+
+.finding[data-story-validator-severity="warning"] .severity {
+  border-color: var(--pp-warning);
+  color: var(--pp-warning);
+}
+
+.finding[data-story-validator-severity="pass"] .severity {
+  border-color: var(--pp-success);
+  color: var(--pp-success);
+}
+
+.copy {
+  min-width: 0;
+}
+
+.copy h3,
+.copy p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.copy h3 {
+  color: var(--pp-paper);
+  font-size: var(--pp-text-md);
+  line-height: var(--pp-leading-tight);
+}
+
+.copy p {
+  margin-top: var(--pp-space-1);
+  color: var(--pp-muted);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+}
+
+.repair strong {
+  color: var(--pp-text);
+}
+
+@media (max-width: 40rem) {
+  .finding {
+    grid-template-columns: 1fr;
+  }
+
+  .severity {
+    justify-self: start;
+  }
+}
+
+@media (forced-colors: active) {
+  .finding,
+  .severity {
+    border-color: CanvasText;
+  }
+}

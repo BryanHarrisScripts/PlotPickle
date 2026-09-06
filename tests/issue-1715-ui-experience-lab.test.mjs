@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -77,16 +77,20 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   assert.match(gallery, /data-ui-experience-probe/);
 });
 
-test("#1715 Phase 1D lab uses the server runtime mode and stays disabled in production", async () => {
-  const page = await source("app/ui-lab/page.tsx");
-  const workflow = await source(".github/workflows/visual-readiness.yml");
-  const viteConfig = await source("vite.config.ts");
+test("#1715 Phase 1D gallery is verification-only and mounts production components outside the product router", async () => {
+  const entry = await source("lib/verification/ui-experience-fixture/entry.tsx");
+  const config = await source("lib/verification/ui-experience-fixture/vite.config.ts");
+  const shim = await source("lib/verification/ui-experience-fixture/next-navigation-shim.ts");
 
-  assert.match(page, /process\.env\.NODE_ENV === "production"/);
-  assert.match(page, /notFound\(\)/);
-  assert.doesNotMatch(page, /UI_EXPERIENCE_LAB_ENABLED|import\.meta\.env|PLOTPICKLE_UI_LAB/);
-  assert.doesNotMatch(viteConfig, /ui-experience-lab-gate|UI_EXPERIENCE_LAB_DEV_GATE/);
-  assert.doesNotMatch(workflow, /PLOTPICKLE_UI_LAB/);
+  assert.match(entry, /UiExperienceGallery/);
+  assert.match(entry, /CommonOverlayLayer/);
+  assert.match(entry, /app\/design-tokens\.css/);
+  assert.match(entry, /app\/globals\.css/);
+  assert.match(config, /@vitejs\/plugin-react/);
+  assert.match(config, /"next\/navigation"/);
+  assert.match(config, /allow:\s*\[repoRoot\]/);
+  assert.match(shim, /export function useRouter/);
+  await assert.rejects(access(new URL("../app/ui-lab/page.tsx", import.meta.url)));
 });
 
 test("#1715 Phase 1D browser gate enforces CLS, 200% stress, long content and reduced motion", async () => {
@@ -98,6 +102,8 @@ test("#1715 Phase 1D browser gate enforces CLS, 200% stress, long content and re
   assert.match(audit, /PerformanceObserver/);
   assert.match(audit, /layout-shift/);
   assert.match(audit, /!entry\.hadRecentInput/);
+  assert.match(audit, /fixtureServerUrl/);
+  assert.match(audit, /--fixture-server/);
   assert.match(audit, /zoom\.overflow > 1/);
   assert.match(audit, /primaryWidth < 44 \|\| zoom\.primaryHeight < 44/);
   assert.match(audit, /reducedMotion: "reduce"/);

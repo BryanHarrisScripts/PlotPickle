@@ -8,9 +8,9 @@ function isRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function requiredReference(value, label) {
-  const normalized = typeof value === "string" ? value.trim() : "";
-  if (!normalized) throw new Error(`${label} is required`);
+function requiredReference(input) {
+  const normalized = typeof input?.value === "string" ? input.value.trim() : "";
+  if (!normalized) throw new Error(`${input?.label ?? "reference"} is required`);
   return normalized;
 }
 
@@ -26,7 +26,7 @@ function referenceList(value, label) {
 function provenance({ creatorRef, sourceRefs = [], admittedByRef = null, admittedAt = null, authorship = "human" }) {
   const normalized = {
     authorship,
-    creatorRef: requiredReference(creatorRef, "Story Agent creatorRef"),
+    creatorRef: requiredReference({ value: creatorRef, label: "Story Agent creatorRef" }),
     sourceRefs: referenceList(sourceRefs, "Story Agent sourceRefs"),
     admittedByRef,
     admittedAt,
@@ -34,7 +34,7 @@ function provenance({ creatorRef, sourceRefs = [], admittedByRef = null, admitte
   if ((normalized.admittedByRef === null) !== (normalized.admittedAt === null)) {
     throw new Error("Story Agent admission reference and timestamp must be set together");
   }
-  if (normalized.admittedByRef !== null) requiredReference(normalized.admittedByRef, "Story Agent admittedByRef");
+  if (normalized.admittedByRef !== null) requiredReference({ value: normalized.admittedByRef, label: "Story Agent admittedByRef" });
   if (normalized.admittedAt !== null && !Number.isFinite(Date.parse(normalized.admittedAt))) {
     throw new Error("Story Agent admittedAt must be a valid timestamp");
   }
@@ -57,18 +57,18 @@ export function createStoryAgentDefinition({
   admittedByRef = null,
   admittedAt = null,
 } = {}) {
-  const profileId = requiredReference(approvedProfileId, "approvedProfileId");
+  const profileId = requiredReference({ value: approvedProfileId, label: "approvedProfileId" });
   const definition = {
-    id: requiredReference(id, "Story Agent id"),
+    id: requiredReference({ value: id, label: "Story Agent id" }),
     schemaVersion: 1,
-    worldId: requiredReference(worldId, "Story Agent worldId"),
-    characterId: requiredReference(characterId, "Story Agent characterId"),
+    worldId: requiredReference({ value: worldId, label: "Story Agent worldId" }),
+    characterId: requiredReference({ value: characterId, label: "Story Agent characterId" }),
     approvedRoleTemplateRef: `${STORY_CHARACTER_AGENT_PROFILE_REF_PREFIX}${profileId}`,
     hostAuthorityRef: STORY_CHARACTER_AGENT_HOST_AUTHORITY_REF,
     personalityRefs: referenceList(personalityRefs, "Story Agent personalityRefs"),
     goalRefs: referenceList(goalRefs, "Story Agent goalRefs"),
-    knowledgePolicyRef: requiredReference(knowledgePolicyRef, "Story Agent knowledgePolicyRef"),
-    memoryScopeRef: requiredReference(memoryScopeRef, "Story Agent memoryScopeRef"),
+    knowledgePolicyRef: requiredReference({ value: knowledgePolicyRef, label: "Story Agent knowledgePolicyRef" }),
+    memoryScopeRef: requiredReference({ value: memoryScopeRef, label: "Story Agent memoryScopeRef" }),
     gameActionPermissionRefs: referenceList(gameActionPermissionRefs, "Story Agent gameActionPermissionRefs"),
     provenance: provenance({ creatorRef, sourceRefs, authorship, admittedByRef, admittedAt }),
   };

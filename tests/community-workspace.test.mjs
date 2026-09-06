@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Community remains a native PlotPickle workspace in the revised workflow order", async () => {
+test("Community remains a native PlotPickle workspace in the forgiving Connect / Play area", async () => {
   const [page, shortcuts, glyph] = await Promise.all([
     read("app/page.tsx"),
     read("app/navigation/global-shortcuts.ts"),
@@ -12,15 +12,9 @@ test("Community remains a native PlotPickle workspace in the revised workflow or
   ]);
   assert.match(page, /requested === "community"/);
   assert.match(page, /<CommunityWorkspace onOpenSettings=\{\(\) => navigateWorkspace\("settings"\)\}/);
-  const community = shortcuts.indexOf('id: "community"');
-  const library = shortcuts.indexOf('id: "library"');
-  const learn = shortcuts.indexOf('id: "learn"');
-  const reports = shortcuts.indexOf('id: "reports"');
-  const dashboard = shortcuts.indexOf('id: "dashboard"');
-  const settings = shortcuts.indexOf('id: "settings"');
-  assert.ok(community >= 0 && community < library && library < learn);
-  assert.ok(reports >= 0 && reports < dashboard && dashboard < settings);
-  assert.match(shortcuts, /id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "\/assets\/workflow-relics\/community\.svg"/);
+  assert.match(shortcuts, /id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "\/assets\/workflow-relics\/community\.svg", area: "connect", action: \{ kind: "workspace", workspace: "community" \}/);
+  assert.match(shortcuts, /\{ id: "connect", label: "Connect \/ Play"/);
+  assert.match(shortcuts, /navigationAreaForDestination/);
   assert.match(glyph, /transparent PlotPickle guild sigil/i);
 });
 

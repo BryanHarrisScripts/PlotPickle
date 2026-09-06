@@ -67,11 +67,14 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   assert.match(gallery, /data-ui-experience-probe/);
 });
 
-test("#1715 Phase 1D lab is dev-only by default", async () => {
+test("#1715 Phase 1D lab is hidden by default and explicitly enabled only for rendered verification", async () => {
   const page = await source("app/ui-lab/page.tsx");
+  const workflow = await source(".github/workflows/visual-readiness.yml");
   assert.match(page, /process\.env\.NODE_ENV === "production"/);
   assert.match(page, /process\.env\.PLOTPICKLE_UI_LAB !== "1"/);
   assert.match(page, /notFound\(\)/);
+  assert.match(workflow, /Enforce rendered accessibility and experience guardrails[\s\S]*PLOTPICKLE_UI_LAB:\s*"1"/);
+  assert.equal((workflow.match(/PLOTPICKLE_UI_LAB:/g) || []).length, 1);
 });
 
 test("#1715 Phase 1D browser gate enforces CLS, 200% stress, long content and reduced motion", async () => {

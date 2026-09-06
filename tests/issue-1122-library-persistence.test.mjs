@@ -148,8 +148,8 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.match(route, /<LibraryWorkspace\s*\/>/);
   assert.doesNotMatch(route, /PlotPickleWorkspaceShell/);
   assert.match(sitemapContext, /"\/library":\s*\{[\s\S]*?activeShortcutId:\s*"library"[\s\S]*?rootContext:\s*"library"[\s\S]*?area:\s*"home"/);
-  assert.match(releaseBoundary, /sitemapShellTarget\(pathname,\s*window\.location\.search\)/);
-  assert.match(releaseBoundary, /<PlotPickleWorkspaceShell[\s\S]*?activeWorkspace=\{shellTarget\.rootContext\}/);
+  assert.match(releaseBoundary, /sitemapShellTarget\(pathname,\s*searchParams\.toString\(\)\)/);
+  assert.match(releaseBoundary, /<PlotPickleWorkspaceShell[\s\S]*?activeWorkspace=\{target\.rootContext\}/);
   assert.match(workspace, /Featured Examples/);
   assert.match(workspace, /Genre Presets/);
   assert.match(workspace, /My Stories/);

@@ -64,6 +64,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           node scripts/ui-ux-code-audit.mjs
+          cat audit-report.md
           node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); if(r.verdict!=='pass'){console.error(r.summary); process.exit(1)}"
       - name: Validate UI/UX audit runner safeguards
         run: node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs

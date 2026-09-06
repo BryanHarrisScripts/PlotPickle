@@ -32,14 +32,12 @@ export function StoryPieceCard({
   ...props
 }: StoryPieceCardProps) {
   const classes = [styles.card, className].filter(Boolean).join(" ");
-  const unavailable = state === "illegal" || state === "loading" || state === "error";
 
   return (
     <article
       {...props}
       className={classes}
       data-story-piece-state={state}
-      data-story-piece-unavailable={unavailable ? "true" : undefined}
     >
       <header className={styles.header}>
         <h3 className={styles.title}>{type}: {title}</h3>

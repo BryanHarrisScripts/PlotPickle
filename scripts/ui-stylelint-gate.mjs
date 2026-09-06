@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,13 +8,8 @@ export const STYLELINT_VERSION = "17.15.0";
 const STYLE_EXTENSIONS = new Set([".css", ".scss"]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const TOKEN_SOURCE = "app/design-tokens.css";
+const FOUNDATION_ROOT = "app/_components/foundation";
 const STYLE_EXEMPTION_PATTERN = /pp-ui-style-exempt:\s*[^\s].+/i;
-const FOUNDATION_FILES = [
-  "app/_components/foundation/ui-action.module.css",
-  "app/_components/foundation/ui-action.tsx",
-  "app/_components/foundation/ui-action-group.module.css",
-  "app/_components/foundation/ui-action-group.tsx"
-];
 
 function normalizedPath(file) {
   return file.replaceAll("\\", "/");
@@ -85,6 +80,11 @@ function changedFiles(baseRef) {
   return result.stdout.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
 }
 
+async function foundationFiles() {
+  const entries = await readdir(FOUNDATION_ROOT, { recursive: true });
+  return entries.map((entry) => normalizedPath(`${FOUNDATION_ROOT}/${entry}`));
+}
+
 async function readableFiles(files) {
   const output = [];
   for (const file of files) {
@@ -92,7 +92,7 @@ async function readableFiles(files) {
       await readFile(file, "utf8");
       output.push(normalizedPath(file));
     } catch (error) {
-      if (error?.code !== "ENOENT") throw error;
+      if (error?.code !== "ENOENT" && error?.code !== "EISDIR") throw error;
     }
   }
   return output;
@@ -117,7 +117,7 @@ export async function runUiStylelintGate({ baseRef = null, allFoundation = false
     throw new Error("Pass --base-ref <sha/ref> for PR changed-file enforcement or --all-foundation for the foundation smoke gate.");
   }
 
-  const candidates = allFoundation ? FOUNDATION_FILES : changedFiles(baseRef);
+  const candidates = allFoundation ? await foundationFiles() : changedFiles(baseRef);
   const files = (await readableFiles(candidates)).filter(isUiPath).filter((file) => file !== TOKEN_SOURCE);
   const violations = [];
   const styleFiles = [];

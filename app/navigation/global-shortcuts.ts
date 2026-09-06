@@ -1,4 +1,4 @@
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "story" | "library" | "community" | "settings" | "dashboard" | "build";
 
 export type GlobalShortcutAction =
   | { readonly kind: "workspace"; readonly workspace: RootWorkspace }
@@ -24,6 +24,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "library", key: "O", label: "Library", detail: "Stories", relic: "/assets/workflow-relics/library.svg", action: { kind: "workspace", workspace: "library" } },
   { id: "learn", key: "L", label: "Learn", detail: "Guides", relic: "/assets/workflow-relics/learn.webp", action: { kind: "workspace", workspace: "learn" } },
   { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", action: { kind: "workspace", workspace: "wyrmwood" } },
+  { id: "story", key: "Y", label: "STORY", detail: "Play", relic: "/assets/workflow-relics/game.webp", action: { kind: "workspace", workspace: "story" } },
   { id: "plan", key: "P", label: "Plan", detail: "Design", relic: "/assets/workflow-relics/plan.webp", action: { kind: "workspace", workspace: "plan" } },
   { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", action: { kind: "workspace", workspace: "build" } },
   { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", action: { kind: "route", href: "/storyboard" } },

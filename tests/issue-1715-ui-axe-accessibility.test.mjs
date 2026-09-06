@@ -46,15 +46,15 @@ test("#1715 axe coverage includes representative writer, game and STORY surfaces
 
 test("#1715 Phase 1B Visual Readiness installs axe only in temporary CI tooling and authenticates real route renders", async () => {
   const workflow = await source(".github/workflows/visual-readiness.yml");
-  const renderedRunner = await source("scripts/run-ui-rendered-verification.mjs");
   assert.match(workflow, /@axe-core\/playwright@4\.13\.0/);
   assert.match(workflow, /@playwright\/test@1\.63\.0/);
   assert.match(workflow, /\$\{\{ runner\.temp \}\}\/plotpickle-ui-a11y/);
-  assert.match(workflow, /scripts\/run-ui-rendered-verification\.mjs/);
+  assert.match(workflow, /establishVerificationSyntheticHuman/);
+  assert.match(workflow, /lib\/verification\/ui-axe-audit\.mjs/);
+  assert.match(workflow, /lib\/verification\/ui-experience-audit\.mjs/);
   assert.match(workflow, /--routes config\/ui-axe-routes\.json/);
-  assert.match(renderedRunner, /establishVerificationSyntheticHuman/);
-  assert.match(renderedRunner, /runUiAxeAudit/);
-  assert.match(renderedRunner, /storageStatePath: auth\.storageStatePath/);
+  assert.match(workflow, /--storage-state "\$STORAGE_STATE"/);
+  assert.doesNotMatch(workflow, /run-ui-rendered-verification\.mjs/);
 
   const packageJson = await source("package.json");
   assert.doesNotMatch(packageJson, /@axe-core\/playwright/);

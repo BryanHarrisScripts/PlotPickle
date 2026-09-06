@@ -31,10 +31,13 @@ test("UI audit does not create nested navigation landmarks for grouping divs", (
 
 test("UI audit does not invent controls or application roles", () => {
   assert.match(source, /finding\.criterion === 11 && \/<div/);
+  assert.match(source, /button functionality/);
+  assert.match(source, /use\\s\+\(\?:a\\s\+\)\?button/);
   assert.match(source, /onClick\|onKeyDown\|onKeyUp\|onPointerDown/);
   assert.match(source, /finding\.criterion === 15 && \/<video/);
   assert.match(source, /Native video controls expose their own accessible interaction model/);
   assert.match(source, /A non-interactive presentation container without an event handler is not a button/);
+  assert.match(source, /A wrapper div around real button descendants remains a non-interactive grouping container/);
 });
 
 test("UI audit resolves JSX variable ARIA references", () => {

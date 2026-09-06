@@ -42,6 +42,7 @@ test("#1722 routes the definitive sitemap through one forgiving-shell context ma
   assert.match(context, /pathname === "\/labs"/);
   for (const scope of ["plan", "storyboard", "feedback", "refine"]) assert.match(context, new RegExp(`${scope}: \\{`));
   assert.doesNotMatch(context, /"\/story"\s*:/, "STORY must keep its existing self-owned single shell");
+  assert.match(context, /"\/buzz"[\s\S]*rootContext: "collab"[\s\S]*contextId: "collab"/);
 });
 
 test("#1722 removes stale audit aliases and verifies all six areas plus Public\/Startup exceptions", async () => {
@@ -85,4 +86,19 @@ test("#1722 restores the Collab deep link without reviving the retired rich-proj
   }
   assert.match(entry, /profile-owned PPF/);
   assert.match(legacy, /PlotPickleProject/);
+});
+
+test("#1722 records the complete migration in the canonical sitemap without changing ownership rules", async () => {
+  const sitemap = await read("PLOTPICKLE-SITEMAP.txt");
+  assert.match(sitemap, /FORGIVING SHELL MIGRATION MAP/);
+  assert.match(sitemap, /Status: Phase 2B \/ issue #1722, 2026-09-06/);
+  for (const area of ["Home", "Create", "Produce", "Review", "Connect \/ Play", "Settings"]) assert.match(sitemap, new RegExp(area));
+  for (const topLevel of [
+    "00. Public / Startup", "01. Dashboard", "02. Library", "03. Learn", "04. Plan", "05. Build",
+    "06. STORY: THE UNWRITTEN", "07. Storyboard", "08. Previs / Graphic Novel", "09. Write", "10. Edit",
+    "11. Feedback", "12. Refine", "13. Reports", "14. Collaboration", "15. Wyrmwood", "16. Agents",
+    "17. Skills", "18. PPF / Project Authority", "19. Context / Story Graph", "20. AI Runtime", "21. Settings",
+  ]) assert.ok(sitemap.includes(topLevel), `Sitemap migration lost ${topLevel}`);
+  assert.match(sitemap, /Issue #1723 owns restoration of the full formal Collab UI/);
+  assert.match(sitemap, /EVERY CAPABILITY HAS ONE CANONICAL HOME/);
 });

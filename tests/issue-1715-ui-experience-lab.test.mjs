@@ -35,9 +35,12 @@ test("#1715 Phase 1D STORY zero state reads the canonical project and exposes on
   assert.match(workspace, /No active STORY session/);
   assert.match(workspace, /play never silently rewrites canon/i);
   assert.match(workspace, /useId/);
+  assert.match(workspace, /authorityTitleId = useId\(\)/);
   assert.match(workspace, /<dl className=\{styles\.context\}>/);
+  assert.match(workspace, /<aside className=\{styles\.reassurance\} aria-labelledby=\{authorityTitleId\}>/);
   assert.match(workspace, /embedded \? "h3" : "h1"/);
   assert.doesNotMatch(workspace, /id="story-(?:loop|pieces)-title"/);
+  assert.doesNotMatch(workspace, /aria-label="STORY authority boundary"/);
   assert.doesNotMatch(workspace, /saveStory|writeStory|canonAdmission|admit.*canon/i);
 });
 
@@ -47,6 +50,7 @@ test("#1715 Phase 1D STORY primitives expose semantic card and validator states 
   for (const state of ["available", "selected", "illegal", "loading", "partial", "error"]) assert.match(card, new RegExp(state));
   for (const label of ["ERROR", "WARNING", "NOTE", "PASS"]) assert.match(validator, new RegExp(label));
   assert.match(card, /STATE_LABELS/);
+  assert.match(card, /<p className=\{styles\.type\}>\{type\}<\/p>/);
   assert.match(validator, /SEVERITY_LABELS/);
   assert.doesNotMatch(card, /aria-disabled/);
   assert.doesNotMatch(validator, /role=\{severity/);

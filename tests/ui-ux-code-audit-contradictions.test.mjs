@@ -17,6 +17,12 @@ test("UI audit rejects preference wording and preserves named navigation landmar
   assert.match(source, /A named nav landmark is correct/);
 });
 
+test("UI audit rejects generic ARIA validity claims without a named aria attribute", () => {
+  assert.match(source, /function ariaClaimIsUnsubstantiated/);
+  assert.match(source, /return !\/\\baria-\[\\w-\]\+\\b\/i\.test\(combined\)/);
+  assert.match(source, /An ARIA validity issue must name the exact aria-\* attribute/);
+});
+
 test("UI audit does not invent controls or application roles", () => {
   assert.match(source, /finding\.criterion === 11 && \/<div/);
   assert.match(source, /onClick\|onKeyDown\|onKeyUp\|onPointerDown/);

@@ -71,12 +71,14 @@ test("#1719 shell exposes area, destination, context and primary-next UAT hooks 
   assert.doesNotMatch(shellSource, /data-navigation-gap-after|navigationBreakAfter|groupBreakCommunityGame|groupBreakPrevis|groupBreakReports/);
 });
 
-test("#1719 navigation CSS keeps top-level and destination targets at least 44px with Settings visually utility-scoped", () => {
-  assert.match(shellCss, /\.areaList button\s*\{[^}]*min-height:\s*44px;/s);
-  assert.match(shellCss, /\.destinationList button\s*\{[^}]*width:\s*64px;[^}]*min-height:\s*64px;/s);
+test("#1719 navigation CSS uses PlotPickle tokens while rendered UAT enforces at least 44px targets", () => {
+  assert.match(shellCss, /\.areaList button\s*\{[^}]*min-height:\s*44px;[^}]*padding:\s*var\(--pp-space-/s);
+  assert.match(shellCss, /\.destinationList button\s*\{[^}]*width:\s*64px;[^}]*min-height:\s*64px;[^}]*border-radius:\s*var\(--pp-radius-control\)/s);
   assert.match(shellCss, /\.utilityArea\s*\{[^}]*margin-left:\s*auto;/s);
-  assert.match(shellCss, /\.projectStrip\s*\{/);
-  assert.match(shellCss, /\.primaryNextAction\s*\{[^}]*min-height:\s*44px;/s);
+  assert.match(shellCss, /\.projectStrip\s*\{[^}]*gap:\s*var\(--pp-space-/s);
+  assert.match(shellCss, /\.primaryNextAction\s*\{[^}]*min-height:\s*44px;[^}]*font-size:\s*var\(--pp-text-xs\)/s);
+  assert.match(shellCss, /font-family:\s*var\(--pp-font-code\)/);
+  assert.doesNotMatch(shellCss, /#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.match(shellCss, /@media \(prefers-reduced-motion: reduce\)/);
 });
 

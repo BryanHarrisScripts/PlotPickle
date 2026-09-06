@@ -50,7 +50,7 @@ export function StoryZeroWorkspaceView({ model, embedded = false }: { model: Sto
         </div>
         <dl className={styles.context}>
           <dt>Project</dt>
-          <dd><span role="status">{hasProject ? model.project.title : model.kind === "loading" ? "Checking…" : "None selected"}</span></dd>
+          <dd>{hasProject ? model.project.title : model.kind === "loading" ? "Checking…" : "None selected"}</dd>
           <dt>Session</dt>
           <dd>No active STORY session</dd>
         </dl>

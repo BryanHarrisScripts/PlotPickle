@@ -40,14 +40,11 @@
 
 .type,
 .state {
+  margin: 0;
   color: var(--pp-muted);
   font-size: var(--pp-text-xs);
   letter-spacing: var(--pp-tracking-label);
   text-transform: uppercase;
-}
-
-.type {
-  margin: 0;
 }
 
 .card[data-story-piece-state="selected"] .state {

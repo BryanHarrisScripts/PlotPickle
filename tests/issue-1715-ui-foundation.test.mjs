@@ -55,6 +55,14 @@ test("#1715 Phase 1A blocks parallel inline/CSS-in-JS styling in migrated UI", (
   );
 });
 
+test("#1715 Phase 1A keeps the enforcement runner BEN-clean", async () => {
+  const runner = await source("scripts/ui-stylelint-gate.mjs");
+  assert.doesNotMatch(runner, /function\s+hasDocumentedExemption\s*\(/);
+  assert.doesNotMatch(runner, /function\s+argumentValue\s*\(/);
+  assert.match(runner, /STYLE_EXEMPTION_PATTERN\.test\(content\)/);
+  assert.match(runner, /const baseRefIndex = process\.argv\.indexOf\("--base-ref"\)/);
+});
+
 test("#1715 Phase 1A action primitive exposes hierarchy and 44px target semantics", async () => {
   const component = await source("app/_components/foundation/ui-action.tsx");
   const styles = await source("app/_components/foundation/ui-action.module.css");

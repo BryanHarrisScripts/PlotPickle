@@ -124,6 +124,45 @@ function navigateWorkspace(workspace: Workspace) {
   window.location.assign(href);
 }
 
+function openLearningApplication(topic: string, lessonId?: string) {
+  switch (topic) {
+    case "foundations":
+      navigateGuided("plan", "foundations", lessonId);
+      return;
+    case "world":
+      navigateGuided("plan", "world", lessonId);
+      return;
+    case "character":
+    case "theme":
+      navigateGuided("plan", "foundations");
+      return;
+    case "structure":
+      window.location.assign("/structure");
+      return;
+    case "visual-storytelling":
+      window.location.assign("/storyboard");
+      return;
+    case "drafting":
+    case "dialogue":
+      window.location.assign("/pageflow");
+      return;
+    case "revision":
+      window.location.assign("/edit");
+      return;
+    case "responsible-ai":
+      navigateWorkspace("settings");
+      return;
+    case "industry":
+      window.location.assign("/production");
+      return;
+    case "collaboration":
+      navigateWorkspace("collab");
+      return;
+    default:
+      navigateWorkspace("plan");
+  }
+}
+
 export default function Home() {
   const [workspace, setWorkspace] = useState<Workspace>("learn");
   const [storageReady, setStorageReady] = useState(false);
@@ -261,6 +300,7 @@ export default function Home() {
       <LearnWorkspace
         curriculum={plotPickleCurriculum}
         guide={memoryAwareSageGuide}
+        onApplyLearning={openLearningApplication}
         onOpenFoundationsPlan={openFoundationsPlan}
       />
       <MarqueeAgentOverlay curriculum={plotPickleCurriculum} />

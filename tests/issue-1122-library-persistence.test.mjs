@@ -131,7 +131,7 @@ test("#1122 quarantines a corrupt active snapshot and recovers another verified 
 
 test("#1122 mounts one canonical Library route, accessible filters, safe-switch copy, and forgiving-shell reachability", async () => {
   const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-  const [shortcuts, route, workspace, catalog, browserStore, coreStore, avery] = await Promise.all([
+  const [shortcuts, route, workspace, catalog, browserStore, coreStore, avery, sitemapContext, releaseBoundary] = await Promise.all([
     read("app/navigation/global-shortcuts.ts"),
     read("app/library/page.tsx"),
     read("modules/library/ui/library-workspace.tsx"),
@@ -139,11 +139,17 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
     read("core/storage/project-library-browser.ts"),
     read("core/storage/project-library-core.mjs"),
     read("modules/library/ui/avery-session-history/index.tsx"),
+    read("app/navigation/sitemap-route-context.ts"),
+    read("app/navigation/release-experience-boundary.tsx"),
   ]);
   assert.match(shortcuts, /id: "library", key: "O", label: "Library", detail: "Stories", relic: "\/assets\/workflow-relics\/library\.svg", area: "home", action: \{ kind: "workspace", workspace: "library" \}/);
   assert.match(shortcuts, /\{ id: "home", label: "Home"/);
   assert.match(shortcuts, /shortcutsForArea\(area: NavigationAreaId\)[\s\S]*WORKFLOW_SHORTCUTS\.filter/);
-  assert.match(route, /activeWorkspace="library"/);
+  assert.match(route, /<LibraryWorkspace\s*\/>/);
+  assert.doesNotMatch(route, /PlotPickleWorkspaceShell/);
+  assert.match(sitemapContext, /"\/library":\s*\{[\s\S]*?activeShortcutId:\s*"library"[\s\S]*?rootContext:\s*"library"[\s\S]*?area:\s*"home"/);
+  assert.match(releaseBoundary, /sitemapShellTarget\(pathname,\s*window\.location\.search\)/);
+  assert.match(releaseBoundary, /<PlotPickleWorkspaceShell[\s\S]*?activeWorkspace=\{shellTarget\.rootContext\}/);
   assert.match(workspace, /Featured Examples/);
   assert.match(workspace, /Genre Presets/);
   assert.match(workspace, /My Stories/);

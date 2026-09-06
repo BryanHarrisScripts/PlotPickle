@@ -67,18 +67,18 @@ test("#1715 Phase 1D state gallery uses real production components and hostile f
   assert.match(gallery, /data-ui-experience-probe/);
 });
 
-test("#1715 Phase 1D lab is hidden by default and enabled through the proven Vite startup contract", async () => {
+test("#1715 Phase 1D lab is dev-only using Vite native mode with no custom startup plumbing", async () => {
   const page = await source("app/ui-lab/page.tsx");
   const workflow = await source(".github/workflows/visual-readiness.yml");
   const viteConfig = await source("vite.config.ts");
   const startupTypes = await source("startup-contract.d.ts");
-  assert.match(page, /!__PLOTPICKLE_UI_LAB_ENABLED__/);
+  assert.match(page, /!import\.meta\.env\.DEV/);
   assert.match(page, /notFound\(\)/);
   assert.doesNotMatch(page, /process\.env/);
-  assert.match(viteConfig, /__PLOTPICKLE_UI_LAB_ENABLED__:\s*JSON\.stringify\(process\.env\.PLOTPICKLE_UI_LAB === "1"\)/);
-  assert.match(startupTypes, /declare const __PLOTPICKLE_UI_LAB_ENABLED__: boolean/);
-  assert.match(workflow, /Enforce rendered accessibility and experience guardrails[\s\S]*PLOTPICKLE_UI_LAB:\s*"1"/);
-  assert.equal((workflow.match(/PLOTPICKLE_UI_LAB:/g) || []).length, 1);
+  assert.doesNotMatch(page, /__PLOTPICKLE_UI_LAB_ENABLED__/);
+  assert.doesNotMatch(viteConfig, /__PLOTPICKLE_UI_LAB_ENABLED__/);
+  assert.doesNotMatch(startupTypes, /__PLOTPICKLE_UI_LAB_ENABLED__/);
+  assert.doesNotMatch(workflow, /PLOTPICKLE_UI_LAB/);
 });
 
 test("#1715 Phase 1D browser gate enforces CLS, 200% stress, long content and reduced motion", async () => {

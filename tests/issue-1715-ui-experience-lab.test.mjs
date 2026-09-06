@@ -35,11 +35,12 @@ test("#1715 Phase 1D STORY zero state reads the canonical project and exposes on
   assert.match(workspace, /No active STORY session/);
   assert.match(workspace, /play never silently rewrites canon/i);
   assert.match(workspace, /<dl className=\{styles\.context\}>/);
-  assert.match(workspace, /<dd aria-live="polite">/);
+  assert.match(workspace, /<span role="status">/);
   assert.match(workspace, /<aside className=\{styles\.reassurance\}>/);
   assert.match(workspace, /<SectionHeading>Play safely\.<\/SectionHeading>/);
   assert.match(workspace, /embedded \? "h3" : "h1"/);
   assert.doesNotMatch(workspace, /useId/);
+  assert.doesNotMatch(workspace, /aria-live=/);
   assert.doesNotMatch(workspace, /aria-labelledby/);
   assert.doesNotMatch(workspace, /aria-label="STORY authority boundary"/);
   assert.doesNotMatch(workspace, /saveStory|writeStory|canonAdmission|admit.*canon/i);

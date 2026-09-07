@@ -35,9 +35,10 @@ test("#1734 preserves Settings as the distinct far-right area and keeps project 
 });
 
 test("#1734 defines the approved shell palette centrally and consumes tokens only in shell CSS", async () => {
-  const [tokens, css] = await Promise.all([
+  const [tokens, css, gate] = await Promise.all([
     read("app/design-tokens.css"),
     read("app/plotpickle-workspace-shell.module.css"),
+    read("scripts/ui-stylelint-gate.mjs"),
   ]);
   for (const token of [
     "--pp-shell-bronze: #c19a6b", "--pp-shell-bronze-deep: #8c6d3d", "--pp-shell-moss: #4b6e4f",
@@ -49,6 +50,7 @@ test("#1734 defines the approved shell palette centrally and consumes tokens onl
   assert.match(css, /var\(--pp-shell-jade\)/u);
   assert.match(css, /var\(--pp-shell-rune\)/u);
   assert.match(css, /font-family:\s*var\(--pp-font-navigation\)/u);
+  assert.match(gate, /body\|display\|code\|interface\|navigation\|lore/u);
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(/iu);
 });
 

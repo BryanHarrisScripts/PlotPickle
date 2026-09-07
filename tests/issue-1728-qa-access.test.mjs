@@ -46,6 +46,29 @@ test("#1728 opens World PLAN for QA while its canonical state and prior-stage ev
   assert.match(worldPlan, /Open World BUILD · QA/);
 });
 
+test("#1728 opens Foundations and World BUILD workshops for QA but keeps generation and PPF review mutations protected", async () => {
+  const [foundationsBuild, worldBuild] = await Promise.all([
+    read("modules/build/ui/foundations-build-workspace.tsx"),
+    read("modules/build/ui/world-build-workspace.tsx"),
+  ]);
+
+  for (const source of [foundationsBuild, worldBuild]) {
+    assert.match(source, /const canonicalUnlocked = .*\.build !== "locked"/);
+    assert.match(source, /const workspaceAccessible = hasQaWorkspaceAccess\(canonicalUnlocked\)/);
+    assert.match(source, /const qaOnlyAccess = isQaAccessOverride\(canonicalUnlocked\)/);
+    assert.match(source, /if \(!canonicalUnlocked \|\| generating \|\| !plans\.length\) return/);
+    assert.match(source, /if \(qaOnlyAccess\) return/);
+    assert.match(source, /disabled=\{qaOnlyAccess \|\| generating/);
+    assert.match(source, /provider calls|Provider calls/);
+    assert.match(source, /PPF visual acceptance/);
+  }
+
+  assert.match(foundationsBuild, /Finish PLAN before BUILD/);
+  assert.match(foundationsBuild, /Generate requires Foundations PLAN/);
+  assert.match(worldBuild, /Finish World PLAN before BUILD/);
+  assert.match(worldBuild, /Generate requires World PLAN/);
+});
+
 test("#1728 opens Storyboard inspection but does not let QA access silently Keep an unearned canonical visual", async () => {
   const [workspace, editorial] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),

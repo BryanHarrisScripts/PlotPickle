@@ -53,7 +53,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", area: "connect", action: { kind: "workspace", workspace: "community" } },
   { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", area: "connect", action: { kind: "workspace", workspace: "wyrmwood" } },
   { id: "settings", key: "T", label: "Settings", detail: "Config", relic: "/assets/workflow-relics/settings.svg", area: "settings", action: { kind: "workspace", workspace: "settings" } },
-  { id: "profile", key: "H", label: "Profile", detail: "Human identity", relic: "/assets/workflow-relics/community.svg", action: { kind: "profile" } },
+  { id: "profile", key: "H", label: "Profile", detail: "Human identity", relic: "/assets/workflow-relics/profile.svg", action: { kind: "profile" } },
 ] as const;
 
 export const WORKFLOW_SHORTCUTS = GLOBAL_SHORTCUTS.filter((shortcut) => !["node", "profile"].includes(shortcut.id));

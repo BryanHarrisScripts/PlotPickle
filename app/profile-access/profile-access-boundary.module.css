@@ -6,6 +6,7 @@
   overflow: hidden;
   padding: var(--pp-space-8);
   background:
+    url("/assets/plotpickle-system/login-chamber.svg") center / cover no-repeat,
     repeating-linear-gradient(to bottom, var(--pp-profile-scanline) 0 1px, transparent 1px var(--pp-space-1)),
     radial-gradient(circle at 50% 0%, var(--pp-profile-glow), transparent 40rem),
     var(--pp-profile-night);
@@ -16,24 +17,31 @@
 .boundary::before {
   content: "";
   position: absolute;
-  inset: var(--pp-space-4);
+  inset: var(--pp-space-10);
   pointer-events: none;
-  border: 1px solid var(--pp-profile-hud-line);
-  border-radius: var(--pp-radius-profile-card);
+  border: 1px solid var(--pp-system-metal-deep);
+  border-radius: var(--pp-radius-panel);
+  box-shadow: inset 0 0 var(--pp-space-12) var(--pp-profile-shadow), 0 0 var(--pp-space-6) var(--pp-profile-glow);
 }
 
 .card {
-  width: min(680px, 100%);
+  width: min(760px, 100%);
   position: relative;
   z-index: 1;
   display: grid;
   gap: var(--pp-space-5);
-  padding: var(--pp-space-8);
+  padding: var(--pp-space-12) calc(var(--pp-space-12) + var(--pp-space-4));
   border: 1px solid var(--pp-profile-casper);
   border-radius: var(--pp-radius-profile-card);
   background: var(--pp-profile-mystic);
+  background-image:
+    linear-gradient(to bottom, color-mix(in srgb, var(--pp-system-panel-raised) 72%, transparent), color-mix(in srgb, var(--pp-system-canvas) 92%, transparent)),
+    url("/assets/plotpickle-system/login-panel-frame.svg");
+  background-position: center, center;
+  background-size: auto, 100% 100%;
+  background-repeat: no-repeat;
   color: var(--pp-profile-ink);
-  box-shadow: var(--pp-profile-card-shadow);
+  box-shadow: var(--pp-profile-card-shadow), 0 0 var(--pp-space-12) var(--pp-profile-glow);
 }
 
 .card::before {
@@ -42,7 +50,7 @@
   display: flex;
   align-items: center;
   padding: var(--pp-space-3) var(--pp-space-4) var(--pp-space-3) var(--pp-space-12);
-  border: 1px solid var(--pp-profile-hud-line);
+  border: 1px solid var(--pp-system-metal-deep);
   border-radius: var(--pp-radius-profile-control);
   background:
     url("/assets/workflow-relics/profile.svg") var(--pp-space-3) center / var(--pp-control-height-md) var(--pp-control-height-md) no-repeat,
@@ -57,13 +65,56 @@
 }
 
 .card::after {
-  content: "LOCAL NODE // HUMAN VAULT";
-  justify-self: end;
-  color: var(--pp-profile-juniper-strong);
+  content: "LOCAL NODE  //  HUMAN VAULT  //  ENCRYPTED  //  READY";
+  justify-self: stretch;
+  padding-top: var(--pp-space-3);
+  border-top: 1px solid var(--pp-system-metal-deep);
+  color: var(--pp-profile-status);
   font-family: var(--pp-font-code);
   font-size: var(--pp-text-xs);
   font-weight: 700;
   letter-spacing: var(--pp-tracking-label);
+  text-align: center;
+}
+
+.brand {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--pp-control-height-lg) 1fr auto;
+  gap: var(--pp-space-3);
+  align-items: center;
+  padding: var(--pp-space-3) var(--pp-space-4);
+  border-block: 1px solid var(--pp-system-metal-deep);
+  background: linear-gradient(90deg, transparent, var(--pp-system-panel-raised), transparent);
+}
+
+.brand > span {
+  width: var(--pp-control-height-lg);
+  height: var(--pp-control-height-lg);
+  background: url("/assets/workflow-relics/profile.svg") center / contain no-repeat;
+  filter: drop-shadow(0 0 var(--pp-space-2) var(--pp-profile-glow));
+}
+
+.brand > div {
+  display: grid;
+}
+
+.brand strong {
+  color: var(--pp-system-metal);
+  font-family: var(--pp-font-lore);
+  font-size: calc(var(--pp-text-lg) * 1.45);
+  line-height: var(--pp-leading-tight);
+  letter-spacing: var(--pp-tracking-title);
+}
+
+.brand small,
+.brand p {
+  color: var(--pp-profile-status);
+  font-family: var(--pp-font-code);
+  font-size: var(--pp-text-xs);
+  font-weight: 800;
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
 }
 
 .card h1,
@@ -72,11 +123,12 @@
 }
 
 .card h1 {
-  color: var(--pp-profile-ink);
+  color: var(--pp-system-gilding);
   font-family: var(--pp-font-lore);
   font-size: calc(var(--pp-text-lg) * 1.85);
   line-height: var(--pp-leading-tight);
   letter-spacing: var(--pp-tracking-title);
+  text-shadow: 0 1px 0 var(--pp-system-canvas), 0 0 var(--pp-space-3) var(--pp-profile-glow);
 }
 
 .card p,
@@ -122,7 +174,7 @@
   padding: var(--pp-space-3) var(--pp-space-4);
   border: 1px solid var(--pp-profile-casper);
   border-radius: var(--pp-radius-profile-control);
-  background: var(--pp-profile-paper);
+  background: var(--pp-system-stone-deep);
   color: var(--pp-profile-ink);
   font: inherit;
   transition: border-color var(--pp-motion-fast), background var(--pp-motion-fast);
@@ -164,7 +216,7 @@
   padding: var(--pp-space-2) var(--pp-space-4);
   border: 1px solid var(--pp-profile-casper);
   border-radius: var(--pp-radius-profile-control);
-  background: var(--pp-profile-paper);
+  background: var(--pp-system-panel-raised);
   color: var(--pp-profile-juniper-strong);
   font-family: var(--pp-font-interface);
   font-size: var(--pp-text-sm);
@@ -189,7 +241,8 @@ form .actions button[type="submit"],
 .field:has(textarea) + .actions button:first-child {
   border-color: var(--pp-profile-juniper-strong);
   background: var(--pp-profile-juniper);
-  color: var(--pp-profile-paper);
+  color: var(--pp-system-text);
+  box-shadow: inset 0 0 var(--pp-space-3) var(--pp-profile-glow), 0 0 var(--pp-space-3) var(--pp-profile-glow);
 }
 
 form .actions button[type="submit"]:hover:not(:disabled),
@@ -227,7 +280,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
   padding: var(--pp-space-3);
   border: 1px solid var(--pp-profile-casper);
   border-radius: var(--pp-radius-profile-control);
-  background: var(--pp-profile-paper);
+  background: var(--pp-system-panel-raised);
   color: var(--pp-profile-ink);
   font-family: var(--pp-font-interface);
   text-align: left;
@@ -246,7 +299,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
   display: grid;
   place-items: center;
   border: 1px solid var(--pp-profile-casper);
-  border-radius: var(--pp-radius-profile-card);
+  border-radius: var(--pp-radius-panel);
   background: var(--pp-profile-jungle-mist);
   color: var(--pp-profile-juniper-strong);
   font-family: var(--pp-font-code);
@@ -512,7 +565,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
 
   .card {
     gap: var(--pp-space-4);
-    padding: var(--pp-space-6);
+    padding: var(--pp-space-10) var(--pp-space-6) var(--pp-space-8);
   }
 
   .card::before {
@@ -523,6 +576,14 @@ form .actions button[type="submit"]:hover:not(:disabled),
 
   .card h1 {
     font-size: calc(var(--pp-text-lg) * 1.55);
+  }
+
+  .brand {
+    grid-template-columns: var(--pp-control-height-lg) 1fr;
+  }
+
+  .brand p {
+    display: none;
   }
 
   .activeHuman {

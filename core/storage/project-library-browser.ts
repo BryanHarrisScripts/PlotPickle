@@ -7,7 +7,7 @@ import {
   createEmptyStoryStructureV2,
   normalizeStoryStructureV2,
   type StoryStructureV2,
-} from "../contracts/story-structure-v2";
+} from "../project/story-structure-v2";
 import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../project/project";
 import * as libraryCore from "./project-library-core.mjs";
 

@@ -3,18 +3,18 @@ import { resultText } from "./creative-uat/mcp-runtime.mjs";
 
 export const EXPECTED_NAVIGATION_AREAS = [
   { id: "home", label: "Home", members: ["dashboard", "library"] },
-  { id: "create", label: "Create", members: ["learn", "plan", "build"] },
+  { id: "create", label: "Create", members: ["story-map", "plan", "build"] },
   { id: "produce", label: "Produce", members: ["storyboard", "graphic-novel", "write", "edit"] },
   { id: "review", label: "Review", members: ["feedback", "refine", "reports"] },
   { id: "connect", label: "Connect / Play", members: ["community", "wyrmwood"] },
-  { id: "settings", label: "Settings", members: ["settings"] },
+  { id: "settings", label: "Settings", members: ["settings", "learn"] },
 ];
 
 export const EXPECTED_NAVIGATION_IDS = EXPECTED_NAVIGATION_AREAS.flatMap((area) => area.members);
 export const EXPECTED_NAVIGATION_LABELS = [
   "Dashboard",
   "Library",
-  "Learn",
+  "Story Map",
   "Plan",
   "Build",
   "Storyboard",
@@ -27,6 +27,7 @@ export const EXPECTED_NAVIGATION_LABELS = [
   "Community",
   "Wyrmwood",
   "Settings",
+  "Learn",
 ];
 export const EXPECTED_NAVIGATION_GAPS = [];
 

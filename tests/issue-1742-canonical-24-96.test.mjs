@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 async function structureModule() {
-  const typescript = await source("core/contracts/story-structure-v2.ts");
+  const typescript = await source("core/project/story-structure-v2.ts");
   const compiled = ts.transpileModule(typescript, {
     compilerOptions: {
       module: ts.ModuleKind.ES2022,

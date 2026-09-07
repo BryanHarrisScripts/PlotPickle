@@ -1,0 +1,160 @@
+name: PR Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-gate:
+    name: PR Gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact head with full history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: npm
+
+      - name: Install dependencies once
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate LEARN and Visual Writer contracts
+        run: |
+          npm run validate:learn
+          node --test tests/guided-progression-engine.test.mjs tests/issue-1030-visual-writer-progression.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs tests/issue-1030c-world-vertical-slice.test.mjs tests/issue-1030d-avery-dashboard-frontier.test.mjs tests/issue-653-writer-in-residence.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1047-release-history.test.mjs tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
+
+      - name: Validate Agent, trust, PPF, graph and responsibility contracts
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-1005-ben-code-quality.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-962-agent-profiles.test.mjs tests/community-agent-roster.test.mjs tests/issue-963-context-engine.test.mjs tests/issue-964-revision-aware-ppf.test.mjs tests/issue-965-connector-trust-policy.test.mjs tests/issue-1013-plotpickle-node-topology.test.mjs tests/issue-1016-lazy-frames-animatic.test.mjs tests/issue-966-responsibility-runs.test.mjs tests/issue-1416-story-workflow-engine.test.mjs tests/issue-967-safe-graph-workflows.test.mjs tests/issue-989-verification-execution-graph.test.mjs tests/issue-999-story-knowledge-graph.test.mjs tests/issue-968-run-telemetry-evals.test.mjs tests/issue-969-local-backup-trust-docs.test.mjs
+
+      - name: Validate navigation, Settings, Community and focused verification contracts
+        run: node --test tests/issue-971-buzz-specialist-agents.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/sage-brinewick-agent-skill.test.mjs tests/creative-uat-mcp-runtime.test.mjs tests/exhaustive-ui-harness-boundary.test.mjs tests/issues-940-941-community-observable-actions.test.mjs tests/issue-1010-community-backdoor-terminal.test.mjs tests/issue-1044-verification-community-bbs.test.mjs tests/issue-1046-buzz-node-settings-colours.test.mjs tests/issue-1066-community-three-column-shell.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs tests/issue-1377-unified-ai-compute-settings.test.mjs tests/issue-1256-navigation-settings-ia.test.mjs tests/issue-1111-settings-unified-workspace.test.mjs tests/issue-1105-settings-dark-surface-regression.test.mjs tests/learn-sage-settings-entry.test.mjs tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-974-startup-health-contract.test.mjs tests/comfyui-live-verification.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs tests/issue-1026-comfyui-runtime-settings.test.mjs tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs tests/issue-931-verification-orchestration.test.mjs tests/issue-1008-windows-verification-resilience.test.mjs tests/issue-1031-full-verification-watchdog.test.mjs tests/issue-622-uat-autopilot.test.mjs tests/core-readme-direction.test.mjs tests/afterglow-revision-ppf.test.mjs
+
+      - name: Validate BUILD, Story Workbench and Story Decision contracts
+        run: node --test tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1338-screenplay-to-ppf-utility.test.mjs tests/issue-1338-library-import-archive.test.mjs tests/dashboard-foundations-progression.test.mjs tests/issue-114-build-workspace.test.mjs tests/issue-351-build-health-map.test.mjs tests/issue-1419-story-workbench.test.mjs tests/issue-1420-workbench-visual-impact.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1421-afterglow-convergence.test.mjs tests/issue-1553-autonomous-convergence-restart.test.mjs tests/issue-1553-application-lifecycle.test.mjs tests/issue-1553-application-lifecycle-doc.test.mjs tests/issue-1418-story-decisions.test.mjs tests/issue-1418-story-decisions-workflow-source.test.mjs tests/issue-1417-story-council.test.mjs tests/foundation-architecture.test.mjs tests/issue-1122-library-persistence.test.mjs tests/issue-1142-server-session-boundary.test.mjs
+
+      - name: Validate hardware-aware local AI contracts
+        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/issue-1001-hardware-model-catalog.test.mjs tests/issue-1018-rag-python-comfy-repair-order.test.mjs tests/issue-1020-python-probe-native-stderr.test.mjs tests/issue-1022-sdxl-starter-checkpoint.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs tests/issue-1230-full-verification-closeout.test.mjs tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-927-studio-identity.test.mjs tests/issue-928-playhouse-federation.test.mjs tests/issue-929-connected-studios.test.mjs
+
+      - name: Parse Windows verification and hardware scripts
+        shell: pwsh
+        run: |
+          foreach ($path in @(
+            "scripts/run-plotpickle-full-check.ps1",
+            "scripts/windows-companion-software.ps1",
+            "scripts/windows-companion-maintenance-after-ready.ps1",
+            "scripts/install-local-ai-tool.ps1",
+            "scripts/install-buzz-desktop.ps1",
+            "scripts/start-comfyui-background.ps1",
+            "scripts/comfyui-managed-instance-core.ps1",
+            "scripts/configure-hardware-aware-local-ai.ps1",
+            "scripts/install-comfyui-sdxl-starter.ps1"
+          )) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "${path}: $($_.Message)" }
+              exit 1
+            }
+          }
+
+      - name: Exercise managed ComfyUI fixture
+        shell: pwsh
+        run: |
+          . ./scripts/comfyui-managed-instance-core.ps1
+          $root = Join-Path $env:RUNNER_TEMP "plotpickle-comfy-managed"
+          $engine = Join-Path $root "Demo/ComfyUI"
+          $venv = Join-Path $engine ".venv"
+          $site = Join-Path $venv "Lib/site-packages"
+          New-Item -ItemType Directory -Force -Path $site, (Join-Path $venv "bin") | Out-Null
+          Set-Content -LiteralPath (Join-Path $engine "main.py") -Value "# fixture"
+          Set-Content -LiteralPath (Join-Path $venv "bin/python") -Value "fixture"
+          Set-Content -LiteralPath (Join-Path $venv "pyvenv.cfg") -Value "version = 3.13.12"
+          foreach ($name in @("torch-2.10.0+cu126.dist-info", "torchvision-0.25.0+cu126.dist-info", "torchaudio-2.10.0+cu126.dist-info")) {
+            New-Item -ItemType Directory -Force -Path (Join-Path $site $name) | Out-Null
+          }
+          $instances = @(Get-ComfyManagedInstances -Roots @($root))
+          if ($instances.Count -ne 1 -or $instances[0].State -ne "installed") { throw "Managed fixture was not recognized as installed." }
+          $stack = Get-ComfyManagedEnvironmentStack -Instance $instances[0]
+          if (-not (Test-ComfyPascalCu126Stack -Stack $stack)) { throw "Reviewed Pascal cu126 stack was not recognized." }
+
+      - name: Validate profile, auth and private-storage contracts
+        run: |
+          npm run test:profile-experience
+          npm run test:auth-core
+          npm run test:profile-vault
+          npm run test:profile-storage
+          npm run test:server-session
+          node --test tests/issue-1210-ui-housekeeping.test.mjs tests/issue-1212-profile-buzz-identity.test.mjs tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1279-official-agents-lore-avatar.test.mjs tests/issue-1404-community-edge-navigation.test.mjs
+
+      - name: Validate BUZZ Guildhall contracts
+        run: |
+          node --check scripts/agent-skills.mjs
+          node --check scripts/agent-skill-procedures.mjs
+          node --check scripts/bootstrap-buzz-guildhall.mjs
+          node --check build/post-buzz-guildhall-event.mjs
+          node --check scripts/buzz-live-activity.mjs
+          node --check scripts/verify-buzz-live-activity.mjs
+          node --check scripts/writer-in-residence-runtime-recovery.mjs
+          node --check scripts/report-writer-in-residence.mjs
+          node --check scripts/report-uat-findings.mjs
+          node --check scripts/run-uat-closed-loop.mjs
+          node --check scripts/run-semantic-uat-repair.mjs
+          node --test tests/issue-1028-settings-help.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-1222-buzz-real-machine-regression.test.mjs tests/issue-1130-buzz-local-backbone.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/community-workspace.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1444-story-room-identity.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+
+      - name: Validate repository architecture
+        run: |
+          node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1650-lifecycle-presentation.test.mjs tests/issue-1650-autonomous-reference-presentation.test.mjs tests/issue-1650-lifecycle-reference-report.test.mjs tests/issue-1651-responsibility-bridge-retirement.test.mjs tests/issue-1220-architecture-health.test.mjs
+          node scripts/developer-diagnostics/architecture/repository-architecture-enforcement.mjs --base-ref "${{ github.event.pull_request.base.sha || github.sha }}"
+          node scripts/repository-architecture-inventory.mjs
+          node scripts/architecture-health-audit.mjs
+
+      - name: Validate BEN and run deterministic slop delta
+        run: |
+          node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs tests/issue-1239-local-uat-current-shell.test.mjs tests/issue-396-storyboard-exploration.test.mjs tests/issue-1165-structured-storyboard-shot.test.mjs tests/issue-1166-storyboard-blocking-advisories.test.mjs tests/issue-1286-casebook-business-case-registry.test.mjs tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1236-casebook-live-verifiers.test.mjs tests/issue-1236-casebook-profile-isolation-live.test.mjs tests/issue-1236-casebook-phase3b3.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+          else
+            node scripts/run-ben-code-quality.mjs
+          fi
+
+      - name: Validate autonomous QA campaign contracts
+        run: node --test tests/issue-1571-autonomous-qa-*.test.mjs
+
+      - name: Run focused UAT contracts
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .artifacts/uat-focused
+          node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused 2>&1 | tee .artifacts/uat-focused/contracts-console.log
+
+      - name: Production build once
+        run: npm run build
+
+      - name: Upload PR Gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-gate-${{ github.run_id }}
+          path: |
+            .artifacts/uat-focused
+            .artifacts/ben-code-quality
+            .artifacts/architecture-health
+            .artifacts/repository-architecture
+          if-no-files-found: warn
+          retention-days: 5

@@ -16,16 +16,16 @@ const shellCss = await readFile(new URL("../app/plotpickle-workspace-shell.modul
 
 const canonicalAreas = [
   { id: "home", label: "Home", members: ["dashboard", "library"] },
-  { id: "create", label: "Create", members: ["learn", "plan", "build"] },
+  { id: "create", label: "Create", members: ["story-map", "plan", "build"] },
   { id: "produce", label: "Produce", members: ["storyboard", "graphic-novel", "write", "edit"] },
   { id: "review", label: "Review", members: ["feedback", "refine", "reports"] },
   { id: "connect", label: "Connect / Play", members: ["community", "wyrmwood"] },
-  { id: "settings", label: "Settings", members: ["settings"] },
+  { id: "settings", label: "Settings", members: ["settings", "learn"] },
 ];
 const canonicalIds = canonicalAreas.flatMap((area) => area.members);
 const canonicalLabels = [
-  "Dashboard", "Library", "Learn", "Plan", "Build", "Storyboard", "Previs", "Write", "Edit",
-  "Feedback", "Refine", "Reports", "Community", "Wyrmwood", "Settings",
+  "Dashboard", "Library", "Story Map", "Plan", "Build", "Storyboard", "Previs", "Write", "Edit",
+  "Feedback", "Refine", "Reports", "Community", "Wyrmwood", "Settings", "Learn",
 ];
 
 function sourceNavigationItems(source) {

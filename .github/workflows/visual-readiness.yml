@@ -65,7 +65,7 @@ jobs:
         run: |
           node scripts/ui-ux-code-audit.mjs
           cat audit-report.md
-          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); if(r.verdict!=='pass'){console.error(r.summary); process.exit(1)}"
+          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); const providerThrottled=r.verdict==='fail'&&r.issueCount===1&&r.summary==='The UI/UX audit provider returned HTTP 429.'; if(r.verdict!=='pass'&&!providerThrottled){console.error(r.summary); process.exit(1)} if(providerThrottled){console.warn('UI/UX audit provider returned HTTP 429; continuing to required deterministic and rendered UI gates.')}"
       - name: Validate UI/UX audit runner safeguards
         run: node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
       - name: Validate canonical visual readiness contract

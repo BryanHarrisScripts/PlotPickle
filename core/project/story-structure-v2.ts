@@ -2,12 +2,14 @@ export const STORY_STRUCTURE_V2_VERSION = 1 as const;
 export const STORY_BLOCK_COUNT = 24 as const;
 export const MINI_BLOCKS_PER_BLOCK = 4 as const;
 export const STORY_MINI_BLOCK_COUNT = STORY_BLOCK_COUNT * MINI_BLOCKS_PER_BLOCK;
+export const STORY_ACT_COUNT = 4 as const;
 
 export const STORY_WORKFLOW_STATES = ["locked", "available", "incomplete", "ready", "accepted"] as const;
-export const STORY_WORKFLOW_STAGES = ["plan", "build", "write", "storyboard"] as const;
+export const STORY_WORKFLOW_STAGES = ["plan", "build", "storyboard"] as const;
 
 export type StoryWorkflowState = (typeof STORY_WORKFLOW_STATES)[number];
 export type StoryWorkflowStage = (typeof STORY_WORKFLOW_STAGES)[number];
+export type StoryActNumber = 1 | 2 | 3 | 4;
 
 export type StoryStageState = {
   readonly state: StoryWorkflowState;
@@ -28,7 +30,7 @@ export type StoryMiniBlockV2 = {
 export type StoryBlockV2 = {
   readonly id: string;
   readonly number: number;
-  readonly actNumber: number;
+  readonly actNumber: StoryActNumber;
   readonly sequenceNumber: number;
   readonly title: string;
   readonly miniBlocks: readonly StoryMiniBlockV2[];
@@ -42,7 +44,7 @@ export type StoryStructureV2 = {
   readonly blocks: readonly StoryBlockV2[];
 };
 
-function blockAct(number: number) {
+function blockAct(number: number): StoryActNumber {
   if (number <= 6) return 1;
   if (number <= 12) return 2;
   if (number <= 18) return 3;
@@ -76,7 +78,6 @@ function createMiniBlock(blockNumber: number, ordinal: number, blockUnlocked: bo
     stages: {
       plan: createStage(blockUnlocked ? "available" : "locked"),
       build: createStage("locked"),
-      write: createStage("locked"),
       storyboard: createStage("locked"),
     },
   };
@@ -162,8 +163,7 @@ function normalizeMiniBlock(
   const stages = record(miniSource.stages);
   const plan = normalizeStage(stages.plan, blockUnlocked);
   const build = normalizeStage(stages.build, blockUnlocked && plan.state === "accepted");
-  const write = normalizeStage(stages.write, blockUnlocked && build.state === "accepted");
-  const storyboard = normalizeStage(stages.storyboard, blockUnlocked && write.state === "accepted");
+  const storyboard = normalizeStage(stages.storyboard, blockUnlocked && build.state === "accepted");
 
   return {
     id: miniId(number),
@@ -171,7 +171,7 @@ function normalizeMiniBlock(
     blockNumber,
     ordinal,
     title: text(miniSource.title, 160).trim() || `Mini-Block ${String(number).padStart(2, "0")}`,
-    stages: { plan, build, write, storyboard },
+    stages: { plan, build, storyboard },
   };
 }
 

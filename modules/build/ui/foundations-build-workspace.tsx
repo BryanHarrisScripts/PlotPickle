@@ -9,6 +9,7 @@ import {
 } from "../../../core/contracts/foundation-plan";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import type { PPFProject } from "../../../core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "../../../core/progression/qa-access";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
@@ -109,7 +110,9 @@ export default function FoundationsBuildWorkspace({
     return <main className={styles.screen}>Opening Foundations BUILD…</main>;
   }
 
-  const unlocked = progression.build !== "locked";
+  const canonicalUnlocked = progression.build !== "locked";
+  const workspaceAccessible = hasQaWorkspaceAccess(canonicalUnlocked);
+  const qaOnlyAccess = isQaAccessOverride(canonicalUnlocked);
   const artifacts = project.build.foundations.visualArtifacts;
   const acceptedIds = project.build.foundations.acceptedVisualArtifactIds;
   const latestByFrame = latestFrameArtifacts(artifacts);
@@ -138,7 +141,7 @@ export default function FoundationsBuildWorkspace({
   };
 
   const generateFrames = async (plans: readonly FoundationsWireframeFramePlan[]) => {
-    if (!unlocked || generating || !plans.length) return;
+    if (!canonicalUnlocked || generating || !plans.length) return;
     if (manualRoute) {
       setMessage("Manual image mode is selected. Choose ComfyUI, Ollama + ComfyUI, or a configured cloud image provider in Settings before generating.");
       return;
@@ -203,6 +206,7 @@ export default function FoundationsBuildWorkspace({
   };
 
   const acceptArtifact = (artifact: FoundationsVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({
       type: "foundations.visual.accept",
       artifactId: artifact.id,
@@ -212,6 +216,7 @@ export default function FoundationsBuildWorkspace({
   };
 
   const unacceptArtifact = (artifact: FoundationsVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({
       type: "foundations.visual.unaccept",
       artifactId: artifact.id,
@@ -221,6 +226,7 @@ export default function FoundationsBuildWorkspace({
   };
 
   const rejectArtifact = (artifact: FoundationsVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({
       type: "foundations.visual.discard",
       artifactId: artifact.id,
@@ -232,18 +238,20 @@ export default function FoundationsBuildWorkspace({
   return (
     <main className={styles.screen} aria-label="Foundations BUILD">
       <section className={styles.workspace}>
-        <aside className={`${styles.rail} ${!unlocked ? styles.locked : ""}`.trim()} aria-label="Foundations BUILD progress">
+        <aside className={`${styles.rail} ${!canonicalUnlocked ? styles.locked : ""}`.trim()} aria-label="Foundations BUILD progress">
           <p className={styles.kicker}>BUILD · Foundations</p>
-          <h1>{unlocked ? "Sketch the story you have earned so far." : "Finish PLAN before BUILD."}</h1>
+          <h1>{canonicalUnlocked ? "Sketch the story you have earned so far." : qaOnlyAccess ? "QA access is open. Finish PLAN before BUILD." : "Finish PLAN before BUILD."}</h1>
           <p>
-            {unlocked
+            {canonicalUnlocked
               ? "BUILD turns approved Foundations decisions into a rough Visual Narrative Wireframe. It cannot borrow future World, Character, Theme, or Structure answers."
-              : `You have ${progression.answeredPlanFields} of ${progression.totalPlanFields} Foundations PLAN answers saved. Complete the remaining decisions first.`}
+              : qaOnlyAccess
+                ? `You can inspect the implemented BUILD workshop now. Canonical generation and acceptance remain protected; ${progression.answeredPlanFields} of ${progression.totalPlanFields} Foundations PLAN answers are saved.`
+                : `You have ${progression.answeredPlanFields} of ${progression.totalPlanFields} Foundations PLAN answers saved. Complete the remaining decisions first.`}
           </p>
           <dl className={styles.statusList}>
             <div><dt>LEARN</dt><dd>{progression.learn === "complete" ? "✓ Complete" : "In progress"}</dd></div>
             <div><dt>PLAN</dt><dd>{progression.plan === "complete" ? "✓ Complete" : "In progress"}</dd></div>
-            <div><dt>BUILD</dt><dd>{progression.build === "complete" ? "✓ Accepted" : unlocked ? "→ Available" : "🔒 Locked"}</dd></div>
+            <div><dt>BUILD</dt><dd>{progression.build === "complete" ? "✓ Accepted" : canonicalUnlocked ? "→ Available" : "🔒 Locked"}</dd></div>
             <div><dt>FRONTIER</dt><dd>Foundations only</dd></div>
             <div><dt>WORLD</dt><dd>{progression.worldUnlocked ? "→ Unlocked" : "🔒 Locked"}</dd></div>
           </dl>
@@ -265,7 +273,7 @@ export default function FoundationsBuildWorkspace({
 
           <FoundationsStoryCoverage curriculum={curriculum} project={project} />
 
-          {!unlocked ? (
+          {!workspaceAccessible ? (
             <div className={styles.emptyState}>
               <strong>BUILD is waiting for PLAN.</strong>
               <p>Nothing is generated early, so visual output cannot silently redefine an unfinished story foundation.</p>
@@ -284,9 +292,9 @@ export default function FoundationsBuildWorkspace({
                     <small>{artifact.sourceDecisionKeys?.length ?? 0} source decision{artifact.sourceDecisionKeys?.length === 1 ? "" : "s"} · {artifact.parentArtifactId ? "revised from earlier frame" : "first version"}</small>
                   </div>
                   <footer className={styles.frameActions}>
-                    {!accepted ? <button onClick={() => acceptArtifact(artifact)} type="button">Accept</button> : <button onClick={() => unacceptArtifact(artifact)} type="button">Unaccept</button>}
-                    {framePlan ? <button disabled={generating} onClick={() => void generateFrames([framePlan])} type="button">Regenerate frame</button> : null}
-                    <button className={styles.reject} onClick={() => rejectArtifact(artifact)} type="button">Reject</button>
+                    {!accepted ? <button disabled={qaOnlyAccess} onClick={() => acceptArtifact(artifact)} type="button">Accept</button> : <button disabled={qaOnlyAccess} onClick={() => unacceptArtifact(artifact)} type="button">Unaccept</button>}
+                    {framePlan ? <button disabled={qaOnlyAccess || generating} onClick={() => void generateFrames([framePlan])} type="button">Regenerate frame</button> : null}
+                    <button className={styles.reject} disabled={qaOnlyAccess} onClick={() => rejectArtifact(artifact)} type="button">Reject</button>
                   </footer>
                 </article>;
               })}
@@ -298,23 +306,24 @@ export default function FoundationsBuildWorkspace({
             </figure>
           ) : (
             <div className={styles.emptyState}>
-              <strong>No wireframe has been generated yet.</strong>
-              <p>The frame plan comes only from saved Foundations decisions. Fewer meaningful frames are better than invented beats.</p>
+              <strong>{qaOnlyAccess ? "QA access is open; no wireframe has been generated yet." : "No wireframe has been generated yet."}</strong>
+              <p>{qaOnlyAccess ? "Inspect the frame plan and BUILD surface now. Generation stays protected until Foundations PLAN is canonically complete." : "The frame plan comes only from saved Foundations decisions. Fewer meaningful frames are better than invented beats."}</p>
             </div>
           )}
 
-          {unlocked ? (
+          {workspaceAccessible ? (
             <div className={styles.generatorControls}>
+              {qaOnlyAccess ? <p className={styles.message} role="status">QA access opens this workshop for testing. Provider calls and PPF visual acceptance remain disabled until canonical BUILD access is earned.</p> : null}
               {cloudRoute ? (
                 <label className={styles.consent}>
-                  <input checked={billingAcknowledged} onChange={(event) => setBillingAcknowledged(event.target.checked)} type="checkbox" />
+                  <input checked={billingAcknowledged} disabled={qaOnlyAccess} onChange={(event) => setBillingAcknowledged(event.target.checked)} type="checkbox" />
                   I understand this wireframe can make up to {wireframePlan.length} separate paid image requests through my selected cloud account and sends the approved Foundations context with each request.
                 </label>
               ) : null}
               {!routeReady && selectedOption?.error ? <p className={styles.error}>{selectedOption.error}</p> : null}
               <div className={styles.primaryActions}>
-                <button disabled={generating || manualRoute || !routeReady || !wireframePlan.length} onClick={() => void generateFrames(wireframePlan)} type="button">
-                  {generating ? "Generating rough frames…" : wireframeFrames.length ? `Regenerate wireframe (${wireframePlan.length})` : `Generate wireframe (${wireframePlan.length})`}
+                <button disabled={qaOnlyAccess || generating || manualRoute || !routeReady || !wireframePlan.length} onClick={() => void generateFrames(wireframePlan)} type="button">
+                  {qaOnlyAccess ? "Generate requires Foundations PLAN" : generating ? "Generating rough frames…" : wireframeFrames.length ? `Regenerate wireframe (${wireframePlan.length})` : `Generate wireframe (${wireframePlan.length})`}
                 </button>
               </div>
               {message ? <p className={styles.message} role="status">{message}</p> : null}

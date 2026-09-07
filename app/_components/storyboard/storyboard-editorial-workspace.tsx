@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import {
@@ -59,8 +60,10 @@ export default function StoryboardEditorialWorkspace({
     () => storyboardArtifactStaleReasons(project, target.id, selectedMiniBlockNumber, current),
     [current, project, selectedMiniBlockNumber, target.id],
   );
+  const editorialAccessible = hasQaWorkspaceAccess(target.storyboardAllowed);
+  const qaOnlyAccess = isQaAccessOverride(target.storyboardAllowed);
 
-  if (!selected || !target.storyboardAllowed) return null;
+  if (!selected || !editorialAccessible) return null;
 
   const anchorTargetRef = storyboardAnchorTargetRef(target.id, selected.miniBlockNumber);
   const selectedIsStale = staleReasons.length > 0;
@@ -68,6 +71,10 @@ export default function StoryboardEditorialWorkspace({
   const keptCount = candidates.filter((candidate) => candidate.acceptedArtifactId).length;
 
   function keepSelected() {
+    if (qaOnlyAccess) {
+      setMessage("QA access can inspect and compare this visual, but Keep remains protected until BUILD makes the target canonically authorable.");
+      return;
+    }
     if (selectedIsKept) {
       setMessage(`${selected.label} is already the Human-kept Storyboard reference for this anchor.`);
       return;
@@ -133,9 +140,11 @@ export default function StoryboardEditorialWorkspace({
         <div>
           <p className={styles.kicker}>Storyboard editorial · canonical Mini-Block anchor</p>
           <h2 id="storyboard-editorial-title">{selected.label}</h2>
-          <p>Each Mini-Block is a stable visual address, not a one-frame quota. Keep chooses the current preferred visual for this anchor; Change/Try and Compare stay within the same anchor as more variations accumulate.</p>
+          <p>{qaOnlyAccess
+            ? "QA access opens visual inspection, Change/Try and Compare before BUILD readiness. Keep remains protected so testing cannot silently promote an unearned visual into PPF acceptance."
+            : "Each Mini-Block is a stable visual address, not a one-frame quota. Keep chooses the current preferred visual for this anchor; Change/Try and Compare stay within the same anchor as more variations accumulate."}</p>
         </div>
-        <span className={styles.status}>{keptCount} / 4 anchors with kept visuals{selectedIsStale ? " · selected needs review" : ""}</span>
+        <span className={styles.status}>{keptCount} / 4 anchors with kept visuals{selectedIsStale ? " · selected needs review" : qaOnlyAccess ? " · QA access" : ""}</span>
       </header>
 
       {selectedIsStale ? (
@@ -156,7 +165,7 @@ export default function StoryboardEditorialWorkspace({
           </div>
           <p>{selected.caption}</p>
           <div className={styles.actions} aria-label="Storyboard editorial decisions">
-            <button disabled={selectedIsKept} onClick={keepSelected} type="button">Keep</button>
+            <button disabled={selectedIsKept || qaOnlyAccess} onClick={keepSelected} type="button">{qaOnlyAccess ? "Keep requires BUILD" : "Keep"}</button>
             <button onClick={changeCandidate} type="button">Change / Try</button>
             <button onClick={() => setComparing((value) => !value)} type="button">Compare</button>
           </div>

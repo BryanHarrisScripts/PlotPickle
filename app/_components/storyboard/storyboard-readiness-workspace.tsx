@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import { storyboardAnchorTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
@@ -36,6 +37,8 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
+  const storyboardAccessible = selectedTarget ? hasQaWorkspaceAccess(selectedTarget.storyboardAllowed) : false;
+  const qaOnlyAccess = selectedTarget ? isQaAccessOverride(selectedTarget.storyboardAllowed) : false;
   const selectedReferences = useMemo(
     () => selectedTarget ? storyboardReferenceCandidates(project, selectedTarget.id) : [],
     [project, selectedTarget],
@@ -67,8 +70,8 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
       </header>
 
       <section className={styles.notice} aria-label="Storyboard authority boundary">
-        <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "Storyboard is visible, but visual authoring is still gated."}</strong>
-        <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED use the same colour language as BUILD. A tab is always inspectable; only earned targets become authorable.</span>
+        <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "QA access is open; BUILD readiness remains unresolved."}</strong>
+        <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth. QA access opens implemented Storyboard inspection without promoting an unearned target or changing project progression.</span>
         <button type="button" onClick={onOpenBuild}>Open BUILD evidence</button>
       </section>
 
@@ -112,7 +115,9 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
               <h2>{selectedTarget.label.replace(/^Block \d+: /, "")}</h2>
               <p>{selectedTarget.storyboardAllowed
                 ? "This Block has enough reviewed structural evidence to begin visual decisions."
-                : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
+                : qaOnlyAccess
+                  ? `QA access is open for this Block. Canonical prerequisites remain unresolved: ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is incomplete."}`
+                  : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
             </div>
             <span aria-label={`Status: ${STATE_LABELS[selectedTarget.state]}`} className={styles.blockState} data-state={selectedTarget.state}>
               <i aria-hidden="true" className={styles.stateLight} />
@@ -123,11 +128,11 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
           <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual anchors`}>
             {[1, 2, 3, 4].map((miniNumber) => {
               const reference = selectedReferences.find((candidate) => candidate.miniBlockNumber === miniNumber);
-              const canReviewReference = Boolean(selectedTarget.storyboardAllowed && reference);
+              const canReviewReference = Boolean(storyboardAccessible && reference);
               return (
                 <article
                   className={styles.miniBlock}
-                  data-authorable={selectedTarget.storyboardAllowed ? "true" : "false"}
+                  data-authorable={storyboardAccessible ? "true" : "false"}
                   data-story-decision-target={storyboardAnchorTargetRef(selectedTarget.id, miniNumber)}
                   key={miniNumber}
                 >
@@ -145,7 +150,9 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                   </header>
                   <p>{reference?.caption || (selectedTarget.storyboardAllowed
                     ? "Visual anchor is ready, but no candidate has been attached yet."
-                    : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
+                    : qaOnlyAccess
+                      ? "QA access is open. A real visual candidate is still required before this anchor can be reviewed."
+                      : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
                   <button
                     disabled={!canReviewReference}
                     onClick={reference && canReviewReference ? () => openEditorial(reference.id) : undefined}
@@ -153,7 +160,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                   >
                     {reference
                       ? reference.acceptedArtifactId ? "Review kept visual" : "Review visual"
-                      : selectedTarget.storyboardAllowed ? "Awaiting candidate" : "Locked by BUILD"}
+                      : storyboardAccessible ? "Awaiting candidate" : "Unavailable"}
                   </button>
                 </article>
               );
@@ -162,7 +169,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
         </section>
       ) : null}
 
-      {selectedTarget?.storyboardAllowed ? (
+      {storyboardAccessible && selectedTarget ? (
         <div id="storyboard-editorial">
           <StoryboardEditorialWorkspace
             project={project}

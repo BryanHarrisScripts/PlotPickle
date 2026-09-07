@@ -10,6 +10,7 @@ import {
 } from "../../../core/contracts/world-plan";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import type { PPFProject } from "../../../core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "../../../core/progression/qa-access";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
@@ -76,7 +77,10 @@ export default function WorldPlanWorkspace({
   }
 
   const world = progression.world;
-  if (world.plan === "locked") {
+  const canonicalPlanAccess = world.plan !== "locked";
+  const planAccessible = hasQaWorkspaceAccess(canonicalPlanAccess);
+  const qaOnlyAccess = isQaAccessOverride(canonicalPlanAccess);
+  if (!planAccessible) {
     return (
       <main className={styles.screen} aria-label="World PLAN locked">
         <section className={styles.locked}>
@@ -100,6 +104,7 @@ export default function WorldPlanWorkspace({
   const totalFields = lessons.reduce((total, lesson) => total + lesson.fields.length, 0);
   const answeredFields = countWorldAnswers(lessons, project.world);
   const planComplete = answeredFields === totalFields && totalFields > 0;
+  const buildNavigationAccessible = hasQaWorkspaceAccess(planComplete);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     setProject((current) => {
@@ -150,6 +155,7 @@ export default function WorldPlanWorkspace({
           These fields come from the existing World curriculum. They add locations, rules, culture, environment,
           genre constraints and continuity evidence to the accepted Foundations frontier. Character, Theme and Structure stay out.
         </p>
+        {qaOnlyAccess ? <p role="status"><strong>QA access:</strong> this implemented workspace is open even though World PLAN remains canonically locked. Saved decisions do not mark prior LEARN or Foundations stages complete.</p> : null}
         <div className={styles.status}>
           <span>World LEARN: {world.learn === "complete" ? "Complete" : "In progress"}</span>
           <span>World PLAN: {answeredFields} / {totalFields}</span>
@@ -196,7 +202,7 @@ export default function WorldPlanWorkspace({
           <div className={styles.actions}>
             <button onClick={onOpenLearn} type="button">Back to World LEARN</button>
             <button onClick={buildBrief} type="button">Build World Brief</button>
-            <button disabled={!planComplete} onClick={onOpenBuild} type="button">Open World BUILD</button>
+            <button disabled={!buildNavigationAccessible} onClick={onOpenBuild} type="button">{isQaAccessOverride(planComplete) ? "Open World BUILD · QA" : "Open World BUILD"}</button>
           </div>
           {message ? <p role="status">{message}</p> : null}
 

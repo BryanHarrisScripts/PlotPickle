@@ -44,9 +44,12 @@ test("#1424 maps a kept reference to a canonical Mini-Block anchor with provenan
 test("#1424 keeps Keep explicit while Change Try and Compare remain same-anchor exploratory behavior", async () => {
   const editorial = await read("app/_components/storyboard/storyboard-editorial-workspace.tsx");
 
-  for (const label of [">Keep<", ">Change / Try<", ">Compare<"]) {
+  for (const label of [">Change / Try<", ">Compare<"]) {
     assert.ok(editorial.includes(label), `Missing Storyboard editorial action ${label}`);
   }
+  assert.match(editorial, /Keep requires BUILD/);
+  assert.match(editorial, /qaOnlyAccess[\s\S]*Keep remains protected/);
+  assert.match(editorial, /disabled=\{selectedIsKept \|\| qaOnlyAccess\}/);
   assert.match(editorial, /function keepSelected\(\)/);
   assert.match(editorial, /function changeCandidate\(\)/);
   assert.match(editorial, /anchorCandidates = useMemo/);
@@ -70,10 +73,11 @@ test("#1424 renders 24 Block tabs and 96 canonical anchors without making 96 a f
   assert.match(workspace, /Visual anchors<\/dt><dd>96/);
   assert.match(workspace, /not a fixed final-frame quota/);
   assert.match(workspace, /multiple candidates and later visual beats/);
-  assert.match(workspace, /const canReviewReference = Boolean\(selectedTarget\.storyboardAllowed && reference\)/);
+  assert.match(workspace, /hasQaWorkspaceAccess\(selectedTarget\.storyboardAllowed\)/);
+  assert.match(workspace, /const canReviewReference = Boolean\(storyboardAccessible && reference\)/);
   assert.match(workspace, /disabled=\{!canReviewReference\}/);
   assert.match(workspace, /Awaiting candidate/);
-  assert.match(workspace, /Locked by BUILD/);
+  assert.doesNotMatch(workspace, /Locked by BUILD/);
   assert.match(css, /grid-template-columns: repeat\(24/);
   assert.match(css, /grid-template-columns: repeat\(4/);
 });

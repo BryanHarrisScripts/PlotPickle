@@ -28,8 +28,14 @@
   min-height: 44px;
   align-content: center;
   gap: var(--pp-space-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--pp-text);
+  font: inherit;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .brand strong {
@@ -93,6 +99,10 @@
   display: flex;
   align-items: center;
   gap: var(--pp-space-2);
+}
+
+.utilities span {
+  display: contents;
 }
 
 .utilities a,

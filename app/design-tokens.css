@@ -30,10 +30,24 @@
   --pp-warning: #ff9b57;
   --pp-danger: #a9574f;
 
+  /* Profile access: muted sage / paper identity */
+  --pp-profile-paper: #f9f8f0;
+  --pp-profile-mystic: #dfe9eb;
+  --pp-profile-casper: #abc3cd;
+  --pp-profile-jungle-mist: #a9cccf;
+  --pp-profile-juniper: #61828a;
+  --pp-profile-juniper-strong: #4f6c73;
+  --pp-profile-ink: #354e54;
+  --pp-profile-hover: #d4e3e5;
+  --pp-profile-danger-surface: #f3dede;
+  --pp-profile-danger-text: #783f45;
+  --pp-profile-shadow: rgba(53, 78, 84, 0.16);
+
   /* Typography */
   --pp-font-display: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-body: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-code: var(--font-geist-mono), "Courier New", Consolas, monospace;
+  --pp-font-interface: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --pp-text-xs: 0.6875rem;
   --pp-text-sm: 0.8125rem;
   --pp-text-md: 0.9375rem;
@@ -77,6 +91,8 @@
   /* Shape, elevation and motion */
   --pp-radius-control: 2px;
   --pp-radius-panel: 2px;
+  --pp-radius-profile-control: 6px;
+  --pp-radius-profile-card: 12px;
   --pp-shadow: none;
   --pp-motion-fast: 120ms;
   --pp-motion-standard: 180ms;
@@ -113,6 +129,9 @@ html[data-plotpickle-contrast="high"] {
   --pp-line: rgba(69, 215, 199, 0.48);
   --pp-line-strong: rgba(69, 215, 199, 0.78);
   --pp-focus: rgba(255, 122, 61, 0.62);
+  --pp-profile-juniper: #36545b;
+  --pp-profile-juniper-strong: #2c484e;
+  --pp-profile-ink: #213b41;
 }
 
 html[data-plotpickle-type="large"] {
@@ -125,6 +144,9 @@ html[data-plotpickle-type="large"] {
     --pp-muted: #d8d0c2;
     --pp-line: rgba(69, 215, 199, 0.48);
     --pp-line-strong: rgba(69, 215, 199, 0.78);
+    --pp-profile-juniper: #36545b;
+    --pp-profile-juniper-strong: #2c484e;
+    --pp-profile-ink: #213b41;
   }
 }
 

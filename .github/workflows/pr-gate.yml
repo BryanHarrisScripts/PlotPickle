@@ -117,9 +117,9 @@ jobs:
           node --check scripts/run-semantic-uat-repair.mjs
           node --test tests/issue-1028-settings-help.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-1222-buzz-real-machine-regression.test.mjs tests/issue-1130-buzz-local-backbone.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/community-workspace.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1444-story-room-identity.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs
 
-      - name: Validate repository architecture
+      - name: Validate repository architecture and CI consolidation
         run: |
-          node --test tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1650-lifecycle-presentation.test.mjs tests/issue-1650-autonomous-reference-presentation.test.mjs tests/issue-1650-lifecycle-reference-report.test.mjs tests/issue-1651-responsibility-bridge-retirement.test.mjs tests/issue-1220-architecture-health.test.mjs
+          node --test tests/issue-538-ci-consolidation.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1650-lifecycle-presentation.test.mjs tests/issue-1650-autonomous-reference-presentation.test.mjs tests/issue-1650-lifecycle-reference-report.test.mjs tests/issue-1651-responsibility-bridge-retirement.test.mjs tests/issue-1220-architecture-health.test.mjs
           node scripts/developer-diagnostics/architecture/repository-architecture-enforcement.mjs --base-ref "${{ github.event.pull_request.base.sha || github.sha }}"
           node scripts/repository-architecture-inventory.mjs
           node scripts/architecture-health-audit.mjs

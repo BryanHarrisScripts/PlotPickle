@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { PPFProject } from "../../../core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "../../../core/progression/qa-access";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
@@ -103,6 +104,7 @@ export default function DashboardWorkspace({
           <p><strong>Artifacts:</strong> {frontierStatus.acceptedArtifactCount} accepted · {frontierStatus.draftArtifactCount} draft</p>
           <p><strong>Next:</strong> {frontierStatus.nextActionLabel} — {frontierStatus.nextActionDetail}</p>
           {frontierStatus.stopReason ? <p><strong>Current stopping point:</strong> {frontierStatus.stopReason}</p> : null}
+          <p><strong>QA access:</strong> Implemented LEARN, PLAN and BUILD destinations remain clickable even when their canonical progression state is locked. Status labels and completion evidence are not changed.</p>
         </div>
         <span className={styles.nextBadge}>{frontierStatus.reachedImplementedBuildFrontier ? "Frontier reached" : "In progress"}</span>
       </section>
@@ -111,6 +113,8 @@ export default function DashboardWorkspace({
         {STAGES.map((stage) => {
           const state = foundationStates[stage.id];
           const locked = state === "locked";
+          const accessible = hasQaWorkspaceAccess(!locked);
+          const qaOnlyAccess = isQaAccessOverride(!locked);
           const detail = stage.id === "learn"
             ? `${foundations.completedLessonCount} of ${foundations.lessonCount} Foundations lessons complete`
             : stage.id === "plan"
@@ -127,8 +131,8 @@ export default function DashboardWorkspace({
               <h2>FOUNDATIONS · {stage.label}</h2>
               <p>{foundationStageCopy(stage.id, state)}</p>
               <p><small>{detail}</small></p>
-              <button aria-disabled={locked} disabled={locked} onClick={() => onNavigate(stage.id)} type="button">
-                {state === "complete" ? `Open ${stage.label}` : state === "available" ? `Continue to ${stage.label}` : `${stage.label} locked`}
+              <button aria-disabled={!accessible} disabled={!accessible} onClick={() => onNavigate(stage.id)} type="button">
+                {qaOnlyAccess ? `Open ${stage.label} · QA` : state === "complete" ? `Open ${stage.label}` : state === "available" ? `Continue to ${stage.label}` : `${stage.label} locked`}
               </button>
             </article>
           );
@@ -142,7 +146,7 @@ export default function DashboardWorkspace({
           <p>
             {world.unlocked
               ? "World is active. LEARN records the existing five World lessons, PLAN captures only curriculum-supported World decisions, and BUILD branches the wireframe without replacing accepted Foundations history."
-              : "World stays locked until the canonical Foundations completion rule is satisfied, including an explicitly accepted Foundations visual."}
+              : "World remains canonically locked until Foundations is complete, but QA access can open each implemented World workspace without changing that progression truth."}
           </p>
           <p><small>{world.completedLessonCount} / {world.lessonCount} World lessons · {world.answeredPlanFields} / {world.totalPlanFields} World PLAN decisions · {world.acceptedVisualArtifactCount} accepted World visual change{world.acceptedVisualArtifactCount === 1 ? "" : "s"}</small></p>
           <div className={styles.miniStages} aria-label="World stage states">
@@ -151,9 +155,9 @@ export default function DashboardWorkspace({
             <span data-state={worldStates.build}>B</span>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-            <button disabled={world.learn === "locked"} onClick={() => onNavigateGuided("learn", "world")} type="button">World LEARN</button>
-            <button disabled={world.plan === "locked"} onClick={() => onNavigateGuided("plan", "world")} type="button">World PLAN</button>
-            <button disabled={world.build === "locked"} onClick={() => onNavigateGuided("build", "world")} type="button">World BUILD</button>
+            <button disabled={!hasQaWorkspaceAccess(world.learn !== "locked")} onClick={() => onNavigateGuided("learn", "world")} type="button">{isQaAccessOverride(world.learn !== "locked") ? "World LEARN · QA" : "World LEARN"}</button>
+            <button disabled={!hasQaWorkspaceAccess(world.plan !== "locked")} onClick={() => onNavigateGuided("plan", "world")} type="button">{isQaAccessOverride(world.plan !== "locked") ? "World PLAN · QA" : "World PLAN"}</button>
+            <button disabled={!hasQaWorkspaceAccess(world.build !== "locked")} onClick={() => onNavigateGuided("build", "world")} type="button">{isQaAccessOverride(world.build !== "locked") ? "World BUILD · QA" : "World BUILD"}</button>
           </div>
         </div>
         <span className={styles.nextBadge}>{world.complete ? "✓ Complete" : world.unlocked ? "→ Active" : "🔒 Locked"}</span>
@@ -165,7 +169,7 @@ export default function DashboardWorkspace({
             <p className={styles.kicker}>The complete guided journey</p>
             <h2>12 curriculum groups. One progression engine.</h2>
           </div>
-          <p>Foundations and World are implemented vertical slices. Character is the next frontier after World is accepted; later groups remain honestly gated.</p>
+          <p>Foundations and World are implemented vertical slices. Character is the next frontier after World is accepted; later groups remain honestly gated because those workspaces are not yet implemented.</p>
         </div>
         <div className={styles.curriculumGrid}>
           {progression.groups.map((group, index) => {

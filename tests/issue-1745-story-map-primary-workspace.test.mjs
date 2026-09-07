@@ -5,19 +5,22 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1745 active projects enter the Story Map while LEARN stays explicit support", async () => {
-  const [page, dashboard, shell] = await Promise.all([
+  const [page, workspace, dashboard, shell] = await Promise.all([
     read("app/page.tsx"),
+    read("app/story-map-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
     read("app/story-map-shell.tsx"),
   ]);
 
   assert.match(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);
   assert.match(page, /requested === "learn"/);
-  assert.match(page, /<StoryMapShell>[\s\S]*<DashboardWorkspace/);
-  assert.match(dashboard, /<ProgressiveStoryMap project=\{project\} \/>/);
+  assert.match(page, /<StoryMapShell onNavigate=\{navigateWorkspace\}>[\s\S]*<StoryMapWorkspace/);
+  assert.match(workspace, /<ProgressiveStoryMap project=\{project\} \/>/);
+  assert.match(workspace, /<DashboardWorkspace/);
   assert.match(dashboard, /Your whole story is the main menu\./);
+  assert.doesNotMatch(dashboard, /modules\/build|\.\.\/\.\.\/build/);
   assert.match(shell, /aria-label="Story Map utilities"/);
-  for (const utility of ["Projects", "Learn", "Settings", "Profile"]) assert.match(shell, new RegExp(`>${utility}<`));
+  for (const utility of ["Projects", "Learn", "Community", "Settings", "Profile"]) assert.match(shell, new RegExp(`>${utility}<`));
   assert.doesNotMatch(shell, /NAVIGATION_AREAS|WORKFLOW_SHORTCUTS|Storyboard.*Write.*Edit/s);
 });
 
@@ -28,7 +31,7 @@ test("#1745 Block 01 is available and later Blocks unlock from accepted Mini-Blo
   assert.match(projection, /acceptedMiniBlockCount === 4/);
   assert.match(projection, /storyboard-anchor:block:block-/);
   assert.match(projection, /This Block stays visible for orientation/);
-  assert.doesNotMatch(projection, /completedLessonIds|learning\.|LEARN/);
+  assert.doesNotMatch(projection, /completedLessonIds|project\.learning/);
 });
 
 test("#1745 Story Map keeps PLAN BUILD STORYBOARD local and visual collection additive", async () => {
@@ -60,12 +63,13 @@ test("#1745 Storyboard restores the selected Block from Story Map context", asyn
 });
 
 test("#1745 new Story Map styling uses PlotPickle tokens rather than a second visual system", async () => {
-  const [shellStyles, mapStyles] = await Promise.all([
+  const [shellStyles, mapStyles, storyboardStyles] = await Promise.all([
     read("app/story-map-shell.module.css"),
     read("modules/build/ui/progressive-story-map-v2.module.css"),
+    read("app/storyboard/storyboard-page.module.css"),
   ]);
 
-  for (const source of [shellStyles, mapStyles]) {
+  for (const source of [shellStyles, mapStyles, storyboardStyles]) {
     assert.match(source, /var\(--pp-/);
     assert.doesNotMatch(source, /#[0-9a-f]{3,8}\b/i);
     assert.doesNotMatch(source, /rgba?\(/i);

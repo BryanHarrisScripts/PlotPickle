@@ -5,9 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Dashboard is a real root workspace and active projects now enter the Story Map", async () => {
-  const [page, navigation] = await Promise.all([
+  const [page, navigation, storyMapWorkspace] = await Promise.all([
     read("app/page.tsx"),
     read("app/navigation/global-shortcuts.ts"),
+    read("app/story-map-workspace.tsx"),
   ]);
 
   assert.match(navigation, /RootWorkspace = [^;]*"dashboard"/);
@@ -20,7 +21,9 @@ test("Dashboard is a real root workspace and active projects now enter the Story
   assert.match(page, /workspace === "dashboard"/);
   assert.match(page, /workspace === "build"/);
   assert.match(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);
-  assert.match(page, /<StoryMapShell>[\s\S]*<DashboardWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
+  assert.match(page, /<StoryMapShell onNavigate=\{navigateWorkspace\}>[\s\S]*<StoryMapWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
+  assert.match(storyMapWorkspace, /<ProgressiveStoryMap project=\{project\} \/>/);
+  assert.match(storyMapWorkspace, /<DashboardWorkspace/);
   assert.match(page, /<FoundationsBuildWorkspace/);
   assert.match(page, /<WorldBuildWorkspace/);
 });
@@ -73,15 +76,17 @@ test("BUILD acceptance is a project command rather than a Dashboard-only flag", 
   assert.match(dashboard, /FOUNDATION_PROJECT_SAVED_EVENT/);
 });
 
-test("Dashboard leads with the 24/96 Story Map while preserving guided support", async () => {
-  const [dashboard, styles] = await Promise.all([
+test("App Story Map host leads with 24/96 while Dashboard preserves guided support", async () => {
+  const [workspace, dashboard, styles] = await Promise.all([
+    read("app/story-map-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.module.css"),
   ]);
 
-  assert.match(dashboard, /ProgressiveStoryMap/);
-  assert.match(dashboard, /Primary workspace · 4 Acts · 24 Blocks · 96 Mini-Blocks/);
+  assert.match(workspace, /ProgressiveStoryMap/);
+  assert.match(workspace, /DashboardWorkspace/);
   assert.match(dashboard, /Your whole story is the main menu\./);
+  assert.match(dashboard, /Support · Current Visual Writer state/);
   assert.match(dashboard, /deriveGuidedCreationProgression/);
   assert.match(dashboard, /deriveVisualWriterFrontierStatus/);
   assert.match(dashboard, /frontierStatus\.nextActionLabel/);
@@ -97,6 +102,7 @@ test("Dashboard leads with the 24/96 Story Map while preserving guided support",
   assert.match(dashboard, /onNavigateGuided\("learn", "world"\)/);
   assert.match(dashboard, /onNavigateGuided\("plan", "world"\)/);
   assert.match(dashboard, /onNavigateGuided\("build", "world"\)/);
+  assert.doesNotMatch(dashboard, /\.\.\/\.\.\/build\//);
   assert.match(styles, /grid-template-columns: repeat\(3/);
   assert.match(styles, /@media \(max-width: 820px\)/);
   assert.match(styles, /:focus-visible/);

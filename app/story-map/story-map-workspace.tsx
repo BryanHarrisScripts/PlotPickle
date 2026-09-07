@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   storyBlockState,
   storyMiniBlockState,
@@ -82,6 +83,7 @@ function actionLabel(mini: StoryMiniBlockV2, state: StoryWorkflowState, stage: S
 }
 
 export default function StoryMapWorkspace() {
+  const router = useRouter();
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -106,7 +108,7 @@ export default function StoryMapWorkspace() {
           <p className={styles.eyebrow}>4 Acts · 24 Blocks · 96 Mini-Blocks</p>
           <h1>Choose a story to begin.</h1>
           <p>The Story Map works from your profile-owned PlotPickle project. LEARN is available whenever you want guidance, but it is not required to start.</p>
-          <button type="button" onClick={() => window.location.assign("/library")}>Open Library</button>
+          <button type="button" onClick={() => router.push("/library")}>Open Library</button>
         </section>
       </main>
     );
@@ -147,7 +149,7 @@ export default function StoryMapWorkspace() {
       },
     });
     setProject(saved);
-    window.location.assign(stageHref(stage, block, mini));
+    router.push(stageHref(stage, block, mini));
   }
 
   return (

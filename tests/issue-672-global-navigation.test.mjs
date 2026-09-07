@@ -32,7 +32,7 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   }
   assert.match(registry, /id: "dashboard"[\s\S]*area: "home"[\s\S]*workspace: "dashboard"/);
   assert.match(registry, /id: "library"[\s\S]*area: "home"[\s\S]*workspace: "library"/);
-  assert.match(registry, /id: "learn"[\s\S]*area: "create"[\s\S]*workspace: "learn"/);
+  assert.match(registry, /id: "story-map"[\s\S]*area: "create"[\s\S]*href: "\/story-map"/);
   assert.match(registry, /id: "plan"[\s\S]*area: "create"[\s\S]*workspace: "plan"/);
   assert.match(registry, /id: "build"[\s\S]*area: "create"[\s\S]*workspace: "build"/);
   assert.match(registry, /id: "storyboard"[\s\S]*area: "produce"[\s\S]*href: "\/storyboard"/);
@@ -41,6 +41,7 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   assert.match(registry, /id: "community"[\s\S]*area: "connect"[\s\S]*workspace: "community"/);
   assert.match(registry, /id: "wyrmwood"[\s\S]*area: "connect"[\s\S]*workspace: "wyrmwood"/);
   assert.match(registry, /id: "settings"[\s\S]*area: "settings"[\s\S]*workspace: "settings"/);
+  assert.match(registry, /id: "learn"[\s\S]*area: "settings"[\s\S]*workspace: "learn"/);
   assert.doesNotMatch(registry, /\{ id: "story", key:/);
   assert.doesNotMatch(registry, /\{ id: "collab", key:/);
 

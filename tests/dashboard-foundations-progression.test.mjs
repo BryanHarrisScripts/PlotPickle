@@ -88,8 +88,9 @@ test("Dashboard makes both implemented LEARN PLAN BUILD cycles visually explicit
   assert.match(dashboard, /World LEARN/);
   assert.match(dashboard, /World PLAN/);
   assert.match(dashboard, /World BUILD/);
-  assert.match(dashboard, /World stays locked until the canonical Foundations completion rule is satisfied/);
-  assert.match(dashboard, /disabled=\{locked\}/);
+  assert.match(dashboard, /World remains canonically locked until Foundations is complete/);
+  assert.match(dashboard, /hasQaWorkspaceAccess\(!locked\)/);
+  assert.match(dashboard, /disabled=\{!accessible\}/);
   assert.match(dashboard, /onNavigate\(stage\.id\)/);
   assert.match(dashboard, /onNavigateGuided\("learn", "world"\)/);
   assert.match(dashboard, /onNavigateGuided\("plan", "world"\)/);

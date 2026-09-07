@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 860" role="presentation">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a2715"/>
+      <stop offset=".2" stop-color="#c39a59"/>
+      <stop offset=".47" stop-color="#57391e"/>
+      <stop offset=".76" stop-color="#d2aa63"/>
+      <stop offset="1" stop-color="#392513"/>
+    </linearGradient>
+    <linearGradient id="iron" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#28342c"/>
+      <stop offset=".48" stop-color="#0d1510"/>
+      <stop offset="1" stop-color="#26372b"/>
+    </linearGradient>
+    <radialGradient id="gem" cx="38%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#eaffed"/>
+      <stop offset=".2" stop-color="#89ef9a"/>
+      <stop offset=".58" stop-color="#31a75b"/>
+      <stop offset="1" stop-color="#0c4025"/>
+    </radialGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linejoin="round">
+    <path d="M61 38H292L323 12H497L528 38H759L800 79V781L759 822H61L20 781V79Z" fill="#07100a" fill-opacity=".96" stroke="#26180c" stroke-width="24"/>
+    <path d="M61 38H292L323 12H497L528 38H759L800 79V781L759 822H61L20 781V79Z" stroke="url(#metal)" stroke-width="11"/>
+    <path d="M73 56H303L331 31H489L517 56H747L780 89V771L747 804H73L40 771V89Z" stroke="#34503b" stroke-width="9"/>
+    <path d="M84 69H312L340 45H480L508 69H736L766 99V761L736 791H84L54 761V99Z" fill="url(#iron)" fill-opacity=".34" stroke="#9a7540" stroke-width="3"/>
+    <path d="M111 101H709M111 759H709" stroke="#4d8d59" stroke-opacity=".7" stroke-width="2"/>
+    <path d="M87 115V223M733 115V223M87 637V745M733 637V745" stroke="url(#metal)" stroke-width="5"/>
+    <path d="M57 150H25M763 150H795M57 710H25M763 710H795" stroke="#d2aa63" stroke-width="6"/>
+    <path d="M75 86h56l16 16M745 86h-56l-16 16M75 774h56l16-16M745 774h-56l-16-16" stroke="#ddba77" stroke-width="4"/>
+  </g>
+  <g transform="translate(410 45)">
+    <circle r="36" fill="#09110c" stroke="url(#metal)" stroke-width="8"/>
+    <circle r="25" fill="none" stroke="#45684c" stroke-width="3"/>
+    <path d="M0-21 7-7 21 0 7 7 0 21-7 7-21 0-7-7Z" fill="url(#gem)" stroke="#d6b267" stroke-width="2" filter="url(#glow)"/>
+    <circle r="4" fill="#eefff0"/>
+  </g>
+  <g fill="url(#metal)" stroke="#25180c" stroke-width="3">
+    <circle cx="67" cy="79" r="12"/><circle cx="753" cy="79" r="12"/><circle cx="67" cy="781" r="12"/><circle cx="753" cy="781" r="12"/>
+  </g>
+  <g fill="#1b1209">
+    <circle cx="67" cy="79" r="4"/><circle cx="753" cy="79" r="4"/><circle cx="67" cy="781" r="4"/><circle cx="753" cy="781" r="4"/>
+  </g>
+  <g fill="#5dcc70" opacity=".55" font-family="monospace" font-size="16" text-anchor="middle">
+    <text x="87" y="299">ᚠ</text><text x="87" y="347">ᚢ</text><text x="87" y="395">ᚦ</text><text x="87" y="443">ᚨ</text><text x="87" y="491">ᚱ</text><text x="87" y="539">ᚲ</text>
+    <text x="733" y="299">ᚷ</text><text x="733" y="347">ᚹ</text><text x="733" y="395">ᚺ</text><text x="733" y="443">ᚾ</text><text x="733" y="491">ᛁ</text><text x="733" y="539">ᛃ</text>
+  </g>
+</svg>

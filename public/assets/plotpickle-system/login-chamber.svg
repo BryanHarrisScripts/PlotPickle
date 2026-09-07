@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="presentation">
+  <defs>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101a14"/>
+      <stop offset="0.55" stop-color="#080d0a"/>
+      <stop offset="1" stop-color="#030504"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4b351d"/>
+      <stop offset="0.24" stop-color="#ba8d4b"/>
+      <stop offset="0.5" stop-color="#5a3d20"/>
+      <stop offset="0.76" stop-color="#d0a760"/>
+      <stop offset="1" stop-color="#382514"/>
+    </linearGradient>
+    <linearGradient id="patina" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#17251d"/>
+      <stop offset="0.5" stop-color="#46624b"/>
+      <stop offset="1" stop-color="#142119"/>
+    </linearGradient>
+    <radialGradient id="jade" cx="50%" cy="42%" r="55%">
+      <stop offset="0" stop-color="#70df82" stop-opacity=".27"/>
+      <stop offset=".45" stop-color="#2f944f" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#09110c" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="masonry" width="240" height="120" patternUnits="userSpaceOnUse">
+      <path d="M0 0H240M0 120H240M120 0V120" fill="none" stroke="#7a6a4a" stroke-opacity=".08" stroke-width="2"/>
+      <path d="M4 5H116V115H4ZM124 5H236V115H124Z" fill="none" stroke="#010201" stroke-opacity=".55"/>
+    </pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="11"/>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#stone)"/>
+  <rect width="1920" height="1080" fill="url(#masonry)"/>
+  <ellipse cx="960" cy="470" rx="650" ry="500" fill="url(#jade)"/>
+  <g fill="none" stroke-linejoin="round">
+    <path d="M23 19H1897V1061H23Z" stroke="#25190d" stroke-width="38"/>
+    <path d="M38 34H1882V1046H38Z" stroke="url(#bronze)" stroke-width="13"/>
+    <path d="M57 53H1863V1027H57Z" stroke="#17251d" stroke-width="17"/>
+    <path d="M71 67H1849V1013H71Z" stroke="#8e6c39" stroke-width="3"/>
+    <path d="M83 79H1837V1001H83Z" stroke="#24382b" stroke-width="8"/>
+    <path d="M108 119H218L248 149V931L218 961H108ZM1812 119H1702L1672 149V931L1702 961H1812Z" fill="#090e0b" stroke="url(#bronze)" stroke-width="9"/>
+    <path d="M129 158H196V922H129ZM1791 158H1724V922H1791Z" fill="url(#patina)" stroke="#7c5e33" stroke-width="4"/>
+    <path d="M154 198V882M1766 198V882" stroke="#54cf70" stroke-opacity=".28" stroke-width="3"/>
+    <path d="M97 97h127l43 43M1823 97h-127l-43 43M97 983h127l43-43M1823 983h-127l-43-43" stroke="#d0a760" stroke-width="5"/>
+  </g>
+  <g fill="#55d466" opacity=".7" filter="url(#glow)">
+    <circle cx="163" cy="241" r="10"/><circle cx="163" cy="540" r="10"/><circle cx="163" cy="839" r="10"/>
+    <circle cx="1757" cy="241" r="10"/><circle cx="1757" cy="540" r="10"/><circle cx="1757" cy="839" r="10"/>
+  </g>
+  <g fill="#82dc90" opacity=".53" font-family="monospace" font-size="28" text-anchor="middle">
+    <text x="163" y="327">ᚠ</text><text x="163" y="393">ᚢ</text><text x="163" y="459">ᚦ</text><text x="163" y="625">ᚨ</text><text x="163" y="691">ᚱ</text><text x="163" y="757">ᚲ</text>
+    <text x="1757" y="327">ᚷ</text><text x="1757" y="393">ᚹ</text><text x="1757" y="459">ᚺ</text><text x="1757" y="625">ᚾ</text><text x="1757" y="691">ᛁ</text><text x="1757" y="757">ᛃ</text>
+  </g>
+  <g fill="url(#bronze)" stroke="#24170b" stroke-width="4">
+    <circle cx="77" cy="75" r="19"/><circle cx="1843" cy="75" r="19"/><circle cx="77" cy="1005" r="19"/><circle cx="1843" cy="1005" r="19"/>
+  </g>
+  <g fill="#1a1209">
+    <circle cx="77" cy="75" r="5"/><circle cx="1843" cy="75" r="5"/><circle cx="77" cy="1005" r="5"/><circle cx="1843" cy="1005" r="5"/>
+  </g>
+</svg>

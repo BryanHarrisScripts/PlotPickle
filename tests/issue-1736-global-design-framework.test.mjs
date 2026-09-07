@@ -47,6 +47,24 @@ test("#1736 maps login/profile access onto bronze, jade and rune semantics witho
   assert.match(profileCss, /\.activeHuman\s*\{[\s\S]*color:\s*var\(--pp-system-text\)/u);
 });
 
+test("#1736 gives profile access a reusable SVG Salt Compass gateway without flattening live content", async () => {
+  const [profile, profileCss, chamber, panel] = await Promise.all([
+    read("app/profile-access/profile-access-boundary.tsx"),
+    read("app/profile-access/profile-access-boundary.module.css"),
+    read("public/assets/plotpickle-system/login-chamber.svg"),
+    read("public/assets/plotpickle-system/login-panel-frame.svg"),
+  ]);
+
+  assert.match(profileCss, /plotpickle-system\/login-chamber\.svg/u);
+  assert.match(profileCss, /plotpickle-system\/login-panel-frame\.svg/u);
+  assert.match(chamber, /viewBox="0 0 1920 1080"[\s\S]*id="bronze"[\s\S]*id="jade"[\s\S]*ᚠ/u);
+  assert.match(panel, /viewBox="0 0 820 860"[\s\S]*id="metal"[\s\S]*id="gem"[\s\S]*ᚷ/u);
+  assert.match(profile, /<form onSubmit=\{signIn\}>[\s\S]*<PasswordField[\s\S]*Unlock profile/u);
+  assert.match(profile, /<header className=\{styles\.brand\}>[\s\S]*styles\.brandName[\s\S]*styles\.brandTelemetry/u);
+  assert.doesNotMatch(profile, /<header[^>]*aria-label|<div><strong>PlotPickle/u);
+  assert.doesNotMatch(chamber + panel, /<foreignObject|<script/u);
+});
+
 test("#1736 captures the full story-building journey while keeping visibility separate from canon editing", async () => {
   const registry = JSON.parse(await read("app/_components/plotpickle-system/screen-registry.json"));
   const byId = new Map(registry.screens.map((screen) => [screen.id, screen]));

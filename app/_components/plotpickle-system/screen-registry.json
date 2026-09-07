@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "issue": 1736,
+  "designSystem": "bronze-jade-rune",
+  "authoritativeStyle": "app/_components/plotpickle-system/system.css",
+  "maturityOrder": ["experimental", "adopting", "approved", "locked"],
+  "lockPolicy": {
+    "changesRequireVersionBump": true,
+    "requiredEvidence": ["focused-regression", "rendered-accessibility", "visual-readiness", "production-build"],
+    "contentAndBusinessLogicRemainEditable": true
+  },
+  "compatibilityBridge": {
+    "ownerIssue": 1736,
+    "legacyStyle": "app/approved-visual-system.css",
+    "legacyTokens": "app/design-tokens.css",
+    "currentConsumers": "all surfaces not marked approved or locked",
+    "removalCondition": "Every registered active surface is locked on bronze-jade-rune and no runtime selector depends on the legacy palette."
+  },
+  "screens": [
+    { "id": "profile-access", "label": "Login and profile access", "entry": "profile-boundary", "selector": "[data-profile-access-boundary]", "area": "startup", "maturity": "adopting", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "global-shell", "label": "Global navigation shell", "entry": "application-shell", "selector": ".application-shell-header", "area": "shell", "maturity": "approved", "contractVersion": 1, "approvedByIssue": 1734, "discoverable": true, "canonEditable": false },
+    { "id": "dashboard", "label": "Dashboard", "entry": "/?workspace=dashboard", "area": "home", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "learn", "label": "Learn", "entry": "/?workspace=learn", "area": "create", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": true },
+    { "id": "plan", "label": "Plan", "entry": "/?workspace=plan", "area": "create", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": true },
+    { "id": "build", "label": "Build", "entry": "/?workspace=build", "area": "create", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": true },
+    { "id": "storyboard", "label": "Storyboard", "entry": "/storyboard", "area": "produce", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "previs", "label": "Previs and Graphic Novel", "entry": "/previs", "area": "produce", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "write", "label": "Write", "entry": "/?workspace=write", "area": "produce", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "edit", "label": "Edit", "entry": "/edit", "area": "produce", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "feedback", "label": "Feedback", "entry": "/pitch-review", "area": "review", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "refine", "label": "Refine", "entry": "/diagnostics", "area": "review", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "reports", "label": "Reports", "entry": "/production", "area": "review", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "community", "label": "Community", "entry": "/?workspace=community", "area": "connect", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "wyrmwood", "label": "Wyrmwood", "entry": "/?workspace=wyrmwood", "area": "connect", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false },
+    { "id": "settings", "label": "Settings", "entry": "/?workspace=settings", "area": "settings", "maturity": "experimental", "contractVersion": 1, "discoverable": true, "canonEditable": false }
+  ]
+}

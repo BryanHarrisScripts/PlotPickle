@@ -160,7 +160,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                   >
                     {reference
                       ? reference.acceptedArtifactId ? "Review kept visual" : "Review visual"
-                      : storyboardAccessible ? "Awaiting candidate" : "Locked by BUILD"}
+                      : storyboardAccessible ? "Awaiting candidate" : "Unavailable"}
                   </button>
                 </article>
               );

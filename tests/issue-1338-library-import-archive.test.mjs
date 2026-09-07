@@ -159,7 +159,7 @@ test("issue #1338 Library and Settings reuse one Archive component and Library e
   assert.match(library, /data-library-new-story-card="ready"/);
   assert.match(library, /Create New Story/);
   assert.match(library, />New Story<\/button>/);
-  assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/);
+  assert.match(library, /window\.location\.assign\("\/story-map"\)/);
   assert.doesNotMatch(library, /Coming Soon|Coming soon|data-library-ghost-card="coming-soon"/);
   assert.match(library, /Import \.PPF/);
   assert.match(library, /\/api\/library\/import\/ppf/);

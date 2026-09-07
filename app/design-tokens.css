@@ -53,11 +53,32 @@
   --pp-profile-card-shadow: 0 1.5rem 4rem var(--pp-profile-shadow);
   --pp-profile-hud-shadow: 0 0 1.5rem var(--pp-profile-glow);
 
+  /* Navigation shell: aged bronze, forest and luminous rune language */
+  --pp-shell-bronze: #c19a6b;
+  --pp-shell-bronze-deep: #8c6d3d;
+  --pp-shell-moss: #4b6e4f;
+  --pp-shell-jade: #3c834e;
+  --pp-shell-rune: #55d466;
+  --pp-shell-stone: #808080;
+  --pp-shell-stone-deep: #5c5c5c;
+  --pp-shell-gilding: #b8860b;
+  --pp-shell-lore-green: #38a169;
+  --pp-shell-lore-green-bright: #48bb78;
+  --pp-shell-lore-green-soft: #81c784;
+  --pp-shell-canvas: #0b120d;
+  --pp-shell-panel: #151d16;
+  --pp-shell-panel-raised: #1d281f;
+  --pp-shell-line: color-mix(in srgb, var(--pp-shell-bronze-deep) 72%, var(--pp-shell-stone-deep));
+  --pp-shell-line-strong: color-mix(in srgb, var(--pp-shell-bronze) 78%, var(--pp-shell-stone));
+  --pp-shell-focus: color-mix(in srgb, var(--pp-shell-rune) 62%, transparent);
+  --pp-shell-glow: color-mix(in srgb, var(--pp-shell-rune) 30%, transparent);
+
   /* Typography */
   --pp-font-display: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-body: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-code: var(--font-geist-mono), "Courier New", Consolas, monospace;
   --pp-font-interface: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pp-font-navigation: "Arial Narrow", "Roboto Condensed", "Aptos Narrow", var(--pp-font-interface);
   --pp-font-lore: "Cinzel", Georgia, "Times New Roman", serif;
   --pp-text-xs: 0.6875rem;
   --pp-text-sm: 0.8125rem;

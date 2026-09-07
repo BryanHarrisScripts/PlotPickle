@@ -59,7 +59,23 @@ export default function ProfileIdentityOverlay() {
     <div className={styles.overlay} aria-label="PlotPickle Profile">
       <details className={styles.details} ref={detailsRef} data-disable-global-shortcuts="true">
         <summary className={styles.trigger} title="Profile · H">Profile</summary>
-        <div className={styles.surface}>
+        <div
+          aria-label="Human Profile"
+          aria-modal="true"
+          className={styles.surface}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && detailsRef.current) detailsRef.current.open = false;
+          }}
+          role="dialog"
+        >
+          <button
+            aria-label="Close Profile"
+            className={styles.close}
+            onClick={() => { if (detailsRef.current) detailsRef.current.open = false; }}
+            type="button"
+          >
+            Close
+          </button>
           <ProfileIdentityPanel
             profile={status.profile}
             csrfToken={status.csrfToken}

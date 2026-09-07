@@ -21,6 +21,14 @@ html[data-plotpickle-theme="dark"] {
   --pp-system-focus: var(--pp-shell-focus);
   --pp-system-glow: var(--pp-shell-glow);
 
+  /* Issue #1742 workflow-state roles are visual affordances only. Product
+     state remains explicit in text, semantics and canonical project data. */
+  --pp-state-locked: var(--pp-system-stone-deep);
+  --pp-state-available: var(--pp-system-metal);
+  --pp-state-incomplete: var(--pp-system-gilding);
+  --pp-state-ready: var(--pp-system-rune);
+  --pp-state-accepted: var(--pp-system-jade);
+
   /* Profile access is the first adopting surface. These aliases let its
      existing security workflow adopt the new look without changing auth. */
   --pp-profile-paper: var(--pp-system-panel-raised);

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-location-assign-relative-destination -- project-state-sensitive navigation deliberately reloads profile-owned project state */
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../core/storage/foundation-project-browser";
@@ -166,10 +167,16 @@ function openLearningApplication(topic: string, lessonId?: string) {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [workspace, setWorkspace] = useState<Workspace>("library");
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
+    // #1745: old Refine links must reach their canonical owner, never the entry fallback.
+    if (new URLSearchParams(window.location.search).get("workspace") === "refine") {
+      router.replace("/diagnostics");
+      return;
+    }
     repairPersistedProject();
     const syncWorkspace = () => setWorkspace(requestedWorkspace());
     syncWorkspace();
@@ -177,7 +184,7 @@ export default function Home() {
     setStorageReady(true);
     window.addEventListener("popstate", syncWorkspace);
     return () => window.removeEventListener("popstate", syncWorkspace);
-  }, []);
+  }, [router]);
 
   if (!storageReady) {
     return <main className={rootLoadingStyles.openingState}>Opening PlotPickle…</main>;

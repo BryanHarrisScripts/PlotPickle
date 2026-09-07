@@ -336,7 +336,8 @@ export default function PlotPickleWorkspaceShell({
   const activeIndex = activeShortcut ? areaShortcuts.findIndex((item) => item.id === activeShortcut.id) : -1;
   const normalNext = activeIndex >= 0 ? areaShortcuts[activeIndex + 1] ?? null : null;
   const storyNext = activeShortcutId === "story" || activeWorkspace === "story" ? shortcutForId("storyboard") : null;
-  const primaryShortcut = contextId ? storyNext : storyNext ?? normalNext;
+  const learnReturn = activeWorkspace === "learn" ? shortcutForId("story-map") : null;
+  const primaryShortcut = learnReturn ?? (contextId ? storyNext : storyNext ?? normalNext);
   const showStoryAction = !contextId && !activeShortcutId && activeWorkspace === "build";
   const currentDestination = contextId || activeShortcutId || activeWorkspace;
 
@@ -451,7 +452,7 @@ export default function PlotPickleWorkspaceShell({
               </button>
             ) : primaryShortcut ? (
               <button className={styles.primaryNextAction} data-shell-primary-next={primaryShortcut.id} type="button" onClick={() => runShortcut(primaryShortcut)}>
-                {activeShortcutId === "story" || activeWorkspace === "story" ? "Continue to Storyboard" : `Next: ${primaryShortcut.label}`}
+                {learnReturn ? "Return to story" : activeShortcutId === "story" || activeWorkspace === "story" ? "Continue to Storyboard" : `Next: ${primaryShortcut.label}`}
               </button>
             ) : null}
           </div>

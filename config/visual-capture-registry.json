@@ -23,7 +23,7 @@
     { "id": "graphic-novel", "path": "/?workspace=pitch" },
     { "id": "build", "path": "/?workspace=build" },
     { "id": "feedback", "path": "/?workspace=feedback" },
-    { "id": "refine", "path": "/?workspace=refine" },
+    { "id": "refine", "path": "/diagnostics" },
     { "id": "reports", "path": "/?workspace=reports" },
     { "id": "collab", "path": "/?workspace=collab" },
     { "id": "community", "path": "/?workspace=community" },

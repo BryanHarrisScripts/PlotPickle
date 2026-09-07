@@ -14,7 +14,9 @@ test("#1256/#1719 global workflow navigation remains reachable through six forgi
   const source = await read("app/navigation/global-shortcuts.ts");
   const items = navItems(source);
   assert.deepEqual([...new Set(items.map((item) => item.area))], ["home", "create", "produce", "review", "connect", "settings"]);
-  assert.equal(items.length, 15);
+  assert.equal(items.length, 16);
+  assert.deepEqual(items.find((item) => item.id === "story-map"), { id: "story-map", key: "M", label: "Story Map", area: "create" });
+  assert.deepEqual(items.find((item) => item.id === "learn"), { id: "learn", key: "L", label: "Learn", area: "settings" });
   assert.deepEqual(items.find((item) => item.id === "settings"), { id: "settings", key: "T", label: "Settings", area: "settings" });
   assert.deepEqual(items.find((item) => item.id === "community"), { id: "community", key: "C", label: "Community", area: "connect" });
   for (const id of ["dashboard", "library", "learn", "plan", "build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports", "community", "wyrmwood", "settings"]) {

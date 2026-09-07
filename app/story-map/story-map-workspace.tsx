@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { persistActiveProfileProject } from "@/core/storage/profile-private-browser";
 import {
   storyBlockState,
   storyMiniBlockState,
@@ -18,6 +19,7 @@ import {
   type LibraryPPFProject,
 } from "@/core/storage/project-library-browser";
 import styles from "./story-map-workspace.module.css";
+import { nextStoryStage, selectStoryMapLocation, storyStageHref } from "./story-map-navigation";
 
 const SEQUENCE_NAMES = [
   "Awakening",
@@ -54,30 +56,17 @@ function sequenceName(block: StoryBlockV2) {
   return SEQUENCE_NAMES[block.sequenceNumber - 1] ?? `Sequence ${String(block.sequenceNumber).padStart(2, "0")}`;
 }
 
-function nextStage(mini: StoryMiniBlockV2): StoryWorkflowStage {
-  if (mini.stages.plan.state !== "accepted") return "plan";
-  if (mini.stages.build.state !== "accepted") return "build";
-  return "storyboard";
-}
-
-function stageHref(stage: StoryWorkflowStage, block: StoryBlockV2, mini: StoryMiniBlockV2) {
-  const query = `block=${block.number}&mini=${mini.ordinal}`;
-  if (stage === "plan") return `/?workspace=plan&${query}`;
-  if (stage === "build") return `/?workspace=build&${query}`;
-  return `/storyboard?${query}`;
-}
-
-function miniDescription(mini: StoryMiniBlockV2, state: StoryWorkflowState, stage: StoryWorkflowStage) {
+function miniDescription(state: StoryWorkflowState, stage: StoryWorkflowStage) {
   if (state === "locked") return "This anchor opens when the previous Block is accepted.";
-  if (state === "accepted") return "The visual loop is accepted through STORYBOARD.";
-  if (state === "available") return "Ready for PLAN. Define this story movement before BUILD.";
+  if (state === "accepted") return `${STAGE_LABELS[stage]} is accepted. Open it to review your saved work.`;
+  if (state === "available") return `Start ${STAGE_LABELS[stage]} for this story movement.`;
   if (state === "ready") return `${STAGE_LABELS[stage]} is ready for explicit review and acceptance.`;
   return `${STAGE_LABELS[stage]} is in progress. Your saved work remains attached to this anchor.`;
 }
 
-function actionLabel(mini: StoryMiniBlockV2, state: StoryWorkflowState, stage: StoryWorkflowStage) {
+function actionLabel(state: StoryWorkflowState, stage: StoryWorkflowStage) {
   if (state === "locked") return "Locked";
-  if (state === "accepted") return "Review STORYBOARD";
+  if (state === "accepted") return `Review ${STAGE_LABELS[stage]}`;
   if (state === "ready") return `Review ${STAGE_LABELS[stage]}`;
   return `${state === "available" ? "Start" : "Continue"} ${STAGE_LABELS[stage]}`;
 }
@@ -86,15 +75,28 @@ export default function StoryMapWorkspace() {
   const router = useRouter();
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const mounted = useRef(false);
 
   useEffect(() => {
+    mounted.current = true;
     const refresh = () => {
-      setProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
-      setLoaded(true);
+      try {
+        setProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
+        setError("");
+      } catch {
+        setError("Your story could not be opened. Return to Library to reopen it.");
+      } finally {
+        setLoaded(true);
+      }
     };
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    return () => {
+      mounted.current = false;
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   if (!loaded) {
@@ -107,7 +109,8 @@ export default function StoryMapWorkspace() {
         <section className={styles.emptyState}>
           <p className={styles.eyebrow}>4 Acts · 24 Blocks · 96 Mini-Blocks</p>
           <h1>Choose a story to begin.</h1>
-          <p>The Story Map works from your profile-owned PlotPickle project. LEARN is available whenever you want guidance, but it is not required to start.</p>
+          <p>Open an existing story or create a new one to begin with Block 01.</p>
+          {error ? <p role="alert">{error}</p> : null}
           <button type="button" onClick={() => router.push("/library")}>Open Library</button>
         </section>
       </main>
@@ -118,57 +121,82 @@ export default function StoryMapWorkspace() {
   const activeBlock = structure.blocks[structure.activeBlockNumber - 1] ?? structure.blocks[0];
   const activeBlockState = storyBlockState(activeBlock);
 
-  function selectBlock(block: StoryBlockV2) {
-    if (storyBlockState(block) === "locked" || !project) return;
-    const firstMini = block.miniBlocks[0];
-    const stage = nextStage(firstMini);
-    const saved = saveActiveLibraryProject({
-      ...project,
-      structure: {
-        ...project.structure,
-        activeBlockNumber: block.number,
-        activeMiniBlockNumber: firstMini.number,
-        activeStage: stage,
-      },
-    });
-    setProject(saved);
-  }
-
-  function openMini(block: StoryBlockV2, mini: StoryMiniBlockV2) {
-    if (!project) return;
-    const state = storyMiniBlockState(mini);
-    if (state === "locked") return;
-    const stage = nextStage(mini);
-    const saved = saveActiveLibraryProject({
-      ...project,
-      structure: {
-        ...project.structure,
-        activeBlockNumber: block.number,
-        activeMiniBlockNumber: mini.number,
-        activeStage: stage,
-      },
-    });
-    setProject(saved);
-    router.push(stageHref(stage, block, mini));
+  async function selectLocation(block: StoryBlockV2, mini?: StoryMiniBlockV2) {
+    if (!project || saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      const current = loadActiveLibraryProject();
+      if (current.id !== project.id) throw new Error("The active story changed. Reopen your story from Library.");
+      const location = selectStoryMapLocation(current.structure, block.number, mini?.number);
+      if (!location) return;
+      const saved = saveActiveLibraryProject({ ...current, structure: location });
+      setProject(saved);
+      await persistActiveProfileProject();
+      if (mini && mounted.current && loadActiveLibraryProject().id === saved.id) router.push(storyStageHref(saved.structure));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Your location could not be saved. Try the action again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <main className={styles.workspace} data-story-map-state="project" data-canonical-project-id={project.id}>
-      <header className={styles.orientation}>
-        <div>
-          <p className={styles.eyebrow}>PlotPickle Experience V2</p>
-          <h1>Story Map</h1>
-          <p>Understand the shape, then work the story. LEARN is optional support; your project starts here.</p>
+      {error ? <p className={styles.error} role="alert">{error} Your work remains open. Retry your last action.</p> : null}
+      <section className={styles.blockWorkspace} data-state={activeBlockState} aria-labelledby="active-block-title" aria-busy={saving}>
+        <header className={styles.blockHeader}>
+          <div>
+            <p className={styles.eyebrow}>{project.title || "Untitled Story"}</p>
+            <h1 id="active-block-title">Block {String(activeBlock.number).padStart(2, "0")} · {sequenceName(activeBlock)}</h1>
+            <p>Act {activeBlock.actNumber} · Sequence {String(activeBlock.sequenceNumber).padStart(2, "0")} · Four mini-block anchors</p>
+          </div>
+          <span className={styles.blockState} data-state={activeBlockState}><span className={styles.stateLight} aria-hidden="true" />{STATE_LABELS[activeBlockState]}</span>
+        </header>
+
+        <div className={styles.miniBlockGrid}>
+          {activeBlock.miniBlocks.map((mini) => {
+            const state = storyMiniBlockState(mini);
+            const stage = selectStoryMapLocation(structure, activeBlock.number, mini.number)?.activeStage ?? nextStoryStage(mini);
+            const stageState = mini.stages[stage].state;
+            const active = mini.number === structure.activeMiniBlockNumber;
+            return (
+              <article className={styles.miniBlock} data-active={active ? "true" : undefined} data-state={state} key={mini.id}>
+                <header>
+                  <div><span>MINI-BLOCK ANCHOR</span><strong>{activeBlock.number}.{mini.ordinal}</strong></div>
+                  <span className={styles.miniState}>{STATE_LABELS[state]}</span>
+                </header>
+                <div className={styles.miniPreview}><span>{mini.stages.storyboard.content.trim() || "No storyboard yet"}</span></div>
+                <p>{miniDescription(stageState, stage)}</p>
+                <ol className={styles.stageTrack} aria-label={`Mini-block ${activeBlock.number}.${mini.ordinal} visual progression`}>
+                  {(["plan", "build", "storyboard"] as const).map((stageName) => (
+                    <li data-state={mini.stages[stageName].state} key={stageName}>
+                      <span>{STAGE_LABELS[stageName]}</span><small>{STATE_LABELS[mini.stages[stageName].state]}</small>
+                    </li>
+                  ))}
+                </ol>
+                <button data-primary={active ? "true" : undefined} disabled={saving || state === "locked"} onClick={() => void selectLocation(activeBlock, mini)} type="button" aria-label={`${actionLabel(stageState, stage)} for mini-block ${activeBlock.number}.${mini.ordinal}`}>{actionLabel(stageState, stage)}</button>
+              </article>
+            );
+          })}
         </div>
+      </section>
+
+      <details className={styles.orientation}>
+        <summary>How the story fits together · 4 Acts / 24 Blocks / 96 Mini-Blocks</summary>
         <dl className={styles.orientationStats} aria-label="PlotPickle story structure">
           <div><dt>Acts</dt><dd>4</dd></div>
           <div><dt>Blocks</dt><dd>24</dd></div>
           <div><dt>Mini-Blocks</dt><dd>96</dd></div>
           <div><dt>Visual loop</dt><dd>PLAN → BUILD → STORYBOARD</dd></div>
         </dl>
-      </header>
+        <p>Each Block contains four mini-blocks. Accept PLAN, then BUILD, then STORYBOARD for each anchor. All four anchors must be accepted to open the next Block.</p>
+      </details>
 
-      <section className={styles.actMap} aria-label="24 Block Story Map">
+      <details className={styles.mapDisclosure}>
+        <summary>24/96 Story Map · Active Block {String(activeBlock.number).padStart(2, "0")}</summary>
+        <p>Locked Blocks open after all four mini-blocks in the preceding Block are accepted through STORYBOARD.</p>
+        <section className={styles.actMap} aria-label="24 Block Story Map">
         {ACT_NUMBERS.map((actNumber) => (
           <div className={styles.actGroup} key={actNumber}>
             <header><span>ACT {actNumber}</span><small>Blocks {String((actNumber - 1) * 6 + 1).padStart(2, "0")}–{String(actNumber * 6).padStart(2, "0")}</small></header>
@@ -181,59 +209,25 @@ export default function StoryMapWorkspace() {
                     aria-current={selected ? "location" : undefined}
                     aria-label={`Block ${String(block.number).padStart(2, "0")}, ${STATE_LABELS[state]}`}
                     data-state={state}
-                    disabled={state === "locked"}
+                    disabled={saving || state === "locked"}
                     key={block.id}
-                    onClick={() => selectBlock(block)}
+                    onClick={() => void selectLocation(block)}
                     type="button"
                   >
                     <span className={styles.stateLight} aria-hidden="true" />
                     <strong>{String(block.number).padStart(2, "0")}</strong>
+                    <small>{STATE_LABELS[state]}</small>
                   </button>
                 );
               })}
             </div>
           </div>
         ))}
-      </section>
-
-      <section className={styles.blockWorkspace} data-state={activeBlockState} aria-labelledby="active-block-title">
-        <header className={styles.blockHeader}>
-          <div>
-            <p className={styles.blockKicker}>BLOCK {String(activeBlock.number).padStart(2, "0")}</p>
-            <h2 id="active-block-title">{sequenceName(activeBlock)}</h2>
-            <p>Act {activeBlock.actNumber} · Sequence {String(activeBlock.sequenceNumber).padStart(2, "0")} · Choose one of four mini-block anchors and begin with PLAN.</p>
-          </div>
-          <span className={styles.blockState} data-state={activeBlockState}><span className={styles.stateLight} aria-hidden="true" />{STATE_LABELS[activeBlockState]}</span>
-        </header>
-
-        <div className={styles.miniBlockGrid}>
-          {activeBlock.miniBlocks.map((mini) => {
-            const state = storyMiniBlockState(mini);
-            const stage = nextStage(mini);
-            const active = mini.number === structure.activeMiniBlockNumber;
-            return (
-              <article className={styles.miniBlock} data-active={active ? "true" : undefined} data-state={state} key={mini.id}>
-                <div className={styles.miniPreview} aria-hidden="true"><span>+</span></div>
-                <header>
-                  <div><span>MINI-BLOCK ANCHOR</span><strong>{activeBlock.number}.{mini.ordinal}</strong></div>
-                  <span className={styles.stateLight} aria-hidden="true" />
-                </header>
-                <p>{miniDescription(mini, state, stage)}</p>
-                <div className={styles.stageTrack} aria-label={`Mini-block ${activeBlock.number}.${mini.ordinal} visual progression`}>
-                  {(["plan", "build", "storyboard"] as const).map((stageName) => (
-                    <span data-state={mini.stages[stageName].state} key={stageName}>{STAGE_LABELS[stageName]}</span>
-                  ))}
-                </div>
-                <button disabled={state === "locked"} onClick={() => openMini(activeBlock, mini)} type="button">{actionLabel(mini, state, stage)}</button>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+        </section>
+      </details>
 
       <footer className={styles.footer}>
-        <strong>{project.title || "Untitled Story"}</strong>
-        <span>LEARN remains available under Settings whenever you want deeper guidance. It does not unlock or block this Story Map.</span>
+        <span>Need guidance? LEARN is available beside Settings whenever you want it.</span>
       </footer>
     </main>
   );

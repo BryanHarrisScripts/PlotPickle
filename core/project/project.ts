@@ -26,6 +26,7 @@ import {
   type WorldLessonAnswers,
   type WorldPlanState,
 } from "../contracts/world-plan";
+import { normalizeStoryStructureV2, type StoryStructureV2 } from "./story-structure-v2";
 
 export const PPF_FOUNDATION_VERSION = "2.0-foundation" as const;
 
@@ -47,6 +48,8 @@ export interface PPFProject {
   readonly world: WorldPlanState;
   readonly build: BuildProgressState;
   readonly production: PrevisProductionState;
+  /** Experience V2 state must survive the shared API/private-storage normalizer. */
+  readonly structure?: StoryStructureV2;
 }
 
 export function createEmptyProject(input: {
@@ -417,5 +420,6 @@ export function normalizeFoundationProject(value: unknown): PPFProject {
     world: normalizeWorld(source.world),
     build: normalizeBuild(source.build),
     production: normalizePrevisProductionState(source.production),
+    ...(source.structure ? { structure: normalizeStoryStructureV2(source.structure) } : {}),
   };
 }

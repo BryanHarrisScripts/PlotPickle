@@ -126,7 +126,7 @@
     "test:full-story-builder": "node --test tests/issue-542-full-story-builder.test.mjs",
     "test:ui-continuity-agent": "node --test tests/issue-544-ui-continuity-agent.test.mjs",
     "test:complete-visual-migration": "node --test tests/issue-546-complete-visual-migration.test.mjs",
-    "test:global-design-framework": "node --test tests/issue-1736-global-design-framework.test.mjs",
+    "test:global-design-framework": "node --test tests/issue-1736-global-design-framework.test.mjs tests/issue-1742-canonical-24-96.test.mjs tests/issue-1745-block-first-learn-support.test.mjs",
     "test:persistent-agent-windows": "node --test tests/issue-548-persistent-agent-windows.test.mjs",
     "test:mastra-learn-agents": "node --test tests/issue-570-mastra-learn-agents.test.mjs",
     "test:writer-observer": "node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1108-writer-app-preflight.test.mjs tests/issue-1110-writer-live-acceptance.test.mjs tests/issue-1170-writer-observer-stabilization.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs",

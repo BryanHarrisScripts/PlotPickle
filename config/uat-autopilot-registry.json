@@ -138,9 +138,9 @@
       "id": "refine",
       "label": "Refine diagnostics",
       "order": 130,
-      "route": "/?workspace=refine",
+      "route": "/diagnostics",
       "operation": "operate",
-      "requiredTerms": ["Refine", "Diagnose"],
+      "requiredTerms": ["Diagnostic craft", "Block focus"],
       "minimumTextLength": 500,
       "prerequisites": ["active-working-copy"],
       "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]

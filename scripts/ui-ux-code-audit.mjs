@@ -247,7 +247,12 @@ async function gatherCode(files) {
     sources.set(file, content);
     sections.push(`\n--- FILE: ${file} ---\n${content}`);
   }
-  const designContext = (await Promise.all(["app/globals.css", "app/design-tokens.css"].map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
+  const designContextFiles = [
+    "app/globals.css",
+    "app/design-tokens.css",
+    "app/_components/plotpickle-system/system.css",
+  ];
+  const designContext = (await Promise.all(designContextFiles.map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
   return { codePayload: `REFERENCE DESIGN TOKENS (context only, not changed files):\n${designContext}\n${sections.join("\n")}`, sources, designContext: `${designContext}\n${sections.join("\n")}` };
 }
 

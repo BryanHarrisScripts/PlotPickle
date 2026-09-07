@@ -6,11 +6,12 @@ import { validatePlotPickleScreenRegistry } from "../app/_components/plotpickle-
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1736 establishes one canonical visual-system owner and a bounded compatibility bridge", async () => {
-  const [layout, css, registryText, guide] = await Promise.all([
+  const [layout, css, registryText, guide, audit] = await Promise.all([
     read("app/layout.tsx"),
     read("app/_components/plotpickle-system/system.css"),
     read("app/_components/plotpickle-system/screen-registry.json"),
     read("app/_components/plotpickle-system/README.md"),
+    read("scripts/ui-ux-code-audit.mjs"),
   ]);
   const registry = JSON.parse(registryText);
 
@@ -23,6 +24,7 @@ test("#1736 establishes one canonical visual-system owner and a bounded compatib
   const rules = css.replace(/\/\*[\s\S]*?\*\//gu, "");
   assert.doesNotMatch(rules, /!important|#[0-9a-f]{3,8}\b|rgba?\(/iu);
   assert.match(guide, /single adoption and locking authority/iu);
+  assert.match(audit, /app\/_components\/plotpickle-system\/system\.css/u);
 });
 
 test("#1736 maps login/profile access onto bronze, jade and rune semantics without changing auth authority", async () => {

@@ -1,8 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import DemoExperience from "./demo-experience";
 import styles from "./demo-onboarding-boundary.module.css";
+import placement from "./demo-shortcut-placement.module.css";
 
 type ProfileStatusProbe = {
   readonly configured: boolean;
@@ -33,10 +35,19 @@ function canOfferReturningDemo(status: ProfileStatusProbe | null) {
     && !status.autonomousGuest?.active;
 }
 
+function findProfileChooserActionRow() {
+  const boundary = document.querySelector('[data-profile-access-boundary="locked"]');
+  if (!boundary) return null;
+  const addProfile = [...boundary.querySelectorAll("button")]
+    .find((button) => (button.textContent || "").trim() === "Add profile");
+  return addProfile?.parentElement instanceof HTMLElement ? addProfile.parentElement : null;
+}
+
 export default function DemoOnboardingBoundary({ children }: { readonly children: ReactNode }) {
   const [status, setStatus] = useState<ProfileStatusProbe | null>(null);
   const [mode, setMode] = useState<EntryMode>("probing");
   const [returningDemoVisible, setReturningDemoVisible] = useState(false);
+  const [returningDemoHost, setReturningDemoHost] = useState<HTMLElement | null>(null);
   const [pendingHandoff, setPendingHandoff] = useState<PendingHandoff | null>(null);
   const [handoffState, setHandoffState] = useState<HandoffState>("idle");
   const [handoffError, setHandoffError] = useState("");
@@ -60,6 +71,18 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (mode !== "normal" || !returningDemoVisible || !canOfferReturningDemo(status)) {
+      setReturningDemoHost(null);
+      return;
+    }
+    const locate = () => setReturningDemoHost(findProfileChooserActionRow());
+    locate();
+    const observer = new MutationObserver(locate);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [mode, returningDemoVisible, status]);
 
   useEffect(() => {
     if (mode !== "normal" || !returningDemoVisible || !canOfferReturningDemo(status)) return;
@@ -153,7 +176,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
   if (mode === "probing") {
     return (
       <main className={styles.entry} data-demo-onboarding="probing">
-        <section className={styles.card} aria-busy="true">
+        <section className={styles.card} role="status">
           <p className={styles.eyebrow}>PlotPickle</p>
           <h1>Opening the local entry…</h1>
           <p>Checking this PlotPickle Node before showing the correct local entry path.</p>
@@ -179,7 +202,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
           <p className={styles.eyebrow}>Welcome to PlotPickle</p>
           <h1>See it work, or make it yours.</h1>
           <p>You can try a small disposable STORY world before creating a private local profile. DEMO needs no account, provider key, BUZZ identity, GitHub, Google, or Internet connection.</p>
-          <div className={styles.choices}>
+          <div className={styles.choices} role="group" aria-label="PlotPickle entry choices">
             <button type="button" onClick={() => setMode("demo")}>
               <strong>DEMO — See PlotPickle work</strong>
               <span>Play five prepared story decisions, see consequences change, then reset or leave with nothing private retained.</span>
@@ -199,7 +222,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
     <>
       {children}
       {pendingHandoff ? (
-        <aside className={styles.handoffNotice} data-demo-handoff="pending" aria-live="polite">
+        <aside className={styles.handoffNotice} data-demo-handoff="pending" role="status">
           <strong>{handoffState === "creating" ? "Creating your Human story project…" : "Make This Mine is ready"}</strong>
           <span>{handoffError || "Create or unlock your normal PlotPickle Human profile. Your approved starter story will be created automatically after authentication."}</span>
           {handoffState !== "creating" ? (
@@ -210,11 +233,14 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
           ) : null}
         </aside>
       ) : null}
-      {!pendingHandoff && returningDemoVisible && canOfferReturningDemo(status) ? (
-        <button type="button" className={styles.demoShortcut} onClick={() => setMode("demo")}>
-          Try DEMO
-        </button>
-      ) : null}
+      {!pendingHandoff && returningDemoVisible && canOfferReturningDemo(status) && returningDemoHost
+        ? createPortal(
+            <button type="button" className={`${styles.demoShortcut} ${placement.insideProfileActions}`} onClick={() => setMode("demo")}>
+              Try DEMO
+            </button>,
+            returningDemoHost,
+          )
+        : null}
     </>
   );
 }

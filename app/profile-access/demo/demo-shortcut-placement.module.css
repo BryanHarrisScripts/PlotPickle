@@ -1,0 +1,5 @@
+.insideProfileActions {
+  position: static;
+  min-height: var(--pp-touch-target);
+  margin-left: auto;
+}

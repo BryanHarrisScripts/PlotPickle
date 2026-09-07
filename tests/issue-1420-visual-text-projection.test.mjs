@@ -19,7 +19,8 @@ test("#1420 binds visual and background text projections to the same canonical B
   assert.match(ui, /data-canonical-story-id=\{selected\.id\}/);
   assert.match(ui, /data-canonical-story-id=\{selected\.backgroundText\.targetRef\}/);
   assert.match(ui, /Background story text/);
-  assert.match(ui, /Same canonical Block · read-only source projection/);
+  assert.match(ui, /Same canonical Block/);
+  assert.match(ui, /Read-only source projection/);
 });
 
 test("#1420 projects bounded screenplay evidence without rewriting or inflating canon", async () => {

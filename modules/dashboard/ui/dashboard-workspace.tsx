@@ -154,10 +154,10 @@ export default function DashboardWorkspace({
             <span data-state={worldStates.plan}>P</span>
             <span data-state={worldStates.build}>B</span>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-            <button disabled={!hasQaWorkspaceAccess(world.learn !== "locked")} onClick={() => onNavigateGuided("learn", "world")} type="button">{isQaAccessOverride(world.learn !== "locked") ? "World LEARN · QA" : "World LEARN"}</button>
-            <button disabled={!hasQaWorkspaceAccess(world.plan !== "locked")} onClick={() => onNavigateGuided("plan", "world")} type="button">{isQaAccessOverride(world.plan !== "locked") ? "World PLAN · QA" : "World PLAN"}</button>
-            <button disabled={!hasQaWorkspaceAccess(world.build !== "locked")} onClick={() => onNavigateGuided("build", "world")} type="button">{isQaAccessOverride(world.build !== "locked") ? "World BUILD · QA" : "World BUILD"}</button>
+          <div className={styles.stageTop}>
+            <button className={styles.stateMark} disabled={!hasQaWorkspaceAccess(world.learn !== "locked")} onClick={() => onNavigateGuided("learn", "world")} type="button">{isQaAccessOverride(world.learn !== "locked") ? "World LEARN · QA" : "World LEARN"}</button>
+            <button className={styles.stateMark} disabled={!hasQaWorkspaceAccess(world.plan !== "locked")} onClick={() => onNavigateGuided("plan", "world")} type="button">{isQaAccessOverride(world.plan !== "locked") ? "World PLAN · QA" : "World PLAN"}</button>
+            <button className={styles.stateMark} disabled={!hasQaWorkspaceAccess(world.build !== "locked")} onClick={() => onNavigateGuided("build", "world")} type="button">{isQaAccessOverride(world.build !== "locked") ? "World BUILD · QA" : "World BUILD"}</button>
           </div>
         </div>
         <span className={styles.nextBadge}>{world.complete ? "✓ Complete" : world.unlocked ? "→ Active" : "🔒 Locked"}</span>
@@ -195,9 +195,7 @@ export default function DashboardWorkspace({
                   <span data-state={group.plan}>P</span>
                   <span data-state={group.build}>B</span>
                 </div>
-                <div className={styles.progressTrack} aria-label={`${group.label} ${group.percentComplete}% complete`}>
-                  <span style={{ width: `${group.percentComplete}%` }} />
-                </div>
+                <progress className={styles.progressTrack} aria-label={`${group.label} ${group.percentComplete}% complete`} max={100} value={group.percentComplete} />
                 {!group.implemented ? <small>Workspace intentionally gated until the prior approved cycle is proven.</small> : null}
               </article>
             );

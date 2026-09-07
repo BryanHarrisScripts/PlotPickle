@@ -75,7 +75,7 @@ test("UAT findings persist to GitHub and are handed through semantic execution t
   const [reporter, handoff, workflow, closedLoop, semanticRepair] = await Promise.all([
     read("scripts/report-uat-findings.mjs"),
     read(".github/workflows/uat-repair-handoff.yml"),
-    read(".github/workflows/learn-validation.yml"),
+    read(".github/workflows/pr-gate.yml"),
     read("scripts/run-uat-closed-loop.mjs"),
     read("scripts/run-semantic-uat-repair.mjs"),
   ]);

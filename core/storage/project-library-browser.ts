@@ -3,10 +3,16 @@ import {
   normalizeProjectSourceEvidence,
   type ProjectSourceEvidence,
 } from "../contracts/imported-screenplay-evidence";
+import {
+  createEmptyStoryStructureV2,
+  normalizeStoryStructureV2,
+  type StoryStructureV2,
+} from "../project/story-structure-v2";
 import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../project/project";
 import * as libraryCore from "./project-library-core.mjs";
 
 export type LibraryPPFProject = PPFProject & {
+  readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
 };
 
@@ -40,18 +46,26 @@ function idFactory() {
   return globalThis.crypto?.randomUUID?.() ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Readonly<Record<string, unknown>>
+    : {};
+}
+
 function normalizeLibraryProject(value: unknown): LibraryPPFProject {
+  const source = objectRecord(value);
   const project = normalizeFoundationProject(value);
-  const sourceEvidence = normalizeProjectSourceEvidence(
-    value && typeof value === "object" && !Array.isArray(value)
-      ? (value as { readonly sourceEvidence?: unknown }).sourceEvidence
-      : null,
-  );
-  return { ...project, sourceEvidence };
+  const structure = normalizeStoryStructureV2(source.structure);
+  const sourceEvidence = normalizeProjectSourceEvidence(source.sourceEvidence);
+  return { ...project, structure, sourceEvidence };
 }
 
 function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
-  return { ...createEmptyProject(input), sourceEvidence: createEmptyProjectSourceEvidence() };
+  return {
+    ...createEmptyProject(input),
+    structure: createEmptyStoryStructureV2(),
+    sourceEvidence: createEmptyProjectSourceEvidence(),
+  };
 }
 
 function answerCount(project: PPFProject) {
@@ -124,8 +138,17 @@ export function loadActiveLibraryProject(): LibraryPPFProject {
   });
 }
 
-export function saveActiveLibraryProject(project: PPFProject) {
-  const result = libraryCore.saveProfileActiveProject({ ...coreInput(), project }) as {
+export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject) {
+  const initialized = initializeProjectLibrary();
+  const incoming = objectRecord(project);
+  const hasStructure = Boolean(incoming.structure && typeof incoming.structure === "object" && !Array.isArray(incoming.structure));
+  const structure = hasStructure
+    ? normalizeStoryStructureV2(incoming.structure)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.structure
+      : createEmptyStoryStructureV2();
+  const projectWithStructure = { ...project, structure };
+  const result = libraryCore.saveProfileActiveProject({ ...coreInput(), project: projectWithStructure }) as {
     readonly activeProject: LibraryPPFProject;
   };
   announceChange();

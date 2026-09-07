@@ -30,7 +30,7 @@ function findCssDeclarationViolations(file, content) {
     const tokenized = /var\(--pp-[^)]+\)/.test(value);
     const safeLiteral = value === "0" || value === "none" || value === "normal" || value === "inherit" || value === "initial" || value === "unset";
 
-    if (property === "font-family" && !/var\(--pp-font-(?:body|display|code)\)/.test(value)) {
+    if (property === "font-family" && !/var\(--pp-font-(?:body|display|code|interface)\)/.test(value)) {
       violations.push(`${file}: ${property} must use a --pp-font-* token (found ${value})`);
       continue;
     }

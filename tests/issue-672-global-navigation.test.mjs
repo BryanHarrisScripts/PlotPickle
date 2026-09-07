@@ -64,7 +64,7 @@ test("#1719 global navigator is compact by disclosure, horizontally forgiving wh
   assert.match(css, /\.destinationList button \{[\s\S]*width: 64px;[\s\S]*min-height: 64px[\s\S]*border-radius: var\(--pp-radius-control\)/);
   assert.match(css, /\.utilityArea \{[\s\S]*margin-left: auto/);
   assert.match(css, /\.projectStrip \{[\s\S]*border-radius: var\(--pp-radius-panel\)/);
-  assert.match(css, /font-family: var\(--pp-font-code\)/);
+  assert.match(css, /font-family: var\(--pp-font-navigation\)/);
   assert.match(css, /\.workspaceFrame :global\(nav\[aria-label="PlotPickle workflow"\]\)/);
   assert.match(css, /PlotPickle workflow and plugins/);
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(/i);

@@ -42,7 +42,7 @@ test("#1730 typography mashes interface, telemetry and lore roles without changi
   assert.match(css, /\.card h1\s*\{[\s\S]*font-family:\s*var\(--pp-font-lore\)/u);
   assert.match(css, /\.eyebrow\s*\{[\s\S]*font-family:\s*var\(--pp-font-code\)/u);
   assert.match(css, /\.boundary\s*\{[\s\S]*font-family:\s*var\(--pp-font-interface\)/u);
-  assert.match(gate, /body\|display\|code\|interface\|lore/u);
+  assert.match(gate, /body\|display\|code\|interface\|navigation\|lore/u);
 
   for (const securityContract of [
     "profileRequest(\"login\"",

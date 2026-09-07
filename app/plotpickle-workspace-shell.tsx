@@ -269,6 +269,8 @@ function firstShortcutForArea(area: NavigationAreaId) {
   return shortcutsForArea(area)[0] ?? null;
 }
 
+const profileShortcut = shortcutForId("profile");
+
 export default function PlotPickleWorkspaceShell({
   activeWorkspace,
   activeShortcutId,
@@ -388,7 +390,10 @@ export default function PlotPickleWorkspaceShell({
               <span>{destinationDetail}</span>
             </div>
 
-            <div className={styles.destinationScroller}>
+            <div
+              className={styles.destinationScroller}
+              data-shell-local-order={activeArea === "home" ? "dashboard library profile" : undefined}
+            >
               {NAVIGATION_AREAS.map((navigationAreaOption) => (
                 <ol
                   className={styles.destinationList}
@@ -423,6 +428,19 @@ export default function PlotPickleWorkspaceShell({
                   })}
                 </ol>
               ))}
+              {activeArea === "home" && profileShortcut ? (
+                <button
+                  aria-haspopup="dialog"
+                  className={styles.profileDestination}
+                  data-shell-local-destination="profile"
+                  onClick={() => runShortcut(profileShortcut)}
+                  title={`${profileShortcut.label} · ${profileShortcut.detail}`}
+                  type="button"
+                >
+                  <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={profileShortcut.relic} width={44} />
+                  <span className={styles.copy}><strong>{profileShortcut.label}</strong><small>{profileShortcut.detail}</small></span>
+                </button>
+              ) : null}
             </div>
 
             <ShellProjectTruth activeShortcutId={activeShortcutId} activeWorkspace={activeWorkspace} scopeOverride={contextScope} />

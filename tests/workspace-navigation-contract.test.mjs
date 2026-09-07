@@ -77,7 +77,7 @@ test("#1719 navigation CSS uses PlotPickle tokens while rendered UAT enforces at
   assert.match(shellCss, /\.utilityArea\s*\{[^}]*margin-left:\s*auto;/s);
   assert.match(shellCss, /\.projectStrip\s*\{[^}]*gap:\s*var\(--pp-space-/s);
   assert.match(shellCss, /\.primaryNextAction\s*\{[^}]*min-height:\s*44px;[^}]*font-size:\s*var\(--pp-text-xs\)/s);
-  assert.match(shellCss, /font-family:\s*var\(--pp-font-code\)/);
+  assert.match(shellCss, /font-family:\s*var\(--pp-font-navigation\)/);
   assert.doesNotMatch(shellCss, /#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.match(shellCss, /@media \(prefers-reduced-motion: reduce\)/);
 });

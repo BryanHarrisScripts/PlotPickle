@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import DemoExperience from "./demo-experience";
 import styles from "./demo-onboarding-boundary.module.css";
+import placement from "./demo-shortcut-placement.module.css";
 
 type ProfileStatusProbe = {
   readonly configured: boolean;
@@ -234,7 +235,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
       ) : null}
       {!pendingHandoff && returningDemoVisible && canOfferReturningDemo(status) && returningDemoHost
         ? createPortal(
-            <button type="button" className={styles.demoShortcut} onClick={() => setMode("demo")}>
+            <button type="button" className={`${styles.demoShortcut} ${placement.insideProfileActions}`} onClick={() => setMode("demo")}>
               Try DEMO
             </button>,
             returningDemoHost,

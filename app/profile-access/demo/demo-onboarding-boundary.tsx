@@ -202,7 +202,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
           <p className={styles.eyebrow}>Welcome to PlotPickle</p>
           <h1>See it work, or make it yours.</h1>
           <p>You can try a small disposable STORY world before creating a private local profile. DEMO needs no account, provider key, BUZZ identity, GitHub, Google, or Internet connection.</p>
-          <div className={styles.choices}>
+          <div className={styles.choices} role="group" aria-label="PlotPickle entry choices">
             <button type="button" onClick={() => setMode("demo")}>
               <strong>DEMO — See PlotPickle work</strong>
               <span>Play five prepared story decisions, see consequences change, then reset or leave with nothing private retained.</span>
@@ -222,7 +222,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
     <>
       {children}
       {pendingHandoff ? (
-        <aside className={styles.handoffNotice} data-demo-handoff="pending" aria-live="polite">
+        <aside className={styles.handoffNotice} data-demo-handoff="pending" role="status">
           <strong>{handoffState === "creating" ? "Creating your Human story project…" : "Make This Mine is ready"}</strong>
           <span>{handoffError || "Create or unlock your normal PlotPickle Human profile. Your approved starter story will be created automatically after authentication."}</span>
           {handoffState !== "creating" ? (

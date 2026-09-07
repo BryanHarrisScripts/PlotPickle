@@ -96,7 +96,7 @@
 }
 
 .eyebrow::before {
-  content: "[ READY ]  ";
+  content: "//  ";
   color: var(--pp-profile-status);
 }
 

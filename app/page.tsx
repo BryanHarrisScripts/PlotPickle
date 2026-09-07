@@ -10,7 +10,6 @@ import { hasActiveLibraryProject } from "../core/storage/project-library-browser
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";
-import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
@@ -25,6 +24,7 @@ import rootLoadingStyles from "./_components/foundation/root-loading-state.modul
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 import StoryMapShell from "./story-map-shell";
+import StoryMapWorkspace from "./story-map-workspace";
 import "./issue-1725-polish.css";
 
 type Workspace = RootWorkspace;
@@ -186,8 +186,8 @@ export default function Home() {
 
   if (workspace === "dashboard") {
     return (
-      <StoryMapShell>
-        <DashboardWorkspace
+      <StoryMapShell onNavigate={navigateWorkspace}>
+        <StoryMapWorkspace
           curriculum={plotPickleCurriculum}
           onNavigate={navigateWorkspace}
           onNavigateGuided={navigateGuided}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
+import styles from "./storyboard-page.module.css";
 
 function boundedBlock(value: string | null) {
   const number = Number(value || 1);
@@ -29,11 +30,11 @@ export default function StoryboardPage() {
   }, []);
 
   if (error) {
-    return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 24 }}><p role="alert">{error}</p></main>;
+    return <main className={styles.state}><p role="alert">{error}</p></main>;
   }
 
   if (!project) {
-    return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening canonical Storyboard readiness…</main>;
+    return <main className={styles.state}>Opening canonical Storyboard readiness…</main>;
   }
 
   return (

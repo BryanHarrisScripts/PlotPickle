@@ -8,6 +8,7 @@ import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../../../core/storage/foundation-project-browser";
 import { buildLocalCurriculumSourceIndex, localCurriculumSourceKey } from "../model/local-curriculum-links";
+import controlsStyles from "./learn-workspace-controls.module.css";
 import styles from "./learn-workspace.module.css";
 import { CurriculumMaterial } from "./curriculum-material";
 
@@ -146,10 +147,12 @@ function LessonTopGlyph() {
 export default function LearnWorkspace({
   curriculum,
   guide,
+  onApplyLearning,
   onOpenFoundationsPlan,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
   readonly guide: CurriculumGuide;
+  readonly onApplyLearning?: (topic: string, lessonId?: string) => void;
   readonly onOpenFoundationsPlan?: (lessonId?: string) => void;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
@@ -337,36 +340,24 @@ export default function LearnWorkspace({
   return (
     <div className={styles.learnScreen} data-hide-agent-settings-anchor="true">
       <nav className={styles.workflowNav} aria-label="PlotPickle workflow">
-        <ol style={{ minWidth: 920 }}>
+        <ol className={controlsStyles.workflowList}>
           {WORKFLOW_STAGES.map((stage) => {
             const unavailable = !stage.selectable || (stage.id === "plan" && !onOpenFoundationsPlan);
+            const stageClasses = [
+              stage.id === "learn" ? styles.currentStage : "",
+              stage.gapAfter ? controlsStyles.workflowGapAfter : "",
+            ].filter(Boolean).join(" ");
             return (
             <li
               aria-current={stage.id === "learn" ? "page" : undefined}
-              className={stage.id === "learn" ? styles.currentStage : undefined}
+              className={stageClasses || undefined}
               key={stage.id}
-              style={{ marginRight: stage.gapAfter ? 44 : undefined }}
             >
               <button
                 aria-label={stage.label}
+                className={controlsStyles.workflowStageButton}
                 disabled={unavailable}
                 onClick={() => selectWorkflowStage(stage.id)}
-                style={{
-                  WebkitAppearance: "none",
-                  appearance: "none",
-                  display: "grid",
-                  width: "100%",
-                  justifyItems: "center",
-                  gap: 2,
-                  padding: 0,
-                  border: 0,
-                  background: "transparent",
-                  color: "inherit",
-                  cursor: unavailable ? "default" : "pointer",
-                  font: "inherit",
-                  opacity: unavailable ? 0.62 : 1,
-                  textAlign: "center",
-                }}
                 title={unavailable ? `${stage.label} is not available yet` : `Open ${stage.label}`}
                 type="button"
               >
@@ -416,6 +407,8 @@ export default function LearnWorkspace({
         <nav className={styles.lessonList} aria-label="Curriculum lessons">
           {lessonGroups.map((group) => {
             const collapsed = collapsedTopics.includes(group.topic);
+            const activeGroupLessonId = activeLesson.topic === group.topic ? activeLesson.id : undefined;
+            const applyAvailable = Boolean(onApplyLearning || (group.topic === "foundations" && onOpenFoundationsPlan));
             return (
             <section className={styles.topicGroup} data-collapsed={collapsed ? "true" : "false"} key={group.topic}>
               <button
@@ -455,26 +448,21 @@ export default function LearnWorkspace({
                 </div>
                 );
               })}
-              {collapsed ? null : group.topic === "foundations" && onOpenFoundationsPlan ? (
+              {collapsed ? null : applyAvailable ? (
                 <button
-                  aria-label="Apply what you have learned in Foundations"
+                  aria-label={`Apply what you have learned in ${topicName(group.topic)}`}
                   className={`${styles.applyLearningRow} ${styles.applyLearningAction}`}
-                  onClick={() => onOpenFoundationsPlan(
-                    activeLesson.topic === "foundations" ? activeLesson.id : undefined,
-                  )}
+                  onClick={() => {
+                    if (onApplyLearning) onApplyLearning(group.topic, activeGroupLessonId);
+                    else onOpenFoundationsPlan?.(activeGroupLessonId);
+                  }}
                   type="button"
                 >
                   <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
                   <strong>Apply what you have learned</strong>
-                  <small>Open PLAN</small>
+                  <small>Open application</small>
                 </button>
-              ) : collapsed ? null : (
-                <div className={styles.applyLearningRow} aria-label={`Apply what you have learned in ${topicName(group.topic)}`}>
-                  <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
-                  <strong>Apply what you have learned</strong>
-                  <small>Coming soon</small>
-                </div>
-              )}
+              ) : null}
               </div>
             </section>
             );
@@ -628,19 +616,6 @@ export default function LearnWorkspace({
                         className={styles.messageSources}
                         key={lesson.id}
                         onClick={() => openLesson(lesson.id)}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          marginTop: 8,
-                          padding: "7px 9px",
-                          border: "1px solid rgba(53, 201, 184, 0.28)",
-                          borderRadius: 6,
-                          background: "rgba(53, 201, 184, 0.05)",
-                          color: "#b9d8d3",
-                          cursor: "pointer",
-                          font: "inherit",
-                          textAlign: "left",
-                        }}
                         title={`Open ${lesson.title} in LEARN`}
                         type="button"
                       >

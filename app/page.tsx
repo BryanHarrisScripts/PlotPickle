@@ -24,6 +24,7 @@ import CommunityWorkspace from "./_components/community/community-workspace";
 import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import "./issue-1725-polish.css";
 
 type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";
@@ -122,6 +123,45 @@ function navigateWorkspace(workspace: Workspace) {
     return;
   }
   window.location.assign(href);
+}
+
+function openLearningApplication(topic: string, lessonId?: string) {
+  switch (topic) {
+    case "foundations":
+      navigateGuided("plan", "foundations", lessonId);
+      return;
+    case "world":
+      navigateGuided("plan", "world", lessonId);
+      return;
+    case "character":
+    case "theme":
+      navigateGuided("plan", "foundations");
+      return;
+    case "structure":
+      window.location.assign("/structure");
+      return;
+    case "visual-storytelling":
+      window.location.assign("/storyboard");
+      return;
+    case "drafting":
+    case "dialogue":
+      window.location.assign("/pageflow");
+      return;
+    case "revision":
+      window.location.assign("/edit");
+      return;
+    case "responsible-ai":
+      navigateWorkspace("settings");
+      return;
+    case "industry":
+      window.location.assign("/production");
+      return;
+    case "collaboration":
+      navigateWorkspace("collab");
+      return;
+    default:
+      navigateWorkspace("plan");
+  }
 }
 
 export default function Home() {
@@ -261,6 +301,7 @@ export default function Home() {
       <LearnWorkspace
         curriculum={plotPickleCurriculum}
         guide={memoryAwareSageGuide}
+        onApplyLearning={openLearningApplication}
         onOpenFoundationsPlan={openFoundationsPlan}
       />
       <MarqueeAgentOverlay curriculum={plotPickleCurriculum} />

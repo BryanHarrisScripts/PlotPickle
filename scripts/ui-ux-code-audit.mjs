@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const RESULT_PATH = "audit-result.json";
 const REPORT_PATH = "audit-report.md";
@@ -246,30 +247,55 @@ async function gatherCode(files) {
     sources.set(file, content);
     sections.push(`\n--- FILE: ${file} ---\n${content}`);
   }
-  const designContext = await readFile("app/globals.css", "utf8").catch(() => "");
-  return { codePayload: sections.join("\n"), sources, designContext: `${designContext}\n${sections.join("\n")}` };
+  const designContext = (await Promise.all(["app/globals.css", "app/design-tokens.css"].map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
+  return { codePayload: `REFERENCE DESIGN TOKENS (context only, not changed files):\n${designContext}\n${sections.join("\n")}`, sources, designContext: `${designContext}\n${sections.join("\n")}` };
 }
 
-async function callAuditModel(codePayload) {
+const DEFAULT_RETRY_DELAYS_MS = [5_000, 15_000, 30_000];
+
+function auditRetryDelays() {
+  const configured = (process.env.OPENAI_UI_AUDIT_RETRY_DELAYS_MS || "")
+    .split(",")
+    .map(Number)
+    .filter((value) => Number.isFinite(value) && value >= 0);
+  return configured.length ? configured : DEFAULT_RETRY_DELAYS_MS;
+}
+
+function retryDelay(response, attempt, delays) {
+  const retryAfter = response.headers.get("retry-after");
+  const retryAfterSeconds = Number(retryAfter);
+  if (retryAfter !== null && Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0) {
+    return Math.min(60_000, retryAfterSeconds * 1_000);
+  }
+  return delays[attempt] ?? delays.at(-1) ?? 0;
+}
+
+export async function callAuditModel(codePayload) {
   const apiKey = process.env.OPENAI_API_KEY || "";
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured for the required UI/UX audit gate.");
   const model = process.env.OPENAI_UI_AUDIT_MODEL || "gpt-4o";
   const prompt = `You are PlotPickle's UI/UX and front-end design-system auditor. Review only the supplied changed files against these 25 criteria:\n\n${criteria.map((item, index) => `${index + 1}. ${item}`).join("\n")}\n\nReturn one JSON object only with this exact shape:\n{\n  "verdict": "pass" or "fail",\n  "summary": "concise summary",\n  "findings": [\n    {"kind":"issue" or "praise","criterion":1-25,"file":"exact changed path","message":"specific finding","suggestion":"specific code-level correction","evidence":"exact contiguous source excerpt"}\n  ]\n}\n\nBlocking rules:\n- verdict must be fail when any actual issue is found, including a minor issue; praises never fail the gate.\n- verdict may be pass only when there are zero substantiated issue findings.\n- Every issue must identify a definite standards or design-rule violation, not a possibility, preference, or generic optimization.\n- Every issue must quote an exact contiguous source excerpt in evidence. The excerpt must exist verbatim in the named changed file.\n- Every issue must provide a correction that is valid for the actual HTML, CSS, React, and browser platform involved.\n- Before reporting an issue, inspect the complete supplied file and verify that the requested fix is not already present elsewhere in the same element or component.\n- A contrast issue must include both the foreground and background declarations in the quoted evidence and must be based on resolved color values rather than an unsupported guess.\n- An ARIA validity issue must name the exact aria-* attribute claimed to be invalid and explain why it is invalid on the actual host element. Generic \"invalid ARIA\" findings are not actionable issues.\n- Do not use wording such as may, might, could, potential, consider, review, unnecessary, not necessary, excessive, or not used to full potential for an issue. Return such observations as praise or omit them.\n- Do not invent files, runtime behavior, contrast values, rendered output, or missing context that cannot be inferred from the supplied code.\n\nPlatform correctness rules:\n- This is a React component audit, not a whole-document audit. A leaf component does not require its own h1. h2 followed by h3 is a valid hierarchy when the component sits beneath a page-level heading.\n- Native h1, h2, h3, h4, h5, and h6 elements are semantic headings. Never report a native heading element as a non-semantic heading merely because its content is composed from JSX values.\n- Ordinary text that changes when React state resolves does not automatically require aria-live or role=status. Request a live region only when the update is important asynchronous status or feedback that would otherwise be missed.\n- Native buttons, links, inputs, textareas, summary elements, checkboxes, and video controls are keyboard focusable. Do not request tabindex unless the code demonstrably removes focusability or uses a non-interactive element as a control.\n- A non-interactive presentation container without an event handler is not a button and must not be given button semantics merely because it groups an image and text. A wrapper div around real button descendants remains a non-interactive grouping container.\n- A div used only for grouping inside an existing nav is already within the navigation landmark; do not replace it with a nested nav merely because its descendants are navigation controls.\n- Native video controls expose their own accessible interaction model. Do not add role=application to a video element.\n- aria-disabled on a native button intentionally keeps it reachable so the control can explain unmet prerequisites; do not require a disabled attribute as well.\n- ARIA should be minimized. Do not request additional roles or attributes unless there is a specific missing accessible name, state, or relationship.\n- A named nav landmark is correct when it distinguishes section navigation from other navigation landmarks; do not request removing aria-label or aria-labelledby merely because the element is already a nav.\n- An img with an explicit alt prop, including a JSX expression or fallback expression, already has alternative text; do not report the alt attribute as missing.\n- A JSX aria-labelledby or aria-describedby expression may validly reference an ID supplied through the same variable on another element in the component. Verify id={variableName} before reporting a missing reference.\n- A video described by aria-label, aria-labelledby, aria-describedby plus figcaption, or meaningful fallback text has a description.\n- preload=none is a valid deferred-loading strategy for video. The loading attribute is not a standard HTML video attribute and must never be suggested.\n- CSS Modules are extracted and code-split by the build. Do not flag critical CSS or render blocking merely because a changed file is a CSS Module.\n- SEO and social metadata findings apply only to page, layout, head, metadata, or document-level files, not leaf UI components.\n- A div is a standards-valid grouping child inside dl when it wraps one or more dt/dd groups.\n- A span may contain phrasing content and may be displayed as a block through CSS; that alone is not a semantic defect.\n- DOM-depth findings require an exact excessive nesting path and a concrete simplification that preserves semantic structure.\n- Do not flag semantic strong/em/span choices unless the quoted usage actually conveys the wrong meaning. Decorative marks should be aria-hidden and may use span.\n- Do not include credentials, secrets, or private repository information in the response.\n\nCODE TO AUDIT:\n${codePayload}`;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0,
-      response_format: { type: "json_object" },
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
+  const delays = auditRetryDelays();
+  let response;
+  for (let attempt = 0; attempt <= delays.length; attempt += 1) {
+    response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0,
+        response_format: { type: "json_object" },
+      }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    if (response.status !== 429 || attempt === delays.length) break;
+    await new Promise((resolve) => setTimeout(resolve, retryDelay(response, attempt, delays)));
+  }
   if (!response.ok) throw new Error(`The UI/UX audit provider returned HTTP ${response.status}.`);
   const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
@@ -303,4 +329,5 @@ async function main() {
   }
 }
 
-await main();
+const directExecution = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (directExecution) await main();

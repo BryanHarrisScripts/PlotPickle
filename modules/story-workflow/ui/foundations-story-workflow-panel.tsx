@@ -250,22 +250,10 @@ export default function FoundationsStoryWorkflowPanel({
         </div>
       </header>
 
-      <div className={styles.explainer}>
-        <p>One click can start up to two independent local checks. Each specialist receives only the exact story field, current curriculum requirement and bounded evidence needed for that task.</p>
-        <p>Results become reviewable PLAN proposals. Agents cannot accept them, write canon, use BUZZ authority, or silently fall back to paid cloud models.</p>
-      </div>
-
       <div className={styles.actions}>
         <button type="button" disabled={running || !selected.length} onClick={() => void runChecks()}>
           {running ? "Running local story checks…" : selected.length ? `Run ${selected.length} story ${selected.length === 1 ? "check" : "checks"}` : "No new checks to run"}
         </button>
-        <FoundationsBuzzStoryLiveTest
-          curriculum={curriculum}
-          disabled={running}
-          onStatus={setNotice}
-          project={project}
-          workItem={selected[0] ?? null}
-        />
         {onOpenPlan ? <button className={styles.secondary} type="button" onClick={onOpenPlan}>Review in PLAN{waiting.length ? ` (${waiting.length})` : ""}</button> : null}
       </div>
 
@@ -283,7 +271,23 @@ export default function FoundationsStoryWorkflowPanel({
         </div>
       ) : null}
 
-      <p className={styles.footnote}>Story Workflow work is visible in Responsibility Runs. Private model deliberation is never stored as project evidence; only bounded inputs, structured results and Human decisions are retained.</p>
+      <details className={styles.details}>
+        <summary>How Story Workflow works</summary>
+        <div className={styles.explainer}>
+          <p>One click can start up to two independent local checks. Each specialist receives only the exact story field, current curriculum requirement and bounded evidence needed for that task.</p>
+          <p>Results become reviewable PLAN proposals. Agents cannot accept them, write canon, use BUZZ authority, or silently fall back to paid cloud models.</p>
+        </div>
+        <div className={styles.secondaryTools}>
+          <FoundationsBuzzStoryLiveTest
+            curriculum={curriculum}
+            disabled={running}
+            onStatus={setNotice}
+            project={project}
+            workItem={selected[0] ?? null}
+          />
+        </div>
+        <p className={styles.footnote}>Story Workflow work is visible in Responsibility Runs. Private model deliberation is never stored as project evidence; only bounded inputs, structured results and Human decisions are retained.</p>
+      </details>
     </section>
   );
 }

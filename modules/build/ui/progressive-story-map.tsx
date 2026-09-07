@@ -168,7 +168,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                       <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => setSelectedBlockNumber(block.number)} type="button">
                         <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                         <span className={styles.sequence}>S{String(block.sequenceNumber).padStart(2, "0")} · {block.sequenceTitle}</span>
-                        <span aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
+                        <span role="img" aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
                         <small>{block.observedPassageCount ? `${block.observedPassageCount} source passage${block.observedPassageCount === 1 ? "" : "s"}` : "Not enough information yet"}{blockDecisionCount ? ` · ${blockDecisionCount} Story Decision${blockDecisionCount === 1 ? "" : "s"}` : ""}</small>
                         <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
                           {block.miniBlocks.map((mini) => (
@@ -197,7 +197,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
       <article className={styles.inspector} data-canonical-story-id={selected.id} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
-          <span aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
+          <span role="img" aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
         </header>
         <p>{selected.sequencePurpose}</p>
         <div className={styles.explainGrid}>
@@ -210,46 +210,54 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
             <h4>Mini-Block resolution</h4>
             <ol className={styles.miniInspector}>
               {selected.miniBlocks.map((mini) => (
-                <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
+                <li data-state={mini.state} key={mini.id}><span>{mini.number}. {mini.label}</span><i role="img" aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} /><small>{mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}; placement remains subject to review.` : "Not enough information at the current frontier."}</small></li>
               ))}
             </ol>
           </section>
-          <section data-story-decision-target={selected.id}>
-            <h4>Story Decisions</h4>
-            {decisionMarkerError ? <p className={styles.unresolved}>{decisionMarkerError}</p> : selectedDecisionMarkers.length ? (
-              <ul>
-                {selectedDecisionMarkers.map((marker) => {
-                  const action = decisionAction(marker);
-                  return <li key={`${selected.id}-${marker.decisionId}`}><strong>{marker.stale ? "STALE" : marker.needsWorkbench ? "WORKBENCH" : "NEEDS HUMAN"} · {marker.severity}</strong><br /><span>{marker.question}</span><br /><a href={action.href}>{action.label}</a></li>;
-                })}
-              </ul>
-            ) : <p className={styles.unresolved}>No active Story Decision targets this Block.</p>}
-            <p>These markers are read-only review records. They do not change PPF canon; answered choices still require Story Workbench validation.</p>
-          </section>
-          <section className={styles.textProjection} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state} data-text-review={selected.backgroundText.reviewState}>
-            <header className={styles.textProjectionHeader}>
-              <div><h4>Background story text</h4><p>Same canonical Block · read-only source projection</p></div>
-              <div><strong data-state={selected.backgroundText.state}>{STATE_LABELS[selected.backgroundText.state]}</strong><br /><small>{selected.backgroundText.reviewState === "needs-review" ? "NEEDS REVIEW" : "CURRENT"}</small></div>
-            </header>
-            {selected.backgroundText.reviewState === "needs-review" ? <p className={styles.unresolved} role="status"><strong>Needs Human review.</strong> This Block changed upstream at PPF revision {selected.backgroundText.staleAtRevision ?? project.revision}. The source screenplay below has not been rewritten.</p> : null}
-            {selected.backgroundText.passages.length ? (
-              <ol className={styles.sourcePassages}>
-                {selected.backgroundText.passages.map((passage) => (
-                  <li key={passage.id}>
-                    <small>Scene {passage.sceneNumber || "—"} · Mini-Block {passage.miniBlockNumber} · {passage.type}</small>
-                    <p>{passage.text}</p>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className={styles.unresolved}>No observed screenplay text is attached to this Block. PlotPickle does not fabricate background script text.</p>
-            )}
-            <p className={styles.textProvenance}>
-              {selected.backgroundText.sourceKind === "observed-screenplay"
-                ? `Source: ${selected.backgroundText.sourceFileName}. Observed source text is shown without rewriting. ${selected.backgroundText.reviewState === "needs-review" ? `This projection needs review against PPF revision ${selected.backgroundText.staleAtRevision ?? project.revision}; only this dependency-backed Block was marked stale.` : selected.backgroundText.placementReviewed ? "Its Block placement has been Human-reviewed." : "Its suggested Block placement still requires Human review."}`
-                : "No source screenplay passage currently supports this exact Block. The text projection remains missing instead of generating filler."}
-            </p>
-          </section>
+          <details className={styles.inspectorDetails} data-story-decision-target={selected.id}>
+            <summary><span>Story Decisions</span><small>{selectedDecisionMarkers.length ? `${selectedDecisionMarkers.length} to review` : "No active decisions"}</small></summary>
+            <div className={styles.inspectorDetailsBody}>
+              {decisionMarkerError ? <p className={styles.unresolved}>{decisionMarkerError}</p> : selectedDecisionMarkers.length ? (
+                <ul>
+                  {selectedDecisionMarkers.map((marker) => {
+                    const action = decisionAction(marker);
+                    return <li key={`${selected.id}-${marker.decisionId}`}><strong>{marker.stale ? "STALE" : marker.needsWorkbench ? "WORKBENCH" : "NEEDS HUMAN"} · {marker.severity}</strong><br /><span>{marker.question}</span><br /><a href={action.href}>{action.label}</a></li>;
+                  })}
+                </ul>
+              ) : <p className={styles.unresolved}>No active Story Decision targets this Block.</p>}
+              <p>These markers are read-only review records. They do not change PPF canon; answered choices still require Story Workbench validation.</p>
+            </div>
+          </details>
+          <details className={`${styles.inspectorDetails} ${styles.textProjection}`} data-canonical-story-id={selected.backgroundText.targetRef} data-state={selected.backgroundText.state} data-text-projection={selected.backgroundText.state} data-text-review={selected.backgroundText.reviewState}>
+            <summary>
+              <span>Background story text</span>
+              <small>{selected.backgroundText.reviewState === "needs-review" ? "Needs review" : STATE_LABELS[selected.backgroundText.state]}</small>
+            </summary>
+            <div className={styles.inspectorDetailsBody}>
+              <header className={styles.textProjectionHeader}>
+                <div><h4>Read-only source projection</h4><p>Same canonical Block</p></div>
+                <div><strong data-state={selected.backgroundText.state}>{STATE_LABELS[selected.backgroundText.state]}</strong><br /><small>{selected.backgroundText.reviewState === "needs-review" ? "NEEDS REVIEW" : "CURRENT"}</small></div>
+              </header>
+              {selected.backgroundText.reviewState === "needs-review" ? <p className={styles.unresolved} role="status"><strong>Needs Human review.</strong> This Block changed upstream at PPF revision {selected.backgroundText.staleAtRevision ?? project.revision}. The source screenplay below has not been rewritten.</p> : null}
+              {selected.backgroundText.passages.length ? (
+                <ol className={styles.sourcePassages}>
+                  {selected.backgroundText.passages.map((passage) => (
+                    <li key={passage.id}>
+                      <small>Scene {passage.sceneNumber || "—"} · Mini-Block {passage.miniBlockNumber} · {passage.type}</small>
+                      <p>{passage.text}</p>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className={styles.unresolved}>No observed screenplay text is attached to this Block. PlotPickle does not fabricate background script text.</p>
+              )}
+              <p className={styles.textProvenance}>
+                {selected.backgroundText.sourceKind === "observed-screenplay"
+                  ? `Source: ${selected.backgroundText.sourceFileName}. Observed source text is shown without rewriting. ${selected.backgroundText.reviewState === "needs-review" ? `This projection needs review against PPF revision ${selected.backgroundText.staleAtRevision ?? project.revision}; only this dependency-backed Block was marked stale.` : selected.backgroundText.placementReviewed ? "Its Block placement has been Human-reviewed." : "Its suggested Block placement still requires Human review."}`
+                  : "No source screenplay passage currently supports this exact Block. The text projection remains missing instead of generating filler."}
+              </p>
+            </div>
+          </details>
         </div>
         {storyMap.importedSourceFileName ? <p className={styles.provenance}>Source: {storyMap.importedSourceFileName}. The screenplay text is observed evidence; a suggested 24/96 placement does not become canon until the Human reviews it.</p> : <p className={styles.provenance}>Current frontier: Foundations. PLAN decisions remain global story context until later Structure work earns exact Block placement.</p>}
       </article>

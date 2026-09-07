@@ -45,6 +45,8 @@ test("#1404 reuses the Windows interaction harness for focused Microsoft Edge Co
     "PLOTPICKLE_VERIFICATION_AUTH_COOKIE",
     "Network.setCookie",
   ]) assert.ok(smoke.includes(contract), `Windows interaction smoke is missing Community Edge contract: ${contract}`);
+  assert.match(smoke, /data-navigation-area-id=.*connect/);
+  assert.match(smoke, /button.checkVisibility\(\)/);
   assert.match(smoke, /data-workspace-nav-id=.*community/);
   assert.match(smoke, /data-community-native-buzz=.*true/);
   assert.match(smoke, /communityEdgeMode \? \[`--app=\$\{baseUrl\}\/\?workspace=dashboard`\] : \["--disable-gpu", "about:blank"\]/);

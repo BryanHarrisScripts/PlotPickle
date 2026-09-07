@@ -34,7 +34,7 @@ export default function FoundationsStoryCoverage({
           <h2 id="foundations-story-coverage-title">Story Coverage</h2>
           <p>See what the writer has defined, what an immutable reference source directly supports, which ideas are still proposals, and which decisions remain intentionally open.</p>
         </div>
-        <div className={styles.score} aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
+        <div className={styles.score} role="img" aria-label={`${coverage.percent}% of current Foundations story decisions are supported`}>
           <strong>{coverage.percent}%</strong>
           <span>{supported} of {coverage.total} decisions supported</span>
         </div>
@@ -47,43 +47,46 @@ export default function FoundationsStoryCoverage({
         <div data-state="missing"><dt>MISSING</dt><dd>{coverage.missing}</dd><small>No usable story support yet</small></div>
       </dl>
 
-      <div className={styles.legend} aria-label="Story evidence meanings">
-        <span data-state="defined"><i aria-hidden="true">●</i><strong>DEFINED</strong> is an explicit working decision.</span>
-        <span aria-label="Observed source evidence" data-state="observed"><i aria-hidden="true">●</i><strong>OBSERVED</strong> is directly supported by immutable imported/reference evidence.</span>
-        <span data-state="emerging"><i aria-hidden="true">●</i><strong>EMERGING</strong> is a useful proposal that still needs Human acceptance.</span>
-        <span data-state="missing"><i aria-hidden="true">●</i><strong>MISSING</strong> leaves the decision open instead of inventing filler.</span>
-        <span data-state="locked"><i aria-hidden="true">●</i><strong>LOCKED</strong> means the target is visible but a later prerequisite still prevents editing.</span>
-      </div>
-
       <ProgressiveStoryMap project={project} />
 
-      <div className={styles.lessonGrid}>
-        {coverage.lessons.map((lesson) => (
-          <details className={styles.lesson} data-state={lesson.state} key={lesson.id}>
-            <summary>
-              <span className={styles.lessonNumber}>{String(lesson.number).padStart(2, "0")}</span>
-              <strong>{lesson.title}</strong>
-              <span className={styles.lessonCount}>{lesson.defined + lesson.observed}/{lesson.total} supported</span>
-              <em data-state={lesson.state}>{STATE_LABELS[lesson.state]}</em>
-            </summary>
-            <div className={styles.decisions}>
-              {lesson.decisions.map((decision) => (
-                <article className={styles.decision} data-state={decision.state} key={decision.id}>
-                  <header>
-                    <strong>{decision.prompt}</strong>
-                    <span data-state={decision.state}>{STATE_LABELS[decision.state]}</span>
-                  </header>
-                  <p>{decision.reason}</p>
-                  {decision.excerpt ? <blockquote>{decision.excerpt}</blockquote> : null}
-                  <small>{decision.sourceLabel}</small>
-                </article>
-              ))}
-            </div>
-          </details>
-        ))}
-      </div>
+      <details className={styles.evidenceDisclosure}>
+        <summary>Curriculum evidence details</summary>
+        <div className={styles.legend} aria-label="Story evidence meanings">
+          <span data-state="defined"><i aria-hidden="true">●</i><strong>DEFINED</strong> is an explicit working decision.</span>
+          <span aria-label="Observed source evidence" data-state="observed"><i aria-hidden="true">●</i><strong>OBSERVED</strong> is directly supported by immutable imported/reference evidence.</span>
+          <span data-state="emerging"><i aria-hidden="true">●</i><strong>EMERGING</strong> is a useful proposal that still needs Human acceptance.</span>
+          <span data-state="missing"><i aria-hidden="true">●</i><strong>MISSING</strong> leaves the decision open instead of inventing filler.</span>
+          <span data-state="locked"><i aria-hidden="true">●</i><strong>LOCKED</strong> means the target is visible but a later prerequisite still prevents editing.</span>
+        </div>
 
-      <p className={styles.footnote}>Story Coverage counts supported story decisions, not course completion and not generated wireframe frames. Imported screenplay passages and the Afterglow reference fixture preserve provenance; synthetic fixture decisions are labelled separately from observed source evidence. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
+        <div className={styles.lessonGrid}>
+          {coverage.lessons.map((lesson) => (
+            <details className={styles.lesson} data-state={lesson.state} key={lesson.id}>
+              <summary>
+                <span className={styles.lessonNumber}>{String(lesson.number).padStart(2, "0")}</span>
+                <strong>{lesson.title}</strong>
+                <span className={styles.lessonCount}>{lesson.defined + lesson.observed}/{lesson.total} supported</span>
+                <em data-state={lesson.state}>{STATE_LABELS[lesson.state]}</em>
+              </summary>
+              <div className={styles.decisions}>
+                {lesson.decisions.map((decision) => (
+                  <article className={styles.decision} data-state={decision.state} key={decision.id}>
+                    <header>
+                      <strong>{decision.prompt}</strong>
+                      <span data-state={decision.state}>{STATE_LABELS[decision.state]}</span>
+                    </header>
+                    <p>{decision.reason}</p>
+                    {decision.excerpt ? <blockquote>{decision.excerpt}</blockquote> : null}
+                    <small>{decision.sourceLabel}</small>
+                  </article>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+
+        <p className={styles.footnote}>Story Coverage counts supported story decisions, not course completion and not generated wireframe frames. Imported screenplay passages and the Afterglow reference fixture preserve provenance; synthetic fixture decisions are labelled separately from observed source evidence. A visually complete BUILD cannot silently make an unresolved story decision canonical.</p>
+      </details>
     </section>
   );
 }

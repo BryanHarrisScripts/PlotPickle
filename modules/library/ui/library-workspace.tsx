@@ -32,9 +32,9 @@ type PendingLoad =
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
 const TABS: readonly { readonly id: LibraryTab; readonly label: string }[] = [
+  { id: "stories", label: "My Stories" },
   { id: "featured", label: "Featured Examples" },
   { id: "presets", label: "Genre Presets" },
-  { id: "stories", label: "My Stories" },
   { id: "archive", label: "Archive" },
 ];
 
@@ -129,7 +129,7 @@ export default function LibraryWorkspace() {
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
   const ppfInput = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<LibraryTab>("featured");
+  const [tab, setTab] = useState<LibraryTab>("stories");
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
@@ -243,12 +243,11 @@ export default function LibraryWorkspace() {
   return (
     <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v1">
       <header className={styles.hero}>
-        <div><p className={styles.eyebrow}>Local story library</p><h1 id="library-title">Library</h1><p>Examples &amp; Stories</p></div>
+        <div><p className={styles.eyebrow}>Local story library</p><h1 id="library-title">Library</h1><p>Your stories first</p></div>
         <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Create, restore, or import a story when you are ready."}</small></aside>
       </header>
 
       <div className={styles.libraryColumn}>
-        <AverySessionHistory />
         <nav aria-label="Library filters" className={styles.tabs}>
           {TABS.map((item) => (
             <button aria-current={tab === item.id ? "page" : undefined} key={item.id} onClick={() => setTab(item.id)} type="button">
@@ -291,6 +290,11 @@ export default function LibraryWorkspace() {
             <div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: tab === "featured" ? "example" : "preset", item })} sourceKind={tab === "featured" ? "example" : "preset"} />)}</div>
           </section>
         )}
+
+        <details className={styles.averyDisclosure}>
+          <summary><span>Avery Writer-in-Residence sessions</span><small>Read-only review history</small></summary>
+          <AverySessionHistory />
+        </details>
       </div>
 
       {pending ? (

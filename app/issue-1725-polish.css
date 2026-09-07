@@ -1,0 +1,74 @@
+/* Phase 2C adds only tokenized progressive-disclosure styling here so the focused usability pass does not rewrite legacy component stylesheets. */
+
+main[data-library-workspace="v1"] > div > details:last-child,
+[data-story-workflow="foundations"] > details,
+[data-story-coverage="live-foundations"] > details,
+[data-progressive-story-map="24x96"] details[data-story-decision-target],
+[data-progressive-story-map="24x96"] details[data-text-projection] {
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child,
+[data-story-coverage="live-foundations"] > details {
+  margin-top: var(--pp-space-8);
+}
+
+[data-story-workflow="foundations"] > details {
+  margin-top: var(--pp-space-2);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child > summary,
+[data-story-workflow="foundations"] > details > summary,
+[data-story-coverage="live-foundations"] > details > summary,
+[data-progressive-story-map="24x96"] details[data-story-decision-target] > summary,
+[data-progressive-story-map="24x96"] details[data-text-projection] > summary {
+  display: flex;
+  min-height: var(--pp-touch-target);
+  min-width: var(--pp-touch-target);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-space-3);
+  padding: var(--pp-space-3);
+  color: var(--pp-text);
+  cursor: pointer;
+  font-family: var(--pp-font-body);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-tight);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child > summary:focus-visible,
+[data-story-workflow="foundations"] > details > summary:focus-visible,
+[data-story-coverage="live-foundations"] > details > summary:focus-visible,
+[data-progressive-story-map="24x96"] details[data-story-decision-target] > summary:focus-visible,
+[data-progressive-story-map="24x96"] details[data-text-projection] > summary:focus-visible {
+  outline: var(--pp-space-1) solid var(--pp-orange);
+  outline-offset: var(--pp-space-1);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child[open] > summary,
+[data-story-workflow="foundations"] > details[open] > summary,
+[data-story-coverage="live-foundations"] > details[open] > summary,
+[data-progressive-story-map="24x96"] details[data-story-decision-target][open] > summary,
+[data-progressive-story-map="24x96"] details[data-text-projection][open] > summary {
+  border-bottom: 1px solid var(--pp-line);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child > :not(summary),
+[data-story-workflow="foundations"] > details > :not(summary),
+[data-story-coverage="live-foundations"] > details > :not(summary),
+[data-progressive-story-map="24x96"] details[data-story-decision-target] > :not(summary),
+[data-progressive-story-map="24x96"] details[data-text-projection] > :not(summary) {
+  margin: var(--pp-space-3);
+}
+
+[data-story-workflow="foundations"] > details button {
+  min-width: var(--pp-touch-target);
+  min-height: var(--pp-touch-target);
+}
+
+main[data-library-workspace="v1"] > div > details:last-child > summary small,
+[data-progressive-story-map="24x96"] details > summary small {
+  color: var(--pp-muted);
+}

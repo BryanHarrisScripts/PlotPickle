@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Dashboard is a real root workspace and LEARN remains the default entry", async () => {
+test("Dashboard is a real root workspace and active projects now enter the Story Map", async () => {
   const [page, navigation] = await Promise.all([
     read("app/page.tsx"),
     read("app/navigation/global-shortcuts.ts"),
@@ -15,13 +15,14 @@ test("Dashboard is a real root workspace and LEARN remains the default entry", a
   assert.match(navigation, /id: "dashboard"[^\n]*workspace: "dashboard"/);
   assert.match(navigation, /id: "build"[^\n]*workspace: "build"/);
   assert.match(page, /requested === "dashboard"/);
+  assert.match(page, /requested === "learn"/);
   assert.match(page, /requested === "build"/);
   assert.match(page, /workspace === "dashboard"/);
   assert.match(page, /workspace === "build"/);
-  assert.match(page, /<DashboardWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
+  assert.match(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);
+  assert.match(page, /<StoryMapShell>[\s\S]*<DashboardWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
   assert.match(page, /<FoundationsBuildWorkspace/);
   assert.match(page, /<WorldBuildWorkspace/);
-  assert.match(page, /return "learn"/);
 });
 
 test("Guided progression derives Foundations and World from canonical LEARN PLAN and BUILD state", async () => {
@@ -72,17 +73,18 @@ test("BUILD acceptance is a project command rather than a Dashboard-only flag", 
   assert.match(dashboard, /FOUNDATION_PROJECT_SAVED_EVENT/);
 });
 
-test("Dashboard makes both implemented LEARN PLAN BUILD cycles visually explicit", async () => {
+test("Dashboard leads with the 24/96 Story Map while preserving guided support", async () => {
   const [dashboard, styles] = await Promise.all([
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.module.css"),
   ]);
 
+  assert.match(dashboard, /ProgressiveStoryMap/);
+  assert.match(dashboard, /Primary workspace · 4 Acts · 24 Blocks · 96 Mini-Blocks/);
+  assert.match(dashboard, /Your whole story is the main menu\./);
   assert.match(dashboard, /deriveGuidedCreationProgression/);
   assert.match(dashboard, /deriveVisualWriterFrontierStatus/);
-  assert.match(dashboard, /journeyPercentComplete/);
   assert.match(dashboard, /frontierStatus\.nextActionLabel/);
-  assert.match(dashboard, /Learn it\. Plan it\. See it\. Then add the next layer\./);
   assert.match(dashboard, /FOUNDATIONS · \{stage\.label\}/);
   assert.match(dashboard, /WORLD · Foundations \+ World/);
   assert.match(dashboard, /World LEARN/);

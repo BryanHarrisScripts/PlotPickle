@@ -53,7 +53,7 @@ function displayDate(value: string) {
 }
 
 function openActiveProject() {
-  window.location.assign("/?workspace=dashboard");
+  window.location.assign("/story-map");
 }
 
 function CatalogCard({ item, sourceKind, onLoad }: {
@@ -116,7 +116,7 @@ function NewStoryCard({ onCreate }: { readonly onCreate: () => void }) {
       <div className={styles.cardBody}>
         <div className={styles.meta}><span>Story</span><span>Local PPF</span></div>
         <h3>New Story</h3>
-        <p>Start a clean local PlotPickle story and move straight into LEARN. Nothing is filled in or accepted for you.</p>
+        <p>Start a clean local PlotPickle story and move straight into Block 01. Nothing is filled in or accepted for you.</p>
         <small>The new story uses the same profile-owned PPF authority as every other Library project.</small>
         <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Story</button>
       </div>
@@ -155,7 +155,7 @@ export default function LibraryWorkspace() {
   function createNewStory() {
     try {
       createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
-      window.location.assign("/?workspace=learn");
+      window.location.assign("/story-map");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
     }

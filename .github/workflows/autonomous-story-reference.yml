@@ -1,21 +1,6 @@
 name: Autonomous Story Reference
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/autonomous-story-reference.yml'
-      - 'scripts/creative-uat/autonomous/**'
-      - 'scripts/creative-uat/mcp-runtime.mjs'
-      - 'scripts/creative-uat/render-readiness.mjs'
-      - 'app/profile-access/**'
-      - 'app/api/auth/profile/**'
-      - 'core/auth/autonomous-guest/**'
-      - 'core/storage/profile-private-browser.ts'
-      - 'modules/library/**'
-      - 'lib/verification/autonomous-story-routes.mjs'
-      - 'config/uat-autopilot-registry.json'
-      - 'tests/issue-1553-**'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -29,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: autonomous-story-reference-${{ github.event.pull_request.number || github.ref }}
+  group: autonomous-story-reference-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,7 +32,7 @@ jobs:
         if: ${{ inputs.exact_head == '' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:

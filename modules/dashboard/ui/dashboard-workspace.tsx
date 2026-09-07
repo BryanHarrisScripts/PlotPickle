@@ -9,6 +9,7 @@ import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
+import ProgressiveStoryMap from "../../build/ui/progressive-story-map";
 import {
   deriveGuidedCreationProgression,
   type ProgressStageState,
@@ -69,7 +70,7 @@ export default function DashboardWorkspace({
   );
 
   if (!project || !progression || !frontierStatus) {
-    return <main className={styles.screen}>Opening Dashboard…</main>;
+    return <main className={styles.screen}>Opening Story Map…</main>;
   }
 
   const foundations = progression.foundations;
@@ -86,19 +87,21 @@ export default function DashboardWorkspace({
   };
 
   return (
-    <main className={styles.screen} aria-label="PlotPickle Dashboard">
+    <main className={styles.screen} aria-label="PlotPickle Story Map">
       <header className={styles.header}>
-        <p className={styles.kicker}>Dashboard · Guided Visual Writer journey · {progression.journeyPercentComplete}% complete</p>
-        <h1>Learn it. Plan it. See it. Then add the next layer.</h1>
+        <p className={styles.kicker}>Primary workspace · 4 Acts · 24 Blocks · 96 Mini-Blocks</p>
+        <h1>Your whole story is the main menu.</h1>
         <p>
-          Foundations establishes the first accepted story frontier. World now repeats the same LEARN → PLAN → BUILD cycle,
-          adding only worldbuilding decisions and preserving earlier visual history.
+          Select a Block, select a Mini-Block, add visual candidates and move locally through PLAN → BUILD → STORYBOARD.
+          The existing Guided Visual Writer journey remains available below as support rather than controlling project entry.
         </p>
       </header>
 
+      <ProgressiveStoryMap project={project} />
+
       <section className={styles.nextModule} aria-label="Visual Writer current frontier">
         <div>
-          <p className={styles.kicker}>Current Visual Writer state</p>
+          <p className={styles.kicker}>Support · current Visual Writer state</p>
           <h2>{frontierStatus.currentGroupLabel} · {frontierStatus.currentWorkspace?.toUpperCase() ?? "GATED"}</h2>
           <p><strong>Frontier:</strong> {frontierStatus.frontierLabel}</p>
           <p><strong>Artifacts:</strong> {frontierStatus.acceptedArtifactCount} accepted · {frontierStatus.draftArtifactCount} draft</p>

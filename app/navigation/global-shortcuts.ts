@@ -29,18 +29,18 @@ export const PLOTPICKLE_OPEN_PROFILE_EVENT = "plotpickle:open-profile";
 
 export const NAVIGATION_AREAS: readonly NavigationArea[] = [
   { id: "home", label: "Home", detail: "Start and stories" },
-  { id: "create", label: "Create", detail: "Learn, plan, build" },
+  { id: "create", label: "Create", detail: "Story Map, plan, build" },
   { id: "produce", label: "Produce", detail: "Story to screen" },
   { id: "review", label: "Review", detail: "Feedback and decisions" },
   { id: "connect", label: "Connect / Play", detail: "Community and Wyrmwood" },
-  { id: "settings", label: "Settings", detail: "Utilities" },
+  { id: "settings", label: "Settings", detail: "Settings and guides" },
 ] as const;
 
 export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "node", key: "N", label: "Node", detail: "Profile home", relic: "/brand/plotpickle-ouroboros-v3-transparent.png", action: { kind: "node" } },
   { id: "dashboard", key: "K", label: "Dashboard", detail: "KPI", relic: "/assets/workflow-relics/dashboard.webp", area: "home", action: { kind: "workspace", workspace: "dashboard" } },
   { id: "library", key: "O", label: "Library", detail: "Stories", relic: "/assets/workflow-relics/library.svg", area: "home", action: { kind: "workspace", workspace: "library" } },
-  { id: "learn", key: "L", label: "Learn", detail: "Guides", relic: "/assets/workflow-relics/learn.webp", area: "create", action: { kind: "workspace", workspace: "learn" } },
+  { id: "story-map", key: "M", label: "Story Map", detail: "24 / 96", relic: "/assets/workflow-relics/plan.webp", area: "create", action: { kind: "route", href: "/story-map" } },
   { id: "plan", key: "P", label: "Plan", detail: "Design", relic: "/assets/workflow-relics/plan.webp", area: "create", action: { kind: "workspace", workspace: "plan" } },
   { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", area: "create", action: { kind: "workspace", workspace: "build" } },
   { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", area: "produce", action: { kind: "route", href: "/storyboard" } },
@@ -53,6 +53,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", area: "connect", action: { kind: "workspace", workspace: "community" } },
   { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", area: "connect", action: { kind: "workspace", workspace: "wyrmwood" } },
   { id: "settings", key: "T", label: "Settings", detail: "Config", relic: "/assets/workflow-relics/settings.svg", area: "settings", action: { kind: "workspace", workspace: "settings" } },
+  { id: "learn", key: "L", label: "Learn", detail: "Guides", relic: "/assets/workflow-relics/learn.webp", area: "settings", action: { kind: "workspace", workspace: "learn" } },
   { id: "profile", key: "H", label: "Profile", detail: "Human identity", relic: "/assets/workflow-relics/profile.svg", action: { kind: "profile" } },
 ] as const;
 

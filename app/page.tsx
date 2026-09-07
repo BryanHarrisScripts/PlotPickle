@@ -30,9 +30,10 @@ type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";
 
 function requestedWorkspace(): Workspace {
-  if (typeof window === "undefined") return "learn";
+  if (typeof window === "undefined") return "library";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "dashboard") return "dashboard";
+  if (requested === "learn") return "learn";
   if (requested === "plan") return "plan";
   if (requested === "build") return "build";
   if (requested === "community") return "community";
@@ -40,7 +41,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   if (requested === "library") return "library";
-  return "learn";
+  return "library";
 }
 
 function requestedSection(): GuidedSection {
@@ -165,7 +166,7 @@ function openLearningApplication(topic: string, lessonId?: string) {
 }
 
 export default function Home() {
-  const [workspace, setWorkspace] = useState<Workspace>("learn");
+  const [workspace, setWorkspace] = useState<Workspace>("library");
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {

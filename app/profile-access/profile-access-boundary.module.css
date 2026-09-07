@@ -88,14 +88,14 @@
   background: linear-gradient(90deg, transparent, var(--pp-system-panel-raised), transparent);
 }
 
-.brand > span {
+.brandCrest {
   width: var(--pp-control-height-lg);
   height: var(--pp-control-height-lg);
   background: url("/assets/workflow-relics/profile.svg") center / contain no-repeat;
   filter: drop-shadow(0 0 var(--pp-space-2) var(--pp-profile-glow));
 }
 
-.brand > div {
+.brandName {
   display: grid;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .brand small,
-.brand p {
+.brandTelemetry {
   color: var(--pp-profile-status);
   font-family: var(--pp-font-code);
   font-size: var(--pp-text-xs);
@@ -582,7 +582,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
     grid-template-columns: var(--pp-control-height-lg) 1fr;
   }
 
-  .brand p {
+  .brandTelemetry {
     display: none;
   }
 

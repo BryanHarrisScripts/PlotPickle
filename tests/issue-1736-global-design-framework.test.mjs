@@ -60,6 +60,8 @@ test("#1736 gives profile access a reusable SVG Salt Compass gateway without fla
   assert.match(chamber, /viewBox="0 0 1920 1080"[\s\S]*id="bronze"[\s\S]*id="jade"[\s\S]*ᚠ/u);
   assert.match(panel, /viewBox="0 0 820 860"[\s\S]*id="metal"[\s\S]*id="gem"[\s\S]*ᚷ/u);
   assert.match(profile, /<form onSubmit=\{signIn\}>[\s\S]*<PasswordField[\s\S]*Unlock profile/u);
+  assert.match(profile, /<header className=\{styles\.brand\}>[\s\S]*styles\.brandName[\s\S]*styles\.brandTelemetry/u);
+  assert.doesNotMatch(profile, /<header[^>]*aria-label|<div><strong>PlotPickle/u);
   assert.doesNotMatch(chamber + panel, /<foreignObject|<script/u);
 });
 

@@ -108,10 +108,10 @@ function PasswordField({ value, onChange, purpose = "current", confirm = false }
 
 function AccessBrand() {
   return (
-    <header className={styles.brand} aria-label="PlotPickle Story Engine">
-      <span aria-hidden="true" />
-      <div><strong>PlotPickle</strong><small>Story Engine</small></div>
-      <p>Profile Gate // Local Node</p>
+    <header className={styles.brand}>
+      <span className={styles.brandCrest} aria-hidden="true" />
+      <span className={styles.brandName}><strong>PlotPickle</strong><small>Story Engine</small></span>
+      <span className={styles.brandTelemetry}>Profile Gate // Local Node</span>
     </header>
   );
 }

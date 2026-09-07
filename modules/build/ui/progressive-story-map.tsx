@@ -21,7 +21,10 @@ import {
   deriveProgressiveStoryMap,
   type BuildStoryEvidenceState,
 } from "../progressive-story-map";
-import styles from "./progressive-story-map.module.css";
+import baseStyles from "./progressive-story-map.module.css";
+import v2Styles from "./progressive-story-map-v2.module.css";
+
+const styles = { ...baseStyles, ...v2Styles };
 
 const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
   defined: "DEFINED",

@@ -21,7 +21,6 @@ test("#1747 replaces the common PR workflow fan-out with PR Gate and Product Gat
 
   for (const retired of [
     "learn-validation.yml",
-    "visual-readiness.yml",
     "repository-architecture-inventory.yml",
     "build-story-model.yml",
     "story-workbench.yml",
@@ -77,6 +76,7 @@ test("#1747 keeps rendered, autonomous, and Windows packaged proof behind the si
 
 test("#1747 keeps specialized child workflows reusable without creating direct PR checks", async () => {
   for (const file of [
+    "visual-readiness.yml",
     "autonomous-qa-campaign.yml",
     "autonomous-story-reference.yml",
     "windows-installer.yml",
@@ -84,6 +84,9 @@ test("#1747 keeps specialized child workflows reusable without creating direct P
     const workflow = await source(`.github/workflows/${file}`);
     assert.doesNotMatch(workflow, /^  pull_request:/m, `${file} must not create a direct PR check`);
   }
+
+  const visual = await source(".github/workflows/visual-readiness.yml");
+  assert.match(visual, /^  workflow_dispatch:$/m);
 
   const campaign = await source(".github/workflows/autonomous-qa-campaign.yml");
   assert.match(campaign, /^  schedule:$/m);

@@ -100,8 +100,8 @@ test("#1715 Phase 1A keeps the merged UI references canonical", async () => {
   }
 });
 
-test("#1715 Phase 1A Visual Readiness runs the new foundation gates", async () => {
-  const workflow = await source(".github/workflows/visual-readiness.yml");
+test("#1715 Phase 1A Product Gate runs the foundation gates", async () => {
+  const workflow = await source(".github/workflows/product-gate.yml");
   assert.match(workflow, /issue-1715-ui-foundation\.test\.mjs/);
   assert.match(workflow, /ui-stylelint-gate\.mjs/);
   assert.match(workflow, /fetch-depth:\s*0/);

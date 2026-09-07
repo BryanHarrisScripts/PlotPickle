@@ -53,7 +53,11 @@ export default function StoryMapShell({
         <nav className={styles.utilities} aria-label="Story Map utilities">
           <button data-story-map-utility="projects" type="button" onClick={() => onNavigate("library")}>Projects</button>
           <button data-story-map-utility="learn" type="button" onClick={() => onNavigate("learn")}>Learn</button>
-          <button data-story-map-utility="community" type="button" onClick={() => onNavigate("community")}>Community</button>
+          <span data-navigation-area-id="connect">
+            <span data-workspace-nav-id="community">
+              <button data-story-map-utility="community" type="button" onClick={() => onNavigate("community")}>Community</button>
+            </span>
+          </span>
           <button data-story-map-utility="settings" type="button" onClick={() => onNavigate("settings")}>Settings</button>
           <button data-story-map-utility="profile" type="button" onClick={() => window.dispatchEvent(new Event(PLOTPICKLE_OPEN_PROFILE_EVENT))}>Profile</button>
         </nav>

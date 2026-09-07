@@ -176,7 +176,7 @@ export default function DemoOnboardingBoundary({ children }: { readonly children
   if (mode === "probing") {
     return (
       <main className={styles.entry} data-demo-onboarding="probing">
-        <section className={styles.card} aria-busy="true">
+        <section className={styles.card} role="status">
           <p className={styles.eyebrow}>PlotPickle</p>
           <h1>Opening the local entry…</h1>
           <p>Checking this PlotPickle Node before showing the correct local entry path.</p>

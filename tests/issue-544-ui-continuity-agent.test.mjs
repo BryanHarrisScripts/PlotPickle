@@ -141,7 +141,7 @@ test("#544/#1719 launches read-only beside the Full Story Builder and audits rea
 
 test("#544 is covered by the current focused and full verification gates", async () => {
   const [workflow, fullCheck, verificationGraph, packageJson] = await Promise.all([
-    read(".github/workflows/learn-validation.yml"),
+    read(".github/workflows/pr-gate.yml"),
     read("scripts/run-plotpickle-full-check.ps1"),
     read("scripts/full-verification-graph.mjs"),
     read("package.json"),

@@ -1,9 +1,9 @@
 .shell {
-  --nav-background: var(--pp-matte);
-  --nav-line: var(--pp-line);
+  --nav-background: var(--pp-shell-canvas);
+  --nav-line: var(--pp-shell-line);
   --nav-text: var(--pp-text);
-  --nav-muted: var(--pp-dim);
-  --nav-teal: var(--pp-teal);
+  --nav-muted: var(--pp-shell-stone);
+  --nav-teal: var(--pp-shell-jade);
   display: flex;
   width: 100%;
   height: 100dvh;
@@ -12,7 +12,7 @@
   overflow: hidden;
   background: var(--nav-background);
   color: var(--nav-text);
-  font-family: var(--pp-font-code);
+  font-family: var(--pp-font-navigation);
 }
 
 .navigator {
@@ -24,7 +24,10 @@
   min-width: 0;
   overflow: visible;
   border-bottom: 1px solid var(--nav-line);
-  background: var(--nav-background);
+  background:
+    linear-gradient(90deg, var(--pp-shell-panel-raised), var(--nav-background) 24%, var(--nav-background) 76%, var(--pp-shell-panel-raised)),
+    var(--nav-background);
+  box-shadow: inset 0 -1px var(--pp-shell-bronze-deep);
 }
 
 .navigationFrame {
@@ -42,7 +45,7 @@
   margin: 0;
   padding: var(--pp-space-1) var(--pp-space-2);
   overflow-x: auto;
-  border-bottom: 1px solid var(--pp-line);
+  border-bottom: 1px solid var(--nav-line);
   list-style: none;
   scrollbar-width: none;
 }
@@ -70,6 +73,7 @@
   color: var(--pp-muted);
   font: inherit;
   text-align: left;
+  text-transform: uppercase;
 }
 
 .areaList button:not(:disabled) {
@@ -77,14 +81,16 @@
 }
 
 .areaList button:disabled {
-  border-color: var(--pp-line-strong);
-  background: var(--pp-surface-raised);
+  border-color: var(--pp-shell-line-strong);
+  background: linear-gradient(180deg, var(--pp-shell-moss), var(--pp-shell-jade));
   color: var(--nav-text);
+  box-shadow: inset 0 0 0 1px var(--pp-shell-bronze-deep), 0 0 var(--pp-space-2) var(--pp-shell-glow);
   opacity: 1;
 }
 
 .areaList button:not(:disabled):hover {
-  background: var(--pp-surface-hover);
+  border-color: var(--pp-shell-bronze-deep);
+  background: var(--pp-shell-panel-raised);
   color: var(--pp-text);
 }
 
@@ -114,7 +120,13 @@
 .utilityArea {
   margin-left: auto;
   padding-left: var(--pp-space-2);
-  border-left: 1px solid var(--pp-line);
+  border-left: 1px solid var(--pp-shell-bronze-deep);
+}
+
+.utilityArea button {
+  border-color: var(--pp-shell-bronze-deep);
+  background: linear-gradient(180deg, var(--pp-shell-panel-raised), var(--pp-shell-panel));
+  color: var(--pp-shell-bronze);
 }
 
 .orientationRow {
@@ -134,11 +146,11 @@
   align-content: center;
   gap: var(--pp-space-1);
   padding-right: var(--pp-space-3);
-  border-right: 1px solid var(--pp-line);
+  border-right: 1px solid var(--pp-shell-bronze-deep);
 }
 
 .locationTruth small {
-  color: var(--nav-teal);
+  color: var(--pp-shell-gilding);
   font-size: var(--pp-text-xs);
   font-weight: 800;
   letter-spacing: var(--pp-tracking-label);
@@ -163,7 +175,10 @@
 }
 
 .destinationScroller {
+  display: flex;
   min-width: 0;
+  align-items: center;
+  gap: var(--pp-space-1);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -207,6 +222,43 @@
   color: inherit;
   font: inherit;
   text-align: center;
+}
+
+.profileDestination {
+  display: grid;
+  width: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  flex: 0 0 64px;
+  justify-items: center;
+  align-content: center;
+  gap: var(--pp-space-1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--pp-radius-control);
+  background: transparent;
+  color: var(--pp-dim);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.profileDestination:hover {
+  background: var(--pp-shell-panel-raised);
+}
+
+.profileDestination:hover .relic {
+  filter: saturate(1.02) brightness(1.02);
+  transform: translateY(-1px);
+}
+
+.profileDestination:hover .copy strong {
+  color: var(--pp-text);
+}
+
+.profileDestination:focus-visible {
+  outline: 1px solid var(--pp-shell-rune);
+  outline-offset: 2px;
 }
 
 .destinationList button:not(:disabled) {
@@ -263,7 +315,7 @@
 }
 
 .active .relic {
-  filter: saturate(1.12) brightness(1.08) drop-shadow(0 0 7px var(--pp-focus));
+  filter: saturate(1.12) brightness(1.08) drop-shadow(0 0 7px var(--pp-shell-focus));
   transform: translateY(-1px) scale(1.04);
 }
 
@@ -286,9 +338,10 @@
   grid-template-columns: minmax(100px, 1.2fr) minmax(84px, 0.8fr) minmax(72px, 0.65fr);
   gap: var(--pp-space-2);
   padding: var(--pp-space-2) var(--pp-space-3);
-  border: 1px solid var(--pp-line);
+  border: 1px solid var(--pp-shell-line);
   border-radius: var(--pp-radius-panel);
-  background: var(--pp-surface-raised);
+  background: linear-gradient(180deg, var(--pp-shell-panel-raised), var(--pp-shell-panel));
+  box-shadow: inset 0 0 0 1px var(--pp-shell-stone-deep);
 }
 
 .projectStrip > span {
@@ -314,7 +367,7 @@
 }
 
 .saveTruth[data-save-state="saved"] strong {
-  color: var(--pp-success);
+  color: var(--pp-shell-rune);
 }
 
 .saveTruth[data-save-state="saving"] strong {
@@ -329,10 +382,10 @@
   min-width: 132px;
   min-height: 44px;
   padding: var(--pp-space-2) var(--pp-space-3);
-  border: 1px solid var(--nav-teal);
+  border: 1px solid var(--pp-shell-bronze);
   border-radius: var(--pp-radius-control);
-  background: var(--nav-teal);
-  color: var(--pp-matte);
+  background: linear-gradient(180deg, var(--pp-shell-jade), var(--pp-shell-moss));
+  color: var(--pp-text);
   font: inherit;
   font-size: var(--pp-text-xs);
   font-weight: 900;

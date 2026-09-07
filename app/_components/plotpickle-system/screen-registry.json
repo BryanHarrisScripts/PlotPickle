@@ -1,9 +1,11 @@
 {
   "schemaVersion": 1,
   "issue": 1736,
+  "experienceContractIssue": 1742,
   "designSystem": "bronze-jade-rune",
   "authoritativeStyle": "app/_components/plotpickle-system/system.css",
   "maturityOrder": ["experimental", "adopting", "approved", "locked"],
+  "workflowStates": ["locked", "available", "incomplete", "ready", "accepted"],
   "lockPolicy": {
     "changesRequireVersionBump": true,
     "requiredEvidence": ["focused-regression", "rendered-accessibility", "visual-readiness", "production-build"],

@@ -5,10 +5,9 @@
 .overlay {
   position: fixed;
   z-index: 10010;
-  top: 6px;
-  right: 4px;
-  width: 64px;
-  height: 70px;
+  inset: 0;
+  width: 0;
+  height: 0;
   color: #f1eee7;
   font-family: var(--font-mono, "Courier New", monospace);
 }
@@ -18,62 +17,16 @@
 }
 
 .trigger {
-  display: grid;
-  width: 64px;
-  height: 70px;
-  justify-items: center;
-  align-content: start;
-  gap: 2px;
-  padding: 0 1px 2px;
-  border: 0;
-  background: transparent;
-  color: #b6b0a7;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.1;
-  list-style: none;
-  cursor: pointer;
-  backdrop-filter: blur(16px);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .trigger::-webkit-details-marker {
   display: none;
-}
-
-.trigger::before {
-  content: "";
-  width: 44px;
-  height: 44px;
-  background: url("/assets/workflow-relics/profile.svg") center / contain no-repeat;
-  filter: saturate(0.82) brightness(0.84);
-  transition: filter 160ms ease, transform 160ms ease;
-}
-
-.trigger:hover,
-.trigger:focus-visible {
-  color: #d8d2c8;
-  background: transparent;
-}
-
-.trigger:hover::before,
-.trigger:focus-visible::before {
-  filter: saturate(1.02) brightness(1.02);
-  transform: translateY(-1px);
-}
-
-.trigger:focus-visible {
-  border-radius: 4px;
-  outline: 1px solid rgba(53, 201, 184, 0.78);
-  outline-offset: 1px;
-}
-
-.details[open] > .trigger {
-  color: #f1eee7;
-}
-
-.details[open] > .trigger::before {
-  filter: saturate(1.12) brightness(1.08) drop-shadow(0 0 7px rgba(53, 201, 184, 0.58));
-  transform: translateY(-1px) scale(1.04);
 }
 
 .surface {
@@ -91,20 +44,35 @@
   backdrop-filter: blur(20px);
 }
 
-@media (max-width: 820px) {
-  .overlay {
-    top: 4px;
-    right: 2px;
-  }
+.close {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: block;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0 0 8px auto;
+  padding: 8px 12px;
+  border: 1px solid var(--pp-shell-line-strong);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-shell-panel-raised);
+  color: var(--pp-text);
+  font: inherit;
+  cursor: pointer;
+}
 
+.close:hover {
+  border-color: var(--pp-shell-rune);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--pp-shell-rune);
+  outline-offset: 2px;
+}
+
+@media (max-width: 820px) {
   .surface {
     width: calc(100vw - 16px);
     max-height: calc(100dvh - 90px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .trigger::before {
-    transition: none;
   }
 }

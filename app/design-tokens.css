@@ -30,7 +30,7 @@
   --pp-warning: #ff9b57;
   --pp-danger: #a9574f;
 
-  /* Profile access: muted sage / paper identity */
+  /* Profile access: muted sage paper + restrained archive HUD */
   --pp-profile-paper: #f9f8f0;
   --pp-profile-mystic: #dfe9eb;
   --pp-profile-casper: #abc3cd;
@@ -39,15 +39,26 @@
   --pp-profile-juniper-strong: #4f6c73;
   --pp-profile-ink: #354e54;
   --pp-profile-hover: #d4e3e5;
+  --pp-profile-night: #101413;
+  --pp-profile-hud: #161d1c;
+  --pp-profile-hud-raised: #1d2725;
+  --pp-profile-hud-line: #2e3e3c;
+  --pp-profile-hud-muted: #8a9e9b;
+  --pp-profile-status: #48bb78;
+  --pp-profile-glow: rgba(169, 204, 207, 0.36);
+  --pp-profile-scanline: rgba(0, 0, 0, 0.14);
   --pp-profile-danger-surface: #f3dede;
   --pp-profile-danger-text: #783f45;
-  --pp-profile-shadow: rgba(53, 78, 84, 0.16);
+  --pp-profile-shadow: rgba(16, 20, 19, 0.32);
+  --pp-profile-card-shadow: 0 1.5rem 4rem var(--pp-profile-shadow);
+  --pp-profile-hud-shadow: 0 0 1.5rem var(--pp-profile-glow);
 
   /* Typography */
   --pp-font-display: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-body: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-code: var(--font-geist-mono), "Courier New", Consolas, monospace;
   --pp-font-interface: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pp-font-lore: "Cinzel", Georgia, "Times New Roman", serif;
   --pp-text-xs: 0.6875rem;
   --pp-text-sm: 0.8125rem;
   --pp-text-md: 0.9375rem;
@@ -55,6 +66,7 @@
   --pp-leading-tight: 1.15;
   --pp-leading-body: 1.6;
   --pp-tracking-label: 0.075em;
+  --pp-tracking-title: 0.035em;
 
   /* Spacing: four-pixel base */
   --pp-space-1: 0.25rem;
@@ -132,6 +144,8 @@ html[data-plotpickle-contrast="high"] {
   --pp-profile-juniper: #36545b;
   --pp-profile-juniper-strong: #2c484e;
   --pp-profile-ink: #213b41;
+  --pp-profile-casper: #7f9da8;
+  --pp-profile-hud-line: #6f908e;
 }
 
 html[data-plotpickle-type="large"] {
@@ -147,6 +161,8 @@ html[data-plotpickle-type="large"] {
     --pp-profile-juniper: #36545b;
     --pp-profile-juniper-strong: #2c484e;
     --pp-profile-ink: #213b41;
+    --pp-profile-casper: #7f9da8;
+    --pp-profile-hud-line: #6f908e;
   }
 }
 

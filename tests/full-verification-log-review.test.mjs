@@ -34,16 +34,15 @@ test("full verification preserves graph child-process output in the same transcr
   assert.match(runner, /complete child-process output above is part of this same log/i);
 });
 
-test("full verification keeps the exact Agent Skills architecture pair visible in CI", async () => {
-  const workflow = await read(".github/workflows/learn-validation.yml");
+test("full verification keeps the Agent Skills architecture contracts visible in consolidated PR CI", async () => {
+  const workflow = await read(".github/workflows/pr-gate.yml");
 
   for (const testPath of [
     "tests/sage-brinewick-agent-skill.test.mjs",
     "tests/issue-913-agent-skills-migration.test.mjs",
   ]) {
-    assert.ok(workflow.includes(testPath), `${testPath} must run in the full-verification architecture pair in PR CI`);
+    assert.ok(workflow.includes(testPath), `${testPath} must remain visible in consolidated PR CI`);
   }
-  assert.match(workflow, /node --test tests\/sage-brinewick-agent-skill\.test\.mjs tests\/issue-913-agent-skills-migration\.test\.mjs/);
 });
 
 test("production build sets Vite native-loader advisory control before Vite starts", async () => {

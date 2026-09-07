@@ -44,7 +44,7 @@ function failure(overrides = {}) {
     authorityRef: "workflow:ben-code-quality",
     reasonRef: "finding:fan-out-limit",
     evidenceRefs: ["evidence:ben-report"],
-    rerunRef: ".github/workflows/ben-code-quality.yml",
+    rerunRef: ".github/workflows/pr-gate.yml",
     safeNextAction: "repair-smallest-confirmed-root-cause",
     repairActorRef: "agent:repair-worker",
     ...overrides,
@@ -58,7 +58,7 @@ test("#1648 standardizes deterministic validation evidence with stable failure f
   assert.equal(first.checkId, "ben-code-quality");
   assert.equal(first.result, "fail");
   assert.equal(first.exactRevisionRef, `git:${"a".repeat(40)}`);
-  assert.equal(first.rerunRef, ".github/workflows/ben-code-quality.yml");
+  assert.equal(first.rerunRef, ".github/workflows/pr-gate.yml");
   assert.ok(first.failureFingerprint.startsWith("lifecycle-failure-"));
 });
 
@@ -77,7 +77,7 @@ test("#1648 authorizes only bounded repair for a confirmed deterministic failure
   assert.equal(decision.maxAttempts, 2);
   assert.equal(decision.requiredRerun.checkId, "ben-code-quality");
   assert.equal(decision.requiredRerun.authorityRef, "workflow:ben-code-quality");
-  assert.equal(decision.requiredRerun.rerunRef, ".github/workflows/ben-code-quality.yml");
+  assert.equal(decision.requiredRerun.rerunRef, ".github/workflows/pr-gate.yml");
 });
 
 test("#1648 deterministic PASS advances and BLOCKED stops without AI waiver", () => {

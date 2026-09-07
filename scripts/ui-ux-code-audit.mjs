@@ -147,6 +147,17 @@ function ariaClaimIsUnsubstantiated(finding) {
   return !/\baria-[\w-]+\b/i.test(combined);
 }
 
+function designSystemClaimIsUnsubstantiated(finding, source, context) {
+  if (finding.criterion !== 1) return false;
+  const combined = `${finding.message} ${finding.suggestion}`;
+  const token = finding.evidence.match(/(--pp-[\w-]+)\s*:/i)?.[1];
+  if (token && /(?:not defined|missing|undefined)/i.test(combined)) {
+    return new RegExp(`${escapeRegExp(token)}\\s*:`, "i").test(`${source}\n${context}`);
+  }
+  if (!/(?:does not match|match(?:es)?)[^.]*expected/i.test(combined)) return false;
+  return !/(?:expected|must (?:be|equal))[^.]*["'`]([a-z0-9][a-z0-9-]+)["'`]/i.test(combined);
+}
+
 function evidenceIsInsideNavigationLandmark(finding, source) {
   if (finding.criterion !== 11 || !/<div\b/i.test(finding.evidence)) return false;
   if (!/(?:use|replace)[^.]*?(?:<nav>|nav\s+element|navigation\s+landmark)/i.test(`${finding.message} ${finding.suggestion}`)) return false;
@@ -161,6 +172,7 @@ function contradictsPlatformStandards(finding, source, context) {
   const combined = `${finding.message} ${finding.suggestion}`;
   const evidence = finding.evidence;
   if (/\b(?:may|might|could|potential(?:ly)?|consider|review|unnecessar(?:y|ily)|not\s+necessary|excessive|not used to full potential)\b/i.test(combined)) return true;
+  if (designSystemClaimIsUnsubstantiated(finding, source, context)) return true;
   if (contrastClaimIsUnsubstantiated(finding, context)) return true;
   if (ariaClaimIsUnsubstantiated(finding)) return true;
   if (evidenceIsInsideNavigationLandmark(finding, source)) return true;
@@ -183,7 +195,7 @@ function contradictsPlatformStandards(finding, source, context) {
   return false;
 }
 
-function validateFindings(findings, sources, context) {
+export function validateFindings(findings, sources, context) {
   const normalized = findings.map(normalizeFinding).filter(Boolean);
   return normalized.filter((finding) => {
     if (finding.kind === "praise") return finding.message.length > 0;
@@ -247,7 +259,12 @@ async function gatherCode(files) {
     sources.set(file, content);
     sections.push(`\n--- FILE: ${file} ---\n${content}`);
   }
-  const designContext = (await Promise.all(["app/globals.css", "app/design-tokens.css"].map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
+  const designContextFiles = [
+    "app/globals.css",
+    "app/design-tokens.css",
+    "app/_components/plotpickle-system/system.css",
+  ];
+  const designContext = (await Promise.all(designContextFiles.map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
   return { codePayload: `REFERENCE DESIGN TOKENS (context only, not changed files):\n${designContext}\n${sections.join("\n")}`, sources, designContext: `${designContext}\n${sections.join("\n")}` };
 }
 

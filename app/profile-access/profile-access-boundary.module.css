@@ -47,7 +47,7 @@
   background:
     url("/assets/workflow-relics/profile.svg") var(--pp-space-3) center / var(--pp-control-height-md) var(--pp-control-height-md) no-repeat,
     linear-gradient(135deg, var(--pp-profile-hud-raised), var(--pp-profile-night));
-  color: var(--pp-profile-mystic);
+  color: var(--pp-system-metal);
   font-family: var(--pp-font-code);
   font-size: var(--pp-text-xs);
   font-weight: 800;
@@ -313,7 +313,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
   border: 1px solid var(--pp-profile-hud-line);
   border-radius: var(--pp-radius-profile-card);
   background: var(--pp-profile-hud);
-  color: var(--pp-profile-mystic);
+  color: var(--pp-system-text);
   font-family: var(--pp-font-interface);
   box-shadow: var(--pp-profile-hud-shadow);
   backdrop-filter: blur(16px);
@@ -334,7 +334,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
   gap: var(--pp-space-2);
   padding: var(--pp-space-1) var(--pp-space-3) var(--pp-space-1) var(--pp-space-1);
   border-radius: var(--pp-radius-profile-control);
-  color: var(--pp-profile-mystic);
+  color: var(--pp-system-metal);
   font-family: var(--pp-font-code);
   font-size: var(--pp-text-xs);
   font-weight: 800;
@@ -401,7 +401,7 @@ form .actions button[type="submit"]:hover:not(:disabled),
 
 .activeHuman:has(details[open]) > div strong {
   overflow-wrap: anywhere;
-  color: var(--pp-profile-mystic);
+  color: var(--pp-system-text);
   font-family: var(--pp-font-lore);
   font-size: var(--pp-text-lg);
 }

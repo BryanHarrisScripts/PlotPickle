@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { validateFindings } from "../scripts/ui-ux-code-audit.mjs";
 
 const source = await readFile(new URL("../scripts/ui-ux-code-audit.mjs", import.meta.url), "utf8");
 
@@ -54,4 +55,30 @@ test("UI audit never calls native headings non-semantic", () => {
 test("UI audit does not invent live regions for ordinary React state text", () => {
   assert.match(source, /finding\.criterion === 15 && \/<\(\?:dd\|span\|p\|div\)\\b/);
   assert.match(source, /Ordinary text that changes when React state resolves does not automatically require aria-live or role=status/);
+});
+
+test("UI audit rejects vague design-system mismatches and already-defined token claims", () => {
+  const file = "app/_components/plotpickle-system/contract.mjs";
+  const evidence = 'export const PLOTPICKLE_DESIGN_SYSTEM = "bronze-jade-rune";';
+  const vagueMismatch = validateFindings([{
+    kind: "issue",
+    criterion: 1,
+    file,
+    message: "Design system constant does not match the expected value.",
+    suggestion: "Ensure the design system constant matches the expected design system value.",
+    evidence,
+  }], new Map([[file, evidence]]), "");
+  assert.deepEqual(vagueMismatch, []);
+
+  const cssFile = "app/_components/plotpickle-system/system.css";
+  const tokenEvidence = "--pp-system-metal: var(--pp-shell-bronze);";
+  const definedToken = validateFindings([{
+    kind: "issue",
+    criterion: 1,
+    file: cssFile,
+    message: "Design system token '--pp-system-metal' is not defined.",
+    suggestion: "Define '--pp-system-metal' in the design tokens.",
+    evidence: tokenEvidence,
+  }], new Map([[cssFile, tokenEvidence]]), tokenEvidence);
+  assert.deepEqual(definedToken, []);
 });

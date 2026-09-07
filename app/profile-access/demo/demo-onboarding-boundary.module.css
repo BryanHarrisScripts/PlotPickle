@@ -88,11 +88,9 @@
 }
 
 .demoShortcut {
-  position: fixed;
-  z-index: 10001;
-  left: 14px;
-  bottom: 14px;
-  min-height: 42px;
+  position: static;
+  margin-left: auto;
+  min-height: 44px;
   padding: 9px 14px;
   border: 1px solid #385467;
   border-radius: 10px;

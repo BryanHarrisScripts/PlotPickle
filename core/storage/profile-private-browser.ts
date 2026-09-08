@@ -25,6 +25,7 @@ export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save
 let csrfToken = "";
 let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapContexts: null };
 let pendingWrite: Promise<void> = Promise.resolve();
+let pendingCacheWrite: Promise<void> = Promise.resolve();
 let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
 
 function updateSaveState(state: ProfilePrivateSaveState["state"], message: string) {
@@ -59,6 +60,16 @@ function queueWrite(action: string, payload: Record<string, unknown>) {
       if (pendingWrite === current) updateSaveState("blocked", error instanceof Error ? error.message : "Unsaved changes could not be persisted.");
     },
   );
+  return current;
+}
+
+function queueCacheWrite(action: string, payload: Record<string, unknown>) {
+  const token = csrfToken;
+  if (!token) return Promise.reject(new Error("The Human profile is locked."));
+  const current = pendingCacheWrite.catch(() => undefined).then(async () => {
+    await privateMutation(action, payload, token);
+  });
+  pendingCacheWrite = current;
   return current;
 }
 
@@ -151,7 +162,7 @@ export function persistStoryMapContext(projectId: string, value: StoryMapContext
     && previous.stage === context.stage) return Promise.resolve();
   const storyMapContexts = normalizeStoryMapContextRegistry({ ...current, [id]: context });
   hydrated = { ...hydrated, storyMapContexts };
-  return queueWrite("save-story-map-contexts", { value: storyMapContexts });
+  return queueCacheWrite("save-story-map-contexts", { value: storyMapContexts });
 }
 
 export function getProfilePrivateSaveState() {
@@ -160,12 +171,14 @@ export function getProfilePrivateSaveState() {
 
 export async function flushProfilePrivateWrites() {
   await pendingWrite;
+  await pendingCacheWrite.catch(() => undefined);
 }
 
 export function releaseProfilePrivateBrowserAuthority() {
   csrfToken = "";
   hydrated = { project: null, wyrmwood: null, storyMapContexts: null };
   pendingWrite = Promise.resolve();
+  pendingCacheWrite = Promise.resolve();
   saveState = Object.freeze({ state: "saved", message: "Saved" });
 }
 

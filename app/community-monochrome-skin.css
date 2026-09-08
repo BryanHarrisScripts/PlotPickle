@@ -1,0 +1,68 @@
+/*
+ * Issue #1757 — Community Experience Boundary
+ *
+ * Community keeps its successful BUZZ/BBS structure and behavior while the
+ * active Experience/SKIN work is still moving. This file is presentation-only:
+ * it deliberately does not change room, membership, message, agent, Story Room,
+ * or Canon behavior.
+ */
+
+[data-community-native-buzz="true"] {
+  --community-bg: #050505;
+  --community-panel: #0d0d0d;
+  --community-panel-2: #151515;
+  --community-border: #3a3a3a;
+  --community-text: #f4f4f4;
+  --community-muted: #9b9b9b;
+  --community-teal: #f0f0f0;
+  --community-orange: #bdbdbd;
+  filter: grayscale(1) saturate(0) contrast(1.03);
+  background: #050505 !important;
+}
+
+[data-community-native-buzz="true"]::before {
+  content: "COMMUNITY / SOCIAL SPACE — Conversation, images and Agent suggestions remain outside story Canon until a Human deliberately accepts them as story material.";
+  display: block;
+  max-width: 1420px;
+  margin: 0 auto 14px;
+  padding: 10px 12px;
+  border: 1px solid #4a4a4a;
+  background: #0a0a0a;
+  color: #d8d8d8;
+  font: 12px/1.45 "Courier New", "Lucida Console", monospace;
+  letter-spacing: 0.03em;
+}
+
+[data-community-native-buzz="true"] img {
+  filter: grayscale(1) saturate(0) contrast(1.08);
+}
+
+[data-community-native-buzz="true"] button,
+[data-community-native-buzz="true"] a,
+[data-community-native-buzz="true"] input,
+[data-community-native-buzz="true"] textarea,
+[data-community-native-buzz="true"] select {
+  border-color: #3d3d3d !important;
+}
+
+[data-community-native-buzz="true"] button:hover:not(:disabled),
+[data-community-native-buzz="true"] button:focus-visible,
+[data-community-native-buzz="true"] a:hover,
+[data-community-native-buzz="true"] a:focus-visible,
+[data-community-native-buzz="true"] input:focus,
+[data-community-native-buzz="true"] textarea:focus,
+[data-community-native-buzz="true"] select:focus {
+  border-color: #d9d9d9 !important;
+  outline-color: #d9d9d9;
+}
+
+[data-community-native-buzz="true"] [aria-current="page"] {
+  border-color: #d9d9d9 !important;
+  box-shadow: inset 3px 0 #f2f2f2;
+}
+
+@media (max-width: 900px) {
+  [data-community-native-buzz="true"]::before {
+    margin: 0 14px 12px;
+  }
+}

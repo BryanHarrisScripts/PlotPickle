@@ -29,6 +29,7 @@ import UiContinuityAnchor from "./ui-continuity-anchor";
 import "./design-tokens.css";
 import "./globals.css";
 import "./skin-v1.css";
+import "./community-monochrome-skin.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
 import "./ui-ux-cleanup.css";

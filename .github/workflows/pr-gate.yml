@@ -42,6 +42,9 @@ jobs:
           npm run validate:learn
           node --test tests/guided-progression-engine.test.mjs tests/issue-1030-visual-writer-progression.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs tests/issue-1030c-world-vertical-slice.test.mjs tests/issue-1030d-avery-dashboard-frontier.test.mjs tests/issue-653-writer-in-residence.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs tests/issue-964-revision-aware-ppf.test.mjs tests/afterglow-revision-ppf.test.mjs
 
+      - name: Validate headless Experience and Skin V1 contracts
+        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs
+
       - name: Validate story, BUILD and decision contracts
         run: node --test tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1416-story-workflow-engine.test.mjs tests/issue-967-safe-graph-workflows.test.mjs tests/issue-989-verification-execution-graph.test.mjs tests/issue-999-story-knowledge-graph.test.mjs tests/issue-968-run-telemetry-evals.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs
 

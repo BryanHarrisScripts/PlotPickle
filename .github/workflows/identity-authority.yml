@@ -1,18 +1,6 @@
 name: Identity Authority Architecture
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "docs/architecture/IDENTITY-AUTHORITY.md"
-      - "build/studio-identity.ts"
-      - "build/playhouse-federation.ts"
-      - "lib/plotpickle-node-topology-core.mjs"
-      - "tests/issue-1072-identity-authority.test.mjs"
-      - "tests/issue-927-studio-identity.test.mjs"
-      - "tests/issue-928-playhouse-federation.test.mjs"
-      - "tests/issue-1013-plotpickle-node-topology.test.mjs"
-      - ".github/workflows/identity-authority.yml"
   workflow_dispatch:
 
 permissions:

@@ -169,7 +169,7 @@ html[data-plotpickle-skin="skin-v1"] *::after {
 }
 
 .pp-skin-v1-bbs {
-  width: min(560px, 100%);
+  width: min(760px, 100%);
   border: 2px solid #fff;
   background: #000;
 }
@@ -193,18 +193,32 @@ html[data-plotpickle-skin="skin-v1"] *::after {
 
 .pp-skin-v1-menu-item {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: 24px minmax(170px, 0.9fr) minmax(0, 1.1fr);
   width: 100%;
-  min-height: 30px;
+  min-height: 34px;
   align-items: center;
+  column-gap: 10px;
   border: 0;
   background: #000;
   color: #fff;
-  padding: 4px 8px;
+  padding: 5px 8px;
   font: inherit;
   font-size: 16px;
   text-align: left;
   cursor: pointer;
+}
+
+.pp-skin-v1-menu-label {
+  min-width: 0;
+}
+
+.pp-skin-v1-menu-description {
+  min-width: 0;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: 0.68;
+  text-transform: uppercase;
 }
 
 .pp-skin-v1-menu-item.is-group-start {
@@ -214,6 +228,10 @@ html[data-plotpickle-skin="skin-v1"] *::after {
 .pp-skin-v1-menu-item.is-selected {
   background: #fff;
   color: #000;
+}
+
+.pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-description {
+  opacity: 0.78;
 }
 
 .pp-skin-v1-menu-item:focus-visible {
@@ -241,6 +259,17 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   border-top: 2px solid #fff;
   font-size: 11px;
   text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .pp-skin-v1-menu-item {
+    grid-template-columns: 24px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .pp-skin-v1-menu-description {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 560px) {

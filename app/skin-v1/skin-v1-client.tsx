@@ -34,26 +34,27 @@ const LOADING_VIEW: LogonViewModel = {
 type DashboardMenuItem = Readonly<{
   id: string;
   label: string;
+  description: string;
   groupStart?: boolean;
 }>;
 
 const DASHBOARD_MENU: readonly DashboardMenuItem[] = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "community", label: "Community", groupStart: true },
-  { id: "library", label: "Library" },
-  { id: "plan", label: "Plan", groupStart: true },
-  { id: "storyboard", label: "Storyboard" },
-  { id: "previs", label: "Previs" },
-  { id: "write", label: "Write", groupStart: true },
-  { id: "edit", label: "Edit" },
-  { id: "feedback", label: "Feedback" },
-  { id: "refine", label: "Refine" },
-  { id: "reports", label: "Reports", groupStart: true },
-  { id: "settings", label: "Settings" },
-  { id: "profile", label: "Profile" },
-  { id: "learn", label: "Learn - Education", groupStart: true },
-  { id: "wyrmwood", label: "Wyrmwood - Learning Game" },
-  { id: "story", label: "Story - The Unwritten" },
+  { id: "dashboard", label: "Dashboard", description: "Your PlotPickle command centre" },
+  { id: "community", label: "Community", description: "Talk, share, collaborate with others", groupStart: true },
+  { id: "library", label: "Library", description: "Browse stories and learning resources" },
+  { id: "plan", label: "Plan", description: "Shape story structure and direction", groupStart: true },
+  { id: "storyboard", label: "Storyboard", description: "Visualize scenes before you write" },
+  { id: "previs", label: "Previs", description: "Preview shots, timing and motion" },
+  { id: "write", label: "Write", description: "Write scenes, dialogue and action", groupStart: true },
+  { id: "edit", label: "Edit", description: "Review and improve the screenplay" },
+  { id: "feedback", label: "Feedback", description: "Gather notes, decisions and reactions" },
+  { id: "refine", label: "Refine", description: "Polish story choices with purpose" },
+  { id: "reports", label: "Reports", description: "Review story health and readiness", groupStart: true },
+  { id: "settings", label: "Settings", description: "Configure PlotPickle tools and connections" },
+  { id: "profile", label: "Profile", description: "Manage your identity and preferences" },
+  { id: "learn", label: "Learn - Education", description: "Learn PlotPickle and story craft", groupStart: true },
+  { id: "wyrmwood", label: "Wyrmwood - Learning Game", description: "Practice story craft through play" },
+  { id: "story", label: "Story - The Unwritten", description: "Explore the unwritten story experience" },
 ];
 
 function nextIntentId() {
@@ -239,7 +240,8 @@ export default function SkinV1Client() {
                     onKeyDown={(event) => dashboardMenuKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-menu-cursor" aria-hidden="true">{selected ? ">" : " "}</span>
-                    <span>{item.label}</span>
+                    <span className="pp-skin-v1-menu-label">{item.label}</span>
+                    <small className="pp-skin-v1-menu-description">{item.description}</small>
                   </button>
                 );
               })}

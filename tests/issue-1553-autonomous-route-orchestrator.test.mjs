@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { renderedAreaIsReady } from "../scripts/creative-uat/render-readiness.mjs";
 import {
   evaluateAutonomousRouteOperation,
   parseAutonomousOperationProbeResult,
@@ -206,4 +207,15 @@ test("#1750 legacy workspace links prove the exact Story Map return without clai
   }, { attempted: true, succeeded: true, operatorId: "test-controller" });
   assert.equal(result.disposition, "failed-defect");
   assert.match(result.reason, /unexpected route/);
+});
+
+
+test("#1750 reference Library readiness waits for its Afterglow working copy", () => {
+  const route = registry.autonomousStoryRoutes.find((entry) => entry.id === "library");
+  const shell = { bodyText: "Library My Stories New Story Import .PPF ".repeat(30) };
+  assert.equal(renderedAreaIsReady(route, shell), false);
+  const hydrated = { bodyText: `${shell.bodyText} Afterglow working copy` };
+  assert.equal(renderedAreaIsReady(route, hydrated), true);
+  assert.equal(evaluateAutonomousRouteOperation(route, { reached: true, ...shell }, {}, { expectedProjectId: "reference" }).succeeded, false);
+  assert.equal(evaluateAutonomousRouteOperation(route, { reached: true, ...hydrated }, {}, { expectedProjectId: "reference" }).succeeded, true);
 });

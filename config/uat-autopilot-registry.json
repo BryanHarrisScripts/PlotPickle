@@ -7,7 +7,7 @@
       "order": 10,
       "route": "/library",
       "operation": "operate",
-      "requiredTerms": ["Library", "My Stories"],
+      "requiredTerms": ["Library", "My Stories", "Afterglow"],
       "minimumTextLength": 500,
       "prerequisites": [],
       "tests": ["tests/issue-1122-library-persistence.test.mjs"]

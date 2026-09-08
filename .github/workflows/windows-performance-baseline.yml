@@ -1,13 +1,6 @@
 name: Windows Performance Baseline
 
 on:
-  pull_request:
-    paths:
-      - "Start-PlotPickle.bat"
-      - "scripts/performance/**"
-      - "tests/issue-1411-performance-benchmark.test.mjs"
-      - "tests/issue-1624-performance-budgets.test.mjs"
-      - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
     inputs:
       profile:

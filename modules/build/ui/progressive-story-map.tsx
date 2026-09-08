@@ -13,6 +13,10 @@ import {
   saveFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
 import {
+  hydratedStoryMapContext,
+  persistStoryMapContext,
+} from "../../../core/storage/profile-private-browser";
+import {
   deriveVisualStoryDecisionMarkers,
   type VisualStoryDecisionMarker,
   type VisualStoryDecisionSource,
@@ -90,10 +94,11 @@ function decisionAction(marker: VisualStoryDecisionMarker) {
     ? { href: `/story-workbench?decisionId=${encodeURIComponent(marker.decisionId)}`, label: "Open Workbench" }
     : { href: "/story-decisions", label: marker.stale ? "Review stale Decision" : "Open Story Decisions" };
 }
-function boundedLocation(name: "block" | "mini", maximum: number) {
-  if (typeof window === "undefined") return 1;
-  const value = Number(new URLSearchParams(window.location.search).get(name) || 1);
-  return Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.trunc(value))) : 1;
+function boundedLocation(name: "block" | "mini", maximum: number, fallback = 1) {
+  if (typeof window === "undefined") return fallback;
+  const raw = new URLSearchParams(window.location.search).get(name);
+  const value = Number(raw ?? fallback);
+  return Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.trunc(value))) : fallback;
 }
 function storyboardTargetId(blockId: string) { return `block:${blockId}`; }
 function storyboardAnchorRef(blockId: string, miniBlockNumber: number) {
@@ -113,8 +118,9 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
     const blocks = storyMap.blocks.filter((block) => block.sequenceNumber === number);
     return { number, id: sequenceId(number), title: blocks[0]?.sequenceTitle ?? `Sequence ${number}`, blocks, marker: STRUCTURAL_MARKERS[number] };
   }), [storyMap.blocks]);
-  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedLocation("block", 24));
-  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedLocation("mini", 4));
+  const rememberedContext = hydratedStoryMapContext(project.id);
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedLocation("block", 24, rememberedContext?.blockNumber ?? 1));
+  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedLocation("mini", 4, rememberedContext?.miniBlockNumber ?? 1));
   const [openShiftSequence, setOpenShiftSequence] = useState<number | null>(null);
   const [localShifts, setLocalShifts] = useState<Readonly<Record<string, string>>>({});
   const [decisionMarkers, setDecisionMarkers] = useState<readonly VisualStoryDecisionMarker[]>([]);
@@ -147,10 +153,17 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
   const routeReady = selectedOption?.ready !== false;
   const authoringAllowed = selected.state !== "locked" && selectedMini.state !== "locked";
 
+  const rememberPosition = (blockNumber: number, miniBlockNumber: number) => {
+    void persistStoryMapContext(project.id, { blockNumber, miniBlockNumber, stage: "map" }).catch(() => undefined);
+  };
+
   useEffect(() => { setLocalShifts({}); }, [project.revision]);
   useEffect(() => {
     const location = new URL(window.location.href);
-    location.searchParams.set("workspace", "dashboard");
+    // BUILD embeds this grid too; selection must preserve its local workspace.
+    if (location.searchParams.get("workspace") !== "build") {
+      location.searchParams.set("workspace", "dashboard");
+    }
     location.searchParams.set("block", String(selected.number));
     location.searchParams.set("mini", String(selectedMini.number));
     window.history.replaceState({ plotpickleStoryMap: true }, "", `${location.pathname}${location.search}`);
@@ -317,7 +330,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
                   {sequence.blocks.map((block) => {
                     const blockDecisionCount = markersByBlock.get(block.id)?.length ?? 0;
                     return (
-                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => { setSelectedBlockNumber(block.number); setSelectedMiniBlockNumber(1); setVisualMessage(""); }} type="button">
+                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => { setSelectedBlockNumber(block.number); setSelectedMiniBlockNumber(1); setVisualMessage(""); rememberPosition(block.number, 1); }} type="button">
                         <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                         <span className={styles.sequence}>A{block.act} · S{String(block.sequenceNumber).padStart(2, "0")}</span>
                         <span role="img" aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
@@ -365,7 +378,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
             <ol className={styles.miniInspector}>
               {selected.miniBlocks.map((mini) => (
                 <li data-state={mini.state} data-selected={mini.number === selectedMini.number ? "true" : undefined} key={mini.id}>
-                  <button className={styles.miniInspectorButton} disabled={mini.state === "locked"} onClick={() => { setSelectedMiniBlockNumber(mini.number); setVisualMessage(""); }} type="button">
+                  <button className={styles.miniInspectorButton} disabled={mini.state === "locked"} onClick={() => { setSelectedMiniBlockNumber(mini.number); setVisualMessage(""); rememberPosition(selected.number, mini.number); }} type="button">
                     <span>{selected.number}.{mini.number} · {mini.label}</span><i role="img" aria-label={`Status: ${STATE_LABELS[mini.state]}`} className={styles.statusDot} data-state={mini.state} />
                     <small>{mini.state === "defined" ? "Accepted visual anchor" : mini.state === "locked" ? "Unlocks with the previous Block" : mini.observedPassageCount ? `${mini.observedPassageCount} observed passage${mini.observedPassageCount === 1 ? "" : "s"}` : "Ready for visual development"}</small>
                   </button>

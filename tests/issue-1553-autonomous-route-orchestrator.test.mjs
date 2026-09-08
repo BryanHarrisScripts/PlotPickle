@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { renderedAreaIsReady } from "../scripts/creative-uat/render-readiness.mjs";
 import {
   evaluateAutonomousRouteOperation,
   parseAutonomousOperationProbeResult,
@@ -176,4 +177,45 @@ test("#1553 route runner reuses Playwright readiness helpers without private-sta
   assert.match(runner, /requiresApplicationLifecycleProof: true/);
   assert.doesNotMatch(runner, /localStorage|indexedDB|saveFoundationProject|applyStoryCommand|sqlite|database/i);
   assert.doesNotMatch(runner, /writeFile\([^\n]+snapshot|browser_take_screenshot/);
+});
+
+test("#1750 legacy workspace links prove the exact Story Map return without claiming authoring", () => {
+  for (const id of ["write", "refine"]) {
+    const route = registry.autonomousStoryRoutes.find((entry) => entry.id === id);
+    assert.equal(route.operation, "inspect");
+    assert.equal(route.route, `/?workspace=${id}`);
+    assert.equal(route.expectedRoute, "/?workspace=dashboard&block=1&mini=1");
+    const evidence = {
+      reached: true,
+      resolvedRoute: route.route,
+      url: `http://plotpickle.local${route.expectedRoute}`,
+      bodyText: "Story Map 4 Acts 24 Blocks 96 Mini-Blocks ".repeat(20),
+    };
+    assert.equal(assessAutonomousRoute(route, evidence).disposition, "entered");
+    assert.equal(assessAutonomousRoute(route, { ...evidence, bodyText: "Wrong surface" }).disposition, "failed-defect");
+    for (const wrongRoute of [route.route, "/?workspace=learn", "/?workspace=dashboard&block=2&mini=1"]) {
+      assert.equal(assessAutonomousRoute(route, { ...evidence, url: `http://plotpickle.local${wrongRoute}` }).disposition, "failed-defect");
+    }
+  }
+  const build = registry.autonomousStoryRoutes.find((entry) => entry.id === "build");
+  assert.equal(build.operation, "operate");
+  assert.equal(build.expectedRoute, undefined);
+  const result = assessAutonomousRoute(build, {
+    reached: true, resolvedRoute: build.route,
+    url: "http://plotpickle.local/?workspace=dashboard&block=1&mini=1",
+    bodyText: "Build sequence ".repeat(50),
+  }, { attempted: true, succeeded: true, operatorId: "test-controller" });
+  assert.equal(result.disposition, "failed-defect");
+  assert.match(result.reason, /unexpected route/);
+});
+
+
+test("#1750 reference Library readiness waits for its Afterglow working copy", () => {
+  const route = registry.autonomousStoryRoutes.find((entry) => entry.id === "library");
+  const shell = { bodyText: "Library My Stories New Story Import .PPF ".repeat(30) };
+  assert.equal(renderedAreaIsReady(route, shell), false);
+  const hydrated = { bodyText: `${shell.bodyText} Afterglow working copy` };
+  assert.equal(renderedAreaIsReady(route, hydrated), true);
+  assert.equal(evaluateAutonomousRouteOperation(route, { reached: true, ...shell }, {}, { expectedProjectId: "reference" }).succeeded, false);
+  assert.equal(evaluateAutonomousRouteOperation(route, { reached: true, ...hydrated }, {}, { expectedProjectId: "reference" }).succeeded, true);
 });

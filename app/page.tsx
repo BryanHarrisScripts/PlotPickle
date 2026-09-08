@@ -23,6 +23,7 @@ import CommunityWorkspace from "./_components/community/community-workspace";
 import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import StoryMapContextRuntime from "./story-map-workspace/context-runtime";
 import StoryMapShell from "./story-map-shell";
 import StoryMapWorkspace from "./story-map-workspace";
 import "./issue-1725-polish.css";
@@ -252,6 +253,7 @@ export default function Home() {
     const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="build" onNavigate={navigateWorkspace}>
+        <StoryMapContextRuntime />
         {section === "world" ? (
           <WorldBuildWorkspace
             curriculum={plotPickleCurriculum}
@@ -280,6 +282,7 @@ export default function Home() {
     const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="plan" onNavigate={navigateWorkspace}>
+        <StoryMapContextRuntime />
         {section === "world" ? (
           <WorldPlanWorkspace
             curriculum={plotPickleCurriculum}

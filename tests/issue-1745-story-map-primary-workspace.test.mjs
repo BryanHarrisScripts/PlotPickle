@@ -62,6 +62,44 @@ test("#1745 Storyboard restores the selected Block from Story Map context", asyn
   assert.match(workspace, /useState\(\(\) => boundedBlockNumber\(initialBlockNumber\)\)/);
 });
 
+test("#1745 close and reopen restores Block Mini-Block and local stage without changing PPF canon", async () => {
+  const [contract, map, runtime, privateBrowser, privateRoute, page, storyboard] = await Promise.all([
+    read("core/storage/story-map-context.ts"),
+    read("modules/build/ui/progressive-story-map.tsx"),
+    read("app/story-map-workspace/context-runtime.tsx"),
+    read("core/storage/profile-private-browser.ts"),
+    read("app/api/auth/profile-private/route.ts"),
+    read("app/page.tsx"),
+    read("app/storyboard/page.tsx"),
+  ]);
+
+  assert.match(contract, /StoryMapStage = "map" \| "plan" \| "build" \| "storyboard"/);
+  assert.match(contract, /blockNumber: number/);
+  assert.match(contract, /miniBlockNumber: number/);
+  assert.doesNotMatch(contract, /revision|PPFProject|StoryCommand/);
+
+  assert.match(privateRoute, /objectId: "story-map-contexts"/);
+  assert.match(privateRoute, /input\.action === "save-story-map-contexts"/);
+  assert.match(privateRoute, /normalizeStoryMapContextRegistry/);
+  assert.match(privateBrowser, /hydratedStoryMapContext/);
+  assert.match(privateBrowser, /return queueCacheWrite\("save-story-map-contexts"/);
+  assert.match(privateBrowser, /await pendingCacheWrite\.catch\(\(\) => undefined\)/);
+
+  assert.match(map, /rememberedContext = hydratedStoryMapContext\(project\.id\)/);
+  assert.match(map, /boundedLocation\("block", 24, rememberedContext\?\.blockNumber \?\? 1\)/);
+  assert.match(map, /boundedLocation\("mini", 4, rememberedContext\?\.miniBlockNumber \?\? 1\)/);
+  assert.match(map, /persistStoryMapContext\(project\.id, \{ blockNumber, miniBlockNumber, stage: "map" \}\)/);
+
+  assert.match(runtime, /location\.pathname === "\/storyboard"/);
+  assert.match(runtime, /workspace === "plan" \|\| workspace === "build"/);
+  assert.match(runtime, /persistStoryMapContext\(project\.id/);
+  assert.doesNotMatch(runtime, /applyStoryCommand|saveFoundationProject|revision/);
+  assert.doesNotMatch(runtime, /catch\s*\{\s*(?:\/\/[^\n]*\s*)?\}/);
+  assert.match(page, /activeWorkspace="build"[\s\S]*<StoryMapContextRuntime \/>/);
+  assert.match(page, /activeWorkspace="plan"[\s\S]*<StoryMapContextRuntime \/>/);
+  assert.match(storyboard, /<StoryMapContextRuntime \/>/);
+});
+
 test("#1745 new Story Map styling uses PlotPickle tokens rather than a second visual system", async () => {
   const [shellStyles, mapStyles, storyboardStyles] = await Promise.all([
     read("app/story-map-shell.module.css"),
@@ -73,5 +111,25 @@ test("#1745 new Story Map styling uses PlotPickle tokens rather than a second vi
     assert.match(source, /var\(--pp-/);
     assert.doesNotMatch(source, /#[0-9a-f]{3,8}\b/i);
     assert.doesNotMatch(source, /rgba?\(/i);
+  }
+});
+
+test("#1750 embedded Story Map selection preserves BUILD and local Block context", async () => {
+  const map = await read("modules/build/ui/progressive-story-map.tsx");
+  const effect = map.match(/useEffect\(\(\) => \{\n(    const location = new URL\(window.location.href\);[\s\S]*?)\n  \}, \[selected.number, selectedMini.number\]\);/);
+  assert.ok(effect, "Story Map location effect must remain covered");
+  const updateLocation = new Function("window", "selected", "selectedMini", effect[1]);
+  for (const [query, expectedWorkspace] of [
+    ["workspace=build&block=7&mini=3", "build"],
+    ["workspace=dashboard", "dashboard"],
+    ["workspace=write", "dashboard"],
+    ["workspace=refine", "dashboard"],
+  ]) {
+    let destination;
+    updateLocation({
+      location: { href: `http://plotpickle.local/?${query}` },
+      history: { replaceState: (_state, _title, href) => { destination = href; } },
+    }, { number: 7 }, { number: 3 });
+    assert.equal(destination, `/?workspace=${expectedWorkspace}&block=7&mini=3`);
   }
 });

@@ -8,7 +8,7 @@ test("Dashboard is a real root workspace and active projects now enter the Story
   const [page, navigation, storyMapWorkspace] = await Promise.all([
     read("app/page.tsx"),
     read("app/navigation/global-shortcuts.ts"),
-    read("app/story-map-workspace.tsx"),
+    read("app/story-map-workspace/index.tsx"),
   ]);
 
   assert.match(navigation, /RootWorkspace = [^;]*"dashboard"/);
@@ -78,7 +78,7 @@ test("BUILD acceptance is a project command rather than a Dashboard-only flag", 
 
 test("App Story Map host leads with 24/96 while Dashboard preserves guided support", async () => {
   const [workspace, dashboard, styles] = await Promise.all([
-    read("app/story-map-workspace.tsx"),
+    read("app/story-map-workspace/index.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.module.css"),
   ]);

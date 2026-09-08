@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
+import StoryMapContextRuntime from "../story-map-workspace/context-runtime";
 import styles from "./storyboard-page.module.css";
 
 function boundedBlock(value: string | null) {
@@ -39,6 +40,7 @@ export default function StoryboardPage() {
 
   return (
     <div data-canonical-project-id={project.id}>
+      <StoryMapContextRuntime />
       <StoryboardReadinessWorkspace
         initialBlockNumber={initialBlockNumber}
         project={project}

@@ -36,15 +36,17 @@ test("issue #1747 keeps normal PR verification focused on the current architectu
   assert.equal((prGate.match(/npm ci/g) || []).length, 1, "PR Gate should install the PlotPickle dependency tree once");
 
   assert.match(productGate, /current Skin V1 startup boundary/i);
-  assert.match(productGate, /Build PlotPickleSetup\.exe/);
-  assert.match(productGate, /Run packaged Windows interaction smoke/);
-  assert.match(productGate, /Run install and uninstall smoke/);
+  assert.match(productGate, /Production web build on Windows/);
+  assert.match(productGate, /Windows installer source contract/);
   assert.equal((productGate.match(/npm ci/g) || []).length, 1, "Product Gate should install the PlotPickle dependency tree once");
 
   for (const gate of [prGate, productGate]) {
     assert.doesNotMatch(gate, /demo onboarding/i);
     assert.doesNotMatch(gate, /autonomous Afterglow story reference/i);
   }
+  assert.doesNotMatch(productGate, /Build PlotPickleSetup\.exe/);
+  assert.doesNotMatch(productGate, /Run packaged Windows interaction smoke/);
+  assert.doesNotMatch(productGate, /Run install and uninstall smoke/);
 });
 
 test("issue #1747 leaves specialized workflows available without their own pull-request trigger", async () => {

@@ -63,13 +63,14 @@ test("#1745 Storyboard restores the selected Block from Story Map context", asyn
 });
 
 test("#1745 close and reopen restores Block Mini-Block and local stage without changing PPF canon", async () => {
-  const [contract, map, runtime, privateBrowser, privateRoute, layout] = await Promise.all([
-    read("core/contracts/story-map-context.ts"),
+  const [contract, map, runtime, privateBrowser, privateRoute, page, storyboard] = await Promise.all([
+    read("core/storage/story-map-context.ts"),
     read("modules/build/ui/progressive-story-map.tsx"),
     read("app/story-map-workspace/context-runtime.tsx"),
     read("core/storage/profile-private-browser.ts"),
     read("app/api/auth/profile-private/route.ts"),
-    read("app/layout.tsx"),
+    read("app/page.tsx"),
+    read("app/storyboard/page.tsx"),
   ]);
 
   assert.match(contract, /StoryMapStage = "map" \| "plan" \| "build" \| "storyboard"/);
@@ -93,7 +94,10 @@ test("#1745 close and reopen restores Block Mini-Block and local stage without c
   assert.match(runtime, /workspace === "plan" \|\| workspace === "build"/);
   assert.match(runtime, /persistStoryMapContext\(project\.id/);
   assert.doesNotMatch(runtime, /applyStoryCommand|saveFoundationProject|revision/);
-  assert.match(layout, /<ProfileAccessBoundary>[\s\S]*<StoryMapContextRuntime \/>[\s\S]*<ReleaseExperienceBoundary>/);
+  assert.doesNotMatch(runtime, /catch\s*\{\s*(?:\/\/[^\n]*\s*)?\}/);
+  assert.match(page, /activeWorkspace="build"[\s\S]*<StoryMapContextRuntime \/>/);
+  assert.match(page, /activeWorkspace="plan"[\s\S]*<StoryMapContextRuntime \/>/);
+  assert.match(storyboard, /<StoryMapContextRuntime \/>/);
 });
 
 test("#1745 new Story Map styling uses PlotPickle tokens rather than a second visual system", async () => {

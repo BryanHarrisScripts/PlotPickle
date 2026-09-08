@@ -13,7 +13,7 @@ const KNOWN_SURFACES: readonly ExperienceSurfaceId[] = [
   "SETTINGS",
 ];
 
-export type BarebonesSurfaceContext = Readonly<{
+export type ExperienceSurfaceContext = Readonly<{
   authenticated: boolean;
 }>;
 
@@ -32,10 +32,10 @@ function surface(id: ExperienceSurfaceId, active: boolean, reason: string | null
  * The first Business Use Case is deliberately tiny: a locked Human sees only
  * LOGON; an authenticated Human sees only HOME. Future surfaces stay known to
  * the Experience layer but are not exposed until their use cases are migrated
- * behind the same contract.
+ * behind the same contract. No skin owns or hardcodes this topology.
  */
-export function deriveBarebonesSurfaceTopology(
-  context: BarebonesSurfaceContext,
+export function deriveExperienceSurfaceTopology(
+  context: ExperienceSurfaceContext,
 ): ExperienceSurfaceTopology {
   const defaultSurface: ExperienceSurfaceId = context.authenticated ? "HOME" : "LOGON";
   const activeSurfaces = [defaultSurface] as const;

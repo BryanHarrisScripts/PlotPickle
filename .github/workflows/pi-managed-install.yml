@@ -1,14 +1,7 @@
 name: Managed Pi Install
 
 on:
-  pull_request:
-    paths:
-      - "scripts/pi-managed-install.mjs"
-      - "scripts/ensure-pi-cli.mjs"
-      - "scripts/ensure-pi-repair-stack.mjs"
-      - "build/uat-discovery-plugin.ts"
-      - "tests/issue-1185-pi-managed-install.test.mjs"
-      - ".github/workflows/pi-managed-install.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

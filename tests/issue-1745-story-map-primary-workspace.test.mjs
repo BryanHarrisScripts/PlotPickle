@@ -7,9 +7,9 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#1745 active projects enter the Story Map while LEARN stays explicit support", async () => {
   const [page, workspace, dashboard, shell] = await Promise.all([
     read("app/page.tsx"),
-    read("app/story-map-workspace.tsx"),
+    read("app/story-map-workspace/index.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
-    read("app/story-map-shell.tsx"),
+    read("app/story-map-shell/index.tsx"),
   ]);
 
   assert.match(page, /hasActiveLibraryProject\(\) \? "dashboard" : "library"/);

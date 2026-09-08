@@ -7,9 +7,9 @@ import {
   PROFILE_PRIVATE_SAVE_STATE_EVENT,
 } from "@/core/storage/profile-private-browser";
 import { PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
-import type { RootWorkspace } from "./plotpickle-workspace-shell";
-import { PLOTPICKLE_OPEN_PROFILE_EVENT } from "./navigation/global-shortcuts";
-import styles from "./story-map-shell.module.css";
+import type { RootWorkspace } from "../plotpickle-workspace-shell";
+import { PLOTPICKLE_OPEN_PROFILE_EVENT } from "../navigation/global-shortcuts";
+import styles from "../story-map-shell.module.css";
 
 export default function StoryMapShell({
   children,

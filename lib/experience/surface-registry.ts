@@ -6,7 +6,7 @@ import type {
 
 const KNOWN_SURFACES: readonly ExperienceSurfaceId[] = [
   "LOGON",
-  "HOME",
+  "DASHBOARD",
   "COMMUNITY",
   "STORY_WORKSPACE",
   "STORYBOARD",
@@ -29,15 +29,15 @@ function surface(id: ExperienceSurfaceId, active: boolean, reason: string | null
 /**
  * ARCH-01 bootstrap topology.
  *
- * The first Business Use Case is deliberately tiny: a locked Human sees only
- * LOGON; an authenticated Human sees only HOME. Future surfaces stay known to
- * the Experience layer but are not exposed until their use cases are migrated
- * behind the same contract. No skin owns or hardcodes this topology.
+ * A locked Human sees only LOGON. An authenticated Human enters DASHBOARD.
+ * The Dashboard menu may preview future business surfaces, but those entries
+ * remain presentation-only until their use cases are migrated behind this
+ * contract. No Skin owns or hardcodes the authoritative active topology.
  */
 export function deriveExperienceSurfaceTopology(
   context: ExperienceSurfaceContext,
 ): ExperienceSurfaceTopology {
-  const defaultSurface: ExperienceSurfaceId = context.authenticated ? "HOME" : "LOGON";
+  const defaultSurface: ExperienceSurfaceId = context.authenticated ? "DASHBOARD" : "LOGON";
   const activeSurfaces = [defaultSurface] as const;
   const surfaces = KNOWN_SURFACES.map((id) => surface(
     id,

@@ -1,0 +1,148 @@
+html[data-plotpickle-skin="skin-v1"],
+html[data-plotpickle-skin="skin-v1"] body {
+  margin: 0;
+  background: #000 !important;
+  color: #fff !important;
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] *,
+html[data-plotpickle-skin="skin-v1"] *::before,
+html[data-plotpickle-skin="skin-v1"] *::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.pp-skin-v1-logon,
+.pp-skin-v1-home {
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
+}
+
+.pp-skin-v1-logon {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.pp-skin-v1-panel {
+  width: min(560px, 100%);
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+}
+
+.pp-skin-v1-title,
+.pp-skin-v1-bar,
+.pp-skin-v1-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #000;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-title,
+.pp-skin-v1-bar {
+  border-bottom: 2px solid #fff;
+}
+
+.pp-skin-v1-status {
+  border-top: 2px solid #fff;
+  font-size: 12px;
+}
+
+.pp-skin-v1-panel > p,
+.pp-skin-v1-panel > form,
+.pp-skin-v1-message {
+  margin: 0;
+  padding: 18px;
+}
+
+.pp-skin-v1-panel form {
+  display: grid;
+  gap: 16px;
+}
+
+.pp-skin-v1-panel label {
+  display: grid;
+  gap: 6px;
+}
+
+.pp-skin-v1-panel input,
+.pp-skin-v1-panel select,
+.pp-skin-v1-panel button,
+.pp-skin-v1-panel a {
+  min-height: 42px;
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+  font: inherit;
+}
+
+.pp-skin-v1-panel input,
+.pp-skin-v1-panel select {
+  width: 100%;
+  padding: 8px 10px;
+}
+
+.pp-skin-v1-panel button,
+.pp-skin-v1-panel a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pp-skin-v1-panel button:hover:not(:disabled),
+.pp-skin-v1-panel button:focus-visible,
+.pp-skin-v1-panel a:hover,
+.pp-skin-v1-panel a:focus-visible {
+  background: #fff;
+  color: #000;
+  outline: 0;
+}
+
+.pp-skin-v1-panel button:disabled {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.pp-skin-v1-panel [role="alert"] {
+  border: 2px solid #fff;
+  padding: 10px;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-message {
+  display: grid;
+  gap: 14px;
+}
+
+.pp-skin-v1-message p {
+  margin: 0;
+}
+
+.pp-skin-v1-home {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.pp-skin-v1-blank {
+  padding: 18px;
+}
+
+.pp-skin-v1-blank p {
+  margin: 0;
+  text-transform: uppercase;
+}

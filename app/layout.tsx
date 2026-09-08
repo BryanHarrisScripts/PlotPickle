@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import DemoOnboardingBoundary from "./profile-access/demo/demo-onboarding-boundary";
-import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
+import ProfileAccessRouter from "./profile-access/profile-access-router";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
 import AppearanceRuntime from "./appearance-runtime";
-import BarebonesSkinRuntime from "./barebones-skin-runtime";
+import SkinV1Runtime from "./skin-v1-runtime";
+import { LegacyDemoBoundary, LegacySkinOnly } from "./legacy-skin-only";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
@@ -28,7 +28,7 @@ import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-lan
 import UiContinuityAnchor from "./ui-continuity-anchor";
 import "./design-tokens.css";
 import "./globals.css";
-import "./barebones-skin.css";
+import "./skin-v1.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
 import "./ui-ux-cleanup.css";
@@ -114,34 +114,36 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
-        <BarebonesSkinRuntime />
-        <DemoOnboardingBoundary>
-          <ProfileAccessBoundary>
+        <SkinV1Runtime />
+        <LegacyDemoBoundary>
+          <ProfileAccessRouter>
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
-          </ProfileAccessBoundary>
-          <ProfileIdentityOverlay />
-          <UiContinuityAnchor />
-          <LearnEntryRouter />
-          <CommonOverlayLayer />
-          <WriterFacingCollaborationLanguage />
-          <GraphicNovelTerminology />
-          <GraphicNovelStudioHost />
-          <GraphicNovelBuildHandoff />
-          <BuildAssemblyStudio />
-          <BuildAnimaticStudio />
-          <FeedbackStudioHost />
-          <GitHubAppReleaseGuidance />
-          <CollaborationWorkspaceRouter />
-          <PlanStudioRailHost />
-          <StoryboardStudioHost />
-          <StoryboardNavigationGroupsHost />
-          <StoryboardPlanIntentionHost />
-          <StoryboardWriteHandoff />
-          <WriteStudioHost />
-          <WriteEditHandoff />
-          <WorkspaceIntroHost />
-          <CurrentDownloadLinks />
-        </DemoOnboardingBoundary>
+          </ProfileAccessRouter>
+          <LegacySkinOnly>
+            <ProfileIdentityOverlay />
+            <UiContinuityAnchor />
+            <LearnEntryRouter />
+            <CommonOverlayLayer />
+            <WriterFacingCollaborationLanguage />
+            <GraphicNovelTerminology />
+            <GraphicNovelStudioHost />
+            <GraphicNovelBuildHandoff />
+            <BuildAssemblyStudio />
+            <BuildAnimaticStudio />
+            <FeedbackStudioHost />
+            <GitHubAppReleaseGuidance />
+            <CollaborationWorkspaceRouter />
+            <PlanStudioRailHost />
+            <StoryboardStudioHost />
+            <StoryboardNavigationGroupsHost />
+            <StoryboardPlanIntentionHost />
+            <StoryboardWriteHandoff />
+            <WriteStudioHost />
+            <WriteEditHandoff />
+            <WorkspaceIntroHost />
+            <CurrentDownloadLinks />
+          </LegacySkinOnly>
+        </LegacyDemoBoundary>
       </body>
     </html>
   );

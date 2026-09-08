@@ -164,7 +164,12 @@ test("#1571 targeted workflow reuses exact-head adapters and preserves tester/re
     readFile(new URL("../build/autonomous-guest/qa/tester-journeys.ts", import.meta.url), "utf8"),
   ]);
 
-  assert.match(workflow, /pull_request:/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^  pull_request:/m);
+  for (const untrustedHeadWorkflow of [workflow, storyWorkflow, windowsWorkflow]) {
+    assert.doesNotMatch(untrustedHeadWorkflow, /cache: npm/);
+    assert.match(untrustedHeadWorkflow, /persist-credentials: false/);
+  }
   assert.match(workflow, /issues: read/);
   assert.doesNotMatch(workflow, /issues: write|pull-requests: write|contents: write/);
   assert.match(workflow, /github\.event\.pull_request\.head\.sha/);

@@ -27,17 +27,18 @@ jobs:
         if: ${{ inputs.exact_head != '' }}
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ inputs.exact_head }}
       - name: Checkout exact head
         if: ${{ inputs.exact_head == '' }}
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-          cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate reference bootstrap contract

@@ -39,20 +39,29 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
     read("lib/experience/surface-registry.ts"),
   ]);
 
-  assert.match(contract, /type: "AuthenticateHuman"/u);
+  for (const intent of ["AuthenticateHuman", "CreateFirstHumanProfile", "CompleteFirstHumanProfileSetup"]) {
+    assert.match(contract, new RegExp(`type: "${intent}"`, "u"));
+  }
   assert.match(contract, /locator: string/u);
-  assert.doesNotMatch(contract, /password|passphrase|credential/u);
+  assert.match(contract, /displayName: string/u);
+  assert.doesNotMatch(contract, /password|passphrase|credential|recoverySecret|bootstrapProof/u);
 
   assert.match(useCase, /ExperienceAuthGateway/u);
   assert.match(useCase, /executeAuthenticateHumanIntent/u);
+  assert.match(useCase, /executeCreateFirstHumanProfileIntent/u);
+  assert.match(useCase, /executeCompleteFirstHumanProfileSetupIntent/u);
   assert.match(useCase, /projectLogonViewModel/u);
   assert.match(useCase, /PROFILE_LOCATOR_REQUIRED/u);
-  assert.match(useCase, /PROFILE_CREDENTIAL_REQUIRED/u);
+  assert.match(useCase, /PROFILE_CREDENTIAL_TOO_WEAK/u);
+  assert.match(useCase, /SERVER_BOOTSTRAP_PROOF_REQUIRED/u);
+  assert.match(useCase, /RECOVERY_ACKNOWLEDGEMENT_REQUIRED/u);
   assert.doesNotMatch(useCase, /fetch\(|window\.|document\.|react/u);
 
   assert.match(gateway, /fetch\("\/api\/auth\/profile"/u);
+  assert.match(gateway, /action: "create-first-profile"/u);
   assert.match(gateway, /hydrateProfilePrivateBrowser/u);
   assert.match(gateway, /migrateLegacyBrowserProjects/u);
+  assert.match(gateway, /password: input\.credential/u);
   assert.match(gateway, /password: credential/u);
 
   assert.match(registry, /authenticated \? "HOME" : "LOGON"/u);
@@ -60,7 +69,7 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
   assert.doesNotMatch(registry, /react|window\.|document\.|fetch\(/i);
 });
 
-test("#1754 Skin V1 emits LOGON intent and renders only LOGON or blank HOME", async () => {
+test("#1754 Skin V1 owns fresh setup, LOGON and blank HOME without Legacy Skin fallback", async () => {
   const [skin, router, legacyOnly] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/profile-access/profile-access-router.tsx"),
@@ -68,12 +77,17 @@ test("#1754 Skin V1 emits LOGON intent and renders only LOGON or blank HOME", as
   ]);
 
   assert.match(skin, /type: "AuthenticateHuman"/u);
+  assert.match(skin, /type: "CreateFirstHumanProfile"/u);
+  assert.match(skin, /type: "CompleteFirstHumanProfileSetup"/u);
   assert.match(skin, /executeAuthenticateHumanIntent/u);
+  assert.match(skin, /executeCreateFirstHumanProfileIntent/u);
+  assert.match(skin, /executeCompleteFirstHumanProfileSetupIntent/u);
+  assert.match(skin, /RECOVERY SECRET \/ SAVE THIS NOW/u);
   assert.match(skin, /deriveExperienceSurfaceTopology/u);
   assert.match(skin, /data-experience-surface="LOGON"/u);
   assert.match(skin, /aria-label="PlotPickle Home"/u);
   assert.match(skin, />HOME</u);
-  assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject/u);
+  assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject|skin=legacy/u);
 
   assert.match(router, /isSkinV1Path/u);
   assert.match(router, /return <>{children}<\/>/u);

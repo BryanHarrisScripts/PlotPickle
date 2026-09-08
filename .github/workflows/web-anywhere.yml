@@ -1,13 +1,6 @@
 name: Web Anywhere
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/identity/web-anywhere-core.mjs"
-      - "core/identity/web-anywhere.ts"
-      - "tests/issue-1077-web-anywhere.test.mjs"
-      - ".github/workflows/web-anywhere.yml"
   workflow_dispatch:
 
 permissions:

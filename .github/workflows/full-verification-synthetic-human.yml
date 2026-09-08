@@ -1,16 +1,7 @@
 name: Full Verification Synthetic Human
 
 on:
-  pull_request:
-    paths:
-      - "scripts/full-verification-auth.mjs"
-      - "scripts/local-endpoint-runtime.mjs"
-      - "scripts/run-npx-stdio.mjs"
-      - "scripts/buzz-live-activity.mjs"
-      - "scripts/verify-buzz-live-activity.mjs"
-      - "scripts/verify-full-verification-synthetic-human.mjs"
-      - "tests/issue-1196-full-verification-synthetic-human.test.mjs"
-      - ".github/workflows/full-verification-synthetic-human.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

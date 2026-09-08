@@ -1,23 +1,6 @@
 name: Agent Skill Trust
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - ".agents/skills/**"
-      - "config/agent-skills.json"
-      - "config/agent-skill-trust.json"
-      - "scripts/agent-skills.mjs"
-      - "scripts/agent-skill-procedures.mjs"
-      - "scripts/agent-skill-trust.mjs"
-      - "lib/agents/agent-profiles.ts"
-      - "lib/agents/responsibility/connector-trust-policy.ts"
-      - "lib/model-portability-evals.ts"
-      - "tests/fixtures/agent-skills/**"
-      - "tests/issue-913-agent-skills-migration.test.mjs"
-      - "tests/issue-976-agent-skill-trust*.test.mjs"
-      - "docs/research/agent-architecture/**"
-      - ".github/workflows/agent-skill-trust.yml"
   workflow_dispatch:
 
 permissions:

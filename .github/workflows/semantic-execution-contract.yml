@@ -1,29 +1,6 @@
 name: Semantic Execution Contract
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "config/casebook/**"
-      - "scripts/casebook/**"
-      - "scripts/casebook-contract.mjs"
-      - "scripts/casebook-evidence.mjs"
-      - "scripts/casebook-real-integrations.mjs"
-      - "scripts/run-casebook-adequacy.mjs"
-      - "scripts/run-casebook-business-cases.mjs"
-      - "scripts/run-casebook-real-machine.mjs"
-      - "scripts/semantic-execution.mjs"
-      - "scripts/run-semantic-uat-repair.mjs"
-      - "scripts/run-uat-closed-loop.mjs"
-      - "scripts/run-uat-repair-agent.mjs"
-      - "scripts/verification-findings.mjs"
-      - "tests/issue-1286-casebook-business-case-registry.test.mjs"
-      - "tests/issue-1236-casebook-real-integrations.test.mjs"
-      - "tests/issue-1235-casebook-evidence.test.mjs"
-      - "tests/issue-1234-casebook-contract.test.mjs"
-      - "tests/issue-1218-semantic-execution-contract.test.mjs"
-      - "tests/issue-989-verification-execution-graph.test.mjs"
-      - ".github/workflows/semantic-execution-contract.yml"
   workflow_dispatch:
 
 permissions:

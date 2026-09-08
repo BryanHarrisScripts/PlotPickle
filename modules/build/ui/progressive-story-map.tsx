@@ -160,7 +160,10 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
   useEffect(() => { setLocalShifts({}); }, [project.revision]);
   useEffect(() => {
     const location = new URL(window.location.href);
-    location.searchParams.set("workspace", "dashboard");
+    // BUILD embeds this grid too; selection must preserve its local workspace.
+    if (location.searchParams.get("workspace") !== "build") {
+      location.searchParams.set("workspace", "dashboard");
+    }
     location.searchParams.set("block", String(selected.number));
     location.searchParams.set("mini", String(selectedMini.number));
     window.history.replaceState({ plotpickleStoryMap: true }, "", `${location.pathname}${location.search}`);

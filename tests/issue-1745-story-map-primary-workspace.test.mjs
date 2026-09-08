@@ -113,3 +113,23 @@ test("#1745 new Story Map styling uses PlotPickle tokens rather than a second vi
     assert.doesNotMatch(source, /rgba?\(/i);
   }
 });
+
+test("#1750 embedded Story Map selection preserves BUILD and local Block context", async () => {
+  const map = await read("modules/build/ui/progressive-story-map.tsx");
+  const effect = map.match(/useEffect\(\(\) => \{\n(    const location = new URL\(window.location.href\);[\s\S]*?)\n  \}, \[selected.number, selectedMini.number\]\);/);
+  assert.ok(effect, "Story Map location effect must remain covered");
+  const updateLocation = new Function("window", "selected", "selectedMini", effect[1]);
+  for (const [query, expectedWorkspace] of [
+    ["workspace=build&block=7&mini=3", "build"],
+    ["workspace=dashboard", "dashboard"],
+    ["workspace=write", "dashboard"],
+    ["workspace=refine", "dashboard"],
+  ]) {
+    let destination;
+    updateLocation({
+      location: { href: `http://plotpickle.local/?${query}` },
+      history: { replaceState: (_state, _title, href) => { destination = href; } },
+    }, { number: 7 }, { number: 3 });
+    assert.equal(destination, `/?workspace=${expectedWorkspace}&block=7&mini=3`);
+  }
+});

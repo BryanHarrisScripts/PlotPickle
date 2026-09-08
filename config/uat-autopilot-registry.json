@@ -114,11 +114,12 @@
     },
     {
       "id": "write",
-      "label": "Write screenplay projection",
+      "label": "Legacy WRITE return to Story Map",
       "order": 110,
       "route": "/?workspace=write",
-      "operation": "operate",
-      "requiredTerms": ["Write", "screenplay"],
+      "expectedRoute": "/?workspace=dashboard&block=1&mini=1",
+      "operation": "inspect",
+      "requiredTerms": ["Story Map", "4 Acts", "24 Blocks", "96 Mini-Blocks"],
       "minimumTextLength": 500,
       "prerequisites": ["active-working-copy"],
       "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
@@ -136,11 +137,12 @@
     },
     {
       "id": "refine",
-      "label": "Refine diagnostics",
+      "label": "Legacy REFINE return to Story Map",
       "order": 130,
       "route": "/?workspace=refine",
-      "operation": "operate",
-      "requiredTerms": ["Refine", "Diagnose"],
+      "expectedRoute": "/?workspace=dashboard&block=1&mini=1",
+      "operation": "inspect",
+      "requiredTerms": ["Story Map", "4 Acts", "24 Blocks", "96 Mini-Blocks"],
       "minimumTextLength": 500,
       "prerequisites": ["active-working-copy"],
       "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]

@@ -1,14 +1,6 @@
 name: Avatar and LEARN Sync
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/identity/account-learn-sync-core.mjs"
-      - "core/identity/account-learn-sync.ts"
-      - "docs/architecture/AVATAR-RECOVERY-LEARN-SYNC.md"
-      - "tests/issue-1073-avatar-recovery-learn-sync.test.mjs"
-      - ".github/workflows/avatar-learn-sync.yml"
   workflow_dispatch:
 
 permissions:

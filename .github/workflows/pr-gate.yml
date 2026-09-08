@@ -104,6 +104,102 @@ jobs:
             }
           }
 
+      - name: Validate retained agent skill trust contracts
+        run: node --test tests/issue-976-agent-skill-trust.test.mjs
+
+      - name: Validate retained auth core contracts
+        run: node --test tests/issue-1072-identity-authority.test.mjs tests/issue-1135-canonical-node-buzz-boundary.test.mjs
+
+      - name: Validate retained autonomous guest task ledger contracts
+        run: node --test tests/issue-1569-autonomous-guest-mastra-scheduler.test.mjs tests/issue-1569-autonomous-guest-mastra-storage.test.mjs tests/issue-1569-autonomous-guest-mastra-wake-runtime.test.mjs tests/issue-1569-autonomous-guest-reference-runner.test.mjs tests/issue-1569-autonomous-guest-restart-ordering.test.mjs tests/issue-1569-autonomous-guest-route-policy-recovery.test.mjs tests/issue-1569-autonomous-guest-run-policy.test.mjs tests/issue-1569-autonomous-guest-settings.test.mjs tests/issue-1569-autonomous-guest-task-ledger.test.mjs tests/issue-1569-autonomous-guest-task-lifecycle.test.mjs
+
+      - name: Validate retained autonomous qa campaign contracts
+        run: node --test tests/issue-1571-autonomous-qa-campaign-contract.test.mjs tests/issue-1571-autonomous-qa-campaign-planner.test.mjs tests/issue-1571-autonomous-qa-defect-dedup.test.mjs tests/issue-1571-autonomous-qa-defect-publication.test.mjs tests/issue-1571-autonomous-qa-fix-verification.test.mjs tests/issue-1571-autonomous-qa-targeted-fix-trigger.test.mjs tests/issue-1571-autonomous-qa-tester-journeys.test.mjs
+
+      - name: Validate retained autonomous qa targeted fix contracts
+        run: node --test tests/issue-1553-autonomous-story-decision-authority.test.mjs
+
+      - name: Validate retained avatar learn sync contracts
+        run: node --test tests/issue-1013-plotpickle-node-topology.test.mjs tests/issue-1073-avatar-recovery-learn-sync.test.mjs tests/issue-927-studio-identity.test.mjs tests/issue-928-playhouse-federation.test.mjs
+
+      - name: Validate retained build story model contracts
+        run: node --test tests/dashboard-foundations-progression.test.mjs tests/issue-114-build-workspace.test.mjs tests/issue-1338-library-import-archive.test.mjs tests/issue-1338-screenplay-to-ppf-utility.test.mjs tests/issue-351-build-health-map.test.mjs
+
+      - name: Validate retained buzz guildhall contracts
+        run: node --test tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/community-workspace.test.mjs tests/core-readme-direction.test.mjs tests/issue-1028-settings-help.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/issue-1130-buzz-local-backbone.test.mjs tests/issue-1222-buzz-real-machine-regression.test.mjs tests/issue-1444-story-room-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+
+      - name: Validate retained demo onboarding contracts
+        run: node --test tests/issue-1692-demo-boundary.test.mjs tests/issue-1692-demo-phase2-first-run-ui.test.mjs tests/issue-1692-demo-phase3-sage-show-me.test.mjs tests/issue-1692-demo-phase4-make-this-mine.test.mjs tests/issue-1692-demo-world.test.mjs
+
+      - name: Validate retained developer workbench contracts
+        run: node --test tests/issue-1349-developer-workbench.test.mjs tests/issue-1373-workbench-canonical-pi-readiness.test.mjs tests/issue-1382-workbench-pi-stdin-eof.test.mjs tests/issue-1448-developer-workbench-local-reviewers.test.mjs tests/issue-1451-workbench-gate-handoff.test.mjs
+
+      - name: Validate retained evidence learning maintainer contracts
+        run: node --test tests/issue-1592-durable-retrieval-restart.test.mjs tests/issue-1592-evidence-learning-contract.test.mjs tests/issue-1592-exact-head-architecture-learner.test.mjs tests/issue-1592-governed-skill-proposals.test.mjs tests/issue-1592-harness-admission-promotion.test.mjs tests/issue-1592-qa-repair-handoff.test.mjs tests/issue-1592-task-handoff-budget-guard.test.mjs
+
+      - name: Validate retained hardware aware local ai contracts
+        run: node --test tests/ai-architecture.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/comfyui-desktop-onboarding.test.mjs tests/foundation-architecture.test.mjs tests/hardware-aware-local-ai-runtime.test.mjs tests/issue-1001-hardware-model-catalog.test.mjs tests/issue-1018-rag-python-comfy-repair-order.test.mjs tests/issue-1020-python-probe-native-stderr.test.mjs tests/issue-1022-sdxl-starter-checkpoint.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1230-full-verification-closeout.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-929-connected-studios.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs
+
+      - name: Validate retained ios companion contract contracts
+        run: node --test tests/issue-1090-ios-companion.test.mjs
+
+      - name: Validate retained learn agent portraits contracts
+        run: node --test tests/issue-1100-learn-agent-portraits.test.mjs
+
+      - name: Validate retained learn validation contracts
+        run: node --test tests/issue-1008-windows-verification-resilience.test.mjs tests/issue-1010-community-backdoor-terminal.test.mjs tests/issue-1016-lazy-frames-animatic.test.mjs tests/issue-1031-full-verification-watchdog.test.mjs tests/issue-1044-verification-community-bbs.test.mjs tests/issue-1046-buzz-node-settings-colours.test.mjs tests/issue-1047-release-history.test.mjs tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-1066-community-three-column-shell.test.mjs tests/issue-1105-settings-dark-surface-regression.test.mjs tests/issue-1111-settings-unified-workspace.test.mjs tests/issue-1256-navigation-settings-ia.test.mjs tests/issue-1377-unified-ai-compute-settings.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs tests/issue-969-local-backup-trust-docs.test.mjs tests/issue-974-startup-health-contract.test.mjs tests/issues-940-941-community-observable-actions.test.mjs tests/learn-sage-settings-entry.test.mjs tests/startup-agent-skills-contract.test.mjs
+
+      - name: Validate retained local endpoint registry contracts
+        run: node --test tests/issue-1108-writer-app-preflight.test.mjs tests/issue-1170-writer-observer-stabilization.test.mjs
+
+      - name: Validate retained managed desktop harness contracts
+        run: node --test tests/issue-1075-trusted-node-remote-compute.test.mjs tests/issue-1079-managed-desktop-harness.test.mjs
+
+      - name: Validate retained performance contract contracts
+        run: node --test tests/issue-1411-performance-benchmark.test.mjs tests/issue-1612-visual-density-cost.test.mjs tests/issue-1614-process-idle-cost.test.mjs tests/issue-1624-performance-budgets.test.mjs
+
+      - name: Validate retained pi architecture aware engineering contracts
+        run: node --test tests/agent-skills-foundation.test.mjs tests/issue-1119-pi-required-worker.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-1321-pi-architecture-aware-engineering.test.mjs
+
+      - name: Validate retained pi managed install contracts
+        run: node --test tests/issue-1185-pi-windows-resolver.test.mjs tests/issue-651-pi-cline-uat-repair.test.mjs
+
+      - name: Validate retained portless adapter proof contracts
+        run: node --test tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs tests/issue-1156-portless-adapter.test.mjs
+
+      - name: Validate retained profile experience contracts
+        run: node --test tests/issue-1210-ui-housekeeping.test.mjs tests/issue-1212-profile-buzz-identity.test.mjs tests/issue-1279-official-agents-lore-avatar.test.mjs tests/issue-1404-community-edge-navigation.test.mjs tests/issue-614-startup-health-warning-cleanup.test.mjs tests/windows-native-runtime.test.mjs
+
+      - name: Validate retained resident writer skills contracts
+        run: node --test tests/issue-978-resident-writer-specialists.test.mjs
+
+      - name: Validate retained runtime weight inventory contracts
+        run: node --test tests/issue-1412-direct-dependency-reachability.test.mjs tests/issue-1626-runtime-weight-inventory.test.mjs tests/issue-1630-release-weight-cut.test.mjs tests/issue-1637-brand-master-weight-cut.test.mjs tests/issue-1639-public-media-subinventory.test.mjs tests/issue-1642-visual-reference-full-cut.test.mjs tests/issue-1654-production-runtime-profile.test.mjs tests/issue-1656-release-script-boundary.test.mjs tests/issue-57-visual-reference-library.test.mjs
+
+      - name: Validate retained story bridge contracts
+        run: node --test tests/issue-1422-buzz-story-bridge-hardening.test.mjs tests/issue-1422-buzz-story-bridge-preflight.test.mjs tests/issue-1422-buzz-story-bridge-session-diagnostics.test.mjs tests/issue-1422-buzz-story-bridge.test.mjs
+
+      - name: Validate retained story council contracts
+        run: node --test tests/issue-1417-story-council-afterglow.test.mjs tests/issue-1417-story-council-runtime.test.mjs tests/issue-1417-story-council.test.mjs
+
+      - name: Validate retained story decisions contracts
+        run: node --test tests/issue-1418-story-decisions-workflow-source.test.mjs tests/issue-1418-story-decisions.test.mjs
+
+      - name: Validate retained story room directory contracts
+        run: node --test tests/issue-1444-story-room-listing.test.mjs tests/issue-1464-app-domain-consolidation.test.mjs
+
+      - name: Validate retained story workbench contracts
+        run: node --test tests/issue-1419-story-workbench.test.mjs tests/issue-1420-workbench-visual-impact.test.mjs tests/issue-1421-afterglow-convergence.test.mjs tests/issue-1553-autonomous-convergence-restart.test.mjs
+
+      - name: Validate retained web anywhere contracts
+        run: node --test tests/issue-1077-web-anywhere.test.mjs
+
+      - name: Validate retained windows local profile bootstrap contracts
+        run: node --test tests/issue-1192-windows-local-profile-bootstrap.test.mjs
+
+      - name: Validate retained writer e2e observer contracts
+        run: node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1110-writer-live-acceptance.test.mjs
+
       - name: Production web build
         run: npm run build
 

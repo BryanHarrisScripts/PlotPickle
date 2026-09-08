@@ -4,14 +4,16 @@ import { useEffect } from "react";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 const SKIN_V1 = "skin-v1";
+const LEGACY_SKIN = "legacy";
 
 function applySkin() {
   const url = new URL(window.location.href);
   const explicit = url.searchParams.get("skin");
+  const stored = window.localStorage.getItem(SKIN_STORAGE_KEY);
   const skinV1Route = url.pathname === "/skin-v1" || url.pathname.startsWith("/skin-v1/");
 
-  if (explicit === "legacy") {
-    window.localStorage.removeItem(SKIN_STORAGE_KEY);
+  if (explicit === LEGACY_SKIN) {
+    window.localStorage.setItem(SKIN_STORAGE_KEY, LEGACY_SKIN);
     delete document.documentElement.dataset.plotpickleSkin;
     return;
   }
@@ -22,7 +24,12 @@ function applySkin() {
     return;
   }
 
-  if (url.pathname === "/" && window.localStorage.getItem(SKIN_STORAGE_KEY) === SKIN_V1) {
+  if (url.pathname === "/") {
+    if (stored === LEGACY_SKIN) {
+      delete document.documentElement.dataset.plotpickleSkin;
+      return;
+    }
+    window.localStorage.setItem(SKIN_STORAGE_KEY, SKIN_V1);
     window.location.replace("/skin-v1");
     return;
   }

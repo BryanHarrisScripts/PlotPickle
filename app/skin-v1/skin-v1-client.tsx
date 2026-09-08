@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { browserProfileAuthGateway } from "../../adapters/experience/browser-profile-auth-gateway";
 import type { ExperienceIntent } from "../../core/contracts/experience";
 import {
@@ -24,6 +31,31 @@ const LOADING_VIEW: LogonViewModel = {
   message: null,
 };
 
+type DashboardMenuItem = Readonly<{
+  id: string;
+  label: string;
+  groupStart?: boolean;
+}>;
+
+const DASHBOARD_MENU: readonly DashboardMenuItem[] = [
+  { id: "dashboard", label: "Dashboard" },
+  { id: "community", label: "Community", groupStart: true },
+  { id: "library", label: "Library" },
+  { id: "plan", label: "Plan", groupStart: true },
+  { id: "storyboard", label: "Storyboard" },
+  { id: "previs", label: "Previs" },
+  { id: "write", label: "Write", groupStart: true },
+  { id: "edit", label: "Edit" },
+  { id: "feedback", label: "Feedback" },
+  { id: "refine", label: "Refine" },
+  { id: "reports", label: "Reports", groupStart: true },
+  { id: "settings", label: "Settings" },
+  { id: "profile", label: "Profile" },
+  { id: "learn", label: "Learn - Education", groupStart: true },
+  { id: "wyrmwood", label: "Wyrmwood - Learning Game" },
+  { id: "story", label: "Story - The Unwritten" },
+];
+
 function nextIntentId() {
   return globalThis.crypto?.randomUUID?.() ?? `intent-${Date.now()}`;
 }
@@ -39,6 +71,8 @@ export default function SkinV1Client() {
   const [recoverySaved, setRecoverySaved] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [dashboardSelection, setDashboardSelection] = useState(0);
+  const dashboardMenuRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     void readLogonViewModel(browserProfileAuthGateway)
@@ -56,6 +90,34 @@ export default function SkinV1Client() {
     () => deriveExperienceSurfaceTopology({ authenticated: view.state === "authenticated" }),
     [view.state],
   );
+
+  function moveDashboardSelection(index: number) {
+    const bounded = (index + DASHBOARD_MENU.length) % DASHBOARD_MENU.length;
+    setDashboardSelection(bounded);
+    dashboardMenuRefs.current[bounded]?.focus();
+  }
+
+  function dashboardMenuKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveDashboardSelection(index + 1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveDashboardSelection(index - 1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      moveDashboardSelection(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      moveDashboardSelection(DASHBOARD_MENU.length - 1);
+    }
+  }
 
   async function authenticate(event: FormEvent) {
     event.preventDefault();
@@ -144,19 +206,56 @@ export default function SkinV1Client() {
   }
 
   if (view.state === "authenticated") {
+    const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
           <strong>PLOTPICKLE</strong>
-          <span>HOME</span>
+          <span>DASHBOARD</span>
           <span>SKIN V1</span>
         </header>
-        <section className="pp-skin-v1-blank" aria-label="PlotPickle Home">
-          <p>HOME</p>
+
+        <section className="pp-skin-v1-dashboard" aria-label="PlotPickle Dashboard">
+          <div className="pp-skin-v1-bbs">
+            <div className="pp-skin-v1-bbs-banner" aria-hidden="true">
+              <span>*** PLOTPICKLE BBS ***</span>
+              <span>DASHBOARD</span>
+            </div>
+
+            <div className="pp-skin-v1-menu" role="listbox" aria-label="Dashboard menu">
+              {DASHBOARD_MENU.map((item, index) => {
+                const selected = index === dashboardSelection;
+                return (
+                  <button
+                    key={item.id}
+                    ref={(node) => { dashboardMenuRefs.current[index] = node; }}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    tabIndex={selected ? 0 : -1}
+                    className={`pp-skin-v1-menu-item${selected ? " is-selected" : ""}${item.groupStart ? " is-group-start" : ""}`}
+                    data-dashboard-menu-item={item.id}
+                    onClick={() => setDashboardSelection(index)}
+                    onKeyDown={(event) => dashboardMenuKeyDown(event, index)}
+                  >
+                    <span className="pp-skin-v1-menu-cursor" aria-hidden="true">{selected ? ">" : " "}</span>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pp-skin-v1-bbs-help">
+              <span>UP/DOWN: SELECT</span>
+              <span>ENTER: SELECT</span>
+              <span>MENU ITEMS ARE NOT CONNECTED YET</span>
+            </div>
+          </div>
         </section>
+
         <footer className="pp-skin-v1-status">
-          <span>EXPERIENCE CONTRACT: ONLINE</span>
-          <span>ACTIVE SURFACE: {topology.defaultSurface}</span>
+          <span>BUSINESS USE CASE: DASHBOARD</span>
+          <span>SELECTED: {selectedMenuItem.label}</span>
         </footer>
       </main>
     );

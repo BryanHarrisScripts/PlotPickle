@@ -1,4 +1,4 @@
-import { normalizeStoryMapContextRegistry } from "../../../../core/contracts/story-map-context";
+import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
 import { normalizeFoundationProject } from "../../../../core/project/project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";

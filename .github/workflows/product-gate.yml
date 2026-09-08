@@ -1,0 +1,198 @@
+name: Product Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  product-gate:
+    name: Product Gate
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+
+      - name: Use .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install PlotPickle dependencies once
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Visual Readiness deterministic contracts
+        shell: pwsh
+        run: |
+          node --test tests/issue-1715-ui-foundation.test.mjs tests/issue-1715-ui-axe-accessibility.test.mjs tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs tests/issue-1715-ui-experience-lab.test.mjs
+          node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs tests/issue-1722-sitemap-migration.test.mjs
+          npm run test:global-design-framework
+          node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
+          node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs tests/issue-1557-character-visual-development-specifications.test.mjs tests/issue-1557-character-visual-development-ui.test.mjs
+          node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
+
+      - name: Visual Readiness changed UI token and style gate
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: node scripts/ui-stylelint-gate.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+
+      - name: Visual Readiness current-tree style smoke
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: node scripts/ui-stylelint-gate.mjs --all-foundation
+
+      - name: Collect changed UI files for 25-point audit
+        id: ui-changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          mkdir -p .artifacts
+          git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}...HEAD" \
+            | grep -E '^(app/|components/|modules/.*/ui/).*[.](css|scss|js|jsx|ts|tsx|mjs|cjs)$' > .artifacts/plotpickle-ui-files.txt || true
+          {
+            echo 'files<<EOF'
+            cat .artifacts/plotpickle-ui-files.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Visual Readiness 25-point UI UX code audit
+        if: github.event_name == 'pull_request' && steps.ui-changes.outputs.files != ''
+        shell: bash
+        env:
+          CHANGED_FILES: ${{ steps.ui-changes.outputs.files }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node scripts/ui-ux-code-audit.mjs
+          cat audit-report.md
+          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('audit-result.json','utf8')); const providerThrottled=r.verdict==='fail'&&r.issueCount===1&&r.summary==='The UI/UX audit provider returned HTTP 429.'; if(r.verdict!=='pass'&&!providerThrottled){console.error(r.summary); process.exit(1)} if(providerThrottled){console.warn('UI/UX audit provider returned HTTP 429; continuing to required deterministic and rendered UI gates.')}"
+
+      - name: Install pinned Visual Readiness browser tooling
+        shell: bash
+        env:
+          UI_A11Y_ROOT: .artifacts/plotpickle-ui-a11y
+        run: |
+          mkdir -p "$UI_A11Y_ROOT"
+          printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
+          npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0
+          "$UI_A11Y_ROOT/node_modules/.bin/playwright" install chromium
+
+      - name: Visual Readiness rendered accessibility and experience guardrails
+        id: rendered-guardrails
+        continue-on-error: true
+        shell: bash
+        env:
+          UI_A11Y_ROOT: .artifacts/plotpickle-ui-a11y
+        run: |
+          mkdir -p .artifacts
+          AUTH_HOME=".artifacts/plotpickle-ui-rendered-auth"
+          AUTH_STATE_FILE=".artifacts/plotpickle-ui-rendered-state-path"
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > .artifacts/plotpickle-ui-app-server.log 2>&1 &
+          APP_SERVER_PID=$!
+          ./node_modules/.bin/vite --config lib/verification/ui-experience-fixture/vite.config.ts --host 127.0.0.1 --port 4174 > .artifacts/plotpickle-ui-fixture-server.log 2>&1 &
+          FIXTURE_SERVER_PID=$!
+          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true; rm -rf "$AUTH_HOME" "$AUTH_STATE_FILE"' EXIT
+          UI_SERVER="http://127.0.0.1:4173" AUTH_HOME="$AUTH_HOME" AUTH_STATE_FILE="$AUTH_STATE_FILE" node --input-type=module <<'NODE'
+          import { writeFile } from "node:fs/promises";
+          import { establishVerificationSyntheticHuman } from "./scripts/full-verification-auth.mjs";
+          import { validateLocalServer, waitForUiServer } from "./lib/verification/ui-axe-audit.mjs";
+          const server = validateLocalServer(process.env.UI_SERVER);
+          await waitForUiServer(server);
+          const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: process.env.AUTH_HOME });
+          await writeFile(process.env.AUTH_STATE_FILE, auth.storageStatePath, "utf8");
+          NODE
+          STORAGE_STATE="$(cat "$AUTH_STATE_FILE")"
+          {
+            node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
+            node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/sitemap/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+          } 2>&1 | tee .artifacts/plotpickle-ui-experience-output.log
+
+      - name: Enforce Visual Readiness rendered verdict
+        if: steps.rendered-guardrails.outcome == 'failure'
+        shell: pwsh
+        run: exit 1
+
+      - name: Validate autonomous story and reference bootstrap
+        shell: pwsh
+        run: node --test tests/issue-1553-afterglow-reference-bootstrap.test.mjs tests/issue-1553-autonomous-guest-authority.test.mjs tests/issue-1553-application-lifecycle.test.mjs tests/issue-1553-application-lifecycle-doc.test.mjs
+
+      - name: Run autonomous Afterglow story reference
+        shell: pwsh
+        env:
+          FORCE_COLOR: '0'
+          PLOTPICKLE_ACCEPTANCE_MODE: '1'
+        run: node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs --artifact-root .artifacts/autonomous-story-reference
+
+      - name: Validate Windows auth profile and synthetic Human journeys
+        shell: pwsh
+        run: |
+          npm run test:plotpickle-auth
+          node --test tests/issue-1196-full-verification-synthetic-human.test.mjs tests/issue-1142-server-session-boundary.test.mjs tests/issue-1143-profile-experience.test.mjs tests/issue-1155-local-endpoint-registry.test.mjs tests/issue-1036-standalone-full-verification-windows.test.mjs
+          node scripts/verify-full-verification-synthetic-human.mjs
+
+      - name: Production web build
+        shell: pwsh
+        run: npm run build
+
+      - name: Validate Windows installer source contract
+        shell: pwsh
+        run: node --test tests/issue-1456-windows-installer.test.mjs
+
+      - name: Install Inno Setup compiler
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build PlotPickleSetup.exe
+        shell: pwsh
+        run: ./scripts/windows-installer/build.ps1
+
+      - name: Run packaged Windows interaction smoke
+        shell: pwsh
+        env:
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: '360000'
+        run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
+
+      - name: Run install and uninstall smoke
+        shell: pwsh
+        run: ./scripts/windows-installer/smoke.ps1 -SetupPath releases/windows-installer/PlotPickleSetup.exe
+
+      - name: Upload Product Gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-gate-evidence-${{ github.run_id }}
+          path: |
+            .artifacts/
+            reports/windows-installer-interaction/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload PlotPickle installer
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-installer-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            releases/windows-installer/PlotPickleSetup.exe
+            releases/windows-installer/PlotPickleSetup.exe.sha256
+          if-no-files-found: error
+          retention-days: 14

@@ -1,35 +1,6 @@
 name: Profile Private Storage
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/storage/**"
-      - "core/auth/**"
-      - "core/memory/**"
-      - "lib/agents/context/memory-context.ts"
-      - "app/api/memory/**"
-      - "modules/creative-room/*memory*"
-      - "build/local-credentials.ts"
-      - "build/local-project-gateway.ts"
-      - "config/credential-boundary.registry.json"
-      - "config/uat-autopilot-registry.json"
-      - "docs/CREDENTIAL_BOUNDARY_AUDIT.md"
-      - "docs/architecture/PLOTPICKLE-PROFILE-*.md"
-      - "scripts/credential-boundary-audit.mjs"
-      - "scripts/local-credential-audit.mjs"
-      - "scripts/package-platform.mjs"
-      - "tests/issue-1122-library-persistence.test.mjs"
-      - "tests/issue-1141-profile-private-storage.test.mjs"
-      - "tests/issue-1200-scoped-memory-contract.test.mjs"
-      - "tests/issue-1201-memory-persistence-isolation.test.mjs"
-      - "tests/issue-1202-bounded-memory-retrieval.test.mjs"
-      - "tests/issue-1203-sage-avery-memory-continuity.test.mjs"
-      - "tests/issue-299-credential-boundary-audit.test.mjs"
-      - "tests/issue-299-local-credential-audit.test.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/profile-private-storage.yml"
   workflow_dispatch:
 
 permissions:

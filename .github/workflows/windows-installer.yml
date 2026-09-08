@@ -1,19 +1,6 @@
 name: Windows Installer
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/windows-installer.yml"
-      - "windows/**"
-      - "scripts/windows-installer/**"
-      - "scripts/package-platform.mjs"
-      - "scripts/package-smoke.mjs"
-      - "scripts/windows-interaction-smoke.mjs"
-      - "scripts/windows-runtime.mjs"
-      - "Start-PlotPickle.bat"
-      - "tests/issue-1456-windows-installer.test.mjs"
-      - "package.json"
-      - "package-lock.json"
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -41,19 +28,20 @@ jobs:
         if: ${{ inputs.exact_head != '' }}
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ inputs.exact_head }}
 
       - name: Check out exact head
         if: ${{ inputs.exact_head == '' }}
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4
         with:
           node-version: "24.19.0"
-          cache: npm
 
       - name: Use .NET 8
         uses: actions/setup-dotnet@v4

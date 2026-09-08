@@ -1,17 +1,6 @@
 name: Story Council
 
 on:
-  pull_request:
-    paths:
-      - "core/story-workflow/story-council-*.mjs"
-      - "core/story-workflow/story-council-*.d.ts"
-      - "core/story-workflow/story-council/**"
-      - "modules/story-workflow/story-council*.ts"
-      - "modules/story-workflow/**/story-council*.ts"
-      - "modules/story-workflow/**/story-council*.tsx"
-      - "build/mastra-agent-runtime.ts"
-      - "tests/issue-1417-story-council*.test.mjs"
-      - ".github/workflows/story-council.yml"
   workflow_dispatch:
 
 permissions:

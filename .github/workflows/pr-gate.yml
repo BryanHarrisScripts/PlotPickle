@@ -1,0 +1,60 @@
+name: PR Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-gate:
+    name: PR Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install PlotPickle dependencies once
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate two-gate CI topology
+        run: node --test tests/issue-1747-ci-two-gates.test.mjs tests/issue-538-ci-consolidation.test.mjs
+
+      - name: Validate current Experience architecture boundary
+        run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs
+
+      - name: Validate core auth and storage contracts
+        run: |
+          npm run test:plotpickle-auth
+          npm run audit:credentials
+          node --test tests/issue-1142-server-session-boundary.test.mjs tests/issue-1122-library-persistence.test.mjs
+
+      - name: Production web build
+        run: npm run build
+
+      - name: Upload PR Gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-gate-${{ github.run_id }}
+          path: |
+            .artifacts/
+          if-no-files-found: warn
+          retention-days: 7

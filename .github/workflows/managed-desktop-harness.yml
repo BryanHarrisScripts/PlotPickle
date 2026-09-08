@@ -1,14 +1,6 @@
 name: Managed Desktop Harness
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "config/runtime-manifest.json"
-      - "core/runtime/managed-runtime-core.mjs"
-      - "tests/issue-1079-managed-desktop-harness.test.mjs"
-      - "docs/architecture/MANAGED-DESKTOP-HARNESS.md"
-      - ".github/workflows/managed-desktop-harness.yml"
   workflow_dispatch:
 
 permissions:

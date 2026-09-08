@@ -1,15 +1,6 @@
 name: Performance Contract
 
 on:
-  pull_request:
-    paths:
-      - "scripts/performance/**"
-      - "tests/issue-1411-performance-benchmark.test.mjs"
-      - "tests/issue-1612-visual-density-cost.test.mjs"
-      - "tests/issue-1614-process-idle-cost.test.mjs"
-      - "tests/issue-1624-performance-budgets.test.mjs"
-      - ".github/workflows/performance-contract.yml"
-      - ".github/workflows/windows-performance-baseline.yml"
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,48 @@
+name: Product Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  product-gate:
+    name: Product Gate
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 24.19
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+
+      - name: Install PlotPickle dependencies once
+        shell: pwsh
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate current Skin V1 startup boundary
+        shell: pwsh
+        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs
+
+      - name: Production web build on Windows
+        shell: pwsh
+        run: npm run build
+
+      - name: Validate Windows installer source contract
+        shell: pwsh
+        run: node --test tests/issue-1456-windows-installer.test.mjs

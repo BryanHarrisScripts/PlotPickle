@@ -1,16 +1,6 @@
 name: Developer Workbench
 
 on:
-  pull_request:
-    paths:
-      - "Utilities/DeveloperWorkbench/**"
-      - "scripts/pi-work-item-review.mjs"
-      - "tests/issue-1349-developer-workbench.test.mjs"
-      - "tests/issue-1373-workbench-canonical-pi-readiness.test.mjs"
-      - "tests/issue-1382-workbench-pi-stdin-eof.test.mjs"
-      - "tests/issue-1448-developer-workbench-local-reviewers.test.mjs"
-      - "tests/issue-1451-workbench-gate-handoff.test.mjs"
-      - ".github/workflows/developer-workbench.yml"
   workflow_dispatch:
 
 permissions:

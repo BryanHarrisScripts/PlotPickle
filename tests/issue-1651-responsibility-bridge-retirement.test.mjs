@@ -56,12 +56,15 @@ test("#1651 workflow ownership follows canonical Responsibility paths instead of
     read(".github/workflows/agent-skill-trust.yml"),
   ]);
 
-  for (const path of [
-    "lib/agents/responsibility/responsibility-runs.ts",
-    "lib/agents/responsibility/responsibility-run-interrupts.ts",
-    "lib/agents/responsibility/responsibility-graph.ts",
-  ]) assert.match(buzz, new RegExp(path.replaceAll("/", "\\/")));
-  assert.match(trust, /lib\/agents\/responsibility\/connector-trust-policy\.ts/);
+  const gate = await read(".github/workflows/pr-gate.yml");
+  assert.match(gate, /^  pull_request:/m);
+  for (const workflow of [buzz, trust]) {
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.doesNotMatch(workflow, /^  pull_request:/m);
+  }
+  for (const contract of ["issue-966-responsibility-runs", "issue-967-safe-graph-workflows", "issue-965-connector-trust-policy"]) {
+    assert.ok(gate.includes(`tests/${contract}.test.mjs`), `${contract} stays enforced for every PR`);
+  }
 
   assert.doesNotMatch(buzz, /"lib\/responsibility-(?:runs|run-interrupts|graph)\.ts"/);
   assert.doesNotMatch(trust, /"lib\/connector-trust-policy\.ts"/);

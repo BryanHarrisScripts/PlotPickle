@@ -1,15 +1,6 @@
 name: Evidence-Learning Maintainer
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "build/autonomous-guest/maintainer/**"
-      - "core/auth/autonomous-guest/**"
-      - "config/repository-architecture-target.json"
-      - "scripts/repository-architecture-inventory.mjs"
-      - "tests/issue-1592-*.test.mjs"
-      - ".github/workflows/evidence-learning-maintainer.yml"
   workflow_dispatch:
 
 permissions:

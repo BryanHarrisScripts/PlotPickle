@@ -1,19 +1,6 @@
 name: Auth Crypto Contract
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/auth/**"
-      - "docs/architecture/PLOTPICKLE-AUTH-*.md"
-      - "scripts/benchmark-auth-crypto.mjs"
-      - "scripts/package-platform.mjs"
-      - "tests/issue-1138-auth-crypto-contract.test.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - "SECURITY.md"
-      - "LICENSES.md"
-      - ".github/workflows/auth-crypto-contract.yml"
   workflow_dispatch:
 
 permissions:

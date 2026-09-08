@@ -1,17 +1,7 @@
 name: Portless Adapter Proof
 
 on:
-  pull_request:
-    paths:
-      - "core/runtime/local-endpoint-registry.mjs"
-      - "core/runtime/portless-adapter.mjs"
-      - "scripts/run-portless-windows-acceptance.mjs"
-      - "config/portless-runtime.json"
-      - "docs/architecture/PLOTPICKLE-PORTLESS-ADAPTER.md"
-      - "tests/issue-1154-local-endpoint-registry-epic-closeout.test.mjs"
-      - "tests/issue-1156-portless-adapter.test.mjs"
-      - ".github/workflows/portless-adapter-proof.yml"
-      - ".github/workflows/local-endpoint-registry.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -1,20 +1,7 @@
 name: Local Endpoint Registry
 
 on:
-  pull_request:
-    paths:
-      - "core/runtime/local-endpoint-registry.mjs"
-      - "scripts/local-endpoint-*.mjs"
-      - "scripts/full-verification-graph.mjs"
-      - "scripts/full-verification-progress-runner.mjs"
-      - "scripts/writer-app-runtime.mjs"
-      - "scripts/run-writer-in-residence.mjs"
-      - "scripts/run-exhaustive-ui-uat.mjs"
-      - "build/local-instance-proof-gateway.ts"
-      - "vite.config.ts"
-      - "tests/issue-1155-local-endpoint-registry.test.mjs"
-      - "tests/issue-1036-standalone-full-verification-windows.test.mjs"
-      - ".github/workflows/local-endpoint-registry.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

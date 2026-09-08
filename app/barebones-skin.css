@@ -96,7 +96,8 @@ html[data-plotpickle-skin="barebones"] [data-profile-access-boundary="locked"] b
 
 html[data-plotpickle-skin="barebones"] [aria-label="Active PlotPickle Human"],
 html[data-plotpickle-skin="barebones"] [aria-label="Active PlotPickle autonomous Guest"],
-html[data-plotpickle-skin="barebones"] [aria-label="PlotPickle Profile"] {
+html[data-plotpickle-skin="barebones"] [aria-label="PlotPickle Profile"],
+html[data-plotpickle-skin="barebones"] [data-ui-continuity-anchor] {
   display: none !important;
 }
 

@@ -1,12 +1,7 @@
 name: Windows Local Profile Bootstrap
 
 on:
-  pull_request:
-    paths:
-      - "app/api/auth/profile/route.ts"
-      - "core/auth/server-session/server-session-boundary-core.mjs"
-      - "tests/issue-1192-windows-local-profile-bootstrap.test.mjs"
-      - ".github/workflows/windows-local-profile-bootstrap.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read

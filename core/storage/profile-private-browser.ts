@@ -2,7 +2,7 @@ import {
   normalizeStoryMapContext,
   normalizeStoryMapContextRegistry,
   type StoryMapContext,
-} from "../contracts/story-map-context";
+} from "./story-map-context";
 import { normalizeFoundationProject, type PPFProject } from "../project/project";
 import { loadFoundationProject, saveFoundationProject } from "./foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "./project-library-browser";

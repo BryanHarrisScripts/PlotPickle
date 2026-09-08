@@ -35,13 +35,13 @@ export default function SkinV1Client() {
     void readLogonViewModel(browserProfileAuthGateway)
       .then((next) => {
         setView(next);
-        if (!locator && next.profiles.length === 1) setLocator(next.profiles[0].profileId);
+        if (next.profiles.length === 1) setLocator(next.profiles[0].profileId);
       })
       .catch((cause) => {
         setError(cause instanceof Error ? cause.message : String(cause));
         setView({ ...LOADING_VIEW, state: "unavailable", message: "LOGON unavailable" });
       });
-  }, [locator]);
+  }, []);
 
   const topology = useMemo(
     () => deriveExperienceSurfaceTopology({ authenticated: view.state === "authenticated" }),

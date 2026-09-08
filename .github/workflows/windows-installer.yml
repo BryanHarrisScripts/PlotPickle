@@ -1,19 +1,6 @@
 name: Windows Installer
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/windows-installer.yml"
-      - "windows/**"
-      - "scripts/windows-installer/**"
-      - "scripts/package-platform.mjs"
-      - "scripts/package-smoke.mjs"
-      - "scripts/windows-interaction-smoke.mjs"
-      - "scripts/windows-runtime.mjs"
-      - "Start-PlotPickle.bat"
-      - "tests/issue-1456-windows-installer.test.mjs"
-      - "package.json"
-      - "package-lock.json"
   workflow_dispatch:
   workflow_call:
     inputs:

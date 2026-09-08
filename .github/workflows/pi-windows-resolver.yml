@@ -1,15 +1,6 @@
 name: Windows Pi Executable Resolution
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "scripts/pi-worker-runtime.mjs"
-      - "scripts/run-uat-repair-agent.mjs"
-      - "tests/issue-1185-pi-windows-resolver.test.mjs"
-      - "tests/issue-651-pi-cline-uat-repair.test.mjs"
-      - "tests/issue-1119-pi-required-worker.test.mjs"
-      - ".github/workflows/pi-windows-resolver.yml"
   workflow_dispatch:
 
 permissions:

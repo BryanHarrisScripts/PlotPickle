@@ -52,6 +52,36 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
     return safeSnapshot(await readRawProfileStatus());
   },
 
+  async createFirstProfile(input) {
+    const before = await readRawProfileStatus();
+    if (before.configured) throw new Error("PROFILE_ALREADY_CONFIGURED");
+
+    const created = await json<Readonly<{
+      profile: ExperienceHumanProfile;
+      recoverySecret: string;
+    }>>(await fetch("/api/auth/profile", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "create-first-profile",
+        displayName: input.displayName,
+        password: input.credential,
+        ...(input.bootstrapProof ? { bootstrapProof: input.bootstrapProof } : {}),
+      }),
+    }));
+
+    if (!created.profile?.profileId || !created.recoverySecret) {
+      throw new Error("PROFILE_RECOVERY_SECRET_NOT_ISSUED");
+    }
+
+    return {
+      profile: created.profile,
+      recoverySecret: created.recoverySecret,
+      snapshot: safeSnapshot(await readRawProfileStatus()),
+    };
+  },
+
   async authenticate(locator, credential) {
     const before = await readRawProfileStatus();
     const login = await json<Readonly<{

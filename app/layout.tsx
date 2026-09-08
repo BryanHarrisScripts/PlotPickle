@@ -4,6 +4,7 @@ import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
 import AppearanceRuntime from "./appearance-runtime";
+import BarebonesSkinRuntime from "./barebones-skin-runtime";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
@@ -27,6 +28,7 @@ import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-lan
 import UiContinuityAnchor from "./ui-continuity-anchor";
 import "./design-tokens.css";
 import "./globals.css";
+import "./barebones-skin.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
 import "./ui-ux-cleanup.css";
@@ -112,6 +114,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
+        <BarebonesSkinRuntime />
         <DemoOnboardingBoundary>
           <ProfileAccessBoundary>
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>

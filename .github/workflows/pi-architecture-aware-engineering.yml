@@ -1,18 +1,6 @@
 name: Pi Architecture-Aware Engineering
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - ".agents/skills/diagnosis/**"
-      - ".agents/skills/plotpickle-architecture-review/**"
-      - ".agents/skills/uat-repair/**"
-      - "config/agent-skills.json"
-      - "config/agent-skill-trust.json"
-      - "scripts/pi/**"
-      - "docs/architecture/pi-architecture-aware-engineering.md"
-      - "tests/issue-1321-pi-architecture-aware-engineering.test.mjs"
-      - ".github/workflows/pi-architecture-aware-engineering.yml"
   workflow_dispatch:
 
 permissions:

@@ -162,28 +162,28 @@ function result(
 async function resolveSelection(input: Readonly<{
   intentId: string;
   baseRevision: number;
+  source: StoryWorkspaceSource;
   blockNumber: number;
   miniBlockNumber: number;
   gateway: StoryWorkspaceGateway;
 }>) {
-  const source = await input.gateway.read();
-  const view = projectStoryWorkspaceViewModel(source, {
+  const view = projectStoryWorkspaceViewModel(input.source, {
     blockNumber: input.blockNumber,
     miniBlockNumber: input.miniBlockNumber,
   });
   await input.gateway.persistSelection({
-    projectId: source.projectId,
+    projectId: input.source.projectId,
     blockNumber: view.selectedBlockNumber,
     miniBlockNumber: view.selectedMiniBlockNumber,
     stage: "map",
   });
 
-  const rebased = input.baseRevision !== source.revision;
+  const rebased = input.baseRevision !== input.source.revision;
   return {
     result: result(
       input.intentId,
       rebased ? "rebased" : "accepted",
-      source.revision,
+      input.source.revision,
       rebased ? "SELECTION_REBASED_TO_CURRENT_REVISION" : null,
     ),
     view,
@@ -206,6 +206,7 @@ export async function executeSelectBlockIntent(input: Readonly<{
   return resolveSelection({
     intentId: input.intent.intentId,
     baseRevision: input.intent.baseRevision,
+    source,
     blockNumber: block.number,
     miniBlockNumber: current.selectedMiniBlockNumber,
     gateway: input.gateway,
@@ -234,6 +235,7 @@ export async function executeSelectMiniBlockIntent(input: Readonly<{
   return resolveSelection({
     intentId: input.intent.intentId,
     baseRevision: input.intent.baseRevision,
+    source,
     blockNumber: block.number,
     miniBlockNumber: mini.number,
     gateway: input.gateway,

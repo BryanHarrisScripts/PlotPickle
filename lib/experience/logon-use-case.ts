@@ -1,4 +1,4 @@
-import type { ExperienceIntent, ExperienceIntentResult } from "../../core/contracts/experience";
+import type { ExperienceIntent, ExperienceIntentResult, ExperienceSurfaceId } from "../../core/contracts/experience";
 
 export type ExperienceHumanProfile = Readonly<{
   profileId: string;
@@ -18,7 +18,7 @@ export type ExperienceAuthSnapshot = Readonly<{
 }>;
 
 export type LogonViewModel = Readonly<{
-  surface: "LOGON" | "HOME";
+  surface: Extract<ExperienceSurfaceId, "LOGON" | "DASHBOARD">;
   state: "loading" | "setup" | "locked" | "authenticated" | "unavailable";
   configured: boolean;
   accessMode: ExperienceAuthSnapshot["accessMode"] | null;
@@ -73,7 +73,7 @@ export function projectLogonViewModel(snapshot: ExperienceAuthSnapshot): LogonVi
 
   if (snapshot.authenticated && snapshot.profile) {
     return {
-      surface: "HOME",
+      surface: "DASHBOARD",
       state: "authenticated",
       configured: snapshot.configured,
       accessMode: snapshot.accessMode,

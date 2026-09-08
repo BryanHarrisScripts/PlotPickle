@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
+import { stripTypeScriptTypes } from "node:module";
 
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
@@ -129,6 +130,71 @@ test("#1754 Skin V1 owns fresh setup, LOGON and an inert keyboard-selectable BBS
   assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject|skin=legacy/u);
 
   assert.match(router, /isSkinV1Path/u);
-  assert.match(router, /return <>{children}<\/>/u);
+  assert.match(router, /return <>\{children\}<\/>/u);
   assert.match(legacyOnly, /if \(skinV1\(pathname\)\) return null/u);
+});
+
+test("#1754 headless authentication returns the registered surface and keeps credentials ephemeral", async () => {
+  const load = async (file) => import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(await read(file))).toString("base64")}`);
+  const logon = await load("lib/experience/logon-use-case.ts");
+  const registry = await load("lib/experience/surface-registry.ts");
+  const profile = { profileId: "human-1", displayName: "Test Human", avatarRef: null, status: "active" };
+  const locked = { configured: true, authenticated: false, accessMode: "desktop-loopback", profiles: [profile], profile: null, serverReady: true, readinessReasons: [] };
+  const authenticated = { ...locked, authenticated: true, profile };
+  let calls = 0;
+  const gateway = {
+    read: async () => locked,
+    authenticate: async (locator, credential) => {
+      calls += 1;
+      assert.equal(locator, profile.profileId);
+      assert.equal(credential, "ephemeral-test-credential");
+      return authenticated;
+    },
+  };
+  const intent = { type: "AuthenticateHuman", intentId: "auth-1", locator: profile.profileId, baseRevision: null };
+  const denied = await logon.executeAuthenticateHumanIntent({ intent, credential: "", gateway });
+  assert.equal(denied.result.reason, "PROFILE_CREDENTIAL_REQUIRED");
+  assert.equal(calls, 0);
+  assert.equal(denied.view.surface, registry.deriveExperienceSurfaceTopology(locked).defaultSurface);
+  const accepted = await logon.executeAuthenticateHumanIntent({ intent, credential: "ephemeral-test-credential", gateway });
+  assert.equal(accepted.result.outcome, "accepted");
+  assert.equal(accepted.view.surface, registry.deriveExperienceSurfaceTopology(authenticated).defaultSurface);
+  assert.equal(accepted.view.surface, "DASHBOARD");
+  assert.deepEqual(JSON.parse(JSON.stringify(accepted)), accepted);
+  assert.ok(!JSON.stringify(accepted).includes("ephemeral-test-credential"));
+
+  const completion = { type: "CompleteFirstHumanProfileSetup", intentId: "setup-1", profileId: profile.profileId, baseRevision: null };
+  const unacknowledged = await logon.executeCompleteFirstHumanProfileSetupIntent({ intent: completion, credential: "ephemeral-test-credential", recoverySaved: false, gateway });
+  assert.equal(unacknowledged.result.reason, "RECOVERY_ACKNOWLEDGEMENT_REQUIRED");
+  assert.equal(calls, 1);
+  const completed = await logon.executeCompleteFirstHumanProfileSetupIntent({ intent: completion, credential: "ephemeral-test-credential", recoverySaved: true, gateway });
+  assert.equal(completed.view.surface, "DASHBOARD");
+  assert.equal(calls, 2);
+
+  const fresh = { ...locked, configured: false, profiles: [], accessMode: "server-network" };
+  let creations = 0;
+  const setupGateway = {
+    ...gateway,
+    read: async () => fresh,
+    createFirstProfile: async (input) => {
+      creations += 1;
+      assert.equal(input.bootstrapProof, "ephemeral-bootstrap-proof");
+      return { profile, recoverySecret: "one-time-recovery", snapshot: locked };
+    },
+  };
+  const setupInput = {
+    intent: { type: "CreateFirstHumanProfile", intentId: "create-1", displayName: profile.displayName, baseRevision: null },
+    credential: "ephemeral-test-credential", confirmation: "ephemeral-test-credential",
+    bootstrapProof: "", gateway: setupGateway,
+  };
+  const blocked = await logon.executeCreateFirstHumanProfileIntent(setupInput);
+  assert.equal(blocked.result.reason, "SERVER_BOOTSTRAP_PROOF_REQUIRED");
+  assert.equal(creations, 0);
+  const created = await logon.executeCreateFirstHumanProfileIntent({ ...setupInput, bootstrapProof: "ephemeral-bootstrap-proof" });
+  assert.equal(creations, 1);
+  assert.equal(created.result.outcome, "accepted");
+  assert.equal(created.view.surface, "LOGON");
+  assert.equal(created.recovery.recoverySecret, "one-time-recovery");
+  const projection = JSON.stringify({ result: created.result, view: created.view });
+  for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });

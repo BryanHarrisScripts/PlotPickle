@@ -39,7 +39,7 @@ test("issue #538 keeps deep validation available outside the ordinary PR runner 
   assert.match(ben, /^  workflow_dispatch:/m);
 });
 
-test("issue #538 normal PR coverage protects boundaries instead of legacy screens", async () => {
+test("issue #538 normal PR coverage protects boundaries instead of legacy screens or release packaging", async () => {
   const [prGate, productGate] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),
@@ -50,9 +50,11 @@ test("issue #538 normal PR coverage protects boundaries instead of legacy screen
   assert.match(prGate, /core auth and storage/i);
   assert.match(prGate, /Production web build/);
   assert.match(productGate, /current Skin V1 startup boundary/i);
-  assert.match(productGate, /Build PlotPickleSetup\.exe/);
-  assert.match(productGate, /Run install and uninstall smoke/);
+  assert.match(productGate, /Production web build on Windows/i);
+  assert.match(productGate, /Windows installer source contract/i);
 
   assert.doesNotMatch(prGate, /Validate retained demo onboarding contracts/i);
   assert.doesNotMatch(productGate, /Run autonomous Afterglow story reference/i);
+  assert.doesNotMatch(productGate, /Build PlotPickleSetup\.exe/i);
+  assert.doesNotMatch(productGate, /Run packaged Windows interaction smoke/i);
 });

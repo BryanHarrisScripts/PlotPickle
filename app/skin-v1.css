@@ -161,11 +161,95 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   grid-template-rows: auto 1fr auto;
 }
 
-.pp-skin-v1-blank {
-  padding: 18px;
+.pp-skin-v1-dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 28px 18px 36px;
 }
 
-.pp-skin-v1-blank p {
-  margin: 0;
+.pp-skin-v1-bbs {
+  width: min(560px, 100%);
+  border: 2px solid #fff;
+  background: #000;
+}
+
+.pp-skin-v1-bbs-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border-bottom: 2px solid #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.pp-skin-v1-menu {
+  display: grid;
+  padding: 12px;
+}
+
+.pp-skin-v1-menu-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  border: 0;
+  background: #000;
+  color: #fff;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pp-skin-v1-menu-item.is-group-start {
+  margin-top: 12px;
+}
+
+.pp-skin-v1-menu-item.is-selected {
+  background: #fff;
+  color: #000;
+}
+
+.pp-skin-v1-menu-item:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.pp-skin-v1-menu-item:not(.is-selected):hover {
+  outline: 1px solid #fff;
+  outline-offset: -1px;
+}
+
+.pp-skin-v1-menu-cursor {
+  display: inline-block;
+  width: 2ch;
+  font-weight: 700;
+}
+
+.pp-skin-v1-bbs-help {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding: 10px 12px;
+  border-top: 2px solid #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .pp-skin-v1-dashboard {
+    padding: 16px 10px 24px;
+  }
+
+  .pp-skin-v1-bbs-banner,
+  .pp-skin-v1-bbs-help {
+    display: grid;
+  }
 }

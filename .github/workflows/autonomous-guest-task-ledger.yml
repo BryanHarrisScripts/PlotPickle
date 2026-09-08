@@ -1,20 +1,6 @@
 name: Autonomous Guest Task Ledger
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/autonomous-guest-task-ledger.yml'
-      - 'app/autonomous-guest-scheduler-settings.*'
-      - 'app/api/autonomous-guest/scheduler/**'
-      - 'app/settings/autonomous-guest/**'
-      - 'app/settings-sitemap.tsx'
-      - 'build/autonomous-guest/**'
-      - 'core/auth/autonomous-guest/**'
-      - 'scripts/creative-uat/autonomous/application-lifecycle.mjs'
-      - 'scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs'
-      - 'tests/issue-1569-autonomous-guest-*.test.mjs'
-      - 'vite.config.ts'
   workflow_dispatch:
 
 permissions:

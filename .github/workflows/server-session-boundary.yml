@@ -1,22 +1,6 @@
 name: Server Session Boundary
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/auth/**"
-      - "core/storage/profile-private/**"
-      - "config/uat-autopilot-registry.json"
-      - "docs/architecture/PLOTPICKLE-SERVER-SESSION-BOUNDARY.md"
-      - "docs/architecture/PLOTPICKLE-PROFILE-PRIVATE-STORAGE.md"
-      - "tests/issue-1138-auth-crypto-contract.test.mjs"
-      - "tests/issue-1139-auth-core.test.mjs"
-      - "tests/issue-1140-profile-master-key-vault.test.mjs"
-      - "tests/issue-1141-profile-private-storage.test.mjs"
-      - "tests/issue-1142-server-session-boundary.test.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/server-session-boundary.yml"
   workflow_dispatch:
 
 permissions:

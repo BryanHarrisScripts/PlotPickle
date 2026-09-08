@@ -1,56 +1,66 @@
 # PlotPickle CI testing strategy
 
-PlotPickle uses four stable pull-request gates. Historical issue contracts remain tests, but they no longer create a new workflow and runner for every completed issue.
+PlotPickle exposes exactly two normal pull-request verification gates: `PR Gate` and `Product Gate`. Historical and subsystem-specific workflows remain available where useful, but their `pull_request` triggers are removed once their coverage is owned by one of these two gates.
 
-## Pull-request gates
+## PR Gate
 
-### Quality
+`PR Gate` is the deterministic Ubuntu gate. It uses one checkout, one dependency installation and named steps so the failing subsystem is visible without opening unrelated successful logs.
 
-- installs dependencies once;
-- validates the changed-test registry and CI topology;
-- runs lint and the production build;
-- runs the suites selected by `npm run test:changed`;
-- uses a bounded core fallback when a file is not registered yet.
+It owns:
 
-### Safety
+- CI topology enforcement;
+- lint and deterministic changed-code contracts;
+- LEARN, navigation, workspace and PPF validation;
+- story, BUILD and decision contracts;
+- auth, profile, private-storage and memory contracts;
+- Agent Skill, trust and BUZZ deterministic contracts;
+- focused UAT contracts;
+- BEN deterministic code-quality delta;
+- repository architecture checks;
+- Windows PowerShell parse checks that do not require a Windows machine;
+- one production web build.
 
-- validates repository-publication and credential boundaries;
-- scans only commits introduced by the pull request;
-- runs dependency audit and review only when dependency manifests change.
+BEN remains visible as a named step and uploads its evidence through the consolidated gate.
 
-Complete reachable-history scanning and CodeQL run after merge, weekly, or manually.
+## Product Gate
 
-### Visual
+`Product Gate` is the expensive rendered/system gate. It uses one Windows checkout and one PlotPickle dependency installation, sharing that setup across rendered, browser, Windows and packaging verification.
 
-- completes immediately when no interface-owned file changed;
-- runs the retained deterministic UI, accessibility, navigation, dashboard, routing and Storyboard contracts for visual changes;
-- captures rendered browser evidence for visual changes;
-- keeps the AI design review advisory so provider or rate-limit failures cannot block a merge.
+It owns:
 
-The full Windows screen inventory runs after merge or manually.
+- Visual Readiness deterministic contracts;
+- UI token/style checks and the bounded 25-point UI/UX audit;
+- rendered accessibility, experience and sitemap guardrails;
+- autonomous Afterglow story-reference proof;
+- authenticated synthetic-Human/profile journeys;
+- the production web build on Windows;
+- Windows installer construction;
+- packaged Windows interaction smoke;
+- install/uninstall smoke and installer evidence.
 
-### Release readiness
+Visual Readiness remains visible as named internal steps and evidence rather than as a separate PR check.
 
-- always returns one PR outcome;
-- runs release-contract tests;
-- stages and smoke-tests one representative Linux package only when runtime, packaging or dependency files change.
+## Specialized workflows
 
-Complete Windows, macOS and Linux packaging runs after merge, on release tags, or manually.
+Useful deep workflows remain in `.github/workflows` for manual, scheduled, release, push-to-main or reusable execution. Examples include BEN diagnostics, Visual Readiness diagnostics, Autonomous QA campaigns, Autonomous Story Reference, Windows Installer, performance baselines and cross-platform package/security proofs.
 
-## Post-merge and manual validation
+Those workflows must not add another normal `pull_request` check after their PR coverage has moved into `PR Gate` or `Product Gate`.
 
-- complete regression suite;
-- smoke Human Acceptance dispatch;
-- complete Git-history and CodeQL security scans;
-- full-product visual inventory;
-- Windows, macOS and Linux clean-package validation;
-- installed Windows product acceptance;
-- Repomix diagnostic generation.
+## Failure handling
 
-The maintained workflow inventory is seven files: four PR gates plus Human Acceptance, Windows Installed Acceptance and Repomix Diagnostics.
+When a pull request fails, inspect only the exact failed gate and named step. Do not rerun already-green expensive work merely to rediscover a failure. Local development remains limited to checks for the exact code being changed; broad Windows, UAT, BEN and Visual Readiness proof stays in GitHub CI.
 
-The operating rule is:
+## Required check names
 
-`PR = Quality + Safety + Visual + Release readiness`
+If repository rules or branch protection require status checks, the only required PlotPickle check names should be:
 
-`main/release = full regression + full security + full package + full visual evidence`
+- `PR Gate`
+- `Product Gate`
+
+The active `Main` repository ruleset currently protects deletion and non-fast-forward updates only; it does not contain stale required-status-check rules. If required checks are enabled later, configure only the two names above.
+
+## Operating rule
+
+`pull request = PR Gate + Product Gate`
+
+`main/release/manual = specialized deep verification as required`

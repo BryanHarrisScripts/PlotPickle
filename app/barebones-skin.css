@@ -94,6 +94,12 @@ html[data-plotpickle-skin="barebones"] [data-profile-access-boundary="locked"] b
   cursor: not-allowed !important;
 }
 
+html[data-plotpickle-skin="barebones"] [aria-label="Active PlotPickle Human"],
+html[data-plotpickle-skin="barebones"] [aria-label="Active PlotPickle autonomous Guest"],
+html[data-plotpickle-skin="barebones"] [aria-label="PlotPickle Profile"] {
+  display: none !important;
+}
+
 html[data-plotpickle-skin="barebones"] .pp-barebones-home {
   min-height: 100vh;
   display: grid;

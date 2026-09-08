@@ -3,6 +3,7 @@ import DemoOnboardingBoundary from "./profile-access/demo/demo-onboarding-bounda
 import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
+import StoryMapContextRuntime from "./story-map-workspace/context-runtime";
 import AppearanceRuntime from "./appearance-runtime";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
@@ -114,6 +115,7 @@ export default function RootLayout({
         <AppearanceRuntime />
         <DemoOnboardingBoundary>
           <ProfileAccessBoundary>
+            <StoryMapContextRuntime />
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
           </ProfileAccessBoundary>
           <ProfileIdentityOverlay />

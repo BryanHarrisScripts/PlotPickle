@@ -85,9 +85,9 @@ test("issue #1338/#1410 exposes visible Story Coverage and 24/96 explainability 
     "24 Blocks / 96 Mini-Blocks",
     "OBSERVED",
     "LOCKED",
-    "Not enough information yet",
+    "The story is the navigation.",
     "Selected story position",
-    "screenplay text is observed evidence",
+    "Observed source text is shown without rewriting",
   ]) assert.ok(mapComponent.includes(contract), `24/96 BUILD UI is missing: ${contract}`);
   assert.match(mapComponent, /className=\{styles\.statusDot\}/);
   assert.doesNotMatch(mapComponent, /<strong>\{STATE_LABELS\[block\.state\]\}<\/strong>/,

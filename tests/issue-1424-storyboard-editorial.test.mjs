@@ -65,7 +65,8 @@ test("#1424 renders 24 Block tabs and 96 canonical anchors without making 96 a f
   const css = await read("app/_components/storyboard/storyboard-readiness-workspace.module.css");
 
   assert.match(workspace, /Storyboard · 24 Blocks \/ 96 Mini-Block anchors/);
-  assert.match(workspace, /useState\(1\)/, "Block 01 must be the default Storyboard tab.");
+  assert.match(workspace, /Math\.trunc\(value \?\? 1\)/, "Block 01 must remain the default Storyboard tab when no Story Map context is supplied.");
+  assert.match(workspace, /useState\(\(\) => boundedBlockNumber\(initialBlockNumber\)\)/, "Story Map deep links may restore an explicitly selected Block.");
   assert.match(workspace, /role="tablist"/);
   assert.match(workspace, /role="tab"/);
   assert.match(workspace, /role="tabpanel"/);

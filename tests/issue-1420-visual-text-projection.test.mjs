@@ -35,7 +35,10 @@ test("#1420 projects bounded screenplay evidence without rewriting or inflating 
   assert.match(model, /placementReviewed: reviewedMapping/);
   assert.match(ui, /Observed source text is shown without rewriting/);
   assert.match(ui, /suggested Block placement still requires Human review/);
-  assert.doesNotMatch(`${model}\n${ui}`, /plotpickle\.project\.v1|PlotPickleProject|\/api\/.*generate|provider.*generate/i);
+  const textProjectionStart = ui.indexOf("Background story text");
+  assert.ok(textProjectionStart >= 0, "The read-only background text projection must remain present.");
+  const textProjection = ui.slice(textProjectionStart);
+  assert.doesNotMatch(`${model}\n${textProjection}`, /plotpickle\.project\.v1|PlotPickleProject|\/api\/.*generate|provider.*generate/i);
 });
 
 test("#1420 keeps missing background text visibly missing instead of fabricating a script", async () => {

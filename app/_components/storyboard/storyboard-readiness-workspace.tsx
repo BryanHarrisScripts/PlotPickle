@@ -23,17 +23,22 @@ function blockNumber(target: VisualReadinessTarget) {
   return match ? Number(match[1]) : 0;
 }
 
-export default function StoryboardReadinessWorkspace({ project, onProjectChange, onOpenBuild }: {
+function boundedBlockNumber(value: number | undefined) {
+  return Number.isFinite(value) ? Math.min(24, Math.max(1, Math.trunc(value ?? 1))) : 1;
+}
+
+export default function StoryboardReadinessWorkspace({ project, onProjectChange, onOpenBuild, initialBlockNumber }: {
   readonly project: PPFProject;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenBuild: () => void;
+  readonly initialBlockNumber?: number;
 }) {
   const readiness = deriveVisualReadiness({ project });
   const blocks = readiness.targets
     .filter((target) => target.kind === "block")
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
-  const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;

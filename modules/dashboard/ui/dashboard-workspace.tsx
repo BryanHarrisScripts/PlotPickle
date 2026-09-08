@@ -69,7 +69,7 @@ export default function DashboardWorkspace({
   );
 
   if (!project || !progression || !frontierStatus) {
-    return <main className={styles.screen}>Opening Dashboard…</main>;
+    return <main className={styles.screen}>Opening guided support…</main>;
   }
 
   const foundations = progression.foundations;
@@ -86,19 +86,18 @@ export default function DashboardWorkspace({
   };
 
   return (
-    <main className={styles.screen} aria-label="PlotPickle Dashboard">
+    <main className={styles.screen} aria-label="PlotPickle guided support">
       <header className={styles.header}>
-        <p className={styles.kicker}>Dashboard · Guided Visual Writer journey · {progression.journeyPercentComplete}% complete</p>
-        <h1>Learn it. Plan it. See it. Then add the next layer.</h1>
+        <p className={styles.kicker}>Support · Guided Visual Writer</p>
+        <h1>Your whole story is the main menu.</h1>
         <p>
-          Foundations establishes the first accepted story frontier. World now repeats the same LEARN → PLAN → BUILD cycle,
-          adding only worldbuilding decisions and preserving earlier visual history.
+          The 24-Block Story Map above owns project navigation. This existing Guided Visual Writer journey remains available here as support rather than controlling project entry.
         </p>
       </header>
 
       <section className={styles.nextModule} aria-label="Visual Writer current frontier">
         <div>
-          <p className={styles.kicker}>Current Visual Writer state</p>
+          <p className={styles.kicker}>Support · Current Visual Writer state</p>
           <h2>{frontierStatus.currentGroupLabel} · {frontierStatus.currentWorkspace?.toUpperCase() ?? "GATED"}</h2>
           <p><strong>Frontier:</strong> {frontierStatus.frontierLabel}</p>
           <p><strong>Artifacts:</strong> {frontierStatus.acceptedArtifactCount} accepted · {frontierStatus.draftArtifactCount} draft</p>

@@ -10,7 +10,6 @@ import { hasActiveLibraryProject } from "../core/storage/project-library-browser
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";
-import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
@@ -24,15 +23,18 @@ import CommunityWorkspace from "./_components/community/community-workspace";
 import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import StoryMapShell from "./story-map-shell";
+import StoryMapWorkspace from "./story-map-workspace";
 import "./issue-1725-polish.css";
 
 type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";
 
 function requestedWorkspace(): Workspace {
-  if (typeof window === "undefined") return "learn";
+  if (typeof window === "undefined") return "dashboard";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "dashboard") return "dashboard";
+  if (requested === "learn") return "learn";
   if (requested === "plan") return "plan";
   if (requested === "build") return "build";
   if (requested === "community") return "community";
@@ -40,7 +42,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   if (requested === "library") return "library";
-  return "learn";
+  return hasActiveLibraryProject() ? "dashboard" : "library";
 }
 
 function requestedSection(): GuidedSection {
@@ -165,7 +167,7 @@ function openLearningApplication(topic: string, lessonId?: string) {
 }
 
 export default function Home() {
-  const [workspace, setWorkspace] = useState<Workspace>("learn");
+  const [workspace, setWorkspace] = useState<Workspace>("dashboard");
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
@@ -184,13 +186,13 @@ export default function Home() {
 
   if (workspace === "dashboard") {
     return (
-      <PlotPickleWorkspaceShell activeWorkspace="dashboard" onNavigate={navigateWorkspace}>
-        <DashboardWorkspace
+      <StoryMapShell onNavigate={navigateWorkspace}>
+        <StoryMapWorkspace
           curriculum={plotPickleCurriculum}
           onNavigate={navigateWorkspace}
           onNavigateGuided={navigateGuided}
         />
-      </PlotPickleWorkspaceShell>
+      </StoryMapShell>
     );
   }
 

@@ -67,14 +67,17 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
   assert.match(gateway, /password: input\.credential/u);
   assert.match(gateway, /password: credential/u);
 
-  assert.match(registry, /authenticated \? "HOME" : "LOGON"/u);
+  assert.match(contract, /\| "DASHBOARD"/u);
+  assert.doesNotMatch(contract, /\| "HOME"/u);
+  assert.match(registry, /authenticated \? "DASHBOARD" : "LOGON"/u);
   assert.match(registry, /NOT_MIGRATED_TO_HEADLESS_EXPERIENCE/u);
   assert.doesNotMatch(registry, /react|window\.|document\.|fetch\(/i);
 });
 
-test("#1754 Skin V1 owns fresh setup, LOGON and blank HOME without Legacy Skin fallback", async () => {
-  const [skin, router, legacyOnly] = await Promise.all([
+test("#1754 Skin V1 owns fresh setup, LOGON and an inert keyboard-selectable BBS Dashboard", async () => {
+  const [skin, css, router, legacyOnly] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1.css"),
     read("app/profile-access/profile-access-router.tsx"),
     read("app/legacy-skin-only.tsx"),
   ]);
@@ -88,8 +91,41 @@ test("#1754 Skin V1 owns fresh setup, LOGON and blank HOME without Legacy Skin f
   assert.match(skin, /RECOVERY SECRET \/ SAVE THIS NOW/u);
   assert.match(skin, /deriveExperienceSurfaceTopology/u);
   assert.match(skin, /data-experience-surface="LOGON"/u);
-  assert.match(skin, /aria-label="PlotPickle Home"/u);
-  assert.match(skin, />HOME</u);
+  assert.match(skin, /aria-label="PlotPickle Dashboard"/u);
+  assert.match(skin, /role="listbox"/u);
+  assert.match(skin, /role="option"/u);
+  assert.match(skin, /event\.key === "ArrowDown"/u);
+  assert.match(skin, /event\.key === "ArrowUp"/u);
+  assert.match(skin, /MENU ITEMS ARE NOT CONNECTED YET/u);
+
+  const expectedMenu = [
+    "Dashboard",
+    "Community",
+    "Library",
+    "Plan",
+    "Storyboard",
+    "Previs",
+    "Write",
+    "Edit",
+    "Feedback",
+    "Refine",
+    "Reports",
+    "Settings",
+    "Profile",
+    "Learn - Education",
+    "Wyrmwood - Learning Game",
+    "Story - The Unwritten",
+  ];
+  let previousIndex = -1;
+  for (const label of expectedMenu) {
+    const index = skin.indexOf(`label: "${label}"`);
+    assert.ok(index > previousIndex, `${label} must appear in the canonical Dashboard menu order`);
+    previousIndex = index;
+  }
+
+  assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: #fff;[\s\S]*color: #000;/u);
+  assert.match(css, /\.pp-skin-v1-menu-item\.is-group-start/u);
+  assert.doesNotMatch(skin, /href=|<Link|router\.|window\.location|type: "OpenSurface"/u);
   assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject|skin=legacy/u);
 
   assert.match(router, /isSkinV1Path/u);

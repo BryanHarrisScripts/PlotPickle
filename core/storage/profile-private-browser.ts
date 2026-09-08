@@ -1,3 +1,8 @@
+import {
+  normalizeStoryMapContext,
+  normalizeStoryMapContextRegistry,
+  type StoryMapContext,
+} from "../contracts/story-map-context";
 import { normalizeFoundationProject, type PPFProject } from "../project/project";
 import { loadFoundationProject, saveFoundationProject } from "./foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "./project-library-browser";
@@ -5,6 +10,7 @@ import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "./project-library-browser";
 type HydratedPrivateState = {
   readonly project: unknown | null;
   readonly wyrmwood: unknown | null;
+  readonly storyMapContexts: unknown | null;
 };
 
 type ProfilePrivateSaveState = Readonly<{
@@ -17,7 +23,7 @@ const LEGACY_LIBRARY_PREFIX = "plotpickle.library.profile.v1.";
 export const PROFILE_PRIVATE_SAVE_STATE_EVENT = "plotpickle:profile-private-save-state";
 
 let csrfToken = "";
-let hydrated: HydratedPrivateState = { project: null, wyrmwood: null };
+let hydrated: HydratedPrivateState = { project: null, wyrmwood: null, storyMapContexts: null };
 let pendingWrite: Promise<void> = Promise.resolve();
 let saveState: ProfilePrivateSaveState = Object.freeze({ state: "saved", message: "Saved" });
 
@@ -106,7 +112,11 @@ export async function hydrateProfilePrivateBrowser(profileId: string, token: str
   window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
   const result = await fetch("/api/auth/profile-private", { credentials: "same-origin", cache: "no-store" });
   if (!result.ok) throw new Error("PlotPickle could not open the encrypted profile state.");
-  hydrated = await result.json() as HydratedPrivateState;
+  const next = await result.json() as HydratedPrivateState;
+  hydrated = {
+    ...next,
+    storyMapContexts: normalizeStoryMapContextRegistry(next.storyMapContexts),
+  };
   if (hydrated.project) saveFoundationProject(hydrated.project as Parameters<typeof saveFoundationProject>[0]);
   else saveFoundationProject(loadFoundationProject());
   updateSaveState("saved", "Saved");
@@ -116,6 +126,10 @@ export function hydratedProfilePrivateValue(key: "wyrmwood") {
   return hydrated[key];
 }
 
+export function hydratedStoryMapContext(projectId: string) {
+  return normalizeStoryMapContextRegistry(hydrated.storyMapContexts)[projectId] ?? null;
+}
+
 export function persistActiveProfileProject() {
   return queueWrite("save-project", { project: loadFoundationProject() });
 }
@@ -123,6 +137,21 @@ export function persistActiveProfileProject() {
 export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {
   hydrated = { ...hydrated, [key]: structuredClone(value) };
   return queueWrite("save-wyrmwood", { value });
+}
+
+export function persistStoryMapContext(projectId: string, value: StoryMapContext) {
+  const id = projectId.trim();
+  if (!id || id.length > 240) return Promise.reject(new Error("Story Map context requires a valid project id."));
+  const current = normalizeStoryMapContextRegistry(hydrated.storyMapContexts);
+  const context = normalizeStoryMapContext(value);
+  const previous = current[id];
+  if (previous
+    && previous.blockNumber === context.blockNumber
+    && previous.miniBlockNumber === context.miniBlockNumber
+    && previous.stage === context.stage) return Promise.resolve();
+  const storyMapContexts = normalizeStoryMapContextRegistry({ ...current, [id]: context });
+  hydrated = { ...hydrated, storyMapContexts };
+  return queueWrite("save-story-map-contexts", { value: storyMapContexts });
 }
 
 export function getProfilePrivateSaveState() {
@@ -135,7 +164,7 @@ export async function flushProfilePrivateWrites() {
 
 export function releaseProfilePrivateBrowserAuthority() {
   csrfToken = "";
-  hydrated = { project: null, wyrmwood: null };
+  hydrated = { project: null, wyrmwood: null, storyMapContexts: null };
   pendingWrite = Promise.resolve();
   saveState = Object.freeze({ state: "saved", message: "Saved" });
 }

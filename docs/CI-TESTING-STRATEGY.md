@@ -1,53 +1,45 @@
 # PlotPickle CI testing strategy
 
-PlotPickle exposes exactly two normal pull-request verification gates: `PR Gate` and `Product Gate`. Historical and subsystem-specific workflows remain available where useful, but their `pull_request` triggers are removed once their coverage is owned by one of these two gates.
+PlotPickle exposes exactly two normal pull-request verification gates: `PR Gate` and `Product Gate`.
+
+The active product is moving through a new Experience architecture and interchangeable SKINs. Normal pull-request CI therefore protects stable architectural boundaries, core data/auth integrity, buildability and Windows packaging. It must not freeze rapidly changing screen layouts or force legacy UI references to stay valid.
 
 ## PR Gate
 
-`PR Gate` is the deterministic Ubuntu gate. It uses one checkout, one dependency installation and named steps so the failing subsystem is visible without opening unrelated successful logs.
+`PR Gate` is the fast deterministic Ubuntu gate. It uses one checkout and one dependency installation.
 
 It owns:
 
-- CI topology and superseded workflow-contract enforcement;
-- LEARN, navigation, workspace and PPF validation;
-- story, BUILD and decision contracts;
-- auth, profile, private-storage and memory contracts;
-- Agent Skill, trust and BUZZ deterministic contracts;
-- focused UAT contracts;
-- BEN deterministic code-quality delta;
-- repository architecture checks;
-- Windows PowerShell parse checks that do not require a Windows machine;
+- two-gate CI topology;
+- current Experience architecture boundaries;
+- core auth, credential and storage contracts;
 - one production web build.
 
-BEN remains visible as a named step and uploads its evidence through the consolidated gate.
+It intentionally does not run broad historical UI suites, Demo onboarding, Afterglow reference journeys or legacy visual-reference contracts.
 
 ## Product Gate
 
-`Product Gate` is the expensive rendered/system gate. It uses one Windows checkout and one PlotPickle dependency installation, sharing that setup across rendered, browser, Windows and packaging verification.
+`Product Gate` is the Windows product smoke gate. It uses one checkout and one dependency installation.
 
 It owns:
 
-- Visual Readiness deterministic contracts;
-- UI token/style checks and the bounded 25-point UI/UX audit;
-- rendered accessibility, experience and sitemap guardrails;
-- autonomous Afterglow story-reference proof;
-- authenticated synthetic-Human/profile journeys;
-- the production web build on Windows;
-- Windows installer construction;
+- the current Skin V1 startup boundary, including protection against Legacy Skin startup flash;
+- one production web build on Windows;
+- Windows installer source validation and construction;
 - packaged Windows interaction smoke;
 - install/uninstall smoke and installer evidence.
 
-Visual Readiness remains visible as named internal steps and evidence rather than as a separate PR check.
+During active SKIN development, Product Gate should stay small. Detailed visual audits, historical screen expectations and reference-story journeys belong in specialized/manual workflows until a Skin or Experience phase is declared stable.
 
 ## Specialized workflows
 
-Useful deep workflows remain in `.github/workflows` for manual, scheduled, release, push-to-main or reusable execution. Examples include BEN diagnostics, Visual Readiness diagnostics, Autonomous QA campaigns, Autonomous Story Reference, Windows Installer, performance baselines and cross-platform package/security proofs.
+Deep workflows remain available in `.github/workflows` for manual, scheduled, release, push-to-main or reusable execution. This includes BEN diagnostics, Visual Readiness diagnostics, Autonomous QA campaigns, Autonomous Story Reference, Demo onboarding, Windows Installer and other historical subsystem checks.
 
-Those workflows must not add another normal `pull_request` check after their PR coverage has moved into `PR Gate` or `Product Gate`.
+Those workflows must not add another normal `pull_request` check.
 
 ## Failure handling
 
-When a pull request fails, inspect only the exact failed gate and named step. Do not rerun already-green expensive work merely to rediscover a failure. Local development remains limited to checks for the exact code being changed; broad Windows, UAT, BEN and Visual Readiness proof stays in GitHub CI.
+When a pull request fails, inspect only the exact failed gate and named step. Do not rerun unrelated green work. Local development stays limited to the exact changed code; GitHub CI remains the verifier for the two normal gates.
 
 ## Required check names
 
@@ -56,10 +48,10 @@ If repository rules or branch protection require status checks, the only require
 - `PR Gate`
 - `Product Gate`
 
-The active `Main` repository ruleset currently protects deletion and non-fast-forward updates only; it does not contain stale required-status-check rules. If required checks are enabled later, configure only the two names above.
-
 ## Operating rule
 
 `pull request = PR Gate + Product Gate`
 
-`main/release/manual = specialized deep verification as required`
+`rapid Skin/UI iteration = boundary + build + packaging protection, not historical screen lock-in`
+
+`main/release/manual = specialized deep verification when useful`

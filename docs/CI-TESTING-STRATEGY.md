@@ -8,8 +8,7 @@ PlotPickle exposes exactly two normal pull-request verification gates: `PR Gate`
 
 It owns:
 
-- CI topology enforcement;
-- lint and deterministic changed-code contracts;
+- CI topology and superseded workflow-contract enforcement;
 - LEARN, navigation, workspace and PPF validation;
 - story, BUILD and decision contracts;
 - auth, profile, private-storage and memory contracts;

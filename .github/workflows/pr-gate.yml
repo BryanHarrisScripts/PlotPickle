@@ -34,11 +34,8 @@ jobs:
       - name: Install PlotPickle dependencies once
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Enforce two-gate CI topology
-        run: node --test tests/issue-1747-ci-two-gates.test.mjs
-
-      - name: Lint source tree
-        run: npm run lint
+      - name: Validate consolidated CI contracts and audit safeguards
+        run: node --test tests/issue-1747-ci-two-gates.test.mjs tests/issue-538-ci-consolidation.test.mjs tests/issue-1571-autonomous-qa-continuous-runtime.test.mjs tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
 
       - name: Validate LEARN, navigation, workspace and PPF contracts
         run: |

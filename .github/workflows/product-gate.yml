@@ -41,12 +41,11 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
 
       - name: Visual Readiness deterministic contracts
-        shell: pwsh
+        shell: bash
         run: |
           node --test tests/issue-1715-ui-foundation.test.mjs tests/issue-1715-ui-axe-accessibility.test.mjs tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs tests/issue-1715-ui-experience-lab.test.mjs
           node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs tests/issue-1722-sitemap-migration.test.mjs
           npm run test:global-design-framework
-          node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
           node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs tests/issue-1557-character-visual-development-specifications.test.mjs tests/issue-1557-character-visual-development-ui.test.mjs
           node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
 
@@ -140,10 +139,10 @@ jobs:
         env:
           FORCE_COLOR: '0'
           PLOTPICKLE_ACCEPTANCE_MODE: '1'
-        run: node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs --artifact-root .artifacts/autonomous-story-reference
+        run: node scripts/creative-uat/autonomous/run-autonomous-story-reference.mjs --base-url http://127.0.0.1:4183 --artifact-root .artifacts/autonomous-story-reference
 
       - name: Validate Windows auth profile and synthetic Human journeys
-        shell: pwsh
+        shell: bash
         run: |
           npm run test:plotpickle-auth
           node --test tests/issue-1196-full-verification-synthetic-human.test.mjs tests/issue-1142-server-session-boundary.test.mjs tests/issue-1143-profile-experience.test.mjs tests/issue-1155-local-endpoint-registry.test.mjs tests/issue-1036-standalone-full-verification-windows.test.mjs
@@ -187,7 +186,7 @@ jobs:
           retention-days: 14
 
       - name: Upload PlotPickle installer
-        if: always()
+        if: ${{ always() && hashFiles('releases/windows-installer/PlotPickleSetup.exe') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: plotpickle-windows-installer-${{ github.event.pull_request.head.sha || github.sha }}

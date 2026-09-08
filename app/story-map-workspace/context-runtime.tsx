@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { StoryMapStage } from "@/core/contracts/story-map-context";
+import type { StoryMapStage } from "@/core/storage/story-map-context";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import { persistStoryMapContext } from "@/core/storage/profile-private-browser";
 
@@ -21,16 +21,12 @@ export default function StoryMapContextRuntime() {
     const location = new URL(window.location.href);
     const stage = currentStage(location);
     if (!stage || !location.searchParams.has("block")) return;
-    try {
-      const project = loadFoundationProject();
-      void persistStoryMapContext(project.id, {
-        blockNumber: boundedLocation(location.searchParams, "block", 24),
-        miniBlockNumber: boundedLocation(location.searchParams, "mini", 4),
-        stage,
-      }).catch(() => undefined);
-    } catch {
-      // Project Library/profile recovery owns unavailable project state.
-    }
+    const project = loadFoundationProject();
+    void persistStoryMapContext(project.id, {
+      blockNumber: boundedLocation(location.searchParams, "block", 24),
+      miniBlockNumber: boundedLocation(location.searchParams, "mini", 4),
+      stage,
+    }).catch(() => undefined);
   }, []);
 
   return null;

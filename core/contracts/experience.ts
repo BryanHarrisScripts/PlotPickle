@@ -45,6 +45,12 @@ export type ExperienceIntent =
       baseRevision: null;
     }>
   | Readonly<{
+      type: "CompleteFirstHumanProfileSetup";
+      intentId: string;
+      profileId: string;
+      baseRevision: null;
+    }>
+  | Readonly<{
       type: "SelectBlock";
       intentId: string;
       blockId: string;

@@ -1,25 +1,6 @@
 name: Managed Cloud Compute Boundary
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/node-boundary/identity-contract-validation.mjs"
-      - "core/identity/remote-node-compute-core.mjs"
-      - "core/identity/remote-node-compute.ts"
-      - "core/cloud/managed-cloud-compute-core.mjs"
-      - "core/cloud/managed-cloud-compute.ts"
-      - "core/profiles/local-human-profile-core.mjs"
-      - "core/profiles/local-human-profile.ts"
-      - "lib/plotpickle-node-topology-core.mjs"
-      - "lib/plotpickle-node-topology.ts"
-      - "build/node-topology-gateway.ts"
-      - "docs/architecture/PLOTPICKLE-NODE-TOPOLOGY.md"
-      - "docs/architecture/TRUSTED-REMOTE-COMPUTE.md"
-      - "tests/issue-1013-plotpickle-node-topology.test.mjs"
-      - "tests/issue-1075-trusted-node-remote-compute.test.mjs"
-      - "tests/issue-1135-canonical-node-buzz-boundary.test.mjs"
-      - ".github/workflows/trusted-node-remote-compute.yml"
   workflow_dispatch:
 
 permissions:

@@ -52,7 +52,7 @@ jobs:
         run: |
           npm run test:plotpickle-auth
           npm run audit:credentials
-          node --test tests/issue-299-local-credential-audit.test.mjs tests/issue-1200-profile-private-memory.test.mjs tests/issue-1201-profile-private-memory.test.mjs tests/issue-1202-profile-private-memory.test.mjs tests/issue-1203-profile-private-memory.test.mjs tests/issue-1122-library-persistence.test.mjs
+          node --test tests/issue-299-local-credential-audit.test.mjs tests/issue-1200-scoped-memory-contract.test.mjs tests/issue-1201-memory-persistence-isolation.test.mjs tests/issue-1202-bounded-memory-retrieval.test.mjs tests/issue-1203-sage-avery-memory-continuity.test.mjs tests/issue-1122-library-persistence.test.mjs
 
       - name: Validate Agent Skill, trust and BUZZ contracts
         run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-963-context-engine.test.mjs tests/issue-965-connector-trust-policy.test.mjs tests/issue-971-buzz-specialist-agents.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/community-agent-roster.test.mjs tests/sage-brinewick-agent-skill.test.mjs
@@ -76,7 +76,7 @@ jobs:
 
       - name: Validate repository architecture
         run: |
-          node --test tests/issue-1220-architecture-health.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-repository-architecture-enforcement.test.mjs tests/issue-1466-repository-architecture-drift.test.mjs tests/issue-1645-lib-boundary.test.mjs tests/issue-1647-lib-domain-boundary.test.mjs tests/issue-1650-lib-root-boundary.test.mjs tests/issue-1651-lib-dependency-direction.test.mjs
+          node --test tests/issue-1220-architecture-health.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-build-domain-consolidation.test.mjs tests/issue-1466-repository-architecture-enforcement.test.mjs tests/issue-1645-harness-lifecycle-inventory.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1650-lifecycle-presentation.test.mjs tests/issue-1650-autonomous-reference-presentation.test.mjs tests/issue-1650-lifecycle-reference-report.test.mjs tests/issue-1651-responsibility-bridge-retirement.test.mjs
           node scripts/architecture-health-audit.mjs
 
       - name: Parse Windows verification and maintenance scripts

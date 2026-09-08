@@ -33,6 +33,12 @@ export type ExperienceIntent =
       baseRevision: number | null;
     }>
   | Readonly<{
+      type: "AuthenticateHuman";
+      intentId: string;
+      locator: string;
+      baseRevision: null;
+    }>
+  | Readonly<{
       type: "SelectBlock";
       intentId: string;
       blockId: string;
@@ -59,6 +65,11 @@ export type ExperienceEvent =
   | Readonly<{
       type: "SurfaceTopologyChanged";
       topology: ExperienceSurfaceTopology;
+    }>
+  | Readonly<{
+      type: "AuthenticationStateChanged";
+      authenticated: boolean;
+      profileId: string | null;
     }>
   | Readonly<{
       type: "IntentResolved";

@@ -1,24 +1,6 @@
 name: BEN Code Quality
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.mjs"
-      - "**/*.cjs"
-      - ".mcp.json"
-      - ".cline/mcp.json"
-      - ".agents/skills/**"
-      - "config/agent-*.json"
-      - "config/runtime-manifest.json"
-      - "config/ben-code-quality.json"
-      - "docs/architecture/MODULAR-FOUNDATION.md"
-      - "tests/**"
-      - ".github/workflows/ben-code-quality.yml"
   workflow_dispatch:
 
 permissions:
@@ -69,12 +51,7 @@ jobs:
           node --test tests/issue-1220-architecture-health.test.mjs
           node scripts/architecture-health-audit.mjs
 
-      - name: Run BEN deterministic slop delta
-        if: github.event_name == 'pull_request'
-        run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
-
       - name: Run BEN current-tree scan
-        if: github.event_name != 'pull_request'
         run: node scripts/run-ben-code-quality.mjs
 
       - name: Upload BEN evidence

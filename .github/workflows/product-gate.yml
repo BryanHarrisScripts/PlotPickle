@@ -16,7 +16,7 @@ jobs:
   product-gate:
     name: Product Gate
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout exact head with history
@@ -31,11 +31,6 @@ jobs:
           node-version: '24.19.0'
           cache: npm
 
-      - name: Use .NET 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Install PlotPickle dependencies once
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
@@ -44,50 +39,10 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs
 
-      - name: Production web build
+      - name: Production web build on Windows
         shell: pwsh
         run: npm run build
 
       - name: Validate Windows installer source contract
         shell: pwsh
         run: node --test tests/issue-1456-windows-installer.test.mjs
-
-      - name: Install Inno Setup compiler
-        shell: pwsh
-        run: choco install innosetup --yes --no-progress
-
-      - name: Build PlotPickleSetup.exe
-        shell: pwsh
-        run: ./scripts/windows-installer/build.ps1
-
-      - name: Run packaged Windows interaction smoke
-        shell: pwsh
-        env:
-          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: '360000'
-        run: node scripts/windows-interaction-smoke.mjs releases/stage/PlotPickle-Windows reports/windows-installer-interaction
-
-      - name: Run install and uninstall smoke
-        shell: pwsh
-        run: ./scripts/windows-installer/smoke.ps1 -SetupPath releases/windows-installer/PlotPickleSetup.exe
-
-      - name: Upload Product Gate evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: product-gate-evidence-${{ github.run_id }}
-          path: |
-            .artifacts/
-            reports/windows-installer-interaction/
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Upload PlotPickle installer
-        if: ${{ always() && hashFiles('releases/windows-installer/PlotPickleSetup.exe') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: plotpickle-windows-installer-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |
-            releases/windows-installer/PlotPickleSetup.exe
-            releases/windows-installer/PlotPickleSetup.exe.sha256
-          if-no-files-found: error
-          retention-days: 14

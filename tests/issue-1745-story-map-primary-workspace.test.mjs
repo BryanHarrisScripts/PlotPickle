@@ -62,6 +62,40 @@ test("#1745 Storyboard restores the selected Block from Story Map context", asyn
   assert.match(workspace, /useState\(\(\) => boundedBlockNumber\(initialBlockNumber\)\)/);
 });
 
+test("#1745 close and reopen restores Block Mini-Block and local stage without changing PPF canon", async () => {
+  const [contract, map, runtime, privateBrowser, privateRoute, layout] = await Promise.all([
+    read("core/contracts/story-map-context.ts"),
+    read("modules/build/ui/progressive-story-map.tsx"),
+    read("app/story-map-workspace/context-runtime.tsx"),
+    read("core/storage/profile-private-browser.ts"),
+    read("app/api/auth/profile-private/route.ts"),
+    read("app/layout.tsx"),
+  ]);
+
+  assert.match(contract, /StoryMapStage = "map" \| "plan" \| "build" \| "storyboard"/);
+  assert.match(contract, /blockNumber: number/);
+  assert.match(contract, /miniBlockNumber: number/);
+  assert.doesNotMatch(contract, /revision|PPFProject|StoryCommand/);
+
+  assert.match(privateRoute, /objectId: "story-map-contexts"/);
+  assert.match(privateRoute, /input\.action === "save-story-map-contexts"/);
+  assert.match(privateRoute, /normalizeStoryMapContextRegistry/);
+  assert.match(privateBrowser, /hydratedStoryMapContext/);
+  assert.match(privateBrowser, /return queueCacheWrite\("save-story-map-contexts"/);
+  assert.match(privateBrowser, /await pendingCacheWrite\.catch\(\(\) => undefined\)/);
+
+  assert.match(map, /rememberedContext = hydratedStoryMapContext\(project\.id\)/);
+  assert.match(map, /boundedLocation\("block", 24, rememberedContext\?\.blockNumber \?\? 1\)/);
+  assert.match(map, /boundedLocation\("mini", 4, rememberedContext\?\.miniBlockNumber \?\? 1\)/);
+  assert.match(map, /persistStoryMapContext\(project\.id, \{ blockNumber, miniBlockNumber, stage: "map" \}\)/);
+
+  assert.match(runtime, /location\.pathname === "\/storyboard"/);
+  assert.match(runtime, /workspace === "plan" \|\| workspace === "build"/);
+  assert.match(runtime, /persistStoryMapContext\(project\.id/);
+  assert.doesNotMatch(runtime, /applyStoryCommand|saveFoundationProject|revision/);
+  assert.match(layout, /<ProfileAccessBoundary>[\s\S]*<StoryMapContextRuntime \/>[\s\S]*<ReleaseExperienceBoundary>/);
+});
+
 test("#1745 new Story Map styling uses PlotPickle tokens rather than a second visual system", async () => {
   const [shellStyles, mapStyles, storyboardStyles] = await Promise.all([
     read("app/story-map-shell.module.css"),

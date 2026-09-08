@@ -66,7 +66,8 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   padding: 18px;
 }
 
-.pp-skin-v1-panel form {
+.pp-skin-v1-panel form,
+.pp-skin-v1-message {
   display: grid;
   gap: 16px;
 }
@@ -76,10 +77,11 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   gap: 6px;
 }
 
-.pp-skin-v1-panel input,
+.pp-skin-v1-panel input:not([type="checkbox"]),
 .pp-skin-v1-panel select,
 .pp-skin-v1-panel button,
-.pp-skin-v1-panel a {
+.pp-skin-v1-panel a,
+.pp-skin-v1-recovery {
   min-height: 42px;
   border: 2px solid #fff;
   background: #000;
@@ -87,10 +89,30 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   font: inherit;
 }
 
-.pp-skin-v1-panel input,
-.pp-skin-v1-panel select {
+.pp-skin-v1-panel input:not([type="checkbox"]),
+.pp-skin-v1-panel select,
+.pp-skin-v1-recovery {
   width: 100%;
   padding: 8px 10px;
+}
+
+.pp-skin-v1-recovery {
+  display: block;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.pp-skin-v1-check {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.pp-skin-v1-check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #fff;
 }
 
 .pp-skin-v1-panel button,
@@ -113,6 +135,12 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   outline: 0;
 }
 
+.pp-skin-v1-panel input:focus-visible,
+.pp-skin-v1-panel select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .pp-skin-v1-panel button:disabled {
   border-style: dashed;
   cursor: not-allowed;
@@ -122,11 +150,6 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   border: 2px solid #fff;
   padding: 10px;
   text-transform: uppercase;
-}
-
-.pp-skin-v1-message {
-  display: grid;
-  gap: 14px;
 }
 
 .pp-skin-v1-message p {

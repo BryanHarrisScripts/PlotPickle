@@ -18,8 +18,11 @@ test("#1754 names the existing UI Legacy Skin and starts the new architecture at
   ]);
 
   assert.match(runtime, /SKIN_V1 = "skin-v1"/u);
+  assert.match(runtime, /LEGACY_SKIN = "legacy"/u);
   assert.match(runtime, /pathname === "\/skin-v1"/u);
-  assert.match(runtime, /window\.location\.replace\("\/skin-v1"\)/u);
+  assert.match(runtime, /explicit === LEGACY_SKIN/u);
+  assert.match(runtime, /localStorage\.setItem\(SKIN_STORAGE_KEY, LEGACY_SKIN\)/u);
+  assert.match(runtime, /if \(url\.pathname === "\/"\)[\s\S]*stored === LEGACY_SKIN[\s\S]*window\.location\.replace\("\/skin-v1"\)/u);
   assert.match(layout, /<SkinV1Runtime \/>/u);
   assert.match(layout, /<LegacyDemoBoundary>/u);
   assert.match(layout, /<ProfileAccessRouter>/u);

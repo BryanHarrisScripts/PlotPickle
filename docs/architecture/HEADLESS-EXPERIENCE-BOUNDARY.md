@@ -65,7 +65,7 @@ The initial registry is deliberately small:
 
 ```text
 unauthenticated -> LOGON
-authenticated   -> HOME
+authenticated   -> DASHBOARD
 ```
 
 Known later surfaces remain inactive until their business cases are migrated:
@@ -77,7 +77,7 @@ Known later surfaces remain inactive until their business cases are migrated:
 
 A Skin renders this topology; it does not independently decide which product capabilities exist.
 
-## Phase 0 — LOGON to blank HOME
+## Phase 0 — LOGON to Dashboard
 
 Skin V1 lives at `/skin-v1`.
 
@@ -88,8 +88,8 @@ Skin V1
   -> AuthenticateHuman / CreateFirstHumanProfile / CompleteFirstHumanProfileSetup
   -> Experience LOGON use case
   -> existing PlotPickle profile authority
-  -> Experience LOGON/HOME projection
-  -> blank HOME
+  -> Experience LOGON/DASHBOARD projection
+  -> 16-bit Dashboard menu
 ```
 
 Skin V1 does not call `/api/auth/profile` directly. The browser adapter is the only browser-facing authentication seam and reuses the existing profile service, profile-private hydration, and legacy-project migration.
@@ -100,9 +100,30 @@ A fresh Node can remain entirely inside Skin V1 for:
 - server bootstrap proof when required;
 - recovery-secret acknowledgement;
 - existing profile unlock;
-- transition to HOME.
+- transition to DASHBOARD.
 
-HOME remains almost empty by design.
+The Dashboard currently proves presentation and keyboard interaction only. Its rows are intentionally not connected to routes, `OpenSurface` intents, or Harness actions yet.
+
+Canonical Skin V1 Dashboard rows, in order:
+
+1. Dashboard
+2. Community
+3. Library
+4. Plan
+5. Storyboard
+6. Previs
+7. Write
+8. Edit
+9. Feedback
+10. Refine
+11. Reports
+12. Settings
+13. Profile
+14. Learn - Education
+15. Wyrmwood - Learning Game
+16. Story - The Unwritten
+
+Mouse click and Up/Down keyboard navigation may change the selected row. Selection remains temporary Skin state until each business case is migrated into the Experience Layer.
 
 ## Story Workspace boundary
 

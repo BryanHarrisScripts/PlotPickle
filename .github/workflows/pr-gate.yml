@@ -1,0 +1,117 @@
+name: PR Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-gate:
+    name: PR Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install PlotPickle dependencies once
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Enforce two-gate CI topology
+        run: node --test tests/issue-1747-ci-two-gates.test.mjs
+
+      - name: Lint source tree
+        run: npm run lint
+
+      - name: Validate LEARN, navigation, workspace and PPF contracts
+        run: |
+          npm run validate:learn
+          node --test tests/guided-progression-engine.test.mjs tests/issue-1030-visual-writer-progression.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs tests/issue-1030c-world-vertical-slice.test.mjs tests/issue-1030d-avery-dashboard-frontier.test.mjs tests/issue-653-writer-in-residence.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs tests/issue-964-revision-aware-ppf.test.mjs tests/afterglow-revision-ppf.test.mjs
+
+      - name: Validate story, BUILD and decision contracts
+        run: node --test tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1416-story-workflow-engine.test.mjs tests/issue-967-safe-graph-workflows.test.mjs tests/issue-989-verification-execution-graph.test.mjs tests/issue-999-story-knowledge-graph.test.mjs tests/issue-968-run-telemetry-evals.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs
+
+      - name: Validate auth, profile and private-storage contracts
+        run: |
+          npm run test:plotpickle-auth
+          npm run audit:credentials
+          node --test tests/issue-299-local-credential-audit.test.mjs tests/issue-1200-profile-private-memory.test.mjs tests/issue-1201-profile-private-memory.test.mjs tests/issue-1202-profile-private-memory.test.mjs tests/issue-1203-profile-private-memory.test.mjs tests/issue-1122-library-persistence.test.mjs
+
+      - name: Validate Agent Skill, trust and BUZZ contracts
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-963-context-engine.test.mjs tests/issue-965-connector-trust-policy.test.mjs tests/issue-971-buzz-specialist-agents.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/community-agent-roster.test.mjs tests/sage-brinewick-agent-skill.test.mjs
+
+      - name: Validate focused UAT and hardware-aware local AI contracts
+        shell: bash
+        run: |
+          node --test tests/issue-622-uat-autopilot.test.mjs tests/creative-uat-mcp-runtime.test.mjs tests/exhaustive-ui-harness-boundary.test.mjs tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs tests/issue-931-verification-orchestration.test.mjs tests/comfyui-live-verification.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs tests/issue-1026-comfyui-runtime-settings.test.mjs
+          mkdir -p .artifacts/uat-focused
+          node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused 2>&1 | tee .artifacts/uat-focused/contracts-console.log
+
+      - name: BEN deterministic code-quality delta
+        if: github.event_name == 'pull_request'
+        run: |
+          node --test tests/issue-1005-ben-code-quality.test.mjs tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs tests/issue-1239-local-uat-current-shell.test.mjs tests/issue-396-storyboard-exploration.test.mjs tests/issue-1165-structured-storyboard-shot.test.mjs tests/issue-1166-storyboard-blocking-advisories.test.mjs tests/issue-1286-casebook-business-case-registry.test.mjs tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1236-casebook-live-verifiers.test.mjs tests/issue-1236-casebook-profile-isolation-live.test.mjs tests/issue-1236-casebook-phase3b3.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs
+          node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
+
+      - name: BEN current-tree code-quality scan
+        if: github.event_name != 'pull_request'
+        run: node scripts/run-ben-code-quality.mjs
+
+      - name: Validate repository architecture
+        run: |
+          node --test tests/issue-1220-architecture-health.test.mjs tests/issue-1461-repository-architecture-inventory.test.mjs tests/issue-1462-repository-architecture-enforcement.test.mjs tests/issue-1466-repository-architecture-drift.test.mjs tests/issue-1645-lib-boundary.test.mjs tests/issue-1647-lib-domain-boundary.test.mjs tests/issue-1650-lib-root-boundary.test.mjs tests/issue-1651-lib-dependency-direction.test.mjs
+          node scripts/architecture-health-audit.mjs
+
+      - name: Parse Windows verification and maintenance scripts
+        shell: pwsh
+        run: |
+          foreach ($path in @(
+            "scripts/run-plotpickle-full-check.ps1",
+            "scripts/windows-companion-software.ps1",
+            "scripts/windows-companion-maintenance-after-ready.ps1",
+            "scripts/install-local-ai-tool.ps1",
+            "scripts/install-buzz-desktop.ps1",
+            "scripts/start-comfyui-background.ps1",
+            "scripts/comfyui-managed-instance-core.ps1",
+            "scripts/configure-hardware-aware-local-ai.ps1"
+          )) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "${path}: $($_.Message)" }
+              exit 1
+            }
+          }
+
+      - name: Production web build
+        run: npm run build
+
+      - name: Upload PR Gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-gate-${{ github.run_id }}
+          path: |
+            .artifacts/ben-code-quality
+            .artifacts/architecture-health
+            .artifacts/uat-focused
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,6 +1,6 @@
 export type ExperienceSurfaceId =
   | "LOGON"
-  | "HOME"
+  | "DASHBOARD"
   | "COMMUNITY"
   | "STORY_WORKSPACE"
   | "STORYBOARD"

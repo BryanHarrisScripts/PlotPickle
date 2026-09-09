@@ -330,3 +330,42 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   background: linear-gradient(#fff, #c9c9c9);
   box-shadow: inset 0 1px 0 #fff, 0 2px 5px #000;
 }
+
+/* Three restrained Matrix greens over the monochrome base. */
+html[data-plotpickle-skin="skin-v1"] {
+  --pp-matrix-deep: #123524;
+  --pp-matrix-mid: #287a4b;
+  --pp-matrix-light: #79bd92;
+}
+.pp-skin-v1-bar,
+.pp-skin-v1-title,
+.pp-skin-v1-bbs-banner {
+  border-bottom-color: var(--pp-matrix-mid);
+  background: linear-gradient(110deg, var(--pp-matrix-deep), #191919 42%, #111);
+}
+.pp-skin-v1-status,
+.pp-skin-v1-bbs-help {
+  color: var(--pp-matrix-light);
+}
+.pp-skin-v1-menu-cursor {
+  color: var(--pp-matrix-light);
+}
+.pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-cursor {
+  color: var(--pp-matrix-deep);
+}
+.pp-skin-v1-return:focus-visible,
+.pp-skin-v1-menu-item:focus-visible {
+  outline-color: var(--pp-matrix-light);
+}
+.pp-skin-v1-bbs-banner h1 {
+  margin: 0;
+  font: inherit;
+}
+.pp-skin-v1-submenu-item:disabled {
+  opacity: 1;
+  color: #d0d0d0;
+  cursor: default;
+}
+.pp-skin-v1-submenu-item:disabled:hover {
+  outline: none;
+}

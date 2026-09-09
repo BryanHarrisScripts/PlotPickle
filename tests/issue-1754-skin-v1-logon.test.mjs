@@ -198,3 +198,21 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   const projection = JSON.stringify({ result: created.result, view: created.view });
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
+
+test("Profile opens only a three-entry preview with no downstream actions", async () => {
+  const skin = await read("app/skin-v1/skin-v1-client.tsx");
+  assert.match(skin, /id === "profile"\) setProfileMenuOpen\(true\)/u);
+  const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
+  for (const [label, description] of [["PROFILE", "YOUR PROFILE"], ["LOCAL AI", "LOCAL CONFIGURATIONS"], ["NODE", "NODE INFO"]]) {
+    assert.ok(entries.includes(`label: "${label}", description: "${description}"`));
+  }
+  const options = skin.slice(skin.indexOf("{PROFILE_MENU.map"), skin.indexOf('id="profile-menu-status"'));
+  assert.match(options, /type="button" disabled/u);
+  assert.doesNotMatch(options, /onClick|href|onSubmit|fetch\(|OpenSurface/u);
+  assert.match(skin, /event.key === "Escape".*setProfileMenuOpen\(false\)/u);
+  assert.match(skin, /profileMenuHeadingRef.current\?\.focus\(\)/u);
+  const css = await read("app/skin-v1.css");
+  assert.match(css, /--pp-matrix-deep: #123524/u);
+  assert.match(css, /--pp-matrix-mid: #287a4b/u);
+  assert.match(css, /--pp-matrix-light: #79bd92/u);
+});

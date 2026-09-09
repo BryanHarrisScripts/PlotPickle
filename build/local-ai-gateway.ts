@@ -9,6 +9,7 @@ import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./ai/h3/comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./ai/comfyui-ltx-local-gateway";
 import { registerSdxlLocalImageGateway } from "./ai/comfyui-sdxl-local-gateway";
+import { registerLocalPluginGateway } from "./ai/local-plugin-gateway";
 import { registerComfyUiOnboardingGateway } from "./ai/comfyui-onboarding-gateway";
 import { registerComfyUiSdxlStarterGateway } from "./ai/comfyui-sdxl-starter-gateway";
 import { registerProviderDiagnosticsGateway } from "./ai/provider-diagnostics-gateway";
@@ -52,7 +53,7 @@ function registerSingleImageBoundary(server: ViteDevServer) {
 export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
-    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerPlotPickleNodeTopologyGateway(server);
+    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerStoryDecisionGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAutonomousGuestRoutingStatus(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);

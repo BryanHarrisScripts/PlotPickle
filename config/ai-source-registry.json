@@ -9,14 +9,15 @@
   "capabilities": [
     { "id": "text", "label": "Writing", "description": "Choose one writing and planning engine: Ollama, OpenAI, Google Gemini, MiniMax Text, or Off." },
     { "id": "image", "label": "Images", "description": "Choose ComfyUI, Ollama-assisted ComfyUI, OpenAI, MiniMax, or Manual Import." },
-    { "id": "video", "label": "Video", "description": "Choose local ComfyUI H3, OpenAI Video, MiniMax H3 cloud, or Off." }
+    { "id": "video", "label": "Video", "description": "Choose a local hardware-compatible video plug-in, OpenAI Video, MiniMax H3 cloud, or Off." }
   ],
   "principles": [
     "A route is active per capability, not through one global local/cloud switch.",
     "Local and cloud routes can be mixed and reported as hybrid.",
     "Installed or configured is not the same as ready.",
     "No paid or cloud provider is selected automatically.",
-    "Local installation detection uses reviewed local probes only."
+    "Local installation detection uses reviewed local probes only.",
+    "Local capabilities select plug-ins by hardware fit; runtimes such as ComfyUI and Ollama remain implementation dependencies rather than user-facing capability names."
   ],
   "states": [
     "installed",
@@ -98,6 +99,56 @@
         "configuration": "encrypted-local-api-key",
         "health": "provider-account-test"
       }
+    }
+  ],
+  "plugins": [
+    {
+      "id": "image.sdxl-1.0",
+      "capability": "image",
+      "label": "SDXL 1.0",
+      "description": "PlotPickle's managed local image plug-in using the fixed SDXL 1.0 workflow.",
+      "runtimeProviderId": "comfyui",
+      "adapterId": "comfyui-sdxl-local",
+      "modes": ["text-to-image"],
+      "hardwarePriority": {
+        "nvidia-pascal-8gb-32gb": 10,
+        "nvidia-8gb-modern": 10,
+        "nvidia-16gb": 10,
+        "nvidia-24gb-plus": 10
+      },
+      "advanced": false,
+      "preset": "SDXL 1.0"
+    },
+    {
+      "id": "video.ltx-video-2b-0.9.8-distilled",
+      "capability": "video",
+      "label": "LTX-Video 2B 0.9.8 Distilled",
+      "description": "Lightweight local text-to-video plug-in using the existing reviewed ComfyUI LTX adapter.",
+      "runtimeProviderId": "comfyui",
+      "adapterId": "comfyui-ltx-local",
+      "modes": ["text-to-video"],
+      "hardwarePriority": {
+        "nvidia-pascal-8gb-32gb": 10,
+        "nvidia-8gb-modern": 10,
+        "nvidia-16gb": 20,
+        "nvidia-24gb-plus": 30
+      },
+      "advanced": false,
+      "preset": "short-form local text-to-video"
+    },
+    {
+      "id": "video.minimax-h3",
+      "capability": "video",
+      "label": "MiniMax H3",
+      "description": "Advanced local MiniMax H3 plug-in through a reviewed native ComfyUI workflow.",
+      "runtimeProviderId": "comfyui",
+      "adapterId": "comfyui-h3-native",
+      "modes": ["text-to-video"],
+      "hardwarePriority": {
+        "nvidia-24gb-plus": 10
+      },
+      "advanced": true,
+      "preset": "native H3 text-to-video"
     }
   ],
   "routes": [
@@ -192,8 +243,8 @@
     {
       "id": "video.comfyui-native",
       "capability": "video",
-      "label": "ComfyUI H3 · Local",
-      "description": "Run user-owned MiniMax H3 weights locally through a reviewed ComfyUI workflow.",
+      "label": "Local Video · Compatibility Route",
+      "description": "Legacy compatibility route while local video model/workflow choice moves to the hardware-aware plug-in registry.",
       "providerIds": ["comfyui"],
       "selectableWhen": "ready"
     },
@@ -216,8 +267,9 @@
   ],
   "extensionPoints": {
     "providerModules": "build/ai-source-probes/{providerId}.ts",
+    "pluginAdapters": "existing reviewed local gateway identified by plugins[].adapterId",
     "routeGroups": ["text", "image", "video"],
     "uiConsumers": ["app/ai-routing-panel.tsx"],
-    "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/ai/local-ai-installation-gateway.ts"]
+    "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/ai/local-ai-installation-gateway.ts", "build/local-runtime-gateway.ts"]
   }
 }

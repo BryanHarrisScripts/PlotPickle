@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 980" role="img" aria-labelledby="title desc">
+<title id="title">PlotPickle architecture blueprint</title><desc id="desc">Generated from architecture/plotpickle.architecture.json.</desc>
+<style>svg {
+  --arch-bg: #031017;
+  --arch-panel: #071923;
+  --arch-panel-2: #0a202b;
+  --arch-ink: #eef7f8;
+  --arch-muted: #8ba5ae;
+  --arch-cyan: #58d7e7;
+  --arch-cyan-soft: #1c7785;
+  --arch-amber: #f0b82f;
+  --arch-amber-soft: #8a6b1c;
+  --arch-purple: #bc83e8;
+  --arch-purple-soft: #604276;
+  --arch-green: #48cfa2;
+  --arch-line: #173f4c;
+  --arch-grid: #0a2630;
+}
+
+svg {
+  background: var(--arch-bg);
+  font-family: "Arial Narrow", "Roboto Condensed", "Segoe UI", sans-serif;
+}
+
+.bg { fill: var(--arch-bg); }
+.grid { stroke: var(--arch-grid); stroke-width: 0.5; opacity: 0.55; }
+.ink { fill: var(--arch-ink); }
+.muted { fill: var(--arch-muted); }
+.cyan { color: var(--arch-cyan); fill: var(--arch-cyan); stroke: var(--arch-cyan); }
+.amber { color: var(--arch-amber); fill: var(--arch-amber); stroke: var(--arch-amber); }
+.purple { color: var(--arch-purple); fill: var(--arch-purple); stroke: var(--arch-purple); }
+.green { color: var(--arch-green); fill: var(--arch-green); stroke: var(--arch-green); }
+.panel { fill: var(--arch-panel); stroke: var(--arch-line); stroke-width: 1; }
+.panel.cyan-stroke { stroke: var(--arch-cyan); }
+.panel.amber-stroke { stroke: var(--arch-amber); }
+.panel.purple-stroke { stroke: var(--arch-purple); }
+.component { fill: var(--arch-panel-2); stroke: var(--arch-cyan-soft); stroke-width: 1; }
+.component.amber-stroke { stroke: var(--arch-amber-soft); }
+.component.purple-stroke { stroke: var(--arch-purple-soft); }
+.component.emphasis { stroke: var(--arch-green); stroke-width: 1.5; }
+.dashed { stroke-dasharray: 5 4; }
+.title { fill: var(--arch-ink); font-size: 28px; font-weight: 800; letter-spacing: 0.3px; }
+.tagline { fill: var(--arch-cyan); font-size: 14px; font-weight: 800; letter-spacing: 0.4px; }
+.subtitle { fill: var(--arch-muted); font-size: 9px; letter-spacing: 1.4px; }
+.layer-label { font-size: 11px; font-weight: 800; letter-spacing: 0.6px; }
+.layer-summary { fill: var(--arch-muted); font-size: 8px; }
+.panel-title { font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
+.component-title { fill: var(--arch-ink); font-size: 8.5px; font-weight: 700; }
+.component-detail { fill: var(--arch-muted); font-size: 6.5px; }
+.note { fill: var(--arch-muted); font-size: 6.5px; }
+.footer { fill: var(--arch-muted); font-size: 6.2px; }
+.micro { font-size: 5.8px; font-weight: 700; letter-spacing: 0.3px; }
+.number { font-size: 14px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+.flow { fill: none; stroke-width: 1.1; marker-end: url(#arrow-cyan); }
+.flow.amber-stroke { marker-end: url(#arrow-amber); }
+.flow.purple-stroke { marker-end: url(#arrow-purple); }
+</style>
+<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid" fill="none"/></pattern><marker id="arrow-cyan" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#58d7e7"/></marker><marker id="arrow-amber" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#f0b82f"/></marker><marker id="arrow-purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#bc83e8"/></marker></defs>
+<rect width="1500" height="980" class="bg"/><rect width="1500" height="980" fill="url(#grid)" opacity=".22"/>
+<text x="180" y="36" class="title">PlotPickle</text><text x="385" y="36" class="tagline">AI-Native Agentic Story Operating System</text><text x="180" y="58" class="subtitle">TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE</text><text x="1450" y="27" class="micro cyan" text-anchor="end">ARCHITECTURE BLUEPRINT v1.0</text><text x="1450" y="46" class="note" text-anchor="end">2026-09-09 · target</text><line x1="180" y1="68" x2="1450" y2="68" class="cyan" opacity=".6"/>
+<g id="layer-experience-skins">
+<path d="M38 110 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="cyan"/>
+<text x="38" y="129" class="number cyan">1</text>
+<text x="68" y="114" class="layer-label cyan">EXPERIENCE SKINS</text>
+<text x="68" y="152" class="layer-summary">Replaceable</text>
+<text x="68" y="161" class="layer-summary">presentation for any</text>
+<text x="68" y="170" class="layer-summary">audience or device.</text>
+<rect x="180" y="82" width="840" height="108" rx="7" class="panel cyan-stroke"/>
+<text x="192" y="105" class="panel-title cyan">INTERCHANGEABLE PRESENTATION</text>
+<text x="1008" y="105" class="note" text-anchor="end">Layout, controls and temporary visual state only</text>
+<rect x="192" y="116" width="816" height="42" rx="2" class="component cyan-stroke"/>
+<text x="204" y="133" class="component-title">Legacy Skin · Skin V1 · Future skins</text>
+<text x="192" y="178" class="footer">TARGET: VERSIONED SKIN ADAPTERS · SAME INTENTS, DESTINATIONS AND WORKSPACE FLOWS</text>
+</g>
+<g id="layer-experience-contract">
+<path d="M38 228 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="amber"/>
+<text x="38" y="247" class="number amber">2</text>
+<text x="68" y="232" class="layer-label amber">EXPANDED EXPERIENCE</text>
+<text x="68" y="243" class="layer-label amber">LAYER</text>
+<text x="68" y="270" class="layer-summary">The stable product</text>
+<text x="68" y="279" class="layer-summary">contract behind every</text>
+<text x="68" y="288" class="layer-summary">Skin.</text>
+<rect x="180" y="200" width="840" height="108" rx="7" class="panel amber-stroke"/>
+<text x="192" y="223" class="panel-title amber">PUBLIC SEMANTIC CONTRACT + BUSINESS USE CASES</text>
+<text x="1008" y="223" class="note" text-anchor="end">TEST CLIENT PORT</text>
+<rect x="192" y="234" width="816" height="42" rx="2" class="component amber-stroke"/>
+<text x="204" y="251" class="component-title">Semantic intents · Results + revisions · Capabilities · Typed events · Lean view models · Surface registry ·</text>
+<text x="204" y="262" class="component-title">Use-case pipeline · Persistent context · Reconciliation</text>
+<text x="192" y="296" class="footer">SEMANTIC SURFACES · LOGON · DASHBOARD · COMMUNITY · STORY WORKSPACE · STORYBOARD · SETTINGS</text>
+</g>
+<g id="layer-production-harness">
+<path d="M38 346 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="amber"/>
+<text x="38" y="365" class="number amber">3</text>
+<text x="68" y="350" class="layer-label amber">GOVERNED PRODUCTION</text>
+<text x="68" y="361" class="layer-label amber">ORCHESTRATION</text>
+<text x="68" y="388" class="layer-summary">Authority, lifecycle,</text>
+<text x="68" y="397" class="layer-summary">policy and execution</text>
+<text x="68" y="406" class="layer-summary">control.</text>
+<rect x="180" y="318" width="840" height="108" rx="7" class="panel amber-stroke"/>
+<text x="192" y="341" class="panel-title amber">PRODUCTION AUTHORITY / LIFECYCLE HARNESS</text>
+<text x="1008" y="341" class="note" text-anchor="end">Distinct from the test harness in Layer 7</text>
+<rect x="192" y="352" width="816" height="42" rx="2" class="component amber-stroke"/>
+<text x="204" y="369" class="component-title">Identity + authority · Policy, consent + budgets · Lifecycle + capability routing · Revision + provenance ·</text>
+<text x="204" y="380" class="component-title">Community capability</text>
+<text x="192" y="414" class="footer">Human approval · Governed recovery · Bounded autonomy · Project and storage authority</text>
+</g>
+<g id="layer-agent-runtime">
+<path d="M38 464 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="cyan"/>
+<text x="38" y="483" class="number cyan">4</text>
+<text x="68" y="468" class="layer-label cyan">AGENT &amp; SKILL MESH</text>
+<text x="68" y="506" class="layer-summary">Specialists</text>
+<text x="68" y="515" class="layer-summary">collaborate within</text>
+<text x="68" y="524" class="layer-summary">approved scope.</text>
+<rect x="180" y="436" width="840" height="108" rx="7" class="panel cyan-stroke"/>
+<text x="192" y="459" class="panel-title cyan">MULTI-AGENT CREATIVE RUNTIME</text>
+
+<rect x="192" y="470" width="816" height="42" rx="2" class="component cyan-stroke"/>
+<text x="204" y="487" class="component-title">Guide + Story Council · Visual + character specialists · Resident Writer · Evidence learning · UI continuity + QA</text>
+<text x="192" y="532" class="footer">Agent = identity + instructions + skills + permitted context + provider/runtime. Output remains a candidate.</text>
+</g>
+<g id="layer-story-canon">
+<path d="M38 582 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="cyan"/>
+<text x="38" y="601" class="number cyan">5</text>
+<text x="68" y="586" class="layer-label cyan">STORY, CANON &amp;</text>
+<text x="68" y="597" class="layer-label cyan">EVIDENCE CORE</text>
+<text x="68" y="624" class="layer-summary">Deterministic story</text>
+<text x="68" y="633" class="layer-summary">state, context and</text>
+<text x="68" y="642" class="layer-summary">durable canon.</text>
+<rect x="180" y="554" width="840" height="108" rx="7" class="panel cyan-stroke"/>
+<text x="192" y="577" class="panel-title cyan">STORY / CANON / EVIDENCE AUTHORITY</text>
+
+<rect x="192" y="588" width="816" height="42" rx="2" class="component cyan-stroke"/>
+<text x="204" y="605" class="component-title">STORY rules kernel · Context Engine · Story + evidence graph · References + candidates · Evidence / revision review</text>
+<text x="204" y="616" class="component-title">· Explicit Human approval · PPF Canon</text>
+<text x="192" y="650" class="footer">STORY session state and accepted evidence stay separate from PPF canon until authorized admission.</text>
+</g>
+<g id="layer-provider-runtime">
+<path d="M38 700 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="cyan"/>
+<text x="38" y="719" class="number cyan">6</text>
+<text x="68" y="704" class="layer-label cyan">AI / PROVIDER</text>
+<text x="68" y="715" class="layer-label cyan">RUNTIME</text>
+<text x="68" y="742" class="layer-summary">Replaceable local and</text>
+<text x="68" y="751" class="layer-summary">cloud inference</text>
+<text x="68" y="760" class="layer-summary">routes.</text>
+<rect x="180" y="672" width="840" height="108" rx="7" class="panel cyan-stroke"/>
+<text x="192" y="695" class="panel-title cyan">MODEL-AGNOSTIC MULTIMODAL INFERENCE</text>
+
+<rect x="192" y="706" width="816" height="42" rx="2" class="component cyan-stroke"/>
+<text x="204" y="723" class="component-title">Local LLMs · Compatible APIs · Vision models · ComfyUI · Media providers</text>
+<text x="192" y="768" class="footer">Hardware, privacy and cost aware · Explicit provider choice · No silent cloud fallback</text>
+</g>
+<g id="layer-verification">
+<path d="M38 818 l14 8 v18 l-14 8 l-14-8 v-18 z" fill="none" class="amber"/>
+<text x="38" y="837" class="number amber">7</text>
+<text x="68" y="822" class="layer-label amber">VALIDATION &amp;</text>
+<text x="68" y="833" class="layer-label amber">OPERATIONS</text>
+<text x="68" y="860" class="layer-summary">Tests consume the</text>
+<text x="68" y="869" class="layer-summary">contract. They do not</text>
+<text x="68" y="878" class="layer-summary">run the product.</text>
+<rect x="180" y="790" width="840" height="108" rx="7" class="panel amber-stroke"/>
+<text x="192" y="813" class="panel-title amber">VERIFICATION CLIENTS + RELEASE OPERATIONS</text>
+<text x="1008" y="813" class="note" text-anchor="end">OUTSIDE THE PRODUCTION DEPENDENCY PATH</text>
+<rect x="192" y="824" width="816" height="42" rx="2" class="component amber-stroke"/>
+<text x="204" y="841" class="component-title">PR Gate · Product Gate · Replaceable test harness · Evidence + release</text>
+<text x="192" y="886" class="footer">TWO NORMAL VISIBLE PR GATES · SAME EXPERIENCE CONTRACT, NO RUNTIME DEPENDENCY</text>
+</g>
+<path d="M325 190 v7" class="flow amber-stroke"/>
+<path d="M325 308 v7" class="flow amber-stroke"/>
+<path d="M325 426 v7" class="flow amber-stroke"/>
+<path d="M325 544 v7" class="flow amber-stroke"/>
+<path d="M325 662 v7" class="flow amber-stroke"/>
+<path d="M325 780 v7" class="flow amber-stroke"/>
+<rect x="1090" y="82" width="365" height="112" rx="7" class="panel cyan-stroke"/><text x="1102" y="105" class="panel-title cyan">CORE PRINCIPLES</text><text x="1104" y="126" class="component-title">Human authority</text><text x="1104" y="136" class="component-detail">Explicit consent</text>
+<text x="1280" y="126" class="component-title">PPF canon</text><text x="1280" y="136" class="component-detail">One durable authority</text>
+<text x="1104" y="151" class="component-title">Skin independence</text><text x="1104" y="161" class="component-detail">Headless capabilities</text>
+<text x="1280" y="151" class="component-title">Local-first</text><text x="1280" y="161" class="component-detail">Private by design</text>
+<text x="1104" y="176" class="component-title">Model-agnostic</text><text x="1104" y="186" class="component-detail">No silent cloud fallback</text>
+<text x="1280" y="176" class="component-title">Evidence &gt; truth</text><text x="1280" y="186" class="component-detail">Revision + provenance</text>
+<rect x="1090" y="210" width="365" height="350" rx="7" class="panel purple-stroke"/><text x="1102" y="233" class="panel-title purple">BUZZ / COMMUNITY PROVIDER</text><text x="1102" y="247" class="note">First provider behind PlotPickle-owned Community contracts.</text><rect x="1102" y="252" width="341" height="52" rx="2" class="component purple-stroke"/><text x="1112" y="269" class="component-title">Community services</text><text x="1112" y="283" class="component-detail">Great Hall · public rooms · Story Rooms · DMs ·</text>
+<text x="1112" y="291" class="component-detail">Directory · Connected Studios · Community Agents</text>
+<rect x="1102" y="313" width="341" height="52" rx="2" class="component purple-stroke"/><text x="1112" y="330" class="component-title">BUZZ-owned authority</text><text x="1112" y="344" class="component-detail">Community identities, membership and permissions ·</text>
+<text x="1112" y="352" class="component-detail">signed events · transport · publication checks</text>
+<rect x="1102" y="374" width="341" height="52" rx="2" class="component purple-stroke"/><text x="1112" y="391" class="component-title">COMMUNITY ADAPTER</text><text x="1112" y="405" class="component-detail">Governed requests → BUZZ · BUZZ state and events →</text>
+<text x="1112" y="413" class="component-detail">PlotPickle Experience</text>
+<rect x="1102" y="435" width="341" height="52" rx="2" class="component purple-stroke"/><text x="1112" y="452" class="component-title">Managed agents / BUZZ v0.5.23+</text><text x="1112" y="466" class="component-detail">Context and skills supplied through the BUZZ launch</text>
+<text x="1112" y="474" class="component-detail">path · publication authorization checked at execution</text><text x="1102" y="518" class="footer">Human and Agent signing identities remain separate.</text><text x="1102" y="535" class="micro purple">COMMUNITY MATERIAL HAS NO DIRECT CANON AUTHORITY</text>
+<path d="M1020 416H1090" class="flow amber-stroke"/><path d="M1090 438H1020" class="flow"/>
+<rect x="1090" y="590" width="365" height="158" rx="7" class="panel purple-stroke dashed"/><text x="1102" y="613" class="panel-title purple">BRING INTO STORY</text><text x="1443" y="613" class="micro purple" text-anchor="end">PLANNED BRIDGE</text><rect x="1102" y="643" width="341" height="23" rx="2" class="component purple-stroke"/><text x="1110" y="659" class="component-title">1 Select Community material</text>
+<rect x="1102" y="675" width="341" height="23" rx="2" class="component purple-stroke"/><text x="1110" y="691" class="component-title">2 Create a candidate with evidence + revision</text>
+<rect x="1102" y="707" width="341" height="23" rx="2" class="component purple-stroke"/><text x="1110" y="723" class="component-title">3 Continue through the same approval path</text><text x="1102" y="737" class="footer purple">BUZZ never writes story canon directly.</text><path d="M1272 560V586" class="flow purple-stroke dashed"/>
+<rect x="1090" y="770" width="365" height="108" rx="7" class="panel cyan-stroke"/><text x="1102" y="793" class="panel-title cyan">READING THE DIAGRAM</text><text x="1102" y="817" class="footer amber">────→ Governed request / authorized action</text><text x="1102" y="835" class="footer cyan">────→ State, result or event</text><text x="1102" y="853" class="footer purple">⋯⋯→ Advisory material / planned bridge</text>
+<text x="180" y="948" class="micro amber">MIGRATION STATUS</text><text x="275" y="948" class="footer">Community entry + monochrome presentation merged. Full Community contracts, versioned Skin adapters and Bring into Story remain migration work.</text><text x="1450" y="965" class="micro cyan" text-anchor="end">SOURCE: architecture/plotpickle.architecture.json</text>
+</svg>

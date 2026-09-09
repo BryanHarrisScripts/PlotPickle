@@ -75,7 +75,7 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
   assert.doesNotMatch(registry, /react|window\.|document\.|fetch\(/i);
 });
 
-test("#1754 Skin V1 owns fresh setup, LOGON and an inert keyboard-selectable BBS Dashboard", async () => {
+test("#1754 Skin V1 owns fresh setup, LOGON and a keyboard-selectable BBS Dashboard with Community access", async () => {
   const [skin, css, router, legacyOnly] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1.css"),
@@ -126,7 +126,7 @@ test("#1754 Skin V1 owns fresh setup, LOGON and an inert keyboard-selectable BBS
 
   assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: #fff;[\s\S]*color: #000;/u);
   assert.match(css, /\.pp-skin-v1-menu-item\.is-group-start/u);
-  assert.doesNotMatch(skin, /href=|<Link|router\.|window\.location|type: "OpenSurface"/u);
+  assert.doesNotMatch(skin, /href=|<Link|router\.|window\.location/u);
   assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject|skin=legacy/u);
 
   assert.match(router, /isSkinV1Path/u);

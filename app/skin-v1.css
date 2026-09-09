@@ -369,3 +369,244 @@ html[data-plotpickle-skin="skin-v1"] {
 .pp-skin-v1-submenu-item:disabled:hover {
   outline: none;
 }
+
+/* Dashboard Surface V1: architecture-map layout. Scoped so no other Skin V1 surface changes. */
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] {
+  --pp-dashboard-cyan: #67e9f4;
+  --pp-dashboard-cyan-deep: #123f48;
+  --pp-dashboard-amber: #f4bd49;
+  --pp-dashboard-amber-deep: #4b3510;
+  --pp-dashboard-green: #79bd92;
+  width: 100%;
+  min-width: 0;
+  padding: 18px clamp(12px, 2.4vw, 34px) 28px;
+  background:
+    linear-gradient(rgba(103, 233, 244, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 233, 244, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 17% 10%, rgba(40, 122, 75, 0.14), transparent 28%),
+    radial-gradient(circle at 82% 35%, rgba(103, 233, 244, 0.10), transparent 30%),
+    #02070a;
+  background-size: 28px 28px, 28px 28px, auto, auto, auto;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
+  position: relative;
+  width: min(1480px, 100%);
+  padding-top: 82px;
+  overflow: hidden;
+  border: 1px solid rgba(103, 233, 244, 0.72);
+  background: linear-gradient(180deg, rgba(5, 18, 24, 0.96), rgba(1, 7, 10, 0.98));
+  box-shadow: inset 0 0 0 1px rgba(103, 233, 244, 0.06), 0 18px 55px #000;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::before {
+  content: "PlotPickle";
+  position: absolute;
+  inset: 12px 18px auto;
+  color: #f5fbff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(30px, 4vw, 54px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::after {
+  content: "AI-NATIVE AGENTIC STORY OPERATING SYSTEM  /  DASHBOARD";
+  position: absolute;
+  inset: 60px 18px auto;
+  color: var(--pp-dashboard-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner {
+  min-height: 34px;
+  margin: 0 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(103, 233, 244, 0.55);
+  background: rgba(2, 12, 17, 0.78);
+  color: var(--pp-dashboard-cyan);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner > span:first-child {
+  display: none;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner > span:last-child {
+  width: 100%;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item {
+  --pp-dashboard-accent: var(--pp-dashboard-cyan);
+  --pp-dashboard-accent-deep: var(--pp-dashboard-cyan-deep);
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  min-height: 92px;
+  margin: 0;
+  padding: 14px 14px 12px;
+  gap: 5px 10px;
+  border: 1px solid var(--pp-dashboard-accent);
+  background: linear-gradient(155deg, rgba(16, 36, 42, 0.92), rgba(2, 9, 13, 0.98) 66%);
+  color: #f3fbff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025), inset 0 -18px 36px rgba(0, 0, 0, 0.26);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13) {
+  --pp-dashboard-accent: var(--pp-dashboard-amber);
+  --pp-dashboard-accent-deep: var(--pp-dashboard-amber-deep);
+  background: linear-gradient(155deg, rgba(54, 39, 11, 0.9), rgba(11, 8, 2, 0.98) 66%);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(1),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(4),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(14) {
+  grid-column: span 2;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-group-start {
+  margin-top: 0;
+  box-shadow: inset 5px 0 0 var(--pp-dashboard-accent-deep), inset 0 0 0 1px rgba(255, 255, 255, 0.025), inset 0 -18px 36px rgba(0, 0, 0, 0.26);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--pp-dashboard-accent);
+  background: transparent;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-cursor {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 26px;
+  color: var(--pp-dashboard-accent);
+  font-size: 18px;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-label {
+  align-self: end;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-description {
+  grid-column: 2;
+  align-self: start;
+  color: #c0d4da;
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+  opacity: 0.78;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:hover,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:focus-visible {
+  transform: translateY(-1px);
+  background: linear-gradient(155deg, rgba(31, 66, 70, 0.96), rgba(4, 14, 18, 0.99) 66%);
+  color: #fff;
+  outline: 0;
+  box-shadow: inset 0 0 0 1px var(--pp-dashboard-accent), 0 0 18px rgba(103, 233, 244, 0.13);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6).is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6):hover,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13).is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13):hover {
+  background: linear-gradient(155deg, rgba(73, 55, 17, 0.96), rgba(17, 12, 3, 0.99) 66%);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected::after {
+  background: var(--pp-dashboard-green);
+  border-color: var(--pp-dashboard-green);
+  box-shadow: 0 0 8px rgba(121, 189, 146, 0.7);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-cursor {
+  color: var(--pp-dashboard-green);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
+  margin: 0 14px 14px;
+  padding: 9px 10px;
+  border: 1px solid rgba(121, 189, 146, 0.45);
+  color: var(--pp-dashboard-green);
+  background: rgba(8, 24, 16, 0.62);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 1040px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(1),
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(4),
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(14) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
+    padding-top: 72px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::before {
+    font-size: 34px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::after {
+    inset-block-start: 50px;
+    font-size: 9px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] {
+    padding: 10px 8px 18px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item {
+    min-height: 78px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
+    display: grid;
+  }
+}

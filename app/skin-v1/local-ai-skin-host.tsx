@@ -5,6 +5,7 @@ import AiRoutingPanel from "../ai-routing-panel";
 import H3NativePanel from "../h3-native-panel";
 import LocalRuntimePanel from "../local-runtime-panel";
 import LocalComfyUiPanel from "./local-comfyui-panel";
+import LocalVideoPanel from "./local-video-panel";
 
 type LocalAiView = "menu" | "writing" | "images" | "video" | "ollama" | "comfyui" | "h3";
 type CapabilityKey = "writing" | "images" | "video";
@@ -19,6 +20,7 @@ type MediaImageStatus = {
     checkpoints: string[];
   };
 };
+type H3Summary = { active: boolean; ready: boolean; reachable: boolean };
 
 const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
@@ -101,6 +103,10 @@ function fixedLocalImagesReady(status: MediaImageStatus | null) {
   return status.comfyui.checkpoints.some((checkpoint) => checkpoint.toLowerCase() === LOCAL_SDXL_CHECKPOINT.toLowerCase());
 }
 
+function fixedLocalVideoReady(status: H3Summary | null) {
+  return Boolean(status?.reachable && status.ready && status.active);
+}
+
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {
   return (
     <span
@@ -139,14 +145,17 @@ export default function LocalAiSkinHost() {
   const [view, setView] = useState<LocalAiView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
   const [mediaImages, setMediaImages] = useState<MediaImageStatus | null>(null);
+  const [h3, setH3] = useState<H3Summary | null>(null);
 
   const refreshStatus = useCallback(async () => {
-    const [routingResponse, mediaResponse] = await Promise.all([
+    const [routingResponse, mediaResponse, h3Response] = await Promise.all([
       fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null),
       fetch("/api/media-routing/status", { cache: "no-store" }).catch(() => null),
+      fetch("/api/media-routing/comfyui/h3/native/status", { cache: "no-store" }).catch(() => null),
     ]);
     if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
     if (mediaResponse?.ok) setMediaImages(await mediaResponse.json() as MediaImageStatus);
+    if (h3Response?.ok) setH3(await h3Response.json() as H3Summary);
   }, []);
 
   useEffect(() => {
@@ -169,7 +178,7 @@ export default function LocalAiSkinHost() {
   const lights: Record<CapabilityKey, boolean> = {
     writing: localReady(routing?.text),
     images: fixedLocalImagesReady(mediaImages),
-    video: localReady(routing?.video),
+    video: fixedLocalVideoReady(h3),
   };
 
   const manageRoute = (target: "ollama" | "openai" | "gemini" | "minimax" | "comfyui") => {
@@ -191,7 +200,7 @@ export default function LocalAiSkinHost() {
 
         {view === "writing" ? <AiRoutingPanel capability="text" locality="local" onManage={manageRoute} /> : null}
         {view === "images" ? <LocalComfyUiPanel /> : null}
-        {view === "video" ? <AiRoutingPanel capability="video" locality="local" onManage={manageRoute} /> : null}
+        {view === "video" ? <LocalVideoPanel onOpenH3={() => setView("h3")} /> : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
         {view === "comfyui" ? <LocalComfyUiPanel /> : null}
         {view === "h3" ? <H3NativePanel /> : null}

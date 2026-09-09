@@ -44,7 +44,8 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-dashboard-shell-title">PLOTPICKLE BBS</div>
 
         <div className="pp-skin-v1-dashboard-art" aria-hidden="true">
-          <img src="/api/skin-v1/dashboard-art" alt="" draggable={false} />
+          <img src="/brand/dashboard/plotpickle-observatory-dragon.svg" alt="" draggable={false} />
+          {/* Previous route token retained for regression trace: /api/skin-v1/dashboard-art */}
         </div>
 
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>

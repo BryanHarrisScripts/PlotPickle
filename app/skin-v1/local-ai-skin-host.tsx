@@ -5,9 +5,10 @@ import AiRoutingPanel from "../ai-routing-panel";
 import LocalRuntimePanel from "../local-runtime-panel";
 import LocalComfyUiPanel from "./local-comfyui-panel";
 import LocalH3SetupPanel from "./local-h3-setup-panel";
+import LocalLtxSetupPanel from "./local-ltx-setup-panel";
 import LocalVideoPanel from "./local-video-panel";
 
-type LocalAiView = "menu" | "writing" | "images" | "video" | "ollama" | "comfyui" | "h3";
+type LocalAiView = "menu" | "writing" | "images" | "video" | "ollama" | "comfyui" | "ltx" | "h3";
 type CapabilityKey = "writing" | "images" | "video";
 type RoutingOption = { ready: boolean; locality: string };
 type RoutingGroup = { selected: string; options: Record<string, RoutingOption> };
@@ -86,6 +87,7 @@ const TASKS: Array<{ id: LocalAiView; label: string; detail: string }> = [
 const ENGINES: Array<{ id: LocalAiView; label: string; detail: string }> = [
   { id: "ollama", label: "OLLAMA", detail: "Local text runtime and models" },
   { id: "comfyui", label: "COMFYUI", detail: "Local image and video engine" },
+  { id: "ltx", label: "LTX-VIDEO", detail: "Default local text-to-video plug-in" },
   { id: "h3", label: "MINIMAX H3", detail: "Advanced local video plug-in and setup" },
 ];
 
@@ -95,6 +97,7 @@ const VIEW_TITLES: Record<Exclude<LocalAiView, "menu">, string> = {
   video: "VIDEO",
   ollama: "OLLAMA",
   comfyui: "COMFYUI",
+  ltx: "LTX-VIDEO",
   h3: "MINIMAX H3",
 };
 
@@ -171,6 +174,7 @@ export default function LocalAiSkinHost() {
       const target = (event as CustomEvent<string>).detail;
       if (target === "comfyui") setView("comfyui");
       if (target === "ollama") setView("ollama");
+      if (target === "ltx") setView("ltx");
       if (target === "minimax") setView("h3");
     };
     window.addEventListener("plotpickle:setup-status-refresh", refresh);
@@ -209,6 +213,7 @@ export default function LocalAiSkinHost() {
         {view === "video" ? <LocalVideoPanel /> : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
         {view === "comfyui" ? <LocalComfyUiPanel /> : null}
+        {view === "ltx" ? <LocalLtxSetupPanel /> : null}
         {view === "h3" ? <LocalH3SetupPanel /> : null}
       </div>
     );

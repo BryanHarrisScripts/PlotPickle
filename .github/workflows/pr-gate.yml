@@ -40,6 +40,9 @@ jobs:
       - name: Validate current Experience architecture boundary
         run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/community-skin-v1-navigation.test.mjs tests/community-agent-roster.test.mjs
 
+      - name: Validate generated architecture documentation
+        run: node --test tests/architecture-blueprint-generator.test.mjs
+
       - name: Validate core auth and storage contracts
         run: |
           npm run test:plotpickle-auth

@@ -64,22 +64,6 @@ function Resolve-CheckpointDirectory {
   return Resolve-ManagedCheckpointDirectory
 }
 
-function Test-SdxlName {
-  param([string]$Name)
-  return $Name -match '(?i)(sd.?xl|stable.?diffusion.?xl|juggernaut.?xl|realvis.?xl|dreamshaper.?xl)'
-}
-
-function Find-CompatibleCheckpoint {
-  param([string]$Directory)
-  if (-not $Directory -or -not (Test-Path -LiteralPath $Directory -PathType Container)) { return "" }
-  $match = Get-ChildItem -LiteralPath $Directory -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.Extension -in @('.safetensors', '.ckpt') -and (Test-SdxlName -Name $_.Name) } |
-    Sort-Object Name |
-    Select-Object -First 1
-  if ($match) { return $match.FullName }
-  return ""
-}
-
 function Test-ReviewedStarterFile {
   param([string]$Path)
   if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $false }
@@ -141,26 +125,21 @@ if (-not $checkpointDirectory) {
 }
 
 $destination = Join-Path $checkpointDirectory $Starter.FileName
-$compatible = Find-CompatibleCheckpoint -Directory $checkpointDirectory
-if ($compatible -and -not (Test-Path -LiteralPath $destination -PathType Leaf)) {
-  Write-Markers -State "existing-compatible" -Destination $compatible -Message "An SDXL-compatible checkpoint already exists. PlotPickle will not download another starter automatically."
-  exit 0
-}
 if (Test-ReviewedStarterFile -Path $destination) {
-  Write-Markers -State "ready" -Destination $destination -Message "The reviewed SDXL 1.0 starter is already installed and verified."
+  Write-Markers -State "ready" -Destination $destination -Message "The reviewed SDXL 1.0 local image model is installed and verified."
   exit 0
 }
 if (Test-Path -LiteralPath $destination -PathType Leaf) {
-  Write-Markers -State "conflict" -Destination $destination -Message "A file already uses the reviewed SDXL starter filename but does not match its reviewed size and SHA-256. PlotPickle will not overwrite it."
+  Write-Markers -State "conflict" -Destination $destination -Message "A file already uses the fixed SDXL 1.0 filename but does not match the reviewed size and SHA-256. PlotPickle will not overwrite it."
   exit 3
 }
 
 if ($Mode -eq "Status") {
-  Write-Markers -State "missing" -Destination $destination -Message "The reviewed SDXL 1.0 starter is not installed. Explicit approval is required before the 6.94 GB download."
+  Write-Markers -State "missing" -Destination $destination -Message "The reviewed SDXL 1.0 local image model is not installed. Explicit approval is required before the 6.94 GB download."
   exit 0
 }
 if (-not $Approved) {
-  Write-Markers -State "approval-required" -Destination $destination -Message "Explicit approval is required before PlotPickle downloads the reviewed SDXL 1.0 starter."
+  Write-Markers -State "approval-required" -Destination $destination -Message "Explicit approval is required before PlotPickle downloads the reviewed SDXL 1.0 local image model."
   exit 4
 }
 
@@ -170,4 +149,4 @@ Write-Host "[SDXL] Size: $($Starter.SizeLabel) | License: $($Starter.License)"
 Write-Host "[SDXL] Destination: $destination"
 Download-ReviewedStarter -DestinationFile $destination
 if (-not (Test-ReviewedStarterFile -Path $destination)) { throw "The reviewed SDXL starter did not pass post-install verification." }
-Write-Markers -State "installed" -Destination $destination -Message "The reviewed SDXL 1.0 starter was downloaded, size/hash verified, and activated in ComfyUI's checkpoint library."
+Write-Markers -State "installed" -Destination $destination -Message "The reviewed SDXL 1.0 local image model was downloaded, size/hash verified, and activated in ComfyUI's checkpoint library."

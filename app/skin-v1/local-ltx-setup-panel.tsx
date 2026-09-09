@@ -87,7 +87,7 @@ function setupBlocker(status: LtxStatus | null) {
   if (status.setupTask?.state === "failed") return { title: "LTX MODEL INSTALL FAILED", detail: status.setupTask.message };
   if (!status.reachable) return { title: "COMFYUI SERVICE NOT READY", detail: status.error || "Start the managed ComfyUI service first." };
   if (!status.manifestConfigured) return { title: "LTX WORKFLOW NOT CONFIGURED", detail: "Press SET UP LTX to load the bundled PlotPickle workflow." };
-  if (status.missingNodes.length) return { title: "LTX CORE NODES MISSING", detail: status.missingNodes.map((name) => `MISSING NODE: ${name}`).join("; ") };
+  if (status.missingNodes.length) return { title: "LTX NODES MISSING / CORE", detail: status.missingNodes.map((name) => `MISSING NODE: ${name}`).join("; ") };
   if (status.missingModels.length) return { title: "LTX MODELS MISSING", detail: status.missingModels.map((name) => `MISSING MODEL: ${name}`).join("; ") };
   if (!status.ready) return { title: "LTX SETUP INCOMPLETE", detail: status.error || status.lastError || "The reviewed LTX workflow is not ready yet." };
   if (status.lastError) return { title: "LOCAL TEST FAILED", detail: status.lastError };

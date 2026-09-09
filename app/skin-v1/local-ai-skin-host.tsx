@@ -11,6 +11,17 @@ type CapabilityKey = "writing" | "images" | "video";
 type RoutingOption = { ready: boolean; locality: string };
 type RoutingGroup = { selected: string; options: Record<string, RoutingOption> };
 type RoutingStatus = { text: RoutingGroup; image: RoutingGroup; video: RoutingGroup };
+type LocalImageStatus = {
+  imageRoute: string;
+  comfyui: {
+    reachable: boolean;
+    checkpoints: string[];
+    imageNodesReady: boolean;
+    selectedCheckpoint?: string;
+  };
+};
+
+const LOCAL_IMAGE_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
 const shell: React.CSSProperties = {
   minHeight: "100vh",
@@ -120,17 +131,39 @@ function MenuGroup({ title, items, onOpen }: { title: string; items: typeof TASK
   );
 }
 
+function exactLocalSdxl(checkpoints: readonly string[]) {
+  return checkpoints.find((checkpoint) => checkpoint.trim().toLowerCase() === LOCAL_IMAGE_CHECKPOINT) || "";
+}
+
 export default function LocalAiSkinHost() {
   const [view, setView] = useState<LocalAiView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
+  const [imagesReady, setImagesReady] = useState(false);
 
   const refreshStatus = useCallback(async () => {
     try {
-      const response = await fetch("/api/ai-routing/status", { cache: "no-store" });
-      if (!response.ok) return;
-      setRouting(await response.json() as RoutingStatus);
+      const [routingResponse, imageResponse] = await Promise.all([
+        fetch("/api/ai-routing/status", { cache: "no-store" }),
+        fetch("/api/media-routing/status", { cache: "no-store" }),
+      ]);
+      if (routingResponse.ok) setRouting(await routingResponse.json() as RoutingStatus);
+      if (imageResponse.ok) {
+        let imageStatus = await imageResponse.json() as LocalImageStatus;
+        const checkpoint = exactLocalSdxl(imageStatus.comfyui.checkpoints || []);
+        const ready = Boolean(imageStatus.comfyui.reachable && imageStatus.comfyui.imageNodesReady && checkpoint);
+        if (ready && (imageStatus.comfyui.selectedCheckpoint || "").toLowerCase() !== checkpoint.toLowerCase()) {
+          const bindResponse = await fetch("/api/media-routing/comfyui/checkpoint", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ checkpoint }),
+          });
+          if (bindResponse.ok) imageStatus = await bindResponse.json() as LocalImageStatus;
+        }
+        setImagesReady(Boolean(imageStatus.comfyui.reachable && imageStatus.comfyui.imageNodesReady && exactLocalSdxl(imageStatus.comfyui.checkpoints || [])));
+      }
     } catch {
-      // The packaged local app owns this same-origin API. A dim light is safer than inventing readiness.
+      // The packaged local app owns these same-origin APIs. A dim light is safer than inventing readiness.
+      setImagesReady(false);
     }
   }, []);
 
@@ -153,7 +186,7 @@ export default function LocalAiSkinHost() {
 
   const lights: Record<CapabilityKey, boolean> = {
     writing: localReady(routing?.text),
-    images: localReady(routing?.image),
+    images: imagesReady,
     video: localReady(routing?.video),
   };
 

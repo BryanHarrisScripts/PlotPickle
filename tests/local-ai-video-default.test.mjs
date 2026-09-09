@@ -9,14 +9,16 @@ test("Skin V1 VIDEO uses the focused MiniMax H3 text-to-video local default inst
   const host = await source("app/skin-v1/local-ai-skin-host.tsx");
 
   assert.match(host, /import LocalVideoPanel from "\.\/local-video-panel"/u);
+  assert.match(host, /import LocalH3SetupPanel from "\.\/local-h3-setup-panel"/u);
   assert.match(host, /view === "video" \? <LocalVideoPanel/u);
+  assert.match(host, /view === "h3" \? <LocalH3SetupPanel/u);
   assert.doesNotMatch(host, /view === "video" \? <AiRoutingPanel capability="video"/u);
   assert.match(host, /fetch\("\/api\/media-routing\/comfyui\/h3\/native\/status"/u);
   assert.match(host, /fixedLocalVideoReady\(h3\)/u);
   assert.match(host, /status\.workflowFamily === "text-to-video"/u);
 });
 
-test("local VIDEO presents MiniMax H3 text-to-video as the engine and ComfyUI only as its managed runtime dependency", async () => {
+test("local VIDEO presents MiniMax H3 text-to-video as the engine and shares the exact setup blocker", async () => {
   const panel = await source("app/skin-v1/local-video-panel.tsx");
 
   for (const contract of [
@@ -31,14 +33,43 @@ test("local VIDEO presents MiniMax H3 text-to-video as the engine and ComfyUI on
     "/api/media-routing/comfyui/start",
     "/api/media-routing/comfyui/h3/native",
     "allowConstrainedVram",
-    'status.workflowFamily === "text-to-video"',
-    "TEXT-TO-VIDEO REQUIRED",
+    "h3TextToVideoPrerequisitesReady",
+    "deriveH3TextToVideoSetup",
+    "SETUP BLOCKER:",
     "SETUP H3",
   ]) assert.ok(panel.includes(contract), `Missing local video default contract: ${contract}`);
 
-  assert.match(panel, /function textToVideoPrerequisitesReady/u);
-  assert.match(panel, /status\.workflowFamily === "text-to-video"/u);
   assert.doesNotMatch(panel, /api\.openai\.com|api\.minimax\.io|generativelanguage\.googleapis\.com/u);
+});
+
+test("guided H3 setup reports one exact blocker at a time and keeps developer controls advanced", async () => {
+  const [helper, panel] = await Promise.all([
+    source("app/skin-v1/h3-setup-status.ts"),
+    source("app/skin-v1/local-h3-setup-panel.tsx"),
+  ]);
+
+  for (const blocker of [
+    "COMFYUI SERVICE NOT RUNNING",
+    "GPU BELOW LOCAL VIDEO MINIMUM",
+    "TEXT-TO-VIDEO WORKFLOW NOT INSTALLED",
+    "TEXT-TO-VIDEO WORKFLOW REQUIRED",
+    "COMFYUI VERSION UPDATE REQUIRED",
+    "MISSING COMFYUI NODE:",
+    "MISSING H3 MODEL:",
+    "TEXT-TO-VIDEO SETUP READY",
+  ]) assert.ok(helper.includes(blocker), `Missing H3 setup blocker: ${blocker}`);
+
+  for (const contract of [
+    "PLOTPICKLE H3 SETUP",
+    "MINIMAX H3 · TEXT TO VIDEO",
+    "SETUP BLOCKER",
+    "NEXT:",
+    "CHECK AGAIN",
+    "START COMFYUI",
+    "ADVANCED SETUP",
+    "H3NativePanel",
+    "does not automatically download H3 weights",
+  ]) assert.ok(panel.includes(contract), `Missing guided H3 setup contract: ${contract}`);
 });
 
 test("8 GB-class H3 VRAM uses the constrained profile that the UI displays", async () => {

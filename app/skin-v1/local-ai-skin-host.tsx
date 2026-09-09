@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AiRoutingPanel from "../ai-routing-panel";
-import H3NativePanel from "../h3-native-panel";
 import LocalRuntimePanel from "../local-runtime-panel";
 import LocalComfyUiPanel from "./local-comfyui-panel";
+import LocalH3SetupPanel from "./local-h3-setup-panel";
 import LocalVideoPanel from "./local-video-panel";
 
 type LocalAiView = "menu" | "writing" | "images" | "video" | "ollama" | "comfyui" | "h3";
@@ -80,7 +80,7 @@ const TASKS: Array<{ id: LocalAiView; label: string; detail: string }> = [
 const ENGINES: Array<{ id: LocalAiView; label: string; detail: string }> = [
   { id: "ollama", label: "OLLAMA", detail: "Local text runtime and models" },
   { id: "comfyui", label: "COMFYUI", detail: "Local image and video engine" },
-  { id: "h3", label: "MINIMAX H3", detail: "Advanced local H3 video workflow" },
+  { id: "h3", label: "MINIMAX H3", detail: "Local text-to-video model and setup" },
 ];
 
 const VIEW_TITLES: Record<Exclude<LocalAiView, "menu">, string> = {
@@ -203,7 +203,7 @@ export default function LocalAiSkinHost() {
         {view === "video" ? <LocalVideoPanel onOpenH3={() => setView("h3")} /> : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
         {view === "comfyui" ? <LocalComfyUiPanel /> : null}
-        {view === "h3" ? <H3NativePanel /> : null}
+        {view === "h3" ? <LocalH3SetupPanel /> : null}
       </div>
     );
   }

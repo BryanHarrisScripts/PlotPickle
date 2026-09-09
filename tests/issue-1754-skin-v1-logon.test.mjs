@@ -250,7 +250,7 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(host, /view === "video" \? <LocalVideoPanel onOpenH3=\{\(\) => setView\("h3"\)\} \/>/u);
   assert.match(host, /<LocalRuntimePanel \/>/u);
   assert.match(host, /<LocalComfyUiPanel \/>/u);
-  assert.match(host, /<H3NativePanel \/>/u);
+  assert.match(host, /<LocalH3SetupPanel \/>/u);
   assert.doesNotMatch(host, /AiComputeWorkspace/u);
   assert.match(host, /Opening Local AI does not change an existing route/u);
   assert.match(host, /does not silently fall back to a paid cloud provider/u);

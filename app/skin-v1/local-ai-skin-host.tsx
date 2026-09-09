@@ -11,6 +11,16 @@ type CapabilityKey = "writing" | "images" | "video";
 type RoutingOption = { ready: boolean; locality: string };
 type RoutingGroup = { selected: string; options: Record<string, RoutingOption> };
 type RoutingStatus = { text: RoutingGroup; image: RoutingGroup; video: RoutingGroup };
+type MediaImageStatus = {
+  imageRoute: string;
+  comfyui: {
+    reachable: boolean;
+    imageNodesReady: boolean;
+    checkpoints: string[];
+  };
+};
+
+const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
 const shell: React.CSSProperties = {
   minHeight: "100vh",
@@ -86,6 +96,11 @@ function localReady(group: RoutingGroup | undefined) {
   return Boolean(option?.ready && option.locality === "local");
 }
 
+function fixedLocalImagesReady(status: MediaImageStatus | null) {
+  if (!status || status.imageRoute !== "comfyui" || !status.comfyui.reachable || !status.comfyui.imageNodesReady) return false;
+  return status.comfyui.checkpoints.some((checkpoint) => checkpoint.toLowerCase() === LOCAL_SDXL_CHECKPOINT.toLowerCase());
+}
+
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {
   return (
     <span
@@ -123,15 +138,15 @@ function MenuGroup({ title, items, onOpen }: { title: string; items: typeof TASK
 export default function LocalAiSkinHost() {
   const [view, setView] = useState<LocalAiView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
+  const [mediaImages, setMediaImages] = useState<MediaImageStatus | null>(null);
 
   const refreshStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/ai-routing/status", { cache: "no-store" });
-      if (!response.ok) return;
-      setRouting(await response.json() as RoutingStatus);
-    } catch {
-      // The packaged local app owns this same-origin API. A dim light is safer than inventing readiness.
-    }
+    const [routingResponse, mediaResponse] = await Promise.all([
+      fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null),
+      fetch("/api/media-routing/status", { cache: "no-store" }).catch(() => null),
+    ]);
+    if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
+    if (mediaResponse?.ok) setMediaImages(await mediaResponse.json() as MediaImageStatus);
   }, []);
 
   useEffect(() => {
@@ -153,7 +168,7 @@ export default function LocalAiSkinHost() {
 
   const lights: Record<CapabilityKey, boolean> = {
     writing: localReady(routing?.text),
-    images: localReady(routing?.image),
+    images: fixedLocalImagesReady(mediaImages),
     video: localReady(routing?.video),
   };
 

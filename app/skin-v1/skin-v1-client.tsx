@@ -23,11 +23,12 @@ import {
 import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../../lib/experience/surface-registry";
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
+const LocalAiSkinHost = lazy(() => import("./local-ai-skin-host"));
 
 const PROFILE_MENU = [
-  { label: "PROFILE", description: "YOUR PROFILE" },
-  { label: "LOCAL AI", description: "LOCAL CONFIGURATIONS" },
-  { label: "NODE", description: "NODE INFO" },
+  { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: false },
+  { id: "local-ai", label: "LOCAL AI", description: "LOCAL CONFIGURATIONS", enabled: true },
+  { id: "node", label: "NODE", description: "NODE INFO", enabled: false },
 ] as const;
 
 const LOADING_VIEW: LogonViewModel = {
@@ -83,7 +84,9 @@ export default function SkinV1Client() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [localAiOpen, setLocalAiOpen] = useState(false);
   const profileMenuHeadingRef = useRef<HTMLHeadingElement>(null);
+  const localAiHeadingRef = useRef<HTMLHeadingElement>(null);
   const [dashboardSelection, setDashboardSelection] = useState(0);
   const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
   const returnButtonRef = useRef<HTMLButtonElement>(null);
@@ -107,10 +110,11 @@ export default function SkinV1Client() {
   );
 
   useEffect(() => {
-    if (profileMenuOpen) profileMenuHeadingRef.current?.focus();
+    if (localAiOpen) localAiHeadingRef.current?.focus();
+    else if (profileMenuOpen) profileMenuHeadingRef.current?.focus();
     else if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
     else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
-  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen]);
+  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen, localAiOpen]);
 
   function openSurface(surfaceId: ExperienceSurfaceId) {
     const result = executeOpenSurfaceIntent({
@@ -121,8 +125,16 @@ export default function SkinV1Client() {
 
   function activateDashboardItem(index: number) {
     setDashboardSelection(index);
-    if (DASHBOARD_MENU[index]?.id === "profile") setProfileMenuOpen(true);
+    if (DASHBOARD_MENU[index]?.id === "profile") {
+      setLocalAiOpen(false);
+      setProfileMenuOpen(true);
+    }
     if (DASHBOARD_MENU[index]?.id === "community") openSurface("COMMUNITY");
+  }
+
+  function closeProfileMenu() {
+    setLocalAiOpen(false);
+    setProfileMenuOpen(false);
   }
 
   function moveDashboardSelection(index: number) {
@@ -241,11 +253,12 @@ export default function SkinV1Client() {
 
   if (view.state === "authenticated") {
     const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
+    const businessUseCase = localAiOpen ? "LOCAL AI" : profileMenuOpen ? "PROFILE" : activeSurface;
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
           <strong>PLOTPICKLE</strong>
-          <span>{profileMenuOpen ? "PROFILE" : activeSurface}</span>
+          <span>{businessUseCase}</span>
           <span>SKIN V1</span>
           {activeSurface === "COMMUNITY" ? (
             <button className="pp-skin-v1-return" ref={returnButtonRef} type="button" onClick={() => openSurface("DASHBOARD")}>Back to Dashboard</button>
@@ -253,26 +266,44 @@ export default function SkinV1Client() {
         </header>
 
         {profileMenuOpen ? (
-          <section className="pp-skin-v1-dashboard" aria-label="Profile menu" onKeyDown={(event) => {
-            if (event.key === "Escape") { event.preventDefault(); setProfileMenuOpen(false); }
-          }}>
-            <div className="pp-skin-v1-bbs">
+          localAiOpen ? (
+            <section aria-label="Local AI setup" onKeyDown={(event) => {
+              if (event.key === "Escape") { event.preventDefault(); setLocalAiOpen(false); }
+            }}>
               <div className="pp-skin-v1-bbs-banner">
-                <h1 ref={profileMenuHeadingRef} tabIndex={-1}>PROFILE</h1>
-                <button type="button" className="pp-skin-v1-return" onClick={() => setProfileMenuOpen(false)}>Back to Dashboard</button>
+                <h1 ref={localAiHeadingRef} tabIndex={-1}>LOCAL AI</h1>
+                <button type="button" className="pp-skin-v1-return" onClick={() => setLocalAiOpen(false)}>Back to Profile</button>
               </div>
-              <div className="pp-skin-v1-menu" aria-describedby="profile-menu-status">
-                {PROFILE_MENU.map((item) => (
-                  <button key={item.label} type="button" disabled className="pp-skin-v1-menu-item pp-skin-v1-submenu-item">
-                    <span aria-hidden="true">&gt;</span>
-                    <span className="pp-skin-v1-menu-label">{item.label}</span>
-                    <small className="pp-skin-v1-menu-description">{item.description}</small>
-                  </button>
-                ))}
+              <Suspense fallback={<p role="status">Loading Local AI...</p>}><LocalAiSkinHost /></Suspense>
+            </section>
+          ) : (
+            <section className="pp-skin-v1-dashboard" aria-label="Profile menu" onKeyDown={(event) => {
+              if (event.key === "Escape") { event.preventDefault(); closeProfileMenu(); }
+            }}>
+              <div className="pp-skin-v1-bbs">
+                <div className="pp-skin-v1-bbs-banner">
+                  <h1 ref={profileMenuHeadingRef} tabIndex={-1}>PROFILE</h1>
+                  <button type="button" className="pp-skin-v1-return" onClick={closeProfileMenu}>Back to Dashboard</button>
+                </div>
+                <div className="pp-skin-v1-menu" aria-describedby="profile-menu-status">
+                  {PROFILE_MENU.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={!item.enabled}
+                      className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"
+                      onClick={item.id === "local-ai" ? () => setLocalAiOpen(true) : undefined}
+                    >
+                      <span aria-hidden="true">&gt;</span>
+                      <span className="pp-skin-v1-menu-label">{item.label}</span>
+                      <small className="pp-skin-v1-menu-description">{item.description}</small>
+                    </button>
+                  ))}
+                </div>
+                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">LOCAL AI CONNECTED — PROFILE / NODE ARE NOT WIRED YET</p>
               </div>
-              <p className="pp-skin-v1-bbs-help" id="profile-menu-status">MENU PREVIEW — OPTIONS ARE NOT CONNECTED YET</p>
-            </div>
-          </section>
+            </section>
+          )
         ) : activeSurface === "COMMUNITY" ? (
           <section aria-label="PlotPickle Community">
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
@@ -317,7 +348,7 @@ export default function SkinV1Client() {
         </section>}
 
         <footer className="pp-skin-v1-status">
-          <span>BUSINESS USE CASE: {activeSurface}</span>
+          <span>BUSINESS USE CASE: {businessUseCase}</span>
           <span>SELECTED: {selectedMenuItem.label}</span>
         </footer>
       </main>

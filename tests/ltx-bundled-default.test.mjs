@@ -77,8 +77,14 @@ async function fixture(t) {
   };
 }
 
-test("first-run setup bundles and persists once, preserving a reviewed advanced workflow", async (t) => {
+test("first-run setup bundles core-only sigmas and persists once, preserving a reviewed advanced workflow", async (t) => {
   const f = await fixture(t);
+  const classes = Object.values(f.manifest.workflow).map((node) => node.class_type);
+  assert.ok(classes.includes("ManualSigmas"));
+  assert.ok(!classes.includes("StringToFloatList"));
+  assert.ok(!classes.includes("FloatToSigmas"));
+  assert.equal(f.manifest.workflow["12"].inputs.sigmas[0], "10");
+
   await Promise.all([f.provider.ensureLtxDefault(), f.provider.ensureLtxDefault()]);
   assert.equal(f.writes, 1);
   assert.ok(f.stored.manifest.workflow);
@@ -138,6 +144,10 @@ test("local render submission retrieves native ComfyUI video history and verifie
 test("LTX test endpoint cannot fall through to a selected cloud route and releases its GPU lease", async () => {
   let handler, renders = 0, releases = 0;
   const gateway = await compile("build/ai/comfyui-ltx-local-gateway.ts", {
+    "./comfyui-ltx-default": {
+      bundledLtxManifest: () => ({ model: "current", source: "current", requiredModelNames: [], workflow: {} }),
+      legacyBundledLtxManifestV1: () => ({ model: "legacy", source: "legacy", requiredModelNames: [], workflow: {} }),
+    },
     "./comfyui-ltx-local-provider": {
       createLtxVideo: async () => { renders++; return { id: "ltx-test", status: "succeeded", outputAssetUrl: "/proof.mp4" }; },
     },
@@ -157,6 +167,31 @@ test("LTX test endpoint cannot fall through to a selected cloud route and releas
   assert.equal((await request("/api/media-routing/test/video")).next, true);
   assert.equal((await request("/api/local-ai/ltx-video/test", "https://example.org")).code, 403);
   assert.equal(renders, 1);
+});
+
+test("reviewed Windows model setup is explicit, pinned and shell-free", async () => {
+  const [installer, gateway, panel] = await Promise.all([
+    read("scripts/install-comfyui-ltx-2b-starter.ps1"),
+    read("build/ai/comfyui-ltx-local-gateway.ts"),
+    read("app/skin-v1/local-ltx-setup-panel.tsx"),
+  ]);
+  for (const value of [
+    "ltxv-2b-0.9.8-distilled.safetensors",
+    "t5xxl_fp16.safetensors",
+    "76aa8c4786af752fa6f951947129d5290c3c6c0b2fadcadea6b5e114ae2cad8f",
+    "6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635",
+  ]) assert.ok(installer.includes(value));
+  assert.match(installer, /SizeBytes = \[int64\]6340744492/u);
+  assert.match(installer, /SizeBytes = \[int64\]9787841024/u);
+  assert.match(installer, /\.partial/u);
+  assert.match(installer, /Get-FileHash[\s\S]*SHA256/u);
+  assert.doesNotMatch(installer, /git clone|custom_nodes/iu);
+  assert.match(gateway, /shell: false/u);
+  assert.match(gateway, /body\.approved !== true/u);
+  assert.match(gateway, /isLegacyBundledStore/u);
+  assert.match(gateway, /configureLtxManifest\(bundledLtxManifest\(\)\)/u);
+  assert.match(panel, /window\.confirm/u);
+  assert.match(panel, /16\.13 GB/u);
 });
 
 test("selected plug-in publishes the same readiness, proof preset and engine actions without story-layer model coupling", async (t) => {

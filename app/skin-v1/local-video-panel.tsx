@@ -125,6 +125,7 @@ export default function LocalVideoPanel() {
       }
       return next;
     } catch (error) {
+      setStatus(null);
       setNotice(error instanceof Error ? error.message : "Local video plug-in status could not be checked.");
       return null;
     }
@@ -246,6 +247,12 @@ export default function LocalVideoPanel() {
             </div>
           ) : null}
         </div>
+      ) : null}
+
+      {typeof recommendation?.details?.setupTarget === "string" ? (
+        <button type="button" style={primaryButton} onClick={() => window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: recommendation.details?.setupTarget }))}>
+          SET UP / TEST {selected?.label.toUpperCase()}
+        </button>
       ) : null}
 
       {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "#79bd92" }}>{notice}</p> : null}

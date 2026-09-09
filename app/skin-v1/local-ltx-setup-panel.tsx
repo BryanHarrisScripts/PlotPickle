@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 type LtxStatus = {
+  blockers: string[];
   ok?: boolean;
   enabled: boolean;
   configuredAt: string;
@@ -28,7 +29,8 @@ type LtxTestResult = {
 
 const STATUS_API = "/api/local-ai/ltx-video";
 const MANIFEST_API = "/api/local-ai/ltx-video/manifest";
-const TEST_API = "/api/media-routing/test/video";
+const SETUP_API = "/api/local-ai/ltx-video/setup";
+const TEST_API = "/api/local-ai/ltx-video/test";
 
 const panel: React.CSSProperties = {
   border: "1px solid #287a4b",
@@ -73,9 +75,9 @@ async function readJson<T>(response: Response, fallback: string) {
 function setupBlocker(status: LtxStatus | null) {
   if (!status) return { title: "CHECKING LTX", detail: "Reading the local LTX-Video setup." };
   if (!status.reachable) return { title: "COMFYUI SERVICE NOT READY", detail: status.error || "Start the managed ComfyUI service first." };
-  if (!status.manifestConfigured) return { title: "LTX WORKFLOW NOT CONFIGURED", detail: "Import the reviewed LTX-Video 2B 0.9.8 Distilled ComfyUI API-format manifest." };
-  if (status.missingNodes.length) return { title: "LTX NODES MISSING", detail: status.missingNodes.join(", ") };
-  if (status.missingModels.length) return { title: "LTX MODELS MISSING", detail: status.missingModels.join(", ") };
+  if (!status.manifestConfigured) return { title: "LTX WORKFLOW NOT CONFIGURED", detail: "Press SET UP LTX to load the bundled PlotPickle workflow." };
+  if (status.missingNodes.length) return { title: "LTX NODES MISSING", detail: status.missingNodes.map((name) => `MISSING NODE: ${name}`).join("; ") };
+  if (status.missingModels.length) return { title: "LTX MODELS MISSING", detail: status.missingModels.map((name) => `MISSING MODEL: ${name}`).join("; ") };
   if (!status.ready) return { title: "LTX SETUP INCOMPLETE", detail: status.error || status.lastError || "The reviewed LTX workflow is not ready yet." };
   return { title: "LTX READY", detail: "The reviewed local LTX text-to-video workflow is ready for a test render." };
 }
@@ -97,6 +99,8 @@ export default function LocalLtxSetupPanel() {
       setNotice(blocker.detail);
       return next;
     } catch (error) {
+      setStatus(null);
+      setTestResult(null);
       setNotice(error instanceof Error ? error.message : "LTX-Video setup could not be checked.");
       return null;
     }
@@ -107,9 +111,23 @@ export default function LocalLtxSetupPanel() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  async function setupDefault() {
+    if (working) return;
+    setWorking(true);
+    setTestResult(null);
+    try {
+      await readJson<LtxStatus>(await fetch(SETUP_API, { method: "POST" }), "LTX setup failed.");
+      await refresh();
+      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "LTX setup failed.");
+    } finally { setWorking(false); }
+  }
+
   async function importManifest() {
     if (working) return;
     setWorking(true);
+    setTestResult(null);
     setNotice("Importing reviewed LTX manifest...");
     try {
       const manifest = JSON.parse(manifestText) as unknown;
@@ -140,13 +158,16 @@ export default function LocalLtxSetupPanel() {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          prompt: "A simple black-and-white cinematic frame with gentle natural motion and a slow camera push.",
+          prompt: "A short black-and-white cinematic shot of a person walking slowly through a dim room, subtle motion, steady camera.",
         }),
       });
       const result = await readJson<LtxTestResult>(response, "The local LTX test failed.");
-      setTestResult(result);
-      setNotice(result.outputAssetUrl ? "Local LTX video test passed." : "The LTX test completed without a saved output URL.");
+      if (result.ok !== true || result.status !== "succeeded" || !result.outputAssetUrl) {
+        throw new Error(result.error || result.message || "The LTX test returned no completed video.");
+      }
       await refresh();
+      setTestResult(result);
+      setNotice("Local LTX video test passed.");
       window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "The local LTX test failed.";
@@ -160,7 +181,7 @@ export default function LocalLtxSetupPanel() {
   const blocker = setupBlocker(status);
   const nodesReady = Boolean(status?.manifestConfigured && status.missingNodes.length === 0);
   const modelsReady = Boolean(status?.manifestConfigured && status.missingModels.length === 0);
-  const testPassed = Boolean(status?.verifiedAt || testResult?.outputAssetUrl);
+  const testPassed = Boolean(status?.ready && !testResult?.error && !status.lastError && (status.verifiedAt || testResult?.outputAssetUrl));
 
   return (
     <section style={panel} aria-labelledby="local-ltx-title">
@@ -179,18 +200,19 @@ export default function LocalLtxSetupPanel() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10, marginTop: 16 }}>
         <div style={card}><strong>ComfyUI Service</strong><p>{status === null ? "CHECKING..." : status.reachable ? "READY" : "STOPPED"}</p><small>127.0.0.1:8188{status?.version ? ` · ${status.version}` : ""}</small></div>
-        <div style={card}><strong>LTX Workflow</strong><p>{status?.manifestConfigured ? "CONFIGURED" : "SETUP NEEDED"}</p><small>Reviewed API-format workflow</small></div>
+        <div style={card}><strong>PlotPickle LTX Workflow</strong><p>{status?.manifestConfigured ? "CONFIGURED" : "SETUP NEEDED"}</p><small>Bundled text-to-video workflow</small></div>
         <div style={card}><strong>LTX Nodes</strong><p>{nodesReady ? "READY" : "SETUP NEEDED"}</p><small>{status?.missingNodes.length ? status.missingNodes.join(", ") : "Required ComfyUI nodes"}</small></div>
         <div style={card}><strong>LTX Models</strong><p>{modelsReady ? "READY" : "SETUP NEEDED"}</p><small>{status?.missingModels.length ? status.missingModels.join(", ") : "Required local model files"}</small></div>
+        <div style={card}><strong>Video Status</strong><p>{testPassed ? "VERIFIED / GREEN" : status?.ready ? "READY TO TEST" : "BLOCKED"}</p><small>640 × 352 / 25 frames / 8 steps / no upscaling</small></div>
         <div style={card}><strong>Local Test</strong><p>{testPassed ? "PASSED" : "NOT TESTED"}</p><small>{status?.verifiedAt || "Short local text-to-video verification"}</small></div>
       </div>
 
       <div style={{ ...card, marginTop: 12, borderColor: status?.ready ? "#287a4b" : "#746a24", background: status?.ready ? "#0b160e" : "#171508" }}>
         <p style={{ margin: 0, color: status?.ready ? "#79bd92" : "#d8c85d", fontSize: 12, letterSpacing: ".08em" }}>{status?.ready ? "ENGINE STATUS" : "SETUP BLOCKER"}</p>
         <h3 style={{ margin: "7px 0" }}>{blocker.title}</h3>
-        <p style={{ margin: 0, color: "#d7ded8", lineHeight: 1.5 }}>{blocker.detail}</p>
+        <p style={{ margin: 0, color: "#d7ded8", lineHeight: 1.5 }}>{status?.blockers?.length ? status.blockers.join("; ") : blocker.detail}</p>
         <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
-          {!status?.manifestConfigured ? <button type="button" style={yellowButton} onClick={() => setAdvancedOpen(true)}>SETUP LTX</button> : null}
+          <button type="button" style={yellowButton} onClick={() => void setupDefault()} disabled={working}>SET UP LTX</button>
           <button type="button" style={yellowButton} onClick={() => void refresh()} disabled={working}>{working ? "WORKING..." : "CHECK AGAIN"}</button>
           <button type="button" style={status?.ready ? button : { ...button, opacity: 0.45, cursor: "not-allowed" }} onClick={() => void testLocalVideo()} disabled={working || !status?.ready}>TEST LOCAL VIDEO</button>
         </div>

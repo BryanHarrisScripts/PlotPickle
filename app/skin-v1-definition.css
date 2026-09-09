@@ -6,10 +6,10 @@
  * but they must consume these tokens instead of inventing local colours,
  * radii, shadows, type scales or control sizes.
  *
- * Skin V2/V3/V4 should inherit this base contract and override only the
- * PALETTE block. Geometry, typography, spacing, 8/16-bit shading, focus,
- * motion and component sizing stay unchanged unless a future architecture
- * decision explicitly versions the presentation contract.
+ * Skin V2/V3/V4 inherit this contract and override only the PALETTE block.
+ * Geometry, typography, spacing, 8/16-bit shading, focus, motion and component
+ * sizing stay unchanged unless a future architecture decision versions the
+ * presentation contract itself.
  */
 
 html[data-plotpickle-skin^="skin-"] {
@@ -37,6 +37,13 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-selected-ink: #000000;
   --pp-skin-disabled: #666666;
   --pp-skin-shadow-ink: #000000;
+  --pp-skin-warning-surface: #171508;
+  --pp-skin-warning-line: #746a24;
+  --pp-skin-warning: #d8c85d;
+  --pp-skin-warning-ink: #fff0a6;
+  --pp-skin-danger-surface: #1a0b0b;
+  --pp-skin-danger-line: #743737;
+  --pp-skin-danger: #d98c8c;
 
   /* TYPOGRAPHY — old-school terminal discipline with modern readability. */
   --pp-skin-font-ui: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace;
@@ -116,6 +123,176 @@ html[data-plotpickle-skin^="skin-"] {
    variables on their own data-plotpickle-skin selector. */
 html[data-plotpickle-skin="skin-v1"] {
   --pp-skin-version: "1";
+}
+
+/* BASE COMPONENT CONTRACT
+ * These rules intentionally load after compatibility CSS. They make LOGON,
+ * generic BBS menus, Profile and common controls consume the same tokens as
+ * Dashboard, Community, Local AI and Node without changing their behaviour.
+ */
+html[data-plotpickle-skin^="skin-"],
+html[data-plotpickle-skin^="skin-"] body {
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] *,
+html[data-plotpickle-skin^="skin-"] *::before,
+html[data-plotpickle-skin^="skin-"] *::after {
+  box-sizing: border-box;
+  border-radius: var(--pp-skin-radius) !important;
+  text-shadow: none !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-logon,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-home,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-dashboard,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface {
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-panel,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-bbs {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-panel);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+html[data-plotpickle-skin^="skin-"] :is(.pp-skin-v1-title, .pp-skin-v1-bar, .pp-skin-v1-bbs-banner) {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
+  color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] :is(.pp-skin-v1-status, .pp-skin-v1-bbs-help, .pp-skin-v1-menu-cursor) {
+  color: var(--pp-skin-accent-bright);
+}
+
+html[data-plotpickle-skin^="skin-"] :is(
+  .pp-skin-v1-return,
+  .pp-skin-v1-community-setup button,
+  .pp-skin-v1-community-setup a,
+  .pp-skin-v1-panel input:not([type="checkbox"]),
+  .pp-skin-v1-panel select,
+  .pp-skin-v1-panel button,
+  .pp-skin-v1-panel a,
+  .pp-skin-v1-recovery
+) {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] :is(
+  .pp-skin-v1-return,
+  .pp-skin-v1-community-setup button,
+  .pp-skin-v1-community-setup a,
+  .pp-skin-v1-panel button,
+  .pp-skin-v1-panel a
+):hover:not(:disabled),
+html[data-plotpickle-skin^="skin-"] :is(
+  .pp-skin-v1-return,
+  .pp-skin-v1-community-setup button,
+  .pp-skin-v1-community-setup a,
+  .pp-skin-v1-panel button,
+  .pp-skin-v1-panel a
+):focus-visible {
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+  outline-color: var(--pp-skin-focus);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-menu-item:not(.is-selected) {
+  background: var(--pp-skin-fill-row);
+  color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-menu-item:not(.is-selected):hover {
+  background: var(--pp-skin-fill-row-hover);
+  outline-color: var(--pp-skin-line-strong);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-menu-item.is-selected {
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+  box-shadow: var(--pp-skin-shadow-control);
+}
+
+html[data-plotpickle-skin^="skin-"] :is(
+  .pp-skin-v1-return,
+  .pp-skin-v1-menu-item,
+  .pp-skin-v1-panel input,
+  .pp-skin-v1-panel select,
+  .pp-skin-v1-panel button,
+  .pp-skin-v1-panel a
+):focus-visible {
+  outline-color: var(--pp-skin-focus);
+}
+
+/* PROFILE: same base language, while profile data and behaviour remain owned
+   by the existing profile boundary. */
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-banner {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
+  color: var(--pp-skin-accent-bright);
+  box-shadow: var(--pp-skin-shadow-control);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-banner .pp-skin-v1-return {
+  border-color: var(--pp-skin-accent);
+  color: var(--pp-skin-accent-bright);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-original,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-loading,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-notice {
+  border-color: var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-accent-bright);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] {
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(section, aside, article, form, details) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: var(--pp-skin-inset-highlight) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(header, h2, h3, strong, b, dt) {
+  color: var(--pp-skin-accent-bright) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(p, small, dd, blockquote, label, span) {
+  color: var(--pp-skin-ink-soft) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a, input, textarea) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a):hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a):focus-visible {
+  background: var(--pp-skin-selected-bg) !important;
+  color: var(--pp-skin-selected-ink) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] img {
+  border-color: var(--pp-skin-line) !important;
+  filter: var(--pp-skin-media-filter);
 }
 
 @media (prefers-reduced-motion: reduce) {

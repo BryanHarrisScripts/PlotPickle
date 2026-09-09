@@ -93,6 +93,7 @@ test("#1754 Skin V1 owns fresh setup, LOGON and a keyboard-selectable BBS Dashbo
   assert.match(skin, /deriveExperienceSurfaceTopology/u);
   assert.match(skin, /data-experience-surface="LOGON"/u);
   assert.match(skin, /aria-label="PlotPickle Dashboard"/u);
+  assert.match(skin, /pp-skin-v1-dashboard-bbs/u);
   assert.match(skin, /role="listbox"/u);
   assert.match(skin, /role="option"/u);
   assert.match(skin, /event\.key === "ArrowDown"/u);
@@ -199,14 +200,17 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
 
-test("Profile keeps three entries, activates Node, and Local AI exposes the LTX engine", async () => {
-  const [skin, host, comfy, ltxPanel, nodePanel, css, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
+test("Profile keeps three entries, enables User Profile, activates Node, and Local AI exposes the LTX engine", async () => {
+  const [skin, profilePanel, host, comfy, ltxPanel, nodePanel, css, bbsCss, layout, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1/profile-skin-panel.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
     read("app/skin-v1/local-comfyui-panel.tsx"),
     read("app/skin-v1/local-ltx-setup-panel.tsx"),
     read("app/skin-v1/node-skin-panel.tsx"),
     read("app/skin-v1.css"),
+    read("app/skin-v1-bbs-surfaces.css"),
+    read("app/layout.tsx"),
     read("build/local-runtime-manager.ts"),
     read("build/media-routing-store.ts"),
     read("build/ai/comfyui-ltx-local-gateway.ts"),
@@ -216,22 +220,38 @@ test("Profile keeps three entries, activates Node, and Local AI exposes the LTX 
   assert.match(skin, /id === "profile"[\s\S]*setProfileMenuOpen\(true\)/u);
   const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
   for (const [id, label, description, enabled] of [
-    ["profile", "PROFILE", "YOUR PROFILE", "false"],
+    ["profile", "PROFILE", "YOUR PROFILE", "true"],
     ["local-ai", "LOCAL AI", "LOCAL CONFIGURATIONS", "true"],
     ["node", "NODE", "NODE INFO", "true"],
   ]) {
     assert.ok(entries.includes(`id: "${id}", label: "${label}", description: "${description}", enabled: ${enabled}`));
   }
   const options = skin.slice(skin.indexOf("{PROFILE_MENU.map"), skin.indexOf('id="profile-menu-status"'));
-  assert.match(options, /disabled=!\{item\.enabled\}|disabled=\{!item\.enabled\}/u);
+  assert.match(options, /item\.id === "profile"[\s\S]*setUserProfileOpen\(true\)/u);
   assert.match(options, /item\.id === "local-ai"[\s\S]*setLocalAiOpen\(true\)/u);
   assert.match(options, /item\.id === "node"[\s\S]*setNodeOpen\(true\)/u);
+  assert.match(skin, /ProfileSkinPanel/u);
   assert.match(skin, /LocalAiSkinHost/u);
   assert.match(skin, /NodeSkinPanel/u);
-  assert.match(skin, /aria-label="Local AI setup"/u);
-  assert.match(skin, /aria-label="Node information"/u);
-  assert.match(skin, /LOCAL AI \/ NODE CONNECTED — PROFILE IS NOT WIRED YET/u);
+  assert.match(skin, /USER PROFILE/u);
+  assert.match(skin, /PROFILE \/ LOCAL AI \/ NODE CONNECTED/u);
   assert.match(skin, /localAiHeadingRef\.current\?\.focus\(\)/u);
+
+  assert.match(profilePanel, /ProfileIdentityPanel/u);
+  assert.match(profilePanel, /aria-label="User Profile"/u);
+  assert.match(profilePanel, /\/api\/auth\/profile/u);
+  assert.match(profilePanel, /X-PlotPickle-CSRF/u);
+  for (const action of ["lock", "switch-profile", "logout"]) assert.ok(profilePanel.includes(`leave("${action}")`));
+  assert.match(profilePanel, /clearProfilePrivateBrowser/u);
+  assert.match(profilePanel, /persistActiveProfileProject/u);
+  assert.match(profilePanel, /ADD PROFILE REMAINS A LOGON-GATE ACTION/u);
+
+  assert.match(layout, /import "\.\/skin-v1-bbs-surfaces\.css"/u);
+  assert.match(bbsCss, /pp-skin-v1-dashboard-bbs/u);
+  assert.match(bbsCss, /width: min\(460px, 100%\)/u);
+  assert.match(bbsCss, /background: #000 !important/u);
+  assert.match(bbsCss, /pp-skin-v1-profile-surface/u);
+  assert.match(bbsCss, /data-profile-identity-surface="v2"/u);
 
   assert.match(host, /PLOTPICKLE DEFAULT/u);
   assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);

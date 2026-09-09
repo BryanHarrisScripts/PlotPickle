@@ -199,19 +199,45 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
 
-test("Profile opens only a three-entry preview with no downstream actions", async () => {
-  const skin = await read("app/skin-v1/skin-v1-client.tsx");
-  assert.match(skin, /id === "profile"\) setProfileMenuOpen\(true\)/u);
+test("Profile keeps three entries and wires only Local AI into a local-first setup surface", async () => {
+  const [skin, host, comfy, css] = await Promise.all([
+    read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1/local-ai-skin-host.tsx"),
+    read("app/skin-v1/local-comfyui-panel.tsx"),
+    read("app/skin-v1.css"),
+  ]);
+  assert.match(skin, /id === "profile"[\s\S]*setProfileMenuOpen\(true\)/u);
   const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
-  for (const [label, description] of [["PROFILE", "YOUR PROFILE"], ["LOCAL AI", "LOCAL CONFIGURATIONS"], ["NODE", "NODE INFO"]]) {
-    assert.ok(entries.includes(`label: "${label}", description: "${description}"`));
+  for (const [id, label, description, enabled] of [
+    ["profile", "PROFILE", "YOUR PROFILE", "false"],
+    ["local-ai", "LOCAL AI", "LOCAL CONFIGURATIONS", "true"],
+    ["node", "NODE", "NODE INFO", "false"],
+  ]) {
+    assert.ok(entries.includes(`id: "${id}", label: "${label}", description: "${description}", enabled: ${enabled}`));
   }
   const options = skin.slice(skin.indexOf("{PROFILE_MENU.map"), skin.indexOf('id="profile-menu-status"'));
-  assert.match(options, /type="button" disabled/u);
-  assert.doesNotMatch(options, /onClick|href|onSubmit|fetch\(|OpenSurface/u);
-  assert.match(skin, /event.key === "Escape".*setProfileMenuOpen\(false\)/u);
-  assert.match(skin, /profileMenuHeadingRef.current\?\.focus\(\)/u);
-  const css = await read("app/skin-v1.css");
+  assert.match(options, /disabled=!\{item\.enabled\}|disabled=\{!item\.enabled\}/u);
+  assert.match(options, /item\.id === "local-ai"[\s\S]*setLocalAiOpen\(true\)/u);
+  assert.match(skin, /LocalAiSkinHost/u);
+  assert.match(skin, /aria-label="Local AI setup"/u);
+  assert.match(skin, /Back to Profile/u);
+  assert.match(skin, /LOCAL AI CONNECTED — PROFILE \/ NODE ARE NOT WIRED YET/u);
+  assert.match(skin, /localAiHeadingRef\.current\?\.focus\(\)/u);
+
+  assert.match(host, /<AiComputeWorkspace mode="local" \/>/u);
+  assert.match(host, /<LocalComfyUiPanel \/>/u);
+  assert.match(host, /<H3NativePanel \/>/u);
+  assert.match(host, /Opening Local AI does not change an existing route/u);
+  assert.match(host, /does not silently fall back to a paid cloud provider/u);
+  assert.doesNotMatch(host, /AiProviderSetupPanel|GeminiProviderSetupPanel/u);
+
+  assert.match(comfy, /\/api\/provider-diagnostics\/comfyui/u);
+  assert.match(comfy, /\/api\/media-routing/u);
+  assert.match(comfy, /imageRoute: "comfyui"/u);
+  assert.match(comfy, /route: "comfyui"/u);
+  assert.match(comfy, /does not enable or contact a cloud AI provider/u);
+  assert.doesNotMatch(comfy, /api\.openai\.com|generativelanguage\.googleapis\.com|api\.minimax/u);
+
   assert.match(css, /--pp-matrix-deep: #123524/u);
   assert.match(css, /--pp-matrix-mid: #287a4b/u);
   assert.match(css, /--pp-matrix-light: #79bd92/u);

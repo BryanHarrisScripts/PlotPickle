@@ -386,7 +386,17 @@ export async function createLtxVideo(input: VideoGenerationInput) {
   const prompt = clean(input.prompt, 12_000);
   if (!prompt) throw new Error("Enter a video prompt before generating.");
   const workflow = hydratedLtxWorkflow(store, input, prompt);
-  const promptId = await submitWorkflow(store, workflow);
+  await updateLtxStore((current) => current.manifestHash === store.manifestHash
+    ? { ...current, verifiedAt: "", lastError: "" } : null);
+  let promptId: string;
+  try {
+    promptId = await submitWorkflow(store, workflow);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "ComfyUI rejected the local video workflow.";
+    await updateLtxStore((current) => current.manifestHash === store.manifestHash
+      ? { ...current, verifiedAt: "", lastError: message } : null);
+    throw error;
+  }
   const now = new Date().toISOString();
   const job: LtxJob = {
     id: `ltx-${randomUUID()}`,

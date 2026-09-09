@@ -79,6 +79,7 @@ function setupBlocker(status: LtxStatus | null) {
   if (status.missingNodes.length) return { title: "LTX NODES MISSING", detail: status.missingNodes.map((name) => `MISSING NODE: ${name}`).join("; ") };
   if (status.missingModels.length) return { title: "LTX MODELS MISSING", detail: status.missingModels.map((name) => `MISSING MODEL: ${name}`).join("; ") };
   if (!status.ready) return { title: "LTX SETUP INCOMPLETE", detail: status.error || status.lastError || "The reviewed LTX workflow is not ready yet." };
+  if (status.lastError) return { title: "LOCAL TEST FAILED", detail: status.lastError };
   return { title: "LTX READY", detail: "The reviewed local LTX text-to-video workflow is ready for a test render." };
 }
 
@@ -204,7 +205,7 @@ export default function LocalLtxSetupPanel() {
         <div style={card}><strong>LTX Nodes</strong><p>{nodesReady ? "READY" : "SETUP NEEDED"}</p><small>{status?.missingNodes.length ? status.missingNodes.join(", ") : "Required ComfyUI nodes"}</small></div>
         <div style={card}><strong>LTX Models</strong><p>{modelsReady ? "READY" : "SETUP NEEDED"}</p><small>{status?.missingModels.length ? status.missingModels.join(", ") : "Required local model files"}</small></div>
         <div style={card}><strong>Video Status</strong><p>{testPassed ? "VERIFIED / GREEN" : status?.ready ? "READY TO TEST" : "BLOCKED"}</p><small>640 × 352 / 25 frames / 8 steps / no upscaling</small></div>
-        <div style={card}><strong>Local Test</strong><p>{testPassed ? "PASSED" : "NOT TESTED"}</p><small>{status?.verifiedAt || "Short local text-to-video verification"}</small></div>
+        <div style={card}><strong>Local Test</strong><p>{testResult?.error || status?.lastError ? "FAILED" : testPassed ? "PASSED" : "NOT TESTED"}</p><small>{status?.verifiedAt || "Short local text-to-video verification"}</small></div>
       </div>
 
       <div style={{ ...card, marginTop: 12, borderColor: status?.ready ? "#287a4b" : "#746a24", background: status?.ready ? "#0b160e" : "#171508" }}>

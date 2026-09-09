@@ -11,7 +11,6 @@ html[data-plotpickle-skin="skin-v1"] *::before,
 html[data-plotpickle-skin="skin-v1"] *::after {
   box-sizing: border-box;
   border-radius: 0 !important;
-  box-shadow: none !important;
   text-shadow: none !important;
 }
 
@@ -311,4 +310,23 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   .pp-skin-v1-bbs-help {
     display: grid;
   }
+}
+
+/* Smooth monochrome depth for the Skin V1 compatibility pass. */
+.pp-skin-v1-panel,
+.pp-skin-v1-bbs {
+  background: linear-gradient(145deg, #292929, #101010 55%, #080808);
+  box-shadow: inset 0 1px 0 #777, 0 12px 32px #000;
+}
+.pp-skin-v1-bar,
+.pp-skin-v1-title,
+.pp-skin-v1-bbs-banner {
+  background: linear-gradient(#333, #151515);
+}
+.pp-skin-v1-menu-item:not(.is-selected) {
+  background: linear-gradient(90deg, #171717, #0b0b0b);
+}
+.pp-skin-v1-menu-item.is-selected {
+  background: linear-gradient(#fff, #c9c9c9);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 5px #000;
 }

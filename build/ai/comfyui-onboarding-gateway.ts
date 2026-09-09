@@ -13,6 +13,11 @@ const READY_STATES = new Set(["ready-existing", "mcp-managed-started-ready", "de
 const MANAGED_STOPPED_STATES = new Set(["desktop-managed-engine-stopped"]);
 const INSTALLED_TOOL_STATES = new Set(["detected", "installed-api-not-ready", "installed", "installed-not-running"]);
 
+type StarterResult = { ready: boolean; state: string; manager: string; detail: string; message: string };
+type StartAttempt = StarterResult & { attemptedAt: string };
+
+let lastStartAttempt: StartAttempt | null = null;
+
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
 }
@@ -59,6 +64,24 @@ function marker(output: string, name: string) {
     if (line.startsWith(prefix)) return line.slice(prefix.length).trim();
   }
   return "";
+}
+
+function outputExcerpt(output: string) {
+  return output
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(-10)
+    .join(" | ")
+    .slice(0, 1800);
+}
+
+function rememberStart(result: StarterResult): StartAttempt {
+  const attempt = { ...result, attemptedAt: new Date().toISOString() };
+  lastStartAttempt = attempt;
+  return attempt;
 }
 
 function setupMessage(state: string, detail: string) {
@@ -171,8 +194,6 @@ async function inspectInstalledComfyUi() {
   };
 }
 
-type StarterResult = { ready: boolean; state: string; manager: string; detail: string; message: string };
-
 async function runWindowsStarter(allowDesktopLaunch: boolean): Promise<StarterResult> {
   const script = path.resolve(process.cwd(), "scripts", "start-comfyui-background.ps1");
   const args = [
@@ -203,7 +224,8 @@ async function runWindowsStarter(allowDesktopLaunch: boolean): Promise<StarterRe
 
   const combined = `${stdout}\n${stderr}`;
   const state = marker(combined, "PLOTPICKLE_COMFYUI_STATUS") || "unknown";
-  const detail = marker(combined, "PLOTPICKLE_COMFYUI_DETAIL");
+  const markerDetail = marker(combined, "PLOTPICKLE_COMFYUI_DETAIL");
+  const detail = markerDetail || outputExcerpt(stderr) || outputExcerpt(stdout);
   return {
     ready: READY_STATES.has(state),
     state,
@@ -230,7 +252,7 @@ async function startWithManagedLocalRuntime() {
   return runWindowsStarter(true);
 }
 
-async function startComfyUi() {
+async function startComfyUi(): Promise<StarterResult> {
   const existing = await diagnoseComfyUI(LOCAL_COMFY_URL, null);
   if (existing.serviceReady) {
     return {
@@ -273,7 +295,7 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
     }
     if (request.method === "GET") {
       void inspectInstalledComfyUi().then(
-        (installation) => sendJson(response, 200, { ok: true, installation }),
+        (installation) => sendJson(response, 200, { ok: true, installation, lastStart: lastStartAttempt }),
         (error) => sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "ComfyUI installation status could not be checked." }),
       );
       return;
@@ -290,14 +312,22 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
           sendJson(response, 400, { ok: false, message: "PlotPickle needs approval before starting the managed local ComfyUI service." });
           return;
         }
-        const result = await startComfyUi();
-        if (!result.ready) {
-          sendJson(response, 409, { ok: false, ...result });
+        const attempt = rememberStart(await startComfyUi());
+        if (!attempt.ready) {
+          sendJson(response, 409, { ok: false, ...attempt });
           return;
         }
-        sendJson(response, 200, { ok: true, ...result });
+        sendJson(response, 200, { ok: true, ...attempt });
       } catch (error) {
-        sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "The managed ComfyUI service could not be started." });
+        const detail = error instanceof Error ? error.message : "The managed ComfyUI service could not be started.";
+        const attempt = rememberStart({
+          ready: false,
+          state: "gateway-error",
+          manager: "onboarding-gateway",
+          detail,
+          message: detail,
+        });
+        sendJson(response, 500, { ok: false, ...attempt });
       }
     })();
   });

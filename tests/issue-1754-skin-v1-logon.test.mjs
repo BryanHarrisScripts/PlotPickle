@@ -199,11 +199,13 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
 
-test("Profile keeps three entries and Local AI opens a default-first task and engine submenu", async () => {
-  const [skin, host, comfy, css, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
+test("Profile keeps three entries, activates Node, and Local AI exposes the LTX engine", async () => {
+  const [skin, host, comfy, ltxPanel, nodePanel, css, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
     read("app/skin-v1/local-comfyui-panel.tsx"),
+    read("app/skin-v1/local-ltx-setup-panel.tsx"),
+    read("app/skin-v1/node-skin-panel.tsx"),
     read("app/skin-v1.css"),
     read("build/local-runtime-manager.ts"),
     read("build/media-routing-store.ts"),
@@ -216,24 +218,26 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   for (const [id, label, description, enabled] of [
     ["profile", "PROFILE", "YOUR PROFILE", "false"],
     ["local-ai", "LOCAL AI", "LOCAL CONFIGURATIONS", "true"],
-    ["node", "NODE", "NODE INFO", "false"],
+    ["node", "NODE", "NODE INFO", "true"],
   ]) {
     assert.ok(entries.includes(`id: "${id}", label: "${label}", description: "${description}", enabled: ${enabled}`));
   }
   const options = skin.slice(skin.indexOf("{PROFILE_MENU.map"), skin.indexOf('id="profile-menu-status"'));
   assert.match(options, /disabled=!\{item\.enabled\}|disabled=\{!item\.enabled\}/u);
   assert.match(options, /item\.id === "local-ai"[\s\S]*setLocalAiOpen\(true\)/u);
+  assert.match(options, /item\.id === "node"[\s\S]*setNodeOpen\(true\)/u);
   assert.match(skin, /LocalAiSkinHost/u);
+  assert.match(skin, /NodeSkinPanel/u);
   assert.match(skin, /aria-label="Local AI setup"/u);
-  assert.match(skin, /Back to Profile/u);
-  assert.match(skin, /LOCAL AI CONNECTED — PROFILE \/ NODE ARE NOT WIRED YET/u);
+  assert.match(skin, /aria-label="Node information"/u);
+  assert.match(skin, /LOCAL AI \/ NODE CONNECTED — PROFILE IS NOT WIRED YET/u);
   assert.match(skin, /localAiHeadingRef\.current\?\.focus\(\)/u);
 
   assert.match(host, /PLOTPICKLE DEFAULT/u);
   assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);
   assert.match(host, /title="TASKS"/u);
   assert.match(host, /title="ENGINES"/u);
-  for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
+  for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "LTX-VIDEO", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
   assert.match(host, /function StatusLight/u);
   assert.match(host, /function fixedLocalImagesReady/u);
   assert.match(host, /function automaticLocalVideoReady/u);
@@ -251,11 +255,35 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
   assert.match(host, /<LocalRuntimePanel \/>/u);
   assert.match(host, /<LocalComfyUiPanel \/>/u);
+  assert.match(host, /view === "ltx" \? <LocalLtxSetupPanel \/>/u);
   assert.match(host, /<LocalH3SetupPanel \/>/u);
   assert.doesNotMatch(host, /AiComputeWorkspace/u);
   assert.match(host, /Opening Local AI does not change an existing route/u);
   assert.match(host, /does not silently fall back to a paid cloud provider/u);
   assert.doesNotMatch(host, /AiProviderSetupPanel|GeminiProviderSetupPanel/u);
+
+  assert.match(ltxPanel, /\/api\/local-ai\/ltx-video/u);
+  assert.match(ltxPanel, /\/api\/local-ai\/ltx-video\/manifest/u);
+  assert.match(ltxPanel, /\/api\/media-routing\/test\/video/u);
+  assert.match(ltxPanel, /SETUP LTX/u);
+  assert.match(ltxPanel, /CHECK AGAIN/u);
+  assert.match(ltxPanel, /TEST LOCAL VIDEO/u);
+  assert.match(ltxPanel, /LTX NODES MISSING/u);
+  assert.match(ltxPanel, /LTX MODELS MISSING/u);
+  assert.match(ltxPanel, /IMPORT REVIEWED MANIFEST/u);
+  assert.doesNotMatch(ltxPanel, /api\.openai\.com|api\.minimax|huggingface\.co/u);
+
+  assert.match(nodePanel, /\/api\/system\/node-control/u);
+  assert.match(nodePanel, /\/api\/system\/node-topology/u);
+  assert.match(nodePanel, /\/api\/auth\/profile/u);
+  assert.match(nodePanel, /PLOTPICKLE_VERSION/u);
+  assert.match(nodePanel, /FULL NODE ID/u);
+  assert.match(nodePanel, /LIFECYCLE/u);
+  assert.match(nodePanel, /CURRENT PROJECT/u);
+  assert.match(nodePanel, /READINESS/u);
+  assert.match(nodePanel, /background: "#050505"/u);
+  assert.match(nodePanel, /border: "1px solid #d8d8d8"/u);
+  assert.doesNotMatch(nodePanel, /begin-shutdown|complete-shutdown|block-shutdown/u);
 
   assert.match(runtimeManager, /preferredRuntime: "auto"/u);
   assert.match(runtimeManager, /modelPreference: "balanced"/u);

@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
+import { bundledLtxManifest, legacyBundledLtxManifestV1 } from "./comfyui-ltx-default";
 import {
   configureLtxManifest,
   ensureLtxDefault,
@@ -9,6 +10,7 @@ import {
   getLtxVideoJob,
   probeLtxVideo,
   type LtxJob,
+  type LtxStore,
 } from "./comfyui-ltx-local-provider";
 import {
   holdLocalGpuMediaLease,
@@ -90,6 +92,21 @@ function marker(output: string, name: string) {
     if (line.startsWith(prefix)) return line.slice(prefix.length).trim();
   }
   return "";
+}
+
+function isLegacyBundledStore(store: LtxStore) {
+  if (!store.manifest) return false;
+  const legacy = legacyBundledLtxManifestV1();
+  return store.manifest.model === legacy.model
+    && store.manifest.source === legacy.source
+    && JSON.stringify(store.manifest.requiredModelNames) === JSON.stringify(legacy.requiredModelNames)
+    && JSON.stringify(store.manifest.workflow) === JSON.stringify(legacy.workflow);
+}
+
+async function ensureCurrentBundledLtx() {
+  let store = await ensureLtxDefault();
+  if (isLegacyBundledStore(store)) store = await configureLtxManifest(bundledLtxManifest());
+  return store;
 }
 
 function startReviewedLtxInstall() {
@@ -184,7 +201,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
         return;
       }
       if (pathname === PROFILE_PATH && request.method === "GET") {
-        const store = await ensureLtxDefault();
+        const store = await ensureCurrentBundledLtx();
         sendJson(response, 200, {
           ok: true,
           defaultLocalVideo: true,
@@ -199,7 +216,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
         return;
       }
       if (pathname === SETUP_PATH && request.method === "POST") {
-        const store = await ensureLtxDefault();
+        const store = await ensureCurrentBundledLtx();
         const status = await probeLtxVideo(store);
         if (status.ready) {
           sendJson(response, 200, { ok: true, setupTask, reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE, ...status });

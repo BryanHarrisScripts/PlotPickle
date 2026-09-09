@@ -406,7 +406,7 @@ export default function LocalComfyUiPanel() {
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void makeImagesReady()} disabled={Boolean(working) || activeReady}>
-            {activeReady ? "IMAGES READY" : working === "ready" ? "CHECKING..." : lastStart && !lastStart.ready ? "RETRY LOCAL SERVICE" : "MAKE IMAGES READY"}
+            {activeReady ? "READY" : working === "ready" ? "CHECKING..." : lastStart && !lastStart.ready ? "RETRY LOCAL SERVICE" : "MAKE IMAGES READY"}
           </button>
         </div>
       </div>

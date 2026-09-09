@@ -199,12 +199,15 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
 
-test("Profile keeps three entries and wires only Local AI into a local-first setup surface", async () => {
-  const [skin, host, comfy, css] = await Promise.all([
+test("Profile keeps three entries and Local AI opens a default-first task and engine submenu", async () => {
+  const [skin, host, comfy, css, runtimeManager, mediaStore, ltxGateway] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
     read("app/skin-v1/local-comfyui-panel.tsx"),
     read("app/skin-v1.css"),
+    read("build/local-runtime-manager.ts"),
+    read("build/media-routing-store.ts"),
+    read("build/ai/comfyui-ltx-local-gateway.ts"),
   ]);
   assert.match(skin, /id === "profile"[\s\S]*setProfileMenuOpen\(true\)/u);
   const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
@@ -224,12 +227,32 @@ test("Profile keeps three entries and wires only Local AI into a local-first set
   assert.match(skin, /LOCAL AI CONNECTED — PROFILE \/ NODE ARE NOT WIRED YET/u);
   assert.match(skin, /localAiHeadingRef\.current\?\.focus\(\)/u);
 
-  assert.match(host, /<AiComputeWorkspace mode="local" \/>/u);
+  assert.match(host, /PLOTPICKLE DEFAULT/u);
+  assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);
+  assert.match(host, /title="TASKS"/u);
+  assert.match(host, /title="ENGINES"/u);
+  for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
+  assert.match(host, /function StatusLight/u);
+  assert.match(host, /local default ready/u);
+  assert.match(host, /data-local-ai-view="menu"/u);
+  assert.match(host, /BACK TO LOCAL AI/u);
+  assert.match(host, /<AiRoutingPanel capability="text" locality="local" onManage=\{manageRoute\} \/>/u);
+  assert.match(host, /<AiRoutingPanel capability="image" locality="local" onManage=\{manageRoute\} \/>/u);
+  assert.match(host, /<AiRoutingPanel capability="video" locality="local" onManage=\{manageRoute\} \/>/u);
+  assert.match(host, /<LocalRuntimePanel \/>/u);
   assert.match(host, /<LocalComfyUiPanel \/>/u);
   assert.match(host, /<H3NativePanel \/>/u);
+  assert.doesNotMatch(host, /AiComputeWorkspace/u);
   assert.match(host, /Opening Local AI does not change an existing route/u);
   assert.match(host, /does not silently fall back to a paid cloud provider/u);
   assert.doesNotMatch(host, /AiProviderSetupPanel|GeminiProviderSetupPanel/u);
+
+  assert.match(runtimeManager, /preferredRuntime: "auto"/u);
+  assert.match(runtimeManager, /modelPreference: "balanced"/u);
+  assert.match(runtimeManager, /contextTokens: 16384/u);
+  assert.match(mediaStore, /imageRoute: "comfyui"/u);
+  assert.match(mediaStore, /videoRoute: "none"/u);
+  assert.match(ltxGateway, /return media\.videoRoute === "none"/u);
 
   assert.match(comfy, /\/api\/provider-diagnostics\/comfyui/u);
   assert.match(comfy, /\/api\/media-routing/u);

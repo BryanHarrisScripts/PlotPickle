@@ -42,6 +42,20 @@ type InstallationStatus = {
   officialDownloadUrl: string;
 };
 
+type StartAttempt = {
+  ready: boolean;
+  state: string;
+  manager: string;
+  detail: string;
+  message: string;
+  attemptedAt: string;
+};
+
+type InstallResponse = {
+  installation: InstallationStatus;
+  lastStart?: StartAttempt | null;
+};
+
 type StarterStatus = {
   state: string;
   message: string;
@@ -105,6 +119,18 @@ async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: o
   return value;
 }
 
+async function requestManagedStart() {
+  const response = await fetch(COMFY_START_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ approved: true }),
+  });
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) throw new Error("The managed ComfyUI start gateway is unavailable.");
+  const value = await response.json() as StartAttempt & { message?: string };
+  return { ok: response.ok, value };
+}
+
 function mergeDiagnostic(status: MediaStatus, diagnostic: DiagnosticResponse | null) {
   if (!diagnostic) return status;
   return { ...status, comfyui: { ...status.comfyui, ...diagnostic.comfyui } };
@@ -112,6 +138,12 @@ function mergeDiagnostic(status: MediaStatus, diagnostic: DiagnosticResponse | n
 
 function timeLabel(value: string) {
   if (!value) return "Not tested yet";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
+}
+
+function attemptTimeLabel(value: string) {
+  if (!value) return "No managed start attempt recorded this session";
   const parsed = new Date(value);
   return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
 }
@@ -124,19 +156,27 @@ function announceReadyChange() {
   window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
 }
 
+function startFailureLabel(attempt: StartAttempt | null) {
+  if (!attempt || attempt.ready) return "";
+  const detail = attempt.detail || attempt.message || "No detailed startup evidence was returned.";
+  return `START FAILED — ${attempt.state || "unknown"}: ${detail}`;
+}
+
 export default function LocalComfyUiPanel() {
   const [status, setStatus] = useState<MediaStatus | null>(null);
   const [installation, setInstallation] = useState<InstallationStatus | null>(null);
+  const [lastStart, setLastStart] = useState<StartAttempt | null>(null);
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("Checking PlotPickle's fixed local image stack...");
   const [imageResult, setImageResult] = useState<ImageTestResult | null>(null);
 
-  function statusMessage(next: MediaStatus, install: InstallationStatus | null) {
+  function statusMessage(next: MediaStatus, install: InstallationStatus | null, attempt: StartAttempt | null) {
     const modelReady = exactSdxlAvailable(next.comfyui.checkpoints);
     if (!next.comfyui.reachable) {
+      if (attempt && !attempt.ready) return startFailureLabel(attempt);
       return install?.installed === false
-        ? "ComfyUI Desktop is not installed."
-        : "ComfyUI Desktop is installed, but its local server is not running on 127.0.0.1:8188.";
+        ? "ComfyUI is not installed."
+        : "The managed ComfyUI engine is installed, but its local service is not running on 127.0.0.1:8188.";
     }
     if (!next.comfyui.imageNodesReady) {
       return next.comfyui.missingImageNodes.length
@@ -153,13 +193,15 @@ export default function LocalComfyUiPanel() {
       const next = await request<MediaStatus>(`${MEDIA_API}/status`);
       const [diagnostic, installResponse] = await Promise.all([
         request<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: LOCAL_COMFY_URL }).catch(() => null),
-        request<{ installation: InstallationStatus }>(COMFY_START_API).catch(() => null),
+        request<InstallResponse>(COMFY_START_API).catch(() => null),
       ]);
       const merged = mergeDiagnostic(next, diagnostic);
       const install = installResponse?.installation ?? null;
+      const attempt = installResponse?.lastStart ?? null;
       setStatus(merged);
       setInstallation(install);
-      if (announce || !notice || notice.startsWith("Checking PlotPickle")) setNotice(statusMessage(merged, install));
+      setLastStart(attempt);
+      if (announce || !notice || notice.startsWith("Checking PlotPickle")) setNotice(statusMessage(merged, install, attempt));
       if (merged.imageRoute === "comfyui" && merged.comfyui.reachable && merged.comfyui.imageNodesReady && exactSdxlAvailable(merged.comfyui.checkpoints)) {
         announceReadyChange();
       }
@@ -182,16 +224,21 @@ export default function LocalComfyUiPanel() {
   }
 
   async function startComfyUi() {
-    const approved = window.confirm("Start ComfyUI Desktop for PlotPickle local images? This starts only the local engine and does not contact a cloud AI provider.");
+    const approved = window.confirm("Retry the managed local ComfyUI service for PlotPickle images? This starts only the local engine and does not contact a cloud AI provider.");
     if (!approved) return false;
     setWorking("start");
-    setNotice("Starting local ComfyUI...");
+    setNotice("Starting managed local ComfyUI service...");
     try {
-      await request<{ ready: boolean; state: string; detail?: string }>(COMFY_START_API, "POST", { approved: true });
+      const result = await requestManagedStart();
+      setLastStart(result.value);
+      if (!result.ok || !result.value.ready) {
+        setNotice(startFailureLabel(result.value));
+        return false;
+      }
       await refresh(true);
       return true;
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "ComfyUI could not be started.");
+      setNotice(error instanceof Error ? error.message : "The managed ComfyUI service could not be started.");
       return false;
     } finally {
       setWorking("");
@@ -235,9 +282,13 @@ export default function LocalComfyUiPanel() {
     try {
       const diagnostic = await request<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: LOCAL_COMFY_URL });
       const next = await request<MediaStatus>(`${MEDIA_API}/status`);
+      const installResponse = await request<InstallResponse>(COMFY_START_API).catch(() => null);
+      const attempt = installResponse?.lastStart ?? lastStart;
       const merged = mergeDiagnostic(next, diagnostic);
       setStatus(merged);
-      setNotice(statusMessage(merged, installation));
+      if (installResponse?.installation) setInstallation(installResponse.installation);
+      setLastStart(attempt);
+      setNotice(statusMessage(merged, installResponse?.installation ?? installation, attempt));
       if (merged.imageRoute === "comfyui" && merged.comfyui.reachable && merged.comfyui.imageNodesReady && exactSdxlAvailable(merged.comfyui.checkpoints)) announceReadyChange();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The local ComfyUI diagnostic failed.");
@@ -269,9 +320,11 @@ export default function LocalComfyUiPanel() {
     setImageResult(null);
     try {
       let next = await request<MediaStatus>(`${MEDIA_API}/status`);
-      const installResponse = await request<{ installation: InstallationStatus }>(COMFY_START_API).catch(() => null);
+      const installResponse = await request<InstallResponse>(COMFY_START_API).catch(() => null);
       const install = installResponse?.installation ?? null;
+      const attempt = installResponse?.lastStart ?? null;
       setInstallation(install);
+      setLastStart(attempt);
 
       if (!next.comfyui.reachable) {
         if (install?.installed === false) {
@@ -288,7 +341,7 @@ export default function LocalComfyUiPanel() {
       setStatus(next);
 
       if (!next.comfyui.reachable) {
-        setNotice("ComfyUI has not finished starting yet. Wait a moment, then choose MAKE IMAGES READY again.");
+        setNotice("The managed ComfyUI service has not reached 127.0.0.1:8188 yet. Review LAST START RESULT below, then retry only after that service issue is fixed.");
         return;
       }
       if (!next.comfyui.imageNodesReady) {
@@ -315,12 +368,14 @@ export default function LocalComfyUiPanel() {
     }
   }
 
-  const desktopFound = installation?.installed !== false;
+  const engineLabel = installation === null ? "CHECKING..." : installation.installed ? "FOUND" : "NOT FOUND";
   const serverReady = Boolean(status?.comfyui.reachable);
   const nodesReady = Boolean(status?.comfyui.imageNodesReady);
   const modelReady = exactSdxlAvailable(status?.comfyui.checkpoints || []);
   const activeReady = Boolean(serverReady && nodesReady && modelReady && status?.imageRoute === "comfyui");
   const verified = Boolean(status?.comfyui.imageVerifiedAt);
+  const serviceLabel = status === null ? "CHECKING..." : serverReady ? "RUNNING" : lastStart && !lastStart.ready ? "FAILED TO START" : "STOPPED";
+  const modelLabel = status === null ? "CHECKING..." : !serverReady ? "WAITING FOR SERVICE" : modelReady ? "FOUND" : "NOT FOUND";
 
   return (
     <section style={panel} aria-labelledby="local-comfyui-title">
@@ -330,7 +385,7 @@ export default function LocalComfyUiPanel() {
           <h2 id="local-comfyui-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE IMAGE DEFAULT</h2>
           <p style={{ margin: 0, fontSize: 16 }}><strong>COMFYUI + SDXL 1.0</strong></p>
           <p style={{ margin: "8px 0 0", maxWidth: 820, lineHeight: 1.5, color: "#c6d3ca" }}>
-            Local images are fixed to ComfyUI Desktop at {LOCAL_COMFY_URL} with {LOCAL_SDXL_CHECKPOINT}. Local users do not choose another checkpoint here; broader image choices belong to cloud providers.
+            Local images are fixed to PlotPickle&apos;s managed ComfyUI service at {LOCAL_COMFY_URL} with {LOCAL_SDXL_CHECKPOINT}. Broader image choices belong to cloud providers.
           </p>
         </div>
         <span style={{ border: `1px solid ${activeReady ? "#79bd92" : "#365342"}`, padding: "5px 9px", color: activeReady ? "#79bd92" : "#9eafa3" }}>
@@ -341,39 +396,57 @@ export default function LocalComfyUiPanel() {
       <div style={{ ...card, marginTop: 16, background: "linear-gradient(110deg, #0b180f, #080b09)" }}>
         <div style={{ ...row, justifyContent: "space-between" }}>
           <div>
-            <strong>{activeReady ? "LOCAL IMAGES ARE ACTIVE" : "LET PLOTPICKLE CHECK LOCAL IMAGES"}</strong>
+            <strong>{activeReady ? "LOCAL IMAGES ARE ACTIVE" : lastStart && !lastStart.ready ? "LOCAL IMAGE SERVICE NEEDS RECOVERY" : "LET PLOTPICKLE CHECK LOCAL IMAGES"}</strong>
             <p style={{ margin: "6px 0 0", color: "#c6d3ca", lineHeight: 1.45 }}>
               {activeReady
                 ? "The fixed local image stack is present and active. A test render is optional verification, not a readiness requirement."
-                : "PlotPickle checks ComfyUI, the fixed SDXL 1.0 model and the active local image route."}
+                : lastStart && !lastStart.ready
+                  ? "PlotPickle already attempted the managed local service. The exact failure is shown below before SDXL is evaluated."
+                  : "PlotPickle checks the managed ComfyUI service, the fixed SDXL 1.0 model and the active local image route."}
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void makeImagesReady()} disabled={Boolean(working) || activeReady}>
-            {activeReady ? "IMAGES READY" : working === "ready" ? "CHECKING..." : "MAKE IMAGES READY"}
+            {activeReady ? "IMAGES READY" : working === "ready" ? "CHECKING..." : lastStart && !lastStart.ready ? "RETRY LOCAL SERVICE" : "MAKE IMAGES READY"}
           </button>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10, marginTop: 12 }}>
         <div style={card}>
-          <strong>ComfyUI Desktop</strong>
-          <p>{desktopFound ? "FOUND" : "NOT FOUND"}</p>
+          <strong>ComfyUI Engine</strong>
+          <p>{engineLabel}</p>
         </div>
         <div style={card}>
-          <strong>ComfyUI Server</strong>
-          <p>{serverReady ? "RUNNING" : "NOT RUNNING"}</p>
+          <strong>Service</strong>
+          <p>{serviceLabel}</p>
           <small>{LOCAL_COMFY_URL}</small>
         </div>
         <div style={card}>
-          <strong>SDXL 1.0 Model</strong>
-          <p>{modelReady ? "FOUND" : "NOT FOUND"}</p>
+          <strong>SDXL 1.0</strong>
+          <p>{modelLabel}</p>
           <small>{LOCAL_SDXL_CHECKPOINT}</small>
         </div>
         <div style={card}>
-          <strong>Images Active</strong>
-          <p>{activeReady ? "YES / GREEN" : "NO"}</p>
-          <small>{nodesReady ? "Required image nodes ready." : "Waiting for image nodes."}</small>
+          <strong>Images</strong>
+          <p>{activeReady ? "ACTIVE / GREEN" : "INACTIVE"}</p>
+          <small>{serverReady ? nodesReady ? "Required image nodes ready." : "Waiting for image nodes." : "Waiting for ComfyUI service."}</small>
         </div>
+      </div>
+
+      <div style={{ ...card, marginTop: 12 }} aria-live="polite">
+        <strong>LAST START RESULT</strong>
+        {lastStart ? (
+          <div style={{ marginTop: 10 }}>
+            <p style={{ margin: "0 0 6px" }}>STATE: {lastStart.state || "unknown"}</p>
+            <p style={{ margin: "0 0 6px" }}>MANAGER: {lastStart.manager || "unknown"}</p>
+            <p style={{ margin: "0 0 10px" }}>ATTEMPTED: {attemptTimeLabel(lastStart.attemptedAt)}</p>
+            <pre style={{ margin: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: lastStart.ready ? "#79bd92" : "#d7c58a", font: "inherit", lineHeight: 1.5 }}>
+              {lastStart.detail || lastStart.message || "No detailed startup evidence was returned."}
+            </pre>
+          </div>
+        ) : (
+          <p style={{ margin: "8px 0 0", color: "#aeb9b1" }}>No managed start attempt recorded this session.</p>
+        )}
       </div>
 
       <details style={{ ...card, marginTop: 12 }}>
@@ -383,7 +456,7 @@ export default function LocalComfyUiPanel() {
           <p style={{ margin: "0 0 10px" }}>Fixed local model: {LOCAL_SDXL_CHECKPOINT}</p>
           <div style={row}>
             {installation?.installed === false ? <button type="button" onClick={openInstaller}>Install ComfyUI Desktop</button> : null}
-            {!serverReady && installation?.installed !== false ? <button type="button" onClick={() => void startComfyUi()} disabled={Boolean(working)}>{working === "start" ? "Starting..." : "Start ComfyUI"}</button> : null}
+            {!serverReady && installation?.installed !== false ? <button type="button" onClick={() => void startComfyUi()} disabled={Boolean(working)}>{working === "start" ? "Starting..." : "Retry ComfyUI Service"}</button> : null}
             {serverReady && !modelReady ? <button type="button" onClick={() => void installStarter()} disabled={Boolean(working)}>{working === "starter" ? "Preparing..." : "Install SDXL 1.0"}</button> : null}
             <button type="button" onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "Checking..." : "Run Local Diagnostic"}</button>
             <button type="button" onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "Generating..." : "Test Local Image"}</button>

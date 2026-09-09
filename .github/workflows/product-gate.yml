@@ -37,7 +37,7 @@ jobs:
 
       - name: Validate current Skin V1 startup boundary
         shell: pwsh
-        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs
+        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs
 
       - name: Validate bundled local video setup
         run: node --test tests/ltx-bundled-default.test.mjs tests/local-ai-plugin-registry.test.mjs

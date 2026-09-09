@@ -41,17 +41,22 @@ export default function DashboardBbsPanel({
   }
 
   return (
-    <section className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs" aria-label="PlotPickle Dashboard">
-      <div className="pp-skin-v1-bbs">
-        <div className="pp-skin-v1-dashboard-shell-title">PLOTPICKLE BBS</div>
+    <section
+      className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
+      aria-label="PlotPickle Dashboard"
+      data-skin-reference="dashboard-canonical"
+    >
+      <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+        <div className="pp-skin-v1-dashboard-shell-title" data-skin-reference-type="title">PLOTPICKLE BBS</div>
 
-        <div className="pp-skin-v1-dashboard-art" aria-hidden="true">
+        <div className="pp-skin-v1-dashboard-art" aria-hidden="true" data-skin-reference-media-container="primary">
           <img
             src={DASHBOARD_ART}
             alt=""
             draggable={false}
             loading="eager"
             data-dashboard-art="skin-v1"
+            data-skin-reference-media="primary"
             onError={(event) => {
               const image = event.currentTarget;
               if (image.dataset.fallbackApplied === "true") return;
@@ -64,13 +69,13 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
         <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
-          <h1>PlotPickle</h1>
-          <p>AI-Native Agentic Story Operating System</p>
+          <h1 data-skin-reference-type="brand">PlotPickle</h1>
+          <p data-skin-reference-type="meta">AI-Native Agentic Story Operating System</p>
           {/* Compatibility token for the original regression contract: AI-NATIVE AGENTIC STORY OPERATING SYSTEM */}
         </div>
 
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
-        <div className="pp-skin-v1-dashboard-title">*** DASHBOARD ***</div>
+        <div className="pp-skin-v1-dashboard-title" data-skin-reference-type="body-title">*** DASHBOARD ***</div>
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu">
@@ -92,11 +97,18 @@ export default function DashboardBbsPanel({
                   data-dashboard-menu-item={item.id}
                   data-dashboard-shortcut={item.shortcut}
                   data-dashboard-connected={connected ? "true" : "false"}
+                  data-skin-reference-state={selected ? "selected" : "unselected"}
                   onClick={() => onActivate(index)}
                   onKeyDown={(event) => handleRowKeyDown(event, index)}
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                  {connected ? <span className="pp-skin-v1-dashboard-status-box" aria-label="Connected submenu" /> : null}
+                  {connected ? (
+                    <span
+                      className="pp-skin-v1-dashboard-status-box"
+                      aria-label="Connected submenu"
+                      data-skin-reference-state="status"
+                    />
+                  ) : null}
                 </button>
               </Fragment>
             );
@@ -104,10 +116,10 @@ export default function DashboardBbsPanel({
         </div>
 
         <div className="pp-skin-v1-dashboard-divider pp-skin-v1-dashboard-divider-bottom" aria-hidden="true">================================================================</div>
-        <p className="pp-skin-v1-dashboard-reminder">Remember: Write dirty, edit clean. 1 page = 1 minute.</p>
+        <p className="pp-skin-v1-dashboard-reminder" data-skin-reference-type="emphasis">Remember: Write dirty, edit clean. 1 page = 1 minute.</p>
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
-        <div className="pp-skin-v1-bbs-help">
+        <div className="pp-skin-v1-bbs-help" data-skin-reference-type="muted">
           <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
           <span>ENTER: OPEN COMMUNITY / PROFILE</span>
           <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>

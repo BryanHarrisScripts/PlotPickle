@@ -31,6 +31,39 @@ test("managed ComfyUI startup is headless-first and only enters the Desktop-capa
   assert.match(gateway, /comfy-cli started the managed local ComfyUI service/u);
 });
 
+test("managed startup preserves the exact last attempt and raw launcher evidence for Skin V1", async () => {
+  const [gateway, panel] = await Promise.all([
+    source("build/ai/comfyui-onboarding-gateway.ts"),
+    source("app/skin-v1/local-comfyui-panel.tsx"),
+  ]);
+
+  for (const contract of [
+    "lastStartAttempt",
+    "rememberStart",
+    "outputExcerpt",
+    "outputExcerpt(stderr)",
+    "outputExcerpt(stdout)",
+    "attemptedAt",
+    "lastStart: lastStartAttempt",
+    'state: "gateway-error"',
+  ]) assert.ok(gateway.includes(contract), `Missing managed startup evidence contract: ${contract}`);
+
+  for (const contract of [
+    "LAST START RESULT",
+    "FAILED TO START",
+    "WAITING FOR SERVICE",
+    "STATE:",
+    "MANAGER:",
+    "ATTEMPTED:",
+    "RETRY LOCAL SERVICE",
+    "No detailed startup evidence was returned.",
+  ]) assert.ok(panel.includes(contract), `Missing Local Images diagnostic contract: ${contract}`);
+
+  assert.match(panel, /requestManagedStart/u);
+  assert.match(panel, /setLastStart\(result\.value\)/u);
+  assert.match(panel, /startFailureLabel\(result\.value\)/u);
+});
+
 test("Skin V1 automatically bootstraps the fixed local image service without introducing cloud fallback", async () => {
   const runtime = await source("app/skin-v1-runtime.tsx");
 

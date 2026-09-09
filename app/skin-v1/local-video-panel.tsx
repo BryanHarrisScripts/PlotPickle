@@ -7,16 +7,17 @@ const COMFY_START_API = "/api/media-routing/comfyui/start";
 const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
 
 const panel: React.CSSProperties = {
-  border: "1px solid #287a4b",
-  background: "#080b09",
-  color: "#e7ece8",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)",
+  background: "var(--pp-skin-surface-1)",
+  color: "var(--pp-skin-ink)",
   padding: 18,
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  fontFamily: "var(--pp-skin-font-ui)",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 const card: React.CSSProperties = {
-  border: "1px solid #23412e",
-  background: "#0c120e",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
+  background: "var(--pp-skin-surface-2)",
   padding: 14,
 };
 
@@ -28,14 +29,16 @@ const row: React.CSSProperties = {
 };
 
 const primaryButton: React.CSSProperties = {
-  minHeight: 44,
+  minHeight: "var(--pp-skin-touch-target)",
   padding: "10px 18px",
-  border: "1px solid #79bd92",
-  background: "#123524",
-  color: "#f4fff7",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-accent-deep)",
+  color: "var(--pp-skin-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 type LocalPlugin = {
@@ -179,23 +182,23 @@ export default function LocalVideoPanel() {
     <section style={panel} aria-labelledby="local-video-title">
       <header style={{ ...row, justifyContent: "space-between", alignItems: "start" }}>
         <div>
-          <p style={{ margin: 0, color: "#79bd92", fontSize: 12 }}>LOCAL AI / VIDEO</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12 }}>LOCAL AI / VIDEO</p>
           <h2 id="local-video-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE VIDEO DEFAULT</h2>
           <p style={{ margin: 0, fontSize: 16 }}><strong>{selected?.label?.toUpperCase() || "AUTOMATIC / HARDWARE OPTIMIZED"}</strong></p>
-          <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "#c6d3ca" }}>
+          <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "var(--pp-skin-ink-soft)" }}>
             PlotPickle selects the best reviewed local video plug-in for this computer. ComfyUI at {LOCAL_COMFY_URL} remains the managed runtime underneath the selected model and workflow.
           </p>
         </div>
-        <span style={{ border: `1px solid ${activeReady ? "#79bd92" : "#365342"}`, padding: "5px 9px", color: activeReady ? "#79bd92" : "#9eafa3" }}>
+        <span style={{ border: `var(--pp-skin-border-thin) solid ${activeReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-line)"}`, padding: "5px 9px", color: activeReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-ink-muted)" }}>
           {activeReady ? "READY" : "NEEDS ATTENTION"}
         </span>
       </header>
 
-      <div style={{ ...card, marginTop: 16, background: "linear-gradient(110deg, #0b180f, #080b09)" }}>
+      <div style={{ ...card, marginTop: 16, background: "var(--pp-skin-surface-2)" }}>
         <div style={{ ...row, justifyContent: "space-between" }}>
           <div>
             <strong>{activeReady ? "LOCAL VIDEO IS ACTIVE" : "RUN PLOTPICKLE LOCAL VIDEO"}</strong>
-            <p style={{ margin: "6px 0 0", color: "#c6d3ca", lineHeight: 1.45 }}>
+            <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.45 }}>
               {selected ? `Selected automatically: ${selected.label}. ${selected.preset}.` : "PlotPickle is checking this computer for a compatible local video plug-in."}
             </p>
           </div>
@@ -236,14 +239,14 @@ export default function LocalVideoPanel() {
           <p style={{ margin: "0 0 5px" }}>RUNTIME: {selected?.runtimeProviderId?.toUpperCase() || "NONE"}</p>
           <p style={{ margin: 0 }}>MODE: {selected?.modes?.join(", ").toUpperCase() || "NONE"}</p>
           {!activeReady && selected ? (
-            <div style={{ marginTop: 12, borderTop: "1px solid #4d471c", paddingTop: 12 }}>
-              <p style={{ margin: "0 0 5px", color: "#d8c85d" }}><strong>SETUP BLOCKER</strong></p>
-              <p style={{ margin: "0 0 6px", color: "#fff0a6", lineHeight: 1.45 }}>
+            <div style={{ marginTop: 12, borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-warning-line)", paddingTop: 12 }}>
+              <p style={{ margin: "0 0 5px", color: "var(--pp-skin-warning)" }}><strong>SETUP BLOCKER</strong></p>
+              <p style={{ margin: "0 0 6px", color: "var(--pp-skin-warning-ink)", lineHeight: 1.45 }}>
                 {recommendation?.error || `${selected.label} is not ready yet.`}
               </p>
-              {!configured ? <p style={{ margin: "0 0 5px", color: "#fff0a6" }}>REVIEWED WORKFLOW: SETUP NEEDED</p> : null}
-              {missingNodes.length ? <p style={{ margin: "0 0 5px", color: "#fff0a6" }}>MISSING NODES: {missingNodes.join(", ")}</p> : null}
-              {missingModels.length ? <p style={{ margin: 0, color: "#fff0a6" }}>MISSING MODELS: {missingModels.join(", ")}</p> : null}
+              {!configured ? <p style={{ margin: "0 0 5px", color: "var(--pp-skin-warning-ink)" }}>REVIEWED WORKFLOW: SETUP NEEDED</p> : null}
+              {missingNodes.length ? <p style={{ margin: "0 0 5px", color: "var(--pp-skin-warning-ink)" }}>MISSING NODES: {missingNodes.join(", ")}</p> : null}
+              {missingModels.length ? <p style={{ margin: 0, color: "var(--pp-skin-warning-ink)" }}>MISSING MODELS: {missingModels.join(", ")}</p> : null}
             </div>
           ) : null}
         </div>
@@ -255,7 +258,7 @@ export default function LocalVideoPanel() {
         </button>
       ) : null}
 
-      {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "#79bd92" }}>{notice}</p> : null}
+      {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "var(--pp-skin-accent-bright)" }}>{notice}</p> : null}
     </section>
   );
 }

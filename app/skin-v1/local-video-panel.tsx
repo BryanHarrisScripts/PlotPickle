@@ -101,25 +101,40 @@ function announceReadyChange() {
   window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
 }
 
+function textToVideoPrerequisitesReady(status: H3Status | null) {
+  return Boolean(
+    status?.reachable
+    && status.manifestConfigured
+    && status.workflowFamily === "text-to-video"
+    && status.compatibleVersion
+    && status.missingNodes.length === 0
+    && status.modelsReady
+    && status.vramProfile !== "impractical",
+  );
+}
+
 export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) {
   const [status, setStatus] = useState<H3Status | null>(null);
   const [working, setWorking] = useState(false);
-  const [notice, setNotice] = useState("Checking PlotPickle's local video default...");
+  const [notice, setNotice] = useState("Checking PlotPickle's local text-to-video default...");
 
   async function refresh() {
     try {
       const next = await request<H3Status>(`${H3_API}/status`);
       setStatus(next);
-      const activeReady = next.reachable && next.ready && next.active;
+      const setupReady = textToVideoPrerequisitesReady(next);
+      const activeReady = setupReady && next.ready && next.active;
       if (activeReady) {
-        setNotice("VIDEO ACTIVE — MiniMax H3 is ready locally. ComfyUI is running only as the managed runtime dependency.");
+        setNotice("VIDEO ACTIVE — MiniMax H3 text-to-video is ready locally. ComfyUI is running only as the managed runtime dependency.");
         announceReadyChange();
       } else if (!next.reachable) {
-        setNotice("MiniMax H3 is waiting for PlotPickle's managed ComfyUI service.");
-      } else if (!next.ready) {
-        setNotice(next.error || "MiniMax H3 local setup is incomplete.");
+        setNotice("MiniMax H3 text-to-video is waiting for PlotPickle's managed ComfyUI service.");
+      } else if (next.manifestConfigured && next.workflowFamily !== "text-to-video") {
+        setNotice("PlotPickle local VIDEO uses MiniMax H3 text-to-video. Configure the official text-to-video workflow to continue.");
+      } else if (!setupReady) {
+        setNotice(next.error || "MiniMax H3 text-to-video setup is incomplete.");
       } else {
-        setNotice("MiniMax H3 is ready but not yet active for local video.");
+        setNotice("MiniMax H3 text-to-video is ready but not yet active for local video.");
       }
       return next;
     } catch (error) {
@@ -136,7 +151,7 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
   async function runDefault() {
     if (working) return;
     setWorking(true);
-    setNotice("Starting PlotPickle's local video default...");
+    setNotice("Starting PlotPickle's local text-to-video default...");
     try {
       let next = await request<H3Status>(`${H3_API}/status`);
       if (!next.reachable) {
@@ -144,9 +159,14 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
         next = await request<H3Status>(`${H3_API}/status`);
       }
       if (!next.reachable) throw new Error(`ComfyUI did not become ready at ${LOCAL_COMFY_URL}.`);
-      if (!next.manifestConfigured || !next.compatibleVersion || next.missingNodes.length > 0 || !next.modelsReady) {
+      if (next.manifestConfigured && next.workflowFamily !== "text-to-video") {
         setStatus(next);
-        setNotice("ComfyUI is ready. MiniMax H3 still needs its reviewed local workflow and model files before VIDEO can turn green.");
+        setNotice("The configured H3 workflow is not PlotPickle's text-to-video default. Open H3 setup and configure the official text-to-video workflow.");
+        return;
+      }
+      if (!next.manifestConfigured || !next.compatibleVersion || next.missingNodes.length > 0 || !next.modelsReady || next.vramProfile === "impractical") {
+        setStatus(next);
+        setNotice("ComfyUI is ready. MiniMax H3 still needs its text-to-video workflow and model files before VIDEO can turn green.");
         return;
       }
       next = await request<H3Status>(`${H3_API}/activation`, "POST", {
@@ -154,11 +174,13 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
         allowConstrainedVram: next.vramProfile === "constrained",
       });
       setStatus(next);
-      if (!next.active || !next.ready) throw new Error(next.error || "MiniMax H3 did not become active.");
-      setNotice("VIDEO ACTIVE — MiniMax H3 is the local video default. ComfyUI remains the managed runtime underneath.");
+      if (!next.active || !next.ready || next.workflowFamily !== "text-to-video") {
+        throw new Error(next.error || "MiniMax H3 text-to-video did not become active.");
+      }
+      setNotice("VIDEO ACTIVE — MiniMax H3 text-to-video is the local video default. ComfyUI remains the managed runtime underneath.");
       announceReadyChange();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not start the local video default.");
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not start the local text-to-video default.");
       await refresh();
     } finally {
       setWorking(false);
@@ -166,8 +188,8 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
   }
 
   const comfyReady = Boolean(status?.reachable);
-  const h3Ready = Boolean(status?.ready);
-  const activeReady = Boolean(status?.reachable && status?.ready && status?.active);
+  const h3Ready = textToVideoPrerequisitesReady(status);
+  const activeReady = Boolean(h3Ready && status?.ready && status?.active);
   const setupNeeded = Boolean(status && comfyReady && !h3Ready);
 
   return (
@@ -176,9 +198,9 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
         <div>
           <p style={{ margin: 0, color: "#79bd92", fontSize: 12 }}>LOCAL AI / VIDEO</p>
           <h2 id="local-video-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE VIDEO DEFAULT</h2>
-          <p style={{ margin: 0, fontSize: 16 }}><strong>MINIMAX H3</strong></p>
+          <p style={{ margin: 0, fontSize: 16 }}><strong>MINIMAX H3 · TEXT TO VIDEO</strong></p>
           <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "#c6d3ca" }}>
-            MiniMax H3 is the local video engine. PlotPickle manages ComfyUI at {LOCAL_COMFY_URL} only as H3&apos;s local runtime dependency.
+            MiniMax H3 is the local text-to-video engine. PlotPickle manages ComfyUI at {LOCAL_COMFY_URL} only as H3&apos;s local runtime dependency.
           </p>
         </div>
         <span style={{ border: `1px solid ${activeReady ? "#79bd92" : "#365342"}`, padding: "5px 9px", color: activeReady ? "#79bd92" : "#9eafa3" }}>
@@ -191,7 +213,7 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
           <div>
             <strong>{activeReady ? "LOCAL VIDEO IS ACTIVE" : "RUN PLOTPICKLE LOCAL VIDEO"}</strong>
             <p style={{ margin: "6px 0 0", color: "#c6d3ca", lineHeight: 1.45 }}>
-              Default target: short-form, 360p-class black-and-white video. PlotPickle starts the ComfyUI service first, then activates MiniMax H3 when its local workflow is genuinely ready.
+              Default: text-to-video, short-form, 360p-class black-and-white video. PlotPickle starts ComfyUI first, then activates the MiniMax H3 text-to-video workflow.
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void runDefault()} disabled={working || activeReady}>
@@ -207,32 +229,32 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
           <small>Managed runtime dependency</small>
         </div>
         <div style={card}>
-          <strong>MiniMax H3</strong>
+          <strong>MiniMax H3 T2V</strong>
           <p>{status === null ? "CHECKING..." : h3Ready ? "READY" : "SETUP NEEDED"}</p>
-          <small>Local video engine</small>
+          <small>Text-to-video engine</small>
         </div>
         <div style={card}>
           <strong>Local Target</strong>
-          <p>360P-CLASS / B&amp;W</p>
+          <p>TEXT→VIDEO / 360P / B&amp;W</p>
           <small>Short conservative local preset</small>
         </div>
         <div style={card}>
           <strong>Video</strong>
           <p>{activeReady ? "ACTIVE / GREEN" : "INACTIVE"}</p>
-          <small>{activeReady ? "MiniMax H3 is active." : comfyReady ? "Waiting for H3 readiness." : "Waiting for ComfyUI service."}</small>
+          <small>{activeReady ? "MiniMax H3 text-to-video is active." : comfyReady ? "Waiting for H3 text-to-video readiness." : "Waiting for ComfyUI service."}</small>
         </div>
       </div>
 
       {status ? (
         <div style={{ ...card, marginTop: 12 }}>
           <strong>LOCAL VIDEO STATUS</strong>
-          <p style={{ margin: "10px 0 5px" }}>GPU: {status.vramGiB ? `${status.vramGiB} GB / ${status.vramProfile.toUpperCase()}` : "NOT DETECTED"}</p>
-          <p style={{ margin: "0 0 5px" }}>WORKFLOW: {status.workflowFamily || "NOT CONFIGURED"}</p>
+          <p style={{ margin: "10px 0 5px" }}>GPU PROFILE: {status.vramGiB ? `${status.vramGiB} GB / ${status.vramProfile.toUpperCase()}` : "NOT DETECTED"}</p>
+          <p style={{ margin: "0 0 5px" }}>WORKFLOW: {status.workflowFamily === "text-to-video" ? "TEXT-TO-VIDEO" : "TEXT-TO-VIDEO REQUIRED"}</p>
           <p style={{ margin: 0 }}>H3 FILES: {status.modelsReady ? "FOUND" : "NOT READY"}</p>
           {status.vramWarning ? <p style={{ margin: "10px 0 0", color: "#d8c85d" }}>{status.vramWarning}</p> : null}
           {setupNeeded ? (
             <div style={{ marginTop: 12 }}>
-              <button type="button" style={yellowButton} onClick={onOpenH3}>OPEN MINIMAX H3 SETUP</button>
+              <button type="button" style={yellowButton} onClick={onOpenH3}>SETUP H3</button>
             </div>
           ) : null}
         </div>

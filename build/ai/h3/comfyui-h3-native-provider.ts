@@ -301,11 +301,11 @@ function modelOptions(info: Record<string, unknown>, requirement: H3ModelRequire
 }
 
 function vramProfile(bytes: number) {
-  const gib = bytes / (1024 ** 3);
+  const gib = Math.round((bytes / (1024 ** 3)) * 10) / 10;
   if (gib >= 24) return { id: "recommended", warning: "Local H3 has substantial VRAM headroom, subject to the official workflow requirements." };
   if (gib >= 16) return { id: "supported", warning: "Local H3 may be practical with the official workflow, model quantization and conservative settings." };
   if (gib >= 12) return { id: "limited", warning: "Use conservative resolution, frame count and offloading. Generation may be slow." };
-  if (gib >= 8) return { id: "constrained", warning: "8 GB VRAM is experimental and may be impractical. PlotPickle does not promise 2K, 15 seconds or usable speed." };
+  if (gib >= 8) return { id: "constrained", warning: "8 GB-class VRAM uses PlotPickle's constrained local text-to-video profile. Generation may be slow or fail on heavier workflows." };
   return { id: "impractical", warning: "Less than 8 GB VRAM is blocked for native H3 because successful generation is not reasonably expected." };
 }
 

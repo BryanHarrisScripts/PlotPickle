@@ -20,7 +20,7 @@ type MediaImageStatus = {
     checkpoints: string[];
   };
 };
-type H3Summary = { active: boolean; ready: boolean; reachable: boolean };
+type H3Summary = { active: boolean; ready: boolean; reachable: boolean; workflowFamily: string };
 
 const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
@@ -104,7 +104,7 @@ function fixedLocalImagesReady(status: MediaImageStatus | null) {
 }
 
 function fixedLocalVideoReady(status: H3Summary | null) {
-  return Boolean(status?.reachable && status.ready && status.active);
+  return Boolean(status?.reachable && status.ready && status.active && status.workflowFamily === "text-to-video");
 }
 
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {

@@ -21,11 +21,12 @@ test("Community navigation requires authentication and leaves unmigrated surface
 });
 
 test("Skin V1 activates the existing Community host without importing BUZZ transport", async () => {
-  const [skin, host, css, layout] = await Promise.all([
-    read("app/skin-v1/skin-v1-client.tsx"), read("app/_components/community/community-skin-host.tsx"),
-    read("app/skin-v1.css"), read("app/layout.tsx"),
+  const [skin, dashboard, host, css, layout] = await Promise.all([
+    read("app/skin-v1/skin-v1-client.tsx"), read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/_components/community/community-skin-host.tsx"), read("app/skin-v1.css"), read("app/layout.tsx"),
   ]);
-  assert.match(skin, /onClick=\{\(\) => activateDashboardItem\(index\)\}/u);
+  assert.match(skin, /onActivate=\{activateDashboardItem\}/u);
+  assert.match(dashboard, /onClick=\{\(\) => onActivate\(index\)\}/u);
   assert.match(skin, /id === "community"\) openSurface\("COMMUNITY"\)/u);
   assert.match(skin, /onClick=\{\(\) => openSurface\("DASHBOARD"\)\}/u);
   assert.match(skin, /result.outcome === "accepted"/u);

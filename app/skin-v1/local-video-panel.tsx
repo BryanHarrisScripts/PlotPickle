@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { deriveH3TextToVideoSetup, h3TextToVideoPrerequisitesReady, type H3SetupStatus } from "./h3-setup-status";
 
 const H3_API = "/api/media-routing/comfyui/h3/native";
 const COMFY_START_API = "/api/media-routing/comfyui/start";
@@ -50,29 +51,6 @@ const yellowButton: React.CSSProperties = {
   cursor: "pointer",
 };
 
-type ModelRequirement = {
-  label: string;
-  found: string;
-  ready: boolean;
-};
-
-type H3Status = {
-  active: boolean;
-  allowConstrainedVram: boolean;
-  reachable: boolean;
-  ready: boolean;
-  manifestConfigured: boolean;
-  compatibleVersion: boolean;
-  modelsReady: boolean;
-  missingNodes: string[];
-  modelRequirements: ModelRequirement[];
-  workflowFamily: string;
-  vramGiB: number;
-  vramProfile: string;
-  vramWarning: string;
-  error: string;
-};
-
 type StartAttempt = {
   ready: boolean;
   state: string;
@@ -101,40 +79,25 @@ function announceReadyChange() {
   window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
 }
 
-function textToVideoPrerequisitesReady(status: H3Status | null) {
-  return Boolean(
-    status?.reachable
-    && status.manifestConfigured
-    && status.workflowFamily === "text-to-video"
-    && status.compatibleVersion
-    && status.missingNodes.length === 0
-    && status.modelsReady
-    && status.vramProfile !== "impractical",
-  );
-}
-
 export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) {
-  const [status, setStatus] = useState<H3Status | null>(null);
+  const [status, setStatus] = useState<H3SetupStatus | null>(null);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("Checking PlotPickle's local text-to-video default...");
 
   async function refresh() {
     try {
-      const next = await request<H3Status>(`${H3_API}/status`);
+      const next = await request<H3SetupStatus>(`${H3_API}/status`);
       setStatus(next);
-      const setupReady = textToVideoPrerequisitesReady(next);
+      const setupReady = h3TextToVideoPrerequisitesReady(next);
       const activeReady = setupReady && next.ready && next.active;
+      const blocker = deriveH3TextToVideoSetup(next);
       if (activeReady) {
         setNotice("VIDEO ACTIVE — MiniMax H3 text-to-video is ready locally. ComfyUI is running only as the managed runtime dependency.");
         announceReadyChange();
-      } else if (!next.reachable) {
-        setNotice("MiniMax H3 text-to-video is waiting for PlotPickle's managed ComfyUI service.");
-      } else if (next.manifestConfigured && next.workflowFamily !== "text-to-video") {
-        setNotice("PlotPickle local VIDEO uses MiniMax H3 text-to-video. Configure the official text-to-video workflow to continue.");
       } else if (!setupReady) {
-        setNotice(next.error || "MiniMax H3 text-to-video setup is incomplete.");
+        setNotice(`${blocker.title} — ${blocker.detail}`);
       } else {
-        setNotice("MiniMax H3 text-to-video is ready but not yet active for local video.");
+        setNotice("MiniMax H3 text-to-video setup is ready but not yet active for local video.");
       }
       return next;
     } catch (error) {
@@ -153,23 +116,19 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
     setWorking(true);
     setNotice("Starting PlotPickle's local text-to-video default...");
     try {
-      let next = await request<H3Status>(`${H3_API}/status`);
+      let next = await request<H3SetupStatus>(`${H3_API}/status`);
       if (!next.reachable) {
         await request<StartResponse>(COMFY_START_API, "POST", { approved: true });
-        next = await request<H3Status>(`${H3_API}/status`);
+        next = await request<H3SetupStatus>(`${H3_API}/status`);
       }
       if (!next.reachable) throw new Error(`ComfyUI did not become ready at ${LOCAL_COMFY_URL}.`);
-      if (next.manifestConfigured && next.workflowFamily !== "text-to-video") {
+      if (!h3TextToVideoPrerequisitesReady(next)) {
         setStatus(next);
-        setNotice("The configured H3 workflow is not PlotPickle's text-to-video default. Open H3 setup and configure the official text-to-video workflow.");
+        const blocker = deriveH3TextToVideoSetup(next);
+        setNotice(`${blocker.title} — ${blocker.detail} NEXT: ${blocker.action}`);
         return;
       }
-      if (!next.manifestConfigured || !next.compatibleVersion || next.missingNodes.length > 0 || !next.modelsReady || next.vramProfile === "impractical") {
-        setStatus(next);
-        setNotice("ComfyUI is ready. MiniMax H3 still needs its text-to-video workflow and model files before VIDEO can turn green.");
-        return;
-      }
-      next = await request<H3Status>(`${H3_API}/activation`, "POST", {
+      next = await request<H3SetupStatus>(`${H3_API}/activation`, "POST", {
         active: true,
         allowConstrainedVram: next.vramProfile === "constrained",
       });
@@ -188,9 +147,10 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
   }
 
   const comfyReady = Boolean(status?.reachable);
-  const h3Ready = textToVideoPrerequisitesReady(status);
+  const h3Ready = h3TextToVideoPrerequisitesReady(status);
   const activeReady = Boolean(h3Ready && status?.ready && status?.active);
   const setupNeeded = Boolean(status && comfyReady && !h3Ready);
+  const blocker = deriveH3TextToVideoSetup(status);
 
   return (
     <section style={panel} aria-labelledby="local-video-title">
@@ -251,9 +211,10 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
           <p style={{ margin: "10px 0 5px" }}>GPU PROFILE: {status.vramGiB ? `${status.vramGiB} GB / ${status.vramProfile.toUpperCase()}` : "NOT DETECTED"}</p>
           <p style={{ margin: "0 0 5px" }}>WORKFLOW: {status.workflowFamily === "text-to-video" ? "TEXT-TO-VIDEO" : "TEXT-TO-VIDEO REQUIRED"}</p>
           <p style={{ margin: 0 }}>H3 FILES: {status.modelsReady ? "FOUND" : "NOT READY"}</p>
-          {status.vramWarning ? <p style={{ margin: "10px 0 0", color: "#d8c85d" }}>{status.vramWarning}</p> : null}
           {setupNeeded ? (
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 12, borderTop: "1px solid #4d471c", paddingTop: 12 }}>
+              <p style={{ margin: "0 0 5px", color: "#d8c85d" }}><strong>SETUP BLOCKER: {blocker.title}</strong></p>
+              <p style={{ margin: "0 0 9px", color: "#fff0a6", lineHeight: 1.45 }}>{blocker.detail}</p>
               <button type="button" style={yellowButton} onClick={onOpenH3}>SETUP H3</button>
             </div>
           ) : null}

@@ -1,4 +1,6 @@
+import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import path from "node:path";
 import type { ViteDevServer } from "vite";
 import {
   configureLtxManifest,
@@ -23,6 +25,22 @@ const VIDEO_PATH = "/api/local-ai/generate/video";
 const TEST_VIDEO_PATH = "/api/media-routing/test/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const LOCAL_VIDEO_WAIT_MS = 30 * 60_000;
+const INSTALL_SCRIPT_NAME = "install-comfyui-ltx-2b-starter.ps1";
+const REVIEWED_DOWNLOAD_SIZE = "16.13 GB";
+
+type LtxSetupTask = {
+  state: "idle" | "installing" | "installed" | "failed";
+  message: string;
+  startedAt: string;
+  finishedAt: string;
+};
+
+let setupTask: LtxSetupTask = {
+  state: "idle",
+  message: "",
+  startedAt: "",
+  finishedAt: "",
+};
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -60,6 +78,63 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
   const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Enter a valid local LTX-Video request.");
   return parsed as Record<string, unknown>;
+}
+
+function installerPath() {
+  return path.resolve(process.cwd(), "scripts", INSTALL_SCRIPT_NAME);
+}
+
+function marker(output: string, name: string) {
+  const prefix = `${name}=`;
+  for (const line of output.split(/\r?\n/u)) {
+    if (line.startsWith(prefix)) return line.slice(prefix.length).trim();
+  }
+  return "";
+}
+
+function startReviewedLtxInstall() {
+  setupTask = {
+    state: "installing",
+    message: `Downloading and verifying the reviewed LTX model files (${REVIEWED_DOWNLOAD_SIZE} total). Keep PlotPickle and ComfyUI open.`,
+    startedAt: new Date().toISOString(),
+    finishedAt: "",
+  };
+
+  const child = spawn("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", installerPath(),
+    "-Mode", "Install",
+    "-Approved",
+  ], {
+    cwd: process.cwd(),
+    windowsHide: true,
+    shell: false,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  let output = "";
+  const append = (chunk: Buffer | string) => {
+    output = `${output}${String(chunk)}`.slice(-512 * 1024);
+  };
+  child.stdout?.on("data", append);
+  child.stderr?.on("data", append);
+  child.once("error", (error) => {
+    setupTask = { ...setupTask, state: "failed", message: error.message, finishedAt: new Date().toISOString() };
+  });
+  child.once("close", (code) => {
+    const state = marker(output, "PLOTPICKLE_LTX_INSTALL_STATUS");
+    const detail = marker(output, "PLOTPICKLE_LTX_INSTALL_DETAIL");
+    const success = code === 0 && ["installed", "ready"].includes(state);
+    setupTask = {
+      ...setupTask,
+      state: success ? "installed" : "failed",
+      message: detail || (success
+        ? "The reviewed LTX model files are installed and verified."
+        : `The LTX model installer exited with code ${code ?? "unknown"}.`),
+      finishedAt: new Date().toISOString(),
+    };
+  });
 }
 
 async function usesDefaultLocalVideo() {
@@ -117,13 +192,59 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
           configuredAt: store.configuredAt,
           verifiedAt: store.verifiedAt,
           lastError: store.lastError,
+          setupTask,
+          reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE,
           ...(await probeLtxVideo(store)),
         });
         return;
       }
       if (pathname === SETUP_PATH && request.method === "POST") {
         const store = await ensureLtxDefault();
-        sendJson(response, 200, { ok: true, ...(await probeLtxVideo(store)) });
+        const status = await probeLtxVideo(store);
+        if (status.ready) {
+          sendJson(response, 200, { ok: true, setupTask, reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE, ...status });
+          return;
+        }
+        if (status.missingNodes.length) {
+          sendJson(response, 409, {
+            ok: false,
+            message: `The installed ComfyUI build is missing required core LTX nodes: ${status.missingNodes.join(", ")}. Update the managed ComfyUI runtime, then CHECK AGAIN.`,
+            setupTask,
+            ...status,
+          });
+          return;
+        }
+        if (status.missingModels.length) {
+          if (process.platform !== "win32") {
+            sendJson(response, 409, {
+              ok: false,
+              message: "Automatic reviewed LTX model installation is currently available on local Windows only.",
+              setupTask,
+              ...status,
+            });
+            return;
+          }
+          if (setupTask.state === "installing") {
+            sendJson(response, 202, { ok: true, installing: true, setupTask, reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE, ...status });
+            return;
+          }
+          const body = await readBody(request, 4 * 1024);
+          if (body.approved !== true) {
+            sendJson(response, 409, {
+              ok: false,
+              approvalRequired: true,
+              reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE,
+              message: `Explicit approval is required before PlotPickle downloads up to ${REVIEWED_DOWNLOAD_SIZE} of reviewed LTX model files.`,
+              setupTask,
+              ...status,
+            });
+            return;
+          }
+          startReviewedLtxInstall();
+          sendJson(response, 202, { ok: true, installing: true, setupTask, reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE, ...status });
+          return;
+        }
+        sendJson(response, 200, { ok: true, setupTask, reviewedDownloadSize: REVIEWED_DOWNLOAD_SIZE, ...status });
         return;
       }
       if (pathname === MANIFEST_PATH && request.method === "POST") {

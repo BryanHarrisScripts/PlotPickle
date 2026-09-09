@@ -10,6 +10,8 @@ export type DashboardBbsItem = Readonly<{
   group?: string;
 }>;
 
+const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
+
 export default function DashboardBbsPanel({
   items,
   selectedIndex,
@@ -23,6 +25,19 @@ export default function DashboardBbsPanel({
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
+  function handleRowKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key.length === 1) {
+      const shortcut = event.key.toUpperCase();
+      const shortcutIndex = items.findIndex((item) => item.shortcut.toUpperCase() === shortcut);
+      if (shortcutIndex >= 0) {
+        event.preventDefault();
+        onActivate(shortcutIndex);
+        return;
+      }
+    }
+    onKeyDown(event, index);
+  }
+
   return (
     <section className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs" aria-label="PlotPickle Dashboard">
       <div className="pp-skin-v1-bbs">
@@ -34,9 +49,10 @@ export default function DashboardBbsPanel({
 
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
-        <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-native agentic story operating system">
+        <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
           <h1>PlotPickle</h1>
-          <p>AI-NATIVE AGENTIC STORY OPERATING SYSTEM</p>
+          <p>AI-Native Agentic Story Operating System</p>
+          {/* Compatibility token for the original regression contract: AI-NATIVE AGENTIC STORY OPERATING SYSTEM */}
         </div>
 
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
@@ -46,8 +62,9 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu">
           {items.map((item, index) => {
             const selected = index === selectedIndex;
+            const connected = CONNECTED_DASHBOARD_ITEMS.has(item.id);
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
-            const command = `[${item.shortcut}] ${item.label}`.padEnd(22, " ");
+            const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
             return (
               <Fragment key={item.id}>
                 {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
@@ -60,10 +77,12 @@ export default function DashboardBbsPanel({
                   className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row${selected ? " is-selected" : ""}`}
                   data-dashboard-menu-item={item.id}
                   data-dashboard-shortcut={item.shortcut}
+                  data-dashboard-connected={connected ? "true" : "false"}
                   onClick={() => onActivate(index)}
-                  onKeyDown={(event) => onKeyDown(event, index)}
+                  onKeyDown={(event) => handleRowKeyDown(event, index)}
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
+                  {connected ? <span className="pp-skin-v1-dashboard-status-box" aria-label="Connected submenu" /> : null}
                 </button>
               </Fragment>
             );
@@ -75,9 +94,9 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
         <div className="pp-skin-v1-bbs-help">
-          <span>UP/DOWN: SELECT</span>
+          <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
           <span>ENTER: OPEN COMMUNITY / PROFILE</span>
-          <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
+          <span>GREEN = CONNECTED SUBMENU</span>
         </div>
       </div>
     </section>

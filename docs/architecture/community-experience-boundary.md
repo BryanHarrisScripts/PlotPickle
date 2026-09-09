@@ -53,3 +53,13 @@ During the Experience/SKIN migration, the current Community interaction design i
 ## Validation rule
 
 Normal pull requests rely on the two visible gates. Do not add historical Community screenshot suites or broad UI lock-in while the Skin is changing rapidly. Exact changed-code checks are sufficient locally; deeper BUZZ/provider verification remains specialized when needed.
+
+## Skin V1 Dashboard integration
+
+Authenticated users can open Community by clicking its Dashboard entry or pressing Enter/Space after selecting it. Arrow keys only change selection. Back to Dashboard restores focus to Community. The headless surface registry accepts OpenSurface for Dashboard and Community; other unfinished surfaces remain unavailable. This navigation decision grants no publication or Canon authority.
+
+The app-owned community-skin-host lazily mounts the existing CommunityWorkspace. It is the #1757 compatibility bridge until Community room and identity view models are migrated to Experience. BUZZ membership, authenticated requests, rooms and messaging retain their existing owners. Monochrome styling applies to the Community host; Dashboard styling and other skins retain their existing rules.
+
+BUZZ identity setup remains in the existing Profile screen. For an unconnected user, Open Profile displays a deliberate link to that existing screen. This is an explicit migration limitation, not a new Skin V1 Profile implementation. Return to /skin-v1 and reopen Community after connecting.
+
+Focused navigation and logon regressions run within the existing PR Gate. Manual compatibility check: log in, select Community with arrows, activate with Enter, inspect Great Hall and room controls, return to Dashboard, and reopen at narrow width. A live BUZZ identity is needed to verify posting and membership.

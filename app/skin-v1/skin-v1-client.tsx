@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  lazy,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -9,7 +11,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { browserProfileAuthGateway } from "../../adapters/experience/browser-profile-auth-gateway";
-import type { ExperienceIntent } from "../../core/contracts/experience";
+import type { ExperienceIntent, ExperienceSurfaceId } from "../../core/contracts/experience";
 import {
   executeAuthenticateHumanIntent,
   executeCompleteFirstHumanProfileSetupIntent,
@@ -18,7 +20,9 @@ import {
   type FirstProfileRecovery,
   type LogonViewModel,
 } from "../../lib/experience/logon-use-case";
-import { deriveExperienceSurfaceTopology } from "../../lib/experience/surface-registry";
+import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../../lib/experience/surface-registry";
+
+const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
 
 const LOADING_VIEW: LogonViewModel = {
   surface: "LOGON",
@@ -73,6 +77,8 @@ export default function SkinV1Client() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [dashboardSelection, setDashboardSelection] = useState(0);
+  const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
+  const returnButtonRef = useRef<HTMLButtonElement>(null);
   const dashboardMenuRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
@@ -91,6 +97,23 @@ export default function SkinV1Client() {
     () => deriveExperienceSurfaceTopology({ authenticated: view.state === "authenticated" }),
     [view.state],
   );
+
+  useEffect(() => {
+    if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
+    else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
+  }, [activeSurface, view.state, dashboardSelection]);
+
+  function openSurface(surfaceId: ExperienceSurfaceId) {
+    const result = executeOpenSurfaceIntent({
+      type: "OpenSurface", intentId: nextIntentId(), surfaceId, baseRevision: null,
+    }, { authenticated: view.state === "authenticated" });
+    if (result.outcome === "accepted") setActiveSurface(surfaceId);
+  }
+
+  function activateDashboardItem(index: number) {
+    setDashboardSelection(index);
+    if (DASHBOARD_MENU[index]?.id === "community") openSurface("COMMUNITY");
+  }
 
   function moveDashboardSelection(index: number) {
     const bounded = (index + DASHBOARD_MENU.length) % DASHBOARD_MENU.length;
@@ -209,14 +232,21 @@ export default function SkinV1Client() {
   if (view.state === "authenticated") {
     const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
     return (
-      <main className="pp-skin-v1-home" data-experience-surface={topology.defaultSurface}>
+      <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
           <strong>PLOTPICKLE</strong>
-          <span>DASHBOARD</span>
+          <span>{activeSurface}</span>
           <span>SKIN V1</span>
+          {activeSurface === "COMMUNITY" ? (
+            <button className="pp-skin-v1-return" ref={returnButtonRef} type="button" onClick={() => openSurface("DASHBOARD")}>Back to Dashboard</button>
+          ) : null}
         </header>
 
-        <section className="pp-skin-v1-dashboard" aria-label="PlotPickle Dashboard">
+        {activeSurface === "COMMUNITY" ? (
+          <section aria-label="PlotPickle Community">
+            <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
+          </section>
+        ) : <section className="pp-skin-v1-dashboard" aria-label="PlotPickle Dashboard">
           <div className="pp-skin-v1-bbs">
             <div className="pp-skin-v1-bbs-banner" aria-hidden="true">
               <span>*** PLOTPICKLE BBS ***</span>
@@ -236,7 +266,7 @@ export default function SkinV1Client() {
                     tabIndex={selected ? 0 : -1}
                     className={`pp-skin-v1-menu-item${selected ? " is-selected" : ""}${item.groupStart ? " is-group-start" : ""}`}
                     data-dashboard-menu-item={item.id}
-                    onClick={() => setDashboardSelection(index)}
+                    onClick={() => activateDashboardItem(index)}
                     onKeyDown={(event) => dashboardMenuKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-menu-cursor" aria-hidden="true">{selected ? ">" : " "}</span>
@@ -249,14 +279,14 @@ export default function SkinV1Client() {
 
             <div className="pp-skin-v1-bbs-help">
               <span>UP/DOWN: SELECT</span>
-              <span>ENTER: SELECT</span>
-              <span>MENU ITEMS ARE NOT CONNECTED YET</span>
+              <span>ENTER: OPEN COMMUNITY</span>
+              <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
             </div>
           </div>
-        </section>
+        </section>}
 
         <footer className="pp-skin-v1-status">
-          <span>BUSINESS USE CASE: DASHBOARD</span>
+          <span>BUSINESS USE CASE: {activeSurface}</span>
           <span>SELECTED: {selectedMenuItem.label}</span>
         </footer>
       </main>

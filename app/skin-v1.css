@@ -49,6 +49,36 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   text-transform: uppercase;
 }
 
+.pp-skin-v1-return,
+.pp-skin-v1-community-setup button,
+.pp-skin-v1-community-setup a {
+  display: inline-block;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #fff;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pp-skin-v1-return:focus-visible,
+.pp-skin-v1-community-setup :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.pp-skin-v1-community {
+  min-width: 0;
+  color-scheme: dark;
+  filter: grayscale(1);
+}
+
+.pp-skin-v1-community-setup {
+  padding: 16px;
+  border-bottom: 1px solid #fff;
+}
+
 .pp-skin-v1-title,
 .pp-skin-v1-bar {
   border-bottom: 2px solid #fff;

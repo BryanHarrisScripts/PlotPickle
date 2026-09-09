@@ -135,7 +135,7 @@ test("#1754 Skin V1 owns fresh setup, LOGON and the approved keyboard-selectable
   }
 
   for (const group of ["PLANNING & STRUCTURING", "PRODUCTION & DRAFTING", "PROJECT MANAGEMENT", "INTERACTIVE & LEARNING"]) {
-    assert.match(skin, new RegExp(`group: "${group.replace(/[&]/g, "\\&")}"`, "u"));
+    assert.ok(skin.includes(`group: "${group}"`), `${group} must appear as an approved Dashboard group`);
   }
 
   assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: #fff;[\s\S]*color: #000;/u);

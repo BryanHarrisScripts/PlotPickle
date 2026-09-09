@@ -32,6 +32,7 @@ async function fixture(t) {
   let submitted;
   let saved;
   let historyError = false;
+  let submissionError = false;
   const manifest = defaults.bundledLtxManifest();
   const objectInfo = Object.fromEntries(Object.values(manifest.workflow).map((node) => [node.class_type, { input: { required: {} } }]));
   objectInfo.CheckpointLoaderSimple.input.required.ckpt_name = [[manifest.requiredModelNames[0]]];
@@ -57,6 +58,7 @@ async function fixture(t) {
       if (url.endsWith("/system_stats")) return Response.json({ system: { comfyui_version: version } });
       if (url.endsWith("/object_info")) return Response.json(objectInfo);
       if (url.endsWith("/prompt")) {
+        if (submissionError) return Response.json({ error: "invalid graph" }, { status: 400 });
         submitted = JSON.parse(init.body).prompt;
         return Response.json({ prompt_id: "proof-1" });
       }
@@ -69,6 +71,7 @@ async function fixture(t) {
   return { provider, defaults, objectInfo, manifest,
     get stored() { return stored; }, get writes() { return writes; },
     get submitted() { return submitted; }, get saved() { return saved; },
+    set submissionError(value) { submissionError = value; },
     set historyError(value) { historyError = value; },
     set version(value) { version = value; }, set online(value) { online = value; },
   };
@@ -186,4 +189,23 @@ test("failed proof clears a previous green verification and publishes the actual
   assert.equal(result.outputAssetUrl, "");
   assert.equal(f.stored.verifiedAt, "");
   assert.match(f.stored.lastError, /CUDA out of memory/);
+});
+
+
+test("a rejected submission cannot leave VIDEO green from an earlier proof", async (t) => {
+  const f = await fixture(t);
+  await f.provider.ensureLtxDefault();
+  f.stored.verifiedAt = "2026-01-01T00:00:00Z";
+  f.submissionError = true;
+  await assert.rejects(() => f.provider.createLtxVideo({ prompt: "A person walks slowly." }), /HTTP 400/);
+  assert.equal(f.stored.verifiedAt, "");
+  assert.match(f.stored.lastError, /HTTP 400/);
+  const adapters = await compile("build/ai/local-plugin-adapters.ts", {
+    "./comfyui-ltx-local-provider": f.provider,
+    "./h3/comfyui-h3-native-provider": {},
+  });
+  const status = await adapters.probeLocalAiPluginAdapter("comfyui-ltx-local");
+  assert.equal(status.ready, true, "requirements remain present so the user can retry");
+  assert.equal(status.active, false);
+  assert.match(status.error, /LOCAL TEST FAILED/);
 });

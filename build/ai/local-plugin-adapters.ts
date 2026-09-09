@@ -67,7 +67,7 @@ registerLocalAiPluginAdapter({
     const store = await ensureLtxDefault();
     const status = await probeLtxVideo(store);
     const error = status.ready
-      ? ""
+      ? store.lastError ? `LOCAL TEST FAILED: ${store.lastError}` : store.verifiedAt ? "" : "LOCAL TEST NOT RUN: open the selected engine and press TEST LOCAL VIDEO."
       : status.error
         || (status.missingNodes.length ? `Missing ComfyUI nodes: ${status.missingNodes.join(", ")}` : "")
         || (status.missingModels.length ? `Missing local model files: ${status.missingModels.join(", ")}` : "")

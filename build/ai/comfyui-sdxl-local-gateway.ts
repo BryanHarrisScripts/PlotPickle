@@ -7,7 +7,7 @@ import type { ImageGenerationInput } from "../media-provider-common";
 
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const TEST_IMAGE_PATH = "/api/media-routing/test/image";
-const SDXL_PATTERN = /(sdxl|stable.?diffusion.?xl|juggernaut.?xl|realvis.?xl|dreamshaper.?xl)/i;
+const LOCAL_IMAGE_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -47,8 +47,8 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
   return parsed as Record<string, unknown>;
 }
 
-function defaultSdxlCheckpoint(checkpoints: readonly string[]) {
-  return checkpoints.find((checkpoint) => SDXL_PATTERN.test(checkpoint)) || "";
+function liveSdxlCheckpoint(checkpoints: readonly string[]) {
+  return checkpoints.find((checkpoint) => checkpoint.trim().toLowerCase() === LOCAL_IMAGE_CHECKPOINT) || "";
 }
 
 export function registerSdxlLocalImageGateway(server: ViteDevServer) {
@@ -72,14 +72,11 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
       if (!probe.reachable || !probe.imageNodesReady) {
         throw new Error(probe.error || `ComfyUI is missing required image nodes: ${probe.missingImageNodes.join(", ")}`);
       }
-      const explicitlySelected = store.comfyui.checkpoint && probe.checkpoints.includes(store.comfyui.checkpoint)
-        ? store.comfyui.checkpoint
-        : "";
-      const checkpoint = explicitlySelected || defaultSdxlCheckpoint(probe.checkpoints);
+      const checkpoint = liveSdxlCheckpoint(probe.checkpoints);
       if (!checkpoint) {
-        throw new Error("ComfyUI is running, but PlotPickle could not find an SDXL checkpoint. Install SDXL 1.0 or select an advanced checkpoint override in Settings.");
+        throw new Error(`ComfyUI is running, but its live server does not expose ${LOCAL_IMAGE_CHECKPOINT}. Install PlotPickle's SDXL 1.0 local image model and restart ComfyUI.`);
       }
-      if (!explicitlySelected && store.comfyui.checkpoint !== checkpoint) {
+      if (store.comfyui.checkpoint !== checkpoint) {
         store.comfyui.checkpoint = checkpoint;
         await writeMediaRoutingStore(store);
       }

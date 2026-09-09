@@ -158,6 +158,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const [storyRooms, setStoryRooms] = useState<StoryRoomRecord[]>([]);
   const [dms, setDms] = useState<BuzzDm[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<CommunitySocialTarget | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [utilityView, setUtilityView] = useState<UtilityView>("social");
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
@@ -350,7 +351,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             <div className={navigationStyles.subDestinationList}>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Room</span><small>{privateStoryRoom ? "READY" : project ? "SET UP" : "NO STORY"}</small></button>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "studios" ? "page" : undefined} onClick={() => { setUtilityView("studios"); setSelectedTarget(null); }}><span>Connected Studios</span><small>PEOPLE</small></button>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>{PLOTPICKLE_PLAYHOUSE_PLUGIN.agents.length} OFFICIAL</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setSelectedAgentId(null); setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>{PLOTPICKLE_PLAYHOUSE_PLUGIN.agents.length} OFFICIAL</small></button>
             </div>
           </section>
         </nav>
@@ -361,12 +362,12 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         : !operational ? <section className={styles.setupCard}><div><span>Prepare {COMMUNITY_BBS_NAME}</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking Community"}</h2><p>PlotPickle will prepare the missing BUZZ rooms once. The normal user view will still show only the useful Community rooms contributed by the active Community plugin.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Prepare Community"}</button></section>
         : utilityView === "directory" ? <CommunityStoryRoomDirectory />
         : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
-        : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster /></main>
+        : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster selectedAgentId={selectedAgentId} /></main>
         : utilityView === "story-rooms" ? <main className={styles.stack}>
             <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? (privateStoryRoom?.displayName || buzzStoryRoomDisplayName(project, PRIVATE_STORY_ROOM_ID)) : "Open a story first"}</h2><p>{project ? `${project.title} · Stable BUZZ channel identity; the normal room name never exposes the project UUID. PlotPickle keeps the older category channels underneath for compatibility.` : "One private project space for story discussion."}</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
             {privateStoryRoom ? <CommunityStoryRoomAccess channel={privateStoryRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : <p className={styles.empty}>{project ? "Create the Private Story Room when you want a BUZZ space dedicated to this story." : "Start or open a story in LEARN or PLAN first."}</p>}
           </main>
-        : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} humanPresentation={humanPresentation} onOpenDm={openDm} />}
+        : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} humanPresentation={humanPresentation} onOpenDm={openDm} onOpenAgent={(agentId) => { setSelectedAgentId(agentId); setUtilityView("agents"); }} />}
       </div>
     </div>
   </div>;

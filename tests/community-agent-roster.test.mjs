@@ -28,7 +28,7 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   ]);
 
   assert.match(workspace, /import CommunityAgentRoster from "\.\/community-agent-roster"/);
-  assert.match(workspace, /<CommunityAgentRoster \/>/);
+  assert.match(workspace, /<CommunityAgentRoster selectedAgentId=\{selectedAgentId\} \/>/);
   assert.match(roster, /\/api\/writing-assistant\/status/);
   assert.match(roster, /\/api\/writing-assistant\/traces/);
   assert.match(roster, /\/api\/local-buzz\/agent-roster/);
@@ -85,4 +85,16 @@ test("BUZZ-native steward lookup is local, read-only and owner-scoped", async ()
   assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/);
   assert.match(gateway, /\[redacted-nsec\]/);
   assert.doesNotMatch(gateway, /agents", "draft"|agents", "create"|channels", "add-member"/);
+});
+
+
+test("room helpers open the Community roster and focus the selected agent", async () => {
+  const social = await read("modules/community/community-buzz-social.tsx");
+  const workspace = await read("app/_components/community/community-workspace.tsx");
+  const roster = await read("app/_components/community/community-agent-roster.tsx");
+  assert.match(social, /onClick=\{\(\) => onOpenAgent\(agent.id\)\}/);
+  assert.doesNotMatch(social, /settings=help&helper=/);
+  assert.match(workspace, /setSelectedAgentId\(agentId\); setUtilityView\("agents"\)/);
+  assert.match(roster, /selectedCardRef.current\?\.focus/);
+  assert.match(roster, /data-selected=\{agent.id === selectedAgentId/);
 });

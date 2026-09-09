@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AgentPortrait from "../../../components/agent-portrait";
 import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
 import { normalizeFoundationProject } from "../../../core/project/project";
@@ -118,7 +118,14 @@ function roomLabels(roomIds: readonly string[], fallback: string) {
   return roomIds.map((roomId) => roomById.get(roomId) ?? roomId);
 }
 
-export default function CommunityAgentRoster({ projectContext = null }: { readonly projectContext?: unknown }) {
+export default function CommunityAgentRoster({ projectContext = null, selectedAgentId = null }: { readonly projectContext?: unknown; readonly selectedAgentId?: string | null }) {
+  const selectedCardRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!selectedAgentId) return;
+    selectedCardRef.current?.focus({ preventScroll: true });
+    selectedCardRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+  }, [selectedAgentId]);
+
   const [assistantStatus, setAssistantStatus] = useState<WritingAssistantStatus | null>(null);
   const [traces, setTraces] = useState<AgentTrace[]>([]);
   const [buzzIdentityVerified, setBuzzIdentityVerified] = useState(false);
@@ -222,7 +229,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
           const presentation = publicAgentByProfileId(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent.id);
           const rooms = roomLabels(presentation?.roomIds ?? [], agent.homeRoom);
           return (
-            <article className={styles.card} key={agent.id} data-state={agent.state}>
+            <article className={styles.card} key={agent.id} data-state={agent.state} data-community-agent={agent.id} data-selected={agent.id === selectedAgentId ? "true" : undefined} ref={agent.id === selectedAgentId ? selectedCardRef : undefined} tabIndex={-1}>
               <header>
                 <div className={styles.identity}>
                   <AgentPortrait id={agent.id} alt={`${agent.displayName} profile picture`} size={72} />

@@ -5,6 +5,9 @@ export type CloudMediaProvider = "openai" | "minimax";
 export type ImageRoute = "comfyui" | "openai" | "minimax" | "manual";
 export type VideoRoute = "minimax-direct" | "minimax-comfyui" | "none";
 
+export const LOCAL_COMFYUI_URL = "http://127.0.0.1:8188";
+export const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
+
 export type MediaProfile = {
   provider: CloudMediaProvider;
   baseUrl: string;
@@ -63,8 +66,8 @@ function emptyStore(): MediaRoutingStore {
     videoRoute: "none",
     profiles: {},
     comfyui: {
-      baseUrl: "http://127.0.0.1:8188",
-      checkpoint: "",
+      baseUrl: LOCAL_COMFYUI_URL,
+      checkpoint: LOCAL_SDXL_CHECKPOINT,
       imageVerifiedAt: "",
       lastError: "",
       h3Workflow: null,
@@ -100,8 +103,8 @@ function normalizeStore(value: unknown): MediaRoutingStore {
     videoRoute: videoRoutes.includes(item.videoRoute as VideoRoute) ? item.videoRoute as VideoRoute : fallback.videoRoute,
     profiles,
     comfyui: {
-      baseUrl: typeof comfy.baseUrl === "string" ? comfy.baseUrl : fallback.comfyui.baseUrl,
-      checkpoint: typeof comfy.checkpoint === "string" ? comfy.checkpoint : "",
+      baseUrl: LOCAL_COMFYUI_URL,
+      checkpoint: LOCAL_SDXL_CHECKPOINT,
       imageVerifiedAt: typeof comfy.imageVerifiedAt === "string" ? comfy.imageVerifiedAt : "",
       lastError: typeof comfy.lastError === "string" ? comfy.lastError : "",
       h3Workflow: comfy.h3Workflow && typeof comfy.h3Workflow === "object" ? comfy.h3Workflow : null,
@@ -144,7 +147,12 @@ export async function readMediaRoutingStore() {
   ]);
   const next = normalizeStore(stored);
   const imported = existing ? importedProfile(existing) : null;
-  let changed = !stored;
+  const storedComfy = stored && typeof stored === "object" && (stored as Partial<MediaRoutingStore>).comfyui && typeof (stored as Partial<MediaRoutingStore>).comfyui === "object"
+    ? (stored as Partial<MediaRoutingStore>).comfyui
+    : null;
+  let changed = !stored
+    || storedComfy?.baseUrl !== LOCAL_COMFYUI_URL
+    || storedComfy?.checkpoint !== LOCAL_SDXL_CHECKPOINT;
   if (imported && !sameProfile(next.profiles[imported.provider], imported)) {
     next.profiles[imported.provider] = imported;
     // Preserve the old migration contract only for users who explicitly saved
@@ -164,6 +172,8 @@ export async function readMediaRoutingStore() {
 }
 
 export async function writeMediaRoutingStore(value: MediaRoutingStore) {
+  value.comfyui.baseUrl = LOCAL_COMFYUI_URL;
+  value.comfyui.checkpoint = LOCAL_SDXL_CHECKPOINT;
   await writeCredentialJson(STORE_FILE, value);
 }
 

@@ -21,6 +21,7 @@ import {
   type LogonViewModel,
 } from "../../lib/experience/logon-use-case";
 import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../../lib/experience/surface-registry";
+import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
 const LocalAiSkinHost = lazy(() => import("./local-ai-skin-host"));
@@ -44,30 +45,22 @@ const LOADING_VIEW: LogonViewModel = {
   message: null,
 };
 
-type DashboardMenuItem = Readonly<{
-  id: string;
-  label: string;
-  description: string;
-  groupStart?: boolean;
-}>;
-
-const DASHBOARD_MENU: readonly DashboardMenuItem[] = [
-  { id: "dashboard", label: "Dashboard", description: "Your PlotPickle command centre" },
-  { id: "community", label: "Community", description: "Talk, share, collaborate with others", groupStart: true },
-  { id: "library", label: "Library", description: "Browse stories and learning resources" },
-  { id: "plan", label: "Plan", description: "Shape story structure and direction", groupStart: true },
-  { id: "storyboard", label: "Storyboard", description: "Visualize scenes before you write" },
-  { id: "previs", label: "Previs", description: "Preview shots, timing and motion" },
-  { id: "write", label: "Write", description: "Write scenes, dialogue and action", groupStart: true },
-  { id: "edit", label: "Edit", description: "Review and improve the screenplay" },
-  { id: "feedback", label: "Feedback", description: "Gather notes, decisions and reactions" },
-  { id: "refine", label: "Refine", description: "Polish story choices with purpose" },
-  { id: "reports", label: "Reports", description: "Review story health and readiness", groupStart: true },
-  { id: "settings", label: "Settings", description: "Configure PlotPickle tools and connections" },
-  { id: "profile", label: "Profile", description: "Manage your identity and preferences" },
-  { id: "learn", label: "Learn - Education", description: "Learn PlotPickle and story craft", groupStart: true },
-  { id: "wyrmwood", label: "Wyrmwood - Learning Game", description: "Practice story craft through play" },
-  { id: "story", label: "Story - The Unwritten", description: "Explore the unwritten story experience" },
+const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
+  { id: "community", shortcut: "C", label: "Community", description: "Talk, Share & Collaborate With Writers" },
+  { id: "library", shortcut: "L", label: "Story Library", description: "Load Your Stories" },
+  { id: "plan", shortcut: "P", label: "Outline", description: "Shape Story Structure & Narrative Direction", group: "PLANNING & STRUCTURING" },
+  { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "PLANNING & STRUCTURING" },
+  { id: "previs", shortcut: "V", label: "Previs", description: "Preview Shots, Timing & Camera Motion", group: "PLANNING & STRUCTURING" },
+  { id: "write", shortcut: "W", label: "Script Writer", description: "Write Scenes, Dialogue & Action Blocks", group: "PRODUCTION & DRAFTING" },
+  { id: "edit", shortcut: "E", label: "Editorial", description: "Review & Improve Screenplay Flow", group: "PRODUCTION & DRAFTING" },
+  { id: "feedback", shortcut: "F", label: "Script Feedback", description: "Gather Reader Notes & Reactions", group: "PRODUCTION & DRAFTING" },
+  { id: "refine", shortcut: "R", label: "Refine & Polish", description: "Enhance Dialogue & Story Choices", group: "PRODUCTION & DRAFTING" },
+  { id: "reports", shortcut: "A", label: "Script Analytics", description: "Review Story Health & Coverage Reports", group: "PROJECT MANAGEMENT" },
+  { id: "settings", shortcut: "O", label: "Options & Settings", description: "Configure PlotPickle Tools & API Keys", group: "PROJECT MANAGEMENT" },
+  { id: "profile", shortcut: "U", label: "User Profile", description: "Manage Identity, Credits & Preferences", group: "PROJECT MANAGEMENT" },
+  { id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Storytelling Essentials (Screenplay Writing)", group: "INTERACTIVE & LEARNING" },
+  { id: "wyrmwood", shortcut: "2", label: "Wyrmwood Game", description: "Practice Narrative Craft Through Play", group: "INTERACTIVE & LEARNING" },
+  { id: "story", shortcut: "3", label: "Story", description: "The Unwritten Story Game Engine", group: "INTERACTIVE & LEARNING" },
 ];
 
 function nextIntentId() {
@@ -341,44 +334,15 @@ export default function SkinV1Client() {
           <section aria-label="PlotPickle Community">
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
           </section>
-        ) : <section className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs" aria-label="PlotPickle Dashboard">
-          <div className="pp-skin-v1-bbs">
-            <div className="pp-skin-v1-bbs-banner" aria-hidden="true">
-              <span>*** PLOTPICKLE BBS ***</span>
-              <span>DASHBOARD</span>
-            </div>
-
-            <div className="pp-skin-v1-menu" role="listbox" aria-label="Dashboard menu">
-              {DASHBOARD_MENU.map((item, index) => {
-                const selected = index === dashboardSelection;
-                return (
-                  <button
-                    key={item.id}
-                    ref={(node) => { dashboardMenuRefs.current[index] = node; }}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    tabIndex={selected ? 0 : -1}
-                    className={`pp-skin-v1-menu-item${selected ? " is-selected" : ""}${item.groupStart ? " is-group-start" : ""}`}
-                    data-dashboard-menu-item={item.id}
-                    onClick={() => activateDashboardItem(index)}
-                    onKeyDown={(event) => dashboardMenuKeyDown(event, index)}
-                  >
-                    <span className="pp-skin-v1-menu-cursor" aria-hidden="true">{selected ? ">" : " "}</span>
-                    <span className="pp-skin-v1-menu-label">{item.label}</span>
-                    <small className="pp-skin-v1-menu-description">{item.description}</small>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="pp-skin-v1-bbs-help">
-              <span>UP/DOWN: SELECT</span>
-              <span>ENTER: OPEN COMMUNITY / PROFILE</span>
-              <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
-            </div>
-          </div>
-        </section>}
+        ) : (
+          <DashboardBbsPanel
+            items={DASHBOARD_MENU}
+            selectedIndex={dashboardSelection}
+            onActivate={activateDashboardItem}
+            onKeyDown={dashboardMenuKeyDown}
+            setItemRef={(index, node) => { dashboardMenuRefs.current[index] = node; }}
+          />
+        )}
 
         <footer className="pp-skin-v1-status">
           <span>BUSINESS USE CASE: {businessUseCase}</span>

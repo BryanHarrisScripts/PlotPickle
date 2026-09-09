@@ -74,6 +74,7 @@ import "./learn-foundations-polish.css";
 import "./pr-613-workflow-nav-alignment.css";
 import "./workspace-continuity.css";
 import "./settings-dark-surface-guard.css";
+import "./skin-v1-dashboard-reference.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

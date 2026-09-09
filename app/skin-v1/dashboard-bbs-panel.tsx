@@ -47,6 +47,7 @@ export default function DashboardBbsPanel({
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
+            const command = `[${item.shortcut}] ${item.label}`.padEnd(22, " ");
             return (
               <Fragment key={item.id}>
                 {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
@@ -58,14 +59,11 @@ export default function DashboardBbsPanel({
                   tabIndex={selected ? 0 : -1}
                   className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row${selected ? " is-selected" : ""}`}
                   data-dashboard-menu-item={item.id}
+                  data-dashboard-shortcut={item.shortcut}
                   onClick={() => onActivate(index)}
                   onKeyDown={(event) => onKeyDown(event, index)}
                 >
-                  <span className="pp-skin-v1-menu-cursor" aria-hidden="true">{selected ? ">" : " "}</span>
-                  <span className="pp-skin-v1-dashboard-shortcut" aria-hidden="true">[{item.shortcut}]</span>
-                  <span className="pp-skin-v1-menu-label">{item.label}</span>
-                  <span className="pp-skin-v1-dashboard-dash" aria-hidden="true">-</span>
-                  <small className="pp-skin-v1-menu-description">{item.description}</small>
+                  <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                 </button>
               </Fragment>
             );

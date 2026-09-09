@@ -200,7 +200,7 @@ test("#1754 headless authentication returns the registered surface and keeps cre
 });
 
 test("Profile keeps three entries and Local AI opens a default-first task and engine submenu", async () => {
-  const [skin, host, comfy, css, runtimeManager, mediaStore, ltxGateway] = await Promise.all([
+  const [skin, host, comfy, css, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
     read("app/skin-v1/local-comfyui-panel.tsx"),
@@ -208,6 +208,8 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
     read("build/local-runtime-manager.ts"),
     read("build/media-routing-store.ts"),
     read("build/ai/comfyui-ltx-local-gateway.ts"),
+    read("build/ai/comfyui-sdxl-local-gateway.ts"),
+    read("scripts/install-comfyui-sdxl-starter.ps1"),
   ]);
   assert.match(skin, /id === "profile"[\s\S]*setProfileMenuOpen\(true\)/u);
   const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
@@ -233,6 +235,9 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(host, /title="ENGINES"/u);
   for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
   assert.match(host, /function StatusLight/u);
+  assert.match(host, /function fixedLocalImagesReady/u);
+  assert.match(host, /\/api\/media-routing\/status/u);
+  assert.match(host, /sd_xl_base_1\.0\.safetensors/u);
   assert.match(host, /local default ready/u);
   assert.match(host, /data-local-ai-view="menu"/u);
   assert.match(host, /BACK TO LOCAL AI/u);
@@ -251,23 +256,32 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(runtimeManager, /preferredRuntime: "auto"/u);
   assert.match(runtimeManager, /modelPreference: "balanced"/u);
   assert.match(runtimeManager, /contextTokens: 16384/u);
+  assert.match(mediaStore, /LOCAL_COMFYUI_URL = "http:\/\/127\.0\.0\.1:8188"/u);
+  assert.match(mediaStore, /LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1\.0\.safetensors"/u);
   assert.match(mediaStore, /imageRoute: "comfyui"/u);
+  assert.match(mediaStore, /checkpoint: LOCAL_SDXL_CHECKPOINT/u);
+  assert.match(mediaStore, /value\.comfyui\.checkpoint = LOCAL_SDXL_CHECKPOINT/u);
   assert.match(mediaStore, /videoRoute: "none"/u);
   assert.match(ltxGateway, /return media\.videoRoute === "none"/u);
 
   assert.match(comfy, /PLOTPICKLE IMAGE DEFAULT/u);
   assert.match(comfy, /COMFYUI \+ SDXL 1\.0/u);
   assert.match(comfy, /MAKE IMAGES READY/u);
-  assert.match(comfy, /preferredSdxlCheckpoint/u);
-  assert.match(comfy, /sd_xl_base_1\.0\.safetensors/u);
-  assert.match(comfy, /ADVANCED \/ MANUAL IMAGE CONTROLS/u);
-  assert.match(comfy, /\/api\/provider-diagnostics\/comfyui/u);
-  assert.match(comfy, /\/api\/media-routing/u);
-  assert.match(comfy, /imageRoute: "comfyui"/u);
-  assert.match(comfy, /route: "comfyui"/u);
-  assert.match(comfy, /does not enable or contact a cloud AI provider/u);
-  assert.match(comfy, /No MiniMax H3 or cloud provider is part of the image default/u);
+  assert.match(comfy, /exactSdxlAvailable/u);
+  assert.match(comfy, /LOCAL_COMFY_URL = "http:\/\/127\.0\.0\.1:8188"/u);
+  assert.match(comfy, /LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1\.0\.safetensors"/u);
+  assert.match(comfy, /activeReady = Boolean\(serverReady && nodesReady && modelReady && status\?\.imageRoute === "comfyui"\)/u);
+  assert.match(comfy, /not required for READY/u);
+  assert.match(comfy, /LOCAL IMAGE DIAGNOSTICS/u);
+  assert.doesNotMatch(comfy, /Advanced checkpoint override|chooseCheckpoint|preferredSdxlCheckpoint|SDXL_COMPATIBLE/u);
+  assert.doesNotMatch(comfy, /<select|setBaseUrl|onChange=\{\(event\) => setBaseUrl/u);
   assert.doesNotMatch(comfy, /H3NativePanel|api\.openai\.com|generativelanguage\.googleapis\.com|api\.minimax/u);
+
+  assert.match(sdxlGateway, /LOCAL_SDXL_CHECKPOINT/u);
+  assert.match(sdxlGateway, /function exactSdxlCheckpoint/u);
+  assert.doesNotMatch(sdxlGateway, /SDXL_PATTERN|defaultSdxlCheckpoint/u);
+  assert.match(starterScript, /FileName = "sd_xl_base_1\.0\.safetensors"/u);
+  assert.doesNotMatch(starterScript, /Find-CompatibleCheckpoint|existing-compatible/u);
 
   assert.match(css, /--pp-matrix-deep: #123524/u);
   assert.match(css, /--pp-matrix-mid: #287a4b/u);

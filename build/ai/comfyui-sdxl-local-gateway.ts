@@ -2,12 +2,15 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { probeComfyUI } from "./comfyui-media-provider";
 import { generateSdxlImage } from "./comfyui-sdxl-local-provider";
-import { readMediaRoutingStore, writeMediaRoutingStore } from "../media-routing-store";
+import {
+  LOCAL_SDXL_CHECKPOINT,
+  readMediaRoutingStore,
+  writeMediaRoutingStore,
+} from "../media-routing-store";
 import type { ImageGenerationInput } from "../media-provider-common";
 
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const TEST_IMAGE_PATH = "/api/media-routing/test/image";
-const SDXL_PATTERN = /(sdxl|stable.?diffusion.?xl|juggernaut.?xl|realvis.?xl|dreamshaper.?xl)/i;
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -47,8 +50,8 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
   return parsed as Record<string, unknown>;
 }
 
-function defaultSdxlCheckpoint(checkpoints: readonly string[]) {
-  return checkpoints.find((checkpoint) => SDXL_PATTERN.test(checkpoint)) || "";
+function exactSdxlCheckpoint(checkpoints: readonly string[]) {
+  return checkpoints.find((checkpoint) => checkpoint.toLowerCase() === LOCAL_SDXL_CHECKPOINT.toLowerCase()) || "";
 }
 
 export function registerSdxlLocalImageGateway(server: ViteDevServer) {
@@ -72,15 +75,12 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
       if (!probe.reachable || !probe.imageNodesReady) {
         throw new Error(probe.error || `ComfyUI is missing required image nodes: ${probe.missingImageNodes.join(", ")}`);
       }
-      const explicitlySelected = store.comfyui.checkpoint && probe.checkpoints.includes(store.comfyui.checkpoint)
-        ? store.comfyui.checkpoint
-        : "";
-      const checkpoint = explicitlySelected || defaultSdxlCheckpoint(probe.checkpoints);
+      const checkpoint = exactSdxlCheckpoint(probe.checkpoints);
       if (!checkpoint) {
-        throw new Error("ComfyUI is running, but PlotPickle could not find an SDXL checkpoint. Install SDXL 1.0 or select an advanced checkpoint override in Settings.");
+        throw new Error(`ComfyUI is running, but PlotPickle could not find its fixed local image model ${LOCAL_SDXL_CHECKPOINT}. Install the reviewed SDXL 1.0 starter, then restart or refresh ComfyUI.`);
       }
-      if (!explicitlySelected && store.comfyui.checkpoint !== checkpoint) {
-        store.comfyui.checkpoint = checkpoint;
+      if (store.comfyui.checkpoint !== LOCAL_SDXL_CHECKPOINT) {
+        store.comfyui.checkpoint = LOCAL_SDXL_CHECKPOINT;
         await writeMediaRoutingStore(store);
       }
       const body = await readBody(request);

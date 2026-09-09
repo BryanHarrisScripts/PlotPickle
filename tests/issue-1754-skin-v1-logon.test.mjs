@@ -75,10 +75,13 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
   assert.doesNotMatch(registry, /react|window\.|document\.|fetch\(/i);
 });
 
-test("#1754 Skin V1 owns fresh setup, LOGON and a keyboard-selectable BBS Dashboard with Community access", async () => {
-  const [skin, css, router, legacyOnly] = await Promise.all([
+test("#1754 Skin V1 owns fresh setup, LOGON and the approved keyboard-selectable BBS Dashboard", async () => {
+  const [skin, dashboard, css, bbsCss, artRoute, router, legacyOnly] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1.css"),
+    read("app/skin-v1-bbs-surfaces.css"),
+    read("app/api/skin-v1/dashboard-art/route.ts"),
     read("app/profile-access/profile-access-router.tsx"),
     read("app/legacy-skin-only.tsx"),
   ]);
@@ -92,41 +95,57 @@ test("#1754 Skin V1 owns fresh setup, LOGON and a keyboard-selectable BBS Dashbo
   assert.match(skin, /RECOVERY SECRET \/ SAVE THIS NOW/u);
   assert.match(skin, /deriveExperienceSurfaceTopology/u);
   assert.match(skin, /data-experience-surface="LOGON"/u);
-  assert.match(skin, /aria-label="PlotPickle Dashboard"/u);
-  assert.match(skin, /pp-skin-v1-dashboard-bbs/u);
-  assert.match(skin, /role="listbox"/u);
-  assert.match(skin, /role="option"/u);
+  assert.match(skin, /DashboardBbsPanel/u);
   assert.match(skin, /event\.key === "ArrowDown"/u);
   assert.match(skin, /event\.key === "ArrowUp"/u);
-  assert.match(skin, /MENU ITEMS ARE NOT CONNECTED YET/u);
+
+  assert.match(dashboard, /aria-label="PlotPickle Dashboard"/u);
+  assert.match(dashboard, /pp-skin-v1-dashboard-bbs/u);
+  assert.match(dashboard, /role="listbox"/u);
+  assert.match(dashboard, /role="option"/u);
+  assert.match(dashboard, /\/api\/skin-v1\/dashboard-art/u);
+  assert.match(dashboard, /PLOTPICKLE BBS/u);
+  assert.match(dashboard, /AI-NATIVE AGENTIC STORY OPERATING SYSTEM/u);
+  assert.match(dashboard, /\*\*\* DASHBOARD \*\*\*/u);
+  assert.match(dashboard, /Remember: Write dirty, edit clean\. 1 page = 1 minute\./u);
+  assert.match(dashboard, /OTHER MENU ITEMS ARE NOT CONNECTED YET/u);
 
   const expectedMenu = [
-    "Dashboard",
     "Community",
-    "Library",
-    "Plan",
+    "Story Library",
+    "Outline",
     "Storyboard",
     "Previs",
-    "Write",
-    "Edit",
-    "Feedback",
-    "Refine",
-    "Reports",
-    "Settings",
-    "Profile",
-    "Learn - Education",
-    "Wyrmwood - Learning Game",
-    "Story - The Unwritten",
+    "Script Writer",
+    "Editorial",
+    "Script Feedback",
+    "Refine & Polish",
+    "Script Analytics",
+    "Options & Settings",
+    "User Profile",
+    "Writer's Craft",
+    "Wyrmwood Game",
+    "Story",
   ];
   let previousIndex = -1;
   for (const label of expectedMenu) {
     const index = skin.indexOf(`label: "${label}"`);
-    assert.ok(index > previousIndex, `${label} must appear in the canonical Dashboard menu order`);
+    assert.ok(index > previousIndex, `${label} must appear in the approved Dashboard menu order`);
     previousIndex = index;
   }
 
+  for (const group of ["PLANNING & STRUCTURING", "PRODUCTION & DRAFTING", "PROJECT MANAGEMENT", "INTERACTIVE & LEARNING"]) {
+    assert.match(skin, new RegExp(`group: "${group.replace(/[&]/g, "\\&")}"`, "u"));
+  }
+
   assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: #fff;[\s\S]*color: #000;/u);
-  assert.match(css, /\.pp-skin-v1-menu-item\.is-group-start/u);
+  assert.match(bbsCss, /width: min\(760px, 100%\)/u);
+  assert.match(bbsCss, /aspect-ratio: 3 \/ 1/u);
+  assert.match(bbsCss, /grid-template-columns: 14px 34px minmax\(150px, 180px\) 12px minmax\(0, 1fr\)/u);
+  assert.doesNotMatch(bbsCss, /repeat\(4, minmax\(0, 1fr\)\)/u);
+  assert.match(artRoute, /plotpickle-banner-dragon-logo\.jpg/u);
+  assert.match(artRoute, /process\.cwd\(\)/u);
+  assert.doesNotMatch(artRoute, /https?:\/\//u);
   assert.doesNotMatch(skin, /href=|<Link|router\.|window\.location/u);
   assert.doesNotMatch(skin, /fetch\(|\/api\/auth\/profile|hydrateProfilePrivateBrowser|saveFoundationProject|skin=legacy/u);
 
@@ -248,7 +267,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
 
   assert.match(layout, /import "\.\/skin-v1-bbs-surfaces\.css"/u);
   assert.match(bbsCss, /pp-skin-v1-dashboard-bbs/u);
-  assert.match(bbsCss, /width: min\(460px, 100%\)/u);
+  assert.match(bbsCss, /width: min\(760px, 100%\)/u);
   assert.match(bbsCss, /background: #000 !important/u);
   assert.match(bbsCss, /pp-skin-v1-profile-surface/u);
   assert.match(bbsCss, /data-profile-identity-surface="v2"/u);
@@ -288,7 +307,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(ltxPanel, /SET UP LTX/u);
   assert.match(ltxPanel, /CHECK AGAIN/u);
   assert.match(ltxPanel, /TEST LOCAL VIDEO/u);
-  assert.match(ltxPanel, /LTX NODES MISSING/u);
+  assert.match(ltxPanel, /LTX (?:CORE )?NODES MISSING/u);
   assert.match(ltxPanel, /LTX MODELS MISSING/u);
   assert.match(ltxPanel, /IMPORT REVIEWED MANIFEST/u);
   assert.doesNotMatch(ltxPanel, /api\.openai\.com|api\.minimax|huggingface\.co/u);

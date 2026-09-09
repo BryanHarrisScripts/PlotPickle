@@ -105,9 +105,9 @@ function Resolve-ModelDirectories {
 }
 
 function Write-Markers {
-  param([string]$State, [string]$Message, [hashtable]$Directories)
-  $checkpointDirectory = if ($null -ne $Directories) { [string]$Directories.checkpoints } else { "" }
-  $textEncoderDirectory = if ($null -ne $Directories) { [string]$Directories.text_encoders } else { "" }
+  param([string]$State, [string]$Message, [System.Collections.IDictionary]$Directories)
+  $checkpointDirectory = if ($null -ne $Directories) { [string]$Directories["checkpoints"] } else { "" }
+  $textEncoderDirectory = if ($null -ne $Directories) { [string]$Directories["text_encoders"] } else { "" }
   Write-Output "PLOTPICKLE_LTX_INSTALL_STATUS=$State"
   Write-Output "PLOTPICKLE_LTX_INSTALL_DETAIL=$Message"
   Write-Output "PLOTPICKLE_LTX_TOTAL_SIZE=$TotalSizeLabel"
@@ -128,7 +128,7 @@ function Test-ReviewedFile {
 }
 
 function Download-ReviewedFile {
-  param([hashtable]$Model, [string]$DestinationFile)
+  param([System.Collections.IDictionary]$Model, [string]$DestinationFile)
   $partial = "$DestinationFile.partial"
   if (Test-Path -LiteralPath $partial -PathType Leaf) { Remove-Item -LiteralPath $partial -Force }
 

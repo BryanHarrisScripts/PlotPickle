@@ -24,6 +24,12 @@ import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../..
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
 
+const PROFILE_MENU = [
+  { label: "PROFILE", description: "YOUR PROFILE" },
+  { label: "LOCAL AI", description: "LOCAL CONFIGURATIONS" },
+  { label: "NODE", description: "NODE INFO" },
+] as const;
+
 const LOADING_VIEW: LogonViewModel = {
   surface: "LOGON",
   state: "loading",
@@ -76,6 +82,8 @@ export default function SkinV1Client() {
   const [recoverySaved, setRecoverySaved] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuHeadingRef = useRef<HTMLHeadingElement>(null);
   const [dashboardSelection, setDashboardSelection] = useState(0);
   const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
   const returnButtonRef = useRef<HTMLButtonElement>(null);
@@ -99,9 +107,10 @@ export default function SkinV1Client() {
   );
 
   useEffect(() => {
-    if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
+    if (profileMenuOpen) profileMenuHeadingRef.current?.focus();
+    else if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
     else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
-  }, [activeSurface, view.state, dashboardSelection]);
+  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen]);
 
   function openSurface(surfaceId: ExperienceSurfaceId) {
     const result = executeOpenSurfaceIntent({
@@ -112,6 +121,7 @@ export default function SkinV1Client() {
 
   function activateDashboardItem(index: number) {
     setDashboardSelection(index);
+    if (DASHBOARD_MENU[index]?.id === "profile") setProfileMenuOpen(true);
     if (DASHBOARD_MENU[index]?.id === "community") openSurface("COMMUNITY");
   }
 
@@ -235,14 +245,35 @@ export default function SkinV1Client() {
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
           <strong>PLOTPICKLE</strong>
-          <span>{activeSurface}</span>
+          <span>{profileMenuOpen ? "PROFILE" : activeSurface}</span>
           <span>SKIN V1</span>
           {activeSurface === "COMMUNITY" ? (
             <button className="pp-skin-v1-return" ref={returnButtonRef} type="button" onClick={() => openSurface("DASHBOARD")}>Back to Dashboard</button>
           ) : null}
         </header>
 
-        {activeSurface === "COMMUNITY" ? (
+        {profileMenuOpen ? (
+          <section className="pp-skin-v1-dashboard" aria-label="Profile menu" onKeyDown={(event) => {
+            if (event.key === "Escape") { event.preventDefault(); setProfileMenuOpen(false); }
+          }}>
+            <div className="pp-skin-v1-bbs">
+              <div className="pp-skin-v1-bbs-banner">
+                <h1 ref={profileMenuHeadingRef} tabIndex={-1}>PROFILE</h1>
+                <button type="button" className="pp-skin-v1-return" onClick={() => setProfileMenuOpen(false)}>Back to Dashboard</button>
+              </div>
+              <div className="pp-skin-v1-menu" aria-describedby="profile-menu-status">
+                {PROFILE_MENU.map((item) => (
+                  <button key={item.label} type="button" disabled className="pp-skin-v1-menu-item pp-skin-v1-submenu-item">
+                    <span aria-hidden="true">&gt;</span>
+                    <span className="pp-skin-v1-menu-label">{item.label}</span>
+                    <small className="pp-skin-v1-menu-description">{item.description}</small>
+                  </button>
+                ))}
+              </div>
+              <p className="pp-skin-v1-bbs-help" id="profile-menu-status">MENU PREVIEW — OPTIONS ARE NOT CONNECTED YET</p>
+            </div>
+          </section>
+        ) : activeSurface === "COMMUNITY" ? (
           <section aria-label="PlotPickle Community">
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
           </section>
@@ -279,7 +310,7 @@ export default function SkinV1Client() {
 
             <div className="pp-skin-v1-bbs-help">
               <span>UP/DOWN: SELECT</span>
-              <span>ENTER: OPEN COMMUNITY</span>
+              <span>ENTER: OPEN COMMUNITY / PROFILE</span>
               <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
             </div>
           </div>

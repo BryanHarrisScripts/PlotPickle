@@ -1,11 +1,21 @@
 import {
   probeLtxVideo,
-  readLtxStore,
+  ensureLtxDefault,
 } from "./comfyui-ltx-local-provider";
 import {
   probeNativeH3,
   readNativeH3Store,
 } from "./h3/comfyui-h3-native-provider";
+
+/** Provider-neutral video setup contract, consumed through /api/local-ai/plugins/video. */
+export type LocalVideoSetupDetails = {
+  supportedModes: string[];
+  defaultPreset: { id: string; mode: string; width: number; height: number; frames: number; fps: number; steps: number; upscaling: boolean };
+  blockers: string[];
+  setupPath: string;
+  testPath: string;
+  setupTarget: string;
+};
 
 export type LocalAiPluginProbe = {
   adapterId: string;
@@ -54,7 +64,7 @@ export async function probeLocalAiPluginAdapter(adapterId: string): Promise<Loca
 registerLocalAiPluginAdapter({
   id: "comfyui-ltx-local",
   async probe() {
-    const store = await readLtxStore();
+    const store = await ensureLtxDefault();
     const status = await probeLtxVideo(store);
     const error = status.ready
       ? ""
@@ -67,15 +77,21 @@ registerLocalAiPluginAdapter({
       runtimeReady: status.reachable,
       configured: status.manifestConfigured,
       ready: status.ready,
-      active: status.ready && store.enabled,
+      active: status.ready && store.enabled && Boolean(store.verifiedAt) && !store.lastError,
       error,
       details: {
         model: status.model,
+        blockers: status.blockers,
+        defaultPreset: status.defaultPreset,
+        supportedModes: status.supportedModes,
+        setupPath: "/api/local-ai/ltx-video/setup",
+        testPath: "/api/local-ai/ltx-video/test",
+        setupTarget: "ltx",
         version: status.version,
         missingNodes: status.missingNodes,
         missingModels: status.missingModels,
         verifiedAt: store.verifiedAt,
-      },
+      } satisfies LocalVideoSetupDetails & Record<string, unknown>,
     };
   },
 });

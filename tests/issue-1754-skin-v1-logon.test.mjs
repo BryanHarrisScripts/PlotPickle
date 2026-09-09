@@ -264,8 +264,8 @@ test("Profile keeps three entries, activates Node, and Local AI exposes the LTX 
 
   assert.match(ltxPanel, /\/api\/local-ai\/ltx-video/u);
   assert.match(ltxPanel, /\/api\/local-ai\/ltx-video\/manifest/u);
-  assert.match(ltxPanel, /\/api\/media-routing\/test\/video/u);
-  assert.match(ltxPanel, /SETUP LTX/u);
+  assert.match(ltxPanel, /\/api\/local-ai\/ltx-video\/test/u);
+  assert.match(ltxPanel, /SET UP LTX/u);
   assert.match(ltxPanel, /CHECK AGAIN/u);
   assert.match(ltxPanel, /TEST LOCAL VIDEO/u);
   assert.match(ltxPanel, /LTX NODES MISSING/u);

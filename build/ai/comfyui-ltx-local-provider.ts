@@ -1,10 +1,9 @@
+import { bundledLtxManifest, LTX_DEFAULT_PRESET, LTX_MIN_COMFY_VERSION } from "./comfyui-ltx-default";
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { persistentHome, readCredentialJson, writeCredentialJson } from "../local-credentials";
 import {
-  ASSET_PATH,
-  assetsDirectory,
   saveGeneratedAsset,
   safeAssetStem,
   type VideoGenerationInput,
@@ -141,16 +140,35 @@ export async function readLtxStore(): Promise<LtxStore> {
   };
 }
 
+let ltxWrites: Promise<void> = Promise.resolve();
+
+function updateLtxStore(update: (store: LtxStore) => LtxStore | null): Promise<LtxStore> {
+  const pending = ltxWrites.then(async () => {
+    const current = await readLtxStore();
+    const next = update(current);
+    if (next) await writeCredentialJson(STORE_FILE, next);
+    return next || current;
+  });
+  ltxWrites = pending.then(() => {}, () => {});
+  return pending;
+}
+
 export async function configureLtxManifest(value: unknown) {
   const manifest = validateLtxManifest(value);
-  const store = await readLtxStore();
-  store.manifest = manifest;
-  store.manifestHash = manifestHash(manifest);
-  store.configuredAt = new Date().toISOString();
-  store.verifiedAt = "";
-  store.lastError = "";
-  await writeCredentialJson(STORE_FILE, store);
-  return store;
+  return updateLtxStore((store) => ({
+    ...store, manifest, manifestHash: manifestHash(manifest),
+    configuredAt: new Date().toISOString(), verifiedAt: "", lastError: "",
+  }));
+}
+
+/** Idempotent first-run setup; serialized with imports and verification writes. */
+export async function ensureLtxDefault(): Promise<LtxStore> {
+  return updateLtxStore((store) => {
+    if (store.manifest) return null;
+    const manifest = validateLtxManifest(bundledLtxManifest());
+    return { ...store, manifest, manifestHash: manifestHash(manifest),
+      configuredAt: new Date().toISOString(), verifiedAt: "", lastError: "" };
+  });
 }
 
 async function comfyJson(baseUrl: string, pathname: string, init?: RequestInit, timeout = REQUEST_TIMEOUT_MS) {
@@ -183,7 +201,7 @@ function modelNamesFromObjectInfo(value: unknown): string[] {
 }
 
 export async function probeLtxVideo(store?: LtxStore) {
-  store ??= await readLtxStore();
+  store ??= await ensureLtxDefault();
   try {
     const [system, objectInfo] = await Promise.all([
       comfyJson(store.baseUrl, "/system_stats"),
@@ -194,75 +212,81 @@ export async function probeLtxVideo(store?: LtxStore) {
     const missingNodes = classes.filter((name) => !availableClasses.has(name));
     const availableModels = modelNamesFromObjectInfo(objectInfo);
     const missingModels = store.manifest
-      ? store.manifest.requiredModelNames.filter((required) => !availableModels.some((installed) => installed.toLowerCase().includes(required.toLowerCase())))
+      ? store.manifest.requiredModelNames.filter((required) => {
+        const loaders = Object.values(store.manifest!.workflow).filter((node) =>
+          isRecord(node) && isRecord(node.inputs) && Object.values(node.inputs).includes(required));
+        if (!loaders.length) return !availableModels.includes(required);
+        return loaders.some((node) => {
+          if (!isRecord(node) || !isRecord(node.inputs)) return true;
+          const info = objectInfo[clean(node.class_type)];
+          if (!isRecord(info) || !isRecord(info.input)) return true;
+          const slots = { ...(isRecord(info.input.required) ? info.input.required : {}), ...(isRecord(info.input.optional) ? info.input.optional : {}) };
+          return Object.entries(node.inputs).some(([key, value]) => value === required && !modelNamesFromObjectInfo(slots[key]).includes(required));
+        });
+      })
       : [];
+    const version = isRecord(system.system) ? clean(system.system.comfyui_version, 80) : "";
+    const parts = version.replace(/^v/, "").match(/^(\d+)\.(\d+)\.(\d+)/);
+    const versionTooOld = Boolean(parts && Number(parts[1]) === 0 && (Number(parts[2]) < 3 || (Number(parts[2]) === 3 && Number(parts[3]) < 50)));
+    const blockers = [
+      ...(!store.enabled ? ["LTX ENGINE DISABLED"] : []),
+      ...(!store.manifest ? ["LTX WORKFLOW NOT CONFIGURED"] : []),
+      ...(versionTooOld ? [`COMFYUI VERSION TOO OLD: ${version}; requires ${LTX_MIN_COMFY_VERSION} or newer`] : []),
+      ...missingNodes.map((name) => `MISSING NODE: ${name}`),
+      ...missingModels.map((name) => `MISSING MODEL: ${name}`),
+    ];
     return {
       reachable: true,
-      version: isRecord(system.system) ? clean(system.system.comfyui_version, 80) : "",
+      blockers,
+      supportedModes: ["text-to-video"],
+      defaultPreset: LTX_DEFAULT_PRESET,
+      version,
       manifestConfigured: Boolean(store.manifest),
       missingNodes,
       missingModels,
-      ready: Boolean(store.enabled && store.manifest && !missingNodes.length && !missingModels.length),
+      ready: blockers.length === 0,
       model: "LTX-Video 2B 0.9.8 Distilled",
-      error: store.manifest ? "" : "Configure the reviewed LTX-Video 2B 0.9.8 Distilled ComfyUI workflow and local model files.",
+      error: blockers.join("; "),
     };
   } catch (error) {
     return {
       reachable: false,
+      blockers: ["COMFYUI SERVICE NOT READY"],
+      supportedModes: ["text-to-video"],
+      defaultPreset: LTX_DEFAULT_PRESET,
       version: "",
       manifestConfigured: Boolean(store.manifest),
       missingNodes: store.manifest ? nodeClasses(store.manifest.workflow) : [],
       missingModels: store.manifest?.requiredModelNames ?? [],
       ready: false,
       model: "LTX-Video 2B 0.9.8 Distilled",
-      error: error instanceof Error ? error.message : "ComfyUI could not be checked.",
+      error: `COMFYUI SERVICE NOT READY: ${error instanceof Error ? error.message : "ComfyUI could not be checked."}`,
     };
   }
 }
 
-function visitStrings(value: unknown, visitor: (value: string) => string): unknown {
+function visitStrings(value: unknown, visitor: (value: string) => string | number): unknown {
   if (typeof value === "string") return visitor(value);
   if (Array.isArray(value)) return value.map((item) => visitStrings(item, visitor));
   if (!isRecord(value)) return value;
   return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, visitStrings(child, visitor)]));
 }
 
-async function uploadSourceImage(baseUrl: string, sourceAssetUrl: unknown) {
-  if (typeof sourceAssetUrl !== "string" || !sourceAssetUrl.startsWith(ASSET_PATH)) return "";
-  const fileName = sourceAssetUrl.slice(ASSET_PATH.length);
-  if (!/^[a-z0-9][a-z0-9._-]*\.(?:png|jpe?g|webp)$/i.test(fileName)) throw new Error("Choose a saved PlotPickle image as the LTX source frame.");
-  const bytes = await readFile(path.join(assetsDirectory(), fileName));
-  const mime = fileName.toLowerCase().endsWith(".png") ? "image/png" : /\.jpe?g$/i.test(fileName) ? "image/jpeg" : "image/webp";
-  const form = new FormData();
-  form.set("image", new Blob([bytes], { type: mime }), fileName);
-  form.set("overwrite", "false");
-  const response = await fetch(`${normalizeBaseUrl(baseUrl)}/upload/image`, {
-    method: "POST",
-    body: form,
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) throw new Error("ComfyUI could not accept the PlotPickle source frame.");
-  const value = await response.json() as { name?: unknown; subfolder?: unknown };
-  const name = clean(value.name, 300);
-  const subfolder = clean(value.subfolder, 300);
-  return subfolder ? `${subfolder}/${name}` : name;
-}
-
-async function hydratedWorkflow(store: LtxStore, input: VideoGenerationInput, prompt: string) {
-  if (!store.manifest) throw new Error("Configure the local LTX-Video 2B workflow in Settings before generating video.");
-  const sourceImage = await uploadSourceImage(store.baseUrl, input.sourceAssetUrl);
-  const aspect = input.aspectRatio === "9:16" || input.aspectRatio === "1:1" ? input.aspectRatio : "16:9";
-  const dimensions = aspect === "9:16" ? { width: 512, height: 768 } : aspect === "1:1" ? { width: 640, height: 640 } : { width: 768, height: 512 };
-  const duration = typeof input.durationSeconds === "number" ? Math.max(2, Math.min(8, Math.round(input.durationSeconds))) : 4;
-  const frames = Math.max(25, Math.min(193, duration * 24 + 1));
+export function hydratedLtxWorkflow(store: LtxStore, input: VideoGenerationInput, prompt: string) {
+  if (!store.manifest) throw new Error("LTX WORKFLOW NOT CONFIGURED");
+  if (input.sourceAssetUrl) throw new Error("The selected local video engine supports text-to-video only.");
   const seed = Math.floor(Math.random() * 2_147_483_647);
-  return visitStrings(store.manifest.workflow, (value) => value
-    .replaceAll("{{PLOTPICKLE_PROMPT}}", prompt)
-    .replaceAll("{{PLOTPICKLE_SOURCE_IMAGE}}", sourceImage)
-    .replaceAll("{{PLOTPICKLE_WIDTH}}", String(dimensions.width))
-    .replaceAll("{{PLOTPICKLE_HEIGHT}}", String(dimensions.height))
-    .replaceAll("{{PLOTPICKLE_FRAMES}}", String(frames))
-    .replaceAll("{{PLOTPICKLE_SEED}}", String(seed))) as Record<string, unknown>;
+  const values: Record<string, string | number> = {
+    "{{PLOTPICKLE_PROMPT}}": prompt,
+    "{{PLOTPICKLE_WIDTH}}": LTX_DEFAULT_PRESET.width,
+    "{{PLOTPICKLE_HEIGHT}}": LTX_DEFAULT_PRESET.height,
+    "{{PLOTPICKLE_FRAMES}}": LTX_DEFAULT_PRESET.frames,
+    "{{PLOTPICKLE_SEED}}": seed,
+  };
+  return visitStrings(store.manifest.workflow, (value) => {
+    if (Object.hasOwn(values, value)) return values[value];
+    return value.replaceAll("{{PLOTPICKLE_PROMPT}}", prompt);
+  }) as Record<string, unknown>;
 }
 
 async function submitWorkflow(store: LtxStore, workflow: Record<string, unknown>) {
@@ -299,10 +323,11 @@ async function historyEntry(baseUrl: string, promptId: string) {
   return isRecord(entry) ? entry as ComfyHistoryEntry : null;
 }
 
-function firstOutput(entry: ComfyHistoryEntry | null) {
+export function firstLtxVideoOutput(entry: ComfyHistoryEntry | null) {
   if (!entry?.outputs) return null;
   for (const output of Object.values(entry.outputs)) {
-    const candidate = output.videos?.[0] || output.gifs?.[0];
+    const candidate = [...(output.videos || []), ...(output.gifs || []), ...(output.images || [])]
+      .find((item) => /\.(mp4|webm)$/i.test(item.filename));
     if (candidate?.filename) return candidate;
   }
   return null;
@@ -330,16 +355,15 @@ async function runJob(job: LtxJob, store: LtxStore) {
       const entry = await historyEntry(store.baseUrl, job.promptId);
       const error = executionError(entry);
       if (error) throw new Error(error);
-      const output = firstOutput(entry);
+      const output = firstLtxVideoOutput(entry);
       if (output) {
         const extension = output.filename.toLowerCase().endsWith(".webm") ? ".webm" : ".mp4";
         job.outputAssetUrl = await saveGeneratedAsset(await downloadOutput(store.baseUrl, output), job.assetId, extension);
         job.status = "succeeded";
         job.updatedAt = new Date().toISOString();
+        await updateLtxStore((current) => current.manifestHash === store.manifestHash
+          ? { ...current, verifiedAt: job.updatedAt, lastError: "" } : null);
         await saveJob(job);
-        store.verifiedAt = job.updatedAt;
-        store.lastError = "";
-        await writeCredentialJson(STORE_FILE, store);
         return;
       }
       await new Promise((resolve) => setTimeout(resolve, 2_000));
@@ -350,18 +374,18 @@ async function runJob(job: LtxJob, store: LtxStore) {
     job.error = error instanceof Error ? error.message : "The local LTX-Video job failed.";
     job.updatedAt = new Date().toISOString();
     await saveJob(job);
-    store.lastError = job.error;
-    await writeCredentialJson(STORE_FILE, store);
+    await updateLtxStore((current) => current.manifestHash === store.manifestHash
+      ? { ...current, verifiedAt: "", lastError: job.error } : null);
   }
 }
 
 export async function createLtxVideo(input: VideoGenerationInput) {
-  const store = await readLtxStore();
+  const store = await ensureLtxDefault();
   const probe = await probeLtxVideo(store);
   if (!probe.ready) throw new Error(probe.error || `LTX-Video is not ready. Missing nodes: ${probe.missingNodes.join(", ")}; missing models: ${probe.missingModels.join(", ")}`);
   const prompt = clean(input.prompt, 12_000);
   if (!prompt) throw new Error("Enter a video prompt before generating.");
-  const workflow = await hydratedWorkflow(store, input, prompt);
+  const workflow = hydratedLtxWorkflow(store, input, prompt);
   const promptId = await submitWorkflow(store, workflow);
   const now = new Date().toISOString();
   const job: LtxJob = {

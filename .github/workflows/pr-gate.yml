@@ -46,6 +46,9 @@ jobs:
           npm run audit:credentials
           node --test tests/issue-1142-server-session-boundary.test.mjs tests/issue-1122-library-persistence.test.mjs
 
+      - name: Validate bundled local video setup
+        run: node --test tests/ltx-bundled-default.test.mjs tests/local-ai-plugin-registry.test.mjs
+
       - name: Production web build
         run: npm run build
 

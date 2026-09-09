@@ -39,6 +39,12 @@ jobs:
         shell: pwsh
         run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs
 
+      - name: Validate bundled local video setup
+        run: node --test tests/ltx-bundled-default.test.mjs tests/local-ai-plugin-registry.test.mjs
+
+      - name: Validate focused UAT contracts
+        run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
+
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build

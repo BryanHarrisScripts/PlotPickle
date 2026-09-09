@@ -106,6 +106,18 @@ const primaryButton: React.CSSProperties = {
   cursor: "pointer",
 };
 
+const yellowButton: React.CSSProperties = {
+  minHeight: 36,
+  padding: "8px 14px",
+  border: "1px solid #d8c85d",
+  borderRadius: 999,
+  background: "#2a2813",
+  color: "#fff0a6",
+  font: "inherit",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
     method,
@@ -406,7 +418,7 @@ export default function LocalComfyUiPanel() {
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void makeImagesReady()} disabled={Boolean(working) || activeReady}>
-            {activeReady ? "READY" : working === "ready" ? "CHECKING..." : lastStart && !lastStart.ready ? "RETRY LOCAL SERVICE" : "MAKE IMAGES READY"}
+            {activeReady ? "READY" : working === "ready" ? "RUNNING..." : "RUN"}
           </button>
         </div>
       </div>
@@ -458,8 +470,8 @@ export default function LocalComfyUiPanel() {
             {installation?.installed === false ? <button type="button" onClick={openInstaller}>Install ComfyUI Desktop</button> : null}
             {!serverReady && installation?.installed !== false ? <button type="button" onClick={() => void startComfyUi()} disabled={Boolean(working)}>{working === "start" ? "Starting..." : "Retry ComfyUI Service"}</button> : null}
             {serverReady && !modelReady ? <button type="button" onClick={() => void installStarter()} disabled={Boolean(working)}>{working === "starter" ? "Preparing..." : "Install SDXL 1.0"}</button> : null}
-            <button type="button" onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "Checking..." : "Run Local Diagnostic"}</button>
-            <button type="button" onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "Generating..." : "Test Local Image"}</button>
+            <button type="button" style={yellowButton} onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "CHECKING..." : "RUN LOCAL DIAGNOSTIC"}</button>
+            <button type="button" style={yellowButton} onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "GENERATING..." : "TEST LOCAL IMAGE"}</button>
           </div>
           <p style={{ margin: "10px 0 0", color: "#aeb9b1" }}>Last successful local image test: {timeLabel(status?.comfyui.imageVerifiedAt || "")}{verified ? "" : " — not required for READY"}</p>
         </div>

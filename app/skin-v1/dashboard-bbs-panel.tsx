@@ -96,7 +96,7 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-bbs-help">
           <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
           <span>ENTER: OPEN COMMUNITY / PROFILE</span>
-          <span>GREEN = CONNECTED SUBMENU</span>
+          <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
         </div>
       </div>
     </section>

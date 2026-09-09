@@ -64,6 +64,14 @@ test("managed startup preserves the exact last attempt and raw launcher evidence
   assert.match(panel, /startFailureLabel\(result\.value\)/u);
 });
 
+test("ComfyUI startup log setup never assigns PowerShell's read-only HOME automatic variable", async () => {
+  const starter = await source("scripts/start-comfyui-background.ps1");
+
+  assert.doesNotMatch(starter, /\$home\s*=/iu);
+  assert.match(starter, /\$plotPickleHome\s*=/u);
+  assert.match(starter, /Join-Path \$plotPickleHome "logs"/u);
+});
+
 test("Skin V1 automatically bootstraps the fixed local image service without introducing cloud fallback", async () => {
   const runtime = await source("app/skin-v1-runtime.tsx");
 

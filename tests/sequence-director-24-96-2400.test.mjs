@@ -23,7 +23,7 @@ test("Sequence Director reuses the canonical 24/96/2400 render grid instead of i
   assert.match(contract, /renderClipSlotsForAnchor/);
   assert.match(contract, /storyboard-anchor:block:block-/);
   assert.match(compiler, /sequenceDirectorRenderSlots/);
-  assert.match(compiler, /25 fixed 3-second render clips/);
+  assert.match(compiler, /SEQUENCE_DIRECTOR_RENDER_CLIP_SECONDS/);
   assert.match(architecture, /25 clips per Mini-Block/);
   assert.match(architecture, /2,400 clips per feature/);
   assert.match(architecture, /creative Storyboard\/Previs shot is not a technical render clip/i);

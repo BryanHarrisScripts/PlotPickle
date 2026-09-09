@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { deriveH3TextToVideoSetup, h3TextToVideoPrerequisitesReady, type H3SetupStatus } from "./h3-setup-status";
 
-const H3_API = "/api/media-routing/comfyui/h3/native";
+const VIDEO_PLUGIN_API = "/api/local-ai/plugins/video";
 const COMFY_START_API = "/api/media-routing/comfyui/start";
 const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
 
@@ -39,39 +38,62 @@ const primaryButton: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const yellowButton: React.CSSProperties = {
-  minHeight: 36,
-  padding: "8px 14px",
-  border: "1px solid #d8c85d",
-  borderRadius: 999,
-  background: "#2a2813",
-  color: "#fff0a6",
-  font: "inherit",
-  fontWeight: 700,
-  cursor: "pointer",
+type LocalPlugin = {
+  id: string;
+  label: string;
+  description: string;
+  runtimeProviderId: string;
+  adapterId: string;
+  modes: string[];
+  advanced: boolean;
+  preset: string;
+  hardwarePriority: number;
 };
 
-type StartAttempt = {
+type VideoRecommendation = {
+  capability: "video";
+  automatic: boolean;
+  hardwareProfileId: string;
+  selected: LocalPlugin | null;
+  candidates: LocalPlugin[];
+  ready: boolean;
+  active: boolean;
+  configured?: boolean;
+  runtimeReady?: boolean;
+  error: string;
+  details?: Record<string, unknown>;
+};
+
+type VideoPluginResponse = {
+  ok: boolean;
+  hardware: {
+    profileId: string;
+    profileLabel: string;
+    gpuName: string;
+    gpuGeneration: string;
+    vramGb: number;
+    ramGb: number;
+  };
+  recommendation: VideoRecommendation;
+};
+
+type StartResponse = {
   ready: boolean;
   state: string;
-  manager: string;
-  detail: string;
   message: string;
-  attemptedAt: string;
 };
-
-type StartResponse = StartAttempt & { installation?: { installed: boolean } };
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
     method,
+    cache: "no-store",
     headers: body ? { "Content-Type": "application/json", Accept: "application/json" } : { Accept: "application/json" },
     body: body ? JSON.stringify(body) : undefined,
   });
   const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) throw new Error("The local video gateway is unavailable.");
+  if (!contentType.includes("application/json")) throw new Error("The local video plug-in gateway is unavailable.");
   const value = await response.json() as T & { message?: string };
-  if (!response.ok) throw new Error(value.message || "The local video request failed.");
+  if (!response.ok) throw new Error(value.message || "The local video plug-in request failed.");
   return value;
 }
 
@@ -79,29 +101,31 @@ function announceReadyChange() {
   window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
 }
 
-export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) {
-  const [status, setStatus] = useState<H3SetupStatus | null>(null);
+function detailList(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+export default function LocalVideoPanel() {
+  const [status, setStatus] = useState<VideoPluginResponse | null>(null);
   const [working, setWorking] = useState(false);
-  const [notice, setNotice] = useState("Checking PlotPickle's local text-to-video default...");
+  const [notice, setNotice] = useState("Checking PlotPickle's hardware-optimized local video plug-in...");
 
   async function refresh() {
     try {
-      const next = await request<H3SetupStatus>(`${H3_API}/status`);
+      const next = await request<VideoPluginResponse>(VIDEO_PLUGIN_API);
       setStatus(next);
-      const setupReady = h3TextToVideoPrerequisitesReady(next);
-      const activeReady = setupReady && next.ready && next.active;
-      const blocker = deriveH3TextToVideoSetup(next);
-      if (activeReady) {
-        setNotice("VIDEO ACTIVE — MiniMax H3 text-to-video is ready locally. ComfyUI is running only as the managed runtime dependency.");
+      const recommendation = next.recommendation;
+      if (!recommendation.selected) {
+        setNotice(recommendation.error || "No reviewed local video plug-in matches this hardware profile.");
+      } else if (recommendation.ready && recommendation.active) {
+        setNotice(`VIDEO READY — ${recommendation.selected.label} is the hardware-optimized local video plug-in.`);
         announceReadyChange();
-      } else if (!setupReady) {
-        setNotice(`${blocker.title} — ${blocker.detail}`);
       } else {
-        setNotice("MiniMax H3 text-to-video setup is ready but not yet active for local video.");
+        setNotice(recommendation.error || `${recommendation.selected.label} needs local setup before VIDEO can turn green.`);
       }
       return next;
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Local video status could not be checked.");
+      setNotice(error instanceof Error ? error.message : "Local video plug-in status could not be checked.");
       return null;
     }
   }
@@ -114,43 +138,41 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
   async function runDefault() {
     if (working) return;
     setWorking(true);
-    setNotice("Starting PlotPickle's local text-to-video default...");
+    setNotice("Starting PlotPickle's hardware-optimized local video path...");
     try {
-      let next = await request<H3SetupStatus>(`${H3_API}/status`);
-      if (!next.reachable) {
+      let next = await request<VideoPluginResponse>(VIDEO_PLUGIN_API);
+      if (!next.recommendation.runtimeReady) {
         await request<StartResponse>(COMFY_START_API, "POST", { approved: true });
-        next = await request<H3SetupStatus>(`${H3_API}/status`);
+        next = await request<VideoPluginResponse>(VIDEO_PLUGIN_API);
       }
-      if (!next.reachable) throw new Error(`ComfyUI did not become ready at ${LOCAL_COMFY_URL}.`);
-      if (!h3TextToVideoPrerequisitesReady(next)) {
-        setStatus(next);
-        const blocker = deriveH3TextToVideoSetup(next);
-        setNotice(`${blocker.title} — ${blocker.detail} NEXT: ${blocker.action}`);
+      setStatus(next);
+      if (!next.recommendation.runtimeReady) {
+        throw new Error(`ComfyUI did not become ready at ${LOCAL_COMFY_URL}.`);
+      }
+      if (!next.recommendation.selected) {
+        throw new Error(next.recommendation.error || "No reviewed local video plug-in matches this hardware profile.");
+      }
+      if (!next.recommendation.ready || !next.recommendation.active) {
+        setNotice(next.recommendation.error || `${next.recommendation.selected.label} still needs its reviewed workflow and local model files.`);
         return;
       }
-      next = await request<H3SetupStatus>(`${H3_API}/activation`, "POST", {
-        active: true,
-        allowConstrainedVram: next.vramProfile === "constrained",
-      });
-      setStatus(next);
-      if (!next.active || !next.ready || next.workflowFamily !== "text-to-video") {
-        throw new Error(next.error || "MiniMax H3 text-to-video did not become active.");
-      }
-      setNotice("VIDEO ACTIVE — MiniMax H3 text-to-video is the local video default. ComfyUI remains the managed runtime underneath.");
+      setNotice(`VIDEO READY — ${next.recommendation.selected.label} is active locally through ComfyUI.`);
       announceReadyChange();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "PlotPickle could not start the local text-to-video default.");
+      setNotice(error instanceof Error ? error.message : "PlotPickle could not start the local video default.");
       await refresh();
     } finally {
       setWorking(false);
     }
   }
 
-  const comfyReady = Boolean(status?.reachable);
-  const h3Ready = h3TextToVideoPrerequisitesReady(status);
-  const activeReady = Boolean(h3Ready && status?.ready && status?.active);
-  const setupNeeded = Boolean(status && comfyReady && !h3Ready);
-  const blocker = deriveH3TextToVideoSetup(status);
+  const recommendation = status?.recommendation ?? null;
+  const selected = recommendation?.selected ?? null;
+  const runtimeReady = Boolean(recommendation?.runtimeReady);
+  const activeReady = Boolean(selected && recommendation?.ready && recommendation?.active);
+  const configured = Boolean(recommendation?.configured);
+  const missingNodes = detailList(recommendation?.details?.missingNodes);
+  const missingModels = detailList(recommendation?.details?.missingModels);
 
   return (
     <section style={panel} aria-labelledby="local-video-title">
@@ -158,9 +180,9 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
         <div>
           <p style={{ margin: 0, color: "#79bd92", fontSize: 12 }}>LOCAL AI / VIDEO</p>
           <h2 id="local-video-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE VIDEO DEFAULT</h2>
-          <p style={{ margin: 0, fontSize: 16 }}><strong>MINIMAX H3 · TEXT TO VIDEO</strong></p>
+          <p style={{ margin: 0, fontSize: 16 }}><strong>{selected?.label?.toUpperCase() || "AUTOMATIC / HARDWARE OPTIMIZED"}</strong></p>
           <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "#c6d3ca" }}>
-            MiniMax H3 is the local text-to-video engine. PlotPickle manages ComfyUI at {LOCAL_COMFY_URL} only as H3&apos;s local runtime dependency.
+            PlotPickle selects the best reviewed local video plug-in for this computer. ComfyUI at {LOCAL_COMFY_URL} remains the managed runtime underneath the selected model and workflow.
           </p>
         </div>
         <span style={{ border: `1px solid ${activeReady ? "#79bd92" : "#365342"}`, padding: "5px 9px", color: activeReady ? "#79bd92" : "#9eafa3" }}>
@@ -173,7 +195,7 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
           <div>
             <strong>{activeReady ? "LOCAL VIDEO IS ACTIVE" : "RUN PLOTPICKLE LOCAL VIDEO"}</strong>
             <p style={{ margin: "6px 0 0", color: "#c6d3ca", lineHeight: 1.45 }}>
-              Default: text-to-video, short-form, 360p-class black-and-white video. PlotPickle starts ComfyUI first, then activates the MiniMax H3 text-to-video workflow.
+              {selected ? `Selected automatically: ${selected.label}. ${selected.preset}.` : "PlotPickle is checking this computer for a compatible local video plug-in."}
             </p>
           </div>
           <button type="button" style={primaryButton} onClick={() => void runDefault()} disabled={working || activeReady}>
@@ -185,37 +207,42 @@ export default function LocalVideoPanel({ onOpenH3 }: { onOpenH3: () => void }) 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10, marginTop: 12 }}>
         <div style={card}>
           <strong>ComfyUI Service</strong>
-          <p>{status === null ? "CHECKING..." : comfyReady ? "READY" : "STOPPED"}</p>
+          <p>{status === null ? "CHECKING..." : runtimeReady ? "READY" : "STOPPED"}</p>
           <small>Managed runtime dependency</small>
         </div>
         <div style={card}>
-          <strong>MiniMax H3 T2V</strong>
-          <p>{status === null ? "CHECKING..." : h3Ready ? "READY" : "SETUP NEEDED"}</p>
-          <small>Text-to-video engine</small>
+          <strong>Video Plug-in</strong>
+          <p>{selected?.label || "CHECKING..."}</p>
+          <small>{selected ? (recommendation?.ready ? "READY" : "SETUP NEEDED") : "Hardware selection pending"}</small>
         </div>
         <div style={card}>
-          <strong>Local Target</strong>
-          <p>TEXT→VIDEO / 360P / B&amp;W</p>
-          <small>Short conservative local preset</small>
+          <strong>Hardware Profile</strong>
+          <p>{status?.hardware.profileLabel || "CHECKING..."}</p>
+          <small>{status ? `${status.hardware.gpuName || "CPU"} / ${status.hardware.vramGb} GB VRAM` : "Detecting local hardware"}</small>
         </div>
         <div style={card}>
           <strong>Video</strong>
           <p>{activeReady ? "ACTIVE / GREEN" : "INACTIVE"}</p>
-          <small>{activeReady ? "MiniMax H3 text-to-video is active." : comfyReady ? "Waiting for H3 text-to-video readiness." : "Waiting for ComfyUI service."}</small>
+          <small>{activeReady ? `${selected?.label} is ready.` : selected ? `Waiting for ${selected.label} readiness.` : "Waiting for hardware selection."}</small>
         </div>
       </div>
 
       {status ? (
         <div style={{ ...card, marginTop: 12 }}>
           <strong>LOCAL VIDEO STATUS</strong>
-          <p style={{ margin: "10px 0 5px" }}>GPU PROFILE: {status.vramGiB ? `${status.vramGiB} GB / ${status.vramProfile.toUpperCase()}` : "NOT DETECTED"}</p>
-          <p style={{ margin: "0 0 5px" }}>WORKFLOW: {status.workflowFamily === "text-to-video" ? "TEXT-TO-VIDEO" : "TEXT-TO-VIDEO REQUIRED"}</p>
-          <p style={{ margin: 0 }}>H3 FILES: {status.modelsReady ? "FOUND" : "NOT READY"}</p>
-          {setupNeeded ? (
+          <p style={{ margin: "10px 0 5px" }}>SELECTION: AUTOMATIC / HARDWARE OPTIMIZED</p>
+          <p style={{ margin: "0 0 5px" }}>PLUGIN: {selected?.id || "NONE"}</p>
+          <p style={{ margin: "0 0 5px" }}>RUNTIME: {selected?.runtimeProviderId?.toUpperCase() || "NONE"}</p>
+          <p style={{ margin: 0 }}>MODE: {selected?.modes?.join(", ").toUpperCase() || "NONE"}</p>
+          {!activeReady && selected ? (
             <div style={{ marginTop: 12, borderTop: "1px solid #4d471c", paddingTop: 12 }}>
-              <p style={{ margin: "0 0 5px", color: "#d8c85d" }}><strong>SETUP BLOCKER: {blocker.title}</strong></p>
-              <p style={{ margin: "0 0 9px", color: "#fff0a6", lineHeight: 1.45 }}>{blocker.detail}</p>
-              <button type="button" style={yellowButton} onClick={onOpenH3}>SETUP H3</button>
+              <p style={{ margin: "0 0 5px", color: "#d8c85d" }}><strong>SETUP BLOCKER</strong></p>
+              <p style={{ margin: "0 0 6px", color: "#fff0a6", lineHeight: 1.45 }}>
+                {recommendation?.error || `${selected.label} is not ready yet.`}
+              </p>
+              {!configured ? <p style={{ margin: "0 0 5px", color: "#fff0a6" }}>REVIEWED WORKFLOW: SETUP NEEDED</p> : null}
+              {missingNodes.length ? <p style={{ margin: "0 0 5px", color: "#fff0a6" }}>MISSING NODES: {missingNodes.join(", ")}</p> : null}
+              {missingModels.length ? <p style={{ margin: 0, color: "#fff0a6" }}>MISSING MODELS: {missingModels.join(", ")}</p> : null}
             </div>
           ) : null}
         </div>

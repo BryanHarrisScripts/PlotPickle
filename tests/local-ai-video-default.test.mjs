@@ -5,40 +5,46 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Skin V1 VIDEO uses the focused MiniMax H3 text-to-video local default instead of the old routing chooser", async () => {
+test("Skin V1 VIDEO uses the hardware-aware plug-in recommendation while H3 remains a separate engine", async () => {
   const host = await source("app/skin-v1/local-ai-skin-host.tsx");
 
   assert.match(host, /import LocalVideoPanel from "\.\/local-video-panel"/u);
   assert.match(host, /import LocalH3SetupPanel from "\.\/local-h3-setup-panel"/u);
-  assert.match(host, /view === "video" \? <LocalVideoPanel/u);
+  assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
   assert.match(host, /view === "h3" \? <LocalH3SetupPanel/u);
   assert.doesNotMatch(host, /view === "video" \? <AiRoutingPanel capability="video"/u);
-  assert.match(host, /fetch\("\/api\/media-routing\/comfyui\/h3\/native\/status"/u);
-  assert.match(host, /fixedLocalVideoReady\(h3\)/u);
-  assert.match(host, /status\.workflowFamily === "text-to-video"/u);
+  assert.match(host, /fetch\("\/api\/local-ai\/plugins\/video"/u);
+  assert.match(host, /automaticLocalVideoReady\(videoPlugin\)/u);
+  assert.match(host, /status\?\.recommendation\.selected && status\.recommendation\.ready && status\.recommendation\.active/u);
+  assert.doesNotMatch(host, /fetch\("\/api\/media-routing\/comfyui\/h3\/native\/status"/u);
+  assert.doesNotMatch(host, /fixedLocalVideoReady\(h3\)/u);
 });
 
-test("local VIDEO presents MiniMax H3 text-to-video as the engine and shares the exact setup blocker", async () => {
+test("local VIDEO renders the selected plug-in instead of hard-coding a model family", async () => {
   const panel = await source("app/skin-v1/local-video-panel.tsx");
 
   for (const contract of [
     "PLOTPICKLE VIDEO DEFAULT",
-    "MINIMAX H3 · TEXT TO VIDEO",
+    "AUTOMATIC / HARDWARE OPTIMIZED",
+    "Video Plug-in",
     "ComfyUI Service",
     "Managed runtime dependency",
-    "Text-to-video engine",
-    "TEXT→VIDEO / 360P / B&W",
+    "Hardware Profile",
     "ACTIVE / GREEN",
     'activeReady ? "READY" : working ? "RUNNING..." : "RUN"',
+    "/api/local-ai/plugins/video",
     "/api/media-routing/comfyui/start",
-    "/api/media-routing/comfyui/h3/native",
-    "allowConstrainedVram",
-    "h3TextToVideoPrerequisitesReady",
-    "deriveH3TextToVideoSetup",
-    "SETUP BLOCKER:",
-    "SETUP H3",
-  ]) assert.ok(panel.includes(contract), `Missing local video default contract: ${contract}`);
+    "selected?.label",
+    "selected?.runtimeProviderId",
+    "selected?.modes",
+    "SETUP BLOCKER",
+    "REVIEWED WORKFLOW: SETUP NEEDED",
+    "MISSING NODES:",
+    "MISSING MODELS:",
+  ]) assert.ok(panel.includes(contract), `Missing local video plug-in contract: ${contract}`);
 
+  assert.doesNotMatch(panel, /MINIMAX H3 · TEXT TO VIDEO/u);
+  assert.doesNotMatch(panel, /h3TextToVideoPrerequisitesReady|deriveH3TextToVideoSetup|allowConstrainedVram/u);
   assert.doesNotMatch(panel, /api\.openai\.com|api\.minimax\.io|generativelanguage\.googleapis\.com/u);
 });
 

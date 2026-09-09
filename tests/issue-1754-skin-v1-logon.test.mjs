@@ -236,9 +236,10 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
   assert.match(host, /function StatusLight/u);
   assert.match(host, /function fixedLocalImagesReady/u);
-  assert.match(host, /function fixedLocalVideoReady/u);
+  assert.match(host, /function automaticLocalVideoReady/u);
   assert.match(host, /\/api\/media-routing\/status/u);
-  assert.match(host, /\/api\/media-routing\/comfyui\/h3\/native\/status/u);
+  assert.match(host, /\/api\/local-ai\/plugins\/video/u);
+  assert.doesNotMatch(host, /\/api\/media-routing\/comfyui\/h3\/native\/status/u);
   assert.match(host, /sd_xl_base_1\.0\.safetensors/u);
   assert.match(host, /local default ready/u);
   assert.match(host, /data-local-ai-view="menu"/u);
@@ -247,7 +248,7 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.doesNotMatch(host, /<AiRoutingPanel capability="image"/u);
   assert.match(host, /view === "images" \? <LocalComfyUiPanel \/>/u);
   assert.doesNotMatch(host, /<AiRoutingPanel capability="video"/u);
-  assert.match(host, /view === "video" \? <LocalVideoPanel onOpenH3=\{\(\) => setView\("h3"\)\} \/>/u);
+  assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
   assert.match(host, /<LocalRuntimePanel \/>/u);
   assert.match(host, /<LocalComfyUiPanel \/>/u);
   assert.match(host, /<LocalH3SetupPanel \/>/u);

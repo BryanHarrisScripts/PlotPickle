@@ -20,7 +20,13 @@ type MediaImageStatus = {
     checkpoints: string[];
   };
 };
-type H3Summary = { active: boolean; ready: boolean; reachable: boolean; workflowFamily: string };
+type VideoPluginStatus = {
+  recommendation: {
+    selected: { id: string; label: string } | null;
+    ready: boolean;
+    active: boolean;
+  };
+};
 
 const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
@@ -80,7 +86,7 @@ const TASKS: Array<{ id: LocalAiView; label: string; detail: string }> = [
 const ENGINES: Array<{ id: LocalAiView; label: string; detail: string }> = [
   { id: "ollama", label: "OLLAMA", detail: "Local text runtime and models" },
   { id: "comfyui", label: "COMFYUI", detail: "Local image and video engine" },
-  { id: "h3", label: "MINIMAX H3", detail: "Local text-to-video model and setup" },
+  { id: "h3", label: "MINIMAX H3", detail: "Advanced local video plug-in and setup" },
 ];
 
 const VIEW_TITLES: Record<Exclude<LocalAiView, "menu">, string> = {
@@ -103,8 +109,8 @@ function fixedLocalImagesReady(status: MediaImageStatus | null) {
   return status.comfyui.checkpoints.some((checkpoint) => checkpoint.toLowerCase() === LOCAL_SDXL_CHECKPOINT.toLowerCase());
 }
 
-function fixedLocalVideoReady(status: H3Summary | null) {
-  return Boolean(status?.reachable && status.ready && status.active && status.workflowFamily === "text-to-video");
+function automaticLocalVideoReady(status: VideoPluginStatus | null) {
+  return Boolean(status?.recommendation.selected && status.recommendation.ready && status.recommendation.active);
 }
 
 function StatusLight({ label, ready }: { label: string; ready: boolean }) {
@@ -145,17 +151,17 @@ export default function LocalAiSkinHost() {
   const [view, setView] = useState<LocalAiView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
   const [mediaImages, setMediaImages] = useState<MediaImageStatus | null>(null);
-  const [h3, setH3] = useState<H3Summary | null>(null);
+  const [videoPlugin, setVideoPlugin] = useState<VideoPluginStatus | null>(null);
 
   const refreshStatus = useCallback(async () => {
-    const [routingResponse, mediaResponse, h3Response] = await Promise.all([
+    const [routingResponse, mediaResponse, videoResponse] = await Promise.all([
       fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null),
       fetch("/api/media-routing/status", { cache: "no-store" }).catch(() => null),
-      fetch("/api/media-routing/comfyui/h3/native/status", { cache: "no-store" }).catch(() => null),
+      fetch("/api/local-ai/plugins/video", { cache: "no-store" }).catch(() => null),
     ]);
     if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
     if (mediaResponse?.ok) setMediaImages(await mediaResponse.json() as MediaImageStatus);
-    if (h3Response?.ok) setH3(await h3Response.json() as H3Summary);
+    if (videoResponse?.ok) setVideoPlugin(await videoResponse.json() as VideoPluginStatus);
   }, []);
 
   useEffect(() => {
@@ -178,7 +184,7 @@ export default function LocalAiSkinHost() {
   const lights: Record<CapabilityKey, boolean> = {
     writing: localReady(routing?.text),
     images: fixedLocalImagesReady(mediaImages),
-    video: fixedLocalVideoReady(h3),
+    video: automaticLocalVideoReady(videoPlugin),
   };
 
   const manageRoute = (target: "ollama" | "openai" | "gemini" | "minimax" | "comfyui") => {
@@ -200,7 +206,7 @@ export default function LocalAiSkinHost() {
 
         {view === "writing" ? <AiRoutingPanel capability="text" locality="local" onManage={manageRoute} /> : null}
         {view === "images" ? <LocalComfyUiPanel /> : null}
-        {view === "video" ? <LocalVideoPanel onOpenH3={() => setView("h3")} /> : null}
+        {view === "video" ? <LocalVideoPanel /> : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
         {view === "comfyui" ? <LocalComfyUiPanel /> : null}
         {view === "h3" ? <LocalH3SetupPanel /> : null}

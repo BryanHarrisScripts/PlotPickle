@@ -175,7 +175,7 @@ export default function LocalAiSkinHost() {
         </section>
 
         {view === "writing" ? <AiRoutingPanel capability="text" locality="local" onManage={manageRoute} /> : null}
-        {view === "images" ? <AiRoutingPanel capability="image" locality="local" onManage={manageRoute} /> : null}
+        {view === "images" ? <LocalComfyUiPanel /> : null}
         {view === "video" ? <AiRoutingPanel capability="video" locality="local" onManage={manageRoute} /> : null}
         {view === "ollama" ? <LocalRuntimePanel /> : null}
         {view === "comfyui" ? <LocalComfyUiPanel /> : null}

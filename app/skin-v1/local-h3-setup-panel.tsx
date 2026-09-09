@@ -8,40 +8,44 @@ const H3_STATUS_API = "/api/media-routing/comfyui/h3/native/status";
 const COMFY_START_API = "/api/media-routing/comfyui/start";
 
 const panel: React.CSSProperties = {
-  border: "1px solid #287a4b",
-  background: "#080b09",
-  color: "#e7ece8",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)",
+  background: "var(--pp-skin-surface-1)",
+  color: "var(--pp-skin-ink)",
   padding: 18,
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  fontFamily: "var(--pp-skin-font-ui)",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 const card: React.CSSProperties = {
-  border: "1px solid #23412e",
-  background: "#0c120e",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
+  background: "var(--pp-skin-surface-2)",
   padding: 14,
 };
 
 const primaryButton: React.CSSProperties = {
-  minHeight: 42,
+  minHeight: "var(--pp-skin-touch-target)",
   padding: "9px 16px",
-  border: "1px solid #79bd92",
-  background: "#123524",
-  color: "#f4fff7",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-accent-deep)",
+  color: "var(--pp-skin-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
-const yellowButton: React.CSSProperties = {
-  minHeight: 38,
+const warningButton: React.CSSProperties = {
+  minHeight: "var(--pp-skin-control-height)",
   padding: "8px 14px",
-  border: "1px solid #d8c85d",
-  borderRadius: 999,
-  background: "#2a2813",
-  color: "#fff0a6",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-warning)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-warning-surface)",
+  color: "var(--pp-skin-warning-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
@@ -105,14 +109,14 @@ export default function LocalH3SetupPanel() {
     <section style={panel} aria-labelledby="local-h3-setup-title">
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 14, flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: 0, color: "#79bd92", fontSize: 12 }}>LOCAL AI / MINIMAX H3</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12 }}>LOCAL AI / MINIMAX H3</p>
           <h2 id="local-h3-setup-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE H3 SETUP</h2>
           <p style={{ margin: 0, fontSize: 16 }}><strong>MINIMAX H3 · TEXT TO VIDEO</strong></p>
-          <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "#c6d3ca" }}>
+          <p style={{ margin: "8px 0 0", maxWidth: 850, lineHeight: 1.5, color: "var(--pp-skin-ink-soft)" }}>
             PlotPickle uses H3 locally only for its constrained text-to-video default. ComfyUI is the managed runtime underneath; other H3 workflow families are advanced options and do not control the VIDEO green light.
           </p>
         </div>
-        <span style={{ border: `1px solid ${setupReady ? "#79bd92" : "#6c6632"}`, padding: "5px 9px", color: setupReady ? "#79bd92" : "#d8c85d" }}>
+        <span style={{ border: `var(--pp-skin-border-thin) solid ${setupReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-warning-line)"}`, padding: "5px 9px", color: setupReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-warning)" }}>
           {setupReady ? "READY" : "SETUP NEEDED"}
         </span>
       </header>
@@ -140,25 +144,25 @@ export default function LocalH3SetupPanel() {
         </div>
       </div>
 
-      <div style={{ ...card, marginTop: 12, borderColor: blocker.blocked ? "#746a24" : "#287a4b", background: blocker.blocked ? "#171508" : "#0b180f" }}>
-        <p style={{ margin: 0, color: blocker.blocked ? "#d8c85d" : "#79bd92", fontSize: 12, letterSpacing: ".08em" }}>
+      <div style={{ ...card, marginTop: 12, borderColor: blocker.blocked ? "var(--pp-skin-warning-line)" : "var(--pp-skin-accent)", background: blocker.blocked ? "var(--pp-skin-warning-surface)" : "var(--pp-skin-surface-2)" }}>
+        <p style={{ margin: 0, color: blocker.blocked ? "var(--pp-skin-warning)" : "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>
           {blocker.blocked ? "SETUP BLOCKER" : "SETUP STATUS"}
         </p>
         <h3 style={{ margin: "7px 0" }}>{blocker.title}</h3>
-        <p style={{ margin: 0, lineHeight: 1.5, color: "#d7ded8" }}>{blocker.detail}</p>
-        <p style={{ margin: "10px 0 0", lineHeight: 1.5, color: blocker.blocked ? "#fff0a6" : "#b7d8c1" }}><strong>NEXT:</strong> {blocker.action}</p>
+        <p style={{ margin: 0, lineHeight: 1.5, color: "var(--pp-skin-ink-soft)" }}>{blocker.detail}</p>
+        <p style={{ margin: "10px 0 0", lineHeight: 1.5, color: blocker.blocked ? "var(--pp-skin-warning-ink)" : "var(--pp-skin-accent-bright)" }}><strong>NEXT:</strong> {blocker.action}</p>
         <div style={{ marginTop: 12 }}>
-          <button type="button" style={status?.reachable ? yellowButton : primaryButton} onClick={() => void recover()} disabled={working}>
+          <button type="button" style={status?.reachable ? warningButton : primaryButton} onClick={() => void recover()} disabled={working}>
             {working ? "CHECKING..." : status?.reachable ? "CHECK AGAIN" : "START COMFYUI"}
           </button>
         </div>
       </div>
 
-      <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "#79bd92" }}>{notice}</p>
+      <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "var(--pp-skin-accent-bright)" }}>{notice}</p>
 
-      <details style={{ marginTop: 16, border: "1px solid #23412e", background: "#060806", padding: 12 }}>
-        <summary style={{ cursor: "pointer", color: "#d8c85d", fontWeight: 700 }}>ADVANCED SETUP</summary>
-        <p style={{ color: "#b9c6bd", lineHeight: 1.5 }}>
+      <details style={{ marginTop: 16, border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", background: "var(--pp-skin-surface-0)", padding: 12 }}>
+        <summary style={{ cursor: "pointer", color: "var(--pp-skin-warning)", fontWeight: 700 }}>ADVANCED SETUP</summary>
+        <p style={{ color: "var(--pp-skin-ink-soft)", lineHeight: 1.5 }}>
           Manual manifest import, official-source links, detailed model requirements, node inspection and local test controls live here. PlotPickle does not automatically download H3 weights, install custom nodes or execute downloaded setup code.
         </p>
         <H3NativePanel />

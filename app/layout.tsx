@@ -28,6 +28,7 @@ import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-lan
 import UiContinuityAnchor from "./ui-continuity-anchor";
 import "./design-tokens.css";
 import "./globals.css";
+import "./skin-v1-definition.css";
 import "./skin-v1.css";
 import "./skin-v1-bbs-surfaces.css";
 import "./community-monochrome-skin.css";

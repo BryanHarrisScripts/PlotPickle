@@ -5,19 +5,22 @@
  * active Experience/SKIN work is still moving. This file is presentation-only:
  * it deliberately does not change room, membership, message, agent, Story Room,
  * or Canon behavior.
+ *
+ * Skin V1 values resolve through skin-v1-definition.css so Community cannot
+ * drift into a separate monochrome palette.
  */
 
 [data-community-native-buzz="true"] {
-  --community-bg: #050505;
-  --community-panel: #0d0d0d;
-  --community-panel-2: #151515;
-  --community-border: #3a3a3a;
-  --community-text: #f4f4f4;
-  --community-muted: #9b9b9b;
-  --community-teal: #f0f0f0;
-  --community-orange: #bdbdbd;
+  --community-bg: var(--pp-skin-surface-0, #050505);
+  --community-panel: var(--pp-skin-surface-1, #0d0d0d);
+  --community-panel-2: var(--pp-skin-surface-2, #151515);
+  --community-border: var(--pp-skin-line, #3a3a3a);
+  --community-text: var(--pp-skin-ink, #f4f4f4);
+  --community-muted: var(--pp-skin-ink-muted, #9b9b9b);
+  --community-teal: var(--pp-skin-ink-soft, #f0f0f0);
+  --community-orange: var(--pp-skin-ink-soft, #bdbdbd);
   filter: grayscale(1) saturate(0) contrast(1.03);
-  background: #050505 !important;
+  background: var(--community-bg) !important;
 }
 
 [data-community-native-buzz="true"]::before {
@@ -25,16 +28,16 @@
   display: block;
   max-width: 1420px;
   margin: 0 auto 14px;
-  padding: 10px 12px;
-  border: 1px solid #4a4a4a;
-  background: #0a0a0a;
-  color: #d8d8d8;
-  font: 12px/1.45 "Courier New", "Lucida Console", monospace;
-  letter-spacing: 0.03em;
+  padding: var(--pp-skin-space-3, 12px);
+  border: var(--pp-skin-border-thin, 1px) solid var(--community-border);
+  background: var(--community-panel);
+  color: var(--pp-skin-ink-soft, #d8d8d8);
+  font: var(--pp-skin-font-meta, 11px)/1.45 var(--pp-skin-font-ui, "Courier New", "Lucida Console", monospace);
+  letter-spacing: var(--pp-skin-tracking-meta, 0.03em);
 }
 
 [data-community-native-buzz="true"] img {
-  filter: grayscale(1) saturate(0) contrast(1.08);
+  filter: var(--pp-skin-media-filter, grayscale(1) saturate(0) contrast(1.08));
 }
 
 [data-community-native-buzz="true"] button,
@@ -42,7 +45,8 @@
 [data-community-native-buzz="true"] input,
 [data-community-native-buzz="true"] textarea,
 [data-community-native-buzz="true"] select {
-  border-color: #3d3d3d !important;
+  border-color: var(--community-border) !important;
+  border-radius: var(--pp-skin-radius, 0) !important;
 }
 
 [data-community-native-buzz="true"] button:hover:not(:disabled),
@@ -52,13 +56,13 @@
 [data-community-native-buzz="true"] input:focus,
 [data-community-native-buzz="true"] textarea:focus,
 [data-community-native-buzz="true"] select:focus {
-  border-color: #d9d9d9 !important;
-  outline-color: #d9d9d9;
+  border-color: var(--pp-skin-focus, #d9d9d9) !important;
+  outline-color: var(--pp-skin-focus, #d9d9d9);
 }
 
 [data-community-native-buzz="true"] [aria-current="page"] {
-  border-color: #d9d9d9 !important;
-  box-shadow: inset 3px 0 #f2f2f2;
+  border-color: var(--pp-skin-accent-bright, #d9d9d9) !important;
+  box-shadow: inset 3px 0 var(--pp-skin-accent-bright, #f2f2f2);
 }
 
 @media (max-width: 900px) {
@@ -67,21 +71,24 @@
   }
 }
 
-/* Scoped neutral shading preserves the BBS structure and full image detail. */
+/* Skin V1 uses stepped 8/16-bit shading rather than glass or soft gradients. */
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] {
-  --community-bbs-font: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #202020, #0b0b0b 65%) !important;
+  --community-bbs-font: var(--pp-skin-font-ui);
+  background: var(--pp-skin-fill-panel) !important;
 }
+
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(article, aside, section) {
-  background-image: linear-gradient(145deg, #252525, #101010);
-  box-shadow: inset 0 1px 0 #ffffff18, 0 3px 10px #00000040;
+  background-image: var(--pp-skin-fill-panel);
+  box-shadow: var(--pp-skin-inset-highlight), var(--pp-skin-shadow-control);
 }
+
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] img {
   image-rendering: auto;
-  filter: grayscale(1);
+  filter: var(--pp-skin-media-filter);
 }
+
 [data-community-agent][data-selected="true"],
 [data-community-agent]:focus-visible {
-  outline: 2px solid #fff;
+  outline: var(--pp-skin-border-strong, 2px) solid var(--pp-skin-focus, #fff);
   outline-offset: 3px;
 }

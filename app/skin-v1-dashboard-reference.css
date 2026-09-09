@@ -1,5 +1,11 @@
-/* Final Skin V1 Dashboard reference lock.
-   Loaded last so the Dashboard cannot be reshaped by legacy/global UI CSS. */
+@import "./skin-v1-definition.css";
+
+/*
+ * Canonical Skin V1 Dashboard surface.
+ *
+ * This file owns Dashboard layout only. Visual primitives come from
+ * skin-v1-definition.css so Dashboard cannot drift into a separate palette.
+ */
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] {
   width: 100% !important;
@@ -7,115 +13,120 @@
   display: flex !important;
   justify-content: center !important;
   align-items: flex-start !important;
-  padding: 18px 20px 28px !important;
-  background: #000 !important;
-  color: #fff !important;
-  font-family: "Courier New", Courier, monospace !important;
+  padding: var(--pp-skin-space-5) var(--pp-skin-space-5) var(--pp-skin-space-7) !important;
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
-  width: min(1180px, calc(100vw - 40px)) !important;
-  max-width: 1180px !important;
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  max-width: var(--pp-skin-shell-max) !important;
   min-width: 0 !important;
   margin: 0 auto !important;
   padding: 0 !important;
   overflow: hidden !important;
-  border: 1px solid #333 !important;
-  background: #121212 !important;
-  color: #fff !important;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-fill-panel) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight) !important;
 }
 
 .pp-skin-v1-dashboard-shell-title {
-  min-height: 0 !important;
-  display: block !important;
-  margin: 12px 16px !important;
-  padding: 6px !important;
-  border: 1px solid #55ffff !important;
-  background: transparent !important;
-  color: #fff !important;
+  min-height: var(--pp-skin-control-height) !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: var(--pp-skin-space-3) var(--pp-skin-space-4) !important;
+  padding: var(--pp-skin-space-2) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent) !important;
+  background: var(--pp-skin-fill-accent-header) !important;
+  color: var(--pp-skin-ink) !important;
   text-align: center !important;
-  font-size: 15px !important;
+  font-size: var(--pp-skin-font-body) !important;
   font-weight: 700 !important;
-  letter-spacing: 1px !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
 }
 
 .pp-skin-v1-dashboard-art {
-  margin: 0 16px !important;
+  margin: 0 var(--pp-skin-space-4) !important;
   overflow: hidden !important;
-  border: 1px solid #333 !important;
-  background: #050505 !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  box-shadow: var(--pp-skin-inset-highlight) !important;
 }
 
 .pp-skin-v1-dashboard-art img {
   display: block !important;
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 3 / 1 !important;
+  aspect-ratio: var(--pp-skin-art-ratio) !important;
   object-fit: cover !important;
   object-position: center !important;
-  filter: grayscale(1) contrast(1.1) brightness(0.84) !important;
+  filter: var(--pp-skin-media-filter) !important;
+  image-rendering: auto !important;
 }
 
 .pp-skin-v1-dashboard-divider {
   width: calc(100% - 56px) !important;
-  margin: 14px auto 0 !important;
+  margin: var(--pp-skin-space-4) auto 0 !important;
   overflow: hidden !important;
-  color: #fff !important;
-  font-size: 12px !important;
+  color: var(--pp-skin-ink-soft) !important;
+  font-size: var(--pp-skin-font-meta) !important;
   line-height: 1 !important;
   white-space: nowrap !important;
 }
 
 .pp-skin-v1-dashboard-brand {
   margin: 0 !important;
-  padding: 18px 16px 10px !important;
+  padding: var(--pp-skin-space-5) var(--pp-skin-space-4) var(--pp-skin-space-3) !important;
   text-align: center !important;
 }
 
 .pp-skin-v1-dashboard-brand h1 {
   margin: 0 !important;
-  color: #fff !important;
-  font-family: Arial, Helvetica, sans-serif !important;
-  font-size: clamp(46px, 6vw, 64px) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-brand) !important;
+  font-size: var(--pp-skin-font-brand-size) !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   letter-spacing: -1.5px !important;
 }
 
 .pp-skin-v1-dashboard-brand p {
-  margin: 6px 0 0 !important;
-  color: #55ffff !important;
-  font-family: "Courier New", Courier, monospace !important;
-  font-size: 12px !important;
+  margin: var(--pp-skin-space-2) 0 0 !important;
+  color: var(--pp-skin-accent-bright) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-meta) !important;
   font-weight: 700 !important;
-  letter-spacing: 1.4px !important;
+  letter-spacing: var(--pp-skin-tracking-label) !important;
   text-transform: none !important;
 }
 
 .pp-skin-v1-dashboard-title {
   margin: 0 !important;
-  padding: 8px 0 0 !important;
-  color: #fff !important;
-  font-size: 15px !important;
+  padding: var(--pp-skin-space-2) 0 0 !important;
+  color: var(--pp-skin-ink) !important;
+  font-size: var(--pp-skin-font-body) !important;
   font-weight: 700 !important;
   text-align: center !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
   display: block !important;
-  width: min(1060px, calc(100% - 72px)) !important;
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px)) !important;
   margin: 0 auto !important;
-  padding: 4px 0 24px !important;
-  background: #121212 !important;
+  padding: var(--pp-skin-space-1) 0 var(--pp-skin-space-6) !important;
+  background: transparent !important;
 }
 
 .pp-skin-v1-dashboard-group {
-  margin: 18px 0 7px !important;
-  color: #ccc !important;
-  font-size: 15px !important;
+  margin: var(--pp-skin-space-5) 0 var(--pp-skin-space-2) !important;
+  color: var(--pp-skin-ink-soft) !important;
+  font-size: var(--pp-skin-font-body) !important;
   font-weight: 400 !important;
-  line-height: 1.55 !important;
+  line-height: var(--pp-skin-leading-body) !important;
   text-transform: none !important;
 }
 
@@ -123,22 +134,24 @@
   position: relative !important;
   display: block !important;
   width: 100% !important;
-  min-height: 0 !important;
+  min-height: var(--pp-skin-control-height) !important;
   margin: 0 !important;
-  padding: 4px 34px 4px 8px !important;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-9) var(--pp-skin-space-1) var(--pp-skin-space-2) !important;
   border: 0 !important;
-  background: transparent !important;
-  color: #fff !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-fill-row) !important;
+  color: var(--pp-skin-ink) !important;
   box-shadow: none !important;
-  font-family: "Courier New", Courier, monospace !important;
-  font-size: 15px !important;
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-body) !important;
   font-weight: 400 !important;
-  line-height: 1.55 !important;
+  line-height: var(--pp-skin-leading-body) !important;
   text-align: left !important;
   white-space: pre-wrap !important;
+  transition: background var(--pp-skin-motion-fast) linear, color var(--pp-skin-motion-fast) linear !important;
 }
 
-/* Retire all legacy per-row decorative squares. Only the explicit connected-submenu marker may show. */
+/* Only connected submenus receive the explicit status square. */
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after {
   content: none !important;
@@ -156,44 +169,44 @@
 .pp-skin-v1-dashboard-status-box {
   position: absolute !important;
   top: 50% !important;
-  right: 10px !important;
-  width: 7px !important;
-  height: 7px !important;
+  right: var(--pp-skin-space-3) !important;
+  width: var(--pp-skin-status-dot) !important;
+  height: var(--pp-skin-status-dot) !important;
   transform: translateY(-50%) !important;
-  border: 1px solid #79bd92 !important;
-  background: #79bd92 !important;
-  box-shadow: 0 0 5px rgba(121, 189, 146, 0.55) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-accent-bright) !important;
+  box-shadow: var(--pp-skin-shadow-control) !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
-  background: #fff !important;
-  color: #000 !important;
+  background: var(--pp-skin-selected-bg) !important;
+  color: var(--pp-skin-selected-ink) !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected .pp-skin-v1-dashboard-status-box {
-  border-color: #287a4b !important;
-  background: #79bd92 !important;
+  border-color: var(--pp-skin-accent) !important;
+  background: var(--pp-skin-accent-bright) !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
-  outline: 1px solid #55ffff !important;
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
   outline-offset: -1px !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover {
-  background: #181818 !important;
+  background: var(--pp-skin-fill-row-hover) !important;
   outline: none !important;
 }
 
 .pp-skin-v1-dashboard-divider-bottom {
-  margin-top: 10px !important;
+  margin-top: var(--pp-skin-space-3) !important;
 }
 
 .pp-skin-v1-dashboard-reminder {
   margin: 0 !important;
-  padding: 10px 16px 2px !important;
-  color: #fff !important;
-  font-size: 15px !important;
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4) var(--pp-skin-space-1) !important;
+  color: var(--pp-skin-ink) !important;
+  font-size: var(--pp-skin-font-body) !important;
   font-weight: 700 !important;
   text-align: center !important;
 }
@@ -201,13 +214,13 @@
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
   display: flex !important;
   justify-content: space-between !important;
-  gap: 16px !important;
+  gap: var(--pp-skin-space-4) !important;
   margin: 0 !important;
-  padding: 7px 14px !important;
-  border-top: 1px solid #333 !important;
-  background: #0a0a0a !important;
-  color: #888 !important;
-  font-size: 10px !important;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-4) !important;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink-muted) !important;
+  font-size: var(--pp-skin-font-sm) !important;
   line-height: 1.35 !important;
   text-transform: uppercase !important;
 }
@@ -222,7 +235,7 @@
 
 @media (max-width: 720px) {
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] {
-    padding: 8px !important;
+    padding: var(--pp-skin-space-2) !important;
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {

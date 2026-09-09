@@ -11,6 +11,8 @@ export type DashboardBbsItem = Readonly<{
 }>;
 
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
+const DASHBOARD_ART = "/brand/dashboard/plotpickle-observatory-dragon.svg";
+const DASHBOARD_ART_FALLBACK = "/api/skin-v1/dashboard-art";
 
 export default function DashboardBbsPanel({
   items,
@@ -44,8 +46,19 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-dashboard-shell-title">PLOTPICKLE BBS</div>
 
         <div className="pp-skin-v1-dashboard-art" aria-hidden="true">
-          <img src="/brand/dashboard/plotpickle-observatory-dragon.svg" alt="" draggable={false} />
-          {/* Previous route token retained for regression trace: /api/skin-v1/dashboard-art */}
+          <img
+            src={DASHBOARD_ART}
+            alt=""
+            draggable={false}
+            loading="eager"
+            data-dashboard-art="skin-v1"
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (image.dataset.fallbackApplied === "true") return;
+              image.dataset.fallbackApplied = "true";
+              image.src = DASHBOARD_ART_FALLBACK;
+            }}
+          />
         </div>
 
         <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>

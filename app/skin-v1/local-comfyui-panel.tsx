@@ -75,11 +75,12 @@ type ImageTestResult = {
 };
 
 const panel: React.CSSProperties = {
-  border: "1px solid #287a4b",
-  background: "#080b09",
-  color: "#e7ece8",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)",
+  background: "var(--pp-skin-surface-1)",
+  color: "var(--pp-skin-ink)",
   padding: 18,
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  fontFamily: "var(--pp-skin-font-ui)",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 const row: React.CSSProperties = {
@@ -90,32 +91,35 @@ const row: React.CSSProperties = {
 };
 
 const card: React.CSSProperties = {
-  border: "1px solid #23412e",
-  background: "#0c120e",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
+  background: "var(--pp-skin-surface-2)",
   padding: 14,
 };
 
 const primaryButton: React.CSSProperties = {
-  minHeight: 44,
+  minHeight: "var(--pp-skin-touch-target)",
   padding: "10px 18px",
-  border: "1px solid #79bd92",
-  background: "#123524",
-  color: "#f4fff7",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-accent-deep)",
+  color: "var(--pp-skin-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
-const yellowButton: React.CSSProperties = {
-  minHeight: 36,
+const warningButton: React.CSSProperties = {
+  minHeight: "var(--pp-skin-control-height)",
   padding: "8px 14px",
-  border: "1px solid #d8c85d",
-  borderRadius: 999,
-  background: "#2a2813",
-  color: "#fff0a6",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-warning)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-warning-surface)",
+  color: "var(--pp-skin-warning-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
@@ -393,23 +397,23 @@ export default function LocalComfyUiPanel() {
     <section style={panel} aria-labelledby="local-comfyui-title">
       <header style={{ ...row, justifyContent: "space-between", alignItems: "start" }}>
         <div>
-          <p style={{ margin: 0, color: "#79bd92", fontSize: 12 }}>LOCAL AI / IMAGES</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12 }}>LOCAL AI / IMAGES</p>
           <h2 id="local-comfyui-title" style={{ margin: "5px 0 8px" }}>PLOTPICKLE IMAGE DEFAULT</h2>
           <p style={{ margin: 0, fontSize: 16 }}><strong>COMFYUI + SDXL 1.0</strong></p>
-          <p style={{ margin: "8px 0 0", maxWidth: 820, lineHeight: 1.5, color: "#c6d3ca" }}>
+          <p style={{ margin: "8px 0 0", maxWidth: 820, lineHeight: 1.5, color: "var(--pp-skin-ink-soft)" }}>
             Local images are fixed to PlotPickle&apos;s managed ComfyUI service at {LOCAL_COMFY_URL} with {LOCAL_SDXL_CHECKPOINT}. Broader image choices belong to cloud providers.
           </p>
         </div>
-        <span style={{ border: `1px solid ${activeReady ? "#79bd92" : "#365342"}`, padding: "5px 9px", color: activeReady ? "#79bd92" : "#9eafa3" }}>
+        <span style={{ border: `var(--pp-skin-border-thin) solid ${activeReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-line)"}`, padding: "5px 9px", color: activeReady ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-ink-muted)" }}>
           {activeReady ? "READY" : "NEEDS ATTENTION"}
         </span>
       </header>
 
-      <div style={{ ...card, marginTop: 16, background: "linear-gradient(110deg, #0b180f, #080b09)" }}>
+      <div style={{ ...card, marginTop: 16, background: "var(--pp-skin-surface-2)" }}>
         <div style={{ ...row, justifyContent: "space-between" }}>
           <div>
             <strong>{activeReady ? "LOCAL IMAGES ARE ACTIVE" : lastStart && !lastStart.ready ? "LOCAL IMAGE SERVICE NEEDS RECOVERY" : "LET PLOTPICKLE CHECK LOCAL IMAGES"}</strong>
-            <p style={{ margin: "6px 0 0", color: "#c6d3ca", lineHeight: 1.45 }}>
+            <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.45 }}>
               {activeReady
                 ? "The fixed local image stack is present and active. A test render is optional verification, not a readiness requirement."
                 : lastStart && !lastStart.ready
@@ -452,17 +456,17 @@ export default function LocalComfyUiPanel() {
             <p style={{ margin: "0 0 6px" }}>STATE: {lastStart.state || "unknown"}</p>
             <p style={{ margin: "0 0 6px" }}>MANAGER: {lastStart.manager || "unknown"}</p>
             <p style={{ margin: "0 0 10px" }}>ATTEMPTED: {attemptTimeLabel(lastStart.attemptedAt)}</p>
-            <pre style={{ margin: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: lastStart.ready ? "#79bd92" : "#d7c58a", font: "inherit", lineHeight: 1.5 }}>
+            <pre style={{ margin: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: lastStart.ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-warning)", font: "inherit", lineHeight: 1.5 }}>
               {lastStart.detail || lastStart.message || "No detailed startup evidence was returned."}
             </pre>
           </div>
         ) : (
-          <p style={{ margin: "8px 0 0", color: "#aeb9b1" }}>No managed start attempt recorded this session.</p>
+          <p style={{ margin: "8px 0 0", color: "var(--pp-skin-ink-soft)" }}>No managed start attempt recorded this session.</p>
         )}
       </div>
 
       <details style={{ ...card, marginTop: 12 }}>
-        <summary style={{ cursor: "pointer", color: "#79bd92" }}>LOCAL IMAGE DIAGNOSTICS</summary>
+        <summary style={{ cursor: "pointer", color: "var(--pp-skin-accent-bright)" }}>LOCAL IMAGE DIAGNOSTICS</summary>
         <div style={{ marginTop: 12 }}>
           <p style={{ margin: "0 0 8px" }}>Fixed local address: {LOCAL_COMFY_URL}</p>
           <p style={{ margin: "0 0 10px" }}>Fixed local model: {LOCAL_SDXL_CHECKPOINT}</p>
@@ -470,15 +474,15 @@ export default function LocalComfyUiPanel() {
             {installation?.installed === false ? <button type="button" onClick={openInstaller}>Install ComfyUI Desktop</button> : null}
             {!serverReady && installation?.installed !== false ? <button type="button" onClick={() => void startComfyUi()} disabled={Boolean(working)}>{working === "start" ? "Starting..." : "Retry ComfyUI Service"}</button> : null}
             {serverReady && !modelReady ? <button type="button" onClick={() => void installStarter()} disabled={Boolean(working)}>{working === "starter" ? "Preparing..." : "Install SDXL 1.0"}</button> : null}
-            <button type="button" style={yellowButton} onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "CHECKING..." : "RUN LOCAL DIAGNOSTIC"}</button>
-            <button type="button" style={yellowButton} onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "GENERATING..." : "TEST LOCAL IMAGE"}</button>
+            <button type="button" style={warningButton} onClick={() => void runDiagnostic()} disabled={Boolean(working)}>{working === "diagnostic" ? "CHECKING..." : "RUN LOCAL DIAGNOSTIC"}</button>
+            <button type="button" style={warningButton} onClick={() => void testImage()} disabled={Boolean(working) || !activeReady}>{working === "test" ? "GENERATING..." : "TEST LOCAL IMAGE"}</button>
           </div>
-          <p style={{ margin: "10px 0 0", color: "#aeb9b1" }}>Last successful local image test: {timeLabel(status?.comfyui.imageVerifiedAt || "")}{verified ? "" : " — not required for READY"}</p>
+          <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-soft)" }}>Last successful local image test: {timeLabel(status?.comfyui.imageVerifiedAt || "")}{verified ? "" : " — not required for READY"}</p>
         </div>
       </details>
 
-      {imageResult ? <figure style={{ ...card, margin: "12px 0 0" }}><img src={imageResult.assetUrl} alt="Local ComfyUI SDXL verification result" style={{ maxWidth: "100%" }} /><figcaption>Optional local verification asset{imageResult.assetLocation ? ` · ${imageResult.assetLocation}` : ""}</figcaption></figure> : null}
-      {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "#79bd92" }}>{notice}</p> : null}
+      {imageResult ? <figure style={{ ...card, margin: "12px 0 0" }}><img src={imageResult.assetUrl} alt="Local ComfyUI SDXL verification result" style={{ maxWidth: "100%", filter: "var(--pp-skin-media-filter)" }} /><figcaption>Optional local verification asset{imageResult.assetLocation ? ` · ${imageResult.assetLocation}` : ""}</figcaption></figure> : null}
+      {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "var(--pp-skin-accent-bright)" }}>{notice}</p> : null}
     </section>
   );
 }

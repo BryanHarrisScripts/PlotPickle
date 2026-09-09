@@ -26,33 +26,36 @@ type TopologyStatus = {
 
 const shell: React.CSSProperties = {
   minHeight: "100vh",
-  padding: "14px clamp(10px, 2vw, 24px) 28px",
-  background: "#050505",
-  color: "#f2f2f2",
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  padding: "var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7)",
+  background: "var(--pp-skin-fill-panel)",
+  color: "var(--pp-skin-ink)",
+  fontFamily: "var(--pp-skin-font-ui)",
 };
 
 const panel: React.CSSProperties = {
-  border: "1px solid #d8d8d8",
-  background: "#080808",
-  padding: 16,
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line-strong)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-surface-1)",
+  padding: "var(--pp-skin-space-4)",
+  boxShadow: "var(--pp-skin-shadow-control)",
 };
 
 const row: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "minmax(140px, 0.35fr) 1fr",
-  gap: 14,
-  padding: "11px 0",
-  borderTop: "1px solid #303030",
+  gap: "var(--pp-skin-space-4)",
+  padding: "var(--pp-skin-space-3) 0",
+  borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
   alignItems: "start",
 };
 
 const button: React.CSSProperties = {
-  minHeight: 38,
-  padding: "8px 14px",
-  border: "1px solid #d8d8d8",
-  background: "#0b0b0b",
-  color: "#fff",
+  minHeight: "var(--pp-skin-control-height)",
+  padding: "var(--pp-skin-space-2) var(--pp-skin-space-4)",
+  border: "var(--pp-skin-border-thin) solid var(--pp-skin-line-strong)",
+  borderRadius: "var(--pp-skin-radius)",
+  background: "var(--pp-skin-surface-1)",
+  color: "var(--pp-skin-ink)",
   font: "inherit",
   fontWeight: 700,
   cursor: "pointer",
@@ -135,13 +138,13 @@ export default function NodeSkinPanel() {
   return (
     <div style={shell} data-skin-v1-node="true">
       <section style={panel} aria-labelledby="skin-v1-node-title">
-        <p style={{ margin: 0, fontSize: 12, color: "#8fc99f", letterSpacing: ".08em" }}>PROFILE / NODE</p>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--pp-skin-accent-bright)", letterSpacing: ".08em" }}>PROFILE / NODE</p>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           <div>
             <h1 id="skin-v1-node-title" style={{ margin: "6px 0 4px", fontSize: 24 }}>NODE</h1>
-            <p style={{ margin: 0, color: "#bdbdbd" }}>LOCAL PLOTPICKLE INSTALLATION</p>
+            <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)" }}>LOCAL PLOTPICKLE INSTALLATION</p>
           </div>
-          <span style={{ border: "1px solid #d8d8d8", padding: "5px 9px", color: node?.lifecycle.state === "RUNNING" ? "#8fc99f" : "#f2f2f2" }}>
+          <span style={{ border: "var(--pp-skin-border-thin) solid var(--pp-skin-line-strong)", padding: "5px 9px", color: node?.lifecycle.state === "RUNNING" ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-ink)" }}>
             {node?.lifecycle.state || "CHECKING"}
           </span>
         </div>
@@ -150,24 +153,24 @@ export default function NodeSkinPanel() {
       <section style={{ ...panel, marginTop: 12 }} aria-label="Node information">
         {rows.map(([label, value]) => (
           <div key={label} style={row}>
-            <strong style={{ color: "#fff" }}>{label}</strong>
-            <span style={{ color: "#cfcfcf", overflowWrap: "anywhere" }}>{value}</span>
+            <strong style={{ color: "var(--pp-skin-ink)" }}>{label}</strong>
+            <span style={{ color: "var(--pp-skin-ink-soft)", overflowWrap: "anywhere" }}>{value}</span>
           </div>
         ))}
         {node?.launcher.browserOwnership ? (
           <div style={row}>
             <strong>BROWSER OWNERSHIP</strong>
-            <span style={{ color: "#cfcfcf" }}>{node.launcher.browserOwnership.toUpperCase()}</span>
+            <span style={{ color: "var(--pp-skin-ink-soft)" }}>{node.launcher.browserOwnership.toUpperCase()}</span>
           </div>
         ) : null}
-        {node?.lifecycle.lastError ? <p role="alert" style={{ borderTop: "1px solid #303030", paddingTop: 12, color: "#fff" }}>{node.lifecycle.lastError}</p> : null}
+        {node?.lifecycle.lastError ? <p role="alert" style={{ borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", paddingTop: 12, color: "var(--pp-skin-ink)" }}>{node.lifecycle.lastError}</p> : null}
         <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
           <button type="button" style={button} onClick={() => void refresh()}>REFRESH NODE</button>
         </div>
       </section>
 
-      <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "#8fc99f" }}>{notice}</p>
-      <p style={{ margin: "18px 0 0", color: "#8f8f8f", fontSize: 12, lineHeight: 1.5 }}>
+      <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "var(--pp-skin-accent-bright)" }}>{notice}</p>
+      <p style={{ margin: "18px 0 0", color: "var(--pp-skin-ink-muted)", fontSize: 12, lineHeight: 1.5 }}>
         NODE IDENTITY IS DEVICE-SCOPED. HUMAN PROFILE SETTINGS REMAIN SEPARATE.
       </p>
     </div>

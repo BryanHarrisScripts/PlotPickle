@@ -136,6 +136,30 @@ That means:
 - BUZZ conversation does not become canon automatically;
 - deterministic tests remain product-quality evidence, not creative authority.
 
+<!-- PLOTPICKLE:ARCHITECTURE:START -->
+## ARCHITECTURE
+
+PlotPickle's architecture blueprint is generated from one machine-readable source: [`architecture/plotpickle.architecture.json`](architecture/plotpickle.architecture.json). The application Skins do not own this documentation style; architecture diagrams use their own dedicated Architecture Skin.
+
+<p align="center">
+  <img src="architecture/plotpickle-architecture.svg" alt="PlotPickle target architecture blueprint" width="1200">
+</p>
+
+| Layer | Boundary | Responsibility |
+|---:|---|---|
+| 1 | EXPERIENCE SKINS | Replaceable presentation for any audience or device. |
+| 2 | EXPANDED EXPERIENCE LAYER | The stable product contract behind every Skin. |
+| 3 | GOVERNED PRODUCTION ORCHESTRATION | Authority, lifecycle, policy and execution control. |
+| 4 | AGENT & SKILL MESH | Specialists collaborate within approved scope. |
+| 5 | STORY, CANON & EVIDENCE CORE | Deterministic story state, context and durable canon. |
+| 6 | AI / PROVIDER RUNTIME | Replaceable local and cloud inference routes. |
+| 7 | VALIDATION & OPERATIONS | Tests consume the contract. They do not run the product. |
+
+BUZZ is the first provider behind PlotPickle-owned Community contracts. Community material has no direct canon authority. The governed bridge remains: **Community material → Bring into Story → Candidate → Evidence / Revision → Human approval → PPF Canon**.
+
+To regenerate the diagram and this section after an architecture change, run `node architecture/generate-architecture.mjs`. CI runs `node architecture/generate-architecture.mjs --check` so the JSON source, SVG and managed README section cannot silently drift apart.
+<!-- PLOTPICKLE:ARCHITECTURE:END -->
+
 ## The default feature-film production model
 
 | Layer | Plain-English meaning | Default duration | Count |

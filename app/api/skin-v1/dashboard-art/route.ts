@@ -10,13 +10,29 @@ const DASHBOARD_ART = path.join(
   "plotpickle-banner-dragon-logo.jpg",
 );
 
+const DASHBOARD_FALLBACK_ART = path.join(
+  process.cwd(),
+  "public",
+  "brand",
+  "dashboard",
+  "plotpickle-observatory-dragon.svg",
+);
+
+async function readDashboardArtwork() {
+  try {
+    return { image: await readFile(DASHBOARD_ART), contentType: "image/jpeg" } as const;
+  } catch {
+    return { image: await readFile(DASHBOARD_FALLBACK_ART), contentType: "image/svg+xml" } as const;
+  }
+}
+
 export async function GET() {
   try {
-    const image = await readFile(DASHBOARD_ART);
+    const { image, contentType } = await readDashboardArtwork();
     return new Response(new Uint8Array(image), {
       status: 200,
       headers: {
-        "Content-Type": "image/jpeg",
+        "Content-Type": contentType,
         "Cache-Control": "public, max-age=3600, immutable",
         "X-Content-Type-Options": "nosniff",
       },

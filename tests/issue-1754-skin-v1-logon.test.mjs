@@ -237,7 +237,8 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(host, /data-local-ai-view="menu"/u);
   assert.match(host, /BACK TO LOCAL AI/u);
   assert.match(host, /<AiRoutingPanel capability="text" locality="local" onManage=\{manageRoute\} \/>/u);
-  assert.match(host, /<AiRoutingPanel capability="image" locality="local" onManage=\{manageRoute\} \/>/u);
+  assert.doesNotMatch(host, /<AiRoutingPanel capability="image"/u);
+  assert.match(host, /view === "images" \? <LocalComfyUiPanel \/>/u);
   assert.match(host, /<AiRoutingPanel capability="video" locality="local" onManage=\{manageRoute\} \/>/u);
   assert.match(host, /<LocalRuntimePanel \/>/u);
   assert.match(host, /<LocalComfyUiPanel \/>/u);
@@ -254,12 +255,19 @@ test("Profile keeps three entries and Local AI opens a default-first task and en
   assert.match(mediaStore, /videoRoute: "none"/u);
   assert.match(ltxGateway, /return media\.videoRoute === "none"/u);
 
+  assert.match(comfy, /PLOTPICKLE IMAGE DEFAULT/u);
+  assert.match(comfy, /COMFYUI \+ SDXL 1\.0/u);
+  assert.match(comfy, /MAKE IMAGES READY/u);
+  assert.match(comfy, /preferredSdxlCheckpoint/u);
+  assert.match(comfy, /sd_xl_base_1\.0\.safetensors/u);
+  assert.match(comfy, /ADVANCED \/ MANUAL IMAGE CONTROLS/u);
   assert.match(comfy, /\/api\/provider-diagnostics\/comfyui/u);
   assert.match(comfy, /\/api\/media-routing/u);
   assert.match(comfy, /imageRoute: "comfyui"/u);
   assert.match(comfy, /route: "comfyui"/u);
   assert.match(comfy, /does not enable or contact a cloud AI provider/u);
-  assert.doesNotMatch(comfy, /api\.openai\.com|generativelanguage\.googleapis\.com|api\.minimax/u);
+  assert.match(comfy, /No MiniMax H3 or cloud provider is part of the image default/u);
+  assert.doesNotMatch(comfy, /H3NativePanel|api\.openai\.com|generativelanguage\.googleapis\.com|api\.minimax/u);
 
   assert.match(css, /--pp-matrix-deep: #123524/u);
   assert.match(css, /--pp-matrix-mid: #287a4b/u);

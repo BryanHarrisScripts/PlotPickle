@@ -50,10 +50,11 @@ test("Skin V1 is the base presentation contract and future skins can swap palett
   assert.match(definition, /--pp-matrix-light: var\(--pp-skin-accent-bright\)/u);
 });
 
-test("Dashboard consumes Skin V1 tokens and artwork has a packaged fallback", async () => {
-  const [reference, dashboard] = await Promise.all([
+test("Dashboard consumes Skin V1 tokens and Skin V1 owns its artwork package", async () => {
+  const [reference, dashboard, assets] = await Promise.all([
     read("app/skin-v1-dashboard-reference.css"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/skin-v1-assets.ts"),
   ]);
 
   assert.match(reference, /@import "\.\/skin-v1-definition\.css";/u);
@@ -63,11 +64,18 @@ test("Dashboard consumes Skin V1 tokens and artwork has a packaged fallback", as
   assert.match(reference, /var\(--pp-skin-fill-panel\)/u);
   assert.doesNotMatch(reference, /#55ffff|#67e9f4|#f4bd49/iu);
 
-  assert.match(dashboard, /DASHBOARD_ART = "\/brand\/dashboard\/plotpickle-observatory-dragon\.svg"/u);
-  assert.match(dashboard, /DASHBOARD_ART_FALLBACK = "\/api\/skin-v1\/dashboard-art"/u);
-  assert.match(dashboard, /onError=/u);
-  assert.match(dashboard, /fallbackApplied/u);
-  assert.match(dashboard, /loading="eager"/u);
+  assert.match(dashboard, /import Image from "next\/image"/u);
+  assert.match(dashboard, /import \{ SKIN_V1_ASSETS \} from "\.\/skin-v1-assets"/u);
+  assert.match(dashboard, /useState\(SKIN_V1_ASSETS\.dashboard\.hero\)/u);
+  assert.match(dashboard, /priority/u);
+  assert.match(dashboard, /width=\{1200\}/u);
+  assert.match(dashboard, /height=\{400\}/u);
+  assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.heroFallback/u);
+
+  assert.match(assets, /hero: "\/brand\/dashboard\/plotpickle-observatory-dragon\.svg"/u);
+  assert.match(assets, /heroFallback: "\/api\/skin-v1\/dashboard-art"/u);
+  assert.match(reference, /image-rendering: pixelated/u);
+  assert.match(reference, /object-fit: cover/u);
 });
 
 test("Skin V1 owned surfaces consume semantic skin tokens instead of owning palettes", async () => {

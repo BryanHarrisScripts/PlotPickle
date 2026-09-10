@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -11,6 +10,7 @@ import {
   establishVerificationSyntheticHuman,
   prepareVerificationSyntheticHome,
 } from "./full-verification-auth.mjs";
+import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
   runWebMcpSurfaceVisualAudit,
@@ -32,13 +32,13 @@ function argument(name, fallback = "") {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
-function commandName(name) {
+export function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
 }
 
-function runCommand(command, args, options = {}) {
+export function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: "inherit", windowsHide: false, ...options });
+    const child = spawnCommand(command, args, { stdio: "inherit", windowsHide: false, ...options });
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) return resolve();

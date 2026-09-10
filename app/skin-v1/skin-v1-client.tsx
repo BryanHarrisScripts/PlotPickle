@@ -29,9 +29,9 @@ const NodeSkinPanel = lazy(() => import("./node-skin-panel"));
 const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
 
 const PROFILE_MENU = [
-  { id: "profile", shortcut: "P", label: "PROFILE", description: "YOUR PROFILE" },
-  { id: "local-ai", shortcut: "L", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO" },
-  { id: "node", shortcut: "N", label: "NODE", description: "NODE INFO" },
+  { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: true, shortcut: "P" },
+  { id: "local-ai", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO", enabled: true, shortcut: "L" },
+  { id: "node", label: "NODE", description: "NODE INFO", enabled: true, shortcut: "N" },
 ] as const;
 
 const LOADING_VIEW: LogonViewModel = {
@@ -374,6 +374,13 @@ export default function SkinV1Client() {
                   {PROFILE_MENU.map((item, index) => {
                     const selected = index === profileSelectedIndex;
                     const command = `[${item.shortcut}] ${item.label}`.padEnd(28, " ");
+                    const clickDestination = item.id === "profile"
+                      ? () => setUserProfileOpen(true)
+                      : item.id === "local-ai"
+                        ? () => setLocalAiOpen(true)
+                        : item.id === "node"
+                          ? () => setNodeOpen(true)
+                          : () => undefined;
                     return (
                       <button
                         ref={(node) => { profileItemRefs.current[index] = node; }}
@@ -382,6 +389,7 @@ export default function SkinV1Client() {
                         role="option"
                         aria-selected={selected}
                         tabIndex={selected ? 0 : -1}
+                        disabled={!item.enabled}
                         className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
                         data-profile-menu-item={item.id}
                         data-profile-shortcut={item.shortcut}
@@ -389,7 +397,10 @@ export default function SkinV1Client() {
                         data-skin-menu-row={item.id}
                         data-skin-menu-shortcut={item.shortcut}
                         data-skin-menu-connected="true"
-                        onClick={() => activateProfileItem(index)}
+                        onClick={() => {
+                          setProfileSelectedIndex(index);
+                          clickDestination();
+                        }}
                         onKeyDown={(event) => handleProfileKeyDown(event, index)}
                       >
                         <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
@@ -403,7 +414,7 @@ export default function SkinV1Client() {
                     );
                   })}
                 </div>
-                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN</p>
+                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL STORY MODE / NODE CONNECTED — UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN</p>
               </div>
             </section>
           )

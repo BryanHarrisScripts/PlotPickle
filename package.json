@@ -143,7 +143,7 @@
     "qa:publish-defect": "node scripts/autonomous-qa/publish-defect.mjs"
   },
   "dependencies": {
-    "@cloudflare/vite-plugin": "1.54.4",
+    "@cloudflare/vite-plugin": "1.54.6",
     "@mastra/core": "1.64.0",
     "@tailwindcss/postcss": "4.3.3",
     "@vitejs/plugin-react": "6.1.1",
@@ -157,7 +157,7 @@
     "tailwindcss": "4.3.3",
     "vinext": "0.2.1",
     "vite": "8.2.2",
-    "wrangler": "4.129.0"
+    "wrangler": "4.130.0"
   },
   "devDependencies": {
     "@types/node": "26.4.1",
@@ -172,10 +172,11 @@
   "displayName": "PlotPickle",
   "overrides": {
     "nanoid": "3.3.18",
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "@babel/core": "7.29.6",
     "@esbuild-kit/core-utils": {
       "esbuild": "0.25.12"
-    }
+    },
+    "sharp": "0.35.4"
   }
 }

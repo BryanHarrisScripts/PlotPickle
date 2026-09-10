@@ -40,12 +40,24 @@ function isWindowsCommandScript(command) {
   return process.platform === "win32" && /\.(?:cmd|bat)$/i.test(String(command));
 }
 
+function quoteWindowsShellToken(value) {
+  const text = String(value);
+  return `"${text.replaceAll("%", "%%").replaceAll("\"", "\"\"")}"`;
+}
+
 export function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const throughCommandProcessor = isWindowsCommandScript(command);
-    const executable = throughCommandProcessor ? (process.env.ComSpec || "cmd.exe") : command;
-    const commandArgs = throughCommandProcessor ? ["/d", "/c", command, ...args] : args;
-    const child = spawn(executable, commandArgs, { stdio: "inherit", windowsHide: false, ...options });
+    const spawnOptions = { stdio: "inherit", windowsHide: false, ...options };
+    let child;
+    if (isWindowsCommandScript(command)) {
+      const commandLine = [command, ...args].map(quoteWindowsShellToken).join(" ");
+      child = spawn(commandLine, {
+        ...spawnOptions,
+        shell: process.env.ComSpec || "cmd.exe",
+      });
+    } else {
+      child = spawn(command, args, spawnOptions);
+    }
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) return resolve();

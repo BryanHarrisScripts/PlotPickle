@@ -56,6 +56,45 @@ test("the canonical developer stack contains only Pi and Cline as required codin
   assert.equal(stack.mergePolicy, "green-exact-head-only");
 });
 
+test("PlotPickle Harness registers the existing developer lifecycle without becoming another coding Agent", async () => {
+  const stack = await readJson("config/developer-agent-stack.json");
+  const harness = stack.harness;
+  assert.equal(harness.schemaVersion, 1);
+  assert.equal(harness.coordinator, stack.mcp.args[0]);
+  assert.equal(harness.policy, stack.sharedRules);
+  assert.equal(harness.mode, "deterministic-hooks");
+
+  const ids = harness.hooks.map((hook) => hook.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of [
+    "focused-uat",
+    "webmcp-ui",
+    "closed-loop-uat",
+    "uat-report",
+    "ben-code-quality",
+    "pi-code-quality-review",
+    "build",
+    "semantic-repair",
+    "github-ci",
+  ]) assert.ok(ids.includes(id), `missing harness hook ${id}`);
+
+  const byId = Object.fromEntries(harness.hooks.map((hook) => [hook.id, hook]));
+  assert.equal(byId["focused-uat"].entrypoint, stack.gates[0]);
+  assert.equal(byId.build.entrypoint, stack.gates[1]);
+  assert.equal(byId["ben-code-quality"].entrypoint, `node ${stack.codeQualityReview.deterministicCommand}`);
+  assert.equal(byId["pi-code-quality-review"].entrypoint, `node ${stack.codeQualityReview.advisoryCommand}`);
+  assert.equal(byId["webmcp-ui"].findingSource, true);
+  assert.equal(byId["webmcp-ui"].requiresLiveServer, true);
+  assert.equal(byId["webmcp-ui"].repairAuthority, false);
+  assert.equal(byId["semantic-repair"].repairAuthority, true);
+  assert.deepEqual(harness.hooks.filter((hook) => hook.repairAuthority).map((hook) => hook.id), ["semantic-repair"]);
+  assert.deepEqual(harness.hooks.filter((hook) => hook.mergeAuthority).map((hook) => hook.id), ["github-ci"]);
+  assert.deepEqual(harness.flows.prePr, ["focused-uat", "build"]);
+  assert.deepEqual(harness.flows.liveUi, ["webmcp-ui"]);
+  assert.equal(harness.flows.finalGate, "github-ci");
+  assert.equal(stack.mergePolicy, "green-exact-head-only");
+});
+
 test("Pi extensions are pinned while model, provider and credentials stay outside project settings", async () => {
   const settings = await readJson(".pi/settings.json");
 
@@ -83,6 +122,7 @@ test("Pi and Cline share the same narrow PlotPickle MCP boundary", async () => {
   assert.match(clineRule, /AGENTS\.md.*canonical PlotPickle development contract/is);
   for (const tool of [
     "plotpickle_status",
+    "plotpickle_hooks",
     "plotpickle_uat_findings",
     "plotpickle_focused_uat",
     "plotpickle_build",
@@ -94,6 +134,36 @@ test("Pi and Cline share the same narrow PlotPickle MCP boundary", async () => {
   assert.match(source, /npm.*run.*build/s);
   assert.match(source, /--self-test/);
   assert.doesNotMatch(source, /api\.openai\.com|anthropic\.com|OPENAI_API_KEY|ANTHROPIC_API_KEY|merge_pull_request/i);
+});
+
+test("plotpickle_hooks returns only the safe deterministic harness projection", () => {
+  const input = [
+    JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18" } }),
+    JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "plotpickle_hooks", arguments: {} } }),
+    "",
+  ].join("\n");
+  const run = spawnSync(process.execPath, ["scripts/developer-agent-mcp.mjs"], {
+    cwd: new URL("..", import.meta.url),
+    input,
+    encoding: "utf8",
+    timeout: 15_000,
+  });
+  assert.equal(run.status, 0, run.stderr || run.stdout);
+  const responses = run.stdout.trim().split(/\r?\n/u).filter(Boolean).map((line) => JSON.parse(line));
+  const response = responses.find((entry) => entry.id === 2);
+  assert.ok(response?.result?.content?.[0]?.text);
+  const hooks = JSON.parse(response.result.content[0].text);
+  assert.equal(hooks.coordinator, "scripts/developer-agent-mcp.mjs");
+  assert.equal(hooks.policy, "AGENTS.md");
+  assert.deepEqual(hooks.repairWorkers, ["pi", "cline"]);
+  assert.equal(hooks.mergePolicy, "green-exact-head-only");
+  assert.deepEqual(hooks.hooks.filter((hook) => hook.mergeAuthority).map((hook) => hook.id), ["github-ci"]);
+  assert.equal(hooks.hooks.find((hook) => hook.id === "webmcp-ui")?.repairAuthority, false);
+  assert.equal(hooks.hooks.find((hook) => hook.id === "semantic-repair")?.repairAuthority, true);
+  const serialized = JSON.stringify(hooks);
+  for (const forbidden of ["installCommand", "providerConfigScope", "apiKey", "password", "authorization"]) {
+    assert.doesNotMatch(serialized, new RegExp(forbidden, "i"));
+  }
 });
 
 test("the Windows setup installs only the two chosen agents and the pinned Pi packages", async () => {

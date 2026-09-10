@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { visualViolations } from "../lib/verification/webmcp-surface-visual-audit.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
@@ -45,6 +46,37 @@ test("#1854 WebMCP inventories governed rendered elements and emits exact bounde
   assert.match(audit, /data-skin-role/);
   assert.match(audit, /data-skin-control-kind/);
   assert.doesNotMatch(audit, /textContent:\s*node\.textContent/);
+});
+
+test("#1854 reports exact font, shape and control-height drift without copying UI text", () => {
+  const contract = {
+    surface: "SETTINGS",
+    home: { fontFamily: '"Courier New", monospace' },
+    tokens: {
+      "--pp-skin-radius": "0px",
+      "--pp-skin-control-height": "34px",
+    },
+    inventory: [
+      {
+        semanticRole: "pill",
+        stableIdentity: "agent-provider-openai",
+        computedPresentation: {
+          tag: "button",
+          inputType: "",
+          fontFamily: "Arial",
+          borderRadius: "6px",
+          height: "28px",
+        },
+      },
+    ],
+  };
+  const violations = visualViolations(contract, contract.tokens);
+  assert.deepEqual(violations.map(({ property, actual, expected, source }) => ({ property, actual, expected, source })), [
+    { property: "borderRadius", actual: "6px", expected: "0px", source: "--pp-skin-radius" },
+    { property: "fontFamily", actual: "Arial", expected: '"Courier New", monospace', source: "--pp-skin-font-ui" },
+    { property: "height", actual: "28px", expected: ">= 34px", source: "--pp-skin-control-height" },
+  ]);
+  assert.equal(JSON.stringify(violations).includes("OpenAI"), false);
 });
 
 test("#1854 keeps screenshot baselines complementary and repair/report authority unchanged", () => {

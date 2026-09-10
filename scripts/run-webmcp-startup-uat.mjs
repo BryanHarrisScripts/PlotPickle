@@ -32,13 +32,20 @@ function argument(name, fallback = "") {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
-function commandName(name) {
+export function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
 }
 
-function runCommand(command, args, options = {}) {
+function isWindowsCommandScript(command) {
+  return process.platform === "win32" && /\.(?:cmd|bat)$/i.test(String(command));
+}
+
+export function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: "inherit", windowsHide: false, ...options });
+    const throughCommandProcessor = isWindowsCommandScript(command);
+    const executable = throughCommandProcessor ? (process.env.ComSpec || "cmd.exe") : command;
+    const commandArgs = throughCommandProcessor ? ["/d", "/c", command, ...args] : args;
+    const child = spawn(executable, commandArgs, { stdio: "inherit", windowsHide: false, ...options });
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) return resolve();

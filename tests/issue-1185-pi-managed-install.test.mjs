@@ -151,7 +151,8 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   assert.match(runtime, /windowsBatchInvocation/);
   assert.match(runtime, /windowsBatchWrapper\(command\)/);
   assert.doesNotMatch(runtime, /process\.env\.ComSpec/);
-  assert.match(batch, /call "%PLOTPICKLE_BATCH_COMMAND%"/);
+  assert.match(batch, /PLOTPICKLE_BATCH_COMMAND/);
+  assert.match(batch, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/);
   assert.doesNotMatch(combined, /--force/);
   assert.doesNotMatch(combined, /SetEnvironmentVariable/);
   assert.doesNotMatch(combined, /taskkill[^\n]*node\.exe/i);

@@ -44,11 +44,12 @@ function findingBody(finding) {
     "",
     "### Repair contract",
     "",
-    "1. The local Qwen3.8-27B UAT Repair Agent reproduces this finding inside an isolated git worktree.",
+    "1. A local Pi or Cline Developer Repair Worker reproduces this finding inside an isolated git worktree using an approved local coding model.",
     "2. Add or strengthen the focused regression test before changing product behavior.",
     "3. Fix the architectural root cause without weakening the UAT assertion.",
     "4. Run focused UAT contracts and the production build before creating the draft repair PR.",
-    "5. GitHub CI remains the independent merge gate; the repair agent never merges its own work.",
+    "5. Rerun the independent verifier for the reported defect; worker self-report is never PASS evidence.",
+    "6. GitHub CI remains the independent merge gate; the repair worker never merges its own work.",
   ].join("\n");
 }
 

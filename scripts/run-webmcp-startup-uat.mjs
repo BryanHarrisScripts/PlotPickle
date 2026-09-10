@@ -17,16 +17,23 @@ import {
   runWebMcpSurfaceVisualAudit,
 } from "../lib/verification/webmcp-surface-visual-audit.mjs";
 import {
+  buildWebMcpRuntimeFinding,
+  findingsFromWebMcpError,
+} from "../lib/verification/webmcp-uat-findings.mjs";
+import {
   WEBMCP_UAT_SKILLS,
   WEBMCP_UAT_SKILL_POLICY,
 } from "../lib/verification/webmcp-uat-skills.mjs";
 import { validateLocalServer, waitForUiServer } from "../lib/verification/ui-axe-audit.mjs";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const WEBMCP_STARTUP_PACKAGES = Object.freeze([
   "@playwright/test@1.63.0",
   "@mcp-b/webmcp-polyfill@5.1.0",
 ]);
 export const WEBMCP_STARTUP_EVIDENCE = ".artifacts/webmcp-startup/summary.json";
+export const WEBMCP_UAT_FINDINGS = ".artifacts/webmcp-startup/uat-findings.json";
 export const WEBMCP_SURFACE_LABELS = Object.freeze({
   dashboard: "Dashboard",
   community: "Community",
@@ -77,6 +84,10 @@ export function runCommand(command, args, options = {}) {
       reject(new Error(`${command} ${args.join(" ")} failed${signal ? ` with signal ${signal}` : ` with exit code ${code}`}.`));
     });
   });
+}
+
+function runExistingScript(relativePath, scriptArgs = []) {
+  return runCommand(process.execPath, [path.join(repoRoot, relativePath), ...scriptArgs], { cwd: repoRoot });
 }
 
 async function installedVersion(toolRoot, packageName) {
@@ -144,6 +155,49 @@ async function writeEvidence(status, details = {}) {
   return target;
 }
 
+export async function writeWebMcpFindingsReport({ status, target, findings = [] }) {
+  const reportPath = path.resolve(WEBMCP_UAT_FINDINGS);
+  await mkdir(path.dirname(reportPath), { recursive: true });
+  const report = {
+    schemaVersion: 2,
+    generatedAt: new Date().toISOString(),
+    target,
+    overall: status === "pass" ? "PASS" : "FAIL",
+    runs: {
+      webmcpSurfaceVisual: {
+        code: status === "pass" ? 0 : 1,
+        source: "lib/verification/webmcp-surface-visual-audit.mjs",
+      },
+    },
+    findings,
+  };
+  await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  return reportPath;
+}
+
+async function reportFindings(reportPath) {
+  await runExistingScript("scripts/report-uat-findings.mjs", ["--report", reportPath]);
+}
+
+async function repairFindings(reportPath, findings, worker) {
+  if (!new Set(["pi", "cline"]).has(worker)) {
+    throw new Error(`WebMCP repair worker must be pi or cline; received ${worker || "empty"}.`);
+  }
+
+  await runExistingScript("scripts/ensure-local-repair-model.mjs", ["--worker", worker]).catch((error) => {
+    console.error(`[WEBMCP] Existing local repair-model preparation did not complete: ${error.message}`);
+  });
+  await runExistingScript("scripts/run-semantic-uat-repair.mjs", ["--worker", worker, "--preflight", "--require-ready"]);
+
+  for (const finding of findings) {
+    await runExistingScript("scripts/run-semantic-uat-repair.mjs", [
+      "--worker", worker,
+      "--report", reportPath,
+      "--fingerprint", finding.fingerprint,
+    ]);
+  }
+}
+
 async function prepare(home) {
   if (!home) throw new Error("Pass --home for the isolated WebMCP synthetic test home.");
   await prepareVerificationSyntheticHome(path.resolve(home));
@@ -155,7 +209,7 @@ async function cleanup(home) {
   await cleanupVerificationSyntheticHome(path.resolve(home));
 }
 
-async function run({ serverUrl, home, toolRoot }) {
+async function run({ serverUrl, home, toolRoot, githubReport = false, repair = false, repairWorker = "pi" }) {
   if (!home) throw new Error("Pass --home for the isolated WebMCP synthetic test home.");
   if (!toolRoot) throw new Error("Pass --tool-root pointing to the isolated WebMCP verification install.");
   const resolvedHome = path.resolve(home);
@@ -175,21 +229,47 @@ async function run({ serverUrl, home, toolRoot }) {
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
-    const evidence = await writeEvidence("pass");
+    const findingsReport = await writeWebMcpFindingsReport({ status: "pass", target: server.origin, findings: [] });
+    const evidence = await writeEvidence("pass", { findingsReport, findingCount: 0 });
     console.log("");
     for (const line of visualBaselineApprovalLines()) console.log(line);
     console.log("");
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
     console.log(`${pass} Dashboard remains the sole canonical screenshot: ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const evidence = await writeEvidence("fail", { failure: message }).catch(() => "");
+    const structured = findingsFromWebMcpError(error);
+    const findings = structured.length ? structured : [buildWebMcpRuntimeFinding()];
+    const findingsReport = await writeWebMcpFindingsReport({ status: "fail", target: server.origin, findings }).catch(() => "");
+    const evidence = await writeEvidence("fail", {
+      failure: message,
+      findingsReport,
+      findingCount: findings.length,
+    }).catch(() => "");
+
     console.error("");
     console.error(`[FAIL] WebMCP UAT: ${message}`);
+    if (findingsReport) console.error(`[FAIL] Repair-ready UAT findings: ${findingsReport}`);
     if (evidence) console.error(`[FAIL] Evidence report: ${evidence}`);
+
+    if (githubReport && findingsReport) {
+      await reportFindings(findingsReport).catch((reportError) => {
+        console.error(`[FAIL] Existing GitHub UAT reporter did not complete: ${reportError.message}`);
+      });
+    }
+
+    if (repair && findingsReport) {
+      await repairFindings(findingsReport, findings, repairWorker.toLowerCase()).then(() => {
+        console.error("[WEBMCP] Developer repair workflow completed, but this running WebMCP session remains FAIL until the repaired build is independently rerun.");
+      }).catch((repairError) => {
+        console.error(`[FAIL] Existing ${repairWorker} repair workflow did not complete: ${repairError.message}`);
+      });
+    }
+
     return 1;
   }
 }
@@ -213,6 +293,9 @@ if (directExecution) {
       serverUrl: argument("--server", "http://127.0.0.1:4173"),
       home,
       toolRoot: argument("--tool-root"),
+      githubReport: process.argv.includes("--github-report"),
+      repair: process.argv.includes("--repair"),
+      repairWorker: argument("--repair-worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi"),
     }).then((code) => {
       process.exitCode = code;
     });

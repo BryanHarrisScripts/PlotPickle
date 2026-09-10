@@ -122,6 +122,7 @@ export default function NodeSkinPanel() {
     .join(" / ") || "LOCAL CORE";
   const readiness = topology?.currentNode?.readiness || "UNKNOWN";
   const saveLabel = saveState.state === "saved" ? "SAVED" : saveState.state === "saving" ? "SAVING" : "SAVE BLOCKED";
+  const nodeReadiness = node && profile && topology ? "ready" : "loading";
 
   const rows = [
     ["NODE", node?.node.shortId || "CHECKING..."],
@@ -136,7 +137,7 @@ export default function NodeSkinPanel() {
   ] as const;
 
   return (
-    <div style={shell} data-skin-v1-node="true">
+    <div style={shell} data-skin-v1-node="true" data-node-readiness={nodeReadiness}>
       <section style={panel} aria-labelledby="skin-v1-node-title">
         <p style={{ margin: 0, fontSize: 12, color: "var(--pp-skin-accent-bright)", letterSpacing: ".08em" }}>PROFILE / NODE</p>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, flexWrap: "wrap" }}>

@@ -1,0 +1,120 @@
+/*
+ * Skin V1 Settings directory geometry.
+ *
+ * Dashboard remains the canonical visual reference. Settings deliberately
+ * consumes the same directory-row geometry while all colour, typography,
+ * spacing and state values continue to come from the shared --pp-skin-* contract.
+ * This file does not define a second Skin authority.
+ */
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: var(--pp-skin-space-5) var(--pp-skin-space-5) var(--pp-skin-space-7) !important;
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs {
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  max-width: var(--pp-skin-shell-max) !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-fill-panel) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight) !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
+  display: block !important;
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px)) !important;
+  margin: 0 auto !important;
+  padding: var(--pp-skin-space-1) 0 var(--pp-skin-space-6) !important;
+  background: transparent !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: var(--pp-skin-control-height) !important;
+  margin: 0 !important;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-9) var(--pp-skin-space-1) var(--pp-skin-space-2) !important;
+  border: var(--pp-skin-border-thin) solid transparent !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: transparent !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: none !important;
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-body) !important;
+  font-weight: 400 !important;
+  line-height: var(--pp-skin-leading-body) !important;
+  text-align: left !important;
+  white-space: pre-wrap !important;
+  transition: background var(--pp-skin-motion-fast) linear, color var(--pp-skin-motion-fast) linear !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after {
+  content: none !important;
+  display: none !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: none !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
+  outline-offset: -1px !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover {
+  background: var(--pp-skin-fill-row-hover) !important;
+  outline: none !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-bbs-help {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: var(--pp-skin-space-4) !important;
+  margin: 0 var(--pp-skin-space-3) var(--pp-skin-space-3) !important;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-4) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink-muted) !important;
+  font-size: var(--pp-skin-font-sm) !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
+@media (max-width: 720px) {
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] {
+    padding: var(--pp-skin-space-2) !important;
+  }
+
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs {
+    width: min(650px, 100%) !important;
+    max-width: 650px !important;
+  }
+
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
+    width: calc(100% - 24px) !important;
+  }
+
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-dashboard-group {
+    font-size: 12px !important;
+  }
+}

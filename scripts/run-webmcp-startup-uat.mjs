@@ -40,9 +40,20 @@ function isWindowsCommandScript(command) {
   return process.platform === "win32" && /\.(?:cmd|bat)$/i.test(String(command));
 }
 
-function quoteWindowsShellToken(value) {
+function quoteWindowsCommandToken(value, label) {
   const text = String(value);
-  return `"${text.replaceAll("%", "%%").replaceAll("\"", "\"\"")}"`;
+  if (/[\r\n\0"%]/u.test(text)) {
+    throw new Error(`Windows WebMCP ${label} contains unsupported command-shell characters: ${text}`);
+  }
+  return `"${text}"`;
+}
+
+function windowsCommandLine(command, args) {
+  return [
+    "call",
+    quoteWindowsCommandToken(command, "command"),
+    ...args.map((arg) => quoteWindowsCommandToken(arg, "argument")),
+  ].join(" ");
 }
 
 export function runCommand(command, args, options = {}) {
@@ -50,11 +61,8 @@ export function runCommand(command, args, options = {}) {
     const spawnOptions = { stdio: "inherit", windowsHide: false, ...options };
     let child;
     if (isWindowsCommandScript(command)) {
-      const commandLine = [command, ...args].map(quoteWindowsShellToken).join(" ");
-      child = spawn(commandLine, {
-        ...spawnOptions,
-        shell: process.env.ComSpec || "cmd.exe",
-      });
+      const commandLine = windowsCommandLine(command, args);
+      child = spawn(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", commandLine], spawnOptions);
     } else {
       child = spawn(command, args, spawnOptions);
     }

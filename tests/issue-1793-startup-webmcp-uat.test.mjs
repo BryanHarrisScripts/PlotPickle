@@ -55,7 +55,7 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and on th
   assert.match(spawnHelper, /invocation\.executable/);
   assert.doesNotMatch(spawnHelper, /process\.env\.ComSpec/);
   assert.doesNotMatch(spawnHelper, /windowsBatchArguments/);
-  assert.match(batchHelper, /call "%PLOTPICKLE_BATCH_COMMAND%"/);
+  assert.match(batchHelper, /call %PLOTPICKLE_BATCH_COMMAND%/);
   assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
   assert.match(batchHelper, /unsupported command-shell characters/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
@@ -118,7 +118,7 @@ test("Windows WebMCP bootstrap executes cmd wrappers and npm with a spaced verif
     await writeFile(probe, '@echo off\r\n> spawn-result.txt echo spawn-ok\r\n', "utf8");
     await runCommand(probeName, [], { stdio: "ignore", cwd: tempRoot });
     assert.equal((await readFile(marker, "utf8")).trim(), "spawn-ok");
-    await runCommand(commandName("npm"), ["--prefix", tempRoot, "--version"], { stdio: "ignore" });
+    await runCommand(commandName("npm"), ["--prefix", tempRoot, "--version"], { stdio: "ignore", cwd: tempRoot });
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }

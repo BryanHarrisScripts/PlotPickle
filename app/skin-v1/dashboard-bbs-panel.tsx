@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
   id: string;
@@ -12,8 +13,6 @@ export type DashboardBbsItem = Readonly<{
 }>;
 
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
-const DASHBOARD_ART = "/brand/dashboard/plotpickle-observatory-dragon.svg";
-const DASHBOARD_ART_FALLBACK = "/api/skin-v1/dashboard-art";
 
 export default function DashboardBbsPanel({
   items,
@@ -28,7 +27,7 @@ export default function DashboardBbsPanel({
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
-  const [dashboardArt, setDashboardArt] = useState(DASHBOARD_ART);
+  const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
 
   function handleRowKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key.length === 1) {
@@ -67,8 +66,8 @@ export default function DashboardBbsPanel({
             data-dashboard-art="skin-v1"
             data-skin-reference-media="primary"
             onError={() => {
-              if (dashboardArt === DASHBOARD_ART_FALLBACK) return;
-              setDashboardArt(DASHBOARD_ART_FALLBACK);
+              if (dashboardArt === SKIN_V1_ASSETS.dashboard.heroFallback) return;
+              setDashboardArt(SKIN_V1_ASSETS.dashboard.heroFallback);
             }}
           />
         </div>

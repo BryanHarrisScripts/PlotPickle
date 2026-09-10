@@ -10,7 +10,7 @@
 
 PlotPickle is a visual writing and creative-direction studio for people who want to shape a story from idea to screenplay to screen without giving away creative authority to an AI model.
 
-It combines writing education, story planning, visual development, screenplay work, review, playable-story systems, local or cloud AI connections, Community/BUZZ collaboration and a portable PlotPickle Project File (PPF) in one application.
+It combines writing education, story planning, visual development, screenplay work, review, playable-story systems, local or cloud AI connections, Community/BUZZ collaboration, and a portable PlotPickle Project File (PPF) in one application.
 
 **The Human remains the author.** AI can explain, suggest, draft, visualize and test ideas, but generated material does not silently become story canon.
 

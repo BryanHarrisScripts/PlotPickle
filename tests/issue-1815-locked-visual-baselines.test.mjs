@@ -16,7 +16,16 @@ test("#1815 defines one versioned Skin V1 manifest for candidate and locked surf
   assert.deepEqual(manifest.viewport, { width: 1440, height: 1100 });
   assert.ok(manifest.comparison.channelDelta > 0);
   assert.ok(manifest.comparison.maxChangedPixelRatio > 0 && manifest.comparison.maxChangedPixelRatio < 0.1);
-  assert.deepEqual(Object.keys(manifest.surfaces), ["dashboard", "community", "profile", "local-ai", "node"]);
+  assert.deepEqual(Object.keys(manifest.surfaces), [
+    "dashboard",
+    "community",
+    "settings",
+    "cloud-story-mode",
+    "agents",
+    "profile",
+    "local-ai",
+    "node",
+  ]);
   for (const [surface, entry] of Object.entries(manifest.surfaces)) {
     assert.equal(entry.status, "candidate", `${surface} should start as candidate until its actual approved PNG is committed`);
     assert.match(entry.candidate, /^\.artifacts\/visual-readiness\/.+\.png$/u);

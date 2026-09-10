@@ -78,13 +78,16 @@ test("WebMCP CMD output lists every lockable surface and never auto-approves scr
   const lines = visualBaselineApprovalLines();
   const output = lines.join("\n");
 
-  assert.equal(lines[0], "Captured 5 surfaces:");
+  assert.equal(lines[0], "Captured 8 surfaces:");
   assert.match(output, /\[1\] dashboard \(Dashboard\)/u);
   assert.match(output, /\[2\] community \(Community\)/u);
-  assert.match(output, /\[3\] profile \(Profile\)/u);
-  assert.match(output, /\[4\] local-ai \(Local AI\)/u);
-  assert.match(output, /\[5\] node \(Node\)/u);
-  for (const surface of ["dashboard", "community", "profile", "local-ai", "node"]) {
+  assert.match(output, /\[3\] settings \(Settings\)/u);
+  assert.match(output, /\[4\] cloud-story-mode \(Cloud Story Mode\)/u);
+  assert.match(output, /\[5\] agents \(PlotPickle Agents\)/u);
+  assert.match(output, /\[6\] profile \(Profile\)/u);
+  assert.match(output, /\[7\] local-ai \(Local Story Mode\)/u);
+  assert.match(output, /\[8\] node \(Node\)/u);
+  for (const surface of ["dashboard", "community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
   assert.match(output, /none of the screenshots are automatically declared "locked\."/u);

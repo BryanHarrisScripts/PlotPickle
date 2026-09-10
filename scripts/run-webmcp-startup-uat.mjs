@@ -30,8 +30,11 @@ export const WEBMCP_STARTUP_EVIDENCE = ".artifacts/webmcp-startup/summary.json";
 export const WEBMCP_SURFACE_LABELS = Object.freeze({
   dashboard: "Dashboard",
   community: "Community",
+  settings: "Settings",
+  "cloud-story-mode": "Cloud Story Mode",
+  agents: "PlotPickle Agents",
   profile: "Profile",
-  "local-ai": "Local AI",
+  "local-ai": "Local Story Mode",
   node: "Node",
 });
 

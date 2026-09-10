@@ -1,21 +1,25 @@
 name: Autonomous QA Targeted Fix
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Pull request number whose exact head is selected for this workflow run.
+        required: true
+        type: string
 
 permissions:
   contents: read
   issues: read
+  pull-requests: read
 
 concurrency:
-  group: autonomous-qa-targeted-fix-${{ github.event.pull_request.number || github.ref }}
+  group: autonomous-qa-targeted-fix-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   resolve:
     name: Resolve linked autonomous defect
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -27,11 +31,11 @@ jobs:
       failing_head: ${{ steps.resolve.outputs.failing_head }}
       linked_issue_number: ${{ steps.resolve.outputs.linked_issue_number }}
     steps:
-      - name: Checkout exact fix head
+      - name: Checkout selected workflow head
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -47,8 +51,6 @@ jobs:
     needs: resolve
     if: needs.resolve.outputs.matched == 'true' && needs.resolve.outputs.adapter == 'windows-installer'
     uses: ./.github/workflows/windows-installer.yml
-    with:
-      exact_head: ${{ needs.resolve.outputs.fix_head }}
 
   targeted-story:
     name: Targeted autonomous story rerun
@@ -63,11 +65,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout exact fix head
+      - name: Checkout selected workflow head
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.resolve.outputs.fix_head }}
+          ref: ${{ github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -85,7 +87,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: autonomous-qa-targeted-focused-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
+          name: autonomous-qa-targeted-focused-${{ needs.resolve.outputs.fingerprint }}-${{ github.sha }}
           path: ${{ runner.temp }}/plotpickle-autonomous-qa-targeted-focused
           if-no-files-found: warn
           retention-days: 5
@@ -97,11 +99,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout exact fix head
+      - name: Checkout selected workflow head
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ needs.resolve.outputs.fix_head }}
+          ref: ${{ github.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -140,7 +142,7 @@ jobs:
           TESTER_ROLE: ${{ needs.resolve.outputs.tester_role }}
           ADAPTER: ${{ needs.resolve.outputs.adapter }}
           FAILING_HEAD: ${{ needs.resolve.outputs.failing_head }}
-          FIX_HEAD: ${{ needs.resolve.outputs.fix_head }}
+          FIX_HEAD: ${{ github.sha }}
           LINKED_ISSUE: ${{ needs.resolve.outputs.linked_issue_number }}
         run: |
           mkdir -p .artifacts/autonomous-qa-targeted-fix
@@ -148,7 +150,7 @@ jobs:
       - name: Upload targeted verification evidence
         uses: actions/upload-artifact@v4
         with:
-          name: autonomous-qa-targeted-fix-${{ needs.resolve.outputs.fingerprint }}-${{ needs.resolve.outputs.fix_head }}
+          name: autonomous-qa-targeted-fix-${{ needs.resolve.outputs.fingerprint }}-${{ github.sha }}
           path: .artifacts/autonomous-qa-targeted-fix/result.json
           if-no-files-found: error
           retention-days: 5

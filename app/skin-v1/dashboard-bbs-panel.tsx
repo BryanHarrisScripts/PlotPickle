@@ -1,6 +1,8 @@
 "use client";
 
-import { Fragment, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import Image from "next/image";
+import { Fragment, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
   id: string;
@@ -11,8 +13,8 @@ export type DashboardBbsItem = Readonly<{
 }>;
 
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
-const DASHBOARD_ART = "/brand/dashboard/plotpickle-observatory-dragon.svg";
-const DASHBOARD_ART_FALLBACK = "/api/skin-v1/dashboard-art";
+// Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
+// Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
 
 export default function DashboardBbsPanel({
   items,
@@ -27,6 +29,8 @@ export default function DashboardBbsPanel({
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
+  const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
+
   function handleRowKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key.length === 1) {
       const shortcut = event.key.toUpperCase();
@@ -54,18 +58,18 @@ export default function DashboardBbsPanel({
         </div>
 
         <div className="pp-skin-v1-dashboard-art" aria-hidden="true" data-skin-reference-media-container="primary">
-          <img
-            src={DASHBOARD_ART}
+          <Image
+            src={dashboardArt}
             alt=""
+            width={1200}
+            height={400}
+            priority
             draggable={false}
-            loading="eager"
             data-dashboard-art="skin-v1"
             data-skin-reference-media="primary"
-            onError={(event) => {
-              const image = event.currentTarget;
-              if (image.dataset.fallbackApplied === "true") return;
-              image.dataset.fallbackApplied = "true";
-              image.src = DASHBOARD_ART_FALLBACK;
+            onError={() => {
+              if (dashboardArt === SKIN_V1_ASSETS.dashboard.heroFallback) return;
+              setDashboardArt(SKIN_V1_ASSETS.dashboard.heroFallback);
             }}
           />
         </div>

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
+const readJson = async (file) => JSON.parse(await read(file));
 
 test("#1847 Cloud Story Mode exposes only real resources and capability-driven tasks", async () => {
   const [cloud, catalog] = await Promise.all([
@@ -40,7 +41,7 @@ test("#1848 PlotPickle Agent compute has default, per-Agent override and no sile
   assert.match(host, /PER-AGENT OVERRIDES/u);
   assert.match(host, /Use PlotPickle default/u);
   assert.match(host, /Local Story Mode and Cloud Story Mode supply/u);
-  assert.match(host, /BUZZ identity, rooms, presence, keys and BUZZ runtime settings are not configured here/u);
+  assert.match(host, /BUZZ identity, rooms, presence, keys, provider and model settings remain in BUZZ/u);
 
   assert.match(store, /defaultProvider: "active"/u);
   assert.match(store, /overrides: Record<string, TextProvider>/u);
@@ -85,4 +86,48 @@ test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async ()
   assert.match(dashboard, /data-settings-shortcut=\{item\.shortcut\}/u);
   assert.match(dashboard, /pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs/u);
   assert.match(dashboard, /PlotPickleAgentsHost/u);
+});
+
+test("#1852 Agent Setup shows the complete system-sorted roster and edits only PlotPickle-owned LLM routes", async () => {
+  const [host, gateway, baseProfiles, communityProfiles, developerStack] = await Promise.all([
+    read("app/skin-v1/plotpickle-agents-host.tsx"),
+    read("build/agent-compute-gateway.ts"),
+    readJson("config/agent-profiles.json"),
+    readJson("config/agent-profile-extensions/community.json"),
+    readJson("config/developer-agent-stack.json"),
+  ]);
+
+  assert.deepEqual(developerStack.requiredAgents.map((agent) => agent.label), ["Pi", "Cline"]);
+  assert.equal(baseProfiles.profiles.length + communityProfiles.profiles.length + developerStack.requiredAgents.length, 22);
+
+  assert.match(gateway, /SYSTEM_ORDER = \["PlotPickle", "BUZZ", "External Developer"\]/u);
+  assert.match(gateway, /AGENT_PROFILES\.map\(\(profile\) =>/u);
+  assert.match(gateway, /developerAgentStack\.requiredAgents\.map\(\(agent\) =>/u);
+  assert.match(gateway, /profile\.execution\.kind === "embedded-mastra" && supportedRoles\.has\(profile\.execution\.roleId\)/u);
+  assert.match(gateway, /roleId: configurable \? profile\.execution\.roleId : null/u);
+  assert.match(gateway, /systemDelta \|\| left\.displayName\.localeCompare\(right\.displayName\)/u);
+
+  for (const label of [
+    "Managed in BUZZ",
+    "No LLM — deterministic",
+    "Local UAT runtime",
+    "External developer handoff",
+    "External developer config",
+  ]) {
+    assert.match(gateway, new RegExp(label, "u"));
+  }
+
+  assert.match(host, /data-agent-roster="complete"/u);
+  for (const heading of ["Agent Name", "Job", "Provider", "System"]) {
+    assert.match(host, new RegExp(`>${heading}<`, "u"));
+  }
+  assert.match(host, /agent\.configurable && roleId \? \(/u);
+  assert.match(host, /agent\.providerLabel/u);
+  assert.match(host, /data-agent-configurable=\{agent\.configurable \? "true" : "false"\}/u);
+  assert.ok(host.includes('aria-label={`${agent.displayName} provider`}'));
+
+  assert.ok(baseProfiles.profiles.some((profile) => profile.execution.kind === "buzz-managed"));
+  assert.ok(baseProfiles.profiles.some((profile) => profile.execution.kind === "deterministic-observer"));
+  assert.ok(baseProfiles.profiles.some((profile) => profile.execution.kind === "repository-handoff"));
+  assert.ok(communityProfiles.profiles.every((profile) => profile.execution.kind === "buzz-managed"));
 });

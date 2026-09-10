@@ -41,8 +41,6 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(host, /<CommunityWorkspace onOpenSettings=/u);
   assert.match(host, /Community identity setup/u);
 
-  // The old compatibility sheet may still contain its historical grayscale rule,
-  // but the Community adapter loaded after it must explicitly restore Skin V1 colour.
   assert.match(compatibilityCss, /\.pp-skin-v1-community\s*\{/u);
   assert.match(communityCss, /filter:\s*none\s*!important/u);
   assert.match(communityCss, /--community-teal:\s*var\(--pp-skin-accent-bright\)/u);
@@ -51,10 +49,11 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(layout, /community-monochrome-skin.css/u);
 });
 
-test("Skin V1 Settings stops at the canonical secondary directory", async () => {
-  const [dashboard, taxonomyText] = await Promise.all([
+test("Skin V1 Settings opens Cloud Story Mode and keeps later systems review-only", async () => {
+  const [dashboard, taxonomyText, cloud] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
+    read("app/skin-v1/cloud-story-mode-host.tsx"),
   ]);
   const taxonomy = JSON.parse(taxonomyText);
 
@@ -62,18 +61,14 @@ test("Skin V1 Settings stops at the canonical secondary directory", async () => 
     taxonomy.workspace.filter((item) => item.id !== "sitemap").map((item) => item.label),
     ["General", "Appearance & Accessibility", "Project Defaults"],
   );
-  assert.deepEqual(
-    taxonomy.systems.map((system) => system.label),
-    ["Local", "Cloud", "Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"],
-  );
+  assert.ok(taxonomy.systems.some((system) => system.id === "local"));
+  assert.match(dashboard, /\.filter\(\(system\) => system\.id !== "local"\)/u);
+  assert.match(dashboard, /system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
   assert.match(dashboard, /new Set\(\["community", "settings", "profile"\]\)/u);
   assert.match(dashboard, /data-settings-menu="secondary-only"/u);
-  assert.match(dashboard, /SETTINGS DIRECTORY ONLY \/ SUBMENUS ARE NOT CONNECTED YET/u);
-
-  const secondaryRows = dashboard.slice(
-    dashboard.indexOf("{SETTINGS_MENU.map"),
-    dashboard.indexOf('id="settings-menu-status"'),
-  );
-  assert.match(secondaryRows, /disabled/u);
-  assert.doesNotMatch(secondaryRows, /onClick=/u);
+  assert.match(dashboard, /setCloudStoryModeOpen\(true\)/u);
+  assert.match(dashboard, /disabled=\{!connected\}/u);
+  assert.match(dashboard, /CLOUD STORY MODE CONNECTED \/ OTHER SETTINGS SUBMENUS ARE NOT CONNECTED YET/u);
+  assert.match(cloud, /data-skin-v1-cloud-story-mode="true"/u);
+  assert.doesNotMatch(cloud, /LegacySettingsPanel|settings-panel-legacy/u);
 });

@@ -48,6 +48,8 @@ test("Skin V1 is the base presentation contract and future skins can swap palett
   assert.match(definition, /--pp-matrix-deep: var\(--pp-skin-accent-deep\)/u);
   assert.match(definition, /--pp-matrix-mid: var\(--pp-skin-accent\)/u);
   assert.match(definition, /--pp-matrix-light: var\(--pp-skin-accent-bright\)/u);
+  assert.match(definition, /--pp-skin-media-filter:\s*none;/u);
+  assert.doesNotMatch(definition, /--pp-skin-media-filter:[^;]*grayscale\(/u);
 });
 
 test("Dashboard consumes Skin V1 tokens and Skin V1 owns its artwork package", async () => {
@@ -76,6 +78,7 @@ test("Dashboard consumes Skin V1 tokens and Skin V1 owns its artwork package", a
   assert.match(assets, /heroFallback: "\/api\/skin-v1\/dashboard-art"/u);
   assert.match(reference, /image-rendering: pixelated/u);
   assert.match(reference, /object-fit: cover/u);
+  assert.match(reference, /filter: var\(--pp-skin-media-filter\) !important/u);
 });
 
 test("Community consumes the shared Skin V1 palette instead of neutralizing it", async () => {

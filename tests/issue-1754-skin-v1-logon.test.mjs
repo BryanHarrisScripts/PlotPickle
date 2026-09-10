@@ -220,7 +220,7 @@ test("#1754 headless authentication returns the registered surface and keeps cre
   for (const secret of ["ephemeral-test-credential", "ephemeral-bootstrap-proof", "one-time-recovery"]) assert.ok(!projection.includes(secret));
 });
 
-test("Profile keeps three entries, enables User Profile, activates Node, and Local AI exposes the LTX engine", async () => {
+test("Profile keeps three entries, enables User Profile, activates Node, and Local Story Mode exposes the local engines", async () => {
   const [skin, profilePanel, host, comfy, ltxPanel, nodePanel, css, skinDefinition, bbsCss, layout, runtimeManager, mediaStore, ltxGateway, sdxlGateway, starterScript] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/profile-skin-panel.tsx"),
@@ -242,7 +242,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   const entries = skin.slice(skin.indexOf("const PROFILE_MENU ="), skin.indexOf("const LOADING_VIEW"));
   for (const [id, label, description, enabled] of [
     ["profile", "PROFILE", "YOUR PROFILE", "true"],
-    ["local-ai", "LOCAL AI", "LOCAL CONFIGURATIONS", "true"],
+    ["local-ai", "LOCAL STORY MODE", "LOCAL WRITING / IMAGES / VIDEO", "true"],
     ["node", "NODE", "NODE INFO", "true"],
   ]) {
     assert.ok(entries.includes(`id: "${id}", label: "${label}", description: "${description}", enabled: ${enabled}`));
@@ -255,7 +255,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(skin, /LocalAiSkinHost/u);
   assert.match(skin, /NodeSkinPanel/u);
   assert.match(skin, /USER PROFILE/u);
-  assert.match(skin, /PROFILE \/ LOCAL AI \/ NODE CONNECTED/u);
+  assert.match(skin, /PROFILE \/ LOCAL STORY MODE \/ NODE CONNECTED/u);
   assert.match(skin, /localAiHeadingRef\.current\?\.focus\(\)/u);
 
   assert.match(profilePanel, /ProfileIdentityPanel/u);
@@ -289,7 +289,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(host, /sd_xl_base_1\.0\.safetensors/u);
   assert.match(host, /local default ready/u);
   assert.match(host, /data-local-ai-view="menu"/u);
-  assert.match(host, /BACK TO LOCAL AI/u);
+  assert.match(host, /BACK TO LOCAL STORY MODE/u);
   assert.match(host, /<AiRoutingPanel capability="text" locality="local" onManage=\{manageRoute\} \/>/u);
   assert.doesNotMatch(host, /<AiRoutingPanel capability="image"/u);
   assert.match(host, /view === "images" \? <LocalComfyUiPanel \/>/u);
@@ -300,7 +300,7 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(host, /view === "ltx" \? <LocalLtxSetupPanel \/>/u);
   assert.match(host, /<LocalH3SetupPanel \/>/u);
   assert.doesNotMatch(host, /AiComputeWorkspace/u);
-  assert.match(host, /Opening Local AI does not change an existing route/u);
+  assert.match(host, /Local Story Mode defaults to local, hardware-aware AI/u);
   assert.match(host, /does not silently fall back to a paid cloud provider/u);
   assert.doesNotMatch(host, /AiProviderSetupPanel|GeminiProviderSetupPanel/u);
 

@@ -29,8 +29,8 @@ test("#1754 names the existing UI Legacy Skin and starts the new architecture at
   assert.match(layout, /<ProfileAccessRouter>/u);
   assert.match(layout, /<LegacySkinOnly>/u);
   assert.match(css, /data-plotpickle-skin="skin-v1"/u);
-  assert.match(css, /#000/u);
-  assert.match(css, /#fff/u);
+  assert.match(css, /background: var\(--pp-skin-canvas\) !important/u);
+  assert.match(css, /color: var\(--pp-skin-ink\) !important/u);
   await missing("app/v2/page.tsx");
   await missing("app/barebones-skin-runtime.tsx");
 });
@@ -76,11 +76,12 @@ test("#1754 LOGON is a headless Business Use Case with ephemeral credentials", a
 });
 
 test("#1754 Skin V1 owns fresh setup, LOGON and the approved keyboard-selectable BBS Dashboard", async () => {
-  const [skin, dashboard, css, bbsCss, artRoute, router, legacyOnly] = await Promise.all([
+  const [skin, dashboard, css, bbsCss, dashboardReference, artRoute, router, legacyOnly] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1.css"),
     read("app/skin-v1-bbs-surfaces.css"),
+    read("app/skin-v1-dashboard-reference.css"),
     read("app/api/skin-v1/dashboard-art/route.ts"),
     read("app/profile-access/profile-access-router.tsx"),
     read("app/legacy-skin-only.tsx"),
@@ -138,11 +139,11 @@ test("#1754 Skin V1 owns fresh setup, LOGON and the approved keyboard-selectable
     assert.ok(skin.includes(`group: "${group}"`), `${group} must appear as an approved Dashboard group`);
   }
 
-  assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: #fff;[\s\S]*color: #000;/u);
-  assert.match(bbsCss, /width: min\(760px, 100%\)/u);
-  assert.match(bbsCss, /aspect-ratio: 3 \/ 1/u);
-  assert.match(bbsCss, /grid-template-columns: 14px 34px minmax\(150px, 180px\) 12px minmax\(0, 1fr\)/u);
-  assert.doesNotMatch(bbsCss, /repeat\(4, minmax\(0, 1fr\)\)/u);
+  assert.match(css, /\.pp-skin-v1-menu-item\.is-selected[\s\S]*background: var\(--pp-skin-selected-bg\);[\s\S]*color: var\(--pp-skin-selected-ink\);/u);
+  assert.match(dashboardReference, /width: min\(var\(--pp-skin-shell-max\), calc\(100vw - 40px\)\)/u);
+  assert.match(dashboardReference, /aspect-ratio: var\(--pp-skin-art-ratio\)/u);
+  assert.match(dashboardReference, /var\(--pp-skin-accent-bright\)/u);
+  assert.doesNotMatch(bbsCss, /pp-skin-v1-dashboard\.pp-skin-v1-dashboard-bbs\[aria-label="PlotPickle Dashboard"\]/u);
   assert.match(artRoute, /plotpickle-banner-dragon-logo\.jpg/u);
   assert.match(artRoute, /process\.cwd\(\)/u);
   assert.doesNotMatch(artRoute, /https?:\/\//u);
@@ -269,10 +270,10 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(layout, /import "\.\/skin-v1-definition\.css"/u);
   assert.match(layout, /import "\.\/skin-v1-bbs-surfaces\.css"/u);
   assert.match(bbsCss, /pp-skin-v1-dashboard-bbs/u);
-  assert.match(bbsCss, /width: min\(760px, 100%\)/u);
-  assert.match(bbsCss, /background: #000 !important/u);
+  assert.match(bbsCss, /background: var\(--pp-skin-canvas\)/u);
   assert.match(bbsCss, /pp-skin-v1-profile-surface/u);
   assert.match(bbsCss, /data-profile-identity-surface="v2"/u);
+  assert.doesNotMatch(bbsCss, /#[0-9a-f]{3,8}\b/iu);
 
   assert.match(host, /PLOTPICKLE DEFAULT/u);
   assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);

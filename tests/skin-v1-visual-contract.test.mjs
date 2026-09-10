@@ -108,6 +108,44 @@ test("Community consumes the shared Skin V1 palette instead of neutralizing it",
   assert.match(social, /image-rendering:\s*pixelated/u);
 });
 
+test("Skin V1 compatibility CSS owns structure, not a fallback black-and-white palette", async () => {
+  for (const file of ["app/skin-v1.css", "app/skin-v1-bbs-surfaces.css"]) {
+    const source = await read(file);
+    assert.match(source, /var\(--pp-skin-/u, `${file} must consume the shared Skin contract`);
+    assert.doesNotMatch(source, /#[0-9a-f]{3,8}\b/iu, `${file} must not hard-code a local colour palette`);
+    assert.doesNotMatch(source, /rgba?\(/iu, `${file} must not hard-code RGB colour values`);
+  }
+
+  const compatibility = await read("app/skin-v1.css");
+  assert.match(compatibility, /\.pp-skin-v1-community[\s\S]*filter:\s*none/u);
+  assert.doesNotMatch(compatibility, /filter:\s*grayscale\(1\)/u);
+  assert.doesNotMatch(compatibility, /--pp-dashboard-cyan|--pp-dashboard-amber/u);
+});
+
+test("Profile and Settings inherit Skin V1 presentation instead of owning local colours", async () => {
+  const [profile, bbsCss, dashboard] = await Promise.all([
+    read("app/skin-v1/profile-skin-panel.tsx"),
+    read("app/skin-v1-bbs-surfaces.css"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+  ]);
+
+  assert.match(profile, /className="pp-skin-v1-profile-surface"/u);
+  assert.match(profile, /className="pp-skin-v1-profile-banner"/u);
+  assert.match(bbsCss, /\.pp-skin-v1-profile-surface/u);
+  assert.match(bbsCss, /background: var\(--pp-skin-canvas\)/u);
+  assert.match(bbsCss, /background: var\(--pp-skin-fill-accent-header\)/u);
+  assert.match(bbsCss, /color: var\(--pp-skin-accent-bright\)/u);
+
+  assert.match(dashboard, /data-settings-menu="secondary-only"/u);
+  assert.match(dashboard, /className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"/u);
+  assert.match(dashboard, /className="pp-skin-v1-bbs-help" id="settings-menu-status"/u);
+  const settingsStart = dashboard.indexOf("if (settingsMenuOpen)");
+  const dashboardStart = dashboard.indexOf('aria-label="PlotPickle Dashboard"', settingsStart);
+  const settingsSource = dashboard.slice(settingsStart, dashboardStart);
+  assert.ok(settingsStart >= 0 && dashboardStart > settingsStart);
+  assert.doesNotMatch(settingsSource, /#[0-9a-f]{3,8}\b|rgba?\(/iu);
+});
+
 test("Skin V1 owned surfaces consume semantic skin tokens instead of owning palettes", async () => {
   const files = [
     "app/community-monochrome-skin.css",

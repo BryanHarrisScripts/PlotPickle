@@ -10,10 +10,11 @@ const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
 const dashboard = read("app/skin-v1/dashboard-bbs-panel.tsx");
 const skin = read("app/skin-v1-definition.css");
 const audit = read("lib/verification/webmcp-surface-visual-audit.mjs");
+const manifest = JSON.parse(read("tests/visual-baselines/skin-v1/manifest.json"));
 const visualReadiness = read(".github/workflows/visual-readiness.yml");
 const packageJson = read("package.json");
 
-test("Dashboard is the sole canonical screenshot reference and exposes Skin V1 samples", () => {
+test("Dashboard stays the canonical Skin V1 design reference while every bounded surface gets candidate screenshot evidence", () => {
   assert.match(dashboard, /data-skin-reference="dashboard-canonical"/);
   assert.match(dashboard, /data-skin-reference-panel="standard"/);
   assert.match(dashboard, /data-skin-reference-media="primary"/);
@@ -23,8 +24,13 @@ test("Dashboard is the sole canonical screenshot reference and exposes Skin V1 s
   assert.match(dashboard, /data-skin-reference-state=\{selected \? "selected" : "unselected"\}/);
   assert.match(dashboard, /data-skin-reference-state="status"/);
 
+  assert.equal(manifest.designReference, "dashboard");
+  assert.deepEqual(Object.keys(manifest.surfaces), ["dashboard", "community", "profile", "local-ai", "node"]);
+  assert.match(audit, /captureSurfaceCandidate/);
   assert.match(audit, /dashboard-canonical\.png/);
-  assert.equal((audit.match(/\.screenshot\(/g) || []).length, 1, "only Dashboard may create screenshot evidence");
+  for (const surface of ["community", "profile", "local-ai", "node"]) {
+    assert.match(audit, new RegExp(`captureSurfaceCandidate\\(page, manifest, "${surface}"`));
+  }
 });
 
 test("WebMCP UAT is bounded to read/navigation tools and keeps authority outside the test adapter", () => {
@@ -69,11 +75,14 @@ test("non-Dashboard surfaces inherit the same rendered Skin V1 contract", () => 
   assert.match(audit, /surface: "node"/);
 });
 
-test("MCP-B remains pinned to the manual Visual Readiness tool root", () => {
+test("locked visual baselines stay repository-owned and Visual Readiness remains manual", () => {
+  assert.match(audit, /tests\/visual-baselines\/skin-v1\/manifest\.json/);
+  assert.match(audit, /compareLockedBaseline/);
+  assert.match(audit, /maxChangedPixelRatio/);
   assert.match(visualReadiness, /workflow_dispatch:/);
   assert.doesNotMatch(visualReadiness, /\bpull_request:/);
   assert.match(visualReadiness, /@mcp-b\/webmcp-polyfill@5\.1\.0/);
   assert.match(visualReadiness, /webmcp-surface-visual-audit\.mjs/);
-  assert.match(visualReadiness, /dashboard-canonical\.png/);
+  assert.match(visualReadiness, /\.artifacts\/visual-readiness\/\*\.png/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });

@@ -25,6 +25,27 @@
       "candidate": ".artifacts/visual-readiness/community-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/community.png"
     },
+    "settings": {
+      "label": "Settings",
+      "status": "candidate",
+      "selector": "section[aria-label='Settings menu']",
+      "candidate": ".artifacts/visual-readiness/settings-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/settings.png"
+    },
+    "cloud-story-mode": {
+      "label": "Cloud Story Mode",
+      "status": "candidate",
+      "selector": "section[aria-label='Cloud Story Mode setup']",
+      "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
+    },
+    "agents": {
+      "label": "PlotPickle Agents",
+      "status": "candidate",
+      "selector": "section[aria-label='PlotPickle Agents setup']",
+      "candidate": ".artifacts/visual-readiness/agents-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/agents.png"
+    },
     "profile": {
       "label": "Profile",
       "status": "candidate",
@@ -33,9 +54,9 @@
       "baseline": "tests/visual-baselines/skin-v1/profile.png"
     },
     "local-ai": {
-      "label": "Local AI",
+      "label": "Local Story Mode",
       "status": "candidate",
-      "selector": "section[aria-label='Local AI setup']",
+      "selector": "section[aria-label='Local Story Mode setup'], section[aria-label='Local AI setup']",
       "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
     },

@@ -6,16 +6,18 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("Issue #1802 keeps Dashboard as the sole canonical Skin V1 example", async () => {
-  const [dashboard, reference, audit] = await Promise.all([
+test("Issue #1802 keeps Dashboard as the canonical Skin V1 design reference", async () => {
+  const [dashboard, reference, audit, manifest] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1-dashboard-reference.css"),
     read("lib/verification/webmcp-surface-visual-audit.mjs"),
+    read("tests/visual-baselines/skin-v1/manifest.json").then(JSON.parse),
   ]);
 
   assert.match(dashboard, /data-skin-reference="dashboard-canonical"/u);
   assert.match(audit, /dashboard-canonical\.png/u);
-  assert.equal((audit.match(/\.screenshot\(/gu) || []).length, 1, "Dashboard remains the sole screenshot reference");
+  assert.equal(manifest.designReference, "dashboard");
+  assert.match(audit, /captureSurfaceCandidate/u);
   assert.match(reference, /@import "\.\/skin-v1-definition\.css";/u);
 });
 

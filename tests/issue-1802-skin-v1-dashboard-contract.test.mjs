@@ -57,14 +57,18 @@ test("Issue #1802 renders a status square on every Dashboard row and only activa
 });
 
 test("Issue #1802 preserves packaged Dashboard art, fallback, and BBS header treatment", async () => {
-  const [dashboard, reference] = await Promise.all([
+  const [dashboard, assets, reference] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/skin-v1-assets.ts"),
     read("app/skin-v1-dashboard-reference.css"),
   ]);
 
-  assert.match(dashboard, /DASHBOARD_ART = "\/brand\/dashboard\/plotpickle-observatory-dragon\.svg"/u);
-  assert.match(dashboard, /DASHBOARD_ART_FALLBACK = "\/api\/skin-v1\/dashboard-art"/u);
-  assert.match(dashboard, /fallbackApplied/u);
+  assert.match(dashboard, /import Image from "next\/image"/u);
+  assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.hero/u);
+  assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.heroFallback/u);
+  assert.match(dashboard, /priority/u);
+  assert.match(assets, /plotpickle-observatory-dragon\.svg/u);
+  assert.match(assets, /\/api\/skin-v1\/dashboard-art/u);
   assert.match(dashboard, /PLOTPICKLE BBS/u);
   assert.match(dashboard, /&gt;&gt;&gt;/u);
   assert.match(dashboard, /&lt;&lt;&lt;/u);

@@ -126,10 +126,11 @@ test("Skin V1 compatibility CSS owns structure, not a fallback black-and-white p
 });
 
 test("Profile and Settings inherit Skin V1 presentation instead of owning local colours", async () => {
-  const [profile, bbsCss, dashboard] = await Promise.all([
+  const [profile, bbsCss, dashboard, agents] = await Promise.all([
     read("app/skin-v1/profile-skin-panel.tsx"),
     read("app/skin-v1-bbs-surfaces.css"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/plotpickle-agents-host.tsx"),
   ]);
 
   assert.match(profile, /className="pp-skin-v1-profile-surface"/u);
@@ -139,9 +140,10 @@ test("Profile and Settings inherit Skin V1 presentation instead of owning local 
   assert.match(bbsCss, /background: var\(--pp-skin-fill-accent-header\)/u);
   assert.match(bbsCss, /color: var\(--pp-skin-accent-bright\)/u);
 
-  assert.match(dashboard, /data-settings-menu="secondary-only"/u);
-  assert.match(dashboard, /className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"/u);
+  assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
+  assert.match(dashboard, /pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item/u);
   assert.match(dashboard, /className="pp-skin-v1-bbs-help" id="settings-menu-status"/u);
+  assert.match(agents, /fontFamily: "var\(--pp-skin-font-ui\)"/u);
   const settingsStart = dashboard.indexOf("if (settingsMenuOpen)");
   const dashboardStart = dashboard.indexOf('aria-label="PlotPickle Dashboard"', settingsStart);
   const settingsSource = dashboard.slice(settingsStart, dashboardStart);
@@ -159,6 +161,8 @@ test("Skin V1 owned surfaces consume semantic skin tokens instead of owning pale
     "app/skin-v1/local-ltx-setup-panel.tsx",
     "app/skin-v1/local-h3-setup-panel.tsx",
     "app/skin-v1/node-skin-panel.tsx",
+    "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/plotpickle-agents-host.tsx",
   ];
 
   for (const file of files) {

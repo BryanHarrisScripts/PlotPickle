@@ -4,12 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./model-catalog-panel.module.css";
 
 type Provider = "openai" | "minimax";
-type Capability = "writing" | "images" | "video";
+type CatalogCapability = "writing" | "images" | "video";
+type Capability = CatalogCapability | "agents";
 type CatalogResponse = {
   ok: boolean;
   provider: Provider;
   configured: boolean;
-  capability: Capability | "";
+  capability: CatalogCapability | "";
   selected: string;
   models: string[];
   count: number;
@@ -18,26 +19,32 @@ type CatalogResponse = {
   message?: string;
 };
 
-const PROVIDERS: Array<{ id: Provider; label: string }> = [
-  { id: "openai", label: "OpenAI" },
-  { id: "minimax", label: "MiniMax" },
+const PROVIDERS: Array<{ id: Provider; label: string; capabilities: readonly Capability[] }> = [
+  { id: "openai", label: "OpenAI", capabilities: ["writing", "images", "agents"] },
+  { id: "minimax", label: "MiniMax", capabilities: ["writing", "images", "video", "agents"] },
 ];
 
 const CAPABILITY_LABEL: Record<Capability, string> = {
   writing: "Writing",
   images: "Images",
   video: "Video",
+  agents: "Agents",
 };
+
+function catalogCapability(capability: Capability): CatalogCapability {
+  return capability === "agents" ? "writing" : capability;
+}
 
 function ProviderCatalog({ provider, label, capability }: { provider: Provider; label: string; capability: Capability }) {
   const [status, setStatus] = useState<CatalogResponse | null>(null);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [working, setWorking] = useState("");
+  const providerCapability = catalogCapability(capability);
 
   const refresh = useCallback(async (announce = false) => {
     try {
-      const response = await fetch(`/api/ai-model-catalog?provider=${encodeURIComponent(provider)}&capability=${encodeURIComponent(capability)}`, { cache: "no-store" });
+      const response = await fetch(`/api/ai-model-catalog?provider=${encodeURIComponent(provider)}&capability=${encodeURIComponent(providerCapability)}`, { cache: "no-store" });
       const body = await response.json() as CatalogResponse;
       if (!response.ok || !body.ok) throw new Error(body.message || `${label} model catalog could not be loaded.`);
       setStatus(body);
@@ -45,7 +52,7 @@ function ProviderCatalog({ provider, label, capability }: { provider: Provider; 
     } catch (error) {
       setNotice(error instanceof Error ? error.message : `${label} model catalog could not be loaded.`);
     }
-  }, [capability, label, provider]);
+  }, [label, provider, providerCapability]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -63,7 +70,7 @@ function ProviderCatalog({ provider, label, capability }: { provider: Provider; 
       const response = await fetch("/api/ai-model-catalog/select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, capability, model }),
+        body: JSON.stringify({ provider, capability: providerCapability, model }),
       });
       const body = await response.json() as CatalogResponse;
       if (!response.ok || !body.ok) throw new Error(body.message || "The model choice could not be saved.");
@@ -90,7 +97,7 @@ function ProviderCatalog({ provider, label, capability }: { provider: Provider; 
       {status?.selected ? <p className={styles.selected}>Current {CAPABILITY_LABEL[capability].toLowerCase()} model: <strong>{status.selected}</strong></p> : null}
 
       {!status?.configured ? (
-        <div className={styles.empty}>Connect {label} below first. PlotPickle will not request a live model catalog without that provider's protected credential.</div>
+        <div className={styles.empty}>Connect {label} below first. PlotPickle will not request a live model catalog without that provider&apos;s protected credential.</div>
       ) : (
         <>
           <div className={styles.controlsSingle}>
@@ -124,18 +131,20 @@ function ProviderCatalog({ provider, label, capability }: { provider: Provider; 
 }
 
 export default function CloudModelCatalogPanel({ capability }: { capability: Capability }) {
+  const providers = PROVIDERS.filter((provider) => provider.capabilities.includes(capability));
   return (
-    <section className={styles.panel} data-model-catalog="cloud" aria-labelledby="cloud-model-catalog-title">
+    <section className={styles.panel} data-model-catalog="cloud" data-model-catalog-capability={capability} aria-labelledby="cloud-model-catalog-title">
       <header className={styles.heading}>
         <div>
           <p>Cloud model catalog</p>
           <h3 id="cloud-model-catalog-title">Choose a model after you connect the provider.</h3>
-          <span>PlotPickle asks the connected provider for its current model IDs where the adapter supports discovery. Counts are derived at runtime; there is no hardcoded catalog size.</span>
+          <span>Only providers with a supported {CAPABILITY_LABEL[capability].toLowerCase()} capability are shown. PlotPickle asks the connected provider for its current model IDs where the adapter supports discovery.</span>
         </div>
       </header>
       <div className={styles.providerGrid}>
-        {PROVIDERS.map((item) => <ProviderCatalog key={item.id} provider={item.id} label={item.label} capability={capability} />)}
+        {providers.map((item) => <ProviderCatalog key={item.id} provider={item.id} label={item.label} capability={capability} />)}
       </div>
+      {capability === "writing" || capability === "agents" ? <p className={styles.boundary}>Google Gemini is also available for cloud text/Agent work through its provider setup and the live routing status. Its adapter does not expose this OpenAI/MiniMax catalog endpoint.</p> : null}
       <footer className={styles.boundary}>Choosing a model changes configuration only. It does not run a paid generation, change the active provider route, or expose the saved API key.</footer>
     </section>
   );

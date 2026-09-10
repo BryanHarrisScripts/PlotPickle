@@ -52,7 +52,8 @@ test("#1228 hardens Windows batch execution before cmd.exe receives values", asy
   assert.doesNotMatch(source, /process\.env\.ComSpec/, "cmd.exe selection must not come from the environment");
   assert.match(batch, /unsupported command-shell characters/, "Windows batch values must fail closed on cmd.exe metacharacters");
   assert.match(batch, /[&|<>^%!]/, "Windows metacharacter rejection must remain explicit");
-  assert.match(batch, /call "%PLOTPICKLE_BATCH_COMMAND%"/, "dynamic batch paths must stay out of shell command text");
+  assert.match(batch, /PLOTPICKLE_BATCH_COMMAND/, "dynamic batch paths must stay behind the reviewed environment boundary");
+  assert.match(batch, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/, "cmd.exe receives only static command tokens and environment references");
 });
 
 test("#1228 durable creative IDs require cryptographic randomUUID", async () => {

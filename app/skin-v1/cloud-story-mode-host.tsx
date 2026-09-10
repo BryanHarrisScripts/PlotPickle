@@ -6,8 +6,8 @@ import CloudModelCatalogPanel from "../settings/compute/cloud-model-catalog-pane
 import GeminiProviderSetupPanel from "../settings/ai-provider/gemini-provider-setup-panel";
 import CloudProviderSetupPanel from "./cloud-provider-setup-panel";
 
-type CloudStoryView = "menu" | "writing" | "images" | "video" | "openai" | "minimax" | "gemini" | "remote";
-type CapabilityKey = "writing" | "images" | "video";
+type CloudStoryView = "menu" | "writing" | "images" | "video" | "agents" | "openai" | "minimax" | "gemini";
+type CapabilityKey = "writing" | "images" | "video" | "agents";
 type RoutingOption = { configured: boolean; ready: boolean; locality: string };
 type RoutingGroup = { selected: string; options: Record<string, RoutingOption> };
 type RoutingStatus = { text: RoutingGroup; image: RoutingGroup; video: RoutingGroup };
@@ -66,23 +66,23 @@ const TASKS: Array<{ id: CloudStoryView; label: string; detail: string }> = [
   { id: "writing", label: "WRITING", detail: "Cloud writing and story reasoning" },
   { id: "images", label: "IMAGES", detail: "Cloud artwork and visual generation" },
   { id: "video", label: "VIDEO", detail: "Cloud motion and previs generation" },
+  { id: "agents", label: "AGENTS", detail: "Cloud text compute available to PlotPickle Agents" },
 ];
 
 const RESOURCES: Array<{ id: CloudStoryView; label: string; detail: string }> = [
-  { id: "openai", label: "OPENAI", detail: "User-owned OpenAI API authority and models" },
-  { id: "minimax", label: "MINIMAX", detail: "User-owned MiniMax API authority and models" },
-  { id: "gemini", label: "GOOGLE GEMINI", detail: "Optional cloud writing authority" },
-  { id: "remote", label: "REMOTE COMPUTE", detail: "Hosted GPU and serverless processing boundary" },
+  { id: "openai", label: "OPENAI", detail: "User-owned OpenAI API authority for supported writing and image tasks" },
+  { id: "minimax", label: "MINIMAX", detail: "User-owned MiniMax API authority for supported writing, image and video tasks" },
+  { id: "gemini", label: "GOOGLE GEMINI", detail: "User-owned Gemini authority for supported writing and Agent text tasks" },
 ];
 
 const VIEW_TITLES: Record<Exclude<CloudStoryView, "menu">, string> = {
   writing: "WRITING",
   images: "IMAGES",
   video: "VIDEO",
+  agents: "AGENTS",
   openai: "OPENAI",
   minimax: "MINIMAX",
   gemini: "GOOGLE GEMINI",
-  remote: "REMOTE COMPUTE",
 };
 
 function cloudReady(group: RoutingGroup | undefined) {
@@ -125,18 +125,6 @@ function MenuGroup({ title, items, onOpen }: { title: string; items: typeof TASK
   );
 }
 
-function PlannedRemoteCompute() {
-  return (
-    <section style={statusPanel} aria-labelledby="cloud-remote-compute-title">
-      <div>
-        <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>CLOUD STORY MODE / REMOTE COMPUTE</p>
-        <h2 id="cloud-remote-compute-title" style={{ margin: "5px 0" }}>PLANNED BOUNDARY</h2>
-      </div>
-      <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)" }}>Hosted GPU jobs and serverless processing remain a named future boundary. No fake connector is exposed and no legacy Settings surface is opened.</p>
-    </section>
-  );
-}
-
 export default function CloudStoryModeHost() {
   const [view, setView] = useState<CloudStoryView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
@@ -157,6 +145,7 @@ export default function CloudStoryModeHost() {
     writing: cloudReady(routing?.text),
     images: cloudReady(routing?.image),
     video: cloudReady(routing?.video),
+    agents: cloudReady(routing?.text),
   };
 
   const manageRoute = (target: "ollama" | "openai" | "gemini" | "minimax" | "comfyui") => {
@@ -164,7 +153,8 @@ export default function CloudStoryModeHost() {
   };
 
   if (view !== "menu") {
-    const capability = view === "writing" ? "writing" : view === "images" ? "images" : view === "video" ? "video" : null;
+    const task = view === "writing" || view === "images" || view === "video" || view === "agents" ? view : null;
+    const routingCapability = view === "writing" || view === "agents" ? "text" : view === "images" ? "image" : view === "video" ? "video" : null;
     return (
       <div style={shell} data-skin-v1-cloud-story-mode="true" data-cloud-story-view={view}>
         <section style={boundary} aria-labelledby="skin-v1-cloud-story-section-title">
@@ -175,14 +165,12 @@ export default function CloudStoryModeHost() {
           </div>
         </section>
 
-        {capability ? <CloudModelCatalogPanel capability={capability} /> : null}
-        {view === "writing" ? <AiRoutingPanel capability="text" locality="cloud" onManage={manageRoute} /> : null}
-        {view === "images" ? <AiRoutingPanel capability="image" locality="cloud" onManage={manageRoute} /> : null}
-        {view === "video" ? <AiRoutingPanel capability="video" locality="cloud" onManage={manageRoute} /> : null}
+        {task ? <CloudModelCatalogPanel capability={task} /> : null}
+        {routingCapability ? <AiRoutingPanel capability={routingCapability} locality="cloud" onManage={manageRoute} /> : null}
+        {view === "agents" ? <section style={boundary}><strong>AGENT ASSIGNMENT</strong><p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)" }}>Cloud Story Mode supplies supported cloud text compute. Choose the PlotPickle-wide default and any per-Agent override in Settings / Agents. BUZZ is not part of this compute assignment.</p></section> : null}
         {view === "openai" ? <CloudProviderSetupPanel provider="openai" /> : null}
         {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}
         {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
-        {view === "remote" ? <PlannedRemoteCompute /> : null}
       </div>
     );
   }
@@ -199,7 +187,7 @@ export default function CloudStoryModeHost() {
           <h2 id="plotpickle-cloud-title" style={{ margin: 0, fontSize: 16, letterSpacing: ".09em" }}>PLOTPICKLE CLOUD</h2>
           <p style={{ margin: "4px 0 0", color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>USER-OWNED PROVIDERS / EXPLICIT PAID ROUTES</p>
         </div>
-        {(["writing", "images", "video"] as const).map((capability) => (
+        {(["writing", "images", "video", "agents"] as const).map((capability) => (
           <div key={capability} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: "7px 0", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
             <strong>{capability.toUpperCase()}</strong>
             <StatusLight label={capability} ready={lights[capability]} />

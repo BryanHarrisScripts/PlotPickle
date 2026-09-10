@@ -25,6 +25,13 @@ const evidenceTextRedactions = Object.freeze([
   { pattern: /\/home\/[^/\s]+/g, replacement: "/home/[user]" },
   { pattern: /\/Users\/[^/\s]+/g, replacement: "/Users/[user]" },
 ]);
+const BROWSER_LITERAL_ESCAPES = Object.freeze({
+  "<": "\\u003c",
+  ">": "\\u003e",
+  "/": "\\u002f",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+});
 
 function scrubEvidenceText(value) {
   let safe = String(value ?? "");
@@ -32,6 +39,10 @@ function scrubEvidenceText(value) {
   safe = safe.replace(/[\u0000-\u001f\u007f]/g, " ");
   safe = safe.replace(/\s+/g, " ");
   return safe.trim();
+}
+
+function safeBrowserStringLiteral(value) {
+  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
 }
 
 export function redactCaseEvidence(input) {
@@ -213,7 +224,7 @@ export function createCasebookHumanInteractionAdapter({ client, tools, creativeB
   }
 
   async function focusByLabel(label) {
-    const wanted = JSON.stringify(String(label));
+    const wanted = safeBrowserStringLiteral(label);
     const text = await evaluate(`() => {
       const wanted = ${wanted}.trim().toLowerCase();
       const nodes = [...document.querySelectorAll('button,a,input,textarea,select,[tabindex]')];

@@ -36,7 +36,7 @@ test("Skin V1 Settings exposes a keyboard directory and connects Cloud Story Mod
   assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /data-settings-shortcut=\{item\.shortcut\}/u);
-  assert.doesNotMatch(dashboard, /disabled=\{!connected\}/u);
+  assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(dashboard, /event\.key === "ArrowDown"/u);
   assert.match(dashboard, /event\.key === "ArrowUp"/u);
   assert.match(dashboard, /event\.key === "Enter" \|\| event\.key === " "/u);

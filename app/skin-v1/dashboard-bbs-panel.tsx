@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Fragment, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import CloudStoryModeHost from "./cloud-story-mode-host";
+import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -15,11 +16,24 @@ export type DashboardBbsItem = Readonly<{
 }>;
 
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile"]);
+const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
+  general: "G",
+  appearance: "A",
+  "project-defaults": "P",
+  cloud: "C",
+  data: "D",
+  deploy: "E",
+  repos: "R",
+  auth: "U",
+  agents: "N",
+  "open-source": "O",
+};
 const SETTINGS_MENU = [
   ...settingsTaxonomy.workspace
     .filter((item) => item.id !== "sitemap")
     .map((item) => ({
       id: item.id,
+      shortcut: SETTINGS_SHORTCUTS[item.id] ?? "?",
       label: item.label,
       description: item.description,
       group: "WORKSPACE",
@@ -28,13 +42,15 @@ const SETTINGS_MENU = [
     .filter((system) => system.id !== "local")
     .map((system) => ({
       id: system.id,
+      shortcut: SETTINGS_SHORTCUTS[system.id] ?? "?",
       label: system.id === "cloud" ? "Cloud Story Mode" : system.label,
       description: system.id === "cloud"
-        ? "Cloud writing, images, video and user-owned provider authority."
+        ? "Cloud writing, images, video, Agents and user-owned provider authority."
         : system.description,
       group: "SYSTEMS",
     })),
 ] as const;
+const CONNECTED_SETTINGS_ITEMS = new Set(["cloud", "agents"]);
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
 
@@ -54,9 +70,15 @@ export default function DashboardBbsPanel({
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [cloudStoryModeOpen, setCloudStoryModeOpen] = useState(false);
+  const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
+  const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
+  const [settingsNotice, setSettingsNotice] = useState("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
+  const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
+      setSettingsSelectedIndex(0);
+      setSettingsNotice("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
       setSettingsMenuOpen(true);
       return;
     }
@@ -74,6 +96,64 @@ export default function DashboardBbsPanel({
       }
     }
     onKeyDown(event, index);
+  }
+
+  function selectSettingsItem(index: number) {
+    const normalized = (index + SETTINGS_MENU.length) % SETTINGS_MENU.length;
+    setSettingsSelectedIndex(normalized);
+    window.requestAnimationFrame(() => settingsItemRefs.current[normalized]?.focus());
+  }
+
+  function activateSettingsItem(index: number) {
+    const item = SETTINGS_MENU[index];
+    if (!item) return;
+    setSettingsSelectedIndex(index);
+    if (item.id === "cloud") {
+      setCloudStoryModeOpen(true);
+      return;
+    }
+    if (item.id === "agents") {
+      setPlotPickleAgentsOpen(true);
+      return;
+    }
+    setSettingsNotice(`${item.label.toUpperCase()} IS LISTED BUT NOT CONNECTED IN SKIN V1 YET`);
+  }
+
+  function handleSettingsKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key.length === 1) {
+      const shortcut = event.key.toUpperCase();
+      const shortcutIndex = SETTINGS_MENU.findIndex((item) => item.shortcut === shortcut);
+      if (shortcutIndex >= 0) {
+        event.preventDefault();
+        selectSettingsItem(shortcutIndex);
+        activateSettingsItem(shortcutIndex);
+        return;
+      }
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      selectSettingsItem(index + 1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      selectSettingsItem(index - 1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      selectSettingsItem(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      selectSettingsItem(SETTINGS_MENU.length - 1);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activateSettingsItem(index);
+    }
   }
 
   if (settingsMenuOpen && cloudStoryModeOpen) {
@@ -96,12 +176,32 @@ export default function DashboardBbsPanel({
     );
   }
 
+  if (settingsMenuOpen && plotPickleAgentsOpen) {
+    return (
+      <section
+        aria-label="PlotPickle Agents setup"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setPlotPickleAgentsOpen(false);
+          }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>PLOTPICKLE AGENTS</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setPlotPickleAgentsOpen(false)}>Back to Settings</button>
+        </div>
+        <PlotPickleAgentsHost />
+      </section>
+    );
+  }
+
   if (settingsMenuOpen) {
     return (
       <section
         className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
         aria-label="Settings menu"
-        data-settings-menu="secondary-only"
+        data-settings-menu="keyboard-directory"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
@@ -112,37 +212,49 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner">
             <h1>SETTINGS</h1>
-            <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsMenuOpen(false)} autoFocus>
+            <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsMenuOpen(false)}>
               Back to Dashboard
             </button>
           </div>
 
-          <div className="pp-skin-v1-menu" aria-describedby="settings-menu-status">
+          <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Settings directory" aria-describedby="settings-menu-status">
             {SETTINGS_MENU.map((item, index) => {
               const showGroup = index === 0 || SETTINGS_MENU[index - 1]?.group !== item.group;
-              const connected = item.id === "cloud";
+              const connected = CONNECTED_SETTINGS_ITEMS.has(item.id);
+              const selected = index === settingsSelectedIndex;
+              const command = `[${item.shortcut}] ${item.label}`.padEnd(30, " ");
               return (
                 <Fragment key={item.id}>
                   {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
                   <button
+                    ref={(node) => { settingsItemRefs.current[index] = node; }}
                     type="button"
-                    disabled={!connected}
-                    className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"
+                    role="option"
+                    aria-selected={selected}
+                    aria-disabled={!connected}
+                    tabIndex={selected ? 0 : -1}
+                    autoFocus={index === 0}
+                    className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
                     data-settings-secondary-item={item.id}
+                    data-settings-shortcut={item.shortcut}
                     data-settings-secondary-connected={connected ? "true" : "false"}
-                    onClick={connected ? () => setCloudStoryModeOpen(true) : undefined}
+                    onClick={() => activateSettingsItem(index)}
+                    onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
-                    <span aria-hidden="true">&gt;</span>
-                    <span className="pp-skin-v1-menu-label">{item.label}</span>
-                    <small className="pp-skin-v1-menu-description">{item.description}</small>
+                    <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}{connected ? "" : " [NOT CONNECTED]"}</span>
+                    <span
+                      className={`pp-skin-v1-dashboard-status-box${selected && connected ? " is-active" : ""}`}
+                      aria-label={connected ? "Connected Settings destination" : "Settings destination not connected yet"}
+                      data-dashboard-status={selected && connected ? "active" : "inactive"}
+                    />
                   </button>
                 </Fragment>
               );
             })}
           </div>
 
-          <p className="pp-skin-v1-bbs-help" id="settings-menu-status">
-            CLOUD STORY MODE CONNECTED / OTHER SETTINGS SUBMENUS ARE NOT CONNECTED YET
+          <p className="pp-skin-v1-bbs-help" id="settings-menu-status" role="status">
+            {settingsNotice}
           </p>
         </div>
       </section>

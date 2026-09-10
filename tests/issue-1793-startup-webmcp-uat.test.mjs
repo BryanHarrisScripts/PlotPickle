@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 const root = new URL("..", import.meta.url);
@@ -45,7 +47,25 @@ test("startup WebMCP runner keeps verification tools isolated and pinned", async
   assert.match(runner, /runWebMcpSurfaceVisualAudit/);
   assert.match(runner, /WEBMCP_STARTUP_EVIDENCE/);
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
+  assert.match(runner, /process\.env\.ComSpec \|\| "cmd\.exe"/);
+  assert.match(runner, /\["\/d", "\/c", command, \.\.\.args\]/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
+});
+
+test("Windows WebMCP bootstrap executes command wrappers without spawn EINVAL", { skip: process.platform !== "win32" }, async () => {
+  const { commandName, runCommand } = await import("../scripts/run-webmcp-startup-uat.mjs");
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "PlotPickle WebMCP "));
+  const probe = path.join(tempRoot, "wrapper probe.cmd");
+  const marker = path.join(tempRoot, "spawn result.txt");
+
+  try {
+    await writeFile(probe, '@echo off\r\n> "%~1" echo spawn-ok\r\n', "utf8");
+    await runCommand(probe, [marker], { stdio: "ignore" });
+    assert.equal((await readFile(marker, "utf8")).trim(), "spawn-ok");
+    await runCommand(commandName("npm"), ["--version"], { stdio: "ignore" });
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });
 
 test("reusable UAT skills remain bounded and independent from fixing or merging", async () => {

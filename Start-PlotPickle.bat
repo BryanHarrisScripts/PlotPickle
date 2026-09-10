@@ -31,6 +31,7 @@ set "AGENT_SKILLS_CLI=scripts\agent-skills.mjs"
 set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
+set "WEBMCP_STARTUP_RUNNER=scripts\run-webmcp-startup-uat.mjs"
 set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
@@ -38,6 +39,9 @@ set "INSTALL_PERFORMED=0"
 set "READY_TIMEOUT_SECONDS=60"
 set "READY_REQUEST_TIMEOUT_SECONDS=30"
 set "BROWSER_FAILURE_GRACE_SECONDS=12"
+if /I "%~1"=="--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
+if /I "%~1"=="--human-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
+if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
 set "NODE_ENV=development"
@@ -100,10 +104,41 @@ if "!PLOTPICKLE_SOURCE_MODE!"=="sync-error" echo !READY_WARN! The application up
 if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4-!PLOTPICKLE_SOURCE_SHA!"
 echo.
 
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" set "PLOTPICKLE_STARTUP_TESTING_MODE="
+if not defined PLOTPICKLE_STARTUP_TESTING_MODE (
+  echo !CYAN![TESTING MODE]!RESET!
+  echo Human Testing or WebMCP Testing
+  echo.
+  echo Y = WebMCP Testing - run the autonomous interface, surface and Skin V1 UAT.
+  echo N = Human Testing - open PlotPickle normally so you can test it yourself.
+  echo.
+  choice /C YN /N /M "Run WebMCP Testing? [Y/N] - Y = WebMCP Testing, N = Human Testing: "
+  if errorlevel 2 (
+    set "PLOTPICKLE_STARTUP_TESTING_MODE=human"
+  ) else (
+    set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
+  )
+)
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+  echo !READY! WebMCP Testing selected. PlotPickle will use an isolated test profile and run the bounded visual UAT after readiness.
+) else (
+  echo !READY! Human Testing selected. PlotPickle will open its owned app window after readiness.
+)
+echo.
+
 echo !CYAN![CHECK]!RESET! Looking for an existing PlotPickle session...
 call :probe_existing
 set "PROBE_RESULT=!ERRORLEVEL!"
 if "!PROBE_RESULT!"=="0" (
+  if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+    echo.
+    echo !WARNING! The current PlotPickle build is already running at %PLOTPICKLE_URL%.
+    echo WebMCP Testing requires an isolated PlotPickle test session so it never reuses the Human profile or credentials.
+    echo Close the existing PlotPickle command window with Ctrl+C, then run Start-PlotPickle.bat again and choose WebMCP Testing.
+    echo.
+    pause
+    exit /b 1
+  )
   echo !READY! The current PlotPickle build is already running at %PLOTPICKLE_URL%.
   echo Its startup contract confirms that required checks completed before that server opened.
   echo No second server or maintenance pass will be started; no extra browser window will be opened.
@@ -259,13 +294,56 @@ if errorlevel 1 (
 )
 echo !READY! PlotPickle Agent Skills are registered and verified.
 
-if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+  if not exist "%WEBMCP_STARTUP_RUNNER%" (
+    echo.
+    echo !ERROR_TAG! The WebMCP startup UAT runner is missing from this PlotPickle build.
+    echo Update PlotPickle or choose Human Testing.
+    pause
+    exit /b 1
+  )
+  if defined LOCALAPPDATA (
+    set "PLOTPICKLE_HOME=!LOCALAPPDATA!\PlotPickle\full-verification\synthetic-humans\webmcp-startup-!RANDOM!-!RANDOM!"
+    set "PLOTPICKLE_WEBMCP_TOOL_ROOT=!LOCALAPPDATA!\PlotPickle\verification-tools\webmcp-surface-uat"
+  ) else (
+    set "PLOTPICKLE_HOME=!USERPROFILE!\AppData\Local\PlotPickle\full-verification\synthetic-humans\webmcp-startup-!RANDOM!-!RANDOM!"
+    set "PLOTPICKLE_WEBMCP_TOOL_ROOT=!USERPROFILE!\AppData\Local\PlotPickle\verification-tools\webmcp-surface-uat"
+  )
+  set "PLOTPICKLE_AUTH_STATE_PATH=!PLOTPICKLE_HOME!\auth\state.json"
+  set "PLOTPICKLE_ACCESS_MODE=desktop-loopback"
+  set "PLOTPICKLE_SERVER_NETWORK_ENABLED=false"
+  set "PLOTPICKLE_BIND_HOST="
+  set "PLOTPICKLE_EXTERNAL_ORIGIN="
+  set "PLOTPICKLE_ALLOWED_ORIGINS="
+  set "PLOTPICKLE_ALLOWED_HOSTS="
+  set "PLOTPICKLE_BOOTSTRAP_COMPLETE=false"
+  set "PLOTPICKLE_NODE_ID=webmcp-startup-uat-!RANDOM!"
+  node "%WEBMCP_STARTUP_RUNNER%" prepare --home "!PLOTPICKLE_HOME!"
+  if errorlevel 1 (
+    echo.
+    echo !ERROR_TAG! PlotPickle could not prepare the isolated WebMCP test profile.
+    pause
+    exit /b 1
+  )
+  set "PLOTPICKLE_NODE_RUNTIME_DIR=!PLOTPICKLE_HOME!\node\runtime"
+  set "PLOTPICKLE_SHUTDOWN_SIGNAL=!PLOTPICKLE_NODE_RUNTIME_DIR!\shutdown-request.json"
+  set "PLOTPICKLE_BROWSER_STATE=!PLOTPICKLE_NODE_RUNTIME_DIR!\browser-owner.json"
+  set "PLOTPICKLE_BROWSER_PROFILE=!PLOTPICKLE_NODE_RUNTIME_DIR!\browser-profile"
+  if not exist "!PLOTPICKLE_NODE_RUNTIME_DIR!" mkdir "!PLOTPICKLE_NODE_RUNTIME_DIR!" >nul 2>&1
+  del /q "!PLOTPICKLE_SHUTDOWN_SIGNAL!" >nul 2>&1
+  del /q "!PLOTPICKLE_BROWSER_STATE!" >nul 2>&1
   echo.
-  echo !INFO! Optional companion inventory and reviewed maintenance are deferred until PlotPickle is reachable.
-  echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
+  echo !READY! WebMCP Testing uses an isolated synthetic Human profile and never reuses your normal PlotPickle profile or credentials.
+  echo !INFO! Human browser launch and optional companion maintenance are suppressed for this test session.
 ) else (
-  echo.
-  echo !READY_WARN! Optional companion maintenance helpers are incomplete. Core PlotPickle will still start normally.
+  if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
+    echo.
+    echo !INFO! Optional companion inventory and reviewed maintenance are deferred until PlotPickle is reachable.
+    echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
+  ) else (
+    echo.
+    echo !READY_WARN! Optional companion maintenance helpers are incomplete. Core PlotPickle will still start normally.
+  )
 )
 
 echo.
@@ -274,12 +352,20 @@ echo.
 echo !READY! Required PlotPickle dependencies are loaded and verified.
 echo !READY! Mastra and the local agent runtime are loaded and verified.
 echo !READY! PlotPickle Agent Skills are registered and verified.
-echo !READY! Optional companion inventory is deferred until after local server readiness.
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+  echo !READY! WebMCP UAT will begin only after the local server reports ready.
+) else (
+  echo !READY! Optional companion inventory is deferred until after local server readiness.
+)
 echo !SUCCESS! Startup checks complete. PlotPickle can now start.
 set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"
 echo.
 echo Address: %PLOTPICKLE_URL%
-echo The browser will open after PlotPickle confirms that it is ready.
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+  echo The WebMCP UAT window will open after PlotPickle confirms that it is ready.
+) else (
+  echo The browser will open after PlotPickle confirms that it is ready.
+)
 echo Optional services remain available from their independent Settings pages.
 echo Press Ctrl+C in this window when you are finished.
 echo.
@@ -293,13 +379,18 @@ if exist "%VITE_NATIVE_REPORT%" (
 if "%PLOTPICKLE_PERFORMANCE_BENCHMARK%"=="1" (
   echo !INFO! Performance benchmark owns readiness measurement; browser launch and optional companion maintenance are suppressed.
 ) else (
-  call :open_when_ready
-  call :start_deferred_companion_maintenance
+  if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
+    call :start_webmcp_testing
+  ) else (
+    call :open_when_ready
+    call :start_deferred_companion_maintenance
+  )
 )
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
+call :cleanup_webmcp_testing
 if exist "%PLOTPICKLE_SHUTDOWN_SIGNAL%" (
   del /q "%PLOTPICKLE_SHUTDOWN_SIGNAL%" >nul 2>&1
   del /q "%PLOTPICKLE_BROWSER_STATE%" >nul 2>&1
@@ -321,6 +412,23 @@ exit /b !ERRORLEVEL!
 
 :open_when_ready
 start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { break } } catch {}; Start-Sleep -Milliseconds 500 }; if ((Get-Date) -ge $deadline) { Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.' -ForegroundColor Yellow; exit 1 }; $edge=@((Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'),(Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe'),(Join-Path $env:LOCALAPPDATA 'Microsoft\Edge\Application\msedge.exe')) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1; if (-not $edge) { Write-Host ('[WARNING] Microsoft Edge was not found. PlotPickle will not open an unmanaged browser window that it cannot safely close. Open ' + $base + ' manually if needed.') -ForegroundColor Yellow; exit 2 }; New-Item -ItemType Directory -Force -Path (Split-Path $env:PLOTPICKLE_BROWSER_STATE -Parent) | Out-Null; New-Item -ItemType Directory -Force -Path $env:PLOTPICKLE_BROWSER_PROFILE | Out-Null; $arguments=@('--app='+$base,'--user-data-dir='+$env:PLOTPICKLE_BROWSER_PROFILE,'--no-first-run','--no-default-browser-check'); $browser=Start-Process -FilePath $edge -ArgumentList $arguments -PassThru; @{ format='plotpickle-owned-browser'; version=1; pid=$browser.Id; executable=$edge; baseUrl=$base; startedAt=(Get-Date).ToUniversalTime().ToString('o') } | ConvertTo-Json | Set-Content -Encoding UTF8 -Path $env:PLOTPICKLE_BROWSER_STATE; $unreachableSince=$null; try { while (-not $browser.HasExited) { if (Test-Path $env:PLOTPICKLE_SHUTDOWN_SIGNAL) { Stop-Process -Id $browser.Id -ErrorAction SilentlyContinue; break }; try { Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec 1 | Out-Null; $unreachableSince=$null } catch { if ($null -eq $unreachableSince) { $unreachableSince=Get-Date } elseif (((Get-Date)-$unreachableSince).TotalSeconds -ge %BROWSER_FAILURE_GRACE_SECONDS%) { Write-Host '[WARNING] PlotPickle has remained unreachable long enough to close its owned app window.' -ForegroundColor Yellow; Stop-Process -Id $browser.Id -ErrorAction SilentlyContinue; break } }; Start-Sleep -Milliseconds 400; $browser.Refresh() } } finally { Remove-Item -Force -ErrorAction SilentlyContinue $env:PLOTPICKLE_BROWSER_STATE }"
+exit /b 0
+
+:start_webmcp_testing
+if not exist "%WEBMCP_STARTUP_RUNNER%" (
+  echo !ERROR_TAG! The WebMCP startup UAT runner is missing. The test was not started.
+  exit /b 1
+)
+echo !INFO! Starting the bounded WebMCP interface/surface UAT after readiness.
+echo !INFO! The UAT window will remain open with its PASS/FAIL report.
+start "PlotPickle WebMCP UAT" cmd.exe /k node "%WEBMCP_STARTUP_RUNNER%" run --server "%PLOTPICKLE_URL%" --home "!PLOTPICKLE_HOME!" --tool-root "!PLOTPICKLE_WEBMCP_TOOL_ROOT!"
+exit /b 0
+
+:cleanup_webmcp_testing
+if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" exit /b 0
+if not exist "%WEBMCP_STARTUP_RUNNER%" exit /b 0
+if not defined PLOTPICKLE_HOME exit /b 0
+node "%WEBMCP_STARTUP_RUNNER%" cleanup --home "!PLOTPICKLE_HOME!" >nul 2>&1
 exit /b 0
 
 :start_deferred_companion_maintenance
@@ -495,6 +603,7 @@ echo.
 echo Runtime folder: !PLOTPICKLE_RUNTIME_DIR!
 echo Your story projects are not stored in that folder.
 echo.
+call :cleanup_webmcp_testing
 pause
 exit /b 1
 

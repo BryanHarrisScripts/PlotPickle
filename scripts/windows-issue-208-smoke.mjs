@@ -184,14 +184,26 @@ async function navigate(client, url) {
   await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, `Page ${url}`);
 }
 
+const BROWSER_LITERAL_ESCAPES = Object.freeze({
+  "<": "\\u003c",
+  ">": "\\u003e",
+  "/": "\\u002f",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+});
+
+function safeBrowserStringLiteral(value) {
+  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
+}
+
 const normalizeFunction = `const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();`;
 
 async function waitForShell(client, label, timeoutMs = 25_000) {
-  await waitFor(client, `(() => { ${normalizeFunction} const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${JSON.stringify(label)}); return Boolean(document.querySelector(".application-shell-header") && active); })()`, timeoutMs, `${label} application shell`);
+  await waitFor(client, `(() => { ${normalizeFunction} const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)}); return Boolean(document.querySelector(".application-shell-header") && active); })()`, timeoutMs, `${label} application shell`);
 }
 
 async function clickButton(client, text) {
-  return evaluate(client, `(() => { ${normalizeFunction} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${JSON.stringify(text)}); if (!button) return false; button.click(); return true; })()`);
+  return evaluate(client, `(() => { ${normalizeFunction} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(text)}); if (!button) return false; button.click(); return true; })()`);
 }
 
 async function inspect(client, events, eventStart, baseOrigin) {
@@ -430,7 +442,7 @@ async function main() {
       const labels = ["Introduction", "Complete Learning Library", "Terminology", "Screenplay Study"];
       for (const label of labels) {
         if (!await clickButton(client, label)) throw new Error(`Learn tab not found: ${label}`);
-        await waitFor(client, `(() => { ${normalizeFunction} return [...document.querySelectorAll(".learn-section-tabs button")].some((item) => normalize(item.innerText) === ${JSON.stringify(label)} && item.getAttribute("aria-current") === "page"); })()`, 10_000, `${label} active Learn tab`);
+        await waitFor(client, `(() => { ${normalizeFunction} return [...document.querySelectorAll(".learn-section-tabs button")].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)} && item.getAttribute("aria-current") === "page"); })()`, 10_000, `${label} active Learn tab`);
       }
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));

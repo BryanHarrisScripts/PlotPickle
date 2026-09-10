@@ -8,36 +8,36 @@ function checkedBatchValue(value) {
   return text;
 }
 
+function quotedBatchValue(value) {
+  return `"${checkedBatchValue(value)}"`;
+}
+
 /**
  * Build a cmd.exe invocation whose command text contains only fixed environment
  * variable references. Dynamic command paths and arguments are placed in the
  * child environment after strict metacharacter rejection, so they are not
  * concatenated into shell command text.
  *
- * The /c source contains only fixed, quoted environment-variable references.
- * The dynamic command path itself stays in the child environment, which keeps
- * CodeQL-sensitive values out of shell command text while still supporting
+ * Each environment value is quoted before expansion. The /c payload is then
+ * passed as separate, static arguments instead of one nested quoted command
+ * string. This avoids Node/cmd.exe quote-stripping edge cases while preserving
  * PATH-resolved batch names and absolute paths containing spaces.
- *
- * Do not add cmd.exe /s here. Its quote-stripping rules interfere with quoted
- * batch paths when Node passes the /c source as one argument.
  */
 export function windowsBatchInvocation(command, args = [], environment = {}) {
   const values = [command, ...args].map(checkedBatchValue);
   const env = { ...environment };
-  env.PLOTPICKLE_BATCH_COMMAND = values[0];
+  env.PLOTPICKLE_BATCH_COMMAND = quotedBatchValue(values[0]);
 
   const argumentReferences = [];
   for (let index = 1; index < values.length; index += 1) {
     const name = `PLOTPICKLE_BATCH_ARG_${index - 1}`;
-    env[name] = values[index];
-    argumentReferences.push(`"%${name}%"`);
+    env[name] = quotedBatchValue(values[index]);
+    argumentReferences.push(`%${name}%`);
   }
 
-  const commandLine = [`call "%PLOTPICKLE_BATCH_COMMAND%"`, ...argumentReferences].join(" ");
   return Object.freeze({
     executable: "cmd.exe",
-    args: Object.freeze(["/d", "/c", commandLine]),
+    args: Object.freeze(["/d", "/c", "call", "%PLOTPICKLE_BATCH_COMMAND%", ...argumentReferences]),
     env,
   });
 }

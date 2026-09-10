@@ -35,7 +35,8 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.doesNotMatch(helper, /windowsVerbatimArguments/);
   assert.doesNotMatch(helper, /quoteForCommandPrompt/);
   assert.match(helper, /C:\\Program Files\\nodejs\\node\.exe/);
-  assert.match(batchHelper, /call "%PLOTPICKLE_BATCH_COMMAND%"/);
+  assert.match(batchHelper, /PLOTPICKLE_BATCH_COMMAND/);
+  assert.match(batchHelper, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/);
   assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
   assert.match(batchHelper, /unsupported command-shell characters/);
 

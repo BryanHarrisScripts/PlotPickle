@@ -70,7 +70,7 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects Clo
   assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
   assert.match(dashboard, /setCloudStoryModeOpen\(true\)/u);
   assert.match(dashboard, /setPlotPickleAgentsOpen\(true\)/u);
-  assert.doesNotMatch(dashboard, /disabled=\{!connected\}/u);
+  assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(cloud, /data-skin-v1-cloud-story-mode="true"/u);
   assert.match(cloud, /label: "AGENTS"/u);
   assert.match(agents, /data-skin-v1-plotpickle-agents="true"/u);

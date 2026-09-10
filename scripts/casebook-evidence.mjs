@@ -25,24 +25,12 @@ const evidenceTextRedactions = Object.freeze([
   { pattern: /\/home\/[^/\s]+/g, replacement: "/home/[user]" },
   { pattern: /\/Users\/[^/\s]+/g, replacement: "/Users/[user]" },
 ]);
-const BROWSER_LITERAL_ESCAPES = Object.freeze({
-  "<": "\\u003c",
-  ">": "\\u003e",
-  "/": "\\u002f",
-  "\u2028": "\\u2028",
-  "\u2029": "\\u2029",
-});
-
 function scrubEvidenceText(value) {
   let safe = String(value ?? "");
   for (const rule of evidenceTextRedactions) safe = safe.replace(rule.pattern, rule.replacement);
   safe = safe.replace(/[\u0000-\u001f\u007f]/g, " ");
   safe = safe.replace(/\s+/g, " ");
   return safe.trim();
-}
-
-function safeBrowserStringLiteral(value) {
-  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
 }
 
 export function redactCaseEvidence(input) {
@@ -224,19 +212,10 @@ export function createCasebookHumanInteractionAdapter({ client, tools, creativeB
   }
 
   async function focusByLabel(label) {
-    const wanted = safeBrowserStringLiteral(label);
-    const text = await evaluate(`() => {
-      const wanted = ${wanted}.trim().toLowerCase();
-      const nodes = [...document.querySelectorAll('button,a,input,textarea,select,[tabindex]')];
-      const target = nodes.find((node) => {
-        const name = (node.getAttribute('aria-label') || node.textContent || node.getAttribute('name') || '').trim().toLowerCase();
-        return name === wanted;
-      });
-      if (!target || typeof target.focus !== 'function') return JSON.stringify({ ok: false });
-      target.focus();
-      return JSON.stringify({ ok: document.activeElement === target });
-    }`);
-    return { ok: /"ok"\s*:\s*true/.test(text), state: text };
+    if (typeof creativeBrowser.focusVisible !== "function") return { ok: false, reason: "visible focus capability unavailable" };
+    const result = await creativeBrowser.focusVisible(String(label));
+    if (typeof result === "boolean") return { ok: result };
+    return { ...result, ok: result?.ok === true };
   }
 
   return { pointerClick, typeByLabel, navigate, screenshot, pressKey, scrollBy, focusByLabel };

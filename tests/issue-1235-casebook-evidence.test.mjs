@@ -132,6 +132,7 @@ test("#1235 Human interaction adapter reuses the existing Creative Browser and M
   const creativeBrowser = {
     async clickVisible(label) { calls.push(["pointer", label]); return true; },
     async fillByLabel(label, value) { calls.push(["type", label, value]); return { ok: true }; },
+    async focusVisible(label) { calls.push(["focus", label]); return { ok: true, method: "visible keyboard focus" }; },
     async navigate(url) { calls.push(["navigate", url]); return { ok: true }; },
     async screenshot(name) { calls.push(["screenshot", name]); return { ok: true }; },
   };
@@ -152,8 +153,9 @@ test("#1235 Human interaction adapter reuses the existing Creative Browser and M
   assert.equal((await adapter.scrollBy(600)).ok, true);
   assert.equal((await adapter.focusByLabel("Connect identity")).ok, true);
   assert.ok(calls.some(([name, value]) => name === "pointer" && value === "Connect Existing Identity"));
+  assert.ok(calls.some(([name, value]) => name === "focus" && value === "Connect identity"));
   assert.ok(calls.some(([name]) => name === "browser_press_key"));
-  assert.ok(calls.filter(([name]) => name === "browser_evaluate").length >= 2);
+  assert.equal(calls.filter(([name]) => name === "browser_evaluate").length, 1);
 });
 
 test("#1235 browser evidence recorder produces a replayable expected-vs-observed action record", async () => {

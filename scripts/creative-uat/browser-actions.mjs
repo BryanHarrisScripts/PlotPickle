@@ -229,6 +229,38 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     return Boolean(result.ok);
   }
 
+  async function focusVisible(label) {
+    const keyTool = toolMap.get("browser_press_key");
+    if (!keyTool) return { ok: false, reason: "browser_press_key unavailable" };
+    const wanted = String(label).replace(/\s+/g, " ").trim().toLowerCase();
+    if (!wanted) return { ok: false, reason: "focus label is empty" };
+
+    const initialSnapshot = await snapshot();
+    const ref = extractRef(initialSnapshot, label, ["button", "link", "tab", "textbox", "searchbox", "combobox", "spinbutton"]);
+    if (!ref) return { ok: false, reason: "visible focus target unavailable" };
+
+    const focusedControl = async () => evaluate(`() => {
+      const node = document.activeElement;
+      if (!node || node === document.body || node === document.documentElement) return { name: "", tag: "" };
+      const labelledBy = (node.getAttribute('aria-labelledby') || '')
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((id) => document.getElementById(id)?.textContent || '')
+        .join(' ');
+      const nativeLabel = node.labels?.length ? [...node.labels].map((item) => item.textContent || '').join(' ') : '';
+      const name = node.getAttribute('aria-label') || labelledBy || nativeLabel || node.textContent || node.getAttribute('name') || '';
+      return { name: String(name).replace(/\s+/g, ' ').trim(), tag: node.tagName.toLowerCase() };
+    }`);
+
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      const state = await focusedControl();
+      if (String(state?.name || "").toLowerCase() === wanted) return { ok: true, method: "visible keyboard focus", state };
+      await client.call("browser_press_key", toolArguments(keyTool, { key: "Tab" }));
+      await delay(25);
+    }
+    return { ok: false, reason: "visible focus target was not reached by keyboard" };
+  }
+
   async function record(stage, label, status = "PASS", note = "") {
     const state = await currentState();
     const consoleText = await consoleMessages();
@@ -277,5 +309,5 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     return clicked && String(state.activeStorySection || "").trim().toLowerCase() === wanted;
   }
 
-  return { clickVisible, currentState, fillByLabel, fillDraft, gotoStorySection, gotoWorkspace, navigate, record, screenshot, snapshot };
+  return { clickVisible, currentState, fillByLabel, fillDraft, focusVisible, gotoStorySection, gotoWorkspace, navigate, record, screenshot, snapshot };
 }

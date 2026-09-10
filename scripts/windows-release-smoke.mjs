@@ -7,6 +7,7 @@ import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { callCdpPageFunction } from "../lib/verification/cdp-page-function.mjs";
 
 const root = path.resolve(process.argv[2] ?? ".");
 const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports", "windows-release-smoke"));
@@ -205,44 +206,60 @@ async function navigate(client, url) {
   await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, `Page ${url}`);
 }
 
-const BROWSER_LITERAL_ESCAPES = Object.freeze({
-  "<": "\\u003c",
-  ">": "\\u003e",
-  "/": "\\u002f",
-  "\u2028": "\\u2028",
-  "\u2029": "\\u2029",
+const PAGE_FUNCTIONS = Object.freeze({
+  hydratedButton: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === wantedLabel);
+    return Boolean(button && Object.keys(button).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$")));
+  }`,
+  clickButton: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === wantedLabel);
+    if (!button) return false;
+    button.click();
+    return true;
+  }`,
+  shellReady: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const header = document.querySelector(".application-shell-header");
+    const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === wantedLabel);
+    const body = normalize(document.body?.innerText);
+    return Boolean(header && active && !body.includes("See the whole movie before you make it."));
+  }`,
 });
-
-function safeBrowserStringLiteral(value) {
-  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
-}
 
 function browserNormalizeFunction() {
   return `const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();`;
 }
 
-function hydratedButtonExpression(text) {
-  return `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(text)}); return Boolean(button && Object.keys(button).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"))); })()`;
+async function waitForPageFunction(client, functionDeclaration, values, timeoutMs = 15_000, label = "Browser condition") {
+  const stopAt = Date.now() + timeoutMs;
+  let lastError = "";
+  while (Date.now() < stopAt) {
+    try {
+      const value = await callCdpPageFunction(client, functionDeclaration, values);
+      if (value) return value;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await delay(100);
+  }
+  throw new Error(`${label} did not become true within ${timeoutMs} ms.${lastError ? ` Last browser error: ${lastError}` : ""}`);
 }
 
 async function waitForHydratedButton(client, text, timeoutMs = 20_000) {
-  await waitFor(client, hydratedButtonExpression(text), timeoutMs, `Hydrated ${text} button`);
+  await waitForPageFunction(client, PAGE_FUNCTIONS.hydratedButton, [String(text)], timeoutMs, `Hydrated ${text} button`);
 }
 
 async function openAdvancedSettings(client) {
   await waitForHydratedButton(client, "Other settings");
-  const clicked = await evaluate(client, `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === "Other settings"); if (!button) return false; button.click(); return true; })()`);
+  const clicked = await callCdpPageFunction(client, PAGE_FUNCTIONS.clickButton, ["Other settings"]);
   if (!clicked) throw new Error("Other settings was not found in Settings.");
   await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Advanced Settings panel");
 }
 
-function shellReadyExpression(workspace) {
-  const label = workspaceLabels[workspace];
-  return `(() => { ${browserNormalizeFunction()} const header = document.querySelector(".application-shell-header"); const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)}); const body = normalize(document.body?.innerText); return Boolean(header && active && !body.includes("See the whole movie before you make it.")); })()`;
-}
-
 async function waitForShell(client, workspace, timeoutMs = 25_000) {
-  await waitFor(client, shellReadyExpression(workspace), timeoutMs, `${workspace} application shell`);
+  await waitForPageFunction(client, PAGE_FUNCTIONS.shellReady, [workspaceLabels[workspace]], timeoutMs, `${workspace} application shell`);
 }
 
 function unique(values) {

@@ -88,8 +88,8 @@ async function ensureVerificationTools(toolRoot) {
   }
   if (!browserReady) {
     console.log("[WEBMCP] Installing the isolated Chromium test browser. This is a one-time verification download.");
-    const playwrightPackage = toolRequire.resolve("playwright/package.json");
-    const playwrightCli = path.join(path.dirname(playwrightPackage), "cli.js");
+    const playwrightCli = path.join(toolRoot, "node_modules", "playwright", "cli.js");
+    await access(playwrightCli);
     await runCommand(process.execPath, [playwrightCli, "install", "chromium"]);
   }
 
@@ -125,6 +125,9 @@ async function cleanup(home) {
 
 async function run({ serverUrl, home, toolRoot }) {
   if (!home) throw new Error("Pass --home for the isolated WebMCP synthetic test home.");
+  if (!toolRoot) throw new Error("Pass --tool-root pointing to the isolated WebMCP verification install.");
+  const resolvedHome = path.resolve(home);
+  const resolvedToolRoot = path.resolve(toolRoot);
   const server = validateLocalServer(serverUrl || "http://127.0.0.1:4173");
   console.log("============================================================");
   console.log("  PlotPickle - WebMCP Testing");
@@ -132,12 +135,12 @@ async function run({ serverUrl, home, toolRoot }) {
   console.log("Waiting for the private PlotPickle test session...");
 
   try {
-    await ensureVerificationTools(path.resolve(toolRoot));
+    await ensureVerificationTools(resolvedToolRoot);
     await waitForUiServer(server);
-    const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: path.resolve(home) });
+    const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: resolvedHome });
     await runWebMcpSurfaceVisualAudit({
       serverUrl: server.origin,
-      toolRoot: path.resolve(toolRoot),
+      toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
     const evidence = await writeEvidence("pass");

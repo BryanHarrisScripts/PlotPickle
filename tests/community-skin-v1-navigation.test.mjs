@@ -21,13 +21,14 @@ test("Community navigation requires authentication and leaves unmigrated surface
 });
 
 test("Skin V1 activates the existing Community host without importing BUZZ transport", async () => {
-  const [skin, dashboard, host, compatibilityCss, communityCss, layout] = await Promise.all([
+  const [skin, dashboard, host, compatibilityCss, communityCss, layout, audit] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/_components/community/community-skin-host.tsx"),
     read("app/skin-v1.css"),
     read("app/community-monochrome-skin.css"),
     read("app/layout.tsx"),
+    read("lib/verification/webmcp-surface-visual-audit.mjs"),
   ]);
   assert.match(skin, /onActivate=\{activateDashboardItem\}/u);
   assert.match(dashboard, /onClick=\{\(\) => activateItem\(index\)\}/u);
@@ -45,6 +46,10 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(communityCss, /filter:\s*none\s*!important/u);
   assert.match(communityCss, /--community-teal:\s*var\(--pp-skin-accent-bright\)/u);
   assert.match(communityCss, /--community-orange:\s*var\(--pp-skin-accent\)/u);
+  assert.match(communityCss, /:is\([\s\S]*button,[\s\S]*input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\):not\(\[type="hidden"\]\),[\s\S]*select,[\s\S]*textarea[\s\S]*\)[\s\S]*min-height:\s*var\(--pp-skin-control-height\)\s*!important/u);
+  assert.match(audit, /expectedControlHeight/u);
+  assert.match(audit, /actualHeight \+ 0\.5 < expectedControlHeight/u);
+  assert.doesNotMatch(communityCss, /button#28/u);
   assert.doesNotMatch(communityCss, /filter:\s*grayscale\(1\)\s*saturate\(0\)/u);
   assert.match(layout, /community-monochrome-skin.css/u);
 });

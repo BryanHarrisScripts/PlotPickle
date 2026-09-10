@@ -83,5 +83,109 @@
     "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
     "npm run build"
   ],
+  "harness": {
+    "schemaVersion": 1,
+    "coordinator": "scripts/developer-agent-mcp.mjs",
+    "policy": "AGENTS.md",
+    "mode": "deterministic-hooks",
+    "hooks": [
+      {
+        "id": "focused-uat",
+        "responsibility": "Run the focused deterministic Startup, Settings, Foundations/LEARN, PLAN and Wyrmwood contracts.",
+        "entrypoint": "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
+        "kind": "validation",
+        "findingSource": true,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "webmcp-ui",
+        "responsibility": "Inspect loaded rendered Skin V1 surfaces and emit privacy-safe deterministic UI-conformance findings.",
+        "entrypoint": "node scripts/run-webmcp-startup-uat.mjs",
+        "kind": "rendered-validation",
+        "findingSource": true,
+        "requiresLiveServer": true,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "closed-loop-uat",
+        "responsibility": "Coordinate existing focused, conversational and exhaustive UAT findings and optional bounded report/repair handoff.",
+        "entrypoint": "node scripts/run-uat-closed-loop.mjs",
+        "kind": "finding-coordinator",
+        "findingSource": true,
+        "requiresLiveServer": true,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "uat-report",
+        "responsibility": "Send deterministic UAT findings through the existing GitHub issue reporter when explicitly requested.",
+        "entrypoint": "node scripts/report-uat-findings.mjs",
+        "kind": "reporting",
+        "findingSource": false,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "ben-code-quality",
+        "responsibility": "Run BEN deterministic code-quality observation without source writes.",
+        "entrypoint": "node scripts/run-ben-code-quality.mjs",
+        "kind": "quality-validation",
+        "findingSource": true,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "pi-code-quality-review",
+        "responsibility": "Run the read-only advisory Pi code-quality review; deterministic checks remain authoritative.",
+        "entrypoint": "node scripts/run-pi-code-quality-review.mjs",
+        "kind": "advisory-review",
+        "findingSource": false,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "build",
+        "responsibility": "Build the production application as a deterministic verification gate.",
+        "entrypoint": "npm run build",
+        "kind": "build-validation",
+        "findingSource": false,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": false
+      },
+      {
+        "id": "semantic-repair",
+        "responsibility": "Prepare a bounded repair for one verified UAT fingerprint using the configured local Pi/Cline worker path.",
+        "entrypoint": "node scripts/run-semantic-uat-repair.mjs",
+        "kind": "bounded-repair",
+        "findingSource": false,
+        "requiresLiveServer": false,
+        "repairAuthority": true,
+        "mergeAuthority": false
+      },
+      {
+        "id": "github-ci",
+        "responsibility": "Independently validate the exact pull-request head and remain the only final merge gate.",
+        "entrypoint": null,
+        "kind": "external-merge-gate",
+        "findingSource": false,
+        "requiresLiveServer": false,
+        "repairAuthority": false,
+        "mergeAuthority": true
+      }
+    ],
+    "flows": {
+      "prePr": ["focused-uat", "build"],
+      "liveUi": ["webmcp-ui"],
+      "closedLoop": "verified finding -> existing UAT report -> bounded semantic repair -> rerun originating hook",
+      "finalGate": "github-ci"
+    }
+  },
   "mergePolicy": "green-exact-head-only"
 }

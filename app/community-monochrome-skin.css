@@ -1,94 +1,116 @@
 /*
- * Issue #1757 — Community Experience Boundary
+ * PlotPickle Community presentation adapter.
  *
- * Community keeps its successful BUZZ/BBS structure and behavior while the
- * active Experience/SKIN work is still moving. This file is presentation-only:
- * it deliberately does not change room, membership, message, agent, Story Room,
- * or Canon behavior.
- *
- * Skin V1 values resolve through skin-v1-definition.css so Community cannot
- * drift into a separate monochrome palette.
+ * Community owns its rooms, messages, Agents and navigation behavior. Skin V1
+ * owns the presentation language. This adapter maps the Community compatibility
+ * variables to the shared Skin contract and prevents legacy Community CSS from
+ * neutralizing the Dashboard Matrix-green palette.
  */
 
-[data-community-native-buzz="true"] {
-  --community-bg: var(--pp-skin-surface-0, #050505);
-  --community-panel: var(--pp-skin-surface-1, #0d0d0d);
-  --community-panel-2: var(--pp-skin-surface-2, #151515);
-  --community-border: var(--pp-skin-line, #3a3a3a);
-  --community-text: var(--pp-skin-ink, #f4f4f4);
-  --community-muted: var(--pp-skin-ink-muted, #9b9b9b);
-  --community-teal: var(--pp-skin-ink-soft, #f0f0f0);
-  --community-orange: var(--pp-skin-ink-soft, #bdbdbd);
-  filter: grayscale(1) saturate(0) contrast(1.03);
-  background: var(--community-bg) !important;
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] {
+  --community-bg: var(--pp-skin-canvas);
+  --community-panel: var(--pp-skin-surface-1);
+  --community-panel-2: var(--pp-skin-surface-2);
+  --community-border: var(--pp-skin-line);
+  --community-text: var(--pp-skin-ink);
+  --community-muted: var(--pp-skin-ink-muted);
+
+  /* Legacy semantic names stay available while Community components migrate,
+     but they now resolve to the same three Matrix greens as Dashboard. */
+  --community-teal: var(--pp-skin-accent-bright);
+  --community-orange: var(--pp-skin-accent);
+  --community-accent-deep: var(--pp-skin-accent-deep);
+  --community-accent: var(--pp-skin-accent);
+  --community-accent-bright: var(--pp-skin-accent-bright);
+  --community-bbs-font: var(--pp-skin-font-ui);
+
+  filter: none !important;
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
 }
 
-[data-community-native-buzz="true"]::before {
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"]::before {
   content: "COMMUNITY / SOCIAL SPACE — Conversation, images and Agent suggestions remain outside story Canon until a Human deliberately accepts them as story material.";
   display: block;
   max-width: 1420px;
-  margin: 0 auto 14px;
-  padding: var(--pp-skin-space-3, 12px);
-  border: var(--pp-skin-border-thin, 1px) solid var(--community-border);
-  background: var(--community-panel);
-  color: var(--pp-skin-ink-soft, #d8d8d8);
-  font: var(--pp-skin-font-meta, 11px)/1.45 var(--pp-skin-font-ui, "Courier New", "Lucida Console", monospace);
-  letter-spacing: var(--pp-skin-tracking-meta, 0.03em);
+  margin: 0 auto var(--pp-skin-space-4);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  font: var(--pp-skin-font-meta)/var(--pp-skin-leading-body) var(--pp-skin-font-ui);
+  letter-spacing: var(--pp-skin-tracking-meta);
 }
 
-[data-community-native-buzz="true"] img {
-  filter: var(--pp-skin-media-filter, grayscale(1) saturate(0) contrast(1.08));
-}
-
-[data-community-native-buzz="true"] button,
-[data-community-native-buzz="true"] a,
-[data-community-native-buzz="true"] input,
-[data-community-native-buzz="true"] textarea,
-[data-community-native-buzz="true"] select {
-  border-color: var(--community-border) !important;
-  border-radius: var(--pp-skin-radius, 0) !important;
-}
-
-[data-community-native-buzz="true"] button:hover:not(:disabled),
-[data-community-native-buzz="true"] button:focus-visible,
-[data-community-native-buzz="true"] a:hover,
-[data-community-native-buzz="true"] a:focus-visible,
-[data-community-native-buzz="true"] input:focus,
-[data-community-native-buzz="true"] textarea:focus,
-[data-community-native-buzz="true"] select:focus {
-  border-color: var(--pp-skin-focus, #d9d9d9) !important;
-  outline-color: var(--pp-skin-focus, #d9d9d9);
-}
-
-[data-community-native-buzz="true"] [aria-current="page"] {
-  border-color: var(--pp-skin-accent-bright, #d9d9d9) !important;
-  box-shadow: inset 3px 0 var(--pp-skin-accent-bright, #f2f2f2);
-}
-
-@media (max-width: 900px) {
-  [data-community-native-buzz="true"]::before {
-    margin: 0 14px 12px;
-  }
-}
-
-/* Skin V1 uses stepped 8/16-bit shading rather than glass or soft gradients. */
-html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] {
-  --community-bbs-font: var(--pp-skin-font-ui);
-  background: var(--pp-skin-fill-panel) !important;
-}
-
-html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(article, aside, section) {
-  background-image: var(--pp-skin-fill-panel);
-  box-shadow: var(--pp-skin-inset-highlight), var(--pp-skin-shadow-control);
-}
-
+/* Artwork remains independently controllable. The Community surface itself is
+   no longer desaturated, so Skin V1 accent colours remain visible. */
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] img {
-  image-rendering: auto;
   filter: var(--pp-skin-media-filter);
+}
+
+/* Shared square control language. Higher specificity intentionally wins over
+   legacy CSS-module defaults regardless of module load order. */
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(button, a, input, textarea, select) {
+  border-color: var(--pp-skin-line) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(button, a):hover:not(:disabled),
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(button, a):focus-visible,
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(input, textarea, select):focus-visible {
+  border-color: var(--pp-skin-focus) !important;
+  outline-color: var(--pp-skin-focus) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(
+  [aria-current="page"],
+  [data-active="true"] > button,
+  [data-ready="true"] > button
+) {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: inset 3px 0 var(--pp-skin-accent-bright) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(
+  article,
+  aside,
+  section,
+  [role="region"]
+) {
+  border-radius: var(--pp-skin-radius) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(h1, h2, h3, h4, strong, b) {
+  color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(small, time) {
+  color: var(--pp-skin-ink-muted);
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] [data-community-room-art] :is(span, p) {
+  color: var(--pp-skin-accent-bright);
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] [data-community-room-art] h1 {
+  color: var(--pp-skin-ink);
 }
 
 [data-community-agent][data-selected="true"],
 [data-community-agent]:focus-visible {
-  outline: var(--pp-skin-border-strong, 2px) solid var(--pp-skin-focus, #fff);
+  outline: var(--pp-skin-border-strong) solid var(--pp-skin-focus);
   outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"]::before {
+    margin: 0 var(--pp-skin-space-4) var(--pp-skin-space-3);
+  }
 }

@@ -78,9 +78,40 @@ test("Dashboard consumes Skin V1 tokens and Skin V1 owns its artwork package", a
   assert.match(reference, /object-fit: cover/u);
 });
 
+test("Community consumes the shared Skin V1 palette instead of neutralizing it", async () => {
+  const [adapter, social] = await Promise.all([
+    read("app/community-monochrome-skin.css"),
+    read("modules/community/community-buzz-social.module.css"),
+  ]);
+
+  assert.match(adapter, /--community-teal:\s*var\(--pp-skin-accent-bright\)/u);
+  assert.match(adapter, /--community-orange:\s*var\(--pp-skin-accent\)/u);
+  assert.match(adapter, /--community-accent-deep:\s*var\(--pp-skin-accent-deep\)/u);
+  assert.match(adapter, /filter:\s*none\s*!important/u);
+  assert.doesNotMatch(adapter, /filter:\s*grayscale\(1\)\s*saturate\(0\)/u);
+
+  for (const token of [
+    "--pp-skin-surface-0",
+    "--pp-skin-surface-1",
+    "--pp-skin-line",
+    "--pp-skin-ink",
+    "--pp-skin-ink-muted",
+    "--pp-skin-accent-deep",
+    "--pp-skin-accent",
+    "--pp-skin-accent-bright",
+    "--pp-skin-radius",
+    "--pp-skin-media-filter",
+  ]) assert.match(`${adapter}\n${social}`, new RegExp(token, "u"));
+
+  assert.doesNotMatch(social, /#35c9b8|#d6a95f|#d68a45|#e5bd72|#93e36f|rgba\(53,\s*201,\s*184|rgba\(214,\s*169,\s*95/iu);
+  assert.doesNotMatch(social, /border-radius:\s*(?:7|8|999)px/iu);
+  assert.match(social, /image-rendering:\s*pixelated/u);
+});
+
 test("Skin V1 owned surfaces consume semantic skin tokens instead of owning palettes", async () => {
   const files = [
     "app/community-monochrome-skin.css",
+    "modules/community/community-buzz-social.module.css",
     "app/skin-v1/local-ai-skin-host.tsx",
     "app/skin-v1/local-comfyui-panel.tsx",
     "app/skin-v1/local-video-panel.tsx",

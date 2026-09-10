@@ -21,20 +21,24 @@ function completed(command, args) {
 }
 
 test("issue #104 preserves Windows executable paths containing spaces", async () => {
-  const [helper, build, timeout, audit] = await Promise.all([
+  const [helper, batchHelper, build, timeout, audit] = await Promise.all([
     source("scripts/spawn-command.mjs"),
+    source("scripts/windows-batch-command.mjs"),
     source("scripts/build-verified.mjs"),
     source("scripts/run-command-with-timeout.mjs"),
     source("scripts/lighthouse-audit.mjs"),
   ]);
 
-  assert.match(helper, /process\.env\.ComSpec/);
+  assert.match(helper, /windowsBatchInvocation/);
   assert.ok(helper.includes('/\\.(?:cmd|bat)$/i'));
   assert.match(helper, /shell: false/);
-  assert.match(helper, /\["\/d", "\/c", command, \.\.\.args\]/);
+  assert.doesNotMatch(helper, /process\.env\.ComSpec/);
   assert.doesNotMatch(helper, /windowsVerbatimArguments/);
   assert.doesNotMatch(helper, /quoteForCommandPrompt/);
   assert.match(helper, /C:\\Program Files\\nodejs\\node\.exe/);
+  assert.match(batchHelper, /call "%PLOTPICKLE_BATCH_COMMAND%"/);
+  assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
+  assert.match(batchHelper, /unsupported command-shell characters/);
 
   for (const file of [build, timeout, audit]) {
     assert.match(file, /spawnCommand/);

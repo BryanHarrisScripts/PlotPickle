@@ -46,3 +46,48 @@ test("Skin V1 keeps the Settings directory incremental and opens only Cloud Stor
   assert.match(cloud, /<AiRoutingPanel capability="video" locality="cloud"/u);
   assert.doesNotMatch(cloud, /LegacySettingsPanel|\/api\/local-ai\/connection/u);
 });
+
+test("Local and Cloud Story Modes use modern provider stores without legacy fallback", async () => {
+  const [skin, local, cloud, provider, authorityRoute, writingStore, mediaStore, migration] = await Promise.all([
+    read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1/local-ai-skin-host.tsx"),
+    read("app/skin-v1/cloud-story-mode-host.tsx"),
+    read("app/skin-v1/cloud-provider-setup-panel.tsx"),
+    read("app/api/cloud-story-mode/provider/route.ts"),
+    read("build/writing-assistant-store.ts"),
+    read("build/media-routing-store.ts"),
+    read("docs/architecture/SKIN-V1-STORY-MODE-MIGRATION.md"),
+  ]);
+
+  assert.match(skin, /label: "LOCAL STORY MODE", description: "LOCAL WRITING \/ IMAGES \/ VIDEO"/u);
+  assert.match(skin, /aria-label="Local Story Mode setup"/u);
+  assert.match(local, /PROFILE \/ LOCAL STORY MODE/u);
+  assert.match(local, /BACK TO LOCAL STORY MODE/u);
+  assert.match(local, /Local Story Mode defaults to local, hardware-aware AI/u);
+
+  for (const source of [cloud, provider, authorityRoute]) assert.doesNotMatch(source, /LegacySettingsPanel|settings-panel-legacy|\/api\/local-ai\/connection/u);
+  assert.match(provider, /\/api\/cloud-story-mode\/provider/u);
+  assert.match(provider, /\/api\/writing-assistant\/test/u);
+  assert.match(provider, /\/api\/media-routing\/test\/image/u);
+  assert.match(provider, /X-PlotPickle-CSRF/u);
+  assert.match(provider, /may incur provider charges/u);
+  assert.match(authorityRoute, /authorizeRequest\(requestBoundary\(request\), \{ mutation: true \}\)/u);
+  assert.match(authorityRoute, /writeAssistantStore/u);
+  assert.match(authorityRoute, /writeMediaRoutingStore/u);
+  assert.match(authorityRoute, /No paid provider request was run and no route was activated/u);
+
+  assert.match(writingStore, /migration input only/u);
+  assert.match(writingStore, /imported && !store\.profiles\[imported\.provider\]/u);
+  assert.match(mediaStore, /migration input only/u);
+  assert.match(mediaStore, /imported && !next\.profiles\[imported\.provider\]/u);
+
+  for (const decision of [
+    "Data stays separate",
+    "Deploy stays separate",
+    "Repos stays separate",
+    "Auth stays separate",
+    "Agents stays separate",
+    "Open Source stays separate",
+  ]) assert.match(migration, new RegExp(decision, "u"));
+  assert.match(migration, /Only one new Settings system is opened at a time/u);
+});

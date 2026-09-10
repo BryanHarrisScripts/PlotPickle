@@ -10,6 +10,10 @@ import {
   type SequenceDirectorRenderPrompt,
   type SequenceDirectorSurface,
 } from "../core/contracts/sequence-director";
+import {
+  compileBeatCinematography,
+  compileSequenceCinematography,
+} from "./sequence-director-cinematography";
 
 export type SequenceDirectorSeed = {
   readonly blockNumber: number;
@@ -131,6 +135,9 @@ export function compileSequenceDirectorBrief(draft: SequenceDirectorDraft, surfa
     draft.title || "Untitled sequence",
     draft.purpose || "No purpose supplied.",
     "",
+    "=== CINEMATOGRAPHY GRAMMAR ===",
+    compileSequenceCinematography(draft, surface),
+    "",
     "=== REFERENCE MAP ===",
     referenceMap(draft),
     "",
@@ -220,6 +227,9 @@ function clipPrompt(draft: SequenceDirectorDraft, clipNumber: number) {
     "",
     "=== WHAT CHANGES IN THIS CLIP ===",
     beats.length ? beats.map((beat) => beatText(beat, true)).join("\n\n") : "No new creative event; preserve approved continuity through this interval.",
+    "",
+    "=== CINEMATOGRAPHY GRAMMAR ===",
+    compileBeatCinematography(draft, beats),
     "",
     "=== END STATE ===",
     beats.at(-1)?.continuityOut || next?.continuityIn || "End on a stable boundary that can seed the next 3-second clip.",

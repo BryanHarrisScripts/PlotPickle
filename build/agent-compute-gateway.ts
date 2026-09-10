@@ -4,7 +4,7 @@ import { AGENT_PROFILES } from "../lib/agents/agent-profiles";
 import { PLOTPICKLE_AGENT_ROLES } from "./mastra-agent-runtime";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 import { readAgentComputeStore, writeAgentComputeStore } from "./agent-compute-store";
-import { isTextProvider, publicProfile, readSynchronizedAssistantStore, type TextProvider } from "./writing-assistant-store";
+import { isTextProvider, readSynchronizedAssistantStore, type TextProvider } from "./writing-assistant-store";
 
 const PATH = "/api/writing-assistant/agent-compute";
 const LABELS: Record<TextProvider, string> = {
@@ -72,18 +72,18 @@ async function snapshot() {
     localRuntimeSnapshot(),
   ]);
   const providers = (["local", "ollama", "openai", "minimax", "gemini"] as const).map((id) => {
-    const profile = publicProfile(store.profiles[id], store.activeProvider);
+    const stored = store.profiles[id];
     const localReady = id === "local" && localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available;
-    const localModel = id === "local"
-      ? localRuntime.roles.quality.model || localRuntime.roles.fast.model || profile.model || "Hardware optimized"
-      : profile.model || "";
+    const model = id === "local"
+      ? localRuntime.roles.quality.selected || localRuntime.roles.fast.selected || stored?.textModel || "Hardware optimized"
+      : stored?.textModel || "";
     return {
       id,
       label: LABELS[id],
-      configured: id === "local" ? localRuntime.activeRuntime.reachable : profile.configured,
-      ready: id === "local" ? localReady : profile.ready,
-      model: localModel,
-      locality: id === "local" || id === "ollama" ? "local" : "cloud",
+      configured: id === "local" ? localRuntime.activeRuntime.reachable : Boolean(stored?.textModel),
+      ready: id === "local" ? localReady : Boolean(stored?.assistantVerifiedAt),
+      model,
+      locality: id === "local" || id === "ollama" ? "local" as const : "cloud" as const,
     };
   });
   return {

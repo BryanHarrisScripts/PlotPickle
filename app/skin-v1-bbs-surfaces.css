@@ -1,423 +1,137 @@
-/* Skin V1 BBS surfaces. Loaded after skin-v1.css so retired Dashboard styles cannot win the cascade. */
+/*
+ * Skin V1 BBS compatibility surfaces.
+ *
+ * Dashboard presentation is owned by skin-v1-dashboard-reference.css.
+ * This file keeps only shared shell visibility and User Profile layout that
+ * still depend on the legacy class structure. All presentation values come
+ * from the shared --pp-skin-* contract.
+ */
 
-/* The approved Dashboard is its own complete BBS frame; hide the generic Skin V1 chrome only while it is visible. */
+/* The approved Dashboard is its own complete BBS frame; hide generic chrome
+   while any Skin V1 Dashboard BBS surface, including Settings, is visible. */
 .pp-skin-v1-home:has(.pp-skin-v1-dashboard-bbs) > .pp-skin-v1-bar,
 .pp-skin-v1-home:has(.pp-skin-v1-dashboard-bbs) > .pp-skin-v1-status {
   display: none;
 }
 
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] {
-  width: 100% !important;
-  min-width: 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  padding: 8px 10px 24px !important;
-  background: #000 !important;
-  color: #efefef !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
-  position: static !important;
-  display: block !important;
-  width: min(760px, 100%) !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  border: 2px solid #efefef !important;
-  background: #171717 !important;
-  box-shadow: none !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::before,
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::after {
-  display: none !important;
-  content: none !important;
-}
-
-.pp-skin-v1-dashboard-shell-title {
-  min-height: 44px;
-  display: grid;
-  place-items: center;
-  margin: 8px 8px 0;
-  border-top: 1px solid var(--pp-matrix-mid);
-  border-bottom: 2px solid var(--pp-matrix-mid);
-  background: linear-gradient(90deg, #173220 0 42%, #171717 42% 58%, #173220 58% 100%);
-  color: #efefef;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.pp-skin-v1-dashboard-art {
-  margin: 10px 10px 0;
-  overflow: hidden;
-  border-top: 4px solid #090909;
-  border-bottom: 4px solid #090909;
-  background: #050505;
-}
-
-.pp-skin-v1-dashboard-art img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3 / 1;
-  object-fit: cover;
-  object-position: center;
-  filter: grayscale(1) contrast(1.15) brightness(0.78);
-  user-select: none;
-  pointer-events: none;
-}
-
-.pp-skin-v1-dashboard-divider {
-  width: calc(100% - 28px);
-  margin: 14px auto 0;
-  overflow: hidden;
-  color: #dfdfdf;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0;
-  white-space: nowrap;
-}
-
-.pp-skin-v1-dashboard-brand {
-  padding: 8px 16px 4px;
-  text-align: center;
-}
-
-.pp-skin-v1-dashboard-brand h1 {
-  margin: 0;
-  color: #fff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: clamp(42px, 8vw, 58px);
-  font-weight: 900;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-}
-
-.pp-skin-v1-dashboard-brand p {
-  margin: 4px 0 0;
-  color: #63d9df;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.pp-skin-v1-dashboard-title {
-  padding: 12px 12px 2px;
-  color: #efefef;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0 !important;
-  padding: 20px 22px 24px !important;
-  background: #171717 !important;
-}
-
-.pp-skin-v1-dashboard-group {
-  margin: 18px 0 6px;
-  color: #e7e7e7;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
-  position: relative;
-  display: grid !important;
-  grid-template-columns: 14px 34px minmax(150px, 180px) 12px minmax(0, 1fr) !important;
-  grid-template-rows: auto !important;
-  width: 100% !important;
-  min-height: 26px !important;
-  margin: 0 !important;
-  padding: 3px 6px !important;
-  gap: 0 4px !important;
-  align-items: baseline !important;
-  border: 0 !important;
-  background: #171717 !important;
-  color: #ededed !important;
-  box-shadow: none !important;
-  font: inherit !important;
-  font-size: 14px !important;
-  line-height: 1.25 !important;
-  text-align: left !important;
-}
-
-.pp-skin-v1-dashboard-shortcut,
-.pp-skin-v1-dashboard-dash,
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-label,
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-description,
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-cursor {
-  color: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
-  opacity: 1 !important;
-  text-transform: none !important;
-}
-
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-label {
-  font-weight: 700;
-}
-
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-description {
-  min-width: 0;
-  font-weight: 600;
-}
-
-.pp-skin-v1-dashboard-row .pp-skin-v1-menu-cursor {
-  color: var(--pp-matrix-light) !important;
-  font-weight: 700;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
-  background: #efefef !important;
-  color: #090909 !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected .pp-skin-v1-menu-cursor {
-  color: var(--pp-matrix-mid) !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
-  outline: 1px solid var(--pp-matrix-light) !important;
-  outline-offset: -1px !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover {
-  outline: 1px solid #585858 !important;
-  outline-offset: -1px !important;
-}
-
-.pp-skin-v1-dashboard-divider-bottom {
-  margin-top: 6px;
-}
-
-.pp-skin-v1-dashboard-reminder {
-  margin: 0;
-  padding: 14px 16px 2px;
-  color: #ededed;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
-  display: grid !important;
-  grid-template-columns: 1fr 1.4fr 1.5fr !important;
-  gap: 10px !important;
-  margin: 16px 4px 4px !important;
-  padding: 9px 8px !important;
-  border-top: 2px solid #efefef !important;
-  background: #030403 !important;
-  color: var(--pp-matrix-light) !important;
-  font-size: 9px !important;
-  line-height: 1.35 !important;
-  text-transform: uppercase !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help span:nth-child(2) {
-  text-align: center;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help span:last-child {
-  text-align: right;
-}
-
-/* USER PROFILE keeps the original profile behavior but adopts the Skin V1 BBS presentation. */
+/* USER PROFILE keeps its existing behavior and layout while consuming the
+   same Skin V1 presentation contract as Dashboard, Community, Local AI and Node. */
 .pp-skin-v1-profile-surface {
   width: 100%;
   min-width: 0;
-  padding: 18px clamp(12px, 2vw, 26px) 28px;
-  background: #000;
-  color: #eef5ef;
-  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace;
+  padding: var(--pp-skin-space-5) clamp(var(--pp-skin-space-3), 2vw, var(--pp-skin-space-7)) var(--pp-skin-space-7);
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
 }
 
 .pp-skin-v1-profile-banner {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 14px;
-  width: min(1180px, 100%);
-  margin: 0 auto 12px;
-  padding: 9px 11px;
-  border: 1px solid var(--pp-matrix-mid);
-  background: linear-gradient(90deg, var(--pp-matrix-deep), #0b120d 42%, #020302);
-  color: var(--pp-matrix-light);
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  gap: var(--pp-skin-space-4);
+  width: min(var(--pp-skin-shell-max), 100%);
+  margin: 0 auto var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
+  color: var(--pp-skin-accent-bright);
+  box-shadow: var(--pp-skin-shadow-control);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-meta);
   text-transform: uppercase;
 }
 
 .pp-skin-v1-profile-banner .pp-skin-v1-return {
-  min-height: 34px;
-  padding: 6px 10px;
-  border-color: var(--pp-matrix-mid);
-  color: var(--pp-matrix-light);
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border-color: var(--pp-skin-accent);
+  color: var(--pp-skin-accent-bright);
 }
 
 .pp-skin-v1-profile-original {
-  width: min(1180px, 100%);
+  width: min(var(--pp-skin-shell-max), 100%);
   margin: 0 auto;
-  border: 1px solid var(--pp-matrix-mid);
-  background: #030503;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-inset-highlight);
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr) !important;
-  gap: 10px !important;
-  padding: 10px !important;
-  background: #030503 !important;
-  color: #eef5ef !important;
-  font-family: inherit !important;
+  gap: var(--pp-skin-space-3) !important;
+  padding: var(--pp-skin-space-3) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] * {
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  border-radius: var(--pp-skin-radius) !important;
   text-shadow: none !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] section,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] aside,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] article,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] form,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] details {
-  border-color: #23412e !important;
-  background: #050805 !important;
-  color: #eef5ef !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(section, aside, article, form, details) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: var(--pp-skin-inset-highlight) !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] header,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] h2,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] h3,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] strong,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] b,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] dt {
-  color: var(--pp-matrix-light) !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(header, h2, h3, strong, b, dt) {
+  color: var(--pp-skin-accent-bright) !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] p,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] small,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] dd,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] blockquote,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] label,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] span {
-  color: #cdd8d0 !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(p, small, dd, blockquote, label, span) {
+  color: var(--pp-skin-ink-soft) !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] button,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] a,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] input,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] textarea {
-  border: 1px solid #345e43 !important;
-  background: #000 !important;
-  color: #eef5ef !important;
-  font: inherit !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a, input, textarea) {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] button,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] a {
-  color: var(--pp-matrix-light) !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a) {
+  color: var(--pp-skin-accent-bright) !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] button:hover:not(:disabled),
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] button:focus-visible,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] a:hover,
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] a:focus-visible {
-  background: var(--pp-matrix-light) !important;
-  color: #000 !important;
-  outline: 0 !important;
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a):hover,
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a):focus-visible {
+  background: var(--pp-skin-selected-bg) !important;
+  color: var(--pp-skin-selected-ink) !important;
+  outline-color: var(--pp-skin-focus) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] img {
-  border: 1px solid #345e43 !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  filter: var(--pp-skin-media-filter);
 }
 
 .pp-skin-v1-profile-loading,
 .pp-skin-v1-profile-notice {
-  width: min(1180px, 100%);
+  width: min(var(--pp-skin-shell-max), 100%);
   margin: 0 auto;
-  padding: 12px;
-  border: 1px solid #345e43;
-  background: #030503;
-  color: var(--pp-matrix-light);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-accent-bright);
+  box-shadow: var(--pp-skin-inset-highlight);
 }
 
 .pp-skin-v1-profile-notice {
-  margin-top: 10px;
+  margin-top: var(--pp-skin-space-3);
 }
 
 @media (max-width: 820px) {
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
-    grid-template-columns: 14px 34px minmax(130px, 160px) 12px minmax(0, 1fr) !important;
-    font-size: 13px !important;
-  }
-
   .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] {
     grid-template-columns: 1fr !important;
   }
-
-  .pp-skin-v1-profile-banner {
-    grid-template-columns: 1fr auto;
-  }
-
-  .pp-skin-v1-profile-banner > span {
-    display: none;
-  }
 }
 
-@media (max-width: 620px) {
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] {
-    padding: 0 0 18px !important;
-  }
-
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
-    border-left-width: 1px !important;
-    border-right-width: 1px !important;
-  }
-
-  .pp-skin-v1-dashboard-brand h1 {
-    font-size: 42px;
-  }
-
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
-    padding: 14px 10px 18px !important;
-  }
-
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
-    grid-template-columns: 14px 32px minmax(0, 1fr) !important;
-    gap: 2px 3px !important;
-    padding: 5px 4px !important;
-  }
-
-  .pp-skin-v1-dashboard-row .pp-skin-v1-dashboard-dash {
-    display: none;
-  }
-
-  .pp-skin-v1-dashboard-row .pp-skin-v1-menu-description {
-    grid-column: 3;
-    font-size: 10px !important;
-    opacity: 0.72 !important;
-  }
-
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
-    grid-template-columns: 1fr !important;
-  }
-
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help span,
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help span:nth-child(2),
-  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help span:last-child {
-    text-align: left;
-  }
-
+@media (max-width: 560px) {
   .pp-skin-v1-profile-banner {
     grid-template-columns: 1fr;
   }

@@ -56,12 +56,14 @@ test("#1228 hardens Windows batch execution before cmd.exe receives values", asy
   assert.match(batch, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/, "cmd.exe receives only static command tokens and environment references");
 });
 
-test("#1228 durable creative IDs require cryptographic randomUUID", async () => {
+test("#1228/#1829 durable creative IDs require cryptographic randomUUID and fail closed", async () => {
   for (const path of ["lib/table-read.ts", "modules/creative-room/writers-room.ts"]) {
     const source = await read(path);
-    assert.doesNotMatch(source, /Math\.random\s*\(/, `${path} must not use Math.random for IDs`);
+    assert.doesNotMatch(source, /Math\.random\s*\(/, `${path} must not use Math.random for durable IDs`);
     assert.doesNotMatch(source, /Date\.now\s*\(/, `${path} must not use timestamps as uniqueness fallbacks`);
-    assert.match(source, /crypto\?\.randomUUID/, `${path} must require crypto.randomUUID`);
+    assert.match(source, /const crypto = globalThis\.crypto/, `${path} must bind the platform crypto source explicitly`);
+    assert.match(source, /if \(!crypto\?\.randomUUID\)/, `${path} must require crypto.randomUUID`);
+    assert.match(source, /return `\$\{prefix\}-\$\{crypto\.randomUUID\(\)\}`/, `${path} must create durable IDs from randomUUID only`);
     assert.match(source, /Secure randomness is unavailable/, `${path} must fail closed if crypto.randomUUID is unavailable`);
   }
 });

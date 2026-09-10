@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
 import process from "node:process";
 import { verificationPlaywrightArgs } from "./full-verification-auth.mjs";
+import { spawnCommand } from "./spawn-command.mjs";
 
 const requestedArgs = process.argv.slice(2);
 if (!requestedArgs.length) {
@@ -11,15 +11,9 @@ if (!requestedArgs.length) {
 }
 
 const npxArgs = verificationPlaywrightArgs(requestedArgs);
-const isWindows = process.platform === "win32";
-const command = isWindows
-  ? (process.env.ComSpec || process.env.COMSPEC || "cmd.exe")
-  : "npx";
-const commandArgs = isWindows
-  ? ["/d", "/c", "npx.cmd", ...npxArgs]
-  : npxArgs;
+const command = process.platform === "win32" ? "npx.cmd" : "npx";
 
-const child = spawn(command, commandArgs, {
+const child = spawnCommand(command, npxArgs, {
   env: process.env,
   stdio: "inherit",
   windowsHide: true,

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
+const DEVELOPER_STACK_PATH = path.join(REPO_ROOT, "config", "developer-agent-stack.json");
 const PROTOCOL_VERSION = "2025-06-18";
 const MAX_OUTPUT = 20_000;
 
@@ -14,6 +15,13 @@ const TOOLS = [
     name: "plotpickle_status",
     title: "PlotPickle repository status",
     description: "Read the current PlotPickle branch, working-tree status, and Node version without changing files.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
+  {
+    name: "plotpickle_hooks",
+    title: "PlotPickle developer harness hooks",
+    description: "Read the deterministic PlotPickle developer hook registry, lifecycle flows, repair workers, and exact-head merge policy. This tool cannot execute hooks or mutate repository state.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   },
@@ -41,7 +49,7 @@ const TOOLS = [
   {
     name: "plotpickle_validate",
     title: "Validate PlotPickle change",
-    description: "Run focused UAT contracts followed by the verified production build. This is the deterministic pre-PR gate for developer agents.",
+    description: "Run the registered focused-UAT and production-build hooks. This is the deterministic pre-PR gate for developer agents; GitHub exact-head CI remains the final merge gate.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   },
@@ -104,6 +112,47 @@ function toolResult(payload, isError = false) {
   };
 }
 
+async function readDeveloperStack() {
+  return JSON.parse(await readFile(DEVELOPER_STACK_PATH, "utf8"));
+}
+
+function safeHarnessProjection(stack) {
+  const harness = stack?.harness;
+  if (!harness || !Array.isArray(harness.hooks)) throw new Error("Developer harness registry is unavailable or invalid.");
+  return {
+    schemaVersion: harness.schemaVersion,
+    coordinator: harness.coordinator,
+    policy: harness.policy,
+    mode: harness.mode,
+    hooks: harness.hooks.map((hook) => ({
+      id: hook.id,
+      responsibility: hook.responsibility,
+      entrypoint: hook.entrypoint ?? null,
+      kind: hook.kind,
+      findingSource: Boolean(hook.findingSource),
+      requiresLiveServer: Boolean(hook.requiresLiveServer),
+      repairAuthority: Boolean(hook.repairAuthority),
+      mergeAuthority: Boolean(hook.mergeAuthority),
+    })),
+    flows: {
+      prePr: [...(harness.flows?.prePr || [])],
+      liveUi: [...(harness.flows?.liveUi || [])],
+      closedLoop: harness.flows?.closedLoop || "",
+      finalGate: harness.flows?.finalGate || "",
+    },
+    repairWorkers: [...(stack?.repair?.selectableWorkers || [])],
+    mergePolicy: stack?.mergePolicy || "",
+  };
+}
+
+async function developerHooks() {
+  try {
+    return toolResult(safeHarnessProjection(await readDeveloperStack()));
+  } catch (error) {
+    return toolResult({ error: error instanceof Error ? error.message : "Developer harness registry could not be read." }, true);
+  }
+}
+
 async function repositoryStatus() {
   const [status, branch, node] = await Promise.all([
     run("git", ["status", "--short", "--branch"], 15_000),
@@ -156,31 +205,41 @@ async function focusedUat() {
     "--artifact-root",
     ".artifacts/uat-focused",
   ], 300_000);
-  return toolResult({ command: "focused-uat", ...result }, result.exitCode !== 0);
+  return toolResult({ hook: "focused-uat", command: "focused-uat", ...result }, result.exitCode !== 0);
 }
 
 async function productionBuild() {
   const result = await run("npm", ["run", "build"], 600_000);
-  return toolResult({ command: "build", ...result }, result.exitCode !== 0);
+  return toolResult({ hook: "build", command: "build", ...result }, result.exitCode !== 0);
 }
 
 async function validate() {
+  const hooksRun = ["focused-uat"];
   const uat = await run(process.execPath, [
     "scripts/run-uat-autopilot.mjs",
     "--contracts-only",
     "--artifact-root",
     ".artifacts/uat-focused",
   ], 300_000);
-  if (uat.exitCode !== 0) return toolResult({ stage: "focused-uat", ...uat }, true);
+  if (uat.exitCode !== 0) return toolResult({ stage: "focused-uat", hooksRun, ...uat }, true);
 
+  hooksRun.push("build");
   const build = await run("npm", ["run", "build"], 600_000);
-  return toolResult({ stage: build.exitCode === 0 ? "complete" : "build", focusedUat: uat, build }, build.exitCode !== 0);
+  return toolResult({
+    stage: build.exitCode === 0 ? "complete" : "build",
+    hooksRun,
+    nextGate: build.exitCode === 0 ? "github-ci" : null,
+    focusedUat: uat,
+    build,
+  }, build.exitCode !== 0);
 }
 
 async function callTool(name) {
   switch (name) {
     case "plotpickle_status":
       return repositoryStatus();
+    case "plotpickle_hooks":
+      return developerHooks();
     case "plotpickle_uat_findings":
       return readUatFindings();
     case "plotpickle_focused_uat":
@@ -215,7 +274,7 @@ async function handle(message) {
         protocolVersion: typeof requested === "string" ? requested : PROTOCOL_VERSION,
         capabilities: { tools: {} },
         serverInfo: { name: "plotpickle-dev", title: "PlotPickle Developer Tools", version: "1.0.0" },
-        instructions: "Use AGENTS.md as the development contract. These tools provide deterministic PlotPickle status, focused UAT, and build gates.",
+        instructions: "Use AGENTS.md as the development contract. plotpickle_hooks is the read-only registry for the deterministic PlotPickle Harness; Pi/Cline remain bounded workers and GitHub exact-head CI remains the merge gate.",
       },
     });
     return;
@@ -256,8 +315,30 @@ async function selfTest() {
     process.exitCode = 1;
     return;
   }
-  if (TOOLS.length < 5 || !TOOLS.some((tool) => tool.name === "plotpickle_validate")) {
-    console.error("PlotPickle MCP self-test FAIL: tool registry is incomplete.");
+
+  let stack;
+  let harness;
+  try {
+    stack = await readDeveloperStack();
+    harness = safeHarnessProjection(stack);
+  } catch (error) {
+    console.error(`PlotPickle MCP self-test FAIL: ${error instanceof Error ? error.message : "developer harness registry is invalid."}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const hookIds = new Set(harness.hooks.map((hook) => hook.id));
+  const onlyGithubMerges = harness.hooks.filter((hook) => hook.mergeAuthority).map((hook) => hook.id);
+  if (
+    TOOLS.length < 6
+    || !TOOLS.some((tool) => tool.name === "plotpickle_hooks")
+    || !TOOLS.some((tool) => tool.name === "plotpickle_validate")
+    || !["focused-uat", "webmcp-ui", "closed-loop-uat", "ben-code-quality", "build", "semantic-repair", "github-ci"].every((id) => hookIds.has(id))
+    || harness.flows.finalGate !== "github-ci"
+    || stack.mergePolicy !== "green-exact-head-only"
+    || JSON.stringify(onlyGithubMerges) !== JSON.stringify(["github-ci"])
+  ) {
+    console.error("PlotPickle MCP self-test FAIL: tool or harness registry is incomplete.");
     process.exitCode = 1;
     return;
   }

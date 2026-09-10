@@ -79,7 +79,11 @@ export type ActorSideLine = {
 };
 
 function makeId(prefix: string) {
-  return globalThis.crypto?.randomUUID ? `${prefix}-${globalThis.crypto.randomUUID()}` : (() => { throw new Error("Secure randomness is unavailable for Table Read IDs."); })();
+  const crypto = globalThis.crypto;
+  if (!crypto?.randomUUID) {
+    throw new Error("Secure randomness is unavailable for Table Read IDs.");
+  }
+  return `${prefix}-${crypto.randomUUID()}`;
 }
 
 function cleanSpeaker(value: string) {

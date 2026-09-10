@@ -34,9 +34,10 @@ test("Human mode keeps the owned browser while WebMCP mode runs the bounded audi
   assert.match(launcher, /WebMCP Testing requires an isolated PlotPickle test session/);
 });
 
-test("startup WebMCP runner keeps verification tools isolated, pinned, and on the shared safe spawn path", async () => {
-  const [runner, packageJson, spawnHelper] = await Promise.all([
+test("startup WebMCP runner keeps verification tools isolated, pinned, and validates the shared menu contract", async () => {
+  const [runner, menuAudit, packageJson, spawnHelper] = await Promise.all([
     read("scripts/run-webmcp-startup-uat.mjs"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
     read("package.json"),
     read("scripts/spawn-command.mjs"),
   ]);
@@ -46,8 +47,19 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and on th
   assert.match(runner, /prepareVerificationSyntheticHome/);
   assert.match(runner, /establishVerificationSyntheticHuman/);
   assert.match(runner, /runWebMcpSurfaceVisualAudit/);
+  assert.match(runner, /runSkinV1MenuContractAudit/);
   assert.match(runner, /WEBMCP_STARTUP_EVIDENCE/);
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
+  assert.match(menuAudit, /data-skin-menu-row/u);
+  assert.match(menuAudit, /data-skin-menu-shortcut/u);
+  assert.match(menuAudit, /data-skin-menu-connected/u);
+  assert.match(menuAudit, /data-skin-menu-indicator/u);
+  assert.match(menuAudit, /ArrowDown/u);
+  assert.match(menuAudit, /keyboard\.press\("O"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("U"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("N"\)/u);
+  assert.match(menuAudit, /chromeBackgroundImage/u);
+  assert.match(menuAudit, /--pp-skin-accent-deep/u);
   assert.match(runner, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
   assert.match(runner, /spawnCommand\(command, args/);
   assert.match(spawnHelper, /windowsJavaScriptCliInvocation\(command, args/);

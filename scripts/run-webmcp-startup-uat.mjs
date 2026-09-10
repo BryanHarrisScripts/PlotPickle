@@ -16,6 +16,7 @@ import {
   WEBMCP_ALLOWED_TARGETS,
   runWebMcpSurfaceVisualAudit,
 } from "../lib/verification/webmcp-surface-visual-audit.mjs";
+import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {
   buildWebMcpRuntimeFinding,
   findingsFromWebMcpError,
@@ -225,6 +226,11 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     await waitForUiServer(server);
     const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: resolvedHome });
     await runWebMcpSurfaceVisualAudit({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
+    await runSkinV1MenuContractAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,

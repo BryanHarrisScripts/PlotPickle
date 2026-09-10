@@ -29,9 +29,9 @@ const NodeSkinPanel = lazy(() => import("./node-skin-panel"));
 const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
 
 const PROFILE_MENU = [
-  { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: true },
-  { id: "local-ai", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO", enabled: true },
-  { id: "node", label: "NODE", description: "NODE INFO", enabled: true },
+  { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: true, shortcut: "P" },
+  { id: "local-ai", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO", enabled: true, shortcut: "L" },
+  { id: "node", label: "NODE", description: "NODE INFO", enabled: true, shortcut: "N" },
 ] as const;
 
 const LOADING_VIEW: LogonViewModel = {
@@ -79,15 +79,16 @@ export default function SkinV1Client() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [profileSelectedIndex, setProfileSelectedIndex] = useState(0);
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const [localAiOpen, setLocalAiOpen] = useState(false);
   const [nodeOpen, setNodeOpen] = useState(false);
-  const profileMenuHeadingRef = useRef<HTMLHeadingElement>(null);
   const localAiHeadingRef = useRef<HTMLHeadingElement>(null);
   const [dashboardSelection, setDashboardSelection] = useState(0);
   const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
   const returnButtonRef = useRef<HTMLButtonElement>(null);
   const dashboardMenuRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const profileItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     void readLogonViewModel(browserProfileAuthGateway)
@@ -109,10 +110,10 @@ export default function SkinV1Client() {
   useEffect(() => {
     if (localAiOpen) localAiHeadingRef.current?.focus();
     else if (nodeOpen || userProfileOpen) return;
-    else if (profileMenuOpen) profileMenuHeadingRef.current?.focus();
+    else if (profileMenuOpen) profileItemRefs.current[profileSelectedIndex]?.focus();
     else if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
     else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
-  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen, userProfileOpen, localAiOpen, nodeOpen]);
+  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen, profileSelectedIndex, userProfileOpen, localAiOpen, nodeOpen]);
 
   function openSurface(surfaceId: ExperienceSurfaceId) {
     const result = executeOpenSurfaceIntent({
@@ -124,6 +125,7 @@ export default function SkinV1Client() {
   function activateDashboardItem(index: number) {
     setDashboardSelection(index);
     if (DASHBOARD_MENU[index]?.id === "profile") {
+      setProfileSelectedIndex(0);
       setUserProfileOpen(false);
       setLocalAiOpen(false);
       setNodeOpen(false);
@@ -137,6 +139,58 @@ export default function SkinV1Client() {
     setLocalAiOpen(false);
     setNodeOpen(false);
     setProfileMenuOpen(false);
+  }
+
+  function selectProfileItem(index: number) {
+    const normalized = (index + PROFILE_MENU.length) % PROFILE_MENU.length;
+    setProfileSelectedIndex(normalized);
+    window.requestAnimationFrame(() => profileItemRefs.current[normalized]?.focus());
+  }
+
+  function activateProfileItem(index: number) {
+    const item = PROFILE_MENU[index];
+    if (!item) return;
+    setProfileSelectedIndex(index);
+    if (item.id === "profile") setUserProfileOpen(true);
+    if (item.id === "local-ai") setLocalAiOpen(true);
+    if (item.id === "node") setNodeOpen(true);
+  }
+
+  function handleProfileKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key.length === 1) {
+      const shortcut = event.key.toUpperCase();
+      const shortcutIndex = PROFILE_MENU.findIndex((item) => item.shortcut === shortcut);
+      if (shortcutIndex >= 0) {
+        event.preventDefault();
+        selectProfileItem(shortcutIndex);
+        activateProfileItem(shortcutIndex);
+        return;
+      }
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      selectProfileItem(index + 1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      selectProfileItem(index - 1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      selectProfileItem(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      selectProfileItem(PROFILE_MENU.length - 1);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activateProfileItem(index);
+    }
   }
 
   function moveDashboardSelection(index: number) {
@@ -303,30 +357,64 @@ export default function SkinV1Client() {
               <ProfileSkinPanel onBack={() => setUserProfileOpen(false)} onSessionChanged={refreshSessionAfterProfileAction} />
             </Suspense>
           ) : (
-            <section className="pp-skin-v1-dashboard" aria-label="Profile menu" onKeyDown={(event) => {
-              if (event.key === "Escape") { event.preventDefault(); closeProfileMenu(); }
-            }}>
+            <section
+              className="pp-skin-v1-dashboard"
+              aria-label="Profile menu"
+              data-skin-menu="profile"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") { event.preventDefault(); closeProfileMenu(); }
+              }}
+            >
               <div className="pp-skin-v1-bbs">
                 <div className="pp-skin-v1-bbs-banner">
-                  <h1 ref={profileMenuHeadingRef} tabIndex={-1}>PROFILE</h1>
+                  <h1>PROFILE</h1>
                   <button type="button" className="pp-skin-v1-return" onClick={closeProfileMenu}>Back to Dashboard</button>
                 </div>
-                <div className="pp-skin-v1-menu" aria-describedby="profile-menu-status">
-                  {PROFILE_MENU.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      disabled={!item.enabled}
-                      className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"
-                      onClick={item.id === "profile" ? () => setUserProfileOpen(true) : item.id === "local-ai" ? () => setLocalAiOpen(true) : item.id === "node" ? () => setNodeOpen(true) : undefined}
-                    >
-                      <span aria-hidden="true">&gt;</span>
-                      <span className="pp-skin-v1-menu-label">{item.label}</span>
-                      <small className="pp-skin-v1-menu-description">{item.description}</small>
-                    </button>
-                  ))}
+                <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Profile directory" aria-describedby="profile-menu-status">
+                  {PROFILE_MENU.map((item, index) => {
+                    const selected = index === profileSelectedIndex;
+                    const command = `[${item.shortcut}] ${item.label}`.padEnd(28, " ");
+                    const clickDestination = item.id === "profile"
+                      ? () => setUserProfileOpen(true)
+                      : item.id === "local-ai"
+                        ? () => setLocalAiOpen(true)
+                        : item.id === "node"
+                          ? () => setNodeOpen(true)
+                          : () => undefined;
+                    return (
+                      <button
+                        ref={(node) => { profileItemRefs.current[index] = node; }}
+                        key={item.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        tabIndex={selected ? 0 : -1}
+                        disabled={!item.enabled}
+                        className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
+                        data-profile-menu-item={item.id}
+                        data-profile-shortcut={item.shortcut}
+                        data-profile-connected="true"
+                        data-skin-menu-row={item.id}
+                        data-skin-menu-shortcut={item.shortcut}
+                        data-skin-menu-connected="true"
+                        onClick={() => {
+                          setProfileSelectedIndex(index);
+                          clickDestination();
+                        }}
+                        onKeyDown={(event) => handleProfileKeyDown(event, index)}
+                      >
+                        <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
+                        <span
+                          className="pp-skin-v1-dashboard-status-box is-active"
+                          aria-label="Connected Profile destination"
+                          data-dashboard-status="active"
+                          data-skin-menu-indicator="connected"
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
-                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL STORY MODE / NODE CONNECTED</p>
+                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL STORY MODE / NODE CONNECTED — UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN</p>
               </div>
             </section>
           )

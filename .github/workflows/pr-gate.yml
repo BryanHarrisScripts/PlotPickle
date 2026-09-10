@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: pr-gate-${{ github.event.pull_request.number || github.ref }}
@@ -30,40 +30,6 @@ jobs:
         with:
           node-version: '22.13.0'
           cache: npm
-
-      - name: Bootstrap patched security dependency graph
-        if: github.event_name == 'pull_request' && github.head_ref == 'issue-1819-security-js-yaml-sharp'
-        shell: bash
-        run: |
-          if node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
-          const nestedSharp = lock.packages?.['node_modules/miniflare/node_modules/sharp']?.version;
-          const rootSharp = lock.packages?.['node_modules/sharp']?.version;
-          const yaml = lock.packages?.['node_modules/js-yaml']?.version;
-          const ready = pkg.dependencies?.['@cloudflare/vite-plugin'] === '1.54.6'
-            && pkg.dependencies?.wrangler === '4.130.0'
-            && pkg.overrides?.['js-yaml'] === '4.3.2'
-            && pkg.overrides?.sharp === '0.35.4'
-            && yaml === '4.3.2'
-            && nestedSharp !== '0.35.2'
-            && (nestedSharp === undefined || nestedSharp === '0.35.4')
-            && rootSharp === '0.35.4';
-          process.exit(ready ? 0 : 1);
-          NODE
-          then
-            echo 'Security dependency graph already refreshed.'
-          else
-            npm pkg set "dependencies.@cloudflare/vite-plugin=1.54.6" "dependencies.wrangler=4.130.0" "overrides.js-yaml=4.3.2" "overrides.sharp=0.35.4"
-            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-            git config user.name 'PlotPickle Security Bot'
-            git config user.email 'bryan@bryanharris.ca'
-            git add package.json package-lock.json
-            git commit -m 'security: force patched sharp and js-yaml graph'
-            git push origin HEAD:${GITHUB_HEAD_REF}
-            exit 0
-          fi
 
       - name: Install PlotPickle dependencies once
         run: npm ci --include=dev --no-audit --no-fund

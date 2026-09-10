@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -11,6 +10,7 @@ import {
   establishVerificationSyntheticHuman,
   prepareVerificationSyntheticHome,
 } from "./full-verification-auth.mjs";
+import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
   runWebMcpSurfaceVisualAudit,
@@ -36,40 +36,9 @@ export function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
 }
 
-function isWindowsCommandScript(command) {
-  return process.platform === "win32" && /\.(?:cmd|bat)$/i.test(String(command));
-}
-
-function windowsShellCommandToken(value) {
-  const text = String(value);
-  if (!/^[A-Za-z0-9_.-]+$/u.test(text)) {
-    throw new Error(`Windows WebMCP command contains unsupported characters: ${text}`);
-  }
-  return text;
-}
-
-function quoteWindowsShellArg(value) {
-  const text = String(value);
-  if (/[\r\n\0"]/u.test(text)) {
-    throw new Error(`Windows WebMCP argument contains unsupported characters: ${text}`);
-  }
-  return `"${text}"`;
-}
-
-function windowsCommandLine(command, args) {
-  return [windowsShellCommandToken(command), ...args.map(quoteWindowsShellArg)].join(" ");
-}
-
 export function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const spawnOptions = { stdio: "inherit", windowsHide: false, ...options };
-    const child = isWindowsCommandScript(command)
-      ? spawn(
-          process.env.ComSpec || "cmd.exe",
-          ["/d", "/s", "/c", windowsCommandLine(command, args)],
-          spawnOptions,
-        )
-      : spawn(command, args, spawnOptions);
+    const child = spawnCommand(command, args, { stdio: "inherit", windowsHide: false, ...options });
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) return resolve();

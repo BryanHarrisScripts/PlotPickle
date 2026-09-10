@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc" data-projection="readme-overview">
+<title id="title">PlotPickle architecture overview</title><desc id="desc">Compact README overview generated from architecture/plotpickle.architecture.json. Open the full blueprint for engineering detail.</desc>
+<style>svg { background: #031017; font-family: "Arial Narrow", "Segoe UI", Arial, sans-serif; }
+.bg { fill: #031017; }
+.grid { stroke: #0a2630; stroke-width: 0.7; opacity: 0.55; }
+.ink { fill: #eef7f8; }
+.muted { fill: #8ba5ae; }
+.cyan { color: #58d7e7; fill: #58d7e7; stroke: #58d7e7; }
+.amber { color: #f0b82f; fill: #f0b82f; stroke: #f0b82f; }
+.purple { color: #bc83e8; fill: #bc83e8; stroke: #bc83e8; }
+.green { color: #48cfa2; fill: #48cfa2; stroke: #48cfa2; }
+.panel { fill: #071923; stroke: #173f4c; stroke-width: 1.5; }
+.panel.cyan-stroke { stroke: #58d7e7; }
+.panel.amber-stroke { stroke: #f0b82f; }
+.panel.purple-stroke { stroke: #bc83e8; }
+.component { fill: #0a202b; stroke: #1c7785; stroke-width: 1.3; }
+.component.amber-stroke { stroke: #8a6b1c; }
+.component.purple-stroke { stroke: #604276; }
+.component.emphasis { stroke: #48cfa2; stroke-width: 2.2; }
+.dashed { stroke-dasharray: 9 7; }
+.title { fill: #eef7f8; font-size: 42px; font-weight: 800; letter-spacing: 0.6px; }
+.tagline { fill: #58d7e7; font-size: 23px; font-weight: 800; letter-spacing: 0.5px; }
+.subtitle { fill: #8ba5ae; font-size: 14px; letter-spacing: 2px; }
+.layer-label { font-size: 17px; font-weight: 800; letter-spacing: 0.8px; }
+.layer-summary { fill: #8ba5ae; font-size: 12px; }
+.panel-title { font-size: 18px; font-weight: 800; letter-spacing: 0.7px; }
+.component-title { fill: #eef7f8; font-size: 14px; font-weight: 750; }
+.component-detail { fill: #8ba5ae; font-size: 11px; }
+.note { fill: #8ba5ae; font-size: 11px; }
+.footer { fill: #8ba5ae; font-size: 10.5px; }
+.micro { font-size: 10px; font-weight: 700; letter-spacing: 0.45px; }
+.number { font-size: 22px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+.flow { fill: none; stroke-width: 1.8; marker-end: url(#arrow-cyan); }
+.flow.amber-stroke { marker-end: url(#arrow-amber); }
+.flow.purple-stroke { marker-end: url(#arrow-purple); }
+.overview-title { fill: #eef7f8; font-size: 30px; font-weight: 800; }
+.overview-tagline { fill: #58d7e7; font-size: 15px; font-weight: 800; }
+.overview-layer { fill: #eef7f8; font-size: 12px; font-weight: 800; }
+.overview-summary { fill: #8ba5ae; font-size: 9px; }
+</style><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid" fill="none"/></pattern></defs>
+<rect width="1200" height="720" class="bg"/><rect width="1200" height="720" fill="url(#grid)" opacity=".14"/>
+<text x="210" y="42" class="overview-title">PlotPickle</text><text x="390" y="42" class="overview-tagline">AI-Native Agentic Story Operating System</text><text x="210" y="66" class="subtitle">ARCHITECTURE OVERVIEW · FULL BLUEPRINT AVAILABLE</text>
+<g data-overview-layer="1"><path d="M42 112 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="cyan"/><text x="42" y="128" class="number cyan" style="font-size:15px">1</text><text x="74" y="116" class="overview-layer cyan">EXPERIENCE SKINS</text><text x="74" y="134" class="overview-summary" text-anchor="start">Replaceable presentation</text>
+<text x="74" y="145" class="overview-summary" text-anchor="start">for any audience or</text><rect x="210" y="94" width="610" height="72" rx="7" class="panel cyan-stroke"/><text x="226" y="121" class="panel-title cyan" style="font-size:14px">INTERCHANGEABLE PRESENTATION</text><text x="226" y="144" class="overview-summary">Legacy Skin · Skin V1 · Future skins</text></g>
+<g data-overview-layer="2"><path d="M42 194 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="amber"/><text x="42" y="210" class="number amber" style="font-size:15px">2</text><text x="74" y="198" class="overview-layer amber">EXPANDED EXPERIENCE LAYER</text><text x="74" y="216" class="overview-summary" text-anchor="start">The stable product</text>
+<text x="74" y="227" class="overview-summary" text-anchor="start">contract behind every</text><rect x="210" y="176" width="610" height="72" rx="7" class="panel amber-stroke"/><text x="226" y="203" class="panel-title amber" style="font-size:14px">PUBLIC SEMANTIC CONTRACT + BUSINESS USE CASES</text><text x="226" y="226" class="overview-summary">Semantic intents · Results + revisions · Capabilities · Typed events · Lean view models · …</text></g>
+<g data-overview-layer="3"><path d="M42 276 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="amber"/><text x="42" y="292" class="number amber" style="font-size:15px">3</text><text x="74" y="280" class="overview-layer amber">GOVERNED PRODUCTION ORCHESTRATION</text><text x="74" y="298" class="overview-summary" text-anchor="start">Authority, lifecycle,</text>
+<text x="74" y="309" class="overview-summary" text-anchor="start">policy and execution</text><rect x="210" y="258" width="610" height="72" rx="7" class="panel amber-stroke"/><text x="226" y="285" class="panel-title amber" style="font-size:14px">PRODUCTION AUTHORITY / LIFECYCLE HARNESS</text><text x="226" y="308" class="overview-summary">Identity + authority · Policy, consent + budgets · Lifecycle + capability routing · Revision + provenance · Community capability</text></g>
+<g data-overview-layer="4"><path d="M42 358 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="cyan"/><text x="42" y="374" class="number cyan" style="font-size:15px">4</text><text x="74" y="362" class="overview-layer cyan">AGENT &amp; SKILL MESH</text><text x="74" y="380" class="overview-summary" text-anchor="start">Specialists collaborate</text>
+<text x="74" y="391" class="overview-summary" text-anchor="start">within approved scope.</text><rect x="210" y="340" width="610" height="72" rx="7" class="panel cyan-stroke"/><text x="226" y="367" class="panel-title cyan" style="font-size:14px">MULTI-AGENT CREATIVE RUNTIME</text><text x="226" y="390" class="overview-summary">Guide + Story Council · Visual + character specialists · Resident Writer · Evidence learning · UI continuity + QA</text></g>
+<g data-overview-layer="5"><path d="M42 440 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="cyan"/><text x="42" y="456" class="number cyan" style="font-size:15px">5</text><text x="74" y="444" class="overview-layer cyan">STORY, CANON &amp; EVIDENCE CORE</text><text x="74" y="462" class="overview-summary" text-anchor="start">Deterministic story</text>
+<text x="74" y="473" class="overview-summary" text-anchor="start">state, context and</text><rect x="210" y="422" width="610" height="72" rx="7" class="panel cyan-stroke"/><text x="226" y="449" class="panel-title cyan" style="font-size:14px">STORY / CANON / EVIDENCE AUTHORITY</text><text x="226" y="472" class="overview-summary">STORY rules kernel · Context Engine · Story + evidence graph · References + candidates · Evidence / revision review · …</text></g>
+<g data-overview-layer="6"><path d="M42 522 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="cyan"/><text x="42" y="538" class="number cyan" style="font-size:15px">6</text><text x="74" y="526" class="overview-layer cyan">AI / PROVIDER RUNTIME</text><text x="74" y="544" class="overview-summary" text-anchor="start">Replaceable local and</text>
+<text x="74" y="555" class="overview-summary" text-anchor="start">cloud inference routes.</text><rect x="210" y="504" width="610" height="72" rx="7" class="panel cyan-stroke"/><text x="226" y="531" class="panel-title cyan" style="font-size:14px">MODEL-AGNOSTIC MULTIMODAL INFERENCE</text><text x="226" y="554" class="overview-summary">Local LLMs · Compatible APIs · Vision models · ComfyUI · Media providers</text></g>
+<g data-overview-layer="7"><path d="M42 604 l12 7 v16 l-12 7 l-12-7 v-16 z" fill="none" class="amber"/><text x="42" y="620" class="number amber" style="font-size:15px">7</text><text x="74" y="608" class="overview-layer amber">VALIDATION &amp; OPERATIONS</text><text x="74" y="626" class="overview-summary" text-anchor="start">Tests consume the</text>
+<text x="74" y="637" class="overview-summary" text-anchor="start">contract. They do not</text><rect x="210" y="586" width="610" height="72" rx="7" class="panel amber-stroke"/><text x="226" y="613" class="panel-title amber" style="font-size:14px">VERIFICATION CLIENTS + RELEASE OPERATIONS</text><text x="226" y="636" class="overview-summary">PR Gate · Product Gate · Replaceable test harness · Evidence + release</text></g>
+<rect x="850" y="94" width="320" height="210" rx="8" class="panel cyan-stroke"/><text x="868" y="122" class="panel-title cyan" style="font-size:14px">CORE PRINCIPLES</text><text x="868" y="144" class="overview-layer" style="font-size:10px">Human authority <tspan class="overview-summary">— Explicit consent</tspan></text>
+<text x="868" y="169" class="overview-layer" style="font-size:10px">PPF canon <tspan class="overview-summary">— One durable authority</tspan></text>
+<text x="868" y="194" class="overview-layer" style="font-size:10px">Skin independence <tspan class="overview-summary">— Headless capabilities</tspan></text>
+<text x="868" y="219" class="overview-layer" style="font-size:10px">Local-first <tspan class="overview-summary">— Private by design</tspan></text>
+<text x="868" y="244" class="overview-layer" style="font-size:10px">Model-agnostic <tspan class="overview-summary">— No silent cloud fallback</tspan></text>
+<text x="868" y="269" class="overview-layer" style="font-size:10px">Evidence &gt; truth <tspan class="overview-summary">— Revision + provenance</tspan></text>
+<rect x="850" y="326" width="320" height="138" rx="8" class="panel purple-stroke"/><text x="868" y="354" class="panel-title purple" style="font-size:14px">BUZZ / COMMUNITY</text><text x="868" y="380" class="overview-summary" text-anchor="start">First provider behind PlotPickle-owned</text>
+<text x="868" y="393" class="overview-summary" text-anchor="start">Community contracts.</text><text x="868" y="440" class="micro purple">NO DIRECT CANON AUTHORITY</text>
+<rect x="850" y="486" width="320" height="118" rx="8" class="panel purple-stroke dashed"/><text x="868" y="514" class="panel-title purple" style="font-size:14px">BRING INTO STORY</text><text x="868" y="540" class="overview-summary">1. Select Community material</text><text x="868" y="560" class="overview-summary">2. Create a candidate with evidence + revision</text><text x="868" y="580" class="overview-summary">3. Continue through the same approval path</text>
+<text x="868" y="650" class="micro cyan">OPEN FULL SVG FOR COMPONENT + FLOW DETAIL</text><text x="1170" y="694" class="micro cyan" text-anchor="end">SOURCE: architecture/plotpickle.architecture.json</text>
+</svg>

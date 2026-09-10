@@ -17,7 +17,7 @@ test("issue #88 exposes real visual production destinations", async () => {
     "96 mini-block frames",
     "Posters, pitch & production",
     "Continuity & missing assets",
-  ]) assert.match(board, new RegExp(label.replace(/[&]/g, "&")));
+  ]) assert.match(board, new RegExp(label));
   assert.match(board, /project\.production\.breakdowns/);
   assert.match(board, /project\.review\.pitchPackage\.visualStatement/);
   assert.match(board, /characterVisualIdentityDiagnostic/);
@@ -50,6 +50,8 @@ test("issue #88 storyboard controls remain functional", async () => {
   assert.match(board, /onClick=\{\(\) => openSection\("frames"\)\}/);
   assert.match(board, /onClick=\{\(\) => choose\(item\.number/);
   assert.match(board, /onOpenPlannerBlock\(block\.number\)/);
-  assert.match(directorActions, /onClick=\{onIllustrate\}/);
-  assert.match(directorActions, /Create or try another image for this exact story moment/);
+  assert.match(directorActions, /function tryAgain\(\)/);
+  assert.match(directorActions, /onIllustrate\(\);/);
+  assert.match(directorActions, /onClick=\{tryAgain\}/);
+  assert.match(directorActions, /Create another image from this same story moment and approved visual rules/);
 });

@@ -51,7 +51,7 @@ test("#483 exposes the approved Feedback categories and exact-position workflow 
   const host = await source("app/feedback-studio-host.tsx");
 
   for (const label of ["Story", "Structure", "Character", "Dialogue", "Visual direction", "Continuity", "Production / Build"]) {
-    assert.match(host, new RegExp(label.replace(" / ", " \/ ")));
+    assert.match(host, new RegExp(label));
   }
   assert.match(host, /Back to Build \$\{blockNumber\}\.\$\{miniBlockNumber\}/);
   assert.match(host, /workspace=build&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);

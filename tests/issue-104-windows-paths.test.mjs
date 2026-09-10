@@ -21,30 +21,33 @@ function completed(command, args) {
 }
 
 test("issue #104 preserves Windows executable paths containing spaces", async () => {
-  const [helper, build, timeout, audit] = await Promise.all([
+  const [helper, batchHelper, build, timeout] = await Promise.all([
     source("scripts/spawn-command.mjs"),
+    source("scripts/windows-batch-command.mjs"),
     source("scripts/build-verified.mjs"),
     source("scripts/run-command-with-timeout.mjs"),
-    source("scripts/lighthouse-audit.mjs"),
   ]);
 
-  assert.match(helper, /process\.env\.ComSpec/);
+  assert.match(helper, /windowsBatchInvocation/);
   assert.ok(helper.includes('/\\.(?:cmd|bat)$/i'));
   assert.match(helper, /shell: false/);
-  assert.match(helper, /\["\/d", "\/c", command, \.\.\.args\]/);
+  assert.doesNotMatch(helper, /process\.env\.ComSpec/);
   assert.doesNotMatch(helper, /windowsVerbatimArguments/);
   assert.doesNotMatch(helper, /quoteForCommandPrompt/);
-  assert.match(helper, /C:\\Program Files\\nodejs\\node\.exe/);
+  assert.match(helper, /roots\.push\(dirname\(process\.execPath\)\)/);
+  assert.match(helper, /join\(root, "node_modules", "npm", "bin", cliName\)/);
+  assert.match(batchHelper, /PLOTPICKLE_BATCH_COMMAND/);
+  assert.match(batchHelper, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/);
+  assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
+  assert.match(batchHelper, /unsupported command-shell characters/);
 
-  for (const file of [build, timeout, audit]) {
+  for (const file of [build, timeout]) {
     assert.match(file, /spawnCommand/);
     assert.doesNotMatch(file, /shell:\s*process\.platform\s*===\s*["']win32["']/);
     assert.doesNotMatch(file, /shell:\s*true/);
   }
 
   assert.match(build, /process\.execPath/);
-  assert.match(audit, /npm\.cmd/);
-  assert.match(audit, /npx\.cmd/);
 });
 
 test("issue #106 executes npm.cmd and spaced Windows commands without literal quote characters", { skip: process.platform !== "win32" }, async () => {

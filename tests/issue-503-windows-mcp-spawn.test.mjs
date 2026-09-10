@@ -20,14 +20,15 @@ test("Agent Plugin routes Playwright MCP through the portable Node launcher", ()
   assert.ok(server.args.includes("@playwright/mcp@0.0.78"));
 });
 
-test("Windows .cmd execution goes through ComSpec instead of direct spawn", () => {
-  assert.match(launcher, /process\.env\.ComSpec \|\| process\.env\.COMSPEC \|\| "cmd\.exe"/);
-  assert.match(launcher, /\["\/d", "\/c", "npx\.cmd", \.\.\.npxArgs\]/);
+test("Windows .cmd execution uses the shared reviewed spawn boundary", () => {
+  assert.match(launcher, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
+  assert.match(launcher, /process\.platform === "win32" \? "npx\.cmd" : "npx"/);
+  assert.match(launcher, /spawnCommand\(command, npxArgs/);
   assert.match(launcher, /stdio: "inherit"/);
+  assert.doesNotMatch(launcher, /process\.env\.(?:ComSpec|COMSPEC)/);
   assert.doesNotMatch(launcher, /spawn\("npx\.cmd"/);
 });
 
 test("non-Windows hosts continue to execute npx directly", () => {
-  assert.match(launcher, /: "npx";/);
-  assert.match(launcher, /: npxArgs;/);
+  assert.match(launcher, /\? "npx\.cmd" : "npx"/);
 });

@@ -3,6 +3,9 @@ name: Runtime Weight Inventory
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: runtime-weight-inventory-${{ github.ref }}
   cancel-in-progress: true

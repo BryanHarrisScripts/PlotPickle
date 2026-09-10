@@ -22,12 +22,12 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
   const packages = lock.packages || {};
 
   assert.equal(pkg.overrides?.nanoid, "3.3.18");
-  assert.equal(pkg.overrides?.["js-yaml"], "4.3.1");
+  assert.equal(pkg.overrides?.["js-yaml"], "4.3.2");
   assert.equal(pkg.overrides?.["@babel/core"], "7.29.6");
   assert.equal(pkg.overrides?.["@esbuild-kit/core-utils"]?.esbuild, "0.25.12");
 
   assert.ok(versionAtLeast(packages["node_modules/nanoid"]?.version, "3.3.18"), "nanoid must include the 3.x zero-size loop fix");
-  assert.ok(versionAtLeast(packages["node_modules/js-yaml"]?.version, "4.3.1"), "js-yaml 4.x must include merge-chain and !!omap DoS fixes");
+  assert.ok(versionAtLeast(packages["node_modules/js-yaml"]?.version, "4.3.2"), "js-yaml 4.x must include merge-chain and CPU-limit fixes");
   const legacyYaml = packages["node_modules/gray-matter/node_modules/js-yaml"]?.version;
   assert.ok(!legacyYaml || versionAtLeast(legacyYaml, "3.15.1"), "a retained legacy js-yaml 3.x copy must include its backported fix");
   assert.ok(versionAtLeast(packages["node_modules/@babel/core"]?.version, "7.29.6"), "@babel/core must include the sourceMappingURL file-read fix");
@@ -35,7 +35,7 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
 });
 
 test("#1228 restricts flagged GitHub Actions workflows to read-only repository access", async () => {
-  for (const path of [".github/workflows/writer-e2e-observer.yml", ".github/workflows/learn-agent-portraits.yml"]) {
+  for (const path of [".github/workflows/writer-e2e-observer.yml", ".github/workflows/learn-agent-portraits.yml", ".github/workflows/runtime-weight-inventory.yml"]) {
     const source = await read(path);
     assert.match(source, /^permissions:\s*\n\s+contents:\s*read\s*$/m, `${path} must declare least-privilege contents: read`);
     assert.doesNotMatch(source, /contents:\s*write/, `${path} must not request repository write access`);
@@ -43,11 +43,17 @@ test("#1228 restricts flagged GitHub Actions workflows to read-only repository a
 });
 
 test("#1228 hardens Windows batch execution before cmd.exe receives values", async () => {
-  const source = await read("scripts/spawn-command.mjs");
+  const [source, batch] = await Promise.all([
+    read("scripts/spawn-command.mjs"),
+    read("scripts/windows-batch-command.mjs"),
+  ]);
   assert.match(source, /shell:\s*false/, "shared process wrapper must keep Node shell execution disabled");
-  assert.match(source, /unsupported command-shell characters/, "Windows batch arguments must fail closed on cmd.exe metacharacters");
-  assert.match(source, /[&|<>^%!]/, "Windows metacharacter rejection must remain explicit");
-  assert.match(source, /windowsBatchArguments\(command, args\)/, "cmd.exe path must use the validated argument builder");
+  assert.match(source, /windowsBatchInvocation\(command, args/, "cmd.exe path must use the reviewed batch invocation builder");
+  assert.doesNotMatch(source, /process\.env\.ComSpec/, "cmd.exe selection must not come from the environment");
+  assert.match(batch, /unsupported command-shell characters/, "Windows batch values must fail closed on cmd.exe metacharacters");
+  assert.match(batch, /[&|<>^%!]/, "Windows metacharacter rejection must remain explicit");
+  assert.match(batch, /PLOTPICKLE_BATCH_COMMAND/, "dynamic batch paths must stay behind the reviewed environment boundary");
+  assert.match(batch, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/, "cmd.exe receives only static command tokens and environment references");
 });
 
 test("#1228 durable creative IDs require cryptographic randomUUID", async () => {

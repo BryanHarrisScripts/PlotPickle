@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate current security closeout
         shell: pwsh
-        run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
+        run: node --test tests/issue-1228-security-closeout.test.mjs tests/issue-1827-codeql-second-pass.test.mjs tests/issue-1833-codeql-data-flow-closeout.test.mjs tests/issue-1837-codeql-zero-closeout.test.mjs tests/issue-1840-codeql-casebook-text-boundary.test.mjs tests/issue-503-windows-mcp-spawn.test.mjs tests/issue-1185-pi-managed-install.test.mjs tests/issue-104-windows-paths.test.mjs tests/issue-483-feedback-studio.test.mjs tests/issue-88-visual-board-navigation.test.mjs
 
       - name: Validate bundled local video setup
         run: node --test tests/ltx-bundled-default.test.mjs tests/local-ai-plugin-registry.test.mjs

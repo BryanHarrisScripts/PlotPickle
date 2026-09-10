@@ -17,7 +17,7 @@ test("issue #88 exposes real visual production destinations", async () => {
     "96 mini-block frames",
     "Posters, pitch & production",
     "Continuity & missing assets",
-  ]) assert.match(board, new RegExp(label));
+  ]) assert.ok(board.includes(label), `Missing visual production destination: ${label}`);
   assert.match(board, /project\.production\.breakdowns/);
   assert.match(board, /project\.review\.pitchPackage\.visualStatement/);
   assert.match(board, /characterVisualIdentityDiagnostic/);

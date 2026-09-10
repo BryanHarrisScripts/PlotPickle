@@ -29,6 +29,12 @@ const boundary: React.CSSProperties = {
   boxShadow: "var(--pp-skin-shadow-control)",
 };
 
+const chromeBoundary: React.CSSProperties = {
+  ...boundary,
+  background: "var(--pp-skin-accent-deep)",
+  backgroundImage: "none",
+};
+
 const statusPanel: React.CSSProperties = {
   ...boundary,
   display: "grid",
@@ -157,7 +163,7 @@ export default function CloudStoryModeHost() {
     const routingCapability = view === "writing" || view === "agents" ? "text" : view === "images" ? "image" : view === "video" ? "video" : null;
     return (
       <div style={shell} data-skin-v1-cloud-story-mode="true" data-cloud-story-view={view}>
-        <section style={boundary} aria-labelledby="skin-v1-cloud-story-section-title">
+        <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-cloud-story-section-title">
           <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / CLOUD STORY MODE / {VIEW_TITLES[view]}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-cloud-story-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
@@ -177,7 +183,7 @@ export default function CloudStoryModeHost() {
 
   return (
     <div style={shell} data-skin-v1-cloud-story-mode="true" data-cloud-story-view="menu">
-      <section style={boundary} aria-labelledby="skin-v1-cloud-story-title">
+      <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-cloud-story-title">
         <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / CLOUD STORY MODE</p>
         <h1 id="skin-v1-cloud-story-title" style={{ margin: "5px 0 4px", fontSize: 24 }}>CLOUD STORY MODE</h1>
       </section>
@@ -198,7 +204,7 @@ export default function CloudStoryModeHost() {
       <MenuGroup title="TASKS" items={TASKS} onOpen={setView} />
       <MenuGroup title="CLOUD RESOURCES" items={RESOURCES} onOpen={setView} />
 
-      <footer style={{ ...boundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }}>
+      <footer style={{ ...chromeBoundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }} data-skin-chrome="solid">
         Cloud Story Mode uses credentials owned by the current human profile. Saving authority does not activate a paid route. Writing, image and video tests require an explicit user action, and PlotPickle never silently falls back to a paid provider.
       </footer>
     </div>

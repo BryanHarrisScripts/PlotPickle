@@ -1,5 +1,6 @@
 import { evaluateCaseRun, validateCaseDefinition } from "./casebook-contract.mjs";
 import { resultText, toolArguments } from "./creative-uat/mcp-runtime.mjs";
+import { sanitizeEvidenceText } from "./evidence-text-boundary.mjs";
 
 export const CASEBOOK_EVIDENCE_SCHEMA_VERSION = 1;
 export const CASEBOOK_INTERACTION_KINDS = Object.freeze([
@@ -16,29 +17,16 @@ export const CASEBOOK_INTERACTION_KINDS = Object.freeze([
 
 const hiddenKeys = new Set(["reasoning", "chainofthought", "chain_of_thought", "scratchpad", "prompt", "messages"]);
 const secretKeyPattern = /(password|passphrase|secret|token|cookie|authorization|api[_-]?key|private[_-]?key|nsec)/i;
-const evidenceTextRedactions = Object.freeze([
-  { pattern: /\bnsec1[a-z0-9]{8,}\b/gi, replacement: "[REDACTED_NOSTR_PRIVATE_KEY]" },
-  { pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]{8,}\b/gi, replacement: "Bearer [REDACTED]" },
-  { pattern: /\b(?:sk|pk)-[A-Za-z0-9_-]{8,}\b/g, replacement: "[REDACTED_PROVIDER_KEY]" },
-  { pattern: /\b(api[_-]?key|password|passphrase|secret|token|cookie|private[_-]?key)\b\s*[:=]\s*[^\s,;]+/gi, replacement: "$1=[REDACTED]" },
-  { pattern: /[A-Za-z]:\\Users\\[^\\\s]+/g, replacement: "[local-user]" },
-  { pattern: /\/home\/[^/\s]+/g, replacement: "/home/[user]" },
-  { pattern: /\/Users\/[^/\s]+/g, replacement: "/Users/[user]" },
-]);
-function scrubEvidenceText(value) {
-  let safe = String(value ?? "");
-  for (const rule of evidenceTextRedactions) safe = safe.replace(rule.pattern, rule.replacement);
-  safe = safe.replace(/[\u0000-\u001f\u007f]/g, " ");
-  safe = safe.replace(/\s+/g, " ");
-  return safe.trim();
-}
+const SCROLL_STATE_SOURCE = "() => JSON.stringify({ x: window.scrollX, y: window.scrollY })";
+const SCROLL_DOWN_SOURCE = "() => { window.scrollBy(0, 600); return JSON.stringify({ x: window.scrollX, y: window.scrollY }); }";
+const SCROLL_UP_SOURCE = "() => { window.scrollBy(0, -600); return JSON.stringify({ x: window.scrollX, y: window.scrollY }); }";
 
 export function redactCaseEvidence(input) {
   const serialized = JSON.stringify(input ?? null, (key, value) => {
     const normalized = String(key || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
     if (hiddenKeys.has(normalized)) return undefined;
     if (secretKeyPattern.test(String(key || ""))) return "[REDACTED]";
-    return typeof value === "string" ? scrubEvidenceText(value) : value;
+    return typeof value === "string" ? sanitizeEvidenceText(value) : value;
   });
   return JSON.parse(serialized);
 }
@@ -206,8 +194,13 @@ export function createCasebookHumanInteractionAdapter({ client, tools, creativeB
   }
 
   async function scrollBy(pixels) {
-    const amount = Number.isFinite(Number(pixels)) ? Number(pixels) : 0;
-    const text = await evaluate(`() => { window.scrollBy(0, ${JSON.stringify(amount)}); return JSON.stringify({ x: window.scrollX, y: window.scrollY }); }`);
+    const numeric = Number(pixels);
+    const amount = Number.isFinite(numeric) ? numeric : 0;
+    if (amount === 0) return { ok: true, state: await evaluate(SCROLL_STATE_SOURCE) };
+    const source = amount < 0 ? SCROLL_UP_SOURCE : SCROLL_DOWN_SOURCE;
+    const steps = Math.max(1, Math.min(8, Math.ceil(Math.abs(amount) / 600)));
+    let text = "";
+    for (let index = 0; index < steps; index += 1) text = await evaluate(source);
     return { ok: true, state: text };
   }
 

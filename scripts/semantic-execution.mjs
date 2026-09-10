@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { sanitizeEvidenceText } from "./evidence-text-boundary.mjs";
 
 export const SEMANTIC_EXECUTION_SCHEMA_VERSION = 1;
 export const SEMANTIC_EVALUATION_STATUSES = ["pass", "fail", "uncertain", "blocked"];
@@ -17,15 +18,7 @@ const HIDDEN_REASONING_KEYS = new Set([
 ]);
 
 function cleanText(value, limit = 2400) {
-  return String(value ?? "")
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/\bnsec1[a-z0-9]{8,}\b/gi, "[REDACTED_NOSTR_PRIVATE_KEY]")
-    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}\b/gi, "Bearer [REDACTED]")
-    .replace(/\b(?:sk|pk)-[A-Za-z0-9_-]{8,}\b/g, "[REDACTED_PROVIDER_KEY]")
-    .replace(/\b(api[_-]?key|password|passphrase|secret|token|cookie)\b\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED]")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, limit);
+  return sanitizeEvidenceText(value, limit);
 }
 
 function safeValue(value, key = "") {

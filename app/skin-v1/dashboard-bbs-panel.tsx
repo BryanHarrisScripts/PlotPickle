@@ -13,6 +13,8 @@ export type DashboardBbsItem = Readonly<{
 }>;
 
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
+// Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
+// Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
 
 export default function DashboardBbsPanel({
   items,

@@ -204,10 +204,10 @@ export default function LocalAiSkinHost() {
     return (
       <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view={view}>
         <section style={boundary} aria-labelledby="skin-v1-local-ai-section-title">
-          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL AI / {VIEW_TITLES[view]}</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE / {VIEW_TITLES[view]}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-local-ai-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
-            <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>BACK TO LOCAL AI</button>
+            <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>BACK TO LOCAL STORY MODE</button>
           </div>
         </section>
 
@@ -225,8 +225,8 @@ export default function LocalAiSkinHost() {
   return (
     <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view="menu">
       <section style={boundary} aria-labelledby="skin-v1-local-ai-title">
-        <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL AI</p>
-        <h1 id="skin-v1-local-ai-title" style={{ margin: "5px 0 4px", fontSize: 24 }}>LOCAL AI</h1>
+        <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE</p>
+        <h1 id="skin-v1-local-ai-title" style={{ margin: "5px 0 4px", fontSize: 24 }}>LOCAL STORY MODE</h1>
       </section>
 
       <section style={statusPanel} aria-labelledby="plotpickle-default-title">
@@ -246,7 +246,7 @@ export default function LocalAiSkinHost() {
       <MenuGroup title="ENGINES" items={ENGINES} onOpen={setView} />
 
       <footer style={{ ...boundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }}>
-        PlotPickle defaults to local, hardware-aware AI. Opening Local AI does not change an existing route, and a local failure does not silently fall back to a paid cloud provider. These screens are for reviewing or changing the defaults.
+        Local Story Mode defaults to local, hardware-aware AI. Opening it does not change an existing route, and a local failure does not silently fall back to a paid cloud provider. These screens are for reviewing or changing the local defaults.
       </footer>
     </div>
   );

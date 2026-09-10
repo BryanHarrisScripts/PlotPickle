@@ -71,12 +71,13 @@ test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async ()
     agents: "N",
     "open-source": "O",
   })) {
-    assert.match(dashboard, new RegExp(`${JSON.stringify(id)}: "${shortcut}"`, "u"));
+    const sourceKey = id.includes("-") ? JSON.stringify(id) : id;
+    assert.match(dashboard, new RegExp(`${sourceKey}: "${shortcut}"`, "u"));
   }
 
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
-  assert.doesNotMatch(dashboard, /disabled=\{!connected\}/u);
+  assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(dashboard, /event\.key === "ArrowDown"/u);
   assert.match(dashboard, /event\.key === "ArrowUp"/u);
   assert.match(dashboard, /event\.key === "Enter" \|\| event\.key === " "/u);

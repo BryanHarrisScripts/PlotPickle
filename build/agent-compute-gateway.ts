@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { AGENT_PROFILES } from "../lib/agents/agent-profiles";
+import developerAgentStack from "../config/developer-agent-stack.json";
+import { AGENT_PROFILES, type AgentProfile } from "../lib/agents/agent-profiles";
 import { PLOTPICKLE_AGENT_ROLES } from "./mastra-agent-runtime";
 import { localRuntimeSnapshot } from "./local-runtime-manager";
 import { readAgentComputeStore, writeAgentComputeStore } from "./agent-compute-store";
@@ -13,6 +14,23 @@ const LABELS: Record<TextProvider, string> = {
   openai: "OpenAI",
   minimax: "MiniMax",
   gemini: "Google Gemini",
+};
+const SYSTEM_ORDER = ["PlotPickle", "BUZZ", "External Developer"] as const;
+type AgentSystem = (typeof SYSTEM_ORDER)[number];
+type ProviderOwnership = "plotpickle-configurable" | "buzz-managed" | "deterministic" | "plotpickle-uat" | "repository-handoff" | "external-developer" | "plotpickle-fixed";
+
+type AgentRosterItem = {
+  agentId: string;
+  roleId: string | null;
+  profileId: string | null;
+  displayName: string;
+  title: string;
+  responsibility: string;
+  requestedCapabilityRole: string | null;
+  system: AgentSystem;
+  providerOwnership: ProviderOwnership;
+  providerLabel: string;
+  configurable: boolean;
 };
 
 function isLoopback(value: string | undefined) {
@@ -52,17 +70,61 @@ async function readBody(request: IncomingMessage, maximum = 16 * 1024): Promise<
   return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
 }
 
-function plotPickleAgents() {
+function hostAgentSystem(profile: AgentProfile): AgentSystem {
+  return profile.execution.kind === "buzz-managed" ? "BUZZ" : "PlotPickle";
+}
+
+function hostAgentProvider(profile: AgentProfile, configurable: boolean): Pick<AgentRosterItem, "providerOwnership" | "providerLabel"> {
+  if (configurable) return { providerOwnership: "plotpickle-configurable", providerLabel: "PlotPickle Agent compute" };
+  if (profile.execution.kind === "buzz-managed") return { providerOwnership: "buzz-managed", providerLabel: "Managed in BUZZ" };
+  if (profile.execution.kind === "deterministic-observer" || profile.execution.kind === "deterministic-gate") {
+    return { providerOwnership: "deterministic", providerLabel: "No LLM — deterministic" };
+  }
+  if (profile.execution.kind === "plotpickle-uat") {
+    const role = profile.requestedCapabilityRole ? ` · ${profile.requestedCapabilityRole} role` : "";
+    return { providerOwnership: "plotpickle-uat", providerLabel: `Local UAT runtime${role}` };
+  }
+  if (profile.execution.kind === "repository-handoff") {
+    return { providerOwnership: "repository-handoff", providerLabel: "External developer handoff" };
+  }
+  return { providerOwnership: "plotpickle-fixed", providerLabel: "PlotPickle runtime" };
+}
+
+function agentRoster(): AgentRosterItem[] {
   const supportedRoles = new Set(Object.keys(PLOTPICKLE_AGENT_ROLES));
-  return AGENT_PROFILES
-    .filter((profile) => profile.execution.kind === "embedded-mastra" && supportedRoles.has(profile.execution.roleId))
-    .map((profile) => ({
-      roleId: profile.execution.roleId,
+  const hostAgents: AgentRosterItem[] = AGENT_PROFILES.map((profile) => {
+    const configurable = profile.execution.kind === "embedded-mastra" && supportedRoles.has(profile.execution.roleId);
+    return {
+      agentId: profile.id,
+      roleId: configurable ? profile.execution.roleId : null,
       profileId: profile.id,
       displayName: profile.displayName,
       title: profile.title,
+      responsibility: profile.responsibility,
       requestedCapabilityRole: profile.requestedCapabilityRole,
-    }));
+      system: hostAgentSystem(profile),
+      ...hostAgentProvider(profile, configurable),
+      configurable,
+    };
+  });
+  const externalDevelopers: AgentRosterItem[] = developerAgentStack.requiredAgents.map((agent) => ({
+    agentId: `external-developer:${agent.id}`,
+    roleId: null,
+    profileId: null,
+    displayName: agent.label,
+    title: agent.role === "primary-or-reviewer" ? "Primary / reviewer coding agent" : agent.role,
+    responsibility: "External developer worker governed by AGENTS.md and the canonical developer-agent stack.",
+    requestedCapabilityRole: null,
+    system: "External Developer",
+    providerOwnership: "external-developer",
+    providerLabel: developerAgentStack.repair.localOnly ? "External developer config · local-only" : "External developer config",
+    configurable: false,
+  }));
+  const rank = new Map<AgentSystem, number>(SYSTEM_ORDER.map((system, index) => [system, index]));
+  return [...hostAgents, ...externalDevelopers].sort((left, right) => {
+    const systemDelta = (rank.get(left.system) ?? SYSTEM_ORDER.length) - (rank.get(right.system) ?? SYSTEM_ORDER.length);
+    return systemDelta || left.displayName.localeCompare(right.displayName);
+  });
 }
 
 async function snapshot() {
@@ -92,7 +154,7 @@ async function snapshot() {
     activeProvider: store.activeProvider,
     overrides: compute.overrides,
     providers,
-    agents: plotPickleAgents(),
+    agents: agentRoster(),
   };
 }
 

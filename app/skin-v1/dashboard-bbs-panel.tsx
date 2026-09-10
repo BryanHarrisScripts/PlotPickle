@@ -47,7 +47,11 @@ export default function DashboardBbsPanel({
       data-skin-reference="dashboard-canonical"
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-dashboard-shell-title" data-skin-reference-type="title">PLOTPICKLE BBS</div>
+        <div className="pp-skin-v1-dashboard-shell-title" data-skin-reference-type="title">
+          <span className="pp-skin-v1-dashboard-shell-chevron" aria-hidden="true">&gt;&gt;&gt;</span>
+          <span>PLOTPICKLE BBS</span>
+          <span className="pp-skin-v1-dashboard-shell-chevron" aria-hidden="true">&lt;&lt;&lt;</span>
+        </div>
 
         <div className="pp-skin-v1-dashboard-art" aria-hidden="true" data-skin-reference-media-container="primary">
           <img
@@ -66,22 +70,19 @@ export default function DashboardBbsPanel({
           />
         </div>
 
-        <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
-
         <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
           <h1 data-skin-reference-type="brand">PlotPickle</h1>
           <p data-skin-reference-type="meta">AI-Native Agentic Story Operating System</p>
           {/* Compatibility token for the original regression contract: AI-NATIVE AGENTIC STORY OPERATING SYSTEM */}
         </div>
 
-        <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
         <div className="pp-skin-v1-dashboard-title" data-skin-reference-type="body-title">*** DASHBOARD ***</div>
-        <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu">
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEMS.has(item.id);
+            const statusActive = selected && connected;
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
             return (
@@ -102,22 +103,20 @@ export default function DashboardBbsPanel({
                   onKeyDown={(event) => handleRowKeyDown(event, index)}
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                  {connected ? (
-                    <span
-                      className="pp-skin-v1-dashboard-status-box"
-                      aria-label="Connected submenu"
-                      data-skin-reference-state="status"
-                    />
-                  ) : null}
+                  <span
+                    className={`pp-skin-v1-dashboard-status-box${statusActive ? " is-active" : ""}`}
+                    aria-label={statusActive ? "Active connected submenu" : "Inactive menu item"}
+                    data-skin-reference-state="status"
+                    data-dashboard-status={statusActive ? "active" : "inactive"}
+                  />
                 </button>
               </Fragment>
             );
           })}
         </div>
 
-        <div className="pp-skin-v1-dashboard-divider pp-skin-v1-dashboard-divider-bottom" aria-hidden="true">================================================================</div>
+        <div className="pp-skin-v1-dashboard-rule" aria-hidden="true" />
         <p className="pp-skin-v1-dashboard-reminder" data-skin-reference-type="emphasis">Remember: Write dirty, edit clean. 1 page = 1 minute.</p>
-        <div className="pp-skin-v1-dashboard-divider" aria-hidden="true">================================================================</div>
 
         <div className="pp-skin-v1-bbs-help" data-skin-reference-type="muted">
           <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>

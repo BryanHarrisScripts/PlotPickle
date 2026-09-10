@@ -66,7 +66,11 @@
   justify-self: start !important;
 }
 
+/* Community-style media frame: the container owns geometry and the image fills it. */
 .pp-skin-v1-dashboard-art {
+  position: relative !important;
+  width: calc(100% - (2 * var(--pp-skin-space-4))) !important;
+  aspect-ratio: var(--pp-skin-art-ratio) !important;
   margin: 0 var(--pp-skin-space-4) !important;
   overflow: hidden !important;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent) !important;
@@ -77,12 +81,11 @@
 .pp-skin-v1-dashboard-art img {
   display: block !important;
   width: 100% !important;
-  height: auto !important;
-  aspect-ratio: var(--pp-skin-art-ratio) !important;
+  height: 100% !important;
   object-fit: cover !important;
   object-position: center !important;
   filter: var(--pp-skin-media-filter) !important;
-  image-rendering: auto !important;
+  image-rendering: pixelated !important;
 }
 
 .pp-skin-v1-dashboard-brand {

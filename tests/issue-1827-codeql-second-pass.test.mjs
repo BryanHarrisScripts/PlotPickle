@@ -11,12 +11,11 @@ test("#1827 keeps dynamic Windows batch values out of shell command text", () =>
   const invocation = windowsBatchInvocation(command, [argument], { Path: "C:\\Windows\\System32" });
 
   assert.equal(invocation.executable, "cmd.exe");
-  assert.deepEqual(invocation.args.slice(0, 2), ["/d", "/c"]);
-  assert.match(invocation.args[2], /^call "%PLOTPICKLE_BATCH_COMMAND%" "%PLOTPICKLE_BATCH_ARG_0%"$/u);
-  assert.equal(invocation.args[2].includes(command), false);
-  assert.equal(invocation.args[2].includes(argument), false);
-  assert.equal(invocation.env.PLOTPICKLE_BATCH_COMMAND, command);
-  assert.equal(invocation.env.PLOTPICKLE_BATCH_ARG_0, argument);
+  assert.deepEqual(invocation.args, ["/d", "/c", "call", "%PLOTPICKLE_BATCH_COMMAND%", "%PLOTPICKLE_BATCH_ARG_0%"]);
+  assert.equal(invocation.args.join(" ").includes(command), false);
+  assert.equal(invocation.args.join(" ").includes(argument), false);
+  assert.equal(invocation.env.PLOTPICKLE_BATCH_COMMAND, `"${command}"`);
+  assert.equal(invocation.env.PLOTPICKLE_BATCH_ARG_0, `"${argument}"`);
   assert.throws(() => windowsBatchInvocation("worker.cmd", ["bad&argument"], {}), /unsupported command-shell characters/u);
 });
 

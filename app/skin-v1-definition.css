@@ -106,8 +106,9 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-shadow-control: 2px 2px 0 var(--pp-skin-shadow-ink);
   --pp-skin-inset-highlight: inset 1px 1px 0 var(--pp-skin-surface-highlight);
 
-  /* MEDIA — keep artwork crisp and restrained inside the monochrome base. */
-  --pp-skin-media-filter: grayscale(1) contrast(1.1) brightness(0.86);
+  /* MEDIA — preserve source artwork colour. Pixel treatment belongs to the
+     rendering/layout rules, not a forced monochrome colour filter. */
+  --pp-skin-media-filter: none;
 
   /* MOTION — fast, deterministic and non-floaty. */
   --pp-skin-motion-fast: 80ms;

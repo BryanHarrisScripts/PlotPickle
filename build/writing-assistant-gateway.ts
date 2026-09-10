@@ -30,6 +30,7 @@ import {
   type PlotPickleAgentId,
   type PlotPickleTone,
 } from "./mastra-agent-runtime";
+import { readAgentComputeStore, resolveAgentComputeProvider } from "./agent-compute-store";
 
 const API_ROOT = "/api/writing-assistant";
 const STATUS_PATH = `${API_ROOT}/status`;
@@ -346,12 +347,19 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
   if (!message) throw new Error("Enter a question for the Writing Assistant.");
   const { store } = await readSynchronizedAssistantStore();
-  const explicit = isTextProvider(body.provider) ? body.provider : null;
-  const requestedProvider = explicit || store.activeProvider;
-  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI, Google Gemini or MiniMax first.");
   const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
     ? body.agentId as PlotPickleAgentId
     : "creative-director";
+  const explicit = isTextProvider(body.provider) ? body.provider : null;
+  const compute = explicit ? null : await readAgentComputeStore();
+  const assigned = explicit
+    ? { provider: explicit, source: "request" as const }
+    : resolveAgentComputeProvider(compute!, agentId, store.activeProvider);
+  const requestedProvider = assigned.provider;
+  if (!requestedProvider) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI, Google Gemini or MiniMax first.");
+  if (assigned.source !== "request" && assigned.source !== "active" && requestedProvider !== "local" && !store.profiles[requestedProvider]) {
+    throw new Error(`The ${assigned.source === "override" ? "Agent override" : "PlotPickle Agent default"} provider is unavailable. Update Settings / Agents; no fallback provider was used.`);
+  }
   const role = requestedModelRole(body, agentId);
   let profile = await profileForProvider(store, requestedProvider, role);
   if (agentId === "curriculum-guide") profile = curriculumGuideLocalProfile(profile);
@@ -390,6 +398,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     runtimeProvider: updated.runtime || updated.provider,
     model: updated.textModel,
     modelRole: role,
+    computeSource: assigned.source,
     contextTokens: updated.contextTokens,
     runtime: "mastra",
     agentId,

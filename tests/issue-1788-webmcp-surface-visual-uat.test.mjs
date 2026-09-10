@@ -25,10 +25,19 @@ test("Dashboard stays the canonical Skin V1 design reference while every bounded
   assert.match(dashboard, /data-skin-reference-state="status"/);
 
   assert.equal(manifest.designReference, "dashboard");
-  assert.deepEqual(Object.keys(manifest.surfaces), ["dashboard", "community", "profile", "local-ai", "node"]);
+  assert.deepEqual(Object.keys(manifest.surfaces), [
+    "dashboard",
+    "community",
+    "settings",
+    "cloud-story-mode",
+    "agents",
+    "profile",
+    "local-ai",
+    "node",
+  ]);
   assert.match(audit, /captureSurfaceCandidate/);
   assert.match(audit, /dashboard-canonical\.png/);
-  for (const surface of ["community", "profile", "local-ai", "node"]) {
+  for (const surface of ["community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
     assert.match(audit, new RegExp(`captureSurfaceCandidate\\(page, manifest, "${surface}"`));
   }
 });
@@ -69,10 +78,9 @@ test("non-Dashboard surfaces inherit the same rendered Skin V1 contract", () => 
     assert.match(audit, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(audit, /getComputedStyle/);
-  assert.match(audit, /surface: "community"/);
-  assert.match(audit, /surface: "profile"/);
-  assert.match(audit, /surface: "local-ai"/);
-  assert.match(audit, /surface: "node"/);
+  for (const surface of ["community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
+    assert.match(audit, new RegExp(`surface: "${surface}"`));
+  }
 });
 
 test("locked visual baselines stay repository-owned and Visual Readiness remains manual", () => {

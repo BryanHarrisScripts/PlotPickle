@@ -34,10 +34,11 @@ test("Human mode keeps the owned browser while WebMCP mode runs the bounded audi
   assert.match(launcher, /WebMCP Testing requires an isolated PlotPickle test session/);
 });
 
-test("startup WebMCP runner keeps verification tools isolated and pinned", async () => {
-  const [runner, packageJson] = await Promise.all([
+test("startup WebMCP runner keeps verification tools isolated, pinned, and on the shared safe spawn path", async () => {
+  const [runner, packageJson, spawnHelper] = await Promise.all([
     read("scripts/run-webmcp-startup-uat.mjs"),
     read("package.json"),
+    read("scripts/spawn-command.mjs"),
   ]);
 
   assert.match(runner, /@playwright\/test@1\.63\.0/);
@@ -47,25 +48,25 @@ test("startup WebMCP runner keeps verification tools isolated and pinned", async
   assert.match(runner, /runWebMcpSurfaceVisualAudit/);
   assert.match(runner, /WEBMCP_STARTUP_EVIDENCE/);
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
-  assert.match(runner, /process\.env\.ComSpec \|\| "cmd\.exe"/);
-  assert.match(runner, /windowsShellCommandToken/);
-  assert.match(runner, /quoteWindowsShellArg/);
-  assert.match(runner, /\["\/d", "\/s", "\/c", windowsCommandLine\(command, args\)\]/);
+  assert.match(runner, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
+  assert.match(runner, /spawnCommand\(command, args/);
+  assert.match(spawnHelper, /process\.env\.ComSpec \|\| "cmd\.exe"/);
+  assert.match(spawnHelper, /\["\/d", "\/c", \.\.\.values\]/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 
-test("Windows WebMCP bootstrap executes command wrappers without spawn EINVAL", { skip: process.platform !== "win32" }, async () => {
+test("Windows WebMCP bootstrap executes cmd wrappers and npm with a spaced verification root", { skip: process.platform !== "win32" }, async () => {
   const { commandName, runCommand } = await import("../scripts/run-webmcp-startup-uat.mjs");
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "PlotPickle WebMCP "));
   const probeName = "plotpickle-webmcp-probe.cmd";
   const probe = path.join(tempRoot, probeName);
-  const marker = path.join(tempRoot, "spawn result.txt");
+  const marker = path.join(tempRoot, "spawn-result.txt");
 
   try {
-    await writeFile(probe, '@echo off\r\n> "%~1" echo spawn-ok\r\n', "utf8");
-    await runCommand(probeName, [marker], { stdio: "ignore", cwd: tempRoot });
+    await writeFile(probe, '@echo off\r\n> spawn-result.txt echo spawn-ok\r\n', "utf8");
+    await runCommand(probeName, [], { stdio: "ignore", cwd: tempRoot });
     assert.equal((await readFile(marker, "utf8")).trim(), "spawn-ok");
-    await runCommand(commandName("npm"), ["--version"], { stdio: "ignore" });
+    await runCommand(commandName("npm"), ["--prefix", tempRoot, "--version"], { stdio: "ignore" });
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }

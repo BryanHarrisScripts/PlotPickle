@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Fragment, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
+import CloudStoryModeHost from "./cloud-story-mode-host";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -23,12 +24,16 @@ const SETTINGS_MENU = [
       description: item.description,
       group: "WORKSPACE",
     })),
-  ...settingsTaxonomy.systems.map((system) => ({
-    id: system.id,
-    label: system.label,
-    description: system.description,
-    group: "SYSTEMS",
-  })),
+  ...settingsTaxonomy.systems
+    .filter((system) => system.id !== "local")
+    .map((system) => ({
+      id: system.id,
+      label: system.id === "cloud" ? "Cloud Story Mode" : system.label,
+      description: system.id === "cloud"
+        ? "Cloud writing, images, video and user-owned provider authority."
+        : system.description,
+      group: "SYSTEMS",
+    })),
 ] as const;
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
@@ -48,6 +53,7 @@ export default function DashboardBbsPanel({
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [cloudStoryModeOpen, setCloudStoryModeOpen] = useState(false);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -68,6 +74,26 @@ export default function DashboardBbsPanel({
       }
     }
     onKeyDown(event, index);
+  }
+
+  if (settingsMenuOpen && cloudStoryModeOpen) {
+    return (
+      <section
+        aria-label="Cloud Story Mode setup"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setCloudStoryModeOpen(false);
+          }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>CLOUD STORY MODE</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setCloudStoryModeOpen(false)}>Back to Settings</button>
+        </div>
+        <CloudStoryModeHost />
+      </section>
+    );
   }
 
   if (settingsMenuOpen) {
@@ -94,14 +120,17 @@ export default function DashboardBbsPanel({
           <div className="pp-skin-v1-menu" aria-describedby="settings-menu-status">
             {SETTINGS_MENU.map((item, index) => {
               const showGroup = index === 0 || SETTINGS_MENU[index - 1]?.group !== item.group;
+              const connected = item.id === "cloud";
               return (
                 <Fragment key={item.id}>
                   {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
                   <button
                     type="button"
-                    disabled
+                    disabled={!connected}
                     className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"
                     data-settings-secondary-item={item.id}
+                    data-settings-secondary-connected={connected ? "true" : "false"}
+                    onClick={connected ? () => setCloudStoryModeOpen(true) : undefined}
                   >
                     <span aria-hidden="true">&gt;</span>
                     <span className="pp-skin-v1-menu-label">{item.label}</span>
@@ -113,7 +142,7 @@ export default function DashboardBbsPanel({
           </div>
 
           <p className="pp-skin-v1-bbs-help" id="settings-menu-status">
-            SETTINGS DIRECTORY ONLY / SUBMENUS ARE NOT CONNECTED YET
+            CLOUD STORY MODE CONNECTED / OTHER SETTINGS SUBMENUS ARE NOT CONNECTED YET
           </p>
         </div>
       </section>

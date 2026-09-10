@@ -19,7 +19,7 @@ test("#1827 keeps dynamic Windows batch values out of shell command text", () =>
   assert.throws(() => windowsBatchInvocation("worker.cmd", ["bad&argument"], {}), /unsupported command-shell characters/u);
 });
 
-test("#1827 routes every flagged Windows shell callsite through the reviewed boundary", async () => {
+test("#1827/#1833 keeps flagged Windows shell callsites off dynamic cmd.exe source", async () => {
   const [spawnHelper, npxLauncher, piRuntime] = await Promise.all([
     read("scripts/spawn-command.mjs"),
     read("scripts/run-npx-stdio.mjs"),
@@ -29,18 +29,17 @@ test("#1827 routes every flagged Windows shell callsite through the reviewed bou
   for (const source of [spawnHelper, npxLauncher, piRuntime]) {
     assert.doesNotMatch(source, /process\.env\.(?:ComSpec|COMSPEC)/u);
   }
-  assert.match(spawnHelper, /windowsBatchInvocation\(command, args/u);
+  assert.match(spawnHelper, /windowsJavaScriptCliInvocation\(command, args/u);
+  assert.doesNotMatch(spawnHelper, /windowsBatchInvocation|spawn\(\s*["']cmd\.exe|PLOTPICKLE_BATCH_COMMAND/u);
   assert.match(npxLauncher, /spawnCommand\(command, npxArgs/u);
   assert.match(piRuntime, /windowsBatchInvocation\(command, commandArgs/u);
   assert.match(piRuntime, /shell: false/u);
 });
 
-test("#1827 sanitizes the flagged Casebook browser label after JSON encoding", async () => {
+test("#1827/#1833 passes the flagged Casebook browser label through a structured capability", async () => {
   const source = await read("scripts/casebook-evidence.mjs");
-  assert.match(source, /function safeBrowserStringLiteral\(value\)/u);
-  assert.match(source, /JSON\.stringify\(String\(value\)\)\.replace\(/u);
-  assert.match(source, /const wanted = safeBrowserStringLiteral\(label\)/u);
-  assert.doesNotMatch(source, /const wanted = JSON\.stringify\(String\(label\)\)/u);
+  assert.match(source, /creativeBrowser\.focusVisible\(String\(label\)\)/u);
+  assert.doesNotMatch(source, /safeBrowserStringLiteral|const wanted = .*label|browser_evaluate[^\n]*label/u);
 });
 
 test("#1827 removes the two no-op substring replacements flagged in tests", async () => {

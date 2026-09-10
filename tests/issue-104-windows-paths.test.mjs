@@ -21,25 +21,23 @@ function completed(command, args) {
 }
 
 test("issue #104 preserves Windows executable paths containing spaces", async () => {
-  const [helper, batchHelper, build, timeout] = await Promise.all([
+  const [helper, build, timeout] = await Promise.all([
     source("scripts/spawn-command.mjs"),
-    source("scripts/windows-batch-command.mjs"),
     source("scripts/build-verified.mjs"),
     source("scripts/run-command-with-timeout.mjs"),
   ]);
 
-  assert.match(helper, /windowsBatchInvocation/);
+  assert.match(helper, /windowsJavaScriptCliInvocation/);
   assert.ok(helper.includes('/\\.(?:cmd|bat)$/i'));
   assert.match(helper, /shell: false/);
   assert.doesNotMatch(helper, /process\.env\.ComSpec/);
   assert.doesNotMatch(helper, /windowsVerbatimArguments/);
   assert.doesNotMatch(helper, /quoteForCommandPrompt/);
-  assert.match(helper, /roots\.push\(dirname\(process\.execPath\)\)/);
+  assert.match(helper, /roots\.push\(dirname\(nodeExecutable\)\)/);
   assert.match(helper, /join\(root, "node_modules", "npm", "bin", cliName\)/);
-  assert.match(batchHelper, /PLOTPICKLE_BATCH_COMMAND/);
-  assert.match(batchHelper, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/);
-  assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
-  assert.match(batchHelper, /unsupported command-shell characters/);
+  assert.match(helper, /commandName === "vinext\.cmd"/);
+  assert.match(helper, /Unsupported Windows batch wrapper/);
+  assert.doesNotMatch(helper, /windowsBatchInvocation|spawn\(\s*["']cmd\.exe|PLOTPICKLE_BATCH_/);
 
   for (const file of [build, timeout]) {
     assert.match(file, /spawnCommand/);
@@ -50,7 +48,7 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(build, /process\.execPath/);
 });
 
-test("issue #106 executes npm.cmd and spaced Windows commands without literal quote characters", { skip: process.platform !== "win32" }, async () => {
+test("issue #106 executes npm.cmd and spaced native commands while rejecting arbitrary batch wrappers", { skip: process.platform !== "win32" }, async () => {
   const directory = await mkdtemp(join(tmpdir(), "PlotPickle command path "));
   try {
     const copiedNode = join(directory, "node copy.exe");
@@ -60,7 +58,7 @@ test("issue #106 executes npm.cmd and spaced Windows commands without literal qu
 
     await completed(copiedNode, ["-e", "process.exit(0)"]);
     await completed("npm.cmd", ["--version"]);
-    await completed(commandFile, ["hello world"]);
+    await assert.rejects(completed(commandFile, ["hello world"]), /Unsupported Windows batch wrapper/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

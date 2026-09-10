@@ -35,11 +35,10 @@ test("Human mode keeps the owned browser while WebMCP mode runs the bounded audi
 });
 
 test("startup WebMCP runner keeps verification tools isolated, pinned, and on the shared safe spawn path", async () => {
-  const [runner, packageJson, spawnHelper, batchHelper] = await Promise.all([
+  const [runner, packageJson, spawnHelper] = await Promise.all([
     read("scripts/run-webmcp-startup-uat.mjs"),
     read("package.json"),
     read("scripts/spawn-command.mjs"),
-    read("scripts/windows-batch-command.mjs"),
   ]);
 
   assert.match(runner, /@playwright\/test@1\.63\.0/);
@@ -51,39 +50,27 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and on th
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
   assert.match(runner, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
   assert.match(runner, /spawnCommand\(command, args/);
-  assert.match(spawnHelper, /windowsBatchInvocation\(command, args/);
-  assert.match(spawnHelper, /invocation\.executable/);
+  assert.match(spawnHelper, /windowsJavaScriptCliInvocation\(command, args/);
+  assert.match(spawnHelper, /Unsupported Windows batch wrapper/);
   assert.doesNotMatch(spawnHelper, /process\.env\.ComSpec/);
-  assert.doesNotMatch(spawnHelper, /windowsBatchArguments/);
-  assert.match(batchHelper, /PLOTPICKLE_BATCH_COMMAND/);
-  assert.match(batchHelper, /PLOTPICKLE_BATCH_ARG_/);
-  assert.match(batchHelper, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/);
-  assert.match(batchHelper, /unsupported command-shell characters/);
+  assert.doesNotMatch(spawnHelper, /windowsBatchInvocation|spawn\(\s*["']cmd\.exe|PLOTPICKLE_BATCH_/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 
-test("CodeQL-sensitive browser expressions sanitize dynamic string literals after JSON encoding", async () => {
+test("CodeQL-sensitive browser labels stay out of executable source", async () => {
   const [releaseSmoke, issueSmoke, casebook] = await Promise.all([
     read("scripts/windows-release-smoke.mjs"),
     read("scripts/windows-issue-208-smoke.mjs"),
     read("scripts/casebook-evidence.mjs"),
   ]);
 
-  for (const source of [releaseSmoke, issueSmoke, casebook]) {
-    assert.match(source, /function safeBrowserStringLiteral\(value\)/);
-    assert.match(source, /JSON\.stringify\(String\(value\)\)\.replace\(/);
-    assert.match(source, /"<": "\\\\u003c"/);
-    assert.match(source, /">": "\\\\u003e"/);
-    assert.match(source, /"\/": "\\\\u002f"/);
+  for (const source of [releaseSmoke, issueSmoke, casebook]) assert.doesNotMatch(source, /safeBrowserStringLiteral/);
+  for (const source of [releaseSmoke, issueSmoke]) {
+    assert.match(source, /callCdpPageFunction/);
+    assert.match(source, /PAGE_FUNCTIONS/);
+    assert.doesNotMatch(source, /=== \$\{[^}]*\b(?:text|label)\b[^}]*\}/);
   }
-  assert.match(releaseSmoke, /safeBrowserStringLiteral\(text\)/);
-  assert.match(releaseSmoke, /safeBrowserStringLiteral\(label\)/);
-  assert.doesNotMatch(releaseSmoke, /=== \$\{JSON\.stringify\((?:text|label)\)\}/);
-  assert.match(issueSmoke, /safeBrowserStringLiteral\(text\)/);
-  assert.ok((issueSmoke.match(/safeBrowserStringLiteral\(label\)/g) || []).length >= 2, "Issue #208 smoke should sanitize both label insertion sites");
-  assert.doesNotMatch(issueSmoke, /=== \$\{JSON\.stringify\((?:text|label)\)\}/);
-  assert.match(casebook, /const wanted = safeBrowserStringLiteral\(label\)/);
-  assert.doesNotMatch(casebook, /const wanted = JSON\.stringify\(String\(label\)\)/);
+  assert.match(casebook, /creativeBrowser\.focusVisible\(String\(label\)\)/);
 });
 
 test("WebMCP CMD output lists every lockable surface and never auto-approves screenshots", async () => {
@@ -108,17 +95,15 @@ test("WebMCP CMD output lists every lockable surface and never auto-approves scr
   assert.equal(formatPassTag({ color: true }), "\u001b[32m[PASS]\u001b[0m");
 });
 
-test("Windows WebMCP bootstrap executes cmd wrappers and npm with a spaced verification root", { skip: process.platform !== "win32" }, async () => {
+test("Windows WebMCP bootstrap rejects arbitrary cmd wrappers and runs npm with a spaced verification root", { skip: process.platform !== "win32" }, async () => {
   const { commandName, runCommand } = await import("../scripts/run-webmcp-startup-uat.mjs");
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "PlotPickle WebMCP "));
   const probeName = "plotpickle-webmcp-probe.cmd";
   const probe = path.join(tempRoot, probeName);
-  const marker = path.join(tempRoot, "spawn-result.txt");
 
   try {
     await writeFile(probe, '@echo off\r\n> spawn-result.txt echo spawn-ok\r\n', "utf8");
-    await runCommand(probeName, [], { stdio: "ignore", cwd: tempRoot });
-    assert.equal((await readFile(marker, "utf8")).trim(), "spawn-ok");
+    await assert.rejects(runCommand(probeName, [], { stdio: "ignore", cwd: tempRoot }), /Unsupported Windows batch wrapper/);
     await runCommand(commandName("npm"), ["--prefix", tempRoot, "--version"], { stdio: "ignore", cwd: tempRoot });
   } finally {
     await rm(tempRoot, { recursive: true, force: true });

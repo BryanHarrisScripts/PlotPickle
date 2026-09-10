@@ -7,6 +7,7 @@ import { createServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { callCdpPageFunction } from "../lib/verification/cdp-page-function.mjs";
 
 const root = path.resolve(process.argv[2] ?? ".");
 const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports", "windows-issue-208-smoke"));
@@ -184,26 +185,48 @@ async function navigate(client, url) {
   await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, `Page ${url}`);
 }
 
-const BROWSER_LITERAL_ESCAPES = Object.freeze({
-  "<": "\\u003c",
-  ">": "\\u003e",
-  "/": "\\u002f",
-  "\u2028": "\\u2028",
-  "\u2029": "\\u2029",
+const PAGE_FUNCTIONS = Object.freeze({
+  shellReady: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === wantedLabel);
+    return Boolean(document.querySelector(".application-shell-header") && active);
+  }`,
+  clickButton: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === wantedLabel);
+    if (!button) return false;
+    button.click();
+    return true;
+  }`,
+  learnTabActive: `function (wantedLabel) {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    return [...document.querySelectorAll(".learn-section-tabs button")].some((item) => normalize(item.innerText) === wantedLabel && item.getAttribute("aria-current") === "page");
+  }`,
 });
-
-function safeBrowserStringLiteral(value) {
-  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
-}
 
 const normalizeFunction = `const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();`;
 
+async function waitForPageFunction(client, functionDeclaration, values, timeoutMs = 15_000, label = "Browser condition") {
+  const stopAt = Date.now() + timeoutMs;
+  let lastError = "";
+  while (Date.now() < stopAt) {
+    try {
+      const value = await callCdpPageFunction(client, functionDeclaration, values);
+      if (value) return value;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await delay(100);
+  }
+  throw new Error(`${label} did not become true within ${timeoutMs} ms.${lastError ? ` Last browser error: ${lastError}` : ""}`);
+}
+
 async function waitForShell(client, label, timeoutMs = 25_000) {
-  await waitFor(client, `(() => { ${normalizeFunction} const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)}); return Boolean(document.querySelector(".application-shell-header") && active); })()`, timeoutMs, `${label} application shell`);
+  await waitForPageFunction(client, PAGE_FUNCTIONS.shellReady, [String(label)], timeoutMs, `${label} application shell`);
 }
 
 async function clickButton(client, text) {
-  return evaluate(client, `(() => { ${normalizeFunction} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(text)}); if (!button) return false; button.click(); return true; })()`);
+  return callCdpPageFunction(client, PAGE_FUNCTIONS.clickButton, [String(text)]);
 }
 
 async function inspect(client, events, eventStart, baseOrigin) {
@@ -442,7 +465,7 @@ async function main() {
       const labels = ["Introduction", "Complete Learning Library", "Terminology", "Screenplay Study"];
       for (const label of labels) {
         if (!await clickButton(client, label)) throw new Error(`Learn tab not found: ${label}`);
-        await waitFor(client, `(() => { ${normalizeFunction} return [...document.querySelectorAll(".learn-section-tabs button")].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)} && item.getAttribute("aria-current") === "page"); })()`, 10_000, `${label} active Learn tab`);
+        await waitForPageFunction(client, PAGE_FUNCTIONS.learnTabActive, [String(label)], 10_000, `${label} active Learn tab`);
       }
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));

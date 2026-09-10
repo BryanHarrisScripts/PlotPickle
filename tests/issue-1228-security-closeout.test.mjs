@@ -42,18 +42,13 @@ test("#1228 restricts flagged GitHub Actions workflows to read-only repository a
   }
 });
 
-test("#1228 hardens Windows batch execution before cmd.exe receives values", async () => {
-  const [source, batch] = await Promise.all([
-    read("scripts/spawn-command.mjs"),
-    read("scripts/windows-batch-command.mjs"),
-  ]);
+test("#1228/#1833 keeps dynamic Windows batch values away from cmd.exe", async () => {
+  const source = await read("scripts/spawn-command.mjs");
   assert.match(source, /shell:\s*false/, "shared process wrapper must keep Node shell execution disabled");
-  assert.match(source, /windowsBatchInvocation\(command, args/, "cmd.exe path must use the reviewed batch invocation builder");
+  assert.match(source, /windowsJavaScriptCliInvocation\(command, args/, "approved wrappers must resolve to JavaScript CLI entry points");
   assert.doesNotMatch(source, /process\.env\.ComSpec/, "cmd.exe selection must not come from the environment");
-  assert.match(batch, /unsupported command-shell characters/, "Windows batch values must fail closed on cmd.exe metacharacters");
-  assert.match(batch, /[&|<>^%!]/, "Windows metacharacter rejection must remain explicit");
-  assert.match(batch, /PLOTPICKLE_BATCH_COMMAND/, "dynamic batch paths must stay behind the reviewed environment boundary");
-  assert.match(batch, /Object\.freeze\(\["\/d", "\/c", "call", "%PLOTPICKLE_BATCH_COMMAND%"/, "cmd.exe receives only static command tokens and environment references");
+  assert.match(source, /Unsupported Windows batch wrapper/, "unknown batch wrappers must fail closed");
+  assert.doesNotMatch(source, /windowsBatchInvocation|spawn\(\s*["']cmd\.exe|PLOTPICKLE_BATCH_/, "the shared wrapper must not construct a command shell boundary");
 });
 
 test("#1228/#1829 durable creative IDs require cryptographic randomUUID and fail closed", async () => {

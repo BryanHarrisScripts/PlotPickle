@@ -48,7 +48,8 @@ test("startup WebMCP runner keeps verification tools isolated and pinned", async
   assert.match(runner, /WEBMCP_STARTUP_EVIDENCE/);
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
   assert.match(runner, /process\.env\.ComSpec \|\| "cmd\.exe"/);
-  assert.match(runner, /\["\/d", "\/c", command, \.\.\.args\]/);
+  assert.match(runner, /map\(quoteWindowsShellToken\)\.join\(" "\)/);
+  assert.match(runner, /shell: process\.env\.ComSpec \|\| "cmd\.exe"/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 

@@ -119,14 +119,6 @@ function legacyProfile(value: unknown): ProviderProfile | null {
   };
 }
 
-function sameConnection(left: ProviderProfile | undefined, right: ProviderProfile) {
-  return Boolean(left
-    && left.provider === right.provider
-    && left.baseUrl === right.baseUrl
-    && left.textModel === right.textModel
-    && left.apiKey === right.apiKey);
-}
-
 export async function readSynchronizedAssistantStore() {
   const storedValue = await readCredentialJson<unknown>(STORE_FILE);
   const existed = Boolean(storedValue);
@@ -134,19 +126,16 @@ export async function readSynchronizedAssistantStore() {
   const imported = legacyProfile(await readCredentialJson<unknown>(LEGACY_FILE));
   let changed = false;
 
-  if (imported) {
-    const current = store.profiles[imported.provider];
-    if (!sameConnection(current, imported)) {
-      store.profiles[imported.provider] = imported;
-      changed = true;
-    }
+  // Legacy ai-connection.json is migration input only. Once a provider has a
+  // modern profile, the old file must never overwrite newer Story Mode setup.
+  if (imported && !store.profiles[imported.provider]) {
+    store.profiles[imported.provider] = imported;
+    changed = true;
     if (imported.provider === "ollama" && store.ollamaBaseUrl !== imported.baseUrl) {
       store.ollamaBaseUrl = imported.baseUrl;
-      changed = true;
     }
     if ((!existed || !isTextProvider(store.activeProvider) || !store.profiles[store.activeProvider]) && !store.explicitlyDisabled) {
       store.activeProvider = imported.provider;
-      changed = true;
     }
   }
 

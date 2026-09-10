@@ -128,14 +128,6 @@ function importedProfile(value: ExistingAiConnection): MediaProfile | null {
   };
 }
 
-function sameProfile(left: MediaProfile | undefined, right: MediaProfile) {
-  return Boolean(left
-    && left.baseUrl === right.baseUrl
-    && left.imageModel === right.imageModel
-    && left.videoModel === right.videoModel
-    && left.apiKey === right.apiKey);
-}
-
 export function workflowHash(source: Record<string, unknown>) {
   return createHash("sha256").update(JSON.stringify(source)).digest("hex");
 }
@@ -153,7 +145,10 @@ export async function readMediaRoutingStore() {
   let changed = !stored
     || storedComfy?.baseUrl !== LOCAL_COMFYUI_URL
     || storedComfy?.checkpoint !== LOCAL_SDXL_CHECKPOINT;
-  if (imported && !sameProfile(next.profiles[imported.provider], imported)) {
+
+  // Legacy ai-connection.json is migration input only. Once a provider has a
+  // modern media profile, the old file must never overwrite Story Mode setup.
+  if (imported && !next.profiles[imported.provider]) {
     next.profiles[imported.provider] = imported;
     // Preserve the old migration contract only for users who explicitly saved
     // the legacy manual route. Fresh installs still default to local ComfyUI/SDXL.

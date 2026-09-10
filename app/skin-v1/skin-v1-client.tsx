@@ -30,7 +30,7 @@ const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
 
 const PROFILE_MENU = [
   { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: true },
-  { id: "local-ai", label: "LOCAL AI", description: "LOCAL CONFIGURATIONS", enabled: true },
+  { id: "local-ai", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO", enabled: true },
   { id: "node", label: "NODE", description: "NODE INFO", enabled: true },
 ] as const;
 
@@ -265,7 +265,7 @@ export default function SkinV1Client() {
 
   if (view.state === "authenticated") {
     const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
-    const businessUseCase = localAiOpen ? "LOCAL AI" : nodeOpen ? "NODE" : userProfileOpen ? "USER PROFILE" : profileMenuOpen ? "PROFILE" : activeSurface;
+    const businessUseCase = localAiOpen ? "LOCAL STORY MODE" : nodeOpen ? "NODE" : userProfileOpen ? "USER PROFILE" : profileMenuOpen ? "PROFILE" : activeSurface;
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
@@ -279,14 +279,14 @@ export default function SkinV1Client() {
 
         {profileMenuOpen ? (
           localAiOpen ? (
-            <section aria-label="Local AI setup" onKeyDown={(event) => {
+            <section aria-label="Local Story Mode setup" onKeyDown={(event) => {
               if (event.key === "Escape") { event.preventDefault(); setLocalAiOpen(false); }
             }}>
               <div className="pp-skin-v1-bbs-banner">
-                <h1 ref={localAiHeadingRef} tabIndex={-1}>LOCAL AI</h1>
+                <h1 ref={localAiHeadingRef} tabIndex={-1}>LOCAL STORY MODE</h1>
                 <button type="button" className="pp-skin-v1-return" onClick={() => setLocalAiOpen(false)}>Back to Profile</button>
               </div>
-              <Suspense fallback={<p role="status">Loading Local AI...</p>}><LocalAiSkinHost /></Suspense>
+              <Suspense fallback={<p role="status">Loading Local Story Mode...</p>}><LocalAiSkinHost /></Suspense>
             </section>
           ) : nodeOpen ? (
             <section aria-label="Node information" onKeyDown={(event) => {
@@ -326,7 +326,7 @@ export default function SkinV1Client() {
                     </button>
                   ))}
                 </div>
-                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL AI / NODE CONNECTED</p>
+                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL STORY MODE / NODE CONNECTED</p>
               </div>
             </section>
           )

@@ -69,6 +69,31 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and valid
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 
+test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage from system status text", async () => {
+  const [menuAudit, cloud, local, auth] = await Promise.all([
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
+    read("app/skin-v1/cloud-story-mode-host.tsx"),
+    read("app/skin-v1/local-ai-skin-host.tsx"),
+    read("scripts/full-verification-auth.mjs"),
+  ]);
+
+  assert.match(menuAudit, /\[data-skin-chrome='solid'\]/u);
+  assert.match(menuAudit, /runtimeErrorLeak/u);
+  assert.match(menuAudit, /skin-v1-system-content-contract/u);
+  assert.match(menuAudit, /scope\.querySelectorAll\("\[role='status'\], \[role='alert'\]"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("C"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("L"\)/u);
+  assert.doesNotMatch(menuAudit, /querySelectorAll\("p, label, small"\)/u);
+  for (const source of [cloud, local]) {
+    assert.match(source, /const chromeBoundary: React\.CSSProperties/u);
+    assert.match(source, /background: "var\(--pp-skin-accent-deep\)"/u);
+    assert.match(source, /backgroundImage: "none"/u);
+    assert.ok((source.match(/data-skin-chrome="solid"/gu) || []).length >= 3);
+  }
+  assert.match(auth, /const SYNTHETIC_PROFILE_DIRECTORIES = Object\.freeze/u);
+  assert.match(auth, /await prepareSyntheticProfileStorage\(home, profileId\);[\s\S]*const signedIn = await profilePost/u);
+});
+
 test("CodeQL-sensitive browser labels stay out of executable source", async () => {
   const [releaseSmoke, issueSmoke, casebook] = await Promise.all([
     read("scripts/windows-release-smoke.mjs"),

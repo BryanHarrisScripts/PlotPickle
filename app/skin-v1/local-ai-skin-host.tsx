@@ -48,6 +48,12 @@ const boundary: React.CSSProperties = {
   boxShadow: "var(--pp-skin-shadow-control)",
 };
 
+const chromeBoundary: React.CSSProperties = {
+  ...boundary,
+  background: "var(--pp-skin-accent-deep)",
+  backgroundImage: "none",
+};
+
 const statusPanel: React.CSSProperties = {
   ...boundary,
   display: "grid",
@@ -203,7 +209,7 @@ export default function LocalAiSkinHost() {
   if (view !== "menu") {
     return (
       <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view={view}>
-        <section style={boundary} aria-labelledby="skin-v1-local-ai-section-title">
+        <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-local-ai-section-title">
           <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE / {VIEW_TITLES[view]}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-local-ai-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
@@ -224,7 +230,7 @@ export default function LocalAiSkinHost() {
 
   return (
     <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view="menu">
-      <section style={boundary} aria-labelledby="skin-v1-local-ai-title">
+      <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-local-ai-title">
         <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE</p>
         <h1 id="skin-v1-local-ai-title" style={{ margin: "5px 0 4px", fontSize: 24 }}>LOCAL STORY MODE</h1>
       </section>
@@ -245,7 +251,7 @@ export default function LocalAiSkinHost() {
       <MenuGroup title="TASKS" items={TASKS} onOpen={setView} />
       <MenuGroup title="ENGINES" items={ENGINES} onOpen={setView} />
 
-      <footer style={{ ...boundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }}>
+      <footer style={{ ...chromeBoundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }} data-skin-chrome="solid">
         Local Story Mode defaults to local, hardware-aware AI. Opening it does not change an existing route, and a local failure does not silently fall back to a paid cloud provider. These screens are for reviewing or changing the local defaults.
       </footer>
     </div>

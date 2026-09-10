@@ -6,6 +6,18 @@ import process from "node:process";
 
 const AUTH_MODE = "synthetic-human";
 const SYNTHETIC_ROOT_SEGMENTS = ["PlotPickle", "full-verification", "synthetic-humans"];
+const SYNTHETIC_PROFILE_DIRECTORIES = Object.freeze([
+  "vault",
+  "projects",
+  "library",
+  "memory",
+  "indexes",
+  "assets",
+  "buzz",
+  "credentials",
+  "settings",
+  "cache",
+]);
 
 function localDataRoot(env = process.env, platform = process.platform) {
   if (env.LOCALAPPDATA) return env.LOCALAPPDATA;
@@ -47,6 +59,15 @@ export function verificationSyntheticRuntime(jobId, options = {}) {
 function isInside(root, candidate) {
   const relative = path.relative(path.resolve(root), path.resolve(candidate));
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+async function prepareSyntheticProfileStorage(home, profileId) {
+  const profileRoot = path.join(path.resolve(home), "profiles", profileId);
+  await mkdir(profileRoot, { recursive: true, mode: 0o700 });
+  await Promise.all(SYNTHETIC_PROFILE_DIRECTORIES.map((directory) => (
+    mkdir(path.join(profileRoot, directory), { recursive: true, mode: 0o700 })
+  )));
+  return profileRoot;
 }
 
 export async function prepareVerificationSyntheticHome(home, options = {}) {
@@ -147,6 +168,7 @@ export async function establishVerificationSyntheticHuman({ baseUrl, home, fetch
   }, fetchImpl);
   const profileId = String(created.body?.profile?.profileId || "");
   if (!profileId) throw new Error("Full Verification synthetic Human creation returned no profile identity.");
+  await prepareSyntheticProfileStorage(home, profileId);
 
   const signedIn = await profilePost(normalizedBaseUrl, {
     action: "login",

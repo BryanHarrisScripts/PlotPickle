@@ -60,14 +60,10 @@ test("Windows WebMCP bootstrap executes command wrappers without spawn EINVAL", 
   const probeName = "plotpickle-webmcp-probe.cmd";
   const probe = path.join(tempRoot, probeName);
   const marker = path.join(tempRoot, "spawn result.txt");
-  const env = {
-    ...process.env,
-    PATH: `${tempRoot}${path.delimiter}${process.env.PATH || ""}`,
-  };
 
   try {
     await writeFile(probe, '@echo off\r\n> "%~1" echo spawn-ok\r\n', "utf8");
-    await runCommand(probeName, [marker], { stdio: "ignore", env });
+    await runCommand(probeName, [marker], { stdio: "ignore", cwd: tempRoot });
     assert.equal((await readFile(marker, "utf8")).trim(), "spawn-ok");
     await runCommand(commandName("npm"), ["--version"], { stdio: "ignore" });
   } finally {

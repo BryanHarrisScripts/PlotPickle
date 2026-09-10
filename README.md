@@ -139,10 +139,12 @@ That means:
 <!-- PLOTPICKLE:ARCHITECTURE:START -->
 ## ARCHITECTURE
 
-PlotPickle's architecture blueprint is generated from one machine-readable source: [`architecture/plotpickle.architecture.json`](architecture/plotpickle.architecture.json). The application Skins do not own this documentation style; architecture diagrams use their own dedicated Architecture Skin.
+PlotPickle's architecture is generated from one machine-readable source: [`architecture/plotpickle.architecture.json`](architecture/plotpickle.architecture.json). The application Skins do not own this documentation style; architecture diagrams use their own dedicated Architecture Skin.
+
+The README intentionally shows a compact overview. **[Open the full-resolution Architecture Blueprint](architecture/plotpickle-architecture.svg)** for component-level detail, authority boundaries and flows.
 
 <p align="center">
-  <img src="architecture/plotpickle-architecture.svg" alt="PlotPickle target architecture blueprint" width="1200">
+  <img src="architecture/plotpickle-architecture-overview.svg" alt="PlotPickle architecture overview" width="1200">
 </p>
 
 | Layer | Boundary | Responsibility |
@@ -157,7 +159,7 @@ PlotPickle's architecture blueprint is generated from one machine-readable sourc
 
 BUZZ is the first provider behind PlotPickle-owned Community contracts. Community material has no direct canon authority. The governed bridge remains: **Community material → Bring into Story → Candidate → Evidence / Revision → Human approval → PPF Canon**.
 
-To regenerate the diagram and this section after an architecture change, run `node architecture/generate-architecture.mjs`. CI runs `node architecture/generate-architecture.mjs --check` so the JSON source, SVG and managed README section cannot silently drift apart.
+To regenerate both diagrams and this managed section after an architecture change, run `node architecture/generate-architecture.mjs`. CI runs `node architecture/generate-architecture.mjs --check` so the JSON source, full blueprint, README overview and managed README section cannot silently drift apart.
 <!-- PLOTPICKLE:ARCHITECTURE:END -->
 
 ## The default feature-film production model

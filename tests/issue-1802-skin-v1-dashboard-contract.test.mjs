@@ -67,7 +67,7 @@ test("Issue #1802 preserves packaged Dashboard art, fallback, and BBS header tre
   assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.hero/u);
   assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.heroFallback/u);
   assert.match(dashboard, /priority/u);
-  assert.match(assets, /plotpickle-observatory-dragon\.svg/u);
+  assert.match(assets, /plotpickle-observatory-dragon\.webp/u);
   assert.match(assets, /\/api\/skin-v1\/dashboard-art/u);
   assert.match(dashboard, /PLOTPICKLE BBS/u);
   assert.match(dashboard, /&gt;&gt;&gt;/u);

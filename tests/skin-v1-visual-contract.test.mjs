@@ -69,10 +69,10 @@ test("Dashboard consumes Skin V1 tokens and Skin V1 owns its artwork package", a
   assert.match(dashboard, /useState\(SKIN_V1_ASSETS\.dashboard\.hero\)/u);
   assert.match(dashboard, /priority/u);
   assert.match(dashboard, /width=\{1200\}/u);
-  assert.match(dashboard, /height=\{400\}/u);
+  assert.match(dashboard, /height=\{377\}/u);
   assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.heroFallback/u);
 
-  assert.match(assets, /hero: "\/brand\/dashboard\/plotpickle-observatory-dragon\.svg"/u);
+  assert.match(assets, /hero: "\/brand\/dashboard\/plotpickle-observatory-dragon\.webp"/u);
   assert.match(assets, /heroFallback: "\/api\/skin-v1\/dashboard-art"/u);
   assert.match(reference, /image-rendering: pixelated/u);
   assert.match(reference, /object-fit: cover/u);

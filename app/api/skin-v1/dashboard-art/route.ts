@@ -3,27 +3,18 @@ import path from "node:path";
 
 export const runtime = "nodejs";
 
+// Legacy #1754 source was docs/brand/plotpickle-banner-dragon-logo.jpg.
+// Skin V1 now owns the approved Dashboard WebP in the public skin asset package.
 const DASHBOARD_ART = path.join(
-  process.cwd(),
-  "docs",
-  "brand",
-  "plotpickle-banner-dragon-logo.jpg",
-);
-
-const DASHBOARD_FALLBACK_ART = path.join(
   process.cwd(),
   "public",
   "brand",
   "dashboard",
-  "plotpickle-observatory-dragon.svg",
+  "plotpickle-observatory-dragon.webp",
 );
 
 async function readDashboardArtwork() {
-  try {
-    return { image: await readFile(DASHBOARD_ART), contentType: "image/jpeg" } as const;
-  } catch {
-    return { image: await readFile(DASHBOARD_FALLBACK_ART), contentType: "image/svg+xml" } as const;
-  }
+  return { image: await readFile(DASHBOARD_ART), contentType: "image/webp" } as const;
 }
 
 export async function GET() {

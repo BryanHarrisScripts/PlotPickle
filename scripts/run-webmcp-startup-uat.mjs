@@ -13,6 +13,7 @@ import {
 import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
+  WEBMCP_ALLOWED_TARGETS,
   runWebMcpSurfaceVisualAudit,
 } from "../lib/verification/webmcp-surface-visual-audit.mjs";
 import {
@@ -26,6 +27,13 @@ export const WEBMCP_STARTUP_PACKAGES = Object.freeze([
   "@mcp-b/webmcp-polyfill@5.1.0",
 ]);
 export const WEBMCP_STARTUP_EVIDENCE = ".artifacts/webmcp-startup/summary.json";
+export const WEBMCP_SURFACE_LABELS = Object.freeze({
+  dashboard: "Dashboard",
+  community: "Community",
+  profile: "Profile",
+  "local-ai": "Local AI",
+  node: "Node",
+});
 
 function argument(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -34,6 +42,27 @@ function argument(name, fallback = "") {
 
 export function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
+}
+
+export function formatPassTag({ color = Boolean(process.stdout.isTTY && process.env.NO_COLOR === undefined && process.env.TERM !== "dumb") } = {}) {
+  return color ? "\u001b[32m[PASS]\u001b[0m" : "[PASS]";
+}
+
+export function visualBaselineApprovalLines(targets = WEBMCP_ALLOWED_TARGETS) {
+  const lines = [`Captured ${targets.length} surfaces:`];
+  targets.forEach((surface, index) => {
+    const label = WEBMCP_SURFACE_LABELS[surface] || surface;
+    lines.push(`[${index + 1}] ${surface} (${label})`);
+    lines.push(`    node scripts/lock-skin-visual-baseline.mjs ${surface}`);
+  });
+  lines.push("");
+  lines.push('Note: none of the screenshots are automatically declared "locked."');
+  lines.push("That prevents PlotPickle from blessing its own regressions.");
+  lines.push("After you run WebMCP locally and visually approve a surface, run the matching command above.");
+  lines.push("Dashboard example: node scripts/lock-skin-visual-baseline.mjs dashboard");
+  lines.push("That copies the approved PNG into tests/visual-baselines/skin-v1/dashboard.png and marks Dashboard locked.");
+  lines.push("Commit that PNG and tests/visual-baselines/skin-v1/manifest.json. From then on Dashboard is a permanent repo baseline.");
+  return lines;
 }
 
 export function runCommand(command, args, options = {}) {
@@ -145,9 +174,12 @@ async function run({ serverUrl, home, toolRoot }) {
     });
     const evidence = await writeEvidence("pass");
     console.log("");
-    console.log("[PASS] WebMCP interface, surface, navigation and Skin V1 checks passed.");
-    console.log(`[PASS] Dashboard remains the sole canonical screenshot: ${DASHBOARD_SCREENSHOT_PATH}`);
-    console.log(`[PASS] Evidence report: ${evidence}`);
+    for (const line of visualBaselineApprovalLines()) console.log(line);
+    console.log("");
+    const pass = formatPassTag();
+    console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
+    console.log(`${pass} Dashboard remains the sole canonical screenshot: ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`${pass} Evidence report: ${evidence}`);
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

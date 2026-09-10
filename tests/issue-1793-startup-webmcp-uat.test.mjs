@@ -55,6 +55,28 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and on th
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 
+test("WebMCP CMD output lists every lockable surface and never auto-approves screenshots", async () => {
+  const { formatPassTag, visualBaselineApprovalLines } = await import("../scripts/run-webmcp-startup-uat.mjs");
+  const lines = visualBaselineApprovalLines();
+  const output = lines.join("\n");
+
+  assert.equal(lines[0], "Captured 5 surfaces:");
+  assert.match(output, /\[1\] dashboard \(Dashboard\)/u);
+  assert.match(output, /\[2\] community \(Community\)/u);
+  assert.match(output, /\[3\] profile \(Profile\)/u);
+  assert.match(output, /\[4\] local-ai \(Local AI\)/u);
+  assert.match(output, /\[5\] node \(Node\)/u);
+  for (const surface of ["dashboard", "community", "profile", "local-ai", "node"]) {
+    assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
+  }
+  assert.match(output, /none of the screenshots are automatically declared "locked\."/u);
+  assert.match(output, /prevents PlotPickle from blessing its own regressions/u);
+  assert.match(output, /tests\/visual-baselines\/skin-v1\/dashboard\.png/u);
+  assert.match(output, /tests\/visual-baselines\/skin-v1\/manifest\.json/u);
+  assert.equal(formatPassTag({ color: false }), "[PASS]");
+  assert.equal(formatPassTag({ color: true }), "\u001b[32m[PASS]\u001b[0m");
+});
+
 test("Windows WebMCP bootstrap executes cmd wrappers and npm with a spaced verification root", { skip: process.platform !== "win32" }, async () => {
   const { commandName, runCommand } = await import("../scripts/run-webmcp-startup-uat.mjs");
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "PlotPickle WebMCP "));

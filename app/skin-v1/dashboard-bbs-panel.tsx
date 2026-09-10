@@ -61,8 +61,8 @@ export default function DashboardBbsPanel({
           <Image
             src={dashboardArt}
             alt=""
-            width={1200}
-            height={377}
+            width={1832}
+            height={576}
             priority
             draggable={false}
             data-dashboard-art="skin-v1"

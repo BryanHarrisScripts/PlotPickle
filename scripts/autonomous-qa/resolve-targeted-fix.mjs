@@ -21,6 +21,14 @@ function repositoryName(value) {
   return normalized;
 }
 
+function positiveInteger(value, label) {
+  const normalized = String(value || "").trim();
+  if (!/^\d+$/.test(normalized)) throw new Error(`Autonomous QA targeted fix requires a valid ${label}.`);
+  const number = Number(normalized);
+  if (!Number.isSafeInteger(number) || number <= 0) throw new Error(`Autonomous QA targeted fix requires a valid ${label}.`);
+  return number;
+}
+
 function closingIssueNumbers(body) {
   const values = [];
   for (const match of String(body || "").matchAll(CLOSING_REFERENCE)) {
@@ -72,16 +80,24 @@ function parseAutonomousDefectIssue(issue) {
   });
 }
 
-async function githubIssue(fetchImpl, token, repository, issueNumber) {
-  const response = await fetchImpl(`https://api.github.com/repos/${repository}/issues/${issueNumber}`, {
+async function githubJson(fetchImpl, token, url, label) {
+  const response = await fetchImpl(url, {
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${token}`,
       "X-GitHub-Api-Version": "2022-11-28",
     },
   });
-  if (!response.ok) throw new Error(`Autonomous QA targeted fix Issue lookup failed with HTTP ${response.status}.`);
+  if (!response.ok) throw new Error(`Autonomous QA targeted fix ${label} lookup failed with HTTP ${response.status}.`);
   return response.json();
+}
+
+async function githubIssue(fetchImpl, token, repository, issueNumber) {
+  return githubJson(fetchImpl, token, `https://api.github.com/repos/${repository}/issues/${issueNumber}`, "Issue");
+}
+
+async function githubPullRequest(fetchImpl, token, repository, pullRequestNumber) {
+  return githubJson(fetchImpl, token, `https://api.github.com/repos/${repository}/pulls/${pullRequestNumber}`, "pull request");
 }
 
 export async function resolveAutonomousQaTargetedFix({ pullRequest, repository, token, fetchImpl = fetch }) {
@@ -132,14 +148,33 @@ function githubOutputValue(value) {
   return String(value ?? "").replace(/[\r\n]/g, "");
 }
 
+async function pullRequestFromEvent(event, repository, token, fetchImpl = fetch) {
+  if (event?.pull_request) return event.pull_request;
+  const pullRequestNumber = positiveInteger(event?.inputs?.pull_request_number, "pull request number");
+  if (!String(token || "").trim()) throw new Error("Autonomous QA targeted fix pull request lookup requires a GitHub token.");
+  const pullRequest = await githubPullRequest(fetchImpl, token, repository, pullRequestNumber);
+  const selectedHead = String(process.env.GITHUB_SHA || "").trim().toLowerCase();
+  const pullRequestHead = String(pullRequest?.head?.sha || "").trim().toLowerCase();
+  if (!SHA.test(selectedHead) || pullRequestHead !== selectedHead) {
+    throw new Error("Autonomous QA targeted fix must be dispatched from the exact pull request head commit.");
+  }
+  if (String(pullRequest?.head?.repo?.full_name || "") !== repository) {
+    throw new Error("Autonomous QA targeted fix is limited to same-repository pull request heads.");
+  }
+  return pullRequest;
+}
+
 async function main() {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (!eventPath) throw new Error("Autonomous QA targeted fix resolver requires GITHUB_EVENT_PATH.");
   const event = JSON.parse(await readFile(eventPath, "utf8"));
+  const repository = repositoryName(process.env.GITHUB_REPOSITORY);
+  const token = process.env.GITHUB_TOKEN;
+  const pullRequest = await pullRequestFromEvent(event, repository, token);
   const result = await resolveAutonomousQaTargetedFix({
-    pullRequest: event.pull_request,
-    repository: process.env.GITHUB_REPOSITORY,
-    token: process.env.GITHUB_TOKEN,
+    pullRequest,
+    repository,
+    token,
   });
   const outputPath = process.env.GITHUB_OUTPUT;
   if (outputPath) {

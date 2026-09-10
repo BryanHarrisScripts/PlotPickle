@@ -3,12 +3,6 @@ name: Autonomous Story Reference
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      exact_head:
-        description: Optional exact commit SHA supplied by a bounded caller.
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -23,14 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout bounded caller head
-        if: ${{ inputs.exact_head != '' }}
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          ref: ${{ inputs.exact_head }}
-      - name: Checkout exact head
-        if: ${{ inputs.exact_head == '' }}
+      - name: Checkout caller head
         uses: actions/checkout@v4
         with:
           persist-credentials: false

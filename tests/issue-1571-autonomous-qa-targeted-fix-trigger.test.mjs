@@ -155,26 +155,29 @@ test("#1571 targeted rerun fails closed on same-head, ambiguous or malformed aut
   );
 });
 
-test("#1571 targeted workflow reuses exact-head adapters and preserves tester/repair separation", async () => {
-  const [workflow, storyWorkflow, windowsWorkflow, focusedWrapper, journeys] = await Promise.all([
+test("#1571 targeted workflow stays manual, binds execution to the selected workflow SHA, and preserves tester/repair separation", async () => {
+  const [workflow, storyWorkflow, windowsWorkflow, resolverSource, focusedWrapper, journeys] = await Promise.all([
     readFile(new URL("../.github/workflows/autonomous-qa-targeted-fix.yml", import.meta.url), "utf8"),
     readFile(new URL("../.github/workflows/autonomous-story-reference.yml", import.meta.url), "utf8"),
     readFile(new URL("../.github/workflows/windows-installer.yml", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/autonomous-qa/resolve-targeted-fix.mjs", import.meta.url), "utf8"),
     readFile(new URL("../scripts/autonomous-qa/run-focused-targeted-rerun.mjs", import.meta.url), "utf8"),
     readFile(new URL("../build/autonomous-guest/qa/tester-journeys.ts", import.meta.url), "utf8"),
   ]);
 
-  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /^  workflow_dispatch:/m);
+  assert.match(workflow, /pull_request_number:/);
   assert.doesNotMatch(workflow, /^  pull_request:/m);
-  for (const untrustedHeadWorkflow of [workflow, storyWorkflow, windowsWorkflow]) {
-    assert.doesNotMatch(untrustedHeadWorkflow, /cache: npm/);
-    assert.match(untrustedHeadWorkflow, /persist-credentials: false/);
-  }
-  assert.match(workflow, /issues: read/);
-  assert.doesNotMatch(workflow, /issues: write|pull-requests: write|contents: write/);
-  assert.match(workflow, /github\.event\.pull_request\.head\.sha/);
+  assert.doesNotMatch(workflow, /pull_request_target:/);
+  assert.doesNotMatch(workflow, /github\.event\.pull_request\.head\.sha/);
+  assert.doesNotMatch(workflow, /ref: \$\{\{ needs\.resolve\.outputs\.fix_head \}\}/);
+  assert.doesNotMatch(workflow, /exact_head:/);
+  assert.match(workflow, /pull-requests: read/);
+  assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/);
   assert.match(workflow, /uses: \.\/\.github\/workflows\/windows-installer\.yml/);
   assert.match(workflow, /uses: \.\/\.github\/workflows\/autonomous-story-reference\.yml/);
+  assert.doesNotMatch(workflow, /cache: npm/);
+  assert.match(workflow, /persist-credentials: false/);
   assert.match(workflow, /run-focused-targeted-rerun\.mjs/);
   assert.match(workflow, /issue-1553-autonomous-story-decision-authority\.test\.mjs/);
   assert.match(workflow, /issue-1569-autonomous-guest-task-lifecycle\.test\.mjs/);
@@ -182,12 +185,24 @@ test("#1571 targeted workflow reuses exact-head adapters and preserves tester/re
   assert.match(workflow, /repairAuthorityGranted:false/);
   assert.match(workflow, /aiSelfCertified:false/);
 
-  for (const reusable of [storyWorkflow, windowsWorkflow]) {
-    assert.match(reusable, /exact_head:/);
-    assert.match(reusable, /if: \$\{\{ inputs\.exact_head != '' \}\}/);
-    assert.match(reusable, /ref: \$\{\{ inputs\.exact_head \}\}/);
-    assert.match(reusable, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
-  }
+  assert.match(resolverSource, /event\?\.inputs\?\.pull_request_number/);
+  assert.match(resolverSource, /process\.env\.GITHUB_SHA/);
+  assert.match(resolverSource, /pullRequestHead !== selectedHead/);
+  assert.match(resolverSource, /same-repository pull request heads/);
+
+  assert.match(storyWorkflow, /workflow_dispatch:/);
+  assert.match(storyWorkflow, /workflow_call:/);
+  assert.doesNotMatch(storyWorkflow, /exact_head:/);
+  assert.doesNotMatch(storyWorkflow, /inputs\.exact_head/);
+  assert.doesNotMatch(storyWorkflow, /cache: npm/);
+  assert.match(storyWorkflow, /persist-credentials: false/);
+  assert.match(storyWorkflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+
+  assert.match(windowsWorkflow, /exact_head:/);
+  assert.match(windowsWorkflow, /if: \$\{\{ inputs\.exact_head != '' \}\}/);
+  assert.match(windowsWorkflow, /ref: \$\{\{ inputs\.exact_head \}\}/);
+  assert.match(windowsWorkflow, /ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+
   assert.match(focusedWrapper, /createManagedPlotPickleLifecycle/);
   assert.match(focusedWrapper, /run-uat-autopilot\.mjs/);
   assert.match(focusedWrapper, /lifecycle\.start\(\)/);

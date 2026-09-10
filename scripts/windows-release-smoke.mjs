@@ -205,12 +205,24 @@ async function navigate(client, url) {
   await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, `Page ${url}`);
 }
 
+const BROWSER_LITERAL_ESCAPES = Object.freeze({
+  "<": "\\u003c",
+  ">": "\\u003e",
+  "/": "\\u002f",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+});
+
+function safeBrowserStringLiteral(value) {
+  return JSON.stringify(String(value)).replace(/[<>/\u2028\u2029]/gu, (character) => BROWSER_LITERAL_ESCAPES[character]);
+}
+
 function browserNormalizeFunction() {
   return `const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();`;
 }
 
 function hydratedButtonExpression(text) {
-  return `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${JSON.stringify(text)}); return Boolean(button && Object.keys(button).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"))); })()`;
+  return `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(text)}); return Boolean(button && Object.keys(button).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"))); })()`;
 }
 
 async function waitForHydratedButton(client, text, timeoutMs = 20_000) {
@@ -226,7 +238,7 @@ async function openAdvancedSettings(client) {
 
 function shellReadyExpression(workspace) {
   const label = workspaceLabels[workspace];
-  return `(() => { ${browserNormalizeFunction()} const header = document.querySelector(".application-shell-header"); const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${JSON.stringify(label)}); const body = normalize(document.body?.innerText); return Boolean(header && active && !body.includes("See the whole movie before you make it.")); })()`;
+  return `(() => { ${browserNormalizeFunction()} const header = document.querySelector(".application-shell-header"); const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${safeBrowserStringLiteral(label)}); const body = normalize(document.body?.innerText); return Boolean(header && active && !body.includes("See the whole movie before you make it.")); })()`;
 }
 
 async function waitForShell(client, workspace, timeoutMs = 25_000) {

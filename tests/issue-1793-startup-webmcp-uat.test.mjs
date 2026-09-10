@@ -50,9 +50,31 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and on th
   assert.match(runner, /DASHBOARD_SCREENSHOT_PATH/);
   assert.match(runner, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
   assert.match(runner, /spawnCommand\(command, args/);
-  assert.match(spawnHelper, /process\.env\.ComSpec \|\| "cmd\.exe"/);
+  assert.match(spawnHelper, /return spawn\(\s*"cmd\.exe",\s*windowsBatchArguments\(command, args\)/s);
+  assert.doesNotMatch(spawnHelper, /process\.env\.ComSpec/);
   assert.match(spawnHelper, /\["\/d", "\/c", \.\.\.values\]/);
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
+});
+
+test("CodeQL-sensitive browser expressions sanitize dynamic string literals after JSON encoding", async () => {
+  const [releaseSmoke, issueSmoke] = await Promise.all([
+    read("scripts/windows-release-smoke.mjs"),
+    read("scripts/windows-issue-208-smoke.mjs"),
+  ]);
+
+  for (const source of [releaseSmoke, issueSmoke]) {
+    assert.match(source, /function safeBrowserStringLiteral\(value\)/);
+    assert.match(source, /JSON\.stringify\(String\(value\)\)\.replace\(/);
+    assert.match(source, /"<": "\\\\u003c"/);
+    assert.match(source, /">": "\\\\u003e"/);
+    assert.match(source, /"\/": "\\\\u002f"/);
+  }
+  assert.match(releaseSmoke, /safeBrowserStringLiteral\(text\)/);
+  assert.match(releaseSmoke, /safeBrowserStringLiteral\(label\)/);
+  assert.doesNotMatch(releaseSmoke, /=== \$\{JSON\.stringify\((?:text|label)\)\}/);
+  assert.match(issueSmoke, /safeBrowserStringLiteral\(text\)/);
+  assert.ok((issueSmoke.match(/safeBrowserStringLiteral\(label\)/g) || []).length >= 2, "Issue #208 smoke should sanitize both label insertion sites");
+  assert.doesNotMatch(issueSmoke, /=== \$\{JSON\.stringify\((?:text|label)\)\}/);
 });
 
 test("WebMCP CMD output lists every lockable surface and never auto-approves screenshots", async () => {

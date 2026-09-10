@@ -69,7 +69,7 @@ test("WebMCP CMD output lists every lockable surface and never auto-approves scr
   for (const surface of ["dashboard", "community", "profile", "local-ai", "node"]) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
-  assert.match(output, /none of the screenshots are automatically declared "locked"/u);
+  assert.match(output, /none of the screenshots are automatically declared "locked\."/u);
   assert.match(output, /prevents PlotPickle from blessing its own regressions/u);
   assert.match(output, /tests\/visual-baselines\/skin-v1\/dashboard\.png/u);
   assert.match(output, /tests\/visual-baselines\/skin-v1\/manifest\.json/u);

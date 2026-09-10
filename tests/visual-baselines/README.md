@@ -10,7 +10,7 @@ A surface becomes locked only through an explicit developer action:
 node scripts/lock-skin-visual-baseline.mjs <surface>
 ```
 
-Supported Skin V1 surfaces are `dashboard`, `community`, `profile`, `local-ai`, and `node`.
+Supported Skin V1 surfaces are `dashboard`, `community`, `settings`, `cloud-story-mode`, `agents`, `profile`, `local-ai`, and `node`.
 
 The lock command copies the current candidate PNG into `tests/visual-baselines/skin-v1/` and changes only that surface from `candidate` to `locked` in `manifest.json`. The PNG and manifest change must then be reviewed and committed in a normal pull request.
 

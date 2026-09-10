@@ -18,6 +18,9 @@ function checkedBatchValue(value) {
  * The dynamic command path itself stays in the child environment, which keeps
  * CodeQL-sensitive values out of shell command text while still supporting
  * PATH-resolved batch names and absolute paths containing spaces.
+ *
+ * Do not add cmd.exe /s here. Its quote-stripping rules interfere with quoted
+ * batch paths when Node passes the /c source as one argument.
  */
 export function windowsBatchInvocation(command, args = [], environment = {}) {
   const values = [command, ...args].map(checkedBatchValue);
@@ -34,7 +37,7 @@ export function windowsBatchInvocation(command, args = [], environment = {}) {
   const commandLine = [`call "%PLOTPICKLE_BATCH_COMMAND%"`, ...argumentReferences].join(" ");
   return Object.freeze({
     executable: "cmd.exe",
-    args: Object.freeze(["/d", "/s", "/c", commandLine]),
+    args: Object.freeze(["/d", "/c", commandLine]),
     env,
   });
 }

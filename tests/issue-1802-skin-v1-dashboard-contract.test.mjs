@@ -78,3 +78,12 @@ test("Issue #1802 preserves packaged Dashboard art, fallback, and BBS header tre
   assert.match(dashboard, /&lt;&lt;&lt;/u);
   assert.match(reference, /\.pp-skin-v1-dashboard-shell-chevron/u);
 });
+
+test("Issue #1870 keeps the Dashboard footer on the shared solid Skin V1 chrome colour", async () => {
+  const reference = await read("app/skin-v1-dashboard-reference.css");
+  const footerRule = reference.match(/\.pp-skin-v1-dashboard\.pp-skin-v1-dashboard-bbs\[aria-label="PlotPickle Dashboard"\] \.pp-skin-v1-bbs-help \{[\s\S]*?\n\}/u)?.[0] ?? "";
+
+  assert.ok(footerRule, "Dashboard BBS help/footer rule must remain present");
+  assert.match(footerRule, /background: var\(--pp-skin-accent-deep\) !important;/u);
+  assert.doesNotMatch(footerRule, /background: var\(--pp-skin-surface-1\)/u);
+});

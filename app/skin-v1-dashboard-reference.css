@@ -236,7 +236,7 @@
   margin: 0 var(--pp-skin-space-3) var(--pp-skin-space-3) !important;
   padding: var(--pp-skin-space-2) var(--pp-skin-space-4) !important;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent) !important;
-  background: var(--pp-skin-surface-1) !important;
+  background: var(--pp-skin-accent-deep) !important;
   color: var(--pp-skin-ink-muted) !important;
   font-size: var(--pp-skin-font-sm) !important;
   line-height: 1.35 !important;

@@ -79,7 +79,7 @@ test("non-Dashboard surfaces inherit the same rendered Skin V1 contract", () => 
   }
   assert.match(audit, /getComputedStyle/);
   for (const surface of ["community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
-    assert.match(audit, new RegExp(`surface: "${surface}"`));
+    assert.match(audit, new RegExp(`inspectCurrent\\("${surface}"\\)`));
   }
 });
 

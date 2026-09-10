@@ -13,11 +13,16 @@ function checkedBatchValue(value) {
  * variable references. Dynamic command paths and arguments are placed in the
  * child environment after strict metacharacter rejection, so they are not
  * concatenated into shell command text.
+ *
+ * The trusted quote characters around the command are stored in the environment
+ * value rather than the /c source text. That keeps cmd.exe /s parsing from
+ * stripping quotes before expansion, while still supporting both PATH-resolved
+ * batch names such as npm.cmd and absolute paths containing spaces.
  */
 export function windowsBatchInvocation(command, args = [], environment = {}) {
   const values = [command, ...args].map(checkedBatchValue);
   const env = { ...environment };
-  env.PLOTPICKLE_BATCH_COMMAND = values[0];
+  env.PLOTPICKLE_BATCH_COMMAND = `"${values[0]}"`;
 
   const argumentReferences = [];
   for (let index = 1; index < values.length; index += 1) {
@@ -26,7 +31,7 @@ export function windowsBatchInvocation(command, args = [], environment = {}) {
     argumentReferences.push(`"%${name}%"`);
   }
 
-  const commandLine = [`call "%PLOTPICKLE_BATCH_COMMAND%"`, ...argumentReferences].join(" ");
+  const commandLine = ["call %PLOTPICKLE_BATCH_COMMAND%", ...argumentReferences].join(" ");
   return Object.freeze({
     executable: "cmd.exe",
     args: Object.freeze(["/d", "/s", "/c", commandLine]),

@@ -94,6 +94,35 @@ test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage f
   assert.match(auth, /await prepareSyntheticProfileStorage\(home, profileId\);[\s\S]*const signedIn = await profilePost/u);
 });
 
+test("#1874 normalizes Cloud and Local Story Mode to the shared Skin V1 keyboard-directory contract", async () => {
+  const [menuAudit, cloud, local] = await Promise.all([
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
+    read("app/skin-v1/cloud-story-mode-host.tsx"),
+    read("app/skin-v1/local-ai-skin-host.tsx"),
+  ]);
+
+  for (const [source, menuName] of [[cloud, "cloud-story-mode"], [local, "local-story-mode"]]) {
+    assert.match(source, new RegExp(`data-skin-menu="${menuName}"`, "u"));
+    assert.match(source, /data-skin-menu-row=\{item\.id\}/u);
+    assert.match(source, /data-skin-menu-shortcut=\{item\.shortcut\}/u);
+    assert.match(source, /data-skin-menu-connected="true"/u);
+    assert.match(source, /data-skin-menu-indicator="connected"/u);
+    assert.match(source, /event\.key === "ArrowDown"/u);
+    assert.match(source, /event\.key === "ArrowUp"/u);
+    assert.match(source, /event\.key === "Enter"/u);
+    assert.match(source, /event\.key === " "/u);
+    assert.doesNotMatch(source, /&gt;/u);
+  }
+
+  assert.match(menuAudit, /inspectMenu\(page, "cloud-story-mode", failures\)/u);
+  assert.match(menuAudit, /inspectMenu\(page, "local-story-mode", failures\)/u);
+  assert.match(menuAudit, /selectedBackground/u);
+  assert.match(menuAudit, /selectedBorder/u);
+  assert.match(menuAudit, /data-cloud-story-view='openai'/u);
+  assert.match(menuAudit, /data-local-ai-view='ollama'/u);
+  assert.match(menuAudit, /"dashboard", "settings", "cloud-story-mode", "profile", "local-story-mode"/u);
+});
+
 test("CodeQL-sensitive browser labels stay out of executable source", async () => {
   const [releaseSmoke, issueSmoke, casebook] = await Promise.all([
     read("scripts/windows-release-smoke.mjs"),

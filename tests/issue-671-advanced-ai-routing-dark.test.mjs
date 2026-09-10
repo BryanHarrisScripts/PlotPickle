@@ -13,7 +13,9 @@ test("#671 Advanced AI routing stays inside the matte-black shared Compute surfa
     read("app/ai-routing-source-console.module.css"),
   ]);
 
-  assert.match(page, /redirect\("\/\?workspace=settings#settings-routing"\)/);
+  assert.match(page, /SageSettingsWorkspace/);
+  assert.match(page, /searchParams\.set\("settings", "local-compute"\)/);
+  assert.doesNotMatch(page, /redirect\(/);
   assert.match(settings, /"settings-routing": "local-compute"/);
   assert.match(settings, /id="settings-local-compute"/);
   assert.match(compute, /<AiRoutingPanel/);
@@ -53,7 +55,8 @@ test("#671/#1377 explains routing in beginner language while keeping expert cont
   assert.match(compute, /<LocalRuntimePanel \/>/);
   assert.match(compute, /<AiRoutingPanel/);
   assert.match(compute, />Advanced Options<\/button>/);
-  assert.doesNotMatch(page, /LocalRuntimePanel|AiRoutingPanel|<main/);
+  assert.match(page, /<SageSettingsWorkspace \/>/);
+  assert.doesNotMatch(page, /LocalRuntimePanel|AiRoutingPanel/);
 });
 
 test("Advanced AI route controls are one explicit choice per capability", async () => {

@@ -137,7 +137,11 @@ export default function CommonOverlayLayer() {
       if (!message) return;
       const tone = detail.tone ?? "info";
       const timeoutMs = Math.max(0, Math.min(detail.timeoutMs ?? (tone === "error" ? 9000 : 6000), 30000));
-      setNotices((current) => [...current.slice(-3), { id: ++requestId, message, tone, timeoutMs }]);
+      const nextNotice = { id: ++requestId, message, tone, timeoutMs };
+      setNotices((current) => {
+        const withoutDuplicate = current.filter((notice) => notice.message !== message || notice.tone !== tone);
+        return [...withoutDuplicate.slice(-2), nextNotice];
+      });
     }
 
     window.addEventListener("plotpickle:confirm", onConfirmation);

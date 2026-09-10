@@ -10,7 +10,7 @@
 
 PlotPickle is a visual writing and creative-direction studio for people who want to shape a story from idea to screenplay to screen without giving away creative authority to an AI model.
 
-It combines writing education, story planning, visual development, screenplay work, review, local or cloud AI connections, Community/BUZZ collaboration and a portable PlotPickle Project File (PPF) in one application.
+It combines writing education, story planning, visual development, screenplay work, review, playable-story systems, local or cloud AI connections, Community/BUZZ collaboration and a portable PlotPickle Project File (PPF) in one application.
 
 **The Human remains the author.** AI can explain, suggest, draft, visualize and test ideas, but generated material does not silently become story canon.
 
@@ -79,6 +79,20 @@ Writing and editing remain connected to the same story structure and project. Pl
 
 Feedback is anchored to stable story targets. Human review, diagnostics and optional AI proposals can be compared without automatically changing canon. Refinement remains an explicit Human decision.
 
+### STORY: The Unwritten
+
+STORY: The Unwritten is PlotPickle's reusable playable-story engine. Its purpose is to let creators build stories that can be played, changed and eventually populated by bounded AI characters without creating a second PlotPickle authority system underneath the game.
+
+The current engine foundation is headless and deterministic. It can run a five-scene story, validate player actions, resolve creator rules and consequences, handle victory/loss/endings, save and resume sessions, preserve accepted event history and checkpoints, persist sparse character state/memory/relationships, store admitted Story Pieces with provenance, protect knowledge partitions, hydrate only the active scene working set, and route selected completed-session outcomes through the existing PPF canon proposal boundary.
+
+The governing rule is simple: **AI may propose or interpret; deterministic STORY code decides mechanical state changes.** Generated material does not become accepted session state or durable PPF canon merely because a model produced it.
+
+STORY also keeps world scale separate from inference scale: **stored is not loaded; loaded is not active; active is not running inference.** A large world therefore does not imply that every character becomes a live agent or enters memory at once.
+
+The dedicated creator controls, Game Validator, bounded AI-character execution and first-class STORY workspace are still in active development. The README describes those as upcoming work rather than presenting them as shipped UI.
+
+Wyrmwood remains PlotPickle's first-party teaching game and proving ground. STORY is the reusable engine beneath future playable-story experiences; Wyrmwood is not being rewritten first. BUZZ remains the social/discovery layer and may launch STORY sessions later, but BUZZ does not own authoritative game state. PPF remains the durable canon authority.
+
 ## Community, BBS and BUZZ
 
 ### Community and BUZZ
@@ -117,8 +131,36 @@ That means:
 - the writer owns final creative decisions;
 - AI output is proposal material until accepted;
 - Storyboard and Previs cannot silently rewrite upstream story canon;
+- STORY session state is not a second canon store;
+- completed STORY outcomes can propose canon changes, but only the existing PPF admission path can make them durable canon;
 - BUZZ conversation does not become canon automatically;
 - deterministic tests remain product-quality evidence, not creative authority.
+
+<!-- PLOTPICKLE:ARCHITECTURE:START -->
+## ARCHITECTURE
+
+PlotPickle's architecture is generated from one machine-readable source: [`architecture/plotpickle.architecture.json`](architecture/plotpickle.architecture.json). The application Skins do not own this documentation style; architecture diagrams use their own dedicated Architecture Skin.
+
+The README intentionally shows a compact overview. **[Open the full-resolution Architecture Blueprint](architecture/plotpickle-architecture.svg)** for component-level detail, authority boundaries and flows.
+
+<p align="center">
+  <img src="architecture/plotpickle-architecture-overview.svg" alt="PlotPickle architecture overview" width="1200">
+</p>
+
+| Layer | Boundary | Responsibility |
+|---:|---|---|
+| 1 | EXPERIENCE SKINS | Replaceable presentation for any audience or device. |
+| 2 | EXPANDED EXPERIENCE LAYER | The stable product contract behind every Skin. |
+| 3 | GOVERNED PRODUCTION ORCHESTRATION | Authority, lifecycle, policy and execution control. |
+| 4 | AGENT & SKILL MESH | Specialists collaborate within approved scope. |
+| 5 | STORY, CANON & EVIDENCE CORE | Deterministic story state, context and durable canon. |
+| 6 | AI / PROVIDER RUNTIME | Replaceable local and cloud inference routes. |
+| 7 | VALIDATION & OPERATIONS | Tests consume the contract. They do not run the product. |
+
+BUZZ is the first provider behind PlotPickle-owned Community contracts. Community material has no direct canon authority. The governed bridge remains: **Community material → Bring into Story → Candidate → Evidence / Revision → Human approval → PPF Canon**.
+
+To regenerate both diagrams and this managed section after an architecture change, run `node architecture/generate-architecture.mjs`. CI runs `node architecture/generate-architecture.mjs --check` so the JSON source, full blueprint, README overview and managed README section cannot silently drift apart.
+<!-- PLOTPICKLE:ARCHITECTURE:END -->
 
 ## The default feature-film production model
 
@@ -195,7 +237,7 @@ The release workflow additionally builds and exercises the native Windows launch
 
 - `app/` — product screens, application shell and UI runtime
 - `core/` — canonical contracts, project authority and core storage/security boundaries
-- `modules/` — product-domain implementations such as LEARN, PLAN and BUILD
+- `modules/` — product-domain implementations such as LEARN, PLAN, BUILD, Wyrmwood and STORY: The Unwritten
 - `lib/` — shared domain/runtime capabilities
 - `learn/` — curriculum content
 - `tests/` — deterministic product and architecture contracts
@@ -208,13 +250,16 @@ Useful starting points:
 
 - [Writing and Production](public/docs/readme/WRITING-AND-PRODUCTION.md)
 - [PlotPickle Product Contract](docs/PLOTPICKLE-PRODUCT-CONTRACT.md)
+- [STORY: The Unwritten architecture](docs/story-the-unwritten.md)
 - [Structure Engine](docs/architecture/structure-engine.md)
 - [Authentication threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md)
 - [Developer documentation](docs/developer/)
 
 ## Project status
 
-PlotPickle is actively developed and is entering real-user testing. The current priority is to get the Windows application into testers' hands, observe real workflows and use that evidence to drive the next architecture and performance decisions.
+PlotPickle is actively developed and is entering real-user testing. STORY: The Unwritten now has its deterministic rules kernel and sparse persistence/canon foundation in place; creator controls, validation, bounded character agents and the dedicated playable workspace remain active development work.
+
+The current product priority remains getting the Windows application into testers' hands, observing real workflows and using that evidence to drive the next architecture and performance decisions.
 
 Issues and pull requests are tracked in this repository. If you find a confusing workflow, visual inconsistency, failed install, lost navigation path or reproducible bug, please capture the steps and environment so it can become a deterministic product fix.
 

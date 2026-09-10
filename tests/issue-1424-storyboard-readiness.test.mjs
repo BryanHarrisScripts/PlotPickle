@@ -22,7 +22,9 @@ test("#1424 re-adopts Storyboard through the canonical PPF readiness contract", 
   assert.match(workspace, /readiness\.targets/);
   assert.match(workspace, /target\.storyboardAllowed/);
   assert.match(workspace, /missingPrerequisites/);
-  assert.match(workspace, /A tab is always inspectable; only earned targets become authorable/);
+  assert.match(workspace, /hasQaWorkspaceAccess\(selectedTarget\.storyboardAllowed\)/);
+  assert.match(workspace, /QA access opens implemented Storyboard inspection without promoting an unearned target or changing project progression/);
+  assert.match(workspace, /DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth/);
   assert.match(readiness, /readonly provenance: readonly VisualReadinessProvenance\[\]/);
   assert.match(readiness, /provenance: block\.observedPassageCount/);
 });
@@ -43,7 +45,8 @@ test("#1424 preserves reusable Storyboard identity and editorial behavior instea
   assert.match(audit, /`app\/visual-storyboard\.tsx` \| Adapt in Phase 8/);
   assert.match(workspace, /StoryboardEditorialWorkspace/);
   assert.match(workspace, /storyboardReferenceCandidates/);
-  assert.match(editorial, />Keep</);
+  assert.match(editorial, /qaOnlyAccess \? "Keep requires BUILD" : "Keep"/);
+  assert.match(editorial, /disabled=\{selectedIsKept \|\| qaOnlyAccess\}/);
   assert.match(editorial, />Change \/ Try</);
   assert.match(editorial, />Compare</);
   assert.match(editorial, /same anchor/);
@@ -64,6 +67,7 @@ test("#1424 tab inspection remains non-canonical while explicit Human Keep owns 
   assert.doesNotMatch(inspectionSurface, /\/api\/local-ai\/generate/);
   assert.match(workspace, /The final image count is intentionally flexible/);
   assert.match(editorial, /saveFoundationProject\(next\)/);
+  assert.match(editorial, /if \(qaOnlyAccess\)[\s\S]*Keep remains protected/);
   assert.match(model, /Human Keep decision/);
   assert.doesNotMatch(editorial, /\/api\/local-ai\/generate/);
 });

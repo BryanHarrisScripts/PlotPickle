@@ -1,0 +1,54 @@
+:root {
+  --arch-bg: #031017;
+  --arch-panel: #071923;
+  --arch-panel-2: #0a202b;
+  --arch-ink: #eef7f8;
+  --arch-muted: #8ba5ae;
+  --arch-cyan: #58d7e7;
+  --arch-cyan-soft: #1c7785;
+  --arch-amber: #f0b82f;
+  --arch-amber-soft: #8a6b1c;
+  --arch-purple: #bc83e8;
+  --arch-purple-soft: #604276;
+  --arch-green: #48cfa2;
+  --arch-line: #173f4c;
+  --arch-grid: #0a2630;
+}
+
+svg { background: var(--arch-bg); font-family: "Arial Narrow", "Segoe UI", Arial, sans-serif; }
+.bg { fill: var(--arch-bg); }
+.grid { stroke: var(--arch-grid); stroke-width: 0.7; opacity: 0.55; }
+.ink { fill: var(--arch-ink); }
+.muted { fill: var(--arch-muted); }
+.cyan { color: var(--arch-cyan); fill: var(--arch-cyan); stroke: var(--arch-cyan); }
+.amber { color: var(--arch-amber); fill: var(--arch-amber); stroke: var(--arch-amber); }
+.purple { color: var(--arch-purple); fill: var(--arch-purple); stroke: var(--arch-purple); }
+.green { color: var(--arch-green); fill: var(--arch-green); stroke: var(--arch-green); }
+.panel { fill: var(--arch-panel); stroke: var(--arch-line); stroke-width: 1.5; }
+.panel.cyan-stroke { stroke: var(--arch-cyan); }
+.panel.amber-stroke { stroke: var(--arch-amber); }
+.panel.purple-stroke { stroke: var(--arch-purple); }
+.component { fill: var(--arch-panel-2); stroke: var(--arch-cyan-soft); stroke-width: 1.3; }
+.component.amber-stroke { stroke: var(--arch-amber-soft); }
+.component.purple-stroke { stroke: var(--arch-purple-soft); }
+.component.emphasis { stroke: var(--arch-green); stroke-width: 2.2; }
+.dashed { stroke-dasharray: 9 7; }
+.title { fill: var(--arch-ink); font-size: 42px; font-weight: 800; letter-spacing: 0.6px; }
+.tagline { fill: var(--arch-cyan); font-size: 23px; font-weight: 800; letter-spacing: 0.5px; }
+.subtitle { fill: var(--arch-muted); font-size: 14px; letter-spacing: 2px; }
+.layer-label { font-size: 17px; font-weight: 800; letter-spacing: 0.8px; }
+.layer-summary { fill: var(--arch-muted); font-size: 12px; }
+.panel-title { font-size: 18px; font-weight: 800; letter-spacing: 0.7px; }
+.component-title { fill: var(--arch-ink); font-size: 14px; font-weight: 750; }
+.component-detail { fill: var(--arch-muted); font-size: 11px; }
+.note { fill: var(--arch-muted); font-size: 11px; }
+.footer { fill: var(--arch-muted); font-size: 10.5px; }
+.micro { font-size: 10px; font-weight: 700; letter-spacing: 0.45px; }
+.number { font-size: 22px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+.flow { fill: none; stroke-width: 1.8; marker-end: url(#arrow-cyan); }
+.flow.amber-stroke { marker-end: url(#arrow-amber); }
+.flow.purple-stroke { marker-end: url(#arrow-purple); }
+.overview-title { fill: var(--arch-ink); font-size: 30px; font-weight: 800; }
+.overview-tagline { fill: var(--arch-cyan); font-size: 15px; font-weight: 800; }
+.overview-layer { fill: var(--arch-ink); font-size: 12px; font-weight: 800; }
+.overview-summary { fill: var(--arch-muted); font-size: 9px; }

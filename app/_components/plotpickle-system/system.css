@@ -1,0 +1,58 @@
+/* Issue #1736: canonical PlotPickle bronze/jade visual language.
+   This layer owns semantic theme mappings only. It does not reach into
+   product screens with global selectors or !important overrides. */
+
+html[data-plotpickle-theme="dark"] {
+  --pp-system-canvas: var(--pp-shell-canvas);
+  --pp-system-panel: var(--pp-shell-panel);
+  --pp-system-panel-raised: var(--pp-shell-panel-raised);
+  --pp-system-metal: var(--pp-shell-bronze);
+  --pp-system-metal-deep: var(--pp-shell-bronze-deep);
+  --pp-system-moss: var(--pp-shell-moss);
+  --pp-system-jade: var(--pp-shell-jade);
+  --pp-system-rune: var(--pp-shell-rune);
+  --pp-system-stone: var(--pp-shell-stone);
+  --pp-system-stone-deep: var(--pp-shell-stone-deep);
+  --pp-system-gilding: var(--pp-shell-gilding);
+  --pp-system-text: var(--pp-paper);
+  --pp-system-text-muted: var(--pp-muted);
+  --pp-system-line: var(--pp-shell-line);
+  --pp-system-line-strong: var(--pp-shell-line-strong);
+  --pp-system-focus: var(--pp-shell-focus);
+  --pp-system-glow: var(--pp-shell-glow);
+
+  /* Issue #1742 workflow-state roles are visual affordances only. Product
+     state remains explicit in text, semantics and canonical project data. */
+  --pp-state-locked: var(--pp-system-stone-deep);
+  --pp-state-available: var(--pp-system-metal);
+  --pp-state-incomplete: var(--pp-system-gilding);
+  --pp-state-ready: var(--pp-system-rune);
+  --pp-state-accepted: var(--pp-system-jade);
+
+  /* Profile access is the first adopting surface. These aliases let its
+     existing security workflow adopt the new look without changing auth. */
+  --pp-profile-paper: var(--pp-system-panel-raised);
+  --pp-profile-mystic: var(--pp-system-panel);
+  --pp-profile-casper: var(--pp-system-metal-deep);
+  --pp-profile-jungle-mist: var(--pp-system-moss);
+  --pp-profile-juniper: var(--pp-system-jade);
+  --pp-profile-juniper-strong: var(--pp-system-metal);
+  --pp-profile-ink: var(--pp-system-text);
+  --pp-profile-hover: var(--pp-system-panel-raised);
+  --pp-profile-night: var(--pp-system-canvas);
+  --pp-profile-hud: var(--pp-system-panel);
+  --pp-profile-hud-raised: var(--pp-system-panel-raised);
+  --pp-profile-hud-line: var(--pp-system-line);
+  --pp-profile-hud-muted: var(--pp-system-text-muted);
+  --pp-profile-status: var(--pp-system-rune);
+  --pp-profile-glow: var(--pp-system-glow);
+  --pp-profile-danger-surface: var(--pp-system-panel-raised);
+  --pp-profile-danger-text: var(--pp-danger);
+  --pp-profile-shadow: var(--pp-system-canvas);
+  --pp-profile-card-shadow: 0 var(--pp-space-6) var(--pp-space-12) var(--pp-profile-shadow);
+  --pp-profile-hud-shadow: 0 0 var(--pp-space-6) var(--pp-profile-glow);
+}
+
+[data-pp-design-system="bronze-jade-rune"] {
+  color-scheme: dark;
+}

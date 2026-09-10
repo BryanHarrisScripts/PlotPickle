@@ -35,23 +35,34 @@ test("issue #182 keeps Collab after the ten creative workspaces without changing
   assert.match(header, /shell-zone-production[\s\S]*shell-zone-collaboration[\s\S]*shell-zone-project-actions[\s\S]*shell-zone-configuration/);
 });
 
-test("issue #182 renders one provider-neutral Collab workspace with the approved section names", async () => {
-  const [page, workspace, calendarUi, css, router] = await Promise.all([
+test("issue #182 preserves the formal Collab capability while #1722 restores its route without reviving retired project storage", async () => {
+  const [page, entry, workspace, calendarUi, router, shortcuts] = await Promise.all([
     source("app/page.tsx"),
+    source("app/collab-entry-workspace.tsx"),
     source("app/collab-workspace.tsx"),
     source("app/google-calendar-workspace.tsx"),
-    source("app/collab-workspace.module.css"),
     source("app/collaboration-workspace-router.tsx"),
+    source("app/navigation/global-shortcuts.ts"),
   ]);
-  assert.match(page, /import CollabWorkspace/);
-  assert.match(page, /collab: "collab"/);
-  assert.match(page, /activeTab === "collab"[\s\S]*<CollabWorkspace/);
+
+  assert.match(page, /requested === "collab"/);
+  assert.match(page, /activeWorkspace="collab"/);
+  assert.match(page, /navigationArea="connect"/);
+  assert.match(page, /<CollabEntryWorkspace projectTitle=\{currentProjectTitle\(\)\}/);
+  assert.doesNotMatch(page, /<CollabWorkspace/);
+  assert.match(entry, /profile-owned PPF/);
+  assert.match(entry, /\/?workspace=community/);
+  assert.match(entry, /\/?workspace=feedback/);
+  assert.match(entry, /href="\/git"/);
+  assert.match(entry, /\/?workspace=settings/);
+  assert.match(shortcuts, /RootWorkspace[^\n]+"collab"/);
+  assert.doesNotMatch(shortcuts, /id: "collab"/, "Collab remains contextual rather than becoming another global shortcut");
+
   for (const label of ["Overview", "Buzz", "Approvals", "Meetings", "Calendar", "Connections"]) assert.match(workspace, new RegExp(`label: "${label}"`));
   assert.match(workspace, /Settings configures services\. Collab uses services\./);
   assert.match(workspace, /GitHub Story Proposals and Project Lead decisions/);
   assert.match(calendarUi, /Project dates only/);
   assert.match(router, /"\/collab": "collab"/);
-  for (const selector of [".hero", ".tabs", ".summaryGrid", ".providerGrid", ".emptyState"]) assert.ok(css.includes(selector), `Collab styling is missing ${selector}`);
 });
 
 test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces", async () => {
@@ -112,6 +123,7 @@ test("phase 2 step 2 leads the Dashboard with project mode and neutral optional 
   assert.match(overview, /Repository collaboration available/);
   assert.doesNotMatch(overview, /Setup required/);
   assert.match(overview, /Optional · dormant by default/);
+  assert.ok(css.length > 0);
 });
 
 test("issue #182 test is registered", async () => {

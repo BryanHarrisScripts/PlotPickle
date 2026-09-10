@@ -413,15 +413,29 @@ async function runCommunityEdgeScenario(client, events, baseUrl, baseOrigin) {
   }
 
   const clicked = await evaluate(client, `(() => {
-    const button = document.querySelector('[data-workspace-nav-id="community"] button');
+    const button = document.querySelector('[data-navigation-area-id="connect"] button');
     if (!(button instanceof HTMLButtonElement) || button.disabled) return false;
     button.click();
     return true;
   })()`);
   if (!clicked) {
-    failures.push("Community navigation control was not available in Microsoft Edge.");
+    failures.push("Connect navigation control was not available in Microsoft Edge.");
     return { passed: false, failures };
   }
+
+  const destinationDeadline = Date.now() + 10_000;
+  let destinationReady = false;
+  while (Date.now() < destinationDeadline) {
+    destinationReady = await evaluate(client, `(() => {
+      const button = document.querySelector('[data-workspace-nav-id="community"] button');
+      if (!(button instanceof HTMLButtonElement) || !button.checkVisibility()) return false;
+      if (!button.disabled) button.click();
+      return true;
+    })()`);
+    if (destinationReady) break;
+    await delay(200);
+  }
+  if (!destinationReady) failures.push("Community destination did not become visible after opening Connect.");
 
   const communityDeadline = Date.now() + 20_000;
   let communityState = null;
@@ -661,6 +675,7 @@ async function main() {
 
   await writeReports(report);
   if (!report.passed) {
+    console.error(JSON.stringify({ failures: report.failures, scenarios: report.scenarios }, null, 2));
     if (fatalError) console.error(fatalError.stack || fatalError.message || String(fatalError));
     throw new Error(`Windows packaged interaction smoke failed. Review ${reportDirectory}.`);
   }

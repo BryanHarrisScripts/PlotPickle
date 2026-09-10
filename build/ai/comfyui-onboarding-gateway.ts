@@ -10,7 +10,13 @@ const START_PATH = "/api/media-routing/comfyui/start";
 const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
 const COMFY_DOWNLOAD_URL = "https://comfy.org/download";
 const READY_STATES = new Set(["ready-existing", "mcp-managed-started-ready", "desktop-started-ready", "started-ready"]);
+const MANAGED_STOPPED_STATES = new Set(["desktop-managed-engine-stopped"]);
 const INSTALLED_TOOL_STATES = new Set(["detected", "installed-api-not-ready", "installed", "installed-not-running"]);
+
+type StarterResult = { ready: boolean; state: string; manager: string; detail: string; message: string };
+type StartAttempt = StarterResult & { attemptedAt: string };
+
+let lastStartAttempt: StartAttempt | null = null;
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -60,20 +66,44 @@ function marker(output: string, name: string) {
   return "";
 }
 
+function outputExcerpt(output: string) {
+  return output
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(-10)
+    .join(" | ")
+    .slice(0, 1800);
+}
+
+function rememberStart(result: StarterResult): StartAttempt {
+  const attempt = { ...result, attemptedAt: new Date().toISOString() };
+  lastStartAttempt = attempt;
+  return attempt;
+}
+
 function setupMessage(state: string, detail: string) {
   if (state === "mcp-managed-starting") {
-    return "The Comfy MCP management stack launched the local workspace, but its API is still starting. Leave PlotPickle open and retry the connection check shortly.";
+    return "The managed ComfyUI workspace launched through comfy-cli, but its API is still starting. Leave PlotPickle open and retry shortly.";
   }
   if (state === "not-installed") {
-    return "PlotPickle could not find a managed ComfyUI workspace or ComfyUI Desktop. Install either the optional Comfy MCP/comfy-cli stack with a local workspace, or ComfyUI Desktop, then retry.";
+    return "PlotPickle could not find a managed ComfyUI workspace or ComfyUI Desktop. Install ComfyUI Desktop or configure a comfy-cli workspace once, then retry.";
+  }
+  if (state === "desktop-no-managed-instance") {
+    return "ComfyUI Desktop is installed, but PlotPickle could not find a registered managed engine to run headlessly. Open ComfyUI Desktop once and create or select its local instance; PlotPickle will manage that engine afterward.";
+  }
+  if (state === "desktop-instance-provisioning") {
+    return "ComfyUI Desktop has a local instance that is still provisioning. Finish that one-time instance setup, then PlotPickle can manage the engine headlessly.";
   }
   if (state === "desktop-opened-api-not-ready") {
-    return "ComfyUI Desktop opened, but its local API is not ready yet. Finish any visible first-run or local-instance setup in ComfyUI Desktop, start the local instance, then choose ComfyUI again. PlotPickle did not download H3 or other optional model packs.";
+    return "ComfyUI Desktop opened, but its local API is not ready yet. Finish any visible first-run or local-instance setup in ComfyUI Desktop, then retry. PlotPickle did not download H3 or other optional model packs.";
   }
-  if (state === "desktop-launch-failed") return "PlotPickle found ComfyUI Desktop but could not open it. Open ComfyUI Desktop manually, then retry from Settings.";
-  if (state === "installed-entrypoint-not-found") return "ComfyUI appears to be installed, but PlotPickle could not find a runnable local entry point. Repair the local workspace or open ComfyUI Desktop, then retry.";
-  if (state === "python-not-found") return "A classic ComfyUI installation was found without its Python runtime. Repair that ComfyUI installation or use ComfyUI Desktop, then retry.";
-  return detail || "ComfyUI did not become ready. Confirm the local instance is running on port 8188, then retry.";
+  if (state === "desktop-launch-failed") return "PlotPickle found ComfyUI Desktop but could not open it. Open ComfyUI Desktop manually for one-time repair, then retry.";
+  if (state === "installed-entrypoint-not-found") return "ComfyUI appears to be installed, but PlotPickle could not find a runnable local entry point. Repair the local workspace once, then retry.";
+  if (state === "python-not-found") return "A classic ComfyUI installation was found without its Python runtime. Repair that ComfyUI installation, then retry.";
+  return detail || "ComfyUI did not become ready. Confirm the managed local engine can use port 8188, then retry.";
 }
 
 async function waitForComfyApi(timeoutMs = 90_000) {
@@ -100,7 +130,7 @@ async function inspectInstalledComfyUi() {
       running: true,
       canStart: false,
       state: "ready-existing",
-      detail: "ComfyUI is installed and its local API is running.",
+      detail: "ComfyUI is installed and its managed local API is running.",
       location: LOCAL_COMFY_URL,
       officialDownloadUrl: COMFY_DOWNLOAD_URL,
       diagnostics,
@@ -113,7 +143,7 @@ async function inspectInstalledComfyUi() {
       running: false,
       canStart: false,
       state: "not-detected",
-      detail: "PlotPickle could not verify an installed ComfyUI Desktop from this platform. Start ComfyUI locally or use the official installer.",
+      detail: "PlotPickle could not verify an installed managed ComfyUI engine from this platform. Start ComfyUI locally or use its official installer.",
       location: "",
       officialDownloadUrl: COMFY_DOWNLOAD_URL,
       diagnostics,
@@ -156,7 +186,7 @@ async function inspectInstalledComfyUi() {
     canStart: installed,
     state: installed ? "installed-stopped" : "not-installed",
     detail: detail || (installed
-      ? "ComfyUI Desktop is installed, but its local API is stopped."
+      ? "ComfyUI is installed, but its managed local API is stopped."
       : "ComfyUI Desktop is not installed on this Windows profile."),
     location,
     officialDownloadUrl: COMFY_DOWNLOAD_URL,
@@ -164,10 +194,7 @@ async function inspectInstalledComfyUi() {
   };
 }
 
-async function startWithDesktopFallback() {
-  if (process.platform !== "win32") {
-    throw new Error("Automatic fallback startup without the optional Comfy MCP management stack is currently available on Windows only. Start ComfyUI locally, then retry from Settings.");
-  }
+async function runWindowsStarter(allowDesktopLaunch: boolean): Promise<StarterResult> {
   const script = path.resolve(process.cwd(), "scripts", "start-comfyui-background.ps1");
   const args = [
     "-NoProfile",
@@ -175,7 +202,7 @@ async function startWithDesktopFallback() {
     "-File", script,
     "-BaseUrl", LOCAL_COMFY_URL,
     "-ReadyTimeoutSeconds", "90",
-    "-AllowDesktopLaunch",
+    ...(allowDesktopLaunch ? ["-AllowDesktopLaunch"] : []),
   ];
 
   let stdout = "";
@@ -197,11 +224,35 @@ async function startWithDesktopFallback() {
 
   const combined = `${stdout}\n${stderr}`;
   const state = marker(combined, "PLOTPICKLE_COMFYUI_STATUS") || "unknown";
-  const detail = marker(combined, "PLOTPICKLE_COMFYUI_DETAIL");
-  return { ready: READY_STATES.has(state), state, manager: "desktop-fallback", detail, message: setupMessage(state, detail) };
+  const markerDetail = marker(combined, "PLOTPICKLE_COMFYUI_DETAIL");
+  const detail = markerDetail || outputExcerpt(stderr) || outputExcerpt(stdout);
+  return {
+    ready: READY_STATES.has(state),
+    state,
+    manager: allowDesktopLaunch ? "managed-desktop-instance" : "managed-local-probe",
+    detail,
+    message: setupMessage(state, detail),
+  };
 }
 
-async function startComfyUi() {
+async function startWithManagedLocalRuntime() {
+  if (process.platform !== "win32") {
+    throw new Error("Automatic managed ComfyUI startup is currently available on Windows only. Start ComfyUI locally, then retry.");
+  }
+
+  // First pass is headless-only. It may discover an already-running/classic engine,
+  // or prove that a Comfy Desktop managed instance exists without ever opening Desktop.
+  const inspected = await runWindowsStarter(false);
+  if (inspected.ready) return inspected;
+  if (!MANAGED_STOPPED_STATES.has(inspected.state)) return inspected;
+
+  // The second pass is allowed to enter the existing managed-instance branch. Because
+  // the first pass proved that exact managed engine exists, start-comfyui-background.ps1
+  // launches its Python process hidden before any Desktop UI fallback can be reached.
+  return runWindowsStarter(true);
+}
+
+async function startComfyUi(): Promise<StarterResult> {
   const existing = await diagnoseComfyUI(LOCAL_COMFY_URL, null);
   if (existing.serviceReady) {
     return {
@@ -209,7 +260,7 @@ async function startComfyUi() {
       state: "ready-existing",
       manager: existing.management.ready ? "comfy-mcp" : "direct-api",
       detail: existing.management.message,
-      message: "ComfyUI is already running locally. PlotPickle will verify image nodes and checkpoints before activating it.",
+      message: "ComfyUI is already running locally. PlotPickle will use the fixed local image contract at 127.0.0.1:8188.",
     };
   }
 
@@ -220,15 +271,15 @@ async function startComfyUi() {
     return {
       ready: apiReady,
       state,
-      manager: "comfy-mcp",
+      manager: "comfy-cli",
       detail: managed.message,
       message: apiReady
-        ? "The Comfy MCP management stack started the local ComfyUI workspace. PlotPickle will now verify image nodes and checkpoints."
+        ? "comfy-cli started the managed local ComfyUI service. PlotPickle will now verify SDXL 1.0 readiness."
         : setupMessage(state, managed.message),
     };
   }
 
-  return startWithDesktopFallback();
+  return startWithManagedLocalRuntime();
 }
 
 export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
@@ -244,13 +295,13 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
     }
     if (request.method === "GET") {
       void inspectInstalledComfyUi().then(
-        (installation) => sendJson(response, 200, { ok: true, installation }),
+        (installation) => sendJson(response, 200, { ok: true, installation, lastStart: lastStartAttempt }),
         (error) => sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "ComfyUI installation status could not be checked." }),
       );
       return;
     }
     if (request.method !== "POST") {
-      sendJson(response, 405, { ok: false, message: "Use GET to inspect ComfyUI or the Settings action to start it." });
+      sendJson(response, 405, { ok: false, message: "Use GET to inspect ComfyUI or POST to start its managed local service." });
       return;
     }
 
@@ -258,17 +309,25 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
       try {
         const body = await readBody(request);
         if (body.approved !== true) {
-          sendJson(response, 400, { ok: false, message: "PlotPickle needs your permission before opening or starting a local ComfyUI workspace." });
+          sendJson(response, 400, { ok: false, message: "PlotPickle needs approval before starting the managed local ComfyUI service." });
           return;
         }
-        const result = await startComfyUi();
-        if (!result.ready) {
-          sendJson(response, 409, { ok: false, ...result });
+        const attempt = rememberStart(await startComfyUi());
+        if (!attempt.ready) {
+          sendJson(response, 409, { ok: false, ...attempt });
           return;
         }
-        sendJson(response, 200, { ok: true, ...result });
+        sendJson(response, 200, { ok: true, ...attempt });
       } catch (error) {
-        sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "ComfyUI could not be started." });
+        const detail = error instanceof Error ? error.message : "The managed ComfyUI service could not be started.";
+        const attempt = rememberStart({
+          ready: false,
+          state: "gateway-error",
+          manager: "onboarding-gateway",
+          detail,
+          message: detail,
+        });
+        sendJson(response, 500, { ok: false, ...attempt });
       }
     })();
   });

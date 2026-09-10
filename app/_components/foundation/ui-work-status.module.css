@@ -1,0 +1,89 @@
+.status {
+  display: inline-grid;
+  grid-template-columns: var(--pp-space-2) minmax(0, 1fr);
+  gap: var(--pp-space-2);
+  align-items: start;
+  max-width: var(--pp-width-reading);
+  padding: var(--pp-space-2) var(--pp-space-3);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-control);
+  background: var(--pp-surface-raised);
+  color: var(--pp-text);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+}
+
+.marker {
+  width: var(--pp-space-2);
+  height: var(--pp-space-2);
+  margin-top: var(--pp-space-1);
+  background: var(--pp-teal);
+}
+
+.copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.copy strong {
+  font-weight: 700;
+}
+
+.detail {
+  display: block;
+  margin-top: var(--pp-space-1);
+  color: var(--pp-muted);
+}
+
+.status[data-pp-work-status="saved"] .marker,
+.status[data-pp-work-status="resumed"] .marker,
+.status[data-pp-work-status="session-accepted"] .marker {
+  background: var(--pp-success);
+}
+
+.status[data-pp-work-status="retrying"] .marker,
+.status[data-pp-work-status="offline"] .marker,
+.status[data-pp-work-status="stale"] .marker {
+  background: var(--pp-warning);
+}
+
+.status[data-pp-work-status="rejected"] .marker {
+  background: var(--pp-danger);
+}
+
+.status[data-pp-work-status="saving"] .marker,
+.status[data-pp-work-status="validating"] .marker,
+.status[data-pp-work-status="resolving"] .marker {
+  animation: pp-work-status-pulse calc(var(--pp-motion-standard) * 5) ease-in-out infinite alternate;
+}
+
+@keyframes pp-work-status-pulse {
+  from {
+    transform: scale(0.75);
+    opacity: 0.65;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status[data-pp-work-status="saving"] .marker,
+  .status[data-pp-work-status="validating"] .marker,
+  .status[data-pp-work-status="resolving"] .marker {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .status,
+  .marker {
+    border: 1px solid CanvasText;
+  }
+
+  .marker {
+    background: CanvasText;
+  }
+}

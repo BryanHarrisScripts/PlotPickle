@@ -1,56 +1,55 @@
 # PlotPickle CI testing strategy
 
-PlotPickle uses four stable pull-request gates. Historical issue contracts remain tests, but they no longer create a new workflow and runner for every completed issue.
+PlotPickle exposes exactly two normal pull-request verification gates: `PR Gate` and `Product Gate`.
 
-## Pull-request gates
+The active product is moving through a new Experience architecture and interchangeable SKINs. Normal pull-request CI therefore protects stable architectural boundaries, core data/auth integrity and buildability. It must not freeze rapidly changing screen layouts or make release-grade packaging work block ordinary UI/architecture iteration.
 
-### Quality
+## PR Gate
 
-- installs dependencies once;
-- validates the changed-test registry and CI topology;
-- runs lint and the production build;
-- runs the suites selected by `npm run test:changed`;
-- uses a bounded core fallback when a file is not registered yet.
+`PR Gate` is the fast deterministic Ubuntu gate. It uses one checkout and one dependency installation.
 
-### Safety
+It owns:
 
-- validates repository-publication and credential boundaries;
-- scans only commits introduced by the pull request;
-- runs dependency audit and review only when dependency manifests change.
+- two-gate CI topology;
+- current Experience architecture boundaries;
+- core auth, credential and storage contracts;
+- one production web build.
 
-Complete reachable-history scanning and CodeQL run after merge, weekly, or manually.
+It intentionally does not run broad historical UI suites, Demo onboarding, Afterglow reference journeys or legacy visual-reference contracts.
 
-### Visual
+## Product Gate
 
-- completes immediately when no interface-owned file changed;
-- runs the retained deterministic UI, accessibility, navigation, dashboard, routing and Storyboard contracts for visual changes;
-- captures rendered browser evidence for visual changes;
-- keeps the AI design review advisory so provider or rate-limit failures cannot block a merge.
+`Product Gate` is the focused Windows product smoke gate. It uses one checkout and one dependency installation.
 
-The full Windows screen inventory runs after merge or manually.
+It owns:
 
-### Release readiness
+- the current Skin V1 startup boundary, including protection against Legacy Skin startup flash;
+- one production web build on Windows;
+- the Windows installer source contract.
 
-- always returns one PR outcome;
-- runs release-contract tests;
-- stages and smoke-tests one representative Linux package only when runtime, packaging or dependency files change.
+During active SKIN development, Product Gate stays deliberately small. Full installer construction, packaged interaction smoke, install/uninstall smoke, detailed visual audits, historical screen expectations and reference-story journeys belong in specialized/manual workflows until a Skin, Experience phase or release is declared stable.
 
-Complete Windows, macOS and Linux packaging runs after merge, on release tags, or manually.
+## Specialized workflows
 
-## Post-merge and manual validation
+Deep workflows remain available in `.github/workflows` for manual, scheduled, release, push-to-main or reusable execution. This includes BEN diagnostics, Visual Readiness diagnostics, Autonomous QA campaigns, Autonomous Story Reference, Demo onboarding, Windows Installer and other historical subsystem checks.
 
-- complete regression suite;
-- smoke Human Acceptance dispatch;
-- complete Git-history and CodeQL security scans;
-- full-product visual inventory;
-- Windows, macOS and Linux clean-package validation;
-- installed Windows product acceptance;
-- Repomix diagnostic generation.
+Those workflows must not add another normal `pull_request` check.
 
-The maintained workflow inventory is seven files: four PR gates plus Human Acceptance, Windows Installed Acceptance and Repomix Diagnostics.
+## Failure handling
 
-The operating rule is:
+When a pull request fails, inspect only the exact failed gate and named step. Do not rerun unrelated green work. Local development stays limited to the exact changed code; GitHub CI remains the verifier for the two normal gates.
 
-`PR = Quality + Safety + Visual + Release readiness`
+## Required check names
 
-`main/release = full regression + full security + full package + full visual evidence`
+If repository rules or branch protection require status checks, the only required PlotPickle check names should be:
+
+- `PR Gate`
+- `Product Gate`
+
+## Operating rule
+
+`pull request = PR Gate + Product Gate`
+
+`rapid Skin/UI iteration = boundary + build protection, not historical screen or release-package lock-in`
+
+`main/release/manual = specialized deep verification when useful`

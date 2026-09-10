@@ -43,16 +43,14 @@ test("#1392 aligns sequence cards and renders exactly three TP act markers", asy
   assert.doesNotMatch(css, /\.block\[aria-pressed="true"\][^{]*\{[^}]*(?:border-color|background):/s);
 });
 
-test("#1392 makes Profile use the global navigation dimensions and typography rhythm", async () => {
+test("#1392/#1734 keeps the Profile surface while the forgiving shell owns its visible navigation control", async () => {
   const [profileCss, navCss] = await Promise.all([
     read("app/profile-access/profile-identity-overlay.module.css"),
     read("app/plotpickle-workspace-shell.module.css"),
   ]);
 
-  for (const contract of ["width: 64px", "height: 70px", "width: 44px", "height: 44px", "font-size: 10px", 'var(--font-mono, "Courier New", monospace)']) {
-    assert.ok(profileCss.includes(contract), `Profile parity is missing ${contract}`);
-    assert.ok(navCss.includes(contract), `global navigation reference is missing ${contract}`);
-  }
+  assert.match(profileCss, /\.trigger\s*\{[\s\S]*width:\s*1px;[\s\S]*clip-path:\s*inset\(50%\)/u);
+  for (const contract of ["width: 64px", "min-height: 64px", "width: 44px", "height: 44px"]) assert.ok(navCss.includes(contract), `global navigation reference is missing ${contract}`);
   assert.match(profileCss, /\.surface \{[\s\S]+position:\s*fixed;[\s\S]+top:\s*86px/);
 });
 

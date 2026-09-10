@@ -17,6 +17,8 @@ test("#1553 autonomous reference bootstraps immutable Afterglow through the real
   assert.match(bootstrap, /Save & Switch/);
   assert.match(bootstrap, /browser_click/);
   assert.match(bootstrap, /openMyStories/);
+  assert.ok(bootstrap.indexOf('element: "Featured Examples"') < bootstrap.indexOf("const launchRaw"));
+  assert.match(bootstrap, /requiredTerms: \["Afterglow", "Load & Explore"\]/);
   assert.match(bootstrap, /My Stories/);
   assert.match(bootstrap, /Library My Stories active card/);
   assert.match(bootstrap, /data-library-story-id/);

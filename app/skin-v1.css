@@ -1,0 +1,612 @@
+html[data-plotpickle-skin="skin-v1"],
+html[data-plotpickle-skin="skin-v1"] body {
+  margin: 0;
+  background: #000 !important;
+  color: #fff !important;
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] *,
+html[data-plotpickle-skin="skin-v1"] *::before,
+html[data-plotpickle-skin="skin-v1"] *::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+  text-shadow: none !important;
+}
+
+.pp-skin-v1-logon,
+.pp-skin-v1-home {
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
+}
+
+.pp-skin-v1-logon {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.pp-skin-v1-panel {
+  width: min(560px, 100%);
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+}
+
+.pp-skin-v1-title,
+.pp-skin-v1-bar,
+.pp-skin-v1-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #000;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-return,
+.pp-skin-v1-community-setup button,
+.pp-skin-v1-community-setup a {
+  display: inline-block;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #fff;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pp-skin-v1-return:focus-visible,
+.pp-skin-v1-community-setup :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.pp-skin-v1-community {
+  min-width: 0;
+  color-scheme: dark;
+  filter: grayscale(1);
+}
+
+.pp-skin-v1-community-setup {
+  padding: 16px;
+  border-bottom: 1px solid #fff;
+}
+
+.pp-skin-v1-title,
+.pp-skin-v1-bar {
+  border-bottom: 2px solid #fff;
+}
+
+.pp-skin-v1-status {
+  border-top: 2px solid #fff;
+  font-size: 12px;
+}
+
+.pp-skin-v1-panel > p,
+.pp-skin-v1-panel > form,
+.pp-skin-v1-message {
+  margin: 0;
+  padding: 18px;
+}
+
+.pp-skin-v1-panel form,
+.pp-skin-v1-message {
+  display: grid;
+  gap: 16px;
+}
+
+.pp-skin-v1-panel label {
+  display: grid;
+  gap: 6px;
+}
+
+.pp-skin-v1-panel input:not([type="checkbox"]),
+.pp-skin-v1-panel select,
+.pp-skin-v1-panel button,
+.pp-skin-v1-panel a,
+.pp-skin-v1-recovery {
+  min-height: 42px;
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+  font: inherit;
+}
+
+.pp-skin-v1-panel input:not([type="checkbox"]),
+.pp-skin-v1-panel select,
+.pp-skin-v1-recovery {
+  width: 100%;
+  padding: 8px 10px;
+}
+
+.pp-skin-v1-recovery {
+  display: block;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.pp-skin-v1-check {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.pp-skin-v1-check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #fff;
+}
+
+.pp-skin-v1-panel button,
+.pp-skin-v1-panel a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pp-skin-v1-panel button:hover:not(:disabled),
+.pp-skin-v1-panel button:focus-visible,
+.pp-skin-v1-panel a:hover,
+.pp-skin-v1-panel a:focus-visible {
+  background: #fff;
+  color: #000;
+  outline: 0;
+}
+
+.pp-skin-v1-panel input:focus-visible,
+.pp-skin-v1-panel select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.pp-skin-v1-panel button:disabled {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.pp-skin-v1-panel [role="alert"] {
+  border: 2px solid #fff;
+  padding: 10px;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-message p {
+  margin: 0;
+}
+
+.pp-skin-v1-home {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.pp-skin-v1-dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 28px 18px 36px;
+}
+
+.pp-skin-v1-bbs {
+  width: min(760px, 100%);
+  border: 2px solid #fff;
+  background: #000;
+}
+
+.pp-skin-v1-bbs-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border-bottom: 2px solid #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-menu {
+  display: grid;
+  padding: 12px;
+}
+
+.pp-skin-v1-menu-item {
+  display: grid;
+  grid-template-columns: 24px minmax(170px, 0.9fr) minmax(0, 1.1fr);
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  column-gap: 10px;
+  border: 0;
+  background: #000;
+  color: #fff;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pp-skin-v1-menu-label {
+  min-width: 0;
+}
+
+.pp-skin-v1-menu-description {
+  min-width: 0;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: 0.68;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-menu-item.is-group-start {
+  margin-top: 12px;
+}
+
+.pp-skin-v1-menu-item.is-selected {
+  background: #fff;
+  color: #000;
+}
+
+.pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-description {
+  opacity: 0.78;
+}
+
+.pp-skin-v1-menu-item:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.pp-skin-v1-menu-item:not(.is-selected):hover {
+  outline: 1px solid #fff;
+  outline-offset: -1px;
+}
+
+.pp-skin-v1-menu-cursor {
+  display: inline-block;
+  width: 2ch;
+  font-weight: 700;
+}
+
+.pp-skin-v1-bbs-help {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding: 10px 12px;
+  border-top: 2px solid #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .pp-skin-v1-menu-item {
+    grid-template-columns: 24px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .pp-skin-v1-menu-description {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .pp-skin-v1-dashboard {
+    padding: 16px 10px 24px;
+  }
+
+  .pp-skin-v1-bbs-banner,
+  .pp-skin-v1-bbs-help {
+    display: grid;
+  }
+}
+
+/* Smooth monochrome depth for the Skin V1 compatibility pass. */
+.pp-skin-v1-panel,
+.pp-skin-v1-bbs {
+  background: linear-gradient(145deg, #292929, #101010 55%, #080808);
+  box-shadow: inset 0 1px 0 #777, 0 12px 32px #000;
+}
+.pp-skin-v1-bar,
+.pp-skin-v1-title,
+.pp-skin-v1-bbs-banner {
+  background: linear-gradient(#333, #151515);
+}
+.pp-skin-v1-menu-item:not(.is-selected) {
+  background: linear-gradient(90deg, #171717, #0b0b0b);
+}
+.pp-skin-v1-menu-item.is-selected {
+  background: linear-gradient(#fff, #c9c9c9);
+  box-shadow: inset 0 1px 0 #fff, 0 2px 5px #000;
+}
+
+/* Three restrained Matrix greens over the monochrome base. */
+html[data-plotpickle-skin="skin-v1"] {
+  --pp-matrix-deep: #123524;
+  --pp-matrix-mid: #287a4b;
+  --pp-matrix-light: #79bd92;
+}
+.pp-skin-v1-bar,
+.pp-skin-v1-title,
+.pp-skin-v1-bbs-banner {
+  border-bottom-color: var(--pp-matrix-mid);
+  background: linear-gradient(110deg, var(--pp-matrix-deep), #191919 42%, #111);
+}
+.pp-skin-v1-status,
+.pp-skin-v1-bbs-help {
+  color: var(--pp-matrix-light);
+}
+.pp-skin-v1-menu-cursor {
+  color: var(--pp-matrix-light);
+}
+.pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-cursor {
+  color: var(--pp-matrix-deep);
+}
+.pp-skin-v1-return:focus-visible,
+.pp-skin-v1-menu-item:focus-visible {
+  outline-color: var(--pp-matrix-light);
+}
+.pp-skin-v1-bbs-banner h1 {
+  margin: 0;
+  font: inherit;
+}
+.pp-skin-v1-submenu-item:disabled {
+  opacity: 1;
+  color: #d0d0d0;
+  cursor: default;
+}
+.pp-skin-v1-submenu-item:disabled:hover {
+  outline: none;
+}
+
+/* Dashboard Surface V1: architecture-map layout. Scoped so no other Skin V1 surface changes. */
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] {
+  --pp-dashboard-cyan: #67e9f4;
+  --pp-dashboard-cyan-deep: #123f48;
+  --pp-dashboard-amber: #f4bd49;
+  --pp-dashboard-amber-deep: #4b3510;
+  --pp-dashboard-green: #79bd92;
+  width: 100%;
+  min-width: 0;
+  padding: 18px clamp(12px, 2.4vw, 34px) 28px;
+  background:
+    linear-gradient(rgba(103, 233, 244, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 233, 244, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 17% 10%, rgba(40, 122, 75, 0.14), transparent 28%),
+    radial-gradient(circle at 82% 35%, rgba(103, 233, 244, 0.10), transparent 30%),
+    #02070a;
+  background-size: 28px 28px, 28px 28px, auto, auto, auto;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
+  position: relative;
+  width: min(1480px, 100%);
+  padding-top: 82px;
+  overflow: hidden;
+  border: 1px solid rgba(103, 233, 244, 0.72);
+  background: linear-gradient(180deg, rgba(5, 18, 24, 0.96), rgba(1, 7, 10, 0.98));
+  box-shadow: inset 0 0 0 1px rgba(103, 233, 244, 0.06), 0 18px 55px #000;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::before {
+  content: "PlotPickle";
+  position: absolute;
+  inset: 12px 18px auto;
+  color: #f5fbff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(30px, 4vw, 54px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::after {
+  content: "AI-NATIVE AGENTIC STORY OPERATING SYSTEM  /  DASHBOARD";
+  position: absolute;
+  inset: 60px 18px auto;
+  color: var(--pp-dashboard-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner {
+  min-height: 34px;
+  margin: 0 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(103, 233, 244, 0.55);
+  background: rgba(2, 12, 17, 0.78);
+  color: var(--pp-dashboard-cyan);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner > span:first-child {
+  display: none;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-banner > span:last-child {
+  width: 100%;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item {
+  --pp-dashboard-accent: var(--pp-dashboard-cyan);
+  --pp-dashboard-accent-deep: var(--pp-dashboard-cyan-deep);
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  min-height: 92px;
+  margin: 0;
+  padding: 14px 14px 12px;
+  gap: 5px 10px;
+  border: 1px solid var(--pp-dashboard-accent);
+  background: linear-gradient(155deg, rgba(16, 36, 42, 0.92), rgba(2, 9, 13, 0.98) 66%);
+  color: #f3fbff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025), inset 0 -18px 36px rgba(0, 0, 0, 0.26);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13) {
+  --pp-dashboard-accent: var(--pp-dashboard-amber);
+  --pp-dashboard-accent-deep: var(--pp-dashboard-amber-deep);
+  background: linear-gradient(155deg, rgba(54, 39, 11, 0.9), rgba(11, 8, 2, 0.98) 66%);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(1),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(4),
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(14) {
+  grid-column: span 2;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-group-start {
+  margin-top: 0;
+  box-shadow: inset 5px 0 0 var(--pp-dashboard-accent-deep), inset 0 0 0 1px rgba(255, 255, 255, 0.025), inset 0 -18px 36px rgba(0, 0, 0, 0.26);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--pp-dashboard-accent);
+  background: transparent;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-cursor {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 26px;
+  color: var(--pp-dashboard-accent);
+  font-size: 18px;
+  text-align: center;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-label {
+  align-self: end;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-description {
+  grid-column: 2;
+  align-self: start;
+  color: #c0d4da;
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+  opacity: 0.78;
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:hover,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:focus-visible {
+  transform: translateY(-1px);
+  background: linear-gradient(155deg, rgba(31, 66, 70, 0.96), rgba(4, 14, 18, 0.99) 66%);
+  color: #fff;
+  outline: 0;
+  box-shadow: inset 0 0 0 1px var(--pp-dashboard-accent), 0 0 18px rgba(103, 233, 244, 0.13);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6).is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 4):nth-child(-n + 6):hover,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13).is-selected,
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(n + 11):nth-child(-n + 13):hover {
+  background: linear-gradient(155deg, rgba(73, 55, 17, 0.96), rgba(17, 12, 3, 0.99) 66%);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected::after {
+  background: var(--pp-dashboard-green);
+  border-color: var(--pp-dashboard-green);
+  box-shadow: 0 0 8px rgba(121, 189, 146, 0.7);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item.is-selected .pp-skin-v1-menu-cursor {
+  color: var(--pp-dashboard-green);
+}
+
+.pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
+  margin: 0 14px 14px;
+  padding: 9px 10px;
+  border: 1px solid rgba(121, 189, 146, 0.45);
+  color: var(--pp-dashboard-green);
+  background: rgba(8, 24, 16, 0.62);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 1040px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(1),
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(4),
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item:nth-child(14) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
+    padding-top: 72px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::before {
+    font-size: 34px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs::after {
+    inset-block-start: 50px;
+    font-size: 9px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] {
+    padding: 10px 8px 18px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu-item {
+    min-height: 78px;
+  }
+
+  .pp-skin-v1-dashboard[aria-label="PlotPickle Dashboard"] .pp-skin-v1-bbs-help {
+    display: grid;
+  }
+}

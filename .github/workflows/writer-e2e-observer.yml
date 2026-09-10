@@ -1,25 +1,6 @@
 name: Writer End-to-End Observer
 
 on:
-  pull_request:
-    paths:
-      - "scripts/run-writer-in-residence.mjs"
-      - "scripts/run-writer-in-residence-e2e.mjs"
-      - "scripts/writer-app-runtime.mjs"
-      - "scripts/writer-e2e-acceptance-policy.mjs"
-      - "scripts/writer-sage-acceptance.mjs"
-      - "scripts/writer-snapshot-normalizer.mjs"
-      - "scripts/writer-visible-controls.mjs"
-      - "scripts/writer-in-residence-runtime-recovery.mjs"
-      - "scripts/writer-journey-completion.mjs"
-      - "scripts/writer-journey-final-state.mjs"
-      - "tests/issue-1104-writer-e2e-final-state.test.mjs"
-      - "tests/issue-1108-writer-app-preflight.test.mjs"
-      - "tests/issue-1110-writer-live-acceptance.test.mjs"
-      - "tests/issue-1170-writer-observer-stabilization.test.mjs"
-      - "tests/issue-1230-full-verification-closeout.test.mjs"
-      - "package.json"
-      - ".github/workflows/writer-e2e-observer.yml"
   workflow_dispatch:
 
 permissions:

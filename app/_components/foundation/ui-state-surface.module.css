@@ -1,0 +1,123 @@
+.surface {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--pp-space-1) minmax(0, 1fr);
+  gap: var(--pp-space-4);
+  padding: var(--pp-space-5);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface);
+  color: var(--pp-text);
+  overflow: hidden;
+}
+
+.stateMark {
+  width: var(--pp-space-1);
+  min-height: var(--pp-control-height-lg);
+  background: var(--pp-teal);
+}
+
+.surface[data-pp-state="partial"] .stateMark {
+  background: var(--pp-warning);
+}
+
+.surface[data-pp-state="error"] .stateMark {
+  background: var(--pp-danger);
+}
+
+.surface[data-pp-state="empty"] .stateMark {
+  background: var(--pp-dim);
+}
+
+.copy {
+  min-width: 0;
+  max-width: var(--pp-width-reading);
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: var(--pp-space-2);
+  color: var(--pp-muted);
+  font-size: var(--pp-text-xs);
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--pp-paper);
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-lg);
+  line-height: var(--pp-leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.message {
+  margin: var(--pp-space-2) 0 0;
+  color: var(--pp-text);
+  font-size: var(--pp-text-md);
+  line-height: var(--pp-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  margin-top: var(--pp-space-3);
+  color: var(--pp-muted);
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.loadingTrack {
+  grid-column: 2;
+  width: min(100%, var(--pp-width-reading));
+  height: var(--pp-space-1);
+  overflow: hidden;
+  background: var(--pp-surface-raised);
+}
+
+.loadingTrack span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--pp-teal-bright);
+  animation: pp-state-progress calc(var(--pp-motion-standard) * 6) ease-in-out infinite alternate;
+}
+
+.action {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-2);
+  margin-top: var(--pp-space-1);
+}
+
+@keyframes pp-state-progress {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(150%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingTrack span {
+    width: 100%;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .surface,
+  .stateMark,
+  .loadingTrack {
+    border: 1px solid CanvasText;
+  }
+
+  .stateMark,
+  .loadingTrack span {
+    background: CanvasText;
+  }
+}

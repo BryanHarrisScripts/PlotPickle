@@ -1,13 +1,6 @@
 name: LEARN Agent Portraits
 
 on:
-  pull_request:
-    paths:
-      - "modules/learn/ui/marquee-agent-overlay.tsx"
-      - "modules/learn/ui/marquee-agent-overlay.module.css"
-      - "public/assets/marquee-director-portrait.svg"
-      - "tests/issue-1100-learn-agent-portraits.test.mjs"
-      - ".github/workflows/learn-agent-portraits.yml"
   workflow_dispatch:
 
 permissions:

@@ -1,3 +1,4 @@
+import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
 import { normalizeFoundationProject } from "../../../../core/project/project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
@@ -41,8 +42,11 @@ export async function GET(request: Request) {
         project = await runtimeState.privateStorage.loadActiveProject(authContext);
       }
     }
-    const wyrmwood = await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" });
-    return response({ project, wyrmwood });
+    const [wyrmwood, storyMapContexts] = await Promise.all([
+      runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state" }),
+      runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts" }),
+    ]);
+    return response({ project, wyrmwood, storyMapContexts: normalizeStoryMapContextRegistry(storyMapContexts) });
   } catch (error) {
     return errorResponse(error);
   }
@@ -59,6 +63,11 @@ export async function POST(request: Request) {
     }
     if (input.action === "save-wyrmwood") {
       await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: "wyrmwood-state", value: input.value });
+      return response({ ok: true });
+    }
+    if (input.action === "save-story-map-contexts") {
+      const value = normalizeStoryMapContextRegistry(input.value);
+      await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: "story-map-contexts", value });
       return response({ ok: true });
     }
     return response({ code: "UNSUPPORTED_PRIVATE_ACTION", message: "That private profile action is unavailable." }, 400);

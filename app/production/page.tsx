@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import PreproductionWorkspace, { type ProductionScope } from "../preproduction-workspace";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import { ensureProductionWorkspace } from "@/lib/preproduction";
+import styles from "./page.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 
@@ -49,14 +50,15 @@ export default function ProductionPage() {
   }
 
   return (
-    <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
-      <div style={{ maxWidth: 1700, margin: "0 auto", display: "grid", gap: 18 }}>
-        <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "storyboard" ? "Storyboard" : "Build"}</Link>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/structure">Structure</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/labs">Specialist Labs</Link><Link href="/pitch-review">Pitch & Review</Link></div>
+    <main className={`${styles.page} standalone-studio-surface`}>
+      <div className={styles.frame}>
+        <h1 className={styles.heading}>Reports</h1>
+        <nav className={styles.nav}>
+          <Link className={styles.returnLink} href={`/?workspace=${returnWorkspace}`}>Back to {returnWorkspace === "storyboard" ? "Storyboard" : "Build"}</Link>
+          <div className={styles.links}><Link href="/structure">Structure</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/labs">Specialist Labs</Link><Link href="/pitch-review">Pitch & Review</Link></div>
         </nav>
         <PreproductionWorkspace project={project} onProjectChange={save} scope={scope} />
-        <p style={{ color: "#57706d" }} aria-live="polite">{status}</p>
+        <p className={styles.status} aria-live="polite">{status}</p>
       </div>
     </main>
   );

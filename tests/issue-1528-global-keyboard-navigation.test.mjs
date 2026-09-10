@@ -70,7 +70,7 @@ test("#1528 never steals letters from typing, controls, modified chords, repeat 
 
 test("#1528 keeps navigation labels uncluttered and moves shortcut discovery to Settings Help", async () => {
   const [shell, releaseBoundary] = await Promise.all([read(shellPath), read(releaseBoundaryPath)]);
-  assert.match(shell, /WORKFLOW_SHORTCUTS\.map/);
+  assert.match(shell, /shortcutsForArea\(navigationAreaOption\.id\)\.map/);
   assert.match(shell, /<small>\{item\.detail\}<\/small>/);
   assert.doesNotMatch(shell, /item\.detail\} · \$\{item\.key/);
   assert.doesNotMatch(shell, /data-global-shortcut-help/);

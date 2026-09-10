@@ -4,7 +4,7 @@ import path from "node:path";
 import type { Plugin } from "vite";
 import { persistentHome } from "./local-credentials";
 import { appendRunTelemetryEvent, RUN_TELEMETRY_EVENT_TYPES, type RunTelemetryData, type RunTelemetryEventType } from "../lib/runtime/run-telemetry";
-import type { ResponsibilityRun } from "../lib/responsibility-runs";
+import type { ResponsibilityRun } from "../lib/agents/responsibility/responsibility-runs";
 
 const API = "/api/responsibility-runs/telemetry";
 const MAX_BODY = 64 * 1024;

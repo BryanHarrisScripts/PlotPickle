@@ -1,0 +1,36 @@
+.page {
+  padding: var(--pp-space-6);
+}
+
+.frame {
+  display: grid;
+  gap: var(--pp-space-4);
+  width: min(100%, var(--pp-width-board));
+}
+
+.heading {
+  margin: 0;
+  color: var(--pp-text);
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.returnLink {
+  color: var(--pp-teal-bright);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-3);
+}
+
+.status {
+  color: var(--pp-muted);
+}

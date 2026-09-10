@@ -1,45 +1,6 @@
 name: Profile Experience
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app/api/auth/profile/**"
-      - "app/api/auth/profile-presentation/**"
-      - "app/profile-access/**"
-      - "app/layout.tsx"
-      - "app/page.tsx"
-      - "app/community-*.tsx"
-      - "app/sage-settings-workspace.tsx"
-      - "app/settings-dark-surface-guard.css"
-      - "app/settings-panel.tsx"
-      - "app/plotpickle-workspace-shell.tsx"
-      - "build/buzz-profile-identity-gateway.ts"
-      - "build/local-credentials.ts"
-      - "build/auth/profile-request-context.ts"
-      - "build/startup/**"
-      - "scripts/windows-server-smoke.mjs"
-      - "scripts/windows-interaction-smoke.mjs"
-      - "Start-PlotPickle.bat"
-      - "vite.config.ts"
-      - "public/assets/workflow-relics/library.svg"
-      - "public/assets/workflow-relics/profile.svg"
-      - "core/auth/**"
-      - "core/storage/**"
-      - "modules/community/**"
-      - "modules/learn/ui/learn-workspace.tsx"
-      - "modules/wyrmwood/ui/wyrmwood-workspace.tsx"
-      - "tests/issue-614-startup-health-warning-cleanup.test.mjs"
-      - "tests/issue-1404-community-edge-navigation.test.mjs"
-      - "tests/windows-native-runtime.test.mjs"
-      - "tests/issue-1143-profile-experience.test.mjs"
-      - "tests/issue-1144-buzz-profile-agent-scope.test.mjs"
-      - "tests/issue-1210-ui-housekeeping.test.mjs"
-      - "tests/issue-1212-profile-buzz-identity.test.mjs"
-      - "tests/issue-1279-official-agents-lore-avatar.test.mjs"
-      - "package.json"
-      - "config/uat-autopilot-registry.json"
-      - ".github/workflows/profile-experience.yml"
   workflow_dispatch:
 
 permissions:

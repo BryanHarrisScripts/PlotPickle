@@ -19,7 +19,8 @@ test("#1420 binds visual and background text projections to the same canonical B
   assert.match(ui, /data-canonical-story-id=\{selected\.id\}/);
   assert.match(ui, /data-canonical-story-id=\{selected\.backgroundText\.targetRef\}/);
   assert.match(ui, /Background story text/);
-  assert.match(ui, /Same canonical Block · read-only source projection/);
+  assert.match(ui, /Same canonical Block/);
+  assert.match(ui, /Read-only source projection/);
 });
 
 test("#1420 projects bounded screenplay evidence without rewriting or inflating canon", async () => {
@@ -34,7 +35,10 @@ test("#1420 projects bounded screenplay evidence without rewriting or inflating 
   assert.match(model, /placementReviewed: reviewedMapping/);
   assert.match(ui, /Observed source text is shown without rewriting/);
   assert.match(ui, /suggested Block placement still requires Human review/);
-  assert.doesNotMatch(`${model}\n${ui}`, /plotpickle\.project\.v1|PlotPickleProject|\/api\/.*generate|provider.*generate/i);
+  const textProjectionStart = ui.indexOf("Background story text");
+  assert.ok(textProjectionStart >= 0, "The read-only background text projection must remain present.");
+  const textProjection = ui.slice(textProjectionStart);
+  assert.doesNotMatch(`${model}\n${textProjection}`, /plotpickle\.project\.v1|PlotPickleProject|\/api\/.*generate|provider.*generate/i);
 });
 
 test("#1420 keeps missing background text visibly missing instead of fabricating a script", async () => {

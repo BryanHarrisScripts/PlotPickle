@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "plotpickle.architecture.schema.json",
+  "title": "PlotPickle Architecture Blueprint",
+  "type": "object",
+  "required": ["blueprint", "principles", "layers", "community", "bridge", "flows", "legend", "migration"],
+  "properties": {
+    "blueprint": { "type": "object", "required": ["title", "tagline", "version", "updated", "source"] },
+    "principles": { "type": "array", "minItems": 1 },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["number", "id", "label", "summary", "tone", "title", "components"]
+      }
+    },
+    "community": { "type": "object", "required": ["title", "components", "rules"] },
+    "bridge": { "type": "object", "required": ["title", "steps"] },
+    "flows": { "type": "array" },
+    "legend": { "type": "array" },
+    "migration": { "type": "string" }
+  },
+  "additionalProperties": false
+}

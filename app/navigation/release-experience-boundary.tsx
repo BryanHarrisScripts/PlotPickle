@@ -2,26 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "../plotpickle-workspace-shell";
 import { GLOBAL_SHORTCUTS } from "./global-shortcuts";
+import { publicShellException, sitemapShellTarget } from "./sitemap-route-context";
 import styles from "./release-experience-boundary.module.css";
-
-type StandaloneTarget = {
-  readonly activeShortcutId: string;
-  readonly rootContext: RootWorkspace;
-};
-
-const STANDALONE_TARGETS: Readonly<Record<string, StandaloneTarget>> = {
-  "/library": { activeShortcutId: "library", rootContext: "library" },
-  "/storyboard": { activeShortcutId: "storyboard", rootContext: "build" },
-  "/previs": { activeShortcutId: "graphic-novel", rootContext: "build" },
-  "/pageflow": { activeShortcutId: "write", rootContext: "build" },
-  "/edit": { activeShortcutId: "edit", rootContext: "build" },
-  "/pitch-review": { activeShortcutId: "feedback", rootContext: "build" },
-  "/diagnostics": { activeShortcutId: "refine", rootContext: "build" },
-  "/production": { activeShortcutId: "reports", rootContext: "build" },
-};
 
 function BuildStudioNavigationHost() {
   const router = useRouter();
@@ -142,8 +127,10 @@ function SettingsKeyboardShortcutsHost() {
 
 export default function ReleaseExperienceBoundary({ children }: { readonly children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const target = STANDALONE_TARGETS[pathname] ?? null;
+  const exception = publicShellException(pathname);
+  const target = exception ? null : sitemapShellTarget(pathname, searchParams.toString());
 
   const navigateRoot = (workspace: RootWorkspace) => {
     router.push(`/?workspace=${workspace}`);
@@ -155,6 +142,11 @@ export default function ReleaseExperienceBoundary({ children }: { readonly child
         <PlotPickleWorkspaceShell
           activeShortcutId={target.activeShortcutId}
           activeWorkspace={target.rootContext}
+          navigationArea={target.area}
+          contextId={target.contextId}
+          contextLabel={target.contextLabel}
+          contextDetail={target.contextDetail}
+          contextScope={target.contextScope}
           onNavigate={navigateRoot}
         >
           {children}

@@ -15,12 +15,18 @@ import {
 } from "@/core/storage/profile-private-browser";
 import CommunityPublicConversationsRail from "./_components/community/community-public-conversations-rail";
 import {
+  NAVIGATION_AREAS,
   PLOTPICKLE_OPEN_NODE_EVENT,
   PLOTPICKLE_OPEN_PROFILE_EVENT,
   WORKFLOW_SHORTCUTS,
   globalShortcutBlocked,
+  navigationAreaForDestination,
+  shortcutForId,
   shortcutForKey,
+  shortcutForWorkspace,
+  shortcutsForArea,
   type GlobalShortcut,
+  type NavigationAreaId,
   type RootWorkspace,
 } from "./navigation/global-shortcuts";
 import styles from "./plotpickle-workspace-shell.module.css";
@@ -210,14 +216,79 @@ function NodeControl() {
   </div>;
 }
 
+function scopeForDestination(activeWorkspace: RootWorkspace, activeShortcutId?: string) {
+  if (activeShortcutId === "story" || activeWorkspace === "story") return "STORY · no active session";
+  if (activeShortcutId && ["storyboard", "graphic-novel", "write", "edit"].includes(activeShortcutId)) return "Production";
+  if (activeShortcutId && ["feedback", "refine", "reports"].includes(activeShortcutId)) return "Review";
+  if (activeWorkspace === "community") return "Community";
+  if (activeWorkspace === "wyrmwood") return "Wyrmwood · STORY-powered";
+  return "Project";
+}
+
+function ShellProjectTruth({
+  activeWorkspace,
+  activeShortcutId,
+  scopeOverride,
+}: {
+  readonly activeWorkspace: RootWorkspace;
+  readonly activeShortcutId?: string;
+  readonly scopeOverride?: string;
+}) {
+  const [projectTitle, setProjectTitle] = useState("Checking project…");
+  const [save, setSave] = useState(getProfilePrivateSaveState());
+  const [scope, setScope] = useState(scopeOverride || scopeForDestination(activeWorkspace, activeShortcutId));
+
+  useEffect(() => {
+    const sync = () => {
+      try { setProjectTitle(loadFoundationProject().title || "Untitled Story"); }
+      catch { setProjectTitle("No active project"); }
+      setSave(getProfilePrivateSaveState());
+      const section = new URLSearchParams(window.location.search).get("section");
+      setScope(scopeOverride || (section === "world" ? "World" : scopeForDestination(activeWorkspace, activeShortcutId)));
+    };
+    sync();
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
+    window.addEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, sync);
+    return () => {
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, sync);
+      window.removeEventListener(PROFILE_PRIVATE_SAVE_STATE_EVENT, sync);
+    };
+  }, [activeShortcutId, activeWorkspace, scopeOverride]);
+
+  const saveLabel = save.state === "saved" ? "Saved" : save.state === "saving" ? "Saving…" : "Save blocked";
+  return (
+    <div className={styles.projectStrip} data-shell-project-context="true" role="status" aria-live="polite">
+      <span><small>Project</small><strong>{projectTitle}</strong></span>
+      <span><small>Context</small><strong>{scope}</strong></span>
+      <span className={styles.saveTruth} data-save-state={save.state}><small>Status</small><strong>{saveLabel}</strong></span>
+    </div>
+  );
+}
+
+function firstShortcutForArea(area: NavigationAreaId) {
+  return shortcutsForArea(area)[0] ?? null;
+}
+
+const profileShortcut = shortcutForId("profile");
+
 export default function PlotPickleWorkspaceShell({
   activeWorkspace,
   activeShortcutId,
+  navigationArea,
+  contextId,
+  contextLabel,
+  contextDetail,
+  contextScope,
   children,
   onNavigate,
 }: {
   readonly activeWorkspace: RootWorkspace;
   readonly activeShortcutId?: string;
+  readonly navigationArea?: NavigationAreaId;
+  readonly contextId?: string;
+  readonly contextLabel?: string;
+  readonly contextDetail?: string;
+  readonly contextScope?: string;
   readonly children: ReactNode;
   readonly onNavigate: (workspace: RootWorkspace) => void;
 }) {
@@ -251,46 +322,144 @@ export default function PlotPickleWorkspaceShell({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [runShortcut]);
 
+  const activeArea = navigationArea ?? navigationAreaForDestination(activeShortcutId, activeWorkspace);
+  const area = NAVIGATION_AREAS.find((candidate) => candidate.id === activeArea) ?? NAVIGATION_AREAS[0];
+  const activeShortcut = activeShortcutId ? shortcutForId(activeShortcutId) : shortcutForWorkspace(activeWorkspace);
+  const destinationLabel = contextLabel ?? (activeShortcutId === "story" || activeWorkspace === "story"
+    ? "STORY — THE UNWRITTEN"
+    : activeShortcut?.label ?? activeWorkspace);
+  const destinationDetail = contextDetail ?? (activeShortcutId === "story" || activeWorkspace === "story"
+    ? "Play the setup"
+    : activeShortcut?.detail ?? "Current workspace");
+
+  const areaShortcuts = shortcutsForArea(activeArea);
+  const activeIndex = activeShortcut ? areaShortcuts.findIndex((item) => item.id === activeShortcut.id) : -1;
+  const normalNext = activeIndex >= 0 ? areaShortcuts[activeIndex + 1] ?? null : null;
+  const storyNext = activeShortcutId === "story" || activeWorkspace === "story" ? shortcutForId("storyboard") : null;
+  const primaryShortcut = contextId ? storyNext : storyNext ?? normalNext;
+  const showStoryAction = !contextId && !activeShortcutId && activeWorkspace === "build";
+  const currentDestination = contextId || activeShortcutId || activeWorkspace;
+
   return (
-    <div className={styles.shell} data-active-workspace={activeWorkspace} data-active-shortcut={activeShortcutId || activeWorkspace}>
+    <div
+      className={styles.shell}
+      data-active-workspace={activeWorkspace}
+      data-active-shortcut={activeShortcutId || activeWorkspace}
+      data-current-navigation-area={activeArea}
+      data-current-destination={currentDestination}
+      data-current-context={contextId || undefined}
+    >
       <nav
         aria-label="PlotPickle global workflow"
         className={styles.navigator}
-        data-plotpickle-global-nav="v3"
+        data-plotpickle-global-nav="v4"
+        data-navigation-canonical-count={WORKFLOW_SHORTCUTS.length}
       >
         <NodeControl />
 
-        <div className={styles.scroller}>
-          <ol className={styles.list} data-workspace-navigation="true">
-            {WORKFLOW_SHORTCUTS.map((item) => {
-              const active = activeShortcutId
-                ? item.id === activeShortcutId
-                : item.action.kind === "workspace" && item.action.workspace === activeWorkspace;
+        <div className={styles.navigationFrame}>
+          <ol className={styles.areaList} data-workspace-areas="true">
+            {NAVIGATION_AREAS.map((navigationAreaOption) => {
+              const current = navigationAreaOption.id === activeArea;
+              const first = firstShortcutForArea(navigationAreaOption.id);
               return (
                 <li
-                  className={active ? styles.active : undefined}
-                  data-workspace-nav-id={item.id}
-                  key={item.id}
+                  className={navigationAreaOption.id === "settings" ? styles.utilityArea : undefined}
+                  data-navigation-area-id={navigationAreaOption.id}
+                  key={navigationAreaOption.id}
                 >
                   <button
-                    aria-current={active ? "page" : undefined}
-                    disabled={active}
-                    onClick={() => runShortcut(item)}
-                    title={`${item.label} · ${item.detail}`}
+                    aria-current={current ? "location" : undefined}
+                    disabled={current || !first}
+                    onClick={() => first && runShortcut(first)}
+                    title={navigationAreaOption.detail}
                     type="button"
                   >
-                    <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={item.relic} width={44} />
-                    <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail}</small></span>
+                    <strong>{navigationAreaOption.label}</strong>
+                    <small>{navigationAreaOption.detail}</small>
                   </button>
                 </li>
               );
             })}
           </ol>
+
+          <div className={styles.orientationRow} data-shell-orientation="true">
+            <div className={styles.locationTruth}>
+              <small>{area.label}</small>
+              <strong>{destinationLabel}</strong>
+              <span>{destinationDetail}</span>
+            </div>
+
+            <div
+              className={styles.destinationScroller}
+              data-shell-local-order={activeArea === "home" ? "dashboard library profile" : undefined}
+            >
+              {NAVIGATION_AREAS.map((navigationAreaOption) => (
+                <ol
+                  className={styles.destinationList}
+                  data-workspace-navigation="true"
+                  data-navigation-area-panel={navigationAreaOption.id}
+                  hidden={navigationAreaOption.id !== activeArea}
+                  key={navigationAreaOption.id}
+                >
+                  {shortcutsForArea(navigationAreaOption.id).map((item) => {
+                    const active = activeShortcutId
+                      ? item.id === activeShortcutId
+                      : item.action.kind === "workspace" && item.action.workspace === activeWorkspace;
+                    return (
+                      <li
+                        className={active ? styles.active : undefined}
+                        data-workspace-nav-id={item.id}
+                        data-navigation-area={navigationAreaOption.id}
+                        key={item.id}
+                      >
+                        <button
+                          aria-current={active ? "page" : undefined}
+                          disabled={active}
+                          onClick={() => runShortcut(item)}
+                          title={`${item.label} · ${item.detail}`}
+                          type="button"
+                        >
+                          <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={item.relic} width={44} />
+                          <span className={styles.copy}><strong>{item.label}</strong><small>{item.detail}</small></span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              ))}
+              {activeArea === "home" && profileShortcut ? (
+                <button
+                  aria-haspopup="dialog"
+                  className={styles.profileDestination}
+                  data-shell-local-destination="profile"
+                  onClick={() => runShortcut(profileShortcut)}
+                  title={`${profileShortcut.label} · ${profileShortcut.detail}`}
+                  type="button"
+                >
+                  <Image alt="" aria-hidden="true" className={styles.relic} height={44} src={profileShortcut.relic} width={44} />
+                  <span className={styles.copy}><strong>{profileShortcut.label}</strong><small>{profileShortcut.detail}</small></span>
+                </button>
+              ) : null}
+            </div>
+
+            <ShellProjectTruth activeShortcutId={activeShortcutId} activeWorkspace={activeWorkspace} scopeOverride={contextScope} />
+
+            {showStoryAction ? (
+              <button className={styles.primaryNextAction} data-shell-primary-next="story" type="button" onClick={() => router.push("/story")}>
+                Play this setup
+              </button>
+            ) : primaryShortcut ? (
+              <button className={styles.primaryNextAction} data-shell-primary-next={primaryShortcut.id} type="button" onClick={() => runShortcut(primaryShortcut)}>
+                {activeShortcutId === "story" || activeWorkspace === "story" ? "Continue to Storyboard" : `Next: ${primaryShortcut.label}`}
+              </button>
+            ) : null}
+          </div>
         </div>
       </nav>
 
       <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>
-      {activeWorkspace === "community" ? <CommunityPublicConversationsRail /> : null}
+      {activeWorkspace === "community" && !contextId ? <CommunityPublicConversationsRail /> : null}
     </div>
   );
 }

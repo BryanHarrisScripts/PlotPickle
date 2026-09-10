@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
+import ProfileAccessRouter from "./profile-access/profile-access-router";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
 import AppearanceRuntime from "./appearance-runtime";
+import SkinV1Runtime from "./skin-v1-runtime";
+import { LegacyDemoBoundary, LegacySkinOnly } from "./legacy-skin-only";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
@@ -26,6 +28,10 @@ import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-lan
 import UiContinuityAnchor from "./ui-continuity-anchor";
 import "./design-tokens.css";
 import "./globals.css";
+import "./skin-v1-definition.css";
+import "./skin-v1.css";
+import "./skin-v1-bbs-surfaces.css";
+import "./community-monochrome-skin.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
 import "./ui-ux-cleanup.css";
@@ -69,6 +75,7 @@ import "./learn-foundations-polish.css";
 import "./pr-613-workflow-nav-alignment.css";
 import "./workspace-continuity.css";
 import "./settings-dark-surface-guard.css";
+import "./skin-v1-dashboard-reference.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -111,31 +118,36 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
-        <ProfileAccessBoundary>
-          <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
-        </ProfileAccessBoundary>
-        <ProfileIdentityOverlay />
-        <UiContinuityAnchor />
-        <LearnEntryRouter />
-        <CommonOverlayLayer />
-        <WriterFacingCollaborationLanguage />
-        <GraphicNovelTerminology />
-        <GraphicNovelStudioHost />
-        <GraphicNovelBuildHandoff />
-        <BuildAssemblyStudio />
-        <BuildAnimaticStudio />
-        <FeedbackStudioHost />
-        <GitHubAppReleaseGuidance />
-        <CollaborationWorkspaceRouter />
-        <PlanStudioRailHost />
-        <StoryboardStudioHost />
-        <StoryboardNavigationGroupsHost />
-        <StoryboardPlanIntentionHost />
-        <StoryboardWriteHandoff />
-        <WriteStudioHost />
-        <WriteEditHandoff />
-        <WorkspaceIntroHost />
-        <CurrentDownloadLinks />
+        <SkinV1Runtime />
+        <LegacyDemoBoundary>
+          <ProfileAccessRouter>
+            <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
+          </ProfileAccessRouter>
+          <LegacySkinOnly>
+            <ProfileIdentityOverlay />
+            <UiContinuityAnchor />
+            <LearnEntryRouter />
+            <CommonOverlayLayer />
+            <WriterFacingCollaborationLanguage />
+            <GraphicNovelTerminology />
+            <GraphicNovelStudioHost />
+            <GraphicNovelBuildHandoff />
+            <BuildAssemblyStudio />
+            <BuildAnimaticStudio />
+            <FeedbackStudioHost />
+            <GitHubAppReleaseGuidance />
+            <CollaborationWorkspaceRouter />
+            <PlanStudioRailHost />
+            <StoryboardStudioHost />
+            <StoryboardNavigationGroupsHost />
+            <StoryboardPlanIntentionHost />
+            <StoryboardWriteHandoff />
+            <WriteStudioHost />
+            <WriteEditHandoff />
+            <WorkspaceIntroHost />
+            <CurrentDownloadLinks />
+          </LegacySkinOnly>
+        </LegacyDemoBoundary>
       </body>
     </html>
   );

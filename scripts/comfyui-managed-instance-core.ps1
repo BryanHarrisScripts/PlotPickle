@@ -11,13 +11,65 @@ function Get-PlotPicklePascalCu126Stack {
   return [pscustomobject]$script:PlotPicklePascalCu126Stack
 }
 
+function Get-ComfyDesktopInstallationRegistryFiles {
+  $files = New-Object System.Collections.Generic.List[string]
+  foreach ($root in @(
+    $(if ($env:APPDATA) { Join-Path $env:APPDATA "Comfy Desktop" }),
+    $(if ($env:APPDATA) { Join-Path $env:APPDATA "ComfyUI" }),
+    $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Comfy Desktop" }),
+    $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "ComfyUI" })
+  )) {
+    if (-not $root) { continue }
+    $candidate = Join-Path $root "installations.json"
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) { $files.Add($candidate) }
+  }
+  return @($files.ToArray() | Select-Object -Unique)
+}
+
+function Get-ComfyDesktopRegisteredInstallPaths {
+  $paths = New-Object System.Collections.Generic.List[string]
+  foreach ($registryFile in @(Get-ComfyDesktopInstallationRegistryFiles)) {
+    try {
+      $parsed = Get-Content -LiteralPath $registryFile -Raw -ErrorAction Stop | ConvertFrom-Json
+      $records = if ($parsed -is [System.Array]) {
+        @($parsed)
+      } elseif ($null -ne $parsed.PSObject.Properties["installations"]) {
+        @($parsed.installations)
+      } else {
+        @($parsed)
+      }
+      foreach ($record in $records) {
+        if ($null -eq $record) { continue }
+        $property = $record.PSObject.Properties["installPath"]
+        if ($null -eq $property -or -not $property.Value) { continue }
+        $candidate = [Environment]::ExpandEnvironmentVariables([string]$property.Value)
+        if (Test-Path -LiteralPath $candidate -PathType Container) {
+          $paths.Add((Resolve-Path -LiteralPath $candidate).Path)
+        }
+      }
+    } catch {
+      # Comfy Desktop owns this registry. A malformed/stale copy must not block other discovery paths.
+    }
+  }
+  return @($paths.ToArray() | Select-Object -Unique)
+}
+
 function Get-ComfyManagedInstallRootCandidates {
   $roots = New-Object System.Collections.Generic.List[string]
   if ($env:LOCALAPPDATA) {
     $roots.Add((Join-Path $env:LOCALAPPDATA "Comfy-Desktop\ComfyUI-Installs"))
+    $roots.Add((Join-Path $env:LOCALAPPDATA "Comfy Desktop\ComfyUI-Installs"))
+  }
+  if ($env:APPDATA) {
+    $roots.Add((Join-Path $env:APPDATA "Comfy Desktop\ComfyUI-Installs"))
+    $roots.Add((Join-Path $env:APPDATA "ComfyUI\ComfyUI-Installs"))
   }
   if ($env:USERPROFILE) {
     $roots.Add((Join-Path $env:USERPROFILE "ComfyUI-Installs"))
+  }
+  foreach ($installPath in @(Get-ComfyDesktopRegisteredInstallPaths)) {
+    $parent = Split-Path -Parent $installPath
+    if ($parent) { $roots.Add($parent) }
   }
   return @($roots.ToArray() | Select-Object -Unique)
 }

@@ -14,14 +14,19 @@ test("#1553 autonomous Guest authority is explicit, loopback-only and never Huma
   assert.doesNotMatch(source, /createFirstProfile|createProfile\(|authenticate\(|password|recoverySecret|BUZZ/i);
 });
 
-test("#1553 autonomous Guest browser checkpoint is isolated and survives its own full navigation", async () => {
+test("#1553 autonomous Guest browser checkpoint repairs a partial shared-profile session", async () => {
   const source = await read("core/auth/autonomous-guest/guest-workspace-browser.ts");
   assert.match(source, /plotpickle\.autonomous-guest\.workspace\.v1/);
   assert.match(source, /plotpickle\.library\.profile\.v1/);
   assert.match(source, /guest-auto-\[a-f0-9\]\{24\}/i);
   assert.match(source, /window\.localStorage\.setItem/);
   assert.match(source, /removeGuestSessionKeys/);
-  assert.match(source, /window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\) === normalized\) return/);
+  assert.match(source, /function workspaceSessionReady/);
+  assert.match(source, /libraryRegistryKey/);
+  assert.match(source, /libraryProjectKey/);
+  assert.match(source, /if \(workspaceSessionReady\(normalized\)\) return/);
+  assert.match(source, /if \(!workspaceSessionReady\(normalized\)\)/);
+  assert.doesNotMatch(source, /window\.sessionStorage\.getItem\(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY\) === normalized\) return/);
   assert.doesNotMatch(source, /sessionStorage\.clear/);
   assert.doesNotMatch(source, /profile-private|csrf|credential|password|buzz|indexedDB|database/i);
 });

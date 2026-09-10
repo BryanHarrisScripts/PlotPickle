@@ -2,7 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element, react-hooks/immutability -- Local generated assets use the loopback gateway; identity staging is committed through onImage. */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { createCharacterDevelopmentWorkspaceProjection } from "../lib/visual-production/character-development-workspace.mjs";
 import type { Character, PlotPickleProject } from "@/lib/projects/project";
 import {
   approvePendingVisualIdentity,
@@ -45,6 +46,70 @@ function masterReference(identity: CharacterVisualIdentity) {
   return identity.references.find((reference) => reference.angle === "master")?.src || "";
 }
 
+function evidenceText(values: Array<string | undefined>) {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
+}
+
+function characterDevelopmentRevision(project: PlotPickleProject) {
+  const latest = project.revisions.at(-1)?.id?.trim();
+  return latest || `${project.schemaVersion}:${project.metadata.updatedAt}`;
+}
+
+function characterDevelopmentEvidence(project: PlotPickleProject, character: Character, identity: CharacterVisualIdentity) {
+  const traits = identity.traits;
+  return {
+    physical: evidenceText([
+      character.description,
+      traits.ageRange,
+      traits.heightBuild,
+      traits.postureMovement,
+      traits.faceShape,
+      traits.skin,
+      traits.eyes,
+      traits.hair,
+      traits.facialHair,
+      traits.distinguishingMarks,
+    ]),
+    performance: evidenceText([
+      character.want,
+      character.need,
+      character.ghost,
+      character.fatalFlaw,
+      character.strengths,
+      character.arc,
+      traits.postureMovement,
+      identity.sceneContinuityNotes,
+    ]),
+    wardrobe: evidenceText([traits.defaultWardrobe, identity.wardrobeVariants]),
+    props: evidenceText([traits.accessories]),
+    powersEffects: [],
+    relationships: evidenceText(character.relationships.map((relationship) => [relationship.label, relationship.description].filter(Boolean).join(": "))),
+    locationsWorld: evidenceText([
+      project.world.period,
+      project.world.visualLanguage,
+      project.world.ordinaryWorld,
+      project.world.newWorld,
+      ...project.world.locations.slice(0, 6).map((location) => [location.name, location.description].filter(Boolean).join(": ")),
+    ]),
+    visualDo: evidenceText([
+      traits.ageRange,
+      traits.heightBuild,
+      traits.faceShape,
+      traits.skin,
+      traits.eyes,
+      traits.hair,
+      traits.distinguishingMarks,
+      traits.colourCues,
+    ]),
+    visualAvoid: evidenceText([identity.negativePrompt]),
+  };
+}
+
+function stateLabel(value: string) {
+  if (value === "not-applicable") return "Not applicable";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export default function CharacterImageGenerator({ project, character, onImage }: { project: PlotPickleProject; character: Character; onImage: (value: string) => void }) {
   const visualCharacter = character as CharacterWithVisualIdentity;
   const [identity, setIdentity] = useState<CharacterVisualIdentity>(() => getCharacterVisualIdentity(visualCharacter));
@@ -52,6 +117,17 @@ export default function CharacterImageGenerator({ project, character, onImage }:
   const [state, setState] = useState<"idle" | "working" | "error">("idle");
   const [message, setMessage] = useState("");
   const diagnostic = characterVisualIdentityDiagnostic({ ...visualCharacter, visualIdentity: identity });
+  const development = useMemo(() => createCharacterDevelopmentWorkspaceProjection({
+    projectId: project.id,
+    ppfRevision: characterDevelopmentRevision(project),
+    characterId: character.id,
+    characterName: character.name,
+    identityStatus: identity.status,
+    characterEvidence: characterDevelopmentEvidence(project, character, identity),
+    approvedVisualRefs: identity.references.filter((reference) => reference.approved).map((reference) => reference.src),
+    observedVisualRefs: identity.references.filter((reference) => !reference.approved).map((reference) => reference.src),
+    referenceAngles: identity.references.map((reference) => reference.angle),
+  }), [character, identity, project]);
 
   function persist(next: CharacterVisualIdentity, notice: string, approvedThumbnail?: string) {
     setIdentity(next);
@@ -180,6 +256,44 @@ export default function CharacterImageGenerator({ project, character, onImage }:
       </div>
 
       {identity.references.length ? <div className={styles.references}>{identity.references.map((reference) => <article key={reference.id}><img src={reference.src} alt={`${character.name} ${reference.angle} reference`} /><div><strong>{reference.angle.replace("-", " ")}</strong><span>{reference.approved ? "Approved" : "Draft"}</span></div></article>)}</div> : <p className={styles.empty}>No visual references yet. The identity prompt can still be locked, but at least one approved image is recommended.</p>}
+
+      <section className={styles.developmentBoard} data-character-development-board data-ppf-revision={development.ppfRevision}>
+        <div className={styles.developmentHeading}>
+          <div>
+            <span>Character Development Board</span>
+            <h4>See what is defined, observed, emerging, missing or locked.</h4>
+            <p>This is a read-only projection of the current PPF character evidence and visual identity. Development candidates stay separate from the locked identity and cannot become accepted evidence from this board.</p>
+          </div>
+          <small>PPF revision {development.ppfRevision}</small>
+        </div>
+
+        <div className={styles.developmentSummary} aria-label="Character development board summary">
+          <span>Defined {development.summary.defined}</span>
+          <span>Emerging {development.summary.emerging}</span>
+          <span>Missing {development.summary.missing}</span>
+          <span>Stale {development.summary.stale}</span>
+        </div>
+
+        <div className={styles.evidenceLanes}>
+          {development.evidenceLanes.map((lane) => (
+            <article key={lane.id} data-character-development-evidence={lane.id}>
+              <div><strong>{lane.label}</strong><span className={styles.developmentState} data-state={lane.state}>{stateLabel(lane.state)}</span></div>
+              <p>{lane.detail}</p>
+              <small>{lane.count} evidence item{lane.count === 1 ? "" : "s"}</small>
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.studyGrid}>
+          {development.studies.map((study) => (
+            <article key={study.type} data-character-development-study={study.type} data-state={study.state}>
+              <div><strong>{study.label}</strong><span className={styles.developmentState} data-state={study.state}>{stateLabel(study.state)}</span></div>
+              <p>{study.detail}</p>
+              <small>{study.candidateCount ? `${study.candidateCount} candidate asset${study.candidateCount === 1 ? "" : "s"}` : `${study.inputCount} input cue${study.inputCount === 1 ? "" : "s"}`}</small>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {identity.pendingRevision ? <div className={styles.pending}><strong>Version {identity.pendingRevision.version} waiting for approval</strong><p>{identity.pendingRevision.reason}</p><button type="button" onClick={approveReplacement}>Approve and replace locked identity</button></div> : null}
 

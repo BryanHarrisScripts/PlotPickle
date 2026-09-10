@@ -144,7 +144,7 @@ test("issue #1338 archiving the last story leaves zero active projects and resto
   assert.equal(listProfileArchivedProjectSummaries(input).length, 0);
 });
 
-test("issue #1338 Library and Settings reuse one Archive component and the ghost card is non-mutating UI", async () => {
+test("issue #1338 Library and Settings reuse one Archive component and Library exposes a real New Story action", async () => {
   const [library, settings, archive, css] = await Promise.all([
     source("modules/library/ui/library-workspace.tsx"),
     source("app/sage-settings-workspace.tsx"),
@@ -155,9 +155,12 @@ test("issue #1338 Library and Settings reuse one Archive component and the ghost
   assert.match(settings, /<ArchiveStoriesPanel \/>/);
   assert.match(settings, /id="settings-archive"/);
   assert.match(archive, /Restore to Library/);
-  assert.match(library, /data-library-ghost-card="coming-soon"/);
-  assert.match(library, /This ghost card is not a project and is never saved/);
-  assert.match(library, /disabled type="button">Coming Soon/);
+  assert.match(library, /createLibraryUserProject/);
+  assert.match(library, /data-library-new-story-card="ready"/);
+  assert.match(library, /Create New Story/);
+  assert.match(library, />New Story<\/button>/);
+  assert.match(library, /window\.location\.assign\("\/\?workspace=learn"\)/);
+  assert.doesNotMatch(library, /Coming Soon|Coming soon|data-library-ghost-card="coming-soon"/);
   assert.match(library, /Import \.PPF/);
   assert.match(library, /\/api\/library\/import\/ppf/);
   assert.match(css, /\.cardMenu/);

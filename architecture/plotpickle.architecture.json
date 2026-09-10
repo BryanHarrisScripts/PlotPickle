@@ -1,0 +1,186 @@
+{
+  "$schema": "./plotpickle.architecture.schema.json",
+  "blueprint": {
+    "title": "PlotPickle",
+    "tagline": "AI-Native Agentic Story Operating System",
+    "subtitle": "TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE",
+    "version": "1.0",
+    "updated": "2026-09-09",
+    "status": "target",
+    "source": "architecture/plotpickle.architecture.json"
+  },
+  "principles": [
+    { "title": "Human authority", "detail": "Explicit consent" },
+    { "title": "PPF canon", "detail": "One durable authority" },
+    { "title": "Skin independence", "detail": "Headless capabilities" },
+    { "title": "Local-first", "detail": "Private by design" },
+    { "title": "Model-agnostic", "detail": "No silent cloud fallback" },
+    { "title": "Evidence > truth", "detail": "Revision + provenance" }
+  ],
+  "layers": [
+    {
+      "number": 1,
+      "id": "experience-skins",
+      "label": "EXPERIENCE SKINS",
+      "summary": "Replaceable presentation for any audience or device.",
+      "tone": "cyan",
+      "title": "INTERCHANGEABLE PRESENTATION",
+      "note": "Layout, controls and temporary visual state only",
+      "components": [
+        { "title": "Legacy Skin", "detail": "Compatibility during migration" },
+        { "title": "Skin V1", "detail": "Monochrome / black-and-white 16-bit" },
+        { "title": "Future skins", "detail": "Bronze/jade · mobile · other presentations" }
+      ],
+      "footer": "TARGET: VERSIONED SKIN ADAPTERS · SAME INTENTS, DESTINATIONS AND WORKSPACE FLOWS"
+    },
+    {
+      "number": 2,
+      "id": "experience-contract",
+      "label": "EXPANDED EXPERIENCE LAYER",
+      "summary": "The stable product contract behind every Skin.",
+      "tone": "amber",
+      "title": "PUBLIC SEMANTIC CONTRACT + BUSINESS USE CASES",
+      "note": "TEST CLIENT PORT",
+      "components": [
+        { "title": "Semantic intents", "detail": "What the actor requests" },
+        { "title": "Results + revisions", "detail": "Accepted / rejected / stale" },
+        { "title": "Capabilities", "detail": "Allowed / locked + reasons" },
+        { "title": "Typed events", "detail": "Progress, state and sync" },
+        { "title": "Lean view models", "detail": "Skin-neutral projections" },
+        { "title": "Surface registry", "detail": "Semantic destinations + topology" },
+        { "title": "Use-case pipeline", "detail": "Validation + authority mediation" },
+        { "title": "Persistent context", "detail": "Project, workspace and selection" },
+        { "title": "Reconciliation", "detail": "Queue, sync and history mediation" }
+      ],
+      "footer": "SEMANTIC SURFACES · LOGON · DASHBOARD · COMMUNITY · STORY WORKSPACE · STORYBOARD · SETTINGS"
+    },
+    {
+      "number": 3,
+      "id": "production-harness",
+      "label": "GOVERNED PRODUCTION ORCHESTRATION",
+      "summary": "Authority, lifecycle, policy and execution control.",
+      "tone": "amber",
+      "title": "PRODUCTION AUTHORITY / LIFECYCLE HARNESS",
+      "note": "Distinct from the test harness in Layer 7",
+      "components": [
+        { "title": "Identity + authority", "detail": "Human, profile and project authority" },
+        { "title": "Policy, consent + budgets", "detail": "Bounded capability use" },
+        { "title": "Lifecycle + capability routing", "detail": "Validated execution paths" },
+        { "title": "Revision + provenance", "detail": "Evidence chain" },
+        { "title": "Community capability", "detail": "Optional provider boundary" }
+      ],
+      "footer": "Human approval · Governed recovery · Bounded autonomy · Project and storage authority"
+    },
+    {
+      "number": 4,
+      "id": "agent-runtime",
+      "label": "AGENT & SKILL MESH",
+      "summary": "Specialists collaborate within approved scope.",
+      "tone": "cyan",
+      "title": "MULTI-AGENT CREATIVE RUNTIME",
+      "components": [
+        { "title": "Guide + Story Council", "detail": "Teaching and story counsel" },
+        { "title": "Visual + character specialists", "detail": "Visual development" },
+        { "title": "Resident Writer", "detail": "Bounded writing assistance" },
+        { "title": "Evidence learning", "detail": "Approved durable knowledge" },
+        { "title": "UI continuity + QA", "detail": "Presentation quality" }
+      ],
+      "footer": "Agent = identity + instructions + skills + permitted context + provider/runtime. Output remains a candidate."
+    },
+    {
+      "number": 5,
+      "id": "story-canon",
+      "label": "STORY, CANON & EVIDENCE CORE",
+      "summary": "Deterministic story state, context and durable canon.",
+      "tone": "cyan",
+      "title": "STORY / CANON / EVIDENCE AUTHORITY",
+      "components": [
+        { "title": "STORY rules kernel", "detail": "Deterministic sessions and consequences" },
+        { "title": "Context Engine", "detail": "Scoped, minimal context hydration" },
+        { "title": "Story + evidence graph", "detail": "Sparse references + readiness evidence" },
+        { "title": "References + candidates", "detail": "Observed or generated; non-canonical" },
+        { "title": "Evidence / revision review", "detail": "Verify origin, target and current revision" },
+        { "title": "Explicit Human approval", "detail": "Governed canon admission" },
+        { "title": "PPF Canon", "detail": "Sole durable canon authority", "emphasis": true }
+      ],
+      "footer": "STORY session state and accepted evidence stay separate from PPF canon until authorized admission."
+    },
+    {
+      "number": 6,
+      "id": "provider-runtime",
+      "label": "AI / PROVIDER RUNTIME",
+      "summary": "Replaceable local and cloud inference routes.",
+      "tone": "cyan",
+      "title": "MODEL-AGNOSTIC MULTIMODAL INFERENCE",
+      "components": [
+        { "title": "Local LLMs", "detail": "Ollama · llama.cpp · LM Studio" },
+        { "title": "Compatible APIs", "detail": "Approved cloud endpoints" },
+        { "title": "Vision models", "detail": "Image understanding" },
+        { "title": "ComfyUI", "detail": "Local media workflows" },
+        { "title": "Media providers", "detail": "Image / video generation" }
+      ],
+      "footer": "Hardware, privacy and cost aware · Explicit provider choice · No silent cloud fallback"
+    },
+    {
+      "number": 7,
+      "id": "verification",
+      "label": "VALIDATION & OPERATIONS",
+      "summary": "Tests consume the contract. They do not run the product.",
+      "tone": "amber",
+      "title": "VERIFICATION CLIENTS + RELEASE OPERATIONS",
+      "note": "OUTSIDE THE PRODUCTION DEPENDENCY PATH",
+      "components": [
+        { "title": "PR Gate", "detail": "Contracts · BEN · architecture · focused tests + production build" },
+        { "title": "Product Gate", "detail": "Rendered UX · accessibility · Visual Readiness · Windows + packaged UAT" },
+        { "title": "Replaceable test harness", "detail": "Reference client of the public Experience contract" },
+        { "title": "Evidence + release", "detail": "Artifacts · diagnostics · installer · specialized verification" }
+      ],
+      "footer": "TWO NORMAL VISIBLE PR GATES · SAME EXPERIENCE CONTRACT, NO RUNTIME DEPENDENCY"
+    }
+  ],
+  "community": {
+    "title": "BUZZ / COMMUNITY PROVIDER",
+    "tone": "purple",
+    "summary": "First provider behind PlotPickle-owned Community contracts.",
+    "components": [
+      { "title": "Community services", "detail": "Great Hall · public rooms · Story Rooms · DMs · Directory · Connected Studios · Community Agents" },
+      { "title": "BUZZ-owned authority", "detail": "Community identities, membership and permissions · signed events · transport · publication checks" },
+      { "title": "COMMUNITY ADAPTER", "detail": "Governed requests → BUZZ · BUZZ state and events → PlotPickle Experience" },
+      { "title": "Managed agents / BUZZ v0.5.23+", "detail": "Context and skills supplied through the BUZZ launch path · publication authorization checked at execution" }
+    ],
+    "rules": [
+      "Human and Agent signing identities remain separate.",
+      "Only approved Community and Story context is supplied.",
+      "Optional for story creation; no Skin-specific model/runtime.",
+      "COMMUNITY MATERIAL HAS NO DIRECT CANON AUTHORITY"
+    ]
+  },
+  "bridge": {
+    "title": "BRING INTO STORY",
+    "status": "PLANNED BRIDGE",
+    "tone": "purple",
+    "steps": [
+      "Select Community material",
+      "Create a candidate with evidence + revision",
+      "Continue through the same approval path"
+    ],
+    "footer": "BUZZ never writes story canon directly."
+  },
+  "flows": [
+    { "from": "experience-skins", "to": "experience-contract", "label": "Semantic intents", "tone": "amber" },
+    { "from": "experience-contract", "to": "production-harness", "label": "Validated requests", "tone": "amber" },
+    { "from": "production-harness", "to": "agent-runtime", "label": "Governed capabilities", "tone": "amber" },
+    { "from": "agent-runtime", "to": "story-canon", "label": "Candidates + evidence", "tone": "amber" },
+    { "from": "story-canon", "to": "provider-runtime", "label": "Scoped inference", "tone": "purple", "advisory": true },
+    { "from": "production-harness", "to": "community", "label": "CALLS", "tone": "amber" },
+    { "from": "community", "to": "production-harness", "label": "EVENTS", "tone": "cyan" },
+    { "from": "community", "to": "bridge", "label": "Selected material", "tone": "purple", "advisory": true },
+    { "from": "bridge", "to": "story-canon", "label": "Candidate", "tone": "purple", "advisory": true }
+  ],
+  "legend": [
+    { "tone": "amber", "label": "Governed request / authorized action" },
+    { "tone": "cyan", "label": "State, result or event" },
+    { "tone": "purple", "label": "Advisory material / planned bridge", "advisory": true }
+  ],
+  "migration": "Community entry + monochrome presentation merged. Full Community contracts, versioned Skin adapters and Bring into Story remain migration work."
+}

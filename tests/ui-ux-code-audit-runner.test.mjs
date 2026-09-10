@@ -41,3 +41,29 @@ test("runner fails closed when a UI audit credential is unavailable", async () =
   assert.equal(result.issueCount, 1);
   assert.match(result.summary, /OPENAI_API_KEY is not configured/);
 });
+
+test("runner retries temporary audit-provider throttling before returning a verdict", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.OPENAI_API_KEY;
+  const originalDelays = process.env.OPENAI_UI_AUDIT_RETRY_DELAYS_MS;
+  let calls = 0;
+  process.env.OPENAI_API_KEY = "test-key";
+  process.env.OPENAI_UI_AUDIT_RETRY_DELAYS_MS = "0";
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) return new Response("throttled", { status: 429 });
+    return Response.json({ choices: [{ message: { content: JSON.stringify({ verdict: "pass", summary: "Passed after retry.", findings: [] }) } }] });
+  };
+  try {
+    const { callAuditModel } = await import(`../scripts/ui-ux-code-audit.mjs?retry-test=${Date.now()}`);
+    const result = await callAuditModel("export default function Sample(){ return <button>Save</button>; }");
+    assert.equal(calls, 2);
+    assert.equal(result.verdict, "pass");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = originalKey;
+    if (originalDelays === undefined) delete process.env.OPENAI_UI_AUDIT_RETRY_DELAYS_MS;
+    else process.env.OPENAI_UI_AUDIT_RETRY_DELAYS_MS = originalDelays;
+  }
+});

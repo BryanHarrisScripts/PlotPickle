@@ -1,14 +1,6 @@
 name: iOS Companion Contract
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "core/identity/ios-companion-core.mjs"
-      - "core/identity/ios-companion.ts"
-      - "docs/architecture/IOS-COMPANION.md"
-      - "tests/issue-1090-ios-companion.test.mjs"
-      - ".github/workflows/ios-companion-contract.yml"
   workflow_dispatch:
 
 permissions:

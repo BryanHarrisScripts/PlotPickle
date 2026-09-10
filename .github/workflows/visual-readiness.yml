@@ -1,8 +1,6 @@
 name: Visual Readiness
 
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -16,10 +14,12 @@ jobs:
   visual-readiness-contract:
     name: visual-readiness-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -27,9 +27,76 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate Phase 1 UI foundation contract
+        run: node --test tests/issue-1715-ui-foundation.test.mjs
+      - name: Validate Phase 1B axe accessibility contract
+        run: node --test tests/issue-1715-ui-axe-accessibility.test.mjs
+      - name: Validate Phase 1C resilience contract
+        run: node --test tests/issue-1715-ui-resilience.test.mjs tests/issue-349-common-overlays-ux.test.mjs
+      - name: Validate Phase 1D experience and STORY zero-state contract
+        run: node --test tests/issue-1715-ui-experience-lab.test.mjs
+      - name: Validate headless Experience and Skin V1 contracts
+        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs
+      - name: Enforce current UI continuity and forgiving shell contracts
+        run: node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs tests/issue-1722-sitemap-migration.test.mjs
+      - name: Enforce global design adoption and screen-locking contract
+        run: npm run test:global-design-framework
+      - name: Enforce UI foundation token/style smoke gate
+        run: node scripts/ui-stylelint-gate.mjs --all-foundation
+      - name: Validate UI/UX audit runner safeguards
+        run: node --test tests/ui-ux-code-audit-runner.test.mjs tests/ui-ux-code-audit-contradictions.test.mjs
       - name: Validate canonical visual readiness contract
-        run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs
+        run: node --test tests/issue-1423-visual-readiness.test.mjs tests/issue-1424-storyboard-readiness.test.mjs tests/issue-1424-storyboard-editorial.test.mjs tests/issue-1425-previs-projection.test.mjs tests/issue-1425-production-shots.test.mjs tests/issue-1420-visual-text-projection.test.mjs tests/issue-1420-canonical-screenplay-readiness.test.mjs tests/issue-1420-visible-story-decisions.test.mjs tests/issue-1420-targeted-script-staleness.test.mjs tests/issue-1420-afterglow-vertical-proof.test.mjs tests/issue-1553-autonomous-visual-production.test.mjs tests/issue-1557-character-visual-development.test.mjs tests/issue-1557-character-visual-development-generation.test.mjs tests/issue-1557-character-visual-development-specifications.test.mjs tests/issue-1557-character-visual-development-ui.test.mjs
       - name: Validate existing visual identity and progressive BUILD contracts
         run: node --test tests/issue-83-character-visual-identity.test.mjs tests/issue-1338-progressive-build-story-model.test.mjs tests/issue-1410-afterglow-v9-reference.test.mjs
+      - name: Install pinned axe, Playwright and WebMCP verification tooling
+        env:
+          UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
+        run: |
+          mkdir -p "$UI_A11Y_ROOT"
+          printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
+          npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0 @mcp-b/webmcp-polyfill@5.1.0
+          "$UI_A11Y_ROOT/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Enforce rendered accessibility, experience and WebMCP surface guardrails
+        id: rendered-guardrails
+        continue-on-error: true
+        env:
+          UI_A11Y_ROOT: ${{ runner.temp }}/plotpickle-ui-a11y
+        shell: bash
+        run: |
+          AUTH_HOME="${RUNNER_TEMP}/plotpickle-ui-rendered-auth"
+          AUTH_STATE_FILE="${RUNNER_TEMP}/plotpickle-ui-rendered-state-path"
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > /tmp/plotpickle-ui-app-server.log 2>&1 &
+          APP_SERVER_PID=$!
+          ./node_modules/.bin/vite --config lib/verification/ui-experience-fixture/vite.config.ts --host 127.0.0.1 --port 4174 > /tmp/plotpickle-ui-fixture-server.log 2>&1 &
+          FIXTURE_SERVER_PID=$!
+          trap 'kill "$APP_SERVER_PID" "$FIXTURE_SERVER_PID" 2>/dev/null || true; rm -rf "$AUTH_HOME" "$AUTH_STATE_FILE"' EXIT
+          UI_SERVER="http://127.0.0.1:4173" AUTH_HOME="$AUTH_HOME" AUTH_STATE_FILE="$AUTH_STATE_FILE" node --input-type=module <<'NODE'
+          import { writeFile } from "node:fs/promises";
+          import { establishVerificationSyntheticHuman } from "./scripts/full-verification-auth.mjs";
+          import { validateLocalServer, waitForUiServer } from "./lib/verification/ui-axe-audit.mjs";
+          const server = validateLocalServer(process.env.UI_SERVER);
+          await waitForUiServer(server);
+          const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: process.env.AUTH_HOME });
+          await writeFile(process.env.AUTH_STATE_FILE, auth.storageStatePath, "utf8");
+          NODE
+          STORAGE_STATE="$(cat "$AUTH_STATE_FILE")"
+          {
+            node lib/verification/ui-axe-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --routes config/ui-axe-routes.json --storage-state "$STORAGE_STATE"
+            node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/sitemap/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/webmcp-surface-visual-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+          } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
+      - name: Upload Skin V1 surface candidate screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skin-v1-surface-candidates-${{ github.run_id }}
+          path: .artifacts/visual-readiness/*.png
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Enforce rendered guardrail verdict
+        if: steps.rendered-guardrails.outcome == 'failure'
+        run: exit 1
       - name: Production build
         run: npm run build

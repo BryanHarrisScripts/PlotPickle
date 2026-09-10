@@ -102,7 +102,8 @@ test("#1462 Profile auth batch gives the request context one canonical owner wit
   assert.doesNotMatch([vite, credentials, decisions, migration].join("\n"), /(?:build\/|\.\.?\/)profile-request-context/);
 
   for (const workflow of [profileWorkflow, bridgeWorkflow, scopeWorkflow]) {
-    assert.match(workflow, /build\/auth\/profile-request-context\.ts/);
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.doesNotMatch(workflow, /^  pull_request:/m);
     assert.doesNotMatch(workflow, /build\/profile-request-context\.ts/);
   }
 
@@ -183,7 +184,7 @@ test("#1462 BUZZ support slice retires selected flat build files while the large
   assert.match(vite, /\.\/build\/buzz\/buzz-bundle-normalizer/);
   assert.match(vite, /\.\/build\/buzz\/buzz-agent-identity-binding-loader/);
   assert.match(route, /build\/buzz\/buzz-agent-identity-binding-loader/);
-  assert.match(storyBridge, /build\/buzz\/buzz-agent-identity-binding-loader\.ts/);
+  assert.match(storyBridge, /tests\/issue-1422-buzz-agent-identity-binding\.test\.mjs/);
   assert.match(identityContract, /build\/buzz\/buzz-agent-identity-binding-loader\.ts/);
   assert.match(normalizerContract, /build\/buzz\/buzz-bundle-normalizer\.ts/);
   assert.match(migrationContract, /build\/buzz\/buzz-profile-migration-gateway\.ts/);

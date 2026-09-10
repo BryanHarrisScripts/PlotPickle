@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1380" role="img" aria-labelledby="title desc" data-projection="full-blueprint">
+<title id="title">PlotPickle full architecture blueprint</title><desc id="desc">Detailed engineering blueprint generated from architecture/plotpickle.architecture.json.</desc>
+<style>svg { background: #031017; font-family: "Arial Narrow", "Segoe UI", Arial, sans-serif; }
+.bg { fill: #031017; }
+.grid { stroke: #0a2630; stroke-width: 0.7; opacity: 0.55; }
+.ink { fill: #eef7f8; }
+.muted { fill: #8ba5ae; }
+.cyan { color: #58d7e7; fill: #58d7e7; stroke: #58d7e7; }
+.amber { color: #f0b82f; fill: #f0b82f; stroke: #f0b82f; }
+.purple { color: #bc83e8; fill: #bc83e8; stroke: #bc83e8; }
+.green { color: #48cfa2; fill: #48cfa2; stroke: #48cfa2; }
+.panel { fill: #071923; stroke: #173f4c; stroke-width: 1.5; }
+.panel.cyan-stroke { stroke: #58d7e7; }
+.panel.amber-stroke { stroke: #f0b82f; }
+.panel.purple-stroke { stroke: #bc83e8; }
+.component { fill: #0a202b; stroke: #1c7785; stroke-width: 1.3; }
+.component.amber-stroke { stroke: #8a6b1c; }
+.component.purple-stroke { stroke: #604276; }
+.component.emphasis { stroke: #48cfa2; stroke-width: 2.2; }
+.dashed { stroke-dasharray: 9 7; }
+.title { fill: #eef7f8; font-size: 42px; font-weight: 800; letter-spacing: 0.6px; }
+.tagline { fill: #58d7e7; font-size: 23px; font-weight: 800; letter-spacing: 0.5px; }
+.subtitle { fill: #8ba5ae; font-size: 14px; letter-spacing: 2px; }
+.layer-label { font-size: 17px; font-weight: 800; letter-spacing: 0.8px; }
+.layer-summary { fill: #8ba5ae; font-size: 12px; }
+.panel-title { font-size: 18px; font-weight: 800; letter-spacing: 0.7px; }
+.component-title { fill: #eef7f8; font-size: 14px; font-weight: 750; }
+.component-detail { fill: #8ba5ae; font-size: 11px; }
+.note { fill: #8ba5ae; font-size: 11px; }
+.footer { fill: #8ba5ae; font-size: 10.5px; }
+.micro { font-size: 10px; font-weight: 700; letter-spacing: 0.45px; }
+.number { font-size: 22px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+.flow { fill: none; stroke-width: 1.8; marker-end: url(#arrow-cyan); }
+.flow.amber-stroke { marker-end: url(#arrow-amber); }
+.flow.purple-stroke { marker-end: url(#arrow-purple); }
+.overview-title { fill: #eef7f8; font-size: 30px; font-weight: 800; }
+.overview-tagline { fill: #58d7e7; font-size: 15px; font-weight: 800; }
+.overview-layer { fill: #eef7f8; font-size: 12px; font-weight: 800; }
+.overview-summary { fill: #8ba5ae; font-size: 9px; }
+</style>
+<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid" fill="none"/></pattern><marker id="arrow-cyan" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#58d7e7"/></marker><marker id="arrow-amber" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#f0b82f"/></marker><marker id="arrow-purple" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#bc83e8"/></marker></defs>
+<rect width="2400" height="1380" class="bg"/><rect width="2400" height="1380" fill="url(#grid)" opacity=".18"/>
+<text x="300" y="52" class="title">PlotPickle</text><text x="570" y="52" class="tagline">AI-Native Agentic Story Operating System</text><text x="300" y="82" class="subtitle">TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE</text><text x="2360" y="36" class="micro cyan" text-anchor="end">ARCHITECTURE BLUEPRINT v1.0</text><text x="2360" y="58" class="note" text-anchor="end">2026-09-09 · target</text><line x1="300" y1="98" x2="2360" y2="98" class="cyan" opacity=".55"/>
+<path d="M532 246 V253" class="flow amber-stroke"/><text x="546" y="256" class="micro amber">Semantic intents</text>
+<path d="M532 444 V451" class="flow amber-stroke"/><text x="546" y="454" class="micro amber">Validated requests</text>
+<path d="M532 584 V591" class="flow amber-stroke"/><text x="546" y="594" class="micro amber">Governed capabilities</text>
+<path d="M532 724 V731" class="flow amber-stroke"/><text x="546" y="734" class="micro amber">Candidates + evidence</text>
+<path d="M532 922 V929" class="flow purple-stroke dashed"/><text x="546" y="932" class="micro purple">Scoped inference</text>
+<path d="M1620 504 H1672" class="flow amber-stroke"/><text x="1640" y="495" class="micro amber">CALLS</text>
+<path d="M1672 536 H1620" class="flow"/><text x="1640" y="560" class="micro cyan">EVENTS</text>
+<path d="M2020 826 V838" class="flow purple-stroke dashed"/><text x="2034" y="828" class="micro purple">Selected material</text>
+<path d="M1680 963 H1692 V829 H1620" class="flow purple-stroke dashed"/><text x="1705" y="819" class="micro purple">Candidate</text>
+<g id="layer-experience-skins" data-layer="1">
+<line x1="62" y1="106" x2="62" y2="258" class="cyan" opacity=".22"/>
+<path d="M62 146 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="cyan" stroke-width="2"/>
+<text x="62" y="169" class="number cyan">1</text>
+<text x="108" y="142" class="layer-label cyan" text-anchor="start">EXPERIENCE SKINS</text>
+<text x="108" y="206" class="layer-summary" text-anchor="start">Replaceable presentation</text>
+<text x="108" y="221" class="layer-summary" text-anchor="start">for any audience or</text>
+<text x="108" y="236" class="layer-summary" text-anchor="start">device.</text>
+<rect x="300" y="118" width="1320" height="128" rx="10" class="panel cyan-stroke"/>
+<path d="M300 134 h96" class="cyan" fill="none" stroke-width="2"/>
+<text x="318" y="150" class="panel-title cyan">INTERCHANGEABLE PRESENTATION</text>
+<text x="1602" y="149" class="note" text-anchor="end">Layout, controls and temporary visual state only</text>
+<g class="architecture-component" data-component="Legacy Skin">
+<rect x="318" y="160" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="332" y="178" class="component-title" text-anchor="start">Legacy Skin</text>
+<text x="332" y="196" class="component-detail" text-anchor="start">Compatibility during migration</text>
+</g>
+<g class="architecture-component" data-component="Skin V1">
+<rect x="577.2" y="160" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="591.2" y="178" class="component-title" text-anchor="start">Skin V1</text>
+<text x="591.2" y="196" class="component-detail" text-anchor="start">Monochrome / black-and-white</text>
+<text x="591.2" y="208" class="component-detail" text-anchor="start">16-bit</text>
+</g>
+<g class="architecture-component" data-component="Future skins">
+<rect x="836.4" y="160" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="850.4" y="178" class="component-title" text-anchor="start">Future skins</text>
+<text x="850.4" y="196" class="component-detail" text-anchor="start">Bronze/jade · mobile · other</text>
+<text x="850.4" y="208" class="component-detail" text-anchor="start">presentations</text>
+</g>
+<text x="318" y="236" class="footer">TARGET: VERSIONED SKIN ADAPTERS · SAME INTENTS, DESTINATIONS AND WORKSPACE FLOWS</text>
+</g>
+<g id="layer-experience-contract" data-layer="2">
+<line x1="62" y1="246" x2="62" y2="456" class="cyan" opacity=".22"/>
+<path d="M62 286 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="amber" stroke-width="2"/>
+<text x="62" y="309" class="number amber">2</text>
+<text x="108" y="282" class="layer-label amber" text-anchor="start">EXPANDED EXPERIENCE</text>
+<text x="108" y="301" class="layer-label amber" text-anchor="start">LAYER</text>
+<text x="108" y="346" class="layer-summary" text-anchor="start">The stable product</text>
+<text x="108" y="361" class="layer-summary" text-anchor="start">contract behind every</text>
+<text x="108" y="376" class="layer-summary" text-anchor="start">Skin.</text>
+<rect x="300" y="258" width="1320" height="186" rx="10" class="panel amber-stroke"/>
+<path d="M300 274 h96" class="amber" fill="none" stroke-width="2"/>
+<text x="318" y="290" class="panel-title amber">PUBLIC SEMANTIC CONTRACT + BUSINESS USE CASES</text>
+<text x="1602" y="289" class="note" text-anchor="end">TEST CLIENT PORT</text>
+<g class="architecture-component" data-component="Semantic intents">
+<rect x="318" y="300" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="332" y="318" class="component-title" text-anchor="start">Semantic intents</text>
+<text x="332" y="336" class="component-detail" text-anchor="start">What the actor requests</text>
+</g>
+<g class="architecture-component" data-component="Results + revisions">
+<rect x="577.2" y="300" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="591.2" y="318" class="component-title" text-anchor="start">Results + revisions</text>
+<text x="591.2" y="336" class="component-detail" text-anchor="start">Accepted / rejected / stale</text>
+</g>
+<g class="architecture-component" data-component="Capabilities">
+<rect x="836.4" y="300" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="850.4" y="318" class="component-title" text-anchor="start">Capabilities</text>
+<text x="850.4" y="336" class="component-detail" text-anchor="start">Allowed / locked + reasons</text>
+</g>
+<g class="architecture-component" data-component="Typed events">
+<rect x="1095.6" y="300" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1109.6" y="318" class="component-title" text-anchor="start">Typed events</text>
+<text x="1109.6" y="336" class="component-detail" text-anchor="start">Progress, state and sync</text>
+</g>
+<g class="architecture-component" data-component="Lean view models">
+<rect x="1354.8" y="300" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1368.8" y="318" class="component-title" text-anchor="start">Lean view models</text>
+<text x="1368.8" y="336" class="component-detail" text-anchor="start">Skin-neutral projections</text>
+</g>
+<g class="architecture-component" data-component="Surface registry">
+<rect x="318" y="358" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="332" y="376" class="component-title" text-anchor="start">Surface registry</text>
+<text x="332" y="394" class="component-detail" text-anchor="start">Semantic destinations +</text>
+<text x="332" y="406" class="component-detail" text-anchor="start">topology</text>
+</g>
+<g class="architecture-component" data-component="Use-case pipeline">
+<rect x="577.2" y="358" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="591.2" y="376" class="component-title" text-anchor="start">Use-case pipeline</text>
+<text x="591.2" y="394" class="component-detail" text-anchor="start">Validation + authority</text>
+<text x="591.2" y="406" class="component-detail" text-anchor="start">mediation</text>
+</g>
+<g class="architecture-component" data-component="Persistent context">
+<rect x="836.4" y="358" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="850.4" y="376" class="component-title" text-anchor="start">Persistent context</text>
+<text x="850.4" y="394" class="component-detail" text-anchor="start">Project, workspace and</text>
+<text x="850.4" y="406" class="component-detail" text-anchor="start">selection</text>
+</g>
+<g class="architecture-component" data-component="Reconciliation">
+<rect x="1095.6" y="358" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1109.6" y="376" class="component-title" text-anchor="start">Reconciliation</text>
+<text x="1109.6" y="394" class="component-detail" text-anchor="start">Queue, sync and history</text>
+<text x="1109.6" y="406" class="component-detail" text-anchor="start">mediation</text>
+</g>
+<text x="318" y="434" class="footer">SEMANTIC SURFACES · LOGON · DASHBOARD · COMMUNITY · STORY WORKSPACE · STORYBOARD · SETTINGS</text>
+</g>
+<g id="layer-production-harness" data-layer="3">
+<line x1="62" y1="444" x2="62" y2="596" class="cyan" opacity=".22"/>
+<path d="M62 484 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="amber" stroke-width="2"/>
+<text x="62" y="507" class="number amber">3</text>
+<text x="108" y="480" class="layer-label amber" text-anchor="start">GOVERNED PRODUCTION</text>
+<text x="108" y="499" class="layer-label amber" text-anchor="start">ORCHESTRATION</text>
+<text x="108" y="544" class="layer-summary" text-anchor="start">Authority, lifecycle,</text>
+<text x="108" y="559" class="layer-summary" text-anchor="start">policy and execution</text>
+<text x="108" y="574" class="layer-summary" text-anchor="start">control.</text>
+<rect x="300" y="456" width="1320" height="128" rx="10" class="panel amber-stroke"/>
+<path d="M300 472 h96" class="amber" fill="none" stroke-width="2"/>
+<text x="318" y="488" class="panel-title amber">PRODUCTION AUTHORITY / LIFECYCLE HARNESS</text>
+<text x="1602" y="487" class="note" text-anchor="end">Distinct from the test harness in Layer 7</text>
+<g class="architecture-component" data-component="Identity + authority">
+<rect x="318" y="498" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="332" y="516" class="component-title" text-anchor="start">Identity + authority</text>
+<text x="332" y="534" class="component-detail" text-anchor="start">Human, profile and project</text>
+<text x="332" y="546" class="component-detail" text-anchor="start">authority</text>
+</g>
+<g class="architecture-component" data-component="Policy, consent + budgets">
+<rect x="577.2" y="498" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="591.2" y="516" class="component-title" text-anchor="start">Policy, consent + budgets</text>
+<text x="591.2" y="534" class="component-detail" text-anchor="start">Bounded capability use</text>
+</g>
+<g class="architecture-component" data-component="Lifecycle + capability routing">
+<rect x="836.4" y="498" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="850.4" y="516" class="component-title" text-anchor="start">Lifecycle + capability</text>
+<text x="850.4" y="529" class="component-title" text-anchor="start">routing</text>
+<text x="850.4" y="534" class="component-detail" text-anchor="start">Validated execution paths</text>
+</g>
+<g class="architecture-component" data-component="Revision + provenance">
+<rect x="1095.6" y="498" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1109.6" y="516" class="component-title" text-anchor="start">Revision + provenance</text>
+<text x="1109.6" y="534" class="component-detail" text-anchor="start">Evidence chain</text>
+</g>
+<g class="architecture-component" data-component="Community capability">
+<rect x="1354.8" y="498" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1368.8" y="516" class="component-title" text-anchor="start">Community capability</text>
+<text x="1368.8" y="534" class="component-detail" text-anchor="start">Optional provider boundary</text>
+</g>
+<text x="318" y="574" class="footer">Human approval · Governed recovery · Bounded autonomy · Project and storage authority</text>
+</g>
+<g id="layer-agent-runtime" data-layer="4">
+<line x1="62" y1="584" x2="62" y2="736" class="cyan" opacity=".22"/>
+<path d="M62 624 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="cyan" stroke-width="2"/>
+<text x="62" y="647" class="number cyan">4</text>
+<text x="108" y="620" class="layer-label cyan" text-anchor="start">AGENT &amp; SKILL MESH</text>
+<text x="108" y="684" class="layer-summary" text-anchor="start">Specialists collaborate</text>
+<text x="108" y="699" class="layer-summary" text-anchor="start">within approved scope.</text>
+<rect x="300" y="596" width="1320" height="128" rx="10" class="panel cyan-stroke"/>
+<path d="M300 612 h96" class="cyan" fill="none" stroke-width="2"/>
+<text x="318" y="628" class="panel-title cyan">MULTI-AGENT CREATIVE RUNTIME</text>
+
+<g class="architecture-component" data-component="Guide + Story Council">
+<rect x="318" y="638" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="332" y="656" class="component-title" text-anchor="start">Guide + Story Council</text>
+<text x="332" y="674" class="component-detail" text-anchor="start">Teaching and story counsel</text>
+</g>
+<g class="architecture-component" data-component="Visual + character specialists">
+<rect x="577.2" y="638" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="591.2" y="656" class="component-title" text-anchor="start">Visual + character</text>
+<text x="591.2" y="669" class="component-title" text-anchor="start">specialists</text>
+<text x="591.2" y="674" class="component-detail" text-anchor="start">Visual development</text>
+</g>
+<g class="architecture-component" data-component="Resident Writer">
+<rect x="836.4" y="638" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="850.4" y="656" class="component-title" text-anchor="start">Resident Writer</text>
+<text x="850.4" y="674" class="component-detail" text-anchor="start">Bounded writing assistance</text>
+</g>
+<g class="architecture-component" data-component="Evidence learning">
+<rect x="1095.6" y="638" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1109.6" y="656" class="component-title" text-anchor="start">Evidence learning</text>
+<text x="1109.6" y="674" class="component-detail" text-anchor="start">Approved durable knowledge</text>
+</g>
+<g class="architecture-component" data-component="UI continuity + QA">
+<rect x="1354.8" y="638" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1368.8" y="656" class="component-title" text-anchor="start">UI continuity + QA</text>
+<text x="1368.8" y="674" class="component-detail" text-anchor="start">Presentation quality</text>
+</g>
+<text x="318" y="714" class="footer">Agent = identity + instructions + skills + permitted context + provider/runtime. Output remains a candidate.</text>
+</g>
+<g id="layer-story-canon" data-layer="5">
+<line x1="62" y1="724" x2="62" y2="934" class="cyan" opacity=".22"/>
+<path d="M62 764 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="cyan" stroke-width="2"/>
+<text x="62" y="787" class="number cyan">5</text>
+<text x="108" y="760" class="layer-label cyan" text-anchor="start">STORY, CANON &amp;</text>
+<text x="108" y="779" class="layer-label cyan" text-anchor="start">EVIDENCE CORE</text>
+<text x="108" y="824" class="layer-summary" text-anchor="start">Deterministic story state,</text>
+<text x="108" y="839" class="layer-summary" text-anchor="start">context and durable canon.</text>
+<rect x="300" y="736" width="1320" height="186" rx="10" class="panel cyan-stroke"/>
+<path d="M300 752 h96" class="cyan" fill="none" stroke-width="2"/>
+<text x="318" y="768" class="panel-title cyan">STORY / CANON / EVIDENCE AUTHORITY</text>
+
+<g class="architecture-component" data-component="STORY rules kernel">
+<rect x="318" y="778" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="332" y="796" class="component-title" text-anchor="start">STORY rules kernel</text>
+<text x="332" y="814" class="component-detail" text-anchor="start">Deterministic sessions and</text>
+<text x="332" y="826" class="component-detail" text-anchor="start">consequences</text>
+</g>
+<g class="architecture-component" data-component="Context Engine">
+<rect x="577.2" y="778" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="591.2" y="796" class="component-title" text-anchor="start">Context Engine</text>
+<text x="591.2" y="814" class="component-detail" text-anchor="start">Scoped, minimal context</text>
+<text x="591.2" y="826" class="component-detail" text-anchor="start">hydration</text>
+</g>
+<g class="architecture-component" data-component="Story + evidence graph">
+<rect x="836.4" y="778" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="850.4" y="796" class="component-title" text-anchor="start">Story + evidence graph</text>
+<text x="850.4" y="814" class="component-detail" text-anchor="start">Sparse references + readiness</text>
+<text x="850.4" y="826" class="component-detail" text-anchor="start">evidence</text>
+</g>
+<g class="architecture-component" data-component="References + candidates">
+<rect x="1095.6" y="778" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1109.6" y="796" class="component-title" text-anchor="start">References + candidates</text>
+<text x="1109.6" y="814" class="component-detail" text-anchor="start">Observed or generated;</text>
+<text x="1109.6" y="826" class="component-detail" text-anchor="start">non-canonical</text>
+</g>
+<g class="architecture-component" data-component="Evidence / revision review">
+<rect x="1354.8" y="778" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1368.8" y="796" class="component-title" text-anchor="start">Evidence / revision review</text>
+<text x="1368.8" y="814" class="component-detail" text-anchor="start">Verify origin, target and</text>
+<text x="1368.8" y="826" class="component-detail" text-anchor="start">current revision</text>
+</g>
+<g class="architecture-component" data-component="Explicit Human approval">
+<rect x="318" y="836" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="332" y="854" class="component-title" text-anchor="start">Explicit Human approval</text>
+<text x="332" y="872" class="component-detail" text-anchor="start">Governed canon admission</text>
+</g>
+<g class="architecture-component" data-component="PPF Canon">
+<rect x="577.2" y="836" width="247.2" height="50" rx="4" class="component emphasis"/>
+<text x="591.2" y="854" class="component-title green" text-anchor="start">PPF Canon</text>
+<text x="591.2" y="872" class="component-detail" text-anchor="start">Sole durable canon authority</text>
+</g>
+<text x="318" y="912" class="footer">STORY session state and accepted evidence stay separate from PPF canon until authorized admission.</text>
+</g>
+<g id="layer-provider-runtime" data-layer="6">
+<line x1="62" y1="922" x2="62" y2="1074" class="cyan" opacity=".22"/>
+<path d="M62 962 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="cyan" stroke-width="2"/>
+<text x="62" y="985" class="number cyan">6</text>
+<text x="108" y="958" class="layer-label cyan" text-anchor="start">AI / PROVIDER RUNTIME</text>
+<text x="108" y="1022" class="layer-summary" text-anchor="start">Replaceable local and</text>
+<text x="108" y="1037" class="layer-summary" text-anchor="start">cloud inference routes.</text>
+<rect x="300" y="934" width="1320" height="128" rx="10" class="panel cyan-stroke"/>
+<path d="M300 950 h96" class="cyan" fill="none" stroke-width="2"/>
+<text x="318" y="966" class="panel-title cyan">MODEL-AGNOSTIC MULTIMODAL INFERENCE</text>
+
+<g class="architecture-component" data-component="Local LLMs">
+<rect x="318" y="976" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="332" y="994" class="component-title" text-anchor="start">Local LLMs</text>
+<text x="332" y="1012" class="component-detail" text-anchor="start">Ollama · llama.cpp · LM Studio</text>
+</g>
+<g class="architecture-component" data-component="Compatible APIs">
+<rect x="577.2" y="976" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="591.2" y="994" class="component-title" text-anchor="start">Compatible APIs</text>
+<text x="591.2" y="1012" class="component-detail" text-anchor="start">Approved cloud endpoints</text>
+</g>
+<g class="architecture-component" data-component="Vision models">
+<rect x="836.4" y="976" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="850.4" y="994" class="component-title" text-anchor="start">Vision models</text>
+<text x="850.4" y="1012" class="component-detail" text-anchor="start">Image understanding</text>
+</g>
+<g class="architecture-component" data-component="ComfyUI">
+<rect x="1095.6" y="976" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1109.6" y="994" class="component-title" text-anchor="start">ComfyUI</text>
+<text x="1109.6" y="1012" class="component-detail" text-anchor="start">Local media workflows</text>
+</g>
+<g class="architecture-component" data-component="Media providers">
+<rect x="1354.8" y="976" width="247.2" height="50" rx="4" class="component cyan-stroke"/>
+<text x="1368.8" y="994" class="component-title" text-anchor="start">Media providers</text>
+<text x="1368.8" y="1012" class="component-detail" text-anchor="start">Image / video generation</text>
+</g>
+<text x="318" y="1052" class="footer">Hardware, privacy and cost aware · Explicit provider choice · No silent cloud fallback</text>
+</g>
+<g id="layer-verification" data-layer="7">
+<line x1="62" y1="1062" x2="62" y2="1214" class="cyan" opacity=".22"/>
+<path d="M62 1102 l18 10 v24 l-18 10 l-18-10 v-24 z" fill="none" class="amber" stroke-width="2"/>
+<text x="62" y="1125" class="number amber">7</text>
+<text x="108" y="1098" class="layer-label amber" text-anchor="start">VALIDATION &amp;</text>
+<text x="108" y="1117" class="layer-label amber" text-anchor="start">OPERATIONS</text>
+<text x="108" y="1162" class="layer-summary" text-anchor="start">Tests consume the</text>
+<text x="108" y="1177" class="layer-summary" text-anchor="start">contract. They do not run</text>
+<text x="108" y="1192" class="layer-summary" text-anchor="start">the product.</text>
+<rect x="300" y="1074" width="1320" height="128" rx="10" class="panel amber-stroke"/>
+<path d="M300 1090 h96" class="amber" fill="none" stroke-width="2"/>
+<text x="318" y="1106" class="panel-title amber">VERIFICATION CLIENTS + RELEASE OPERATIONS</text>
+<text x="1602" y="1105" class="note" text-anchor="end">OUTSIDE THE PRODUCTION DEPENDENCY PATH</text>
+<g class="architecture-component" data-component="PR Gate">
+<rect x="318" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="332" y="1134" class="component-title" text-anchor="start">PR Gate</text>
+<text x="332" y="1152" class="component-detail" text-anchor="start">Contracts · BEN · architecture</text>
+<text x="332" y="1164" class="component-detail" text-anchor="start">· focused tests + production</text>
+</g>
+<g class="architecture-component" data-component="Product Gate">
+<rect x="577.2" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="591.2" y="1134" class="component-title" text-anchor="start">Product Gate</text>
+<text x="591.2" y="1152" class="component-detail" text-anchor="start">Rendered UX · accessibility ·</text>
+<text x="591.2" y="1164" class="component-detail" text-anchor="start">Visual Readiness · Windows +</text>
+</g>
+<g class="architecture-component" data-component="Replaceable test harness">
+<rect x="836.4" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="850.4" y="1134" class="component-title" text-anchor="start">Replaceable test harness</text>
+<text x="850.4" y="1152" class="component-detail" text-anchor="start">Reference client of the public</text>
+<text x="850.4" y="1164" class="component-detail" text-anchor="start">Experience contract</text>
+</g>
+<g class="architecture-component" data-component="Evidence + release">
+<rect x="1095.6" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
+<text x="1109.6" y="1134" class="component-title" text-anchor="start">Evidence + release</text>
+<text x="1109.6" y="1152" class="component-detail" text-anchor="start">Artifacts · diagnostics ·</text>
+<text x="1109.6" y="1164" class="component-detail" text-anchor="start">installer · specialized</text>
+</g>
+<text x="318" y="1192" class="footer">TWO NORMAL VISIBLE PR GATES · SAME EXPERIENCE CONTRACT, NO RUNTIME DEPENDENCY</text>
+</g>
+<rect x="1680" y="132" width="680" height="170" rx="10" class="panel cyan-stroke"/><text x="1702" y="162" class="panel-title cyan">CORE PRINCIPLES</text><text x="1704" y="192" class="component-title">Human authority</text><text x="1704" y="209" class="component-detail">Explicit consent</text>
+<text x="2024" y="192" class="component-title">PPF canon</text><text x="2024" y="209" class="component-detail">One durable authority</text>
+<text x="1704" y="246" class="component-title">Skin independence</text><text x="1704" y="263" class="component-detail">Headless capabilities</text>
+<text x="2024" y="246" class="component-title">Local-first</text><text x="2024" y="263" class="component-detail">Private by design</text>
+<text x="1704" y="300" class="component-title">Model-agnostic</text><text x="1704" y="317" class="component-detail">No silent cloud fallback</text>
+<text x="2024" y="300" class="component-title">Evidence &gt; truth</text><text x="2024" y="317" class="component-detail">Revision + provenance</text>
+<rect x="1680" y="304" width="680" height="522" rx="10" class="panel purple-stroke"/><text x="1702" y="336" class="panel-title purple">BUZZ / COMMUNITY PROVIDER</text><text x="1702" y="357" class="note">First provider behind PlotPickle-owned Community contracts.</text><g data-community-component="Community services"><rect x="1702" y="372" width="636" height="72" rx="4" class="component purple-stroke"/>
+<text x="1720" y="394" class="component-title" text-anchor="start">Community services</text>
+<text x="1720" y="415" class="component-detail" text-anchor="start">Great Hall · public rooms · Story Rooms · DMs · Directory · Connected Studios</text>
+<text x="1720" y="427" class="component-detail" text-anchor="start">· Community Agents</text></g>
+<g data-community-component="BUZZ-owned authority"><rect x="1702" y="460" width="636" height="72" rx="4" class="component purple-stroke"/>
+<text x="1720" y="482" class="component-title" text-anchor="start">BUZZ-owned authority</text>
+<text x="1720" y="503" class="component-detail" text-anchor="start">Community identities, membership and permissions · signed events · transport ·</text>
+<text x="1720" y="515" class="component-detail" text-anchor="start">publication checks</text></g>
+<g data-community-component="COMMUNITY ADAPTER"><rect x="1702" y="548" width="636" height="72" rx="4" class="component purple-stroke"/>
+<text x="1720" y="570" class="component-title" text-anchor="start">COMMUNITY ADAPTER</text>
+<text x="1720" y="591" class="component-detail" text-anchor="start">Governed requests → BUZZ · BUZZ state and events → PlotPickle Experience</text></g>
+<g data-community-component="Managed agents / BUZZ v0.5.23+"><rect x="1702" y="636" width="636" height="72" rx="4" class="component purple-stroke"/>
+<text x="1720" y="658" class="component-title" text-anchor="start">Managed agents / BUZZ v0.5.23+</text>
+<text x="1720" y="679" class="component-detail" text-anchor="start">Context and skills supplied through the BUZZ launch path · publication</text>
+<text x="1720" y="691" class="component-detail" text-anchor="start">authorization checked at execution</text></g><text x="1706" y="732" class="footer">Human and Agent signing identities remain separate.</text>
+<text x="1706" y="750" class="footer">Only approved Community and Story context is supplied.</text>
+<text x="1706" y="768" class="footer">Optional for story creation; no Skin-specific model/runtime.</text>
+<text x="1706" y="786" class="micro purple">COMMUNITY MATERIAL HAS NO DIRECT CANON AUTHORITY</text>
+<rect x="1680" y="846" width="680" height="234" rx="10" class="panel purple-stroke dashed"/><text x="1702" y="878" class="panel-title purple">BRING INTO STORY</text><text x="2338" y="878" class="micro purple" text-anchor="end">PLANNED BRIDGE</text><rect x="1702" y="900" width="636" height="36" rx="3" class="component purple-stroke"/><text x="1718" y="923" class="component-title">1 Select Community material</text><path d="M2020 936 v10" class="flow purple-stroke dashed"/>
+<rect x="1702" y="948" width="636" height="36" rx="3" class="component purple-stroke"/><text x="1718" y="971" class="component-title">2 Create a candidate with evidence + revision</text><path d="M2020 984 v10" class="flow purple-stroke dashed"/>
+<rect x="1702" y="996" width="636" height="36" rx="3" class="component purple-stroke"/><text x="1718" y="1019" class="component-title">3 Continue through the same approval path</text><text x="1702" y="1064" class="footer purple">BUZZ never writes story canon directly.</text>
+<rect x="1680" y="1100" width="680" height="150" rx="10" class="panel cyan-stroke"/><text x="1702" y="1132" class="panel-title cyan">READING THE DIAGRAM</text><text x="1708" y="1158" class="footer amber">────→ Governed request / authorized action</text>
+<text x="1708" y="1182" class="footer cyan">────→ State, result or event</text>
+<text x="1708" y="1206" class="footer purple">⋯⋯→ Advisory material / planned bridge</text><text x="1708" y="1232" class="footer">Bands show responsibilities, not a sequential execution chain.</text>
+<text x="300" y="1346" class="micro amber">MIGRATION STATUS</text><text x="438" y="1346" class="footer" text-anchor="start">Community entry + monochrome presentation merged. Full Community contracts, versioned Skin adapters and Bring into Story remain migration work.</text><text x="2360" y="1362" class="micro cyan" text-anchor="end">SOURCE: architecture/plotpickle.architecture.json</text>
+</svg>

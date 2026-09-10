@@ -77,10 +77,10 @@ test("Next startup uses proxy instead of the deprecated middleware convention", 
 });
 
 test("issue #1404 reconciles root, client, RSC and SSR Vinext optimization", async () => {
-  const [config, compatibility, libraryPage] = await Promise.all([
+  const [config, compatibility, releaseBoundary] = await Promise.all([
     read("vite.config.ts"),
     read("build/startup/vite-compatibility.ts"),
-    read("app/library/page.tsx"),
+    read("app/navigation/release-experience-boundary.tsx"),
   ]);
 
   assert.match(config, /VINEXT_PACKAGE/);
@@ -110,8 +110,8 @@ test("issue #1404 reconciles root, client, RSC and SSR Vinext optimization", asy
   assert.match(compatibility, /optimizeDeps\.include = optimizeDeps\.include\.filter/);
   assert.match(compatibility, /entry !== VINEXT_OPTIONAL_RSC_STATIC_ENTRY/);
 
-  assert.match(libraryPage, /^"use client";/);
-  assert.match(libraryPage, /from "next\/navigation"/);
+  assert.match(releaseBoundary, /^"use client";/);
+  assert.match(releaseBoundary, /from "next\/navigation"/);
 });
 
 test("issue #1404 removes only impossible cross-runtime compile timings from dev request output", async () => {

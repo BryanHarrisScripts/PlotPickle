@@ -36,12 +36,16 @@ internal static class Issue1448WorkbenchEnhancer
         var repomix = new ToolStripButton("Repomix context") { CheckOnClick = true, Checked = true };
         var scan = new ToolStripButton("Scan selected") { Enabled = false };
         var secondOpinion = new ToolStripButton("Second opinion") { Enabled = false };
+        var refreshLocalGate = new ToolStripButton("Refresh local gate");
+        var localGate = new ToolStripLabel("LOCAL GATE UNKNOWN") { TextAlign = ContentAlignment.MiddleLeft };
         var status = new ToolStripLabel("Local reviewer models not loaded yet.") { TextAlign = ContentAlignment.MiddleLeft };
 
         refreshModels.ToolTipText = "Probe supported loopback runtimes for compatible coding/review models.";
         repomix.ToolTipText = "Add a bounded Repomix evidence pack when deterministic file seeds exist.";
         scan.ToolTipText = "Run the upgraded scan and mark this exact Issue revision or PR head with a green check when successful.";
         secondOpinion.ToolTipText = "Ask another local model to look for missing evidence/components and a candidate minimal fix.";
+        refreshLocalGate.ToolTipText = "Read the latest repository-local deterministic pre-commit evidence.";
+        localGate.ToolTipText = "Local gate evidence is independent from Pi and local-model readiness.";
 
         var strip = new ToolStrip
         {
@@ -59,6 +63,10 @@ internal static class Issue1448WorkbenchEnhancer
         strip.Items.Add(repomix);
         strip.Items.Add(scan);
         strip.Items.Add(secondOpinion);
+        strip.Items.Add(new ToolStripSeparator());
+        strip.Items.Add(refreshLocalGate);
+        strip.Items.Add(localGate);
+        strip.Items.Add(new ToolStripSeparator());
         strip.Items.Add(status);
         form.Controls.Add(strip);
         strip.BringToFront();
@@ -99,6 +107,12 @@ internal static class Issue1448WorkbenchEnhancer
         refreshModels.Click += async (_, _) => await RunUiActionAsync(form, status, "Refreshing local reviewer models...", async () =>
         {
             await RefreshInventoryAsync(primary, secondary, preferences, status);
+        });
+
+        refreshLocalGate.Click += async (_, _) => await RunUiActionAsync(form, status, "Refreshing deterministic local gate...", async () =>
+        {
+            await RefreshLocalGateAsync(SettingsStore.Load().RepositoryPath, localGate);
+            status.Text = "Local gate refreshed independently from AI reviewer readiness.";
         });
 
         scan.Click += async (_, _) => await RunUiActionAsync(form, status, "Scanning selected work item...", async () =>
@@ -158,6 +172,7 @@ internal static class Issue1448WorkbenchEnhancer
 
         form.Shown += async (_, _) => await RunUiActionAsync(form, status, "Discovering local reviewer models...", async () =>
         {
+            await RefreshLocalGateAsync(SettingsStore.Load().RepositoryPath, localGate);
             await RefreshInventoryAsync(primary, secondary, preferences, status);
             ApplyScanMarks(queue, scanState);
         }, false);
@@ -214,6 +229,12 @@ internal static class Issue1448WorkbenchEnhancer
             ["schemaVersion"] = 1,
             ["generatedAt"] = DateTimeOffset.UtcNow.ToString("O"),
         };
+        var localGate = await ReadLocalGateStatusAsync(reviewPackage.RepositoryPath);
+        scan["localGateEvidence"] = JsonNode.Parse(localGate.Json);
+        if (localGate.Report.RepairEligible)
+        {
+            status.Text = "Confirmed deterministic local gate failure attached. Starting the selected local reviewer...";
+        }
         if (!string.IsNullOrWhiteSpace(primaryReview)) scan["primaryReview"] = primaryReview;
         if (repomix)
         {
@@ -230,6 +251,52 @@ internal static class Issue1448WorkbenchEnhancer
         }
         root["upgradedWorkbenchScan"] = scan;
         return root.ToJsonString(JsonOptions.Indented);
+    }
+
+    private static async Task RefreshLocalGateAsync(string repositoryPath, ToolStripLabel label)
+    {
+        if (!Directory.Exists(repositoryPath))
+        {
+            ApplyLocalGateStatus(label, new LocalGateStatusReport
+            {
+                State = "disabled",
+                Summary = "DISABLED",
+                Detail = "Choose a current PlotPickle local repository before reading local gate evidence.",
+            });
+            return;
+        }
+        var result = await ReadLocalGateStatusAsync(repositoryPath);
+        ApplyLocalGateStatus(label, result.Report);
+    }
+
+    private static async Task<(string Json, LocalGateStatusReport Report)> ReadLocalGateStatusAsync(string repositoryPath)
+    {
+        var script = Path.Combine(repositoryPath, "Utilities", "DeveloperWorkbench", "local-gate-status.mjs");
+        if (!File.Exists(script)) throw new FileNotFoundException("Developer Workbench local-gate reader is missing.", script);
+        var raw = await WorkbenchProcess.RunAsync(
+            "node",
+            [script, "--repository", repositoryPath, "--json"],
+            repositoryPath,
+            TimeSpan.FromSeconds(20));
+        var report = JsonSerializer.Deserialize<LocalGateStatusReport>(raw, JsonOptions.Standard)
+            ?? throw new InvalidOperationException("Local gate reader returned invalid JSON.");
+        return (raw, report);
+    }
+
+    private static void ApplyLocalGateStatus(ToolStripLabel label, LocalGateStatusReport report)
+    {
+        label.Text = $"LOCAL GATE {report.Summary}";
+        label.ToolTipText = report.RepairEligible
+            ? $"{report.Detail} Scan selected will pass this confirmed failure to the chosen local reviewer."
+            : report.Detail;
+        label.ForeColor = report.State switch
+        {
+            "green" => Color.DarkGreen,
+            "red" => Color.DarkRed,
+            "blocked" => Color.DarkRed,
+            "stale" => Color.DarkGoldenrod,
+            _ => Color.DimGray,
+        };
     }
 
     private static async Task<string> BuildRepomixEvidenceAsync(ReviewPackage reviewPackage)
@@ -518,6 +585,17 @@ internal sealed class ReviewerInventoryReport
     public int SchemaVersion { get; set; }
     public ReviewerInventoryCandidate? Automatic { get; set; }
     public List<ReviewerInventoryCandidate> Candidates { get; set; } = [];
+}
+
+internal sealed class LocalGateStatusReport
+{
+    public int SchemaVersion { get; set; }
+    public string State { get; set; } = "unknown";
+    public string Summary { get; set; } = "UNKNOWN";
+    public string Detail { get; set; } = string.Empty;
+    public bool HooksEnabled { get; set; }
+    public bool Current { get; set; }
+    public bool RepairEligible { get; set; }
 }
 
 internal sealed class ReviewerInventoryCandidate

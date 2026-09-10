@@ -17,9 +17,9 @@ test("#1571 local QA scheduling reuses the existing Guest Mastra runtime and cur
   assert.doesNotMatch(source, /new Mastra|writeFile|applyStoryCommand|saveActiveLibraryProject|browser_navigate/);
 });
 
-test("#1571 continuous QA covers PR, main, on-demand, daily smoke and weekly deep campaigns", async () => {
+test("#1571 continuous QA remains available on main, on-demand, daily smoke and weekly deep campaigns without creating a third PR gate", async () => {
   const workflow = await read(".github/workflows/autonomous-qa-campaign.yml");
-  assert.match(workflow, /pull_request:\n\s+branches: \[main\]/);
+  assert.doesNotMatch(workflow, /^  pull_request:/m);
   assert.match(workflow, /push:\n\s+branches: \[main\]/);
   assert.ok(workflow.includes("workflow_dispatch:"));
   assert.ok(workflow.includes("cron: '17 7 * * *'"));

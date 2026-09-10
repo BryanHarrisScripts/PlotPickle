@@ -21,16 +21,16 @@ test("#1288 keeps the graphic-led BBS centre and three-column Community shell as
   assert.match(socialStyles, /\.roomArtwork img\s*\{[^}]*image-rendering:\s*pixelated;/su);
 });
 
-test("#1288 enlarges Community typography and adds the terminal identity prompt", async () => {
+test("#1288 keeps readable Community typography while letting Skin V1 own its size contract", async () => {
   const [social, socialStyles, navigationStyles] = await Promise.all([
     read("modules/community/community-buzz-social.tsx"),
     read("modules/community/community-buzz-social.module.css"),
     read("app/_components/community/community-navigation.module.css"),
   ]);
 
-  assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*16px;/su);
-  assert.match(socialStyles, /\.composer textarea\s*\{[^}]*font-size:\s*16px;/su);
-  assert.match(socialStyles, /\.message strong\s*\{[^}]*font-size:\s*15px;/su);
+  assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*var\(--pp-skin-font-body\);/su);
+  assert.match(socialStyles, /\.composer textarea\s*\{[^}]*font-size:\s*var\(--pp-skin-font-body\);/su);
+  assert.match(socialStyles, /\.message strong\s*\{[^}]*font-size:\s*var\(--pp-skin-font-body\);/su);
   assert.match(navigationStyles, /\.subDestination span\s*\{[^}]*font-size:\s*13px;/su);
   assert.match(social, /promptHandle\(humanName\).*promptHandle\(target\.label\)/su);
   assert.match(social, /event\.key === "Enter" && !event\.shiftKey/u);

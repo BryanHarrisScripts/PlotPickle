@@ -220,8 +220,8 @@ function Find-ComfyDesktopModelPathsConfig([object]$Instance) {
 }
 
 function Get-ComfyStartupLogs([string]$Stem) {
-  $home = if ($env:PLOTPICKLE_HOME) { $env:PLOTPICKLE_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
-  $logDir = Join-Path $home "logs"
+  $plotPickleHome = if ($env:PLOTPICKLE_HOME) { $env:PLOTPICKLE_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
+  $logDir = Join-Path $plotPickleHome "logs"
   New-Item -ItemType Directory -Force -Path $logDir | Out-Null
   return [pscustomobject]@{
     Stdout = Join-Path $logDir "$Stem.log"

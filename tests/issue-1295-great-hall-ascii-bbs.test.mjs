@@ -43,8 +43,8 @@ test("#1295 matches the supplied three-column hierarchy while preserving readabl
   assert.match(social, /roomId \? <CommunityRoomBanner/u);
   assert.match(social, /\{roomGuide \? <section/u);
   assert.match(socialStyles, /\.conversation\[data-community-room-template="bbs-v1"\]\s*>\s*\.conversationHeader\s*\{[^}]*display:\s*none;/su);
-  assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*(?:16|17|18)px;/su);
-  assert.match(socialStyles, /\.composer textarea\s*\{[^}]*font-size:\s*(?:16|17|18|19|20)px;/su);
+  assert.match(socialStyles, /\.message p\s*\{[^}]*font-size:\s*var\(--pp-skin-font-body\);/su);
+  assert.match(socialStyles, /\.composer textarea\s*\{[^}]*font-size:\s*var\(--pp-skin-font-body\);/su);
   assert.match(socialStyles, /\.roomArtwork\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/su);
   assert.match(socialStyles, /@media \(max-width: 900px\)[\s\S]*\.roomBanner\s*\{[^}]*padding-inline:/u);
   assert.match(socialStyles, /@media \(prefers-reduced-motion: reduce\)/u);

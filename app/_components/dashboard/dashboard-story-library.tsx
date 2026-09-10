@@ -187,6 +187,13 @@ export default function DashboardStoryLibrary({
           </section>
 
           <section>
+            <p className={styles.kicker}>Community</p>
+            <strong className={styles.nextStep}>Great Hall, Story Rooms & Agents</strong>
+            <p>Talk with people and Agents without changing story Canon. Community material stays outside the PPF until you deliberately accept it into the story.</p>
+            <button type="button" className={styles.primaryAction} onClick={() => openWorkspace("community")}>Open Community</button>
+          </section>
+
+          <section>
             <p className={styles.kicker}>Next Step</p>
             <strong className={styles.nextStep}>{sectionLabels[nextSection]}</strong>
             <p>Suggestions guide the workflow but never change canon automatically.</p>
@@ -203,7 +210,7 @@ export default function DashboardStoryLibrary({
 
       <footer className={styles.dashboardFooter}>
         <span>{ARCHITECTURE_LABEL} · One Story.</span>
-        <div><button type="button" onClick={() => openWorkspace("settings")}>Settings</button><button type="button" onClick={() => onOpenSection("structureMap")}>Story Map</button></div>
+        <div><button type="button" onClick={() => openWorkspace("community")}>Community</button><button type="button" onClick={() => openWorkspace("settings")}>Settings</button><button type="button" onClick={() => onOpenSection("structureMap")}>Story Map</button></div>
       </footer>
     </main>
   );

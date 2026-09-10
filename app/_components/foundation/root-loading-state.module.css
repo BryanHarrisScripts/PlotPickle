@@ -1,0 +1,9 @@
+.openingState {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--pp-space-6);
+  background: var(--pp-matte);
+  color: var(--pp-text);
+  font-family: var(--pp-font-body);
+}

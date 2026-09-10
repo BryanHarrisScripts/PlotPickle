@@ -97,6 +97,13 @@
       "lastEvaluatedRevision": "issue-1267"
     },
     {
+      "uri": "skill://plotpickle/character-visual-development",
+      "displayName": "Character Visual Development",
+      "requestedCapabilityClasses": ["bounded-project-context", "visual-continuity-read", "generation-prompt-draft", "visual-validation-contract", "proposal-draft"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1557"
+    },
+    {
       "uri": "skill://plotpickle/buzz-guildhall-reporting",
       "displayName": "BUZZ Guildhall Reporting",
       "requestedCapabilityClasses": ["buzz-event-reporting", "verification-evidence-summary"],

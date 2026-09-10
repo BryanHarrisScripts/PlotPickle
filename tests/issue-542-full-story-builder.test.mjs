@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+
+import "./issue-1751-screenplay-intelligence.test.mjs";
 import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../modules/learn/full-story-builder.mjs";
 import { mergeLearnProjectWithFullStory } from "../modules/learn/learn-full-story-merge.mjs";
 import { visualRequestPlan } from "../scripts/full-story-builder-agent.mjs";

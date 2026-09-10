@@ -10,7 +10,6 @@ import { hasActiveLibraryProject } from "../core/storage/project-library-browser
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { memoryAwareSageGuide } from "../modules/creative-room/memory-aware-sage-guide";
-import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
@@ -19,29 +18,42 @@ import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
 import LibraryWorkspace from "../modules/library/ui/library-workspace";
 import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
+import CollabEntryWorkspace from "./_components/collab/collab-entry-workspace";
 import CommunityWorkspace from "./_components/community/community-workspace";
+import rootLoadingStyles from "./_components/foundation/root-loading-state.module.css";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import StoryMapContextRuntime from "./story-map-workspace/context-runtime";
+import StoryMapShell from "./story-map-shell";
+import StoryMapWorkspace from "./story-map-workspace";
+import "./issue-1725-polish.css";
 
 type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";
 
 function requestedWorkspace(): Workspace {
-  if (typeof window === "undefined") return "learn";
+  if (typeof window === "undefined") return "dashboard";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "dashboard") return "dashboard";
+  if (requested === "learn") return "learn";
   if (requested === "plan") return "plan";
   if (requested === "build") return "build";
   if (requested === "community") return "community";
+  if (requested === "collab") return "collab";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   if (requested === "library") return "library";
-  return "learn";
+  return hasActiveLibraryProject() ? "dashboard" : "library";
 }
 
 function requestedSection(): GuidedSection {
   if (typeof window === "undefined") return "foundations";
   return new URLSearchParams(window.location.search).get("section") === "world" ? "world" : "foundations";
+}
+
+function currentProjectTitle() {
+  if (!hasActiveLibraryProject()) return "No active project";
+  return loadFoundationProject().title || "Untitled Story";
 }
 
 function repairPersistedProject() {
@@ -106,12 +118,9 @@ function navigateWorkspace(workspace: Workspace) {
     destination.searchParams.delete("lesson");
   }
   const href = `${destination.pathname}${destination.search}`;
-  if (workspace === "community") {
-    // Community is already a client workspace inside this root page. Reloading
-    // the whole document here needlessly re-enters Vinext/RSC while the managed
-    // Edge renderer is switching into its heaviest local BUZZ surface. Keep the
-    // URL/history truthful and let the existing popstate synchronizer mount the
-    // Community workspace without a document-level RSC reload.
+  if (workspace === "community" || workspace === "collab") {
+    // Community and Collab are client workspaces inside this root page. Keep
+    // URL/history truthful without re-entering the document-level RSC path.
     window.history.pushState({ plotpickleWorkspace: workspace }, "", href);
     window.dispatchEvent(new PopStateEvent("popstate"));
     return;
@@ -119,8 +128,47 @@ function navigateWorkspace(workspace: Workspace) {
   window.location.assign(href);
 }
 
+function openLearningApplication(topic: string, lessonId?: string) {
+  switch (topic) {
+    case "foundations":
+      navigateGuided("plan", "foundations", lessonId);
+      return;
+    case "world":
+      navigateGuided("plan", "world", lessonId);
+      return;
+    case "character":
+    case "theme":
+      navigateGuided("plan", "foundations");
+      return;
+    case "structure":
+      window.location.assign("/structure");
+      return;
+    case "visual-storytelling":
+      window.location.assign("/storyboard");
+      return;
+    case "drafting":
+    case "dialogue":
+      window.location.assign("/pageflow");
+      return;
+    case "revision":
+      window.location.assign("/edit");
+      return;
+    case "responsible-ai":
+      navigateWorkspace("settings");
+      return;
+    case "industry":
+      window.location.assign("/production");
+      return;
+    case "collaboration":
+      navigateWorkspace("collab");
+      return;
+    default:
+      navigateWorkspace("plan");
+  }
+}
+
 export default function Home() {
-  const [workspace, setWorkspace] = useState<Workspace>("learn");
+  const [workspace, setWorkspace] = useState<Workspace>("dashboard");
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
@@ -134,17 +182,33 @@ export default function Home() {
   }, []);
 
   if (!storageReady) {
-    return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening PlotPickle…</main>;
+    return <main className={rootLoadingStyles.openingState}>Opening PlotPickle…</main>;
   }
 
   if (workspace === "dashboard") {
     return (
-      <PlotPickleWorkspaceShell activeWorkspace="dashboard" onNavigate={navigateWorkspace}>
-        <DashboardWorkspace
+      <StoryMapShell onNavigate={navigateWorkspace}>
+        <StoryMapWorkspace
           curriculum={plotPickleCurriculum}
           onNavigate={navigateWorkspace}
           onNavigateGuided={navigateGuided}
         />
+      </StoryMapShell>
+    );
+  }
+
+  if (workspace === "collab") {
+    return (
+      <PlotPickleWorkspaceShell
+        activeWorkspace="collab"
+        navigationArea="connect"
+        contextId="collab"
+        contextLabel="Collab"
+        contextDetail="Formal shared work routed to current capability owners"
+        contextScope="Collaboration"
+        onNavigate={navigateWorkspace}
+      >
+        <CollabEntryWorkspace projectTitle={currentProjectTitle()} />
       </PlotPickleWorkspaceShell>
     );
   }
@@ -189,6 +253,7 @@ export default function Home() {
     const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="build" onNavigate={navigateWorkspace}>
+        <StoryMapContextRuntime />
         {section === "world" ? (
           <WorldBuildWorkspace
             curriculum={plotPickleCurriculum}
@@ -217,6 +282,7 @@ export default function Home() {
     const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="plan" onNavigate={navigateWorkspace}>
+        <StoryMapContextRuntime />
         {section === "world" ? (
           <WorldPlanWorkspace
             curriculum={plotPickleCurriculum}
@@ -240,6 +306,7 @@ export default function Home() {
       <LearnWorkspace
         curriculum={plotPickleCurriculum}
         guide={memoryAwareSageGuide}
+        onApplyLearning={openLearningApplication}
         onOpenFoundationsPlan={openFoundationsPlan}
       />
       <MarqueeAgentOverlay curriculum={plotPickleCurriculum} />

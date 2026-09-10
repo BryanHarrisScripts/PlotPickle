@@ -7,6 +7,7 @@ internal static class WorkbenchPath
     private static readonly HashSet<string> PackagedReviewerHelpers = new(StringComparer.OrdinalIgnoreCase)
     {
         "Utilities/DeveloperWorkbench/local-reviewer-inventory.mjs",
+        "Utilities/DeveloperWorkbench/local-gate-status.mjs",
         "Utilities/DeveloperWorkbench/second-opinion-review.mjs",
         "Utilities/DeveloperWorkbench/workbench-repomix-evidence.mjs",
     };

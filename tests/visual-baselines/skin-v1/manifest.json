@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "skin": "skin-v1",
+  "designReference": "dashboard",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "comparison": {
+    "channelDelta": 24,
+    "maxChangedPixelRatio": 0.02
+  },
+  "surfaces": {
+    "dashboard": {
+      "label": "Dashboard",
+      "status": "candidate",
+      "selector": "[data-skin-reference='dashboard-canonical']",
+      "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
+      "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
+    },
+    "community": {
+      "label": "Community",
+      "status": "candidate",
+      "selector": "section[aria-label='PlotPickle Community']",
+      "candidate": ".artifacts/visual-readiness/community-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/community.png"
+    },
+    "profile": {
+      "label": "Profile",
+      "status": "candidate",
+      "selector": "section[aria-label='Profile menu']",
+      "candidate": ".artifacts/visual-readiness/profile-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/profile.png"
+    },
+    "local-ai": {
+      "label": "Local AI",
+      "status": "candidate",
+      "selector": "section[aria-label='Local AI setup']",
+      "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
+    },
+    "node": {
+      "label": "Node",
+      "status": "candidate",
+      "selector": "section[aria-label='Node information']",
+      "candidate": ".artifacts/visual-readiness/node-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/node.png"
+    }
+  }
+}

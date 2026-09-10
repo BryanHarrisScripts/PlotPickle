@@ -1,33 +1,6 @@
 name: PlotPickle Auth Full Verification
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app/api/auth/**"
-      - "app/profile-access/**"
-      - "core/auth/**"
-      - "core/storage/profile-private/**"
-      - "core/storage/profile-private-browser.ts"
-      - "config/credential-boundary.registry.json"
-      - "docs/architecture/PLOTPICKLE-AUTH-*.md"
-      - "docs/architecture/PLOTPICKLE-PROFILE-*.md"
-      - "scripts/credential-boundary-audit.mjs"
-      - "scripts/full-verification-graph.mjs"
-      - "scripts/package-platform.mjs"
-      - "tests/issue-1138-*.test.mjs"
-      - "tests/issue-1139-*.test.mjs"
-      - "tests/issue-1140-*.test.mjs"
-      - "tests/issue-1141-*.test.mjs"
-      - "tests/issue-1142-*.test.mjs"
-      - "tests/issue-1143-*.test.mjs"
-      - "tests/issue-1144-*.test.mjs"
-      - "tests/issue-1145-*.test.mjs"
-      - "tests/issue-1146-*.test.mjs"
-      - "tests/issue-299-credential-boundary-audit.test.mjs"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/plotpickle-auth.yml"
   workflow_dispatch:
 
 permissions:

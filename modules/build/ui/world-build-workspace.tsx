@@ -5,6 +5,7 @@ import type { WorldVisualArtifact } from "../../../core/contracts/build-progress
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import type { PPFProject } from "../../../core/project/project";
+import { hasQaWorkspaceAccess, isQaAccessOverride } from "../../../core/progression/qa-access";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
@@ -113,7 +114,9 @@ export default function WorldBuildWorkspace({
   }
 
   const world = progression.world;
-  const unlocked = world.build !== "locked";
+  const canonicalUnlocked = world.build !== "locked";
+  const workspaceAccessible = hasQaWorkspaceAccess(canonicalUnlocked);
+  const qaOnlyAccess = isQaAccessOverride(canonicalUnlocked);
   const acceptedFoundationIds = new Set(project.build.foundations.acceptedVisualArtifactIds);
   const retainedFoundationFrames = project.build.foundations.visualArtifacts
     .filter((artifact) => acceptedFoundationIds.has(artifact.id) && artifact.reviewState !== "rejected")
@@ -142,7 +145,7 @@ export default function WorldBuildWorkspace({
   };
 
   const generateChanges = async (plans: readonly WorldWireframeFramePlan[]) => {
-    if (!unlocked || generating || !plans.length) return;
+    if (!canonicalUnlocked || generating || !plans.length) return;
     if (manualRoute) {
       setMessage("Manual image mode is selected. Choose a configured local or cloud image route in Settings before generating World changes.");
       return;
@@ -210,16 +213,19 @@ export default function WorldBuildWorkspace({
   };
 
   const acceptArtifact = (artifact: WorldVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({ type: "world.visual.accept", artifactId: artifact.id, occurredAt: new Date().toISOString() });
     setMessage(`World change for frame ${artifact.frameNumber} accepted. Character is next only when the canonical progression confirms World completion.`);
   };
 
   const unacceptArtifact = (artifact: WorldVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({ type: "world.visual.unaccept", artifactId: artifact.id, occurredAt: new Date().toISOString() });
     setMessage(`Acceptance removed from World frame ${artifact.frameNumber}.`);
   };
 
   const rejectArtifact = (artifact: WorldVisualArtifact) => {
+    if (qaOnlyAccess) return;
     saveCommand({ type: "world.visual.discard", artifactId: artifact.id, occurredAt: new Date().toISOString() });
     setMessage(`World frame ${artifact.frameNumber} rejected. Its history and parent lineage remain reviewable.`);
   };
@@ -227,19 +233,21 @@ export default function WorldBuildWorkspace({
   return (
     <main className={styles.screen} aria-label="World BUILD">
       <section className={styles.workspace}>
-        <aside className={`${styles.rail} ${!unlocked ? styles.locked : ""}`.trim()} aria-label="World BUILD progress">
+        <aside className={`${styles.rail} ${!canonicalUnlocked ? styles.locked : ""}`.trim()} aria-label="World BUILD progress">
           <p className={styles.kicker}>BUILD · World</p>
-          <h1>{unlocked ? "Let the world change only what it earns." : "Finish World PLAN before BUILD."}</h1>
+          <h1>{canonicalUnlocked ? "Let the world change only what it earns." : qaOnlyAccess ? "QA access is open. Finish World PLAN before BUILD." : "Finish World PLAN before BUILD."}</h1>
           <p>
-            {unlocked
+            {canonicalUnlocked
               ? "World BUILD branches from accepted Foundations visuals and uses accepted World decisions only. Unaffected Foundations frames stay intact."
-              : `${world.answeredPlanFields} of ${world.totalPlanFields} World PLAN decisions are saved.`}
+              : qaOnlyAccess
+                ? `${world.answeredPlanFields} of ${world.totalPlanFields} World PLAN decisions are saved. The workshop is inspectable, but provider calls and PPF acceptance stay protected.`
+                : `${world.answeredPlanFields} of ${world.totalPlanFields} World PLAN decisions are saved.`}
           </p>
           <dl className={styles.statusList}>
             <div><dt>FOUNDATIONS</dt><dd>✓ Preserved</dd></div>
             <div><dt>WORLD LEARN</dt><dd>{world.learn === "complete" ? "✓ Complete" : "In progress"}</dd></div>
             <div><dt>WORLD PLAN</dt><dd>{world.plan === "complete" ? "✓ Complete" : "In progress"}</dd></div>
-            <div><dt>WORLD BUILD</dt><dd>{world.build === "complete" ? "✓ Accepted" : unlocked ? "→ Available" : "🔒 Locked"}</dd></div>
+            <div><dt>WORLD BUILD</dt><dd>{world.build === "complete" ? "✓ Accepted" : canonicalUnlocked ? "→ Available" : "🔒 Locked"}</dd></div>
             <div><dt>FRONTIER</dt><dd>Foundations + World</dd></div>
           </dl>
           <div className={styles.actions}>
@@ -271,7 +279,7 @@ export default function WorldBuildWorkspace({
             ))}
           </div>
 
-          {!unlocked ? (
+          {!workspaceAccessible ? (
             <div className={styles.emptyState}>
               <strong>World BUILD is waiting for PLAN.</strong>
               <p>No World image request can run before World LEARN and PLAN are complete.</p>
@@ -292,10 +300,10 @@ export default function WorldBuildWorkspace({
                     </div>
                     <footer className={styles.frameActions}>
                       {!accepted
-                        ? <button onClick={() => acceptArtifact(artifact)} type="button">Accept change</button>
-                        : <button onClick={() => unacceptArtifact(artifact)} type="button">Unaccept</button>}
-                      {matchingPlan ? <button disabled={generating} onClick={() => void generateChanges([matchingPlan])} type="button">Regenerate change</button> : null}
-                      <button className={styles.reject} onClick={() => rejectArtifact(artifact)} type="button">Reject</button>
+                        ? <button disabled={qaOnlyAccess} onClick={() => acceptArtifact(artifact)} type="button">Accept change</button>
+                        : <button disabled={qaOnlyAccess} onClick={() => unacceptArtifact(artifact)} type="button">Unaccept</button>}
+                      {matchingPlan ? <button disabled={qaOnlyAccess || generating} onClick={() => void generateChanges([matchingPlan])} type="button">Regenerate change</button> : null}
+                      <button className={styles.reject} disabled={qaOnlyAccess} onClick={() => rejectArtifact(artifact)} type="button">Reject</button>
                     </footer>
                   </article>
                 );
@@ -303,23 +311,24 @@ export default function WorldBuildWorkspace({
             </div>
           ) : (
             <div className={styles.emptyState}>
-              <strong>No World revisions generated yet.</strong>
-              <p>PlotPickle will revise a related accepted Foundations frame when World evidence materially matches it; otherwise it adds a new World anchor. It never deletes the accepted Foundations frame.</p>
+              <strong>{qaOnlyAccess ? "QA access is open; no World revisions have been generated yet." : "No World revisions generated yet."}</strong>
+              <p>{qaOnlyAccess ? "Inspect the World change plan and BUILD surface now. Generation stays protected until World PLAN is canonically complete." : "PlotPickle will revise a related accepted Foundations frame when World evidence materially matches it; otherwise it adds a new World anchor. It never deletes the accepted Foundations frame."}</p>
             </div>
           )}
 
-          {unlocked ? (
+          {workspaceAccessible ? (
             <div className={styles.generatorControls}>
+              {qaOnlyAccess ? <p className={styles.message} role="status">QA access opens this workshop for testing. Provider calls and PPF visual acceptance remain disabled until canonical World BUILD access is earned.</p> : null}
               {cloudRoute ? (
                 <label className={styles.consent}>
-                  <input checked={billingAcknowledged} onChange={(event) => setBillingAcknowledged(event.target.checked)} type="checkbox" />
+                  <input checked={billingAcknowledged} disabled={qaOnlyAccess} onChange={(event) => setBillingAcknowledged(event.target.checked)} type="checkbox" />
                   I understand this can make up to {wireframePlan.length} paid image requests and sends only accepted Foundations + World context to my selected cloud account.
                 </label>
               ) : null}
               {!routeReady && selectedOption?.error ? <p className={styles.error}>{selectedOption.error}</p> : null}
               <div className={styles.primaryActions}>
-                <button disabled={generating || manualRoute || !routeReady || !wireframePlan.length} onClick={() => void generateChanges(wireframePlan)} type="button">
-                  {generating ? "Generating World changes…" : currentWorldArtifacts.length ? `Regenerate World pass (${wireframePlan.length})` : `Generate World pass (${wireframePlan.length})`}
+                <button disabled={qaOnlyAccess || generating || manualRoute || !routeReady || !wireframePlan.length} onClick={() => void generateChanges(wireframePlan)} type="button">
+                  {qaOnlyAccess ? "Generate requires World PLAN" : generating ? "Generating World changes…" : currentWorldArtifacts.length ? `Regenerate World pass (${wireframePlan.length})` : `Generate World pass (${wireframePlan.length})`}
                 </button>
               </div>
               {message ? <p className={styles.message} role="status">{message}</p> : null}

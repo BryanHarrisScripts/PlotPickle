@@ -65,6 +65,7 @@ function Copy-WorkbenchRuntimeFile([string]$RelativePath) {
 # read-only reviewer/runtime helpers, not a second copy of the application.
 $runtimeFiles = @(
   "Utilities\DeveloperWorkbench\local-reviewer-inventory.mjs",
+  "Utilities\DeveloperWorkbench\local-gate-status.mjs",
   "Utilities\DeveloperWorkbench\second-opinion-review.mjs",
   "Utilities\DeveloperWorkbench\workbench-repomix-evidence.mjs",
   "Utilities\DeveloperWorkbench\workbench-cli.mjs",

@@ -1,16 +1,14 @@
 name: Autonomous QA Targeted Fix
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   contents: read
   issues: read
 
 concurrency:
-  group: autonomous-qa-targeted-fix-${{ github.event.pull_request.number }}
+  group: autonomous-qa-targeted-fix-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,6 +29,7 @@ jobs:
       - name: Checkout exact fix head
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
@@ -68,12 +67,12 @@ jobs:
       - name: Checkout exact fix head
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ needs.resolve.outputs.fix_head }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-          cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Verify production build
@@ -102,12 +101,12 @@ jobs:
       - name: Checkout exact fix head
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ needs.resolve.outputs.fix_head }}
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-          cache: npm
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Rerun existing Guest and revision-boundary contracts

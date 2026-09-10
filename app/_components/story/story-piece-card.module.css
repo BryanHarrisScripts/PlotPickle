@@ -1,0 +1,110 @@
+.card {
+  display: grid;
+  gap: var(--pp-space-3);
+  min-width: 0;
+  min-height: var(--pp-control-height-lg);
+  padding: var(--pp-space-4);
+  border: 1px solid var(--pp-line);
+  border-radius: var(--pp-radius-panel);
+  background: var(--pp-surface-raised);
+  color: var(--pp-text);
+  transition: border-color var(--pp-motion-fast) ease, transform var(--pp-motion-fast) ease, background var(--pp-motion-fast) ease;
+}
+
+.card[data-story-piece-state="selected"] {
+  border-color: var(--pp-teal-bright);
+  background: var(--pp-surface-hover);
+  transform: translateY(calc(var(--pp-space-1) * -1));
+}
+
+.card[data-story-piece-state="illegal"],
+.card[data-story-piece-state="error"] {
+  border-color: var(--pp-danger);
+}
+
+.card[data-story-piece-state="partial"] {
+  border-color: var(--pp-warning);
+}
+
+.card[data-story-piece-state="loading"] {
+  border-color: var(--pp-line-strong);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pp-space-2);
+  align-items: start;
+}
+
+.state {
+  margin: 0;
+  color: var(--pp-muted);
+  font-size: var(--pp-text-xs);
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
+}
+
+.card[data-story-piece-state="selected"] .state {
+  color: var(--pp-teal-bright);
+}
+
+.card[data-story-piece-state="illegal"] .state,
+.card[data-story-piece-state="error"] .state {
+  color: var(--pp-text);
+}
+
+.card[data-story-piece-state="partial"] .state {
+  color: var(--pp-warning);
+}
+
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--pp-paper);
+  font-family: var(--pp-font-display);
+  font-size: var(--pp-text-lg);
+  line-height: var(--pp-leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.description,
+.meta {
+  margin: 0;
+  font-size: var(--pp-text-sm);
+  line-height: var(--pp-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.description {
+  color: var(--pp-text);
+}
+
+.meta {
+  color: var(--pp-muted);
+}
+
+.action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-space-2);
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card[data-story-piece-state="selected"] {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .card {
+    border-color: CanvasText;
+  }
+}

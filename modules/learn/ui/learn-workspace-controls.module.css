@@ -1,0 +1,28 @@
+.workflowList {
+  min-width: var(--pp-width-editor);
+}
+
+.workflowGapAfter {
+  margin-right: var(--pp-space-12);
+}
+
+.workflowStageButton {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: var(--pp-space-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+.workflowStageButton:disabled {
+  cursor: default;
+  opacity: .62;
+}

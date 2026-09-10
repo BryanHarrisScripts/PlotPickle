@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -12,7 +13,23 @@ export type DashboardBbsItem = Readonly<{
   group?: string;
 }>;
 
-const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "profile"]);
+const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile"]);
+const SETTINGS_MENU = [
+  ...settingsTaxonomy.workspace
+    .filter((item) => item.id !== "sitemap")
+    .map((item) => ({
+      id: item.id,
+      label: item.label,
+      description: item.description,
+      group: "WORKSPACE",
+    })),
+  ...settingsTaxonomy.systems.map((system) => ({
+    id: system.id,
+    label: system.label,
+    description: system.description,
+    group: "SYSTEMS",
+  })),
+] as const;
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
 
@@ -30,6 +47,15 @@ export default function DashboardBbsPanel({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+
+  function activateItem(index: number) {
+    if (items[index]?.id === "settings") {
+      setSettingsMenuOpen(true);
+      return;
+    }
+    onActivate(index);
+  }
 
   function handleRowKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key.length === 1) {
@@ -37,11 +63,61 @@ export default function DashboardBbsPanel({
       const shortcutIndex = items.findIndex((item) => item.shortcut.toUpperCase() === shortcut);
       if (shortcutIndex >= 0) {
         event.preventDefault();
-        onActivate(shortcutIndex);
+        activateItem(shortcutIndex);
         return;
       }
     }
     onKeyDown(event, index);
+  }
+
+  if (settingsMenuOpen) {
+    return (
+      <section
+        className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
+        aria-label="Settings menu"
+        data-settings-menu="secondary-only"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setSettingsMenuOpen(false);
+          }
+        }}
+      >
+        <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+          <div className="pp-skin-v1-bbs-banner">
+            <h1>SETTINGS</h1>
+            <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsMenuOpen(false)} autoFocus>
+              Back to Dashboard
+            </button>
+          </div>
+
+          <div className="pp-skin-v1-menu" aria-describedby="settings-menu-status">
+            {SETTINGS_MENU.map((item, index) => {
+              const showGroup = index === 0 || SETTINGS_MENU[index - 1]?.group !== item.group;
+              return (
+                <Fragment key={item.id}>
+                  {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
+                  <button
+                    type="button"
+                    disabled
+                    className="pp-skin-v1-menu-item pp-skin-v1-submenu-item"
+                    data-settings-secondary-item={item.id}
+                  >
+                    <span aria-hidden="true">&gt;</span>
+                    <span className="pp-skin-v1-menu-label">{item.label}</span>
+                    <small className="pp-skin-v1-menu-description">{item.description}</small>
+                  </button>
+                </Fragment>
+              );
+            })}
+          </div>
+
+          <p className="pp-skin-v1-bbs-help" id="settings-menu-status">
+            SETTINGS DIRECTORY ONLY / SUBMENUS ARE NOT CONNECTED YET
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -103,7 +179,7 @@ export default function DashboardBbsPanel({
                   data-dashboard-shortcut={item.shortcut}
                   data-dashboard-connected={connected ? "true" : "false"}
                   data-skin-reference-state={selected ? "selected" : "unselected"}
-                  onClick={() => onActivate(index)}
+                  onClick={() => activateItem(index)}
                   onKeyDown={(event) => handleRowKeyDown(event, index)}
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
@@ -124,7 +200,7 @@ export default function DashboardBbsPanel({
 
         <div className="pp-skin-v1-bbs-help" data-skin-reference-type="muted">
           <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
-          <span>ENTER: OPEN COMMUNITY / PROFILE</span>
+          <span>ENTER: OPEN COMMUNITY / SETTINGS / PROFILE</span>
           <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
         </div>
       </div>

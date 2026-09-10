@@ -30,7 +30,8 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
     read("app/layout.tsx"),
   ]);
   assert.match(skin, /onActivate=\{activateDashboardItem\}/u);
-  assert.match(dashboard, /onClick=\{\(\) => onActivate\(index\)\}/u);
+  assert.match(dashboard, /onClick=\{\(\) => activateItem\(index\)\}/u);
+  assert.match(dashboard, /function activateItem\(index: number\)[\s\S]*items\[index\]\?\.id === "settings"[\s\S]*setSettingsMenuOpen\(true\)[\s\S]*onActivate\(index\)/u);
   assert.match(skin, /id === "community"\) openSurface\("COMMUNITY"\)/u);
   assert.match(skin, /onClick=\{\(\) => openSurface\("DASHBOARD"\)\}/u);
   assert.match(skin, /result.outcome === "accepted"/u);
@@ -48,4 +49,31 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(communityCss, /--community-orange:\s*var\(--pp-skin-accent\)/u);
   assert.doesNotMatch(communityCss, /filter:\s*grayscale\(1\)\s*saturate\(0\)/u);
   assert.match(layout, /community-monochrome-skin.css/u);
+});
+
+test("Skin V1 Settings stops at the canonical secondary directory", async () => {
+  const [dashboard, taxonomyText] = await Promise.all([
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("config/settings-system-taxonomy.json"),
+  ]);
+  const taxonomy = JSON.parse(taxonomyText);
+
+  assert.deepEqual(
+    taxonomy.workspace.filter((item) => item.id !== "sitemap").map((item) => item.label),
+    ["General", "Appearance & Accessibility", "Project Defaults"],
+  );
+  assert.deepEqual(
+    taxonomy.systems.map((system) => system.label),
+    ["Local", "Cloud", "Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"],
+  );
+  assert.match(dashboard, /new Set\(\["community", "settings", "profile"\]\)/u);
+  assert.match(dashboard, /data-settings-menu="secondary-only"/u);
+  assert.match(dashboard, /SETTINGS DIRECTORY ONLY \/ SUBMENUS ARE NOT CONNECTED YET/u);
+
+  const secondaryRows = dashboard.slice(
+    dashboard.indexOf("{SETTINGS_MENU.map"),
+    dashboard.indexOf('id="settings-menu-status"'),
+  );
+  assert.match(secondaryRows, /disabled/u);
+  assert.doesNotMatch(secondaryRows, /onClick=/u);
 });

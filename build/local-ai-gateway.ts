@@ -2,6 +2,7 @@ import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
 import { registerAutonomousGuestRoutingStatus } from "./auth/autonomous-guest-ai-routing-status";
+import { registerAgentComputeGateway } from "./agent-compute-gateway";
 import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
 import { registerBuzzAgentActivityMirror } from "./buzz/buzz-agent-activity-mirror";
 import { registerDeepSeekHarnessGateway } from "./ai/deepseek-harness-gateway";
@@ -59,7 +60,7 @@ export function localAiGateway(): Plugin {
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerComfyUiSdxlStarterGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);
-    registerFoundationsPpfGateway(server); registerLibraryPpfImportGateway(server); registerWritingAssistantGateway(server);
+    registerFoundationsPpfGateway(server); registerLibraryPpfImportGateway(server); registerAgentComputeGateway(server); registerWritingAssistantGateway(server);
     if (typeof legacy.configureServer === "function") legacy.configureServer(server);
   } };
 }

@@ -34,7 +34,7 @@ test("Issue #1802 removes decorative equals dividers and uses one solid white ru
   assert.match(reference, /background: var\(--pp-skin-line-strong\)/u);
 });
 
-test("Issue #1802 keeps the outer frame white and active row Matrix-green", async () => {
+test("Issue #1802 keeps the outer frame white and selected row Matrix-green", async () => {
   const reference = await read("app/skin-v1-dashboard-reference.css");
 
   assert.match(reference, /border: var\(--pp-skin-border-strong\) solid var\(--pp-skin-line-strong\)/u);
@@ -44,15 +44,17 @@ test("Issue #1802 keeps the outer frame white and active row Matrix-green", asyn
   assert.match(reference, /color: var\(--pp-skin-ink\)/u);
 });
 
-test("Issue #1802 renders a status square on every Dashboard row and only activates selected connected rows", async () => {
+test("Issue #1802 renders a status square on every Dashboard row and reflects wiring independently from selection", async () => {
   const [dashboard, reference] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1-dashboard-reference.css"),
   ]);
 
-  assert.match(dashboard, /const statusActive = selected && connected;/u);
-  assert.match(dashboard, /pp-skin-v1-dashboard-status-box\$\{statusActive \? " is-active" : ""\}/u);
-  assert.match(dashboard, /data-dashboard-status=\{statusActive \? "active" : "inactive"\}/u);
+  assert.match(dashboard, /const connected = CONNECTED_DASHBOARD_ITEMS\.has\(item\.id\);/u);
+  assert.match(dashboard, /pp-skin-v1-dashboard-status-box\$\{connected \? " is-active" : ""\}/u);
+  assert.match(dashboard, /data-dashboard-status=\{connected \? "active" : "inactive"\}/u);
+  assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
+  assert.match(dashboard, /data-skin-menu-indicator=\{connected \? "connected" : "unwired"\}/u);
   assert.match(reference, /background: var\(--pp-skin-ink-muted\)/u);
   assert.match(reference, /\.pp-skin-v1-dashboard-status-box\.is-active/u);
   assert.match(reference, /background: var\(--pp-skin-accent-bright\)/u);

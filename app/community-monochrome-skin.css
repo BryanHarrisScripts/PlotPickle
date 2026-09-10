@@ -60,6 +60,19 @@ html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(but
   box-shadow: none !important;
 }
 
+/* WebMCP governs native form controls by rendered height. Community used to
+   allow a legacy module button to resolve to 33px, one pixel below the shared
+   Skin V1 contract. Enforce the semantic floor here rather than special-casing
+   an unstable DOM index in the audit. */
+html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(
+  button,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  textarea
+) {
+  min-height: var(--pp-skin-control-height) !important;
+}
+
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(button, a):hover:not(:disabled),
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(button, a):focus-visible,
 html[data-plotpickle-skin="skin-v1"] [data-community-native-buzz="true"] :is(input, textarea, select):focus-visible {

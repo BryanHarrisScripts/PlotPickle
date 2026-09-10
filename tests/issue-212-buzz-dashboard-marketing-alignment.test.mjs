@@ -60,7 +60,7 @@ test("issue #212 aligns the real Dashboard with product-authentic cards", async 
     "Optional Buzz workspace",
     "Storage & Backups",
     "Canon & decisions",
-  ]) assert.match(dashboard, new RegExp(label.replace(/[&]/g, "\\&")));
+  ]) assert.ok(dashboard.includes(label), `Missing Dashboard card: ${label}`);
 
   assert.match(dashboard, /Current project source/);
   assert.match(dashboard, /Real project state/);
@@ -88,7 +88,7 @@ test("issue #212 updates Splash positioning README and explicit workspace deep l
   assert.match(wrapper, /React\.useLayoutEffect/);
   assert.match(wrapper, /requestedWorkspace && DEEP_LINK_WORKSPACES\.has\(requestedWorkspace\)/);
   for (const workspace of ["dashboard", "settings", "collab", "feedback", "reports"]) {
-    assert.match(wrapper, new RegExp(`"${workspace}"`));
+    assert.ok(wrapper.includes(`"${workspace}"`), `Missing deep-link workspace: ${workspace}`);
   }
   assert.match(readme, /Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel/);
   assert.match(readme, /Buzz: optional and dormant by default/);

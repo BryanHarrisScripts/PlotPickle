@@ -47,10 +47,12 @@ test("#1827 removes the two no-op substring replacements flagged in tests", asyn
     read("tests/issue-483-feedback-studio.test.mjs"),
     read("tests/issue-88-visual-board-navigation.test.mjs"),
   ]);
-  assert.match(feedback, /new RegExp\(label\)/u);
-  assert.match(visualBoard, /new RegExp\(label\)/u);
+  assert.match(feedback, /host\.includes\(label\)/u);
+  assert.match(visualBoard, /board\.includes\(label\)/u);
   assert.doesNotMatch(feedback, /label\.replace/u);
   assert.doesNotMatch(visualBoard, /label\.replace/u);
+  assert.doesNotMatch(feedback, /new RegExp\(label/u);
+  assert.doesNotMatch(visualBoard, /new RegExp\(label/u);
 });
 
 test("#1827 gives Runtime Weight Inventory explicit least-privilege permissions", async () => {

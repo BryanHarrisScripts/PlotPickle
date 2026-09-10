@@ -8,6 +8,7 @@ import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
+import { windowsBatchInvocation } from "./windows-batch-command.mjs";
 
 const exec = promisify(execFile);
 
@@ -35,17 +36,6 @@ function versionAtLeast(actual, minimum) {
   return true;
 }
 
-function windowsBatchArguments(command, commandArgs) {
-  const values = [command, ...commandArgs].map((value) => {
-    const text = String(value);
-    if (/[\r\n\0"&|<>^%!]/u.test(text)) {
-      throw new Error(`Pi worker CLI argument contains unsupported Windows command-shell characters: ${text}`);
-    }
-    return text;
-  });
-  return ["/d", "/c", ...values];
-}
-
 function windowsBatchWrapper(command) {
   return process.platform === "win32" && /\.(?:cmd|bat)$/iu.test(String(command));
 }
@@ -60,9 +50,13 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
     maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
     encoding: "utf8",
   };
-  const result = windowsBatchWrapper(command)
-    ? await exec(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
-    : await exec(command, commandArgs, common);
+  let result;
+  if (windowsBatchWrapper(command)) {
+    const invocation = windowsBatchInvocation(command, commandArgs, common.env);
+    result = await exec(invocation.executable, invocation.args, { ...common, env: invocation.env });
+  } else {
+    result = await exec(command, commandArgs, common);
+  }
   return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
 }
 
@@ -76,9 +70,13 @@ function portableCommandSync(command, commandArgs = [], options = {}) {
     maxBuffer: options.maxBuffer || 8 * 1024 * 1024,
     encoding: "utf8",
   };
-  const result = windowsBatchWrapper(command)
-    ? spawnSync(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
-    : spawnSync(command, commandArgs, common);
+  let result;
+  if (windowsBatchWrapper(command)) {
+    const invocation = windowsBatchInvocation(command, commandArgs, common.env);
+    result = spawnSync(invocation.executable, invocation.args, { ...common, env: invocation.env });
+  } else {
+    result = spawnSync(command, commandArgs, common);
+  }
   return {
     status: Number.isInteger(result.status) ? result.status : -1,
     stdout: String(result.stdout || "").trim(),

@@ -22,8 +22,8 @@ test("Issue #1806 packages the approved Dashboard dragon as a Skin V1 WebP", asy
   assert.match(assets, /hero: "\/brand\/dashboard\/plotpickle-observatory-dragon\.webp"/u);
   assert.doesNotMatch(assets, /plotpickle-observatory-dragon\.svg/u);
   assert.match(dashboard, /SKIN_V1_ASSETS\.dashboard\.hero/u);
-  assert.match(dashboard, /width=\{1200\}/u);
-  assert.match(dashboard, /height=\{377\}/u);
+  assert.match(dashboard, /width=\{1832\}/u);
+  assert.match(dashboard, /height=\{576\}/u);
   assert.match(dashboard, /priority/u);
   assert.match(route, /plotpickle-observatory-dragon\.webp/u);
   assert.match(route, /contentType: "image\/webp"/u);

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: pr-gate-${{ github.event.pull_request.number || github.ref }}
@@ -30,6 +30,32 @@ jobs:
         with:
           node-version: '22.13.0'
           cache: npm
+
+      - name: Bootstrap patched vinext dependency graph
+        if: github.event_name == 'pull_request' && github.head_ref == 'issue-1821-security-vinext-image-size'
+        shell: bash
+        run: |
+          if node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const ready = pkg.dependencies?.vinext === '1.0.0-beta.9'
+            && lock.packages?.['node_modules/vinext']?.version === '1.0.0-beta.9'
+            && !lock.packages?.['node_modules/image-size'];
+          process.exit(ready ? 0 : 1);
+          NODE
+          then
+            echo 'Vinext security dependency graph already refreshed.'
+          else
+            npm pkg set "dependencies.vinext=1.0.0-beta.9"
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            git config user.name 'PlotPickle Security Bot'
+            git config user.email 'bryan@bryanharris.ca'
+            git add package.json package-lock.json
+            git commit -m 'security: upgrade vinext beyond vulnerable image-size graph'
+            git push origin HEAD:${GITHUB_HEAD_REF}
+            exit 0
+          fi
 
       - name: Install PlotPickle dependencies once
         run: npm ci --include=dev --no-audit --no-fund

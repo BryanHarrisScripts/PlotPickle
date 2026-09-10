@@ -202,6 +202,7 @@ export default function DashboardBbsPanel({
         className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
         aria-label="Settings menu"
         data-settings-menu="keyboard-directory"
+        data-skin-menu="settings"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
@@ -238,14 +239,18 @@ export default function DashboardBbsPanel({
                     data-settings-secondary-item={item.id}
                     data-settings-shortcut={item.shortcut}
                     data-settings-secondary-connected={connected ? "true" : "false"}
+                    data-skin-menu-row={item.id}
+                    data-skin-menu-shortcut={item.shortcut}
+                    data-skin-menu-connected={connected ? "true" : "false"}
                     onClick={() => activateSettingsItem(index)}
                     onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}{connected ? "" : " [NOT CONNECTED]"}</span>
                     <span
-                      className={`pp-skin-v1-dashboard-status-box${selected && connected ? " is-active" : ""}`}
+                      className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
                       aria-label={connected ? "Connected Settings destination" : "Settings destination not connected yet"}
-                      data-dashboard-status={selected && connected ? "active" : "inactive"}
+                      data-dashboard-status={connected ? "active" : "inactive"}
+                      data-skin-menu-indicator={connected ? "connected" : "unwired"}
                     />
                   </button>
                 </Fragment>
@@ -266,6 +271,7 @@ export default function DashboardBbsPanel({
       className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
       aria-label="PlotPickle Dashboard"
       data-skin-reference="dashboard-canonical"
+      data-skin-menu="dashboard"
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
         <div className="pp-skin-v1-dashboard-shell-title" data-skin-reference-type="title">
@@ -303,7 +309,6 @@ export default function DashboardBbsPanel({
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEMS.has(item.id);
-            const statusActive = selected && connected;
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
             return (
@@ -319,16 +324,20 @@ export default function DashboardBbsPanel({
                   data-dashboard-menu-item={item.id}
                   data-dashboard-shortcut={item.shortcut}
                   data-dashboard-connected={connected ? "true" : "false"}
+                  data-skin-menu-row={item.id}
+                  data-skin-menu-shortcut={item.shortcut}
+                  data-skin-menu-connected={connected ? "true" : "false"}
                   data-skin-reference-state={selected ? "selected" : "unselected"}
                   onClick={() => activateItem(index)}
                   onKeyDown={(event) => handleRowKeyDown(event, index)}
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                   <span
-                    className={`pp-skin-v1-dashboard-status-box${statusActive ? " is-active" : ""}`}
-                    aria-label={statusActive ? "Active connected submenu" : "Inactive menu item"}
+                    className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
+                    aria-label={connected ? "Connected submenu" : "Menu item not connected yet"}
                     data-skin-reference-state="status"
-                    data-dashboard-status={statusActive ? "active" : "inactive"}
+                    data-dashboard-status={connected ? "active" : "inactive"}
+                    data-skin-menu-indicator={connected ? "connected" : "unwired"}
                   />
                 </button>
               </Fragment>

@@ -26,7 +26,7 @@ export function spawnCommand(command, args = [], options = {}) {
 
   if (process.platform === "win32" && /\.(?:cmd|bat)$/i.test(command)) {
     return spawn(
-      process.env.ComSpec || "cmd.exe",
+      "cmd.exe",
       windowsBatchArguments(command, args),
       spawnOptions,
     );

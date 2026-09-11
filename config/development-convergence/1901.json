@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "issue": 1901,
+  "brief": "docs/developer-briefs/1901-story-mode-capabilities-connections.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/local-ai-skin-host.tsx",
+    "app/skin-v1/story-mode-capability-connections.tsx",
+    "config/development-convergence/1901.json",
+    "docs/developer-briefs/1901-story-mode-capabilities-connections.md",
+    "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
+    "tests/issue-1897-skin-v1-typography-consistency.test.mjs",
+    "tests/issue-1901-story-mode-connections.test.mjs",
+    "tests/local-ai-video-default.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Developer Brief captures the twin Local/Cloud Capabilities and Connections contract and the exact connection order.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/1901-story-mode-capabilities-connections.md",
+          "contains": "Both Story Modes expose the same capability list in the same order"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/1901-story-mode-capabilities-connections.md",
+          "contains": "| 2 | ComfyUI | ComfyUI |"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/1901-story-mode-capabilities-connections.md",
+          "contains": "| 4 | MiniMax H3 | MiniMax |"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Local and Cloud directories expose Writing, Images, Video and Agents followed by Connections in the agreed visual order.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "{ id: \"agents\", shortcut: \"A\", detail: \"Local text compute available to PlotPickle Agents\", group: \"CAPABILITIES\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "{ id: \"h3\", shortcut: \"H\", detail: \"Advanced local MiniMax H3 text-to-video workflow through ComfyUI\", group: \"CONNECTIONS\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/cloud-story-mode-host.tsx",
+          "contains": "{ id: \"comfy-cloud\", shortcut: \"C\", detail: \"Remote ComfyUI workflow connection for compatible image and video production\", group: \"CONNECTIONS\" }"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/cloud-story-mode-host.tsx",
+          "contains": "{ id: \"minimax\", shortcut: \"M\", detail: \"MiniMax cloud API connection for Writing, Images, Video and Agent text work\", group: \"CONNECTIONS\" }"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Both modes use one compact shared capability surface with truthful status vocabulary and the local/cloud boundary fork.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-mode-capability-connections.tsx",
+          "contains": "I understand remote provider API requests may incur charges."
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-mode-capability-connections.tsx",
+          "contains": "Runs on this computer · no cloud provider charges."
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/story-mode-capability-connections.tsx",
+          "contains": "if (state === \"needs-test\") return \"Needs test\";"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/cloud-story-mode-host.tsx",
+          "contains": "<StoryModeCapabilityConnections"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "<StoryModeCapabilityConnections"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Focused regression coverage proves legacy nested capability surfaces are removed while cloud consent precedes cloud route selection.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1901-story-mode-connections.test.mjs",
+          "contains": "Cloud capability UX puts cost/data consent before connection rows and removes the duplicate legacy stack"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1901-story-mode-connections.test.mjs",
+          "contains": "assert.doesNotMatch(cloud, /CloudModelCatalogPanel/u);"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1901-story-mode-connections.test.mjs",
+          "contains": "assert.doesNotMatch(local, /AiRoutingPanel|LocalVideoPanel/u);"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Connection explanations distinguish OpenAI API from ChatGPT, Google Gemini API from the visible Gemini label, and local MiniMax H3 from MiniMax cloud.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/cloud-story-mode-host.tsx",
+          "contains": "This is an OpenAI API connection, not a ChatGPT subscription."
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/cloud-story-mode-host.tsx",
+          "contains": "Uses your Google Gemini API credential"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "It is separate from the MiniMax cloud API."
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "Dedicated connection setup pages remain the configuration owners and local video remains hardware-aware.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1901-story-mode-connections.test.mjs",
+          "contains": "detailed Connection pages remain the configuration owners"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "fetch(\"/api/local-ai/plugins/video\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/local-ai-skin-host.tsx",
+          "contains": "videoRuntimeConnection(), videoPluginConnection(\"ltx\"), videoPluginConnection(\"h3\")"
+        }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "The new Story Mode Connections regression and updated compatibility regressions run in PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1901-story-mode-connections.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/local-ai-video-default.test.mjs"
+        }
+      ]
+    }
+  ]
+}

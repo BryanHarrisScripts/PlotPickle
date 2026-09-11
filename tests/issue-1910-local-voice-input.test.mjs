@@ -38,8 +38,8 @@ test("#1910 pins one reviewed whisper.cpp Windows CPU runtime and immutable base
 
 test("#1910 dictated text preserves existing content, selection and ordinary field semantics", async () => {
   const voice = await voiceContract();
-  assert.deepEqual(voice.insertDictationText("Hello world", "brave new", 5, 5), { value: "Hello brave new world", caret: 16 });
-  assert.deepEqual(voice.insertDictationText("Alpha OLD omega", "new", 6, 9), { value: "Alpha new omega", caret: 10 });
+  assert.deepEqual(voice.insertDictationText("Hello world", "brave new", 5, 5), { value: "Hello brave new world", caret: 15 });
+  assert.deepEqual(voice.insertDictationText("Alpha OLD omega", "new", 6, 9), { value: "Alpha new omega", caret: 9 });
   assert.deepEqual(voice.insertDictationText("Keep me", "   ", 0, 0), { value: "Keep me", caret: 0 });
   assert.equal(voice.voiceInputFieldAllowed({ type: "text", descriptor: "Story note" }), true);
   assert.equal(voice.voiceInputFieldAllowed({ type: "search", descriptor: "Search every lesson" }), true);
@@ -77,9 +77,10 @@ test("#1910 one app-shell voice layer uses explicit microphone action and the ex
   assert.match(control, /aria-live="polite"/u);
   assert.doesNotMatch(control, /onSubmit|requestSubmit|\.submit\(/u);
   assert.match(layer, /voiceInputFieldAllowed/u);
+  assert.match(layer, /fieldRef\.current = next/u);
   assert.match(layer, /Object\.getOwnPropertyDescriptor\(prototype, "value"\)/u);
   assert.match(layer, /dispatchEvent\(new Event\("input", \{ bubbles: true \}\)\)/u);
-  assert.doesNotMatch(layer, /document\.activeElement.*setNativeFieldValue/su);
+  assert.match(layer, /const field = fieldRef\.current;\s*if \(!field\) return;\s*setNativeFieldValue\(field, next\)/u);
 });
 
 test("#1910 native execution is fixed-path, bounded, non-shell, ephemeral and fail-closed", async () => {

@@ -110,15 +110,22 @@ const LOCAL_MENU: readonly LocalMenuItem[] = [
   { id: "h3", shortcut: "H", label: "MINIMAX H3", detail: "Advanced local video plug-in and setup", group: "ENGINES" },
 ];
 
-const VIEW_TITLES: Record<LocalMenuView, string> = {
-  writing: "WRITING",
-  images: "IMAGES",
-  video: "VIDEO",
-  ollama: "OLLAMA",
-  comfyui: "COMFYUI",
-  ltx: "LTX-VIDEO",
-  h3: "MINIMAX H3",
+const LOCAL_DISPLAY_LABELS: Record<LocalMenuView, string> = {
+  writing: "Writing",
+  images: "Images",
+  video: "Video",
+  ollama: "Ollama",
+  comfyui: "ComfyUI",
+  ltx: "LTX-Video",
+  h3: "MiniMax H3",
 };
+
+const LOCAL_GROUP_LABELS: Record<LocalMenuItem["group"], string> = {
+  TASKS: "CAPABILITIES",
+  ENGINES: "PROVIDERS",
+};
+
+const VIEW_TITLES: Record<LocalMenuView, string> = LOCAL_DISPLAY_LABELS;
 
 function localReady(group: RoutingGroup | undefined) {
   if (!group) return false;
@@ -257,7 +264,7 @@ export default function LocalAiSkinHost() {
     return (
       <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view={view}>
         <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-local-ai-section-title">
-          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE / {VIEW_TITLES[view]}</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE / {VIEW_TITLES[view].toUpperCase()}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-local-ai-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
             <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>BACK TO LOCAL STORY MODE</button>
@@ -289,7 +296,7 @@ export default function LocalAiSkinHost() {
         </div>
         {(["writing", "images", "video"] as const).map((capability) => (
           <div key={capability} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: "7px 0", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
-            <strong>{capability.toUpperCase()}</strong>
+            <strong>{LOCAL_DISPLAY_LABELS[capability]}</strong>
             <StatusLight label={capability} ready={lights[capability]} />
           </div>
         ))}
@@ -305,10 +312,10 @@ export default function LocalAiSkinHost() {
         {LOCAL_MENU.map((item, index) => {
           const selected = index === menuSelectedIndex;
           const showGroup = index === 0 || LOCAL_MENU[index - 1]?.group !== item.group;
-          const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
+          const command = `[${item.shortcut}] ${LOCAL_DISPLAY_LABELS[item.id]}`.padEnd(24, " ");
           return (
             <Fragment key={item.id}>
-              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
+              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {LOCAL_GROUP_LABELS[item.group]} --</div> : null}
               <button
                 ref={(node) => { menuRefs.current[index] = node; }}
                 type="button"

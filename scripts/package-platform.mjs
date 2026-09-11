@@ -82,7 +82,7 @@ function projectPackagedVisualReferenceManifest() {
 
 projectPackagedVisualReferenceManifest();
 
-for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "README.md", "LICENSE", "LICENSES.md", "TRADEMARKS.md"]) {
+for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "README.md", "LICENSE", "LICENSES.md", "NOTICE.md", "TRADEMARKS.md"]) {
   if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }
 const launcher = platform === "windows" ? "Start-PlotPickle.bat" : platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";

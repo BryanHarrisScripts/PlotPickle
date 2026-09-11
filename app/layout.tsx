@@ -26,6 +26,7 @@ import WriteStudioHost from "./write-studio-host";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import UiContinuityAnchor from "./ui-continuity-anchor";
+import UniversalVoiceInputLayer from "./_components/universal-voice-input-layer";
 import "./design-tokens.css";
 import "./globals.css";
 import "./skin-v1-definition.css";
@@ -120,6 +121,7 @@ export default function RootLayout({
       >
         <AppearanceRuntime />
         <SkinV1Runtime />
+        <UniversalVoiceInputLayer />
         <LegacyDemoBoundary>
           <ProfileAccessRouter>
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>

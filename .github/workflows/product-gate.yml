@@ -46,6 +46,12 @@ jobs:
       - name: Validate bundled local video setup
         run: node --test tests/ltx-bundled-default.test.mjs tests/local-ai-plugin-registry.test.mjs
 
+      - name: Validate local whisper.cpp dictation fixture
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
+
       - name: Validate focused UAT contracts
         run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
 

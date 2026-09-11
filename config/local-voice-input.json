@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "capability": "plotpickle-local-voice-input",
+  "provider": "whisper.cpp",
+  "platform": "windows-x64-cpu",
+  "runtime": {
+    "releaseTag": "b5130",
+    "sourceCommit": "927cfce34f31707e17f2bff35c349632fb9e2c3a",
+    "assetName": "whisper-bin-x64.zip",
+    "downloadUrl": "https://github.com/ggml-org/whisper.cpp/releases/download/b5130/whisper-bin-x64.zip",
+    "sizeBytes": 8573270,
+    "sha256": "f9ec6c52a2e949b62ab51fa21d0d497958f9e41c3010c157c4e42932d5316f3c",
+    "executable": "whisper-cli.exe",
+    "license": "MIT",
+    "licensePath": "runtime/whisper/LICENSE.whisper.cpp.txt"
+  },
+  "model": {
+    "id": "base.en",
+    "fileName": "ggml-base.en.bin",
+    "repository": "ggerganov/whisper.cpp",
+    "revision": "80da2d8bfee42b0e836fc3a9890373e5defc00a6",
+    "downloadUrl": "https://huggingface.co/ggerganov/whisper.cpp/resolve/80da2d8bfee42b0e836fc3a9890373e5defc00a6/ggml-base.en.bin",
+    "sizeBytes": 147964211,
+    "sha256": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002",
+    "license": "MIT",
+    "provenancePath": "runtime/whisper/MODEL-PROVENANCE.md"
+  },
+  "capture": {
+    "sampleRate": 16000,
+    "channels": 1,
+    "bitsPerSample": 16,
+    "maxDurationSeconds": 120,
+    "maxWavBytes": 4000044
+  },
+  "execution": {
+    "timeoutMilliseconds": 180000,
+    "maxOutputBytes": 1048576,
+    "cloudFallback": false,
+    "automaticRuntimeDownload": false
+  }
+}

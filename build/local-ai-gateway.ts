@@ -31,6 +31,7 @@ import { registerPlayhouseDirectoryGateway } from "./playhouse-directory-gateway
 import { registerVerificationOrchestrationGateway } from "./verification-orchestration-gateway";
 import { registerVerificationInboxGateway } from "./verification-inbox-gateway";
 import { registerStoryDecisionGateway } from "./story-decisions/gateway";
+import { registerLocalVoiceGateway } from "./voice/local-voice-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -54,7 +55,7 @@ function registerSingleImageBoundary(server: ViteDevServer) {
 export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
-    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server);
+    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerLocalPluginGateway(server); registerPlotPickleNodeTopologyGateway(server); registerLocalVoiceGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerStoryDecisionGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAutonomousGuestRoutingStatus(server); registerAiRoutingGateway(server); registerProviderModelCatalogGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);

@@ -372,6 +372,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
       typeof value === "string" && /^output-[1-9][0-9]?$/.test(value)
     )).slice(0, 12)
     : [];
+  const conversationMode = body.conversationMode === true;
   const started = Date.now();
   const text = await askPlotPickleAgent({
     profile,
@@ -380,6 +381,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     message,
     history: safeHistory(body.history),
     foundationFieldIds,
+    conversationMode,
   });
   if (!text) throw new Error("The provider returned no text.");
   const updated: ProviderProfile = {
@@ -402,6 +404,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     contextTokens: updated.contextTokens,
     runtime: "mastra",
     agentId,
+    conversationMode,
     text,
     latencyMs: updated.lastLatencyMs,
     verifiedAt: updated.assistantVerifiedAt,

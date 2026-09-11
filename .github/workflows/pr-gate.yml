@@ -67,6 +67,9 @@ jobs:
       - name: Validate living architecture documentation
         run: node --test tests/architecture-blueprint-generator.test.mjs tests/issue-1909-living-architecture.test.mjs
 
+      - name: Validate universal local voice input
+        run: node --test tests/issue-1910-local-voice-input.test.mjs
+
       - name: Validate core auth and storage contracts
         run: |
           npm run test:plotpickle-auth

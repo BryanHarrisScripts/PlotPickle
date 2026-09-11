@@ -287,16 +287,21 @@ export async function askPlotPickleAgent(input: {
   message: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   foundationFieldIds?: readonly string[];
+  conversationMode?: boolean;
 }) {
   const mastra = createPlotPickleMastra(input.profile);
   const agent = mastra.getAgent(input.agentId);
   const storyCouncilMode = isStoryCouncilRuntimeMessage(input.message);
+  const directConversationMode = input.conversationMode === true && !storyCouncilMode;
   const transcript = (input.history ?? [])
     .filter((item) => item.content.length <= 2_000)
     .slice(-6)
     .map((item) => `${item.role === "user" ? "Writer" : "Agent"}: ${item.content.slice(0, 900)}`)
     .join("\n");
   const prompt = [
+    directConversationMode
+      ? "DIRECT_CONVERSATION_MODE: Reply as this specialist in natural conversational prose. Do not use a PLAN, Wyrmwood, rubric, or other structured JSON envelope unless the writer explicitly asks for JSON. Preserve all Human approval, canon, provider, tool, and persistence boundaries."
+      : "",
     `Conversation tone: ${input.tone}.`,
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
@@ -328,7 +333,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("The Story Council specialist did not return a structured contribution.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "foundations-planner") {
+    if (!directConversationMode && input.agentId === "foundations-planner") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {
@@ -339,7 +344,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("The local Foundations drafter did not return a structured proposal.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "wyrmwood-rival-director") {
+    if (!directConversationMode && input.agentId === "wyrmwood-rival-director") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {
@@ -350,7 +355,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("Master Oaken-Vague did not return a structured Wyrmwood turn.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "wyrmwood-curriculum-evaluator") {
+    if (!directConversationMode && input.agentId === "wyrmwood-curriculum-evaluator") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {

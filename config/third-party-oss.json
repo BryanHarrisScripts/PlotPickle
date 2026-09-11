@@ -177,6 +177,23 @@
       "readme": true
     },
     {
+      "id": "whisper-cpp",
+      "name": "whisper.cpp",
+      "category": "local-speech-runtime",
+      "usage": "managed-download",
+      "version": "b5130",
+      "revision": "927cfce34f31707e17f2bff35c349632fb9e2c3a",
+      "source": "https://github.com/ggml-org/whisper.cpp",
+      "license": "MIT",
+      "licenseSource": "runtime/whisper/LICENSE.whisper.cpp.txt",
+      "noticePath": "runtime/whisper/LICENSE.whisper.cpp.txt",
+      "manifestPath": "config/local-voice-input.json",
+      "evidencePath": "build/voice/local-voice-runtime.ts",
+      "plotpickleUse": "Optional reviewed CPU-only local speech-to-text runtime for universal PlotPickle dictation. It is downloaded only after explicit Human setup approval and never falls back to cloud transcription.",
+      "distribution": "The reviewed Windows x64 CPU release archive is downloaded into PlotPickle's local runtime home only after explicit approval and exact size/SHA-256 verification.",
+      "readme": false
+    },
+    {
       "id": "comfyui",
       "name": "ComfyUI",
       "category": "local-media-runtime",
@@ -335,6 +352,15 @@
       "license": "OpenRAIL++",
       "evidencePath": "build/ai/comfyui-sdxl-starter-gateway.ts",
       "plotpickleUse": "Optional reviewed local image-model starter. The exact file size and SHA-256 are pinned before activation."
+    },
+    {
+      "id": "whisper-base-en",
+      "name": "whisper.cpp base.en speech model",
+      "usage": "managed-download",
+      "source": "ggerganov/whisper.cpp on Hugging Face at immutable revision 80da2d8bfee42b0e836fc3a9890373e5defc00a6",
+      "license": "MIT",
+      "evidencePath": "config/local-voice-input.json",
+      "plotpickleUse": "Optional reviewed English local speech-to-text model. PlotPickle pins the exact revision, byte size and SHA-256 before activation."
     }
   ],
   "nonOssConnections": [

@@ -9,6 +9,7 @@ import BuzzLiveHealthCard from "./buzz-live-health-card";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
+import LocalVoiceSettings from "./local-voice-settings";
 import MediaRoutingPanel from "./media-routing-panel";
 import AiComputeWorkspace from "./settings/compute/ai-compute-workspace";
 import SettingsHelperDirectory from "./settings-helper-directory";
@@ -26,6 +27,7 @@ type SettingsSection =
   | "sage-plan"
   | "local-compute"
   | "cloud-compute"
+  | "voice"
   | "comfyui"
   | "archive"
   | "buzz"
@@ -58,6 +60,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { id: "sage-plan", label: "Sage & PLAN Setup", detail: "Readiness, model selection and tests for local writing AI" },
       { id: "local-compute", label: "Local Compute", detail: "Writing, images and video on this computer" },
       { id: "cloud-compute", label: "Cloud Compute", detail: "Writing, images and video through connected online services" },
+      { id: "voice", label: "Local Dictation", detail: "Install and verify local whisper.cpp speech-to-text" },
       { id: "comfyui", label: "ComfyUI Setup", detail: "Install, connect and verify the local media engine" },
     ],
   },
@@ -89,6 +92,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   [LEGACY_HELP_DESTINATION.id]: "help",
   "settings-local-compute": "local-compute",
   "settings-cloud-compute": "cloud-compute",
+  "settings-voice": "voice",
   "settings-models": "local-compute",
   "settings-sage": "sage-plan",
   "settings-plan": "sage-plan",
@@ -111,6 +115,8 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   plan: "sage-plan",
   routing: "local-compute",
   ollama: "local-compute",
+  voice: "voice",
+  dictation: "voice",
   images: "local-compute",
   video: "local-compute",
   media: "local-compute",
@@ -191,6 +197,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-local-compute"><AiComputeWorkspace mode="local" /></section>;
       case "cloud-compute":
         return <section id="settings-cloud-compute"><AiComputeWorkspace mode="cloud" /></section>;
+      case "voice":
+        return <section id="settings-voice"><SectionIntro eyebrow="Settings · Local" title="Set up Local Dictation." detail="Install and integrity-check the reviewed CPU-only whisper.cpp runtime and base.en speech model. Microphone audio stays temporary and local; transcripts enter ordinary PlotPickle text fields." /><LocalVoiceSettings /></section>;
       case "comfyui":
         return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · AI Compute" title="Set up ComfyUI." detail="Install, connect and verify the local image and video engine here. Local Compute continues to own route selection, while cloud providers remain separately configured in Cloud Compute." /><MediaRoutingPanel onManage={(target) => { if (/openai|minimax|cloud/i.test(target)) navigateSection("cloud-compute"); }} /></section>;
       case "archive":

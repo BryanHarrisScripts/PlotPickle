@@ -4,6 +4,7 @@ import { Agent } from "@mastra/core/agent";
 import { Mastra } from "@mastra/core/mastra";
 import { jsonSchema } from "ai";
 import { isStoryCouncilRuntimeMessage } from "../core/story-workflow/story-council/runtime-protocol.mjs";
+import { AGENT_PROFILES } from "../lib/agents/agent-profiles";
 import type { ProviderProfile } from "./writing-assistant-store";
 
 const SAGE_BRINEWICK_SKILL_PATH = resolve(process.cwd(), ".agents/skills/sage-brinewick/SKILL.md");
@@ -87,6 +88,20 @@ const MASTRA_RUNTIME_VERSION = (() => {
     return "unknown";
   }
 })();
+
+function profileForRole(roleId: PlotPickleAgentId) {
+  return AGENT_PROFILES.find((profile) => profile.execution.kind === "embedded-mastra" && profile.execution.roleId === roleId) ?? null;
+}
+
+function conversationInstructions(roleId: PlotPickleAgentId) {
+  const profile = profileForRole(roleId);
+  const identity = profile?.displayName || roleId;
+  return [
+    `Direct conversation mode is active. Speak naturally as ${identity}; do not output a task schema just because this role also has a structured workflow.`,
+    "Answer the writer's actual question, ask for missing context when needed, and keep specialist advice advisory until the writer explicitly acts on it.",
+    "Conversation mode never changes canon, PLAN fields, Wyrmwood state, rewards, provider settings, files, or external systems.",
+  ].join(" ");
+}
 
 function foundationProposalSchema(fieldIds: readonly string[]) {
   const fields = Object.fromEntries(fieldIds.map((fieldId) => [fieldId, {
@@ -258,7 +273,7 @@ export function mastraModelConfig(profile: ProviderProfile) {
   } as const;
 }
 
-export function createPlotPickleMastra(profile: ProviderProfile) {
+export function createPlotPickleMastra(profile: ProviderProfile, conversationMode = false) {
   const model = mastraModelConfig(profile);
   const agents = Object.fromEntries(Object.entries(PLOTPICKLE_AGENT_ROLES).map(([id, role]) => [
     id,
@@ -272,6 +287,7 @@ export function createPlotPickleMastra(profile: ProviderProfile) {
         id === "curriculum-guide" ? `Sage Brinewick skill:\n${SAGE_BRINEWICK_PLAYBOOK}` : "",
         id === "wyrmwood-rival-director" ? `Master Oaken-Vague playbook:\n${MASTER_OAKEN_VAGUE_PLAYBOOK}` : "",
         id === "wyrmwood-curriculum-evaluator" ? `Wyrmwood Curriculum Evaluator playbook:\n${WYRMWOOD_EVALUATOR_PLAYBOOK}` : "",
+        conversationMode ? conversationInstructions(id as PlotPickleAgentId) : "",
       ].filter(Boolean).join("\n\n"),
       model,
       maxRetries: 1,
@@ -287,17 +303,21 @@ export async function askPlotPickleAgent(input: {
   message: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   foundationFieldIds?: readonly string[];
+  conversationMode?: boolean;
 }) {
-  const mastra = createPlotPickleMastra(input.profile);
-  const agent = mastra.getAgent(input.agentId);
   const storyCouncilMode = isStoryCouncilRuntimeMessage(input.message);
+  const conversationMode = input.conversationMode === true && !storyCouncilMode;
+  const mastra = createPlotPickleMastra(input.profile, conversationMode);
+  const agent = mastra.getAgent(input.agentId);
   const transcript = (input.history ?? [])
     .filter((item) => item.content.length <= 2_000)
     .slice(-6)
     .map((item) => `${item.role === "user" ? "Writer" : "Agent"}: ${item.content.slice(0, 900)}`)
     .join("\n");
+  const identity = profileForRole(input.agentId)?.displayName || input.agentId;
   const prompt = [
     `Conversation tone: ${input.tone}.`,
+    conversationMode ? `You are speaking directly with the writer as ${identity}. Stay in conversational mode for this turn.` : "",
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");
@@ -328,7 +348,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("The Story Council specialist did not return a structured contribution.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "foundations-planner") {
+    if (!conversationMode && input.agentId === "foundations-planner") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {
@@ -339,7 +359,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("The local Foundations drafter did not return a structured proposal.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "wyrmwood-rival-director") {
+    if (!conversationMode && input.agentId === "wyrmwood-rival-director") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {
@@ -350,7 +370,7 @@ export async function askPlotPickleAgent(input: {
       if (!result.object) throw new Error("Master Oaken-Vague did not return a structured Wyrmwood turn.");
       return JSON.stringify(result.object);
     }
-    if (input.agentId === "wyrmwood-curriculum-evaluator") {
+    if (!conversationMode && input.agentId === "wyrmwood-curriculum-evaluator") {
       const result = await agent.generate(prompt, {
         ...executionOptions,
         structuredOutput: {

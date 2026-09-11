@@ -13,7 +13,7 @@ const DOMAIN_SKILL_RULES = [
   { pattern: /\blearn\b|curriculum|sage|foundations?/i, skills: ["sage-brinewick"] },
   { pattern: /\bplan\b|foundations?-planner|plan-foundations/i, skills: ["plan-foundations"] },
   { pattern: /\bbuzz\b|guildhall/i, skills: ["buzz-guildhall-reporting"] },
-  { pattern: /visual|storyboard|previs|image|comfyui|continuity/i, skills: ["visual-contract", "visual-qa"] },
+  { pattern: /visual|storyboard|previs|image|comfyui|continuity|skin[-_/ ]?v?1|dashboard|surface|settings|profile|community|ui[-_/ ]?(?:ux|style|layout)/i, skills: ["visual-contract", "visual-qa"] },
   { pattern: /animatic|lazy[-_/ ]?frames/i, skills: ["lazy-frames-animatic"] },
   { pattern: /marquee|poster|key[- ]?art|trailer|teaser/i, skills: ["marquee-director"] },
   { pattern: /critic|feedback|audience clarity|commercial positioning/i, skills: ["critics-circle"] },

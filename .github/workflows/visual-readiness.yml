@@ -36,7 +36,7 @@ jobs:
       - name: Validate Phase 1D experience and STORY zero-state contract
         run: node --test tests/issue-1715-ui-experience-lab.test.mjs
       - name: Validate headless Experience and Skin V1 contracts
-        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs
+        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs tests/issue-1883-dashboard-visual-director.test.mjs
       - name: Enforce current UI continuity and forgiving shell contracts
         run: node --test tests/issue-544-ui-continuity-agent.test.mjs tests/workspace-navigation-contract.test.mjs tests/issue-1719-forgiving-shell.test.mjs tests/issue-1722-sitemap-migration.test.mjs
       - name: Enforce global design adoption and screen-locking contract
@@ -57,7 +57,7 @@ jobs:
           printf '{"private":true}\n' > "$UI_A11Y_ROOT/package.json"
           npm install --prefix "$UI_A11Y_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @axe-core/playwright@4.13.0 @playwright/test@1.63.0 @mcp-b/webmcp-polyfill@5.1.0
           "$UI_A11Y_ROOT/node_modules/.bin/playwright" install --with-deps chromium
-      - name: Enforce rendered accessibility, experience and WebMCP surface guardrails
+      - name: Enforce rendered accessibility, experience and Dashboard visual authority
         id: rendered-guardrails
         continue-on-error: true
         env:
@@ -86,13 +86,16 @@ jobs:
             node lib/verification/ui-experience-audit.mjs --server http://127.0.0.1:4173 --fixture-server http://127.0.0.1:4174 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
             node lib/verification/sitemap/ui-sitemap-rendered-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
             node lib/verification/webmcp-surface-visual-audit.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
+            node lib/verification/skin-v1-visual-director.mjs --server http://127.0.0.1:4173 --tool-root "$UI_A11Y_ROOT" --storage-state "$STORAGE_STATE"
           } 2>&1 | tee /tmp/plotpickle-ui-experience-output.log
-      - name: Upload Skin V1 surface candidate screenshots
+      - name: Upload Skin V1 surface evidence and Visual Director report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: skin-v1-surface-candidates-${{ github.run_id }}
-          path: .artifacts/visual-readiness/*.png
+          path: |
+            .artifacts/visual-readiness/*.png
+            .artifacts/visual-readiness/visual-director-report.json
           if-no-files-found: warn
           retention-days: 14
       - name: Enforce rendered guardrail verdict

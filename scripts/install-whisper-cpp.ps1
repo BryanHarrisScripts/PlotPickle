@@ -26,14 +26,14 @@ function Assert-Hash([string]$Path, [string]$Expected, [string]$Label) {
   }
 }
 
-$Home = Get-PlotPickleHome
-$RuntimeRoot = Join-Path $Home ("runtime\voice\whisper-" + $Config.runtime.releaseTag)
+$PlotPickleHome = Get-PlotPickleHome
+$RuntimeRoot = Join-Path $PlotPickleHome ("runtime\voice\whisper-" + $Config.runtime.releaseTag)
 $BinRoot = Join-Path $RuntimeRoot "bin"
 $ModelRoot = Join-Path $RuntimeRoot "models"
 $ExePath = Join-Path $BinRoot $Config.runtime.executable
 $ModelPath = Join-Path $ModelRoot $Config.model.fileName
 $InstalledPath = Join-Path $RuntimeRoot "installed.json"
-$WorkRoot = Join-Path $Home "temp\voice-setup"
+$WorkRoot = Join-Path $PlotPickleHome "temp\voice-setup"
 $RuntimeArchive = Join-Path $WorkRoot $Config.runtime.assetName
 $ModelDownload = Join-Path $WorkRoot $Config.model.fileName
 $ExtractRoot = Join-Path $WorkRoot "runtime-extract"

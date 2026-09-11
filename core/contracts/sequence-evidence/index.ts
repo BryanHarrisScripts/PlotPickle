@@ -4,23 +4,26 @@ export const SEQUENCE_EVIDENCE_SCHEMA_VERSION = 1 as const;
 export const SEQUENCE_EVIDENCE_GATE_VERSION = "1.0.0" as const;
 
 export type SequenceEvidenceMode = "reference" | "verify" | "continuity";
+export type SequenceEvidenceMeasurementState = "measured" | "skipped" | "unavailable";
 export type SequenceEvidenceCheckState = "passed" | "failed" | "advisory" | "skipped" | "unavailable" | "stale";
 export type SequenceEvidenceSeverity = "blocker" | "major" | "minor" | "advisory";
 export type SequenceEvidenceClassification = "blocking" | "advisory";
-export type SequenceEvidenceDisposition = "open" | "repair-requested" | "resolved-after-rerun" | "accepted-risk" | "dismissed";
-export type SequenceEvidenceMeasurementState = "measured" | "skipped" | "unavailable";
+export type SequenceEvidenceFindingDisposition = "open" | "repair-requested" | "resolved-after-rerun" | "accepted-risk" | "dismissed";
 
-export type SequenceEvidenceGateId =
-  | "G1-address-coverage"
-  | "G2-duration"
-  | "G3-mini-block-coverage"
-  | "G4-machine-evidence-integrity"
-  | "G5-keyframe-evidence"
-  | "G6-camera-motion"
-  | "G7-continuity-handoff"
-  | "G8-revision-provenance"
-  | "G9-annotation-schema"
-  | "G10-no-silent-skip";
+export const SEQUENCE_EVIDENCE_GATE_IDS = Object.freeze([
+  "G1-address-coverage",
+  "G2-duration",
+  "G3-mini-block-coverage",
+  "G4-machine-evidence-integrity",
+  "G5-keyframe-evidence",
+  "G6-camera-motion",
+  "G7-continuity-handoff",
+  "G8-revision-provenance",
+  "G9-annotation-schema",
+  "G10-no-silent-skip",
+] as const);
+
+export type SequenceEvidenceGateId = typeof SEQUENCE_EVIDENCE_GATE_IDS[number];
 
 export type SequenceEvidenceShotSize = "wide" | "medium" | "close" | "extreme-close" | "insert" | "unknown";
 export type SequenceEvidenceShotCategory = "establishing" | "coverage" | "reaction" | "detail" | "transition" | "other" | "unknown";
@@ -94,9 +97,22 @@ export type SequenceEvidenceRecord = Readonly<{
   annotation: SequenceEvidenceAnnotation | null;
 }>;
 
+export type SequenceEvidenceGateResult = Readonly<{
+  gateId: SequenceEvidenceGateId;
+  state: SequenceEvidenceCheckState;
+  explanation: string;
+  renderAddress?: string;
+  renderAddressPair?: readonly string[];
+}>;
+
 export type SequenceEvidenceFinding = Readonly<{
   id: string;
-  mode: SequenceEvidenceMode;
+  gateId: SequenceEvidenceGateId;
+  severity: SequenceEvidenceSeverity;
+  classification: SequenceEvidenceClassification;
+  state: SequenceEvidenceCheckState;
+  disposition: SequenceEvidenceFindingDisposition;
+  explanation: string;
   projectId: string;
   projectRevision: number | null;
   blockNumber: number | null;
@@ -107,106 +123,64 @@ export type SequenceEvidenceFinding = Readonly<{
   expectedRefs: readonly string[];
   observedMediaRefs: readonly string[];
   measurementRefs: readonly string[];
-  annotationRefs: readonly string[];
-  gateId: SequenceEvidenceGateId;
-  gateVersion: typeof SEQUENCE_EVIDENCE_GATE_VERSION;
-  severity: SequenceEvidenceSeverity;
-  classification: SequenceEvidenceClassification;
-  state: SequenceEvidenceCheckState;
-  explanation: string;
-  analyzer: SequenceEvidenceAnalyzer;
-  modelProvenance: SequenceEvidenceModelProvenance | null;
-  disposition: SequenceEvidenceDisposition;
+  analyzerId: string;
+  analyzerVersion: string;
   createdAt: string;
 }>;
 
-export type SequenceEvidenceGateResult = Readonly<{
-  gateId: SequenceEvidenceGateId;
-  gateVersion: typeof SEQUENCE_EVIDENCE_GATE_VERSION;
-  state: SequenceEvidenceCheckState;
+export type SequenceEvidenceContactSheetEntry = Readonly<{
   renderAddress: string;
-  renderAddressPair: readonly string[];
-  explanation: string;
-}>;
-
-export type SequenceEvidenceContactSheetItem = Readonly<{
-  renderAddress: string;
+  productionShotId: string;
   aFrameRef: string;
   bFrameRef: string;
+  measuredMotion: number | null;
 }>;
 
-export type SequenceEvidenceMiniBlockReport = Readonly<{
+export type SequenceEvidenceReport = Readonly<{
   schemaVersion: typeof SEQUENCE_EVIDENCE_SCHEMA_VERSION;
-  mode: "verify" | "continuity";
+  gateVersion: typeof SEQUENCE_EVIDENCE_GATE_VERSION;
+  mode: SequenceEvidenceMode;
   projectId: string;
-  projectRevision: number;
-  blockNumber: number;
-  miniBlockNumber: number;
+  projectRevision: number | null;
   anchorRef: string;
-  expectedRenderAddresses: readonly string[];
-  records: readonly SequenceEvidenceRecord[];
-  gateResults: readonly SequenceEvidenceGateResult[];
-  findings: readonly SequenceEvidenceFinding[];
-  contactSheet: readonly SequenceEvidenceContactSheetItem[];
-  expectedTechnicalClipCount: 25;
-  expectedTechnicalClipSeconds: 3;
-  expectedTechnicalCoverageSeconds: 75;
+  blockNumber: number | null;
+  miniBlockNumber: number | null;
+  expectedTechnicalClipCount: number;
   observedTechnicalClipCount: number;
+  expectedTechnicalCoverageSeconds: number;
   observedTechnicalCoverageSeconds: number;
+  certified: boolean;
   blockingCount: number;
   advisoryCount: number;
   skippedOrUnavailableCount: number;
-  certified: boolean;
+  records: readonly SequenceEvidenceRecord[];
+  gateResults: readonly SequenceEvidenceGateResult[];
+  findings: readonly SequenceEvidenceFinding[];
+  contactSheet: readonly SequenceEvidenceContactSheetEntry[];
   generatedAt: string;
 }>;
 
-export type SequenceEvidenceReferenceShot = Readonly<{
-  shotIndex: number;
+export type SequenceEvidenceReferenceBoundary = Readonly<{
+  index: number;
   startSecond: number;
   endSecond: number;
   durationSeconds: number;
-  machineEvidenceId: string;
 }>;
 
 export type SequenceEvidenceReferenceReport = Readonly<{
   schemaVersion: typeof SEQUENCE_EVIDENCE_SCHEMA_VERSION;
+  gateVersion: typeof SEQUENCE_EVIDENCE_GATE_VERSION;
   mode: "reference";
   sourceMediaRef: string;
   sourceMediaHash: string;
-  durationSeconds: number;
-  shots: readonly SequenceEvidenceReferenceShot[];
+  durationSeconds: number | null;
   shotCount: number;
-  averageShotSeconds: number;
-  medianShotSeconds: number;
-  cutsPerMinute: number;
+  averageShotSeconds: number | null;
+  medianShotSeconds: number | null;
+  cutsPerMinute: number | null;
+  boundaries: readonly SequenceEvidenceReferenceBoundary[];
   canonAuthority: false;
   generatedAt: string;
-}>;
-
-export type SequenceEvidenceClipMeasurement = Readonly<{
-  renderAddress: string;
-  sourceMediaRef: string;
-  sourceMediaHash?: string;
-  sourceExists: boolean;
-  mediaType?: string;
-  durationSeconds?: number | null;
-  width?: number | null;
-  height?: number | null;
-  frameRate?: number | null;
-  codec?: string;
-  container?: string;
-  measuredMotion?: number | null;
-  aFrameRef?: string;
-  bFrameRef?: string;
-  contactSheetRef?: string;
-  productionShotId?: string;
-  storyboardDependencyKey?: string;
-  projectRevision?: number | null;
-  generationBaseRevision?: number | null;
-  generationProvenanceRefs?: readonly string[];
-  measurementState?: SequenceEvidenceMeasurementState;
-  analyzer?: Partial<SequenceEvidenceAnalyzer>;
-  measuredAt?: string;
 }>;
 
 export type SequenceEvidenceAnnotationInput = Readonly<{
@@ -235,12 +209,21 @@ function cleanText(value: unknown, maximum = 500) {
   return typeof value === "string" ? value.replace(/\u0000/g, "").trim().slice(0, maximum) : "";
 }
 
+function hasNumericValue(value: unknown) {
+  return value !== null
+    && value !== undefined
+    && value !== ""
+    && typeof value !== "boolean";
+}
+
 function finite(value: unknown, minimum = 0, maximum = Number.MAX_SAFE_INTEGER) {
+  if (!hasNumericValue(value)) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null;
 }
 
 function integer(value: unknown, minimum = 0, maximum = Number.MAX_SAFE_INTEGER) {
+  if (!hasNumericValue(value)) return null;
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : null;
 }
@@ -340,55 +323,40 @@ export function sequenceEvidenceAnnotationErrors(value: SequenceEvidenceAnnotati
   if (value.shotSize !== undefined && !SHOT_SIZES.has(value.shotSize as SequenceEvidenceShotSize)) errors.push("shotSize is outside the reviewed Sequence Evidence vocabulary");
   if (value.shotCategory !== undefined && !SHOT_CATEGORIES.has(value.shotCategory as SequenceEvidenceShotCategory)) errors.push("shotCategory is outside the reviewed Sequence Evidence vocabulary");
   if (value.cameraMovement !== undefined && !CAMERA_MOVEMENTS.has(value.cameraMovement as SequenceEvidenceCameraMovement)) errors.push("cameraMovement is outside the reviewed Sequence Evidence vocabulary");
-  return errors;
+  if (value.visibleDescription !== undefined && typeof value.visibleDescription !== "string") errors.push("visibleDescription must be text when supplied");
+  if (value.continuityObservation !== undefined && typeof value.continuityObservation !== "string") errors.push("continuityObservation must be text when supplied");
+  return Object.freeze(errors);
 }
 
 export function attachSequenceEvidenceAnnotation(
   machine: SequenceEvidenceMachineEvidence,
   value: SequenceEvidenceAnnotationInput,
 ): SequenceEvidenceRecord {
-  const immutableMachine = normalizeSequenceEvidenceMachineEvidence(machine);
-  const errors = sequenceEvidenceAnnotationErrors(value);
-  if (errors.length) throw new Error(`Invalid Sequence Evidence annotation: ${errors.join("; ")}`);
-  return Object.freeze({ machine: immutableMachine, annotation: normalizeSequenceEvidenceAnnotation(value) });
+  return Object.freeze({
+    machine,
+    annotation: normalizeSequenceEvidenceAnnotation(value),
+  });
 }
 
 export function sequenceEvidenceMachineForRenderSlot(
   slot: RenderClipSlot,
-  measurement: SequenceEvidenceClipMeasurement,
-  context: { readonly projectId: string; readonly projectRevision: number; readonly mode?: "verify" | "continuity" },
+  value: Partial<SequenceEvidenceMachineEvidence>,
+  context: Readonly<{
+    projectId: string;
+    projectRevision: number | null;
+    mode?: SequenceEvidenceMode;
+  }>,
 ): SequenceEvidenceMachineEvidence {
   return normalizeSequenceEvidenceMachineEvidence({
-    id: `sequence-evidence:${slot.id}`,
-    mode: context.mode ?? "verify",
-    sourceMediaRef: measurement.sourceMediaRef,
-    sourceMediaHash: measurement.sourceMediaHash ?? "",
-    sourceExists: measurement.sourceExists,
-    mediaType: measurement.mediaType ?? "",
-    durationSeconds: measurement.durationSeconds ?? null,
-    width: measurement.width ?? null,
-    height: measurement.height ?? null,
-    frameRate: measurement.frameRate ?? null,
-    codec: measurement.codec ?? "",
-    container: measurement.container ?? "",
-    measuredMotion: measurement.measuredMotion ?? null,
-    aFrameRef: measurement.aFrameRef ?? "",
-    bFrameRef: measurement.bFrameRef ?? "",
-    contactSheetRef: measurement.contactSheetRef ?? "",
+    ...value,
+    id: cleanText(value.id, 180) || `sequence-evidence:${slot.id}`,
+    mode: context.mode || "verify",
     canonicalRenderAddress: slot.id,
-    canonicalRenderAddressPair: [],
     blockNumber: slot.blockNumber,
     miniBlockNumber: slot.miniBlockNumber,
-    productionShotId: measurement.productionShotId ?? "",
-    storyboardDependencyKey: measurement.storyboardDependencyKey ?? "",
     projectId: context.projectId,
     projectRevision: context.projectRevision,
-    generationBaseRevision: measurement.generationBaseRevision ?? measurement.projectRevision ?? null,
-    generationProvenanceRefs: measurement.generationProvenanceRefs ?? [],
     boundaryStartSecond: slot.startSecond,
     boundaryEndSecond: slot.endSecond,
-    measurementState: measurement.measurementState ?? "measured",
-    analyzer: measurement.analyzer ?? {},
-    measuredAt: measurement.measuredAt,
   });
 }

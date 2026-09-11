@@ -277,8 +277,15 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
 
   assert.match(host, /PLOTPICKLE DEFAULT/u);
   assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);
-  assert.match(host, /title="TASKS"/u);
-  assert.match(host, /title="ENGINES"/u);
+  assert.match(host, /group: "TASKS"/u);
+  assert.match(host, /group: "ENGINES"/u);
+  assert.match(host, /data-skin-menu="local-story-mode"/u);
+  assert.match(host, /data-skin-menu-shortcut=\{item\.shortcut\}/u);
+  assert.match(host, /data-skin-menu-connected="true"/u);
+  assert.match(host, /data-skin-menu-indicator="connected"/u);
+  assert.match(host, /event\.key === "ArrowDown"/u);
+  assert.match(host, /event\.key === "ArrowUp"/u);
+  assert.match(host, /event\.key === "Enter"/u);
   for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "LTX-VIDEO", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
   assert.match(host, /function StatusLight/u);
   assert.match(host, /function fixedLocalImagesReady/u);

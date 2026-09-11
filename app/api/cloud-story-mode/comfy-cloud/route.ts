@@ -2,6 +2,11 @@ import {
   getProfileExperienceRuntime,
   requestBoundary,
 } from "../../../../core/auth/profile-experience/profile-experience-runtime";
+import {
+  DEFAULT_VISUAL_COMPUTE_LANE,
+  isVisualComputeLaneId,
+  type VisualComputeLaneId,
+} from "../../../../lib/runtime/ai/visual-compute-lanes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +17,6 @@ const OBJECT_INFO_PATH = "/api/object_info";
 
 type AccessMode = "browser" | "api";
 type OutputHandling = "download" | "cloud";
-type WorkflowLane = "cinematic" | "marketing" | "utility";
 type Concurrency = 1 | 2 | 4;
 
 type ComfyCloudSettings = {
@@ -21,7 +25,7 @@ type ComfyCloudSettings = {
   accessMode: AccessMode;
   concurrency: Concurrency;
   outputHandling: OutputHandling;
-  defaultLane: WorkflowLane;
+  defaultLane: VisualComputeLaneId;
   savedAt: string;
   testedAt: string;
   testedNodeCount: number;
@@ -55,7 +59,7 @@ function normalized(value: unknown): ComfyCloudSettings {
   const concurrency: Concurrency = item.concurrency === 2 || item.concurrency === 4 ? item.concurrency : 1;
   const accessMode: AccessMode = item.accessMode === "api" ? "api" : "browser";
   const outputHandling: OutputHandling = item.outputHandling === "cloud" ? "cloud" : "download";
-  const defaultLane: WorkflowLane = item.defaultLane === "marketing" || item.defaultLane === "utility" ? item.defaultLane : "cinematic";
+  const defaultLane = isVisualComputeLaneId(item.defaultLane) ? item.defaultLane : DEFAULT_VISUAL_COMPUTE_LANE;
   return {
     version: 1,
     apiKey: typeof item.apiKey === "string" ? item.apiKey.trim() : "",
@@ -112,9 +116,9 @@ function outputHandling(value: unknown): OutputHandling {
   throw new Error("Choose whether completed outputs are downloaded or left in Comfy Cloud.");
 }
 
-function workflowLane(value: unknown): WorkflowLane {
-  if (value === "cinematic" || value === "marketing" || value === "utility") return value;
-  throw new Error("Choose Cinematic, Marketing or Utility as the default workflow lane.");
+function workflowLane(value: unknown): VisualComputeLaneId {
+  if (isVisualComputeLaneId(value)) return value;
+  throw new Error("Choose a workflow lane registered by PlotPickle visual compute.");
 }
 
 async function readSettings(runtimeState: Awaited<ReturnType<typeof getProfileExperienceRuntime>>, authContext: Parameters<typeof runtimeState.privateStorage.readCredential>[0]) {

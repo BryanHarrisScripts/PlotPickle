@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "issue": 1908,
+  "brief": "docs/developer-briefs/1908-draftlens-reader-simulation-harness.md",
+  "allowedChanges": [
+    ".agents/skills/writer-in-residence/references/specialists/reader-review.md",
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1908.json",
+    "config/resident-writer-specialists.json",
+    "core/project/reader-simulation-harness.ts",
+    "docs/developer-briefs/1908-draftlens-reader-simulation-harness.md",
+    "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "One canonical DraftLens-owned Reader Simulation Harness schema exists outside the UI and reuses the canonical 24 Story Block coordinate system.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export const READER_SIMULATION_OWNER = \"draftlens\""
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export const READER_SIMULATION_BLOCK_COUNT = STORY_BLOCK_COUNT"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Reader exposure is sequential and no-lookahead is enforced by state and payload construction, including quit sealing and unmapped Blocks.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "READER_PENDING_EXPOSURE_MUST_BE_REACTED_TO"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "READER_BLOCK_EVIDENCE_REQUIRED_BEFORE_ADVANCE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+          "contains": "a reader who quits in Block 06 never receives Block 07 or later screenplay text"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Every Block records the structured reader evidence contract with provenance, attention, expectation, confusion, strongest moment, character pull, momentum and continue/skim/quit state.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export type ReaderBlockEvidence ="
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "sourceDraftFingerprint: string;"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "readingDecision: ReaderDecision;"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Reader profiles, recall isolation, revision comparison and provider/runtime auditability are first-class harness behavior.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export const DEFAULT_READER_PROFILES"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export function buildReaderRecallInput"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "export function compareReaderSimulationRuns"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "READER_PROVIDER_FALLBACK_FORBIDDEN"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The existing Fresh Reader Specialist is upgraded as the DraftLens reader-facing capability and no duplicate First Reader agent is introduced.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/resident-writer-specialists.json",
+          "contains": "Serve as the reader-facing capability inside DraftLens's Reader Simulation Harness"
+        },
+        {
+          "type": "file-contains",
+          "path": ".agents/skills/writer-in-residence/references/specialists/reader-review.md",
+          "contains": "DraftLens owns and orchestrates the harness"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+          "contains": "without registering a duplicate reader agent"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "Raw reader observation remains advisory and separate from DraftLens diagnosis, PPF canon and PlotPickle Score V1.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "advisory-review-evidence"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/reader-simulation-harness.ts",
+          "contains": "DRAFTLENS_DIAGNOSIS_REQUIRES_SEALED_READER_EVIDENCE"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+          "contains": "keeps PlotPickle Score V1 isolated"
+        }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "Focused regression protects hidden-future isolation, recall isolation, persistence, revision comparison, provider policy and canon non-mutation in PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+          "contains": "hidden future planning, outcome and DraftLens metadata cannot leak"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+          "contains": "raw reader observation stays separate from DraftLens diagnosis and never mutates source canon"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "Validate DraftLens Reader Simulation Harness"
+        }
+      ]
+    }
+  ]
+}

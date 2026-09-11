@@ -199,6 +199,37 @@ PlotPickle can connect to optional services, including:
 
 Core PlotPickle should still open and remain useful when those optional services are unavailable.
 
+<!-- PLOTPICKLE:OSS:START -->
+## Built with open source
+
+PlotPickle is an open-source project built on, connected to, and developed with a wider open-source ecosystem. We want those projects to be visible rather than disappear behind the application.
+
+The canonical machine-readable inventory is [`config/third-party-oss.json`](config/third-party-oss.json). It records how each system is used, its upstream source, licence evidence, pinned/user-managed version status and any retained notice. `package.json` and `package-lock.json` remain the authoritative complete npm dependency graph, including transitive packages; the public-readiness audit checks that graph against this registry.
+
+| Open-source system | How it contributes to PlotPickle | Licence |
+|---|---|---|
+| Node.js | Bundled Windows application runtime | MIT, plus upstream third-party notices |
+| React | Primary UI runtime | MIT |
+| Vite | Build/local application runtime | MIT |
+| Vinext | Next-compatible application runtime | MIT |
+| Mastra | Bounded agent/orchestration runtime | Apache-2.0 |
+| Vercel AI SDK | Provider-neutral AI runtime primitives | Apache-2.0 |
+| Drizzle ORM | Data/database tooling | Apache-2.0 |
+| libsodium / libsodium-wrappers-sumo | Authentication/profile cryptography | ISC |
+| BUZZ | Optional Community, signed rooms and presence | Apache-2.0 |
+| Ollama | Optional user-managed local model runtime | MIT |
+| llama.cpp | Optional user-managed local model runtime | MIT |
+| ComfyUI | Optional user-managed local image/video runtime | GPL-3.0 |
+| Lazy Frames | Optional reviewed local animatic tool | MIT |
+| Portless | Developer endpoint/runtime tooling | Apache-2.0 |
+| Pi coding agent | Optional external developer/repair worker | MIT |
+| Cline | Optional external developer/repair worker | Apache-2.0 |
+
+PlotPickle also supports reviewed third-party model/assets under their own terms. For example, the optional SDXL Base 1.0 starter is pinned and verified under its OpenRAIL++ terms. A connection being supported does **not** mean it is open source: LM Studio and configured proprietary/cloud/BYOK providers are deliberately excluded from the OSS table rather than being mislabelled.
+
+For licence scope and retained notices, see [`LICENSES.md`](LICENSES.md), [`NOTICE.md`](NOTICE.md), the full npm lockfile and the paths recorded in the canonical registry. Third-party names and trademarks belong to their respective owners; acknowledgement does not imply endorsement or sponsorship.
+<!-- PLOTPICKLE:OSS:END -->
+
 ## Run from source
 
 The installer is the normal path for testers. Developers can run the repository directly.

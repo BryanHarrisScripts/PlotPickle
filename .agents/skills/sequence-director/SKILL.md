@@ -14,7 +14,7 @@ metadata:
 
 Use this skill for a host-selected canonical Mini-Block. It adapts reference-first continuity planning, ordered visible action, timing, motion flow and hard-rule constraints into PlotPickle's existing **24 Blocks → 96 Mini-Blocks → Previs → 2,400 render clips** production architecture.
 
-The skill does **not** require any one image or video model. Model/runtime selection belongs to the PlotPickle host and local/cloud plug-in registry.
+The skill does not require any one image or video model. Model/runtime selection belongs to the PlotPickle host and local/cloud plug-in registry.
 
 ## PLAN procedure
 

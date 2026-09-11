@@ -2,6 +2,8 @@
 
 ## Scope and provenance
 
+<!-- PLOTPICKLE:OSS-INFLUENCE:lightricks-comfyui-ltx-workflow -->
+<!-- PLOTPICKLE:OSS-INFLUENCE:comfyui-ltx-workflow-template -->
 `build/ai/comfyui-ltx-default.ts` is PlotPickle's single-stage API-format adaptation of the official Lightricks distilled workflow:
 
 - https://github.com/Lightricks/ComfyUI-LTXVideo/blob/36fdaf500b3cd6f7fa8b2dfec36e984746e630a2/example_workflows/low_level/ltxvideo-i2v-distilled.json

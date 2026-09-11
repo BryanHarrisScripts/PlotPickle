@@ -170,10 +170,11 @@ test("#1910 focused regression runs in PR Gate and the local gateway is composed
 });
 
 test("#1910 slash opens the canonical routable Agent picker and changes the real conversation target", async () => {
-  const [picker, consoleSource, gateway] = await Promise.all([
+  const [picker, consoleSource, gateway, agentRuntime] = await Promise.all([
     text("app/_components/agent-shortcut-picker.tsx"),
     text("app/writing-assistant-console.tsx"),
     text("build/writing-assistant-gateway.ts"),
+    text("build/mastra-agent-runtime.ts"),
   ]);
   assert.match(picker, /event\.key === "\/" && emptyPrompt/u);
   assert.match(picker, /\/api\/writing-assistant\/agent-compute/u);
@@ -186,4 +187,10 @@ test("#1910 slash opens the canonical routable Agent picker and changes the real
   assert.match(consoleSource, /agentId: target\.roleId, conversationMode: true/u);
   assert.match(gateway, /const conversationMode = body\.conversationMode === true/u);
   assert.match(gateway, /conversationMode,/u);
+  assert.match(agentRuntime, /conversationMode\?: boolean/u);
+  assert.match(agentRuntime, /const directConversationMode = input\.conversationMode === true && !storyCouncilMode/u);
+  assert.match(agentRuntime, /DIRECT_CONVERSATION_MODE/u);
+  assert.match(agentRuntime, /!directConversationMode && input\.agentId === "foundations-planner"/u);
+  assert.match(agentRuntime, /!directConversationMode && input\.agentId === "wyrmwood-rival-director"/u);
+  assert.match(agentRuntime, /!directConversationMode && input\.agentId === "wyrmwood-curriculum-evaluator"/u);
 });

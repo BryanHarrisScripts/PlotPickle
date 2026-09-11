@@ -1,0 +1,130 @@
+# Developer Brief — #1905 PlotPickle Score
+
+## Purpose
+
+Establish **PlotPickle Score** as a first-class, source-agnostic structural story rating that can be shown prominently whenever a story is loaded.
+
+This is a core story-analysis capability, not an AI-judge feature and not a Skin-specific calculation. The score is derived deterministically from canonical story evidence and may be rendered by any current or future PlotPickle Skin.
+
+## Product decision
+
+The canonical Dashboard shows a dedicated **SCORE** section immediately beneath the Dashboard image whenever an active library story exists.
+
+The headline value behaves like a familiar public rating surface: one memorable number from 0–100, backed by transparent sub-scores. A story without enough usable evidence is **NR** rather than receiving a misleading quality score.
+
+PlotPickle Score must never reward or penalize authorship origin. A Human-written, AI-assisted, AI-generated, imported, example, or native PlotPickle story uses the same scoring contract.
+
+## Five dimensions
+
+All dimensions normalize to 0–1 internally and display as percentages.
+
+| Dimension | Direction | V1 meaning |
+| --- | --- | --- |
+| Alignment | Higher is better | Story evidence is distributed coherently across the canonical 24 Blocks / 96 mini-blocks and across Acts and mini-block positions. |
+| Verbosity | Lower is better | Repeated or near-duplicate story units consume narrative space without enough new evidence. |
+| Erosion | Lower is better | Narrative mass is disproportionately concentrated into overloaded mini-blocks instead of remaining structurally distributed. |
+| Progression | Higher is better | Consecutive populated story units materially differ rather than repeating/resetting the same evidence. |
+| Coverage | Higher is better | The amount of the 96-mini-block structural surface that contains usable story evidence. |
+
+## Headline formula
+
+The V1 headline score uses the geometric mean so one severe structural weakness cannot be hidden by strong averages elsewhere:
+
+`Score = 100 × fifthRoot(Alignment × (1 − Verbosity) × (1 − Erosion) × Progression × Coverage)`
+
+Displayed component values remain intuitive: Verbosity and Erosion are shown as measured problem percentages with **lower is better** semantics.
+
+## Evidence policy
+
+### Preferred evidence
+
+If an imported screenplay exists, use its bounded `ImportedScreenplayPassage` records because they are source story evidence already mapped to PlotPickle Block/mini-block coordinates.
+
+### Native PlotPickle fallback
+
+If no imported screenplay passages exist, use the most downstream non-empty canonical 24/96 stage content for each mini-block in this order:
+
+1. storyboard;
+2. build;
+3. plan.
+
+Do not combine all three versions into one unit merely to increase evidence mass.
+
+### Rating states
+
+- **unrated** — fewer than 8 populated mini-blocks; display `NR`.
+- **provisional** — enough evidence to calculate, but fewer than 60% of the 96 mini-blocks are populated, or imported screenplay mapping has not reached `reviewed` state.
+- **rated** — at least 60% structural coverage and, for imported screenplay evidence, the projection is `reviewed`.
+
+The numeric formula remains deterministic in both provisional and rated states.
+
+## V1 deterministic proxies
+
+PlotPickle Score V1 deliberately avoids an LLM judge.
+
+- Alignment uses Block presence, Act presence/balance, and mini-block ordinal balance.
+- Verbosity uses exact duplicate and conservative near-duplicate comparison between story units.
+- Erosion uses narrative word mass with a bounded passage-type diversity multiplier and detects units materially above the story's median/mean load.
+- Progression uses adjacent populated-unit distinctiveness. This is a deterministic structural proxy, not a claim of semantic understanding.
+- Coverage uses populated mini-blocks divided by 96.
+
+These are versioned scoring rules. Future versions may add richer deterministic state-transition evidence without silently changing historical score semantics.
+
+## Authority and privacy
+
+PlotPickle Score:
+
+- reads canonical project/source evidence;
+- does not mutate canon;
+- does not invoke a provider;
+- does not inspect AI provenance for bonus/penalty purposes;
+- does not become creative authority;
+- does not claim artistic merit, audience approval, box-office success, or proof that PlotPickle improves films.
+
+It is a transparent **structural story rating**.
+
+## Dashboard presentation
+
+When an active story exists, render the SCORE section directly after the canonical Dashboard image and before the PlotPickle brand block.
+
+Show:
+
+- `PLOTPICKLE SCORE`;
+- the 0–100 headline or `NR`;
+- rating state (`RATED`, `PROVISIONAL`, `NOT RATED`);
+- current story title;
+- Alignment, Verbosity, Erosion, Progression, Coverage;
+- a compact evidence basis note.
+
+Use only Skin V1 design tokens. Do not create a score-only palette.
+
+The Dashboard listens to the existing Project Library change event so switching, creating, importing, or saving the active story refreshes the visible score.
+
+## Documentation contract
+
+The root README must introduce PlotPickle Score as a core capability.
+
+Durable system documentation lives at `docs/architecture/PLOTPICKLE-SCORE.md` and records:
+
+- formula;
+- five dimensions;
+- evidence selection;
+- rating states;
+- source-agnostic Human/AI policy;
+- limitations;
+- versioning/evolution rules.
+
+The public claim is bounded: **any movie/story can be rated once its story evidence is represented in PlotPickle/PPF**. The score does not infer a film from nothing and does not equate structural score with artistic taste.
+
+## Acceptance
+
+1. Canonical score engine exists outside the UI.
+2. Engine returns five dimensions, headline score, rating state, and evidence metadata.
+3. Imported screenplay and native 24/96 evidence are supported.
+4. No AI/provider call or provenance weighting participates in the numeric score.
+5. Dashboard SCORE section is immediately beneath Dashboard art for an active story.
+6. Insufficient evidence is `NR`.
+7. README documents the feature.
+8. System documentation preserves the complete V1 contract.
+9. Focused regression verifies core contract, Dashboard placement, source neutrality, and docs.
+10. PR Gate and Product Gate remain authoritative exact-head verification.

@@ -95,7 +95,7 @@
         {
           "type": "file-contains",
           "path": ".github/workflows/pr-gate.yml",
-          "contains": "node scripts/run-development-convergence.mjs --changed --base-ref origin/main"
+          "contains": "node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}"
         }
       ]
     },

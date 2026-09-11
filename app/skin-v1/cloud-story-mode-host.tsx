@@ -1,24 +1,42 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import AiRoutingPanel from "../ai-routing-panel";
-import CloudModelCatalogPanel from "../settings/compute/cloud-model-catalog-panel";
 import GeminiProviderSetupPanel from "../settings/ai-provider/gemini-provider-setup-panel";
 import CloudProviderSetupPanel from "./cloud-provider-setup-panel";
 import ComfyCloudSetupPanel from "./comfy-cloud-setup-panel";
+import StoryModeCapabilityConnections, {
+  type StoryModeCapability,
+  type StoryModeConnectionRow,
+  type StoryModeConnectionState,
+} from "./story-mode-capability-connections";
 
-type CloudStoryView = "menu" | "writing" | "images" | "video" | "agents" | "openai" | "minimax" | "gemini" | "comfy-cloud";
+type CloudStoryView = "menu" | StoryModeCapability | "openai" | "comfy-cloud" | "gemini" | "minimax";
 type CloudMenuView = Exclude<CloudStoryView, "menu">;
-type CapabilityKey = "writing" | "images" | "video" | "agents";
-type RoutingOption = { configured: boolean; ready: boolean; locality: string };
+type CapabilityKey = StoryModeCapability;
+type RoutingCapability = "text" | "image" | "video";
+type CloudRoute = "openai" | "gemini" | "minimax";
+type RoutingOption = {
+  configured: boolean;
+  ready: boolean;
+  model: string;
+  verifiedAt: string;
+  error: string;
+  locality: string;
+  cost?: string;
+  settingsTarget?: string;
+};
 type RoutingGroup = { selected: string; options: Record<string, RoutingOption> };
 type RoutingStatus = { text: RoutingGroup; image: RoutingGroup; video: RoutingGroup };
+type ComfyCloudStatus = {
+  configured: boolean;
+  tested: boolean;
+  defaultLane?: string;
+};
 type CloudMenuItem = Readonly<{
   id: CloudMenuView;
   shortcut: string;
-  label: string;
   detail: string;
-  group: "TASKS" | "CLOUD RESOURCES";
+  group: "CAPABILITIES" | "CONNECTIONS";
 }>;
 
 const shell: React.CSSProperties = {
@@ -83,14 +101,14 @@ function directoryRow(selected: boolean): React.CSSProperties {
 }
 
 const CLOUD_MENU: readonly CloudMenuItem[] = [
-  { id: "writing", shortcut: "W", label: "WRITING", detail: "Cloud writing and story reasoning", group: "TASKS" },
-  { id: "images", shortcut: "I", label: "IMAGES", detail: "Cloud artwork and visual generation", group: "TASKS" },
-  { id: "video", shortcut: "V", label: "VIDEO", detail: "Cloud motion and previs generation", group: "TASKS" },
-  { id: "agents", shortcut: "A", label: "AGENTS", detail: "Cloud text compute available to PlotPickle Agents", group: "TASKS" },
-  { id: "openai", shortcut: "O", label: "OPENAI", detail: "User-owned OpenAI API authority for supported writing and image tasks", group: "CLOUD RESOURCES" },
-  { id: "minimax", shortcut: "M", label: "MINIMAX", detail: "User-owned MiniMax API authority for supported writing, image and video tasks", group: "CLOUD RESOURCES" },
-  { id: "gemini", shortcut: "G", label: "GOOGLE GEMINI", detail: "User-owned Gemini authority for supported writing and Agent text tasks", group: "CLOUD RESOURCES" },
-  { id: "comfy-cloud", shortcut: "C", label: "COMFYUI CLOUD", detail: "Cloud workflows, curated production lanes and Comfy automation tools", group: "CLOUD RESOURCES" },
+  { id: "writing", shortcut: "W", detail: "Cloud writing and story reasoning", group: "CAPABILITIES" },
+  { id: "images", shortcut: "I", detail: "Cloud artwork and visual generation", group: "CAPABILITIES" },
+  { id: "video", shortcut: "V", detail: "Cloud motion and previs generation", group: "CAPABILITIES" },
+  { id: "agents", shortcut: "A", detail: "Cloud text compute available to PlotPickle Agents", group: "CAPABILITIES" },
+  { id: "openai", shortcut: "O", detail: "OpenAI API connection for supported cloud Writing, Images and Agent work", group: "CONNECTIONS" },
+  { id: "comfy-cloud", shortcut: "C", detail: "Remote ComfyUI workflow connection for compatible image and video production", group: "CONNECTIONS" },
+  { id: "gemini", shortcut: "G", detail: "Google Gemini API connection for supported cloud Writing and Agent text work", group: "CONNECTIONS" },
+  { id: "minimax", shortcut: "M", detail: "MiniMax cloud API connection for Writing, Images, Video and Agent text work", group: "CONNECTIONS" },
 ];
 
 const CLOUD_DISPLAY_LABELS: Record<CloudMenuView, string> = {
@@ -99,17 +117,38 @@ const CLOUD_DISPLAY_LABELS: Record<CloudMenuView, string> = {
   video: "Video",
   agents: "Agents",
   openai: "OpenAI",
-  minimax: "MiniMax",
-  gemini: "Gemini",
   "comfy-cloud": "ComfyUI",
-};
-
-const CLOUD_GROUP_LABELS: Record<CloudMenuItem["group"], string> = {
-  TASKS: "CAPABILITIES",
-  "CLOUD RESOURCES": "PROVIDERS",
+  gemini: "Gemini",
+  minimax: "MiniMax",
 };
 
 const VIEW_TITLES: Record<CloudMenuView, string> = CLOUD_DISPLAY_LABELS;
+
+const CLOUD_DETAILS: Record<"openai" | "comfy-cloud" | "gemini" | "minimax", string> = {
+  openai: "Uses your OpenAI API credential for supported cloud Writing, Images and Agent work. This is an OpenAI API connection, not a ChatGPT subscription. API requests may incur provider charges.",
+  "comfy-cloud": "Connects to supported ComfyUI workflows running away from this computer for compatible remote/cloud image and video production.",
+  gemini: "Uses your Google Gemini API credential for supported cloud Writing and Agent text work.",
+  minimax: "Uses your MiniMax API credential for supported cloud Writing, Images, Video and Agent text work. This cloud service is separate from the local MiniMax H3 workflow.",
+};
+
+function routingCapability(capability: CapabilityKey): RoutingCapability {
+  if (capability === "writing" || capability === "agents") return "text";
+  return capability === "images" ? "image" : "video";
+}
+
+function connectionState(option: RoutingOption | undefined): StoryModeConnectionState {
+  if (!option) return "setup";
+  if (option.error) return "error";
+  if (option.ready) return "ready";
+  if (option.configured) return "needs-test";
+  return "setup";
+}
+
+function setupActionLabel(state: StoryModeConnectionState) {
+  if (state === "ready") return "Change model";
+  if (state === "needs-test" || state === "error") return "Test / setup";
+  return "Set up";
+}
 
 function cloudReady(group: RoutingGroup | undefined) {
   if (!group) return false;
@@ -126,7 +165,7 @@ function StatusLight({ label, ready }: { label: string; ready: boolean }) {
       style={{
         width: 12,
         height: 12,
-        borderRadius: "var(--pp-skin-radius)",
+        borderRadius: "50%",
         border: `var(--pp-skin-border-thin) solid ${ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-line)"}`,
         background: ready ? "var(--pp-skin-accent-bright)" : "var(--pp-skin-surface-3)",
         boxShadow: ready ? "2px 2px 0 var(--pp-skin-accent-deep)" : "none",
@@ -139,12 +178,21 @@ function StatusLight({ label, ready }: { label: string; ready: boolean }) {
 export default function CloudStoryModeHost() {
   const [view, setView] = useState<CloudStoryView>("menu");
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
+  const [comfyCloud, setComfyCloud] = useState<ComfyCloudStatus | null>(null);
+  const [paidAcknowledged, setPaidAcknowledged] = useState(false);
+  const [dataSharingAcknowledged, setDataSharingAcknowledged] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [working, setWorking] = useState("");
   const [menuSelectedIndex, setMenuSelectedIndex] = useState(0);
   const menuRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const refreshStatus = useCallback(async () => {
-    const response = await fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null);
-    if (response?.ok) setRouting(await response.json() as RoutingStatus);
+    const [routingResponse, comfyResponse] = await Promise.all([
+      fetch("/api/ai-routing/status", { cache: "no-store" }).catch(() => null),
+      fetch("/api/cloud-story-mode/comfy-cloud", { cache: "no-store", credentials: "same-origin" }).catch(() => null),
+    ]);
+    if (routingResponse?.ok) setRouting(await routingResponse.json() as RoutingStatus);
+    if (comfyResponse?.ok) setComfyCloud(await comfyResponse.json() as ComfyCloudStatus);
   }, []);
 
   useEffect(() => {
@@ -156,8 +204,8 @@ export default function CloudStoryModeHost() {
 
   const lights: Record<CapabilityKey, boolean> = {
     writing: cloudReady(routing?.text),
-    images: cloudReady(routing?.image),
-    video: cloudReady(routing?.video),
+    images: cloudReady(routing?.image) || Boolean(comfyCloud?.tested),
+    video: cloudReady(routing?.video) || Boolean(comfyCloud?.tested),
     agents: cloudReady(routing?.text),
   };
 
@@ -171,6 +219,7 @@ export default function CloudStoryModeHost() {
     const item = CLOUD_MENU[index];
     if (!item) return;
     setMenuSelectedIndex(index);
+    setNotice("");
     setView(item.id);
   };
 
@@ -211,13 +260,109 @@ export default function CloudStoryModeHost() {
     }
   };
 
-  const manageRoute = (target: "ollama" | "openai" | "gemini" | "minimax" | "comfyui") => {
-    if (target === "openai" || target === "minimax" || target === "gemini") setView(target);
-  };
+  async function selectCloudRoute(capability: CapabilityKey, route: CloudRoute) {
+    if (working) return;
+    if (!paidAcknowledged) {
+      setNotice("Confirm that remote provider API requests may incur charges before choosing a cloud route.");
+      return;
+    }
+    const capabilityId = routingCapability(capability);
+    if (capabilityId === "video" && !dataSharingAcknowledged) {
+      setNotice("Confirm that cloud video prompts and selected reference media may leave this computer before choosing a cloud video route.");
+      return;
+    }
+    const option = routing?.[capabilityId].options[route];
+    if (!option?.ready) {
+      setNotice(`${CLOUD_DISPLAY_LABELS[route]} is not ready yet. Open its Connection page and complete setup/testing first.`);
+      return;
+    }
+
+    setWorking(`${capability}:${route}`);
+    setNotice("");
+    try {
+      const response = await fetch("/api/ai-routing/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          capability: capabilityId,
+          route,
+          paidAcknowledged: true,
+          dataSharingAcknowledged: capabilityId === "video" ? dataSharingAcknowledged : false,
+        }),
+      });
+      const body = await response.json() as RoutingStatus & { message?: string };
+      if (!response.ok) throw new Error(body.message || "The cloud route could not be selected.");
+      setRouting(body);
+      setNotice(`${CLOUD_DISPLAY_LABELS[route]} is now the active ${CLOUD_DISPLAY_LABELS[capability].toLowerCase()} connection.`);
+      window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The cloud route could not be selected.");
+      await refreshStatus();
+    } finally {
+      setWorking("");
+    }
+  }
+
+  function routedConnection(capability: CapabilityKey, route: CloudRoute, role: string): StoryModeConnectionRow {
+    const capabilityId = routingCapability(capability);
+    const group = routing?.[capabilityId];
+    const option = group?.options[route];
+    const state = connectionState(option);
+    const active = Boolean(option?.locality === "cloud" && option.ready && group?.selected === route);
+    return {
+      id: route,
+      label: CLOUD_DISPLAY_LABELS[route],
+      role,
+      detail: CLOUD_DETAILS[route],
+      state,
+      model: option?.model || undefined,
+      active,
+      setupLabel: setupActionLabel(state),
+      onSetup: () => setView(route),
+      useLabel: `Use for ${CLOUD_DISPLAY_LABELS[capability]}`,
+      onUse: () => void selectCloudRoute(capability, route),
+      useDisabled: state !== "ready" || Boolean(working) || !paidAcknowledged || (capabilityId === "video" && !dataSharingAcknowledged),
+    };
+  }
+
+  function comfyConnection(role: string): StoryModeConnectionRow {
+    const state: StoryModeConnectionState = comfyCloud?.tested ? "ready" : comfyCloud?.configured ? "needs-test" : "setup";
+    return {
+      id: "comfy-cloud",
+      label: "ComfyUI",
+      role,
+      detail: CLOUD_DETAILS["comfy-cloud"],
+      state,
+      model: comfyCloud?.defaultLane ? `Workflow lane: ${comfyCloud.defaultLane}` : undefined,
+      setupLabel: state === "ready" ? "Open setup" : state === "needs-test" ? "Test / setup" : "Set up",
+      onSetup: () => setView("comfy-cloud"),
+    };
+  }
+
+  function capabilityConnections(capability: CapabilityKey): StoryModeConnectionRow[] {
+    if (capability === "writing") return [
+      routedConnection(capability, "openai", "OpenAI API connection"),
+      routedConnection(capability, "gemini", "Google Gemini API connection"),
+      routedConnection(capability, "minimax", "MiniMax cloud API connection"),
+    ];
+    if (capability === "agents") return [
+      routedConnection(capability, "openai", "OpenAI API connection for Agent text compute"),
+      routedConnection(capability, "gemini", "Google Gemini API connection for Agent text compute"),
+      routedConnection(capability, "minimax", "MiniMax cloud API connection for Agent text compute"),
+    ];
+    if (capability === "images") return [
+      routedConnection(capability, "openai", "OpenAI API image connection"),
+      comfyConnection("Remote ComfyUI image workflow connection"),
+      routedConnection(capability, "minimax", "MiniMax cloud image API connection"),
+    ];
+    return [
+      comfyConnection("Remote ComfyUI video workflow connection"),
+      routedConnection(capability, "minimax", "MiniMax cloud video API connection"),
+    ];
+  }
 
   if (view !== "menu") {
-    const task = view === "writing" || view === "images" || view === "video" || view === "agents" ? view : null;
-    const routingCapability = view === "writing" || view === "agents" ? "text" : view === "images" ? "image" : view === "video" ? "video" : null;
+    const capability = view === "writing" || view === "images" || view === "video" || view === "agents" ? view : null;
     return (
       <div style={shell} data-skin-v1-cloud-story-mode="true" data-cloud-story-view={view}>
         <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-cloud-story-section-title">
@@ -228,13 +373,22 @@ export default function CloudStoryModeHost() {
           </div>
         </section>
 
-        {task ? <CloudModelCatalogPanel capability={task} /> : null}
-        {routingCapability ? <AiRoutingPanel capability={routingCapability} locality="cloud" onManage={manageRoute} /> : null}
-        {view === "agents" ? <section style={boundary}><strong>Agent Assignment</strong><p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)" }}>Cloud Story Mode supplies supported cloud text compute. Choose the PlotPickle-wide default and any per-Agent override in Settings / Agents. BUZZ is not part of this compute assignment.</p></section> : null}
+        {capability ? (
+          <StoryModeCapabilityConnections
+            mode="cloud"
+            capability={capability}
+            connections={capabilityConnections(capability)}
+            notice={notice}
+            paidAcknowledged={paidAcknowledged}
+            onPaidAcknowledged={setPaidAcknowledged}
+            dataSharingAcknowledged={dataSharingAcknowledged}
+            onDataSharingAcknowledged={setDataSharingAcknowledged}
+          />
+        ) : null}
         {view === "openai" ? <CloudProviderSetupPanel provider="openai" /> : null}
-        {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}
-        {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
         {view === "comfy-cloud" ? <ComfyCloudSetupPanel /> : null}
+        {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
+        {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}
       </div>
     );
   }
@@ -249,7 +403,7 @@ export default function CloudStoryModeHost() {
       <section style={statusPanel} aria-labelledby="plotpickle-cloud-title">
         <div>
           <h2 id="plotpickle-cloud-title" style={{ margin: 0, fontSize: 16, letterSpacing: ".09em" }}>PLOTPICKLE CLOUD</h2>
-          <p style={{ margin: "4px 0 0", color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>USER-OWNED PROVIDERS / EXPLICIT PAID ROUTES</p>
+          <p style={{ margin: "4px 0 0", color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>EXPLICIT CONNECTIONS / PAID ROUTES REQUIRE CONSENT</p>
         </div>
         {(["writing", "images", "video", "agents"] as const).map((capability) => (
           <div key={capability} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: "7px 0", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
@@ -272,7 +426,7 @@ export default function CloudStoryModeHost() {
           const command = `[${item.shortcut}] ${CLOUD_DISPLAY_LABELS[item.id]}`.padEnd(24, " ");
           return (
             <Fragment key={item.id}>
-              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {CLOUD_GROUP_LABELS[item.group]} --</div> : null}
+              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
               <button
                 ref={(node) => { menuRefs.current[index] = node; }}
                 type="button"
@@ -288,21 +442,13 @@ export default function CloudStoryModeHost() {
                 onClick={() => activateMenuItem(index)}
                 onKeyDown={(event) => handleMenuKeyDown(event, index)}
               >
-                <span className="pp-skin-v1-dashboard-command-line">{command} - {item.detail}</span>
-                <span
-                  className="pp-skin-v1-dashboard-status-box is-active"
-                  aria-label="Connected Cloud Story Mode destination"
-                  data-skin-menu-indicator="connected"
-                />
+                <span className="pp-skin-v1-dashboard-command">{command}</span>
+                <span className="pp-skin-v1-dashboard-description">{item.detail}</span>
               </button>
             </Fragment>
           );
         })}
       </div>
-
-      <footer style={{ ...chromeBoundary, margin: "var(--pp-skin-space-4) 0 0", color: "var(--pp-skin-ink-soft)", fontSize: 13 }} data-skin-chrome="solid">
-        Cloud Story Mode uses credentials owned by the current human profile. Saving authority does not activate a paid route. Writing, image and video tests require an explicit user action, and PlotPickle never silently falls back to a paid provider.
-      </footer>
     </div>
   );
 }

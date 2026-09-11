@@ -47,7 +47,7 @@ jobs:
         run: node --test tests/issue-1905-plotpickle-score.test.mjs
 
       - name: Validate DraftLens Reader Simulation Harness
-        run: node --test tests/issue-1908-draftlens-reader-simulation-harness.test.mjs tests/issue-978-resident-writer-specialists.test.mjs
+        run: node --test tests/issue-1908-draftlens-reader-simulation-harness.test.mjs tests/issue-1908-score-and-fingerprint-regression.test.mjs tests/issue-978-resident-writer-specialists.test.mjs
 
       - name: Validate development convergence
         run: node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}

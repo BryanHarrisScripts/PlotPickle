@@ -9,7 +9,8 @@
     "config/resident-writer-specialists.json",
     "core/project/reader-simulation-harness.ts",
     "docs/developer-briefs/1908-draftlens-reader-simulation-harness.md",
-    "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs"
+    "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
+    "tests/issue-1908-score-and-fingerprint-regression.test.mjs"
   ],
   "acceptance": [
     {
@@ -119,7 +120,7 @@
     },
     {
       "id": "A6",
-      "criterion": "Raw reader observation remains advisory and separate from DraftLens diagnosis, PPF canon and PlotPickle Score V1.",
+      "criterion": "Raw reader observation remains advisory and separate from DraftLens diagnosis, PPF canon and PlotPickle Score V1, whose output is invariant when reader evidence is added to the same story source.",
       "evidence": [
         {
           "type": "file-contains",
@@ -133,19 +134,24 @@
         },
         {
           "type": "file-contains",
-          "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
-          "contains": "keeps PlotPickle Score V1 isolated"
+          "path": "tests/issue-1908-score-and-fingerprint-regression.test.mjs",
+          "contains": "PlotPickle Score output is identical before and after adding reader evidence for the same story source"
         }
       ]
     },
     {
       "id": "A7",
-      "criterion": "Focused regression protects hidden-future isolation, recall isolation, persistence, revision comparison, provider policy and canon non-mutation in PR Gate.",
+      "criterion": "Focused regression protects hidden-future isolation, recall isolation, persistence, revision comparison, provider policy, fingerprint behavior and canon non-mutation in PR Gate.",
       "evidence": [
         {
           "type": "file-contains",
           "path": "tests/issue-1908-draftlens-reader-simulation-harness.test.mjs",
           "contains": "hidden future planning, outcome and DraftLens metadata cannot leak"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1908-score-and-fingerprint-regression.test.mjs",
+          "contains": "revised Block content changes the source fingerprint while preserving canonical Block identity"
         },
         {
           "type": "file-contains",

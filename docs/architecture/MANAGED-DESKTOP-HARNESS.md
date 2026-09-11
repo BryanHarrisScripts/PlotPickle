@@ -47,6 +47,7 @@ ACP remains an evaluation candidate for agent transport, not an automatic Mastra
 
 ## BERD reuse boundary
 
+<!-- PLOTPICKLE:OSS-INFLUENCE:berd -->
 BERD is used only as an architectural reference for managed sidecars, pinned runtime dependencies, lifecycle checks and validation patterns. No BERD/Goose product authority or Block branding is introduced. Any future source-code reuse requires file-level Apache-2.0 notice review before copying.
 
 ## #1071 Node relationship

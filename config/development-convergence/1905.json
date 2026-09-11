@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "issue": 1905,
+  "brief": "docs/developer-briefs/1905-plotpickle-score.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "README.md",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/plotpickle-score-panel.module.css",
+    "app/skin-v1/plotpickle-score-panel.tsx",
+    "config/development-convergence/1905.json",
+    "core/project/plotpickle-score.ts",
+    "docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md",
+    "docs/architecture/PLOTPICKLE-SCORE.md",
+    "docs/developer-briefs/1905-plotpickle-score.md",
+    "tests/issue-1905-plotpickle-score.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "A canonical deterministic score engine exposes Alignment, Verbosity, Erosion, Progression, Coverage, rating state and evidence metadata.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/plotpickle-score.ts",
+          "contains": "export function calculatePlotPickleScore"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/plotpickle-score.ts",
+          "contains": "Math.pow(clamp01(product), 1 / 5)"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The score supports imported screenplay evidence first, native 24/96 evidence as fallback, and refuses to fabricate a number from insufficient evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "core/project/plotpickle-score.ts",
+          "contains": "const units = imported.length ? imported : native;"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/project/plotpickle-score.ts",
+          "contains": "displayScore: \"NR\""
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The canonical Dashboard renders PlotPickle Score immediately below its reference image for the loaded active story.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-panel.tsx",
+          "contains": "<PlotPickleScorePanel />"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/plotpickle-score-panel.tsx",
+          "contains": "PROJECT_LIBRARY_CHANGED_EVENT"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The README and durable architecture docs define PlotPickle Score as a core source-neutral structural rating with bounded Bryan Harris attribution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "README.md",
+          "contains": "### PlotPickle Score"
+        },
+        {
+          "type": "file-contains",
+          "path": "README.md",
+          "contains": "PlotPickle-specific design by Bryan Harris"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-SCORE.md",
+          "contains": "A beat sheet describes landmarks. PlotPickle adds an address system around the whole territory."
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The mathematical narrative model formally documents normalized story coordinates, timing, drift, render-slot separation and Human creative authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md",
+          "contains": "Hierarchical Discrete Temporal Story Quantization (HDTSQ)"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md",
+          "contains": "u = t / T"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md",
+          "contains": "Mathematics gives the narrative an address. Evidence gives the address meaning. The Human decides whether that meaning serves the story."
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "Focused regression independently protects the scoring contract, Dashboard placement, mathematical documentation, attribution and source neutrality in PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1905-plotpickle-score.test.mjs",
+          "contains": "#1905 defines one deterministic five-dimension PlotPickle Score contract"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "Validate PlotPickle Score contract"
+        }
+      ]
+    }
+  ]
+}

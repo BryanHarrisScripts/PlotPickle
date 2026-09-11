@@ -97,8 +97,8 @@ test("local IMAGES uses RUN then READY and Skin V1 warning diagnostic controls",
   assert.match(panel, /background: "var\(--pp-skin-warning-surface\)"/u);
   assert.match(panel, /color: "var\(--pp-skin-warning-ink\)"/u);
   assert.match(panel, /borderRadius: "var\(--pp-skin-radius\)"/u);
-  assert.match(panel, /style=\{warningButton\}[^>]*>\{working === "diagnostic"/u);
+  assert.match(panel, /<button type="button" style=\{warningButton\} onClick=\{\(\) => void runDiagnostic\(\)\} disabled=\{Boolean\(working\)\}>\{working === "diagnostic"/u);
   assert.match(panel, /"RUN LOCAL DIAGNOSTIC"/u);
-  assert.match(panel, /style=\{warningButton\}[^>]*>\{working === "test"/u);
+  assert.match(panel, /<button type="button" style=\{warningButton\} onClick=\{\(\) => void testImage\(\)\} disabled=\{Boolean\(working\) \|\| !activeReady\}>\{working === "test"/u);
   assert.match(panel, /"TEST LOCAL IMAGE"/u);
 });

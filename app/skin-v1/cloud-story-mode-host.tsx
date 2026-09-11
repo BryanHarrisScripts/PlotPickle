@@ -93,16 +93,23 @@ const CLOUD_MENU: readonly CloudMenuItem[] = [
   { id: "comfy-cloud", shortcut: "C", label: "COMFYUI CLOUD", detail: "Cloud workflows, curated production lanes and Comfy automation tools", group: "CLOUD RESOURCES" },
 ];
 
-const VIEW_TITLES: Record<CloudMenuView, string> = {
-  writing: "WRITING",
-  images: "IMAGES",
-  video: "VIDEO",
-  agents: "AGENTS",
-  openai: "OPENAI",
-  minimax: "MINIMAX",
-  gemini: "GOOGLE GEMINI",
-  "comfy-cloud": "COMFYUI CLOUD",
+const CLOUD_DISPLAY_LABELS: Record<CloudMenuView, string> = {
+  writing: "Writing",
+  images: "Images",
+  video: "Video",
+  agents: "Agents",
+  openai: "OpenAI",
+  minimax: "MiniMax",
+  gemini: "Gemini",
+  "comfy-cloud": "ComfyUI",
 };
+
+const CLOUD_GROUP_LABELS: Record<CloudMenuItem["group"], string> = {
+  TASKS: "CAPABILITIES",
+  "CLOUD RESOURCES": "PROVIDERS",
+};
+
+const VIEW_TITLES: Record<CloudMenuView, string> = CLOUD_DISPLAY_LABELS;
 
 function cloudReady(group: RoutingGroup | undefined) {
   if (!group) return false;
@@ -214,16 +221,16 @@ export default function CloudStoryModeHost() {
     return (
       <div style={shell} data-skin-v1-cloud-story-mode="true" data-cloud-story-view={view}>
         <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-cloud-story-section-title">
-          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / CLOUD STORY MODE / {VIEW_TITLES[view]}</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / CLOUD STORY MODE / {VIEW_TITLES[view].toUpperCase()}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-cloud-story-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
-            <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>BACK TO CLOUD STORY MODE</button>
+            <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>Back to Cloud Story Mode</button>
           </div>
         </section>
 
         {task ? <CloudModelCatalogPanel capability={task} /> : null}
         {routingCapability ? <AiRoutingPanel capability={routingCapability} locality="cloud" onManage={manageRoute} /> : null}
-        {view === "agents" ? <section style={boundary}><strong>AGENT ASSIGNMENT</strong><p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)" }}>Cloud Story Mode supplies supported cloud text compute. Choose the PlotPickle-wide default and any per-Agent override in Settings / Agents. BUZZ is not part of this compute assignment.</p></section> : null}
+        {view === "agents" ? <section style={boundary}><strong>Agent Assignment</strong><p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)" }}>Cloud Story Mode supplies supported cloud text compute. Choose the PlotPickle-wide default and any per-Agent override in Settings / Agents. BUZZ is not part of this compute assignment.</p></section> : null}
         {view === "openai" ? <CloudProviderSetupPanel provider="openai" /> : null}
         {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}
         {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
@@ -246,7 +253,7 @@ export default function CloudStoryModeHost() {
         </div>
         {(["writing", "images", "video", "agents"] as const).map((capability) => (
           <div key={capability} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: "7px 0", borderTop: "var(--pp-skin-border-thin) solid var(--pp-skin-line)" }}>
-            <strong>{capability.toUpperCase()}</strong>
+            <strong>{CLOUD_DISPLAY_LABELS[capability]}</strong>
             <StatusLight label={capability} ready={lights[capability]} />
           </div>
         ))}
@@ -262,10 +269,10 @@ export default function CloudStoryModeHost() {
         {CLOUD_MENU.map((item, index) => {
           const selected = index === menuSelectedIndex;
           const showGroup = index === 0 || CLOUD_MENU[index - 1]?.group !== item.group;
-          const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
+          const command = `[${item.shortcut}] ${CLOUD_DISPLAY_LABELS[item.id]}`.padEnd(24, " ");
           return (
             <Fragment key={item.id}>
-              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
+              {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {CLOUD_GROUP_LABELS[item.group]} --</div> : null}
               <button
                 ref={(node) => { menuRefs.current[index] = node; }}
                 type="button"

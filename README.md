@@ -274,7 +274,7 @@ These projects are not presented as PlotPickle runtime dependencies. They are ac
 | Open-source reference | How it informed current PlotPickle | Licence |
 |---|---|---|
 | ReelBench Skills | Inspired the Sequence Evidence split between machine-measured facts, bounded model annotation and deterministic validation | Apache-2.0 |
-| BERD | Architectural reference for managed sidecars, pinned runtimes, lifecycle checks and validation patterns | Apache-2.0 at the pinned source revision |
+| BERD | Architectural reference for managed sidecars, pinned runtimes, lifecycle checks and validation patterns | Apache-2.0 |
 | GitHub Spec Kit | Reference for PlotPickle's repository-native spec-driven development discipline and post-build convergence check | MIT |
 | Lightricks ComfyUI-LTXVideo pinned workflow | Source/reference for the reviewed single-stage LTX proof graph at the recorded upstream revision | Apache-2.0 at the pinned source revision |
 | ComfyUI LTX-Video workflow template | Reference for the reviewed text-to-video LTX graph adaptation | MIT |

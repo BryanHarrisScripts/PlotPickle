@@ -32,4 +32,6 @@ A modified version made available to users over a network must satisfy the sourc
 
 ## Third-party notices
 
-Third-party software and assets remain governed by their respective licences and notices. Direct and transitive dependency licence information can be reviewed through `package-lock.json`, the relevant package metadata and source distributions. The optional pinned BUZZ runtime notice is retained in `runtime/buzz/LICENSE.buzz.txt`.
+Third-party software, models and assets remain governed by their respective licences and notices. The canonical public inventory is `config/third-party-oss.json`; the complete npm dependency graph and package licence metadata remain recorded in `package-lock.json`. `scripts/third-party-oss-audit.mjs` checks direct dependency coverage and inventories the transitive licence expressions for release review.
+
+The optional pinned BUZZ runtime notice is retained in `runtime/buzz/LICENSE.buzz.txt`. Other bundled, managed-download, connect-only, development-only and reviewed-reference OSS systems are identified in the canonical registry together with their upstream source and licence evidence.

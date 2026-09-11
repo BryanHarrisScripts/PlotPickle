@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "issue": 1909,
+  "brief": "docs/developer-briefs/1909-readme-updates-living-architecture.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "README.md",
+    "architecture/generate-living-architecture.mjs",
+    "architecture/plotpickle-c4.md",
+    "config/development-convergence/1909.json",
+    "docs/architecture/agent-context.md",
+    "docs/developer-briefs/1909-readme-updates-living-architecture.md",
+    "docs/updates/README.md",
+    "docs/updates/documentation-drift.md",
+    "tests/issue-1909-living-architecture.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Root README contains exactly one managed current UPDATES entry and does not create a product/app UPDATES surface.",
+      "evidence": [
+        { "type": "file-contains", "path": "README.md", "contains": "<!-- PLOTPICKLE:UPDATES:START -->" },
+        { "type": "file-contains", "path": "README.md", "contains": "## UPDATES" },
+        { "type": "file-contains", "path": "tests/issue-1909-living-architecture.test.mjs", "contains": "one canonical Architecture Knowledge Map and one README current UPDATES entry" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The existing architecture JSON remains the sole Architecture Knowledge Map and the existing ARCHITECTURE generator remains synchronized.",
+      "evidence": [
+        { "type": "file-contains", "path": "architecture/generate-living-architecture.mjs", "contains": "architecture/plotpickle.architecture.json" },
+        { "type": "file-contains", "path": "architecture/generate-living-architecture.mjs", "contains": "architecture/generate-architecture.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1909-living-architecture.test.mjs", "contains": "existing architecture blueprint generation remains synchronized" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "README current entry links to Architecture Knowledge Map, Architecture Documentation, Documentation Drift Detection, Agent Context and C4 Diagrams.",
+      "evidence": [
+        { "type": "file-contains", "path": "README.md", "contains": "[Architecture Knowledge Map](architecture/plotpickle.architecture.json)" },
+        { "type": "file-contains", "path": "README.md", "contains": "[Documentation Drift Detection](docs/updates/documentation-drift.md)" },
+        { "type": "file-contains", "path": "README.md", "contains": "[C4 Diagrams](architecture/plotpickle-c4.md)" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Documentation drift is deterministic, supports CURRENT STALE MISSING CONFLICT REVIEW, and never automatically rewrites Human-authored architecture prose.",
+      "evidence": [
+        { "type": "file-contains", "path": "architecture/generate-living-architecture.mjs", "contains": "DRIFT_STATUSES = Object.freeze([\"CURRENT\", \"STALE\", \"MISSING\", \"CONFLICT\", \"REVIEW\"])" },
+        { "type": "file-contains", "path": "docs/updates/documentation-drift.md", "contains": "Detection is separate from modification" },
+        { "type": "file-contains", "path": "tests/issue-1909-living-architecture.test.mjs", "contains": "drift states CURRENT STALE MISSING CONFLICT REVIEW are machine-testable" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Agent Context is compact, generated from the canonical architecture evidence, subordinate to AGENTS.md and grants no authority.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/architecture/agent-context.md", "contains": "AGENTS.md` remains the repository development constitution" },
+        { "type": "file-contains", "path": "docs/architecture/agent-context.md", "contains": "grants no permission" },
+        { "type": "file-contains", "path": "tests/issue-1909-living-architecture.test.mjs", "contains": "Agent Context is compact, subordinate to AGENTS.md and derived from the canonical map" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "C4 System Context, Container and Component views are generated from the same canonical architecture object and fingerprint.",
+      "evidence": [
+        { "type": "file-contains", "path": "architecture/plotpickle-c4.md", "contains": "## System Context" },
+        { "type": "file-contains", "path": "architecture/plotpickle-c4.md", "contains": "## Container view" },
+        { "type": "file-contains", "path": "architecture/plotpickle-c4.md", "contains": "## Component view" }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "Explicit refresh archives replaced current entries with deterministic identities while check mode remains non-mutating and archive history is append-only.",
+      "evidence": [
+        { "type": "file-contains", "path": "architecture/generate-living-architecture.mjs", "contains": "--refresh-update" },
+        { "type": "file-contains", "path": "architecture/generate-living-architecture.mjs", "contains": "stableArchiveFilename" },
+        { "type": "file-contains", "path": "tests/issue-1909-living-architecture.test.mjs", "contains": "check mode is non-mutating and current repository living outputs are synchronized" }
+      ]
+    },
+    {
+      "id": "A8",
+      "criterion": "Focused #1909 regressions run in PR Gate together with the existing architecture blueprint generator test.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "Validate living architecture documentation" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1909-living-architecture.test.mjs" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1909-readme-updates-living-architecture.md", "contains": "PR Gate and Windows Product Gate must be green on the exact final head before merge" }
+      ]
+    }
+  ]
+}

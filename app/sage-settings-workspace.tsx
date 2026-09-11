@@ -9,6 +9,7 @@ import BuzzLiveHealthCard from "./buzz-live-health-card";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
+import LocalVoiceSettings from "./local-voice-settings";
 import MediaRoutingPanel from "./media-routing-panel";
 import AiComputeWorkspace from "./settings/compute/ai-compute-workspace";
 import SettingsHelperDirectory from "./settings-helper-directory";
@@ -26,6 +27,7 @@ type SettingsSection =
   | "sage-plan"
   | "local-compute"
   | "cloud-compute"
+  | "voice"
   | "comfyui"
   | "archive"
   | "buzz"
@@ -58,6 +60,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { id: "sage-plan", label: "Sage & PLAN Setup", detail: "Readiness, model selection and tests for local writing AI" },
       { id: "local-compute", label: "Local Compute", detail: "Writing, images and video on this computer" },
       { id: "cloud-compute", label: "Cloud Compute", detail: "Writing, images and video through connected online services" },
+      { id: "voice", label: "Local Dictation", detail: "Install and verify local whisper.cpp speech-to-text" },
       { id: "comfyui", label: "ComfyUI Setup", detail: "Install, connect and verify the local media engine" },
     ],
   },
@@ -89,6 +92,7 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   [LEGACY_HELP_DESTINATION.id]: "help",
   "settings-local-compute": "local-compute",
   "settings-cloud-compute": "cloud-compute",
+  "settings-voice": "voice",
   "settings-models": "local-compute",
   "settings-sage": "sage-plan",
   "settings-plan": "sage-plan",
@@ -111,6 +115,8 @@ const LEGACY_TARGETS: Record<string, SettingsSection> = {
   plan: "sage-plan",
   routing: "local-compute",
   ollama: "local-compute",
+  voice: "voice",
+  dictation: "voice",
   images: "local-compute",
   video: "local-compute",
   media: "local-compute",
@@ -191,6 +197,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-local-compute"><AiComputeWorkspace mode="local" /></section>;
       case "cloud-compute":
         return <section id="settings-cloud-compute"><AiComputeWorkspace mode="cloud" /></section>;
+      case "voice":
+        return <section id="settings-voice"><SectionIntro eyebrow="Settings · Local" title="Set up Local Dictation." detail="Install and integrity-check the reviewed CPU-only whisper.cpp runtime and base.en speech model. Microphone audio stays temporary and local; transcripts enter ordinary PlotPickle text fields." /><LocalVoiceSettings /></section>;
       case "comfyui":
         return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · AI Compute" title="Set up ComfyUI." detail="Install, connect and verify the local image and video engine here. Local Compute continues to own route selection, while cloud providers remain separately configured in Cloud Compute." /><MediaRoutingPanel onManage={(target) => { if (/openai|minimax|cloud/i.test(target)) navigateSection("cloud-compute"); }} /></section>;
       case "archive":
@@ -205,19 +213,21 @@ export default function SageSettingsWorkspace() {
       default:
         return (
           <section id="settings-quick">
-            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute share one capability interface, while detailed ComfyUI installation and diagnostics have their own focused setup screen." />
+            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute share one capability interface, while Local Dictation and detailed ComfyUI installation have focused setup screens." />
             <section className={styles.quickGuide} aria-labelledby="settings-quick-steps">
               <h2 id="settings-quick-steps">Quick Setup</h2>
               <ol>
                 <li><strong>Step 1:</strong> Open Local Compute and test the capabilities you want to run on this computer.</li>
-                <li><strong>Step 2:</strong> Open Cloud Compute only for online providers you deliberately want to connect.</li>
-                <li><strong>Step 3:</strong> Use Writing, Images and Video tabs to choose one real tested route per capability.</li>
-                <li><strong>Step 4:</strong> Open Advanced Options only when you need models, endpoints, workflows, credentials or expert diagnostics.</li>
+                <li><strong>Step 2:</strong> Set up Local Dictation only if you want microphone-to-text input.</li>
+                <li><strong>Step 3:</strong> Open Cloud Compute only for online providers you deliberately want to connect.</li>
+                <li><strong>Step 4:</strong> Use Writing, Images and Video tabs to choose one real tested route per capability.</li>
+                <li><strong>Step 5:</strong> Open Advanced Options only when you need models, endpoints, workflows, credentials or expert diagnostics.</li>
               </ol>
               <div className={styles.quickLinks}>
                 <Link href="/?workspace=learn">Return to LEARN</Link>
                 <Link href="/?workspace=plan">Return to PLAN</Link>
                 <button type="button" onClick={() => navigateSection("local-compute")}>Configure Local Compute</button>
+                <button type="button" onClick={() => navigateSection("voice")}>Set up Local Dictation</button>
                 <button type="button" onClick={() => navigateSection("cloud-compute")}>Configure Cloud Compute</button>
                 <button type="button" onClick={() => navigateSection("comfyui")}>Set up ComfyUI</button>
               </div>
@@ -263,10 +273,10 @@ export default function SageSettingsWorkspace() {
 
       <aside aria-label="Settings help and status" data-settings-rail="context">
         <section><p>Current section</p><h2>{activeItem.label}</h2><span>{activeItem.detail}. Configure and verify the capability here; use the left rail to move elsewhere without returning to a Settings home screen.</span></section>
-        <section><p>Simple first</p><h3>One interface for Local and Cloud.</h3><span>Choose Local Compute or Cloud Compute, then use the same Writing, Images and Video tabs. Provider jargon and expert controls stay behind Advanced Options until you need them.</span></section>
+        <section><p>Simple first</p><h3>One interface for Local and Cloud.</h3><span>Choose Local Compute or Cloud Compute, then use the same Writing, Images and Video tabs. Local Dictation remains a separate input utility because it never becomes an AI provider route.</span></section>
         <section><p>Readiness</p><h3>Running is not always ready.</h3><span>PlotPickle distinguishes a reachable process from a usable capability. A route becomes selectable only after the existing setup and real verification boundaries say it is ready.</span></section>
         <section><p>Privacy</p><h3>No secret status summaries.</h3><span>The overview reads public readiness only. Credentials, private keys and hidden reasoning stay out of status cards and activity summaries.</span></section>
-        <section><p>Safety</p><h3>No silent cloud fallback.</h3><small>A failed local runtime never becomes an unexpected paid request. Provider tests and paid generation keep the existing explicit consent rules.</small></section>
+        <section><p>Safety</p><h3>No silent cloud fallback.</h3><small>A failed local runtime never becomes an unexpected paid request. Local Dictation also fails closed: missing or invalid whisper.cpp/model bytes never trigger a cloud transcription service.</small></section>
       </aside>
     </main>
   );

@@ -5,6 +5,7 @@ import { Fragment, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } 
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
+import PlotPickleScorePanel from "./plotpickle-score-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -296,6 +297,8 @@ export default function DashboardBbsPanel({
             }}
           />
         </div>
+
+        <PlotPickleScorePanel />
 
         <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
           <h1 data-skin-reference-type="brand">PlotPickle</h1>

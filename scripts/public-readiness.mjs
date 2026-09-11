@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { auditThirdPartyOss } from "./third-party-oss-audit.mjs";
 
 const requiredFiles = [
   "README.md",
@@ -11,6 +12,7 @@ const requiredFiles = [
   "CODE_OF_CONDUCT.md",
   "PRIVACY.md",
   "COMMUNITY_GUIDELINES.md",
+  "config/third-party-oss.json",
   ".github/dependabot.yml",
 ];
 
@@ -20,24 +22,9 @@ for (const file of requiredFiles) {
   if (!existsSync(file)) failures.push(`Missing required public-project file: ${file}`);
 }
 
-const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
-const packageLock = JSON.parse(readFileSync("package-lock.json", "utf8"));
-const declaredDependencies = {
-  ...packageJson.dependencies,
-  ...packageJson.devDependencies,
-};
-const reviewedDependencyLicences = new Set(["Apache-2.0", "ISC", "MIT", "MIT OR Apache-2.0"]);
-
-for (const dependency of Object.keys(declaredDependencies)) {
-  const record = packageLock.packages?.[`node_modules/${dependency}`];
-  if (!record) {
-    failures.push(`Direct dependency is missing from package-lock.json: ${dependency}`);
-    continue;
-  }
-  const licence = typeof record.license === "string" ? record.license.trim() : "";
-  if (!licence) failures.push(`Direct dependency has no recorded licence metadata: ${dependency}`);
-  else if (!reviewedDependencyLicences.has(licence)) failures.push(`Direct dependency licence needs release review: ${dependency} (${licence})`);
-}
+const ossAudit = auditThirdPartyOss();
+for (const failure of ossAudit.failures) failures.push(`OSS registry: ${failure}`);
+for (const warning of ossAudit.warnings) console.warn(`OSS registry warning: ${warning}`);
 
 const tracked = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
   .split("\0")
@@ -114,4 +101,7 @@ if (failures.length) {
   process.exit(1);
 }
 
+if (ossAudit.summary) {
+  console.log(`OSS inventory covered ${ossAudit.summary.registeredSystems} named systems, ${ossAudit.summary.directNpmDependencies} direct npm dependencies and ${ossAudit.summary.installedPackageRecords} installed package records.`);
+}
 console.log(`Public-readiness audit passed for ${tracked.length} tracked files.`);

@@ -79,6 +79,30 @@ Writing and editing remain connected to the same story structure and project. Pl
 
 Feedback is anchored to stable story targets. Human review, diagnostics and optional AI proposals can be compared without automatically changing canon. Refinement remains an explicit Human decision.
 
+### PlotPickle Score
+
+When a story is loaded, PlotPickle can calculate a **PlotPickle Score**: a deterministic 0–100 structural rating backed by five transparent dimensions — **Alignment, Verbosity, Erosion, Progression and Coverage**.
+
+The headline formula uses a geometric mean:
+
+`Score = 100 × fifthRoot(Alignment × (1 − Verbosity) × (1 − Erosion) × Progression × Coverage)`
+
+The score does not ask whether a story was written by a Human or AI. Human-written, AI-assisted, AI-generated and imported stories use the same structural evidence contract. Too little evidence produces **NR / Not Rated** rather than a fabricated quality number.
+
+PlotPickle's mathematical narrative model converts normalized story time into stable addresses:
+
+**runtime → 12 sequences → 24 Story Blocks → 96 Mini-Blocks → production/timecode coordinates**
+
+For a default 120-minute feature, the canonical coordinates correspond to 5-minute Blocks and 75-second Mini-Blocks. These are **normalized structural addresses, not creative handcuffs**: scenes and shots may span, compress or cross those regions as the story requires.
+
+This makes structural feedback locatable. Rather than only saying “the middle feels slow,” PlotPickle can identify which Blocks/Mini-Blocks have low progression, repeated evidence, unusual narrative load or missing coverage.
+
+> **PlotPickle does for narrative structure what timecode does for film: it gives creative material a precise address.**
+
+The mathematics provide the coordinate and measurement layer; they do not replace Human creative judgment. The full contracts are documented in [PlotPickle Score](docs/architecture/PLOTPICKLE-SCORE.md) and the [PlotPickle Mathematical Narrative Model](docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md).
+
+The 24/96 coordinate system, PPF integration, technical render addressing, and PlotPickle Score application are documented as **PlotPickle-specific design by Bryan Harris**. Standard mathematics, screenplay structure traditions, timecode, sequence/beat methods and editing metrics remain acknowledged as established prior practice.
+
 ### STORY: The Unwritten
 
 STORY: The Unwritten is PlotPickle's reusable playable-story engine. Its purpose is to let creators build stories that can be played, changed and eventually populated by bounded AI characters without creating a second PlotPickle authority system underneath the game.
@@ -219,7 +243,7 @@ The canonical machine-readable inventory is [`config/third-party-oss.json`](conf
 | BUZZ | Optional Community, signed rooms and presence | Apache-2.0 |
 | Ollama | Optional user-managed local model runtime | MIT |
 | llama.cpp | Optional user-managed local model runtime | MIT |
-| ComfyUI | Optional user-managed local image/video runtime | GPL-3.0 |
+| ComfyUI | Optional user-managed local image/video workflow runtime | GPL-3.0 |
 | FFmpeg / ffprobe | Optional user-managed local media measurement for Sequence Evidence; not bundled | LGPL-2.1-or-later by default; some builds are GPL-2.0-or-later |
 | Lazy Frames | Optional reviewed local animatic tool | MIT |
 | Portless | Developer endpoint/runtime tooling | Apache-2.0 |
@@ -304,6 +328,8 @@ Useful starting points:
 
 - [Writing and Production](public/docs/readme/WRITING-AND-PRODUCTION.md)
 - [PlotPickle Product Contract](docs/PLOTPICKLE-PRODUCT-CONTRACT.md)
+- [PlotPickle Score](docs/architecture/PLOTPICKLE-SCORE.md)
+- [PlotPickle Mathematical Narrative Model](docs/architecture/PLOTPICKLE-MATHEMATICAL-MODEL.md)
 - [STORY: The Unwritten architecture](docs/story-the-unwritten.md)
 - [Structure Engine](docs/architecture/structure-engine.md)
 - [Authentication threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md)

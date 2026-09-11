@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "title": "PlotPickle OSS and third-party registry",
+  "purpose": "Canonical public inventory for open-source systems, direct npm dependencies, reviewed third-party assets, and explicitly excluded non-OSS connections used by PlotPickle.",
+  "npm": {
+    "manifest": "package.json",
+    "lockfile": "package-lock.json",
+    "coverage": "All direct runtime/development dependencies are audited from package.json and every installed package licence expression is inventoried from package-lock.json.",
+    "reviewedDirectLicenseExpressions": [
+      "Apache-2.0",
+      "ISC",
+      "MIT",
+      "MIT OR Apache-2.0"
+    ],
+    "transitivePolicy": "inventory-and-report",
+    "missingTransitiveLicensePolicy": "report"
+  },
+  "readme": {
+    "startMarker": "<!-- PLOTPICKLE:OSS:START -->",
+    "endMarker": "<!-- PLOTPICKLE:OSS:END -->"
+  },
+  "systems": [
+    {
+      "id": "nodejs",
+      "name": "Node.js",
+      "category": "runtime",
+      "usage": "bundled",
+      "version": "24.19.0",
+      "source": "https://github.com/nodejs/node",
+      "license": "MIT",
+      "licenseSource": "https://github.com/nodejs/node/blob/v24.19.0/LICENSE",
+      "plotpickleUse": "The Windows installer bundles the Node.js distribution used to run PlotPickle; the release workflow pins Node 24.19.0.",
+      "distribution": "Bundled in the Windows installer. Node's upstream LICENSE also carries notices for its separately maintained third-party components.",
+      "readme": true
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "category": "framework",
+      "usage": "npm-runtime",
+      "package": "react",
+      "source": "https://github.com/facebook/react",
+      "license": "MIT",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Primary user-interface runtime.",
+      "readme": true
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "category": "framework",
+      "usage": "npm-runtime",
+      "package": "vite",
+      "source": "https://github.com/vitejs/vite",
+      "license": "MIT",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Application development/build runtime and local server foundation.",
+      "readme": true
+    },
+    {
+      "id": "vinext",
+      "name": "Vinext",
+      "category": "framework",
+      "usage": "npm-runtime",
+      "package": "vinext",
+      "source": "https://github.com/cloudflare/vinext",
+      "license": "MIT",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Next-compatible application runtime used by the current PlotPickle build.",
+      "readme": true
+    },
+    {
+      "id": "mastra",
+      "name": "Mastra",
+      "category": "agent-runtime",
+      "usage": "npm-runtime",
+      "package": "@mastra/core",
+      "source": "https://github.com/mastra-ai/mastra",
+      "license": "Apache-2.0",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Host runtime for bounded PlotPickle agents and agent orchestration.",
+      "readme": true
+    },
+    {
+      "id": "vercel-ai-sdk",
+      "name": "Vercel AI SDK",
+      "category": "ai-runtime",
+      "usage": "npm-runtime",
+      "package": "ai",
+      "source": "https://github.com/vercel/ai",
+      "license": "Apache-2.0",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Provider-neutral AI runtime primitives used behind PlotPickle-owned capability boundaries.",
+      "readme": true
+    },
+    {
+      "id": "drizzle-orm",
+      "name": "Drizzle ORM",
+      "category": "data-runtime",
+      "usage": "npm-runtime",
+      "package": "drizzle-orm",
+      "source": "https://github.com/drizzle-team/drizzle-orm",
+      "license": "Apache-2.0",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Database/data access tooling.",
+      "readme": true
+    },
+    {
+      "id": "libsodium",
+      "name": "libsodium / libsodium-wrappers-sumo",
+      "category": "security-runtime",
+      "usage": "npm-runtime",
+      "package": "libsodium-wrappers-sumo",
+      "source": "https://github.com/jedisct1/libsodium.js",
+      "license": "ISC",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "Cryptographic primitives for PlotPickle Auth and profile protection.",
+      "readme": true
+    },
+    {
+      "id": "tailwindcss",
+      "name": "Tailwind CSS",
+      "category": "ui-tooling",
+      "usage": "npm-runtime",
+      "package": "tailwindcss",
+      "source": "https://github.com/tailwindlabs/tailwindcss",
+      "license": "MIT",
+      "licenseSource": "package-lock.json",
+      "plotpickleUse": "CSS/tooling dependency in the shipped application stack.",
+      "readme": false
+    },
+    {
+      "id": "buzz",
+      "name": "BUZZ",
+      "category": "community-runtime",
+      "usage": "managed-download",
+      "version": "0.4.26",
+      "revision": "0096d71",
+      "source": "https://github.com/block/buzz",
+      "license": "Apache-2.0",
+      "licenseSource": "runtime/buzz/LICENSE.buzz.txt",
+      "noticePath": "runtime/buzz/LICENSE.buzz.txt",
+      "manifestPath": "runtime/buzz/manifest.json",
+      "plotpickleUse": "Optional Community runtime for signed rooms, Communities, membership and presence.",
+      "distribution": "PlotPickle ships the reviewed compose/manifest/licence metadata; pinned container images are downloaded only after explicit user installation.",
+      "readme": true
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "category": "local-ai-runtime",
+      "usage": "connect-only",
+      "version": "user-managed",
+      "source": "https://github.com/ollama/ollama",
+      "license": "MIT",
+      "licenseSource": "https://github.com/ollama/ollama/blob/main/LICENSE",
+      "plotpickleUse": "Optional local text/model runtime reached through reviewed loopback capability routing; PlotPickle does not bundle Ollama.",
+      "readme": true
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "category": "local-ai-runtime",
+      "usage": "connect-only",
+      "version": "user-managed",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "license": "MIT",
+      "licenseSource": "https://github.com/ggml-org/llama.cpp/blob/master/LICENSE",
+      "plotpickleUse": "Optional local model runtime/compatible endpoint; PlotPickle does not bundle llama.cpp.",
+      "readme": true
+    },
+    {
+      "id": "comfyui",
+      "name": "ComfyUI",
+      "category": "local-media-runtime",
+      "usage": "connect-only",
+      "version": "user-managed",
+      "source": "https://github.com/Comfy-Org/ComfyUI",
+      "license": "GPL-3.0",
+      "licenseSource": "https://github.com/Comfy-Org/ComfyUI/blob/master/LICENSE",
+      "plotpickleUse": "Optional local image/video workflow runtime on a reviewed loopback boundary; PlotPickle does not bundle the ComfyUI application.",
+      "readme": true
+    },
+    {
+      "id": "lazy-frames",
+      "name": "Lazy Frames",
+      "category": "local-media-tool",
+      "usage": "managed-download",
+      "version": "0.6.3",
+      "source": "https://github.com/cosmicstack-labs/lazy-frames",
+      "license": "MIT",
+      "licenseSource": "https://github.com/cosmicstack-labs/lazy-frames/blob/main/package.json",
+      "plotpickleUse": "Optional local deterministic animatic tool installed to PlotPickle's reviewed tool home only after explicit user action.",
+      "readme": true
+    },
+    {
+      "id": "portless",
+      "name": "Portless",
+      "category": "developer-tool",
+      "usage": "developer-tool",
+      "version": "0.15.5",
+      "revision": "d42c741",
+      "source": "https://github.com/vercel-labs/portless",
+      "license": "Apache-2.0",
+      "licenseSource": "config/portless-runtime.json",
+      "manifestPath": "config/portless-runtime.json",
+      "plotpickleUse": "Isolated developer-tool runtime for local endpoint ergonomics; it is not a PlotPickle product authority.",
+      "readme": true
+    },
+    {
+      "id": "pi-coding-agent",
+      "name": "Pi coding agent",
+      "category": "developer-tool",
+      "usage": "developer-tool",
+      "version": "0.84.4",
+      "source": "https://www.npmjs.com/package/@earendil-works/pi-coding-agent",
+      "license": "MIT",
+      "licenseSource": ".pi/npm/package-lock.json",
+      "manifestPath": ".pi/npm/package-lock.json",
+      "plotpickleUse": "Optional external developer/repair worker; not part of the PlotPickle user runtime.",
+      "readme": true
+    },
+    {
+      "id": "cline",
+      "name": "Cline",
+      "category": "developer-tool",
+      "usage": "developer-tool",
+      "version": "user-managed",
+      "source": "https://github.com/cline/cline",
+      "license": "Apache-2.0",
+      "licenseSource": "https://github.com/cline/cline/blob/main/LICENSE",
+      "plotpickleUse": "Optional external developer/repair worker; not part of the PlotPickle user runtime.",
+      "readme": true
+    },
+    {
+      "id": "comfyui-ltx-workflow-template",
+      "name": "ComfyUI LTX-Video workflow template",
+      "category": "adapted-reference",
+      "usage": "reference-only",
+      "source": "https://github.com/Comfy-Org/workflow_templates",
+      "license": "MIT",
+      "licenseSource": "https://github.com/Comfy-Org/workflow_templates/blob/main/LICENSE",
+      "manifestPath": "docs/architecture/ltx-default-workflow.md",
+      "plotpickleUse": "PlotPickle's reviewed LTX default workflow was adapted from the published Comfy-Org LTXV template with provenance and checksums recorded in the architecture note.",
+      "readme": false
+    }
+  ],
+  "thirdPartyAssets": [
+    {
+      "id": "sdxl-base-1",
+      "name": "Stable Diffusion XL Base 1.0",
+      "usage": "managed-download",
+      "source": "Stability AI stable-diffusion-xl-base-1.0 via Hugging Face",
+      "license": "OpenRAIL++",
+      "evidencePath": "build/ai/comfyui-sdxl-starter-gateway.ts",
+      "plotpickleUse": "Optional reviewed local image-model starter. The exact file size and SHA-256 are pinned before activation."
+    }
+  ],
+  "nonOssConnections": [
+    {
+      "id": "lm-studio",
+      "name": "LM Studio",
+      "usage": "connect-only",
+      "reason": "Supported as an optional user-managed compatible endpoint, but not represented by PlotPickle as an open-source dependency and therefore excluded from OSS acknowledgements."
+    },
+    {
+      "id": "cloud-byok",
+      "name": "Configured cloud/BYOK providers",
+      "usage": "connect-only",
+      "reason": "External service/provider connections are not automatically OSS dependencies. Their own terms apply and they are excluded from the OSS acknowledgement unless a specific open-source component is separately registered."
+    }
+  ]
+}

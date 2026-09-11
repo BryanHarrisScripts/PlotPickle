@@ -69,15 +69,23 @@ Modified public editions should be clearly identified as modified and should not
 
 See `TRADEMARKS.md`.
 
-## 6. Third-party material
+## 6. Third-party material and OSS inventory
 
-Third-party dependencies, fonts, images, sample content, and other included material remain subject to their own copyright notices and licences. Their inclusion does not change those terms.
+Third-party dependencies, fonts, images, sample content, models, external tools and connected runtimes remain subject to their own copyright notices and licences. Their inclusion or support does not replace those terms with PlotPickle's licence.
 
-PlotPickle's Auth cryptographic contract uses `libsodium-wrappers-sumo` and its `libsodium-sumo` runtime under the ISC licence. That permissive licence is compatible with distribution in the AGPL-licensed application; the upstream copyright and licence notices remain applicable.
+The canonical machine-readable inventory is `config/third-party-oss.json`. It records named OSS systems, whether they are bundled, installed on demand, connected externally, used only for development, or used as a reviewed reference. It also records source/licence evidence and retained local notice paths where applicable.
 
-The direct JavaScript runtime dependencies declared for the current release use Apache-2.0, ISC, or MIT licences as recorded in `package-lock.json`. Development dependencies use Apache-2.0, MIT, or the `MIT OR Apache-2.0` expression recorded there. Transitive packages remain governed by their own package metadata and included notices.
+`package.json` and `package-lock.json` remain the authoritative npm dependency graph. `scripts/third-party-oss-audit.mjs` verifies every direct dependency against reviewed licence expressions and inventories licence metadata for the complete installed/transitive lockfile graph. Missing or newly introduced direct-dependency licence expressions require review instead of being silently accepted.
 
-The optional pinned BUZZ runtime bundle retains its separate upstream notice in `runtime/buzz/LICENSE.buzz.txt`.
+PlotPickle's Auth cryptographic contract uses `libsodium-wrappers-sumo` and its `libsodium-sumo` runtime under the ISC licence. The upstream copyright and licence notices remain applicable.
+
+The Windows installer bundles the reviewed Node.js distribution and production npm dependency tree. Node.js retains its upstream licence and the third-party notices contained in the Node.js distribution.
+
+The optional pinned BUZZ runtime bundle retains its separate upstream notice in `runtime/buzz/LICENSE.buzz.txt`. Optional user-managed or separately installed systems such as Ollama, llama.cpp, ComfyUI and Lazy Frames remain governed by their respective upstream licences. A supported connection is not automatically open source; non-OSS connections are explicitly excluded from the OSS acknowledgement in the canonical registry.
+
+Reviewed third-party model/assets also retain their own terms. For example, the optional SDXL Base 1.0 starter is recorded as OpenRAIL++ and is hash/size verified before activation.
+
+See the README's **Built with open source** section and `config/third-party-oss.json` for the public acknowledgement inventory.
 
 ## 7. No warranty and no legal advice
 

@@ -64,8 +64,8 @@ jobs:
       - name: Validate OSS and third-party registry
         run: node --test tests/issue-1892-oss-third-party-registry.test.mjs tests/issue-1895-oss-influence-attribution.test.mjs
 
-      - name: Validate generated architecture documentation
-        run: node --test tests/architecture-blueprint-generator.test.mjs
+      - name: Validate living architecture documentation
+        run: node --test tests/architecture-blueprint-generator.test.mjs tests/issue-1909-living-architecture.test.mjs
 
       - name: Validate core auth and storage contracts
         run: |

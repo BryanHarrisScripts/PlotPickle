@@ -43,6 +43,9 @@ jobs:
       - name: Validate development run ledger contract
         run: node --test tests/issue-1903-development-run-ledger.test.mjs
 
+      - name: Validate PlotPickle Score contract
+        run: node --test tests/issue-1905-plotpickle-score.test.mjs
+
       - name: Validate development convergence
         run: node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}
 

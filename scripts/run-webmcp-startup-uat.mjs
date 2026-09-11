@@ -16,6 +16,10 @@ import {
   WEBMCP_ALLOWED_TARGETS,
   runWebMcpSurfaceVisualAudit,
 } from "../lib/verification/webmcp-surface-visual-audit.mjs";
+import {
+  VISUAL_DIRECTOR_REPORT_PATH,
+  runSkinV1VisualDirector,
+} from "../lib/verification/skin-v1-visual-director.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {
   buildWebMcpRuntimeFinding,
@@ -230,19 +234,35 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
+    const visualDirector = await runSkinV1VisualDirector({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
     await runSkinV1MenuContractAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
     const findingsReport = await writeWebMcpFindingsReport({ status: "pass", target: server.origin, findings: [] });
-    const evidence = await writeEvidence("pass", { findingsReport, findingCount: 0 });
+    const evidence = await writeEvidence("pass", {
+      findingsReport,
+      findingCount: 0,
+      visualDirector: {
+        report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
+        surfaces: visualDirector.totals.surfaces,
+        blockers: visualDirector.totals.blockers,
+        advisories: visualDirector.totals.advisories,
+      },
+    });
     console.log("");
     for (const line of visualBaselineApprovalLines()) console.log(line);
     console.log("");
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
+    console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
     console.log(`${pass} Dashboard remains the sole canonical screenshot: ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
     return 0;

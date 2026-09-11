@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type ProviderId = "local" | "ollama" | "openai" | "minimax" | "gemini";
 type ProviderOption = {
@@ -73,6 +73,25 @@ function providerText(provider: ProviderOption) {
   return `${provider.label} · ${provider.model || "No model"} · ${state}`;
 }
 
+function ProviderOptionGroups({ providers }: { providers: ProviderOption[] }) {
+  const localProviders = providers.filter((provider) => provider.locality === "local");
+  const cloudProviders = providers.filter((provider) => provider.locality === "cloud");
+  return (
+    <>
+      <optgroup label="LOCAL STORY MODE">
+        {localProviders.map((provider) => (
+          <option key={provider.id} value={provider.id} disabled={!provider.ready}>{providerText(provider)}</option>
+        ))}
+      </optgroup>
+      <optgroup label="CLOUD STORY MODE">
+        {cloudProviders.map((provider) => (
+          <option key={provider.id} value={provider.id} disabled={!provider.ready}>{providerText(provider)}</option>
+        ))}
+      </optgroup>
+    </>
+  );
+}
+
 export default function PlotPickleAgentsHost() {
   const [status, setStatus] = useState<AgentComputeStatus | null>(null);
   const [notice, setNotice] = useState("Checking PlotPickle Agent compute…");
@@ -91,8 +110,6 @@ export default function PlotPickleAgentsHost() {
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
-
-  const readyProviders = useMemo(() => status?.providers.filter((provider) => provider.ready) || [], [status]);
 
   async function save(body: Record<string, unknown>, key: string) {
     if (working) return;
@@ -142,9 +159,10 @@ export default function PlotPickleAgentsHost() {
             onChange={(event) => void save({ scope: "default", provider: event.target.value }, "default")}
           >
             <option value="active">Active Story Mode writing route · {effectiveDefaultLabel}</option>
-            {readyProviders.map((provider) => <option key={provider.id} value={provider.id}>{providerText(provider)}</option>)}
+            <ProviderOptionGroups providers={status.providers} />
           </select>
         </label>
+        <p style={{ color: "var(--pp-skin-ink-soft)", marginBottom: 0 }}>Local and Cloud choices stay visible even before setup; unavailable providers are disabled until configured and tested in their Story Mode screen.</p>
         <p style={{ color: "var(--pp-skin-ink-soft)", marginBottom: 0 }}>A fixed default never falls through to another provider. If it later becomes unavailable, PlotPickle reports the failure and asks you to change the assignment.</p>
       </section>
 
@@ -165,8 +183,6 @@ export default function PlotPickleAgentsHost() {
               {status.agents.map((agent) => {
                 const roleId = agent.roleId;
                 const override = roleId ? status.overrides[roleId] : undefined;
-                const unavailableOverride = override ? providerById.get(override) : undefined;
-                const overrideUnavailable = Boolean(override && !unavailableOverride?.ready);
                 return (
                   <tr key={agent.agentId} data-agent-system={agent.system} data-agent-configurable={agent.configurable ? "true" : "false"}>
                     <td style={tableCell}>
@@ -188,8 +204,7 @@ export default function PlotPickleAgentsHost() {
                             aria-label={`${agent.displayName} provider`}
                           >
                             <option value="default">Use PlotPickle default · {effectiveDefaultLabel}</option>
-                            {overrideUnavailable && override ? <option value={override} disabled>{providerText(unavailableOverride ?? { id: override, label: override, configured: false, ready: false, model: "", locality: "local" })}</option> : null}
-                            {readyProviders.map((provider) => <option key={provider.id} value={provider.id}>{providerText(provider)}</option>)}
+                            <ProviderOptionGroups providers={status.providers} />
                           </select>
                         </label>
                       ) : (

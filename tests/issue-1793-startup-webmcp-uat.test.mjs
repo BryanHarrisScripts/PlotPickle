@@ -88,7 +88,7 @@ test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage f
     assert.match(source, /const chromeBoundary: React\.CSSProperties/u);
     assert.match(source, /background: "var\(--pp-skin-accent-deep\)"/u);
     assert.match(source, /backgroundImage: "none"/u);
-    assert.ok((source.match(/data-skin-chrome="solid"/gu) || []).length >= 3);
+    assert.equal((source.match(/data-skin-chrome="solid"/gu) || []).length, 2);
   }
   assert.match(auth, /const SYNTHETIC_PROFILE_DIRECTORIES = Object\.freeze/u);
   assert.match(auth, /await prepareSyntheticProfileStorage\(home, profileId\);[\s\S]*const signedIn = await profilePost/u);
@@ -106,7 +106,7 @@ test("#1874 normalizes Cloud and Local Story Mode to the shared Skin V1 keyboard
     assert.match(source, /data-skin-menu-row=\{item\.id\}/u);
     assert.match(source, /data-skin-menu-shortcut=\{item\.shortcut\}/u);
     assert.match(source, /data-skin-menu-connected="true"/u);
-    assert.match(source, /data-skin-menu-indicator="connected"/u);
+    assert.doesNotMatch(source, /data-skin-menu-indicator="connected"/u);
     assert.match(source, /event\.key === "ArrowDown"/u);
     assert.match(source, /event\.key === "ArrowUp"/u);
     assert.match(source, /event\.key === "Enter"/u);

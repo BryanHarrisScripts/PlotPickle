@@ -275,18 +275,27 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(bbsCss, /data-profile-identity-surface="v2"/u);
   assert.doesNotMatch(bbsCss, /#[0-9a-f]{3,8}\b/iu);
 
-  assert.match(host, /PLOTPICKLE DEFAULT/u);
-  assert.match(host, /AUTOMATIC \/ HARDWARE OPTIMIZED/u);
-  assert.match(host, /group: "TASKS"/u);
-  assert.match(host, /group: "ENGINES"/u);
+  assert.match(host, /PLOTPICKLE LOCAL/u);
+  assert.match(host, /THIS COMPUTER \/ NO CLOUD PROVIDER CHARGES/u);
+  assert.match(host, /group: "CAPABILITIES"/u);
+  assert.match(host, /group: "CONNECTIONS"/u);
+  assert.doesNotMatch(host, /group: "TASKS"|group: "ENGINES"/u);
   assert.match(host, /data-skin-menu="local-story-mode"/u);
   assert.match(host, /data-skin-menu-shortcut=\{item\.shortcut\}/u);
   assert.match(host, /data-skin-menu-connected="true"/u);
-  assert.match(host, /data-skin-menu-indicator="connected"/u);
   assert.match(host, /event\.key === "ArrowDown"/u);
   assert.match(host, /event\.key === "ArrowUp"/u);
   assert.match(host, /event\.key === "Enter"/u);
-  for (const label of ["WRITING", "IMAGES", "VIDEO", "OLLAMA", "COMFYUI", "LTX-VIDEO", "MINIMAX H3"]) assert.match(host, new RegExp(`label: "${label}"`, "u"));
+  for (const [id, label] of [
+    ["writing", "Writing"],
+    ["images", "Images"],
+    ["video", "Video"],
+    ["agents", "Agents"],
+    ["ollama", "Ollama"],
+    ["comfyui", "ComfyUI"],
+    ["ltx", "LTX-Video"],
+    ["h3", "MiniMax H3"],
+  ]) assert.match(host, new RegExp(`${id}: "${label}"`, "u"));
   assert.match(host, /function StatusLight/u);
   assert.match(host, /function fixedLocalImagesReady/u);
   assert.match(host, /function automaticLocalVideoReady/u);
@@ -296,19 +305,19 @@ test("Profile keeps three entries, enables User Profile, activates Node, and Loc
   assert.match(host, /sd_xl_base_1\.0\.safetensors/u);
   assert.match(host, /local default ready/u);
   assert.match(host, /data-local-ai-view="menu"/u);
-  assert.match(host, /BACK TO LOCAL STORY MODE/u);
-  assert.match(host, /<AiRoutingPanel capability="text" locality="local" onManage=\{manageRoute\} \/>/u);
-  assert.doesNotMatch(host, /<AiRoutingPanel capability="image"/u);
-  assert.match(host, /view === "images" \? <LocalComfyUiPanel \/>/u);
-  assert.doesNotMatch(host, /<AiRoutingPanel capability="video"/u);
-  assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
-  assert.match(host, /<LocalRuntimePanel \/>/u);
-  assert.match(host, /<LocalComfyUiPanel \/>/u);
+  assert.match(host, /Back to Local Story Mode/u);
+  assert.match(host, /<StoryModeCapabilityConnections/u);
+  assert.match(host, /mode="local"/u);
+  assert.doesNotMatch(host, /AiRoutingPanel|LocalVideoPanel/u);
+  assert.match(host, /view === "ollama" \? <LocalRuntimePanel \/>/u);
+  assert.match(host, /view === "comfyui" \? <LocalComfyUiPanel \/>/u);
   assert.match(host, /view === "ltx" \? <LocalLtxSetupPanel \/>/u);
-  assert.match(host, /<LocalH3SetupPanel \/>/u);
+  assert.match(host, /view === "h3" \? <LocalH3SetupPanel \/>/u);
   assert.doesNotMatch(host, /AiComputeWorkspace/u);
-  assert.match(host, /Local Story Mode defaults to local, hardware-aware AI/u);
-  assert.match(host, /does not silently fall back to a paid cloud provider/u);
+  assert.match(host, /Runs AI text models on this computer/u);
+  assert.match(host, /It is separate from the MiniMax cloud API/u);
+  assert.match(host, /paidAcknowledged: false/u);
+  assert.match(host, /dataSharingAcknowledged: false/u);
   assert.doesNotMatch(host, /AiProviderSetupPanel|GeminiProviderSetupPanel/u);
 
   assert.match(ltxPanel, /\/api\/local-ai\/ltx-video/u);

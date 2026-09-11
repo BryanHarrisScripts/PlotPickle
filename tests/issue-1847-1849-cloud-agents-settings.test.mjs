@@ -6,26 +6,26 @@ const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 
 test("#1847 Cloud Story Mode exposes only real resources and capability-driven tasks", async () => {
-  const [cloud, catalog] = await Promise.all([
+  const [cloud, shared] = await Promise.all([
     read("app/skin-v1/cloud-story-mode-host.tsx"),
-    read("app/settings/compute/cloud-model-catalog-panel.tsx"),
+    read("app/skin-v1/story-mode-capability-connections.tsx"),
   ]);
 
-  for (const label of ["WRITING", "IMAGES", "VIDEO", "AGENTS"]) {
-    assert.match(cloud, new RegExp(`label: "${label}"`, "u"));
+  for (const label of ["Writing", "Images", "Video", "Agents"]) {
+    assert.match(cloud, new RegExp(`${label.toLowerCase()}: "${label}"`, "u"));
   }
-  for (const label of ["OPENAI", "MINIMAX", "GOOGLE GEMINI"]) {
-    assert.match(cloud, new RegExp(`label: "${label}"`, "u"));
+  for (const label of ["OpenAI", "ComfyUI", "Gemini", "MiniMax"]) {
+    assert.ok(cloud.includes(`"${label}"`), `Cloud Story Mode should expose ${label}`);
   }
+  assert.match(cloud, /group: "CAPABILITIES"/u);
+  assert.match(cloud, /group: "CONNECTIONS"/u);
+  assert.match(cloud, /<StoryModeCapabilityConnections/u);
+  assert.doesNotMatch(cloud, /<CloudModelCatalogPanel/u);
+  assert.doesNotMatch(cloud, /<AiRoutingPanel/u);
   assert.doesNotMatch(cloud, /Remote Compute|PlannedRemoteCompute|id: "remote"/u);
   assert.doesNotMatch(cloud, /Sora|sora/u);
-  assert.match(cloud, /<CloudModelCatalogPanel capability=\{task\}/u);
-  assert.match(cloud, /view === "writing" \|\| view === "agents" \? "text"/u);
-
-  assert.match(catalog, /capabilities: \["writing", "images", "agents"\]/u);
-  assert.match(catalog, /capabilities: \["writing", "images", "video", "agents"\]/u);
-  assert.match(catalog, /capability === "agents" \? "writing" : capability/u);
-  assert.match(catalog, /PROVIDERS\.filter\(\(provider\) => provider\.capabilities\.includes\(capability\)\)/u);
+  assert.match(shared, /I understand remote provider API requests may incur charges/u);
+  assert.match(shared, /data-cloud-capability-consent="billing"/u);
 });
 
 test("#1848 PlotPickle Agent compute has default, per-Agent override and no silent fallback", async () => {

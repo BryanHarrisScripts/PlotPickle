@@ -9,8 +9,8 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
   ]);
-  const cloudDisplay = cloud.slice(cloud.indexOf("const CLOUD_DISPLAY_LABELS"), cloud.indexOf("const CLOUD_GROUP_LABELS"));
-  const localDisplay = local.slice(local.indexOf("const LOCAL_DISPLAY_LABELS"), local.indexOf("const LOCAL_GROUP_LABELS"));
+  const cloudDisplay = cloud.slice(cloud.indexOf("const CLOUD_DISPLAY_LABELS"), cloud.indexOf("const VIEW_TITLES"));
+  const localDisplay = local.slice(local.indexOf("const LOCAL_DISPLAY_LABELS"), local.indexOf("const VIEW_TITLES"));
 
   for (const [id, label] of Object.entries({
     writing: "Writing",
@@ -18,16 +18,15 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     video: "Video",
     agents: "Agents",
     openai: "OpenAI",
-    minimax: "MiniMax",
-    gemini: "Gemini",
     "comfy-cloud": "ComfyUI",
+    gemini: "Gemini",
+    minimax: "MiniMax",
   })) {
     assert.ok(cloudDisplay.includes(`${id.includes("-") ? JSON.stringify(id) : id}: "${label}"`), `Cloud display label must use canonical casing for ${id}`);
   }
-  assert.match(cloud, /TASKS: "CAPABILITIES"/u);
-  assert.match(cloud, /"CLOUD RESOURCES": "PROVIDERS"/u);
+  assert.match(cloud, /group: "CAPABILITIES"/u);
+  assert.match(cloud, /group: "CONNECTIONS"/u);
   assert.match(cloud, /CLOUD_DISPLAY_LABELS\[item\.id\]/u);
-  assert.match(cloud, /CLOUD_GROUP_LABELS\[item\.group\]/u);
   assert.match(cloud, /<h1[^>]*>\{VIEW_TITLES\[view\]\}<\/h1>/u);
   assert.doesNotMatch(cloudDisplay, /GOOGLE GEMINI|COMFYUI CLOUD/u);
 
@@ -35,6 +34,7 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     writing: "Writing",
     images: "Images",
     video: "Video",
+    agents: "Agents",
     ollama: "Ollama",
     comfyui: "ComfyUI",
     ltx: "LTX-Video",
@@ -42,11 +42,13 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
   })) {
     assert.ok(localDisplay.includes(`${id}: "${label}"`), `Local display label must use canonical casing for ${id}`);
   }
-  assert.match(local, /TASKS: "CAPABILITIES"/u);
-  assert.match(local, /ENGINES: "PROVIDERS"/u);
+  assert.match(local, /group: "CAPABILITIES"/u);
+  assert.match(local, /group: "CONNECTIONS"/u);
   assert.match(local, /LOCAL_DISPLAY_LABELS\[item\.id\]/u);
-  assert.match(local, /LOCAL_GROUP_LABELS\[item\.group\]/u);
   assert.match(local, /<h1[^>]*>\{VIEW_TITLES\[view\]\}<\/h1>/u);
+
+  assert.doesNotMatch(cloud, /CLOUD RESOURCES|-- PROVIDERS --/u);
+  assert.doesNotMatch(local, /group: "ENGINES"|-- PROVIDERS --/u);
 
   // Stable route/provider IDs remain unchanged underneath presentation copy.
   for (const route of ["openai", "minimax", "gemini", "comfy-cloud"]) assert.ok(cloud.includes(`id: "${route}"`));

@@ -5,12 +5,13 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Skin V1 VIDEO uses the hardware-aware plug-in recommendation while H3 remains a separate engine", async () => {
+test("Skin V1 VIDEO uses the hardware-aware plug-in recommendation while H3 remains a separate Connection", async () => {
   const host = await source("app/skin-v1/local-ai-skin-host.tsx");
 
-  assert.match(host, /import LocalVideoPanel from "\.\/local-video-panel"/u);
+  assert.match(host, /import StoryModeCapabilityConnections/u);
+  assert.doesNotMatch(host, /import LocalVideoPanel from/u);
   assert.match(host, /import LocalH3SetupPanel from "\.\/local-h3-setup-panel"/u);
-  assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
+  assert.match(host, /videoRuntimeConnection\(\), videoPluginConnection\("ltx"\), videoPluginConnection\("h3"\)/u);
   assert.match(host, /view === "h3" \? <LocalH3SetupPanel/u);
   assert.doesNotMatch(host, /view === "video" \? <AiRoutingPanel capability="video"/u);
   assert.match(host, /fetch\("\/api\/local-ai\/plugins\/video"/u);
@@ -87,15 +88,17 @@ test("8 GB-class H3 VRAM uses the constrained profile that the UI displays", asy
   assert.match(provider, /return \{ id: "impractical", warning: "Less than 8 GB VRAM is blocked/u);
 });
 
-test("local IMAGES uses RUN then READY and yellow diagnostic pills", async () => {
+test("local IMAGES uses RUN then READY and Skin V1 warning diagnostic controls", async () => {
   const panel = await source("app/skin-v1/local-comfyui-panel.tsx");
 
   assert.match(panel, /activeReady \? "READY" : working === "ready" \? "RUNNING\.\.\." : "RUN"/u);
-  assert.match(panel, /const yellowButton: React\.CSSProperties/u);
-  assert.match(panel, /border: "1px solid #d8c85d"/u);
-  assert.match(panel, /borderRadius: 999/u);
-  assert.match(panel, /style=\{yellowButton\}[^>]*>\{working === "diagnostic"/u);
+  assert.match(panel, /const warningButton: React\.CSSProperties/u);
+  assert.match(panel, /border: "var\(--pp-skin-border-thin\) solid var\(--pp-skin-warning\)"/u);
+  assert.match(panel, /background: "var\(--pp-skin-warning-surface\)"/u);
+  assert.match(panel, /color: "var\(--pp-skin-warning-ink\)"/u);
+  assert.match(panel, /borderRadius: "var\(--pp-skin-radius\)"/u);
+  assert.match(panel, /<button type="button" style=\{warningButton\} onClick=\{\(\) => void runDiagnostic\(\)\} disabled=\{Boolean\(working\)\}>\{working === "diagnostic"/u);
   assert.match(panel, /"RUN LOCAL DIAGNOSTIC"/u);
-  assert.match(panel, /style=\{yellowButton\}[^>]*>\{working === "test"/u);
+  assert.match(panel, /<button type="button" style=\{warningButton\} onClick=\{\(\) => void testImage\(\)\} disabled=\{Boolean\(working\) \|\| !activeReady\}>\{working === "test"/u);
   assert.match(panel, /"TEST LOCAL IMAGE"/u);
 });

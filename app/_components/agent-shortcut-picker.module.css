@@ -1,0 +1,147 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.slashButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: inherit;
+  font: 700 1rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  cursor: pointer;
+}
+
+.slashButton:focus-visible,
+.target button:focus-visible,
+.menu button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  max-width: 17rem;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  overflow: hidden;
+}
+
+.target > span {
+  padding: 0.4rem 0.25rem 0.4rem 0.7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.target button {
+  width: 2rem;
+  align-self: stretch;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.menu {
+  position: absolute;
+  z-index: 80;
+  left: 0;
+  bottom: calc(100% + 0.55rem);
+  width: min(22rem, 78vw);
+  max-height: min(28rem, 58vh);
+  overflow: auto;
+  padding: 0.45rem;
+  border: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+  border-radius: 0.75rem;
+  background: #111614;
+  color: #f4f7f6;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+}
+
+.menu header {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.6rem 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.menu header strong {
+  font-size: 0.86rem;
+}
+
+.menu header small,
+.menu button small {
+  color: #aeb9b5;
+  font-size: 0.72rem;
+}
+
+.menu > p {
+  margin: 0;
+  padding: 0.75rem 0.6rem;
+  color: #cad3d0;
+  font-size: 0.78rem;
+}
+
+.menu .error {
+  color: #ffd2d2;
+}
+
+.menu > button {
+  display: grid;
+  gap: 0.14rem;
+  width: 100%;
+  padding: 0.62rem 0.68rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu > button:hover,
+.menu > button[data-active="true"] {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu > button[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 currentColor;
+}
+
+.menu > button strong {
+  font-size: 0.83rem;
+  line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .slashButton,
+  .target button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .menu,
+  .slashButton,
+  .target {
+    border-color: CanvasText;
+  }
+  .menu > button[data-active="true"] {
+    outline: 1px solid Highlight;
+  }
+}

@@ -115,6 +115,30 @@ This equality demonstrates dimensional coherence of the production scaffold. It 
 
 A useful academic description is **hierarchical temporal partitioning** or **discrete temporal structural modeling**. "Fractal" may be used informally to describe repeating nested organization, but the system should not claim mathematical fractal properties that it does not calculate.
 
+## Narrative coordinate model
+
+PlotPickle takes fluid Human storytelling practices — acts, sequences, scenes, beats, setup/payoff, escalation, character movement and pacing — and converts them into a deterministic, time-addressable story model.
+
+Instead of treating structure only as subjective advice, PlotPickle represents a feature hierarchically as:
+
+`runtime → sequences → 24 Story Blocks → 96 Mini-Blocks → production units → frames/timecode`
+
+Each level has a stable address, duration context, state, and relationship to the levels above and below it. This allows Human writers and bounded AI agents to inspect the same story using shared coordinates and measurable evidence.
+
+The central design principle is:
+
+`Human narrative principles → addressable story structure → measurable evidence → Human creative judgment`
+
+PlotPickle does **not** claim that storytelling itself is mathematical. A high structural score does not make a film artistically good, and a deliberate structural deviation may be exactly the right creative choice. The writer still decides what the story means, what a character feels, whether a moment should breathe, and when a convention should be broken.
+
+PlotPickle makes the **structure surrounding those creative decisions computable**. The Score can therefore identify where a structural issue occurs rather than merely describe a vague impression. For example, instead of only reporting that "the middle feels slow," PlotPickle can identify Blocks and Mini-Blocks with low progression, repeated evidence, unusually high narrative load, or missing coverage.
+
+A concise description of the model is:
+
+> **PlotPickle does for narrative structure what timecode does for film: it gives creative material a precise address.**
+
+That addressable model is what makes the five Score dimensions possible. Alignment, Verbosity, Erosion, Progression, and Coverage are all measured against the same structural coordinate system rather than being free-floating AI opinions.
+
 ## Authority and privacy
 
 PlotPickle Score:
@@ -157,6 +181,7 @@ Durable system documentation lives at `docs/architecture/PLOTPICKLE-SCORE.md` an
 - rating states;
 - source-agnostic Human/AI policy;
 - historical lineage and Bryan Harris attribution;
+- the narrative coordinate model;
 - limitations;
 - versioning/evolution rules.
 
@@ -171,6 +196,6 @@ The public claim is bounded: **any movie/story can be rated once its story evide
 5. Dashboard SCORE section is immediately beneath Dashboard art for an active story.
 6. Insufficient evidence is `NR`.
 7. README documents the feature.
-8. System documentation preserves the complete V1 contract, lineage, and Bryan Harris attribution.
+8. System documentation preserves the complete V1 contract, lineage, Bryan Harris attribution, and narrative-coordinate rationale.
 9. Focused regression verifies core contract, Dashboard placement, source neutrality, and docs.
 10. PR Gate and Product Gate remain authoritative exact-head verification.

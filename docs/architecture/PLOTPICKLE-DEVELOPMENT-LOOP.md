@@ -82,6 +82,31 @@ Convergence does not mean the software works. Required CI still validates focuse
 
 Merge only the exact tested head after required checks are green. Do not self-certify a different commit, bypass failed convergence, or treat an implementation-agent summary as evidence.
 
+## Observable execution ledger
+
+The development loop must be observable while it runs. For non-trivial pull-request work, maintain one persistent PR conversation comment titled `PlotPickle Development Run` and identify it with:
+
+`<!-- plotpickle-development-run-ledger:v1 -->`
+
+The ledger is not a new authority. It is a Human-visible operational view over the existing Issue, branch, PR, GitHub Actions, convergence, PR Gate, Product Gate, and merge evidence.
+
+Use exactly these run states:
+
+- `WORKING` — repository inspection, editing, or focused validation is active;
+- `WAITING` — PR Gate or Product Gate is pending/running;
+- `FIXING` — a failed test/gate is being diagnosed or repaired;
+- `BLOCKED` — safe continuation requires a permission, external dependency, destructive ambiguity resolution, or Human decision;
+- `READY` — PR Gate and Product Gate both succeeded on the same current head SHA;
+- `MERGED` — GitHub confirmed the merge after the exact tested head was ready.
+
+The ledger records the issue, PR, branch, current head SHA, current step, changed-file summary, both required gate results, current failure/blocker when applicable, next action, and last meaningful action. Gate success from an older head is stale and must never authorize merge.
+
+Repository-aware assistants should update the existing ledger comment whenever the run changes material state instead of adding another status comment. `scripts/development-run-ledger.mjs` is the canonical validator/renderer so Human and automated clients share the same state model and same-SHA rules.
+
+When the Human explicitly says `build, test, fix and merge when green`, treat that as bounded authority for the current task to continue through ordinary repair/retry cycles. A failing test or running GitHub workflow is not itself a reason to stop. Continue until `READY`, then merge and verify `MERGED`, unless a genuine `BLOCKED` condition requires the Human.
+
+The ledger may expose concise engineering decisions and failure causes, but it must not expose hidden reasoning, chain-of-thought, full prompts/responses, credentials, private story text, or unrelated personal information.
+
 ## When convergence is required
 
 Use a convergence manifest for non-trivial work where a developer brief or multi-part acceptance contract exists, especially architecture changes, new capabilities, authority/security changes and multi-surface product behavior.

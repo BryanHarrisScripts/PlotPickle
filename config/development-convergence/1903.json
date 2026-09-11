@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "issue": 1903,
+  "brief": "docs/developer-briefs/1903-development-run-ledger.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "AGENTS.md",
+    "config/development-convergence/1903.json",
+    "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md",
+    "docs/developer-briefs/1903-development-run-ledger.md",
+    "scripts/development-run-ledger.mjs",
+    "tests/issue-1903-development-run-ledger.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The canonical ledger exposes the six explicit observable run states.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/development-run-ledger.mjs",
+          "contains": "\"WORKING\",\n  \"WAITING\",\n  \"FIXING\",\n  \"BLOCKED\",\n  \"READY\",\n  \"MERGED\""
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "READY fails closed unless PR Gate and Product Gate both succeed on the exact current head SHA.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/development-run-ledger.mjs",
+          "contains": "requires ${name} SUCCESS on the current head SHA"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1903-development-run-ledger.test.mjs",
+          "contains": "READY requires both required gates green on the exact current head"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "MERGED requires confirmed GitHub merge evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/development-run-ledger.mjs",
+          "contains": "MERGED requires merge.confirmed=true from GitHub merge evidence."
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1903-development-run-ledger.test.mjs",
+          "contains": "MERGED requires GitHub-confirmed merge evidence"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Repository rules define one persistent PR ledger comment, visible states, privacy limits, and deterministic build-test-fix-merge semantics.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "AGENTS.md",
+          "contains": "single persistent PR comment"
+        },
+        {
+          "type": "file-contains",
+          "path": "AGENTS.md",
+          "contains": "build, test, fix and merge when green"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md",
+          "contains": "## Observable execution ledger"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The focused regression validates the Human-readable renderer and is rerun independently by PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1903-development-run-ledger.test.mjs",
+          "contains": "renders one stable Human-visible development ledger"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "Validate development run ledger contract"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "The change remains developer-operations-only and adds no production UI/runtime dependency.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/1903-development-run-ledger.md",
+          "contains": "No product UI or runtime dependency."
+        }
+      ]
+    }
+  ]
+}

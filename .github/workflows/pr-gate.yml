@@ -40,6 +40,9 @@ jobs:
       - name: Validate development convergence contract
         run: node --test tests/issue-1899-development-convergence.test.mjs
 
+      - name: Validate development run ledger contract
+        run: node --test tests/issue-1903-development-run-ledger.test.mjs
+
       - name: Validate development convergence
         run: node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}
 

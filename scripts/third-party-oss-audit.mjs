@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(root, "config", "third-party-oss.json");
 const readJson = (relative) => JSON.parse(readFileSync(path.join(root, relative), "utf8"));
+const readText = (relative) => readFileSync(path.join(root, relative), "utf8");
 const exists = (relative) => existsSync(path.join(root, relative));
 
 export function auditThirdPartyOss() {
@@ -25,6 +26,7 @@ export function auditThirdPartyOss() {
   const systems = Array.isArray(registry.systems) ? registry.systems : [];
   const assets = Array.isArray(registry.thirdPartyAssets) ? registry.thirdPartyAssets : [];
   const nonOss = Array.isArray(registry.nonOssConnections) ? registry.nonOssConnections : [];
+  const byId = new Map(systems.map((item) => [item.id, item]));
 
   if (registry.schemaVersion !== 1) failures.push(`Unsupported third-party registry schemaVersion: ${registry.schemaVersion ?? "missing"}`);
   if (!Object.keys(direct).length) failures.push("package.json exposes no direct dependencies to audit.");
@@ -89,6 +91,53 @@ export function auditThirdPartyOss() {
     if (asset.evidencePath && !exists(asset.evidencePath)) failures.push(`Third-party asset ${asset.id} references missing evidencePath: ${asset.evidencePath}`);
   }
 
+  // Pinned/managed records must agree with the evidence already used by the product.
+  const node = byId.get("nodejs");
+  if (node) {
+    const installerWorkflow = readText(".github/workflows/windows-installer.yml");
+    const stage = readText("scripts/windows-installer/stage.mjs");
+    if (!installerWorkflow.includes(`node-version: "${node.version}"`)) failures.push(`Node.js registry version ${node.version} does not match the Windows installer workflow.`);
+    if (!stage.includes("cpSync(nodeRoot, stagedNode") || !stage.includes("manifest.bundledNode")) failures.push("Windows installer no longer proves Node.js is bundled; update the OSS registry classification.");
+  }
+
+  const buzz = byId.get("buzz");
+  if (buzz) {
+    const manifest = readJson("runtime/buzz/manifest.json");
+    if (manifest.sourceRepository !== buzz.source) failures.push("BUZZ registry source disagrees with runtime/buzz/manifest.json.");
+    if (manifest.sourceTag !== `v${buzz.version}`) failures.push(`BUZZ registry version ${buzz.version} disagrees with runtime/buzz/manifest.json (${manifest.sourceTag}).`);
+    if (manifest.sourceRevision !== buzz.revision) failures.push(`BUZZ registry revision ${buzz.revision} disagrees with runtime/buzz/manifest.json (${manifest.sourceRevision}).`);
+    if (!manifest.licenseFiles?.includes("LICENSE.buzz.txt")) failures.push("BUZZ manifest no longer declares LICENSE.buzz.txt.");
+  }
+
+  const portless = byId.get("portless");
+  if (portless) {
+    const pin = readJson("config/portless-runtime.json");
+    if (pin.version !== portless.version || pin.license !== portless.license || pin.sourceRepository !== portless.source || pin.sourceCommit !== portless.revision) {
+      failures.push("Portless registry record disagrees with config/portless-runtime.json.");
+    }
+  }
+
+  const lazyFrames = byId.get("lazy-frames");
+  if (lazyFrames) {
+    const gateway = readText("build/lazy-frames-gateway.ts");
+    if (!gateway.includes(`const LAZY_FRAMES_VERSION = "${lazyFrames.version}"`)) failures.push(`Lazy Frames registry version ${lazyFrames.version} disagrees with the managed installer gateway.`);
+    if (!gateway.includes("--save-exact") || !gateway.includes("lazy-frames@${LAZY_FRAMES_VERSION}")) failures.push("Lazy Frames installer is no longer exact-pinned; review its OSS registry record.");
+  }
+
+  const pi = byId.get("pi-coding-agent");
+  if (pi) {
+    const piLock = readJson(".pi/npm/package-lock.json");
+    const record = piLock.packages?.["node_modules/@earendil-works/pi-coding-agent"];
+    if (!record || record.version !== pi.version || record.license !== pi.license) failures.push("Pi coding agent registry record disagrees with .pi/npm/package-lock.json.");
+  }
+
+  const sdxl = assets.find((item) => item.id === "sdxl-base-1");
+  if (sdxl) {
+    const evidence = readText(sdxl.evidencePath);
+    if (!evidence.includes(`license: "${sdxl.license}"`)) failures.push(`SDXL registry licence ${sdxl.license} disagrees with reviewed starter evidence.`);
+    if (!/sha256:\s*"[0-9a-f]{64}"/i.test(evidence)) failures.push("SDXL reviewed starter evidence no longer pins a SHA-256 digest.");
+  }
+
   const packageEntries = Object.entries(packageLock.packages ?? {})
     .filter(([name]) => name && name.startsWith("node_modules/"));
   const licenseCounts = new Map();
@@ -103,7 +152,7 @@ export function auditThirdPartyOss() {
   }
   if (missingTransitive.length) warnings.push(`${missingTransitive.length} installed package record(s) have no licence field in package-lock.json; see JSON audit output for locations.`);
 
-  const readme = readFileSync(path.join(root, "README.md"), "utf8");
+  const readme = readText("README.md");
   const startMarker = String(registry?.readme?.startMarker ?? "");
   const endMarker = String(registry?.readme?.endMarker ?? "");
   const start = startMarker ? readme.indexOf(startMarker) : -1;

@@ -43,10 +43,10 @@
     {
       "id": "reader-review",
       "displayName": "Fresh Reader Specialist",
-      "purpose": "React as a fresh reader to clarity, emotional effect, confusion and unanswered questions without silently converting taste into canon.",
+      "purpose": "Serve as the reader-facing capability inside DraftLens's Reader Simulation Harness, recording blind sequential reader evidence without silently converting taste into diagnosis or canon.",
       "reference": ".agents/skills/writer-in-residence/references/specialists/reader-review.md",
-      "outputContract": ["reader reaction", "confusion", "strongest moment", "question for writer"],
-      "keywords": ["read", "review", "reaction", "confusing", "emotion", "feedback", "fresh eyes"]
+      "outputContract": ["structured reader evidence", "attention and expectation", "confusion and strongest moment", "continue skim or quit", "recall from reader state"],
+      "keywords": ["read", "review", "reaction", "confusing", "emotion", "feedback", "fresh eyes", "reader", "draftlens", "first read", "recall"]
     }
   ]
 }

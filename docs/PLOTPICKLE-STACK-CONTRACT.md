@@ -1,15 +1,17 @@
 # PlotPickle Stack Contract
 
-Status: LOCKED ARCHITECTURE / CANDIDATE FRAMEWORK IMPLEMENTATION
+Status: LOCKED ARCHITECTURE / CURRENT REFERENCE IMPLEMENTATION
 Version: 1.0
 
-This stack contract extends the PlotPickle Product Contract without changing its framework-replaceability rules.
+Implementation status reconciled: 2026-09-11
+
+This stack contract extends the PlotPickle Product Contract without changing its framework-replaceability rules. Vercel AI SDK and Mastra are active in the current reference implementation; their use does not change the locked rule that frameworks and providers remain replaceable behind PlotPickle-owned contracts.
 
 PP-STACK-001 — LOCKED — PlotPickle uses a layered application architecture: PlotPickle UI → AI application layer → Agent Runtime/Harness → Creative Director → Specialist Agents → Provider Router → Model/Media Providers → PPF Canonical State → Story Archive.
 
-PP-STACK-002 — CANDIDATE — Vercel AI SDK is the preferred TypeScript application-facing AI transport/streaming layer for the current proof of concept.
+PP-STACK-002 — REFERENCE IMPLEMENTATION — Vercel AI SDK is the current TypeScript application-facing AI transport/streaming layer. It remains replaceable under PP-STACK-012.
 
-PP-STACK-003 — CANDIDATE — Mastra is the preferred embedded Agent Runtime implementation for the current proof of concept.
+PP-STACK-003 — REFERENCE IMPLEMENTATION — Mastra is the current embedded Agent Runtime implementation. It remains replaceable under PP-STACK-012.
 
 PP-STACK-004 — LOCKED — Creative Director is the primary coordinating agent for the interactive Creative Room.
 
@@ -33,4 +35,4 @@ PP-STACK-013 — LOCKED — Normal PlotPickle users interact through the applica
 
 PP-STACK-014 — LOCKED — The stack must support local-first operation, optional cloud use, explicit paid/cloud consent, structured agent state, restart recovery, and Story Archive persistence.
 
-Implementation detail and proof criteria are defined in docs/PLOTPICKLE-STACK.md.
+Implementation detail and validation expectations are defined in docs/PLOTPICKLE-STACK.md.

@@ -1,8 +1,10 @@
 # PlotPickle AI architecture
 
-Status: foundation for the next application increment
+Status: CURRENT PROVIDER / AGENT ARCHITECTURE
 
-PlotPickle treats AI as an optional local-server capability. The canonical story project remains useful with no AI connected and does not become dependent on a provider account, hosted conversation, or proprietary model identifier.
+Implementation status reconciled: 2026-09-11
+
+PlotPickle treats AI as an optional creative-compute capability that may run locally, through a private compatible endpoint, or through an explicitly configured cloud provider. The canonical story project remains useful with no AI connected and does not become dependent on a provider account, hosted conversation, proprietary model identifier, or a particular agent framework.
 
 ## Product language
 
@@ -27,10 +29,18 @@ ComfyUI installation, endpoint detection and checkpoint discovery are prerequisi
 ## Five separations
 
 1. The PlotPickle project stores creative truth: story, characters, continuity, knowledge references, prompts, approved assets, and provenance.
-2. Provider settings store connection details and model choices outside the project.
+2. Provider and agent settings store connection details, runtime choices and model choices outside the project.
 3. Secrets remain in the local server's private user data or environment, are never written into browser settings, and are never written into a `.plotpickle.json` export.
-4. Provider adapters translate PlotPickle requests into OpenAI, MiniMax, compatible-server, or Ollama calls.
+4. Provider adapters translate PlotPickle requests into OpenAI, MiniMax, compatible-server, Ollama or other reviewed provider calls.
 5. Generated output is always proposed material. The writer reviews and explicitly applies or approves it.
+
+## Agent runtime and provider boundaries
+
+PlotPickle's current reference implementation uses Vercel AI SDK primitives at the application-facing AI layer and Mastra for bounded agent/workflow orchestration. The packaged runtime includes and verifies Mastra, and live agent-framework code uses Mastra agent and workflow primitives.
+
+Those implementation choices do not own the product. The PPF, creative authority rules, provider router, agent roles, consent rules and user experience remain PlotPickle contracts. Mastra, the Vercel AI SDK, and individual model/media providers may be replaced without redefining story canon or creative workflow ownership.
+
+Creative workflows request capabilities rather than hard-coding a single provider. Agent work receives bounded project context and remains subordinate to the same rule as direct model calls: AI may propose, explain, draft, visualize, evaluate or coordinate, but it does not silently make material canonical.
 
 ## Capability model
 
@@ -98,18 +108,21 @@ MiniMax H3 accepts a text prompt or an approved PlotPickle image as the first fr
 
 ## Settings menu
 
-PlotPickle exposes these connections through one grouped Settings menu rather than a separate AI Studio:
+PlotPickle exposes provider, runtime and agent configuration through the canonical Settings taxonomy rather than a separate AI Studio.
 
-- **Workspace:** General; Appearance / Accessibility; Project Defaults.
-- **Integrations:** Story & Art; Repository & Collab; Scheduling & Meetings; Media & Film Engines.
-- **Data Storage:** Storage & Backups.
-- **Security:** Privacy & Permissions; About & Licensing.
+The top-level Settings structure is:
 
-Story & Art contains the former **AI Setup** choices: ChatGPT / OpenAI API, MiniMax API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
+- **Workspace:** General; Appearance & Accessibility; Project Defaults.
+- **System:** Local; Cloud; Data; Deploy; Repos; Auth; Agents; Open Source.
 
-**Music** links for Suno or Udio remain bounded references inside Media & Film Engines. PlotPickle stores links only; it does not copy music or claim a direct service integration. Media-engine placeholders cannot be enabled until a real, reviewed connector exists.
+Operational Settings surfaces then present the relevant controls inside that structure, including Local Story Mode, Cloud Story Mode, Agent Setup, Integrations & Plugins, and Provider Reference. The taxonomy owns navigation and grouping; individual providers do not create competing Settings architectures.
+
+Provider/model choices, local-vs-cloud routing and Agent overrides remain configuration rather than story canon. Non-secret preferences remain in local settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter project exports.
+
+**Music** links for Suno or Udio remain bounded references inside the relevant media/integration controls. PlotPickle stores links only; it does not copy music or claim a direct service integration. Media-engine placeholders cannot be enabled until a real, reviewed connector exists.
 
 Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Pitch, Voiceprint, PageFlow, and DraftLens when implemented.
+
 ## First in-workflow creative actions
 
 Version 0.9.0 moves the first optional AI actions into the places where writers work:

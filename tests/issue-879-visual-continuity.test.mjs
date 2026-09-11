@@ -75,12 +75,12 @@ test("Settings exposes permanent left categories centre controls and right help 
 test("README uses the current supplied repository-resident artwork in intentional roles", async () => {
   const readme = await read("README.md");
 
-  const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.jpg");
+  const primary = readme.indexOf("public/brand/dashboard/plotpickle-observatory-dragon.webp");
   const community = readme.indexOf("docs/brand/PlotPickle-Community-BBS.jpg");
   const heading = readme.indexOf("<h1 align=\"center\">PlotPickle</h1>");
   const communityHeading = readme.indexOf("## Community, BBS and BUZZ");
   const nodesHeading = readme.indexOf("## PlotPickle Nodes, Human profiles, Stewards and BUZZ");
-  assert.ok(primary >= 0 && primary < heading, "the current supplied dragon/logo banner should lead the README");
+  assert.ok(primary >= 0 && primary < heading, "the canonical Skin V1 Dashboard artwork should lead the README");
   assert.ok(community > communityHeading && community < nodesHeading, "the supplied Community BBS artwork should introduce the Community section");
   assert.doesNotMatch(readme, /plotpickle-header-horizontal-1200\.png|plotpickle-wordmark-horizontal\.svg/i);
   assert.doesNotMatch(readme, /sage-brinewick-v5-pp-c1\.png|docs\/brand-sources\/sage-brinewick-v2-master\.png/i);

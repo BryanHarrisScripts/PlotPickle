@@ -1,8 +1,12 @@
 # PlotPickle Application Stack
 
-Status: CANDIDATE IMPLEMENTATION / LOCKED ARCHITECTURAL DIRECTION
+Status: CURRENT REFERENCE IMPLEMENTATION / LOCKED ARCHITECTURAL DIRECTION
 
-This document defines the current intended PlotPickle application stack. The product contract remains authoritative. Framework and provider implementations remain replaceable where the contract requires replaceability.
+Implementation status reconciled: 2026-09-11
+
+This document defines the current PlotPickle reference application stack. The product contract remains authoritative. Framework and provider implementations remain replaceable where the contract requires replaceability.
+
+The packaged runtime currently includes Vercel AI SDK primitives through the `ai` package and Mastra for agent/workflow orchestration. Those are active implementation choices, not ownership boundaries: PlotPickle's story, UX, provider-routing, consent, PPF and archive contracts remain framework-neutral.
 
 ## Stack
 
@@ -24,10 +28,10 @@ PlotPickle UI
 The three-column product experience: Story Navigator, Creative Canvas, and conversational Creative Room. Users interact with PlotPickle, not terminal windows or provider-specific consoles.
 
 ### Vercel AI SDK
-Candidate TypeScript application-facing AI transport/streaming layer. It should support model/provider abstraction and interactive responses without becoming the owner of story state or canon.
+Current TypeScript application-facing AI transport/streaming layer. It supports provider-neutral model interaction and interactive responses without becoming the owner of story state or canon. It remains replaceable under the locked PlotPickle contracts.
 
 ### Mastra Agent Runtime
-Candidate embedded agent/workflow runtime for the PlotPickle Agent Harness. It should provide orchestration, memory/context handling, tools, structured outputs, retries, tracing, suspend/resume, human approval, and specialist coordination. Mastra is an implementation candidate, not a permanent product dependency until validated and explicitly locked.
+Current embedded agent/workflow runtime for the PlotPickle Agent Harness. The live repository uses it for agent orchestration and workflow primitives, and the packaged Windows runtime verifies that Mastra is present. It supports orchestration, memory/context handling, tools, structured outputs, retries, tracing, suspend/resume, human approval, and specialist coordination. Mastra is the current reference implementation, not a permanent product ownership boundary.
 
 ### Creative Director
 Primary user-facing coordinator inside the Creative Room. It understands the active story task, chooses when to consult specialists, synthesizes useful findings, and never silently changes canon.
@@ -57,9 +61,9 @@ Persistent local project library and recovery surface. A real PlotPickle project
 
 The stack is layered, not chained by ownership. Vercel AI SDK and Mastra may be replaced if a better implementation satisfies the same locked PlotPickle contracts. PlotPickle owns the story model, PPF, UX, agent roles, provider-routing rules, consent rules, and archive behavior.
 
-## Validation Before Mastra/Vercel Lock
+## Current Reference Implementation Validation
 
-Before either framework becomes a locked dependency, a controlled PlotPickle proof must demonstrate:
+The current Mastra/Vercel implementation is expected to continue proving the same product-level guarantees:
 
 1. One interactive Creative Room with no user-facing command windows.
 2. Creative Director plus multiple selectable specialist agents.
@@ -72,4 +76,4 @@ Before either framework becomes a locked dependency, a controlled PlotPickle pro
 9. Traceable agent status and failures inside PlotPickle.
 10. Persistent PPF/Story Archive state after restart.
 
-If the proof fails materially, the product contract stays unchanged and another runtime may replace the candidate implementation.
+If the current implementation fails materially, the product contract stays unchanged and another runtime may replace it.

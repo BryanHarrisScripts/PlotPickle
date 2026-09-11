@@ -29,6 +29,7 @@ const EXCLUDED_INPUT_TYPES = new Set([
   "range",
   "url",
   "email",
+  "tel",
 ]);
 
 const EXCLUDED_PURPOSES = new Set([
@@ -42,6 +43,8 @@ const EXCLUDED_PURPOSES = new Set([
   "provider-selector",
 ]);
 
+const SPECIALIZED_FIELD_PATTERN = /\b(password|passphrase|secret|token|api[ _-]?key|credential|signing|private[ _-]?key|file[ _-]?path|directory|folder|command|terminal|shell|code|endpoint|base[ _-]?url|server[ _-]?(address|url)|repository[ _-]?url|provider[ _-]?(id|model)|model[ _-]?id|port|timecode)\b/iu;
+
 export function voiceInputAllowed(input: {
   readonly type?: string;
   readonly purpose?: string;
@@ -51,6 +54,24 @@ export function voiceInputAllowed(input: {
   const type = String(input.type || "text").trim().toLowerCase();
   const purpose = String(input.purpose || "natural-language").trim().toLowerCase();
   return !EXCLUDED_INPUT_TYPES.has(type) && !EXCLUDED_PURPOSES.has(purpose);
+}
+
+export function voiceInputFieldAllowed(input: {
+  readonly type?: string;
+  readonly inputMode?: string;
+  readonly autocomplete?: string;
+  readonly descriptor?: string;
+  readonly disabled?: boolean;
+  readonly readOnly?: boolean;
+  readonly voiceInput?: boolean;
+}) {
+  if (input.disabled || input.readOnly || input.voiceInput === false) return false;
+  if (!voiceInputAllowed({ type: input.type, voiceInput: input.voiceInput })) return false;
+  const inputMode = String(input.inputMode || "").toLowerCase();
+  if (["numeric", "decimal", "tel", "email", "url"].includes(inputMode)) return false;
+  const autocomplete = String(input.autocomplete || "").toLowerCase();
+  if (/password|one-time-code|cc-|address|postal|tel|email|url/u.test(autocomplete)) return false;
+  return !SPECIALIZED_FIELD_PATTERN.test(String(input.descriptor || ""));
 }
 
 export function insertDictationText(

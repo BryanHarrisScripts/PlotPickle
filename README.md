@@ -160,6 +160,23 @@ That means:
 - BUZZ conversation does not become canon automatically;
 - deterministic tests remain product-quality evidence, not creative authority.
 
+<!-- PLOTPICKLE:UPDATES:START -->
+## UPDATES
+
+Current living architecture: **v1.0 · TARGET · source updated 2026-09-09**  
+Fingerprint: `sha256:b69cb4723228cf791db0c79ac909cae3ef1f91940c3168756832c8ac8bcf2518`
+
+- Architecture status: **TARGET** — 7 canonical layers from one machine-readable map.
+- Documentation freshness: **CURRENT generated surfaces; Human architecture prose remains REVIEW-owned**.
+- Agent Context: **CURRENT**.
+- C4 freshness: **CURRENT**.
+- Current map summary: Community entry + monochrome presentation merged. Full Community contracts, versioned Skin adapters and Bring into Story remain migration work.
+
+Inspect the living evidence: [Architecture Knowledge Map](architecture/plotpickle.architecture.json) · [Architecture Documentation](architecture/README.md) · [Documentation Drift Detection](docs/updates/documentation-drift.md) · [Agent Context](docs/architecture/agent-context.md) · [C4 Diagrams](architecture/plotpickle-c4.md).
+
+Previous current entries are preserved in [UPDATES history](docs/updates/README.md), not accumulated in this README.
+<!-- PLOTPICKLE:UPDATES:END -->
+
 <!-- PLOTPICKLE:ARCHITECTURE:START -->
 ## ARCHITECTURE
 
@@ -257,7 +274,7 @@ These projects are not presented as PlotPickle runtime dependencies. They are ac
 | Open-source reference | How it informed current PlotPickle | Licence |
 |---|---|---|
 | ReelBench Skills | Inspired the Sequence Evidence split between machine-measured facts, bounded model annotation and deterministic validation | Apache-2.0 |
-| BERD | Architectural reference for managed sidecars, pinned runtimes, lifecycle checks and validation patterns | Apache-2.0 |
+| BERD | Architectural reference for managed sidecars, pinned runtimes, lifecycle checks and validation patterns | Apache-2.0 at the pinned source revision |
 | GitHub Spec Kit | Reference for PlotPickle's repository-native spec-driven development discipline and post-build convergence check | MIT |
 | Lightricks ComfyUI-LTXVideo pinned workflow | Source/reference for the reviewed single-stage LTX proof graph at the recorded upstream revision | Apache-2.0 at the pinned source revision |
 | ComfyUI LTX-Video workflow template | Reference for the reviewed text-to-video LTX graph adaptation | MIT |

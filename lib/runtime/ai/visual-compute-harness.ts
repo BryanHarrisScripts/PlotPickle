@@ -4,7 +4,7 @@ import {
   type VisualComputeTarget,
 } from "./comfy-visual-adapter";
 import {
-  VISUAL_WORKFLOW_CATALOG,
+  VISUAL_COMPUTE_LANES,
   isVisualComputeLaneId,
   visualComputeLane,
   visualWorkflowById,
@@ -124,7 +124,7 @@ export function createVisualComputeHarness(adapter: ComfyVisualAdapter) {
   return Object.freeze({
     capabilities: VISUAL_COMPUTE_CAPABILITIES,
     lifecycle: VISUAL_COMPUTE_LIFECYCLE,
-    lanes: () => VISUAL_WORKFLOW_CATALOG,
+    lanes: () => VISUAL_COMPUTE_LANES,
     find_visual_workflow,
     validate_visual_workflow,
     run_visual_workflow,

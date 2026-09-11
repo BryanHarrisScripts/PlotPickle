@@ -16,7 +16,7 @@ No second story database is introduced.
 
 ## What is being adapted
 
-The useful technique is the **process grammar**, not any particular example, provider, model or finished sequence:
+The useful technique is the process grammar, not any particular example, provider, model or finished sequence:
 
 1. explicit reference map;
 2. global continuity locks;

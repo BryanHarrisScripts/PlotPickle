@@ -62,7 +62,8 @@ For non-trivial product and architecture work, use the repository-native loop do
 - Never develop directly on `main`.
 - Use a branch or isolated git worktree based on current `main`.
 - Do not force-push, rewrite shared history, or delete unrelated branches.
-- Coding agents may edit and test their worktree. They must not merge their own work.
+- Coding agents may edit and test their worktree. They must not merge their own work unless the Human explicitly grants merge authority for the current task.
+- The instruction `build, test, fix and merge when green` explicitly grants bounded merge authority for that task after all required gates are green on the same current head SHA.
 - GitHub CI is an independent gate. Merge only the exact tested head after required checks are green.
 
 ## Testing and UAT
@@ -128,6 +129,20 @@ A reviewer should not approve merely because the implementation agent says the t
 - Operational traces may include agent/tool/model/runtime/timing/status metadata.
 - Do not store hidden reasoning, full prompts, full model responses, story text, or credentials in developer telemetry.
 - Evidence should be sufficient to reproduce a failure without leaking private content.
+
+### PlotPickle Development Run ledger
+
+For non-trivial pull-request work, repository-aware assistants must maintain a single persistent PR comment titled `PlotPickle Development Run` as the Human-visible execution ledger.
+
+- Use the stable marker `<!-- plotpickle-development-run-ledger:v1 -->` so the existing comment can be found and updated in place; do not create status-comment spam.
+- Use only these run states: `WORKING`, `WAITING`, `FIXING`, `BLOCKED`, `READY`, `MERGED`.
+- Record the issue, PR, branch, current head SHA, current step, changed-file summary, PR Gate status, Product Gate status, current failure/blocker when applicable, next action, and last meaningful action.
+- `WAITING` means required GitHub verification is pending/running. `BLOCKED` means safe continuation requires an external dependency, permission, destructive ambiguity resolution, or Human decision.
+- `READY` is valid only when PR Gate and Product Gate both succeeded on the same current head SHA. A successful result from an older head is stale and must not authorize merge.
+- `MERGED` is valid only after GitHub confirms the merge and provides merge evidence.
+- When the Human says `build, test, fix and merge when green`, continue through ordinary test failures and GitHub retry/repair loops instead of stopping for status-only reporting. Stop early only for a genuine blocker as defined above.
+- The ledger reports engineering decisions and concise failure causes, not hidden reasoning, chain-of-thought, full prompts/responses, credentials, private story content, or unrelated personal information.
+- `scripts/development-run-ledger.mjs` is the canonical validator/renderer for this contract. The ledger remains observability only; PR Gate, Product Gate, convergence, and GitHub merge evidence remain authoritative.
 
 ## Completion contract
 

@@ -191,7 +191,7 @@
       "evidencePath": "build/voice/local-voice-runtime.ts",
       "plotpickleUse": "Optional reviewed CPU-only local speech-to-text runtime for universal PlotPickle dictation. It is downloaded only after explicit Human setup approval and never falls back to cloud transcription.",
       "distribution": "The reviewed Windows x64 CPU release archive is downloaded into PlotPickle's local runtime home only after explicit approval and exact size/SHA-256 verification.",
-      "readme": true
+      "readme": false
     },
     {
       "id": "comfyui",

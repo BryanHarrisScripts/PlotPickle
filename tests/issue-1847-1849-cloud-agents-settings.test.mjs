@@ -42,6 +42,13 @@ test("#1848 PlotPickle Agent compute has default, per-Agent override and no sile
   assert.match(host, /Use PlotPickle default/u);
   assert.match(host, /Local Story Mode and Cloud Story Mode supply/u);
   assert.match(host, /BUZZ identity, rooms, presence, keys, provider and model settings remain in BUZZ/u);
+  assert.match(host, /<optgroup label="LOCAL STORY MODE">/u);
+  assert.match(host, /<optgroup label="CLOUD STORY MODE">/u);
+  assert.match(host, /provider\.locality === "local"/u);
+  assert.match(host, /provider\.locality === "cloud"/u);
+  assert.match(host, /disabled=\{!provider\.ready\}/u);
+  assert.match(host, /<ProviderOptionGroups providers=\{status\.providers\} \/>/u);
+  assert.doesNotMatch(host, /providers\.filter\(\(provider\) => provider\.ready\)/u);
 
   assert.match(store, /defaultProvider: "active"/u);
   assert.match(store, /overrides: Record<string, TextProvider>/u);

@@ -1,0 +1,79 @@
+.panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(255,255,255,.16);
+}
+
+.panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panel header p,
+.panel header h3,
+.panel header span,
+.panel dl,
+.panel dd,
+.panel dt,
+.panel .boundary p,
+.panel .notice {
+  margin: 0;
+}
+
+.panel header > div {
+  display: grid;
+  gap: .3rem;
+}
+
+.panel header > strong {
+  padding: .3rem .55rem;
+  border: 1px solid currentColor;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.boundary {
+  display: grid;
+  gap: .35rem;
+  padding: .8rem;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.panel dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: .6rem;
+}
+
+.panel dl > div {
+  display: grid;
+  gap: .2rem;
+  padding: .65rem;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.panel dt {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+
+.actions button {
+  min-height: 2.3rem;
+  padding: .45rem .75rem;
+}
+
+.notice {
+  min-height: 1.3rem;
+}

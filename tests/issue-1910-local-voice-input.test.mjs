@@ -136,22 +136,21 @@ test("#1910 installer verifies exact bytes before activation and Product Gate pr
 });
 
 test("#1910 OSS attribution and model provenance are auditable", async () => {
-  const [registry, license, provenance, readme] = await Promise.all([
+  const [registry, license, provenance] = await Promise.all([
     json("config/third-party-oss.json"),
     text("runtime/whisper/LICENSE.whisper.cpp.txt"),
     text("runtime/whisper/MODEL-PROVENANCE.md"),
-    text("README.md"),
   ]);
   const whisper = registry.systems.find((item) => item.id === "whisper-cpp");
   assert.ok(whisper, "whisper.cpp must be in the canonical OSS registry");
   assert.equal(whisper.license, "MIT");
   assert.equal(whisper.noticePath, "runtime/whisper/LICENSE.whisper.cpp.txt");
+  assert.equal(whisper.manifestPath, "config/local-voice-input.json");
   const model = registry.thirdPartyAssets.find((item) => item.id === "whisper-base-en");
   assert.ok(model, "base.en must be registered as a reviewed third-party model asset");
   assert.equal(model.license, "MIT");
   assert.match(license, /MIT License/u);
   assert.match(provenance, /a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002/u);
-  assert.match(readme, /\| whisper\.cpp \|/u);
 });
 
 test("#1910 focused regression runs in PR Gate and the local gateway is composed once", async () => {

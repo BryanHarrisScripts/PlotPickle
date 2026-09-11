@@ -5,8 +5,9 @@ import AiRoutingPanel from "../ai-routing-panel";
 import CloudModelCatalogPanel from "../settings/compute/cloud-model-catalog-panel";
 import GeminiProviderSetupPanel from "../settings/ai-provider/gemini-provider-setup-panel";
 import CloudProviderSetupPanel from "./cloud-provider-setup-panel";
+import ComfyCloudSetupPanel from "./comfy-cloud-setup-panel";
 
-type CloudStoryView = "menu" | "writing" | "images" | "video" | "agents" | "openai" | "minimax" | "gemini";
+type CloudStoryView = "menu" | "writing" | "images" | "video" | "agents" | "openai" | "minimax" | "gemini" | "comfy-cloud";
 type CloudMenuView = Exclude<CloudStoryView, "menu">;
 type CapabilityKey = "writing" | "images" | "video" | "agents";
 type RoutingOption = { configured: boolean; ready: boolean; locality: string };
@@ -89,6 +90,7 @@ const CLOUD_MENU: readonly CloudMenuItem[] = [
   { id: "openai", shortcut: "O", label: "OPENAI", detail: "User-owned OpenAI API authority for supported writing and image tasks", group: "CLOUD RESOURCES" },
   { id: "minimax", shortcut: "M", label: "MINIMAX", detail: "User-owned MiniMax API authority for supported writing, image and video tasks", group: "CLOUD RESOURCES" },
   { id: "gemini", shortcut: "G", label: "GOOGLE GEMINI", detail: "User-owned Gemini authority for supported writing and Agent text tasks", group: "CLOUD RESOURCES" },
+  { id: "comfy-cloud", shortcut: "C", label: "COMFYUI CLOUD", detail: "Cloud workflows, curated production lanes and Comfy automation tools", group: "CLOUD RESOURCES" },
 ];
 
 const VIEW_TITLES: Record<CloudMenuView, string> = {
@@ -99,6 +101,7 @@ const VIEW_TITLES: Record<CloudMenuView, string> = {
   openai: "OPENAI",
   minimax: "MINIMAX",
   gemini: "GOOGLE GEMINI",
+  "comfy-cloud": "COMFYUI CLOUD",
 };
 
 function cloudReady(group: RoutingGroup | undefined) {
@@ -224,6 +227,7 @@ export default function CloudStoryModeHost() {
         {view === "openai" ? <CloudProviderSetupPanel provider="openai" /> : null}
         {view === "minimax" ? <CloudProviderSetupPanel provider="minimax" /> : null}
         {view === "gemini" ? <GeminiProviderSetupPanel /> : null}
+        {view === "comfy-cloud" ? <ComfyCloudSetupPanel /> : null}
       </div>
     );
   }

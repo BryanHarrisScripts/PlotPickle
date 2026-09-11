@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import AgentShortcutPicker, { type AgentShortcutTarget } from "./_components/agent-shortcut-picker";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./writing-assistant-console.module.css";
 
@@ -12,6 +13,7 @@ type Message = {
   content: string;
   provider?: ProviderId;
   model?: string;
+  agentName?: string;
 };
 
 type ProviderStatus = {
@@ -170,11 +172,13 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [prompt, setPrompt] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState<AgentShortcutTarget | null>(null);
   const [ollamaModel, setOllamaModel] = useState("");
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://127.0.0.1:11434");
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("");
   const [technicalOpen, setTechnicalOpen] = useState(false);
+  const promptRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     void refreshStatus();
@@ -328,6 +332,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     event.preventDefault();
     const message = prompt.trim();
     if (!message || working || !status || status.activeProvider === "disabled") return;
+    const target = selectedAgent;
     const userMessage: Message = { id: messageId(), role: "user", content: message };
     const history = messages.map(({ role, content }) => ({ role, content }));
     setMessages((current) => [...current, userMessage].slice(-30));
@@ -335,15 +340,20 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     setWorking(true);
     setNotice("");
     try {
-      const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/chat", "POST", { message, history });
+      const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/chat", "POST", {
+        message,
+        history,
+        ...(target ? { agentId: target.roleId, conversationMode: true } : {}),
+      });
       setMessages((current) => [...current, {
         id: messageId(),
         role: "assistant",
         content: result.text,
         provider: result.provider,
         model: result.model,
+        agentName: target?.displayName,
       }].slice(-30));
-      setNotice(`${providerCopy[result.provider].short} · ${result.model} · ${result.latencyMs} ms`);
+      setNotice(`${target ? `${target.displayName} · ` : ""}${providerCopy[result.provider].short} · ${result.model} · ${result.latencyMs} ms`);
       await refreshStatus();
       refreshDashboardLights();
     } catch (error) {
@@ -359,6 +369,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   }
 
   const showOllamaSetup = focusProvider === "ollama" || Boolean(status?.ollama.reachable || status?.providers.ollama.configured);
+  const composerDisabled = working || !status || status.activeProvider === "disabled";
 
   return (
     <section className={styles.console} aria-labelledby="writing-assistant-title">
@@ -450,22 +461,42 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
       >
         {messages.length ? messages.map((message) => (
           <article key={message.id} data-role={message.role}>
-            <header><strong>{message.role === "user" ? "You" : "PlotPickle Assistant"}</strong>{message.provider ? <span>{providerCopy[message.provider].short} · {message.model}</span> : null}</header>
+            <header><strong>{message.role === "user" ? "You" : message.agentName || "PlotPickle Assistant"}</strong>{message.provider ? <span>{providerCopy[message.provider].short} · {message.model}</span> : null}</header>
             <p>{message.content}</p>
           </article>
         )) : (
           <p className={styles.emptyConversation}>
             <strong>Ask about PlotPickle, your story structure, or what to do next.</strong>
-            <span>Run a provider test first. The answer appears here so you know the connection genuinely works.</span>
+            <span>Type / in the empty question field to choose a PlotPickle Agent, or ask the default assistant directly.</span>
           </p>
         )}
-        {working ? <p className={styles.thinking}>Waiting for the selected model…</p> : null}
+        {working ? <p className={styles.thinking}>Waiting for {selectedAgent?.displayName || "the selected model"}…</p> : null}
       </div>
 
       <form className={styles.composer} onSubmit={sendMessage}>
-        <label htmlFor="writing-assistant-prompt">Question</label>
-        <textarea id="writing-assistant-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Select a text engine to begin." : "Ask your selected writing model a question…"} disabled={working || !status || status.activeProvider === "disabled"} rows={3} />
-        <div><span>This temporary console is local UI state. Answers do not become story canon automatically.</span><button type="submit" disabled={working || !prompt.trim() || !status || status.activeProvider === "disabled"}>Send</button></div>
+        <label htmlFor="writing-assistant-prompt">Ask PlotPickle</label>
+        <div className={styles.composerInputRow}>
+          <AgentShortcutPicker
+            inputRef={promptRef}
+            selectedAgent={selectedAgent}
+            onAgentChange={setSelectedAgent}
+            disabled={composerDisabled}
+          />
+          <textarea
+            ref={promptRef}
+            id="writing-assistant-prompt"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder={status?.activeProvider === "disabled"
+              ? "Select a text engine to begin."
+              : selectedAgent
+                ? `Ask ${selectedAgent.displayName}…`
+                : "Ask PlotPickle…"}
+            disabled={composerDisabled}
+            rows={3}
+          />
+        </div>
+        <div className={styles.composerFooter}><span>Type / on an empty prompt to choose an Agent. Dictation and typing remain editable text; nothing becomes canon automatically.</span><button type="submit" disabled={working || !prompt.trim() || !status || status.activeProvider === "disabled"}>Send</button></div>
       </form>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
@@ -475,6 +506,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
           <header><strong>Technical log</strong><span>No API keys or secret values are displayed.</span></header>
           <dl>
             <div><dt>Active text engine</dt><dd>{status?.activeProvider === "disabled" ? "Off" : status ? providerCopy[status.activeProvider].label : "Checking"}</dd></div>
+            <div><dt>Conversation target</dt><dd>{selectedAgent?.displayName || "Default PlotPickle Assistant"}</dd></div>
             <div><dt>Model</dt><dd>{activeProfile?.model || "No active model"}</dd></div>
             <div><dt>Endpoint</dt><dd>{activeProfile?.baseUrl || (status?.activeProvider === "ollama" ? status.ollama.baseUrl : "No active endpoint")}</dd></div>
             <div><dt>Last successful response</dt><dd>{formatDate(activeProfile?.verifiedAt)}</dd></div>

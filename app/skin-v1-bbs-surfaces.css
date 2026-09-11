@@ -2,9 +2,9 @@
  * Skin V1 BBS compatibility surfaces.
  *
  * Dashboard presentation is owned by skin-v1-dashboard-reference.css.
- * This file keeps only shared shell visibility and User Profile layout that
- * still depend on the legacy class structure. All presentation values come
- * from the shared --pp-skin-* contract.
+ * This file keeps only shared shell visibility and compatibility layout that
+ * still depend on legacy class structure. All presentation values come from
+ * the shared --pp-skin-* contract.
  */
 
 /* The approved Dashboard is its own complete BBS frame; hide generic chrome
@@ -12,6 +12,19 @@
 .pp-skin-v1-home:has(.pp-skin-v1-dashboard-bbs) > .pp-skin-v1-bar,
 .pp-skin-v1-home:has(.pp-skin-v1-dashboard-bbs) > .pp-skin-v1-status {
   display: none;
+}
+
+/* PLOTPICKLE AGENTS keeps the outer BBS banner as the single dominant page
+   heading. Internal host headings step down to Dashboard's supporting scale. */
+[data-skin-v1-plotpickle-agents="true"] h1 {
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-tight);
+}
+
+[data-skin-v1-plotpickle-agents="true"] h2 {
+  font-size: var(--pp-skin-font-sm);
+  line-height: var(--pp-skin-leading-tight);
+  letter-spacing: var(--pp-skin-tracking-meta);
 }
 
 /* USER PROFILE keeps its existing behavior and layout while consuming the

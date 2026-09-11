@@ -282,6 +282,20 @@
       "readme": true
     },
     {
+      "id": "github-spec-kit",
+      "name": "GitHub Spec Kit",
+      "category": "methodology-reference",
+      "usage": "reference-only",
+      "source": "https://github.com/github/spec-kit",
+      "license": "MIT",
+      "licenseSource": "https://github.com/github/spec-kit/blob/main/LICENSE",
+      "evidencePaths": [
+        "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md"
+      ],
+      "plotpickleUse": "Methodology reference for PlotPickle's repository-native spec-driven development discipline, especially explicit project principles, bounded specification/planning, and the post-build convergence check. PlotPickle does not install Spec Kit or copy its templates as a development authority.",
+      "readme": true
+    },
+    {
       "id": "lightricks-comfyui-ltx-workflow",
       "name": "Lightricks ComfyUI-LTXVideo pinned workflow",
       "category": "adapted-reference",

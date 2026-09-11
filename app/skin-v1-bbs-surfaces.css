@@ -14,6 +14,39 @@
   display: none;
 }
 
+/* Normal actions use readable Title Case even when they live inside uppercase chrome. */
+.pp-skin-v1-return {
+  text-transform: none !important;
+}
+
+/* Profile directory presentation follows Dashboard/Settings without changing
+   the stable profile menu IDs or keyboard shortcuts. */
+.pp-skin-v1-submenu-item[data-profile-menu-item] .pp-skin-v1-dashboard-command-line {
+  font-size: 0 !important;
+}
+
+.pp-skin-v1-submenu-item[data-profile-menu-item] .pp-skin-v1-dashboard-command-line::before {
+  display: block;
+  color: inherit;
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-body);
+  font-weight: 400;
+  line-height: var(--pp-skin-leading-body);
+  white-space: pre-wrap;
+}
+
+.pp-skin-v1-submenu-item[data-profile-menu-item="profile"] .pp-skin-v1-dashboard-command-line::before {
+  content: "[P] Profile - Your profile";
+}
+
+.pp-skin-v1-submenu-item[data-profile-menu-item="local-ai"] .pp-skin-v1-dashboard-command-line::before {
+  content: "[L] Local Story Mode - Local writing / images / video";
+}
+
+.pp-skin-v1-submenu-item[data-profile-menu-item="node"] .pp-skin-v1-dashboard-command-line::before {
+  content: "[N] Node - Node info";
+}
+
 /* PLOTPICKLE AGENTS keeps the outer BBS banner as the single dominant page
    heading. Internal host headings step down to Dashboard's supporting scale. */
 [data-skin-v1-plotpickle-agents="true"] h1 {
@@ -60,6 +93,7 @@
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   border-color: var(--pp-skin-accent);
   color: var(--pp-skin-accent-bright);
+  text-transform: none !important;
 }
 
 .pp-skin-v1-profile-original {
@@ -96,8 +130,25 @@
   color: var(--pp-skin-accent-bright) !important;
 }
 
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(header > span, label > span, dt) {
+  font-size: var(--pp-skin-font-body) !important;
+  line-height: var(--pp-skin-leading-body) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(header h2, header h3) {
+  font-size: var(--pp-skin-font-title) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+}
+
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(p, small, dd, blockquote, label, span) {
   color: var(--pp-skin-ink-soft) !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(p, small, dd, blockquote, label, summary, button, a, input, textarea) {
+  font-size: var(--pp-skin-font-body) !important;
+  line-height: var(--pp-skin-leading-body) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a, input, textarea) {
@@ -109,6 +160,7 @@
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a) {
   color: var(--pp-skin-accent-bright) !important;
+  text-transform: none !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a):hover,

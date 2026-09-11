@@ -42,8 +42,9 @@ test("#1879 Comfy Cloud authority is Human-profile scoped and tests only non-gen
 });
 
 test("#1879 keeps bounded user configuration and curated workflow metadata only", async () => {
-  const [panel, catalog, mediaStore] = await Promise.all([
+  const [panel, catalog, compatibility, mediaStore] = await Promise.all([
     read("app/skin-v1/comfy-cloud-setup-panel.tsx"),
+    read("lib/runtime/ai/visual-compute-lanes.ts"),
     read("lib/runtime/ai/comfy-cloud-workflow-catalog.ts"),
     read("build/media-routing-store.ts"),
   ]);
@@ -54,10 +55,11 @@ test("#1879 keeps bounded user configuration and curated workflow metadata only"
     "PlotPickle submission concurrency cap",
     "Completed output handling",
     "Default workflow lane",
-    "CINEMATIC",
-    "MARKETING",
-    "UTILITY",
   ]) assert.match(panel, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u"));
+
+  for (const lane of ["CINEMATIC", "MARKETING", "UTILITY"]) {
+    assert.match(catalog, new RegExp(`label: "${lane}"`, "u"));
+  }
 
   for (const need of [
     "Storyboards & Style Frames",
@@ -74,5 +76,7 @@ test("#1879 keeps bounded user configuration and curated workflow metadata only"
 
   assert.match(catalog, /requiresApiWorkflowImport: true/u);
   assert.doesNotMatch(catalog, /workflowJson|promptText|negativePrompt/u);
+  assert.match(compatibility, /VISUAL_COMPUTE_LANES as COMFY_WORKFLOW_LANES/u);
+  assert.match(compatibility, /VISUAL_WORKFLOW_CATALOG as COMFY_CLOUD_WORKFLOW_CATALOG/u);
   assert.match(mediaStore, /LOCAL_COMFYUI_URL = "http:\/\/127\.0\.0\.1:8188"/u);
 });

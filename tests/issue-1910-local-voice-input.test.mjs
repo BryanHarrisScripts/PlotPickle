@@ -131,6 +131,8 @@ test("#1910 installer verifies exact bytes before activation and Product Gate pr
   assert.match(installer, /executableSha256/u);
   assert.match(installer, /System\.Speech\.Synthesis\.SpeechSynthesizer/u);
   assert.match(installer, /PLOTPICKLE_VOICE_SMOKE_STATUS=passed/u);
+  assert.match(installer, /\$PlotPickleHome = Get-PlotPickleHome/u);
+  assert.doesNotMatch(installer, /^\$Home\s*=/mu);
   assert.match(productGate, /Validate local whisper\.cpp dictation fixture/u);
   assert.match(productGate, /install-whisper-cpp\.ps1.*-Mode Smoke.*-Approved/u);
 });
@@ -165,4 +167,23 @@ test("#1910 focused regression runs in PR Gate and the local gateway is composed
   for (let item = 1; item <= 12; item += 1) assert.match(brief, new RegExp(`\\n${item}\\.`, "u"));
   assert.match(brief, /No GPT-Live/u);
   assert.match(brief, /No cloud fallback/u);
+});
+
+test("#1910 slash opens the canonical routable Agent picker and changes the real conversation target", async () => {
+  const [picker, consoleSource, gateway] = await Promise.all([
+    text("app/_components/agent-shortcut-picker.tsx"),
+    text("app/writing-assistant-console.tsx"),
+    text("build/writing-assistant-gateway.ts"),
+  ]);
+  assert.match(picker, /event\.key === "\/" && emptyPrompt/u);
+  assert.match(picker, /\/api\/writing-assistant\/agent-compute/u);
+  assert.match(picker, /agent\.system === "PlotPickle" && agent\.configurable && typeof agent\.roleId === "string"/u);
+  assert.match(picker, /event\.key === "ArrowDown"/u);
+  assert.match(picker, /event\.key === "ArrowUp"/u);
+  assert.match(picker, /event\.key === "Enter"/u);
+  assert.match(picker, /event\.key === "Escape"/u);
+  assert.doesNotMatch(picker, /Tamsin Hearthquill|Master Oaken-Vague|Sage Brinewick|The Marquee Director/u, "Agent names must come from the canonical roster, not a duplicate hard-coded list");
+  assert.match(consoleSource, /agentId: target\.roleId, conversationMode: true/u);
+  assert.match(gateway, /const conversationMode = body\.conversationMode === true/u);
+  assert.match(gateway, /conversationMode,/u);
 });

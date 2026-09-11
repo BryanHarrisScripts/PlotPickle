@@ -79,7 +79,8 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects Clo
   assert.match(dashboard, /setPlotPickleAgentsOpen\(true\)/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(cloud, /data-skin-v1-cloud-story-mode="true"/u);
-  assert.match(cloud, /label: "AGENTS"/u);
+  assert.match(cloud, /\{ id: "agents", shortcut: "A", detail: "Cloud text compute available to PlotPickle Agents", group: "CAPABILITIES" \}/u);
+  assert.match(cloud, /agents: "Agents"/u);
   assert.match(agents, /data-skin-v1-plotpickle-agents="true"/u);
   assert.match(surfaces, /\[data-skin-v1-plotpickle-agents="true"\]\s+h1\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-meta\)/u);
   assert.match(surfaces, /\[data-skin-v1-plotpickle-agents="true"\]\s+h2\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-sm\)/u);

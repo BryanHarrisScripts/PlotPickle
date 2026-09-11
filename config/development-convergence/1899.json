@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "issue": 1899,
+  "brief": "docs/developer-briefs/1899-plotpickle-development-loop.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "AGENTS.md",
+    "README.md",
+    "config/development-convergence/1899.json",
+    "config/third-party-oss.json",
+    "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md",
+    "docs/developer-briefs/1899-plotpickle-development-loop.md",
+    "scripts/run-development-convergence.mjs",
+    "tests/issue-1899-development-convergence.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The canonical PlotPickle Development Loop is documented as IDEA through MERGE.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md",
+          "contains": "IDEA\n  -> ASSESS\n  -> DEVELOPER BRIEF\n  -> ISSUE\n  -> PLAN\n  -> BUILD\n  -> TEST / FIX\n  -> CONVERGE\n  -> PR GATES\n  -> MERGE"
+        },
+        {
+          "type": "file-contains",
+          "path": "README.md",
+          "contains": "IDEA → ASSESS → DEVELOPER BRIEF → ISSUE → PLAN → BUILD → TEST/FIX → CONVERGE → PR GATES → MERGE"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "AGENTS.md remains the constitution and requires convergence for non-trivial convergence-managed work without burdening tiny repairs.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "AGENTS.md",
+          "contains": "## PlotPickle Development Loop"
+        },
+        {
+          "type": "file-contains",
+          "path": "AGENTS.md",
+          "contains": "node scripts/run-development-convergence.mjs --changed"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Convergence is deterministic, machine-readable, fail-closed and does not execute arbitrary manifest commands.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/run-development-convergence.mjs",
+          "contains": "const EVIDENCE_TYPES = new Set([\"path-exists\", \"file-contains\"]);"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/run-development-convergence.mjs",
+          "contains": "const status = remaining.length === 0 ? \"CONVERGED\" : \"NOT_CONVERGED\";"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Focused regressions prove clean evidence passes while missing evidence, unrelated scope and unsupported evidence fail closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1899-development-convergence.test.mjs",
+          "contains": "missing or stale evidence fails closed"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1899-development-convergence.test.mjs",
+          "contains": "unrelated changed files fail convergence"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1899-development-convergence.test.mjs",
+          "contains": "unsupported evidence types fail closed instead of executing arbitrary commands"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "GitHub PR Gate independently reruns the convergence contract and changed-manifest evaluator before merge.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "- name: Validate development convergence contract"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "GitHub Spec Kit is truthfully attributed as a reference-only MIT methodology influence, not a PlotPickle dependency.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/third-party-oss.json",
+          "contains": "\"id\": \"github-spec-kit\""
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md",
+          "contains": "PLOTPICKLE:OSS-INFLUENCE:github-spec-kit"
+        },
+        {
+          "type": "file-contains",
+          "path": "README.md",
+          "contains": "| GitHub Spec Kit | Reference for PlotPickle's repository-native spec-driven development discipline and post-build convergence check | MIT |"
+        }
+      ]
+    }
+  ]
+}

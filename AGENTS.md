@@ -42,6 +42,21 @@ Use the smallest safe change that solves the actual problem.
 5. Preserve user-authored story/curriculum content unless the task explicitly changes it.
 6. Do not silently convert failed AI output into fake completed work.
 
+## PlotPickle Development Loop
+
+For non-trivial product and architecture work, use the repository-native loop documented in `docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md`:
+
+`IDEA -> ASSESS -> DEVELOPER BRIEF -> ISSUE -> PLAN -> BUILD -> TEST/FIX -> CONVERGE -> PR GATES -> MERGE`
+
+- `AGENTS.md` remains the project constitution. Do not introduce a second development authority merely to copy another tool's workflow.
+- Assess whether the capability already exists before committing to substantial work.
+- Use a developer brief for non-trivial changes with multiple acceptance criteria or authority boundaries.
+- Build and test the smallest safe implementation against existing owners.
+- Before merge, convergence asks whether the implemented diff and evidence actually satisfy the brief/issue scope; testing asks whether the software works. They are different checks.
+- A convergence-managed change stores its manifest under `config/development-convergence/` and is evaluated by `node scripts/run-development-convergence.mjs --changed` in GitHub CI.
+- The implementation agent may prepare convergence evidence but may not self-certify completion. GitHub CI reruns the evaluator independently from the tested PR head.
+- Tiny copy fixes, obvious one-line repairs and housekeeping do not need heavyweight spec artifacts solely for ceremony; they still follow the normal regression/build discipline.
+
 ## Git and worktrees
 
 - Never develop directly on `main`.
@@ -123,5 +138,6 @@ A change is complete only when:
 3. focused UAT contracts pass;
 4. the production build passes;
 5. the diff contains no accidental or unrelated changes;
-6. the PR describes what changed and why;
-7. GitHub CI is green on the exact head that is merged.
+6. non-trivial convergence-managed work reports `CONVERGED` against its declared acceptance evidence;
+7. the PR describes what changed and why;
+8. GitHub CI is green on the exact head that is merged.

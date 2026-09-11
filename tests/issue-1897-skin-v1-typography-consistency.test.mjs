@@ -9,6 +9,8 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
   ]);
+  const cloudDisplay = cloud.slice(cloud.indexOf("const CLOUD_DISPLAY_LABELS"), cloud.indexOf("const CLOUD_GROUP_LABELS"));
+  const localDisplay = local.slice(local.indexOf("const LOCAL_DISPLAY_LABELS"), local.indexOf("const LOCAL_GROUP_LABELS"));
 
   for (const [id, label] of Object.entries({
     writing: "Writing",
@@ -20,15 +22,14 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     gemini: "Gemini",
     "comfy-cloud": "ComfyUI",
   })) {
-    assert.ok(cloud.includes(`${id.includes("-") ? JSON.stringify(id) : id}: "${label}"`), `Cloud display label must use canonical casing for ${id}`);
+    assert.ok(cloudDisplay.includes(`${id.includes("-") ? JSON.stringify(id) : id}: "${label}"`), `Cloud display label must use canonical casing for ${id}`);
   }
   assert.match(cloud, /TASKS: "CAPABILITIES"/u);
   assert.match(cloud, /"CLOUD RESOURCES": "PROVIDERS"/u);
   assert.match(cloud, /CLOUD_DISPLAY_LABELS\[item\.id\]/u);
   assert.match(cloud, /CLOUD_GROUP_LABELS\[item\.group\]/u);
   assert.match(cloud, /<h1[^>]*>\{VIEW_TITLES\[view\]\}<\/h1>/u);
-  assert.doesNotMatch(cloud, /gemini: "GOOGLE GEMINI"[\s\S]*const VIEW_TITLES/u);
-  assert.doesNotMatch(cloud, /"comfy-cloud": "COMFYUI CLOUD"[\s\S]*const VIEW_TITLES/u);
+  assert.doesNotMatch(cloudDisplay, /GOOGLE GEMINI|COMFYUI CLOUD/u);
 
   for (const [id, label] of Object.entries({
     writing: "Writing",
@@ -39,7 +40,7 @@ test("#1897 Cloud and Local Story Mode render one Skin V1 naming hierarchy witho
     ltx: "LTX-Video",
     h3: "MiniMax H3",
   })) {
-    assert.ok(local.includes(`${id}: "${label}"`), `Local display label must use canonical casing for ${id}`);
+    assert.ok(localDisplay.includes(`${id}: "${label}"`), `Local display label must use canonical casing for ${id}`);
   }
   assert.match(local, /TASKS: "CAPABILITIES"/u);
   assert.match(local, /ENGINES: "PROVIDERS"/u);

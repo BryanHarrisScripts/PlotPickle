@@ -174,3 +174,17 @@ Tests must prove:
 ## Completion definition
 
 #1910 is complete when a user can focus an eligible PlotPickle natural-language input, dictate locally through one shared app-shell control, receive editable text back in that same field without auto-submit, and the reviewed Windows whisper.cpp/base.en runtime is explicit, integrity-checked, private, attributable and proven by the two-gate release process.
+
+## Addendum — `/` Agent shortcut
+
+The same PR also adds a second lightweight text-entry affordance to the Writing Assistant composer. It does not create a command language or another Agent registry.
+
+- Pressing `/` while the prompt is empty opens a compact picker of PlotPickle Agents that are actually conversationally routable.
+- Clicking the visible `/` control opens the same picker.
+- The picker reads `/api/writing-assistant/agent-compute`, which is already derived from the canonical Agent profiles and Mastra role registry. Agent names are not duplicated or hard-coded into the picker.
+- Only real PlotPickle-owned configurable Mastra roles are listed; BUZZ and External Developer entries stay under their own runtime authority.
+- Arrow Up/Down changes the highlighted Agent, Enter selects it, and Escape closes the list.
+- Selecting an Agent changes the real `agentId` sent with the next Writing Assistant turn. The selected target is visible and can be cleared back to the default PlotPickle Assistant.
+- `/` inside ordinary non-empty prose remains ordinary text. The shortcut only intercepts a new empty prompt.
+- Agent selection changes who receives the text; it does not change provider authority, tool permission, PPF/canon authority, Human approval or memory boundaries.
+- Dictation and `/` compose cleanly: `/` chooses the conversational target, while the microphone only supplies editable text to the existing prompt.

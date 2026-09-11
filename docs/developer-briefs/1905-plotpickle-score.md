@@ -70,6 +70,51 @@ PlotPickle Score V1 deliberately avoids an LLM judge.
 
 These are versioned scoring rules. Future versions may add richer deterministic state-transition evidence without silently changing historical score semantics.
 
+## Historical lineage and attribution
+
+PlotPickle sits in a long tradition of dividing stories and films into manageable structural and temporal units. The documentation must distinguish that established lineage from PlotPickle-specific product design.
+
+### Established lineage — not claimed as PlotPickle inventions
+
+- **Dimensional analysis and frame/time conversion** are standard mathematics. Converting runtime into seconds or frames is not proprietary to PlotPickle.
+- **Sequence-based screenplay structure** predates PlotPickle. Frank Daniel's Sequence Approach is commonly described as an eight-sequence method for feature screenplays. PlotPickle should cite that as historical context, not claim that its 24 Blocks are Daniel's method renamed.
+- **Card/beat-sheet planning** predates PlotPickle. Blake Snyder's Save the Cat! system uses a 15-beat sheet and a roughly 40-card Board; this is useful precedent for discrete story planning, but it is not the source of PlotPickle's 96 Mini-Blocks.
+- **Average Shot Length (ASL) and statistical film-style analysis** predate PlotPickle. Barry Salt is a major published figure in quantitative shot-length analysis.
+- Broad concepts such as acts, sequences, scenes, beats, setup/payoff, pacing, runtime targets, and frame-accurate timecode are established screenwriting, editing, production, and film-analysis practices.
+
+### PlotPickle-specific design credited to Bryan Harris
+
+The following are documented as **PlotPickle-specific design choices by Bryan Harris**, without making the broader legal claim that no prior system anywhere has ever used a superficially similar idea:
+
+- the PlotPickle **24 Story Blocks → 96 Mini-Blocks** canonical story-addressing model;
+- the current **12 sequences → 24 Blocks → 96 Mini-Blocks** hierarchy used by PlotPickle;
+- the PlotPickle vocabulary, interaction model, and deterministic identity of **Blocks** and **Mini-Blocks** inside the product;
+- the **PPF (PlotPickle Project File)** as the durable story/canon authority used by the software;
+- the deterministic production mapping from story structure into **2,400 addressable 3-second render slots** and **2,401 continuity boundaries** for the default 120-minute render plan;
+- the deliberate separation between **creative story/shot intent** and **technical 3-second generation slots** so one creative shot may span multiple render slots;
+- the PlotPickle Score product contract that combines **Alignment, Verbosity, Erosion, Progression, and Coverage** into one source-agnostic structural rating;
+- the geometric-mean headline score and the policy that **Human and AI-authored stories are rated by the same structural evidence contract**.
+
+Use wording such as **"PlotPickle-specific design by Bryan Harris"** or **"within PlotPickle, designed by Bryan Harris"** rather than unsupported claims such as "the first ever" or "unique in all of film history."
+
+### Mathematical description
+
+PlotPickle's default 120-minute production scaffold can be expressed hierarchically:
+
+`Feature runtime → 24 Story Blocks → 96 Mini-Blocks → 2,400 technical render slots → frame/timecode space`
+
+For the default render plan:
+
+`24 Blocks × 4 Mini-Blocks × 25 render slots × 3 seconds = 7,200 seconds = 120 minutes`
+
+At 24 fps that same runtime contains:
+
+`7,200 seconds × 24 frames/second = 172,800 frames`
+
+This equality demonstrates dimensional coherence of the production scaffold. It does **not** by itself prove narrative quality, nor does it claim that a finished movie must contain 2,400 editorial shots. PlotPickle Score is the separate structural-analysis layer intended to evaluate story evidence rather than merely confirm runtime arithmetic.
+
+A useful academic description is **hierarchical temporal partitioning** or **discrete temporal structural modeling**. "Fractal" may be used informally to describe repeating nested organization, but the system should not claim mathematical fractal properties that it does not calculate.
+
 ## Authority and privacy
 
 PlotPickle Score:
@@ -111,6 +156,7 @@ Durable system documentation lives at `docs/architecture/PLOTPICKLE-SCORE.md` an
 - evidence selection;
 - rating states;
 - source-agnostic Human/AI policy;
+- historical lineage and Bryan Harris attribution;
 - limitations;
 - versioning/evolution rules.
 
@@ -125,6 +171,6 @@ The public claim is bounded: **any movie/story can be rated once its story evide
 5. Dashboard SCORE section is immediately beneath Dashboard art for an active story.
 6. Insufficient evidence is `NR`.
 7. README documents the feature.
-8. System documentation preserves the complete V1 contract.
+8. System documentation preserves the complete V1 contract, lineage, and Bryan Harris attribution.
 9. Focused regression verifies core contract, Dashboard placement, source neutrality, and docs.
 10. PR Gate and Product Gate remain authoritative exact-head verification.

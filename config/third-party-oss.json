@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "title": "PlotPickle OSS and third-party registry",
-  "purpose": "Canonical public inventory for open-source systems, direct npm dependencies, reviewed third-party assets, and explicitly excluded non-OSS connections used by PlotPickle.",
+  "purpose": "Canonical public inventory for open-source systems, direct npm dependencies, reviewed third-party assets, materially adopted OSS references, and explicitly excluded non-OSS connections used by PlotPickle.",
   "npm": {
     "manifest": "package.json",
     "lockfile": "package-lock.json",
@@ -14,6 +14,13 @@
     ],
     "transitivePolicy": "inventory-and-report",
     "missingTransitiveLicensePolicy": "report"
+  },
+  "influencePolicy": {
+    "markerPrefix": "PLOTPICKLE:OSS-INFLUENCE:",
+    "scanRoots": [
+      "docs/architecture"
+    ],
+    "definition": "A reference-only marker means the named OSS project materially informed current PlotPickle architecture, methodology, or an adapted workflow. Evaluation-only, future, standards-only, and ordinary external links are not contributors until adopted."
   },
   "readme": {
     "startMarker": "<!-- PLOTPICKLE:OSS:START -->",
@@ -182,6 +189,20 @@
       "readme": true
     },
     {
+      "id": "ffmpeg",
+      "name": "FFmpeg / ffprobe",
+      "category": "local-media-tool",
+      "usage": "connect-only",
+      "version": "user-managed",
+      "source": "https://ffmpeg.org/",
+      "license": "LGPL-2.1-or-later by default; GPL-2.0-or-later when GPL components/options are enabled",
+      "licenseSource": "https://ffmpeg.org/legal.html",
+      "evidencePath": "lib/sequence-evidence-media-probe.mjs",
+      "plotpickleUse": "Optional local media measurement executables used by Sequence Evidence for metadata, keyframes and bounded frame-difference evidence. PlotPickle does not bundle or silently install FFmpeg/ffprobe.",
+      "distribution": "User-managed executable. The applicable FFmpeg licence depends on how that particular build was configured.",
+      "readme": true
+    },
+    {
       "id": "lazy-frames",
       "name": "Lazy Frames",
       "category": "local-media-tool",
@@ -233,6 +254,50 @@
       "readme": true
     },
     {
+      "id": "reelbench-skills",
+      "name": "ReelBench Skills",
+      "category": "methodology-reference",
+      "usage": "reference-only",
+      "source": "https://github.com/eternityspring/reelbench-skills",
+      "license": "Apache-2.0",
+      "licenseSource": "https://github.com/eternityspring/reelbench-skills/blob/main/LICENSE",
+      "evidencePaths": [
+        "docs/architecture/sequence-evidence-24-96-2400.md"
+      ],
+      "plotpickleUse": "Sequence Evidence adapts the discipline of machine-measured facts, bounded model annotation and deterministic validation gates. PlotPickle's implementation is native; no ReelBench source code, demo media or report assets are copied.",
+      "readme": true
+    },
+    {
+      "id": "berd",
+      "name": "BERD",
+      "category": "architecture-reference",
+      "usage": "reference-only",
+      "source": "https://github.com/block/berd",
+      "license": "Apache-2.0",
+      "licenseSource": "https://github.com/block/berd/blob/main/LICENSE",
+      "evidencePaths": [
+        "docs/architecture/MANAGED-DESKTOP-HARNESS.md"
+      ],
+      "plotpickleUse": "Architectural reference for managed sidecars, pinned runtime dependencies, lifecycle checks and validation patterns. No BERD/Goose product authority or BERD source dependency is introduced.",
+      "readme": true
+    },
+    {
+      "id": "lightricks-comfyui-ltx-workflow",
+      "name": "Lightricks ComfyUI-LTXVideo pinned workflow",
+      "category": "adapted-reference",
+      "usage": "reference-only",
+      "revision": "36fdaf500b3cd6f7fa8b2dfec36e984746e630a2",
+      "source": "https://github.com/Lightricks/ComfyUI-LTXVideo",
+      "license": "Apache-2.0",
+      "licenseSource": "https://github.com/Lightricks/ComfyUI-LTXVideo/blob/36fdaf500b3cd6f7fa8b2dfec36e984746e630a2/LICENSE",
+      "evidencePaths": [
+        "docs/architecture/ltx-default-workflow.md",
+        "build/ai/comfyui-ltx-default.ts"
+      ],
+      "plotpickleUse": "PlotPickle's reviewed single-stage LTX proof graph adapts the pinned upstream distilled workflow and records the exact source revision in product architecture/source evidence.",
+      "readme": true
+    },
+    {
       "id": "comfyui-ltx-workflow-template",
       "name": "ComfyUI LTX-Video workflow template",
       "category": "adapted-reference",
@@ -240,9 +305,11 @@
       "source": "https://github.com/Comfy-Org/workflow_templates",
       "license": "MIT",
       "licenseSource": "https://github.com/Comfy-Org/workflow_templates/blob/main/LICENSE",
-      "manifestPath": "docs/architecture/ltx-default-workflow.md",
-      "plotpickleUse": "PlotPickle's reviewed LTX default workflow was adapted from the published Comfy-Org LTXV template with provenance and checksums recorded in the architecture note.",
-      "readme": false
+      "evidencePaths": [
+        "docs/architecture/ltx-default-workflow.md"
+      ],
+      "plotpickleUse": "PlotPickle's reviewed LTX default workflow uses the published Comfy-Org LTXV text-to-video template as an adaptation/reference source, with provenance recorded in the architecture note.",
+      "readme": true
     }
   ],
   "thirdPartyAssets": [

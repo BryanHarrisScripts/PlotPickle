@@ -37,6 +37,12 @@ jobs:
       - name: Validate two-gate CI topology
         run: node --test tests/issue-1747-ci-two-gates.test.mjs tests/issue-538-ci-consolidation.test.mjs
 
+      - name: Validate development convergence contract
+        run: node --test tests/issue-1899-development-convergence.test.mjs
+
+      - name: Validate development convergence
+        run: node scripts/run-development-convergence.mjs --changed --base-ref origin/main
+
       - name: Validate current Experience architecture boundary
         run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/community-skin-v1-navigation.test.mjs tests/community-agent-roster.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs tests/issue-1881-visual-compute-harness.test.mjs tests/issue-1883-dashboard-visual-director.test.mjs tests/issue-1885-webmcp-visual-director-startup.test.mjs tests/issue-1897-skin-v1-typography-consistency.test.mjs
 

@@ -36,6 +36,110 @@ A concise description is:
 
 This common coordinate model allows a structural observation to be located. Instead of only saying that "the middle feels slow," PlotPickle can identify the Blocks and Mini-Blocks with low progression, repeated evidence, unusual narrative load, or missing coverage.
 
+## Architectural differences from traditional beat-sheet methods
+
+PlotPickle shares ancestry with established screenplay structure systems, including sequence approaches, beat sheets, index-card boards, act models, and page-based pacing rules. Its architectural difference is that these ideas are represented as a **complete machine-addressable coordinate system** rather than only as Human-readable milestones.
+
+### 1. Subdivision granularity
+
+Traditional beat sheets usually define a relatively small number of qualitative landmarks. For example, the *Save the Cat!* Beat Sheet names 15 major beats, while its Board workflow commonly expands planning into roughly 40 cards. Those are useful Human planning tools, but they do not define one universal coordinate for every small interval of a feature.
+
+PlotPickle's default feature scaffold divides the whole narrative surface into:
+
+`24 Story Blocks × 4 Mini-Blocks = 96 Mini-Blocks`
+
+For a normalized 120-minute feature:
+
+- one Block corresponds to a 5-minute structural region;
+- one Mini-Block corresponds to a 75-second structural region.
+
+The important difference is not simply that 96 is larger than 15 or 40. **Every Mini-Block has identity.** A diagnostic, agent, visual, note, setup/payoff relationship, revision, or production artifact can point to a stable coordinate such as `Block 17 / Mini-Block 67` rather than only saying "somewhere in the second half."
+
+### 2. Normalized time buckets instead of heuristic page landmarks
+
+Traditional screenplay methods often express timing as recommendations or ranges: a beat should occur near a page, an act turn around a percentage, or a section across a span of pages. These are intentionally flexible Human heuristics.
+
+PlotPickle adds a normalized temporal address space. In the default 120-minute profile, its canonical coordinates correspond to 5-minute Blocks and 75-second Mini-Blocks.
+
+That does **not** mean every scene must last 75 seconds or that the writer is prohibited from stretching/compressing dramatic time. The buckets are coordinates, not creative handcuffs.
+
+The distinction is:
+
+`traditional method: "this event generally happens around here"`
+
+versus:
+
+`PlotPickle: "this evidence belongs to this stable structural address"`
+
+That makes the same story readable by software without turning the coordinate system into creative authority.
+
+### 3. Complete structural coverage
+
+A milestone-based beat sheet intentionally leaves the material between major beats open-ended. Human writers fill that space through scenes, sequences, transitions, reversals, and invention.
+
+PlotPickle preserves that creative freedom while also assigning the entire normalized feature surface an address. There is no structurally anonymous interval between named milestones: all 96 Mini-Block positions exist whether they are populated, intentionally sparse, incomplete, or overloaded.
+
+That enables metrics which require a complete denominator, particularly **Coverage**:
+
+`Coverage = populated Mini-Blocks / 96`
+
+It also allows PlotPickle to distinguish "this region is intentionally quiet" from "this part of the story has no represented evidence yet" rather than treating both as an unexamined gap.
+
+### 4. Persistent identity rather than disposable planning cards
+
+A physical or digital index card is primarily a planning representation. PlotPickle's structural units are persistent product identities.
+
+A Block or Mini-Block can remain the same address while its planning text, visual candidate, storyboard state, screenplay evidence, production material, or score changes over time.
+
+That persistent identity allows PlotPickle to support:
+
+- save/reopen continuity;
+- revision comparison;
+- setup/payoff references;
+- visual provenance;
+- agent context boundaries;
+- targeted regeneration;
+- diagnostics tied to exact story locations;
+- future historical Score comparison.
+
+The coordinate survives the revision. The content at the coordinate may change.
+
+### 5. Multi-resolution mapping from story to production
+
+Traditional structural methods generally stop at story planning or screenplay pages. PlotPickle continues the same address hierarchy downstream into technical production space.
+
+The default scaffold can be represented as:
+
+`12 sequences → 24 Blocks → 96 Mini-Blocks → 2,400 technical render slots → frame/timecode space`
+
+This lets a high-level narrative observation be traced downward and a production artifact be traced upward. A render slot can belong to a Mini-Block, which belongs to a Block, which belongs to a sequence and Act/story context.
+
+The **2,400 technical render slots are not a claim that every finished movie contains 2,400 editorial shots**. They are deterministic three-second production addresses. One creative shot or camera intention may occupy several technical slots.
+
+### 6. Computational consequences
+
+The coordinate system makes operations possible that are difficult to define consistently against a purely qualitative beat sheet.
+
+Because units have stable addresses and a complete structural denominator, PlotPickle can deterministically calculate or assist with:
+
+- structural **Alignment**;
+- narrative **Verbosity**;
+- structural **Erosion**;
+- **Progression** between adjacent units;
+- **Coverage** of the story surface;
+- overloaded or unusually sparse regions;
+- story-state continuity;
+- setup/payoff tracing;
+- bounded agent context;
+- exact-location revision and regeneration;
+- future before/after structural comparisons.
+
+This is the key architectural distinction:
+
+> **A beat sheet describes landmarks. PlotPickle adds an address system around the whole territory.**
+
+The landmarks remain useful. PlotPickle's contribution is to make the territory between and around them addressable enough for Humans and software to reason about together.
+
 ## Five dimensions
 
 All five internal dimensions normalize to 0–1. Display values use percentages.

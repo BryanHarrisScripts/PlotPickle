@@ -5,6 +5,7 @@
   "allowedChanges": [
     ".github/workflows/pr-gate.yml",
     ".github/workflows/product-gate.yml",
+    "app/_components/agent-shortcut-picker.tsx",
     "app/_components/universal-voice-input-layer.tsx",
     "app/_components/voice-input-control.module.css",
     "app/_components/voice-input-control.tsx",
@@ -12,9 +13,12 @@
     "app/local-voice-settings.module.css",
     "app/local-voice-settings.tsx",
     "app/sage-settings-workspace.tsx",
+    "app/writing-assistant-console.module.css",
+    "app/writing-assistant-console.tsx",
     "build/local-ai-gateway.ts",
     "build/voice/local-voice-gateway.ts",
     "build/voice/local-voice-runtime.ts",
+    "build/writing-assistant-gateway.ts",
     "config/development-convergence/1910.json",
     "config/local-voice-input.json",
     "config/third-party-oss.json",
@@ -103,6 +107,17 @@
         { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "Voice is only another way to type" },
         { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "No GPT-Live" },
         { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "No cloud fallback" }
+      ]
+    },
+    {
+      "id": "A9",
+      "criterion": "The Writing Assistant composer exposes a reusable slash Agent picker: slash on an empty prompt opens the real routable PlotPickle Agent roster, keyboard selection works, and choosing an Agent changes the real agentId used for that conversation without creating a duplicate hard-coded roster.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "event.key === \"/\" && emptyPrompt" },
+        { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "/api/writing-assistant/agent-compute" },
+        { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "agent.system === \"PlotPickle\" && agent.configurable && typeof agent.roleId === \"string\"" },
+        { "type": "file-contains", "path": "app/writing-assistant-console.tsx", "contains": "agentId: target.roleId, conversationMode: true" },
+        { "type": "file-contains", "path": "build/writing-assistant-gateway.ts", "contains": "const conversationMode = body.conversationMode === true" }
       ]
     }
   ]

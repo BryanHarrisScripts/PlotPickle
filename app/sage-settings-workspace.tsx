@@ -213,21 +213,19 @@ export default function SageSettingsWorkspace() {
       default:
         return (
           <section id="settings-quick">
-            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute share one capability interface, while Local Dictation and detailed ComfyUI installation have focused setup screens." />
+            <SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle." detail="Choose where AI should run first. Local Compute and Cloud Compute share one capability interface, while detailed ComfyUI installation and diagnostics have their own focused setup screen." />
             <section className={styles.quickGuide} aria-labelledby="settings-quick-steps">
               <h2 id="settings-quick-steps">Quick Setup</h2>
               <ol>
                 <li><strong>Step 1:</strong> Open Local Compute and test the capabilities you want to run on this computer.</li>
-                <li><strong>Step 2:</strong> Set up Local Dictation only if you want microphone-to-text input.</li>
-                <li><strong>Step 3:</strong> Open Cloud Compute only for online providers you deliberately want to connect.</li>
-                <li><strong>Step 4:</strong> Use Writing, Images and Video tabs to choose one real tested route per capability.</li>
-                <li><strong>Step 5:</strong> Open Advanced Options only when you need models, endpoints, workflows, credentials or expert diagnostics.</li>
+                <li><strong>Step 2:</strong> Open Cloud Compute only for online providers you deliberately want to connect.</li>
+                <li><strong>Step 3:</strong> Use Writing, Images and Video tabs to choose one real tested route per capability.</li>
+                <li><strong>Step 4:</strong> Open Advanced Options only when you need models, endpoints, workflows, credentials or expert diagnostics.</li>
               </ol>
               <div className={styles.quickLinks}>
                 <Link href="/?workspace=learn">Return to LEARN</Link>
                 <Link href="/?workspace=plan">Return to PLAN</Link>
                 <button type="button" onClick={() => navigateSection("local-compute")}>Configure Local Compute</button>
-                <button type="button" onClick={() => navigateSection("voice")}>Set up Local Dictation</button>
                 <button type="button" onClick={() => navigateSection("cloud-compute")}>Configure Cloud Compute</button>
                 <button type="button" onClick={() => navigateSection("comfyui")}>Set up ComfyUI</button>
               </div>
@@ -273,10 +271,10 @@ export default function SageSettingsWorkspace() {
 
       <aside aria-label="Settings help and status" data-settings-rail="context">
         <section><p>Current section</p><h2>{activeItem.label}</h2><span>{activeItem.detail}. Configure and verify the capability here; use the left rail to move elsewhere without returning to a Settings home screen.</span></section>
-        <section><p>Simple first</p><h3>One interface for Local and Cloud.</h3><span>Choose Local Compute or Cloud Compute, then use the same Writing, Images and Video tabs. Local Dictation remains a separate input utility because it never becomes an AI provider route.</span></section>
+        <section><p>Simple first</p><h3>One interface for Local and Cloud.</h3><span>Choose Local Compute or Cloud Compute, then use the same Writing, Images and Video tabs. Provider jargon and expert controls stay behind Advanced Options until you need them.</span></section>
         <section><p>Readiness</p><h3>Running is not always ready.</h3><span>PlotPickle distinguishes a reachable process from a usable capability. A route becomes selectable only after the existing setup and real verification boundaries say it is ready.</span></section>
         <section><p>Privacy</p><h3>No secret status summaries.</h3><span>The overview reads public readiness only. Credentials, private keys and hidden reasoning stay out of status cards and activity summaries.</span></section>
-        <section><p>Safety</p><h3>No silent cloud fallback.</h3><small>A failed local runtime never becomes an unexpected paid request. Local Dictation also fails closed: missing or invalid whisper.cpp/model bytes never trigger a cloud transcription service.</small></section>
+        <section><p>Safety</p><h3>No silent cloud fallback.</h3><small>A failed local runtime never becomes an unexpected paid request. Provider tests and paid generation keep the existing explicit consent rules.</small></section>
       </aside>
     </main>
   );

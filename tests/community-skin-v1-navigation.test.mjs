@@ -46,6 +46,7 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(communityCss, /filter:\s*none\s*!important/u);
   assert.match(communityCss, /--community-teal:\s*var\(--pp-skin-accent-bright\)/u);
   assert.match(communityCss, /--community-orange:\s*var\(--pp-skin-accent\)/u);
+  assert.match(communityCss, /:is\(button:not\(\[aria-expanded\]\), a\)[\s\S]*padding:\s*var\(--pp-skin-space-2\)\s+var\(--pp-skin-space-3\)\s*!important/u);
   assert.match(communityCss, /:is\([\s\S]*button,[\s\S]*input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\):not\(\[type="hidden"\]\),[\s\S]*select,[\s\S]*textarea[\s\S]*\)[\s\S]*min-height:\s*var\(--pp-skin-control-height\)\s*!important/u);
   assert.match(audit, /expectedControlHeight/u);
   assert.match(audit, /actualHeight \+ 0\.5 < expectedControlHeight/u);
@@ -55,11 +56,12 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
 });
 
 test("Skin V1 Settings keeps all named systems keyboard-visible and connects Cloud Story Mode plus Agents", async () => {
-  const [dashboard, taxonomyText, cloud, agents] = await Promise.all([
+  const [dashboard, taxonomyText, cloud, agents, surfaces] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/plotpickle-agents-host.tsx"),
+    read("app/skin-v1-bbs-surfaces.css"),
   ]);
   const taxonomy = JSON.parse(taxonomyText);
 
@@ -79,5 +81,7 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects Clo
   assert.match(cloud, /data-skin-v1-cloud-story-mode="true"/u);
   assert.match(cloud, /label: "AGENTS"/u);
   assert.match(agents, /data-skin-v1-plotpickle-agents="true"/u);
+  assert.match(surfaces, /\[data-skin-v1-plotpickle-agents="true"\]\s+h1\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-meta\)/u);
+  assert.match(surfaces, /\[data-skin-v1-plotpickle-agents="true"\]\s+h2\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-sm\)/u);
   assert.doesNotMatch(cloud, /LegacySettingsPanel|settings-panel-legacy/u);
 });

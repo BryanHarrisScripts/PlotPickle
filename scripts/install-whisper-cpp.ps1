@@ -106,7 +106,11 @@ function Invoke-SmokeTest {
   $outBase = Join-Path $SmokeRoot "transcript"
   try {
     Add-Type -AssemblyName System.Speech
-    $format = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
+    $format = [System.Speech.AudioFormat.SpeechAudioFormatInfo]::new(
+      16000,
+      [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen,
+      [System.Speech.AudioFormat.AudioChannel]::Mono
+    )
     $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
     try {
       $synth.SetOutputToWaveFile($wav, $format)

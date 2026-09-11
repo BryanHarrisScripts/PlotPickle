@@ -80,13 +80,18 @@ test("#1892 README publishes the OSS acknowledgement without mislabelling propri
   assert.match(section, /LM Studio.*excluded|excluded.*LM Studio/i);
 });
 
-test("#1892 public-readiness and licence scope consume the canonical registry", async () => {
-  const [publicReadiness, licences] = await Promise.all([
+test("#1892 public-readiness, licence scope and release package consume the canonical notices", async () => {
+  const [publicReadiness, licences, notice, packagePlatform] = await Promise.all([
     text("scripts/public-readiness.mjs"),
     text("LICENSES.md"),
+    text("NOTICE.md"),
+    text("scripts/package-platform.mjs"),
   ]);
   assert.match(publicReadiness, /auditThirdPartyOss/);
   assert.match(publicReadiness, /config\/third-party-oss\.json/);
   assert.match(licences, /config\/third-party-oss\.json/);
   assert.match(licences, /scripts\/third-party-oss-audit\.mjs/);
+  assert.match(notice, /config\/third-party-oss\.json/);
+  assert.match(packagePlatform, /"NOTICE\.md"/);
+  assert.match(packagePlatform, /"LICENSES\.md"/);
 });

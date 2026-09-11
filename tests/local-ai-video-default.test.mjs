@@ -5,12 +5,13 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Skin V1 VIDEO uses the hardware-aware plug-in recommendation while H3 remains a separate engine", async () => {
+test("Skin V1 VIDEO uses the hardware-aware plug-in recommendation while H3 remains a separate Connection", async () => {
   const host = await source("app/skin-v1/local-ai-skin-host.tsx");
 
-  assert.match(host, /import LocalVideoPanel from "\.\/local-video-panel"/u);
+  assert.match(host, /import StoryModeCapabilityConnections/u);
+  assert.doesNotMatch(host, /import LocalVideoPanel from/u);
   assert.match(host, /import LocalH3SetupPanel from "\.\/local-h3-setup-panel"/u);
-  assert.match(host, /view === "video" \? <LocalVideoPanel \/>/u);
+  assert.match(host, /videoRuntimeConnection\(\), videoPluginConnection\("ltx"\), videoPluginConnection\("h3"\)/u);
   assert.match(host, /view === "h3" \? <LocalH3SetupPanel/u);
   assert.doesNotMatch(host, /view === "video" \? <AiRoutingPanel capability="video"/u);
   assert.match(host, /fetch\("\/api\/local-ai\/plugins\/video"/u);

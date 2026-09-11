@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "issue": 1910,
+  "brief": "docs/developer-briefs/1910-local-voice-input.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/product-gate.yml",
+    "app/_components/universal-voice-input-layer.tsx",
+    "app/_components/voice-input-control.module.css",
+    "app/_components/voice-input-control.tsx",
+    "app/layout.tsx",
+    "app/local-voice-settings.module.css",
+    "app/local-voice-settings.tsx",
+    "app/sage-settings-workspace.tsx",
+    "build/local-ai-gateway.ts",
+    "build/voice/local-voice-gateway.ts",
+    "build/voice/local-voice-runtime.ts",
+    "config/development-convergence/1910.json",
+    "config/local-voice-input.json",
+    "config/third-party-oss.json",
+    "docs/developer-briefs/1910-local-voice-input.md",
+    "lib/voice-input.ts",
+    "runtime/whisper/LICENSE.whisper.cpp.txt",
+    "runtime/whisper/MODEL-PROVENANCE.md",
+    "scripts/install-whisper-cpp.ps1",
+    "tests/issue-1910-local-voice-input.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "PlotPickle exposes one shared app-shell dictation capability for ordinary eligible text inputs, and dictated text follows the existing field input/onChange path without automatic submission.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/layout.tsx", "contains": "<UniversalVoiceInputLayer />" },
+        { "type": "file-contains", "path": "app/_components/universal-voice-input-layer.tsx", "contains": "dispatchEvent(new Event(\"input\", { bubbles: true }))" },
+        { "type": "file-contains", "path": "tests/issue-1910-local-voice-input.test.mjs", "contains": "the existing input/onChange path without auto-submit" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Microphone permission follows explicit Human activation, capture is one-at-a-time, audio is mono 16 kHz signed 16-bit PCM WAV, tracks are released, and success restores field focus/caret with accessible state announcements.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/voice-input-control.tsx", "contains": "navigator.mediaDevices.getUserMedia" },
+        { "type": "file-contains", "path": "app/_components/voice-input-control.tsx", "contains": "getTracks().forEach((track) => track.stop())" },
+        { "type": "file-contains", "path": "app/_components/voice-input-control.tsx", "contains": "Stop dictation" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "\"sampleRate\": 16000" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Local transcription uses one fixed reviewed whisper.cpp runtime/model path, bounded argv execution with shell disabled, a bounded timeout/audio size, unique PlotPickle temp storage and guaranteed cleanup, with no cloud transcription fallback.",
+      "evidence": [
+        { "type": "file-contains", "path": "build/voice/local-voice-runtime.ts", "contains": "shell: false" },
+        { "type": "file-contains", "path": "build/voice/local-voice-runtime.ts", "contains": "dictation-${randomUUID()}" },
+        { "type": "file-contains", "path": "build/voice/local-voice-runtime.ts", "contains": "await rm(runDirectory, { recursive: true, force: true })" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "\"cloudFallback\": false" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Runtime/model provisioning is explicit and reproducible: Settings owns the Human install/repair action; whisper.cpp and base.en are pinned by immutable provenance, exact size and SHA-256 and no automatic runtime download occurs.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/sage-settings-workspace.tsx", "contains": "Local Dictation" },
+        { "type": "file-contains", "path": "app/local-voice-settings.tsx", "contains": "Install local dictation" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "f9ec6c52a2e949b62ab51fa21d0d497958f9e41c3010c157c4e42932d5316f3c" },
+        { "type": "file-contains", "path": "config/local-voice-input.json", "contains": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002" },
+        { "type": "file-contains", "path": "build/voice/local-voice-gateway.ts", "contains": "body.approved !== true" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Eligibility and text insertion are centralized: existing text and selection are preserved, while secrets, credentials, paths, commands, numeric/date/URL/provider-like controls and explicit opt-outs do not expose dictation.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/voice-input.ts", "contains": "export function voiceInputFieldAllowed" },
+        { "type": "file-contains", "path": "lib/voice-input.ts", "contains": "SPECIALIZED_FIELD_PATTERN" },
+        { "type": "file-contains", "path": "lib/voice-input.ts", "contains": "export function insertDictationText" },
+        { "type": "file-contains", "path": "tests/issue-1910-local-voice-input.test.mjs", "contains": "centralized eligibility excludes secrets and specialized controls" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "whisper.cpp and base.en attribution/provenance are auditable through the canonical OSS registry, retained MIT notice, local voice manifest and model provenance note.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/third-party-oss.json", "contains": "\"id\": \"whisper-cpp\"" },
+        { "type": "file-contains", "path": "config/third-party-oss.json", "contains": "\"id\": \"whisper-base-en\"" },
+        { "type": "file-contains", "path": "runtime/whisper/LICENSE.whisper.cpp.txt", "contains": "MIT License" },
+        { "type": "file-contains", "path": "runtime/whisper/MODEL-PROVENANCE.md", "contains": "80da2d8bfee42b0e836fc3a9890373e5defc00a6" }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "Windows Product Gate proves the exact reviewed whisper.cpp/base.en bytes can transcribe deterministic local fixture audio, while PR Gate runs the focused universal voice regression on the same tested head.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "Validate local whisper.cpp dictation fixture" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "-Mode Smoke -Approved" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "Validate universal local voice input" },
+        { "type": "file-contains", "path": "scripts/install-whisper-cpp.ps1", "contains": "PLOTPICKLE_VOICE_SMOKE_STATUS=passed" }
+      ]
+    },
+    {
+      "id": "A8",
+      "criterion": "The developer brief preserves the full local-only voice design and boundaries: voice is input only, not an Agent/provider/memory/canon authority, and GPT-Live/cloud fallback remain explicit non-goals.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "Voice is only another way to type" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "No GPT-Live" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1910-local-voice-input.md", "contains": "No cloud fallback" }
+      ]
+    }
+  ]
+}

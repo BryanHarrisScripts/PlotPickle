@@ -16,6 +16,7 @@
     "app/writing-assistant-console.module.css",
     "app/writing-assistant-console.tsx",
     "build/local-ai-gateway.ts",
+    "build/mastra-agent-runtime.ts",
     "build/voice/local-voice-gateway.ts",
     "build/voice/local-voice-runtime.ts",
     "build/writing-assistant-gateway.ts",
@@ -111,13 +112,16 @@
     },
     {
       "id": "A9",
-      "criterion": "The Writing Assistant composer exposes a reusable slash Agent picker: slash on an empty prompt opens the real routable PlotPickle Agent roster, keyboard selection works, and choosing an Agent changes the real agentId used for that conversation without creating a duplicate hard-coded roster.",
+      "criterion": "The Writing Assistant composer exposes a reusable slash Agent picker: slash on an empty prompt opens the real routable PlotPickle Agent roster, keyboard selection works, choosing an Agent changes the real agentId, and specialist Agents enter direct conversation without weakening their structured PLAN/Wyrmwood modes.",
       "evidence": [
         { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "event.key === \"/\" && emptyPrompt" },
         { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "/api/writing-assistant/agent-compute" },
         { "type": "file-contains", "path": "app/_components/agent-shortcut-picker.tsx", "contains": "agent.system === \"PlotPickle\" && agent.configurable && typeof agent.roleId === \"string\"" },
         { "type": "file-contains", "path": "app/writing-assistant-console.tsx", "contains": "agentId: target.roleId, conversationMode: true" },
-        { "type": "file-contains", "path": "build/writing-assistant-gateway.ts", "contains": "const conversationMode = body.conversationMode === true" }
+        { "type": "file-contains", "path": "build/writing-assistant-gateway.ts", "contains": "const conversationMode = body.conversationMode === true" },
+        { "type": "file-contains", "path": "build/mastra-agent-runtime.ts", "contains": "conversationMode?: boolean" },
+        { "type": "file-contains", "path": "build/mastra-agent-runtime.ts", "contains": "DIRECT_CONVERSATION_MODE" },
+        { "type": "file-contains", "path": "build/mastra-agent-runtime.ts", "contains": "!directConversationMode && input.agentId === \"foundations-planner\"" }
       ]
     }
   ]

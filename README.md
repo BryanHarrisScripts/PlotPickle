@@ -202,9 +202,9 @@ Core PlotPickle should still open and remain useful when those optional services
 <!-- PLOTPICKLE:OSS:START -->
 ## Built with open source
 
-PlotPickle is an open-source project built on, connected to, and developed with a wider open-source ecosystem. We want those projects to be visible rather than disappear behind the application.
+PlotPickle is an open-source project built on, connected to, developed with, and materially informed by a wider open-source ecosystem. We want both the software and the ideas that genuinely contributed to the current product to remain visible.
 
-The canonical machine-readable inventory is [`config/third-party-oss.json`](config/third-party-oss.json). It records how each system is used, its upstream source, licence evidence, pinned/user-managed version status and any retained notice. `package.json` and `package-lock.json` remain the authoritative complete npm dependency graph, including transitive packages; the public-readiness audit checks that graph against this registry.
+The canonical machine-readable inventory is [`config/third-party-oss.json`](config/third-party-oss.json). It records how each system is used, its upstream source, licence evidence, pinned/user-managed version status, current evidence paths and any retained notice. `package.json` and `package-lock.json` remain the authoritative complete npm dependency graph, including transitive packages; the public-readiness audit checks that graph against this registry.
 
 | Open-source system | How it contributes to PlotPickle | Licence |
 |---|---|---|
@@ -220,12 +220,26 @@ The canonical machine-readable inventory is [`config/third-party-oss.json`](conf
 | Ollama | Optional user-managed local model runtime | MIT |
 | llama.cpp | Optional user-managed local model runtime | MIT |
 | ComfyUI | Optional user-managed local image/video runtime | GPL-3.0 |
+| FFmpeg / ffprobe | Optional user-managed local media measurement for Sequence Evidence; not bundled | LGPL-2.1-or-later by default; some builds are GPL-2.0-or-later |
 | Lazy Frames | Optional reviewed local animatic tool | MIT |
 | Portless | Developer endpoint/runtime tooling | Apache-2.0 |
 | Pi coding agent | Optional external developer/repair worker | MIT |
 | Cline | Optional external developer/repair worker | Apache-2.0 |
 
-PlotPickle also supports reviewed third-party model/assets under their own terms. For example, the optional SDXL Base 1.0 starter is pinned and verified under its OpenRAIL++ terms. A connection being supported does **not** mean it is open source: LM Studio and configured proprietary/cloud/BYOK providers are deliberately excluded from the OSS table rather than being mislabelled.
+### Open-source ideas and workflows we adapted
+
+These projects are not presented as PlotPickle runtime dependencies. They are acknowledged because their current OSS work materially informed a PlotPickle methodology, architecture decision or reviewed workflow. PlotPickle keeps explicit evidence markers in the current architecture documents so this list cannot silently drift.
+
+| Open-source reference | How it informed current PlotPickle | Licence |
+|---|---|---|
+| ReelBench Skills | Inspired the Sequence Evidence split between machine-measured facts, bounded model annotation and deterministic validation | Apache-2.0 |
+| BERD | Architectural reference for managed sidecars, pinned runtimes, lifecycle checks and validation patterns | Apache-2.0 |
+| Lightricks ComfyUI-LTXVideo pinned workflow | Source/reference for the reviewed single-stage LTX proof graph at the recorded upstream revision | Apache-2.0 at the pinned source revision |
+| ComfyUI LTX-Video workflow template | Reference for the reviewed text-to-video LTX graph adaptation | MIT |
+
+Evaluation-only or future candidates are deliberately **not** presented as contributors merely because they appear in an issue or architecture discussion. They enter this acknowledgement only when their work materially influences current PlotPickle and the same change adds an auditable `PLOTPICKLE:OSS-INFLUENCE:<registry-id>` declaration.
+
+PlotPickle also supports reviewed third-party model/assets under their own terms. For example, the optional SDXL Base 1.0 starter is pinned and verified under its OpenRAIL++ terms. A connection being supported does **not** mean it is open source: LM Studio and configured proprietary/cloud/BYOK providers are deliberately excluded from the OSS tables rather than being mislabelled.
 
 For licence scope and retained notices, see [`LICENSES.md`](LICENSES.md), [`NOTICE.md`](NOTICE.md), the full npm lockfile and the paths recorded in the canonical registry. Third-party names and trademarks belong to their respective owners; acknowledgement does not imply endorsement or sponsorship.
 <!-- PLOTPICKLE:OSS:END -->

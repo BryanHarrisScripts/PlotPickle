@@ -24,6 +24,7 @@ model annotates only bounded visual facts
 code compares both with approved PlotPickle intent
 ```
 
+<!-- PLOTPICKLE:OSS-INFLUENCE:reelbench-skills -->
 This methodology was inspired by the Apache-2.0 `eternityspring/reelbench-skills` project. PlotPickle's implementation is native code; no ReelBench source code, demo media, or report assets are copied in this implementation.
 
 ## Canonical owners reused

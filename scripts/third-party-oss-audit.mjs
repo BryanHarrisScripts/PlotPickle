@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,6 +7,34 @@ const registryPath = path.join(root, "config", "third-party-oss.json");
 const readJson = (relative) => JSON.parse(readFileSync(path.join(root, relative), "utf8"));
 const readText = (relative) => readFileSync(path.join(root, relative), "utf8");
 const exists = (relative) => existsSync(path.join(root, relative));
+
+function walkFiles(relativeRoot) {
+  const absoluteRoot = path.join(root, relativeRoot);
+  if (!existsSync(absoluteRoot)) return [];
+  const files = [];
+  for (const entry of readdirSync(absoluteRoot, { withFileTypes: true })) {
+    const relative = path.join(relativeRoot, entry.name).replaceAll("\\", "/");
+    const absolute = path.join(root, relative);
+    if (entry.isDirectory()) files.push(...walkFiles(relative));
+    else if (entry.isFile() && statSync(absolute).size <= 2_000_000) files.push(relative);
+  }
+  return files;
+}
+
+function collectInfluenceMarkers(registry) {
+  const prefix = String(registry?.influencePolicy?.markerPrefix ?? "");
+  const scanRoots = Array.isArray(registry?.influencePolicy?.scanRoots) ? registry.influencePolicy.scanRoots : [];
+  const found = [];
+  if (!prefix || !scanRoots.length) return found;
+  const pattern = new RegExp(`${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([a-z0-9][a-z0-9-]*)`, "g");
+  for (const scanRoot of scanRoots) {
+    for (const relative of walkFiles(scanRoot)) {
+      const text = readText(relative);
+      for (const match of text.matchAll(pattern)) found.push({ id: match[1], path: relative });
+    }
+  }
+  return found;
+}
 
 export function auditThirdPartyOss() {
   const failures = [];
@@ -31,6 +59,8 @@ export function auditThirdPartyOss() {
   if (registry.schemaVersion !== 1) failures.push(`Unsupported third-party registry schemaVersion: ${registry.schemaVersion ?? "missing"}`);
   if (!Object.keys(direct).length) failures.push("package.json exposes no direct dependencies to audit.");
   if (!allowedDirect.size) failures.push("Registry has no reviewed direct npm licence expressions.");
+  if (!String(registry?.influencePolicy?.markerPrefix ?? "").trim()) failures.push("Registry has no OSS influence marker policy.");
+  if (!Array.isArray(registry?.influencePolicy?.scanRoots) || !registry.influencePolicy.scanRoots.length) failures.push("Registry has no bounded OSS influence scan roots.");
 
   const ids = new Set();
   for (const entry of [...systems, ...assets, ...nonOss]) {
@@ -82,6 +112,31 @@ export function auditThirdPartyOss() {
     for (const field of ["noticePath", "manifestPath", "evidencePath"]) {
       if (system[field] && !exists(system[field])) failures.push(`OSS system ${system.id} references missing ${field}: ${system[field]}`);
     }
+    if (system.evidencePaths !== undefined) {
+      if (!Array.isArray(system.evidencePaths) || !system.evidencePaths.length) failures.push(`OSS system ${system.id} evidencePaths must be a non-empty array.`);
+      else for (const evidencePath of system.evidencePaths) if (!exists(evidencePath)) failures.push(`OSS system ${system.id} references missing evidencePath: ${evidencePath}`);
+    }
+    if (system.usage === "reference-only" && (!Array.isArray(system.evidencePaths) || !system.evidencePaths.length)) {
+      failures.push(`Reference-only OSS system ${system.id} must declare evidencePaths.`);
+    }
+  }
+
+  const influenceMarkers = collectInfluenceMarkers(registry);
+  const markerPathsById = new Map();
+  for (const marker of influenceMarkers) {
+    const system = byId.get(marker.id);
+    if (!system) {
+      failures.push(`OSS influence marker ${marker.id} in ${marker.path} has no registry entry.`);
+      continue;
+    }
+    if (system.usage !== "reference-only") failures.push(`OSS influence marker ${marker.id} in ${marker.path} must resolve to a reference-only registry entry.`);
+    const declared = new Set(system.evidencePaths ?? []);
+    if (!declared.has(marker.path)) failures.push(`OSS influence marker ${marker.id} appears in undeclared evidence path: ${marker.path}`);
+    if (!markerPathsById.has(marker.id)) markerPathsById.set(marker.id, new Set());
+    markerPathsById.get(marker.id).add(marker.path);
+  }
+  for (const system of systems.filter((item) => item.usage === "reference-only")) {
+    if (!markerPathsById.has(system.id)) failures.push(`Reference-only OSS system ${system.id} has no current PLOTPICKLE:OSS-INFLUENCE marker.`);
   }
 
   for (const asset of assets) {
@@ -131,6 +186,19 @@ export function auditThirdPartyOss() {
     if (!record || record.version !== pi.version || record.license !== pi.license) failures.push("Pi coding agent registry record disagrees with .pi/npm/package-lock.json.");
   }
 
+  const lightricksWorkflow = byId.get("lightricks-comfyui-ltx-workflow");
+  if (lightricksWorkflow) {
+    const source = readText("build/ai/comfyui-ltx-default.ts");
+    if (!source.includes(lightricksWorkflow.revision) || !source.includes("Lightricks/ComfyUI-LTXVideo")) failures.push("Lightricks LTX workflow registry record disagrees with the bundled LTX source provenance.");
+  }
+
+  const ffmpeg = byId.get("ffmpeg");
+  if (ffmpeg) {
+    const probe = readText(ffmpeg.evidencePath);
+    if (!probe.includes("ffprobe") || !probe.includes("ffmpeg")) failures.push("FFmpeg registry record no longer matches the Sequence Evidence media probe.");
+    if (/npm install|download.*ffmpeg/i.test(probe)) failures.push("Sequence Evidence must not silently install FFmpeg; review the OSS classification and probe boundary.");
+  }
+
   const sdxl = assets.find((item) => item.id === "sdxl-base-1");
   if (sdxl) {
     const evidence = readText(sdxl.evidencePath);
@@ -169,15 +237,19 @@ export function auditThirdPartyOss() {
     }
   }
 
+  const referenceOnlySystems = systems.filter((item) => item.usage === "reference-only");
   const summary = {
     registrySchemaVersion: registry.schemaVersion,
     registeredSystems: systems.length,
+    registeredReferenceOnlySystems: referenceOnlySystems.length,
+    declaredReferenceInfluences: influenceMarkers.length,
     registeredThirdPartyAssets: assets.length,
     explicitlyNonOssConnections: nonOss.length,
     directNpmDependencies: directRecords.length,
     installedPackageRecords: packageEntries.length,
     npmLicenseExpressions: Object.fromEntries([...licenseCounts.entries()].sort(([a], [b]) => a.localeCompare(b))),
     missingTransitiveLicenseRecords: missingTransitive,
+    referenceOnly: referenceOnlySystems.map((item) => ({ id: item.id, name: item.name, evidencePaths: item.evidencePaths })),
     directNpm: directRecords.sort((a, b) => a.name.localeCompare(b.name)),
   };
 
@@ -190,7 +262,8 @@ function main() {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } else {
     if (result.summary) {
-      console.log(`Third-party OSS audit: ${result.summary.registeredSystems} registered systems; ${result.summary.directNpmDependencies} direct npm dependencies; ${result.summary.installedPackageRecords} installed package records.`);
+      console.log(`Third-party OSS audit: ${result.summary.registeredSystems} registered systems; ${result.summary.registeredReferenceOnlySystems} reference-only influences; ${result.summary.directNpmDependencies} direct npm dependencies; ${result.summary.installedPackageRecords} installed package records.`);
+      console.log(`Declared OSS influence markers: ${result.summary.declaredReferenceInfluences}.`);
       console.log(`npm licence expressions: ${Object.entries(result.summary.npmLicenseExpressions).map(([license, count]) => `${license}=${count}`).join(", ") || "none"}`);
     }
     for (const warning of result.warnings) console.warn(`OSS audit warning: ${warning}`);

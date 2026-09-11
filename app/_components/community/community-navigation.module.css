@@ -26,7 +26,7 @@
 .railHeader b {
   color: var(--community-text, #f1eee7);
   font-family: var(--community-bbs-font, "Lucida Console", "Courier New", monospace);
-  font-size: 16px;
+  font-size: var(--pp-skin-font-title, 16px);
   letter-spacing: 0.02em;
 }
 
@@ -92,7 +92,7 @@
   min-width: 0;
   overflow: hidden;
   color: #d8d2c8;
-  font-size: 10px;
+  font-size: var(--pp-skin-font-body, 15px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -109,7 +109,7 @@
 
 .destinationChevron span {
   display: block;
-  font-size: 15px;
+  font-size: var(--pp-skin-font-body, 15px);
   line-height: 1;
   transform: rotate(0deg);
   transition: transform 140ms ease;
@@ -145,8 +145,8 @@
 
 .destinationDetails > small {
   color: var(--community-muted, #918a80);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: var(--pp-skin-font-body, 15px);
+  line-height: var(--pp-skin-leading-body, 1.45);
 }
 
 .humanIdentity {
@@ -160,12 +160,12 @@
 .humanIdentity p {
   min-width: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--pp-skin-font-body, 15px);
 }
 
 .humanIdentity small {
   color: var(--community-muted, #918a80);
-  font-size: 11px;
+  font-size: var(--pp-skin-font-body, 15px);
 }
 
 .humanAvatar {
@@ -178,7 +178,7 @@
   border-radius: 50%;
   background: radial-gradient(circle at 35% 25%, rgba(53, 201, 184, .25), rgba(8, 17, 15, .98) 68%);
   color: #e9cf8f;
-  font-size: 15px;
+  font-size: var(--pp-skin-font-body, 15px);
   font-weight: 700;
 }
 
@@ -207,7 +207,7 @@
 .subDestination span {
   min-width: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--pp-skin-font-body, 15px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -218,10 +218,21 @@
   flex: 1 1 auto;
   overflow: hidden;
   color: var(--community-muted, #918a80);
-  font-size: 10px;
+  font-size: var(--pp-skin-font-body, 15px);
+  line-height: var(--pp-skin-leading-body, 1.45);
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+section[aria-labelledby="community-discovery-heading"] .subDestination small {
+  font-size: 0;
+}
+
+section[aria-labelledby="community-discovery-heading"] .subDestination small::after {
+  content: "Request Access";
+  font-size: var(--pp-skin-font-body, 15px);
+  text-transform: none;
 }
 
 .subDestination[aria-current="page"] {
@@ -320,12 +331,12 @@
 
 .messageActions span {
   color: #777168;
-  font-size: 8px;
+  font-size: var(--pp-skin-font-body, 15px);
 }
 
 .messageActions button {
   padding: 5px 8px;
-  font-size: 8px;
+  font-size: var(--pp-skin-font-body, 15px);
 }
 
 .roomHeaderActions {
@@ -337,7 +348,7 @@
 
 .roomHeaderActions button {
   padding: 8px 11px;
-  font-size: 10px;
+  font-size: var(--pp-skin-font-body, 15px);
 }
 
 @media (max-width: 900px) {

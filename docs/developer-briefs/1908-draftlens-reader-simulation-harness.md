@@ -35,6 +35,38 @@ The Reader Simulation Harness solves that by controlling what evidence is releas
 
 The aim is not to claim that an LLM becomes a Human reader. The aim is narrower and testable: create a bounded simulation in which the reviewer cannot access future screenplay evidence through the harness, then preserve its sequential reactions as review evidence.
 
+## Complete canonical flow
+
+The full workflow captured in this brief is:
+
+`PPF screenplay`
+
+`-> skim gate`
+
+`-> Reader Simulation Harness`
+
+`-> Block 01 blind sequential exposure`
+
+`-> Block 01 evidence`
+
+`-> Block 02 ... Block 24`
+
+`-> recall from transcript/state only`
+
+`-> seal raw reader evidence`
+
+`-> DraftLens compares planned intent vs experienced result`
+
+`-> DraftLens diagnosis and writer-facing questions`
+
+`-> Human revises`
+
+`-> same reader profiles run again with fresh exposure`
+
+`-> compare reader behavior between revisions`
+
+At no point does the Reader Simulation Harness silently rewrite screenplay pages or change canon.
+
 ## Architectural ownership
 
 ### Fresh Reader Specialist
@@ -46,9 +78,11 @@ Its responsibilities expand from a prompt/procedure into a harness-backed review
 - receive only the currently permitted screenplay evidence;
 - record immediate response before diagnosis;
 - maintain reader memory/state across Blocks;
+- skim when appropriate;
 - stop reading;
 - participate in recall without reopening the screenplay;
-- preserve identity across revision comparisons.
+- preserve identity across revision comparisons;
+- answer later reader-follow-up questions from its recorded evidence rather than rereading the screenplay.
 
 Do not register a second overlapping `First Reader`, `Beta Reader`, or equivalent standalone agent.
 
@@ -60,10 +94,12 @@ DraftLens responsibilities:
 
 - start and identify a reader run;
 - select reader profile(s);
+- run the skim gate;
 - invoke the sequential feed;
 - persist raw reader observations;
 - preserve the boundary between observation and diagnosis;
 - perform diagnosis only after relevant blind-read evidence exists;
+- compare intended Block function with observed reader experience;
 - compare reader behavior between revisions;
 - present reader evidence alongside other DraftLens lenses.
 
@@ -84,6 +120,25 @@ Reader simulation configuration and observations are review/development evidence
 - any Human-approved story decision.
 
 Any move from review evidence into canon/revision data requires explicit Human action through existing PlotPickle authority boundaries.
+
+## Skim gate
+
+Before the full sequential read, support a bounded **skim gate** that models the first encounter with the screenplay.
+
+The skim gate must receive only material a real skimmer would reasonably encounter from the available screenplay presentation, not a full hidden story summary.
+
+Its job is to capture:
+
+- what the reader thinks the screenplay/story is;
+- whether the reader would commit to reading further;
+- what specific visible element caused that decision;
+- immediate tone/genre/audience expectation where supportable.
+
+The skim result is reader evidence, not a quality score.
+
+A minimal `quick read` mode may run only this skim gate and return the bounded result without starting the full 24-Block read.
+
+The full Reader Simulation Harness run should preserve the skim result alongside later Block evidence so DraftLens can distinguish failure-to-open from failure-to-hold attention.
 
 ## Canonical review boundary
 
@@ -136,6 +191,7 @@ The deterministic parts are:
 - no-lookahead access rules;
 - feed state transitions;
 - required evidence fields;
+- skim/full-read mode rules;
 - quit/continue semantics;
 - recall isolation;
 - persistence shape;
@@ -174,11 +230,14 @@ The reader must not receive:
 
 If implementation convenience requires project access at the orchestrator level, the orchestrator must explicitly construct a bounded reader payload rather than handing the entire project object to the reader model.
 
+Reader knowledge may carry forward naturally from already encountered Blocks. Future story knowledge may not.
+
 ## Reader run state model
 
 Recommended run states:
 
 - `created` — run identity/config exists;
+- `skimmed` — initial skim gate is complete when enabled;
 - `reading` — reader is inside the sequential feed;
 - `quit` — reader voluntarily stopped; no later screenplay content may be released to that reader;
 - `completed` — reader reached the end of permitted screenplay evidence;
@@ -305,6 +364,39 @@ and:
 
 The reader must never be shown the planned answer before recording its own expectation.
 
+## Planned Block intent vs experienced result
+
+This post-read comparison is a central benefit of using PlotPickle's existing 5-page Story Blocks.
+
+During the blind read, the reader sees only screenplay evidence. Once raw reader evidence is sealed, DraftLens may compare it against the canonical planning fields for that same Block.
+
+Recommended comparisons:
+
+| Planned / canonical evidence | Reader evidence |
+| --- | --- |
+| Block goal | What the reader believes this section was trying to accomplish |
+| Character goal | Whose objective the reader actually followed |
+| Conflict | Pressure/resistance the reader actually perceived |
+| Choice | Whether the reader recognized a meaningful decision |
+| Action | What the reader believed materially happened |
+| Consequence | What change the reader carried forward |
+| Audience expectation | Reader expectation entering/leaving |
+| Pickle Turn | Observed surprise/change in expectation |
+| Intended emotional movement | Recorded emotional response |
+| Setup/payoff intent | Later recall / remembered connection |
+
+The comparison should identify mismatch, not automatically declare the plan or reader correct.
+
+Examples:
+
+- planned confrontation exists, but reader experiences another delay;
+- planned Pickle Turn exists, but reader expectation does not change;
+- character choice exists in planning, but reader cannot identify a choice on the page;
+- intended consequence exists structurally, but the reader does not carry it into the next Block;
+- setup exists, but it does not survive later recall.
+
+This is where raw Reader Simulation evidence becomes especially useful to DraftLens diagnosis.
+
 ## Confusion classification
 
 Fresh Reader already distinguishes useful mystery from missing information. Preserve that distinction structurally.
@@ -360,6 +452,20 @@ For a quit run, answers naturally describe only material actually encountered.
 
 Recall is evidence of retention, not a grade of artistic worth.
 
+## Reader follow-up consultation
+
+After a run, DraftLens may allow the writer to ask a specific reader profile a bounded follow-up question such as:
+
+- what would have needed to be clearer at the quit point?
+- what did you believe the protagonist wanted in Block 09?
+- did you notice the setup introduced in Block 03?
+
+The answer must come from that reader's recorded run evidence/state, not from rereading the source screenplay or gaining future information after the fact.
+
+If the stored reader evidence cannot support the answer, the reader should say so rather than reconstructing a new opinion from the full draft.
+
+This keeps later consultation faithful to the original reading experience.
+
 ## Revision comparison
 
 Reader runs must remain historical and comparable.
@@ -376,10 +482,12 @@ Each run needs:
 
 A revised screenplay creates a new source fingerprint and a new run while preserving Block coordinates where the project structure still maps to the same canonical addresses.
 
+The same reader profiles should be reused with fresh sequential exposure rather than being shown their previous answers during the new read.
+
 Comparison should support questions such as:
 
 - Did the reader finish this time?
-- Did a quit point move later?
+- Did a quit point move later or disappear?
 - Did Block 08 attention rise or fall?
 - Did a confusion classification change?
 - Did expectation match the intended dramatic turn more closely?
@@ -394,7 +502,7 @@ Raw Reader Simulation Harness evidence and DraftLens diagnosis must be separate 
 
 Required ordering:
 
-`blind reader experience -> raw evidence sealed -> recall -> ready_for_diagnosis -> DraftLens diagnosis -> revision questions`
+`blind reader experience -> raw evidence sealed -> recall -> ready_for_diagnosis -> planned-vs-experienced comparison -> DraftLens diagnosis -> revision questions`
 
 DraftLens can then connect a reader symptom to deeper PlotPickle evidence, for example:
 
@@ -429,10 +537,11 @@ The persisted design must clearly separate:
 
 1. source screenplay/canonical story evidence;
 2. reader profile/configuration;
-3. raw reader observation;
-4. recall evidence;
-5. DraftLens diagnosis;
-6. Human-approved revision/canon changes.
+3. skim evidence;
+4. raw reader observation;
+5. recall evidence;
+6. DraftLens planned-vs-experienced comparison and diagnosis;
+7. Human-approved revision/canon changes.
 
 Do not duplicate the screenplay text merely to support the reader harness unless a bounded immutable snapshot is technically required for audit/replay. If snapshotting is required, store the minimum necessary evidence with clear provenance and retention rules.
 
@@ -455,7 +564,7 @@ A future implementation may allow reader profiles to select different models, bu
 
 V1 should prove the harness and evidence before building a large new visual feature.
 
-A minimal DraftLens presentation can expose a 24-Block strip:
+A minimal DraftLens presentation can expose a 24-Block reader strip:
 
 `01 +1 | 02 +2 | 03 +1 | 04 0 | 05 -1 | ...`
 
@@ -472,6 +581,7 @@ Selecting a Block may show:
 - momentum;
 - memorable detail;
 - continue/skim/quit;
+- planned-vs-experienced comparison after the blind read;
 - previous-run comparison.
 
 Skin V1 governs presentation. Do not create a Reader-Harness-only visual language.
@@ -486,11 +596,13 @@ License: Apache-2.0.
 
 Useful methodology ideas:
 
+- skim gate before committing to the full read;
 - sequential no-lookahead feed;
-- reader can quit;
-- skim/attention evidence;
+- reader can skim or quit;
+- attention evidence;
 - recall from prior reading state rather than rereading;
 - persistent reader identity;
+- reader follow-up from the original run record;
 - comparison after revision;
 - reader reports experience rather than rewriting the draft.
 
@@ -521,8 +633,9 @@ Do not introduce a second specialist registry, second screenplay representation,
 - add source fingerprinting and runtime metadata;
 - add focused tests for schema/state behavior.
 
-### Phase 2 — Sequential feed
+### Phase 2 — Skim and sequential feed
 
+- implement bounded skim gate / optional quick-read mode;
 - build the Block-aware bounded evidence selector;
 - expose one permitted segment at a time;
 - enforce no-lookahead in code;
@@ -540,11 +653,13 @@ Do not introduce a second specialist registry, second screenplay representation,
 - seal reading transcript/state;
 - run recall without source screenplay access;
 - persist run evidence under stable project/Block/profile IDs;
+- support bounded reader follow-up from run evidence;
 - test canon non-mutation.
 
-### Phase 5 — DraftLens diagnosis and comparison
+### Phase 5 — DraftLens comparison and diagnosis
 
 - expose sealed raw reader evidence to DraftLens;
+- compare planned Block intent against observed reader experience only after sealing;
 - keep diagnosis separate;
 - implement revision-run comparison by Block/profile;
 - add minimal 24-Block evidence navigation/presentation if needed.
@@ -559,10 +674,16 @@ Do not introduce a second specialist registry, second screenplay representation,
 
 ## Required tests
 
+### Skim gate
+
+- skim input cannot contain full hidden story/ending metadata;
+- quick-read mode stops after skim evidence and does not silently run a full reader pass;
+- full runs preserve skim evidence separately from sequential Block evidence.
+
 ### No-lookahead
 
-- Block N reader payload cannot contain screenplay material from Block N+1.
-- reader cannot request future screenplay segments outside the feed contract.
+- Block N reader payload cannot contain screenplay material from Block N+1;
+- reader cannot request future screenplay segments outside the feed contract;
 - future `pickleTurn`, ending, character outcome, audience-expectation answer, or DraftLens diagnosis cannot appear in an earlier payload.
 
 ### Quit
@@ -577,11 +698,23 @@ Do not introduce a second specialist registry, second screenplay representation,
 - screenplay source is not supplied to recall code path;
 - tests fail if the original screenplay payload is passed into recall.
 
+### Planned-vs-experienced boundary
+
+- planned Block goal/conflict/choice/consequence/audienceExpectation/pickleTurn are unavailable during the blind read unless independently visible in the screenplay text;
+- these fields become available to DraftLens only after raw reader evidence is sealed;
+- comparison never mutates the raw reader record.
+
 ### Stable coordinates
 
 - unchanged source preserves project/Block/profile coordinates;
 - revised source receives a new source fingerprint;
 - stable Block IDs remain comparable across runs when the project structure is unchanged.
+
+### Reader follow-up
+
+- follow-up questions use stored run evidence/state only;
+- follow-up cannot reopen the screenplay or acquire future material that the reader did not encounter;
+- unsupported questions return an explicit insufficient-evidence response.
 
 ### Canon authority
 
@@ -612,18 +745,21 @@ Do not introduce a second specialist registry, second screenplay representation,
 4. Story Blocks are the canonical review/persistence boundary for the default feature profile.
 5. Exposure inside each Block is incremental and no-lookahead is enforced by mechanism.
 6. Future screenplay text and hidden future PPF/DraftLens information are excluded from reader context.
-7. Every reviewed Block emits the common structured evidence contract.
-8. Reader profiles can persist across revision runs without becoming canon.
-9. Quit behavior stops future screenplay exposure for that reader/run.
-10. Recall uses accumulated reader evidence only and does not reopen the screenplay.
-11. Revision comparison uses stable Story Block and reader-profile identity.
-12. DraftLens diagnosis occurs only after raw reader evidence is sealed and remains separate from that evidence.
-13. Reader evidence never mutates PPF canon automatically.
-14. PlotPickle Score V1 remains unchanged and source-equivalent scores are unaffected by attached reader evidence.
-15. Provider/runtime metadata and source fingerprints make runs auditable.
-16. Focused regressions prove no-lookahead, ordering, schema validity, quit behavior, recall isolation, revision comparison, provider safety, Score isolation, and canon non-mutation.
-17. Development Convergence reports `CONVERGED`.
-18. PR Gate and Windows Product Gate are green on the exact same head before merge.
+7. A bounded skim gate exists, with optional quick-read behavior, and its evidence remains distinct from the full sequential read.
+8. Every reviewed Block emits the common structured evidence contract.
+9. Reader profiles can persist across revision runs without becoming canon.
+10. Quit behavior stops future screenplay exposure for that reader/run.
+11. Recall uses accumulated reader evidence only and does not reopen the screenplay.
+12. Reader follow-up consultation uses the original run evidence rather than a fresh screenplay read.
+13. DraftLens can compare planned Block intent with reader-experienced result only after blind evidence is sealed.
+14. Revision comparison uses stable Story Block and reader-profile identity.
+15. DraftLens diagnosis occurs only after raw reader evidence is sealed and remains separate from that evidence.
+16. Reader evidence never mutates PPF canon automatically.
+17. PlotPickle Score V1 remains unchanged and source-equivalent scores are unaffected by attached reader evidence.
+18. Provider/runtime metadata and source fingerprints make runs auditable.
+19. Focused regressions prove skim isolation, no-lookahead, ordering, schema validity, quit behavior, recall isolation, planned-vs-experienced separation, revision comparison, follow-up isolation, provider safety, Score isolation, and canon non-mutation.
+20. Development Convergence reports `CONVERGED`.
+21. PR Gate and Windows Product Gate are green on the exact same head before merge.
 
 ## Non-goals
 
@@ -642,4 +778,4 @@ This issue does not:
 
 ## Definition of done
 
-The work is done when PlotPickle can run its existing Fresh Reader capability through an enforceable Block-aware no-lookahead harness, preserve structured reader evidence and recall by stable Story Block coordinates, hand sealed evidence to DraftLens for later diagnosis, compare behavior across revisions, and prove through focused tests that future-story leakage, canon mutation, Score contamination, and silent provider fallback do not occur.
+The work is done when PlotPickle can run its existing Fresh Reader capability through an enforceable Block-aware no-lookahead harness, preserve skim, sequential reader evidence and recall by stable Story Block coordinates, hand sealed evidence to DraftLens for planned-vs-experienced comparison and later diagnosis, compare behavior across revisions, answer bounded reader follow-ups from the original run record, and prove through focused tests that future-story leakage, canon mutation, Score contamination, and silent provider fallback do not occur.

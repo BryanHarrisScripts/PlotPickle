@@ -88,15 +88,17 @@ test("8 GB-class H3 VRAM uses the constrained profile that the UI displays", asy
   assert.match(provider, /return \{ id: "impractical", warning: "Less than 8 GB VRAM is blocked/u);
 });
 
-test("local IMAGES uses RUN then READY and yellow diagnostic pills", async () => {
+test("local IMAGES uses RUN then READY and Skin V1 warning diagnostic controls", async () => {
   const panel = await source("app/skin-v1/local-comfyui-panel.tsx");
 
   assert.match(panel, /activeReady \? "READY" : working === "ready" \? "RUNNING\.\.\." : "RUN"/u);
-  assert.match(panel, /const yellowButton: React\.CSSProperties/u);
-  assert.match(panel, /border: "1px solid #d8c85d"/u);
-  assert.match(panel, /borderRadius: 999/u);
-  assert.match(panel, /style=\{yellowButton\}[^>]*>\{working === "diagnostic"/u);
+  assert.match(panel, /const warningButton: React\.CSSProperties/u);
+  assert.match(panel, /border: "var\(--pp-skin-border-thin\) solid var\(--pp-skin-warning\)"/u);
+  assert.match(panel, /background: "var\(--pp-skin-warning-surface\)"/u);
+  assert.match(panel, /color: "var\(--pp-skin-warning-ink\)"/u);
+  assert.match(panel, /borderRadius: "var\(--pp-skin-radius\)"/u);
+  assert.match(panel, /style=\{warningButton\}[^>]*>\{working === "diagnostic"/u);
   assert.match(panel, /"RUN LOCAL DIAGNOSTIC"/u);
-  assert.match(panel, /style=\{yellowButton\}[^>]*>\{working === "test"/u);
+  assert.match(panel, /style=\{warningButton\}[^>]*>\{working === "test"/u);
   assert.match(panel, /"TEST LOCAL IMAGE"/u);
 });

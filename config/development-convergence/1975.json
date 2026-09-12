@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 1975,
+  "brief": "docs/developer-briefs/1975-learn-paths-craft-modules.md",
+  "allowedChanges": [
+    "app/skin-v1/learn-journey-preview.tsx",
+    "config/development-convergence/1975.json",
+    "docs/developer-briefs/1975-learn-paths-craft-modules.md",
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1918-learn-semester-one.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Human-facing Journey uses the approved open-learning summary and Path/Craft Module vocabulary.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "CRAFT MODULE ${craftModuleNumber(course.id)}" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The six visible Paths describe craft territory rather than academic time periods.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "STORY FOUNDATIONS" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "STRUCTURE & STORY MOTION" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "CHARACTER, DIALOGUE & VISUAL STORYTELLING" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "DRAFTING THE STORY" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "REVISION & COLLABORATIVE CRAFT" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "PROFESSIONAL PRACTICE" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Visible guidance tells the Human that pace and order are voluntary rather than time-gated.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "CHOOSE ANY PATH. MOVE AT YOUR OWN PACE. THE ORDER IS A GUIDE, NOT A GATE." },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "PATH 01 IS AVAILABLE. OPEN ANY CRAFT MODULE IN ANY ORDER." }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Availability remains truthful: Path navigation is open, Path 01 lesson content remains wired, and later Craft Module lesson content remains unavailable until Phase 5.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "THIS CRAFT MODULE'S LESSON CONTENT IS NOT AVAILABLE YET." },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-skin-menu-connected={course.contentAvailable ? \"true\" : \"false\"}" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "keeps every Path 01 Craft Module and lesson selectable without prerequisite gates" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Stable internal year/semester/course contracts and the existing PPF lesson-progress authority remain unchanged beneath the presentation translation.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "year: number" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "semester: number" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "PPFProject.learning.completedLessonIds" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1975-learn-paths-craft-modules.md", "contains": "This is a presentation-language change, not a curriculum-model migration." }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "The existing governed LEARN regression suites prove #1975 without introducing a second verification lane.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1975 presents the Journey as six Paths and 24 Craft Modules while retaining stable internal contracts" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1975 canonical development convergence reports CONVERGED against the real diff" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "OPEN ANY CRAFT MODULE IN ANY ORDER" }
+      ]
+    }
+  ]
+}

@@ -130,10 +130,11 @@ test("#1947 architecture shadow authorizes verification-tool network only for La
 });
 
 test("#1947 browser-UAT runner is bounded, read-only and repair-free", async () => {
-  const [shadow, live, startup] = await Promise.all([
+  const [shadow, live, startup, policy] = await Promise.all([
     read("scripts/verification-shadow.mjs"),
     read("scripts/verification-webmcp-live.mjs"),
     read("scripts/run-webmcp-startup-uat.mjs"),
+    read("lib/verification/webmcp-uat-skills.mjs"),
   ]);
   assert.match(shadow, /"browser-uat"/u);
   assert.match(shadow, /target\.startsWith\("scripts\/"\)/u);
@@ -143,5 +144,9 @@ test("#1947 browser-UAT runner is bounded, read-only and repair-free", async () 
   assert.match(live, /secretsAccessed: false/u);
   assert.match(live, /run-webmcp-startup-uat\.mjs/u);
   assert.doesNotMatch(live, /--repair/u);
-  assert.match(startup, /WEBMCP_FORBIDDEN_CAPABILITIES/u);
+  assert.match(startup, /WEBMCP_UAT_SKILL_POLICY/u);
+  assert.match(policy, /WEBMCP_FORBIDDEN_CAPABILITIES/u);
+  assert.match(policy, /mayFixCode: false/u);
+  assert.match(policy, /mayMutateCanon: false/u);
+  assert.match(policy, /mayInvokeProviders: false/u);
 });

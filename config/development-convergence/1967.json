@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "issue": 1967,
+  "brief": "docs/developer-briefs/1967-learn-journey-navigation-cutover.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/skin-v1-client.tsx",
+    "config/verification/ownership-map.json",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "scripts/validate-learn-journey-baseline.mjs",
+    "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs",
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs",
+    "config/development-convergence/1967.json",
+    "docs/developer-briefs/1967-learn-journey-navigation-cutover.md"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Writer's Craft Dashboard copy uses broad story-craft language aligned with the 24-course Journey.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/skin-v1-client.tsx", "contains": "Learn Story Craft Through the 24-Course Journey" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Writer's Craft mounts the canonical LEARN Journey directly with Dashboard as the back destination.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "if (writerCraftMenuOpen)" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "<LearnJourneyPreview onBack={() => setWriterCraftMenuOpen(false)} />" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Historical nine-collection compatibility remains immutable baseline evidence without requiring legacy rows to remain rendered.",
+      "evidence": [
+        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"collectionCount\": 9" },
+        { "type": "file-contains", "path": "scripts/validate-learn-journey-baseline.mjs", "contains": "Writer's Craft historical compatibility collection names or order changed from the Phase 0 baseline." },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "learn-journey-baseline-validator" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1967 retires legacy Writer's Craft collection navigation while preserving compatibility evidence" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Live WebMCP enters the six-semester Journey directly from Dashboard and returns directly to Dashboard.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "section[aria-label='LEARN Journey menu'][data-skin-menu='learn-journey']" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "[data-skin-menu='dashboard']" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Phase 4 guided-not-gated Semester 1 wiring and Phase 0-2 curriculum integrity remain protected.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "Phase 0, Phase 1 and Phase 2 deterministic LEARN validators" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "LESSON CONTENT REMAINS UNWIRED UNTIL PHASE 5" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "Historical #1915/#1954 assertions are explicitly migrated to the direct Journey contract and #1967 convergence runs against the real diff.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs", "contains": "#1967 direct Journey cutover supersedes the old first-submenu collection UI" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1967 direct Journey cutover preserves the full-width Skin V1 learning directory" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1967 canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

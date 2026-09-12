@@ -19,13 +19,6 @@ export type DashboardBbsItem = Readonly<{
   group?: string;
 }>;
 
-type WriterCraftItem = Readonly<{
-  id: string;
-  shortcut: string;
-  label: string;
-  description: string;
-}>;
-
 const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "logout", "learn"]);
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
@@ -81,18 +74,6 @@ const SETTINGS_MENU = [
 
 const CONNECTED_SETTINGS_ITEMS = new Set(["local-story-mode", "node-info", "cloud", "agents"]);
 
-const WRITER_CRAFT_MENU: readonly WriterCraftItem[] = [
-  { id: "foundations", shortcut: "1", label: "Screenwriting Foundations", description: "Story, structure, character, world, drafting, formatting and industry essentials." },
-  { id: "visual-writing", shortcut: "2", label: "Visual Writing & PlotPickle", description: "Pitch, visual language, early visual development and PlotPickle's layered model." },
-  { id: "method", shortcut: "3", label: "The 24 Blocks Method", description: "The 4-act, 24-block and 96-mini-block story architecture." },
-  { id: "ai-revision", shortcut: "4", label: "AI-Assisted Revision", description: "Writer-controlled revision passes that preserve explicit Human approval." },
-  { id: "characters", shortcut: "5", label: "Characters in Motion", description: "Character engines, choices, arcs, conflict, relationships and Voiceprint." },
-  { id: "dialogue", shortcut: "6", label: "Dialogue in Motion", description: "Objectives, tactics, subtext, voice, conflict, silence and action." },
-  { id: "story-craft", shortcut: "7", label: "Story Craft Essentials", description: "Audience experience, pacing, tone, theme, scene movement and motifs." },
-  { id: "working-together", shortcut: "8", label: "Working Together", description: "Contributor onboarding, briefs, review, canon decisions, rights and privacy." },
-  { id: "collaboration", shortcut: "9", label: "Collaboration, Formats & Ownership", description: "Local-first workflow choices, screenplay interchange and ownership." },
-];
-
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
 // Historical title token retained for old static evidence only: *** DASHBOARD ***
@@ -117,13 +98,9 @@ export default function DashboardBbsPanel({
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
-  const [learnJourneyOpen, setLearnJourneyOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
-  const [writerCraftSelectedIndex, setWriterCraftSelectedIndex] = useState(0);
   const [settingsNotice, setSettingsNotice] = useState("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
-  const [writerCraftNotice, setWriterCraftNotice] = useState("PRESS J FOR THE 24-COURSE LEARN JOURNEY. EXISTING COLLECTIONS REMAIN PREVIEW-ONLY.");
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const writerCraftItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -133,9 +110,6 @@ export default function DashboardBbsPanel({
       return;
     }
     if (items[index]?.id === "learn") {
-      setWriterCraftSelectedIndex(0);
-      setLearnJourneyOpen(false);
-      setWriterCraftNotice("PRESS J FOR THE 24-COURSE LEARN JOURNEY. EXISTING COLLECTIONS REMAIN PREVIEW-ONLY.");
       setWriterCraftMenuOpen(true);
       return;
     }
@@ -218,55 +192,6 @@ export default function DashboardBbsPanel({
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       activateSettingsItem(index);
-    }
-  }
-
-  function selectWriterCraftItem(index: number) {
-    const normalized = (index + WRITER_CRAFT_MENU.length) % WRITER_CRAFT_MENU.length;
-    setWriterCraftSelectedIndex(normalized);
-    window.requestAnimationFrame(() => writerCraftItemRefs.current[normalized]?.focus());
-  }
-
-  function activateWriterCraftItem(index: number) {
-    const item = WRITER_CRAFT_MENU[index];
-    if (!item) return;
-    setWriterCraftSelectedIndex(index);
-    setWriterCraftNotice(`${item.label.toUpperCase()} — COLLECTION PREVIEW ONLY. LESSON LEVEL IS NOT OPENED IN THIS BUILD.`);
-  }
-
-  function handleWriterCraftKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.key.length === 1) {
-      const shortcutIndex = WRITER_CRAFT_MENU.findIndex((item) => item.shortcut === event.key);
-      if (shortcutIndex >= 0) {
-        event.preventDefault();
-        selectWriterCraftItem(shortcutIndex);
-        activateWriterCraftItem(shortcutIndex);
-        return;
-      }
-    }
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      selectWriterCraftItem(index + 1);
-      return;
-    }
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      selectWriterCraftItem(index - 1);
-      return;
-    }
-    if (event.key === "Home") {
-      event.preventDefault();
-      selectWriterCraftItem(0);
-      return;
-    }
-    if (event.key === "End") {
-      event.preventDefault();
-      selectWriterCraftItem(WRITER_CRAFT_MENU.length - 1);
-      return;
-    }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      activateWriterCraftItem(index);
     }
   }
 
@@ -389,91 +314,8 @@ export default function DashboardBbsPanel({
     );
   }
 
-  if (writerCraftMenuOpen && learnJourneyOpen) {
-    return <LearnJourneyPreview onBack={() => setLearnJourneyOpen(false)} />;
-  }
-
   if (writerCraftMenuOpen) {
-    return (
-      <section
-        className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
-        aria-label="Writer's Craft menu"
-        data-skin-menu="writer-craft"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            setLearnJourneyOpen(false);
-            setWriterCraftMenuOpen(false);
-            return;
-          }
-          if (event.key.toUpperCase() === "J") {
-            event.preventDefault();
-            setLearnJourneyOpen(true);
-          }
-        }}
-      >
-        <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner">
-            <h1>WRITER&apos;S CRAFT</h1>
-            <button type="button" className="pp-skin-v1-return" onClick={() => { setLearnJourneyOpen(false); setWriterCraftMenuOpen(false); }}>Back to Dashboard</button>
-          </div>
-          <div className="pp-skin-v1-dashboard-title">LEARN STORYTELLING ESSENTIALS</div>
-          <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- GUIDED JOURNEY --</div>
-          <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="group" aria-label="LEARN Journey destination">
-            <button
-              type="button"
-              className="pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item"
-              data-skin-menu-row="learn-journey"
-              data-skin-menu-shortcut="J"
-              data-skin-menu-connected="true"
-              data-learn-journey-entry="phase-3"
-              onClick={() => setLearnJourneyOpen(true)}
-            >
-              <span className="pp-skin-v1-dashboard-command-line">[J] LEARN Journey / 24-Course Program - 3 years, 6 semesters, 4 course shells at a time [WIRED PREVIEW]</span>
-              <span
-                className="pp-skin-v1-dashboard-status-box is-active"
-                aria-label="LEARN Journey preview connected"
-                data-dashboard-status="active"
-                data-skin-menu-indicator="connected"
-              />
-            </button>
-          </div>
-          <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- EXISTING COLLECTION PREVIEWS --</div>
-          <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Writer's Craft collections" aria-describedby="writer-craft-menu-status">
-            {WRITER_CRAFT_MENU.map((item, index) => {
-              const selected = index === writerCraftSelectedIndex;
-              const command = `[${item.shortcut}] ${item.label}`.padEnd(38, " ");
-              return (
-                <button
-                  ref={(node) => { writerCraftItemRefs.current[index] = node; }}
-                  key={item.id}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  tabIndex={selected ? 0 : -1}
-                  autoFocus={index === 0}
-                  className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
-                  data-skin-menu-row={item.id}
-                  data-skin-menu-shortcut={item.shortcut}
-                  data-skin-menu-connected="false"
-                  onClick={() => activateWriterCraftItem(index)}
-                  onKeyDown={(event) => handleWriterCraftKeyDown(event, index)}
-                >
-                  <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description} [PREVIEW]</span>
-                  <span
-                    className="pp-skin-v1-dashboard-status-box"
-                    aria-label="Writer's Craft collection preview; lesson level not opened yet"
-                    data-dashboard-status="inactive"
-                    data-skin-menu-indicator="unwired"
-                  />
-                </button>
-              );
-            })}
-          </div>
-          <p className="pp-skin-v1-bbs-help" id="writer-craft-menu-status" role="status">{writerCraftNotice}</p>
-        </div>
-      </section>
-    );
+    return <LearnJourneyPreview onBack={() => setWriterCraftMenuOpen(false)} />;
   }
 
   return (

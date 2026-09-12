@@ -61,7 +61,7 @@ const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "reports", shortcut: "A", label: "Script Analytics", description: "Review Story Health & Coverage Reports", group: "PROJECT MANAGEMENT" },
   { id: "settings", shortcut: "O", label: "Options & Settings", description: "Configure PlotPickle Tools & API Keys", group: "PROJECT MANAGEMENT" },
   { id: "profile", shortcut: "U", label: "User Profile", description: "Manage Identity, Credits & Preferences", group: "PROJECT MANAGEMENT" },
-  { id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Storytelling Essentials (Screenplay Writing)", group: "INTERACTIVE & LEARNING" },
+  { id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Story Craft Through the 24-Course Journey", group: "INTERACTIVE & LEARNING" },
   { id: "wyrmwood", shortcut: "2", label: "Wyrmwood Game", description: "Practice Narrative Craft Through Play", group: "INTERACTIVE & LEARNING" },
   { id: "story", shortcut: "3", label: "Story", description: "The Unwritten Story Game Engine", group: "INTERACTIVE & LEARNING" },
 ];

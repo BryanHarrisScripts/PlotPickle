@@ -1,0 +1,37 @@
+{
+  "$schema": "../../schema/verification/ownership.schema.json",
+  "schemaVersion": "1.0",
+  "sourceArchitecture": "architecture/plotpickle.architecture.json",
+  "unknownProduction": {
+    "policy": "fail-closed",
+    "evidenceCode": "unmapped-production-ownership"
+  },
+  "rules": [
+    {
+      "id": "verification-contract-files",
+      "classification": "verification",
+      "include": [
+        "config/verification/**",
+        "schema/verification/**",
+        "lib/verification/**",
+        "scripts/validate-verification-phase-1.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": ["test-harness"]
+    },
+    {
+      "id": "verification-tests",
+      "classification": "test",
+      "include": ["tests/**"],
+      "ownerLayer": "verification",
+      "riskTokens": ["test-harness"]
+    },
+    {
+      "id": "verification-docs",
+      "classification": "docs",
+      "include": ["docs/**"],
+      "ownerLayer": "verification",
+      "riskTokens": ["docs"]
+    }
+  ]
+}

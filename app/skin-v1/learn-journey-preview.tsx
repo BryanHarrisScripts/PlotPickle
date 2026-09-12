@@ -5,6 +5,7 @@ import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../../core/storage/foundation-project-browser";
+import LearnExplore from "./learn-explore";
 import styles from "./learn-journey-preview.module.css";
 
 type JourneyCoursePreview = Readonly<{
@@ -134,6 +135,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   const [project, setProject] = useState<PPFProject | null>(null);
   const [loadError, setLoadError] = useState("");
   const [contentError, setContentError] = useState("");
+  const [exploreOpen, setExploreOpen] = useState(false);
   const [semesterOpen, setSemesterOpen] = useState(false);
   const [selectedSemesterIndex, setSelectedSemesterIndex] = useState(0);
   const [selectedCourseIndex, setSelectedCourseIndex] = useState(0);
@@ -310,6 +312,17 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     setNotice(`${lesson.title.toUpperCase()} — ${isCompleted ? "MARKED INCOMPLETE" : "MARKED COMPLETE"}. PROGRESS FOLLOWS ACTUAL LESSON HISTORY, NOT CRAFT MODULE ORDER.`);
   }
 
+  if (exploreOpen) {
+    return (
+      <LearnExplore
+        completedLessonIds={completedLessonIds}
+        onBack={() => setExploreOpen(false)}
+        onLessonOpen={(lessonId) => commit({ type: "lesson.open", lessonId, occurredAt: new Date().toISOString() })}
+        onToggleLessonCompletion={toggleLessonCompletion}
+      />
+    );
+  }
+
   if (!preview) {
     return (
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey loading">
@@ -393,10 +406,33 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   }
 
   return (
-    <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey menu" data-skin-menu="learn-journey" data-learn-journey-phase="5" data-learn-all-path-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); onBack(); } }}>
+    <section
+      className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`}
+      aria-label="LEARN Journey menu"
+      data-skin-menu="learn-journey"
+      data-learn-journey-phase="5"
+      data-learn-all-path-content="available"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          onBack();
+          return;
+        }
+        if (event.key.toLowerCase() === "e") {
+          event.preventDefault();
+          setExploreOpen(true);
+        }
+      }}
+    >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
         <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button></div>
         <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
+        <div className={styles.exploreEntry}>
+          <button type="button" className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}`} data-learn-explore-open="true" data-skin-menu-connected="true" onClick={() => setExploreOpen(true)}>
+            <span className="pp-skin-v1-dashboard-command-line">[E] EXPLORE / ALL CURRICULUM - 12 TOPICS · 88 PRESENTATION LESSONS · UNRESTRICTED SEARCH / BROWSE</span>
+            <span className="pp-skin-v1-dashboard-status-box is-active" aria-label="Explore all curriculum available" data-dashboard-status="active" data-skin-menu-indicator="connected" />
+          </button>
+        </div>
         <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Journey Paths" aria-describedby="learn-journey-status">
           {preview.semesters.map((item, index) => {
             const selected = index === selectedSemesterIndex;
@@ -407,7 +443,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
             return <button ref={(node) => { semesterRefs.current[index] = node; }} key={item.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={item.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected="true" data-learn-semester-open="true" data-learn-semester-content="wired" onClick={() => openSemester(index)} onKeyDown={(event) => handleSemesterKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">{command} - CRAFT MODULES {firstModule}–{lastModule} · 4 modules · lesson content available</span><span className="pp-skin-v1-dashboard-status-box is-active" aria-label="Path destination available" data-dashboard-status="active" data-skin-menu-indicator="connected" /></button>;
           })}
         </div>
-        <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-status" role="status">{notice}</p>
+        <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-status" role="status">{notice} PRESS E TO EXPLORE ALL CURRICULUM.</p>
       </div>
     </section>
   );

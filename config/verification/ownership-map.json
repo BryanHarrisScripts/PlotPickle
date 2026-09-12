@@ -64,7 +64,8 @@
       "include": [
         "app/api/learn/journey-preview/route.ts",
         "app/api/learn/journey-semester-one/route.ts",
-        "app/api/learn/journey-courses/route.ts"
+        "app/api/learn/journey-courses/route.ts",
+        "app/api/learn/explore/route.ts"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": ["surface", "navigation", "canon"]

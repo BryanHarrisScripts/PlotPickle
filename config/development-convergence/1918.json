@@ -1,96 +1,97 @@
 {
   "schemaVersion": 1,
   "issue": 1918,
-  "phase": "phase-5-all-paths",
-  "brief": "docs/developer-briefs/1918-phase-5-all-paths.md",
+  "phase": "phase-6-explore-all-curriculum",
+  "brief": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md",
   "allowedChanges": [
-    "app/api/learn/journey-preview/route.ts",
-    "app/api/learn/journey-semester-one/route.ts",
-    "app/api/learn/journey-courses/route.ts",
+    "app/api/learn/explore/route.ts",
+    "app/skin-v1/learn-explore.tsx",
+    "app/skin-v1/learn-journey-preview.module.css",
     "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1918.json",
     "config/verification/ownership-map.json",
-    "docs/developer-briefs/1918-phase-5-all-paths.md",
-    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md",
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1918-learn-semester-one.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P5-A1",
-      "criterion": "Phase 5 advances the Journey preview so all six Paths and all 24 Craft Modules are truthfully wired and content-available.",
+      "id": "P6-A1",
+      "criterion": "Phase 6 adds an unrestricted Explore / All Curriculum projection over the existing 88-lesson presentation adapter rather than a copied curriculum store.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "phase: \"phase-5-all-paths\"" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "status: \"wired\"" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "contentAvailable: true" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "allPathLessonContentExposed: true" }
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "plotPickleCurriculum" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "phase: \"phase-6-explore-all-curriculum\"" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "entries.length !== 88" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "curriculumBodiesDuplicated: false" }
       ]
     },
     {
-      "id": "P5-A2",
-      "criterion": "All 24 Craft Modules resolve directly from the deterministic program map against the existing 12 canonical LEARN topic documents; no Journey curriculum copy is introduced.",
+      "id": "P6-A2",
+      "criterion": "Explore preserves the complete 12-topic / 88-presentation-lesson / 95-source inventory and relates all results to the existing 24 Craft Modules.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "LEARN_PROGRAM_COURSE_SPECS" },
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "course.lessonRefs.flatMap" },
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "visual-storytelling.json" },
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "responsible-ai.json" },
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "curriculumBodiesDuplicated: false" }
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "representedTopics.size !== 12" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "representedCraftModules.size !== 24" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "sourceIds.size !== 95" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "LEARN_PROGRAM_COURSE_SPECS" }
       ]
     },
     {
-      "id": "P5-A3",
-      "criterion": "Journey progress remains derived only from existing PPF lesson history and existing lesson commands, including out-of-order work across distant Paths.",
+      "id": "P6-A3",
+      "criterion": "The seven promoted Foundations presentation lessons retain explicit reference coverage through their canonical Foundations lesson and owning Craft Module.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "project?.learning.completedLessonIds" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "type: isCompleted ? \"lesson.uncomplete\" : \"lesson.complete\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "course-24" },
-        { "type": "file-contains", "path": "app/api/learn/journey-courses/route.ts", "contains": "progressOwner: \"PPFProject.learning.completedLessonIds\"" }
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "FOUNDATION_PROMOTED_SOURCE_IDS" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "reference-coverage" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "referenceCoverageCount !== 7" }
       ]
     },
     {
-      "id": "P5-A4",
-      "criterion": "All Paths and Craft Modules remain guided-not-gated and selectable regardless of advisory prerequisites.",
+      "id": "P6-A4",
+      "criterion": "Journey and Explore share only the existing PPF lesson-history authority and existing lesson commands for progress.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "IS AVAILABLE. OPEN ANY CRAFT MODULE IN ANY ORDER." },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-learn-course-status=\"wired\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-learn-course-content=\"available\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "doesNotMatch(ui, /aria-disabled" }
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "progressOwner: \"PPFProject.learning.completedLessonIds\"" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "journeyAndExploreShareProgress: true" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "completedLessonIds={completedLessonIds}" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "onToggleLessonCompletion={toggleLessonCompletion}" }
       ]
     },
     {
-      "id": "P5-A5",
-      "criterion": "Phase 4 Path 01 remains preserved as compatibility evidence while the live Journey consumes one generalized all-Paths projection rather than five duplicated semester routes.",
+      "id": "P6-A5",
+      "criterion": "Explore supports deterministic discovery by topic, Craft Module, lesson, concept and PlotPickle application area without provider or Agent inference.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "phase: \"phase-4-semester-one\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "fetch(\"/api/learn/journey-courses\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "retains the Phase 4 Path 01 compatibility projection" }
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "concepts: unique(" },
+        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "applicationAreas: unique(" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Search all curriculum\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Filter Explore by topic\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Filter Explore by Craft Module\"" }
       ]
     },
     {
-      "id": "P5-A6",
-      "criterion": "Phase 0-2 deterministic curriculum validators remain green and stable curriculum/program-map authority is unchanged.",
+      "id": "P6-A6",
+      "criterion": "Explore is a first-class keyboard-reachable Skin V1 destination while Journey Paths remain unchanged and guided-not-gated.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-program-map.mjs" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "[E] EXPLORE / ALL CURRICULUM" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key.toLowerCase() === \"e\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "data-learn-explore-access=\"unrestricted\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "ORDER DOES NOT CONTROL ACCESS" }
+      ]
+    },
+    {
+      "id": "P6-A7",
+      "criterion": "The new Explore endpoint and UI are owned by the existing seven-layer verification boundaries and focused #1918 regressions preserve prior phases.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "app/api/learn/explore/route.ts" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "Phase 6 exposes first-class unrestricted Explore" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "Phase 6 Explore projects the existing 88-lesson presentation catalog" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" }
       ]
     },
     {
-      "id": "P5-A7",
-      "criterion": "The seven-layer verification mesh owns the generalized all-Paths API and live WebMCP expects Path 06 Craft Modules to be wired and available.",
+      "id": "P6-A8",
+      "criterion": "Phase 7+ remains explicitly out of scope; this PR stops after unrestricted Explore / All Curriculum is proven.",
       "evidence": [
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "app/api/learn/journey-courses/route.ts" },
-        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "[data-learn-course-status='wired']" },
-        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "[data-learn-course-content='available']" }
-      ]
-    },
-    {
-      "id": "P5-A8",
-      "criterion": "Phase 6+ remains explicitly out of scope; Phase 5 only scales the proven Journey course/lesson pattern.",
-      "evidence": [
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-5-all-paths.md", "contains": "Do not add in Phase 5" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-5-all-paths.md", "contains": "Explore / All Curriculum" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-5-all-paths.md", "contains": "Only then may #1918 Phase 6 begin." }
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "Do not add in Phase 6" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "LEARN -> APPLY -> CHECK -> CONTINUE" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "Stop there. Do not begin Phase 7 in the same PR." }
       ]
     }
   ]

@@ -23,9 +23,10 @@
       "id": "A2",
       "criterion": "Settings row descriptions no longer duplicate unwired state with a trailing [NOT CONNECTED] label while machine-readable and accessible state remain intact.",
       "evidence": [
-        { "type": "file-not-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "[NOT CONNECTED]" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "<span className=\"pp-skin-v1-dashboard-command-line\">{command} - {item.description}</span>" },
         { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-connected={connected ? \"true\" : \"false\"}" },
-        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "aria-label={connected ? \"Connected Settings destination\" : \"Settings destination not connected yet\"}" }
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "aria-label={connected ? \"Connected Settings destination\" : \"Settings destination not connected yet\"}" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "assert.doesNotMatch(dashboard, /\\[NOT CONNECTED\\]/u);" }
       ]
     },
     {

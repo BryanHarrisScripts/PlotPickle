@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 1969,
+  "brief": "docs/developer-briefs/1969-explicit-story-startup.md",
+  "allowedChanges": [
+    "app/page.tsx",
+    "config/development-convergence/1969.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1969-explicit-story-startup.md",
+    "tests/issue-1969-explicit-story-startup.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Bare PlotPickle startup defaults to Library rather than reopening a persisted active story.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/page.tsx", "contains": "if (typeof window === \"undefined\") return \"library\";" },
+        { "type": "file-contains", "path": "app/page.tsx", "contains": "return \"library\";" },
+        { "type": "file-contains", "path": "tests/issue-1969-explicit-story-startup.test.mjs", "contains": "bare PlotPickle startup opens Library instead of restoring the prior active story" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Bare startup does not automatically repair-load the persisted story before a workspace is explicitly requested.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/page.tsx", "contains": "if (hasRequestedWorkspace()) repairPersistedProject();" },
+        { "type": "file-contains", "path": "tests/issue-1969-explicit-story-startup.test.mjs", "contains": "bare startup does not repair-load the persisted story before the Human chooses a workspace" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Existing Library Resume/Open/Create actions remain the explicit route into story-facing work.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1969-explicit-story-startup.test.mjs", "contains": "Library keeps saved stories and requires an explicit Resume/Open/Create action to enter story work" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1969-explicit-story-startup.md", "contains": "Resume / Open Story / New Story" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Project Library and PPF persistence authority remain unchanged and no future startup preference is added.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/developer-briefs/1969-explicit-story-startup.md", "contains": "Project Library remains the only project persistence authority." },
+        { "type": "file-contains", "path": "tests/issue-1969-explicit-story-startup.test.mjs", "contains": "does not alter Library persistence authority or add the future startup preference" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The focused startup regression is owned and selected by the seven-layer verification mesh.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "root-story-startup" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.explicit-story-startup-1969" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "#1969 development convergence runs against the real diff and Phase 5 remains paused.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1969-explicit-story-startup.test.mjs", "contains": "#1969 canonical development convergence reports CONVERGED against the real diff" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1969-explicit-story-startup.md", "contains": "#1918 — Phase 5 remains paused." }
+      ]
+    }
+  ]
+}

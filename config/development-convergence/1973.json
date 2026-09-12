@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "issue": 1973,
+  "brief": "docs/developer-briefs/1973-contextual-menu-footer.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/menu-feedback-footer.module.css",
+    "app/skin-v1/menu-feedback-footer.tsx",
+    "config/development-convergence/1973.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1973-contextual-menu-footer.md",
+    "tests/issue-1973-contextual-menu-footer.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The visible menu status language has one universal meaning: green is available and gray is unavailable.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/menu-feedback-footer.tsx", "contains": "GREEN = AVAILABLE" },
+        { "type": "file-contains", "path": "app/skin-v1/menu-feedback-footer.tsx", "contains": "GRAY = UNAVAILABLE" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Dashboard contextual feedback follows the currently selected row and never claims an unavailable destination can be opened.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "const selectedDashboardItem = items[selectedIndex]" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "available={selectedDashboardConnected}" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Settings contextual feedback follows the currently selected row while preserving existing connectivity truth.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex]" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "available={selectedSettingsConnected}" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Selection feedback is accessible without relying on color alone.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/menu-feedback-footer.tsx", "contains": "aria-live=\"polite\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "connected ? \"available\" : \"unavailable\"" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "The menu inventory preserves Local/Cloud all-available truth and LEARN guided-not-gated availability semantics without Phase 5 curriculum expansion.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1973-contextual-menu-footer.test.mjs", "contains": "Local and Cloud directories remain fully available instead of inventing gray states" },
+        { "type": "file-contains", "path": "tests/issue-1973-contextual-menu-footer.test.mjs", "contains": "LEARN keeps availability separate from advisory sequence" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1973-contextual-menu-footer.md", "contains": "#1918 — Phase 5 remains paused." }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "#1973 focused regression is registered with Experience Skins verification and convergence runs against the real diff.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.contextual-menu-footer-1973" },
+        { "type": "file-contains", "path": "tests/issue-1973-contextual-menu-footer.test.mjs", "contains": "#1973 canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

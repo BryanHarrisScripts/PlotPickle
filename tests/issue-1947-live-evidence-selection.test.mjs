@@ -157,6 +157,9 @@ test("#1947 browser-UAT runner is bounded, read-only, repair-free and mirrors go
   assert.match(live, /probeLocalNodeDependencies/u);
   assert.match(live, /\/api\/system\/node-control/u);
   assert.match(live, /\/api\/system\/node-topology/u);
+  assert.match(live, /coldDashboardMediaFailure/u);
+  assert.match(live, /runAuditWithColdMediaRetry/u);
+  assert.match(live, /retrying the same read-only audit once/u);
   assert.match(live, /env: serverEnv/u);
   assert.match(launcher, /PLOTPICKLE_ACCESS_MODE=desktop-loopback/u);
   assert.match(launcher, /PLOTPICKLE_SERVER_NETWORK_ENABLED=false/u);

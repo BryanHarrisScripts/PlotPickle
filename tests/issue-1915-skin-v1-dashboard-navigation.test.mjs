@@ -7,12 +7,14 @@ import { stripTypeScriptTypes } from "node:module";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#1915 Dashboard naming, Log Off and first Writer's Craft submenu follow the approved hierarchy", async () => {
-  const [skin, dashboard, profile] = await Promise.all([
+test("#1967 direct Journey cutover supersedes the old first-submenu collection UI", async () => {
+  const [skin, dashboard, profile, baselineSource] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/profile-skin-panel.tsx"),
+    read("learn/journey-baseline.json"),
   ]);
+  const baseline = JSON.parse(baselineSource);
 
   assert.match(dashboard, /PLOTPICKLE DASHBOARD/u);
   assert.match(dashboard, /\*\*\* PLOTPICKLE BBS \*\*\*/u);
@@ -22,27 +24,19 @@ test("#1915 Dashboard naming, Log Off and first Writer's Craft submenu follow th
   assert.match(skin, /item\.id === "profile"[\s\S]*setUserProfileOpen\(true\)/u);
   assert.match(profile, /Back to Dashboard<\/button>/u);
 
-  const collections = [
-    "Screenwriting Foundations",
-    "Visual Writing & PlotPickle",
-    "The 24 Blocks Method",
-    "AI-Assisted Revision",
-    "Characters in Motion",
-    "Dialogue in Motion",
-    "Story Craft Essentials",
-    "Working Together",
-    "Collaboration, Formats & Ownership",
-  ];
-  let previous = -1;
-  for (const collection of collections) {
-    const index = dashboard.indexOf(`label: "${collection}"`);
-    assert.ok(index > previous, `${collection} must remain in the approved first submenu order`);
-    previous = index;
+  assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Story Craft Through the 24-Course Journey"/u);
+  assert.doesNotMatch(skin, /Learn Storytelling Essentials \(Screenplay Writing\)/u);
+  assert.match(dashboard, /if \(items\[index\]\?\.id === "learn"\)[\s\S]*setWriterCraftMenuOpen\(true\)/u);
+  assert.match(dashboard, /if \(writerCraftMenuOpen\)[\s\S]*<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
+  assert.doesNotMatch(dashboard, /data-skin-menu="writer-craft"/u);
+  assert.doesNotMatch(dashboard, /data-skin-menu-row="learn-journey"/u);
+  assert.doesNotMatch(dashboard, /const WRITER_CRAFT_MENU/u);
+
+  assert.equal(baseline.writerCraftCompatibility.collectionCount, 9);
+  for (const collection of baseline.writerCraftCompatibility.collections) {
+    assert.equal(typeof collection, "string");
+    assert.ok(!dashboard.includes(collection), `${collection} must remain compatibility evidence, not visible production navigation.`);
   }
-  assert.match(dashboard, /FIRST SUBMENU ONLY/u);
-  assert.match(dashboard, /COLLECTION PREVIEW ONLY\. LESSON LEVEL IS NOT OPENED IN THIS BUILD/u);
-  assert.match(dashboard, /data-skin-menu="writer-craft"/u);
-  assert.match(dashboard, /data-skin-menu-connected="false"/u);
 });
 
 test("#1915 Local Story Mode and Node Info are Settings destinations, while User Profile is direct", async () => {
@@ -99,7 +93,7 @@ test("#1915 Log Off ends only the Human browser session and returns a locked LOG
   assert.equal(result.view.state, "locked");
 });
 
-test("#1915 restores green wired indicators for Cloud and Local Story Mode and audits the new hierarchy", async () => {
+test("#1915 restores green wired indicators for Cloud and Local Story Mode and audits the current hierarchy", async () => {
   const [cloud, local, audit] = await Promise.all([
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
@@ -113,8 +107,10 @@ test("#1915 restores green wired indicators for Cloud and Local Story Mode and a
   }
   assert.match(audit, /inspectMenu\(page, "cloud-story-mode", failures\)/u);
   assert.match(audit, /inspectMenu\(page, "local-story-mode", failures\)/u);
-  assert.match(audit, /inspectMenu\(page, "writer-craft", failures\)/u);
+  assert.match(audit, /inspectMenu\(page, "learn-journey", failures\)/u);
+  assert.doesNotMatch(audit, /inspectMenu\(page, "writer-craft", failures\)/u);
   assert.match(audit, /section\[aria-label='User Profile'\]/u);
   assert.match(audit, /data-settings-secondary-item='general'[\s\S]*keyboard\.press\("L"\)/u);
   assert.match(audit, /keyboard\.press\("I"\)[\s\S]*section\[aria-label='Node information'\]/u);
+  assert.match(audit, /keyboard\.press\("1"\)[\s\S]*section\[aria-label='LEARN Journey menu'\]/u);
 });

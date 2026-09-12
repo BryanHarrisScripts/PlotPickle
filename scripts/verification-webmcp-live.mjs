@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { verificationSyntheticRuntime } from "./full-verification-auth.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
+import { validateLocalServer, waitForUiServer } from "../lib/verification/ui-axe-audit.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const artifactRoot = path.join(repoRoot, ".artifacts", "verification-live");
@@ -15,6 +16,10 @@ const serverUrl = "http://127.0.0.1:4173";
 const verificationPackages = Object.freeze([
   "@playwright/test@1.63.0",
   "@mcp-b/webmcp-polyfill@5.1.0",
+]);
+const nodeDependencyPaths = Object.freeze([
+  "/api/system/node-control",
+  "/api/system/node-topology",
 ]);
 
 function commandName(name) {
@@ -60,6 +65,43 @@ async function preparePinnedBrowserTools(toolRoot, npm, node) {
   await runCommand(node, installArgs);
 }
 
+async function probeLocalNodeDependencies() {
+  const results = [];
+  for (const pathname of nodeDependencyPaths) {
+    try {
+      const response = await fetch(new URL(pathname, serverUrl), {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      });
+      const contentType = response.headers.get("content-type") || "";
+      const body = contentType.includes("application/json") ? await response.json().catch(() => ({})) : {};
+      const diagnostic = {
+        path: pathname,
+        status: response.status,
+        ok: response.ok,
+        hasNode: pathname.endsWith("node-control") ? Boolean(body?.node) : undefined,
+        lifecycle: pathname.endsWith("node-control") ? String(body?.lifecycle?.state || "") : undefined,
+        hasCurrentNode: pathname.endsWith("node-topology") ? Boolean(body?.currentNode) : undefined,
+        readiness: pathname.endsWith("node-topology") ? String(body?.currentNode?.readiness || "") : undefined,
+        serverMessage: response.ok ? "" : String(body?.message || "").slice(0, 160),
+      };
+      results.push(diagnostic);
+      console.log(`[WEBMCP] NODE dependency ${pathname}: HTTP ${diagnostic.status} ${diagnostic.ok ? "OK" : "FAIL"}${diagnostic.readiness ? ` readiness=${diagnostic.readiness}` : ""}`);
+    } catch (error) {
+      const diagnostic = {
+        path: pathname,
+        status: 0,
+        ok: false,
+        serverMessage: error instanceof Error ? error.name : "request-failed",
+      };
+      results.push(diagnostic);
+      console.log(`[WEBMCP] NODE dependency ${pathname}: request failed (${diagnostic.serverMessage})`);
+    }
+  }
+  return results;
+}
+
 async function writeSummary(status, details = {}) {
   await mkdir(artifactRoot, { recursive: true });
   await writeFile(summaryPath, `${JSON.stringify({
@@ -100,6 +142,7 @@ export async function runLiveWebMcpEvidence() {
   const node = process.execPath;
   let server = null;
   let serverLogHandle = null;
+  let nodeDependencies = [];
 
   await mkdir(artifactRoot, { recursive: true });
   try {
@@ -122,17 +165,25 @@ export async function runLiveWebMcpEvidence() {
         reject(new Error(`PlotPickle live verification server exited early${signal ? ` with signal ${signal}` : ` with exit code ${code}`}.`));
       });
     });
+    await Promise.race([waitForUiServer(validateLocalServer(serverUrl)), serverExited]);
+    nodeDependencies = await probeLocalNodeDependencies();
+    const failedDependency = nodeDependencies.find((entry) => !entry.ok);
+    if (failedDependency) {
+      throw new Error(`NODE readiness dependency failed: ${failedDependency.path} ${failedDependency.status ? `HTTP ${failedDependency.status}` : failedDependency.serverMessage || "request failed"}${failedDependency.serverMessage ? ` ${failedDependency.serverMessage}` : ""}`.trim());
+    }
+
     const audit = runCommand(node, [
       "scripts/run-webmcp-startup-uat.mjs",
       "run",
       "--server", serverUrl,
       "--home", home,
       "--tool-root", toolRoot,
-    ]);
+    ], { env: serverEnv });
     await Promise.race([audit, serverExited]);
     await writeSummary("pass", {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+      nodeDependencies,
     });
     return 0;
   } catch (error) {
@@ -141,13 +192,14 @@ export async function runLiveWebMcpEvidence() {
       failure: message,
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+      nodeDependencies,
     });
     console.error(`[FAIL] Live WebMCP verification: ${message}`);
     return 1;
   } finally {
     if (server && !server.killed) server.kill("SIGTERM");
     if (serverLogHandle) await serverLogHandle.close().catch(() => {});
-    await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "cleanup", "--home", home]).catch(() => {});
+    await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "cleanup", "--home", home], { env: serverEnv }).catch(() => {});
   }
 }
 

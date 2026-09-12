@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #193 defines the completed visual storyworld product contract", async () => {
   const contract = await source("lib/product-direction.ts");
   for (const phrase of [
-    "AI-native visual writing and creative direction studio",
+    "AI-native agentic story operating system",
     "Shape the story. See the world. Direct what comes next.",
     "portable creative source of truth",
     "Interactive Storyworld Map",
@@ -101,7 +101,7 @@ test("issue #193 updates metadata and top-level product documentation", async ()
     source("docs/PRODUCT-DEVELOPER-BRIEF-07-26.md"),
   ]);
   for (const text of [layout, welcome]) {
-    assert.match(text, /AI-native visual writing and creative direction/i);
+    assert.match(text, /AI-native agentic story operating system/i);
   }
   assert.match(brief, /visual storyworld collaboration and previsualization engine/i);
   assert.match(readme, /visual writing and creative-direction studio/i);

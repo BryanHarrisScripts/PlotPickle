@@ -8,10 +8,10 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 const expectedLoop = ["concept", "explore", "compare", "direct", "refine", "approve", "reuse"];
 const expectedActions = ["Keep", "Change", "Try", "Compare", "Combine", "Approve"];
 
-test("issue #383 defines the AI-native visual writing product contract", async () => {
+test("issue #383 keeps the historical visual-writing contract alongside current PlotPickle positioning", async () => {
   const contract = await source("lib/product-direction.ts");
   for (const phrase of [
-    "AI-native visual writing and creative direction studio",
+    "AI-native agentic story operating system",
     "AI_NATIVE_VISUAL_WRITING",
     "CREATIVE_DIRECTION_LOOP",
     "CREATIVE_DIRECTION_ACTIONS",
@@ -73,7 +73,7 @@ test("issue #383 updates active positioning without erasing the completed core",
     source("README.md"),
   ]);
   const activeCopy = `${layout}\n${splash}\n${about}\n${welcome}\n${readme}`;
-  assert.match(activeCopy, /AI-native visual writing/i);
+  assert.match(activeCopy, /AI-native agentic story operating system/i);
   assert.match(activeCopy, /writer remains the author|writer control|final authority/i);
   for (const existingCapability of ["24 Blocks", "PPF", "Storyboard", "Graphic Novel"]) {
     assert.ok(activeCopy.includes(existingCapability), `Missing connected capability: ${existingCapability}`);

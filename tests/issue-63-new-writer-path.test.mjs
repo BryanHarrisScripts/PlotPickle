@@ -14,7 +14,7 @@ const main = read("app/page.tsx");
 
 test("welcome offers all six optional Simple Start entry routes", () => {
   for (const label of ["I have an idea", "Create a new screenplay", "Continue my screenplay", "Import an existing screenplay", "Explore Afterglow", "Learn how screenplays work"]) assert.match(welcome, new RegExp(label));
-  assert.match(welcome, /AI-native visual writing and creative direction studio/);
+  assert.match(welcome, /AI-native agentic story operating system/);
   assert.match(welcome, /keep every canonical decision under writer control/);
   assert.match(welcome, /Afterglow: Reflections of Sentience/);
   assert.match(welcome, /FIVE_KEY_SELLING_POINTS\.map/);
@@ -68,7 +68,7 @@ test("minimum worked example set is present with before, after and reasoning", (
 
 test("readiness avoids one quality score and separates result types", () => {
   for (const kind of ["technical-problem", "craft-review", "optional-enhancement", "intentional-choice"]) assert.match(model, new RegExp(kind));
-  for (const label of ["Ready for another writing pass", "Ready for trusted-reader feedback", "Ready for a table read", "Ready for pitch-package preparation", "Ready for screenplay export", "Ready for production planning"]) assert.match(model, new RegExp(label));
+  for (const label of ["Ready for another writing pass", "Ready for trusted-reader feedback", "Ready for a table read", "Ready for pitch-package preparation", "Ready for screenplay export", "Ready for production planning"]) assert.match(readiness, new RegExp(label));
   assert.match(readiness, /Readiness is a stated next use, not a single quality score/);
   assert.match(readiness, /Open exact item/);
   assert.match(readiness, /Save a backup/);

@@ -22,7 +22,7 @@ test("core consolidation describes the completed visual storyworld core", async 
   ]);
   const publicCopy = `${contract}\n${splash}\n${about}\n${welcome}\n${readme}`;
   for (const phrase of [
-    "AI-native visual writing and creative direction studio",
+    "AI-native agentic story operating system",
     "Interactive Storyworld Map",
     "A clearer case for the movie",
     "The complete visual storyworld core",

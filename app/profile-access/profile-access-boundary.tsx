@@ -20,6 +20,7 @@ import {
   persistActiveProfileProject,
   releaseProfilePrivateBrowserAuthority,
 } from "@/core/storage/profile-private-browser";
+import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
 import styles from "./profile-access-boundary.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
@@ -149,7 +150,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     clearAutonomousGuestBrowser();
     if (next.authenticated && next.profile) {
       await hydrateProfilePrivateBrowser(next.profile.profileId, next.csrfToken || "");
-      document.title = "PlotPickle - AI-native Visual Writing and Creative Direction";
+      document.title = `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`;
       setScreen("ready");
     } else {
       setScreen(lockedScreen(next));

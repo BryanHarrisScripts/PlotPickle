@@ -10,7 +10,7 @@ test("About PlotPickle explains the current product without reviving obsolete co
   const page = await source("app/about/page.tsx");
   const content = await source("app/about/about-content.ts");
   for (const phrase of [
-    "local-first, AI-native visual writing and creative direction studio",
+    "PLOTPICKLE_PRODUCT_CATEGORY",
     "portable PPF project",
     "The writer's decisions define the work",
     "AI is optional and bounded",

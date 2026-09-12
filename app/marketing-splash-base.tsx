@@ -5,6 +5,7 @@
 import {
   OPEN_SOURCE_FOUNDATIONS,
   PLOTPICKLE_DESKTOP_BUILDS,
+  PLOTPICKLE_PRODUCT_CATEGORY,
   PRIMARY_WORKFLOW_NAVIGATION,
 } from "@/lib/product-direction";
 import styles from "./marketing-splash.module.css";
@@ -241,7 +242,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
             <div>
               <p className={styles.kicker}>Human authority</p>
               <h2>AI can help you see possibilities. It does not get final cut.</h2>
-              <p>PlotPickle is an AI-native visual writing and creative direction studio, but nothing becomes canonical until a person approves it. Story changes remain proposals; paid services require deliberate consent.</p>
+              <p>PlotPickle is an {PLOTPICKLE_PRODUCT_CATEGORY}, but nothing becomes canonical until a person approves it. Story changes remain proposals; paid services require deliberate consent.</p>
             </div>
             <ul>{controlRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
           </div>
@@ -295,7 +296,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
       </main>
 
       <footer className={styles.footer}>
-        <div className={styles.wrap}><strong>PlotPickle</strong><span>AI-native visual writing and creative direction studio.</span><a href="/legal">Legal</a></div>
+        <div className={styles.wrap}><strong>PlotPickle</strong><span>{PLOTPICKLE_PRODUCT_CATEGORY}.</span><a href="/legal">Legal</a></div>
       </footer>
 
       {/*

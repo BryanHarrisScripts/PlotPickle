@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
 import ProfileAccessRouter from "./profile-access/profile-access-router";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
@@ -80,7 +81,7 @@ import "./skin-v1-dashboard-reference.css";
 import "./skin-v1-settings-directory.css";
 
 export const metadata: Metadata = {
-  title: "PlotPickle - AI-native Visual Writing and Creative Direction",
+  title: `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`,
   description:
     "Shape the story, see the world and direct what comes next. PlotPickle connects concepts, writing, visual exploration, human approval and reusable storyworld canon in one portable PPF project.",
   other: {
@@ -88,13 +89,9 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [
-      { url: "/brand/favicon/plotpickle-ouroboros-v2-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/favicon/plotpickle-ouroboros-v2-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/brand/favicon/plotpickle-ouroboros-v2-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    shortcut: "/brand/favicon/plotpickle-ouroboros-v2.ico",
-    apple: "/brand/favicon/plotpickle-ouroboros-v2-180.png",
+    icon: "/brand/favicon/plotpickle-green-square.svg",
+    shortcut: "/brand/favicon/plotpickle-green-square.svg",
+    apple: "/brand/favicon/plotpickle-green-square.svg",
   },
 };
 

@@ -6,6 +6,7 @@ import { createAfterglowProject } from "@/data/afterglow";
 import {
   FIVE_KEY_SELLING_POINTS,
   LEARNING_MODULE_COUNT,
+  PLOTPICKLE_PRODUCT_CATEGORY,
   PLOTPICKLE_REPOSITORY_URL,
 } from "@/lib/product-direction";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
@@ -72,7 +73,7 @@ export default function WelcomePage() {
         <div className={styles.brand}>PlotPickle</div>
         <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
         <h1>Shape the story, see the world and direct what comes next.</h1>
-        <p className={styles.lede}>PlotPickle is an AI-native visual writing and creative direction studio that connects concepts, story logic, characters, screenplay material and visual exploration in one portable PPF project. Begin manually or with optional creative compute, compare possibilities, and keep every canonical decision under writer control.</p>
+        <p className={styles.lede}>PlotPickle is an {PLOTPICKLE_PRODUCT_CATEGORY} that connects concepts, story logic, characters, screenplay material and visual exploration in one portable PPF project. Begin manually or with optional creative compute, compare possibilities, and keep every canonical decision under writer control.</p>
         <a className={styles.repositoryLink} href={PLOTPICKLE_REPOSITORY_URL} target="_blank" rel="noreferrer">
           <GitHubMark />
           <span>Official PlotPickle GitHub repository</span>

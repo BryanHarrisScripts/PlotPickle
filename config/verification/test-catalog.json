@@ -86,6 +86,32 @@
       "notes": "#1960 Windows home-folder bootstrap. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, leaves the Y/N prompt owned by the freshly pulled PlotPickle.ps1, and preserves explicit WebMCP/Human mode pass-through."
     },
     {
+      "id": "experience.community-conversation-1963",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["mcp", "navigation", "surface", "visual"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1963-great-hall-conversation-hygiene.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1963 pre-Phase 5 Great Hall cleanup. Proves BUZZ transport/test probes stay out of Human-facing conversation while Human/Agent replies continue to use one signed BUZZ room history with automatic refresh."
+    },
+    {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
       "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map"],

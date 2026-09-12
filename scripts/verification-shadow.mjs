@@ -11,14 +11,15 @@ const artifactRoot = path.join(root, ".artifacts", "verification-shadow");
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), "utf8"));
 
 async function loadConfiguration() {
-  const [architecture, phase0Inventory, vocabulary, catalog, ownership] = await Promise.all([
+  const [architecture, phase0Inventory, vocabulary, catalog, ownership, phase4Migration] = await Promise.all([
     readJson("architecture/plotpickle.architecture.json"),
     readJson("config/verification/phase-0-inventory.json"),
     readJson("config/verification/phase-1-vocabulary.json"),
     readJson("config/verification/test-catalog.json"),
     readJson("config/verification/ownership-map.json"),
+    readJson("config/verification/phase-4-migration.json"),
   ]);
-  return { architecture, phase0Inventory, vocabulary, catalog, ownership };
+  return { architecture, phase0Inventory, vocabulary, catalog, ownership, phase4Migration };
 }
 
 function parseArgs(argv) {
@@ -86,6 +87,39 @@ async function writeJson(relativeName, value) {
   return path.relative(root, outputPath).replaceAll("\\", "/");
 }
 
+export function buildMigrationComparison({ migration, layerId, run, commitSha }) {
+  const resultById = new Map((run?.results ?? []).map((result) => [result.id, result]));
+  const migrations = (migration?.migrations ?? [])
+    .filter((entry) => entry.ownerLayer === layerId)
+    .map((entry) => {
+      const shadowResult = resultById.get(entry.catalogTestId) ?? null;
+      const requiredResult = entry.shadowProof?.requiredResult ?? "pass";
+      const proofStatus = shadowResult?.result === requiredResult
+        ? "replacement-proven"
+        : shadowResult
+          ? "replacement-failed"
+          : "not-selected";
+      return {
+        id: entry.id,
+        catalogTestId: entry.catalogTestId,
+        ownerLayer: entry.ownerLayer,
+        legacyExecutions: entry.legacyExecutions,
+        requiredResult,
+        shadowResult: shadowResult?.result ?? null,
+        proofStatus,
+      };
+    });
+
+  return {
+    schemaVersion: "1.0",
+    commitSha,
+    layerId,
+    authority: migration?.authority ?? null,
+    migrations,
+    remainingDuplicateGroups: (migration?.remainingDuplicateGroups ?? []).filter((entry) => entry.ownerLayer === layerId),
+  };
+}
+
 export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "linux" }) {
   const started = Date.now();
   const configuration = await loadConfiguration();
@@ -136,6 +170,13 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
   });
 
   const evidencePath = await writeJson(`${layerId}.json`, evidence);
+  const comparison = buildMigrationComparison({
+    migration: configuration.phase4Migration,
+    layerId,
+    run,
+    commitSha: exactSha,
+  });
+  const comparisonPath = await writeJson(`${layerId}.comparison.json`, comparison);
   const summary = {
     schemaVersion: "1.0",
     commitSha: exactSha,
@@ -148,19 +189,21 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
     selectedTestIds: layer.selectedTests.map((test) => test.id),
     skippedTests: layer.skippedTests,
     blockingFindings: plan.blockingFindings,
+    migrationProofs: comparison.migrations.map(({ id, catalogTestId, proofStatus, shadowResult }) => ({ id, catalogTestId, proofStatus, shadowResult })),
     result: run.result,
     durationMs,
     evidencePath,
+    comparisonPath,
     ...(executionError ? { executionError } : {}),
   };
   const summaryPath = await writeJson(`${layerId}.summary.json`, summary);
-  return { plan, layer, run, evidence, summary, evidencePath, summaryPath };
+  return { plan, layer, run, evidence, comparison, summary, evidencePath, comparisonPath, summaryPath };
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const result = await runShadowLayer(options);
-  console.log(JSON.stringify({ summary: result.summary, summaryPath: result.summaryPath }, null, 2));
+  console.log(JSON.stringify({ summary: result.summary, summaryPath: result.summaryPath, comparisonPath: result.comparisonPath }, null, 2));
   if (result.plan.status === "blocked") process.exitCode = 3;
   else if (result.run.result === "fail") process.exitCode = 1;
 }

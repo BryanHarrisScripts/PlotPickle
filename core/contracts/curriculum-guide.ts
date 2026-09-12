@@ -1,4 +1,5 @@
 import type { CurriculumLesson } from "./curriculum";
+import type { LearningApplicationView } from "./learning-application";
 
 export interface CurriculumGuideRequest {
   readonly curriculum: readonly CurriculumLesson[];
@@ -14,6 +15,8 @@ export interface CurriculumGuideRequest {
     readonly revision: number;
     readonly completedLessonIds: readonly string[];
   };
+  readonly interactionMode?: "conversation" | "ea-reflection";
+  readonly applicationView?: LearningApplicationView;
 }
 
 export interface CurriculumGuideAnswer {

@@ -34,6 +34,32 @@
       "notes": "Phase 5 live read-only WebMCP observer. It is single-owned by Experience Skins but can be selected by Skin, Experience surface/navigation, or WebMCP verifier risk tokens. Network permission is limited to repository dependencies plus pinned Playwright/WebMCP verification tooling; no external AI provider calls or secrets are permitted."
     },
     {
+      "id": "experience.pre-phase2-1954",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["mcp", "skin", "surface", "visual", "windows"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1954-pre-phase2-cleanup.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1954 pre-Phase 2 cleanup. Protects the PowerShell testing-mode choice, Writer's Craft Dashboard directory geometry, Profile spacing rhythm and single-dominant-heading contract before #1918 Phase 2 begins."
+    },
+    {
       "id": "story-canon.learn-program-map",
       "ownerLayer": "story-canon",
       "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],

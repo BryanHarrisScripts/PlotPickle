@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "issue": 1976,
+  "phase": "phase-b-curriculum-design",
+  "sourceResearch": {
+    "ledger": "docs/research/1976-screenwriting-gap-ledger.json",
+    "repository": "jtydhr88/screenwriting-skills",
+    "commit": "92022d2123676857e73f3ae94a9b76b6cb3f65b8",
+    "role": "research-index-only"
+  },
+  "currentBaseline": {
+    "topicCount": 12,
+    "archivedLessonCount": 81,
+    "bundledSourceCount": 95,
+    "presentationLessonCount": 88,
+    "pathCount": 6,
+    "craftModuleCount": 24,
+    "mutatedByPhaseB": false
+  },
+  "authority": {
+    "curriculumOwner": "PlotPickle canonical LEARN archive",
+    "navigationOwner": "existing 6 Paths / 24 Craft Modules",
+    "humanMayLearnOutOfOrder": true,
+    "newMaterialMayGateAccess": false,
+    "externalResearchMayDefineLessonBody": false,
+    "phaseBMayWriteCurriculumBodies": false,
+    "oneCanonicalTopicPerLesson": true,
+    "oneOwnerCraftModulePerLesson": true,
+    "relatedCraftModulesAreCrossLinksOnly": true
+  },
+  "contentKinds": {
+    "essential": "Broadly useful craft that belongs in the general PlotPickle journey.",
+    "deep-dive": "Focused expansion of an existing craft area for learners who want more depth.",
+    "medium-extension": "Craft whose rules are specific to a medium and must not be presented as universal screenplay law.",
+    "case-study": "Rights-safe PlotPickle-authored analysis attached to a lesson; not imported screenplay or external case-study prose.",
+    "exercise": "Applied activity attached to a lesson; not a separate canonical lesson."
+  },
+  "authoringWaves": [
+    {
+      "id": "C1",
+      "title": "General craft bridges",
+      "lessonIds": [
+        "scene-craft-pressure-and-turn",
+        "screenplay-format-and-delivery",
+        "adaptation-source-to-screen",
+        "professional-pitching-and-representation"
+      ],
+      "boundary": "General-purpose gaps first; no television medium layer required."
+    },
+    {
+      "id": "C2",
+      "title": "Television medium extensions",
+      "lessonIds": [
+        "series-episode-season-architecture",
+        "series-engine-and-bible",
+        "writers-room-story-breaking",
+        "half-hour-comedy-craft"
+      ],
+      "boundary": "Medium-specific teaching must be labeled as television/comedy craft rather than universal screenplay rules."
+    },
+    {
+      "id": "C3",
+      "title": "Optional specialist enrichment",
+      "lessonIds": [],
+      "boundary": "Deferred. International traditions, comparative corpora and stage/opera material require a later explicit decision before any lesson ID is reserved or body is authored."
+    }
+  ],
+  "lessonCandidates": [
+    {
+      "lessonId": "scene-craft-pressure-and-turn",
+      "title": "Scene Craft: Objective, Pressure and Turn",
+      "kind": "essential",
+      "canonicalTopic": "drafting",
+      "ownerCraftModule": "course-15",
+      "relatedCraftModules": ["course-11", "course-12", "course-17", "course-18"],
+      "sourceSkillIds": ["sw-scene-craft"],
+      "phaseCWave": "C1",
+      "rationale": "PlotPickle already teaches scene execution across drafting, dialogue, visual storytelling and revision; this lesson unifies those concepts into one deterministic scene-level diagnostic without replacing the existing lessons.",
+      "learningBoundary": "Teach scene objective, pressure, turn, entry/exit choice, visual carrier and transition as connected craft decisions; do not impose a mandatory scene formula.",
+      "applicationTargets": ["scene draft", "scene revision", "mini-block"],
+      "companionItems": [
+        {
+          "id": "exercise-scene-pressure-turn-map",
+          "type": "exercise",
+          "title": "Map objective, pressure and turn",
+          "purpose": "Apply the diagnostic to one scene from the learner's own story."
+        }
+      ],
+      "provenanceRequirement": "Independently authored from PlotPickle's existing scene-related curriculum plus verified craft research; no external skill or screenplay prose copied."
+    },
+    {
+      "lessonId": "screenplay-format-and-delivery",
+      "title": "Screenplay Format and Delivery",
+      "kind": "essential",
+      "canonicalTopic": "drafting",
+      "ownerCraftModule": "course-15",
+      "relatedCraftModules": ["course-16", "course-22", "course-24"],
+      "sourceSkillIds": ["sw-format-adaptation", "sw-workflow"],
+      "phaseCWave": "C1",
+      "rationale": "PlotPickle teaches screenplay language and drafting but lacks one concise lesson that connects readable spec-page conventions, document handoff and delivery readiness.",
+      "learningBoundary": "Teach durable formatting principles and delivery questions; do not freeze software-specific commands, mutable contest rules or one jurisdiction's submission requirements into canon.",
+      "applicationTargets": ["screenplay pages", "screenplay export", "delivery package"],
+      "companionItems": [
+        {
+          "id": "exercise-screenplay-delivery-audit",
+          "type": "exercise",
+          "title": "Screenplay delivery audit",
+          "purpose": "Inspect a current draft for readability, consistency and delivery readiness."
+        }
+      ],
+      "provenanceRequirement": "Use primary/authorized format guidance where practical and verify mutable delivery requirements at authoring/use time."
+    },
+    {
+      "lessonId": "adaptation-source-to-screen",
+      "title": "Adaptation: Source to Screen",
+      "kind": "deep-dive",
+      "canonicalTopic": "drafting",
+      "ownerCraftModule": "course-16",
+      "relatedCraftModules": ["course-01", "course-04", "course-22", "course-24"],
+      "sourceSkillIds": ["sw-format-adaptation"],
+      "phaseCWave": "C1",
+      "rationale": "Existing curriculum covers treatment, screenplay progression, provenance and ownership, but not the creative craft of transforming source material into screen action.",
+      "learningBoundary": "Separate creative adaptation choices from legal rights advice. Teach selection, compression, expansion, point of view and cinematic transformation without implying that access to source material grants adaptation rights.",
+      "applicationTargets": ["source-work analysis", "adaptation treatment", "screenplay plan"],
+      "companionItems": [
+        {
+          "id": "case-adaptation-choice-matrix",
+          "type": "case-study",
+          "title": "Keep, compress, transform or omit",
+          "purpose": "Use a rights-safe invented source scenario to compare adaptation choices."
+        },
+        {
+          "id": "exercise-adaptation-transform-one-beat",
+          "type": "exercise",
+          "title": "Transform one source beat for screen",
+          "purpose": "Convert one prose/internal beat into visible and audible dramatic action."
+        }
+      ],
+      "provenanceRequirement": "Use independently authored examples or public-domain/authorized material; retain rights/provenance boundaries explicitly."
+    },
+    {
+      "lessonId": "series-episode-season-architecture",
+      "title": "Series Craft: Episode and Season Architecture",
+      "kind": "medium-extension",
+      "canonicalTopic": "structure",
+      "ownerCraftModule": "course-08",
+      "relatedCraftModules": ["course-07", "course-09"],
+      "sourceSkillIds": ["sw-series-structure", "sw-chinese-series-practice"],
+      "phaseCWave": "C2",
+      "rationale": "PlotPickle teaches structural diversity and episodic form generally but lacks a coherent television layer for episode, pilot and season movement.",
+      "learningBoundary": "Teach teaser/cold-open choices, act-out logic, A/B/C story weaving, pilot architecture, season movement and streaming/broadcast differences as medium-specific options, not universal timing formulas.",
+      "applicationTargets": ["episode map", "pilot map", "season map"],
+      "companionItems": [
+        {
+          "id": "case-series-form-comparison",
+          "type": "case-study",
+          "title": "Broadcast, streaming and serialized form comparison",
+          "purpose": "Compare invented/right-safe episode structures without reproducing proprietary scripts."
+        },
+        {
+          "id": "exercise-episode-story-weave",
+          "type": "exercise",
+          "title": "Weave A/B/C story movement",
+          "purpose": "Map three story lines across an episode and test convergence, contrast and pacing."
+        }
+      ],
+      "provenanceRequirement": "Verify medium conventions from suitable primary/authorized sources and use rights-safe examples."
+    },
+    {
+      "lessonId": "series-engine-and-bible",
+      "title": "Series Engine and Bible Design",
+      "kind": "medium-extension",
+      "canonicalTopic": "structure",
+      "ownerCraftModule": "course-09",
+      "relatedCraftModules": ["course-01", "course-04", "course-10"],
+      "sourceSkillIds": ["sw-series-engine-bible", "succession-series-writing"],
+      "phaseCWave": "C2",
+      "rationale": "PlotPickle has story-bible, world and character-system concepts but no television-specific discipline for repeatable episode generation and series documents.",
+      "learningBoundary": "Teach the series engine as a repeatable source of dramatic pressure, distinguish creative bible content from pitch/selling documents, and avoid treating one broadcaster/streamer document format as universal.",
+      "applicationTargets": ["series engine", "series bible", "episode springboards"],
+      "companionItems": [
+        {
+          "id": "exercise-series-engine-five-episode-test",
+          "type": "exercise",
+          "title": "Five-episode engine test",
+          "purpose": "Generate five distinct episode premises to test whether the engine produces repeatable conflict without repetition."
+        }
+      ],
+      "provenanceRequirement": "External series/corpus material may inform research but must not be reproduced; examples should be PlotPickle-authored or rights-safe."
+    },
+    {
+      "lessonId": "writers-room-story-breaking",
+      "title": "Writers' Room: Story Breaking and Notes",
+      "kind": "medium-extension",
+      "canonicalTopic": "collaboration",
+      "ownerCraftModule": "course-21",
+      "relatedCraftModules": ["course-20", "course-22", "course-24"],
+      "sourceSkillIds": ["sw-writers-room", "sw-workflow"],
+      "phaseCWave": "C2",
+      "rationale": "PlotPickle's collaboration curriculum is strong for ownership, handoff and review but does not teach the distinct creative workflow of a television writers' room.",
+      "learningBoundary": "Teach story breaking, notes flow, role/authority boundaries, episode document handoffs and production constraints while preserving PlotPickle's Human approval and contribution boundaries.",
+      "applicationTargets": ["story-break board", "episode outline", "notes handoff"],
+      "companionItems": [
+        {
+          "id": "exercise-room-break-board",
+          "type": "exercise",
+          "title": "Break an episode as a room",
+          "purpose": "Simulate a bounded story-break workflow with explicit roles, proposals and Human approval."
+        }
+      ],
+      "provenanceRequirement": "Verify current role/industry claims from suitable first-party or authorized sources where practical; do not encode mutable employment terms as timeless rules."
+    },
+    {
+      "lessonId": "half-hour-comedy-craft",
+      "title": "Half-Hour Comedy Craft",
+      "kind": "medium-extension",
+      "canonicalTopic": "structure",
+      "ownerCraftModule": "course-08",
+      "relatedCraftModules": ["course-11", "course-13", "course-14", "course-15"],
+      "sourceSkillIds": ["sw-sitcom-comedy"],
+      "phaseCWave": "C2",
+      "rationale": "General PlotPickle structure and dialogue tools apply to comedy, but sitcom/half-hour craft has distinct structural and comic mechanisms that deserve an explicitly medium-specific extension.",
+      "learningBoundary": "Teach premise-driven comic pressure, setup/payoff, escalation, running devices and single-/multi-camera considerations without reducing comedy to a mandatory joke count or format grid.",
+      "applicationTargets": ["half-hour episode map", "comic scene", "dialogue revision"],
+      "companionItems": [
+        {
+          "id": "case-comedy-rewrite-ladder",
+          "type": "case-study",
+          "title": "Escalating a comic beat",
+          "purpose": "Use an invented scene to compare successive comic revisions without copying published material."
+        },
+        {
+          "id": "exercise-comedy-setup-payoff-pass",
+          "type": "exercise",
+          "title": "Setup and payoff pass",
+          "purpose": "Track setup, expectation, turn and payoff through one learner-owned comic scene."
+        }
+      ],
+      "provenanceRequirement": "Use PlotPickle-authored examples and treat mutable production-format conventions as externally verifiable context."
+    },
+    {
+      "lessonId": "professional-pitching-and-representation",
+      "title": "Professional Practice: Pitching and Representation",
+      "kind": "essential",
+      "canonicalTopic": "industry",
+      "ownerCraftModule": "course-24",
+      "relatedCraftModules": ["course-22", "course-23"],
+      "sourceSkillIds": ["sw-industry-business"],
+      "phaseCWave": "C1",
+      "rationale": "The current Industry curriculum establishes organizations, rights and verification habits but remains thin on pitching, querying, representation and career-facing decision making.",
+      "learningBoundary": "Teach purpose, preparation, communication and verification habits for pitches, queries, representation, options/credits concepts and career resilience; do not provide legal advice or freeze current rates/rules into curriculum.",
+      "applicationTargets": ["pitch", "query", "professional readiness sheet"],
+      "companionItems": [
+        {
+          "id": "exercise-pitch-query-readiness",
+          "type": "exercise",
+          "title": "Pitch and query readiness check",
+          "purpose": "Prepare a truthful project-specific communication package and identify claims that require current external verification."
+        }
+      ],
+      "provenanceRequirement": "Current guild, representation, credit, option and contract claims must be verified against official/current sources at authoring and use time."
+    }
+  ],
+  "deferredEnrichment": [
+    {
+      "family": "International screenwriting traditions",
+      "sourceSkillIds": ["sw-japanese-screenwriting", "sw-korean-french-screenwriting", "sw-chinese-series-practice"],
+      "decision": "defer-to-C3",
+      "reason": "Valuable comparative craft, but it should follow the core and television gaps and needs careful source/provenance design to avoid flattening distinct traditions."
+    },
+    {
+      "family": "Rights-safe analytical case studies",
+      "sourceSkillIds": ["sw-american-case-studies", "sw-series-case-studies", "chekhov-dramaturgy", "ozu-screenplay-style", "succession-series-writing"],
+      "decision": "defer-to-C3",
+      "reason": "Use only independently authored analysis with public-domain, licensed, authorized or invented examples; no external case-study/script corpus import."
+    },
+    {
+      "family": "Specialist stage and opera craft",
+      "sourceSkillIds": ["sw-chinese-opera-banqiang"],
+      "decision": "defer-to-C3",
+      "reason": "Specialist medium craft should remain optional and should not displace PlotPickle's screenwriting core."
+    }
+  ],
+  "planningProjection": {
+    "approvedNewCanonicalLessons": 8,
+    "projectedArchivedLessonCountAfterAllApprovedLessons": 89,
+    "projectedPresentationLessonCountAfterAllApprovedLessons": 96,
+    "projectedBundledSourceCount": "TBD during authoring/integrity update",
+    "projectionIsCurrentCanon": false
+  }
+}

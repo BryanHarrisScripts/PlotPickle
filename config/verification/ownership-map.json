@@ -50,6 +50,13 @@
       "riskTokens": ["test-harness", "cli"]
     },
     {
+      "id": "architecture-blueprint",
+      "classification": "docs",
+      "include": ["architecture/**"],
+      "ownerLayer": "verification",
+      "riskTokens": ["docs", "test-harness"]
+    },
+    {
       "id": "verification-tests",
       "classification": "test",
       "include": ["tests/**"],

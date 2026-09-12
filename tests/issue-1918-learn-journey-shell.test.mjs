@@ -34,7 +34,7 @@ const shellFields = (course) => ({
   applicationTargets: course.applicationTargets,
 });
 
-test("#1918 Phase 3 shell compatibility survives Phase 5 all-Path wiring", async () => {
+test("#1918 Phase 3 shell compatibility survives Phase 6 Explore", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
 
   assert.equal(LEARN_PROGRAM_MAP.yearCount, 3);
@@ -81,7 +81,7 @@ test("#1967 retired Writer's Craft collection navigation remains retired", async
   assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft"/u);
 });
 
-test("#1975 Path and Craft Module presentation language survives Phase 5", async () => {
+test("#1975 Path and Craft Module presentation language survives Phase 6", async () => {
   const preview = await read("app/skin-v1/learn-journey-preview.tsx");
 
   assert.match(preview, /OPEN JOURNEY \/ 6 PATHS \/ 24 CRAFT MODULES/u);
@@ -104,6 +104,31 @@ test("#1975 Path and Craft Module presentation language survives Phase 5", async
   assert.match(preview, /humanMayLearnOutOfOrder: true/u);
 });
 
+test("#1918 Phase 6 exposes first-class unrestricted Explore beside the guided Journey", async () => {
+  const [journey, explore] = await Promise.all([
+    read("app/skin-v1/learn-journey-preview.tsx"),
+    read("app/skin-v1/learn-explore.tsx"),
+  ]);
+
+  assert.match(journey, /import LearnExplore from "\.\/learn-explore"/u);
+  assert.match(journey, /data-learn-explore-open="true"/u);
+  assert.match(journey, /\[E\] EXPLORE \/ ALL CURRICULUM/u);
+  assert.match(journey, /event\.key\.toLowerCase\(\) === "e"/u);
+  assert.match(journey, /completedLessonIds=\{completedLessonIds\}/u);
+  assert.match(journey, /onToggleLessonCompletion=\{toggleLessonCompletion\}/u);
+
+  assert.match(explore, /fetch\("\/api\/learn\/explore"/u);
+  assert.match(explore, /data-learn-explore-phase="6"/u);
+  assert.match(explore, /data-learn-explore-access="unrestricted"/u);
+  assert.match(explore, /ALL CURRICULUM \/ 12 TOPICS \/ 88 PRESENTATION LESSONS \/ 95 BUNDLED SOURCES/u);
+  assert.match(explore, /aria-label="Search all curriculum"/u);
+  assert.match(explore, /aria-label="Filter Explore by topic"/u);
+  assert.match(explore, /aria-label="Filter Explore by Craft Module"/u);
+  assert.match(explore, /ORDER DOES NOT CONTROL ACCESS/u);
+  assert.doesNotMatch(explore, /aria-disabled/iu);
+  assert.doesNotMatch(explore, /prerequisite.*(?:disabled|locked)|(?:disabled|locked).*prerequisite/iu);
+});
+
 test("#1918 Journey remains keyboard reachable and guided-not-gated with all Paths wired", async () => {
   const preview = await read("app/skin-v1/learn-journey-preview.tsx");
 
@@ -117,6 +142,7 @@ test("#1918 Journey remains keyboard reachable and guided-not-gated with all Pat
   assert.match(preview, /event\.key === "ArrowDown"/u);
   assert.match(preview, /event\.key === "ArrowUp"/u);
   assert.match(preview, /event\.key === "Escape"/u);
+  assert.match(preview, /event\.key\.toLowerCase\(\) === "e"/u);
   assert.match(preview, /\^\[1-6\]\$/u);
   assert.match(preview, /\^\[1-4\]\$/u);
   assert.match(preview, /CHOOSE ANY PATH/u);
@@ -125,12 +151,15 @@ test("#1918 Journey remains keyboard reachable and guided-not-gated with all Pat
   assert.doesNotMatch(preview, /LESSON CONTENT IS UNAVAILABLE UNTIL PHASE 5/u);
 });
 
-test("#1918 Journey shell continues to consume Skin V1 tokens and full-width directory geometry", async () => {
+test("#1918 LEARN Journey and Explore continue to consume Skin V1 tokens and full-width directory geometry", async () => {
   const css = await read("app/skin-v1/learn-journey-preview.module.css");
   assert.match(css, /width: min\(var\(--pp-skin-shell-max\), calc\(100vw - 40px\)\) !important;/u);
   assert.match(css, /width: min\(var\(--pp-skin-menu-max\), calc\(100% - 72px\)\) !important;/u);
   assert.match(css, /background: var\(--pp-skin-accent-deep\) !important;/u);
   assert.match(css, /border: var\(--pp-skin-border-thin\) solid var\(--pp-skin-accent-bright\) !important;/u);
+  assert.match(css, /\.exploreControls/u);
+  assert.match(css, /\.exploreResults/u);
+  assert.match(css, /var\(--pp-skin-control-height\)/u);
 });
 
 test("#1918 Journey preserves the Phase 0, Phase 1 and Phase 2 deterministic LEARN validators", async () => {
@@ -144,7 +173,7 @@ test("#1918 Journey preserves the Phase 0, Phase 1 and Phase 2 deterministic LEA
   }
 });
 
-test("#1918 Journey remains governed by the seven-layer verification mesh", async () => {
+test("#1918 Journey and Explore remain governed by the seven-layer verification mesh", async () => {
   const [catalogSource, ownershipSource] = await Promise.all([
     read("config/verification/test-catalog.json"),
     read("config/verification/ownership-map.json"),
@@ -163,9 +192,10 @@ test("#1918 Journey remains governed by the seven-layer verification mesh", asyn
   assert.ok(apiOwner.include.includes("app/api/learn/journey-preview/route.ts"));
   assert.ok(apiOwner.include.includes("app/api/learn/journey-semester-one/route.ts"));
   assert.ok(apiOwner.include.includes("app/api/learn/journey-courses/route.ts"));
+  assert.ok(apiOwner.include.includes("app/api/learn/explore/route.ts"));
 });
 
-test("#1918 Phase 3 convergence remains historical after Phase 5", async (t) => {
+test("#1918 Phase 3 convergence remains historical after Phase 6", async (t) => {
   const manifest = JSON.parse(await read("config/development-convergence/1918.json"));
   if (manifest.phase !== "phase-3-journey-shell") {
     t.skip("Phase 3 convergence is historical; the active #1918 phase owns convergence now.");

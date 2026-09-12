@@ -56,11 +56,12 @@ jobs:
         run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/community-skin-v1-navigation.test.mjs tests/community-agent-roster.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs tests/issue-1881-visual-compute-harness.test.mjs tests/issue-1883-dashboard-visual-director.test.mjs tests/issue-1885-webmcp-visual-director-startup.test.mjs tests/issue-1847-1849-cloud-agents-settings.test.mjs tests/issue-1897-skin-v1-typography-consistency.test.mjs tests/issue-1901-story-mode-connections.test.mjs tests/local-ai-video-default.test.mjs
 
       - name: Validate Skin V1 Dashboard navigation repair
-        run: node --test tests/issue-1915-skin-v1-dashboard-navigation.test.mjs
+        run: node --test tests/issue-1915-skin-v1-dashboard-navigation.test.mjs tests/issue-1920-profile-webmcp-readiness.test.mjs
 
       - name: Validate LEARN #1918 Phase 0 baseline
         run: |
           node scripts/validate-learn-curriculum.mjs
+          node scripts/validate-learn-journey-baseline.mjs
           node --test tests/issue-1918-learn-journey-baseline.test.mjs
 
       - name: Validate Pi 0.85.1 / GPT-6 Astra evaluation contract

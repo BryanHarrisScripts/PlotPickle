@@ -85,6 +85,92 @@
   text-transform: uppercase !important;
 }
 
+.lesson {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: 0 auto;
+  padding: var(--pp-skin-space-5) 0 var(--pp-skin-space-6);
+  line-height: 1.6;
+}
+
+.lesson > header {
+  margin-bottom: var(--pp-skin-space-5);
+  padding-bottom: var(--pp-skin-space-4);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.lesson h2,
+.lesson h3 {
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+.lesson h2 {
+  margin: var(--pp-skin-space-2) 0;
+  font-size: clamp(24px, 3vw, 36px);
+}
+
+.lesson h3 {
+  margin: var(--pp-skin-space-5) 0 var(--pp-skin-space-2);
+  font-size: 18px;
+}
+
+.lesson p,
+.lesson li,
+.lesson dd,
+.lesson dt {
+  color: var(--pp-skin-ink-muted);
+}
+
+.lesson dl > div {
+  margin-bottom: var(--pp-skin-space-2);
+}
+
+.lesson dt {
+  font-weight: 700;
+  color: var(--pp-skin-ink);
+}
+
+.source {
+  margin: var(--pp-skin-space-3) 0;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-canvas);
+}
+
+.source summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.source pre {
+  max-height: 440px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-sm);
+  line-height: 1.5;
+}
+
+.completeButton {
+  width: 100%;
+  margin-top: var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+}
+
+.completeButton:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 2px;
+}
+
 @media (max-width: 720px) {
   .directory {
     padding: var(--pp-skin-space-2) !important;
@@ -95,7 +181,8 @@
     max-width: 650px !important;
   }
 
-  .menu {
+  .menu,
+  .lesson {
     width: calc(100% - 24px) !important;
   }
 

@@ -31,7 +31,10 @@
     {
       "id": "learn-journey-preview-api",
       "classification": "production",
-      "include": ["app/api/learn/journey-preview/route.ts"],
+      "include": [
+        "app/api/learn/journey-preview/route.ts",
+        "app/api/learn/journey-semester-one/route.ts"
+      ],
       "ownerLayer": "experience-contract",
       "riskTokens": ["surface", "navigation", "canon"]
     },

@@ -1,104 +1,101 @@
 {
   "schemaVersion": 1,
   "issue": 1918,
-  "phase": "phase-3-journey-shell",
-  "brief": "docs/developer-briefs/1918-learn-24-course-open-journey.md",
+  "phase": "phase-4-semester-one",
+  "brief": "docs/developer-briefs/1918-phase-4-semester-one.md",
   "allowedChanges": [
     "app/api/learn/journey-preview/route.ts",
-    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/api/learn/journey-semester-one/route.ts",
     "app/skin-v1/learn-journey-preview.module.css",
     "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1918.json",
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
-    "docs/developer-briefs/1918-phase-3-journey-shell.md",
-    "learn/program-map.mjs",
-    "learn/program-map-spec.mjs",
-    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "docs/developer-briefs/1918-phase-4-semester-one.md",
     "tests/issue-1918-learn-journey-shell.test.mjs",
-    "tests/issue-1954-pre-phase2-cleanup.test.mjs"
+    "tests/issue-1918-learn-semester-one.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P3-A1",
-      "criterion": "Writer's Craft preserves its nine #1915 compatibility collection rows while adding one clearly named, keyboard-reachable J destination for the LEARN Journey.",
+      "id": "P4-A1",
+      "criterion": "Phase 4 wires exactly Semester 1 Courses 01-04 while Semesters 2-6 remain truthful preview-only shells until Phase 5.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-row=\"learn-journey\"" },
-        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-shortcut=\"J\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "collectionCount, 9" }
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "const contentAvailable = semester.semester === 1" },
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "status: contentAvailable ? \"wired\" : \"preview-only\"" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "[\"course-01\", \"course-02\", \"course-03\", \"course-04\"]" }
       ]
     },
     {
-      "id": "P3-A2",
-      "criterion": "The visible Journey shell is projected from the same canonical course specifications as the resolved program map and exposes only semester/course-shell metadata, not lesson bodies or source text.",
+      "id": "P4-A2",
+      "criterion": "Semester 1 course lessons resolve directly from canonical LEARN archive topic files using the deterministic course references; Phase 4 creates no copied curriculum store.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "LEARN_PROGRAM_SHELL_SPEC" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "lessonContentExposed: false" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "contentAvailable: false" },
-        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "LEARN_PROGRAM_COURSE_SPECS" }
+        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "LEARN_PROGRAM_COURSE_SPECS" },
+        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "return course.lessonRefs.flatMap" },
+        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "curriculumOwner: \"existing LEARN archive\"" },
+        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "curriculumBodiesDuplicated: false" }
       ]
     },
     {
-      "id": "P3-A3",
-      "criterion": "Phase 3 renders the 3-year / 6-semester / 24-course structure as six semester destinations and exactly four course shells per selected semester.",
+      "id": "P4-A3",
+      "criterion": "Journey progress reuses the existing PPF lesson history and lesson commands rather than introducing a separate Journey/course completion database.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "3 YEARS / 6 SEMESTERS / 24 COURSES" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "FOUR COURSE SHELLS" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "[4, 4, 4, 4, 4, 4]" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "project?.learning.completedLessonIds" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "saveFoundationProject(next)" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "type: isCompleted ? \"lesson.uncomplete\" : \"lesson.complete\"" },
+        { "type": "file-contains", "path": "app/api/learn/journey-semester-one/route.ts", "contains": "progressOwner: \"PPFProject.learning.completedLessonIds\"" }
       ]
     },
     {
-      "id": "P3-A4",
-      "criterion": "Journey and semester/course-shell navigation support shortcut keys, arrows, Enter/Space and Escape/Back while course activation remains a truthful preview rather than false lesson navigation.",
+      "id": "P4-A4",
+      "criterion": "Semester 1 remains guided-not-gated: all four courses and their mapped lessons are selectable in any order and progress follows actual lesson completion rather than recommended sequence.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key === \"ArrowDown\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key === \"Escape\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "LESSON CONTENT IS INTENTIONALLY UNAVAILABLE UNTIL PHASE 4" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "OPEN ANY COURSE IN ANY ORDER" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "COMPLETION ORDER IS YOUR CHOICE" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "completedOutOfOrder" }
       ]
     },
     {
-      "id": "P3-A5",
-      "criterion": "The preview remains guided-not-gated: every semester is open from day one, course prerequisites remain advisory, and no Phase 3 course shell is disabled or locked.",
+      "id": "P4-A5",
+      "criterion": "The Phase 3 six-semester Skin V1 shell, Writer's Craft compatibility rows and later-semester preview behavior remain intact while Semester 1 becomes wired.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "ALL SEMESTERS REMAIN OPEN" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "recommendedSequenceIsAccessControl" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "assert.doesNotMatch(preview, /aria-disabled/u)" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "shell compatibility survives selective Phase 4 Semester 1 wiring" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "LESSON CONTENT REMAINS UNWIRED UNTIL PHASE 5" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "ALL SEMESTERS REMAIN OPEN" }
       ]
     },
     {
-      "id": "P3-A6",
-      "criterion": "The new Journey surface uses Skin V1 design tokens and the same full-width directory geometry that repaired Writer's Craft before Phase 2.",
+      "id": "P4-A6",
+      "criterion": "Canonical curriculum integrity remains unchanged: the existing Phase 0 baseline, Phase 1 map and Phase 2 fail-closed integrity validators remain green.",
       "evidence": [
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "var(--pp-skin-menu-max)" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "var(--pp-skin-accent-deep)" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "width: 100% !important" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-program-map.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" }
       ]
     },
     {
-      "id": "P3-A7",
-      "criterion": "Phase 0 baseline, Phase 1 program-map and Phase 2 curriculum-integrity validators remain green; the runtime-safe course-spec extraction preserves the exact 24 course definitions and all canonical lesson bindings.",
+      "id": "P4-A7",
+      "criterion": "Phase 4 exposes canonical teaching/source content without silently mutating story canon; completion changes only the existing learning completion state.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-program-map.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "LEARN_PROGRAM_MAP.courses.map(shellFields)" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-learn-canonical-lesson" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "source.content" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "lesson.complete" }
       ]
     },
     {
-      "id": "P3-A8",
-      "criterion": "The seven-layer verification mesh owns the Journey shell/API regression and canonical development convergence reports CONVERGED against the actual Phase 3 diff before merge.",
+      "id": "P4-A8",
+      "criterion": "The seven-layer verification mesh owns the Semester 1 vertical-slice regression and exact-diff development convergence must report CONVERGED before merge.",
       "evidence": [
-        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"experience.learn-journey-shell\"" },
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-journey-preview-api\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "runDevelopmentConvergence" }
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"experience.learn-semester-one\"" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "app/api/learn/journey-semester-one/route.ts" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "runDevelopmentConvergence" }
       ]
     },
     {
-      "id": "P3-A9",
-      "criterion": "The #1954 pre-Phase-2 regression is deliberately migrated from its obsolete first-submenu-only wording to the durable rule that Writer's Craft lesson content remains unopened until content wiring begins.",
+      "id": "P4-A9",
+      "criterion": "Phase 5 remains explicitly deferred: Semesters 2-6 cannot expose lesson content in this Phase 4 diff.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "LESSON LEVEL IS NOT OPENED IN THIS BUILD" },
-        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1918 Phase 3 intentionally adds a second preview level" }
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "laterSemesterLessonContentExposed: false" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-4-semester-one.md", "contains": "Phase 5 is blocked until this four-course vertical slice is independently green and merged." }
       ]
     }
   ]

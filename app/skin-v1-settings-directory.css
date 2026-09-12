@@ -1,10 +1,10 @@
 /*
  * Skin V1 directory geometry + shared navigation chrome.
  *
- * Dashboard remains the canonical visual reference. Settings and Profile
- * consume the same directory-row geometry while all colour, typography,
- * spacing and state values continue to come from the shared --pp-skin-* contract.
- * This file does not define a second Skin authority.
+ * Dashboard remains the canonical visual reference. Settings, Profile and
+ * Writer's Craft consume the same directory-row geometry while all colour,
+ * typography, spacing and state values continue to come from the shared
+ * --pp-skin-* contract. This file does not define a second Skin authority.
  */
 
 /* Headers and footers are deliberately one solid Skin colour. The old
@@ -23,6 +23,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"],
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"],
 .pp-skin-v1-dashboard[aria-label="Profile menu"] {
   width: 100% !important;
   min-width: 0 !important;
@@ -36,6 +37,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] > .pp-skin-v1-bbs,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] > .pp-skin-v1-bbs {
   width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
   max-width: var(--pp-skin-shell-max) !important;
@@ -51,6 +53,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
   display: block !important;
   width: min(var(--pp-skin-menu-max), calc(100% - 72px)) !important;
@@ -60,6 +63,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
   position: relative !important;
   display: block !important;
@@ -83,6 +87,8 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after {
   content: none !important;
@@ -90,17 +96,8 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
-  border-color: var(--pp-skin-accent-bright) !important;
-  background: var(--pp-skin-accent-deep) !important;
-  color: var(--pp-skin-ink) !important;
-  box-shadow: none !important;
-}
-
-/* Writer's Craft is a Dashboard-owned BBS directory. Keep its selected row
-   on the same dark/accent navigation contract without changing global
-   selected-control tokens used by non-directory controls. */
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;
   background: var(--pp-skin-accent-deep) !important;
   color: var(--pp-skin-ink) !important;
@@ -108,18 +105,21 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
   outline-offset: -1px !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover {
   background: var(--pp-skin-fill-row-hover) !important;
   outline: none !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-bbs-help,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-bbs-help,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-bbs-help {
   display: flex !important;
   justify-content: space-between !important;
@@ -134,25 +134,62 @@ html[data-plotpickle-skin="skin-v1"] :is(
   text-transform: uppercase !important;
 }
 
+/* Profile keeps one dominant page title. Internal Profile headings are
+   supporting labels so they do not compete with USER PROFILE. */
+.pp-skin-v1-profile-banner h1 {
+  margin: 0 !important;
+  color: inherit !important;
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-title) !important;
+  font-weight: 700 !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(header h2, header h3) {
+  font-size: var(--pp-skin-font-meta) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
+}
+
+/* The Profile module predates Skin V1 and uses 9/11px action padding. Snap the
+   rendered Skin V1 controls to the canonical 4px spacing rhythm without
+   changing the underlying Profile module for other appearances. */
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(
+  form button,
+  form input,
+  form textarea,
+  section[aria-labelledby="profile-buzz-heading"] button,
+  section[aria-labelledby="profile-buzz-heading"] a,
+  section[aria-labelledby="profile-buzz-heading"] summary,
+  section[aria-labelledby="profile-access-heading"] > button,
+  section[aria-labelledby="profile-actions-heading"] > button
+) {
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
+}
+
 @media (max-width: 720px) {
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"],
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"],
   .pp-skin-v1-dashboard[aria-label="Profile menu"] {
     padding: var(--pp-skin-space-2) !important;
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] > .pp-skin-v1-bbs,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] > .pp-skin-v1-bbs {
     width: min(650px, 100%) !important;
     max-width: 650px !important;
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
     width: calc(100% - 24px) !important;
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-dashboard-group,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
     font-size: 12px !important;
   }

@@ -10,9 +10,16 @@
     {
       "id": "experience-skin-v1",
       "classification": "production",
-      "include": ["app/skin-v1/**", "app/skin-v1-definition.css"],
+      "include": ["app/skin-v1/**", "app/skin-v1-*.css", "app/skin-v1-definition.css"],
       "ownerLayer": "experience-skins",
       "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
+    },
+    {
+      "id": "windows-local-launcher",
+      "classification": "production",
+      "include": ["PlotPickle.ps1", "Start-PlotPickle.bat"],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["windows", "native", "mcp", "surface"]
     },
     {
       "id": "experience-surface-registry",

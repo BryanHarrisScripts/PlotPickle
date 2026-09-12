@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import test from "node:test";
 import { LEARN_PROGRAM_ARCHIVE_LESSONS, LEARN_PROGRAM_MAP } from "../learn/program-map.mjs";
-import { runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
+import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -51,8 +51,14 @@ test("#1918 Phase 1 deterministic validator passes against the repository", asyn
   assert.match(stdout, /24 courses, 6 semesters, 4 courses per semester, all 81 archive lessons mapped exactly once/u);
 });
 
-test("#1918 Phase 1 canonical development convergence reports CONVERGED against the real diff", async () => {
+test("#1918 Phase 1 canonical development convergence reports CONVERGED against the real diff", async (t) => {
   const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
+  const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
+  if (!changedFiles.includes("config/development-convergence/1918.json")) {
+    t.skip("#1918 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
+    return;
+  }
+
   const result = await runDevelopmentConvergence([
     "--manifest",
     "config/development-convergence/1918.json",

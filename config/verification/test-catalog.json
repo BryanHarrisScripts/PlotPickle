@@ -60,6 +60,32 @@
       "notes": "#1954 pre-Phase 2 cleanup. Protects the PowerShell testing-mode choice, Writer's Craft Dashboard directory geometry, Profile spacing rhythm and single-dominant-heading contract before #1918 Phase 2 begins."
     },
     {
+      "id": "experience.learn-journey-shell",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map"],
+      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual", "canon"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1918-learn-journey-shell.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1918 Phase 3 visible Skin V1 Journey shell. Proves Writer's Craft retains its nine compatibility rows while adding a J shortcut into a six-semester, four-course-shell-per-semester preview that remains guided-not-gated and withholds lesson navigation until Phase 4."
+    },
+    {
       "id": "story-canon.learn-program-map",
       "ownerLayer": "story-canon",
       "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],

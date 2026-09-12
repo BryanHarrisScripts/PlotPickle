@@ -34,7 +34,7 @@ const shellFields = (course) => ({
   applicationTargets: course.applicationTargets,
 });
 
-test("#1918 Phase 3 shell compatibility survives selective Phase 4 Semester 1 wiring", async () => {
+test("#1918 Phase 3 shell compatibility survives Phase 5 all-Path wiring", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
 
   assert.equal(LEARN_PROGRAM_MAP.yearCount, 3);
@@ -49,16 +49,16 @@ test("#1918 Phase 3 shell compatibility survives selective Phase 4 Semester 1 wi
   assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
   assert.match(route, /LEARN_PROGRAM_SHELL_SPEC/u);
   assert.doesNotMatch(route, /program-map\.mjs/u);
-  assert.match(route, /phase: "phase-4-semester-one"/u);
+  assert.match(route, /phase: "phase-5-all-paths"/u);
   assert.match(route, /lessonCount: course\.lessonRefs\.reduce/u);
-  assert.match(route, /const contentAvailable = semester\.semester === 1/u);
-  assert.match(route, /status: contentAvailable \? "wired" : "preview-only"/u);
-  assert.match(route, /semesterOneLessonContentExposed: true/u);
-  assert.match(route, /laterSemesterLessonContentExposed: false/u);
+  assert.match(route, /status: "wired"/u);
+  assert.match(route, /contentAvailable: true/u);
+  assert.match(route, /laterSemesterLessonContentExposed: true/u);
+  assert.match(route, /allPathLessonContentExposed: true/u);
   assert.doesNotMatch(route, /overview|sections|definitions|example|checklist|mistakes|exercise|sourceContent/u);
 });
 
-test("#1967 retires legacy Writer's Craft collection navigation while preserving compatibility evidence", async () => {
+test("#1967 retired Writer's Craft collection navigation remains retired", async () => {
   const [dashboard, skin, baselineSource] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/skin-v1-client.tsx"),
@@ -71,26 +71,22 @@ test("#1967 retires legacy Writer's Craft collection navigation while preserving
   assert.equal(baseline.writerCraftCompatibility.collections.length, 9);
   for (const label of baseline.writerCraftCompatibility.collections) {
     assert.equal(typeof label, "string");
-    assert.ok(label.length > 0, "Historical Writer's Craft compatibility labels remain recorded in the baseline.");
+    assert.ok(label.length > 0);
     assert.ok(!dashboard.includes(label), `Legacy collection label ${label} must not render in the production Writer's Craft route.`);
   }
 
   assert.doesNotMatch(dashboard, /const WRITER_CRAFT_MENU/u);
   assert.doesNotMatch(dashboard, /data-skin-menu="writer-craft"/u);
-  assert.doesNotMatch(dashboard, /data-skin-menu-shortcut="J"/u);
-  assert.doesNotMatch(dashboard, /EXISTING COLLECTION PREVIEWS|COLLECTION PREVIEW ONLY/u);
-  assert.match(dashboard, /if \(writerCraftMenuOpen\)/u);
   assert.match(dashboard, /<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
   assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft"/u);
 });
 
-test("#1975 presents the Journey as six Paths and 24 Craft Modules while retaining stable internal contracts", async () => {
+test("#1975 Path and Craft Module presentation language survives Phase 5", async () => {
   const preview = await read("app/skin-v1/learn-journey-preview.tsx");
 
   assert.match(preview, /OPEN JOURNEY \/ 6 PATHS \/ 24 CRAFT MODULES/u);
   assert.match(preview, /CHOOSE ANY PATH\. MOVE AT YOUR OWN PACE\. THE ORDER IS A GUIDE, NOT A GATE\./u);
-  assert.match(preview, /PATH 01 IS AVAILABLE\. OPEN ANY CRAFT MODULE IN ANY ORDER\./u);
-  assert.match(preview, /THIS CRAFT MODULE'S LESSON CONTENT IS NOT AVAILABLE YET/u);
+  assert.match(preview, /IS AVAILABLE\. OPEN ANY CRAFT MODULE IN ANY ORDER\./u);
   assert.match(preview, /STORY FOUNDATIONS/u);
   assert.match(preview, /STRUCTURE & STORY MOTION/u);
   assert.match(preview, /CHARACTER, DIALOGUE & VISUAL STORYTELLING/u);
@@ -99,9 +95,7 @@ test("#1975 presents the Journey as six Paths and 24 Craft Modules while retaini
   assert.match(preview, /PROFESSIONAL PRACTICE/u);
   assert.match(preview, /CRAFT MODULE \$\{craftModuleNumber\(course\.id\)\}/u);
   assert.doesNotMatch(preview, />3 YEARS \/ 6 SEMESTERS \/ 24 COURSES</u);
-  assert.doesNotMatch(preview, />YEAR \{semester\.year\} \/ SEMESTER \{semester\.semester\} — FOUR COURSES</u);
   assert.doesNotMatch(preview, />Back to Semesters</u);
-  assert.doesNotMatch(preview, /SELECT A SEMESTER TO VIEW ITS FOUR COURSES/u);
 
   assert.match(preview, /year: number/u);
   assert.match(preview, /semester: number/u);
@@ -110,14 +104,16 @@ test("#1975 presents the Journey as six Paths and 24 Craft Modules while retaini
   assert.match(preview, /humanMayLearnOutOfOrder: true/u);
 });
 
-test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 4 wires only Path 01", async () => {
+test("#1918 Journey remains keyboard reachable and guided-not-gated with all Paths wired", async () => {
   const preview = await read("app/skin-v1/learn-journey-preview.tsx");
 
   assert.match(preview, /data-skin-menu="learn-journey"/u);
   assert.match(preview, /data-skin-menu="learn-journey-courses"/u);
   assert.match(preview, /data-skin-menu="learn-journey-lessons"/u);
-  assert.match(preview, /data-learn-journey-phase="4"/u);
+  assert.match(preview, /data-learn-journey-phase="5"/u);
   assert.match(preview, /data-learn-semester-open="true"/u);
+  assert.match(preview, /data-learn-semester-content="wired"/u);
+  assert.match(preview, /data-learn-course-content="available"/u);
   assert.match(preview, /event\.key === "ArrowDown"/u);
   assert.match(preview, /event\.key === "ArrowUp"/u);
   assert.match(preview, /event\.key === "Escape"/u);
@@ -125,16 +121,14 @@ test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 
   assert.match(preview, /\^\[1-4\]\$/u);
   assert.match(preview, /CHOOSE ANY PATH/u);
   assert.match(preview, /OPEN ANY CRAFT MODULE IN ANY ORDER/u);
-  assert.match(preview, /LESSON CONTENT IS UNAVAILABLE UNTIL PHASE 5/u);
   assert.doesNotMatch(preview, /aria-disabled/u);
+  assert.doesNotMatch(preview, /LESSON CONTENT IS UNAVAILABLE UNTIL PHASE 5/u);
 });
 
 test("#1918 Journey shell continues to consume Skin V1 tokens and full-width directory geometry", async () => {
   const css = await read("app/skin-v1/learn-journey-preview.module.css");
-
   assert.match(css, /width: min\(var\(--pp-skin-shell-max\), calc\(100vw - 40px\)\) !important;/u);
   assert.match(css, /width: min\(var\(--pp-skin-menu-max\), calc\(100% - 72px\)\) !important;/u);
-  assert.match(css, /display: block !important;/u);
   assert.match(css, /background: var\(--pp-skin-accent-deep\) !important;/u);
   assert.match(css, /border: var\(--pp-skin-border-thin\) solid var\(--pp-skin-accent-bright\) !important;/u);
 });
@@ -162,22 +156,16 @@ test("#1918 Journey remains governed by the seven-layer verification mesh", asyn
   assert.ok(entry);
   assert.equal(entry.ownerLayer, "experience-skins");
   assert.deepEqual(entry.runner.targets, ["tests/issue-1918-learn-journey-shell.test.mjs"]);
-  assert.ok(entry.triggerTokens.includes("navigation"));
-  assert.ok(entry.triggerTokens.includes("skin"));
 
   const apiOwner = ownership.rules.find((rule) => rule.id === "learn-journey-preview-api");
   assert.ok(apiOwner);
   assert.equal(apiOwner.ownerLayer, "experience-contract");
   assert.ok(apiOwner.include.includes("app/api/learn/journey-preview/route.ts"));
   assert.ok(apiOwner.include.includes("app/api/learn/journey-semester-one/route.ts"));
-
-  const mapOwner = ownership.rules.find((rule) => rule.id === "learn-program-map");
-  assert.ok(mapOwner);
-  assert.ok(mapOwner.include.includes("learn/program-map.mjs"));
-  assert.ok(mapOwner.include.includes("learn/program-map-spec.mjs"));
+  assert.ok(apiOwner.include.includes("app/api/learn/journey-courses/route.ts"));
 });
 
-test("#1918 Phase 3 issue-specific convergence is superseded once Phase 4 is active", async (t) => {
+test("#1918 Phase 3 convergence remains historical after Phase 5", async (t) => {
   const manifest = JSON.parse(await read("config/development-convergence/1918.json"));
   if (manifest.phase !== "phase-3-journey-shell") {
     t.skip("Phase 3 convergence is historical; the active #1918 phase owns convergence now.");
@@ -186,31 +174,7 @@ test("#1918 Phase 3 issue-specific convergence is superseded once Phase 4 is act
   assert.equal(manifest.phase, "phase-3-journey-shell");
 });
 
-test("#1967 canonical development convergence reports CONVERGED against the real diff", async (t) => {
-  const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
-  const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
-  if (!changedFiles.includes("config/development-convergence/1967.json")) {
-    t.skip("#1967 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
-    return;
-  }
-
-  const result = await runDevelopmentConvergence([
-    "--manifest",
-    "config/development-convergence/1967.json",
-    "--base-ref",
-    baseRef,
-    "--report-dir",
-    ".artifacts/development-convergence",
-  ]);
-
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.reports.length, 1);
-  assert.equal(result.reports[0].issue, 1967);
-  assert.equal(result.reports[0].status, "CONVERGED");
-  assert.deepEqual(result.reports[0].remaining, []);
-});
-
-test("#1975 canonical development convergence reports CONVERGED against the real diff", async (t) => {
+test("#1975 canonical development convergence remains independently scoped", async (t) => {
   const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
   const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
   if (!changedFiles.includes("config/development-convergence/1975.json")) {

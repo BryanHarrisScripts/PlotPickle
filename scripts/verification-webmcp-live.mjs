@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { verificationSyntheticHome } from "./full-verification-auth.mjs";
+import { verificationSyntheticRuntime } from "./full-verification-auth.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,8 +84,18 @@ async function writeSummary(status, details = {}) {
 export async function runLiveWebMcpEvidence() {
   const tempRoot = path.resolve(process.env.RUNNER_TEMP || path.join(os.tmpdir(), "plotpickle-live-verification"));
   const jobRef = process.env.GITHUB_RUN_ID || process.env.GITHUB_RUN_NUMBER || `local-${process.pid}`;
-  const home = verificationSyntheticHome(`architecture-webmcp-${jobRef}`);
+  const runtime = verificationSyntheticRuntime(`architecture-webmcp-${jobRef}`);
+  const home = runtime.home;
   const toolRoot = path.join(tempRoot, "plotpickle-webmcp-tools");
+  const nodeRuntimeDir = path.join(home, "node", "runtime");
+  const serverEnv = {
+    ...process.env,
+    ...runtime.runtimeEnv,
+    PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp",
+    PLOTPICKLE_SHUTDOWN_SIGNAL: path.join(nodeRuntimeDir, "shutdown-request.json"),
+    PLOTPICKLE_BROWSER_STATE: path.join(nodeRuntimeDir, "browser-owner.json"),
+    PLOTPICKLE_BROWSER_PROFILE: path.join(nodeRuntimeDir, "browser-profile"),
+  };
   const npm = commandName("npm");
   const node = process.execPath;
   let server = null;
@@ -96,10 +106,12 @@ export async function runLiveWebMcpEvidence() {
     await runCommand(npm, ["ci", "--include=dev", "--no-audit", "--no-fund"]);
     await preparePinnedBrowserTools(toolRoot, npm, node);
     await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "prepare", "--home", home]);
+    await mkdir(nodeRuntimeDir, { recursive: true });
 
     serverLogHandle = await open(serverLogPath, "w");
     server = spawnCommand(npm, ["run", "dev:local", "--", "--host", "127.0.0.1", "--port", "4173"], {
       cwd: repoRoot,
+      env: serverEnv,
       stdio: ["ignore", serverLogHandle.fd, serverLogHandle.fd],
       windowsHide: true,
     });
@@ -118,11 +130,18 @@ export async function runLiveWebMcpEvidence() {
       "--tool-root", toolRoot,
     ]);
     await Promise.race([audit, serverExited]);
-    await writeSummary("pass", { syntheticHomeAuthority: "full-verification-auth" });
+    await writeSummary("pass", {
+      syntheticHomeAuthority: "full-verification-auth",
+      runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+    });
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await writeSummary("fail", { failure: message, syntheticHomeAuthority: "full-verification-auth" });
+    await writeSummary("fail", {
+      failure: message,
+      syntheticHomeAuthority: "full-verification-auth",
+      runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+    });
     console.error(`[FAIL] Live WebMCP verification: ${message}`);
     return 1;
   } finally {

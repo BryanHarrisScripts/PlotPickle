@@ -20,6 +20,7 @@
     "docs/updates/archive/2026-09-09-1bc643165126.md",
     "docs/updates/documentation-drift.md",
     "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-1938-verification-core.test.mjs",
     "tests/issue-1949-merge-authority.test.mjs",
     "tests/issue-1951-retire-legacy-gates.test.mjs",
     "tests/issue-538-ci-consolidation.test.mjs"

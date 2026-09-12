@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 1943,
+  "parent": 1922,
+  "authority": {
+    "mergeAuthoritative": ["PR Gate", "Product Gate"],
+    "shadowWorkflow": "Architecture Shadow Verification"
+  },
+  "migrations": [
+    {
+      "id": "provider.local-ai-plugin-registry",
+      "catalogTestId": "provider.local-ai-plugin-registry",
+      "ownerLayer": "provider-runtime",
+      "legacyExecutions": [
+        {
+          "workflow": "PR Gate",
+          "step": "Validate bundled local video setup",
+          "target": "tests/local-ai-plugin-registry.test.mjs",
+          "action": "remove-target"
+        },
+        {
+          "workflow": "Product Gate",
+          "step": "Validate bundled local video setup",
+          "target": "tests/local-ai-plugin-registry.test.mjs",
+          "action": "remove-target"
+        }
+      ],
+      "shadowProof": {
+        "layerId": "provider-runtime",
+        "requiredResult": "pass",
+        "artifact": ".artifacts/verification-shadow/provider-runtime.comparison.json"
+      },
+      "reason": "Pure Node/file contract with no network, native, secrets or package dependency. Safe as a fast Provider Runtime baseline and previously executed identically in both legacy gates."
+    }
+  ],
+  "remainingDuplicateGroups": [
+    {
+      "id": "local-video-ltx-contract",
+      "ownerLayer": "provider-runtime",
+      "targets": ["tests/ltx-bundled-default.test.mjs"],
+      "legacyWorkflows": ["PR Gate", "Product Gate"],
+      "status": "retained",
+      "reason": "Requires the TypeScript package from npm install. Phase 4 keeps shadow jobs dependency-light and does not add seven-way dependency installation."
+    },
+    {
+      "id": "security-closeout",
+      "ownerLayer": "production-harness",
+      "legacyWorkflows": ["PR Gate", "Product Gate"],
+      "status": "retained",
+      "reason": "Broad cross-platform security bundle needs test-by-test ownership and equivalence proof before any execution is removed."
+    }
+  ]
+}

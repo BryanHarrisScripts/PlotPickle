@@ -6,8 +6,8 @@ import type {
 } from "../contracts/learning-application";
 import type { PPFProject } from "../project/project";
 
-const MAX_FACTS = 8;
-const MAX_FACT_LENGTH = 1_600;
+const MAX_FACTS = 4;
+const MAX_FACT_LENGTH = 300;
 
 function bounded(value: string, limit = MAX_FACT_LENGTH) {
   const clean = value.replace(/\s+/g, " ").trim();
@@ -102,12 +102,12 @@ export function buildLearningApplicationView(input: {
       id: lesson.id,
       title: lesson.title,
       topic: lesson.topic,
-      applyInstruction: bounded(lesson.apply, 1_000),
+      applyInstruction: bounded(lesson.apply, 500),
     },
     craftModule: {
       id: course.id,
       title: course.title,
-      applicationTargets: course.applicationTargets.map((target) => bounded(target, 240)),
+      applicationTargets: course.applicationTargets.map((target) => bounded(target, 180)),
     },
     facts: contextualFacts,
     authority: {

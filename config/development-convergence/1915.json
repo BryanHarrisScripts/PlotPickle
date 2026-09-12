@@ -17,7 +17,8 @@
     "lib/verification/skin-v1-menu-contract-audit.mjs",
     "tests/community-skin-v1-navigation.test.mjs",
     "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
-    "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs"
+    "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs",
+    "tests/skin-v1-settings-secondary-menu.test.mjs"
   ],
   "acceptance": [
     {

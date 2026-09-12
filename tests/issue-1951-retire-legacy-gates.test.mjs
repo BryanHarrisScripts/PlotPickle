@@ -49,6 +49,16 @@ test("#1951 records seven enforced checks and no legacy required checks", async 
   assert.equal(authority.retirementState, "legacy-pr-triggers-retired");
 });
 
+test("#1951 explicitly classifies the generated repository README as Layer 7 documentation", async () => {
+  const ownership = await readJson("config/verification/ownership-map.json");
+  const readme = ownership.rules.find((rule) => rule.id === "repository-readme");
+  assert.ok(readme);
+  assert.equal(readme.classification, "docs");
+  assert.deepEqual(readme.include, ["README.md"]);
+  assert.equal(readme.ownerLayer, "verification");
+  assert.deepEqual(readme.riskTokens, ["docs"]);
+});
+
 test("#1951 canonical Layer 7 blueprint describes the seven-check verification mesh", async () => {
   const architecture = await readJson("architecture/plotpickle.architecture.json");
   const layer7 = architecture.layers.find((layer) => layer.id === "verification");

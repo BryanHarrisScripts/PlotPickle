@@ -16,7 +16,7 @@
       "id": "P1-A1",
       "criterion": "Phase 1 defines exactly 24 stable courses grouped four per semester across six semesters and three years.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "id: \"course-24\"" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "course(\"course-24\"" },
         { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "semesterCount: 6" },
         { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "coursesPerSemester: 4" }
       ]
@@ -64,6 +64,14 @@
         { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"ownerLayer\": \"story-canon\"" },
         { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"story-canon.learn-program-map\"" },
         { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1918-learn-program-map.test.mjs" }
+      ]
+    },
+    {
+      "id": "P1-A7",
+      "criterion": "The canonical development-convergence evaluator must independently report CONVERGED against the actual PR diff before Phase 1 is accepted.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "runDevelopmentConvergence" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "result.reports[0].status, \"CONVERGED\"" }
       ]
     }
   ]

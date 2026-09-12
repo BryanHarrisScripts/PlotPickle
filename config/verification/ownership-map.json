@@ -29,9 +29,16 @@
       "riskTokens": ["surface", "navigation", "mcp"]
     },
     {
+      "id": "learn-journey-preview-api",
+      "classification": "production",
+      "include": ["app/api/learn/journey-preview/route.ts"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "canon"]
+    },
+    {
       "id": "learn-program-map",
       "classification": "production",
-      "include": ["learn/program-map.mjs"],
+      "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs"],
       "ownerLayer": "story-canon",
       "riskTokens": ["canon", "graph"]
     },

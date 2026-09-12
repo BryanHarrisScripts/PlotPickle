@@ -1,84 +1,104 @@
 {
   "schemaVersion": 1,
   "issue": 1918,
-  "phase": "phase-2-curriculum-integrity",
+  "phase": "phase-3-journey-shell",
   "brief": "docs/developer-briefs/1918-learn-24-course-open-journey.md",
   "allowedChanges": [
+    "app/api/learn/journey-preview/route.ts",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/learn-journey-preview.module.css",
+    "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1918.json",
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
-    "scripts/learn-curriculum-integrity.mjs",
-    "scripts/validate-learn-curriculum-integrity.mjs",
-    "tests/issue-1918-learn-curriculum-integrity.test.mjs"
+    "docs/developer-briefs/1918-phase-3-journey-shell.md",
+    "learn/program-map.mjs",
+    "learn/program-map-spec.mjs",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P2-A1",
-      "criterion": "The integrity harness recomputes the real canonical lesson and source hashes and proves the frozen 81 archived lessons and 95 bundled sources remain intact.",
+      "id": "P3-A1",
+      "criterion": "Writer's Craft preserves its nine #1915 compatibility collection rows while adding one clearly named, keyboard-reachable J destination for the LEARN Journey.",
       "evidence": [
-        { "type": "file-contains", "path": "scripts/learn-curriculum-integrity.mjs", "contains": "sha256Json(canonicalLessonHashPayload(archiveLessons))" },
-        { "type": "file-contains", "path": "scripts/learn-curriculum-integrity.mjs", "contains": "Expected ${baseline?.curriculum?.archivedLessonCount} archived lessons" },
-        { "type": "file-contains", "path": "scripts/learn-curriculum-integrity.mjs", "contains": "Expected ${baseline?.curriculum?.bundledSourceCount} bundled sources" }
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-row=\"learn-journey\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-shortcut=\"J\"" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "collectionCount, 9" }
       ]
     },
     {
-      "id": "P2-A2",
-      "criterion": "All 88 presentation lessons are accounted for through 81 Journey-owned archive lessons plus seven explicit promoted Foundations reference lessons.",
+      "id": "P3-A2",
+      "criterion": "The visible Journey shell is projected from the same canonical course specifications as the resolved program map and exposes only semester/course-shell metadata, not lesson bodies or source text.",
       "evidence": [
-        { "type": "file-contains", "path": "scripts/learn-curriculum-integrity.mjs", "contains": "mode: \"reference-coverage\"" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "presentationLessonCount: 88" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "referencePresentationCoverageCount: 7" }
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "LEARN_PROGRAM_SHELL_SPEC" },
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "lessonContentExposed: false" },
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "contentAvailable: false" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "LEARN_PROGRAM_COURSE_SPECS" }
       ]
     },
     {
-      "id": "P2-A3",
-      "criterion": "The 24-course Journey fails closed on orphaned lessons, duplicate lesson ownership, unknown lesson references and broken advisory prerequisites.",
+      "id": "P3-A3",
+      "criterion": "Phase 3 renders the 3-year / 6-semester / 24-course structure as six semester destinations and exactly four course shells per selected semester.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "fails closed on orphaned and duplicate Journey ownership" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "references unknown canonical lesson" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "references unknown advisory prerequisite" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "3 YEARS / 6 SEMESTERS / 24 COURSES" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "FOUR COURSE SHELLS" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "[4, 4, 4, 4, 4, 4]" }
       ]
     },
     {
-      "id": "P2-A4",
-      "criterion": "The program map remains an index/orchestration layer and is rejected if curriculum body fields are copied into it.",
+      "id": "P3-A4",
+      "criterion": "Journey and semester/course-shell navigation support shortcut keys, arrows, Enter/Space and Escape/Back while course activation remains a truthful preview rather than false lesson navigation.",
       "evidence": [
-        { "type": "file-contains", "path": "scripts/learn-curriculum-integrity.mjs", "contains": "CURRICULUM_BODY_KEYS" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "rejects curriculum-body duplication inside the program map" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key === \"ArrowDown\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key === \"Escape\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "LESSON CONTENT IS INTENTIONALLY UNAVAILABLE UNTIL PHASE 4" }
       ]
     },
     {
-      "id": "P2-A5",
-      "criterion": "Existing Phase 0 and Phase 1 LEARN validators remain green alongside the new Phase 2 validator.",
+      "id": "P3-A5",
+      "criterion": "The preview remains guided-not-gated: every semester is open from day one, course prerequisites remain advisory, and no Phase 3 course shell is disabled or locked.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "validate-learn-program-map.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "ALL SEMESTERS REMAIN OPEN" },
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "recommendedSequenceIsAccessControl" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "assert.doesNotMatch(preview, /aria-disabled/u)" }
       ]
     },
     {
-      "id": "P2-A6",
-      "criterion": "The seven-layer verification mesh owns and executes the Phase 2 integrity harness rather than allowing an ungoverned verifier or unexecuted regression.",
+      "id": "P3-A6",
+      "criterion": "The new Journey surface uses Skin V1 design tokens and the same full-width directory geometry that repaired Writer's Craft before Phase 2.",
       "evidence": [
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-curriculum-integrity-harness\"" },
-        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"story-canon.learn-curriculum-integrity\"" },
-        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1918-learn-curriculum-integrity.test.mjs" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "var(--pp-skin-menu-max)" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "var(--pp-skin-accent-deep)" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.module.css", "contains": "width: 100% !important" }
       ]
     },
     {
-      "id": "P2-A7",
-      "criterion": "Phase 2 is bounded to integrity verification only: no UI, progress, Agent, provider, curriculum prose or program-map content changes are permitted by convergence.",
+      "id": "P3-A7",
+      "criterion": "Phase 0 baseline, Phase 1 program-map and Phase 2 curriculum-integrity validators remain green; the runtime-safe course-spec extraction preserves the exact 24 course definitions and all canonical lesson bindings.",
       "evidence": [
-        { "type": "file-contains", "path": "config/development-convergence/1918.json", "contains": "\"phase\": \"phase-2-curriculum-integrity\"" },
-        { "type": "file-contains", "path": "config/development-convergence/1918.json", "contains": "tests/issue-1918-learn-curriculum-integrity.test.mjs" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-program-map.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "LEARN_PROGRAM_MAP.courses.map(shellFields)" }
       ]
     },
     {
-      "id": "P2-A8",
-      "criterion": "The canonical development-convergence evaluator reports CONVERGED against the actual Phase 2 diff before merge.",
+      "id": "P3-A8",
+      "criterion": "The seven-layer verification mesh owns the Journey shell/API regression and canonical development convergence reports CONVERGED against the actual Phase 3 diff before merge.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "runDevelopmentConvergence" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-curriculum-integrity.test.mjs", "contains": "result.reports[0].status, \"CONVERGED\"" }
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"experience.learn-journey-shell\"" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-journey-preview-api\"" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "runDevelopmentConvergence" }
+      ]
+    },
+    {
+      "id": "P3-A9",
+      "criterion": "The #1954 pre-Phase-2 regression is deliberately migrated from its obsolete first-submenu-only wording to the durable rule that Writer's Craft lesson content remains unopened until content wiring begins.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "LESSON LEVEL IS NOT OPENED IN THIS BUILD" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1918 Phase 3 intentionally adds a second preview level" }
       ]
     }
   ]

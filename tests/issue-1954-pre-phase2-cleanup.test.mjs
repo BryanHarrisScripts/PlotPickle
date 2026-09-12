@@ -18,32 +18,25 @@ test("#1954 PowerShell launcher makes WebMCP versus normal Human testing unambig
   assert.match(launcher, /Normal PlotPickle selected\. Opening your regular app session/u);
 });
 
-test("#1954 Writer's Craft consumes full Dashboard directory geometry without changing preview semantics", async () => {
-  const [directoryCss, dashboard] = await Promise.all([
-    read("app/skin-v1-settings-directory.css"),
+test("#1967 direct Journey cutover preserves the full-width Skin V1 learning directory", async () => {
+  const [journeyCss, dashboard, journey] = await Promise.all([
+    read("app/skin-v1/learn-journey-preview.module.css"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/learn-journey-preview.tsx"),
   ]);
 
-  assert.match(
-    directoryCss,
-    /\[aria-label="Writer's Craft menu"\] \.pp-skin-v1-menu-item\.pp-skin-v1-dashboard-row,[\s\S]{0,260}\{[\s\S]{0,260}position: relative !important;[\s\S]{0,160}display: block !important;[\s\S]{0,160}width: 100% !important;/u,
-  );
-  assert.match(
-    directoryCss,
-    /\[aria-label="Writer's Craft menu"\] \.pp-skin-v1-menu\.pp-skin-v1-dashboard-menu,[\s\S]{0,240}\{[\s\S]{0,180}display: block !important;[\s\S]{0,180}width: min\(var\(--pp-skin-menu-max\), calc\(100% - 72px\)\) !important;/u,
-  );
-  assert.match(
-    directoryCss,
-    /\[aria-label="Writer's Craft menu"\] \.pp-skin-v1-menu-item\.pp-skin-v1-dashboard-row\.is-selected,[\s\S]{0,260}\{[\s\S]{0,180}border: var\(--pp-skin-border-thin\) solid var\(--pp-skin-accent-bright\) !important;[\s\S]{0,180}background: var\(--pp-skin-accent-deep\) !important;/u,
-  );
+  assert.match(journeyCss, /width: min\(var\(--pp-skin-shell-max\), calc\(100vw - 40px\)\) !important;/u);
+  assert.match(journeyCss, /width: min\(var\(--pp-skin-menu-max\), calc\(100% - 72px\)\) !important;/u);
+  assert.match(journeyCss, /display: block !important;/u);
+  assert.match(journeyCss, /border: var\(--pp-skin-border-thin\) solid var\(--pp-skin-accent-bright\) !important;/u);
+  assert.match(journeyCss, /background: var\(--pp-skin-accent-deep\) !important;/u);
 
-  assert.match(dashboard, /aria-label="Writer's Craft menu"[\s\S]{0,180}data-skin-menu="writer-craft"/u);
-  assert.match(dashboard, /data-skin-menu-connected="false"/u);
-  assert.match(dashboard, /\[PREVIEW\]/u);
-  // #1918 Phase 3 intentionally adds a second preview level, so the durable #1954
-  // contract is that collection lesson content remains unopened, not that Writer's
-  // Craft can never grow beyond its first submenu.
-  assert.match(dashboard, /LESSON LEVEL IS NOT OPENED IN THIS BUILD/u);
+  assert.match(dashboard, /if \(writerCraftMenuOpen\)[\s\S]*<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
+  assert.doesNotMatch(dashboard, /aria-label="Writer's Craft menu"/u);
+  assert.doesNotMatch(dashboard, /data-skin-menu="writer-craft"/u);
+  assert.match(journey, /data-skin-menu="learn-journey"/u);
+  assert.match(journey, /data-skin-menu="learn-journey-courses"/u);
+  assert.match(journey, /data-skin-menu="learn-journey-lessons"/u);
 });
 
 test("#1954 Profile uses one page heading and Skin V1 four-pixel control padding", async () => {

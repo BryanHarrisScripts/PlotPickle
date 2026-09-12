@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "issue": 1949,
+  "brief": "docs/developer-briefs/1949-phase-6-merge-authority.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1949.json",
+    "config/verification/merge-authority.json",
+    "docs/developer-briefs/1949-phase-6-merge-authority.md",
+    "tests/issue-538-ci-consolidation.test.mjs",
+    "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-1941-seven-shadow-checks.test.mjs",
+    "tests/issue-1949-merge-authority.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The repository declares exactly seven promoted architecture checks as intended merge authority.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"name\": \"Layer 1 Experience Skins\"" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"name\": \"Layer 7 Validation & Operations\"" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"name\": \"Architecture Verification\"" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The architecture workflow preserves stable seven-layer check names and exact-head evidence.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "name: Architecture Verification" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "--commit-sha \"${{ github.event.pull_request.head.sha || github.sha }}\"" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "name: Layer 6 Provider Runtime" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "PR Gate and Product Gate remain explicitly advisory comparison workflows during Phase 6.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"role\": \"advisory-comparison\"" },
+        { "type": "file-contains", "path": "tests/issue-1949-merge-authority.test.mjs", "contains": "legacy PR and Product gates are comparison-only during promotion" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Repository state cannot claim external enforcement before the Main ruleset actually requires all seven checks.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"promotionState\": \"repository-prepared-awaiting-ruleset\"" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"requiredStatusChecksConfigured\": false" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1949-phase-6-merge-authority.md", "contains": "Phase 7 entry condition" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused regressions lock the promoted topology and merge-authority contract.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1949-merge-authority.test.mjs", "contains": "merge-authority contract exactly matches the canonical seven display checks" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1949-merge-authority.test.mjs" }
+      ]
+    }
+  ]
+}

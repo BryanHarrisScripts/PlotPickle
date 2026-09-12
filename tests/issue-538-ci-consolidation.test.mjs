@@ -5,8 +5,9 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);
 const source = (path) => readFile(new URL(path, root), "utf8");
+const readJson = async (path) => JSON.parse(await source(path));
 
-test("issue #538 keeps two authoritative PR gates plus the Phase 3 architecture shadow workflow", async () => {
+test("issue #538 keeps one promoted architecture workflow plus two legacy comparison workflows", async () => {
   const files = (await readdir(workflowRoot)).filter((file) => /\.ya?ml$/.test(file)).sort();
   const workflows = new Map(await Promise.all(files.map(async (file) => [file, await source(`.github/workflows/${file}`)])));
   const pullRequestWorkflows = [...workflows]
@@ -17,10 +18,14 @@ test("issue #538 keeps two authoritative PR gates plus the Phase 3 architecture 
   assert.deepEqual(pullRequestWorkflows, ["architecture-shadow.yml", "pr-gate.yml", "product-gate.yml"]);
   assert.match(workflows.get("pr-gate.yml"), /^    name: PR Gate$/m);
   assert.match(workflows.get("product-gate.yml"), /^    name: Product Gate$/m);
-  assert.match(workflows.get("architecture-shadow.yml"), /^name: Architecture Shadow Verification$/m);
+  assert.match(workflows.get("architecture-shadow.yml"), /^name: Architecture Verification$/m);
+
+  const authority = await readJson("config/verification/merge-authority.json");
+  assert.deepEqual(authority.legacyAdvisoryWorkflows.map((entry) => entry.workflowName), ["PR Gate", "Product Gate"]);
+  assert.deepEqual(authority.legacyAdvisoryWorkflows.map((entry) => entry.role), ["advisory-comparison", "advisory-comparison"]);
 });
 
-test("issue #538 keeps deep validation available outside the ordinary authoritative runner path", async () => {
+test("issue #538 keeps deep validation available outside the ordinary PR verification path", async () => {
   const [qa, story, demo, windows, visual, ben] = await Promise.all([
     source(".github/workflows/autonomous-qa-campaign.yml"),
     source(".github/workflows/autonomous-story-reference.yml"),
@@ -40,13 +45,12 @@ test("issue #538 keeps deep validation available outside the ordinary authoritat
   assert.match(ben, /^  workflow_dispatch:/m);
 });
 
-test("issue #538 authoritative PR coverage protects boundaries instead of legacy screens or release packaging", async () => {
+test("issue #538 legacy comparison coverage still protects current boundaries during Phase 6", async () => {
   const [prGate, productGate] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),
   ]);
 
-  assert.match(prGate, /two-gate CI topology/i);
   assert.match(prGate, /current Experience architecture boundary/i);
   assert.match(prGate, /core auth and storage/i);
   assert.match(prGate, /Production web build/);

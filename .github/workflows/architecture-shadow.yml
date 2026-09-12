@@ -1,4 +1,4 @@
-name: Architecture Shadow Verification
+name: Architecture Verification
 
 on:
   pull_request:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: architecture-shadow-${{ github.event.pull_request.number || github.ref }}
+  group: architecture-verification-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  architecture-shadow:
+  architecture-verification:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -55,7 +55,7 @@ jobs:
         with:
           node-version: '22.13.0'
 
-      - name: Run architecture shadow verification
+      - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
           --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
@@ -63,11 +63,11 @@ jobs:
           --platform linux
           --allow-network "${{ matrix.allow_network }}"
 
-      - name: Upload architecture shadow evidence
+      - name: Upload architecture evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: architecture-shadow-${{ matrix.id }}-${{ github.run_id }}
+          name: architecture-${{ matrix.id }}-${{ github.run_id }}
           path: |
             .artifacts/verification-shadow/${{ matrix.id }}.json
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json

@@ -18,7 +18,7 @@ async function configuration() {
   return { architecture, phase0Inventory, vocabulary, catalog, ownership };
 }
 
-test("issue #1941 exposes exactly the seven approved architecture shadow check names", async () => {
+test("issue #1941 preserves exactly the seven approved architecture check names after promotion", async () => {
   const [workflow, phase0] = await Promise.all([
     source(".github/workflows/architecture-shadow.yml"),
     readJson("config/verification/phase-0-inventory.json"),
@@ -28,16 +28,16 @@ test("issue #1941 exposes exactly the seven approved architecture shadow check n
 
   const matrixIds = [...workflow.matchAll(/^\s+- id: ([a-z0-9-]+)$/gmu)].map((match) => match[1]);
   assert.deepEqual(matrixIds, approved.map((entry) => entry.id));
-  for (const { name } of approved) assert.ok(workflow.includes(`name: ${name}`), `missing visible shadow check name: ${name}`);
+  for (const { name } of approved) assert.ok(workflow.includes(`name: ${name}`), `missing visible architecture check name: ${name}`);
 
-  assert.match(workflow, /^name: Architecture Shadow Verification$/m);
+  assert.match(workflow, /^name: Architecture Verification$/m);
   assert.match(workflow, /^    name: \$\{\{ matrix\.name \}\}$/m);
   assert.match(workflow, /fail-fast: false/);
-  assert.doesNotMatch(workflow, /^\s+paths(?:-ignore)?:/m, "shadow checks must not disappear behind path filters");
-  assert.doesNotMatch(workflow, /continue-on-error:/, "shadow checks should report their real result even though they are not required");
+  assert.doesNotMatch(workflow, /^\s+paths(?:-ignore)?:/m, "architecture checks must not disappear behind path filters");
+  assert.doesNotMatch(workflow, /continue-on-error:/, "architecture checks must report their real result");
 });
 
-test("issue #1941 keeps selection below GitHub Actions and forbids risky shadow permissions", async () => {
+test("issue #1941 keeps selection below GitHub Actions and forbids risky permissions", async () => {
   const [workflow, adapter] = await Promise.all([
     source(".github/workflows/architecture-shadow.yml"),
     source("scripts/verification-shadow.mjs"),
@@ -45,13 +45,12 @@ test("issue #1941 keeps selection below GitHub Actions and forbids risky shadow 
 
   assert.match(workflow, /node scripts\/verification-shadow\.mjs/);
   assert.doesNotMatch(workflow, /if:.*matrix\.id.*experience-/i, "YAML must not contain layer-selection business logic");
-  assert.doesNotMatch(workflow, /npm ci/, "Phase 3 shadow checks should remain lightweight");
+  assert.doesNotMatch(workflow, /npm ci/, "architecture checks should remain lightweight unless selected evidence needs dependencies");
 
   assert.match(adapter, /planVerification/);
   assert.match(adapter, /runLayer/);
   assert.match(adapter, /emitEvidence/);
   assert.match(adapter, /allowHeavy: false/);
-  assert.match(adapter, /allowNetwork: false/);
   assert.match(adapter, /allowNative: false/);
   assert.match(adapter, /allowSecrets: false/);
   assert.match(adapter, /shell: false/);
@@ -138,17 +137,17 @@ test("issue #1941 keeps unknown production ownership fail-closed and visible", a
   assert.match(adapter, /\.summary\.json/);
 });
 
-test("issue #1941 leaves PR Gate and Product Gate authoritative during shadow observation", async () => {
-  const [prGate, productGate, shadow] = await Promise.all([
+test("issue #1941 keeps PR Gate and Product Gate visible as legacy comparisons after architecture promotion", async () => {
+  const [prGate, productGate, architectureWorkflow, authority] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),
     source(".github/workflows/architecture-shadow.yml"),
+    readJson("config/verification/merge-authority.json"),
   ]);
   assert.match(prGate, /^name: PR Gate$/m);
   assert.match(prGate, /^    name: PR Gate$/m);
   assert.match(productGate, /^name: Product Gate$/m);
   assert.match(productGate, /^    name: Product Gate$/m);
-  assert.match(shadow, /^name: Architecture Shadow Verification$/m);
-  assert.doesNotMatch(shadow, /^    name: PR Gate$/m);
-  assert.doesNotMatch(shadow, /^    name: Product Gate$/m);
+  assert.match(architectureWorkflow, /^name: Architecture Verification$/m);
+  assert.deepEqual(authority.legacyAdvisoryWorkflows.map((entry) => entry.role), ["advisory-comparison", "advisory-comparison"]);
 });

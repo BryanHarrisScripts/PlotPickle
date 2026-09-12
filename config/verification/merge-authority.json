@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "phase": 6,
+  "architectureWorkflow": {
+    "file": ".github/workflows/architecture-shadow.yml",
+    "name": "Architecture Verification",
+    "jobNameSource": "matrix.name"
+  },
+  "requiredChecks": [
+    { "layerId": "experience-skins", "name": "Layer 1 Experience Skins" },
+    { "layerId": "experience-contract", "name": "Layer 2 Experience Contract" },
+    { "layerId": "production-harness", "name": "Layer 3 Production Orchestration" },
+    { "layerId": "agent-runtime", "name": "Layer 4 Agent & Skill Mesh" },
+    { "layerId": "story-canon", "name": "Layer 5 Story / Canon / Evidence" },
+    { "layerId": "provider-runtime", "name": "Layer 6 Provider Runtime" },
+    { "layerId": "verification", "name": "Layer 7 Validation & Operations" }
+  ],
+  "legacyAdvisoryWorkflows": [
+    {
+      "file": ".github/workflows/pr-gate.yml",
+      "workflowName": "PR Gate",
+      "jobName": "PR Gate",
+      "role": "advisory-comparison"
+    },
+    {
+      "file": ".github/workflows/product-gate.yml",
+      "workflowName": "Product Gate",
+      "jobName": "Product Gate",
+      "role": "advisory-comparison"
+    }
+  ],
+  "rulesetExpectation": {
+    "rulesetId": 20214975,
+    "rulesetName": "Main",
+    "target": "~DEFAULT_BRANCH",
+    "requiredStatusChecks": [
+      "Layer 1 Experience Skins",
+      "Layer 2 Experience Contract",
+      "Layer 3 Production Orchestration",
+      "Layer 4 Agent & Skill Mesh",
+      "Layer 5 Story / Canon / Evidence",
+      "Layer 6 Provider Runtime",
+      "Layer 7 Validation & Operations"
+    ]
+  },
+  "rulesetObservation": {
+    "observedAt": "2026-09-12",
+    "requiredStatusChecksConfigured": false,
+    "observedRuleTypes": ["deletion", "non_fast_forward"],
+    "mutationAuthority": "repository-admin-outside-connected-github-integration"
+  },
+  "promotionState": "repository-prepared-awaiting-ruleset"
+}

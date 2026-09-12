@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "issue": 1709,
+  "package": "@earendil-works/pi-coding-agent",
+  "currentManagedVersion": "0.84.4",
+  "candidateVersion": "0.85.1",
+  "decision": "candidate-probe",
+  "requiredExtensions": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
+  ],
+  "forbiddenPlotPickleImports": [
+    "@earendil-works/pi-coding-agent/client",
+    "@earendil-works/pi-coding-agent/experimental/plugin"
+  ],
+  "optionalModels": [
+    {
+      "id": "gpt-6-astra",
+      "provider": "openai",
+      "authorizedRoutes": ["api-key", "openai-codex"],
+      "required": false,
+      "fallback": false
+    }
+  ],
+  "promotionPolicy": "Promote the managed Pi pin only after the isolated Windows candidate probe, pinned extension load probe, supported SDK import probe, and direct Node stdio RPC probe all pass."
+}

@@ -1,0 +1,67 @@
+name: Architecture Shadow Verification
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-shadow-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  architecture-shadow:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: experience-skins
+            name: Layer 1 Experience Skins
+          - id: experience-contract
+            name: Layer 2 Experience Contract
+          - id: production-harness
+            name: Layer 3 Production Orchestration
+          - id: agent-runtime
+            name: Layer 4 Agent & Skill Mesh
+          - id: story-canon
+            name: Layer 5 Story / Canon / Evidence
+          - id: provider-runtime
+            name: Layer 6 Provider Runtime
+          - id: verification
+            name: Layer 7 Validation & Operations
+
+    steps:
+      - name: Checkout exact head with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Run architecture shadow verification
+        run: >-
+          node scripts/verification-shadow.mjs "${{ matrix.id }}"
+          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+          --commit-sha "${{ github.event.pull_request.head.sha || github.sha }}"
+          --platform linux
+
+      - name: Upload architecture shadow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-shadow-${{ matrix.id }}-${{ github.run_id }}
+          path: |
+            .artifacts/verification-shadow/${{ matrix.id }}.json
+            .artifacts/verification-shadow/${{ matrix.id }}.summary.json
+          if-no-files-found: warn
+          retention-days: 7

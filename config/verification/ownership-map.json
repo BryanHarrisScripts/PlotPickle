@@ -8,6 +8,32 @@
   },
   "rules": [
     {
+      "id": "experience-skin-v1",
+      "classification": "production",
+      "include": ["app/skin-v1/**", "app/skin-v1-definition.css"],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
+    },
+    {
+      "id": "experience-surface-registry",
+      "classification": "production",
+      "include": ["lib/experience/surface-registry.ts"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "mcp"]
+    },
+    {
+      "id": "webmcp-live-verifier",
+      "classification": "verification",
+      "include": [
+        "lib/verification/webmcp-*.mjs",
+        "lib/verification/skin-v1-menu-contract-audit.mjs",
+        "scripts/run-webmcp-startup-uat.mjs",
+        "scripts/verification-webmcp-live.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": ["surface", "navigation", "visual", "mcp", "test-harness"]
+    },
+    {
       "id": "verification-contract-files",
       "classification": "verification",
       "include": [

@@ -15,305 +15,83 @@ const TOPIC_FILES = [
   "industry.json",
 ];
 
-const readTopic = (file) => JSON.parse(readFileSync(new URL(`./${file}`, import.meta.url), "utf8"));
-const topicDocuments = TOPIC_FILES.map(readTopic);
-const archiveLessons = topicDocuments.flatMap((document) => document.lessons);
-const lessonByRef = new Map(archiveLessons.map((lesson) => [`${lesson.topic}:${lesson.number}`, lesson]));
+const topicDocuments = TOPIC_FILES.map((file) => JSON.parse(readFileSync(new URL(`./${file}`, import.meta.url), "utf8")));
+const lessonsByTopic = new Map(topicDocuments.map((document) => [document.topic.id, document.lessons]));
+const archiveLessons = topicDocuments.flatMap((document) =>
+  document.lessons.map((lesson) => ({ ...lesson, canonicalTopic: document.topic.id })),
+);
 
-const refs = (topic, ...numbers) => ({ topic, numbers });
+const refs = (topic, ...positions) => ({ topic, positions });
+const course = (id, year, semester, orderInSemester, title, purpose, lessonRefs, advisoryPrerequisites, applicationTargets) => ({
+  id,
+  year,
+  semester,
+  orderInSemester,
+  title,
+  purpose,
+  lessonRefs,
+  advisoryPrerequisites,
+  applicationTargets,
+});
 
 const COURSE_SPECS = [
-  {
-    id: "course-01",
-    year: 1,
-    semester: 1,
-    orderInSemester: 1,
-    title: "Story Promise & Foundations",
-    purpose: "Establish the story promise, pitch, logline, layered PlotPickle thinking and the intended audience experience before deeper craft work begins.",
-    lessonRefs: [refs("foundations", 1, 2, 3, 4)],
-    advisoryPrerequisites: [],
-    applicationTargets: ["foundation brief", "logline", "story experience"],
-  },
-  {
-    id: "course-02",
-    year: 1,
-    semester: 1,
-    orderInSemester: 2,
-    title: "Theme, Tone & Motif",
-    purpose: "Learn how thematic questions, tonal choices and recurring motifs create a coherent audience experience without turning theme into a slogan.",
-    lessonRefs: [refs("theme", 1, 2, 3)],
-    advisoryPrerequisites: ["course-01"],
-    applicationTargets: ["theme question", "tone brief", "motif choices"],
-  },
-  {
-    id: "course-03",
-    year: 1,
-    semester: 1,
-    orderInSemester: 3,
-    title: "Character Foundations",
-    purpose: "Build characters around want, need, pressure, contradiction, agency and observable behavior rather than biography alone.",
-    lessonRefs: [refs("character", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-01"],
-    applicationTargets: ["character intent", "stakes", "agency"],
-  },
-  {
-    id: "course-04",
-    year: 1,
-    semester: 1,
-    orderInSemester: 4,
-    title: "World & Genre Foundations",
-    purpose: "Treat world and genre as active story systems whose rules shape conflict, expectations and choices.",
-    lessonRefs: [refs("world", 1, 2, 3)],
-    advisoryPrerequisites: ["course-01"],
-    applicationTargets: ["world rules", "genre promise", "story constraints"],
-  },
-  {
-    id: "course-05",
-    year: 1,
-    semester: 2,
-    orderInSemester: 1,
-    title: "Character Pressure, Stakes & Arc",
-    purpose: "Deepen character work by connecting pressure, relationships, choices and change across the story.",
-    lessonRefs: [refs("character", 5, 6, 7)],
-    advisoryPrerequisites: ["course-03"],
-    applicationTargets: ["character arc", "relationship pressure", "turning choices"],
-  },
-  {
-    id: "course-06",
-    year: 1,
-    semester: 2,
-    orderInSemester: 2,
-    title: "Genre, Tone & Story World",
-    purpose: "Combine advanced world and genre thinking with later theme and tone material so the story system and audience promise reinforce each other.",
-    lessonRefs: [refs("world", 4, 5), refs("theme", 4, 5)],
-    advisoryPrerequisites: ["course-02", "course-04"],
-    applicationTargets: ["genre pressure", "world continuity", "tone consistency"],
-  },
-  {
-    id: "course-07",
-    year: 1,
-    semester: 2,
-    orderInSemester: 3,
-    title: "Structure Fundamentals",
-    purpose: "Understand dramatic structure as escalating cause, choice and consequence before applying PlotPickle's finer-grained architecture.",
-    lessonRefs: [refs("structure", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-01"],
-    applicationTargets: ["story movement", "turning points", "cause and consequence"],
-  },
-  {
-    id: "course-08",
-    year: 1,
-    semester: 2,
-    orderInSemester: 4,
-    title: "Structure in Motion",
-    purpose: "Move from broad structure into sequences, escalation and practical structural decisions that can support the 24/96 model.",
-    lessonRefs: [refs("structure", 5, 6, 7)],
-    advisoryPrerequisites: ["course-07"],
-    applicationTargets: ["sequence design", "escalation", "structural diagnosis"],
-  },
-  {
-    id: "course-09",
-    year: 2,
-    semester: 3,
-    orderInSemester: 1,
-    title: "24/96 Story Architecture",
-    purpose: "Apply the deeper Structure archive to PlotPickle's 24-block and 96-beat story architecture without treating the model as a lockstep formula.",
-    lessonRefs: [refs("structure", 8, 9, 10, 11)],
-    advisoryPrerequisites: ["course-08"],
-    applicationTargets: ["24-block board", "96-beat evidence", "turning-point placement"],
-  },
-  {
-    id: "course-10",
-    year: 2,
-    semester: 3,
-    orderInSemester: 2,
-    title: "Advanced Character Design",
-    purpose: "Complete the Character archive with advanced character-system work that can now be tested against structural pressure and story evidence.",
-    lessonRefs: [refs("character", 8, 9, 10)],
-    advisoryPrerequisites: ["course-05", "course-09"],
-    applicationTargets: ["character system", "contradiction", "story-bible character evidence"],
-  },
-  {
-    id: "course-11",
-    year: 2,
-    semester: 3,
-    orderInSemester: 3,
-    title: "Dialogue Intent & Subtext",
-    purpose: "Build dialogue from objective, tactics, pressure and subtext rather than exposition or surface cleverness.",
-    lessonRefs: [refs("dialogue", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-03"],
-    applicationTargets: ["scene objective", "subtext", "dialogue tactics"],
-  },
-  {
-    id: "course-12",
-    year: 2,
-    semester: 3,
-    orderInSemester: 4,
-    title: "Visual Storytelling",
-    purpose: "Translate story intent into screen-visible evidence through image, behavior, staging and cinematic choices.",
-    lessonRefs: [refs("visual-storytelling", 1, 2, 3)],
-    advisoryPrerequisites: ["course-04", "course-07"],
-    applicationTargets: ["visual evidence", "staging", "screen behavior"],
-  },
-  {
-    id: "course-13",
-    year: 2,
-    semester: 4,
-    orderInSemester: 1,
-    title: "Dialogue Voice & Movement",
-    purpose: "Develop distinctive speech, conversational movement and character-specific voice under dramatic pressure.",
-    lessonRefs: [refs("dialogue", 5, 6, 7)],
-    advisoryPrerequisites: ["course-11"],
-    applicationTargets: ["voiceprint", "status movement", "dialogue rhythm"],
-  },
-  {
-    id: "course-14",
-    year: 2,
-    semester: 4,
-    orderInSemester: 2,
-    title: "Dialogue Revision & Polish",
-    purpose: "Complete the Dialogue archive by diagnosing and revising dialogue against character intent, scene movement and audience experience.",
-    lessonRefs: [refs("dialogue", 8, 9, 10)],
-    advisoryPrerequisites: ["course-13"],
-    applicationTargets: ["dialogue revision", "scene pass", "voice consistency"],
-  },
-  {
-    id: "course-15",
-    year: 2,
-    semester: 4,
-    orderInSemester: 3,
-    title: "Drafting Fundamentals",
-    purpose: "Move from planning into pages with practical drafting habits, screenplay language and forward momentum.",
-    lessonRefs: [refs("drafting", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-07", "course-11"],
-    applicationTargets: ["draft pages", "screenplay language", "scene execution"],
-  },
-  {
-    id: "course-16",
-    year: 2,
-    semester: 4,
-    orderInSemester: 4,
-    title: "Drafting the Full Story",
-    purpose: "Complete the Drafting archive by sustaining causality, continuity and story intent across the full screenplay.",
-    lessonRefs: [refs("drafting", 5, 6, 7, 8)],
-    advisoryPrerequisites: ["course-09", "course-15"],
-    applicationTargets: ["full draft", "continuity", "draft completion"],
-  },
-  {
-    id: "course-17",
-    year: 3,
-    semester: 5,
-    orderInSemester: 1,
-    title: "Revision Foundations",
-    purpose: "Learn to diagnose a completed draft using evidence, root causes and bounded revision goals rather than random polishing.",
-    lessonRefs: [refs("revision", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-16"],
-    applicationTargets: ["revision diagnosis", "reader evidence", "rewrite priorities"],
-  },
-  {
-    id: "course-18",
-    year: 3,
-    semester: 5,
-    orderInSemester: 2,
-    title: "Revision Systems & Rewrite Strategy",
-    purpose: "Complete the Revision archive with deeper rewrite systems, testing and convergence toward a stronger story experience.",
-    lessonRefs: [refs("revision", 5, 6, 7, 8)],
-    advisoryPrerequisites: ["course-17"],
-    applicationTargets: ["rewrite plan", "revision passes", "convergence evidence"],
-  },
-  {
-    id: "course-19",
-    year: 3,
-    semester: 5,
-    orderInSemester: 3,
-    title: "Responsible AI & Provenance",
-    purpose: "Use AI assistance with explicit Human authority, provenance, approval and provider-awareness rather than treating model output as canon.",
-    lessonRefs: [refs("responsible-ai", 1, 2, 3)],
-    advisoryPrerequisites: ["course-01"],
-    applicationTargets: ["AI provenance", "Human approval", "responsible assistance"],
-  },
-  {
-    id: "course-20",
-    year: 3,
-    semester: 5,
-    orderInSemester: 4,
-    title: "Collaboration Foundations",
-    purpose: "Introduce shared creative work, contribution boundaries and communication after the learner has enough story material to collaborate meaningfully.",
-    lessonRefs: [refs("collaboration", 1, 2, 3, 4)],
-    advisoryPrerequisites: ["course-18", "course-19"],
-    applicationTargets: ["collaboration brief", "contribution boundary", "shared review"],
-  },
-  {
-    id: "course-21",
-    year: 3,
-    semester: 6,
-    orderInSemester: 1,
-    title: "Collaboration Workflow & Handoff",
-    purpose: "Deepen collaboration through practical workflows, handoffs, review and durable communication across contributors.",
-    lessonRefs: [refs("collaboration", 5, 6, 7, 8)],
-    advisoryPrerequisites: ["course-20"],
-    applicationTargets: ["handoff", "review workflow", "shared evidence"],
-  },
-  {
-    id: "course-22",
-    year: 3,
-    semester: 6,
-    orderInSemester: 2,
-    title: "Ownership, Delivery & Shared Work",
-    purpose: "Complete the Collaboration archive with later ownership, delivery and professional sharing concerns while preserving Human and project authority.",
-    lessonRefs: [refs("collaboration", 9, 10, 11, 12)],
-    advisoryPrerequisites: ["course-21"],
-    applicationTargets: ["ownership record", "delivery package", "shared-work boundaries"],
-  },
-  {
-    id: "course-23",
-    year: 3,
-    semester: 6,
-    orderInSemester: 3,
-    title: "Film Industry Orientation",
-    purpose: "Introduce the professional film-industry context only after the learner has built, drafted, revised and collaborated on story material.",
-    lessonRefs: [refs("industry", 1)],
-    advisoryPrerequisites: ["course-18", "course-22"],
-    applicationTargets: ["industry orientation", "professional context", "verification habits"],
-  },
-  {
-    id: "course-24",
-    year: 3,
-    semester: 6,
-    orderInSemester: 4,
-    title: "Professional Practice & Industry Context",
-    purpose: "Complete the Industry archive by connecting story ownership, collaboration and professional decision-making without turning industry guidance into creative authority.",
-    lessonRefs: [refs("industry", 2)],
-    advisoryPrerequisites: ["course-23"],
-    applicationTargets: ["professional practice", "ownership context", "industry readiness"],
-  },
+  course("course-01", 1, 1, 1, "Story Promise & Foundations", "Establish the story promise and the Foundations brief before deeper craft work.", [refs("foundations", 1, 2, 3, 4)], [], ["foundation brief", "logline", "story experience"]),
+  course("course-02", 1, 1, 2, "Theme, Tone & Motif", "Use theme, tone and motif to create a coherent audience experience.", [refs("theme", 1, 2, 3)], ["course-01"], ["theme question", "tone brief", "motif choices"]),
+  course("course-03", 1, 1, 3, "Character Foundations", "Build characters around want, need, stakes, contradiction and agency.", [refs("character", 1, 2, 3, 4)], ["course-01"], ["character intent", "stakes", "agency"]),
+  course("course-04", 1, 1, 4, "World & Genre Foundations", "Treat world and genre as active systems that shape conflict and expectation.", [refs("world", 1, 2, 3)], ["course-01"], ["world rules", "genre promise", "story constraints"]),
+
+  course("course-05", 1, 2, 1, "Character Pressure, Stakes & Arc", "Connect character pressure, relationships, choices and change across the story.", [refs("character", 5, 6, 7)], ["course-03"], ["character arc", "relationship pressure", "turning choices"]),
+  course("course-06", 1, 2, 2, "Genre, Tone & Story World", "Combine later world and theme material so story system and audience promise reinforce each other.", [refs("world", 4, 5), refs("theme", 4, 5)], ["course-02", "course-04"], ["genre pressure", "world continuity", "tone consistency"]),
+  course("course-07", 1, 2, 3, "Structure Fundamentals", "Understand dramatic structure as escalating cause, choice and consequence.", [refs("structure", 1, 2, 3, 4)], ["course-01"], ["story movement", "turning points", "cause and consequence"]),
+  course("course-08", 1, 2, 4, "Structure in Motion", "Move from broad structure into sequences, escalation and practical structural decisions.", [refs("structure", 5, 6, 7)], ["course-07"], ["sequence design", "escalation", "structural diagnosis"]),
+
+  course("course-09", 2, 3, 1, "24/96 Story Architecture", "Apply deeper structure learning to PlotPickle's 24-block and 96-beat architecture without making it a formula.", [refs("structure", 8, 9, 10, 11)], ["course-08"], ["24-block board", "96-beat evidence", "turning-point placement"]),
+  course("course-10", 2, 3, 2, "Advanced Character Design", "Test advanced character design against structural pressure and story evidence.", [refs("character", 8, 9, 10)], ["course-05", "course-09"], ["character system", "contradiction", "story-bible character evidence"]),
+  course("course-11", 2, 3, 3, "Dialogue Intent & Subtext", "Build dialogue from objective, tactics, pressure and subtext rather than exposition.", [refs("dialogue", 1, 2, 3, 4)], ["course-03"], ["scene objective", "subtext", "dialogue tactics"]),
+  course("course-12", 2, 3, 4, "Visual Storytelling", "Translate story intent into screen-visible evidence through image, behavior and staging.", [refs("visual-storytelling", 1, 2, 3)], ["course-04", "course-07"], ["visual evidence", "staging", "screen behavior"]),
+
+  course("course-13", 2, 4, 1, "Dialogue Voice & Movement", "Develop distinctive speech, conversational movement and character-specific voice under pressure.", [refs("dialogue", 5, 6, 7)], ["course-11"], ["voiceprint", "status movement", "dialogue rhythm"]),
+  course("course-14", 2, 4, 2, "Dialogue Revision & Polish", "Diagnose and revise dialogue against character intent, scene movement and audience experience.", [refs("dialogue", 8, 9, 10)], ["course-13"], ["dialogue revision", "scene pass", "voice consistency"]),
+  course("course-15", 2, 4, 3, "Drafting Fundamentals", "Move from planning into pages with practical drafting habits and screenplay language.", [refs("drafting", 1, 2, 3, 4)], ["course-07", "course-11"], ["draft pages", "screenplay language", "scene execution"]),
+  course("course-16", 2, 4, 4, "Drafting the Full Story", "Sustain causality, continuity and story intent across the full screenplay.", [refs("drafting", 5, 6, 7, 8)], ["course-09", "course-15"], ["full draft", "continuity", "draft completion"]),
+
+  course("course-17", 3, 5, 1, "Revision Foundations", "Diagnose a completed draft using evidence, root causes and bounded revision goals.", [refs("revision", 1, 2, 3, 4)], ["course-16"], ["revision diagnosis", "reader evidence", "rewrite priorities"]),
+  course("course-18", 3, 5, 2, "Revision Systems & Rewrite Strategy", "Use deeper rewrite systems and testing to converge on a stronger story experience.", [refs("revision", 5, 6, 7, 8)], ["course-17"], ["rewrite plan", "revision passes", "convergence evidence"]),
+  course("course-19", 3, 5, 3, "Responsible AI & Provenance", "Use AI with explicit Human authority, provenance, approval and provider awareness.", [refs("responsible-ai", 1, 2, 3)], ["course-01"], ["AI provenance", "Human approval", "responsible assistance"]),
+  course("course-20", 3, 5, 4, "Collaboration Foundations", "Introduce shared creative work, contribution boundaries and communication after substantial story work exists.", [refs("collaboration", 1, 2, 3, 4)], ["course-18", "course-19"], ["collaboration brief", "contribution boundary", "shared review"]),
+
+  course("course-21", 3, 6, 1, "Collaboration Workflow & Handoff", "Deepen collaboration through practical workflows, handoffs, review and durable communication.", [refs("collaboration", 5, 6, 7, 8)], ["course-20"], ["handoff", "review workflow", "shared evidence"]),
+  course("course-22", 3, 6, 2, "Ownership, Delivery & Shared Work", "Complete collaboration learning with ownership, delivery and professional sharing boundaries.", [refs("collaboration", 9, 10, 11, 12)], ["course-21"], ["ownership record", "delivery package", "shared-work boundaries"]),
+  course("course-23", 3, 6, 3, "Film Industry Orientation", "Introduce professional film-industry context after the learner has built, drafted, revised and collaborated.", [refs("industry", 1)], ["course-18", "course-22"], ["industry orientation", "professional context", "verification habits"]),
+  course("course-24", 3, 6, 4, "Professional Practice & Industry Context", "Connect story ownership, collaboration and professional decision-making without making Industry creative authority.", [refs("industry", 2)], ["course-23"], ["professional practice", "ownership context", "industry readiness"]),
 ];
 
 function resolveLessonRefs(lessonRefs) {
-  return lessonRefs.flatMap(({ topic, numbers }) => numbers.map((number) => {
-    const lesson = lessonByRef.get(`${topic}:${number}`);
-    if (!lesson) {
-      throw new Error(`LEARN program map references missing canonical lesson ${topic}:${number}.`);
-    }
-    return lesson.id;
-  }));
+  return lessonRefs.flatMap(({ topic, positions }) => {
+    const lessons = lessonsByTopic.get(topic);
+    if (!lessons) throw new Error(`LEARN program map references unknown canonical topic ${topic}.`);
+    return positions.map((position) => {
+      const lesson = lessons[position - 1];
+      if (!lesson) throw new Error(`LEARN program map references missing canonical lesson position ${topic}:${position}.`);
+      return lesson.id;
+    });
+  });
 }
 
-const courses = COURSE_SPECS.map((course) => ({
-  ...course,
+const courses = COURSE_SPECS.map((spec) => ({
+  ...spec,
   access: "open",
   prerequisiteMode: "advisory-only",
-  lessonIds: resolveLessonRefs(course.lessonRefs),
+  lessonIds: resolveLessonRefs(spec.lessonRefs),
 }));
 
 const semesters = Array.from({ length: 6 }, (_, index) => {
   const semester = index + 1;
-  const year = Math.ceil(semester / 2);
   return {
     id: `semester-${semester}`,
-    year,
+    year: Math.ceil(semester / 2),
     semester,
-    courseIds: courses.filter((course) => course.semester === semester).map((course) => course.id),
+    courseIds: courses.filter((item) => item.semester === semester).map((item) => item.id),
   };
 });
 
@@ -337,11 +115,13 @@ export const LEARN_PROGRAM_MAP = Object.freeze({
   courses,
 });
 
-export const LEARN_PROGRAM_ARCHIVE_LESSONS = Object.freeze(archiveLessons.map((lesson) => ({
-  id: lesson.id,
-  number: lesson.number,
-  topic: lesson.topic,
-  title: lesson.title,
-})));
+export const LEARN_PROGRAM_ARCHIVE_LESSONS = Object.freeze(
+  archiveLessons.map((lesson) => ({
+    id: lesson.id,
+    number: lesson.number,
+    topic: lesson.canonicalTopic,
+    title: lesson.title,
+  })),
+);
 
 export default LEARN_PROGRAM_MAP;

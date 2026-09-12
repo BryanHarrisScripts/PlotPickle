@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import test from "node:test";
 import { LEARN_PROGRAM_ARCHIVE_LESSONS, LEARN_PROGRAM_MAP } from "../learn/program-map.mjs";
+import { runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -14,9 +15,7 @@ test("#1918 Phase 1 defines exactly 24 stable courses in six four-course semeste
     LEARN_PROGRAM_MAP.courses.map((course) => course.id),
     Array.from({ length: 24 }, (_, index) => `course-${String(index + 1).padStart(2, "0")}`),
   );
-  for (const semester of LEARN_PROGRAM_MAP.semesters) {
-    assert.equal(semester.courseIds.length, 4);
-  }
+  for (const semester of LEARN_PROGRAM_MAP.semesters) assert.equal(semester.courseIds.length, 4);
 });
 
 test("#1918 Phase 1 maps every canonical archive lesson exactly once without duplicating curriculum bodies", () => {
@@ -50,4 +49,22 @@ test("#1918 Phase 1 deterministic validator passes against the repository", asyn
 
   assert.equal(stderr, "");
   assert.match(stdout, /24 courses, 6 semesters, 4 courses per semester, all 81 archive lessons mapped exactly once/u);
+});
+
+test("#1918 Phase 1 canonical development convergence reports CONVERGED against the real diff", async () => {
+  const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
+  const result = await runDevelopmentConvergence([
+    "--manifest",
+    "config/development-convergence/1918.json",
+    "--base-ref",
+    baseRef,
+    "--report-dir",
+    ".artifacts/development-convergence",
+  ]);
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.reports.length, 1);
+  assert.equal(result.reports[0].issue, 1918);
+  assert.equal(result.reports[0].status, "CONVERGED");
+  assert.deepEqual(result.reports[0].remaining, []);
 });

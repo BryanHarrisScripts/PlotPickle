@@ -54,7 +54,7 @@
         "types": ["test-result", "report"],
         "artifactPaths": [".artifacts/verification-shadow/provider-runtime.json", ".artifacts/verification-shadow/provider-runtime.comparison.json"]
       },
-      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains in both legacy gates until separately proven."
+      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification."
     },
     {
       "id": "verification.phase2-core",
@@ -77,7 +77,37 @@
         "types": ["test-result", "report"],
         "artifactPaths": [".artifacts/verification/verification.json"]
       },
-      "notes": "Phase 2 self-test for the shared verification planning/execution/evidence core. Existing PR Gate and Product Gate remain authoritative."
+      "notes": "Shared verification planning/execution/evidence core baseline."
+    },
+    {
+      "id": "verification.phase7-merge-authority",
+      "ownerLayer": "verification",
+      "architectureComponents": ["merge-authority", "ci-topology", "living-architecture"],
+      "triggerTokens": ["test-harness", "docs", "release"],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-1747-ci-two-gates.test.mjs",
+          "tests/issue-538-ci-consolidation.test.mjs",
+          "tests/issue-1949-merge-authority.test.mjs",
+          "tests/issue-1951-retire-legacy-gates.test.mjs",
+          "tests/architecture-blueprint-generator.test.mjs",
+          "tests/issue-1909-living-architecture.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification/verification.json"]
+      },
+      "notes": "Phase 7 baseline that locks the sole ordinary PR workflow, enforced seven-check merge authority, legacy manual-diagnostic retirement, and living Layer 7 architecture projection."
     }
   ]
 }

@@ -8,6 +8,7 @@
     "app/skin-v1/menu-feedback-footer.tsx",
     "config/development-convergence/1973.json",
     "docs/developer-briefs/1973-contextual-menu-footer.md",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs",
     "tests/issue-1973-contextual-menu-footer.test.mjs"
   ],
   "acceptance": [
@@ -40,7 +41,8 @@
       "criterion": "Selection feedback is accessible without relying on color alone.",
       "evidence": [
         { "type": "file-contains", "path": "app/skin-v1/menu-feedback-footer.tsx", "contains": "aria-live=\"polite\"" },
-        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "connected ? \"available\" : \"unavailable\"" }
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "connected ? \"available\" : \"unavailable\"" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "uses explicit available/unavailable status semantics" }
       ]
     },
     {

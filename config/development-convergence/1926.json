@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "issue": 1926,
+  "brief": "docs/developer-briefs/1926-phase-1-verification-contracts.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1926.json",
+    "config/verification/ownership-map.json",
+    "config/verification/phase-1-vocabulary.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1926-phase-1-verification-contracts.md",
+    "lib/verification/verification-contracts.mjs",
+    "schema/verification/evidence.schema.json",
+    "schema/verification/ownership.schema.json",
+    "schema/verification/test-catalog.schema.json",
+    "scripts/validate-verification-phase-1.mjs",
+    "tests/issue-1926-verification-schemas.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Phase 1 uses the seven canonical architecture IDs and one configuration source for the seven Human-facing check names.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/phase-1-vocabulary.json",
+          "contains": "config/verification/phase-0-inventory.json#displayChecks"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1926-verification-schemas.test.mjs",
+          "contains": "keeps one seven-layer display-check source aligned with the canonical architecture"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Catalog, ownership and evidence contracts are typed, closed and fail closed for unknown production ownership.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "unmapped-production-ownership"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-contracts.mjs",
+          "contains": "legacy-workflow-step"
+        },
+        {
+          "type": "file-contains",
+          "path": "schema/verification/evidence.schema.json",
+          "contains": "secretsAccessed"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Every Phase 0 inventory entry is provably translatable without changing current gate execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/validate-verification-phase-1.mjs",
+          "contains": "translatePhase0Entry"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1926-verification-schemas.test.mjs",
+          "contains": "translates every Phase 0 inventory entry"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Current PR Gate and Product Gate remain authoritative; Phase 1 only adds focused contract validation to PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "Validate seven-layer verification contracts"
+        }
+      ]
+    }
+  ]
+}

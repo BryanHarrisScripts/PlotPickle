@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schema/verification/ownership.schema.json",
+  "title": "PlotPickle Verification Architecture Ownership",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceArchitecture", "unknownProduction", "rules"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "sourceArchitecture": { "const": "architecture/plotpickle.architecture.json" },
+    "unknownProduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "evidenceCode"],
+      "properties": {
+        "policy": { "const": "fail-closed" },
+        "evidenceCode": { "const": "unmapped-production-ownership" }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ownershipRule" }
+    }
+  },
+  "$defs": {
+    "ownershipRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "classification", "include", "ownerLayer", "riskTokens"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "classification": {
+          "enum": ["production", "verification", "test", "docs"]
+        },
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "exclude": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "ownerLayer": { "type": "string", "minLength": 1 },
+        "riskTokens": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "notes": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "classification": { "const": "production" } },
+            "required": ["classification"]
+          },
+          "then": {
+            "properties": {
+              "riskTokens": { "minItems": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

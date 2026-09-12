@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schema/verification/evidence.schema.json",
+  "title": "PlotPickle Verification Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "commitSha",
+    "layerId",
+    "architectureComponents",
+    "triggerReasons",
+    "selectedTestIds",
+    "skippedTests",
+    "runtime",
+    "result",
+    "durationMs",
+    "artifacts",
+    "security"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "commitSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "layerId": { "type": "string", "minLength": 1 },
+    "architectureComponents": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "triggerReasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value"],
+        "properties": {
+          "kind": {
+            "enum": ["changed-file", "risk-token", "baseline", "manual", "release", "scheduled"]
+          },
+          "value": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "selectedTestIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "skippedTests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "reasonCode", "reason"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "reasonCode": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "runner"],
+      "properties": {
+        "platform": { "type": "string", "minLength": 1 },
+        "runner": { "type": "string", "minLength": 1 },
+        "nodeVersion": { "type": "string" }
+      }
+    },
+    "result": {
+      "enum": ["pass", "fail", "not-impacted-beyond-baseline", "skipped"]
+    },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path"],
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["networkUsed", "nativeUsed", "secretsAccessed"],
+      "properties": {
+        "networkUsed": { "type": "boolean" },
+        "nativeUsed": { "type": "boolean" },
+        "secretsAccessed": { "type": "boolean" }
+      }
+    }
+  }
+}

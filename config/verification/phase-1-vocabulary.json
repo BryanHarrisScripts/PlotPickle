@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 1926,
+  "sourceArchitecture": "architecture/plotpickle.architecture.json",
+  "displayChecksSource": "config/verification/phase-0-inventory.json#displayChecks",
+  "riskTokens": [
+    "surface",
+    "skin",
+    "navigation",
+    "visual",
+    "auth",
+    "storage",
+    "canon",
+    "graph",
+    "agent",
+    "skill",
+    "plugin",
+    "provider",
+    "native",
+    "voice",
+    "video",
+    "windows",
+    "mcp",
+    "api",
+    "cli",
+    "release",
+    "security",
+    "build",
+    "installer",
+    "packaging",
+    "docs",
+    "test-harness"
+  ],
+  "runnerKinds": [
+    "node-test",
+    "node-script",
+    "npm-script",
+    "powershell-script",
+    "browser-uat",
+    "native-smoke",
+    "build",
+    "installer-contract",
+    "legacy-workflow-step"
+  ],
+  "costClasses": ["fast", "medium", "heavy"],
+  "modes": ["baseline", "impact", "release", "scheduled", "manual"],
+  "platforms": ["any", "linux", "windows", "macos"],
+  "evidenceTypes": [
+    "test-result",
+    "artifact",
+    "report",
+    "screenshot",
+    "build",
+    "installer",
+    "diagnostics",
+    "legacy-gate-result"
+  ],
+  "unknownProductionOwnership": {
+    "policy": "fail-closed",
+    "evidenceCode": "unmapped-production-ownership"
+  }
+}

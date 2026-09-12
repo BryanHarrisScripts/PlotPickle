@@ -8,6 +8,7 @@
     "app/skin-v1/learn-journey-preview.module.css",
     "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1918.json",
+    "config/verification/ownership-map.json",
     "core/contracts/curriculum-guide.ts",
     "core/contracts/learning-application.ts",
     "core/learning/application-view.ts",
@@ -75,11 +76,12 @@
     },
     {
       "id": "P7-A7",
-      "criterion": "Phase 7 preserves unrestricted Journey/Explore behavior and prior deterministic curriculum integrity while adding focused regression coverage.",
+      "criterion": "Phase 7 preserves unrestricted Journey/Explore behavior, prior deterministic curriculum integrity, and explicit seven-layer ownership while adding focused regression coverage.",
       "evidence": [
         { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "[E] EXPLORE / ALL CURRICULUM" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "Phase 7 adds Human-led deterministic application and EA reflection without grading or gates" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "scripts/validate-learn-curriculum-integrity.mjs" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "scripts/validate-learn-curriculum-integrity.mjs" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "learn-ea-reflection-agent" }
       ]
     },
     {

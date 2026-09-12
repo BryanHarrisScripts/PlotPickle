@@ -156,7 +156,7 @@ test("#1926 schemas are closed JSON Schema 2020-12 contracts with required safet
     assert.equal(schema.additionalProperties, false);
   }
 
-  assert.deepEqual(catalogSchema.$defs.catalogEntry.properties.requirements.required ?? [], undefined);
+  assert.deepEqual(catalogSchema.$defs.catalogEntry.properties.requirements.required, ["network", "native", "secrets"]);
   assert.equal(ownershipSchema.properties.unknownProduction.properties.policy.const, "fail-closed");
   assert.ok(evidenceSchema.required.includes("security"));
   assert.ok(evidenceSchema.required.includes("commitSha"));

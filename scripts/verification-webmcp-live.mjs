@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { verificationSyntheticHome } from "./full-verification-auth.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -83,7 +84,8 @@ async function writeSummary(status, details = {}) {
 
 export async function runLiveWebMcpEvidence() {
   const tempRoot = path.resolve(process.env.RUNNER_TEMP || path.join(os.tmpdir(), "plotpickle-live-verification"));
-  const home = path.join(tempRoot, "plotpickle-webmcp-home");
+  const jobRef = process.env.GITHUB_RUN_ID || process.env.GITHUB_RUN_NUMBER || `local-${process.pid}`;
+  const home = verificationSyntheticHome(`architecture-webmcp-${jobRef}`);
   const toolRoot = path.join(tempRoot, "plotpickle-webmcp-tools");
   const npm = commandName("npm");
   const node = process.execPath;
@@ -117,11 +119,11 @@ export async function runLiveWebMcpEvidence() {
       "--tool-root", toolRoot,
     ]);
     await Promise.race([audit, serverExited]);
-    await writeSummary("pass");
+    await writeSummary("pass", { syntheticHomeAuthority: "full-verification-auth" });
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await writeSummary("fail", { failure: message });
+    await writeSummary("fail", { failure: message, syntheticHomeAuthority: "full-verification-auth" });
     console.error(`[FAIL] Live WebMCP verification: ${message}`);
     return 1;
   } finally {

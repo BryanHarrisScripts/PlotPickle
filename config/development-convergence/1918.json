@@ -3,6 +3,7 @@
   "issue": 1918,
   "brief": "docs/developer-briefs/1918-learn-24-course-open-journey.md",
   "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
     "config/development-convergence/1918.json",
     "docs/developer-briefs/1918-learn-24-course-open-journey.md",
     "learn/journey-baseline.json",
@@ -45,6 +46,15 @@
         { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"journeyMayGateCurriculumAccess\": false" },
         { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"programMapMayDuplicateLessonBodies\": false" },
         { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"humanRemainsLearningSequenceAuthority\": true" }
+      ]
+    },
+    {
+      "id": "P0-A5",
+      "criterion": "PR Gate runs the existing LEARN curriculum validator and the focused #1918 Phase 0 regression before later phases can build on the baseline.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "Validate LEARN #1918 Phase 0 baseline" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "node scripts/validate-learn-curriculum.mjs" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1918-learn-journey-baseline.test.mjs" }
       ]
     }
   ]

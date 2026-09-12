@@ -64,10 +64,9 @@ const button: React.CSSProperties = {
 async function readJson<T>(response: Response, fallback: string) {
   const type = response.headers.get("content-type") || "";
   if (!type.includes("application/json")) throw new Error(fallback);
-  const value = response.json() as unknown as T & { message?: string };
-  const resolved = await value;
-  if (!response.ok) throw new Error(resolved.message || fallback);
-  return resolved;
+  const value = await response.json() as T & { message?: string };
+  if (!response.ok) throw new Error(value.message || fallback);
+  return value;
 }
 
 export default function NodeSkinPanel() {

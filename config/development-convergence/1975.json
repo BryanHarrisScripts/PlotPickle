@@ -6,6 +6,7 @@
     "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1975.json",
     "docs/developer-briefs/1975-learn-paths-craft-modules.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1918-learn-semester-one.test.mjs"
   ],
@@ -59,11 +60,12 @@
     },
     {
       "id": "A6",
-      "criterion": "The existing governed LEARN regression suites prove #1975 without introducing a second verification lane.",
+      "criterion": "The existing governed LEARN regression suites and live Skin V1 menu audit prove #1975 without preserving stale academic accessibility language.",
       "evidence": [
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1975 presents the Journey as six Paths and 24 Craft Modules while retaining stable internal contracts" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1975 canonical development convergence reports CONVERGED against the real diff" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "OPEN ANY CRAFT MODULE IN ANY ORDER" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "OPEN ANY CRAFT MODULE IN ANY ORDER" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "section[aria-label='LEARN Journey Path'][data-skin-menu='learn-journey-courses']" }
       ]
     }
   ]

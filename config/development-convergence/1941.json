@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "issue": 1941,
+  "brief": "docs/developer-briefs/1941-phase-3-seven-shadow-checks.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1941.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/1941-phase-3-seven-shadow-checks.md",
+    "scripts/verification-shadow.mjs",
+    "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-538-ci-consolidation.test.mjs",
+    "tests/issue-1941-seven-shadow-checks.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "One pull-request workflow exposes the seven approved architecture shadow check names without path filters.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "Layer 1 Experience Skins"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "Layer 7 Validation & Operations"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "name: ${{ matrix.name }}"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Shadow execution reuses the Phase 2 core and keeps heavy, network, native and secrets activity disabled.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "planVerification"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "allowHeavy: false"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "shell: false"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Every layer can emit exact-head normalized evidence and a machine-readable shadow summary including blocking findings.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "emitEvidence"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "blockingFindings: plan.blockingFindings"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": ".artifacts/verification-shadow/${{ matrix.id }}.summary.json"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Legacy topology regressions preserve exactly two authoritative gates while permitting the one Phase 3 shadow workflow.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1747-ci-two-gates.test.mjs",
+          "contains": "architecture-shadow.yml"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-538-ci-consolidation.test.mjs",
+          "contains": "Architecture Shadow Verification"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused Phase 3 regressions protect visible names, baseline behavior, safe selection, fail-closed ownership and unchanged old-gate authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1941-seven-shadow-checks.test.mjs",
+          "contains": "exactly the seven approved architecture shadow check names"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1941-seven-shadow-checks.test.mjs"
+        }
+      ]
+    }
+  ]
+}

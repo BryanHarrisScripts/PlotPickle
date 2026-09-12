@@ -60,6 +60,32 @@
       "notes": "#1954 pre-Phase 2 cleanup. Protects the PowerShell testing-mode choice, Writer's Craft Dashboard directory geometry, Profile spacing rhythm and single-dominant-heading contract before #1918 Phase 2 begins."
     },
     {
+      "id": "experience.home-launcher-1960",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
+      "triggerTokens": ["windows", "native", "surface"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1960-home-launcher-bootstrap.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1960 Windows home-folder bootstrap. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, leaves the Y/N prompt owned by the freshly pulled PlotPickle.ps1, and preserves explicit WebMCP/Human mode pass-through."
+    },
+    {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
       "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map"],

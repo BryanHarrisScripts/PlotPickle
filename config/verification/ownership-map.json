@@ -17,7 +17,8 @@
         "schema/verification/**",
         "lib/verification/**",
         "scripts/validate-verification-phase-1.mjs",
-        "scripts/verification-core.mjs"
+        "scripts/verification-core.mjs",
+        "scripts/verification-shadow.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": ["test-harness", "cli"]

@@ -2,7 +2,7 @@
 
 Generated projection of `architecture/plotpickle.architecture.json`. C4 is a view of the canonical map, not a separate model.
 
-Source fingerprint: `sha256:b69cb4723228cf791db0c79ac909cae3ef1f91940c3168756832c8ac8bcf2518`
+Source fingerprint: `sha256:92ad6f9591530ef3b5fb161edb5051f92d624f83da8c3d939f8d038ea9efee9c`
 
 ## System Context
 
@@ -91,10 +91,10 @@ flowchart TB
     provider_runtime_5["Media providers"]
   end
   subgraph verification_components["VALIDATION & OPERATIONS"]
-    verification_1["PR Gate"]
-    verification_2["Product Gate"]
-    verification_3["Replaceable test harness"]
-    verification_4["Evidence + release"]
+    verification_1["Architecture Verification"]
+    verification_2["Verification core"]
+    verification_3["Live + runtime observers"]
+    verification_4["Release + diagnostics"]
   end
 ```
 

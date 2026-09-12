@@ -3,7 +3,7 @@
 Generated architecture context for repository-aware developer agents. This file is a compact projection, not an authority source.
 
 Source: `architecture/plotpickle.architecture.json`  
-Source fingerprint: `sha256:b69cb4723228cf791db0c79ac909cae3ef1f91940c3168756832c8ac8bcf2518`  
+Source fingerprint: `sha256:92ad6f9591530ef3b5fb161edb5051f92d624f83da8c3d939f8d038ea9efee9c`  
 Architecture version: `1.0`  
 Architecture status: `TARGET`
 

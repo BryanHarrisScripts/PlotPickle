@@ -41,7 +41,7 @@
 </style>
 <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid" fill="none"/></pattern><marker id="arrow-cyan" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#58d7e7"/></marker><marker id="arrow-amber" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#f0b82f"/></marker><marker id="arrow-purple" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#bc83e8"/></marker></defs>
 <rect width="2400" height="1380" class="bg"/><rect width="2400" height="1380" fill="url(#grid)" opacity=".18"/>
-<text x="300" y="52" class="title">PlotPickle</text><text x="570" y="52" class="tagline">AI-Native Agentic Story Operating System</text><text x="300" y="82" class="subtitle">TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE</text><text x="2360" y="36" class="micro cyan" text-anchor="end">ARCHITECTURE BLUEPRINT v1.0</text><text x="2360" y="58" class="note" text-anchor="end">2026-09-09 · target</text><line x1="300" y1="98" x2="2360" y2="98" class="cyan" opacity=".55"/>
+<text x="300" y="52" class="title">PlotPickle</text><text x="570" y="52" class="tagline">AI-Native Agentic Story Operating System</text><text x="300" y="82" class="subtitle">TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE</text><text x="2360" y="36" class="micro cyan" text-anchor="end">ARCHITECTURE BLUEPRINT v1.0</text><text x="2360" y="58" class="note" text-anchor="end">2026-09-12 · target</text><line x1="300" y1="98" x2="2360" y2="98" class="cyan" opacity=".55"/>
 <path d="M532 246 V253" class="flow amber-stroke"/><text x="546" y="256" class="micro amber">Semantic intents</text>
 <path d="M532 444 V451" class="flow amber-stroke"/><text x="546" y="454" class="micro amber">Validated requests</text>
 <path d="M532 584 V591" class="flow amber-stroke"/><text x="546" y="594" class="micro amber">Governed capabilities</text>
@@ -332,31 +332,31 @@
 <path d="M300 1090 h96" class="amber" fill="none" stroke-width="2"/>
 <text x="318" y="1106" class="panel-title amber">VERIFICATION CLIENTS + RELEASE OPERATIONS</text>
 <text x="1602" y="1105" class="note" text-anchor="end">OUTSIDE THE PRODUCTION DEPENDENCY PATH</text>
-<g class="architecture-component" data-component="PR Gate">
+<g class="architecture-component" data-component="Architecture Verification">
 <rect x="318" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
-<text x="332" y="1134" class="component-title" text-anchor="start">PR Gate</text>
-<text x="332" y="1152" class="component-detail" text-anchor="start">Contracts · BEN · architecture</text>
-<text x="332" y="1164" class="component-detail" text-anchor="start">· focused tests + production</text>
+<text x="332" y="1134" class="component-title" text-anchor="start">Architecture Verification</text>
+<text x="332" y="1152" class="component-detail" text-anchor="start">Seven stable required layer</text>
+<text x="332" y="1164" class="component-detail" text-anchor="start">checks · exact-head evidence</text>
 </g>
-<g class="architecture-component" data-component="Product Gate">
+<g class="architecture-component" data-component="Verification core">
 <rect x="577.2" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
-<text x="591.2" y="1134" class="component-title" text-anchor="start">Product Gate</text>
-<text x="591.2" y="1152" class="component-detail" text-anchor="start">Rendered UX · accessibility ·</text>
-<text x="591.2" y="1164" class="component-detail" text-anchor="start">Visual Readiness · Windows +</text>
+<text x="591.2" y="1134" class="component-title" text-anchor="start">Verification core</text>
+<text x="591.2" y="1152" class="component-detail" text-anchor="start">Catalog · impact graph · typed</text>
+<text x="591.2" y="1164" class="component-detail" text-anchor="start">runners · normalized evidence</text>
 </g>
-<g class="architecture-component" data-component="Replaceable test harness">
+<g class="architecture-component" data-component="Live + runtime observers">
 <rect x="836.4" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
-<text x="850.4" y="1134" class="component-title" text-anchor="start">Replaceable test harness</text>
-<text x="850.4" y="1152" class="component-detail" text-anchor="start">Reference client of the public</text>
-<text x="850.4" y="1164" class="component-detail" text-anchor="start">Experience contract</text>
+<text x="850.4" y="1134" class="component-title" text-anchor="start">Live + runtime observers</text>
+<text x="850.4" y="1152" class="component-detail" text-anchor="start">Impact-selected WebMCP ·</text>
+<text x="850.4" y="1164" class="component-detail" text-anchor="start">provider · native · platform</text>
 </g>
-<g class="architecture-component" data-component="Evidence + release">
+<g class="architecture-component" data-component="Release + diagnostics">
 <rect x="1095.6" y="1116" width="247.2" height="50" rx="4" class="component amber-stroke"/>
-<text x="1109.6" y="1134" class="component-title" text-anchor="start">Evidence + release</text>
-<text x="1109.6" y="1152" class="component-detail" text-anchor="start">Artifacts · diagnostics ·</text>
-<text x="1109.6" y="1164" class="component-detail" text-anchor="start">installer · specialized</text>
+<text x="1109.6" y="1134" class="component-title" text-anchor="start">Release + diagnostics</text>
+<text x="1109.6" y="1152" class="component-detail" text-anchor="start">Full Verification · artifacts ·</text>
+<text x="1109.6" y="1164" class="component-detail" text-anchor="start">installer · explicit manual</text>
 </g>
-<text x="318" y="1192" class="footer">TWO NORMAL VISIBLE PR GATES · SAME EXPERIENCE CONTRACT, NO RUNTIME DEPENDENCY</text>
+<text x="318" y="1192" class="footer">SEVEN REQUIRED ARCHITECTURE CHECKS · IMPACT-SELECTED EVIDENCE · NO PRODUCTION RUNTIME DEPENDENCY</text>
 </g>
 <rect x="1680" y="132" width="680" height="170" rx="10" class="panel cyan-stroke"/><text x="1702" y="162" class="panel-title cyan">CORE PRINCIPLES</text><text x="1704" y="192" class="component-title">Human authority</text><text x="1704" y="209" class="component-detail">Explicit consent</text>
 <text x="2024" y="192" class="component-title">PPF canon</text><text x="2024" y="209" class="component-detail">One durable authority</text>

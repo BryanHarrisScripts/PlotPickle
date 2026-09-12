@@ -24,7 +24,7 @@
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/verification-core.mjs",
+          "path": "config/verification/ownership-map.json",
           "contains": "unmapped-production-ownership"
         }
       ]

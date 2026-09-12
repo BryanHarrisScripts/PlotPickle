@@ -22,7 +22,7 @@
         "secrets": false
       },
       "evidence": {
-        "types": ["rendered-uat", "screenshot", "report"],
+        "types": ["artifact", "screenshot", "report"],
         "artifactPaths": [
           ".artifacts/verification-live/webmcp-live.json",
           ".artifacts/webmcp-startup/summary.json",

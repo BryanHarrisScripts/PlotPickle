@@ -12,6 +12,10 @@ const artifactRoot = path.join(repoRoot, ".artifacts", "verification-live");
 const summaryPath = path.join(artifactRoot, "webmcp-live.json");
 const serverLogPath = path.join(artifactRoot, "webmcp-app-server.log");
 const serverUrl = "http://127.0.0.1:4173";
+const verificationPackages = Object.freeze([
+  "@playwright/test@1.63.0",
+  "@mcp-b/webmcp-polyfill@5.1.0",
+]);
 
 function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
@@ -31,6 +35,29 @@ function runCommand(command, args, options = {}) {
       else reject(new Error(`${command} ${args.join(" ")} failed${signal ? ` with signal ${signal}` : ` with exit code ${code}`}.`));
     });
   });
+}
+
+async function preparePinnedBrowserTools(toolRoot, npm, node) {
+  await mkdir(toolRoot, { recursive: true });
+  await writeFile(path.join(toolRoot, "package.json"), `${JSON.stringify({
+    private: true,
+    name: "plotpickle-architecture-webmcp-tools",
+  }, null, 2)}\n`, "utf8");
+  await runCommand(npm, [
+    "install",
+    "--prefix", toolRoot,
+    "--no-save",
+    "--package-lock=false",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    ...verificationPackages,
+  ]);
+  const playwrightCli = path.join(toolRoot, "node_modules", "playwright", "cli.js");
+  const installArgs = [playwrightCli, "install"];
+  if (process.platform === "linux" && process.env.CI) installArgs.push("--with-deps");
+  installArgs.push("chromium");
+  await runCommand(node, installArgs);
 }
 
 async function writeSummary(status, details = {}) {
@@ -66,6 +93,7 @@ export async function runLiveWebMcpEvidence() {
   await mkdir(artifactRoot, { recursive: true });
   try {
     await runCommand(npm, ["ci", "--include=dev", "--no-audit", "--no-fund"]);
+    await preparePinnedBrowserTools(toolRoot, npm, node);
     await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "prepare", "--home", home]);
 
     serverLog = createWriteStream(serverLogPath, { flags: "w" });

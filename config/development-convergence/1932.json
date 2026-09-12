@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 1932,
+  "brief": "docs/developer-briefs/1932-writer-craft-webmcp-selector.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1932.json",
+    "docs/developer-briefs/1932-writer-craft-webmcp-selector.md",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/issue-1932-writer-craft-webmcp-selector.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Writer's Craft live WebMCP locator targets the labelled menu section itself rather than a nonexistent descendant.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "section[aria-label=\\\"Writer's Craft menu\\\"][data-skin-menu='writer-craft']"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1932-writer-craft-webmcp-selector.test.mjs",
+          "contains": "same-element Writer's Craft menu selector"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Writer's Craft remains reachable through shortcut 1 and governed by the existing menu audit without production UI changes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1932-writer-craft-webmcp-selector.test.mjs",
+          "contains": "Writer's Craft remains reachable through dashboard shortcut 1"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1932-writer-craft-webmcp-selector.test.mjs",
+          "contains": "Writer's Craft remains governed by the menu contract audit"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The focused #1932 regression runs in the normal PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1932-writer-craft-webmcp-selector.test.mjs"
+        }
+      ]
+    }
+  ]
+}

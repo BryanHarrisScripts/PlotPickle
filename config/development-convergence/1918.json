@@ -14,7 +14,8 @@
     "core/learning/application-view.ts",
     "docs/developer-briefs/1918-phase-7-ea-reflection.md",
     "modules/creative-room/ea-reflection-guide.ts",
-    "tests/issue-1918-learn-journey-shell.test.mjs"
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1918-learn-semester-one.test.mjs"
   ],
   "acceptance": [
     {

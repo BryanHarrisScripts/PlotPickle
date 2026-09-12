@@ -155,6 +155,9 @@ export function validateLearnCurriculumIntegrity({
   const promotedFoundationSourceIds = extractPromotedFoundationSourceIds(foundationReferenceSource);
   const promotedFoundationSourceIdSet = new Set(promotedFoundationSourceIds);
   const foundationSourceIdSet = new Set(foundationSources.map((source) => source.id));
+  const coveredPromotedFoundationSourceIdSet = new Set(
+    [...promotedFoundationSourceIdSet].filter((sourceId) => foundationSourceIdSet.has(sourceId)),
+  );
 
   check(promotedFoundationSourceIds.length === promotedFoundationSourceIdSet.size, "Foundations promoted presentation source IDs must be unique.");
   check(promotedFoundationSourceIdSet.size === foundationSourceIdSet.size, `Expected every one of the ${foundationSourceIdSet.size} Foundations sources to be promoted into presentation/reference coverage.`);
@@ -165,8 +168,8 @@ export function validateLearnCurriculumIntegrity({
     check(foundationSourceIdSet.has(sourceId), `Promoted Foundations presentation source ${sourceId} is not part of the canonical Foundations archive.`);
   }
 
-  const presentationLessonCount = archiveLessons.length + promotedFoundationSourceIdSet.size;
-  const foundationsPresentationLessonCount = foundationLessons.length + promotedFoundationSourceIdSet.size;
+  const presentationLessonCount = archiveLessons.length + coveredPromotedFoundationSourceIdSet.size;
+  const foundationsPresentationLessonCount = foundationLessons.length + coveredPromotedFoundationSourceIdSet.size;
   check(presentationLessonCount === baseline?.curriculum?.presentationLessonCount, `Expected ${baseline?.curriculum?.presentationLessonCount} presentation lessons, accounted for ${presentationLessonCount}.`);
   check(foundationsPresentationLessonCount === baseline?.curriculum?.foundationsPresentationLessonCount, `Expected ${baseline?.curriculum?.foundationsPresentationLessonCount} Foundations presentation lessons, accounted for ${foundationsPresentationLessonCount}.`);
   check(presentationAdapterSource.includes(`standalonePlotPickleCurriculum.length !== ${baseline?.curriculum?.presentationLessonCount}`), "Current curriculum adapter no longer enforces the frozen presentation lesson count.");
@@ -182,7 +185,7 @@ export function validateLearnCurriculumIntegrity({
   const referenceCoverage = [];
   for (const lesson of foundationLessons) {
     for (const source of Array.isArray(lesson.sources) ? lesson.sources : []) {
-      if (!promotedFoundationSourceIdSet.has(source.id)) continue;
+      if (!coveredPromotedFoundationSourceIdSet.has(source.id)) continue;
       referenceCoverage.push({
         presentationId: `foundations-${source.id.replace(/^24-blocks-/u, "")}`,
         mode: "reference-coverage",

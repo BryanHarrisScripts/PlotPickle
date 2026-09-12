@@ -6,6 +6,7 @@ import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LearnJourneyPreview from "./learn-journey-preview";
 import LocalAiSkinHost from "./local-ai-skin-host";
+import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
@@ -99,13 +100,16 @@ export default function DashboardBbsPanel({
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
-  const [settingsNotice, setSettingsNotice] = useState("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const selectedDashboardItem = items[selectedIndex];
+  const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEMS.has(selectedDashboardItem.id));
+  const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
+  const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
       setSettingsSelectedIndex(0);
-      setSettingsNotice("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
       setSettingsMenuOpen(true);
       return;
     }
@@ -153,9 +157,7 @@ export default function DashboardBbsPanel({
     }
     if (item.id === "agents") {
       setPlotPickleAgentsOpen(true);
-      return;
     }
-    setSettingsNotice(`${item.label.toUpperCase()} IS LISTED BUT NOT CONNECTED IN SKIN V1 YET`);
   }
 
   function handleSettingsKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -298,7 +300,7 @@ export default function DashboardBbsPanel({
                     <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                     <span
                       className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                      aria-label={connected ? "Connected Settings destination" : "Settings destination not connected yet"}
+                      aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
                       data-dashboard-status={connected ? "active" : "inactive"}
                       data-skin-menu-indicator={connected ? "connected" : "unwired"}
                     />
@@ -308,7 +310,11 @@ export default function DashboardBbsPanel({
             })}
           </div>
 
-          <p className="pp-skin-v1-bbs-help" id="settings-menu-status" role="status">{settingsNotice}</p>
+          <MenuFeedbackFooter
+            id="settings-menu-status"
+            label={selectedSettingsItem?.label ?? "No destination"}
+            available={selectedSettingsConnected}
+          />
         </div>
       </section>
     );
@@ -359,7 +365,7 @@ export default function DashboardBbsPanel({
 
         <div className="pp-skin-v1-dashboard-title" data-skin-reference-type="body-title">*** PLOTPICKLE BBS ***</div>
 
-        <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu">
+        <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu" aria-describedby="dashboard-menu-status">
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEMS.has(item.id);
@@ -388,7 +394,7 @@ export default function DashboardBbsPanel({
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                   <span
                     className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                    aria-label={connected ? "Connected submenu" : "Menu item not connected yet"}
+                    aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
                     data-skin-reference-state="status"
                     data-dashboard-status={connected ? "active" : "inactive"}
                     data-skin-menu-indicator={connected ? "connected" : "unwired"}
@@ -402,11 +408,11 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-dashboard-rule" aria-hidden="true" />
         <p className="pp-skin-v1-dashboard-reminder" data-skin-reference-type="emphasis">Remember: Write dirty, edit clean. 1 page = 1 minute.</p>
 
-        <div className="pp-skin-v1-bbs-help" data-skin-reference-type="muted">
-          <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
-          <span>ENTER: OPEN CONNECTED DESTINATION</span>
-          <span>OTHER MENU ITEMS ARE NOT CONNECTED YET</span>
-        </div>
+        <MenuFeedbackFooter
+          id="dashboard-menu-status"
+          label={selectedDashboardItem?.label ?? "No destination"}
+          available={selectedDashboardConnected}
+        />
       </div>
     </section>
   );

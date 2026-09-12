@@ -1,15 +1,13 @@
 name: PR Gate
 
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr-gate-${{ github.event.pull_request.number || github.ref }}
+  group: pr-gate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Use Node.js 22.13
         uses: actions/setup-node@v4
@@ -35,7 +33,7 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
 
       - name: Validate PR verification topology
-        run: node --test tests/issue-1747-ci-two-gates.test.mjs tests/issue-538-ci-consolidation.test.mjs
+        run: node --test tests/issue-1747-ci-two-gates.test.mjs tests/issue-538-ci-consolidation.test.mjs tests/issue-1949-merge-authority.test.mjs tests/issue-1951-retire-legacy-gates.test.mjs
 
       - name: Validate development convergence contract
         run: node --test tests/issue-1899-development-convergence.test.mjs
@@ -50,7 +48,7 @@ jobs:
         run: node --test tests/issue-1908-draftlens-reader-simulation-harness.test.mjs tests/issue-1908-score-and-fingerprint-regression.test.mjs tests/issue-978-resident-writer-specialists.test.mjs
 
       - name: Validate development convergence
-        run: node scripts/run-development-convergence.mjs --changed --base-ref ${{ github.event.pull_request.base.sha || 'main' }}
+        run: node scripts/run-development-convergence.mjs
 
       - name: Validate seven-layer verification contracts
         run: |
@@ -58,7 +56,7 @@ jobs:
           node --test tests/issue-1926-verification-schemas.test.mjs
 
       - name: Validate seven-layer verification core and merge authority
-        run: node --test tests/issue-1938-verification-core.test.mjs tests/issue-1941-seven-shadow-checks.test.mjs tests/issue-1943-shadow-equivalence.test.mjs tests/issue-1947-live-evidence-selection.test.mjs tests/issue-1949-merge-authority.test.mjs
+        run: node --test tests/issue-1938-verification-core.test.mjs tests/issue-1941-seven-shadow-checks.test.mjs tests/issue-1943-shadow-equivalence.test.mjs tests/issue-1947-live-evidence-selection.test.mjs tests/issue-1949-merge-authority.test.mjs tests/issue-1951-retire-legacy-gates.test.mjs
 
       - name: Validate current Experience architecture boundary
         run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/community-skin-v1-navigation.test.mjs tests/community-agent-roster.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs tests/issue-1881-visual-compute-harness.test.mjs tests/issue-1883-dashboard-visual-director.test.mjs tests/issue-1885-webmcp-visual-director-startup.test.mjs tests/issue-1847-1849-cloud-agents-settings.test.mjs tests/issue-1897-skin-v1-typography-consistency.test.mjs tests/issue-1901-story-mode-connections.test.mjs tests/local-ai-video-default.test.mjs

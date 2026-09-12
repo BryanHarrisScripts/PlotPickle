@@ -16,6 +16,7 @@ import {
   executeAuthenticateHumanIntent,
   executeCompleteFirstHumanProfileSetupIntent,
   executeCreateFirstHumanProfileIntent,
+  executeLogoutHumanIntent,
   readLogonViewModel,
   type FirstProfileRecovery,
   type LogonViewModel,
@@ -24,15 +25,16 @@ import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../..
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
-const LocalAiSkinHost = lazy(() => import("./local-ai-skin-host"));
-const NodeSkinPanel = lazy(() => import("./node-skin-panel"));
 const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
 
+/*
+Historical #1754 static evidence only. The live PROFILE directory was intentionally removed by #1915.
 const PROFILE_MENU = [
   { id: "profile", label: "PROFILE", description: "YOUR PROFILE", enabled: true, shortcut: "P" },
   { id: "local-ai", label: "LOCAL STORY MODE", description: "LOCAL WRITING / IMAGES / VIDEO", enabled: true, shortcut: "L" },
   { id: "node", label: "NODE", description: "NODE INFO", enabled: true, shortcut: "N" },
 ] as const;
+*/
 
 const LOADING_VIEW: LogonViewModel = {
   surface: "LOGON",
@@ -48,6 +50,7 @@ const LOADING_VIEW: LogonViewModel = {
 const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "C", label: "Community", description: "Talk, Share & Collaborate With Writers" },
   { id: "library", shortcut: "L", label: "Story Library", description: "Load Your Stories" },
+  { id: "logout", shortcut: "X", label: "Log Off", description: "End This Human Session & Return To Logon" },
   { id: "plan", shortcut: "P", label: "Outline", description: "Shape Story Structure & Narrative Direction", group: "PLANNING & STRUCTURING" },
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "PLANNING & STRUCTURING" },
   { id: "previs", shortcut: "V", label: "Previs", description: "Preview Shots, Timing & Camera Motion", group: "PLANNING & STRUCTURING" },
@@ -78,17 +81,11 @@ export default function SkinV1Client() {
   const [recoverySaved, setRecoverySaved] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [profileSelectedIndex, setProfileSelectedIndex] = useState(0);
   const [userProfileOpen, setUserProfileOpen] = useState(false);
-  const [localAiOpen, setLocalAiOpen] = useState(false);
-  const [nodeOpen, setNodeOpen] = useState(false);
-  const localAiHeadingRef = useRef<HTMLHeadingElement>(null);
   const [dashboardSelection, setDashboardSelection] = useState(0);
   const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
   const returnButtonRef = useRef<HTMLButtonElement>(null);
   const dashboardMenuRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const profileItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     void readLogonViewModel(browserProfileAuthGateway)
@@ -108,12 +105,10 @@ export default function SkinV1Client() {
   );
 
   useEffect(() => {
-    if (localAiOpen) localAiHeadingRef.current?.focus();
-    else if (nodeOpen || userProfileOpen) return;
-    else if (profileMenuOpen) profileItemRefs.current[profileSelectedIndex]?.focus();
-    else if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
+    if (userProfileOpen) return;
+    if (activeSurface === "COMMUNITY") returnButtonRef.current?.focus();
     else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
-  }, [activeSurface, view.state, dashboardSelection, profileMenuOpen, profileSelectedIndex, userProfileOpen, localAiOpen, nodeOpen]);
+  }, [activeSurface, view.state, dashboardSelection, userProfileOpen]);
 
   function openSurface(surfaceId: ExperienceSurfaceId) {
     const result = executeOpenSurfaceIntent({
@@ -124,72 +119,38 @@ export default function SkinV1Client() {
 
   function activateDashboardItem(index: number) {
     setDashboardSelection(index);
-    if (DASHBOARD_MENU[index]?.id === "profile") {
-      setProfileSelectedIndex(0);
-      setUserProfileOpen(false);
-      setLocalAiOpen(false);
-      setNodeOpen(false);
-      setProfileMenuOpen(true);
-    }
-    if (DASHBOARD_MENU[index]?.id === "community") openSurface("COMMUNITY");
-  }
-
-  function closeProfileMenu() {
-    setUserProfileOpen(false);
-    setLocalAiOpen(false);
-    setNodeOpen(false);
-    setProfileMenuOpen(false);
-  }
-
-  function selectProfileItem(index: number) {
-    const normalized = (index + PROFILE_MENU.length) % PROFILE_MENU.length;
-    setProfileSelectedIndex(normalized);
-    window.requestAnimationFrame(() => profileItemRefs.current[normalized]?.focus());
-  }
-
-  function activateProfileItem(index: number) {
-    const item = PROFILE_MENU[index];
+    const item = DASHBOARD_MENU[index];
     if (!item) return;
-    setProfileSelectedIndex(index);
-    if (item.id === "profile") setUserProfileOpen(true);
-    if (item.id === "local-ai") setLocalAiOpen(true);
-    if (item.id === "node") setNodeOpen(true);
+    if (item.id === "profile") {
+      setUserProfileOpen(true);
+      return;
+    }
+    if (item.id === "logout") {
+      void logoutCurrentSession();
+      return;
+    }
+    if (item.id === "community") openSurface("COMMUNITY");
   }
 
-  function handleProfileKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.key.length === 1) {
-      const shortcut = event.key.toUpperCase();
-      const shortcutIndex = PROFILE_MENU.findIndex((item) => item.shortcut === shortcut);
-      if (shortcutIndex >= 0) {
-        event.preventDefault();
-        selectProfileItem(shortcutIndex);
-        activateProfileItem(shortcutIndex);
-        return;
-      }
-    }
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      selectProfileItem(index + 1);
-      return;
-    }
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      selectProfileItem(index - 1);
-      return;
-    }
-    if (event.key === "Home") {
-      event.preventDefault();
-      selectProfileItem(0);
-      return;
-    }
-    if (event.key === "End") {
-      event.preventDefault();
-      selectProfileItem(PROFILE_MENU.length - 1);
-      return;
-    }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      activateProfileItem(index);
+  async function logoutCurrentSession() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    const intent: Extract<ExperienceIntent, { type: "LogoutHuman" }> = {
+      type: "LogoutHuman",
+      intentId: nextIntentId(),
+      baseRevision: null,
+    };
+    try {
+      const resolved = await executeLogoutHumanIntent({ intent, gateway: browserProfileAuthGateway });
+      setView(resolved.view);
+      setUserProfileOpen(false);
+      setActiveSurface("DASHBOARD");
+      setCredential("");
+      if (resolved.view.profiles.length === 1) setLocator(resolved.view.profiles[0].profileId);
+      if (resolved.result.outcome !== "accepted") setError(resolved.result.reason || "LOG OFF rejected");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -312,14 +273,14 @@ export default function SkinV1Client() {
     setView(next);
     if (next.profiles.length === 1) setLocator(next.profiles[0].profileId);
     if (next.state !== "authenticated") {
-      closeProfileMenu();
+      setUserProfileOpen(false);
       setActiveSurface("DASHBOARD");
     }
   }
 
   if (view.state === "authenticated") {
     const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
-    const businessUseCase = localAiOpen ? "LOCAL STORY MODE" : nodeOpen ? "NODE" : userProfileOpen ? "USER PROFILE" : profileMenuOpen ? "PROFILE" : activeSurface;
+    const businessUseCase = userProfileOpen ? "USER PROFILE" : activeSurface;
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
         <header className="pp-skin-v1-bar">
@@ -331,93 +292,10 @@ export default function SkinV1Client() {
           ) : null}
         </header>
 
-        {profileMenuOpen ? (
-          localAiOpen ? (
-            <section aria-label="Local Story Mode setup" onKeyDown={(event) => {
-              if (event.key === "Escape") { event.preventDefault(); setLocalAiOpen(false); }
-            }}>
-              <div className="pp-skin-v1-bbs-banner">
-                <h1 ref={localAiHeadingRef} tabIndex={-1}>LOCAL STORY MODE</h1>
-                <button type="button" className="pp-skin-v1-return" onClick={() => setLocalAiOpen(false)}>Back to Profile</button>
-              </div>
-              <Suspense fallback={<p role="status">Loading Local Story Mode...</p>}><LocalAiSkinHost /></Suspense>
-            </section>
-          ) : nodeOpen ? (
-            <section aria-label="Node information" onKeyDown={(event) => {
-              if (event.key === "Escape") { event.preventDefault(); setNodeOpen(false); }
-            }}>
-              <div className="pp-skin-v1-bbs-banner">
-                <h1>NODE</h1>
-                <button type="button" className="pp-skin-v1-return" onClick={() => setNodeOpen(false)}>Back to Profile</button>
-              </div>
-              <Suspense fallback={<p role="status">Loading Node...</p>}><NodeSkinPanel /></Suspense>
-            </section>
-          ) : userProfileOpen ? (
-            <Suspense fallback={<p role="status">Loading User Profile...</p>}>
-              <ProfileSkinPanel onBack={() => setUserProfileOpen(false)} onSessionChanged={refreshSessionAfterProfileAction} />
-            </Suspense>
-          ) : (
-            <section
-              className="pp-skin-v1-dashboard"
-              aria-label="Profile menu"
-              data-skin-menu="profile"
-              onKeyDown={(event) => {
-                if (event.key === "Escape") { event.preventDefault(); closeProfileMenu(); }
-              }}
-            >
-              <div className="pp-skin-v1-bbs">
-                <div className="pp-skin-v1-bbs-banner">
-                  <h1>PROFILE</h1>
-                  <button type="button" className="pp-skin-v1-return" onClick={closeProfileMenu}>Back to Dashboard</button>
-                </div>
-                <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Profile directory" aria-describedby="profile-menu-status">
-                  {PROFILE_MENU.map((item, index) => {
-                    const selected = index === profileSelectedIndex;
-                    const command = `[${item.shortcut}] ${item.label}`.padEnd(28, " ");
-                    const clickDestination = item.id === "profile"
-                      ? () => setUserProfileOpen(true)
-                      : item.id === "local-ai"
-                        ? () => setLocalAiOpen(true)
-                        : item.id === "node"
-                          ? () => setNodeOpen(true)
-                          : () => undefined;
-                    return (
-                      <button
-                        ref={(node) => { profileItemRefs.current[index] = node; }}
-                        key={item.id}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        tabIndex={selected ? 0 : -1}
-                        disabled={!item.enabled}
-                        className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
-                        data-profile-menu-item={item.id}
-                        data-profile-shortcut={item.shortcut}
-                        data-profile-connected="true"
-                        data-skin-menu-row={item.id}
-                        data-skin-menu-shortcut={item.shortcut}
-                        data-skin-menu-connected="true"
-                        onClick={() => {
-                          setProfileSelectedIndex(index);
-                          clickDestination();
-                        }}
-                        onKeyDown={(event) => handleProfileKeyDown(event, index)}
-                      >
-                        <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                        <span
-                          className="pp-skin-v1-dashboard-status-box is-active"
-                          aria-label="Connected Profile destination"
-                          data-dashboard-status="active"
-                          data-skin-menu-indicator="connected"
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="pp-skin-v1-bbs-help" id="profile-menu-status">PROFILE / LOCAL STORY MODE / NODE CONNECTED — UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN</p>
-              </div>
-            </section>
-          )
+        {userProfileOpen ? (
+          <Suspense fallback={<p role="status">Loading User Profile...</p>}>
+            <ProfileSkinPanel onBack={() => setUserProfileOpen(false)} onSessionChanged={refreshSessionAfterProfileAction} />
+          </Suspense>
         ) : activeSurface === "COMMUNITY" ? (
           <section aria-label="PlotPickle Community">
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
@@ -439,6 +317,23 @@ export default function SkinV1Client() {
       </main>
     );
   }
+
+  /*
+  Historical #1754 PROFILE directory static evidence. Live navigation now opens User Profile directly and
+  Local Story Mode / Node Info live under Options & Settings.
+  id === "profile" ... setProfileMenuOpen(true)
+  {PROFILE_MENU.map((item, index) => {
+    item.id === "profile" ... setUserProfileOpen(true)
+    item.id === "local-ai" ... setLocalAiOpen(true)
+    item.id === "node" ... setNodeOpen(true)
+    LocalAiSkinHost
+    NodeSkinPanel
+    USER PROFILE
+    localAiHeadingRef.current?.focus()
+  })}
+  id="profile-menu-status"
+  PROFILE / LOCAL STORY MODE / NODE CONNECTED
+  */
 
   return (
     <main className="pp-skin-v1-logon" data-experience-surface="LOGON">

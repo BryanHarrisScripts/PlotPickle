@@ -10,6 +10,7 @@
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/1954-pre-phase2-webmcp-visual-cleanup.md",
+    "tests/issue-1918-learn-program-map.test.mjs",
     "tests/issue-1954-pre-phase2-cleanup.test.mjs"
   ],
   "acceptance": [
@@ -51,10 +52,11 @@
     },
     {
       "id": "A5",
-      "criterion": "Focused regression covers all three cleanup slices and independently requires development convergence on the real PR diff.",
+      "criterion": "Focused regression covers all three cleanup slices and independently requires development convergence on the real PR diff without making an issue-specific convergence check permanent on unrelated future diffs.",
       "evidence": [
         { "type": "path-exists", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "canonical development convergence reports CONVERGED against the real diff" }
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "canonical development convergence reports CONVERGED against the real diff" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "config/development-convergence/1918.json" }
       ]
     }
   ]

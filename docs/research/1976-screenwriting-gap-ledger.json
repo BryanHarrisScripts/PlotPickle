@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 1,
+  "issue": 1976,
+  "phase": "phase-a-research-ledger",
+  "researchSnapshot": {
+    "repository": "jtydhr88/screenwriting-skills",
+    "commit": "92022d2123676857e73f3ae94a9b76b6cb3f65b8",
+    "skillCount": 21,
+    "reason": "Last 21-skill snapshot before the same-day expansion from 21 to 24 skills; pinned to preserve the issue's original research baseline."
+  },
+  "plotPickleBaseline": {
+    "topicCount": 12,
+    "archivedLessonCount": 81,
+    "bundledSourceCount": 95,
+    "presentationLessonCount": 88,
+    "lessonContentSha256": "66a9ca2f1ab799c5c7160d3a52d4221dedccc79c4699c80459ca86a165fdeaf2",
+    "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343"
+  },
+  "authority": {
+    "externalRepositoryRole": "research-index-only",
+    "externalBodiesImported": false,
+    "curriculumAuthority": "PlotPickle canonical LEARN archive",
+    "navigationAuthority": "existing 6 Paths / 24 Craft Modules",
+    "classificationIsBuildCommitment": false
+  },
+  "classificationDefinitions": {
+    "strong-overlap": "PlotPickle already teaches the central craft territory with meaningful depth.",
+    "partial": "PlotPickle teaches material in the area but misses a material sub-area, medium-specific application or coherent treatment.",
+    "gap": "PlotPickle does not currently teach the area as a coherent craft subject.",
+    "specialist": "Useful optional or niche craft/case-study territory that should not displace the core journey."
+  },
+  "highestValueGaps": [
+    {
+      "family": "Television and series architecture",
+      "skillIds": ["sw-series-structure", "sw-series-engine-bible", "sw-chinese-series-practice"],
+      "reason": "PlotPickle's current structure curriculum is feature-capable and structurally diverse, but it does not provide a coherent episode/season/pilot/series-engine layer."
+    },
+    {
+      "family": "Writers' room and collaborative television workflow",
+      "skillIds": ["sw-writers-room"],
+      "reason": "PlotPickle has strong generic collaboration/versioning teaching but not showrunner roles, story breaking, television document chains or staff-room workflow."
+    },
+    {
+      "family": "Comedy and half-hour craft",
+      "skillIds": ["sw-sitcom-comedy"],
+      "reason": "No current canonical LEARN topic teaches sitcom/half-hour structure or comedy mechanics as a craft system."
+    },
+    {
+      "family": "Adaptation and format craft",
+      "skillIds": ["sw-format-adaptation"],
+      "reason": "PlotPickle teaches drafting, treatment and screenplay language, but adaptation choices and medium/format conventions are not a dedicated coherent lesson area."
+    },
+    {
+      "family": "Professional screenwriting practice",
+      "skillIds": ["sw-industry-business"],
+      "reason": "The two Industry lessons establish roles, rights and verification habits, but pitching/querying, representation, options, credits, contracts concepts and career practice remain thin."
+    },
+    {
+      "family": "Scene craft as its own diagnostic unit",
+      "skillIds": ["sw-scene-craft"],
+      "reason": "PlotPickle distributes scene thinking across drafting, dialogue, visual storytelling and revision; a compact scene-craft extension could connect those systems without adding a new Path."
+    }
+  ],
+  "entries": [
+    {
+      "skillId": "sw-workflow",
+      "territory": "End-to-end writing workflow, deliverables and project-state continuity across feature and series work.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["drafting", "revision", "collaboration", "structure"],
+        "craftModules": ["course-07", "course-09", "course-15", "course-16", "course-17", "course-18", "course-20", "course-21"],
+        "summary": "PlotPickle already teaches discovery-to-draft-to-revision workflow, 24/96 planning, Human approval and collaborative handoff."
+      },
+      "missingTerritory": "Medium-aware series workflow stages and television-specific deliverable routing are not currently taught as one coherent workflow.",
+      "candidateHomes": ["course-15", "course-16", "course-20", "course-21"],
+      "recommendedShape": "extension",
+      "priority": "medium",
+      "recommendation": "Extend existing workflow teaching only where series-specific deliverables require a distinct path; do not duplicate PlotPickle's current project workflow.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-story-structure",
+      "territory": "Dramatic structure, turning points, sequences, subplots and multiple structural traditions.",
+      "classification": "strong-overlap",
+      "currentCoverage": {
+        "topics": ["structure"],
+        "craftModules": ["course-07", "course-08", "course-09"],
+        "summary": "PlotPickle has 11 canonical Structure lessons spanning multiple structural traditions, causality, sequences and the 24/96 architecture."
+      },
+      "missingTerritory": "No Phase A gap large enough to justify a new core lesson; named external frameworks can remain research references rather than curriculum targets.",
+      "candidateHomes": [],
+      "recommendedShape": "none",
+      "priority": "low",
+      "recommendation": "Preserve current structure authority; consider future case studies only if they illuminate an existing concept without turning a named formula into authority.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-premise-theme",
+      "territory": "Premise, theme, controlling idea, logline and story promise.",
+      "classification": "strong-overlap",
+      "currentCoverage": {
+        "topics": ["foundations", "theme"],
+        "craftModules": ["course-01", "course-02"],
+        "summary": "PlotPickle already centers story promise, pitch/logline, theme questions, tone and motif in the first two Craft Modules."
+      },
+      "missingTerritory": "No material core gap identified in Phase A.",
+      "candidateHomes": [],
+      "recommendedShape": "none",
+      "priority": "low",
+      "recommendation": "Do not add a parallel premise/theme system; enrich only if a later source adds a genuinely distinct exercise or diagnosis.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-character-conflict",
+      "territory": "Character want/need, contradiction, conflict, relationships, motive and pressure.",
+      "classification": "strong-overlap",
+      "currentCoverage": {
+        "topics": ["character"],
+        "craftModules": ["course-03", "course-05", "course-10"],
+        "summary": "PlotPickle has 10 Character lessons covering foundations, pressure, stakes, arcs, contradictions, relationships and advanced character design."
+      },
+      "missingTerritory": "No material core gap identified; specialized psychological traditions are optional lenses rather than required curriculum.",
+      "candidateHomes": [],
+      "recommendedShape": "none",
+      "priority": "low",
+      "recommendation": "Keep current Character system canonical and avoid importing named psychology frameworks as authority.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-dialogue",
+      "territory": "Dialogue as action, subtext, tactics, exposition control, voice and revision.",
+      "classification": "strong-overlap",
+      "currentCoverage": {
+        "topics": ["dialogue"],
+        "craftModules": ["course-11", "course-13", "course-14"],
+        "summary": "PlotPickle has 10 Dialogue lessons distributed across intent/subtext, voice/movement and revision/polish."
+      },
+      "missingTerritory": "No material core gap identified in Phase A.",
+      "candidateHomes": [],
+      "recommendedShape": "none",
+      "priority": "low",
+      "recommendation": "Preserve existing dialogue progression; use later specialist examples only when they add a distinct diagnostic or medium constraint.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-scene-craft",
+      "territory": "Scene objectives, value turns, entry/exit choices, pacing, transitions and scene-level diagnosis.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["drafting", "dialogue", "visual-storytelling", "revision"],
+        "craftModules": ["course-11", "course-12", "course-15", "course-17", "course-18"],
+        "summary": "PlotPickle teaches playable objectives, scene execution, visual evidence, dialogue tactics and revision, but the material is distributed across topics."
+      },
+      "missingTerritory": "A compact deterministic scene-craft framework that connects objective, pressure, turn, entry/exit, transition and visual carrier in one place.",
+      "candidateHomes": ["course-15", "course-17"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Design one independently authored scene-craft lesson that unifies existing PlotPickle concepts rather than duplicating them.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-format-adaptation",
+      "territory": "Screenplay format conventions, document progression and adaptation from source material to screen form.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["drafting", "collaboration", "industry"],
+        "craftModules": ["course-15", "course-16", "course-22", "course-24"],
+        "summary": "PlotPickle teaches treatment-to-screenplay progression, screenplay language, delivery/ownership boundaries and provenance, but not adaptation craft as a coherent subject."
+      },
+      "missingTerritory": "Adaptation decisions, source-to-screen transformation, rights-aware adaptation workflow and a concise cross-format screenplay delivery lesson.",
+      "candidateHomes": ["course-15", "course-16", "course-24"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Author PlotPickle-native adaptation and format teaching from verified primary/authorized references; separate creative adaptation craft from legal rights guidance.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-series-structure",
+      "territory": "Episode and season structure, teasers/cold opens, act-outs, A/B/C stories, pilots and streaming/broadcast structural differences.",
+      "classification": "gap",
+      "currentCoverage": {
+        "topics": ["structure", "world"],
+        "craftModules": ["course-07", "course-08", "course-09"],
+        "summary": "PlotPickle teaches structural diversity and episodic form at a general level but has no coherent television episode/season architecture curriculum."
+      },
+      "missingTerritory": "Television-specific episode units, act-out logic, story weaving, pilot structure, season movement and streaming/invisible-act diagnosis.",
+      "candidateHomes": ["course-07", "course-08", "course-09"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Treat television/series structure as a first-class medium extension inside the existing Structure Craft Modules without changing the 24-module navigation.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-series-engine-bible",
+      "territory": "Series engine, repeatable episode generation, pilot types, character web and series/pitch/bible documents.",
+      "classification": "gap",
+      "currentCoverage": {
+        "topics": ["foundations", "world", "character", "structure"],
+        "craftModules": ["course-01", "course-04", "course-05", "course-07", "course-09", "course-10"],
+        "summary": "PlotPickle has generic story-bible, world, character-system and story-engine concepts, but not a television series-engine/bible discipline."
+      },
+      "missingTerritory": "Repeatable series engine tests, series character webs, pilot type decisions, episode-generation constraints and television selling-document distinctions.",
+      "candidateHomes": ["course-01", "course-04", "course-09", "course-10"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Add a PlotPickle-native series-engine/bible lesson after the general series-structure foundation is designed.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-writers-room",
+      "territory": "Showrunner/staff roles, story breaking, notes, episode document chain, production constraints and room workflow.",
+      "classification": "gap",
+      "currentCoverage": {
+        "topics": ["collaboration", "industry"],
+        "craftModules": ["course-20", "course-21", "course-22", "course-23", "course-24"],
+        "summary": "PlotPickle has strong generic collaboration, contribution, handoff, ownership and review workflows but no television writers' room craft."
+      },
+      "missingTerritory": "Story breaking as a group, room roles/authority, notes workflow, television document chain, staff workflow and production-driven collaboration constraints.",
+      "candidateHomes": ["course-20", "course-21", "course-22", "course-24"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Author a dedicated writers' room lesson that reuses PlotPickle's Human/ownership boundaries while teaching the distinct television collaboration process.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-sitcom-comedy",
+      "territory": "Half-hour comedy structure, premise-driven comedy, joke mechanics, running devices and single-/multi-camera conventions.",
+      "classification": "gap",
+      "currentCoverage": {
+        "topics": ["structure", "dialogue", "drafting"],
+        "craftModules": ["course-07", "course-08", "course-11", "course-13", "course-14", "course-15"],
+        "summary": "PlotPickle's general structure/dialogue tools apply to comedy, but there is no dedicated sitcom or comedy-craft curriculum."
+      },
+      "missingTerritory": "Comedy premise systems, half-hour structure, joke construction/revision, tags/runners and production-format differences.",
+      "candidateHomes": ["course-07", "course-08", "course-13", "course-14"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Add a medium extension for comedy after core series architecture exists so comedy conventions are not taught as universal screenplay rules.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body or reference text imported."
+    },
+    {
+      "skillId": "sw-chinese-opera-banqiang",
+      "territory": "Chinese opera writing constraints, sung text, rhyme/line systems and stage-medium boundaries.",
+      "classification": "specialist",
+      "currentCoverage": {
+        "topics": ["dialogue", "structure"],
+        "craftModules": ["course-13", "course-24"],
+        "summary": "PlotPickle's core curriculum is screen-focused; only broad dialogue/structure concepts transfer directly."
+      },
+      "missingTerritory": "The medium-specific opera system itself, which is intentionally outside PlotPickle's current core screenwriting promise.",
+      "candidateHomes": [],
+      "recommendedShape": "none",
+      "priority": "low",
+      "recommendation": "Do not add to core LEARN in this enrichment cycle. Revisit only as an optional cross-medium specialist deep dive if user demand justifies it.",
+      "provenance": "High-level comparison against the pinned external skill index only; no skill body, lyric example, score or reference text imported."
+    },
+    {
+      "skillId": "sw-american-case-studies",
+      "territory": "Worked feature-film analyses used to demonstrate structure, character, genre and revision choices.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["structure", "character", "drafting", "revision"],
+        "craftModules": ["course-07", "course-08", "course-09", "course-10", "course-17", "course-18"],
+        "summary": "PlotPickle lessons contain examples and source teaching, but not a coherent rights-safe analytical case-study collection."
+      },
+      "missingTerritory": "Reusable case-study methodology that demonstrates how multiple existing PlotPickle concepts interact in finished works without importing copyrighted screenplay text.",
+      "candidateHomes": ["course-09", "course-17", "course-18"],
+      "recommendedShape": "case-study",
+      "priority": "medium",
+      "recommendation": "Create independently authored analytical case studies based on observable film/story evidence and rights-safe references; never import screenplay corpora.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external case-study prose or scripts imported."
+    },
+    {
+      "skillId": "sw-japanese-screenwriting",
+      "territory": "Japanese screenwriting approaches to structure, material selection, character and theme formation.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["structure", "theme", "character", "visual-storytelling"],
+        "craftModules": ["course-02", "course-07", "course-10", "course-12"],
+        "summary": "PlotPickle teaches structural diversity and Human-led story choices but does not explicitly teach Japanese screenwriting traditions as a comparative lens."
+      },
+      "missingTerritory": "A carefully sourced comparative tradition lens showing where Japanese practices differ from or reinforce PlotPickle's current assumptions.",
+      "candidateHomes": ["course-07", "course-10", "course-12"],
+      "recommendedShape": "deep-dive",
+      "priority": "medium",
+      "recommendation": "Treat as optional comparative craft, independently authored and sourced; do not present one national tradition as a single universal method.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external tradition notes or examples imported."
+    },
+    {
+      "skillId": "sw-korean-french-screenwriting",
+      "territory": "Comparative Korean and French approaches to emotion, research, genre, reversals, dialogue timing and collective writing.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["theme", "world", "structure", "dialogue", "collaboration"],
+        "craftModules": ["course-02", "course-04", "course-07", "course-11", "course-20"],
+        "summary": "PlotPickle covers the underlying craft categories but not these national/industry traditions as comparative teaching."
+      },
+      "missingTerritory": "Cross-tradition comparison that helps learners question default assumptions about genre, emotion, reversals and collaborative authorship.",
+      "candidateHomes": ["course-07", "course-11", "course-20"],
+      "recommendedShape": "deep-dive",
+      "priority": "medium",
+      "recommendation": "Consider an optional comparative deep dive after core gaps are filled; verify claims from suitable original or authorized sources.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external tradition notes or examples imported."
+    },
+    {
+      "skillId": "sw-chinese-series-practice",
+      "territory": "Mainland Chinese television series planning, episode documents, adaptation, production workflow and market/regulatory context.",
+      "classification": "gap",
+      "currentCoverage": {
+        "topics": ["structure", "drafting", "collaboration", "industry"],
+        "craftModules": ["course-07", "course-09", "course-15", "course-16", "course-21", "course-23", "course-24"],
+        "summary": "PlotPickle has general structure/drafting/collaboration/industry foundations but no medium-and-market-specific Chinese series practice."
+      },
+      "missingTerritory": "Series document chains, long-form episode planning, adaptation at series scale and jurisdiction-specific production context.",
+      "candidateHomes": ["course-09", "course-16", "course-21", "course-24"],
+      "recommendedShape": "deep-dive",
+      "priority": "medium",
+      "recommendation": "Add only after a general television-series foundation exists; separate durable craft from live regulatory/business facts that require current external verification.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external rules, regulatory lists, formats or examples imported."
+    },
+    {
+      "skillId": "sw-industry-business",
+      "territory": "Pitching, querying, representation, options, credits, contracts concepts, buyer communication and career resilience.",
+      "classification": "partial",
+      "currentCoverage": {
+        "topics": ["industry", "collaboration"],
+        "craftModules": ["course-22", "course-23", "course-24"],
+        "summary": "PlotPickle's two Industry lessons cover organizations, jurisdiction, rights, professional preparation and verification habits, with collaboration adding ownership/delivery boundaries."
+      },
+      "missingTerritory": "Practical pitching/querying, representation roles, option/credit/contract concepts, submission strategy and sustainable career practice."
+      ,"candidateHomes": ["course-23", "course-24"],
+      "recommendedShape": "new-lesson",
+      "priority": "high",
+      "recommendation": "Deepen professional practice while keeping rates/rules/live agreements out of frozen curriculum and directing learners to current official sources.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external business advice, rates, contracts or source text imported."
+    },
+    {
+      "skillId": "chekhov-dramaturgy",
+      "territory": "Play-based dramaturgical case study emphasizing mood structure, off-stage events, endings and rewrite comparison.",
+      "classification": "specialist",
+      "currentCoverage": {
+        "topics": ["structure", "theme", "revision"],
+        "craftModules": ["course-07", "course-08", "course-17"],
+        "summary": "PlotPickle's structure/revision teaching can interpret these techniques, but a Chekhov corpus is not required for core screenwriting progression."
+      },
+      "missingTerritory": "A cross-medium dramaturgy case study, not a core craft gap.",
+      "candidateHomes": ["course-17"],
+      "recommendedShape": "case-study",
+      "priority": "low",
+      "recommendation": "Only consider an independently authored, rights-safe dramaturgy case study as an optional deep dive.",
+      "provenance": "High-level comparison against the pinned external skill index only; no play text, excerpts or external analysis imported."
+    },
+    {
+      "skillId": "ozu-screenplay-style",
+      "territory": "Film-specific case study of restrained structure, dialogue, visual behavior and recurring story patterns.",
+      "classification": "specialist",
+      "currentCoverage": {
+        "topics": ["structure", "dialogue", "visual-storytelling", "theme"],
+        "craftModules": ["course-07", "course-11", "course-12", "course-17"],
+        "summary": "PlotPickle already teaches the underlying structure/dialogue/visual concepts; the value here is a specific comparative film case study."
+      },
+      "missingTerritory": "A rights-safe comparative case study of minimalist visual/dramatic choices, not a missing core concept."
+      ,"candidateHomes": ["course-12", "course-17"],
+      "recommendedShape": "case-study",
+      "priority": "low",
+      "recommendation": "Consider later as an independently authored visual-storytelling case study without screenplay excerpts.",
+      "provenance": "High-level comparison against the pinned external skill index only; no screenplay text, scene tables or external analysis imported."
+    },
+    {
+      "skillId": "succession-series-writing",
+      "territory": "Single-series case study of ensemble television, invisible acts, container episodes, reversals, subtext and ending design.",
+      "classification": "specialist",
+      "currentCoverage": {
+        "topics": ["structure", "character", "dialogue", "revision"],
+        "craftModules": ["course-08", "course-09", "course-10", "course-11", "course-17", "course-18"],
+        "summary": "PlotPickle has the underlying craft categories but lacks both the television-series foundation and this kind of integrated series case study."
+      },
+      "missingTerritory": "A series case study becomes useful only after general series architecture exists; it is not itself the foundational gap."
+      ,"candidateHomes": ["course-09", "course-17", "course-18"],
+      "recommendedShape": "case-study",
+      "priority": "medium",
+      "recommendation": "Defer until television fundamentals are authored; then create rights-safe analysis based on independently observed craft rather than importing scripts or external commentary.",
+      "provenance": "High-level comparison against the pinned external skill index only; no shooting scripts, excerpts, charts or external analysis imported."
+    },
+    {
+      "skillId": "sw-series-case-studies",
+      "territory": "Multi-series worked analyses for act-outs, pilot structure, story weaving and television scene/episode diagnosis.",
+      "classification": "specialist",
+      "currentCoverage": {
+        "topics": ["structure", "drafting", "revision"],
+        "craftModules": ["course-08", "course-09", "course-15", "course-17", "course-18"],
+        "summary": "PlotPickle lacks a formal series case-study collection; however, case studies should follow rather than substitute for television fundamentals."
+      },
+      "missingTerritory": "Rights-safe applied television case studies that let learners practice the new series concepts once those concepts exist."
+      ,"candidateHomes": ["course-09", "course-17", "course-18"],
+      "recommendedShape": "case-study",
+      "priority": "medium",
+      "recommendation": "Defer until general series teaching is complete, then independently author a small diverse case-study set without importing copyrighted screenplay corpora.",
+      "provenance": "High-level comparison against the pinned external skill index only; no external case-study prose, script text, beat sheets or tables imported."
+    }
+  ]
+}

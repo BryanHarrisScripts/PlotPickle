@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "issue": 1976,
+  "phase": "phase-a-research-ledger",
+  "brief": "docs/developer-briefs/1976-phase-a-research-ledger.md",
+  "allowedChanges": [
+    "config/development-convergence/1976.json",
+    "docs/developer-briefs/1976-phase-a-research-ledger.md",
+    "docs/research/1976-screenwriting-gap-ledger.json",
+    "tests/issue-1976-research-ledger.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P1976-A1",
+      "criterion": "Phase A is pinned to the issue's original 21-skill external research snapshot rather than drifting to the later 24-skill expansion.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "92022d2123676857e73f3ae94a9b76b6cb3f65b8" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"skillCount\": 21" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "EXPECTED_SKILLS" }
+      ]
+    },
+    {
+      "id": "P1976-A2",
+      "criterion": "Every pinned external skill area is classified exactly once as strong overlap, partial, gap or specialist.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "strong-overlap" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "partial: 7" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "gap: 5" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "specialist: 5" }
+      ]
+    },
+    {
+      "id": "P1976-A3",
+      "criterion": "The ledger preserves PlotPickle's current 12-topic / 81-lesson / 95-source / 88-presentation baseline and maps proposed additions only into the existing 24 Craft Modules.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"archivedLessonCount\": 81" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"bundledSourceCount\": 95" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"presentationLessonCount\": 88" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "courseIds.size, 24" }
+      ]
+    },
+    {
+      "id": "P1976-A4",
+      "criterion": "The research ledger identifies high-value enrichment gaps without making the external repository curriculum authority or a mandatory build plan.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "research-index-only" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"classificationIsBuildCommitment\": false" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "Television and series architecture" },
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "Writers' room and collaborative television workflow" }
+      ]
+    },
+    {
+      "id": "P1976-A5",
+      "criterion": "No external skill/reference/script body is imported; Phase A stores only high-level research classification and provenance.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"externalBodiesImported\": false" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "PROHIBITED_BODY_KEYS" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-a-research-ledger.md", "contains": "Do not copy into PlotPickle" }
+      ]
+    },
+    {
+      "id": "P1976-A6",
+      "criterion": "Phase A stops at research and deterministic verification; no curriculum bodies, Journey behavior, EA/Sage behavior, Paths or Craft Modules are changed.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-a-research-ledger.md", "contains": "Do not begin Phase B in the same PR" },
+        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "research-only" },
+        { "type": "file-contains", "path": "config/development-convergence/1976.json", "contains": "docs/research/1976-screenwriting-gap-ledger.json" }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "phase": 6,
+  "phase": 7,
   "architectureWorkflow": {
     "file": ".github/workflows/architecture-shadow.yml",
     "name": "Architecture Verification",
@@ -15,18 +15,20 @@
     { "layerId": "provider-runtime", "name": "Layer 6 Provider Runtime" },
     { "layerId": "verification", "name": "Layer 7 Validation & Operations" }
   ],
-  "legacyAdvisoryWorkflows": [
+  "retiredLegacyWorkflows": [
     {
       "file": ".github/workflows/pr-gate.yml",
       "workflowName": "PR Gate",
       "jobName": "PR Gate",
-      "role": "advisory-comparison"
+      "role": "manual-diagnostic",
+      "ordinaryPullRequestTrigger": false
     },
     {
       "file": ".github/workflows/product-gate.yml",
       "workflowName": "Product Gate",
       "jobName": "Product Gate",
-      "role": "advisory-comparison"
+      "role": "manual-diagnostic",
+      "ordinaryPullRequestTrigger": false
     }
   ],
   "rulesetExpectation": {
@@ -45,9 +47,20 @@
   },
   "rulesetObservation": {
     "observedAt": "2026-09-12",
-    "requiredStatusChecksConfigured": false,
-    "observedRuleTypes": ["deletion", "non_fast_forward"],
-    "mutationAuthority": "repository-admin-outside-connected-github-integration"
+    "requiredStatusChecksConfigured": true,
+    "observedRuleTypes": ["deletion", "non_fast_forward", "required_status_checks"],
+    "requiredStatusChecks": [
+      "Layer 1 Experience Skins",
+      "Layer 2 Experience Contract",
+      "Layer 3 Production Orchestration",
+      "Layer 4 Agent & Skill Mesh",
+      "Layer 5 Story / Canon / Evidence",
+      "Layer 6 Provider Runtime",
+      "Layer 7 Validation & Operations"
+    ],
+    "legacyChecksRequired": false,
+    "source": "GitHub ruleset 20214975"
   },
-  "promotionState": "repository-prepared-awaiting-ruleset"
+  "promotionState": "seven-layer-authority-enforced",
+  "retirementState": "legacy-pr-triggers-retired"
 }

@@ -163,8 +163,8 @@ That means:
 <!-- PLOTPICKLE:UPDATES:START -->
 ## UPDATES
 
-Current living architecture: **v1.0 · TARGET · source updated 2026-09-09**  
-Fingerprint: `sha256:b69cb4723228cf791db0c79ac909cae3ef1f91940c3168756832c8ac8bcf2518`
+Current living architecture: **v1.0 · TARGET · source updated 2026-09-12**  
+Fingerprint: `sha256:92ad6f9591530ef3b5fb161edb5051f92d624f83da8c3d939f8d038ea9efee9c`
 
 - Architecture status: **TARGET** — 7 canonical layers from one machine-readable map.
 - Documentation freshness: **CURRENT generated surfaces; Human architecture prose remains REVIEW-owned**.

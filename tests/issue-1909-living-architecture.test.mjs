@@ -122,7 +122,7 @@ test("#1909 changed current entry archives the prior identity exactly once", () 
   const oldBlock = renderCurrentUpdate(architecture, fingerprint, currentEvidence);
   const oldName = archiveCurrentUpdate(root, oldBlock);
   const changedArchitecture = structuredClone(architecture);
-  changedArchitecture.blueprint.updated = "2026-09-12";
+  changedArchitecture.blueprint.tagline = `${changedArchitecture.blueprint.tagline} / archive-test`;
   const newFingerprint = fingerprintArchitecture(changedArchitecture);
   const newBlock = renderCurrentUpdate(changedArchitecture, newFingerprint, currentEvidence);
   const newName = archiveCurrentUpdate(root, newBlock);

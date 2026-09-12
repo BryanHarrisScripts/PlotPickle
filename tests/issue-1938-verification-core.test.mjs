@@ -158,7 +158,7 @@ test("#1938 docs-only and verification-only changes remain cheap and mapped", as
   assert.equal(plan.status, "ready");
   assert.deepEqual(plan.impactedLayers, ["verification"]);
   const layer7 = plan.layers.find((layer) => layer.layerId === "verification");
-  assert.deepEqual(layer7.selectedTests.map((item) => item.id), ["verification.phase2-core"]);
+  assert.deepEqual(layer7.selectedTests.map((item) => item.id), ["verification.phase2-core", "verification.phase7-merge-authority"]);
   assert.equal(layer7.skippedTests.length, 0);
 });
 

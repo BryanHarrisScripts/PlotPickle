@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "issue": 1954,
+  "brief": "docs/developer-briefs/1954-pre-phase2-webmcp-visual-cleanup.md",
+  "allowedChanges": [
+    "PlotPickle.ps1",
+    "app/skin-v1/profile-skin-panel.tsx",
+    "app/skin-v1-settings-directory.css",
+    "config/development-convergence/1954.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1954-pre-phase2-webmcp-visual-cleanup.md",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The tracked PowerShell launcher makes WebMCP versus normal hands-on testing explicit and delegates through explicit batch-launcher mode flags.",
+      "evidence": [
+        { "type": "file-contains", "path": "PlotPickle.ps1", "contains": "Run autonomous WebMCP Testing? [Y/N]" },
+        { "type": "file-contains", "path": "PlotPickle.ps1", "contains": "& $launcher --webmcp-testing" },
+        { "type": "file-contains", "path": "PlotPickle.ps1", "contains": "& $launcher --human-testing" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Writer's Craft consumes the shared full-width Dashboard directory geometry while preserving the dark selected-row contract.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "aria-label=\"Writer's Craft menu\"" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "display: block !important;" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Profile renders one semantic page heading and snaps legacy Profile controls to the Skin V1 four-pixel spacing rhythm.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/profile-skin-panel.tsx", "contains": "<h1>USER PROFILE</h1>" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "padding: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "font-size: var(--pp-skin-font-meta) !important;" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The repair is owned and selected by the current seven-layer Architecture Verification mesh.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "windows-local-launcher" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.pre-phase2-1954" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1954-pre-phase2-cleanup.test.mjs" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused regression covers all three cleanup slices and independently requires development convergence on the real PR diff.",
+      "evidence": [
+        { "type": "path-exists", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

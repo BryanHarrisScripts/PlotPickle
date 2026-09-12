@@ -12,6 +12,8 @@
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/1918-phase-3-journey-shell.md",
+    "learn/program-map.mjs",
+    "learn/program-map-spec.mjs",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1954-pre-phase2-cleanup.test.mjs"
@@ -28,11 +30,12 @@
     },
     {
       "id": "P3-A2",
-      "criterion": "The visible Journey shell is projected from the canonical deterministic program map and exposes only semester/course-shell metadata, not lesson bodies or source text.",
+      "criterion": "The visible Journey shell is projected from the same canonical course specifications as the resolved program map and exposes only semester/course-shell metadata, not lesson bodies or source text.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "LEARN_PROGRAM_MAP" },
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "LEARN_PROGRAM_SHELL_SPEC" },
         { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "lessonContentExposed: false" },
-        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "contentAvailable: false" }
+        { "type": "file-contains", "path": "app/api/learn/journey-preview/route.ts", "contains": "contentAvailable: false" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "LEARN_PROGRAM_COURSE_SPECS" }
       ]
     },
     {
@@ -73,11 +76,12 @@
     },
     {
       "id": "P3-A7",
-      "criterion": "Phase 0 baseline, Phase 1 program-map and Phase 2 curriculum-integrity validators remain green; Phase 3 does not modify canonical curriculum or the 24-course map.",
+      "criterion": "Phase 0 baseline, Phase 1 program-map and Phase 2 curriculum-integrity validators remain green; the runtime-safe course-spec extraction preserves the exact 24 course definitions and all canonical lesson bindings.",
       "evidence": [
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-journey-baseline.mjs" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-program-map.mjs" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "LEARN_PROGRAM_MAP.courses.map(shellFields)" }
       ]
     },
     {

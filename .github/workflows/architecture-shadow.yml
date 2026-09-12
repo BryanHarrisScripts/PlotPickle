@@ -63,5 +63,6 @@ jobs:
           path: |
             .artifacts/verification-shadow/${{ matrix.id }}.json
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
+            .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
           if-no-files-found: warn
           retention-days: 7

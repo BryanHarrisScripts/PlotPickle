@@ -85,31 +85,38 @@
   text-transform: uppercase !important;
 }
 
-.lesson {
+.lesson,
+.applicationPanel {
   width: min(var(--pp-skin-menu-max), calc(100% - 72px));
   margin: 0 auto;
   padding: var(--pp-skin-space-5) 0 var(--pp-skin-space-6);
   line-height: 1.6;
 }
 
-.lesson > header {
+.lesson > header,
+.applicationPanel > header {
   margin-bottom: var(--pp-skin-space-5);
   padding-bottom: var(--pp-skin-space-4);
   border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
 }
 
 .lesson h2,
-.lesson h3 {
+.lesson h3,
+.applicationPanel h2,
+.applicationPanel h3,
+.applicationPanel h4 {
   color: var(--pp-skin-ink);
   font-family: var(--pp-skin-font-ui);
 }
 
-.lesson h2 {
+.lesson h2,
+.applicationPanel h2 {
   margin: var(--pp-skin-space-2) 0;
   font-size: clamp(24px, 3vw, 36px);
 }
 
-.lesson h3 {
+.lesson h3,
+.applicationPanel h3 {
   margin: var(--pp-skin-space-5) 0 var(--pp-skin-space-2);
   font-size: 18px;
 }
@@ -117,15 +124,22 @@
 .lesson p,
 .lesson li,
 .lesson dd,
-.lesson dt {
+.lesson dt,
+.applicationPanel p,
+.applicationPanel li,
+.applicationPanel dd,
+.applicationPanel dt,
+.applicationPanel small {
   color: var(--pp-skin-ink-muted);
 }
 
-.lesson dl > div {
+.lesson dl > div,
+.factList > div {
   margin-bottom: var(--pp-skin-space-2);
 }
 
-.lesson dt {
+.lesson dt,
+.factList dt {
   font-weight: 700;
   color: var(--pp-skin-ink);
 }
@@ -153,9 +167,13 @@
   line-height: 1.5;
 }
 
-.completeButton {
-  width: 100%;
-  margin-top: var(--pp-skin-space-5);
+.completeButton,
+.applicationButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--pp-skin-control-height);
   padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
   border-radius: var(--pp-skin-radius);
@@ -164,11 +182,112 @@
   font: inherit;
   font-weight: 700;
   text-align: center;
+  text-decoration: none;
 }
 
-.completeButton:focus-visible {
+.completeButton {
+  width: 100%;
+  margin-top: var(--pp-skin-space-5);
+}
+
+.applicationButton {
+  width: 100%;
+  margin-top: var(--pp-skin-space-3);
+}
+
+.secondaryButton {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.completeButton:focus-visible,
+.applicationButton:focus-visible,
+.secondaryButton:focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: 2px;
+}
+
+.applicationButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.55;
+}
+
+.applicationPanel > section {
+  margin-top: var(--pp-skin-space-5);
+  padding-top: var(--pp-skin-space-4);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.applicationHint,
+.emptyContext {
+  margin-top: var(--pp-skin-space-2);
+  font-size: var(--pp-skin-font-sm);
+}
+
+.deterministicView,
+.eaPanel,
+.continuePanel {
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-canvas);
+}
+
+.sectionHeadingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+}
+
+.sectionHeadingRow h3 {
+  margin-top: 0;
+}
+
+.factList {
+  margin: var(--pp-skin-space-4) 0;
+}
+
+.factList > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
+  gap: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2) 0;
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.projectFacts {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+}
+
+.projectFacts article {
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+}
+
+.projectFacts h4 {
+  margin: 0 0 var(--pp-skin-space-1);
+}
+
+.projectFacts p {
+  margin: 0 0 var(--pp-skin-space-2);
+}
+
+.reflection {
+  margin: var(--pp-skin-space-4) 0 0;
+  padding: var(--pp-skin-space-4);
+  border-left: 3px solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-fill-panel);
+  color: var(--pp-skin-ink);
+  white-space: pre-wrap;
+}
+
+.error {
+  margin-top: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
 }
 
 .exploreEntry {
@@ -240,6 +359,10 @@
   .exploreControls {
     grid-template-columns: 1fr;
   }
+
+  .sectionHeadingRow {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 720px) {
@@ -254,6 +377,7 @@
 
   .menu,
   .lesson,
+  .applicationPanel,
   .exploreEntry,
   .exploreControls,
   .exploreSummary,
@@ -263,5 +387,10 @@
 
   .row {
     font-size: 12px !important;
+  }
+
+  .factList > div {
+    grid-template-columns: 1fr;
+    gap: var(--pp-skin-space-1);
   }
 }

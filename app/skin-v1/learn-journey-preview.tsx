@@ -5,6 +5,7 @@ import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import { applyStoryCommand } from "../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../../core/storage/foundation-project-browser";
+import LearnApplicationReflection from "./learn-application-reflection";
 import LearnExplore from "./learn-explore";
 import styles from "./learn-journey-preview.module.css";
 
@@ -136,6 +137,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   const [loadError, setLoadError] = useState("");
   const [contentError, setContentError] = useState("");
   const [exploreOpen, setExploreOpen] = useState(false);
+  const [applicationOpen, setApplicationOpen] = useState(false);
   const [semesterOpen, setSemesterOpen] = useState(false);
   const [selectedSemesterIndex, setSelectedSemesterIndex] = useState(0);
   const [selectedCourseIndex, setSelectedCourseIndex] = useState(0);
@@ -212,6 +214,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     setSelectedLessonIndex(0);
     setCourseOpenId(null);
     setLessonOpenId(null);
+    setApplicationOpen(false);
     setSemesterOpen(true);
     setNotice(`${visiblePathLabel(semester.semester)} IS AVAILABLE. OPEN ANY CRAFT MODULE IN ANY ORDER.`);
     void loadJourneyContent();
@@ -249,6 +252,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     if (!wired) return;
     setCourseOpenId(course.id);
     setLessonOpenId(null);
+    setApplicationOpen(false);
     setSelectedLessonIndex(0);
     setNotice(`${course.title.toUpperCase()} — ${wired.lessons.length} CANONICAL LESSONS. COMPLETION ORDER IS YOUR CHOICE.`);
   }
@@ -284,8 +288,9 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     if (!lesson) return;
     setSelectedLessonIndex(index);
     setLessonOpenId(lesson.id);
+    setApplicationOpen(false);
     commit({ type: "lesson.open", lessonId: lesson.id, occurredAt: new Date().toISOString() });
-    setNotice(`${lesson.title.toUpperCase()} — CANONICAL LEARN CONTENT. MARK COMPLETE WHEN YOU DECIDE YOU ARE DONE.`);
+    setNotice(`${lesson.title.toUpperCase()} — CANONICAL LEARN CONTENT. APPLY IT TO YOUR STORY OR MARK COMPLETE WHEN YOU DECIDE YOU ARE DONE.`);
   }
 
   function handleLessonKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -335,6 +340,22 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     );
   }
 
+  if (applicationOpen && openLesson && openCourseContent && project) {
+    return (
+      <LearnApplicationReflection
+        lesson={openLesson}
+        course={openCourseContent}
+        project={project}
+        onBack={() => setApplicationOpen(false)}
+        onContinue={() => {
+          setApplicationOpen(false);
+          setLessonOpenId(null);
+          setNotice(`${openLesson.title.toUpperCase()} — CONTINUED WITHOUT A GATE. THE HUMAN DECIDES WHAT TO REVISE, RETAIN, OR REVISIT.`);
+        }}
+      />
+    );
+  }
+
   if (openLesson && openCourseContent) {
     const isCompleted = completedLessonIds.has(openLesson.id);
     return (
@@ -351,6 +372,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
             <section><h3>Common mistakes</h3><ul>{openLesson.mistakes.map((item) => <li key={item}>{item}</li>)}</ul></section>
             <section><h3>Exercise</h3><p>{openLesson.exercise}</p><h3>Apply in PlotPickle</h3><p>{openLesson.apply}</p></section>
             {openLesson.sources.map((source) => <details className={styles.source} key={source.id}><summary>{source.title} · canonical bundled source</summary><p>{source.scopeNote}</p><pre>{source.content}</pre></details>)}
+            <button className={styles.applicationButton} type="button" data-learn-application-open="true" onClick={() => setApplicationOpen(true)}>Apply → deterministic view → EA reflection</button>
             <button className={styles.completeButton} type="button" data-learn-progress-owner="PPFProject.learning.completedLessonIds" data-learn-lesson-completed={isCompleted ? "true" : "false"} onClick={() => toggleLessonCompletion(openLesson)}>{isCompleted ? "Mark lesson incomplete" : "Mark lesson complete"}</button>
           </article>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">{notice}</p>

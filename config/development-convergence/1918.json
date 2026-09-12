@@ -1,97 +1,97 @@
 {
   "schemaVersion": 1,
   "issue": 1918,
-  "phase": "phase-6-explore-all-curriculum",
-  "brief": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md",
+  "phase": "phase-7-ea-reflection",
+  "brief": "docs/developer-briefs/1918-phase-7-ea-reflection.md",
   "allowedChanges": [
-    "app/api/learn/explore/route.ts",
-    "app/skin-v1/learn-explore.tsx",
+    "app/skin-v1/learn-application-reflection.tsx",
     "app/skin-v1/learn-journey-preview.module.css",
     "app/skin-v1/learn-journey-preview.tsx",
     "config/development-convergence/1918.json",
     "config/verification/ownership-map.json",
-    "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md",
+    "core/contracts/curriculum-guide.ts",
+    "core/contracts/learning-application.ts",
+    "core/learning/application-view.ts",
+    "docs/developer-briefs/1918-phase-7-ea-reflection.md",
+    "modules/creative-room/ea-reflection-guide.ts",
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1918-learn-semester-one.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P6-A1",
-      "criterion": "Phase 6 adds an unrestricted Explore / All Curriculum projection over the existing 88-lesson presentation adapter rather than a copied curriculum store.",
+      "id": "P7-A1",
+      "criterion": "Phase 7 exposes the Human-led LEARN -> APPLY -> DETERMINISTIC VIEW -> EA REFLECTION -> CONTINUE loop from canonical Journey lessons.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "plotPickleCurriculum" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "phase: \"phase-6-explore-all-curriculum\"" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "entries.length !== 88" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "curriculumBodiesDuplicated: false" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-learn-application-open=\"true\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "LEARN → APPLY → DETERMINISTIC VIEW → EA REFLECTION → CONTINUE" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "data-learn-application-authority=\"human-decides\"" }
       ]
     },
     {
-      "id": "P6-A2",
-      "criterion": "Explore preserves the complete 12-topic / 88-presentation-lesson / 95-source inventory and relates all results to the existing 24 Craft Modules.",
+      "id": "P7-A2",
+      "criterion": "The deterministic view is derived from existing PPF project material plus canonical lesson/Craft Module metadata and identifies the source of every exposed project fact.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "representedTopics.size !== 12" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "representedCraftModules.size !== 24" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "sourceIds.size !== 95" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "LEARN_PROGRAM_COURSE_SPECS" }
+        { "type": "file-contains", "path": "core/learning/application-view.ts", "contains": "project.foundations.lessons[lesson.id]?.answers" },
+        { "type": "file-contains", "path": "core/learning/application-view.ts", "contains": "project.world.lessons[lesson.id]?.answers" },
+        { "type": "file-contains", "path": "core/learning/application-view.ts", "contains": "PPFProject.foundations.brief.content" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "data-learn-project-fact={fact.source}" }
       ]
     },
     {
-      "id": "P6-A3",
-      "criterion": "The seven promoted Foundations presentation lessons retain explicit reference coverage through their canonical Foundations lesson and owning Craft Module.",
+      "id": "P7-A3",
+      "criterion": "Educational Assistance receives the same bounded application-view facts visible to the Human and is explicitly reflection rather than grading or creative authority.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "FOUNDATION_PROMOTED_SOURCE_IDS" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "reference-coverage" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "referenceCoverageCount !== 7" }
+        { "type": "file-contains", "path": "modules/creative-room/ea-reflection-guide.ts", "contains": "Use only project facts present in deterministic_application_view" },
+        { "type": "file-contains", "path": "modules/creative-room/ea-reflection-guide.ts", "contains": "do not test, grade, score, certify mastery" },
+        { "type": "file-contains", "path": "core/contracts/learning-application.ts", "contains": "eaMayGrade: false" },
+        { "type": "file-contains", "path": "core/contracts/learning-application.ts", "contains": "humanDecides: true" }
       ]
     },
     {
-      "id": "P6-A4",
-      "criterion": "Journey and Explore share only the existing PPF lesson-history authority and existing lesson commands for progress.",
+      "id": "P7-A4",
+      "criterion": "Phase 7 reuses the existing curriculum-guide Agent/provider authority instead of creating a hidden provider/model path.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "progressOwner: \"PPFProject.learning.completedLessonIds\"" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "journeyAndExploreShareProgress: true" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "completedLessonIds={completedLessonIds}" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "onToggleLessonCompletion={toggleLessonCompletion}" }
+        { "type": "file-contains", "path": "modules/creative-room/ea-reflection-guide.ts", "contains": "import { answerFromCurriculum } from \"./curriculum-guide\"" },
+        { "type": "file-contains", "path": "modules/creative-room/ea-reflection-guide.ts", "contains": "return answerFromCurriculum" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-7-ea-reflection.md", "contains": "Reuse the existing curriculum-guide Agent/provider path" }
       ]
     },
     {
-      "id": "P6-A5",
-      "criterion": "Explore supports deterministic discovery by topic, Craft Module, lesson, concept and PlotPickle application area without provider or Agent inference.",
+      "id": "P7-A5",
+      "criterion": "APPLY uses existing PlotPickle workflow destinations without turning routing into curriculum access control.",
       "evidence": [
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "concepts: unique(" },
-        { "type": "file-contains", "path": "app/api/learn/explore/route.ts", "contains": "applicationAreas: unique(" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Search all curriculum\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Filter Explore by topic\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "aria-label=\"Filter Explore by Craft Module\"" }
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "case \"foundations\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "return \"/structure\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "return \"/storyboard\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "return \"/pageflow\"" }
       ]
     },
     {
-      "id": "P6-A6",
-      "criterion": "Explore is a first-class keyboard-reachable Skin V1 destination while Journey Paths remain unchanged and guided-not-gated.",
+      "id": "P7-A6",
+      "criterion": "CONTINUE is always available and remains independent from EA agreement, story revision, and lesson completion.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "data-learn-continue-unlocked=\"true\"" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-application-reflection.tsx", "contains": "EA advice never changes canon and never controls access" },
+        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "data-learn-progress-owner=\"PPFProject.learning.completedLessonIds\"" }
+      ]
+    },
+    {
+      "id": "P7-A7",
+      "criterion": "Phase 7 preserves unrestricted Journey/Explore behavior, prior deterministic curriculum integrity, and explicit seven-layer ownership while adding focused regression coverage.",
       "evidence": [
         { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "[E] EXPLORE / ALL CURRICULUM" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-journey-preview.tsx", "contains": "event.key.toLowerCase() === \"e\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "data-learn-explore-access=\"unrestricted\"" },
-        { "type": "file-contains", "path": "app/skin-v1/learn-explore.tsx", "contains": "ORDER DOES NOT CONTROL ACCESS" }
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "Phase 7 adds Human-led deterministic application and EA reflection without grading or gates" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "scripts/validate-learn-curriculum-integrity.mjs" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "learn-ea-reflection-agent" }
       ]
     },
     {
-      "id": "P6-A7",
-      "criterion": "The new Explore endpoint and UI are owned by the existing seven-layer verification boundaries and focused #1918 regressions preserve prior phases.",
+      "id": "P7-A8",
+      "criterion": "Phase 8 Sage journey awareness and Phase 9 specialist Agent lenses remain explicitly outside this Phase 7 PR.",
       "evidence": [
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "app/api/learn/explore/route.ts" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "Phase 6 exposes first-class unrestricted Explore" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "Phase 6 Explore projects the existing 88-lesson presentation catalog" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-semester-one.test.mjs", "contains": "validate-learn-curriculum-integrity.mjs" }
-      ]
-    },
-    {
-      "id": "P6-A8",
-      "criterion": "Phase 7+ remains explicitly out of scope; this PR stops after unrestricted Explore / All Curriculum is proven.",
-      "evidence": [
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "Do not add in Phase 6" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "LEARN -> APPLY -> CHECK -> CONTINUE" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-6-explore-all-curriculum.md", "contains": "Stop there. Do not begin Phase 7 in the same PR." }
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-7-ea-reflection.md", "contains": "Sage longitudinal journey memory (Phase 8)" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-7-ea-reflection.md", "contains": "`/` specialist Agent switching or `/panel` (Phase 9+)" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1918-phase-7-ea-reflection.md", "contains": "Stop after the Phase 7 loop is green and merged." }
       ]
     }
   ]

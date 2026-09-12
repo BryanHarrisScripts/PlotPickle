@@ -71,6 +71,26 @@
       "riskTokens": ["surface", "navigation", "canon"]
     },
     {
+      "id": "learn-application-contract",
+      "classification": "production",
+      "include": [
+        "core/contracts/learning-application.ts",
+        "core/learning/application-view.ts"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "canon", "graph"]
+    },
+    {
+      "id": "learn-ea-reflection-agent",
+      "classification": "production",
+      "include": [
+        "core/contracts/curriculum-guide.ts",
+        "modules/creative-room/ea-reflection-guide.ts"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": ["agent", "canon", "provider"]
+    },
+    {
       "id": "learn-program-map",
       "classification": "production",
       "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs"],

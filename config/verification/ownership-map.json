@@ -57,6 +57,13 @@
       "riskTokens": ["docs", "test-harness"]
     },
     {
+      "id": "repository-readme",
+      "classification": "docs",
+      "include": ["README.md"],
+      "ownerLayer": "verification",
+      "riskTokens": ["docs"]
+    },
+    {
       "id": "verification-tests",
       "classification": "test",
       "include": ["tests/**"],

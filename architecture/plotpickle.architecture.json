@@ -5,7 +5,7 @@
     "tagline": "AI-Native Agentic Story Operating System",
     "subtitle": "TARGET ARCHITECTURE / COMMUNITY + BUZZ UPDATE",
     "version": "1.0",
-    "updated": "2026-09-09",
+    "updated": "2026-09-12",
     "status": "target",
     "source": "architecture/plotpickle.architecture.json"
   },
@@ -130,12 +130,12 @@
       "title": "VERIFICATION CLIENTS + RELEASE OPERATIONS",
       "note": "OUTSIDE THE PRODUCTION DEPENDENCY PATH",
       "components": [
-        { "title": "PR Gate", "detail": "Contracts · BEN · architecture · focused tests + production build" },
-        { "title": "Product Gate", "detail": "Rendered UX · accessibility · Visual Readiness · Windows + packaged UAT" },
-        { "title": "Replaceable test harness", "detail": "Reference client of the public Experience contract" },
-        { "title": "Evidence + release", "detail": "Artifacts · diagnostics · installer · specialized verification" }
+        { "title": "Architecture Verification", "detail": "Seven stable required layer checks · exact-head evidence" },
+        { "title": "Verification core", "detail": "Catalog · impact graph · typed runners · normalized evidence" },
+        { "title": "Live + runtime observers", "detail": "Impact-selected WebMCP · provider · native · platform evidence" },
+        { "title": "Release + diagnostics", "detail": "Full Verification · artifacts · installer · explicit manual diagnostics" }
       ],
-      "footer": "TWO NORMAL VISIBLE PR GATES · SAME EXPERIENCE CONTRACT, NO RUNTIME DEPENDENCY"
+      "footer": "SEVEN REQUIRED ARCHITECTURE CHECKS · IMPACT-SELECTED EVIDENCE · NO PRODUCTION RUNTIME DEPENDENCY"
     }
   ],
   "community": {

@@ -5,6 +5,35 @@
   "migrationSource": "config/verification/phase-0-inventory.json",
   "entries": [
     {
+      "id": "experience.webmcp-live-observer",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["webmcp-live-observer", "skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual"],
+      "runner": {
+        "kind": "browser-uat",
+        "targets": ["scripts/verification-webmcp-live.mjs"]
+      },
+      "cost": "medium",
+      "modes": ["impact"],
+      "platforms": ["linux"],
+      "requirements": {
+        "network": true,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["rendered-uat", "screenshot", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-live/webmcp-live.json",
+          ".artifacts/webmcp-startup/summary.json",
+          ".artifacts/webmcp-startup/uat-findings.json",
+          ".artifacts/visual-readiness/dashboard-canonical.png",
+          ".artifacts/visual-readiness/visual-director-report.json"
+        ]
+      },
+      "notes": "Phase 5 live read-only WebMCP observer. It is single-owned by Experience Skins but can be selected by Skin, Experience surface/navigation, or WebMCP verifier risk tokens. Network permission is limited to repository dependencies plus pinned Playwright/WebMCP verification tooling; no external AI provider calls or secrets are permitted."
+    },
+    {
       "id": "provider.local-ai-plugin-registry",
       "ownerLayer": "provider-runtime",
       "architectureComponents": ["local-ai-plugin-registry", "provider-runtime"],

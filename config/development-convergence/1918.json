@@ -11,6 +11,7 @@
     "config/development-convergence/1918.json",
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
+    "docs/developer-briefs/1918-phase-3-journey-shell.md",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
     "tests/issue-1918-learn-journey-shell.test.mjs"
   ],

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "issue": 1951,
+  "brief": "docs/developer-briefs/1951-phase-7-retire-legacy-gates.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/product-gate.yml",
+    "README.md",
+    "architecture/plotpickle-architecture-overview.svg",
+    "architecture/plotpickle-architecture.svg",
+    "architecture/plotpickle-c4.md",
+    "architecture/plotpickle.architecture.json",
+    "config/development-convergence/1951.json",
+    "config/verification/merge-authority.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/architecture/agent-context.md",
+    "docs/developer-briefs/1951-phase-7-retire-legacy-gates.md",
+    "docs/updates/README.md",
+    "docs/updates/archive/2026-09-09-1bc643165126.md",
+    "docs/updates/documentation-drift.md",
+    "tests/issue-1747-ci-two-gates.test.mjs",
+    "tests/issue-1949-merge-authority.test.mjs",
+    "tests/issue-1951-retire-legacy-gates.test.mjs",
+    "tests/issue-538-ci-consolidation.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Architecture Verification is the sole ordinary pull-request workflow.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1951-retire-legacy-gates.test.mjs", "contains": "sole ordinary pull-request workflow" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "name: Architecture Verification" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "PR Gate and Product Gate are retained only as explicit manual diagnostics.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "workflow_dispatch:" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "workflow_dispatch:" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"role\": \"manual-diagnostic\"" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Repository metadata records the externally enforced seven-check Main ruleset.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"requiredStatusChecksConfigured\": true" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"promotionState\": \"seven-layer-authority-enforced\"" },
+        { "type": "file-contains", "path": "config/verification/merge-authority.json", "contains": "\"retirementState\": \"legacy-pr-triggers-retired\"" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Layer 7 owns a baseline regression for final CI topology, merge authority and living architecture.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"verification.phase7-merge-authority\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1951-retire-legacy-gates.test.mjs" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/architecture-blueprint-generator.test.mjs" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Canonical Layer 7 architecture describes the seven-check verification mesh instead of the old two-gate topology.",
+      "evidence": [
+        { "type": "file-contains", "path": "architecture/plotpickle.architecture.json", "contains": "\"title\": \"Architecture Verification\"" },
+        { "type": "file-contains", "path": "architecture/plotpickle.architecture.json", "contains": "SEVEN REQUIRED ARCHITECTURE CHECKS" },
+        { "type": "file-contains", "path": "docs/architecture/agent-context.md", "contains": "Source fingerprint:" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "Final Phase 7 intent and completion boundary are documented.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/developer-briefs/1951-phase-7-retire-legacy-gates.md", "contains": "Final topology" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1951-phase-7-retire-legacy-gates.md", "contains": "After the merge is green, #1949, #1951 and parent #1922 can close completed." }
+      ]
+    }
+  ]
+}

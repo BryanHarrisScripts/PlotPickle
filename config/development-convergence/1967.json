@@ -6,6 +6,7 @@
     "app/skin-v1/dashboard-bbs-panel.tsx",
     "app/skin-v1/skin-v1-client.tsx",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "scripts/validate-learn-journey-baseline.mjs",
     "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs",
     "tests/issue-1918-learn-journey-shell.test.mjs",
     "tests/issue-1954-pre-phase2-cleanup.test.mjs",
@@ -30,9 +31,10 @@
     },
     {
       "id": "A3",
-      "criterion": "Historical nine-collection compatibility remains baseline evidence while the production navigation cutover is regression-tested.",
+      "criterion": "Historical nine-collection compatibility remains immutable baseline evidence without requiring legacy rows to remain rendered.",
       "evidence": [
         { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"collectionCount\": 9" },
+        { "type": "file-contains", "path": "scripts/validate-learn-journey-baseline.mjs", "contains": "Writer's Craft historical compatibility collection names or order changed from the Phase 0 baseline." },
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "#1967 retires legacy Writer's Craft collection navigation while preserving compatibility evidence" }
       ]
     },

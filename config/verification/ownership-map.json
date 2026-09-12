@@ -11,13 +11,16 @@
       "id": "verification-contract-files",
       "classification": "verification",
       "include": [
+        ".github/workflows/**",
+        "config/development-convergence/**",
         "config/verification/**",
         "schema/verification/**",
         "lib/verification/**",
-        "scripts/validate-verification-phase-1.mjs"
+        "scripts/validate-verification-phase-1.mjs",
+        "scripts/verification-core.mjs"
       ],
       "ownerLayer": "verification",
-      "riskTokens": ["test-harness"]
+      "riskTokens": ["test-harness", "cli"]
     },
     {
       "id": "verification-tests",

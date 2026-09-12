@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, open, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -11,6 +11,7 @@ import { validateLocalServer, waitForUiServer } from "../lib/verification/ui-axe
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const artifactRoot = path.join(repoRoot, ".artifacts", "verification-live");
 const summaryPath = path.join(artifactRoot, "webmcp-live.json");
+const startupEvidencePath = path.join(repoRoot, ".artifacts", "webmcp-startup", "summary.json");
 const serverLogPath = path.join(artifactRoot, "webmcp-app-server.log");
 const serverUrl = "http://127.0.0.1:4173";
 const verificationPackages = Object.freeze([
@@ -21,6 +22,7 @@ const nodeDependencyPaths = Object.freeze([
   "/api/system/node-control",
   "/api/system/node-topology",
 ]);
+const coldDashboardMediaFailure = "Dashboard canonical design reference did not contain loaded primary media.";
 
 function commandName(name) {
   return process.platform === "win32" ? `${name}.cmd` : name;
@@ -102,6 +104,40 @@ async function probeLocalNodeDependencies() {
   return results;
 }
 
+async function readStartupFailure() {
+  try {
+    const evidence = JSON.parse(await readFile(startupEvidencePath, "utf8"));
+    return String(evidence?.failure || "");
+  } catch {
+    return "";
+  }
+}
+
+async function runAuditOnce({ node, home, toolRoot, serverEnv, serverExited }) {
+  const audit = runCommand(node, [
+    "scripts/run-webmcp-startup-uat.mjs",
+    "run",
+    "--server", serverUrl,
+    "--home", home,
+    "--tool-root", toolRoot,
+  ], { env: serverEnv });
+  await Promise.race([audit, serverExited]);
+}
+
+async function runAuditWithColdMediaRetry(options) {
+  try {
+    await runAuditOnce(options);
+    return false;
+  } catch (error) {
+    const failure = await readStartupFailure();
+    if (!failure.includes(coldDashboardMediaFailure)) throw error;
+    console.log("[WEBMCP] Dashboard media was not decoded on the first cold-start audit; retrying the same read-only audit once.");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await runAuditOnce(options);
+    return true;
+  }
+}
+
 async function writeSummary(status, details = {}) {
   await mkdir(artifactRoot, { recursive: true });
   await writeFile(summaryPath, `${JSON.stringify({
@@ -147,6 +183,7 @@ export async function runLiveWebMcpEvidence() {
   let server = null;
   let serverLogHandle = null;
   let nodeDependencies = [];
+  let coldMediaRetryUsed = false;
 
   await mkdir(artifactRoot, { recursive: true });
   try {
@@ -176,18 +213,12 @@ export async function runLiveWebMcpEvidence() {
       throw new Error(`NODE readiness dependency failed: ${failedDependency.path} ${failedDependency.status ? `HTTP ${failedDependency.status}` : failedDependency.serverMessage || "request failed"}${failedDependency.serverMessage ? ` ${failedDependency.serverMessage}` : ""}`.trim());
     }
 
-    const audit = runCommand(node, [
-      "scripts/run-webmcp-startup-uat.mjs",
-      "run",
-      "--server", serverUrl,
-      "--home", home,
-      "--tool-root", toolRoot,
-    ], { env: serverEnv });
-    await Promise.race([audit, serverExited]);
+    coldMediaRetryUsed = await runAuditWithColdMediaRetry({ node, home, toolRoot, serverEnv, serverExited });
     await writeSummary("pass", {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
+      coldMediaRetryUsed,
       nodeDependencies,
     });
     return 0;
@@ -198,6 +229,7 @@ export async function runLiveWebMcpEvidence() {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
       nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
+      coldMediaRetryUsed,
       nodeDependencies,
     });
     console.error(`[FAIL] Live WebMCP verification: ${message}`);

@@ -41,30 +41,15 @@ test("#1949 promoted architecture workflow keeps all seven exact checks visible 
   for (const name of exactChecks) assert.ok(workflow.includes(`name: ${name}`), `missing promoted check ${name}`);
 });
 
-test("#1949 legacy PR and Product gates are comparison-only during promotion", async () => {
-  const authority = await readJson("config/verification/merge-authority.json");
-  assert.deepEqual(authority.legacyAdvisoryWorkflows, [
-    {
-      file: ".github/workflows/pr-gate.yml",
-      workflowName: "PR Gate",
-      jobName: "PR Gate",
-      role: "advisory-comparison",
-    },
-    {
-      file: ".github/workflows/product-gate.yml",
-      workflowName: "Product Gate",
-      jobName: "Product Gate",
-      role: "advisory-comparison",
-    },
-  ]);
-});
-
-test("#1949 cannot claim Phase 6 enforcement until Main ruleset requires the seven checks", async () => {
+test("#1949 records the enforced Main ruleset and retired legacy PR roles", async () => {
   const authority = await readJson("config/verification/merge-authority.json");
   assert.equal(authority.rulesetExpectation.rulesetId, 20214975);
   assert.equal(authority.rulesetExpectation.rulesetName, "Main");
   assert.equal(authority.rulesetExpectation.target, "~DEFAULT_BRANCH");
-  assert.equal(authority.rulesetObservation.requiredStatusChecksConfigured, false);
-  assert.deepEqual(authority.rulesetObservation.observedRuleTypes, ["deletion", "non_fast_forward"]);
-  assert.equal(authority.promotionState, "repository-prepared-awaiting-ruleset");
+  assert.equal(authority.rulesetObservation.requiredStatusChecksConfigured, true);
+  assert.deepEqual(authority.rulesetObservation.observedRuleTypes, ["deletion", "non_fast_forward", "required_status_checks"]);
+  assert.deepEqual(authority.rulesetObservation.requiredStatusChecks, exactChecks);
+  assert.equal(authority.rulesetObservation.legacyChecksRequired, false);
+  assert.equal(authority.promotionState, "seven-layer-authority-enforced");
+  assert.equal(authority.retirementState, "legacy-pr-triggers-retired");
 });

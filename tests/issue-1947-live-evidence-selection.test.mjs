@@ -129,12 +129,13 @@ test("#1947 architecture shadow authorizes verification-tool network only for La
   assert.match(workflow, /\.artifacts\/visual-readiness\/\*\.png/u);
 });
 
-test("#1947 browser-UAT runner is bounded, read-only and repair-free", async () => {
-  const [shadow, live, startup, policy] = await Promise.all([
+test("#1947 browser-UAT runner is bounded, read-only, repair-free and mirrors the local synthetic runtime", async () => {
+  const [shadow, live, startup, policy, launcher] = await Promise.all([
     read("scripts/verification-shadow.mjs"),
     read("scripts/verification-webmcp-live.mjs"),
     read("scripts/run-webmcp-startup-uat.mjs"),
     read("lib/verification/webmcp-uat-skills.mjs"),
+    read("Start-PlotPickle.bat"),
   ]);
   assert.match(shadow, /"browser-uat"/u);
   assert.match(shadow, /target\.startsWith\("scripts\/"\)/u);
@@ -144,6 +145,12 @@ test("#1947 browser-UAT runner is bounded, read-only and repair-free", async () 
   assert.match(live, /secretsAccessed: false/u);
   assert.match(live, /run-webmcp-startup-uat\.mjs/u);
   assert.doesNotMatch(live, /--repair/u);
+  assert.match(live, /verificationSyntheticRuntime/u);
+  assert.match(live, /\.\.\.runtime\.runtimeEnv/u);
+  assert.match(live, /PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp"/u);
+  assert.match(live, /env: serverEnv/u);
+  assert.match(launcher, /PLOTPICKLE_ACCESS_MODE=desktop-loopback/u);
+  assert.match(launcher, /PLOTPICKLE_SERVER_NETWORK_ENABLED=false/u);
   assert.match(startup, /WEBMCP_UAT_SKILL_POLICY/u);
   assert.match(policy, /WEBMCP_FORBIDDEN_CAPABILITIES/u);
   assert.match(policy, /mayFixCode: false/u);

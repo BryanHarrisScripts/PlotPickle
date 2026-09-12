@@ -167,6 +167,39 @@ html[data-plotpickle-skin="skin-v1"] :is(
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
 }
 
+/* #1965: keep Profile readiness truthful and actionable without sacrificing
+   the Human identity/character copy to a narrow desktop third column. */
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Identity summary"] {
+  grid-template-columns: 108px minmax(0, 1fr) !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] {
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: var(--pp-skin-space-2) var(--pp-skin-space-4) !important;
+  padding: var(--pp-skin-space-3) 0 0 !important;
+  border-left: 0 !important;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] > div {
+  min-width: 0 !important;
+  grid-template-columns: minmax(0, 1fr) 11px !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: var(--pp-skin-control-height) !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
 @media (max-width: 720px) {
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"],
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"],
@@ -192,5 +225,15 @@ html[data-plotpickle-skin="skin-v1"] :is(
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
     font-size: 12px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Identity summary"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }

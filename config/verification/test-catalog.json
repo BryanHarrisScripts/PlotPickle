@@ -3,5 +3,29 @@
   "schemaVersion": "1.0",
   "sourceArchitecture": "architecture/plotpickle.architecture.json",
   "migrationSource": "config/verification/phase-0-inventory.json",
-  "entries": []
+  "entries": [
+    {
+      "id": "verification.phase2-core",
+      "ownerLayer": "verification",
+      "architectureComponents": ["verification-core"],
+      "triggerTokens": ["test-harness", "cli"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1938-verification-core.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification/verification.json"]
+      },
+      "notes": "Phase 2 self-test for the shared verification planning/execution/evidence core. Existing PR Gate and Product Gate remain authoritative."
+    }
+  ]
 }

@@ -1,8 +1,9 @@
 export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/PlotPickle";
 export const LEARNING_MODULE_COUNT = 81;
+export const PLOTPICKLE_PRODUCT_CATEGORY = "AI-native agentic story operating system";
 
 export const PLOTPICKLE_POSITIONING = {
-  category: "AI-native visual writing and creative direction studio",
+  category: PLOTPICKLE_PRODUCT_CATEGORY,
   hero: "Shape the story. See the world. Direct what comes next.",
   summary:
     "PlotPickle lets writers shape words, images and cinematic possibilities as one connected storyworld. Begin with a concept, explore and compare directions, refine the material, approve what belongs, and reuse those decisions across Plan, Write, Edit, Storyboard and Graphic Novel without giving up local canon control.",

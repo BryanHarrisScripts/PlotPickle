@@ -211,6 +211,9 @@
 .statusLink {
   width: fit-content;
   min-width: 0;
+  min-height: var(--pp-skin-control-height);
+  display: inline-flex;
+  align-items: center;
   padding: 0;
   border: 0;
   background: transparent;

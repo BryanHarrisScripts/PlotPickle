@@ -2,6 +2,7 @@ import Link from "next/link";
 import packageInfo from "../../package.json";
 import {
   PLOTPICKLE_POSITIONING,
+  PLOTPICKLE_PRODUCT_CATEGORY,
   STORYWORLD_CORE_LOOP,
 } from "@/lib/product-direction";
 import {
@@ -33,7 +34,7 @@ export default function AboutPlotPicklePage() {
             <span>About · Origins · Product Principles</span>
             <h1>{PLOTPICKLE_POSITIONING.hero}</h1>
             <p>
-              PlotPickle is a local-first, AI-native visual writing and creative direction studio built around Bryan Harris&apos;s 24 Blocks method. Writers shape concepts, words, images and cinematic possibilities in one portable PPF project, then decide what becomes reusable storyworld canon.
+              PlotPickle is a local-first {PLOTPICKLE_PRODUCT_CATEGORY} built around Bryan Harris&apos;s 24 Blocks method. Writers shape concepts, words, images and cinematic possibilities in one portable PPF project, then decide what becomes reusable storyworld canon.
             </p>
             <nav className={styles.actions} aria-label="About PlotPickle actions">
               <Link className={styles.primaryAction} href="/?workspace=dashboard">Back to Dashboard</Link>
@@ -53,7 +54,7 @@ export default function AboutPlotPicklePage() {
         </nav>
 
         <section className={styles.introGrid} aria-label="PlotPickle overview">
-          <article><span>What it is</span><h2>A visual storyworld engine</h2><p>Structure, screenplay material, Whole Film, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports use one connected project instead of parallel creative files.</p></article>
+          <article><span>What it is</span><h2>An agentic story operating system</h2><p>Structure, screenplay material, Whole Film, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports use one connected project instead of parallel creative files.</p></article>
           <article><span>Why it exists</span><h2>Make movie logic visible</h2><p>Hooks, turning points, causality, arcs, character decisions and visual continuity stay visible while the project moves from script structure into connected previsualization.</p></article>
           <article><span>What it supports</span><h2>A clearer green-light conversation</h2><p>The goal is persuasive previsualization evidence that helps a creative team discuss whether the story, visual direction and production plan are ready for the next investment.</p></article>
           <article><span>What it is not</span><h2>Not a finishing system</h2><p>PlotPickle does not aim to replace Final Draft, a professional production crew, editorial, colour, sound finishing or a studio delivery pipeline.</p></article>

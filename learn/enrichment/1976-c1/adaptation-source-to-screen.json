@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c1-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "adaptation-source-to-screen",
+    "topic": "drafting",
+    "ownerCraftModule": "course-16",
+    "relatedCraftModules": ["course-01", "course-04", "course-22", "course-24"],
+    "kind": "deep-dive",
+    "title": "Adaptation: Source to Screen",
+    "duration": "45–60 min",
+    "overview": "Transform source material into a screen story by choosing what the adaptation is really carrying forward, then selecting, compressing, expanding, combining and externalizing material for a new medium. Keep creative adaptation decisions separate from the legal question of whether you have the right to make the adaptation.",
+    "objectives": [
+      "Identify the source elements the screen adaptation intends to preserve, transform or leave behind.",
+      "Convert internal narration, explanation and background into visible behavior, dramatic situations and sound where appropriate.",
+      "Use compression, expansion, combination and reordering deliberately rather than treating fidelity as line-by-line transfer.",
+      "Separate creative adaptation craft from rights, permissions, public-domain status and legal advice."
+    ],
+    "sections": [
+      {
+        "heading": "Find the adaptation promise",
+        "paragraphs": [
+          "An adaptation is not a photocopy in another file format. Before deciding what to cut, state what experience you are trying to carry from the source into the screen work. It may be a relationship, a moral problem, a transformation, a world, a sequence of consequences or a distinctive point of view. That promise becomes the reference point for later choices.",
+          "Two adaptations of the same source can make different promises and both be coherent. One may preserve plot architecture while another centers a secondary relationship. The useful question is not 'Did I keep everything?' but 'What am I asking the audience to experience, and which source elements serve that experience on screen?'"
+        ],
+        "points": [
+          "Write the source's central dramatic engine in your own words.",
+          "Write the adaptation's intended audience experience separately.",
+          "Mark source elements as essential, useful, optional or incompatible with the new screen form.",
+          "Do not confuse attachment to a passage with its dramatic necessity in the adaptation."
+        ]
+      },
+      {
+        "heading": "Select, compress, expand and combine",
+        "paragraphs": [
+          "Screen time is selective. A novel can spend pages inside memory, argument or history; a film may need to embody the same pressure in fewer dramatic situations. Compression can combine events, locations or functions. Expansion can turn a brief source moment into a scene when the screen story needs to witness a choice. Combination can merge characters when their separate source functions would fragment the adaptation.",
+          "These are structural decisions, not automatic improvements. Each change should have a reason tied to causality, character pressure, clarity, rhythm or the adaptation promise. Keep a choice log so later revisions can distinguish deliberate transformation from accidental drift."
+        ],
+        "points": [
+          "Select what the screen story must actually dramatize.",
+          "Compress repeated or parallel functions when one screen movement can carry them.",
+          "Expand moments where a choice, relationship or consequence needs to become playable.",
+          "Combine characters or events only after identifying the functions that must survive the merge."
+        ]
+      },
+      {
+        "heading": "Externalize what the source can keep inside",
+        "paragraphs": [
+          "Prose can state thought directly. Screen storytelling usually needs an audience-facing carrier: behavior, dialogue, image, sound, staging, withholding or consequence. Do not translate an internal sentence into a voice-over by reflex. First ask what the thought makes the character do, avoid, notice, misread or risk.",
+          "Voice-over can be an intentional screen device, but it should be chosen for the adaptation's form rather than used as an emergency container for source text. Sometimes the strongest adaptation of an internal passage is a new dramatic situation that produces the same pressure without reproducing the wording."
+        ],
+        "points": [
+          "Identify the internal information or feeling the source provides.",
+          "Ask what behavior would reveal, conceal or contradict it.",
+          "Choose a visual, sonic or interpersonal carrier when the audience needs evidence.",
+          "Use narration only when narration is part of the intended screen language."
+        ]
+      },
+      {
+        "heading": "Rebuild point of view for screen",
+        "paragraphs": [
+          "Point of view in prose may be created by grammar, access to thought or a narrator's distance. On screen, point of view can be shaped by whose actions organize the story, which information is withheld, what the camera-story notices, whose consequences we follow and when the audience is allowed to understand more than a character does.",
+          "A source with several interior viewpoints may need a clearer screen spine. A first-person source may gain dramatic power by allowing the audience to see what the narrator cannot. Preserve the function of point of view, not necessarily the source's exact mechanism."
+        ],
+        "points": [
+          "Decide whose choices carry the adaptation's main causal line.",
+          "Track what the audience knows relative to the central character.",
+          "Use scene selection and information order to create screen point of view.",
+          "Change viewpoint deliberately when the new medium benefits from it."
+        ]
+      },
+      {
+        "heading": "Separate creative permission from legal permission",
+        "paragraphs": [
+          "Creative analysis can ask how a work might be adapted. Producing, distributing or commercially developing an adaptation raises a separate rights question. A screenplay based on protected preexisting material can be a derivative work, and the relevant rights may belong to somebody other than the adapting writer. Ownership, licence, public-domain status, contract terms and jurisdiction can matter.",
+          "PlotPickle is not legal advice. Record the source, claimed rights status and permission evidence you actually have. Do not let a good creative idea become an invented rights claim. When the rights position matters materially, verify it with current authoritative information and qualified professional advice."
+        ],
+        "points": [
+          "Record the source work and creator accurately.",
+          "Distinguish public-domain, licensed, owned, permission-pending and unknown status.",
+          "Do not assume purchase of a book or access to a document grants adaptation rights.",
+          "Treat rights uncertainty as a project constraint, not as proof that the creative exercise is wrong."
+        ]
+      },
+      {
+        "heading": "Update the new story's source of truth",
+        "paragraphs": [
+          "Once an adaptation choice is approved, the screenplay project needs its own coherent source of truth. Character combinations, reordered events and changed world rules should propagate through the treatment, Block map, character records and draft rather than living as disconnected exceptions.",
+          "Keep provenance visible so collaborators can tell what came from the source, what the adaptation transformed and what the new screenplay invented. That record supports creative clarity even when no legal dispute exists."
+        ],
+        "points": [
+          "Record major adaptation decisions and their dramatic reason.",
+          "Update dependent project artifacts when a transformation becomes approved story state.",
+          "Preserve attribution and source references separately from new screenplay invention.",
+          "Revisit the adaptation promise when revisions accumulate enough changes to blur the project's intent."
+        ]
+      }
+    ],
+    "definitions": [
+      {
+        "term": "Adaptation promise",
+        "meaning": "The experience, dramatic engine or relationship the new screen work intends to carry forward from its source."
+      },
+      {
+        "term": "Compression",
+        "meaning": "Combining or reducing source events, characters, locations or functions so the screen story carries essential movement more economically."
+      },
+      {
+        "term": "Externalization",
+        "meaning": "Turning internal explanation, thought or background into screen-perceivable behavior, sound, image, situation or consequence."
+      },
+      {
+        "term": "Derivative work",
+        "meaning": "A work based on or incorporating a preexisting work through recasting, transformation or adaptation; the legal implications depend on the underlying rights and jurisdiction."
+      },
+      {
+        "term": "Provenance",
+        "meaning": "A record of where source material came from and how it entered or was transformed within the project."
+      }
+    ],
+    "example": {
+      "title": "The letters in the attic",
+      "text": "Invented source: a short story is told through twelve letters in which Mara slowly admits she caused her sister's exile. Adaptation promise: preserve the experience of discovering that Mara's self-protective story is collapsing. Screen choice: rather than dramatizing twelve readings, the screenplay combines the letters into three discoveries across one weekend. Mara hides the first letter, lies about the second and is forced to read the final one aloud when her niece arrives. The wording is new; the dramatic function is preserved through behavior, escalating pressure and changed relationships."
+    },
+    "checklist": [
+      "The adaptation promise is stated separately from the source summary.",
+      "Every major omission, combination or expansion has a dramatic reason.",
+      "Internal source material has been considered for visible, audible or interpersonal expression.",
+      "Point-of-view choices fit the new screen work rather than mechanically copying the source mechanism.",
+      "The project records the source and the rights status actually known.",
+      "Creative adaptation decisions do not masquerade as legal permission.",
+      "Approved transformations are reflected consistently across the new project's artifacts."
+    ],
+    "mistakes": [
+      "Treating fidelity as preserving every event, line or character regardless of screen function.",
+      "Using voice-over automatically whenever the source contains internal thought.",
+      "Combining characters before identifying which dramatic functions each one carries.",
+      "Changing chronology for novelty without tracking its effect on causality and audience knowledge.",
+      "Assuming access to a source work means the adaptation rights are available.",
+      "Letting the treatment, Block map and screenplay disagree after a major adaptation choice is approved."
+    ],
+    "exercise": "Choose one source beat you are authorized to work with, that is public-domain, or use an invented source beat. Write five lines: source function, adaptation promise, what must be visible/audible, what can be compressed or transformed, and the resulting screen beat. Then draft 200–300 words of the screen version without reusing source wording. If working with real protected material, keep the exercise private unless you have the rights needed for further use.",
+    "apply": "Adaptation treatment",
+    "applicationTargets": ["source-work analysis", "adaptation treatment", "screenplay plan"],
+    "tags": ["adaptation", "source material", "compression", "externalization", "point of view", "rights", "provenance", "screenplay"],
+    "companionItems": [
+      {
+        "id": "case-adaptation-choice-matrix",
+        "type": "case-study",
+        "title": "Keep, compress, transform or omit",
+        "purpose": "Use a rights-safe invented source scenario to compare adaptation choices."
+      },
+      {
+        "id": "exercise-adaptation-transform-one-beat",
+        "type": "exercise",
+        "title": "Transform one source beat for screen",
+        "purpose": "Convert one prose/internal beat into visible and audible dramatic action."
+      }
+    ],
+    "researchSources": [
+      {
+        "id": "usco-title17-derivative-work",
+        "kind": "primary-legal-reference",
+        "title": "U.S. Copyright Act — derivative-work definitions and scope",
+        "url": "https://www.copyright.gov/title17/92chap1.html",
+        "scopeNote": "Used only to verify the boundary that adaptations can implicate derivative-work rights; PlotPickle does not provide legal advice."
+      },
+      {
+        "id": "usco-derivative-work-guidance",
+        "kind": "primary-legal-guidance",
+        "title": "U.S. Copyright Office — Limitation of Claim / derivative work guidance",
+        "url": "https://www.copyright.gov/eco/help-limitation.html",
+        "scopeNote": "Used to verify that a screenplay based on preexisting protected material can constitute a derivative work and that rights in the underlying material remain distinct."
+      },
+      {
+        "id": "plotpickle-existing-adaptation-boundaries",
+        "kind": "internal-curriculum",
+        "title": "Existing PlotPickle drafting, ownership and provenance lessons",
+        "scopeNote": "Used to preserve PlotPickle's separation of creative decisions, source provenance and rights claims."
+      }
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Research index and primary legal references used for gap/boundary verification only; no external lesson or source prose copied.",
+      "exampleRights": "Invented PlotPickle source scenario.",
+      "legalAdvice": false,
+      "professionalReviewRecommendedForMaterialRightsDecisions": true
+    }
+  }
+}

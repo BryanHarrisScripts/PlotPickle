@@ -29,6 +29,22 @@
       "riskTokens": ["surface", "navigation", "visual", "mcp"]
     },
     {
+      "id": "product-identity-surfaces",
+      "classification": "production",
+      "include": [
+        "lib/product-direction.ts",
+        "app/layout.tsx",
+        "app/about/**",
+        "app/welcome/**",
+        "app/marketing-splash-base.tsx",
+        "app/profile-access/profile-access-boundary.tsx",
+        "public/manifest.webmanifest",
+        "public/brand/favicon/plotpickle-green-square.svg"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["surface", "visual", "navigation", "mcp"]
+    },
+    {
       "id": "experience-surface-registry",
       "classification": "production",
       "include": ["lib/experience/surface-registry.ts"],

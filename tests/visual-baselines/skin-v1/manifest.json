@@ -49,7 +49,7 @@
     "profile": {
       "label": "Profile",
       "status": "candidate",
-      "selector": "section[aria-label='Profile menu']",
+      "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
       "candidate": ".artifacts/visual-readiness/profile-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/profile.png"
     },

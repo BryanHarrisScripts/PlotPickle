@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "issue": 1960,
+  "brief": "docs/developer-briefs/1960-home-launcher-bootstrap.md",
+  "allowedChanges": [
+    "GIT-PlotPickle.ps1",
+    "config/development-convergence/1960.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1960-home-launcher-bootstrap.md",
+    "tests/issue-1960-home-launcher-bootstrap.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Windows home bootstrap resolves $HOME\\PlotPickle and changes into that repository before any startup delegation.",
+      "evidence": [
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "Join-Path $HOME \"PlotPickle\"" },
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "Set-Location -LiteralPath $repoPath" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The bootstrap fast-forward pulls the repository and fails closed on pull errors before invoking the freshly pulled PlotPickle.ps1.",
+      "evidence": [
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "pull --ff-only" },
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "git pull --ff-only failed" },
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "& $repoLauncher @launchArgs" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The bootstrap does not duplicate the testing-mode prompt; the freshly pulled repository PlotPickle.ps1 remains the only Y/N owner.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1960-home-launcher-bootstrap.test.mjs", "contains": "assert.doesNotMatch(bootstrap, /Read-Host/u);" },
+        { "type": "file-contains", "path": "PlotPickle.ps1", "contains": "Run autonomous WebMCP Testing? [Y/N]" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The home bootstrap preserves explicit WebMCP and Human mode pass-through and is owned by Experience Skins verification.",
+      "evidence": [
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "$launchArgs.WebMCPTesting = $true" },
+        { "type": "file-contains", "path": "GIT-PlotPickle.ps1", "contains": "$launchArgs.HumanTesting = $true" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "GIT-PlotPickle.ps1" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.home-launcher-1960" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "A focused deterministic regression proves pull-before-delegation ordering and canonical convergence against the real PR diff.",
+      "evidence": [
+        { "type": "path-exists", "path": "tests/issue-1960-home-launcher-bootstrap.test.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1960-home-launcher-bootstrap.test.mjs", "contains": "pulls before delegating to the Y/N launcher" },
+        { "type": "file-contains", "path": "tests/issue-1960-home-launcher-bootstrap.test.mjs", "contains": "canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

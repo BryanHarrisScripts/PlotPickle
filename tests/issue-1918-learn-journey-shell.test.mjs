@@ -227,3 +227,53 @@ test("#1975 canonical development convergence remains independently scoped", asy
   assert.equal(result.reports[0].status, "CONVERGED");
   assert.deepEqual(result.reports[0].remaining, []);
 });
+
+test("#1918 Phase 7 adds Human-led deterministic application and EA reflection without grading or gates", async () => {
+  const [journey, application, projector, contract, ea, brief] = await Promise.all([
+    read("app/skin-v1/learn-journey-preview.tsx"),
+    read("app/skin-v1/learn-application-reflection.tsx"),
+    read("core/learning/application-view.ts"),
+    read("core/contracts/learning-application.ts"),
+    read("modules/creative-room/ea-reflection-guide.ts"),
+    read("docs/developer-briefs/1918-phase-7-ea-reflection.md"),
+  ]);
+
+  assert.match(journey, /import LearnApplicationReflection from "\.\/learn-application-reflection"/u);
+  assert.match(journey, /data-learn-application-open="true"/u);
+  assert.match(journey, /Apply → deterministic view → EA reflection/u);
+  assert.match(journey, /data-learn-progress-owner="PPFProject\.learning\.completedLessonIds"/u);
+
+  assert.match(application, /data-learn-application-phase="7"/u);
+  assert.match(application, /LEARN → APPLY → DETERMINISTIC VIEW → EA REFLECTION → CONTINUE/u);
+  assert.match(application, /data-learn-deterministic-view="visible"/u);
+  assert.match(application, /data-learn-ea-authority="reflect-not-grade"/u);
+  assert.match(application, /data-learn-continue-unlocked="true"/u);
+  assert.match(application, /Open application workspace/u);
+  assert.match(application, /"\/structure"/u);
+  assert.match(application, /"\/storyboard"/u);
+  assert.match(application, /"\/pageflow"/u);
+  assert.match(application, /"\/edit"/u);
+  assert.match(application, /"\/production"/u);
+  assert.doesNotMatch(application, /applyStoryCommand|saveFoundationProject/u);
+
+  assert.match(projector, /project\.foundations\.lessons\[lesson\.id\]\?\.answers/u);
+  assert.match(projector, /project\.world\.lessons\[lesson\.id\]\?\.answers/u);
+  assert.match(projector, /PPFProject\.foundations\.brief\.content/u);
+  assert.match(projector, /PPFProject\.world\.brief\.content/u);
+  assert.match(projector, /deterministicFactsOnly: true/u);
+
+  assert.match(contract, /eaMayGrade: false/u);
+  assert.match(contract, /eaMayMutateCanon: false/u);
+  assert.match(contract, /humanDecides: true/u);
+
+  assert.match(ea, /answerFromCurriculum/u);
+  assert.match(ea, /do not test, grade, score, certify mastery/u);
+  assert.match(ea, /Use only project facts present in deterministic_application_view/u);
+  assert.match(ea, /It is valid to say the current choice already appears to serve the lesson/u);
+  assert.match(ea, /Do not mutate canon/u);
+
+  assert.match(brief, /LEARN -> APPLY -> DETERMINISTIC VIEW -> EA REFLECTION -> CONTINUE/u);
+  assert.match(brief, /Sage longitudinal journey memory \(Phase 8\)/u);
+  assert.match(brief, /`\/` specialist Agent switching or `\/panel` \(Phase 9\+\)/u);
+  assert.doesNotMatch(brief, /application receipt contract/u);
+});

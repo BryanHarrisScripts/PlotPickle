@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c1-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "professional-pitching-and-representation",
+    "topic": "industry",
+    "ownerCraftModule": "course-24",
+    "relatedCraftModules": ["course-22", "course-23"],
+    "kind": "essential",
+    "title": "Professional Practice: Pitching and Representation",
+    "duration": "40–50 min",
+    "overview": "Prepare truthful, specific professional conversations about a screenplay. Distinguish a pitch from a query, representation from ownership, and creative readiness from current business rules. Build habits that make verification, follow-up and long-term career decisions easier without treating access or representation as a measure of artistic worth.",
+    "objectives": [
+      "Match the communication to its purpose: pitch, query, submission, introduction, follow-up or representation conversation.",
+      "Present the project accurately without inflating attachments, financing, rights, credits or interest that do not exist.",
+      "Evaluate representation as a professional relationship with defined scope, expectations and current governing rules where applicable.",
+      "Separate durable career practice from mutable guild, agency, contract, option, credit and compensation rules that require current verification."
+    ],
+    "sections": [
+      {
+        "heading": "Know what conversation you are having",
+        "paragraphs": [
+          "A pitch is not every conversation about a project. A query asks whether someone is open to considering material or beginning a conversation. A pitch presents the project and why it may matter to this listener. A submission delivers requested material. A representation conversation asks whether a professional relationship makes sense beyond one document.",
+          "Confusing these purposes creates pressure in the wrong place. A first contact does not need to contain the entire movie. A pitch does not need to recite the treatment. A representation meeting is not only an audition; it is also a chance for the writer to learn how the other person works."
+        ],
+        "points": [
+          "Name the purpose before writing the email or entering the meeting.",
+          "Know what you want the recipient to do next.",
+          "Tailor the amount of story detail to the time and context available.",
+          "Respect stated submission policies and do not disguise unsolicited material as something else."
+        ]
+      },
+      {
+        "heading": "Build the pitch around the story promise",
+        "paragraphs": [
+          "A useful pitch gives the listener enough orientation to imagine the project and enough dramatic movement to understand why it can sustain attention. Start from the same story promise PlotPickle uses elsewhere: who or what drives the story, what changes, what is pursued, what resists, what is at stake and what makes the experience distinctive.",
+          "The pitch should sound like a person communicating a movie or series, not a compressed database. Choose the few character, world and structural details that make the engine clear. If the listener asks deeper questions, the treatment, Blocks and project records give you somewhere reliable to go."
+        ],
+        "points": [
+          "State the title, format and genre/audience promise clearly.",
+          "Introduce the central character or dramatic focus and the disruption.",
+          "Explain the pursuit, opposition and stakes without narrating every beat.",
+          "End with the specific next step you are seeking when the context calls for it."
+        ]
+      },
+      {
+        "heading": "A query is a truthful doorway",
+        "paragraphs": [
+          "A query or introductory message should make it easy for the recipient to understand who you are, what the project is and why you are contacting them specifically. Brevity is useful because the message's job is usually to open a door, not to prove the entire screenplay deserves production in one email.",
+          "Truth matters more than promotional inflation. If an actor has expressed informal enthusiasm, do not call the actor attached. If financing is not committed, do not call the project financed. If rights are pending, say they are pending. Professional trust is difficult to build when the first contact depends on ambiguity."
+        ],
+        "points": [
+          "Use an accurate project description and status.",
+          "Give a real reason for contacting this person or company when you have one.",
+          "State the requested next step without pressure or entitlement.",
+          "Keep a record of what was sent, to whom and under what submission conditions."
+        ]
+      },
+      {
+        "heading": "Representation is a working relationship",
+        "paragraphs": [
+          "An agent, manager, lawyer or other representative may perform different functions depending on jurisdiction, agreement and individual practice. Do not assume the title alone tells you the scope. Ask what the person does, how they communicate, what kinds of work they seek, how decisions are made and how the relationship can end.",
+          "Guild rules can affect representation in covered work. For example, the Writers Guild of America maintains a current agency framework and franchised-agency information for writers working under its rules. That is a reason to check the current official source when it applies, not a reason to generalize one guild's rules to every writer everywhere."
+        ],
+        "points": [
+          "Clarify scope: career strategy, procurement, negotiation, legal advice, packaging, introductions or another role.",
+          "Ask how communication and submission decisions are handled.",
+          "Understand fees, commissions, term and termination only from the actual current agreement and qualified advice where needed.",
+          "Verify any guild or jurisdictional rule that governs the relationship."
+        ]
+      },
+      {
+        "heading": "Options, credits and contracts are not pitch folklore",
+        "paragraphs": [
+          "Words such as option, purchase, attachment, credit, backend, rewrite and turnaround can describe material business rights and obligations. Their meaning can depend on the agreement, guild coverage and jurisdiction. Learn enough vocabulary to recognize the question, but do not rely on informal industry sayings as legal or financial advice.",
+          "Credits can also be governed by formal procedures in covered productions rather than by whatever wording appears in an early email or pitch deck. When money, rights, credit or employment obligations become material, move from general education to the actual current agreement, official rules and qualified professional advice."
+        ],
+        "points": [
+          "Separate creative approval from contractual authority.",
+          "Do not promise rights you do not control.",
+          "Record offers, requested changes and material representations in writing.",
+          "Verify current guild, credit, option and compensation rules when they apply."
+        ]
+      },
+      {
+        "heading": "Build a career system that survives individual outcomes",
+        "paragraphs": [
+          "A professional writing career contains long stretches where the work and the response arrive on different schedules. One pass, rejection, unanswered query or representation change is information about one interaction, not a verdict on the writer's capacity to keep developing work.",
+          "Build a system around controllable actions: finish projects, maintain accurate materials, choose targeted conversations, record follow-up, learn from repeated patterns and keep making work. Do not turn networking volume into a score. A smaller number of specific, appropriate conversations can be more useful than indiscriminate outreach."
+        ],
+        "points": [
+          "Keep project status and professional materials current.",
+          "Track contacts and follow-up without treating people as a pipeline statistic.",
+          "Notice repeated feedback patterns without automatically accepting every proposed fix.",
+          "Protect time for new writing so career administration does not consume the craft."
+        ]
+      }
+    ],
+    "definitions": [
+      {
+        "term": "Pitch",
+        "meaning": "A spoken, written or visual presentation designed to communicate a project's story promise, engine and relevance to a particular professional audience."
+      },
+      {
+        "term": "Query",
+        "meaning": "A concise professional approach asking whether a person or company is open to considering a project or beginning a relevant conversation."
+      },
+      {
+        "term": "Representation",
+        "meaning": "A professional relationship in which an agent, manager, lawyer or other representative may perform defined career, procurement, negotiation or advisory functions subject to the actual agreement and applicable rules."
+      },
+      {
+        "term": "Option",
+        "meaning": "A contractual arrangement that can grant a party specified rights for a defined period or under defined conditions; the actual agreement controls its meaning."
+      },
+      {
+        "term": "Attachment",
+        "meaning": "A claimed professional association with a project whose meaning and commitment level should be stated accurately rather than implied."
+      }
+    ],
+    "example": {
+      "title": "A precise first conversation",
+      "text": "Mara is introducing a completed contained thriller to a producer who requested a one-page pitch after a festival panel. She says the project is a feature, gives the central premise and protagonist, explains the contained production idea, and notes that she controls the original screenplay. She does not claim financing or cast. Her requested next step is simple: would the producer like to read the screenplay? The message is useful because every claim is true and the recipient knows exactly what is being asked."
+    },
+    "checklist": [
+      "The purpose of the communication and requested next step are clear.",
+      "Title, format, genre, project status and rights claims are accurate.",
+      "The pitch communicates the dramatic engine rather than retelling every beat.",
+      "Attachments, financing, representation and credits are described only at their real commitment level.",
+      "Submission policies and current applicable rules have been checked from authoritative sources.",
+      "Representation conversations address scope, communication and decision-making, not only access.",
+      "Material contract, rights, credit or compensation questions are escalated to current official information and qualified advice where appropriate.",
+      "Professional administration leaves room for continued writing."
+    ],
+    "mistakes": [
+      "Sending the same generic query to people whose role or submission policy has not been checked.",
+      "Turning a pitch into a scene-by-scene plot summary.",
+      "Inflating informal interest into an attachment, offer or commitment.",
+      "Assuming every agent, manager or lawyer performs the same role in every jurisdiction.",
+      "Treating old guild rates, credit rules or agency information as permanent.",
+      "Accepting or rejecting material agreement terms based on industry folklore instead of the actual document and appropriate advice.",
+      "Measuring artistic worth by the speed of professional response."
+    ],
+    "exercise": "Create a professional readiness sheet for one active project. Include: title, format, one-sentence story promise, current draft status, rights status, truthful attachments/financing status, three appropriate professional conversation types, the exact next step you would request in each, and every claim that would require current external verification before sending. Then write a 120-word query or introduction for one real or hypothetical appropriate recipient without exaggerating the project's status.",
+    "apply": "Professional readiness sheet",
+    "applicationTargets": ["pitch", "query", "professional readiness sheet"],
+    "tags": ["pitch", "query", "representation", "agent", "manager", "industry", "professional practice", "rights", "credits", "career"],
+    "companionItems": [
+      {
+        "id": "exercise-pitch-query-readiness",
+        "type": "exercise",
+        "title": "Pitch and query readiness check",
+        "purpose": "Prepare a truthful project-specific communication package and identify claims that require current external verification."
+      }
+    ],
+    "researchSources": [
+      {
+        "id": "wgaw-guide-to-guild-agencies",
+        "kind": "primary-industry-source",
+        "title": "Writers Guild of America West — Guide to the Guild / Agencies",
+        "url": "https://www.wga.org/the-guild/about-us/guide-to-the-guild",
+        "scopeNote": "Used to verify that WGA-covered agency representation is governed by a current Guild framework and should be checked at use time rather than generalized universally."
+      },
+      {
+        "id": "wgaw-agency-agreements",
+        "kind": "primary-industry-source",
+        "title": "Writers Guild of America West — Agency Agreements",
+        "url": "https://www.wga.org/employers/agencies/agency-agreements",
+        "scopeNote": "Used to support the current-verification boundary around WGA franchised/signatory agency relationships."
+      },
+      {
+        "id": "wgaw-screen-credits-manual",
+        "kind": "primary-industry-source",
+        "title": "Writers Guild of America West — Screen Credits Manual",
+        "url": "https://www.wga.org/contracts/credits/manuals/screen-credits-manual",
+        "scopeNote": "Used to verify that covered screen-credit determinations can follow formal current procedures rather than informal assumptions."
+      },
+      {
+        "id": "wgaw-writers-deal-hub",
+        "kind": "primary-industry-source",
+        "title": "Writers Guild of America West — Writers' Deal Hub",
+        "url": "https://www.wga.org/members/employment-resources/writers-deal-hub",
+        "scopeNote": "Used to reinforce that compensation/deal information is current professional context and should not be frozen into durable craft teaching."
+      },
+      {
+        "id": "plotpickle-existing-industry-curriculum",
+        "kind": "internal-curriculum",
+        "title": "Existing PlotPickle Industry and ownership lessons",
+        "scopeNote": "Used to preserve existing boundaries around truthful claims, rights, jurisdiction and professional verification."
+      }
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Official/current industry sources used to verify boundaries and mutable-rule treatment; no source bodies copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "mutableRulesFrozenIntoCanon": false,
+      "legalAdvice": false,
+      "professionalReviewRecommendedForMaterialContractsRightsCreditOrCompensation": true
+    }
+  }
+}

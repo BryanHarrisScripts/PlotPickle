@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -22,15 +22,22 @@ async function loadConfiguration() {
   return { architecture, phase0Inventory, vocabulary, catalog, ownership, phase4Migration };
 }
 
+function parseBoolean(value, name) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new Error(`${name} must be true or false; received ${value ?? "empty"}.`);
+}
+
 function parseArgs(argv) {
   const [layerId, ...rest] = argv;
-  const options = { layerId: layerId || null, baseRef: null, commitSha: null, platform: "linux" };
+  const options = { layerId: layerId || null, baseRef: null, commitSha: null, platform: "linux", allowNetwork: false };
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index];
     const next = () => rest[++index];
     if (arg === "--base-ref") options.baseRef = next();
     else if (arg === "--commit-sha") options.commitSha = next();
     else if (arg === "--platform") options.platform = next();
+    else if (arg === "--allow-network") options.allowNetwork = parseBoolean(next(), "--allow-network");
     else throw new Error(`Unknown argument: ${arg}`);
   }
   if (!options.layerId) throw new Error("Usage: node scripts/verification-shadow.mjs <layer-id> --base-ref <ref> --commit-sha <sha>");
@@ -52,6 +59,19 @@ function changedFilesFrom(baseRef) {
 function spawnChecked(command, args) {
   const result = spawnSync(command, args, { cwd: root, encoding: "utf8", stdio: "inherit", shell: false });
   return result.status === 0 ? "pass" : "fail";
+}
+
+async function existingArtifacts(paths = []) {
+  const found = [];
+  for (const relative of paths) {
+    try {
+      await access(path.join(root, relative));
+      found.push(relative.replaceAll("\\", "/"));
+    } catch {
+      // Failed live checks may legitimately omit later artifacts. Evidence records only files that exist.
+    }
+  }
+  return found;
 }
 
 function safeTypedRunners() {
@@ -77,6 +97,29 @@ function safeTypedRunners() {
     "node-script": runEach(process.execPath),
     "npm-script": runEach(npmCommand, ["run"]),
     build: runEach(npmCommand, ["run"]),
+    "browser-uat": async ({ entry }) => {
+      const started = Date.now();
+      let result = "pass";
+      for (const target of entry.runner.targets) {
+        if (!target.startsWith("scripts/") || !target.endsWith(".mjs")) {
+          throw new Error(`browser-uat target must be a repository script: ${target}`);
+        }
+        if (spawnChecked(process.execPath, [target]) === "fail") {
+          result = "fail";
+          break;
+        }
+      }
+      return {
+        result,
+        durationMs: Date.now() - started,
+        artifacts: await existingArtifacts(entry.evidence?.artifactPaths ?? []),
+        security: {
+          networkUsed: Boolean(entry.requirements.network),
+          nativeUsed: Boolean(entry.requirements.native),
+          secretsAccessed: Boolean(entry.requirements.secrets),
+        },
+      };
+    },
   };
 }
 
@@ -120,7 +163,7 @@ export function buildMigrationComparison({ migration, layerId, run, commitSha })
   };
 }
 
-export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "linux" }) {
+export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "linux", allowNetwork = false }) {
   const started = Date.now();
   const configuration = await loadConfiguration();
   const changedFiles = changedFilesFrom(baseRef);
@@ -131,7 +174,7 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
     mode: "impact",
     platform,
     allowHeavy: false,
-    allowNetwork: false,
+    allowNetwork,
     allowNative: false,
     allowSecrets: false,
   });
@@ -189,6 +232,7 @@ export async function runShadowLayer({ layerId, baseRef, commitSha, platform = "
     selectedTestIds: layer.selectedTests.map((test) => test.id),
     skippedTests: layer.skippedTests,
     blockingFindings: plan.blockingFindings,
+    permissions: plan.permissions,
     migrationProofs: comparison.migrations.map(({ id, catalogTestId, proofStatus, shadowResult }) => ({ id, catalogTestId, proofStatus, shadowResult })),
     result: run.result,
     durationMs,

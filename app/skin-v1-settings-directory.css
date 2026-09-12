@@ -97,6 +97,16 @@ html[data-plotpickle-skin="skin-v1"] :is(
   box-shadow: none !important;
 }
 
+/* Writer's Craft is a Dashboard-owned BBS directory. Keep its selected row
+   on the same dark/accent navigation contract without changing global
+   selected-control tokens used by non-directory controls. */
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: none !important;
+}
+
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;

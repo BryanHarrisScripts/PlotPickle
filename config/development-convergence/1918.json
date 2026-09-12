@@ -5,6 +5,8 @@
   "brief": "docs/developer-briefs/1918-learn-24-course-open-journey.md",
   "allowedChanges": [
     "config/development-convergence/1918.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
     "learn/program-map.mjs",
     "scripts/validate-learn-program-map.mjs",
     "tests/issue-1918-learn-program-map.test.mjs"
@@ -52,6 +54,16 @@
         { "type": "path-exists", "path": "tests/issue-1918-learn-program-map.test.mjs" },
         { "type": "path-exists", "path": "scripts/validate-learn-program-map.mjs" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "deterministic validator passes against the repository" }
+      ]
+    },
+    {
+      "id": "P1-A6",
+      "criterion": "The current seven-layer verifier explicitly owns the new durable map and selects the focused #1918 regression instead of allowing an unmapped production path or an unexecuted test.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-program-map\"" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"ownerLayer\": \"story-canon\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"story-canon.learn-program-map\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1918-learn-program-map.test.mjs" }
       ]
     }
   ]

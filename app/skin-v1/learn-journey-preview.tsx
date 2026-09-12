@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import styles from "./learn-journey-preview.module.css";
 
 type JourneyCoursePreview = Readonly<{
   id: string;
@@ -190,14 +191,14 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
 
   if (!preview) {
     return (
-      <section className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs pp-skin-v1-journey-directory" aria-label="LEARN Journey loading">
-        <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey loading">
+        <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner">
             <h1>LEARN JOURNEY</h1>
             <button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button>
           </div>
           <div className="pp-skin-v1-dashboard-title">3 YEARS / 6 SEMESTERS / 24 COURSES</div>
-          <p className="pp-skin-v1-bbs-help" role={loadError ? "alert" : "status"}>
+          <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>
             {loadError ? `JOURNEY PREVIEW UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL PROGRAM MAP…"}
           </p>
         </div>
@@ -210,7 +211,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   if (semesterOpen && semester) {
     return (
       <section
-        className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs pp-skin-v1-journey-directory"
+        className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`}
         aria-label="LEARN Journey semester"
         data-skin-menu="learn-journey-courses"
         data-learn-journey-phase="3"
@@ -223,13 +224,13 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
           }
         }}
       >
-        <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+        <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner">
             <h1>LEARN JOURNEY</h1>
             <button type="button" className="pp-skin-v1-return" onClick={() => setSemesterOpen(false)}>Back to Semesters</button>
           </div>
           <div className="pp-skin-v1-dashboard-title">YEAR {semester.year} / SEMESTER {semester.semester} — FOUR COURSE SHELLS</div>
-          <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label={`Year ${semester.year} Semester ${semester.semester} course shells`} aria-describedby="learn-journey-course-status">
+          <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label={`Year ${semester.year} Semester ${semester.semester} course shells`} aria-describedby="learn-journey-course-status">
             {semester.courses.map((course, index) => {
               const selected = index === selectedCourseIndex;
               const shortcut = String(index + 1);
@@ -243,7 +244,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
                   aria-selected={selected}
                   tabIndex={selected ? 0 : -1}
                   autoFocus={index === 0}
-                  className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
+                  className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`}
                   data-skin-menu-row={course.id}
                   data-skin-menu-shortcut={shortcut}
                   data-skin-menu-connected="false"
@@ -263,7 +264,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
               );
             })}
           </div>
-          <p className="pp-skin-v1-bbs-help" id="learn-journey-course-status" role="status">{notice}</p>
+          <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-course-status" role="status">{notice}</p>
         </div>
       </section>
     );
@@ -271,7 +272,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
 
   return (
     <section
-      className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs pp-skin-v1-journey-directory"
+      className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`}
       aria-label="LEARN Journey menu"
       data-skin-menu="learn-journey"
       data-learn-journey-phase="3"
@@ -283,13 +284,13 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
         }
       }}
     >
-      <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+      <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
         <div className="pp-skin-v1-bbs-banner">
           <h1>LEARN JOURNEY</h1>
           <button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button>
         </div>
         <div className="pp-skin-v1-dashboard-title">3 YEARS / 6 SEMESTERS / 24 COURSES</div>
-        <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="LEARN Journey semesters" aria-describedby="learn-journey-status">
+        <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Journey semesters" aria-describedby="learn-journey-status">
           {preview.semesters.map((item, index) => {
             const selected = index === selectedSemesterIndex;
             const shortcut = String(index + 1);
@@ -305,7 +306,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
                 aria-selected={selected}
                 tabIndex={selected ? 0 : -1}
                 autoFocus={index === 0}
-                className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
+                className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`}
                 data-skin-menu-row={item.id}
                 data-skin-menu-shortcut={shortcut}
                 data-skin-menu-connected="true"
@@ -324,7 +325,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
             );
           })}
         </div>
-        <p className="pp-skin-v1-bbs-help" id="learn-journey-status" role="status">{notice}</p>
+        <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-status" role="status">{notice}</p>
       </div>
     </section>
   );

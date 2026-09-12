@@ -112,6 +112,32 @@
       "notes": "#1963 pre-Phase 5 Great Hall cleanup. Proves BUZZ transport/test probes stay out of Human-facing conversation while Human/Agent replies continue to use one signed BUZZ room history with automatic refresh."
     },
     {
+      "id": "experience.product-identity-1971",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["mcp", "navigation", "surface", "visual"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1971-product-identity-favicon.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1971 pre-Phase 5 product identity cleanup. Proves active PlotPickle surfaces use the AI-native agentic story operating system category, browser titles stay aligned, and current browser/app favicon metadata uses the green-square mark while historical visual-writing programme evidence remains intact."
+    },
+    {
       "id": "experience.explicit-story-startup-1969",
       "ownerLayer": "experience-contract",
       "architectureComponents": ["experience-navigation", "skin-surface-readiness"],

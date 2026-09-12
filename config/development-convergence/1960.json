@@ -32,7 +32,7 @@
       "id": "A3",
       "criterion": "The bootstrap does not duplicate the testing-mode prompt; the freshly pulled repository PlotPickle.ps1 remains the only Y/N owner.",
       "evidence": [
-        { "type": "file-not-contains", "path": "GIT-PlotPickle.ps1", "contains": "Read-Host" },
+        { "type": "file-contains", "path": "tests/issue-1960-home-launcher-bootstrap.test.mjs", "contains": "assert.doesNotMatch(bootstrap, /Read-Host/u);" },
         { "type": "file-contains", "path": "PlotPickle.ps1", "contains": "Run autonomous WebMCP Testing? [Y/N]" }
       ]
     },

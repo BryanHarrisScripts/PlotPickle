@@ -12,7 +12,6 @@ export async function GET() {
     courses: semester.courseIds.map((courseId) => {
       const course = coursesById.get(courseId);
       if (!course) throw new Error(`LEARN Journey preview could not resolve ${courseId}.`);
-      const contentAvailable = semester.semester === 1;
       return {
         id: course.id,
         year: course.year,
@@ -25,8 +24,8 @@ export async function GET() {
         applicationTargets: course.applicationTargets,
         access: "open",
         prerequisiteMode: "advisory-only",
-        status: contentAvailable ? "wired" : "preview-only",
-        contentAvailable,
+        status: "wired",
+        contentAvailable: true,
       };
     }),
   }));
@@ -34,7 +33,7 @@ export async function GET() {
   return Response.json({
     schemaVersion: "1.0",
     issue: 1918,
-    phase: "phase-4-semester-one",
+    phase: "phase-5-all-paths",
     yearCount: LEARN_PROGRAM_SHELL_SPEC.yearCount,
     semesterCount: LEARN_PROGRAM_SHELL_SPEC.semesterCount,
     coursesPerSemester: LEARN_PROGRAM_SHELL_SPEC.coursesPerSemester,
@@ -43,7 +42,8 @@ export async function GET() {
       recommendedSequenceIsAccessControl: LEARN_PROGRAM_SHELL_SPEC.authority.recommendedSequenceIsAccessControl,
       humanMayLearnOutOfOrder: LEARN_PROGRAM_SHELL_SPEC.authority.humanMayLearnOutOfOrder,
       semesterOneLessonContentExposed: true,
-      laterSemesterLessonContentExposed: false,
+      laterSemesterLessonContentExposed: true,
+      allPathLessonContentExposed: true,
     },
     semesters,
   });

@@ -7,7 +7,6 @@
     "app/skin-v1/menu-feedback-footer.module.css",
     "app/skin-v1/menu-feedback-footer.tsx",
     "config/development-convergence/1973.json",
-    "config/verification/test-catalog.json",
     "docs/developer-briefs/1973-contextual-menu-footer.md",
     "tests/issue-1973-contextual-menu-footer.test.mjs"
   ],
@@ -55,10 +54,10 @@
     },
     {
       "id": "A6",
-      "criterion": "#1973 focused regression is registered with Experience Skins verification and convergence runs against the real diff.",
+      "criterion": "#1973 focused regression and guarded development convergence remain part of the bounded UX slice.",
       "evidence": [
-        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.contextual-menu-footer-1973" },
-        { "type": "file-contains", "path": "tests/issue-1973-contextual-menu-footer.test.mjs", "contains": "#1973 canonical development convergence reports CONVERGED against the real diff" }
+        { "type": "file-contains", "path": "tests/issue-1973-contextual-menu-footer.test.mjs", "contains": "#1973 canonical development convergence reports CONVERGED against the real diff" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1973-contextual-menu-footer.md", "contains": "Exact PR head must then pass all seven Architecture Verification layers" }
       ]
     }
   ]

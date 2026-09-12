@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 1922,
+  "phase": "phase-0-specialized-workflow-audit",
+  "workflows": [
+    {
+      "path": ".github/workflows/visual-readiness.yml",
+      "trigger": "workflow_dispatch",
+      "provisionalOwners": ["experience-skins", "experience-contract", "verification"],
+      "classification": "valuable-mixed-runtime-harness",
+      "findings": [
+        "Already runs real rendered accessibility, Experience, sitemap, WebMCP surface visual audit and Skin V1 Visual Director evidence.",
+        "Already installs pinned Playwright/WebMCP tooling and uploads surface evidence.",
+        "Also carries large static visual/product contract bundles and a production build."
+      ],
+      "recommendation": "Extract/reuse the live rendered observer path as Layer 1/2 impact-selected evidence; catalog static tests by their real owner; do not duplicate the live browser implementation."
+    },
+    {
+      "path": ".github/workflows/learn-validation.yml",
+      "trigger": "workflow_dispatch",
+      "provisionalOwners": ["story-canon", "agent-runtime", "production-harness", "provider-runtime", "experience-contract", "verification"],
+      "classification": "historical-monolith-misnamed",
+      "findings": [
+        "Contains LEARN curriculum validation but also Agent Skills, Agent Profiles, Context Engine, PPF, connector trust, Node topology, graph workflows, Full Verification, BUZZ, MCP, navigation, Settings, ComfyUI, Windows scripts, focused UAT and production build.",
+        "Its current name no longer describes its actual responsibility."
+      ],
+      "recommendation": "Decompose by seven-layer ownership; retain LEARN/curriculum tests under Layer 5; move/reuse the other contracts through their canonical layer catalog entries; retire the monolithic workflow only after evidence equivalence."
+    },
+    {
+      "path": ".github/workflows/hardware-aware-local-ai.yml",
+      "trigger": "workflow_dispatch",
+      "provisionalOwners": ["provider-runtime", "agent-runtime", "verification", "production-harness"],
+      "classification": "provider-workflow-with-legacy-spillover",
+      "findings": [
+        "Contains legitimate hardware/provider/ComfyUI fixtures and Windows script parsing.",
+        "Also includes Agent Skills, exhaustive UAT, BUZZ updater, studio identity, federation and Connected Studios checks that are not all Provider Runtime ownership."
+      ],
+      "recommendation": "Keep provider/hardware evidence in Layer 6; split unrelated Agent/community/trust tests to their actual owners."
+    },
+    {
+      "path": ".github/workflows/pi-managed-install.yml",
+      "trigger": "workflow_dispatch",
+      "provisionalOwners": ["agent-runtime", "verification"],
+      "classification": "good-specialized-heavy-proof",
+      "findings": [
+        "Runs explicit Windows/Linux managed Pi provisioning, re-probe and build.",
+        "Already provides a natural explicit/scheduled/release home for real Pi installation proof."
+      ],
+      "recommendation": "Use this specialized path or its reusable core for Layer 4 impact/release evidence; do not run equivalent real Pi provisioning/compatibility on every unrelated Product Gate."
+    },
+    {
+      "path": ".github/workflows/windows-installer.yml",
+      "trigger": "workflow_dispatch + workflow_call",
+      "provisionalOwners": ["verification"],
+      "classification": "good-specialized-release-proof",
+      "findings": [
+        "Supports exact-head bounded callers.",
+        "Builds the real installer, runs packaged interaction smoke and install/uninstall smoke, and uploads evidence."
+      ],
+      "recommendation": "Treat this as Layer 7 impact/release proof and reuse via bounded exact-head calls rather than universally coupling installer proof to unrelated PRs."
+    },
+    {
+      "path": ".github/workflows/writer-e2e-observer.yml",
+      "trigger": "workflow_dispatch",
+      "provisionalOwners": ["experience-contract", "agent-runtime", "verification"],
+      "classification": "valuable-specialized-observer",
+      "findings": [
+        "Has separate Linux final-state and Windows browser-evaluate transport contracts.",
+        "Validates Writer observer scripts and Full Verification closeout."
+      ],
+      "recommendation": "Catalog its individual contracts by observed boundary and preserve the observer as reusable impact/full-verification evidence."
+    }
+  ],
+  "conclusions": [
+    "The repository already contains reusable live/browser/native/release evidence paths; the seven-layer mesh should coordinate them rather than recreate them.",
+    "Several workflow names describe their historical origin rather than their present architecture responsibility.",
+    "Workflow cleanup should be a measured migration: split tests by owner, prove equivalent evidence, then retire historical monoliths.",
+    "Phase 0 makes no workflow-trigger or required-check changes."
+  ]
+}

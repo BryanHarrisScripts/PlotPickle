@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 1922,
+  "brief": "docs/developer-briefs/1922-seven-layer-verification-mesh.md",
+  "allowedChanges": [
+    "config/development-convergence/1922.json",
+    "config/verification/phase-0-inventory.json",
+    "config/verification/phase-0-specialized-workflows.json",
+    "docs/developer-briefs/1922-seven-layer-verification-mesh.md",
+    "docs/developer-briefs/1922-verification-decisions.md",
+    "docs/developer-briefs/1922-phase-0-ci-inventory.md"
+  ],
+  "acceptance": [
+    {
+      "id": "P0-A1",
+      "criterion": "Phase 0 records the seven stable visible PR check names while preserving canonical architecture layer IDs.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "Layer 1 Experience Skins" },
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "Layer 7 Validation & Operations" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-verification-decisions.md", "contains": "Canonical architecture IDs remain unchanged" }
+      ]
+    },
+    {
+      "id": "P0-A2",
+      "criterion": "Phase 0 records measured normal-gate runtime evidence without changing required-gate behavior.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "\"productGatePiPlusWhisperSeconds\": 384" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-phase-0-ci-inventory.md", "contains": "6m24s" },
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "No required-gate behavior should change during Phase 0." }
+      ]
+    },
+    {
+      "id": "P0-A3",
+      "criterion": "Current PR/Product Gate work is provisionally assigned to canonical architecture owners and duplicate/mixed bundles are identified before migration.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "split-by-authority-and-deduplicate" },
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "split-by-observed-contract" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-phase-0-ci-inventory.md", "contains": "Duplicate execution found" }
+      ]
+    },
+    {
+      "id": "P0-A4",
+      "criterion": "The inventory classifies real Pi and whisper native work as impact/release selected rather than universal unrelated-PR proof.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "product.pi-managed-compatibility" },
+        { "type": "file-contains", "path": "config/verification/phase-0-inventory.json", "contains": "product.whisper-native-smoke" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-seven-layer-verification-mesh.md", "contains": "impact-selected" }
+      ]
+    },
+    {
+      "id": "P0-A5",
+      "criterion": "#1920/#1923 runtime findings are captured as evidence that rendered surface changes require live observer proof.",
+      "evidence": [
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-verification-decisions.md", "contains": "five configuration controls measured 25.25px" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1922-phase-0-ci-inventory.md", "contains": "live WebMCP evidence" }
+      ]
+    },
+    {
+      "id": "P0-A6",
+      "criterion": "Specialized workflows are audited for reuse, legacy spillover and architectural decomposition before seven-layer implementation begins.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "historical-monolith-misnamed" },
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "good-specialized-heavy-proof" },
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "good-specialized-release-proof" }
+      ]
+    }
+  ]
+}

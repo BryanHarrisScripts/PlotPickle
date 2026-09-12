@@ -53,6 +53,13 @@
       "riskTokens": ["canon", "graph"]
     },
     {
+      "id": "learn-journey-baseline-validator",
+      "classification": "verification",
+      "include": ["scripts/validate-learn-journey-baseline.mjs"],
+      "ownerLayer": "verification",
+      "riskTokens": ["canon", "test-harness", "cli"]
+    },
+    {
       "id": "learn-program-map-validator",
       "classification": "verification",
       "include": ["scripts/validate-learn-program-map.mjs"],

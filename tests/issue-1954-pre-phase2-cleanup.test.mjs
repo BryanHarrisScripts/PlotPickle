@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
+import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
 
 const read = (path) => readFile(path, "utf8");
 
@@ -83,8 +83,14 @@ test("#1954 is governed and selected by the seven-layer verification mesh", asyn
   assert.equal(launcherOwner.ownerLayer, "experience-skins");
 });
 
-test("#1954 canonical development convergence reports CONVERGED against the real diff", async () => {
+test("#1954 canonical development convergence reports CONVERGED against the real diff", async (t) => {
   const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
+  const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
+  if (!changedFiles.includes("config/development-convergence/1954.json")) {
+    t.skip("#1954 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
+    return;
+  }
+
   const result = await runDevelopmentConvergence([
     "--manifest",
     "config/development-convergence/1954.json",

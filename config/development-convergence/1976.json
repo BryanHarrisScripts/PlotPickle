@@ -1,70 +1,69 @@
 {
   "schemaVersion": 1,
   "issue": 1976,
-  "phase": "phase-a-research-ledger",
-  "brief": "docs/developer-briefs/1976-phase-a-research-ledger.md",
+  "phase": "phase-b-curriculum-design",
+  "brief": "docs/developer-briefs/1976-phase-b-curriculum-design.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
-    "docs/developer-briefs/1976-phase-a-research-ledger.md",
-    "docs/research/1976-screenwriting-gap-ledger.json",
-    "tests/issue-1976-research-ledger.test.mjs"
+    "docs/developer-briefs/1976-phase-b-curriculum-design.md",
+    "docs/research/1976-curriculum-design-map.json",
+    "tests/issue-1976-curriculum-design.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P1976-A1",
-      "criterion": "Phase A is pinned to the issue's original 21-skill external research snapshot rather than drifting to the later 24-skill expansion.",
+      "id": "P1976-B1",
+      "criterion": "Phase B reserves exactly eight stable, non-colliding lesson IDs for the approved high-value enrichment set without writing curriculum bodies.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "92022d2123676857e73f3ae94a9b76b6cb3f65b8" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"skillCount\": 21" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "EXPECTED_SKILLS" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"approvedNewCanonicalLessons\": 8" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "EXPECTED_LESSON_IDS" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "assertNoLessonBodies" }
       ]
     },
     {
-      "id": "P1976-A2",
-      "criterion": "Every pinned external skill area is classified exactly once as strong overlap, partial, gap or specialist.",
+      "id": "P1976-B2",
+      "criterion": "Every approved lesson candidate has one canonical topic and exactly one owner among the existing 24 Craft Modules; related modules are cross-links only.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "strong-overlap" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "partial: 7" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "gap: 5" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "specialist: 5" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"oneOwnerCraftModulePerLesson\": true" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"relatedCraftModulesAreCrossLinksOnly\": true" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "courseIds.size, 24" }
       ]
     },
     {
-      "id": "P1976-A3",
-      "criterion": "The ledger preserves PlotPickle's current 12-topic / 81-lesson / 95-source / 88-presentation baseline and maps proposed additions only into the existing 24 Craft Modules.",
+      "id": "P1976-B3",
+      "criterion": "Phase B distinguishes Essentials, Deep Dives and Medium Extensions while attaching Case Studies and Exercises to lessons instead of creating a second curriculum tree.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"archivedLessonCount\": 81" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"bundledSourceCount\": 95" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"presentationLessonCount\": 88" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "courseIds.size, 24" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"essential\"" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"deep-dive\"" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"medium-extension\"" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "ALLOWED_COMPANION_TYPES" }
       ]
     },
     {
-      "id": "P1976-A4",
-      "criterion": "The research ledger identifies high-value enrichment gaps without making the external repository curriculum authority or a mandatory build plan.",
+      "id": "P1976-B4",
+      "criterion": "Phase C authoring is deliberately split into C1 general craft bridges and C2 television medium extensions, with C3 specialist enrichment deferred.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "research-index-only" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"classificationIsBuildCommitment\": false" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "Television and series architecture" },
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "Writers' room and collaborative television workflow" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "General craft bridges" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "Television medium extensions" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "defer-to-C3" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "C3 remains explicitly deferred" }
       ]
     },
     {
-      "id": "P1976-A5",
-      "criterion": "No external skill/reference/script body is imported; Phase A stores only high-level research classification and provenance.",
+      "id": "P1976-B5",
+      "criterion": "The Phase A 12-topic / 81 archived lesson / 95 source / 88 presentation baseline and 6 Paths / 24 Craft Modules remain current canon; Phase B projections are non-canonical planning only.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/research/1976-screenwriting-gap-ledger.json", "contains": "\"externalBodiesImported\": false" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "PROHIBITED_BODY_KEYS" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-a-research-ledger.md", "contains": "Do not copy into PlotPickle" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"mutatedByPhaseB\": false" },
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "\"projectionIsCurrentCanon\": false" },
+        { "type": "file-contains", "path": "tests/issue-1976-curriculum-design.test.mjs", "contains": "learn/journey-baseline.json" }
       ]
     },
     {
-      "id": "P1976-A6",
-      "criterion": "Phase A stops at research and deterministic verification; no curriculum bodies, Journey behavior, EA/Sage behavior, Paths or Craft Modules are changed.",
+      "id": "P1976-B6",
+      "criterion": "External screenwriting material remains research-only; future lesson bodies must be independently authored with rights-safe examples and current verification where required.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-a-research-ledger.md", "contains": "Do not begin Phase B in the same PR" },
-        { "type": "file-contains", "path": "tests/issue-1976-research-ledger.test.mjs", "contains": "research-only" },
-        { "type": "file-contains", "path": "config/development-convergence/1976.json", "contains": "docs/research/1976-screenwriting-gap-ledger.json" }
+        { "type": "file-contains", "path": "docs/research/1976-curriculum-design-map.json", "contains": "research-index-only" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-b-curriculum-design.md", "contains": "Do not copy or adapt external" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-b-curriculum-design.md", "contains": "Do not begin Phase C in the same PR" }
       ]
     }
   ]

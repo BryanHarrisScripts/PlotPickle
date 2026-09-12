@@ -81,10 +81,36 @@ test("#1967 retires legacy Writer's Craft collection navigation while preserving
   assert.doesNotMatch(dashboard, /EXISTING COLLECTION PREVIEWS|COLLECTION PREVIEW ONLY/u);
   assert.match(dashboard, /if \(writerCraftMenuOpen\)/u);
   assert.match(dashboard, /<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
-  assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Story Craft Through the 24-Course Journey"/u);
+  assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft"/u);
 });
 
-test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 4 wires only Semester 1", async () => {
+test("#1975 presents the Journey as six Paths and 24 Craft Modules while retaining stable internal contracts", async () => {
+  const preview = await read("app/skin-v1/learn-journey-preview.tsx");
+
+  assert.match(preview, /OPEN JOURNEY \/ 6 PATHS \/ 24 CRAFT MODULES/u);
+  assert.match(preview, /CHOOSE ANY PATH\. MOVE AT YOUR OWN PACE\. THE ORDER IS A GUIDE, NOT A GATE\./u);
+  assert.match(preview, /PATH 01 IS AVAILABLE\. OPEN ANY CRAFT MODULE IN ANY ORDER\./u);
+  assert.match(preview, /THIS CRAFT MODULE'S LESSON CONTENT IS NOT AVAILABLE YET/u);
+  assert.match(preview, /STORY FOUNDATIONS/u);
+  assert.match(preview, /STRUCTURE & STORY MOTION/u);
+  assert.match(preview, /CHARACTER, DIALOGUE & VISUAL STORYTELLING/u);
+  assert.match(preview, /DRAFTING THE STORY/u);
+  assert.match(preview, /REVISION & COLLABORATIVE CRAFT/u);
+  assert.match(preview, /PROFESSIONAL PRACTICE/u);
+  assert.match(preview, /CRAFT MODULE \$\{craftModuleNumber\(course\.id\)\}/u);
+  assert.doesNotMatch(preview, />3 YEARS \/ 6 SEMESTERS \/ 24 COURSES</u);
+  assert.doesNotMatch(preview, />YEAR \{semester\.year\} \/ SEMESTER \{semester\.semester\} — FOUR COURSES</u);
+  assert.doesNotMatch(preview, />Back to Semesters</u);
+  assert.doesNotMatch(preview, /SELECT A SEMESTER TO VIEW ITS FOUR COURSES/u);
+
+  assert.match(preview, /year: number/u);
+  assert.match(preview, /semester: number/u);
+  assert.match(preview, /course-\(\\d\+\)/u);
+  assert.match(preview, /recommendedSequenceIsAccessControl: false/u);
+  assert.match(preview, /humanMayLearnOutOfOrder: true/u);
+});
+
+test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 4 wires only Path 01", async () => {
   const preview = await read("app/skin-v1/learn-journey-preview.tsx");
 
   assert.match(preview, /data-skin-menu="learn-journey"/u);
@@ -97,9 +123,9 @@ test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 
   assert.match(preview, /event\.key === "Escape"/u);
   assert.match(preview, /\^\[1-6\]\$/u);
   assert.match(preview, /\^\[1-4\]\$/u);
-  assert.match(preview, /ALL SEMESTERS REMAIN OPEN/u);
-  assert.match(preview, /SEMESTER 1 IS WIRED END-TO-END\. OPEN ANY COURSE IN ANY ORDER/u);
-  assert.match(preview, /LESSON CONTENT REMAINS UNWIRED UNTIL PHASE 5/u);
+  assert.match(preview, /CHOOSE ANY PATH/u);
+  assert.match(preview, /OPEN ANY CRAFT MODULE IN ANY ORDER/u);
+  assert.match(preview, /LESSON CONTENT IS UNAVAILABLE UNTIL PHASE 5/u);
   assert.doesNotMatch(preview, /aria-disabled/u);
 });
 
@@ -180,6 +206,30 @@ test("#1967 canonical development convergence reports CONVERGED against the real
   assert.equal(result.exitCode, 0);
   assert.equal(result.reports.length, 1);
   assert.equal(result.reports[0].issue, 1967);
+  assert.equal(result.reports[0].status, "CONVERGED");
+  assert.deepEqual(result.reports[0].remaining, []);
+});
+
+test("#1975 canonical development convergence reports CONVERGED against the real diff", async (t) => {
+  const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
+  const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
+  if (!changedFiles.includes("config/development-convergence/1975.json")) {
+    t.skip("#1975 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
+    return;
+  }
+
+  const result = await runDevelopmentConvergence([
+    "--manifest",
+    "config/development-convergence/1975.json",
+    "--base-ref",
+    baseRef,
+    "--report-dir",
+    ".artifacts/development-convergence",
+  ]);
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.reports.length, 1);
+  assert.equal(result.reports[0].issue, 1975);
   assert.equal(result.reports[0].status, "CONVERGED");
   assert.deepEqual(result.reports[0].remaining, []);
 });

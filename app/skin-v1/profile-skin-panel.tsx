@@ -96,7 +96,7 @@ export default function ProfileSkinPanel({
     }}>
       <div className="pp-skin-v1-profile-banner">
         <span>*** PLOTPICKLE BBS ***</span>
-        <strong>USER PROFILE</strong>
+        <h1>USER PROFILE</h1>
         <button type="button" className="pp-skin-v1-return" onClick={onBack} disabled={busy}>Back to Dashboard</button>
       </div>
 

@@ -17,7 +17,7 @@
     {
       "id": "windows-local-launcher",
       "classification": "production",
-      "include": ["PlotPickle.ps1", "Start-PlotPickle.bat"],
+      "include": ["GIT-PlotPickle.ps1", "PlotPickle.ps1", "Start-PlotPickle.bat"],
       "ownerLayer": "experience-skins",
       "riskTokens": ["windows", "native", "mcp", "surface"]
     },

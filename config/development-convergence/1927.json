@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": 1927,
+  "brief": "docs/developer-briefs/1927-node-semantic-identity.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "app/skin-v1/node-skin-panel.tsx",
+    "config/development-convergence/1927.json",
+    "docs/developer-briefs/1927-node-semantic-identity.md",
+    "tests/issue-1927-node-semantic-identity.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Settings-owned Node surface keeps the unique Node information identity while the inner detail region uses Node status details.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/node-skin-panel.tsx",
+          "contains": "aria-label=\"Node status details\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1927-node-semantic-identity.test.mjs",
+          "contains": "Node surface identity unique"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The repair preserves strict WebMCP ownership and does not hide duplicate semantics with positional selectors.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1927-node-semantic-identity.test.mjs",
+          "contains": "instead of hiding ambiguity with first/nth selectors"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The focused #1927 regression runs in the normal PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1927-node-semantic-identity.test.mjs"
+        }
+      ]
+    }
+  ]
+}

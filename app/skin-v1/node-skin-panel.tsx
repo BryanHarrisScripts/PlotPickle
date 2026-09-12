@@ -151,7 +151,7 @@ export default function NodeSkinPanel() {
         </div>
       </section>
 
-      <section style={{ ...panel, marginTop: 12 }} aria-label="Node information">
+      <section style={{ ...panel, marginTop: 12 }} aria-label="Node status details">
         {rows.map(([label, value]) => (
           <div key={label} style={row}>
             <strong style={{ color: "var(--pp-skin-ink)" }}>{label}</strong>

@@ -171,6 +171,77 @@
   outline-offset: 2px;
 }
 
+.exploreEntry {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: 0 auto;
+  padding: var(--pp-skin-space-3) 0 var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+}
+
+.exploreControls {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: 0 auto;
+  padding: var(--pp-skin-space-4) 0 var(--pp-skin-space-3);
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr) minmax(220px, 1fr);
+  gap: var(--pp-skin-space-3);
+}
+
+.exploreControls label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-muted);
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-sm);
+}
+
+.exploreControls input,
+.exploreControls select {
+  width: 100%;
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+  font: inherit;
+}
+
+.exploreControls input:focus-visible,
+.exploreControls select:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 1px;
+}
+
+.exploreSummary {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: 0 auto;
+  padding: var(--pp-skin-space-2) 0;
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-sm);
+  text-transform: uppercase;
+}
+
+.exploreResults {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: 0 auto;
+  padding: 0 0 var(--pp-skin-space-5);
+}
+
+.emptyResults {
+  margin: var(--pp-skin-space-4) 0;
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  color: var(--pp-skin-ink-muted);
+  text-align: center;
+}
+
+@media (max-width: 920px) {
+  .exploreControls {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .directory {
     padding: var(--pp-skin-space-2) !important;
@@ -182,7 +253,11 @@
   }
 
   .menu,
-  .lesson {
+  .lesson,
+  .exploreEntry,
+  .exploreControls,
+  .exploreSummary,
+  .exploreResults {
     width: calc(100% - 24px) !important;
   }
 

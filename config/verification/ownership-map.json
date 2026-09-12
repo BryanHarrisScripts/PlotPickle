@@ -43,6 +43,16 @@
       "riskTokens": ["canon", "test-harness", "cli"]
     },
     {
+      "id": "learn-curriculum-integrity-harness",
+      "classification": "verification",
+      "include": [
+        "scripts/learn-curriculum-integrity.mjs",
+        "scripts/validate-learn-curriculum-integrity.mjs"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": ["canon", "graph", "test-harness", "cli"]
+    },
+    {
       "id": "webmcp-live-verifier",
       "classification": "verification",
       "include": [

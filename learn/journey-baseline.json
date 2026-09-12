@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 1918,
+  "phase": "phase-0-baseline",
+  "curriculum": {
+    "topicCount": 12,
+    "archivedLessonCount": 81,
+    "bundledSourceCount": 95,
+    "presentationLessonCount": 88,
+    "foundationsPresentationLessonCount": 11,
+    "lessonContentSha256": "66a9ca2f1ab799c5c7160d3a52d4221dedccc79c4699c80459ca86a165fdeaf2",
+    "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343"
+  },
+  "writerCraftCompatibility": {
+    "issue": 1915,
+    "collectionCount": 9,
+    "collections": [
+      "Screenwriting Foundations",
+      "Visual Writing & PlotPickle",
+      "The 24 Blocks Method",
+      "AI-Assisted Revision",
+      "Characters in Motion",
+      "Dialogue in Motion",
+      "Story Craft Essentials",
+      "Working Together",
+      "Collaboration, Formats & Ownership"
+    ]
+  },
+  "invariants": {
+    "curriculumContentMutationAllowed": false,
+    "journeyMayGateCurriculumAccess": false,
+    "programMapMayDuplicateLessonBodies": false,
+    "humanRemainsLearningSequenceAuthority": true
+  }
+}

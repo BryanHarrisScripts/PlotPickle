@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
   "issue": 1920,
-  "brief": "issues/1920",
+  "brief": "docs/developer-briefs/1920-profile-webmcp-readiness.md",
   "allowedChanges": [
     ".github/workflows/pr-gate.yml",
     "config/development-convergence/1920.json",
+    "docs/developer-briefs/1920-profile-webmcp-readiness.md",
     "lib/verification/skin-v1-visual-director.mjs",
     "lib/verification/webmcp-surface-visual-audit.mjs",
     "tests/issue-1920-profile-webmcp-readiness.test.mjs",

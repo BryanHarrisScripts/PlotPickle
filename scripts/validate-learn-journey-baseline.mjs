@@ -9,11 +9,22 @@ const check = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-const [baseline, index, catalog, dashboard] = await Promise.all([
+const WRITER_CRAFT_COMPATIBILITY_COLLECTIONS = Object.freeze([
+  "Screenwriting Foundations",
+  "Visual Writing & PlotPickle",
+  "The 24 Blocks Method",
+  "AI-Assisted Revision",
+  "Characters in Motion",
+  "Dialogue in Motion",
+  "Story Craft Essentials",
+  "Working Together",
+  "Collaboration, Formats & Ownership",
+]);
+
+const [baseline, index, catalog] = await Promise.all([
   readJson("learn/journey-baseline.json"),
   readJson("learn/index.json"),
   read("adapters/curriculum/current-catalog.ts"),
-  read("app/skin-v1/dashboard-bbs-panel.tsx"),
 ]);
 
 const topicDocuments = await Promise.all(index.files.map((entry) => readJson(`learn/${entry.file}`)));
@@ -41,13 +52,12 @@ check(
 
 const collections = baseline.writerCraftCompatibility.collections;
 check(collections.length === baseline.writerCraftCompatibility.collectionCount, "Writer's Craft compatibility count does not match the baseline collection list.");
-let previousIndex = -1;
-for (const collection of collections) {
-  const indexInDashboard = dashboard.indexOf(`label: \"${collection}\"`);
-  check(indexInDashboard >= 0, `Writer's Craft compatibility row is missing: ${collection}.`);
-  check(indexInDashboard > previousIndex, `Writer's Craft compatibility order changed at: ${collection}.`);
-  previousIndex = indexInDashboard;
-}
+check(
+  JSON.stringify(collections) === JSON.stringify(WRITER_CRAFT_COMPATIBILITY_COLLECTIONS),
+  "Writer's Craft historical compatibility collection names or order changed from the Phase 0 baseline.",
+);
+check(new Set(collections).size === collections.length, "Writer's Craft historical compatibility collection names must remain unique.");
+check(collections.every((collection) => typeof collection === "string" && collection.trim().length > 0), "Writer's Craft historical compatibility collection names must remain non-empty strings.");
 
 check(baseline.invariants.curriculumContentMutationAllowed === false, "Phase 0 must forbid curriculum-content mutation.");
 check(baseline.invariants.journeyMayGateCurriculumAccess === false, "#1918 Journey must remain guided, never gatekept.");
@@ -60,6 +70,6 @@ if (failures.length) {
   process.exitCode = 1;
 } else {
   console.log(
-    `LEARN journey baseline passed: ${index.files.length} topics, ${archivedLessons.length} archived lessons, ${bundledSources.length} bundled sources, ${baseline.curriculum.presentationLessonCount} presentation lessons and ${collections.length} Writer's Craft compatibility rows.`,
+    `LEARN journey baseline passed: ${index.files.length} topics, ${archivedLessons.length} archived lessons, ${bundledSources.length} bundled sources, ${baseline.curriculum.presentationLessonCount} presentation lessons and ${collections.length} historical Writer's Craft compatibility records.`,
   );
 }

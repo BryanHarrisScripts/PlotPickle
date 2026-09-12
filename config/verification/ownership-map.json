@@ -22,6 +22,20 @@
       "riskTokens": ["surface", "navigation", "mcp"]
     },
     {
+      "id": "learn-program-map",
+      "classification": "production",
+      "include": ["learn/program-map.mjs"],
+      "ownerLayer": "story-canon",
+      "riskTokens": ["canon", "graph"]
+    },
+    {
+      "id": "learn-program-map-validator",
+      "classification": "verification",
+      "include": ["scripts/validate-learn-program-map.mjs"],
+      "ownerLayer": "verification",
+      "riskTokens": ["canon", "test-harness", "cli"]
+    },
+    {
       "id": "webmcp-live-verifier",
       "classification": "verification",
       "include": [

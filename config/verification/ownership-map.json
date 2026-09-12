@@ -91,6 +91,13 @@
       "riskTokens": ["agent", "canon", "provider"]
     },
     {
+      "id": "learn-curriculum-content",
+      "classification": "production",
+      "include": ["learn/*.json", "learn/enrichment/**"],
+      "ownerLayer": "story-canon",
+      "riskTokens": ["canon", "graph"]
+    },
+    {
       "id": "learn-program-map",
       "classification": "production",
       "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs"],

@@ -13,7 +13,8 @@
     "config/verification/test-catalog.json",
     "docs/developer-briefs/1918-phase-3-journey-shell.md",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
-    "tests/issue-1918-learn-journey-shell.test.mjs"
+    "tests/issue-1918-learn-journey-shell.test.mjs",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs"
   ],
   "acceptance": [
     {
@@ -86,6 +87,14 @@
         { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"experience.learn-journey-shell\"" },
         { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-journey-preview-api\"" },
         { "type": "file-contains", "path": "tests/issue-1918-learn-journey-shell.test.mjs", "contains": "runDevelopmentConvergence" }
+      ]
+    },
+    {
+      "id": "P3-A9",
+      "criterion": "The #1954 pre-Phase-2 regression is deliberately migrated from its obsolete first-submenu-only wording to the durable rule that Writer's Craft lesson content remains unopened until content wiring begins.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "LESSON LEVEL IS NOT OPENED IN THIS BUILD" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1918 Phase 3 intentionally adds a second preview level" }
       ]
     }
   ]

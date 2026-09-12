@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "issue": 1938,
+  "brief": "docs/developer-briefs/1938-phase-2-verification-core.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1938.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1938-phase-2-verification-core.md",
+    "lib/verification/verification-core.mjs",
+    "scripts/verification-core.mjs",
+    "tests/issue-1938-verification-core.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Changed files are deterministically resolved to governed ownership, canonical layers and risk tokens, with unmapped production failing closed.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-core.mjs",
+          "contains": "export function planVerification"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-core.mjs",
+          "contains": "unmapped-production-ownership"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The shared core provides plan, explain, typed runLayer execution and normalized evidence construction below GitHub Actions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-core.mjs",
+          "contains": "export function explainPlan"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-core.mjs",
+          "contains": "export async function runLayer"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/verification-core.mjs",
+          "contains": "export function emitEvidence"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The local CLI exposes plan, explain and run-layer while risky execution remains explicitly authorized.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "run-layer"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "--allow-native"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-core.mjs",
+          "contains": "shell: false"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Focused regressions cover multi-layer planning, fail-closed ownership, heavy-test skip reasons, deterministic planning and exact-head evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1938-verification-core.test.mjs",
+          "contains": "a changed file may deterministically impact multiple canonical layers"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1938-verification-core.test.mjs",
+          "contains": "unknown production ownership fails closed"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1938-verification-core.test.mjs",
+          "contains": "heavy/native/network verification requires explicit authorization"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Phase 2 remains incremental: PR Gate runs the focused regression and Product Gate authority/behavior is unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1938-verification-core.test.mjs"
+        }
+      ]
+    }
+  ]
+}

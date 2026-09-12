@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schema/verification/test-catalog.schema.json",
+  "schemaVersion": "1.0",
+  "sourceArchitecture": "architecture/plotpickle.architecture.json",
+  "migrationSource": "config/verification/phase-0-inventory.json",
+  "entries": []
+}

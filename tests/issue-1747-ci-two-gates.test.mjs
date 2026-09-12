@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #1747 exposes exactly two normal pull-request verification gates", async () => {
+test("issue #1747 keeps exactly two authoritative PR gates while Phase 3 adds one shadow workflow", async () => {
   const files = (await readdir(workflowRoot)).filter((file) => /\.ya?ml$/.test(file)).sort();
   const workflows = new Map(await Promise.all(files.map(async (file) => [file, await source(`.github/workflows/${file}`)])));
   const pullRequestWorkflows = [...workflows]
@@ -14,17 +14,21 @@ test("issue #1747 exposes exactly two normal pull-request verification gates", a
     .map(([file]) => file)
     .sort();
 
-  assert.deepEqual(pullRequestWorkflows, ["pr-gate.yml", "product-gate.yml"]);
+  assert.deepEqual(pullRequestWorkflows, ["architecture-shadow.yml", "pr-gate.yml", "product-gate.yml"]);
 
   const prGate = workflows.get("pr-gate.yml");
   const productGate = workflows.get("product-gate.yml");
+  const shadow = workflows.get("architecture-shadow.yml");
   assert.match(prGate, /^name: PR Gate$/m);
   assert.match(prGate, /^    name: PR Gate$/m);
   assert.match(productGate, /^name: Product Gate$/m);
   assert.match(productGate, /^    name: Product Gate$/m);
+  assert.match(shadow, /^name: Architecture Shadow Verification$/m);
+  assert.doesNotMatch(shadow, /^    name: PR Gate$/m);
+  assert.doesNotMatch(shadow, /^    name: Product Gate$/m);
 });
 
-test("issue #1747 keeps normal PR verification focused on the current architecture", async () => {
+test("issue #1747 keeps authoritative PR verification focused on the current architecture", async () => {
   const [prGate, productGate] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),
@@ -59,6 +63,6 @@ test("issue #1747 leaves specialized workflows available without their own pull-
     "ben-code-quality.yml",
   ]) {
     const workflow = await source(`.github/workflows/${file}`);
-    assert.doesNotMatch(workflow, /^  pull_request:/m, `${file} should not create a third normal PR check`);
+    assert.doesNotMatch(workflow, /^  pull_request:/m, `${file} should remain specialized rather than becoming another normal PR workflow`);
   }
 });

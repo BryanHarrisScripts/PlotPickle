@@ -112,6 +112,32 @@
       "notes": "#1963 pre-Phase 5 Great Hall cleanup. Proves BUZZ transport/test probes stay out of Human-facing conversation while Human/Agent replies continue to use one signed BUZZ room history with automatic refresh."
     },
     {
+      "id": "experience.explicit-story-startup-1969",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
+      "triggerTokens": ["mcp", "navigation", "surface"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1969-explicit-story-startup.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#1969 pre-Phase 5 startup cleanup. Proves bare PlotPickle startup opens Library rather than automatically restoring the previous active story, while explicit Library Resume/Open/Create actions and existing persistence authority remain intact."
+    },
+    {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
       "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map"],

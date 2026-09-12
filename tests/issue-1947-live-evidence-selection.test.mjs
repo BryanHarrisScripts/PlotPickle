@@ -129,13 +129,15 @@ test("#1947 architecture shadow authorizes verification-tool network only for La
   assert.match(workflow, /\.artifacts\/visual-readiness\/\*\.png/u);
 });
 
-test("#1947 browser-UAT runner is bounded, read-only, repair-free and mirrors the local synthetic runtime", async () => {
-  const [shadow, live, startup, policy, launcher] = await Promise.all([
+test("#1947 browser-UAT runner is bounded, read-only, repair-free and mirrors governed acceptance runtime", async () => {
+  const [shadow, live, startup, policy, launcher, nodeGateway, guestAuthority] = await Promise.all([
     read("scripts/verification-shadow.mjs"),
     read("scripts/verification-webmcp-live.mjs"),
     read("scripts/run-webmcp-startup-uat.mjs"),
     read("lib/verification/webmcp-uat-skills.mjs"),
     read("Start-PlotPickle.bat"),
+    read("build/node-topology-gateway.ts"),
+    read("core/auth/autonomous-guest/guest-authority.ts"),
   ]);
   assert.match(shadow, /"browser-uat"/u);
   assert.match(shadow, /target\.startsWith\("scripts\/"\)/u);
@@ -148,9 +150,20 @@ test("#1947 browser-UAT runner is bounded, read-only, repair-free and mirrors th
   assert.match(live, /verificationSyntheticRuntime/u);
   assert.match(live, /\.\.\.runtime\.runtimeEnv/u);
   assert.match(live, /PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp"/u);
+  assert.match(live, /PLOTPICKLE_ACCEPTANCE_MODE: "1"/u);
+  assert.match(live, /PLOTPICKLE_AUTONOMOUS_GUEST_ENABLED: "true"/u);
+  assert.match(live, /PLOTPICKLE_AUTONOMOUS_RUN_ID: `phase5-webmcp-\$\{jobRef\}`/u);
+  assert.match(live, /PLOTPICKLE_AUTONOMOUS_OPERATOR_ID: "phase5-live-observer"/u);
+  assert.match(live, /probeLocalNodeDependencies/u);
+  assert.match(live, /\/api\/system\/node-control/u);
+  assert.match(live, /\/api\/system\/node-topology/u);
   assert.match(live, /env: serverEnv/u);
   assert.match(launcher, /PLOTPICKLE_ACCESS_MODE=desktop-loopback/u);
   assert.match(launcher, /PLOTPICKLE_SERVER_NETWORK_ENABLED=false/u);
+  assert.match(nodeGateway, /autonomousAcceptanceNodeIdentity/u);
+  assert.match(nodeGateway, /PLOTPICKLE_ACCEPTANCE_MODE !== "1"/u);
+  assert.match(guestAuthority, /PLOTPICKLE_AUTONOMOUS_GUEST_ENABLED/u);
+  assert.match(guestAuthority, /accessMode !== "desktop-loopback"/u);
   assert.match(startup, /WEBMCP_UAT_SKILL_POLICY/u);
   assert.match(policy, /WEBMCP_FORBIDDEN_CAPABILITIES/u);
   assert.match(policy, /mayFixCode: false/u);

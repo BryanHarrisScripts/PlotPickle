@@ -83,6 +83,29 @@
       "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work."
     },
     {
+      "id": "story-canon.learn-curriculum-integrity",
+      "ownerLayer": "story-canon",
+      "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],
+      "triggerTokens": ["canon", "graph", "test-harness"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1918-learn-curriculum-integrity.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/story-canon.json", ".artifacts/verification-shadow/story-canon.comparison.json"]
+      },
+      "notes": "#1918 Phase 2 fail-closed curriculum integrity harness. Recomputes canonical content hashes and proves 81 archive lessons, 95 bundled sources, 88 presentation lessons, 24-course ownership, reference coverage and advisory prerequisite integrity before Journey UI work begins."
+    },
+    {
       "id": "provider.local-ai-plugin-registry",
       "ownerLayer": "provider-runtime",
       "architectureComponents": ["local-ai-plugin-registry", "provider-runtime"],

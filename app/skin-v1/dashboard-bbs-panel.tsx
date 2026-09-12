@@ -43,27 +43,18 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
 };
 
 const SETTINGS_MENU = [
-  ...settingsTaxonomy.workspace
-    .filter((item) => item.id !== "sitemap")
-    .map((item) => ({
-      id: item.id,
-      shortcut: SETTINGS_SHORTCUTS[item.id] ?? "?",
-      label: item.label,
-      description: item.description,
-      group: "WORKSPACE",
-    })),
-  {
-    id: "local-story-mode",
-    shortcut: SETTINGS_SHORTCUTS["local-story-mode"],
-    label: "Local Story Mode",
-    description: "Local writing, images, video and Agent compute on this computer.",
-    group: "SYSTEMS",
-  },
   {
     id: "node-info",
     shortcut: SETTINGS_SHORTCUTS["node-info"],
     label: "Node Info",
     description: "PlotPickle Node identity, lifecycle, readiness and current project.",
+    group: "SYSTEMS",
+  },
+  {
+    id: "local-story-mode",
+    shortcut: SETTINGS_SHORTCUTS["local-story-mode"],
+    label: "Local Story Mode",
+    description: "Local writing, images, video and Agent compute on this computer.",
     group: "SYSTEMS",
   },
   ...settingsTaxonomy.systems
@@ -76,6 +67,15 @@ const SETTINGS_MENU = [
         ? "Cloud writing, images, video, Agents and user-owned provider authority."
         : system.description,
       group: "SYSTEMS",
+    })),
+  ...settingsTaxonomy.workspace
+    .filter((item) => item.id !== "sitemap")
+    .map((item) => ({
+      id: item.id,
+      shortcut: SETTINGS_SHORTCUTS[item.id] ?? "?",
+      label: item.label,
+      description: item.description,
+      group: "WORKSPACE",
     })),
 ] as const;
 
@@ -370,7 +370,7 @@ export default function DashboardBbsPanel({
                     onClick={() => activateSettingsItem(index)}
                     onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
-                    <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}{connected ? "" : " [NOT CONNECTED]"}</span>
+                    <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                     <span
                       className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
                       aria-label={connected ? "Connected Settings destination" : "Settings destination not connected yet"}

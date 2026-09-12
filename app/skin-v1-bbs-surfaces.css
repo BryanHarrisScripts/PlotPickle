@@ -152,6 +152,7 @@
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(button, a, input, textarea) {
+  min-height: var(--pp-skin-control-height) !important;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
   background: var(--pp-skin-surface-0) !important;
   color: var(--pp-skin-ink) !important;

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "issue": 1920,
+  "brief": "issues/1920",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1920.json",
+    "lib/verification/skin-v1-visual-director.mjs",
+    "lib/verification/webmcp-surface-visual-audit.mjs",
+    "tests/issue-1920-profile-webmcp-readiness.test.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "WebMCP and Visual Director verify the direct User Profile surface rather than the removed Profile menu.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/webmcp-surface-visual-audit.mjs", "contains": "section[aria-label='User Profile'].pp-skin-v1-profile-surface" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-visual-director.mjs", "contains": "section[aria-label='User Profile'].pp-skin-v1-profile-surface" },
+        { "type": "file-contains", "path": "tests/visual-baselines/skin-v1/manifest.json", "contains": "section[aria-label='User Profile'].pp-skin-v1-profile-surface" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Local Story Mode and Node Info are traversed from Settings using the canonical #1915 rows.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/webmcp-surface-visual-audit.mjs", "contains": "data-settings-secondary-item='local-story-mode'" },
+        { "type": "file-contains", "path": "lib/verification/webmcp-surface-visual-audit.mjs", "contains": "data-settings-secondary-item='node-info'" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-visual-director.mjs", "contains": "surface === \"local-ai\" ? \"local-story-mode\" : \"node-info\"" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Focused regression prevents Profile menu verification drift from returning and remains in PR Gate beside #1915.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1920-profile-webmcp-readiness.test.mjs", "contains": "verification follows the direct User Profile surface" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1920-profile-webmcp-readiness.test.mjs" }
+      ]
+    }
+  ]
+}

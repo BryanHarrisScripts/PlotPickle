@@ -19,7 +19,7 @@ function progress(course, completedLessonIds) {
   };
 }
 
-test("#1918 Phase 5 wires all six Paths and all 24 Craft Modules", async () => {
+test("#1918 Phase 5 all-Path Journey wiring survives Phase 6", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
   assert.match(route, /phase: "phase-5-all-paths"/u);
   assert.match(route, /status: "wired"/u);
@@ -32,7 +32,7 @@ test("#1918 Phase 5 wires all six Paths and all 24 Craft Modules", async () => {
   assert.deepEqual(LEARN_PROGRAM_MAP.semesters.map((semester) => semester.courseIds.length), [4, 4, 4, 4, 4, 4]);
 });
 
-test("#1918 Phase 5 all-Paths API projects canonical archive lessons without a second curriculum store", async () => {
+test("#1918 Phase 5 all-Paths API remains the canonical Journey archive projection", async () => {
   const route = await read("app/api/learn/journey-courses/route.ts");
   for (const canonicalImport of [
     "foundations.json",
@@ -60,6 +60,36 @@ test("#1918 Phase 5 all-Paths API projects canonical archive lessons without a s
   assert.doesNotMatch(route, /lessonBodies|copiedCurriculum|journeyCurriculum/u);
 });
 
+test("#1918 Phase 6 Explore projects the existing 88-lesson presentation catalog and 24-Craft-Module ownership", async () => {
+  const route = await read("app/api/learn/explore/route.ts");
+
+  assert.match(route, /plotPickleCurriculum/u);
+  assert.match(route, /adapters\/curriculum\/current-catalog/u);
+  assert.match(route, /FOUNDATION_PROMOTED_SOURCE_IDS/u);
+  assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
+  assert.match(route, /coverageMode: lesson\.id === canonicalLessonId \? "journey" as const : "reference-coverage" as const/u);
+  assert.match(route, /entries\.length !== 88/u);
+  assert.match(route, /representedTopics\.size !== 12/u);
+  assert.match(route, /representedCraftModules\.size !== 24/u);
+  assert.match(route, /sourceIds\.size !== 95/u);
+  assert.match(route, /referenceCoverageCount !== 7/u);
+  assert.match(route, /curriculumOwner: "adapters\/curriculum\/current-catalog\.ts"/u);
+  assert.match(route, /journeyMapOwner: "learn\/program-map-spec\.mjs"/u);
+  assert.match(route, /curriculumBodiesDuplicated: false/u);
+  assert.doesNotMatch(route, /const curriculum = \[|lessonBodies|exploreCurriculum/u);
+});
+
+test("#1918 Phase 6 promoted Foundations presentation lessons retain canonical reference coverage", async () => {
+  const route = await read("app/api/learn/explore/route.ts");
+
+  assert.match(route, /promotedFoundationSourceIds/u);
+  assert.match(route, /lesson\.sources\.find\(\(source\) => promotedFoundationSourceIds\.has\(source\.id\)\)/u);
+  assert.match(route, /foundationsDocument\?\.lessons\.find/u);
+  assert.match(route, /candidate\.sources\.some\(\(source\) => source\.id === promotedSource\.id\)/u);
+  assert.match(route, /archiveLessonOwner\.get\(canonicalLessonId\)/u);
+  assert.match(route, /referenceCoverageCount/u);
+});
+
 test("#1918 Phase 5 retains the Phase 4 Path 01 compatibility projection", async () => {
   const route = await read("app/api/learn/journey-semester-one/route.ts");
   assert.match(route, /phase: "phase-4-semester-one"/u);
@@ -68,15 +98,56 @@ test("#1918 Phase 5 retains the Phase 4 Path 01 compatibility projection", async
   assert.match(route, /curriculumOwner: "existing LEARN archive"/u);
 });
 
-test("#1918 Phase 5 reuses PPF lesson history as the only Journey progress authority", async () => {
-  const ui = await read("app/skin-v1/learn-journey-preview.tsx");
-  assert.match(ui, /loadFoundationProject/u);
-  assert.match(ui, /saveFoundationProject/u);
-  assert.match(ui, /applyStoryCommand/u);
-  assert.match(ui, /project\?\.learning\.completedLessonIds/u);
-  assert.match(ui, /type: isCompleted \? "lesson\.uncomplete" : "lesson\.complete"/u);
-  assert.match(ui, /data-learn-progress-owner="PPFProject\.learning\.completedLessonIds"/u);
-  assert.doesNotMatch(ui, /localStorage\.setItem\([^\n]*(?:journey|course-progress)/iu);
+test("#1918 Phase 6 Journey and Explore reuse one PPF lesson-history authority", async () => {
+  const [journey, explore, route] = await Promise.all([
+    read("app/skin-v1/learn-journey-preview.tsx"),
+    read("app/skin-v1/learn-explore.tsx"),
+    read("app/api/learn/explore/route.ts"),
+  ]);
+
+  assert.match(journey, /loadFoundationProject/u);
+  assert.match(journey, /saveFoundationProject/u);
+  assert.match(journey, /applyStoryCommand/u);
+  assert.match(journey, /project\?\.learning\.completedLessonIds/u);
+  assert.match(journey, /type: isCompleted \? "lesson\.uncomplete" : "lesson\.complete"/u);
+  assert.match(journey, /completedLessonIds=\{completedLessonIds\}/u);
+  assert.match(journey, /onLessonOpen=\{\(lessonId\) => commit\(\{ type: "lesson\.open"/u);
+  assert.match(journey, /onToggleLessonCompletion=\{toggleLessonCompletion\}/u);
+
+  assert.match(explore, /data-learn-progress-owner="PPFProject\.learning\.completedLessonIds"/u);
+  assert.match(explore, /completedLessonIds\.has\(entry\.lesson\.id\)/u);
+  assert.match(explore, /onToggleLessonCompletion\(openEntry\.lesson\)/u);
+  assert.match(route, /progressOwner: "PPFProject\.learning\.completedLessonIds"/u);
+  assert.match(route, /journeyAndExploreShareProgress: true/u);
+
+  assert.doesNotMatch(journey, /localStorage\.setItem\([^\n]*(?:journey|course-progress|explore)/iu);
+  assert.doesNotMatch(explore, /localStorage\.setItem/iu);
+});
+
+test("#1918 Phase 6 Explore supports topic, Craft Module, lesson, concept and application discovery", async () => {
+  const [route, explore] = await Promise.all([
+    read("app/api/learn/explore/route.ts"),
+    read("app/skin-v1/learn-explore.tsx"),
+  ]);
+
+  assert.match(route, /topic: \{/u);
+  assert.match(route, /craftModule: \{/u);
+  assert.match(route, /concepts: unique\(/u);
+  assert.match(route, /applicationAreas: unique\(/u);
+  assert.match(route, /\.\.\.lesson\.tags/u);
+  assert.match(route, /definition\.term/u);
+  assert.match(route, /section\.heading/u);
+  assert.match(route, /lesson\.apply/u);
+  assert.match(route, /\.\.\.course\.applicationTargets/u);
+
+  assert.match(explore, /matchesQuery/u);
+  assert.match(explore, /entry\.topic\.title/u);
+  assert.match(explore, /entry\.craftModule\.title/u);
+  assert.match(explore, /entry\.lesson\.title/u);
+  assert.match(explore, /\.\.\.entry\.concepts/u);
+  assert.match(explore, /\.\.\.entry\.applicationAreas/u);
+  assert.match(explore, /topicFilter === "all"/u);
+  assert.match(explore, /craftModuleFilter === "all"/u);
 });
 
 test("#1918 Phase 5 progress remains order-independent across distant Paths", () => {
@@ -98,18 +169,29 @@ test("#1918 Phase 5 progress remains order-independent across distant Paths", ()
   });
 });
 
-test("#1918 Phase 5 keeps every Path and Craft Module selectable without prerequisite gates", async () => {
-  const ui = await read("app/skin-v1/learn-journey-preview.tsx");
-  assert.match(ui, /IS AVAILABLE\. OPEN ANY CRAFT MODULE IN ANY ORDER/u);
-  assert.match(ui, /COMPLETION ORDER IS YOUR CHOICE/u);
-  assert.match(ui, /data-learn-course-status="wired"/u);
-  assert.match(ui, /data-learn-course-content="available"/u);
-  assert.match(ui, /data-skin-menu-connected="true"/u);
-  assert.doesNotMatch(ui, /prerequisite.*disabled|disabled.*prerequisite/iu);
-  assert.doesNotMatch(ui, /aria-disabled/iu);
+test("#1918 Phase 6 keeps Journey and Explore unrestricted by prerequisites or completion", async () => {
+  const [journey, explore, route] = await Promise.all([
+    read("app/skin-v1/learn-journey-preview.tsx"),
+    read("app/skin-v1/learn-explore.tsx"),
+    read("app/api/learn/explore/route.ts"),
+  ]);
+
+  assert.match(journey, /IS AVAILABLE\. OPEN ANY CRAFT MODULE IN ANY ORDER/u);
+  assert.match(journey, /COMPLETION ORDER IS YOUR CHOICE/u);
+  assert.match(journey, /data-learn-course-status="wired"/u);
+  assert.match(journey, /data-learn-course-content="available"/u);
+  assert.match(explore, /data-learn-explore-access="unrestricted"/u);
+  assert.match(explore, /EXPLORE IS UNRESTRICTED/u);
+  assert.match(route, /accessMode: "unrestricted" as const/u);
+  assert.match(route, /recommendedSequenceIsAccessControl: false/u);
+  assert.match(route, /humanMayLearnOutOfOrder: true/u);
+  assert.doesNotMatch(journey, /prerequisite.*disabled|disabled.*prerequisite/iu);
+  assert.doesNotMatch(explore, /prerequisite.*(?:disabled|locked)|(?:disabled|locked).*prerequisite/iu);
+  assert.doesNotMatch(journey, /aria-disabled/iu);
+  assert.doesNotMatch(explore, /aria-disabled/iu);
 });
 
-test("#1918 Phase 5 preserves the Phase 0-2 curriculum integrity validators", async () => {
+test("#1918 Phase 6 preserves the Phase 0-2 curriculum integrity validators", async () => {
   for (const validator of [
     "scripts/validate-learn-journey-baseline.mjs",
     "scripts/validate-learn-program-map.mjs",
@@ -120,7 +202,7 @@ test("#1918 Phase 5 preserves the Phase 0-2 curriculum integrity validators", as
   }
 });
 
-test("#1918 Phase 5 remains registered in the seven-layer verification mesh", async () => {
+test("#1918 Phase 6 remains registered in the seven-layer verification mesh", async () => {
   const [catalogSource, ownershipSource] = await Promise.all([
     read("config/verification/test-catalog.json"),
     read("config/verification/ownership-map.json"),
@@ -136,15 +218,19 @@ test("#1918 Phase 5 remains registered in the seven-layer verification mesh", as
   assert.ok(apiOwner);
   assert.ok(apiOwner.include.includes("app/api/learn/journey-semester-one/route.ts"));
   assert.ok(apiOwner.include.includes("app/api/learn/journey-courses/route.ts"));
+  assert.ok(apiOwner.include.includes("app/api/learn/explore/route.ts"));
 });
 
-test("#1918 Phase 5 canonical development convergence reports CONVERGED against the real diff", async (t) => {
+test("#1918 Phase 6 canonical development convergence reports CONVERGED against the real diff", async (t) => {
   const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
   const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
   if (!changedFiles.includes("config/development-convergence/1918.json")) {
-    t.skip("#1918 Phase 5 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
+    t.skip("#1918 Phase 6 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
     return;
   }
+
+  const manifest = JSON.parse(await read("config/development-convergence/1918.json"));
+  assert.equal(manifest.phase, "phase-6-explore-all-curriculum");
 
   const result = await runDevelopmentConvergence([
     "--manifest",

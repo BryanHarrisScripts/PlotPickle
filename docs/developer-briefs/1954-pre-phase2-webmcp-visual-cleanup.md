@@ -8,20 +8,23 @@ Clear the known Windows startup and Skin V1/WebMCP presentation debt before #191
 
 The latest local WebMCP run exposed three independent problems:
 
-1. The testing-mode narrative is easy to misread and the observed local output reported Human Testing after WebMCP had been selected. The tracked Windows launcher is `Start-PlotPickle.bat`; no repository `PlotPickle.ps1` exists, so the canonical fix belongs in the launcher that any local wrapper ultimately calls.
-2. Writer's Craft received the #1935 selected-row colour/border repair, but it never received the full Dashboard/Settings directory geometry. Its shared menu row therefore falls back to the legacy three-column grid and the command text occupies the narrow first column, producing the one-word-per-line rendering.
-3. Visual Director reports two Profile advisories: rendered control padding is off the canonical four-pixel spacing rhythm, and four internal headings compete at the dominant level because the page banner has no semantic `h1` while every internal `h2` uses the title size.
+1. The Human was launching through a local `PlotPickle.ps1` path whose testing-mode narrative could drift from the repository launcher and reported Human Testing after WebMCP had been selected. The repository previously tracked only `Start-PlotPickle.bat`, so there was no governed PowerShell front door to prevent that drift.
+2. Writer's Craft received the #1935 selected-row colour/border repair, but it never received the full Dashboard/Settings directory geometry. Its shared menu row therefore fell back to the legacy three-column grid and the command text occupied the narrow first column, producing the one-word-per-line rendering.
+3. Visual Director reports two Profile advisories: rendered control padding is off the canonical four-pixel spacing rhythm, and four internal headings compete at the dominant level because the page banner had no semantic `h1` while internal `h2` elements used the title scale.
 
-## Slice A — Windows testing-mode narrative
+## Slice A — governed PowerShell testing-mode front door
+
+Add one thin root `PlotPickle.ps1` wrapper that delegates all real startup work to the existing `Start-PlotPickle.bat` owner. It exists only to make the testing choice explicit for PowerShell users and eliminate untracked local prompt drift.
 
 Keep the behavior stable:
 
 - `Y` selects isolated autonomous WebMCP testing;
 - `N` opens PlotPickle normally for hands-on testing;
-- `--webmcp-testing` and `--human-testing` remain valid overrides;
-- WebMCP continues to use the isolated test profile and bounded visual UAT.
+- PowerShell switches may select either mode without prompting;
+- the wrapper passes `--webmcp-testing` or `--human-testing` to the existing batch launcher;
+- WebMCP continues to use the batch launcher's isolated test profile and bounded visual UAT.
 
-Change only the Human-facing copy so the two modes are unmistakable and the readiness line names the actual selected branch.
+Register both Windows entry points with the current verification ownership map rather than leaving a new root production script unmapped.
 
 ## Slice B — Writer's Craft directory geometry
 
@@ -59,7 +62,7 @@ Development convergence must evaluate the actual PR diff. Architecture Verificat
 
 ## Acceptance
 
-1. Startup copy clearly distinguishes autonomous WebMCP testing from normal/hands-on use and readiness copy follows the selected mode.
+1. The tracked PowerShell launch path clearly distinguishes autonomous WebMCP testing from normal/hands-on use and delegates through the explicit batch mode flags.
 2. Writer's Craft uses full Dashboard directory geometry and no longer collapses command text into the legacy first grid column.
 3. #1915/#1932/#1935 Writer's Craft contracts remain intact.
 4. Profile control padding is on the four-pixel Skin V1 grid.

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "issue": 1976,
+  "phase": "phase-c1-independent-authoring",
+  "status": "staged-not-canonical",
+  "phaseBDesign": "docs/research/1976-curriculum-design-map.json",
+  "authority": {
+    "canonicalIntegrationDeferredToPhaseD": true,
+    "currentCountsHashesUnchanged": true,
+    "humanMayLearnOutOfOrder": true,
+    "gradingOrMasteryGateAdded": false,
+    "externalResearchDefinesBody": false
+  },
+  "lessons": [
+    {
+      "id": "scene-craft-pressure-and-turn",
+      "file": "learn/enrichment/1976-c1/scene-craft-pressure-and-turn.json",
+      "topic": "drafting",
+      "ownerCraftModule": "course-15",
+      "kind": "essential"
+    },
+    {
+      "id": "screenplay-format-and-delivery",
+      "file": "learn/enrichment/1976-c1/screenplay-format-and-delivery.json",
+      "topic": "drafting",
+      "ownerCraftModule": "course-15",
+      "kind": "essential"
+    },
+    {
+      "id": "adaptation-source-to-screen",
+      "file": "learn/enrichment/1976-c1/adaptation-source-to-screen.json",
+      "topic": "drafting",
+      "ownerCraftModule": "course-16",
+      "kind": "deep-dive"
+    },
+    {
+      "id": "professional-pitching-and-representation",
+      "file": "learn/enrichment/1976-c1/professional-pitching-and-representation.json",
+      "topic": "industry",
+      "ownerCraftModule": "course-24",
+      "kind": "essential"
+    }
+  ],
+  "deferred": {
+    "C2": [
+      "series-episode-season-architecture",
+      "series-engine-and-bible",
+      "writers-room-story-breaking",
+      "half-hour-comedy-craft"
+    ],
+    "C3": "optional specialist enrichment remains unapproved for body authoring"
+  }
+}

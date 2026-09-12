@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c1-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "scene-craft-pressure-and-turn",
+    "topic": "drafting",
+    "ownerCraftModule": "course-15",
+    "relatedCraftModules": ["course-11", "course-12", "course-17", "course-18"],
+    "kind": "essential",
+    "title": "Scene Craft: Objective, Pressure and Turn",
+    "duration": "35–45 min",
+    "overview": "Build and diagnose scenes by tracking what is true on entry, what someone is trying to change, what pushes back, what becomes visible, and what is different when the scene ends. Use the pattern as a diagnostic, not a mandatory scene formula.",
+    "objectives": [
+      "Identify a playable scene objective and distinguish it from a character's larger story goal.",
+      "Track pressure, tactics and visible evidence so conflict changes behavior rather than merely filling pages.",
+      "Diagnose whether a scene produces a meaningful turn and a useful new condition for the next story movement.",
+      "Use entry, exit and transition choices to control what the audience knows, expects and feels."
+    ],
+    "sections": [
+      {
+        "heading": "Start with the condition, not the furniture",
+        "paragraphs": [
+          "A scene begins inside a condition: somebody knows something, wants something, fears something, owes something, hides something or expects something. Location matters, but the dramatic condition tells you why this moment deserves screen time. Before drafting, state what is already true and what one participant is trying to make true by the end.",
+          "A playable objective is concrete enough to create behavior. 'Feel understood' is difficult to play directly; 'make Isobel stay for dinner' gives the character something to attempt. The emotional need can remain underneath while the scene objective gives the actor and writer visible work."
+        ],
+        "points": [
+          "Entry condition: what is already true when the scene starts?",
+          "Objective: what visible result is someone trying to produce now?",
+          "Stakes: why does this attempt matter in this moment?",
+          "Knowledge: what does each participant believe, know or misunderstand?"
+        ]
+      },
+      {
+        "heading": "Pressure creates tactics",
+        "paragraphs": [
+          "Pressure is whatever prevents the objective from arriving easily. It can come from another person, a deadline, a physical obstacle, a rule, missing information, divided loyalty or the character's own reluctance. Useful pressure forces adjustment. If the first tactic fails, the character changes approach, reveals something, risks more or retreats.",
+          "Conflict does not require shouting. A polite conversation can carry severe pressure when every answer closes an option. A chase can feel dramatically flat if nothing changes except distance. Watch for behavior changing under resistance."
+        ],
+        "points": [
+          "Name the first tactic, then notice when it stops working.",
+          "Escalate by narrowing choices or increasing consequence, not merely volume.",
+          "Let resistance expose values, contradictions and relationships.",
+          "Keep the pressure specific to this scene rather than importing the entire plot into every exchange."
+        ]
+      },
+      {
+        "heading": "Give the scene a visible carrier",
+        "paragraphs": [
+          "Screen stories need evidence. The scene's dramatic movement should be carried by something the audience can see or hear: a hand that will not release the keys, an untouched plate, a door that remains open, a changed seating position, a delayed answer, a document placed face down. Dialogue can carry pressure, but behavior and environment can prove what the words avoid.",
+          "A visual carrier is not decoration. It becomes useful when its state changes or when the audience's interpretation of it changes. The same coffee cup can begin as hospitality and end as evidence that nobody intends to stay."
+        ],
+        "points": [
+          "Choose one or two observable details that carry the scene's pressure.",
+          "Ask whether the audience could sense the turn with the sound lowered.",
+          "Use silence, movement and object handling as choices, not filler.",
+          "Remove descriptive detail that does not affect attention, behavior or consequence."
+        ]
+      },
+      {
+        "heading": "Turn the condition",
+        "paragraphs": [
+          "A scene earns its place when something meaningful changes: information lands, leverage moves, a decision is made, a relationship shifts, a plan becomes harder, a false belief is strengthened or an apparently successful objective creates a new problem. The turn can be large or quiet, but the exit condition should not be identical to the entry condition.",
+          "Do not force a surprise into every scene. Sometimes the turn is recognition rather than reversal. What matters is that the story now has a different condition to carry forward."
+        ],
+        "points": [
+          "State the exit condition in one sentence.",
+          "Identify who gained or lost leverage.",
+          "Track what the audience now expects next.",
+          "If nothing changed, ask whether the scene can be combined, shortened or given a clearer job."
+        ]
+      },
+      {
+        "heading": "Enter late, leave on consequence",
+        "paragraphs": [
+          "A scene does not need to show every greeting, explanation and departure. Enter near the first meaningful pressure point once the audience can orient itself. Leave after the turn has registered but before the scene explains its own meaning twice.",
+          "The transition to the next scene is part of scene craft. A cut can answer a question, contradict an assumption, extend an image, shift power or deliberately withhold resolution. Think of the outgoing condition as material the next scene can use."
+        ],
+        "points": [
+          "Cut setup that the audience can infer.",
+          "Protect orientation when location, time or relationship changes would otherwise confuse the reader.",
+          "End after consequence becomes legible, not after every character comments on it.",
+          "Use the next scene to continue, counterpoint or complicate the new condition."
+        ]
+      }
+    ],
+    "definitions": [
+      {
+        "term": "Scene objective",
+        "meaning": "The immediate result a character is trying to produce within the current scene."
+      },
+      {
+        "term": "Pressure",
+        "meaning": "Resistance or constraint that makes the objective costly, uncertain or impossible to achieve without adjustment."
+      },
+      {
+        "term": "Tactic",
+        "meaning": "A chosen way of pursuing the objective, such as persuading, distracting, threatening, bargaining, withholding or testing."
+      },
+      {
+        "term": "Turn",
+        "meaning": "A meaningful change in information, leverage, decision, relationship, expectation or circumstance that creates a new exit condition."
+      },
+      {
+        "term": "Visual carrier",
+        "meaning": "Observable behavior, staging, object or environmental detail that makes dramatic movement legible on screen."
+      }
+    ],
+    "example": {
+      "title": "Ren asks for the keys",
+      "text": "Entry: Ren needs Isobel's car keys before the storm closes the highway. Objective: get the keys without explaining why. Pressure: Isobel has already noticed his packed bag. Ren begins casually, then jokes, then claims an emergency. Isobel sets the keys on the table but keeps one finger on them. Visual carrier: the keys remain between them. Turn: she releases the keys only after saying she knows he plans to leave. Exit: Ren has the car, but secrecy is gone and the next scene begins under a new relationship condition."
+    },
+    "checklist": [
+      "The entry condition is clear enough to understand why the scene starts here.",
+      "At least one participant has a playable immediate objective.",
+      "Pressure forces a tactic, adjustment, choice or reveal.",
+      "Visible or audible evidence carries part of the dramatic movement.",
+      "The exit condition differs meaningfully from the entry condition.",
+      "The scene ends after the consequence registers rather than after it is over-explained.",
+      "The outgoing condition gives the next movement something to use."
+    ],
+    "mistakes": [
+      "Treating a topic of conversation as the scene objective.",
+      "Escalating only by making characters louder.",
+      "Writing conflict that repeats the same tactic without changing leverage.",
+      "Adding visual detail that does not carry story information or feeling.",
+      "Forcing a twist into a scene that only needs a clear decision or recognition.",
+      "Starting before the dramatic condition becomes active and staying after the turn has landed."
+    ],
+    "exercise": "Choose one scene from the active story. Write eight short lines: entry condition, immediate objective, stakes, first tactic, strongest pressure, visible carrier, turn, exit condition. Compare the map with the current scene. Revise only if the map reveals a mismatch with your intention; keeping the scene unchanged is a valid decision.",
+    "apply": "Screenplay scene",
+    "applicationTargets": ["scene draft", "scene revision", "mini-block"],
+    "tags": ["scene", "objective", "pressure", "tactic", "turn", "visual evidence", "transition", "drafting", "revision"],
+    "companionItems": [
+      {
+        "id": "exercise-scene-pressure-turn-map",
+        "type": "exercise",
+        "title": "Map objective, pressure and turn",
+        "purpose": "Apply the diagnostic to one scene from the learner's own story."
+      }
+    ],
+    "researchSources": [
+      {
+        "id": "plotpickle-existing-scene-curriculum",
+        "kind": "internal-curriculum",
+        "title": "Existing PlotPickle drafting, dialogue, visual-storytelling and revision lessons",
+        "scopeNote": "Used to unify existing PlotPickle concepts without replacing their deeper topic-specific teaching."
+      }
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Gap identification only; no external skill, reference, case-study or screenplay prose copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "legalAdvice": false
+    }
+  }
+}

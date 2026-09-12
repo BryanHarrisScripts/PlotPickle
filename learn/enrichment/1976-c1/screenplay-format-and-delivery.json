@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c1-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "screenplay-format-and-delivery",
+    "topic": "drafting",
+    "ownerCraftModule": "course-15",
+    "relatedCraftModules": ["course-16", "course-22", "course-24"],
+    "kind": "essential",
+    "title": "Screenplay Format and Delivery",
+    "duration": "35–45 min",
+    "overview": "Use screenplay format to make dramatic information easy to read, imagine and hand off. Learn the durable conventions behind professional-looking pages while separating those conventions from software quirks, shooting-script practices and mutable submission requirements.",
+    "objectives": [
+      "Use screenplay elements consistently so readers can distinguish scene headings, action, character cues, dialogue and transitions at a glance.",
+      "Separate the purpose of a clean spec/read draft from production-oriented documents that may add numbering, revision marks or technical information.",
+      "Audit a screenplay export for readability, consistency and delivery readiness without treating one template as the only professional format.",
+      "Verify programme-, employer-, guild- or jurisdiction-specific delivery rules at the time they matter instead of freezing them into the story."
+    ],
+    "sections": [
+      {
+        "heading": "Format is a reading interface",
+        "paragraphs": [
+          "Screenplay format is not decoration. It is an interface between the writer's dramatic intention and the people who must read, imagine, discuss and eventually produce the work. Consistent formatting lets the eye recognize a new scene, spoken dialogue, visible action and a shift in time or place without stopping to decode the page.",
+          "Professional screenplays live within a recognizable range rather than one mathematical template. Small variations exist. The durable goal is legibility and consistency: a reader should not have to wonder whether a line is action, dialogue, a heading or an instruction."
+        ],
+        "points": [
+          "Use scene headings to establish the new scene's place and broad time context.",
+          "Write action in present-tense screen behavior and observable conditions.",
+          "Use character cues and dialogue consistently enough to be scanned quickly.",
+          "Use parentheticals and transitions when they solve a reading problem, not as default decoration."
+        ]
+      },
+      {
+        "heading": "Write the movie, not the editing software",
+        "paragraphs": [
+          "A readable draft normally emphasizes what can be seen and heard rather than a running list of camera commands. Sometimes a shot, insert, sound emphasis or unusual layout is the clearest way to tell the story; use it because the reading experience needs it, not because technical vocabulary appears more professional.",
+          "The same principle applies to typography. Screenwriting software can handle margins, indentation and pagination. The writer's job is to make the dramatic information clean and intentional. When a formatting choice calls attention to itself more strongly than the story event, ask whether it is helping the reader."
+        ],
+        "points": [
+          "Prefer clear master-scene writing for ordinary story movement.",
+          "Use technical direction selectively when the exact presentation is dramatically necessary.",
+          "Avoid using capitalization, bolding or special layout as a substitute for clear action.",
+          "Let the software enforce routine layout so the writer can focus on meaning and consistency."
+        ]
+      },
+      {
+        "heading": "Spec draft and production document have different jobs",
+        "paragraphs": [
+          "A script prepared for reading, development or submission is not necessarily the same document used to manage production. Production workflows may add scene numbers, revision tracking, locked pages, omitted-scene markers or other operational information. Those tools answer production questions; they do not automatically improve a reading draft.",
+          "Before changing format, identify the document's job. If you are sending a draft for creative evaluation, prioritize a clean reading experience. If a production asks for a specific revision or delivery format, follow that current production requirement rather than assuming it belongs in every screenplay forever."
+        ],
+        "points": [
+          "Name the delivery purpose: private review, development, submission, table read, production or archive.",
+          "Keep production metadata out of a reading draft unless it has been requested or is genuinely useful.",
+          "Preserve version identity so collaborators know which document they are reading.",
+          "Treat delivery requirements as context-dependent instructions, not universal craft law."
+        ]
+      },
+      {
+        "heading": "Build a reliable export",
+        "paragraphs": [
+          "A good writing file can still produce a bad handoff if the export is broken. Before delivery, inspect the actual file another person will receive. Check title information, page flow, scene headings, character names, dialogue blocks, orphaned lines, unexpected blank pages and whether special characters survived export.",
+          "Use a stable file name that identifies the project and version without turning the name into a novel. Keep the editable source under your control and deliver the requested format. A PDF is common for a fixed reading copy, but the recipient's current requirement is the authority for the handoff."
+        ],
+        "points": [
+          "Open the exported file rather than assuming export succeeded.",
+          "Spot-check the first pages, a dialogue-heavy page, a scene break and the final page.",
+          "Confirm project title and writer/credit information are truthful and current.",
+          "Keep a versioned source file so the delivered copy can be reproduced."
+        ]
+      },
+      {
+        "heading": "Verify the rule that actually applies",
+        "paragraphs": [
+          "Competitions, fellowships, employers, guild agreements, schools and production companies can impose their own current requirements. A rule that matters for one submission may be irrelevant to another. When a requirement affects eligibility, credit, page limits, file type or production workflow, verify it from the current official source before delivering.",
+          "PlotPickle can teach durable screenplay readability. It should not pretend that a changing submission page or employer specification is timeless screenwriting craft."
+        ],
+        "points": [
+          "Separate craft convention from submission rule.",
+          "Prefer the recipient's current official instructions when they conflict with habit.",
+          "Record unusual delivery requirements with the project rather than rewriting the curriculum around them.",
+          "When uncertain, ask what document the recipient expects and what they will do with it."
+        ]
+      }
+    ],
+    "definitions": [
+      {
+        "term": "Master scene",
+        "meaning": "A scene written as a continuous dramatic unit under a scene heading, emphasizing the action and dialogue the audience experiences rather than a shot-by-shot production plan."
+      },
+      {
+        "term": "Spec/read draft",
+        "meaning": "A screenplay prepared primarily to be read and evaluated rather than to carry production revision controls."
+      },
+      {
+        "term": "Shooting/production script",
+        "meaning": "A production-oriented screenplay version that may contain operational features such as scene numbering, locked pages or revision tracking."
+      },
+      {
+        "term": "Delivery copy",
+        "meaning": "The specific exported file handed to a reader, collaborator, programme or production for a defined purpose."
+      },
+      {
+        "term": "Formatting convention",
+        "meaning": "A widely recognized presentation practice that improves screenplay readability but may allow legitimate variation."
+      }
+    ],
+    "example": {
+      "title": "One scene, two document jobs",
+      "text": "Bryan has a clean reading draft for a private development review. It uses consistent scene headings, action and dialogue without scene numbers. Later, a production coordinator requests a numbered production export for scheduling. The story content is the same, but the document job has changed. Bryan keeps the readable source, follows the production's current delivery request for the new copy, and does not turn the production convention into a rule for every future draft."
+    },
+    "checklist": [
+      "Scene headings, action, character cues and dialogue are visually distinguishable and consistent.",
+      "Action describes screen-relevant behavior and conditions rather than prose that cannot be played or perceived.",
+      "Technical directions are used deliberately rather than as decoration.",
+      "The document's purpose is identified before production-specific formatting is added.",
+      "The exported file has been opened and spot-checked.",
+      "Project/version identity and writer/credit information are accurate.",
+      "Any programme-, employer- or production-specific rule has been checked against its current official source."
+    ],
+    "mistakes": [
+      "Treating one software template as the universal definition of professional screenplay format.",
+      "Adding camera language to make a draft sound more professional when the direction does not improve comprehension.",
+      "Sending a production-marked script when the recipient asked for a clean reading draft.",
+      "Assuming the editable writing file and exported delivery copy will render identically.",
+      "Using old competition, guild or employer rules from memory instead of checking the current requirement.",
+      "Letting formatting polish hide an unresolved story or scene problem."
+    ],
+    "exercise": "Export the active screenplay and audit five pages: page 1, one dialogue-heavy page, one action-heavy page, one major scene transition and the final page. Record only problems that affect readability, consistency or delivery. Then identify any external submission requirement you would need to verify for the intended recipient. Do not change a valid creative choice merely to make the document look more standardized.",
+    "apply": "Screenplay export",
+    "applicationTargets": ["screenplay pages", "screenplay export", "delivery package"],
+    "tags": ["screenplay format", "spec script", "master scene", "delivery", "export", "readability", "production script", "drafting"],
+    "companionItems": [
+      {
+        "id": "exercise-screenplay-delivery-audit",
+        "type": "exercise",
+        "title": "Screenplay delivery audit",
+        "purpose": "Inspect a current draft for readability, consistency and delivery readiness."
+      }
+    ],
+    "researchSources": [
+      {
+        "id": "academy-nicholl-screenwriting-resources",
+        "kind": "authorized-industry-guidance",
+        "title": "Academy Nicholl Screenwriting Resources",
+        "url": "https://www.oscars.org/nicholl/screenwriting-resources",
+        "scopeNote": "Used to verify that professional screenplay formatting operates within recognizable conventions with legitimate variation and to distinguish submission/read drafts from production-oriented formatting."
+      },
+      {
+        "id": "plotpickle-existing-drafting-curriculum",
+        "kind": "internal-curriculum",
+        "title": "Existing PlotPickle Drafting lessons",
+        "scopeNote": "Used to preserve PlotPickle's existing treatment-to-screenplay, visual-action and drafting workflow concepts."
+      }
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Primary/authorized sources used only to verify durable claims; no source-page body copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "mutableRulesFrozenIntoCanon": false,
+      "legalAdvice": false
+    }
+  }
+}

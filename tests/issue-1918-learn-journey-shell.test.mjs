@@ -5,6 +5,7 @@ import test from "node:test";
 import { promisify } from "node:util";
 import { LEARN_PROGRAM_MAP } from "../learn/program-map.mjs";
 import { LEARN_PROGRAM_COURSE_SPECS, LEARN_PROGRAM_SHELL_SPEC } from "../learn/program-map-spec.mjs";
+import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
 
 const execFileAsync = promisify(execFile);
 const read = (path) => readFile(path, "utf8");
@@ -57,9 +58,10 @@ test("#1918 Phase 3 shell compatibility survives selective Phase 4 Semester 1 wi
   assert.doesNotMatch(route, /overview|sections|definitions|example|checklist|mistakes|exercise|sourceContent/u);
 });
 
-test("#1918 Journey preserves the nine Writer's Craft collection compatibility rows and explicit J destination", async () => {
-  const [dashboard, baselineSource] = await Promise.all([
+test("#1967 retires legacy Writer's Craft collection navigation while preserving compatibility evidence", async () => {
+  const [dashboard, skin, baselineSource] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/skin-v1-client.tsx"),
     read("learn/journey-baseline.json"),
   ]);
   const baseline = JSON.parse(baselineSource);
@@ -67,20 +69,19 @@ test("#1918 Journey preserves the nine Writer's Craft collection compatibility r
   assert.equal(baseline.writerCraftCompatibility.collectionCount, 9);
   assert.equal(WRITER_CRAFT_COMPATIBILITY_IDS.length, 9);
   assert.equal(baseline.writerCraftCompatibility.collections.length, 9);
-
-  for (const id of WRITER_CRAFT_COMPATIBILITY_IDS) {
-    assert.ok(dashboard.includes(`id: "${id}"`), `Writer's Craft compatibility row ${id} must remain.`);
-  }
   for (const label of baseline.writerCraftCompatibility.collections) {
     assert.equal(typeof label, "string");
-    assert.ok(dashboard.includes(label), `Writer's Craft compatibility label ${label} must remain.`);
+    assert.ok(label.length > 0, "Historical Writer's Craft compatibility labels remain recorded in the baseline.");
+    assert.ok(!dashboard.includes(label), `Legacy collection label ${label} must not render in the production Writer's Craft route.`);
   }
 
-  assert.match(dashboard, /data-skin-menu-row="learn-journey"/u);
-  assert.match(dashboard, /data-skin-menu-shortcut="J"/u);
-  assert.match(dashboard, /data-skin-menu-connected="true"/u);
-  assert.match(dashboard, /LEARN Journey \/ 24-Course Program/u);
-  assert.match(dashboard, /setLearnJourneyOpen\(true\)/u);
+  assert.doesNotMatch(dashboard, /const WRITER_CRAFT_MENU/u);
+  assert.doesNotMatch(dashboard, /data-skin-menu="writer-craft"/u);
+  assert.doesNotMatch(dashboard, /data-skin-menu-shortcut="J"/u);
+  assert.doesNotMatch(dashboard, /EXISTING COLLECTION PREVIEWS|COLLECTION PREVIEW ONLY/u);
+  assert.match(dashboard, /if \(writerCraftMenuOpen\)/u);
+  assert.match(dashboard, /<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
+  assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Story Craft Through the 24-Course Journey"/u);
 });
 
 test("#1918 Journey remains keyboard reachable and guided-not-gated while Phase 4 wires only Semester 1", async () => {
@@ -157,4 +158,28 @@ test("#1918 Phase 3 issue-specific convergence is superseded once Phase 4 is act
     return;
   }
   assert.equal(manifest.phase, "phase-3-journey-shell");
+});
+
+test("#1967 canonical development convergence reports CONVERGED against the real diff", async (t) => {
+  const baseRef = process.env.GITHUB_BASE_REF ? `origin/${process.env.GITHUB_BASE_REF}` : "main";
+  const changedFiles = changedFilesFromGit({ root: process.cwd(), baseRef });
+  if (!changedFiles.includes("config/development-convergence/1967.json")) {
+    t.skip("#1967 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
+    return;
+  }
+
+  const result = await runDevelopmentConvergence([
+    "--manifest",
+    "config/development-convergence/1967.json",
+    "--base-ref",
+    baseRef,
+    "--report-dir",
+    ".artifacts/development-convergence",
+  ]);
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.reports.length, 1);
+  assert.equal(result.reports[0].issue, 1967);
+  assert.equal(result.reports[0].status, "CONVERGED");
+  assert.deepEqual(result.reports[0].remaining, []);
 });

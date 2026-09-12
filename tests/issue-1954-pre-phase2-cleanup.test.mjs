@@ -40,7 +40,10 @@ test("#1954 Writer's Craft consumes full Dashboard directory geometry without ch
   assert.match(dashboard, /aria-label="Writer's Craft menu"[\s\S]{0,180}data-skin-menu="writer-craft"/u);
   assert.match(dashboard, /data-skin-menu-connected="false"/u);
   assert.match(dashboard, /\[PREVIEW\]/u);
-  assert.match(dashboard, /FIRST SUBMENU ONLY — LESSON LEVEL IS INTENTIONALLY NOT OPENED IN THIS BUILD/u);
+  // #1918 Phase 3 intentionally adds a second preview level, so the durable #1954
+  // contract is that collection lesson content remains unopened, not that Writer's
+  // Craft can never grow beyond its first submenu.
+  assert.match(dashboard, /LESSON LEVEL IS NOT OPENED IN THIS BUILD/u);
 });
 
 test("#1954 Profile uses one page heading and Skin V1 four-pixel control padding", async () => {

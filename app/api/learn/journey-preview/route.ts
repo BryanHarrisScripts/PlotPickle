@@ -1,11 +1,11 @@
-import { LEARN_PROGRAM_MAP } from "../../../../learn/program-map.mjs";
+import { LEARN_PROGRAM_COURSE_SPECS, LEARN_PROGRAM_SHELL_SPEC } from "../../../../learn/program-map-spec.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-static";
 
 export async function GET() {
-  const coursesById = new Map(LEARN_PROGRAM_MAP.courses.map((course) => [course.id, course]));
-  const semesters = LEARN_PROGRAM_MAP.semesters.map((semester) => ({
+  const coursesById = new Map(LEARN_PROGRAM_COURSE_SPECS.map((course) => [course.id, course]));
+  const semesters = LEARN_PROGRAM_SHELL_SPEC.semesters.map((semester) => ({
     id: semester.id,
     year: semester.year,
     semester: semester.semester,
@@ -19,11 +19,11 @@ export async function GET() {
         orderInSemester: course.orderInSemester,
         title: course.title,
         purpose: course.purpose,
-        lessonCount: course.lessonIds.length,
+        lessonCount: course.lessonRefs.reduce((total, reference) => total + reference.positions.length, 0),
         advisoryPrerequisites: course.advisoryPrerequisites,
         applicationTargets: course.applicationTargets,
-        access: course.access,
-        prerequisiteMode: course.prerequisiteMode,
+        access: "open",
+        prerequisiteMode: "advisory-only",
         status: "preview-only",
         contentAvailable: false,
       };
@@ -34,13 +34,13 @@ export async function GET() {
     schemaVersion: "1.0",
     issue: 1918,
     phase: "phase-3-journey-shell",
-    yearCount: LEARN_PROGRAM_MAP.yearCount,
-    semesterCount: LEARN_PROGRAM_MAP.semesterCount,
-    coursesPerSemester: LEARN_PROGRAM_MAP.coursesPerSemester,
-    courseCount: LEARN_PROGRAM_MAP.courseCount,
+    yearCount: LEARN_PROGRAM_SHELL_SPEC.yearCount,
+    semesterCount: LEARN_PROGRAM_SHELL_SPEC.semesterCount,
+    coursesPerSemester: LEARN_PROGRAM_SHELL_SPEC.coursesPerSemester,
+    courseCount: LEARN_PROGRAM_SHELL_SPEC.courseCount,
     authority: {
-      recommendedSequenceIsAccessControl: LEARN_PROGRAM_MAP.authority.recommendedSequenceIsAccessControl,
-      humanMayLearnOutOfOrder: LEARN_PROGRAM_MAP.authority.humanMayLearnOutOfOrder,
+      recommendedSequenceIsAccessControl: LEARN_PROGRAM_SHELL_SPEC.authority.recommendedSequenceIsAccessControl,
+      humanMayLearnOutOfOrder: LEARN_PROGRAM_SHELL_SPEC.authority.humanMayLearnOutOfOrder,
       lessonContentExposed: false,
     },
     semesters,

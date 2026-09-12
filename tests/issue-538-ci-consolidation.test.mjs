@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #538 consolidation is superseded by exactly two normal PR gates", async () => {
+test("issue #538 keeps two authoritative PR gates plus the Phase 3 architecture shadow workflow", async () => {
   const files = (await readdir(workflowRoot)).filter((file) => /\.ya?ml$/.test(file)).sort();
   const workflows = new Map(await Promise.all(files.map(async (file) => [file, await source(`.github/workflows/${file}`)])));
   const pullRequestWorkflows = [...workflows]
@@ -14,12 +14,13 @@ test("issue #538 consolidation is superseded by exactly two normal PR gates", as
     .map(([file]) => file)
     .sort();
 
-  assert.deepEqual(pullRequestWorkflows, ["pr-gate.yml", "product-gate.yml"]);
+  assert.deepEqual(pullRequestWorkflows, ["architecture-shadow.yml", "pr-gate.yml", "product-gate.yml"]);
   assert.match(workflows.get("pr-gate.yml"), /^    name: PR Gate$/m);
   assert.match(workflows.get("product-gate.yml"), /^    name: Product Gate$/m);
+  assert.match(workflows.get("architecture-shadow.yml"), /^name: Architecture Shadow Verification$/m);
 });
 
-test("issue #538 keeps deep validation available outside the ordinary PR runner path", async () => {
+test("issue #538 keeps deep validation available outside the ordinary authoritative runner path", async () => {
   const [qa, story, demo, windows, visual, ben] = await Promise.all([
     source(".github/workflows/autonomous-qa-campaign.yml"),
     source(".github/workflows/autonomous-story-reference.yml"),
@@ -39,7 +40,7 @@ test("issue #538 keeps deep validation available outside the ordinary PR runner 
   assert.match(ben, /^  workflow_dispatch:/m);
 });
 
-test("issue #538 normal PR coverage protects boundaries instead of legacy screens or release packaging", async () => {
+test("issue #538 authoritative PR coverage protects boundaries instead of legacy screens or release packaging", async () => {
   const [prGate, productGate] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),

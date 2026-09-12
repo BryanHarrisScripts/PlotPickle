@@ -15,6 +15,7 @@ The canonical nine Writer's Craft collection rows remain unchanged for #1915 com
 - `learn/program-map-spec.mjs` is the single runtime-safe owner of the 24 course specifications, semester grouping and guided-not-gated shell authority.
 - `learn/program-map.mjs` remains the canonical resolved map: it consumes those same specifications and is the only layer that binds them to the 81 canonical lesson IDs.
 - `app/api/learn/journey-preview/route.ts` consumes only the runtime-safe course specifications. It does not load the curriculum archive at app runtime.
+- The app-runtime preview boundary must remain filesystem-independent; canonical curriculum JSON is validation/build evidence, not a browser-preview dependency.
 - Focused regression proves every shell field in the resolved program map exactly equals the shared course specification, so the extraction cannot create a second or drifting course definition.
 - The preview projection does not return lesson IDs, lesson bodies, source text or curriculum prose.
 - The Human may open any semester from day one.

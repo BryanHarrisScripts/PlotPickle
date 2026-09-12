@@ -5,6 +5,29 @@
   "migrationSource": "config/verification/phase-0-inventory.json",
   "entries": [
     {
+      "id": "provider.local-ai-plugin-registry",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": ["local-ai-plugin-registry", "provider-runtime"],
+      "triggerTokens": ["plugin", "provider", "video"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/local-ai-plugin-registry.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/provider-runtime.json", ".artifacts/verification-shadow/provider-runtime.comparison.json"]
+      },
+      "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains in both legacy gates until separately proven."
+    },
+    {
       "id": "verification.phase2-core",
       "ownerLayer": "verification",
       "architectureComponents": ["verification-core"],

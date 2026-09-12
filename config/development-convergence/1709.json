@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "issue": 1709,
+  "brief": "docs/developer-briefs/1709-pi-0851-astra-evaluation.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/1709.json",
+    "config/pi-managed-upgrade-evaluation.json",
+    "docs/developer-briefs/1709-pi-0851-astra-evaluation.md",
+    "scripts/evaluate-pi-managed-upgrade.mjs",
+    "tests/issue-1709-pi-0851-astra-evaluation.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Pi 0.85.1 is evaluated in an isolated candidate installation before the authoritative 0.84.4 managed pin can move.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/pi-managed-upgrade-evaluation.json", "contains": "\"candidateVersion\": \"0.85.1\"" },
+        { "type": "file-contains", "path": "config/pi-managed-upgrade-evaluation.json", "contains": "\"decision\": \"candidate-probe\"" },
+        { "type": "file-contains", "path": "scripts/evaluate-pi-managed-upgrade.mjs", "contains": "plotpickle-pi-1709-" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The Windows candidate proof installs the exact existing PlotPickle Pi extension set and loads it through the supported SDK without adopting experimental Pi subpaths.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/evaluate-pi-managed-upgrade.mjs", "contains": "additionalExtensionPaths: roots" },
+        { "type": "file-contains", "path": "config/pi-managed-upgrade-evaluation.json", "contains": "@earendil-works/pi-coding-agent/experimental/plugin" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "Evaluate Pi 0.85.1 compatibility" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The supported direct Node stdio RPC boundary is exercised with shell disabled and no provider credentials or paid inference required.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/evaluate-pi-managed-upgrade.mjs", "contains": "\"--mode\", \"rpc\"" },
+        { "type": "file-contains", "path": "scripts/evaluate-pi-managed-upgrade.mjs", "contains": "type: \"get_state\", id: \"plotpickle-1709-rpc\"" },
+        { "type": "file-contains", "path": "scripts/evaluate-pi-managed-upgrade.mjs", "contains": "shell: false" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "GPT-6 Astra remains optional and limited to already-authorized OpenAI API-key or OpenAI Codex routes with no required or fallback behavior.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/pi-managed-upgrade-evaluation.json", "contains": "\"id\": \"gpt-6-astra\"" },
+        { "type": "file-contains", "path": "config/pi-managed-upgrade-evaluation.json", "contains": "\"fallback\": false" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1709-pi-0851-astra-evaluation.md", "contains": "not a required PlotPickle provider" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused regression coverage is part of PR Gate and the Windows live candidate proof is part of Product Gate.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1709-pi-0851-astra-evaluation.test.mjs" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "node scripts/evaluate-pi-managed-upgrade.mjs" }
+      ]
+    }
+  ]
+}

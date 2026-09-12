@@ -57,8 +57,8 @@ jobs:
           node scripts/validate-verification-phase-1.mjs
           node --test tests/issue-1926-verification-schemas.test.mjs
 
-      - name: Validate seven-layer verification core
-        run: node --test tests/issue-1938-verification-core.test.mjs
+      - name: Validate seven-layer verification core and shadow topology
+        run: node --test tests/issue-1938-verification-core.test.mjs tests/issue-1941-seven-shadow-checks.test.mjs
 
       - name: Validate current Experience architecture boundary
         run: node --test tests/issue-1754-story-workspace-boundary.test.mjs tests/issue-1647-universal-lifecycle-contract.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/community-skin-v1-navigation.test.mjs tests/community-agent-roster.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1815-locked-visual-baselines.test.mjs tests/issue-1881-visual-compute-harness.test.mjs tests/issue-1883-dashboard-visual-director.test.mjs tests/issue-1885-webmcp-visual-director-startup.test.mjs tests/issue-1847-1849-cloud-agents-settings.test.mjs tests/issue-1897-skin-v1-typography-consistency.test.mjs tests/issue-1901-story-mode-connections.test.mjs tests/local-ai-video-default.test.mjs

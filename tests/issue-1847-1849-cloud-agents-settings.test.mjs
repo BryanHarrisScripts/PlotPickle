@@ -71,6 +71,8 @@ test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async ()
     general: "G",
     appearance: "A",
     "project-defaults": "P",
+    "local-story-mode": "L",
+    "node-info": "I",
     cloud: "C",
     data: "D",
     deploy: "E",
@@ -84,7 +86,7 @@ test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async ()
   }
 
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
-  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
+  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(dashboard, /event\.key === "ArrowDown"/u);
   assert.match(dashboard, /event\.key === "ArrowUp"/u);

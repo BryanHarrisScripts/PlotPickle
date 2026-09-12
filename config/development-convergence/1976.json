@@ -5,6 +5,7 @@
   "brief": "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md",
     "learn/enrichment/1976-c1/manifest.json",
     "learn/enrichment/1976-c1/scene-craft-pressure-and-turn.json",
@@ -71,6 +72,15 @@
         { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "\"canonicalIntegrationDeferredToPhaseD\": true" },
         { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "archivedLessonCount, 81" },
         { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "must remain staged until Phase D" }
+      ]
+    },
+    {
+      "id": "P1976-C1-7",
+      "criterion": "LEARN curriculum JSON and staged enrichment content are explicitly governed by the Story / Canon / Evidence layer so fail-closed verification does not treat curriculum artifacts as unowned production files.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-curriculum-content\"" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "learn/enrichment/**" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"ownerLayer\": \"story-canon\"" }
       ]
     }
   ]

@@ -1,3 +1,5 @@
+import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
+
 export const plotPickleTimeline = [
   { stage: "Stage 1", title: "Afterglow on the page", text: "Bryan Harris wrote the screenplay that became Afterglow in 2017, alongside beats, outlines, pitch materials and later visual experiments." },
   { stage: "Stage 2", title: "24 Blocks as a shared story language", text: "The screenplay was divided into manageable dramatic movements so structure, character, dialogue, visuals and optional AI could refer to the same story positions." },
@@ -48,7 +50,7 @@ export const convergenceMap = [
 ] as const;
 
 export const currentProductFacts = [
-  "PlotPickle is a downloadable AI-native visual writing and creative direction studio for shaping, seeing, testing and presenting a movie before full production.",
+  `PlotPickle is a downloadable ${PLOTPICKLE_PRODUCT_CATEGORY} for shaping, seeing, testing and presenting a movie before full production.`,
   "PPF is the portable creative source of truth connecting story logic, canon, characters, screenplay material, visuals, shots, sound, approvals and provenance.",
   "The interactive Storyworld Map, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports are available now as one connected visual core.",
   "The 24 Blocks are human-readable first and AI-compatible, not AI-dependent.",

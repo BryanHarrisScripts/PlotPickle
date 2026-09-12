@@ -1,21 +1,17 @@
 {
   "name": "PlotPickle Playhouse",
   "short_name": "PlotPickle",
-  "description": "A local-first 24 Blocks story planner connecting instructions, story development, and a visual board.",
+  "description": "PlotPickle is an AI-native agentic story operating system for local-first story development.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#DFF4FF",
-  "theme_color": "#123442",
+  "background_color": "#081713",
+  "theme_color": "#38d996",
   "icons": [
     {
-      "src": "/brand/favicon/plotpickle-ouroboros-v2-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/brand/favicon/plotpickle-ouroboros-v2-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/brand/favicon/plotpickle-green-square.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

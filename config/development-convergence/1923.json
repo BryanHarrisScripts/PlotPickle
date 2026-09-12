@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": 1923,
+  "brief": "docs/developer-briefs/1923-profile-control-height.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "app/skin-v1-bbs-surfaces.css",
+    "config/development-convergence/1923.json",
+    "docs/developer-briefs/1923-profile-control-height.md",
+    "tests/issue-1923-profile-control-height.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Profile v2 interactive controls consume the canonical Skin V1 minimum control height.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1-bbs-surfaces.css",
+          "contains": "min-height: var(--pp-skin-control-height) !important;"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The Profile control-height repair has focused regression coverage beside the existing Profile readiness regressions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1923-profile-control-height.test.mjs",
+          "contains": "Profile v2 interactive controls consume the Skin V1 control-height token"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1923-profile-control-height.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The repair preserves live WebMCP UI-conformance authority rather than weakening the 34px contract.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/1923-profile-control-height.md",
+          "contains": "preserve the 34px token and live WebMCP threshold"
+        }
+      ]
+    }
+  ]
+}

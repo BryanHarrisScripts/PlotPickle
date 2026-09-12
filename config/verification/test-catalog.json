@@ -83,7 +83,33 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 3 visible Skin V1 Journey shell. Proves Writer's Craft retains its nine compatibility rows while adding a J shortcut into a six-semester, four-course-shell-per-semester preview that remains guided-not-gated and withholds lesson navigation until Phase 4."
+      "notes": "#1918 Phase 3 visible Skin V1 Journey shell. The regression remains a compatibility baseline while later phases selectively wire content without removing the six-semester shell or guided-not-gated navigation."
+    },
+    {
+      "id": "experience.learn-semester-one",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map", "curriculum-integrity"],
+      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual", "canon", "graph"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-1918-learn-semester-one.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#1918 Phase 4 Semester 1 vertical slice. Proves Courses 01-04 expose their canonical archive lessons, reuse PPF lesson completion as progress truth, remain usable out of order, and leave Semesters 2-6 preview-only until Phase 5."
     },
     {
       "id": "story-canon.learn-program-map",

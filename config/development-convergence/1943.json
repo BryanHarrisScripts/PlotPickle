@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "issue": 1943,
+  "brief": "docs/developer-briefs/1943-phase-4-shadow-equivalence.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/1943.json",
+    "config/verification/phase-4-migration.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1943-phase-4-shadow-equivalence.md",
+    "scripts/verification-shadow.mjs",
+    "tests/issue-1943-shadow-equivalence.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The first migrated contract has one safe Provider Runtime catalog owner and remains dependency-light.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "provider.local-ai-plugin-registry"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/local-ai-plugin-registry.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Migration metadata records the exact removed legacy executions and explicitly retained duplicate groups.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/phase-4-migration.json",
+          "contains": "remove-target"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/phase-4-migration.json",
+          "contains": "local-video-ltx-contract"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/phase-4-migration.json",
+          "contains": "security-closeout"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Shadow execution emits exact-head machine-readable migration comparison evidence and only proves replacement from an actual passing result.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/verification-shadow.mjs",
+          "contains": "replacement-proven"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": ".artifacts/verification-shadow/${{ matrix.id }}.comparison.json"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Legacy gates retain the heavier LTX contract while the migrated provider-registry target is no longer executed there.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/ltx-bundled-default.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "tests/ltx-bundled-default.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused Phase 4 regression protects migration scope, evidence semantics and unchanged merge authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1943-shadow-equivalence.test.mjs",
+          "contains": "proves replacement only from an actual passing shadow result"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1943-shadow-equivalence.test.mjs"
+        }
+      ]
+    }
+  ]
+}

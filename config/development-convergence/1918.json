@@ -1,60 +1,77 @@
 {
   "schemaVersion": 1,
   "issue": 1918,
+  "phase": "phase-1-program-map",
   "brief": "docs/developer-briefs/1918-learn-24-course-open-journey.md",
   "allowedChanges": [
-    ".github/workflows/pr-gate.yml",
     "config/development-convergence/1918.json",
-    "docs/developer-briefs/1918-learn-24-course-open-journey.md",
-    "learn/journey-baseline.json",
-    "scripts/validate-learn-journey-baseline.mjs",
-    "tests/issue-1918-learn-journey-baseline.test.mjs"
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "learn/program-map.mjs",
+    "scripts/validate-learn-program-map.mjs",
+    "tests/issue-1918-learn-program-map.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P0-A1",
-      "criterion": "Phase 0 freezes the current LEARN inventory at 12 topics, 81 archived lessons, 95 bundled sources, 88 presentation lessons and 11 Foundations presentation lessons without changing curriculum content.",
+      "id": "P1-A1",
+      "criterion": "Phase 1 defines exactly 24 stable courses grouped four per semester across six semesters and three years.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"archivedLessonCount\": 81" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"bundledSourceCount\": 95" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"presentationLessonCount\": 88" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"curriculumContentMutationAllowed\": false" }
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "course(\"course-24\"" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "semesterCount: 6" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "coursesPerSemester: 4" }
       ]
     },
     {
-      "id": "P0-A2",
-      "criterion": "The #1918 baseline is reproducible from canonical LEARN files and fails if the stored lesson/source hashes or inventory counts drift.",
+      "id": "P1-A2",
+      "criterion": "The program map resolves only existing canonical archive lessons, covers all 81 exactly once and remains an index/orchestration layer rather than a second curriculum store.",
       "evidence": [
-        { "type": "file-contains", "path": "scripts/validate-learn-journey-baseline.mjs", "contains": "Canonical LEARN lesson-content hash changed from the #1918 baseline." },
-        { "type": "file-contains", "path": "scripts/validate-learn-journey-baseline.mjs", "contains": "Canonical LEARN source-content hash changed from the #1918 baseline." },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-baseline.test.mjs", "contains": "deterministic baseline validator passes against the repository" }
+        { "type": "file-contains", "path": "scripts/validate-learn-program-map.mjs", "contains": "Every canonical archive lesson must be mapped exactly once across the 24 courses." },
+        { "type": "file-contains", "path": "scripts/validate-learn-program-map.mjs", "contains": "The 24-course map must cover the complete canonical archive with no orphaned lesson IDs." },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "mapRole: \"index-and-orchestration-only\"" }
       ]
     },
     {
-      "id": "P0-A3",
-      "criterion": "The existing #1915 Writer's Craft nine-row order is captured as compatibility evidence before later Journey UI work begins.",
+      "id": "P1-A3",
+      "criterion": "Recommended prerequisites remain advisory and every course remains open for out-of-order Human learning.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"collectionCount\": 9" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "Collaboration, Formats & Ownership" },
-        { "type": "file-contains", "path": "tests/issue-1918-learn-journey-baseline.test.mjs", "contains": "preserves the #1915 Writer's Craft compatibility rows" }
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "access: \"open\"" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "prerequisiteMode: \"advisory-only\"" },
+        { "type": "file-contains", "path": "learn/program-map.mjs", "contains": "humanMayLearnOutOfOrder: true" }
       ]
     },
     {
-      "id": "P0-A4",
-      "criterion": "Phase 0 records the guided-never-gatekept authority boundary before the 24-course map is introduced.",
+      "id": "P1-A4",
+      "criterion": "Deeper Industry knowledge is placed late in the recommended journey rather than front-loaded before story creation experience.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"journeyMayGateCurriculumAccess\": false" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"programMapMayDuplicateLessonBodies\": false" },
-        { "type": "file-contains", "path": "learn/journey-baseline.json", "contains": "\"humanRemainsLearningSequenceAuthority\": true" }
+        { "type": "file-contains", "path": "scripts/validate-learn-program-map.mjs", "contains": "[\"course-23\", \"course-24\"]" },
+        { "type": "file-contains", "path": "scripts/validate-learn-program-map.mjs", "contains": "course.semester === 6" }
       ]
     },
     {
-      "id": "P0-A5",
-      "criterion": "PR Gate runs the existing LEARN curriculum validator and the focused #1918 Phase 0 regression before later phases can build on the baseline.",
+      "id": "P1-A5",
+      "criterion": "Focused regression and deterministic validation prove the Phase 1 map without UI, progress or Agent changes.",
       "evidence": [
-        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "Validate LEARN #1918 Phase 0 baseline" },
-        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "node scripts/validate-learn-curriculum.mjs" },
-        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1918-learn-journey-baseline.test.mjs" }
+        { "type": "path-exists", "path": "tests/issue-1918-learn-program-map.test.mjs" },
+        { "type": "path-exists", "path": "scripts/validate-learn-program-map.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "deterministic validator passes against the repository" }
+      ]
+    },
+    {
+      "id": "P1-A6",
+      "criterion": "The current seven-layer verifier explicitly owns the new durable map and selects the focused #1918 regression instead of allowing an unmapped production path or an unexecuted test.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-program-map\"" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"ownerLayer\": \"story-canon\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"id\": \"story-canon.learn-program-map\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1918-learn-program-map.test.mjs" }
+      ]
+    },
+    {
+      "id": "P1-A7",
+      "criterion": "The canonical development-convergence evaluator must independently report CONVERGED against the actual PR diff before Phase 1 is accepted.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "runDevelopmentConvergence" },
+        { "type": "file-contains", "path": "tests/issue-1918-learn-program-map.test.mjs", "contains": "result.reports[0].status, \"CONVERGED\"" }
       ]
     }
   ]

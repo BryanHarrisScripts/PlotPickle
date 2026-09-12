@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "issue": 1971,
+  "brief": "docs/developer-briefs/1971-product-identity-favicon.md",
+  "allowedChanges": [
+    "app/about/about-content.ts",
+    "app/about/page.tsx",
+    "app/layout.tsx",
+    "app/marketing-splash-base.tsx",
+    "app/profile-access/profile-access-boundary.tsx",
+    "app/welcome/page.tsx",
+    "config/development-convergence/1971.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1971-product-identity-favicon.md",
+    "lib/product-direction.ts",
+    "public/brand/favicon/plotpickle-green-square.svg",
+    "public/manifest.webmanifest",
+    "tests/core-consolidation.test.mjs",
+    "tests/issue-193-visual-storyworld-positioning.test.mjs",
+    "tests/issue-1971-product-identity-favicon.test.mjs",
+    "tests/issue-383-ai-native-visual-writing.test.mjs",
+    "tests/issue-59-about-origins-principles.test.mjs",
+    "tests/issue-63-new-writer-path.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Canonical current PlotPickle positioning is AI-native agentic story operating system.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/product-direction.ts", "contains": "PLOTPICKLE_PRODUCT_CATEGORY = \"AI-native agentic story operating system\"" },
+        { "type": "file-contains", "path": "lib/product-direction.ts", "contains": "category: PLOTPICKLE_PRODUCT_CATEGORY" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Initial metadata and authenticated browser title consume the same current identity authority.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/layout.tsx", "contains": "title: `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`" },
+        { "type": "file-contains", "path": "app/profile-access/profile-access-boundary.tsx", "contains": "document.title = `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Current About, Welcome and marketing surfaces use the canonical category rather than independent stale product definitions.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/about/page.tsx", "contains": "PLOTPICKLE_PRODUCT_CATEGORY" },
+        { "type": "file-contains", "path": "app/welcome/page.tsx", "contains": "PLOTPICKLE_PRODUCT_CATEGORY" },
+        { "type": "file-contains", "path": "app/marketing-splash-base.tsx", "contains": "PLOTPICKLE_PRODUCT_CATEGORY" },
+        { "type": "file-contains", "path": "app/about/about-content.ts", "contains": "PLOTPICKLE_PRODUCT_CATEGORY" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Browser and installed-app icon metadata use the simple PlotPickle green-square identity.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/layout.tsx", "contains": "/brand/favicon/plotpickle-green-square.svg" },
+        { "type": "file-contains", "path": "public/manifest.webmanifest", "contains": "/brand/favicon/plotpickle-green-square.svg" },
+        { "type": "file-contains", "path": "public/brand/favicon/plotpickle-green-square.svg", "contains": "#38d996" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Historical #382/#383 visual-writing programme evidence remains intentionally preserved while active positioning changes.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1971-product-identity-favicon.test.mjs", "contains": "retains the historical #382/#383 visual-writing programme as history rather than current positioning" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1971-product-identity-favicon.md", "contains": "The #382/#383 AI-native visual-writing programme remains historical evidence." }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "The focused product identity regression is governed by Experience Skins and selected by surface/visual risk.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "product-identity-surfaces" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.product-identity-1971" }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "#1971 development convergence runs against the real diff and #1918 Phase 5 remains paused.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1971-product-identity-favicon.test.mjs", "contains": "#1971 canonical development convergence reports CONVERGED against the real diff" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1971-product-identity-favicon.md", "contains": "#1918 — Phase 5 remains paused." }
+      ]
+    }
+  ]
+}

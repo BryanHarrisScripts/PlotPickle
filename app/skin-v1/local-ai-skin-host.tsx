@@ -439,7 +439,7 @@ export default function LocalAiSkinHost() {
     return (
       <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view={view}>
         <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-local-ai-section-title">
-          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE / {VIEW_TITLES[view].toUpperCase()}</p>
+          <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / LOCAL STORY MODE / {VIEW_TITLES[view].toUpperCase()}</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
             <h1 id="skin-v1-local-ai-section-title" style={{ margin: "5px 0", fontSize: 24 }}>{VIEW_TITLES[view]}</h1>
             <button type="button" onClick={() => setView("menu")} style={{ padding: "var(--pp-skin-space-2) var(--pp-skin-space-3)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-accent)", borderRadius: "var(--pp-skin-radius)", background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", font: "inherit", cursor: "pointer" }}>Back to Local Story Mode</button>
@@ -465,7 +465,7 @@ export default function LocalAiSkinHost() {
   return (
     <div style={shell} data-skin-v1-local-ai="true" data-local-ai-view="menu">
       <section style={chromeBoundary} data-skin-chrome="solid" aria-labelledby="skin-v1-local-ai-title">
-        <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>PROFILE / LOCAL STORY MODE</p>
+        <p style={{ margin: 0, color: "var(--pp-skin-accent-bright)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / LOCAL STORY MODE</p>
         <h1 id="skin-v1-local-ai-title" style={{ margin: "5px 0 4px", fontSize: 24 }}>LOCAL STORY MODE</h1>
       </section>
 
@@ -513,6 +513,12 @@ export default function LocalAiSkinHost() {
               >
                 <span className="pp-skin-v1-dashboard-command">{command}</span>
                 <span className="pp-skin-v1-dashboard-description">{item.detail}</span>
+                <span
+                  className="pp-skin-v1-dashboard-status-box is-active"
+                  aria-label="Connected Local Story Mode destination"
+                  data-dashboard-status="active"
+                  data-skin-menu-indicator={"connected"}
+                />
               </button>
             </Fragment>
           );

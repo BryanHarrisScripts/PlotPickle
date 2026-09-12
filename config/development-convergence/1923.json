@@ -4,6 +4,7 @@
   "brief": "docs/developer-briefs/1923-profile-control-height.md",
   "allowedChanges": [
     ".github/workflows/pr-gate.yml",
+    "app/profile-access/profile-identity-panel.module.css",
     "app/skin-v1-bbs-surfaces.css",
     "config/development-convergence/1923.json",
     "docs/developer-briefs/1923-profile-control-height.md",
@@ -14,6 +15,11 @@
       "id": "A1",
       "criterion": "Profile v2 interactive controls consume the canonical Skin V1 minimum control height.",
       "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-identity-panel.module.css",
+          "contains": "min-height: var(--pp-skin-control-height);"
+        },
         {
           "type": "file-contains",
           "path": "app/skin-v1-bbs-surfaces.css",
@@ -28,7 +34,7 @@
         {
           "type": "file-contains",
           "path": "tests/issue-1923-profile-control-height.test.mjs",
-          "contains": "Profile v2 interactive controls consume the Skin V1 control-height token"
+          "contains": "Profile readiness controls own the Skin V1 control-height token"
         },
         {
           "type": "file-contains",

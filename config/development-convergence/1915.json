@@ -15,6 +15,8 @@
     "docs/developer-briefs/1915-skin-v1-dashboard-navigation.md",
     "lib/experience/logon-use-case.ts",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/community-skin-v1-navigation.test.mjs",
+    "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
     "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs"
   ],
   "acceptance": [

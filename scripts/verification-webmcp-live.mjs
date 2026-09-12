@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { createWriteStream } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, open, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -90,7 +89,7 @@ export async function runLiveWebMcpEvidence() {
   const npm = commandName("npm");
   const node = process.execPath;
   let server = null;
-  let serverLog = null;
+  let serverLogHandle = null;
 
   await mkdir(artifactRoot, { recursive: true });
   try {
@@ -98,10 +97,10 @@ export async function runLiveWebMcpEvidence() {
     await preparePinnedBrowserTools(toolRoot, npm, node);
     await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "prepare", "--home", home]);
 
-    serverLog = createWriteStream(serverLogPath, { flags: "w" });
+    serverLogHandle = await open(serverLogPath, "w");
     server = spawnCommand(npm, ["run", "dev:local", "--", "--host", "127.0.0.1", "--port", "4173"], {
       cwd: repoRoot,
-      stdio: ["ignore", serverLog, serverLog],
+      stdio: ["ignore", serverLogHandle.fd, serverLogHandle.fd],
       windowsHide: true,
     });
 
@@ -128,7 +127,7 @@ export async function runLiveWebMcpEvidence() {
     return 1;
   } finally {
     if (server && !server.killed) server.kill("SIGTERM");
-    if (serverLog) serverLog.end();
+    if (serverLogHandle) await serverLogHandle.close().catch(() => {});
     await runCommand(node, ["scripts/run-webmcp-startup-uat.mjs", "cleanup", "--home", home]).catch(() => {});
   }
 }

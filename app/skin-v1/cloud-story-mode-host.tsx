@@ -444,6 +444,12 @@ export default function CloudStoryModeHost() {
               >
                 <span className="pp-skin-v1-dashboard-command">{command}</span>
                 <span className="pp-skin-v1-dashboard-description">{item.detail}</span>
+                <span
+                  className="pp-skin-v1-dashboard-status-box is-active"
+                  aria-label="Connected Cloud Story Mode destination"
+                  data-dashboard-status="active"
+                  data-skin-menu-indicator={"connected"}
+                />
               </button>
             </Fragment>
           );

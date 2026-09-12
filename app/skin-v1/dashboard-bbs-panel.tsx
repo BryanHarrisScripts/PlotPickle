@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Fragment, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import CloudStoryModeHost from "./cloud-story-mode-host";
+import LearnJourneyPreview from "./learn-journey-preview";
 import LocalAiSkinHost from "./local-ai-skin-host";
 import NodeSkinPanel from "./node-skin-panel";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
@@ -116,10 +117,11 @@ export default function DashboardBbsPanel({
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
+  const [learnJourneyOpen, setLearnJourneyOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
   const [writerCraftSelectedIndex, setWriterCraftSelectedIndex] = useState(0);
   const [settingsNotice, setSettingsNotice] = useState("UP/DOWN OR SHORTCUT KEY: SELECT / ENTER: OPEN");
-  const [writerCraftNotice, setWriterCraftNotice] = useState("FIRST SUBMENU ONLY — LESSON LEVEL IS INTENTIONALLY NOT OPENED IN THIS BUILD");
+  const [writerCraftNotice, setWriterCraftNotice] = useState("PRESS J FOR THE 24-COURSE LEARN JOURNEY. EXISTING COLLECTIONS REMAIN PREVIEW-ONLY.");
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const writerCraftItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -132,7 +134,8 @@ export default function DashboardBbsPanel({
     }
     if (items[index]?.id === "learn") {
       setWriterCraftSelectedIndex(0);
-      setWriterCraftNotice("FIRST SUBMENU ONLY — LESSON LEVEL IS INTENTIONALLY NOT OPENED IN THIS BUILD");
+      setLearnJourneyOpen(false);
+      setWriterCraftNotice("PRESS J FOR THE 24-COURSE LEARN JOURNEY. EXISTING COLLECTIONS REMAIN PREVIEW-ONLY.");
       setWriterCraftMenuOpen(true);
       return;
     }
@@ -386,6 +389,10 @@ export default function DashboardBbsPanel({
     );
   }
 
+  if (writerCraftMenuOpen && learnJourneyOpen) {
+    return <LearnJourneyPreview onBack={() => setLearnJourneyOpen(false)} />;
+  }
+
   if (writerCraftMenuOpen) {
     return (
       <section
@@ -393,15 +400,45 @@ export default function DashboardBbsPanel({
         aria-label="Writer's Craft menu"
         data-skin-menu="writer-craft"
         onKeyDown={(event) => {
-          if (event.key === "Escape") { event.preventDefault(); setWriterCraftMenuOpen(false); }
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setLearnJourneyOpen(false);
+            setWriterCraftMenuOpen(false);
+            return;
+          }
+          if (event.key.toUpperCase() === "J") {
+            event.preventDefault();
+            setLearnJourneyOpen(true);
+          }
         }}
       >
         <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner">
             <h1>WRITER&apos;S CRAFT</h1>
-            <button type="button" className="pp-skin-v1-return" onClick={() => setWriterCraftMenuOpen(false)}>Back to Dashboard</button>
+            <button type="button" className="pp-skin-v1-return" onClick={() => { setLearnJourneyOpen(false); setWriterCraftMenuOpen(false); }}>Back to Dashboard</button>
           </div>
           <div className="pp-skin-v1-dashboard-title">LEARN STORYTELLING ESSENTIALS</div>
+          <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- GUIDED JOURNEY --</div>
+          <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="group" aria-label="LEARN Journey destination">
+            <button
+              type="button"
+              className="pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item"
+              data-skin-menu-row="learn-journey"
+              data-skin-menu-shortcut="J"
+              data-skin-menu-connected="true"
+              data-learn-journey-entry="phase-3"
+              onClick={() => setLearnJourneyOpen(true)}
+            >
+              <span className="pp-skin-v1-dashboard-command-line">[J] LEARN Journey / 24-Course Program - 3 years, 6 semesters, 4 course shells at a time [WIRED PREVIEW]</span>
+              <span
+                className="pp-skin-v1-dashboard-status-box is-active"
+                aria-label="LEARN Journey preview connected"
+                data-dashboard-status="active"
+                data-skin-menu-indicator="connected"
+              />
+            </button>
+          </div>
+          <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- EXISTING COLLECTION PREVIEWS --</div>
           <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Writer's Craft collections" aria-describedby="writer-craft-menu-status">
             {WRITER_CRAFT_MENU.map((item, index) => {
               const selected = index === writerCraftSelectedIndex;

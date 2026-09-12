@@ -58,6 +58,11 @@ jobs:
       - name: Validate Skin V1 Dashboard navigation repair
         run: node --test tests/issue-1915-skin-v1-dashboard-navigation.test.mjs
 
+      - name: Validate LEARN #1918 Phase 0 baseline
+        run: |
+          node scripts/validate-learn-curriculum.mjs
+          node --test tests/issue-1918-learn-journey-baseline.test.mjs
+
       - name: Validate Pi 0.85.1 / GPT-6 Astra evaluation contract
         run: node --test tests/issue-1709-pi-0851-astra-evaluation.test.mjs
 

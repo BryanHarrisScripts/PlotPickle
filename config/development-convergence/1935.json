@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 1935,
+  "brief": "docs/developer-briefs/1935-writer-craft-selected-row.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "app/skin-v1-settings-directory.css",
+    "config/development-convergence/1935.json",
+    "docs/developer-briefs/1935-writer-craft-selected-row.md",
+    "tests/issue-1935-writer-craft-selected-row.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Writer's Craft selected navigation rows use the canonical dark accent background and visible accent border.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1-settings-directory.css",
+          "contains": "aria-label=\"Writer's Craft menu\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1-settings-directory.css",
+          "contains": "border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1-settings-directory.css",
+          "contains": "background: var(--pp-skin-accent-deep) !important;"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "The repair is surface-scoped and does not replace the generic selected-control token contract.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1935-writer-craft-selected-row.test.mjs",
+          "contains": "keeps the global selected-control tokens unchanged"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Focused #1935 regression runs in the normal PR Gate.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "tests/issue-1935-writer-craft-selected-row.test.mjs"
+        }
+      ]
+    }
+  ]
+}

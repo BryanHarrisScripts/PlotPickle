@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "issue": 1947,
+  "brief": "docs/developer-briefs/1947-phase-5-live-evidence.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/pr-gate.yml",
+    "config/development-convergence/1947.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1947-phase-5-live-evidence.md",
+    "scripts/verification-shadow.mjs",
+    "scripts/verification-webmcp-live.mjs",
+    "tests/issue-1947-live-evidence-selection.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Live rendered WebMCP is a single-owned impact-selected architecture catalog entry.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.webmcp-live-observer" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"kind\": \"browser-uat\"" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "\"ownerLayer\": \"experience-skins\"" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Skin, Experience surface-registry and WebMCP verifier boundaries emit the risk tokens that select live evidence.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "experience-skin-v1" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "experience-surface-registry" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "webmcp-live-verifier" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Only Layer 1 can authorize the verification-tool network required by the live observer, while all seven checks remain visible.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "name: Layer 1 Experience Skins\n            allow_network: true" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "name: Layer 7 Validation & Operations\n            allow_network: false" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "--allow-network \"${{ matrix.allow_network }}\"" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The live observer runs through a bounded typed runner and remains read-only, provider-free and repair-free.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/verification-shadow.mjs", "contains": "\"browser-uat\"" },
+        { "type": "file-contains", "path": "scripts/verification-webmcp-live.mjs", "contains": "authority: \"read-only-observer\"" },
+        { "type": "file-contains", "path": "scripts/verification-webmcp-live.mjs", "contains": "externalProviderCalls: false" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused Phase 5 regressions prove Skin, surface-registry and verifier selection while docs-only changes remain cheap.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1947-live-evidence-selection.test.mjs", "contains": "Skin changes deterministically select live rendered WebMCP evidence" },
+        { "type": "file-contains", "path": "tests/issue-1947-live-evidence-selection.test.mjs", "contains": "docs-only changes stay cheap" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1947-live-evidence-selection.test.mjs" }
+      ]
+    }
+  ]
+}

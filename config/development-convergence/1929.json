@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 1929,
+  "brief": "docs/developer-briefs/1929-manual-provider-runtime-probes.md",
+  "allowedChanges": [
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/1929.json",
+    "docs/developer-briefs/1929-manual-provider-runtime-probes.md"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Normal pull-request Product Gate runs skip the expensive Pi compatibility probe while manual Product Gate runs retain it.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "- name: Evaluate Pi 0.85.1 compatibility"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "if: github.event_name == 'workflow_dispatch'"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Normal pull-request Product Gate runs skip the expensive whisper.cpp install/smoke while manual Product Gate runs retain it.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "- name: Validate local whisper.cpp dictation fixture"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "install-whisper-cpp.ps1 -Mode Smoke -Approved"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The fast bundled local-video contract remains automatic in normal Product Gate runs.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/product-gate.yml",
+          "contains": "- name: Validate bundled local video setup"
+        }
+      ]
+    }
+  ]
+}

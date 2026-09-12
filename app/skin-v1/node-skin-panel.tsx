@@ -64,9 +64,10 @@ const button: React.CSSProperties = {
 async function readJson<T>(response: Response, fallback: string) {
   const type = response.headers.get("content-type") || "";
   if (!type.includes("application/json")) throw new Error(fallback);
-  const value = await response.json() as T & { message?: string };
-  if (!response.ok) throw new Error(value.message || fallback);
-  return value;
+  const value = response.json() as unknown as T & { message?: string };
+  const resolved = await value;
+  if (!response.ok) throw new Error(resolved.message || fallback);
+  return resolved;
 }
 
 export default function NodeSkinPanel() {
@@ -151,7 +152,7 @@ export default function NodeSkinPanel() {
         </div>
       </section>
 
-      <section style={{ ...panel, marginTop: 12 }} aria-label="Node information">
+      <section style={{ ...panel, marginTop: 12 }} aria-label="Node status details">
         {rows.map(([label, value]) => (
           <div key={label} style={row}>
             <strong style={{ color: "var(--pp-skin-ink)" }}>{label}</strong>

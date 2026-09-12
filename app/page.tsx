@@ -32,7 +32,7 @@ type Workspace = RootWorkspace;
 type GuidedSection = "foundations" | "world";
 
 function requestedWorkspace(): Workspace {
-  if (typeof window === "undefined") return "dashboard";
+  if (typeof window === "undefined") return "library";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "dashboard") return "dashboard";
   if (requested === "learn") return "learn";
@@ -43,7 +43,12 @@ function requestedWorkspace(): Workspace {
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   if (requested === "library") return "library";
-  return hasActiveLibraryProject() ? "dashboard" : "library";
+  return "library";
+}
+
+function hasRequestedWorkspace() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).has("workspace");
 }
 
 function requestedSection(): GuidedSection {
@@ -168,11 +173,11 @@ function openLearningApplication(topic: string, lessonId?: string) {
 }
 
 export default function Home() {
-  const [workspace, setWorkspace] = useState<Workspace>("dashboard");
+  const [workspace, setWorkspace] = useState<Workspace>("library");
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
-    repairPersistedProject();
+    if (hasRequestedWorkspace()) repairPersistedProject();
     const syncWorkspace = () => setWorkspace(requestedWorkspace());
     syncWorkspace();
     // eslint-disable-next-line react-hooks/set-state-in-effect

@@ -16,25 +16,32 @@ jobs:
   architecture-shadow:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         include:
           - id: experience-skins
             name: Layer 1 Experience Skins
+            allow_network: true
           - id: experience-contract
             name: Layer 2 Experience Contract
+            allow_network: false
           - id: production-harness
             name: Layer 3 Production Orchestration
+            allow_network: false
           - id: agent-runtime
             name: Layer 4 Agent & Skill Mesh
+            allow_network: false
           - id: story-canon
             name: Layer 5 Story / Canon / Evidence
+            allow_network: false
           - id: provider-runtime
             name: Layer 6 Provider Runtime
+            allow_network: false
           - id: verification
             name: Layer 7 Validation & Operations
+            allow_network: false
 
     steps:
       - name: Checkout exact head with history
@@ -54,6 +61,7 @@ jobs:
           --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
           --commit-sha "${{ github.event.pull_request.head.sha || github.sha }}"
           --platform linux
+          --allow-network "${{ matrix.allow_network }}"
 
       - name: Upload architecture shadow evidence
         if: always()
@@ -64,5 +72,11 @@ jobs:
             .artifacts/verification-shadow/${{ matrix.id }}.json
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
             .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
+            .artifacts/verification-live/webmcp-live.json
+            .artifacts/verification-live/webmcp-app-server.log
+            .artifacts/webmcp-startup/summary.json
+            .artifacts/webmcp-startup/uat-findings.json
+            .artifacts/visual-readiness/*.png
+            .artifacts/visual-readiness/visual-director-report.json
           if-no-files-found: warn
           retention-days: 7

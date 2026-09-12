@@ -9,6 +9,18 @@ import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-d
 const execFileAsync = promisify(execFile);
 const read = (path) => readFile(path, "utf8");
 
+const WRITER_CRAFT_COMPATIBILITY_IDS = [
+  "foundations",
+  "visual-writing",
+  "method",
+  "ai-revision",
+  "characters",
+  "dialogue",
+  "story-craft",
+  "working-together",
+  "collaboration",
+];
+
 test("#1918 Phase 3 projects the canonical 24-course map into six four-course semester shells", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
 
@@ -35,9 +47,15 @@ test("#1918 Phase 3 preserves the nine Writer's Craft collection compatibility r
   const baseline = JSON.parse(baselineSource);
 
   assert.equal(baseline.writerCraftCompatibility.collectionCount, 9);
-  for (const collection of baseline.writerCraftCompatibility.collections) {
-    assert.match(dashboard, new RegExp(`id: \\"${collection.id}\\"`, "u"));
-    assert.match(dashboard, new RegExp(collection.label.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
+  assert.equal(WRITER_CRAFT_COMPATIBILITY_IDS.length, 9);
+  assert.equal(baseline.writerCraftCompatibility.collections.length, 9);
+
+  for (const id of WRITER_CRAFT_COMPATIBILITY_IDS) {
+    assert.ok(dashboard.includes(`id: "${id}"`), `Writer's Craft compatibility row ${id} must remain.`);
+  }
+  for (const label of baseline.writerCraftCompatibility.collections) {
+    assert.equal(typeof label, "string");
+    assert.ok(dashboard.includes(label), `Writer's Craft compatibility label ${label} must remain.`);
   }
 
   assert.match(dashboard, /data-skin-menu-row="learn-journey"/u);

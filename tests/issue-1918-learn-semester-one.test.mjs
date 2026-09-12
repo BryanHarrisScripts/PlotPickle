@@ -19,7 +19,7 @@ function progress(course, completedLessonIds) {
   };
 }
 
-test("#1918 Phase 4 wires exactly Semester 1 and leaves Semesters 2-6 preview-only", async () => {
+test("#1918 Phase 4 wires exactly Semester 1 and leaves Semesters 2-6 preview-only internally", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
   assert.match(route, /phase: "phase-4-semester-one"/u);
   assert.match(route, /const contentAvailable = semester\.semester === 1/u);
@@ -32,10 +32,10 @@ test("#1918 Phase 4 wires exactly Semester 1 and leaves Semesters 2-6 preview-on
   assert.equal(LEARN_PROGRAM_MAP.courses.filter((course) => course.semester > 1).length, 20);
 });
 
-test("#1918 Phase 4 Semester 1 API projects canonical archive lessons without a second curriculum store", async () => {
+test("#1918 Phase 4 Path 01 API projects canonical archive lessons without a second curriculum store", async () => {
   const route = await read("app/api/learn/journey-semester-one/route.ts");
   for (const canonicalImport of ["foundations.json", "theme.json", "character.json", "world.json"]) {
-    assert.ok(route.includes(canonicalImport), `Semester 1 route must import canonical ${canonicalImport}.`);
+    assert.ok(route.includes(canonicalImport), `Path 01 route must import canonical ${canonicalImport}.`);
   }
   assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
   assert.match(route, /course\.lessonRefs\.flatMap/u);
@@ -56,7 +56,7 @@ test("#1918 Phase 4 reuses PPF lesson history as the only Journey progress autho
   assert.doesNotMatch(ui, /localStorage\.setItem\([^\n]*(?:journey|course-progress)/iu);
 });
 
-test("#1918 Phase 4 course progress is order-independent", () => {
+test("#1918 Phase 4 Craft Module progress is order-independent", () => {
   const courseOne = LEARN_PROGRAM_MAP.courses.find((course) => course.id === "course-01");
   const courseFour = LEARN_PROGRAM_MAP.courses.find((course) => course.id === "course-04");
   assert.ok(courseOne);
@@ -75,9 +75,9 @@ test("#1918 Phase 4 course progress is order-independent", () => {
   });
 });
 
-test("#1918 Phase 4 keeps every Semester 1 course and lesson selectable without prerequisite gates", async () => {
+test("#1918 Phase 4 keeps every Path 01 Craft Module and lesson selectable without prerequisite gates", async () => {
   const ui = await read("app/skin-v1/learn-journey-preview.tsx");
-  assert.match(ui, /OPEN ANY COURSE IN ANY ORDER/u);
+  assert.match(ui, /OPEN ANY CRAFT MODULE IN ANY ORDER/u);
   assert.match(ui, /COMPLETION ORDER IS YOUR CHOICE/u);
   assert.match(ui, /data-learn-course-content=\{course\.contentAvailable \? "available" : "unavailable"\}/u);
   assert.match(ui, /data-skin-menu-connected=\{course\.contentAvailable \? "true" : "false"\}/u);

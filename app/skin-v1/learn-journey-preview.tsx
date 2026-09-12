@@ -68,6 +68,24 @@ type SemesterOnePayload = Readonly<{
   courses: readonly SemesterOneCourse[];
 }>;
 
+const PATH_LABELS = [
+  "STORY FOUNDATIONS",
+  "STRUCTURE & STORY MOTION",
+  "CHARACTER, DIALOGUE & VISUAL STORYTELLING",
+  "DRAFTING THE STORY",
+  "REVISION & COLLABORATIVE CRAFT",
+  "PROFESSIONAL PRACTICE",
+] as const;
+
+function visiblePathLabel(pathNumber: number) {
+  const label = PATH_LABELS[pathNumber - 1] ?? "OPEN CRAFT";
+  return `PATH ${String(pathNumber).padStart(2, "0")} — ${label}`;
+}
+
+function craftModuleNumber(courseId: string) {
+  return /^course-(\d+)$/u.exec(courseId)?.[1] ?? courseId.toUpperCase();
+}
+
 function newId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -83,35 +101,35 @@ function loadProject(): PPFProject {
 function assertJourneyPreview(value: JourneyPreview) {
   if (value.issue !== 1918 || value.phase !== "phase-4-semester-one") throw new Error("LEARN Journey returned the wrong program phase.");
   if (value.yearCount !== 3 || value.semesterCount !== 6 || value.coursesPerSemester !== 4 || value.courseCount !== 24) {
-    throw new Error("LEARN Journey did not return the canonical 3-year / 6-semester / 24-course structure.");
+    throw new Error("LEARN Journey did not return the canonical internal program-map structure.");
   }
   if (value.semesters.length !== 6 || value.semesters.some((semester) => semester.courses.length !== 4)) {
-    throw new Error("LEARN Journey must expose exactly six semesters with four courses each.");
+    throw new Error("LEARN Journey must expose exactly six Paths with four Craft Modules each.");
   }
   if (value.authority.recommendedSequenceIsAccessControl || !value.authority.humanMayLearnOutOfOrder) {
     throw new Error("LEARN Journey violated guided-not-gated authority.");
   }
   const semesterOne = value.semesters[0];
   if (!semesterOne || semesterOne.courses.some((course) => !course.contentAvailable || course.status !== "wired")) {
-    throw new Error("Phase 4 must wire all four Semester 1 courses.");
+    throw new Error("Phase 4 must wire all four Path 01 Craft Modules.");
   }
   if (value.semesters.slice(1).some((semester) => semester.courses.some((course) => course.contentAvailable || course.status !== "preview-only"))) {
-    throw new Error("Phase 4 must leave Semesters 2-6 preview-only.");
+    throw new Error("Phase 4 must leave Paths 02-06 preview-only.");
   }
 }
 
 function assertSemesterOne(value: SemesterOnePayload) {
   if (value.issue !== 1918 || value.phase !== "phase-4-semester-one" || value.semester !== 1 || value.courses.length !== 4) {
-    throw new Error("Semester 1 content returned the wrong vertical slice.");
+    throw new Error("Path 01 content returned the wrong vertical slice.");
   }
   if (value.authority.curriculumOwner !== "existing LEARN archive" || value.authority.progressOwner !== "PPFProject.learning.completedLessonIds") {
-    throw new Error("Semester 1 content returned the wrong curriculum/progress authority.");
+    throw new Error("Path 01 content returned the wrong curriculum/progress authority.");
   }
   if (value.authority.recommendedSequenceIsAccessControl || !value.authority.humanMayLearnOutOfOrder || value.authority.curriculumBodiesDuplicated) {
-    throw new Error("Semester 1 content violated guided-not-gated authority.");
+    throw new Error("Path 01 content violated guided-not-gated authority.");
   }
   if (value.courses.some((course) => !course.contentAvailable || course.status !== "wired" || !course.lessons.length)) {
-    throw new Error("Every Semester 1 course must expose its mapped canonical lessons.");
+    throw new Error("Every Path 01 Craft Module must expose its mapped canonical lessons.");
   }
 }
 
@@ -127,7 +145,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   const [selectedLessonIndex, setSelectedLessonIndex] = useState(0);
   const [courseOpenId, setCourseOpenId] = useState<string | null>(null);
   const [lessonOpenId, setLessonOpenId] = useState<string | null>(null);
-  const [notice, setNotice] = useState("SELECT A SEMESTER TO VIEW ITS FOUR COURSES. ALL SEMESTERS REMAIN OPEN.");
+  const [notice, setNotice] = useState("CHOOSE ANY PATH. MOVE AT YOUR OWN PACE. THE ORDER IS A GUIDE, NOT A GATE.");
   const semesterRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const courseRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const lessonRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -173,9 +191,9 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       setSemesterOne(value);
       return value;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown Semester 1 error";
+      const message = error instanceof Error ? error.message : "Unknown Path 01 error";
       setSemesterOneError(message);
-      setNotice(`SEMESTER 1 CONTENT UNAVAILABLE — ${message}`);
+      setNotice(`PATH 01 CONTENT UNAVAILABLE — ${message}`);
       return null;
     }
   }
@@ -199,10 +217,10 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     setLessonOpenId(null);
     setSemesterOpen(true);
     if (semester.semester === 1) {
-      setNotice("SEMESTER 1 IS WIRED END-TO-END. OPEN ANY COURSE IN ANY ORDER.");
+      setNotice("PATH 01 IS AVAILABLE. OPEN ANY CRAFT MODULE IN ANY ORDER.");
       void loadSemesterOne();
     } else {
-      setNotice(`YEAR ${semester.year} / SEMESTER ${semester.semester} — PREVIEW ONLY UNTIL PHASE 5. ALL COURSES REMAIN OPEN AS SHELLS.`);
+      setNotice(`${visiblePathLabel(semester.semester)} — PATH AVAILABLE FOR PREVIEW. CRAFT MODULE LESSON CONTENT IS UNAVAILABLE UNTIL PHASE 5.`);
     }
   }
 
@@ -234,7 +252,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     if (!course) return;
     setSelectedCourseIndex(index);
     if (!course.contentAvailable) {
-      setNotice(`${course.title.toUpperCase()} — PREVIEW ONLY. LESSON CONTENT REMAINS UNWIRED UNTIL PHASE 5.`);
+      setNotice(`${course.title.toUpperCase()} — UNAVAILABLE. THIS CRAFT MODULE'S LESSON CONTENT IS NOT AVAILABLE YET.`);
       return;
     }
     const content = await loadSemesterOne();
@@ -302,7 +320,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       lessonId: lesson.id,
       occurredAt: new Date().toISOString(),
     });
-    setNotice(`${lesson.title.toUpperCase()} — ${isCompleted ? "MARKED INCOMPLETE" : "MARKED COMPLETE"}. PROGRESS FOLLOWS ACTUAL LESSON HISTORY, NOT COURSE ORDER.`);
+    setNotice(`${lesson.title.toUpperCase()} — ${isCompleted ? "MARKED INCOMPLETE" : "MARKED COMPLETE"}. PROGRESS FOLLOWS ACTUAL LESSON HISTORY, NOT CRAFT MODULE ORDER.`);
   }
 
   if (!preview) {
@@ -310,8 +328,8 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey loading">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button></div>
-          <div className="pp-skin-v1-dashboard-title">3 YEARS / 6 SEMESTERS / 24 COURSES</div>
-          <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `JOURNEY UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL PROGRAM MAP…"}</p>
+          <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
+          <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `JOURNEY UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL JOURNEY MAP…"}</p>
         </div>
       </section>
     );
@@ -324,7 +342,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={() => setLessonOpenId(null)}>Back to {openCourseContent.title}</button></div>
           <article className={styles.lesson} data-learn-canonical-lesson={openLesson.id}>
-            <header><span>{openCourseContent.id.toUpperCase()} · LESSON {selectedLessonIndex + 1} OF {openCourseContent.lessons.length}</span><h2>{openLesson.title}</h2><p>{openLesson.overview}</p></header>
+            <header><span>CRAFT MODULE {craftModuleNumber(openCourseContent.id)} · LESSON {selectedLessonIndex + 1} OF {openCourseContent.lessons.length}</span><h2>{openLesson.title}</h2><p>{openLesson.overview}</p></header>
             <section><h3>Objectives</h3><ul>{openLesson.objectives.map((item) => <li key={item}>{item}</li>)}</ul></section>
             {openLesson.sections.map((section) => <section key={section.heading}><h3>{section.heading}</h3>{section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}{section.points?.length ? <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul> : null}</section>)}
             {openLesson.definitions.length ? <section><h3>Definitions</h3><dl>{openLesson.definitions.map((definition) => <div key={definition.term}><dt>{definition.term}</dt><dd>{definition.meaning}</dd></div>)}</dl></section> : null}
@@ -344,16 +362,16 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   if (openCourseContent) {
     const completedCount = openCourseContent.lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey course" data-skin-menu="learn-journey-lessons" data-learn-journey-phase="4" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setCourseOpenId(null); } }}>
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey Craft Module" data-skin-menu="learn-journey-lessons" data-learn-journey-phase="4" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setCourseOpenId(null); } }}>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>{openCourseContent.title.toUpperCase()}</h1><button type="button" className="pp-skin-v1-return" onClick={() => setCourseOpenId(null)}>Back to Semester 1</button></div>
-          <div className="pp-skin-v1-dashboard-title">{completedCount}/{openCourseContent.lessons.length} LESSONS COMPLETE · ORDER IS ADVISORY ONLY</div>
+          <div className="pp-skin-v1-bbs-banner"><h1>{openCourseContent.title.toUpperCase()}</h1><button type="button" className="pp-skin-v1-return" onClick={() => setCourseOpenId(null)}>Back to Path 01</button></div>
+          <div className="pp-skin-v1-dashboard-title">CRAFT MODULE {craftModuleNumber(openCourseContent.id)} · {completedCount}/{openCourseContent.lessons.length} LESSONS COMPLETE · ORDER IS ADVISORY ONLY</div>
           <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label={`${openCourseContent.title} lessons`}>
             {openCourseContent.lessons.map((lesson, index) => {
               const selected = index === selectedLessonIndex;
               const completed = completedLessonIds.has(lesson.id);
               const shortcut = String(index + 1);
-              return <button ref={(node) => { lessonRefs.current[index] = node; }} key={lesson.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={lesson.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected="true" data-learn-lesson-completed={completed ? "true" : "false"} onClick={() => openCourseLesson(index)} onKeyDown={(event) => handleLessonKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">[{shortcut}] {lesson.title} · {lesson.duration} · {completed ? "COMPLETE" : "OPEN"}</span><span className="pp-skin-v1-dashboard-status-box is-active" aria-label={completed ? "Lesson complete and connected" : "Lesson connected"} data-dashboard-status="active" data-skin-menu-indicator="connected" /></button>;
+              return <button ref={(node) => { lessonRefs.current[index] = node; }} key={lesson.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={lesson.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected="true" data-learn-lesson-completed={completed ? "true" : "false"} onClick={() => openCourseLesson(index)} onKeyDown={(event) => handleLessonKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">[{shortcut}] {lesson.title} · {lesson.duration} · {completed ? "COMPLETE" : "OPEN"}</span><span className="pp-skin-v1-dashboard-status-box is-active" aria-label={completed ? "Lesson complete and available" : "Lesson available"} data-dashboard-status="active" data-skin-menu-indicator="connected" /></button>;
             })}
           </div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">{notice}</p>
@@ -364,20 +382,21 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
 
   const semester = preview.semesters[selectedSemesterIndex];
   if (semesterOpen && semester) {
+    const pathLabel = visiblePathLabel(semester.semester);
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey semester" data-skin-menu="learn-journey-courses" data-learn-journey-phase="4" data-learn-lesson-content={semester.semester === 1 ? "available" : "unavailable"} onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setSemesterOpen(false); setNotice("SELECT A SEMESTER TO VIEW ITS FOUR COURSES. ALL SEMESTERS REMAIN OPEN."); } }}>
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey Path" data-skin-menu="learn-journey-courses" data-learn-journey-phase="4" data-learn-lesson-content={semester.semester === 1 ? "available" : "unavailable"} onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setSemesterOpen(false); setNotice("CHOOSE ANY PATH. MOVE AT YOUR OWN PACE. THE ORDER IS A GUIDE, NOT A GATE."); } }}>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={() => setSemesterOpen(false)}>Back to Semesters</button></div>
-          <div className="pp-skin-v1-dashboard-title">YEAR {semester.year} / SEMESTER {semester.semester} — FOUR COURSES</div>
-          <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label={`Year ${semester.year} Semester ${semester.semester} courses`} aria-describedby="learn-journey-course-status">
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={() => setSemesterOpen(false)}>Back to Paths</button></div>
+          <div className="pp-skin-v1-dashboard-title">{pathLabel} — FOUR CRAFT MODULES</div>
+          <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label={`${pathLabel} Craft Modules`} aria-describedby="learn-journey-course-status">
             {semester.courses.map((course, index) => {
               const selected = index === selectedCourseIndex;
               const shortcut = String(index + 1);
               const wiredContent = semesterOne?.courses.find((candidate) => candidate.id === course.id);
               const completedCount = wiredContent?.lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length ?? 0;
               const progress = course.contentAvailable && wiredContent ? `${completedCount}/${wiredContent.lessons.length} complete` : `${course.lessonCount} mapped lessons`;
-              const command = `[${shortcut}] ${course.id.toUpperCase()} · ${course.title}`.padEnd(52, " ");
-              return <button ref={(node) => { courseRefs.current[index] = node; }} key={course.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={course.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected={course.contentAvailable ? "true" : "false"} data-learn-course-status={course.status} data-learn-course-content={course.contentAvailable ? "available" : "unavailable"} data-learn-course-progress={progress} onClick={() => void openCourse(index)} onKeyDown={(event) => handleCourseKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">{command} - {course.purpose} · {progress} [{course.contentAvailable ? "WIRED" : "PREVIEW"}]</span><span className={`pp-skin-v1-dashboard-status-box${course.contentAvailable ? " is-active" : ""}`} aria-label={course.contentAvailable ? "Course lesson content connected" : "Course preview only"} data-dashboard-status={course.contentAvailable ? "active" : "inactive"} data-skin-menu-indicator={course.contentAvailable ? "connected" : "unwired"} /></button>;
+              const command = `[${shortcut}] CRAFT MODULE ${craftModuleNumber(course.id)} · ${course.title}`.padEnd(58, " ");
+              return <button ref={(node) => { courseRefs.current[index] = node; }} key={course.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={course.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected={course.contentAvailable ? "true" : "false"} data-learn-course-status={course.status} data-learn-course-content={course.contentAvailable ? "available" : "unavailable"} data-learn-course-progress={progress} onClick={() => void openCourse(index)} onKeyDown={(event) => handleCourseKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">{command} - {course.purpose} · {progress} [{course.contentAvailable ? "AVAILABLE" : "UNAVAILABLE"}]</span><span className={`pp-skin-v1-dashboard-status-box${course.contentAvailable ? " is-active" : ""}`} aria-label={course.contentAvailable ? "Craft Module lesson content available" : "Craft Module lesson content unavailable"} data-dashboard-status={course.contentAvailable ? "active" : "inactive"} data-skin-menu-indicator={course.contentAvailable ? "connected" : "unwired"} /></button>;
             })}
           </div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-course-status" role={semesterOneError ? "alert" : "status"}>{notice}</p>
@@ -390,15 +409,15 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey menu" data-skin-menu="learn-journey" data-learn-journey-phase="4" data-learn-semester-one-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); onBack(); } }}>
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
         <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button></div>
-        <div className="pp-skin-v1-dashboard-title">3 YEARS / 6 SEMESTERS / 24 COURSES</div>
-        <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Journey semesters" aria-describedby="learn-journey-status">
+        <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
+        <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Journey Paths" aria-describedby="learn-journey-status">
           {preview.semesters.map((item, index) => {
             const selected = index === selectedSemesterIndex;
             const shortcut = String(index + 1);
-            const firstCourse = item.courses[0]?.id.toUpperCase() ?? "COURSE";
-            const lastCourse = item.courses[item.courses.length - 1]?.id.toUpperCase() ?? "COURSE";
-            const command = `[${shortcut}] YEAR ${item.year} / SEMESTER ${item.semester}`.padEnd(30, " ");
-            return <button ref={(node) => { semesterRefs.current[index] = node; }} key={item.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={item.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected="true" data-learn-semester-open="true" data-learn-semester-content={item.semester === 1 ? "wired" : "preview"} onClick={() => openSemester(index)} onKeyDown={(event) => handleSemesterKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">{command} - {firstCourse}–{lastCourse} · four courses · {item.semester === 1 ? "lesson content wired" : "preview until Phase 5"}</span><span className="pp-skin-v1-dashboard-status-box is-active" aria-label="Semester destination connected" data-dashboard-status="active" data-skin-menu-indicator="connected" /></button>;
+            const firstModule = craftModuleNumber(item.courses[0]?.id ?? "course-00");
+            const lastModule = craftModuleNumber(item.courses[item.courses.length - 1]?.id ?? "course-00");
+            const command = `[${shortcut}] ${visiblePathLabel(item.semester)}`.padEnd(58, " ");
+            return <button ref={(node) => { semesterRefs.current[index] = node; }} key={item.id} type="button" role="option" aria-selected={selected} tabIndex={selected ? 0 : -1} autoFocus={index === 0} className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}${selected ? " is-selected" : ""}`} data-skin-menu-row={item.id} data-skin-menu-shortcut={shortcut} data-skin-menu-connected="true" data-learn-semester-open="true" data-learn-semester-content={item.semester === 1 ? "wired" : "preview"} onClick={() => openSemester(index)} onKeyDown={(event) => handleSemesterKeyDown(event, index)}><span className="pp-skin-v1-dashboard-command-line">{command} - CRAFT MODULES {firstModule}–{lastModule} · 4 modules · {item.semester === 1 ? "lesson content available" : "lesson content unavailable"}</span><span className="pp-skin-v1-dashboard-status-box is-active" aria-label="Path destination available" data-dashboard-status="active" data-skin-menu-indicator="connected" /></button>;
           })}
         </div>
         <p className={`pp-skin-v1-bbs-help ${styles.help}`} id="learn-journey-status" role="status">{notice}</p>

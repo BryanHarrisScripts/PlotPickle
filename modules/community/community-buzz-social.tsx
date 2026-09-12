@@ -92,9 +92,11 @@ function sameBuzzMessages(left: readonly BuzzMessage[], right: readonly BuzzMess
   });
 }
 
-function isLegacyOperationalDump(message: BuzzMessage) {
+function isNonConversationDiagnostic(message: BuzzMessage) {
   const content = String(message.content || "");
-  return /plotpickle-live-activity:/i.test(content)
+  return /plotpickle-buzz-health:/i.test(content)
+    || /PlotPickle signed BUZZ round-trip connection probe/i.test(content)
+    || /plotpickle-live-activity:/i.test(content)
     || /\btype=[a-z0-9.-]+\s+severity=(?:info|low|medium|high|critical)\s+verified=(?:yes|no)\s+actionable=(?:yes|no)/i.test(content)
     || /\btarget=live-activity-verification\b/i.test(content);
 }
@@ -106,7 +108,7 @@ async function readMessages(channelId: string): Promise<BuzzMessage[]> {
   });
   const body = await response.json() as { readonly messages?: BuzzMessage[]; readonly message?: string };
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
-  return chronological(Array.isArray(body.messages) ? body.messages : []).filter((message) => !isLegacyOperationalDump(message));
+  return chronological(Array.isArray(body.messages) ? body.messages : []).filter((message) => !isNonConversationDiagnostic(message));
 }
 
 async function sendMessage(target: CommunitySocialTarget, content: string) {
@@ -336,7 +338,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
           </span>
           <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : forum ? "Post topic" : "Post"}</button>
         </div>
-        <small className={styles.composerHint}>{forum ? "Enter to publish a topic · Shift+Enter for a new line · threaded replies and voting remain in BUZZ Desktop" : "Enter to post · Shift+Enter for a new line"}</small>
+        <small className={styles.composerHint}>{forum ? "Enter to publish a topic · Shift+Enter for a new line · threaded replies and voting remain in BUZZ Desktop" : "Enter to post · Shift+Enter for a new line · replies refresh automatically from BUZZ"}</small>
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
       </form>
     </main>
@@ -344,6 +346,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
     <aside className={styles.context} aria-label={`${target.label} details`}>
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
+        {target.kind === "channel" ? <section className={styles.contextCard} data-community-conversation-sync="buzz"><span>Conversation</span><h4>Live BUZZ conversation</h4><p>Post here as your connected Human identity. Incoming Human and Agent replies refresh automatically from the same signed room history.</p></section> : null}
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : forum ? "Community forum" : "Community room"}</h4><p>{target.description}</p></section>
         {roomGuide ? <section className={`${styles.contextCard} ${styles.contextGuide}`} aria-label={`Who helps in ${target.label}`}>
           <span>Who helps here</span>

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "issue": 1963,
+  "brief": "docs/developer-briefs/1963-great-hall-conversation-hygiene.md",
+  "allowedChanges": [
+    "modules/community/community-buzz-social.tsx",
+    "config/development-convergence/1963.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1963-great-hall-conversation-hygiene.md",
+    "tests/issue-1963-great-hall-conversation-hygiene.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "The Human-facing Community conversation excludes BUZZ live-health probes while preserving the prior operational-dump filter.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "plotpickle-buzz-health:" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "PlotPickle signed BUZZ round-trip connection probe" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "plotpickle-live-activity:" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Visible Human and Agent conversation remains one authoritative BUZZ room/history with signed sends and quiet five-second refresh.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "window.setInterval(() => { void refresh(true); }, 5000)" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "data-buzz-event-id={message.id}" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "${BUZZ_API}/messages" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "The existing context rail makes live BUZZ conversation and automatic Human/Agent reply refresh explicit without introducing another chat surface.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "data-community-conversation-sync=\"buzz\"" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "Live BUZZ conversation" },
+        { "type": "file-contains", "path": "modules/community/community-buzz-social.tsx", "contains": "Incoming Human and Agent replies refresh automatically from the same signed room history." }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The Community conversation surface and focused regression are owned and selected by the seven-layer Architecture Verification mesh.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "community-conversation-surface" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "experience.community-conversation-1963" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-1963-great-hall-conversation-hygiene.test.mjs" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Focused regression proves diagnostic filtering, shared BUZZ reply flow, verification ownership and guarded real-diff convergence.",
+      "evidence": [
+        { "type": "path-exists", "path": "tests/issue-1963-great-hall-conversation-hygiene.test.mjs" },
+        { "type": "file-contains", "path": "tests/issue-1963-great-hall-conversation-hygiene.test.mjs", "contains": "canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

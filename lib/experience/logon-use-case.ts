@@ -36,6 +36,7 @@ export type FirstProfileRecovery = Readonly<{
 export interface ExperienceAuthGateway {
   read(): Promise<ExperienceAuthSnapshot>;
   authenticate(locator: string, credential: string): Promise<ExperienceAuthSnapshot>;
+  logout(): Promise<ExperienceAuthSnapshot>;
   createFirstProfile(input: Readonly<{
     displayName: string;
     credential: string;
@@ -143,6 +144,32 @@ export async function executeAuthenticateHumanIntent(input: Readonly<{
     const view = projectLogonViewModel(await input.gateway.read());
     return {
       result: rejected(input.intent.intentId, error instanceof Error ? error.message : "AUTHENTICATION_FAILED"),
+      view,
+    };
+  }
+}
+
+export async function executeLogoutHumanIntent(input: Readonly<{
+  intent: Extract<ExperienceIntent, { type: "LogoutHuman" }>;
+  gateway: ExperienceAuthGateway;
+}>): Promise<Readonly<{ result: ExperienceIntentResult; view: LogonViewModel }>> {
+  try {
+    const snapshot = await input.gateway.logout();
+    const view = projectLogonViewModel(snapshot);
+    const accepted = view.state !== "authenticated";
+    return {
+      result: {
+        intentId: input.intent.intentId,
+        outcome: accepted ? "accepted" : "rejected",
+        revision: null,
+        reason: accepted ? null : "LOGOUT_SESSION_STILL_AUTHENTICATED",
+      },
+      view,
+    };
+  } catch (error) {
+    const view = projectLogonViewModel(await input.gateway.read());
+    return {
+      result: rejected(input.intent.intentId, error instanceof Error ? error.message : "LOGOUT_FAILED"),
       view,
     };
   }

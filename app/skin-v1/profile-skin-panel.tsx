@@ -79,6 +79,7 @@ export default function ProfileSkinPanel({
       await flushProfilePrivateWrites().catch(() => undefined);
       await profileAction(action, status.csrfToken);
       clearProfilePrivateBrowser();
+      window.sessionStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
       window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
       setStatus(null);
       await onSessionChanged();
@@ -96,7 +97,7 @@ export default function ProfileSkinPanel({
       <div className="pp-skin-v1-profile-banner">
         <span>*** PLOTPICKLE BBS ***</span>
         <strong>USER PROFILE</strong>
-        <button type="button" className="pp-skin-v1-return" onClick={onBack} disabled={busy}>Back to Profile</button>
+        <button type="button" className="pp-skin-v1-return" onClick={onBack} disabled={busy}>Back to Dashboard</button>
       </div>
 
       {status?.profile && status.csrfToken ? (

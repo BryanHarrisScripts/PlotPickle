@@ -6,7 +6,7 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("Skin V1 Settings exposes a keyboard directory and connects Cloud Story Mode plus PlotPickle Agents", async () => {
+test("Skin V1 Settings exposes a keyboard directory and connects the approved system destinations", async () => {
   const [dashboard, taxonomyText, cloud, agents] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
@@ -20,20 +20,25 @@ test("Skin V1 Settings exposes a keyboard directory and connects Cloud Story Mod
     ["General", "Appearance & Accessibility", "Project Defaults"],
   );
 
-  // The older taxonomy still carries Local so legacy Settings callers do not
-  // break while Skin V1 owns Local Story Mode separately. The Skin V1 Settings
-  // directory keeps the named destinations visible and keyboard-operable.
+  // The older taxonomy still carries Local for legacy callers, while Skin V1
+  // now presents Local Story Mode and Node Info as explicit Settings-owned destinations.
   assert.ok(taxonomy.systems.some((system) => system.id === "local"));
   assert.match(dashboard, /\.filter\(\(system\) => system\.id !== "local"\)/u);
+  assert.match(dashboard, /id: "local-story-mode"[\s\S]*label: "Local Story Mode"/u);
+  assert.match(dashboard, /id: "node-info"[\s\S]*label: "Node Info"/u);
   assert.match(dashboard, /system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
   for (const label of ["Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"]) assert.match(taxonomyText, new RegExp(`"label": "${label}"`, "u"));
 
   assert.match(dashboard, /settingsTaxonomy from "\.\.\/\.\.\/config\/settings-system-taxonomy\.json"/u);
+  assert.match(dashboard, /LocalAiSkinHost/u);
+  assert.match(dashboard, /NodeSkinPanel/u);
   assert.match(dashboard, /CloudStoryModeHost/u);
   assert.match(dashboard, /PlotPickleAgentsHost/u);
+  assert.match(dashboard, /localStoryModeOpen/u);
+  assert.match(dashboard, /nodeInfoOpen/u);
   assert.match(dashboard, /cloudStoryModeOpen/u);
   assert.match(dashboard, /plotPickleAgentsOpen/u);
-  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
+  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /data-settings-shortcut=\{item\.shortcut\}/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
@@ -57,8 +62,8 @@ test("Skin V1 Settings exposes a keyboard directory and connects Cloud Story Mod
 });
 
 test("Local and Cloud Story Modes use modern provider stores without legacy fallback", async () => {
-  const [skin, local, cloud, provider, authorityRoute, writingStore, mediaStore, migration] = await Promise.all([
-    read("app/skin-v1/skin-v1-client.tsx"),
+  const [dashboard, local, cloud, provider, authorityRoute, writingStore, mediaStore, migration] = await Promise.all([
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/local-ai-skin-host.tsx"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/cloud-provider-setup-panel.tsx"),
@@ -68,11 +73,11 @@ test("Local and Cloud Story Modes use modern provider stores without legacy fall
     read("docs/architecture/SKIN-V1-STORY-MODE-MIGRATION.md"),
   ]);
 
-  assert.match(skin, /label: "LOCAL STORY MODE", description: "LOCAL WRITING \/ IMAGES \/ VIDEO"/u);
-  assert.match(skin, /aria-label="Local Story Mode setup"/u);
-  assert.match(local, /PROFILE \/ LOCAL STORY MODE/u);
-  assert.match(local, /BACK TO LOCAL STORY MODE/u);
-  assert.match(local, /Local Story Mode defaults to local, hardware-aware AI/u);
+  assert.match(dashboard, /id: "local-story-mode"[\s\S]*description: "Local writing, images, video and Agent compute on this computer\."/u);
+  assert.match(dashboard, /<section aria-label="Local Story Mode setup"/u);
+  assert.match(local, /SETTINGS \/ LOCAL STORY MODE/u);
+  assert.match(local, /Back to Local Story Mode/u);
+  assert.match(local, /THIS COMPUTER \/ NO CLOUD PROVIDER CHARGES/u);
 
   for (const source of [cloud, provider, authorityRoute]) assert.doesNotMatch(source, /LegacySettingsPanel|settings-panel-legacy|\/api\/local-ai\/connection/u);
   assert.match(provider, /\/api\/cloud-story-mode\/provider/u);

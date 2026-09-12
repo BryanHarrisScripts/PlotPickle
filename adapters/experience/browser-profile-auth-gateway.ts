@@ -1,7 +1,10 @@
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../core/storage/project-library-browser";
 import {
+  clearProfilePrivateBrowser,
+  flushProfilePrivateWrites,
   hydrateProfilePrivateBrowser,
   migrateLegacyBrowserProjects,
+  persistActiveProfileProject,
 } from "../../core/storage/profile-private-browser";
 import type {
   ExperienceAuthGateway,
@@ -103,6 +106,28 @@ export const browserProfileAuthGateway: ExperienceAuthGateway = {
 
     window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, login.profile.profileId);
     await hydrateProfilePrivateBrowser(login.profile.profileId, token);
+    return safeSnapshot(await readRawProfileStatus());
+  },
+
+  async logout() {
+    const before = await readRawProfileStatus();
+    if (!before.authenticated || !before.csrfToken) return safeSnapshot(before);
+
+    await persistActiveProfileProject().catch(() => undefined);
+    await flushProfilePrivateWrites().catch(() => undefined);
+    await json<Readonly<{ ok: boolean }>>(await fetch("/api/auth/profile", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-PlotPickle-CSRF": before.csrfToken,
+      },
+      body: JSON.stringify({ action: "logout" }),
+    }));
+
+    clearProfilePrivateBrowser();
+    window.sessionStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
+    window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
     return safeSnapshot(await readRawProfileStatus());
   },
 };

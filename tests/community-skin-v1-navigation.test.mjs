@@ -55,7 +55,7 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(layout, /community-monochrome-skin.css/u);
 });
 
-test("Skin V1 Settings keeps all named systems keyboard-visible and connects Cloud Story Mode plus Agents", async () => {
+test("Skin V1 Settings keeps all named systems keyboard-visible and connects the approved Dashboard and Settings destinations", async () => {
   const [dashboard, taxonomyText, cloud, agents, surfaces] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
@@ -72,9 +72,11 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects Clo
   assert.ok(taxonomy.systems.some((system) => system.id === "local"));
   assert.match(dashboard, /\.filter\(\(system\) => system\.id !== "local"\)/u);
   assert.match(dashboard, /system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
-  assert.match(dashboard, /new Set\(\["community", "settings", "profile"\]\)/u);
+  assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "logout", "learn"\]\)/u);
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
-  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["cloud", "agents"\]\)/u);
+  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
+  assert.match(dashboard, /setLocalStoryModeOpen\(true\)/u);
+  assert.match(dashboard, /setNodeInfoOpen\(true\)/u);
   assert.match(dashboard, /setCloudStoryModeOpen\(true\)/u);
   assert.match(dashboard, /setPlotPickleAgentsOpen\(true\)/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);

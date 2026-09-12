@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "issue": 1915,
+  "brief": "docs/developer-briefs/1915-skin-v1-dashboard-navigation.md",
+  "allowedChanges": [
+    ".github/workflows/pr-gate.yml",
+    "adapters/experience/browser-profile-auth-gateway.ts",
+    "app/skin-v1/cloud-story-mode-host.tsx",
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1/local-ai-skin-host.tsx",
+    "app/skin-v1/profile-skin-panel.tsx",
+    "app/skin-v1/skin-v1-client.tsx",
+    "config/development-convergence/1915.json",
+    "core/contracts/experience.ts",
+    "docs/developer-briefs/1915-skin-v1-dashboard-navigation.md",
+    "lib/experience/logon-use-case.ts",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/community-skin-v1-navigation.test.mjs",
+    "tests/issue-1847-1849-cloud-agents-settings.test.mjs",
+    "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs",
+    "tests/skin-v1-settings-secondary-menu.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Dashboard identifies itself as PLOTPICKLE DASHBOARD, labels the menu section PLOTPICKLE BBS, and exposes a connected Log Off command near the top-level library entries.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "PLOTPICKLE DASHBOARD" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "*** PLOTPICKLE BBS ***" },
+        { "type": "file-contains", "path": "app/skin-v1/skin-v1-client.tsx", "contains": "label: \"Log Off\"" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Log Off ends only the current Human browser session through the existing auth boundary, flushes private work, returns a locked LOGON projection, and does not stop the PlotPickle Node.",
+      "evidence": [
+        { "type": "file-contains", "path": "core/contracts/experience.ts", "contains": "type: \"LogoutHuman\"" },
+        { "type": "file-contains", "path": "lib/experience/logon-use-case.ts", "contains": "executeLogoutHumanIntent" },
+        { "type": "file-contains", "path": "adapters/experience/browser-profile-auth-gateway.ts", "contains": "JSON.stringify({ action: \"logout\" })" },
+        { "type": "file-contains", "path": "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs", "contains": "ends only the Human browser session" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "User Profile opens directly from Dashboard, while Local Story Mode and Node Info are connected Options & Settings destinations.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/skin-v1-client.tsx", "contains": "setUserProfileOpen(true)" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "id: \"local-story-mode\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "id: \"node-info\"" },
+        { "type": "file-contains", "path": "app/skin-v1/local-ai-skin-host.tsx", "contains": "SETTINGS / LOCAL STORY MODE" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "Writer's Craft opens exactly one first-level collection submenu using the nine existing Learning Studio collection names and does not open lesson/module content yet.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "const WRITER_CRAFT_MENU" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "Collaboration, Formats & Ownership" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "LESSON LEVEL IS NOT OPENED IN THIS BUILD" }
+      ]
+    },
+    {
+      "id": "A5",
+      "criterion": "Cloud and Local Story Mode restore the wired Skin V1 right-side indicator contract so the live audit sees connected state and accent-bright color.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/cloud-story-mode-host.tsx", "contains": "data-skin-menu-indicator={\"connected\"}" },
+        { "type": "file-contains", "path": "app/skin-v1/local-ai-skin-host.tsx", "contains": "data-skin-menu-indicator={\"connected\"}" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "indicatorColor" }
+      ]
+    },
+    {
+      "id": "A6",
+      "criterion": "WebMCP traverses the new Settings-owned Local/Node paths, direct User Profile path, and first Writer's Craft submenu while preserving Cloud Story Mode checks.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "inspectMenu(page, \"writer-craft\", failures)" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "section[aria-label='User Profile']" },
+        { "type": "file-contains", "path": "lib/verification/skin-v1-menu-contract-audit.mjs", "contains": "keyboard.press(\"I\")" }
+      ]
+    },
+    {
+      "id": "A7",
+      "criterion": "The focused #1915 regression is part of PR Gate and the developer brief preserves the bounded scope and non-goals.",
+      "evidence": [
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "Validate Skin V1 Dashboard navigation repair" },
+        { "type": "file-contains", "path": ".github/workflows/pr-gate.yml", "contains": "tests/issue-1915-skin-v1-dashboard-navigation.test.mjs" },
+        { "type": "file-contains", "path": "docs/developer-briefs/1915-skin-v1-dashboard-navigation.md", "contains": "no Node stop/restart/shutdown behavior from Log Off" }
+      ]
+    }
+  ]
+}

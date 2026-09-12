@@ -39,6 +39,11 @@ export type ExperienceIntent =
       baseRevision: null;
     }>
   | Readonly<{
+      type: "LogoutHuman";
+      intentId: string;
+      baseRevision: null;
+    }>
+  | Readonly<{
       type: "CreateFirstHumanProfile";
       intentId: string;
       displayName: string;

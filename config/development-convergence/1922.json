@@ -5,6 +5,7 @@
   "allowedChanges": [
     "config/development-convergence/1922.json",
     "config/verification/phase-0-inventory.json",
+    "config/verification/phase-0-specialized-workflows.json",
     "docs/developer-briefs/1922-seven-layer-verification-mesh.md",
     "docs/developer-briefs/1922-verification-decisions.md",
     "docs/developer-briefs/1922-phase-0-ci-inventory.md"
@@ -52,6 +53,15 @@
       "evidence": [
         { "type": "file-contains", "path": "docs/developer-briefs/1922-verification-decisions.md", "contains": "five configuration controls measured 25.25px" },
         { "type": "file-contains", "path": "docs/developer-briefs/1922-phase-0-ci-inventory.md", "contains": "live WebMCP evidence" }
+      ]
+    },
+    {
+      "id": "P0-A6",
+      "criterion": "Specialized workflows are audited for reuse, legacy spillover and architectural decomposition before seven-layer implementation begins.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "historical-monolith-misnamed" },
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "good-specialized-heavy-proof" },
+        { "type": "file-contains", "path": "config/verification/phase-0-specialized-workflows.json", "contains": "good-specialized-release-proof" }
       ]
     }
   ]

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": 1965,
+  "brief": "docs/developer-briefs/1965-settings-profile-polish.md",
+  "allowedChanges": [
+    "app/skin-v1/dashboard-bbs-panel.tsx",
+    "app/skin-v1-settings-directory.css",
+    "config/development-convergence/1965.json",
+    "docs/developer-briefs/1965-settings-profile-polish.md",
+    "tests/issue-1954-pre-phase2-cleanup.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "A1",
+      "criterion": "Settings begins with Systems and the first three destinations are Node Info, Local Story Mode and Cloud Story Mode.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "id: \"node-info\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "id: \"local-story-mode\"" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "label: system.id === \"cloud\" ? \"Cloud Story Mode\" : system.label" }
+      ]
+    },
+    {
+      "id": "A2",
+      "criterion": "Settings row descriptions no longer duplicate unwired state with a trailing [NOT CONNECTED] label while machine-readable and accessible state remain intact.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "<span className=\"pp-skin-v1-dashboard-command-line\">{command} - {item.description}</span>" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "data-skin-menu-connected={connected ? \"true\" : \"false\"}" },
+        { "type": "file-contains", "path": "app/skin-v1/dashboard-bbs-panel.tsx", "contains": "aria-label={connected ? \"Connected Settings destination\" : \"Settings destination not connected yet\"}" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "assert.doesNotMatch(dashboard, /\\[NOT CONNECTED\\]/u);" }
+      ]
+    },
+    {
+      "id": "A3",
+      "criterion": "Profile readiness uses the full identity-summary width and flat actionable controls while preserving canonical control height.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "[aria-label=\"Profile readiness\"]" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "grid-column: 1 / -1 !important" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "min-height: var(--pp-skin-control-height) !important" },
+        { "type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "border-radius: 0 !important" }
+      ]
+    },
+    {
+      "id": "A4",
+      "criterion": "The existing Settings/Profile Experience Skins baseline proves the #1965 changes and guarded real-diff convergence.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1965 Settings starts with Systems" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1965 Profile readiness uses the full identity-summary width" },
+        { "type": "file-contains", "path": "tests/issue-1954-pre-phase2-cleanup.test.mjs", "contains": "#1965 canonical development convergence reports CONVERGED against the real diff" }
+      ]
+    }
+  ]
+}

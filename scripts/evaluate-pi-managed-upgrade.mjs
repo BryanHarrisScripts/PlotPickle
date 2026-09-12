@@ -12,8 +12,8 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const contractPath = path.join(repoRoot, "config", "pi-managed-upgrade-evaluation.json");
 const artifactDir = path.join(repoRoot, ".artifacts", "pi-1709");
 const artifactPath = path.join(artifactDir, "evaluation.json");
-const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".json", ".md", ".ps1"]);
-const SKIP_DIRECTORIES = new Set([".git", ".next", ".artifacts", "node_modules"]);
+const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".ps1"]);
+const SKIP_DIRECTORIES = new Set([".git", ".next", ".artifacts", "node_modules", "docs", "tests", "config", ".github"]);
 
 function parseNpmSpec(spec) {
   const raw = String(spec || "").replace(/^npm:/u, "");

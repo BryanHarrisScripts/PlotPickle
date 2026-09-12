@@ -6,8 +6,8 @@ import type {
 } from "../contracts/learning-application";
 import type { PPFProject } from "../project/project";
 
-const MAX_FACTS = 4;
-const MAX_FACT_LENGTH = 300;
+const MAX_FACTS = 2;
+const MAX_FACT_LENGTH = 180;
 
 function bounded(value: string, limit = MAX_FACT_LENGTH) {
   const clean = value.replace(/\s+/g, " ").trim();
@@ -26,7 +26,7 @@ function answerFacts(
     .slice(0, MAX_FACTS)
     .map(([key, value]) => ({
       id: `${sourcePrefix}:${key}`,
-      label: `${labelPrefix} ${key}`,
+      label: bounded(`${labelPrefix} ${key}`, 60),
       value: bounded(value),
       source: `${sourcePrefix}.${key}`,
     }));
@@ -39,7 +39,7 @@ function briefFact(
   source: string,
 ): LearningApplicationFact | null {
   if (!value?.trim()) return null;
-  return { id, label, value: bounded(value), source };
+  return { id, label: bounded(label, 60), value: bounded(value), source };
 }
 
 function uniqueFacts(facts: readonly (LearningApplicationFact | null)[]) {
@@ -95,19 +95,19 @@ export function buildLearningApplicationView(input: {
     schemaVersion: "phase-7-ea-reflection-v1",
     project: {
       id: project.id,
-      title: project.title,
+      title: bounded(project.title, 120),
       revision: project.revision,
     },
     lesson: {
       id: lesson.id,
-      title: lesson.title,
+      title: bounded(lesson.title, 100),
       topic: lesson.topic,
-      applyInstruction: bounded(lesson.apply, 500),
+      applyInstruction: bounded(lesson.apply, 200),
     },
     craftModule: {
       id: course.id,
-      title: course.title,
-      applicationTargets: course.applicationTargets.map((target) => bounded(target, 180)),
+      title: bounded(course.title, 80),
+      applicationTargets: course.applicationTargets.slice(0, 3).map((target) => bounded(target, 80)),
     },
     facts: contextualFacts,
     authority: {

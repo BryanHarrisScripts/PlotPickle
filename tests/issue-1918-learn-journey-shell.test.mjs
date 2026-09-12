@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { promisify } from "node:util";
 import { LEARN_PROGRAM_MAP } from "../learn/program-map.mjs";
+import { LEARN_PROGRAM_COURSE_SPECS, LEARN_PROGRAM_SHELL_SPEC } from "../learn/program-map-spec.mjs";
 import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -21,6 +22,18 @@ const WRITER_CRAFT_COMPATIBILITY_IDS = [
   "collaboration",
 ];
 
+const shellFields = (course) => ({
+  id: course.id,
+  year: course.year,
+  semester: course.semester,
+  orderInSemester: course.orderInSemester,
+  title: course.title,
+  purpose: course.purpose,
+  lessonRefs: course.lessonRefs,
+  advisoryPrerequisites: course.advisoryPrerequisites,
+  applicationTargets: course.applicationTargets,
+});
+
 test("#1918 Phase 3 projects the canonical 24-course map into six four-course semester shells", async () => {
   const route = await read("app/api/learn/journey-preview/route.ts");
 
@@ -29,10 +42,15 @@ test("#1918 Phase 3 projects the canonical 24-course map into six four-course se
   assert.equal(LEARN_PROGRAM_MAP.coursesPerSemester, 4);
   assert.equal(LEARN_PROGRAM_MAP.courseCount, 24);
   assert.deepEqual(LEARN_PROGRAM_MAP.semesters.map((semester) => semester.courseIds.length), [4, 4, 4, 4, 4, 4]);
+  assert.equal(LEARN_PROGRAM_SHELL_SPEC.courseCount, 24);
+  assert.deepEqual(LEARN_PROGRAM_MAP.courses.map(shellFields), LEARN_PROGRAM_COURSE_SPECS.map(shellFields));
+  assert.deepEqual(LEARN_PROGRAM_MAP.semesters, LEARN_PROGRAM_SHELL_SPEC.semesters);
 
-  assert.match(route, /LEARN_PROGRAM_MAP/u);
+  assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
+  assert.match(route, /LEARN_PROGRAM_SHELL_SPEC/u);
+  assert.doesNotMatch(route, /program-map\.mjs/u);
   assert.match(route, /phase: "phase-3-journey-shell"/u);
-  assert.match(route, /lessonCount: course\.lessonIds\.length/u);
+  assert.match(route, /lessonCount: course\.lessonRefs\.reduce/u);
   assert.match(route, /status: "preview-only"/u);
   assert.match(route, /contentAvailable: false/u);
   assert.match(route, /lessonContentExposed: false/u);
@@ -124,6 +142,11 @@ test("#1918 Phase 3 is governed by the seven-layer verification mesh", async () 
   assert.ok(apiOwner);
   assert.equal(apiOwner.ownerLayer, "experience-contract");
   assert.ok(apiOwner.include.includes("app/api/learn/journey-preview/route.ts"));
+
+  const mapOwner = ownership.rules.find((rule) => rule.id === "learn-program-map");
+  assert.ok(mapOwner);
+  assert.ok(mapOwner.include.includes("learn/program-map.mjs"));
+  assert.ok(mapOwner.include.includes("learn/program-map-spec.mjs"));
 });
 
 test("#1918 Phase 3 canonical development convergence reports CONVERGED against the real diff", async (t) => {

@@ -134,6 +134,10 @@ export async function runLiveWebMcpEvidence() {
     ...process.env,
     ...runtime.runtimeEnv,
     PLOTPICKLE_STARTUP_TESTING_MODE: "webmcp",
+    PLOTPICKLE_ACCEPTANCE_MODE: "1",
+    PLOTPICKLE_AUTONOMOUS_GUEST_ENABLED: "true",
+    PLOTPICKLE_AUTONOMOUS_RUN_ID: `phase5-webmcp-${jobRef}`,
+    PLOTPICKLE_AUTONOMOUS_OPERATOR_ID: "phase5-live-observer",
     PLOTPICKLE_SHUTDOWN_SIGNAL: path.join(nodeRuntimeDir, "shutdown-request.json"),
     PLOTPICKLE_BROWSER_STATE: path.join(nodeRuntimeDir, "browser-owner.json"),
     PLOTPICKLE_BROWSER_PROFILE: path.join(nodeRuntimeDir, "browser-profile"),
@@ -183,6 +187,7 @@ export async function runLiveWebMcpEvidence() {
     await writeSummary("pass", {
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+      nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
       nodeDependencies,
     });
     return 0;
@@ -192,6 +197,7 @@ export async function runLiveWebMcpEvidence() {
       failure: message,
       syntheticHomeAuthority: "full-verification-auth",
       runtimeEnvironmentAuthority: "verificationSyntheticRuntime",
+      nodeIdentityAuthority: "autonomousAcceptanceNodeIdentity",
       nodeDependencies,
     });
     console.error(`[FAIL] Live WebMCP verification: ${message}`);

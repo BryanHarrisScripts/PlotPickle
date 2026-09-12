@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schema/verification/test-catalog.schema.json",
+  "title": "PlotPickle Verification Test Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceArchitecture", "migrationSource", "entries"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0" },
+    "sourceArchitecture": { "const": "architecture/plotpickle.architecture.json" },
+    "migrationSource": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/catalogEntry" }
+    }
+  },
+  "$defs": {
+    "catalogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ownerLayer",
+        "architectureComponents",
+        "triggerTokens",
+        "runner",
+        "cost",
+        "modes",
+        "platforms",
+        "requirements",
+        "evidence"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "ownerLayer": { "type": "string", "minLength": 1 },
+        "architectureComponents": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "triggerTokens": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "runner": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "targets"],
+          "properties": {
+            "kind": { "type": "string", "minLength": 1 },
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "cost": { "type": "string", "minLength": 1 },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "requirements": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["network", "native", "secrets"],
+          "properties": {
+            "network": { "type": "boolean" },
+            "native": { "type": "boolean" },
+            "secrets": { "type": "boolean" }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["types", "artifactPaths"],
+          "properties": {
+            "types": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "artifactPaths": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "legacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["workflow", "step"],
+          "properties": {
+            "workflow": { "type": "string", "minLength": 1 },
+            "step": { "type": "string", "minLength": 1 },
+            "measuredSecondsApprox": { "type": "number", "minimum": 0 }
+          }
+        },
+        "replacementFor": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "supersedes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

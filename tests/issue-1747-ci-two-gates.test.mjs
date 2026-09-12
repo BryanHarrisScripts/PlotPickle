@@ -5,8 +5,9 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const workflowRoot = new URL(".github/workflows/", root);
 const source = (path) => readFile(new URL(path, root), "utf8");
+const readJson = async (path) => JSON.parse(await source(path));
 
-test("issue #1747 keeps exactly two authoritative PR gates while Phase 3 adds one shadow workflow", async () => {
+test("issue #1747 keeps exactly three ordinary PR workflows during Phase 6 promotion", async () => {
   const files = (await readdir(workflowRoot)).filter((file) => /\.ya?ml$/.test(file)).sort();
   const workflows = new Map(await Promise.all(files.map(async (file) => [file, await source(`.github/workflows/${file}`)])));
   const pullRequestWorkflows = [...workflows]
@@ -18,17 +19,20 @@ test("issue #1747 keeps exactly two authoritative PR gates while Phase 3 adds on
 
   const prGate = workflows.get("pr-gate.yml");
   const productGate = workflows.get("product-gate.yml");
-  const shadow = workflows.get("architecture-shadow.yml");
+  const architecture = workflows.get("architecture-shadow.yml");
   assert.match(prGate, /^name: PR Gate$/m);
   assert.match(prGate, /^    name: PR Gate$/m);
   assert.match(productGate, /^name: Product Gate$/m);
   assert.match(productGate, /^    name: Product Gate$/m);
-  assert.match(shadow, /^name: Architecture Shadow Verification$/m);
-  assert.doesNotMatch(shadow, /^    name: PR Gate$/m);
-  assert.doesNotMatch(shadow, /^    name: Product Gate$/m);
+  assert.match(architecture, /^name: Architecture Verification$/m);
+  assert.doesNotMatch(architecture, /^    name: PR Gate$/m);
+  assert.doesNotMatch(architecture, /^    name: Product Gate$/m);
+
+  const authority = await readJson("config/verification/merge-authority.json");
+  assert.deepEqual(authority.legacyAdvisoryWorkflows.map((entry) => entry.role), ["advisory-comparison", "advisory-comparison"]);
 });
 
-test("issue #1747 keeps authoritative PR verification focused on the current architecture", async () => {
+test("issue #1747 keeps legacy PR comparison verification focused on the current architecture", async () => {
   const [prGate, productGate] = await Promise.all([
     source(".github/workflows/pr-gate.yml"),
     source(".github/workflows/product-gate.yml"),

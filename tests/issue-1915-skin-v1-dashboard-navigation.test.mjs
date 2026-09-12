@@ -20,7 +20,7 @@ test("#1915 Dashboard naming, Log Off and first Writer's Craft submenu follow th
   assert.match(skin, /type: "LogoutHuman"/u);
   assert.match(skin, /executeLogoutHumanIntent/u);
   assert.match(skin, /item\.id === "profile"[\s\S]*setUserProfileOpen\(true\)/u);
-  assert.match(profile, />Back to Dashboard<\/button>/u);
+  assert.match(profile, /Back to Dashboard<\/button>/u);
 
   const collections = [
     "Screenwriting Foundations",
@@ -77,7 +77,11 @@ test("#1915 Log Off ends only the Human browser session and returns a locked LOG
   assert.match(gatewaySource, /clearProfilePrivateBrowser/u);
   assert.doesNotMatch(gatewaySource, /node-control|begin-shutdown|complete-shutdown|stop node|stop-node/iu);
 
-  const logon = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(useCaseSource)).toString("base64")}`);
+  const executableUseCaseSource = useCaseSource.replace(
+    'import type { ExperienceIntent, ExperienceIntentResult, ExperienceSurfaceId } from "../../core/contracts/experience";\n',
+    "",
+  );
+  const logon = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(executableUseCaseSource)).toString("base64")}`);
   const profile = { profileId: "human-1", displayName: "Human", avatarRef: null, status: "active" };
   const locked = { configured: true, authenticated: false, accessMode: "desktop-loopback", profiles: [profile], profile: null, serverReady: true, readinessReasons: [] };
   const gateway = {

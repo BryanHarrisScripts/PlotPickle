@@ -36,6 +36,13 @@
       "riskTokens": ["surface", "navigation", "mcp"]
     },
     {
+      "id": "root-story-startup",
+      "classification": "production",
+      "include": ["app/page.tsx"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "mcp"]
+    },
+    {
       "id": "learn-journey-preview-api",
       "classification": "production",
       "include": [

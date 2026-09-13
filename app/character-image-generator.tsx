@@ -38,6 +38,30 @@ const traitFields: Array<[keyof CharacterVisualTraits, string, string]> = [
   ["colourCues", "Character colour cues", "Recurring colours that identify this character"],
 ];
 
+function parseReferenceAngle(value: string): CharacterReferenceAngle {
+  switch (value) {
+    case "master":
+    case "front":
+    case "profile":
+    case "three-quarter":
+    case "full-body":
+      return value;
+    default:
+      return "master";
+  }
+}
+
+function referenceAngleLabel(value: unknown) {
+  switch (value) {
+    case "master": return "master";
+    case "front": return "front";
+    case "profile": return "profile";
+    case "three-quarter": return "three quarter";
+    case "full-body": return "full body";
+    default: return "reference";
+  }
+}
+
 function cloneIdentity(identity: CharacterVisualIdentity): CharacterVisualIdentity {
   return JSON.parse(JSON.stringify(identity)) as CharacterVisualIdentity;
 }
@@ -175,12 +199,13 @@ export default function CharacterImageGenerator({ project, character, onImage }:
       setMessage("Image generation was cancelled. No provider request was made.");
       return;
     }
+    const angleLabel = referenceAngleLabel(angle);
     setState("working");
-    setMessage(`Generating the ${angle.replace("-", " ")} reference and saving it locally…`);
+    setMessage(`Generating the ${angleLabel} reference and saving it locally…`);
     try {
       const prompt = [
         identity.draftPrompt,
-        `Reference view: ${angle.replace("-", " ")}.`,
+        `Reference view: ${angleLabel}.`,
         angle === "full-body" ? "Show the complete body and readable silhouette." : "Clear face and production-reference lighting.",
         identity.negativePrompt && `Identity exclusions: ${identity.negativePrompt}`,
         "Single character only, neutral background, no text, no border.",
@@ -209,7 +234,7 @@ export default function CharacterImageGenerator({ project, character, onImage }:
         references: [...identity.references.filter((item) => item.angle !== angle), reference],
       };
       if (identity.status === "locked") {
-        const next = saveVisualIdentityDraft(visualCharacter, proposed, `Generated a new ${angle.replace("-", " ")} reference`);
+        const next = saveVisualIdentityDraft(visualCharacter, proposed, `Generated a new ${angleLabel} reference`);
         persist(next, "The locked identity and thumbnail remain unchanged. The new reference is waiting in a proposed version for writer approval.");
       } else {
         persist(proposed, "Reference generated and attached as a draft. Review the complete identity package before locking it.", angle === "master" ? result.assetUrl : character.image);
@@ -251,11 +276,11 @@ export default function CharacterImageGenerator({ project, character, onImage }:
       <label><span>Negative identity prompt — details that must not drift</span><textarea rows={4} value={identity.negativePrompt} onChange={(event) => setIdentity((current) => ({ ...current, negativePrompt: event.target.value }))} /></label>
 
       <div className={styles.referenceControls}>
-        <label><span>Reference view</span><select value={angle} onChange={(event) => setAngle(event.target.value as CharacterReferenceAngle)}><option value="master">Master three-quarter portrait</option><option value="front">Front</option><option value="profile">Profile</option><option value="three-quarter">Three-quarter</option><option value="full-body">Full body</option></select></label>
-        <button type="button" className={styles.generate} disabled={state === "working" || !identity.draftPrompt.trim()} onClick={generate}>{state === "working" ? "Generating…" : `Generate ${angle.replace("-", " ")} reference`}</button>
+        <label><span>Reference view</span><select value={angle} onChange={(event) => setAngle(parseReferenceAngle(event.currentTarget.value))}><option value="master">Master three-quarter portrait</option><option value="front">Front</option><option value="profile">Profile</option><option value="three-quarter">Three-quarter</option><option value="full-body">Full body</option></select></label>
+        <button type="button" className={styles.generate} disabled={state === "working" || !identity.draftPrompt.trim()} onClick={generate}>{state === "working" ? "Generating…" : `Generate ${referenceAngleLabel(angle)} reference`}</button>
       </div>
 
-      {identity.references.length ? <div className={styles.references}>{identity.references.map((reference) => <article key={reference.id}><img src={reference.src} alt={`${character.name} ${reference.angle} reference`} /><div><strong>{reference.angle.replace("-", " ")}</strong><span>{reference.approved ? "Approved" : "Draft"}</span></div></article>)}</div> : <p className={styles.empty}>No visual references yet. The identity prompt can still be locked, but at least one approved image is recommended.</p>}
+      {identity.references.length ? <div className={styles.references}>{identity.references.map((reference) => <article key={reference.id}><img src={reference.src} alt={`${character.name} ${referenceAngleLabel(reference.angle)} reference`} /><div><strong>{referenceAngleLabel(reference.angle)}</strong><span>{reference.approved ? "Approved" : "Draft"}</span></div></article>)}</div> : <p className={styles.empty}>No visual references yet. The identity prompt can still be locked, but at least one approved image is recommended.</p>}
 
       <section className={styles.developmentBoard} data-character-development-board data-ppf-revision={development.ppfRevision}>
         <div className={styles.developmentHeading}>

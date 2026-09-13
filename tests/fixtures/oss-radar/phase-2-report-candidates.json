@@ -1,0 +1,89 @@
+{
+  "reportDate": "2026-09-13T12:00:00.000Z",
+  "candidates": [
+    {
+      "repositoryStableId": "201",
+      "fullName": "craft/story-workbench",
+      "url": "https://github.com/craft/story-workbench",
+      "description": "Story development tools for writers.",
+      "matchedLaneIds": ["writer-craft"],
+      "score": 82,
+      "license": {"spdxId": "MIT", "status": "known-open-source"},
+      "pushedAt": "2026-09-12T10:00:00Z",
+      "updatedAt": "2026-09-12T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 1}, "relevance": {"matchedTerms": ["story", "writing"]}, "reasonCodes": ["lane:writer-craft", "activity:recent", "license:known-open-source"]}
+    },
+    {
+      "repositoryStableId": "202",
+      "fullName": "visual/previs-kit",
+      "url": "https://github.com/visual/previs-kit",
+      "description": "Previsualization and shot planning utilities.",
+      "matchedLaneIds": ["visual-story"],
+      "score": 79,
+      "license": {"spdxId": "Apache-2.0", "status": "known-open-source"},
+      "pushedAt": "2026-09-11T10:00:00Z",
+      "updatedAt": "2026-09-11T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 2}, "relevance": {"matchedTerms": ["previs", "shot"]}, "reasonCodes": ["lane:visual-story", "activity:recent", "license:known-open-source"]}
+    },
+    {
+      "repositoryStableId": "203",
+      "fullName": "story/sim-engine",
+      "url": "https://github.com/story/sim-engine",
+      "description": "Deterministic interactive narrative simulation.",
+      "matchedLaneIds": ["story-game-engine"],
+      "score": 76,
+      "license": {"spdxId": "MIT", "status": "known-open-source"},
+      "pushedAt": "2026-09-10T10:00:00Z",
+      "updatedAt": "2026-09-10T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 3}, "relevance": {"matchedTerms": ["deterministic", "narrative"]}, "reasonCodes": ["lane:story-game-engine", "activity:recent", "license:known-open-source"]}
+    },
+    {
+      "repositoryStableId": "204",
+      "fullName": "learn/reflective-tutor",
+      "url": "https://github.com/learn/reflective-tutor",
+      "description": "Reflection-first learning workflows.",
+      "matchedLaneIds": ["learn-education"],
+      "score": 73,
+      "license": {"spdxId": "MPL-2.0", "status": "known-open-source"},
+      "pushedAt": "2026-09-09T10:00:00Z",
+      "updatedAt": "2026-09-09T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 4}, "relevance": {"matchedTerms": ["reflection", "learning"]}, "reasonCodes": ["lane:learn-education", "activity:recent", "license:known-open-source"]}
+    },
+    {
+      "repositoryStableId": "205",
+      "fullName": "agents/context-mesh",
+      "url": "https://github.com/agents/context-mesh",
+      "description": "Context assembly and agent orchestration patterns.",
+      "matchedLaneIds": ["ai-architecture", "platform-engineering"],
+      "score": 70,
+      "license": {"spdxId": "MIT", "status": "known-open-source"},
+      "pushedAt": "2026-09-08T10:00:00Z",
+      "updatedAt": "2026-09-08T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 5}, "relevance": {"matchedTerms": ["context", "agent"]}, "reasonCodes": ["lane:ai-architecture", "lane:platform-engineering", "activity:recent", "license:known-open-source"]}
+    },
+    {
+      "repositoryStableId": "206",
+      "fullName": "local/voice-console",
+      "url": "https://github.com/local/voice-console",
+      "description": "Local voice input utilities.",
+      "matchedLaneIds": ["platform-engineering"],
+      "score": 60,
+      "license": {"spdxId": "UNKNOWN", "status": "unknown"},
+      "pushedAt": "2026-09-07T10:00:00Z",
+      "updatedAt": "2026-09-07T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 6}, "relevance": {"matchedTerms": ["local", "voice"]}, "reasonCodes": ["lane:platform-engineering", "activity:recent", "license:unknown"]}
+    },
+    {
+      "repositoryStableId": "207",
+      "fullName": "misc/weak-match",
+      "url": "https://github.com/misc/weak-match",
+      "description": "A weak Radar match.",
+      "matchedLaneIds": ["platform-engineering"],
+      "score": 40,
+      "license": {"spdxId": "MIT", "status": "known-open-source"},
+      "pushedAt": "2026-09-06T10:00:00Z",
+      "updatedAt": "2026-09-06T10:00:00Z",
+      "scoreEvidence": {"activity": {"ageDays": 7}, "relevance": {"matchedTerms": []}, "reasonCodes": ["lane:platform-engineering", "license:known-open-source"]}
+    }
+  ]
+}

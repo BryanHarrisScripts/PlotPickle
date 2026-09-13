@@ -55,12 +55,14 @@ test("Skin V1 activates the existing Community host without importing BUZZ trans
   assert.match(layout, /community-monochrome-skin.css/u);
 });
 
-test("Skin V1 Settings keeps all named systems keyboard-visible and connects the approved Dashboard and Settings destinations", async () => {
-  const [dashboard, taxonomyText, cloud, agents, surfaces] = await Promise.all([
+test("Skin V1 Settings keeps the condensed system directory and approved Dashboard destinations", async () => {
+  const [dashboard, taxonomyText, cloud, agents, advanced, skin, surfaces] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/plotpickle-agents-host.tsx"),
+    read("app/skin-v1/settings-review-system-panel.tsx"),
+    read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1-bbs-surfaces.css"),
   ]);
   const taxonomy = JSON.parse(taxonomyText);
@@ -70,9 +72,10 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects the
     ["General", "Appearance & Accessibility", "Project Defaults"],
   );
   assert.ok(taxonomy.systems.some((system) => system.id === "local"));
-  assert.match(dashboard, /\.filter\(\(system\) => system\.id !== "local"\)/u);
-  assert.match(dashboard, /system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
-  assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "logout", "learn"\]\)/u);
+  assert.match(dashboard, /id: "cloud"[\s\S]*label: "Cloud Story Mode"/u);
+  assert.match(dashboard, /id: "agents"[\s\S]*label: "Agents"/u);
+  assert.match(dashboard, /id: "advanced"[\s\S]*label: "Advanced"/u);
+  assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "open-source", "logout", "learn"\]\)/u);
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
   assert.match(dashboard, /setLocalStoryModeOpen\(true\)/u);
@@ -80,6 +83,8 @@ test("Skin V1 Settings keeps all named systems keyboard-visible and connects the
   assert.match(dashboard, /setCloudStoryModeOpen\(true\)/u);
   assert.match(dashboard, /setPlotPickleAgentsOpen\(true\)/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
+  assert.match(advanced, /Tools &amp; MCP/u);
+  assert.match(skin, /id: "open-source"[\s\S]*label: "Open Source"/u);
   assert.match(cloud, /data-skin-v1-cloud-story-mode="true"/u);
   assert.match(cloud, /\{ id: "agents", shortcut: "A", detail: "Cloud text compute available to PlotPickle Agents", group: "CAPABILITIES" \}/u);
   assert.match(cloud, /agents: "Agents"/u);

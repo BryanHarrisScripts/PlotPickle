@@ -58,7 +58,7 @@ test("#1995 Phase 1 separates pre-creation from room administration", async () =
   assert.ok(!privateRoom.slice(notCreatedIndex).includes("CommunityStoryRoomAccess channel={selectedPrivateRoom.channel}"), "Pre-creation branch must not render room administration.");
 });
 
-test("#1995 Phase 0 preserves BUZZ public identity and member-only normal admission", async () => {
+test("#1995 preserves BUZZ public identity and member-only normal admission", async () => {
   const [contract, accessGateway, directoryGateway] = await Promise.all([
     read("lib/community/community-ux-contract.ts"),
     read("build/buzz-story-room-access-gateway.ts"),
@@ -72,10 +72,65 @@ test("#1995 Phase 0 preserves BUZZ public identity and member-only normal admiss
   assert.match(contract, /knownPersonSourceRequiresGreatHallMembership: false/u);
 
   assert.match(accessGateway, /\^\[a-f0-9\]\{64\}\$/u);
-  assert.match(accessGateway, /const role = text\(body\.role\)\.toLowerCase\(\) \|\| "member"/u);
+  assert.match(accessGateway, /"channels", "add-member", "--channel", channel\.id, "--pubkey", identity\.pubkey, "--role", "member"/u);
+  assert.doesNotMatch(accessGateway, /VALID_ROLES|body\.role/u);
   assert.match(directoryGateway, /"channels", "add-member"/u);
   assert.match(directoryGateway, /"--role", "member"/u);
   assert.match(directoryGateway, /BUZZ did not confirm that Story Room access was/u);
+});
+
+test("#1995 Phase 2 resolves a BUZZ public identity before any direct Human membership write", async () => {
+  const gateway = await read("build/buzz-story-room-access-gateway.ts");
+
+  assert.match(gateway, /const RESOLVE_API = `\$\{API\}\/resolve`/u);
+  assert.match(gateway, /"users", "get", "--pubkey", pubkey/u);
+  assert.match(gateway, /That BUZZ ID could not be resolved to a public BUZZ profile\. No Story Room access was changed\./u);
+  assert.match(gateway, /Agent\/Bot identity/u);
+
+  const resolveIndex = gateway.indexOf("const identity = await resolveHuman(connection, body.pubkey)");
+  const addIndex = gateway.indexOf('["channels", "add-member", "--channel", channel.id, "--pubkey", identity.pubkey, "--role", "member"]');
+  assert.ok(resolveIndex >= 0 && addIndex > resolveIndex, "Direct membership must resolve the Human identity before BUZZ add-member executes.");
+});
+
+test("#1995 Phase 2 offers known-person and Add by BUZZ ID paths without a Great Hall prerequisite", async () => {
+  const access = await read("app/_components/community/community-story-room-access.tsx");
+
+  assert.match(access, /aria-label="Add known Community person"/u);
+  assert.match(access, /Known Community person/u);
+  assert.match(access, /Great Hall membership is not required for Story Room membership/u);
+  assert.match(access, /aria-label="Add by public BUZZ ID"/u);
+  assert.match(access, /BUZZ ID \(public\)/u);
+  assert.match(access, /64-character hexadecimal public key/u);
+  assert.match(access, /Do not paste an nsec, private key, password or auth token/u);
+  assert.match(access, /\/story-room-access\/resolve\?pubkey=/u);
+  assert.match(access, /data-story-room-resolved-human="true"/u);
+  assert.match(access, />Add person<\/button>/u);
+});
+
+test("#1995 Phase 2 hides elevated roles and protects the owner in both UI and gateway", async () => {
+  const [access, gateway] = await Promise.all([
+    read("app/_components/community/community-story-room-access.tsx"),
+    read("build/buzz-story-room-access-gateway.ts"),
+  ]);
+
+  assert.doesNotMatch(access, /Room role|>Guest<|>Admin<|>Bot</u);
+  assert.match(access, /owner \? <strong className=\{styles\.ownerLabel\}>Owner<\/strong> : <button/u);
+  assert.match(access, /if \(member\.isOwner \|\| member\.role === "owner"\) return/u);
+  assert.match(gateway, /Only the verified BUZZ Story Room owner can change Human access/u);
+  assert.match(gateway, /if \(pubkey === ownerPubkey\) throw new Error\("The Story Room owner cannot remove their own ownership access\."\)/u);
+  assert.match(gateway, /role === "owner"/u);
+});
+
+test("#1995 Phase 2 reports successful add/remove only after BUZZ returns the resulting roster", async () => {
+  const [access, gateway] = await Promise.all([
+    read("app/_components/community/community-story-room-access.tsx"),
+    read("build/buzz-story-room-access-gateway.ts"),
+  ]);
+
+  assert.match(gateway, /await runStoryRoomBuzz\(connection, \["channels", "add-member"[\s\S]*return status\(channel\.id\)/u);
+  assert.match(gateway, /await runStoryRoomBuzz\(connection, \["channels", "remove-member"[\s\S]*return status\(channel\.id\)/u);
+  assert.match(access, /Access granted as a normal member after BUZZ confirmed the resulting Story Room membership\./u);
+  assert.match(access, /Story Room access removed after BUZZ confirmed the updated membership state\./u);
 });
 
 test("#1995 Phase 0 separates room creation from room administration in the canonical UX contract", async () => {

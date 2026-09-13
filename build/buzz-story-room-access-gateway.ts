@@ -1,19 +1,22 @@
 import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
 import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
-import { buzzChannelMemberPubkeys } from "../lib/buzz/membership/buzz-channel-members";
+import { buzzChannelMemberPubkeys, buzzChannelMemberRows } from "../lib/buzz/membership/buzz-channel-members";
 import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
+import { redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
+import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { readCredentialJson } from "./local-credentials";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 
 const API = "/api/local-buzz/story-room-access";
+const RESOLVE_API = `${API}/resolve`;
 const CONNECTION_FILE = "buzz-connection.json";
 const BINDINGS_OBJECT_ID = "story-room-bindings-v1";
 const MAX_BODY = 64 * 1024;
 const MAX_COMMAND_OUTPUT = 2 * 1024 * 1024;
-const VALID_ROLES = new Set(["owner", "admin", "member", "guest", "bot"]);
 
 export type BuzzConnection = {
   version: 1;
@@ -25,10 +28,13 @@ export type BuzzConnection = {
   privateKey: string;
   verifiedAt: string;
   verificationVersion?: 2;
+  identityPubkey?: string;
+  identityRole?: "human";
 };
 type CommandResult = { stdout: string; stderr: string; code: number };
 type BuzzChannel = { id: string; name: string; description: string };
-type BuzzMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
+type BuzzMember = { pubkey: string; displayName: string; presence: string; updatedAt: string; role: string; isOwner: boolean };
+type ResolvedHuman = { pubkey: string; displayName: string; kind: "human" };
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -70,11 +76,7 @@ export async function readBody(request: IncomingMessage) {
 
 function safeError(error: unknown) {
   const message = error instanceof Error ? error.message : "Story Room access is unavailable.";
-  return message
-    .replace(/nsec1[a-z0-9]+/gi, "[redacted-nsec]")
-    .replace(/\b[a-f0-9]{64}\b/gi, "[redacted-secret]")
-    .replace(/(password|secret|private[_ -]?key|api[_ -]?key|token)\s*[=:]\s*\S+/gi, "$1=[redacted]")
-    .slice(0, 600);
+  return redactBuzzDiagnostic(message).slice(0, 600);
 }
 
 function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
@@ -161,6 +163,13 @@ export function storyRoomBuzzFirstString(item: Record<string, unknown>, keys: st
   for (const key of keys) { const value = item[key]; if (typeof value === "string" && value.trim()) return value.trim(); }
   return "";
 }
+function storyRoomBuzzRecords(value: unknown) {
+  const nested = storyRoomBuzzArray(value).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+  if (nested.length) return nested;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const item = value as Record<string, unknown>;
+  return ["pubkey", "public_key", "publicKey", "display_name", "displayName", "name"].some((key) => key in item) ? [item] : [];
+}
 function channelsFrom(value: unknown): BuzzChannel[] {
   return storyRoomBuzzArray(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
@@ -177,13 +186,19 @@ export function validChannelId(value: unknown) {
 }
 function validPubkey(value: unknown) {
   const pubkey = text(value).toLowerCase();
-  if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Choose an existing BUZZ member with a valid public key.");
+  if (!/^[a-f0-9]{64}$/.test(pubkey)) throw new Error("Enter a valid BUZZ ID (public): 64 hexadecimal characters.");
   return pubkey;
 }
 export async function verifiedStoryRoomBuzzConnection() {
   const connection = await readConnection();
   if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) throw new Error("Verify BUZZ before managing Story Room access.");
   return connection;
+}
+function connectedHumanPubkey(connection: BuzzConnection) {
+  if (connection.identityRole !== "human") throw new Error("Verify the Human BUZZ identity before managing Story Room access.");
+  const pubkey = validPubkey(connection.identityPubkey);
+  if (publicKeyFromPrivateKey(connection.privateKey) !== pubkey) throw new Error("Re-verify the intended Human BUZZ identity before changing Story Room access.");
+  return pubkey;
 }
 async function mappedStoryRoomChannelIds() {
   const context = currentProfileRequestContext();
@@ -203,26 +218,67 @@ async function storyRoom(connection: BuzzConnection, channelId: string) {
   if (!suffixes.some((suffix) => channel.name.endsWith(suffix))) throw new Error("PlotPickle refused to manage membership for a non-Story-Room channel.");
   return channel;
 }
+function normalizedActorName(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+function profileLooksLikeAgent(profile: Record<string, unknown>, displayName: string) {
+  const declared = storyRoomBuzzFirstString(profile, ["kind", "type", "role"]).toLowerCase();
+  if (declared === "agent" || declared === "bot") return true;
+  const normalized = normalizedActorName(displayName);
+  return BUZZ_GUILDHALL_ACTORS.some((actor) => normalized === normalizedActorName(actor.displayName) || normalized === normalizedActorName(actor.id));
+}
+async function resolveHuman(connection: BuzzConnection, pubkeyValue: unknown): Promise<ResolvedHuman> {
+  const pubkey = validPubkey(pubkeyValue);
+  const raw = await runStoryRoomBuzz(connection, ["--format", "compact", "users", "get", "--pubkey", pubkey]);
+  const profile = storyRoomBuzzRecords(raw).find((item) => storyRoomBuzzFirstString(item, ["pubkey", "public_key", "publicKey"]).toLowerCase() === pubkey);
+  if (!profile) throw new Error("That BUZZ ID could not be resolved to a public BUZZ profile. No Story Room access was changed.");
+  const displayName = storyRoomBuzzFirstString(profile, ["display_name", "displayName", "name", "username"]) || `${pubkey.slice(0, 10)}…${pubkey.slice(-6)}`;
+  if (profileLooksLikeAgent(profile, displayName)) throw new Error("That BUZZ identity is an Agent/Bot identity. Add Humans through this control; Agent access uses the separate Agent/Story Bridge contract.");
+  return { pubkey, displayName, kind: "human" };
+}
+function membershipRoleMap(value: unknown) {
+  const roles = new Map<string, string>();
+  for (const entry of buzzChannelMemberRows(value)) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const item = entry as Record<string, unknown>;
+    const pubkey = text(item.pubkey).toLowerCase();
+    if (/^[a-f0-9]{64}$/.test(pubkey)) roles.set(pubkey, text(item.role).toLowerCase());
+  }
+  return roles;
+}
+async function assertCurrentHumanOwnsRoom(connection: BuzzConnection, channel: BuzzChannel) {
+  const ownerPubkey = connectedHumanPubkey(connection);
+  const membership = await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channel.id]);
+  if (membershipRoleMap(membership).get(ownerPubkey) !== "owner") {
+    throw new Error("Only the verified BUZZ Story Room owner can change Human access.");
+  }
+  return ownerPubkey;
+}
 async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Promise<BuzzMember[]> {
-  const pubkeys = buzzChannelMemberPubkeys(await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channel.id]));
+  const membershipRaw = await runStoryRoomBuzz(connection, ["channels", "members", "--channel", channel.id]);
+  const pubkeys = buzzChannelMemberPubkeys(membershipRaw);
   if (!pubkeys.length) return [];
+  const roles = membershipRoleMap(membershipRaw);
   const userArgs = ["--format", "compact", "users", "get"];
   for (const pubkey of pubkeys) userArgs.push("--pubkey", pubkey);
   const [profilesRaw, presenceRaw] = await Promise.all([
     runStoryRoomBuzz(connection, userArgs),
     runStoryRoomBuzz(connection, ["users", "presence", "--pubkeys", pubkeys.join(",")]).catch(() => []),
   ]);
-  const profiles = storyRoomBuzzArray(profilesRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+  const profiles = storyRoomBuzzRecords(profilesRaw);
   const presence = storyRoomBuzzArray(presenceRaw).filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
   return pubkeys.map((pubkey) => {
-    const profile = profiles.find((item) => storyRoomBuzzFirstString(item, ["pubkey"]) === pubkey);
-    const state = presence.find((item) => storyRoomBuzzFirstString(item, ["pubkey"]) === pubkey);
+    const profile = profiles.find((item) => storyRoomBuzzFirstString(item, ["pubkey", "public_key", "publicKey"]).toLowerCase() === pubkey);
+    const state = presence.find((item) => storyRoomBuzzFirstString(item, ["pubkey"]).toLowerCase() === pubkey);
     const rawUpdated = state?.updated_at ?? state?.updatedAt;
+    const role = roles.get(pubkey) || "member";
     return {
       pubkey,
-      displayName: profile ? storyRoomBuzzFirstString(profile, ["display_name", "name"]) || `${pubkey.slice(0, 8)}…` : `${pubkey.slice(0, 8)}…`,
+      displayName: profile ? storyRoomBuzzFirstString(profile, ["display_name", "displayName", "name"]) || `${pubkey.slice(0, 8)}…` : `${pubkey.slice(0, 8)}…`,
       presence: state ? storyRoomBuzzFirstString(state, ["status"]) || "offline" : "offline",
       updatedAt: typeof rawUpdated === "number" ? new Date(rawUpdated * 1000).toISOString() : text(rawUpdated),
+      role,
+      isOwner: role === "owner",
     };
   });
 }
@@ -230,26 +286,38 @@ async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Pr
 async function status(channelValue: unknown) {
   const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(channelValue));
-  return { ok: true, channel, members: await loadMembers(connection, channel), message: "Story Room membership is current. Members see the same private channel in PlotPickle and Buzz Desktop." };
+  const members = await loadMembers(connection, channel);
+  return { ok: true, channel, members, ownerPubkey: members.find((member) => member.isOwner)?.pubkey || "", message: "Story Room membership is current. BUZZ remains the access authority." };
+}
+async function resolveCandidate(pubkeyValue: unknown) {
+  const connection = await verifiedStoryRoomBuzzConnection();
+  const identity = await resolveHuman(connection, pubkeyValue);
+  return { ok: true, identity, message: `BUZZ ID resolved as ${identity.displayName}. Review the public fingerprint before adding.` };
 }
 async function addMember(body: Record<string, unknown>) {
   const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(body.channel));
-  const pubkey = validPubkey(body.pubkey);
-  const role = text(body.role).toLowerCase() || "member";
-  if (!VALID_ROLES.has(role)) throw new Error("Choose a valid Story Room role.");
-  await runStoryRoomBuzz(connection, ["channels", "add-member", "--channel", channel.id, "--pubkey", pubkey, "--role", role]);
+  const ownerPubkey = await assertCurrentHumanOwnsRoom(connection, channel);
+  const identity = await resolveHuman(connection, body.pubkey);
+  if (identity.pubkey === ownerPubkey) throw new Error("The Story Room owner already has access and cannot be added again.");
+  await runStoryRoomBuzz(connection, ["channels", "add-member", "--channel", channel.id, "--pubkey", identity.pubkey, "--role", "member"]);
   return status(channel.id);
 }
 async function removeMember(body: Record<string, unknown>) {
   const connection = await verifiedStoryRoomBuzzConnection();
   const channel = await storyRoom(connection, validChannelId(body.channel));
+  const ownerPubkey = await assertCurrentHumanOwnsRoom(connection, channel);
   const pubkey = validPubkey(body.pubkey);
+  if (pubkey === ownerPubkey) throw new Error("The Story Room owner cannot remove their own ownership access.");
   await runStoryRoomBuzz(connection, ["channels", "remove-member", "--channel", channel.id, "--pubkey", pubkey]);
   return status(channel.id);
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
+  if (request.method === "GET" && url.pathname === RESOLVE_API) {
+    sendJson(response, 200, await resolveCandidate(url.searchParams.get("pubkey")));
+    return;
+  }
   if (request.method === "GET" && url.pathname === API) {
     sendJson(response, 200, await status(url.searchParams.get("channel")));
     return;

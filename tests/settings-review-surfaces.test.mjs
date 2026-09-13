@@ -22,18 +22,38 @@ test("Settings review destinations keep their yellow navigation marker", async (
   assert.match(dashboard, /background: "var\(--pp-skin-warning\)"/u);
 });
 
-test("DATA uses human language and keeps technical implementation detail behind diagnostics", async () => {
-  const reviewPanel = await read("app/skin-v1/settings-review-system-panel.tsx");
+test("DATA restores the prior task-oriented Storage and Backups hierarchy", async () => {
+  const [reviewPanel, reviewStyles, legacy] = await Promise.all([
+    read("app/skin-v1/settings-review-system-panel.tsx"),
+    read("app/skin-v1/settings-review-system-panel.module.css"),
+    read("app/settings-panel-legacy.tsx"),
+  ]);
+
+  assert.match(legacy, /Storage & Backups/u);
+  assert.match(legacy, /Keep primary files, safety copies and recovery in one clear home/u);
+  assert.match(reviewPanel, /DATA \/ PROJECT DATA &amp; RECOVERY/u);
+  assert.match(reviewPanel, /Keep primary files, safety copies and recovery in one clear home/u);
 
   for (const label of [
-    "Project Files & Backups",
+    "Project Files &amp; Backups",
     "Project Search",
-    "Media & Preview Cache",
+    "Media &amp; Preview Cache",
     "Advanced Data Diagnostics",
   ]) assert.match(reviewPanel, new RegExp(label.replace(/[&]/g, "\\&"), "u"));
 
+  assert.match(reviewPanel, /Available now/u);
+  assert.match(reviewPanel, /Planned/u);
+  assert.match(reviewPanel, /Reference/u);
+  assert.match(reviewStyles, /cardGrid/u);
+  assert.match(reviewStyles, /repeat\(auto-fit/u);
+});
+
+test("DATA keeps technical implementation detail behind diagnostics and protects canon", async () => {
+  const reviewPanel = await read("app/skin-v1/settings-review-system-panel.tsx");
+
   assert.match(reviewPanel, /private search index/u);
-  assert.match(reviewPanel, /Canonical project files and user-owned project assets are not disposable cache/u);
+  assert.match(reviewPanel, /Canonical project files are never disposable cache/u);
+  assert.match(reviewPanel, /User-owned project assets are never disposable cache/u);
   assert.match(reviewPanel, /Open diagnostics details/u);
   assert.match(reviewPanel, /Database migrations are automatic product maintenance/u);
 
@@ -41,12 +61,25 @@ test("DATA uses human language and keeps technical implementation detail behind 
     assert.match(reviewPanel, new RegExp(diagnostic.replace(/[/.]/g, "\\$&"), "u"));
   }
 
-  assert.doesNotMatch(reviewPanel, /reviewBadge/u);
+  assert.doesNotMatch(reviewPanel, /Clear Cache|Rebuild Index|Delete Cache/u);
   assert.doesNotMatch(reviewPanel, /pp-skin-warning/u);
   assert.doesNotMatch(reviewPanel, /IN REVIEW/u);
 });
 
-test("review surfaces remain read-only while showing existing non-DATA taxonomy", async () => {
+test("yellow review treatment is navigation-only while opened review surfaces stay monochrome", async () => {
+  const [reviewPanel, reviewStyles] = await Promise.all([
+    read("app/skin-v1/settings-review-system-panel.tsx"),
+    read("app/skin-v1/settings-review-system-panel.module.css"),
+  ]);
+
+  assert.match(reviewPanel, /settings-review-system-panel\.module\.css/u);
+  assert.match(reviewStyles, /PROJECT DATA & RECOVERY/u);
+  assert.match(reviewStyles, /section\[aria-label\$=" settings review"\]/u);
+  assert.match(reviewStyles, /color: var\(--pp-skin-ink\) !important/u);
+  assert.doesNotMatch(reviewStyles, /pp-skin-warning/u);
+});
+
+test("non-DATA review surfaces remain read-only while showing existing taxonomy", async () => {
   const [reviewPanel, taxonomy, dashboard] = await Promise.all([
     read("app/skin-v1/settings-review-system-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
@@ -65,7 +98,7 @@ test("review surfaces remain read-only while showing existing non-DATA taxonomy"
   assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
 });
 
-test("review shortcuts select first, then Enter opens the read-only surface", async () => {
+test("review shortcuts select first, then Enter opens the active review surface", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
 
   for (const [id, shortcut] of [["data", "D"], ["deploy", "E"], ["repos", "R"], ["auth", "U"]]) {

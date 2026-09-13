@@ -43,6 +43,13 @@ const dataItems = [
     id: "data-database",
     label: "Advanced Data Diagnostics",
     description: "Database, data-format, search-engine and storage diagnostics for troubleshooting.",
+    diagnostics: [
+      "Database engine and local storage implementation",
+      "Database/schema version and migration status or history",
+      "Drizzle ORM and Drizzle Kit references when diagnostically necessary",
+      "Embeddings, vector stores, Chroma and search-engine implementation details",
+      "Storage paths, executor/index diagnostics and repair evidence",
+    ],
   },
 ] as const;
 
@@ -73,6 +80,17 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
           >
             <strong style={{ display: "block", color: "var(--pp-skin-ink)", fontSize: 15 }}>{item.label}</strong>
             <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.5 }}>{item.description}</p>
+            {"diagnostics" in item ? (
+              <details style={{ marginTop: 10 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 700 }}>Open diagnostics details</summary>
+                <ul style={{ margin: "10px 0 0", paddingLeft: 20, color: "var(--pp-skin-ink-muted)", fontSize: 12, lineHeight: 1.6 }}>
+                  {item.diagnostics.map((detail) => <li key={detail}>{detail}</li>)}
+                </ul>
+                <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                  Database migrations are automatic product maintenance. Ordinary Settings should describe only whether the data format is current or needs attention.
+                </p>
+              </details>
+            ) : null}
           </article>
         ))}
       </section>

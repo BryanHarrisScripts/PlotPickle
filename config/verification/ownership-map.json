@@ -69,7 +69,7 @@
       "classification": "production",
       "include": ["build/buzz-story-room-access-gateway.ts"],
       "ownerLayer": "production-harness",
-      "riskTokens": ["authority", "community", "provider"]
+      "riskTokens": ["api", "cli", "provider", "security"]
     },
     {
       "id": "root-story-startup",

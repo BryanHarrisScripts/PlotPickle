@@ -200,7 +200,8 @@
         "lib/verification/**",
         "scripts/validate-verification-phase-1.mjs",
         "scripts/verification-core.mjs",
-        "scripts/verification-shadow.mjs"
+        "scripts/verification-shadow.mjs",
+        "scripts/package-smoke.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": ["test-harness", "cli"]

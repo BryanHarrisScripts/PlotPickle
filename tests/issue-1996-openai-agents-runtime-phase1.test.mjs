@@ -80,14 +80,17 @@ test("#1996 Phase 1 fails closed for unsupported provider, disclosure, capabilit
   assert.match(adapter, /session durability is deferred to Phase 3/u);
 });
 
-test("#1996 Phase 1 remains unreachable from normal PlotPickle execution and settings", async () => {
-  const [contract, gateway, computeStore] = await Promise.all([
+test("#1996 Phase 1 remains unreachable and preserves every existing provider route", async () => {
+  const [contract, gateway, computeStore, writingStore] = await Promise.all([
     read("build/agent-runtime-contract.ts"),
     read("build/writing-assistant-gateway.ts"),
     read("build/agent-compute-store.ts"),
+    read("build/writing-assistant-store.ts"),
   ]);
 
   assert.match(contract, /\[OPENAI_AGENTS_RUNTIME\]: \{[\s\S]*?ready: false,[\s\S]*?beta: true/u);
+  assert.match(writingStore, /export type TextProvider = "local" \| "ollama" \| "openai" \| "minimax" \| "gemini"/u);
+  assert.match(gateway, /const text = await askPlotPickleAgent\(\{/u);
   assert.doesNotMatch(gateway, /openai-agents-runtime-adapter|createOpenAIAgentsRuntimeAdapter|OPENAI_AGENTS_RUNTIME/u);
   assert.doesNotMatch(computeStore, /openai-agents/u);
 });

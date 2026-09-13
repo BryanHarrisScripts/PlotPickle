@@ -61,6 +61,17 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!selected || showPresence) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setSelected("");
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [selected, showPresence]);
+
   async function act(action: "contact" | "remove-contact" | "block" | "report", studio: Studio) {
     setBusy(`${action}:${studio.studioId}`);
     setNotice("");
@@ -90,17 +101,7 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
 
   if (showPresence) return <CommunityMyPresence onBack={() => setShowPresence(false)} />;
 
-  return <div
-    className={styles.wrap}
-    data-community-view="connected-studios"
-    onKeyDown={(event) => {
-      if (event.key === "Escape" && selected) {
-        event.preventDefault();
-        event.stopPropagation();
-        setSelected("");
-      }
-    }}
-  >
+  return <div className={styles.wrap} data-community-view="connected-studios">
     <section className={styles.heading}>
       <div><span>Connected Studios</span><h2>Find the PlotPickle Studios you are permitted to see.</h2><p>This is a community directory, not a server list. BUZZ carries signed presence; private local PlotPickle services remain private.</p></div>
       <div className={styles.headingActions}>

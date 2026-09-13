@@ -5,6 +5,7 @@
   "brief": "docs/developer-briefs/1976-phase-d-canonical-integration.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/1976-phase-d-canonical-integration.md",
     "learn/enrichment/1976-canonical.json",
     "learn/current-program-map.mjs",
@@ -29,7 +30,8 @@
       "criterion": "Current Journey ownership is exact and remains open/advisory-only.",
       "evidence": [
         {"type":"file-contains","path":"learn/current-program-map.mjs","contains":"ownerCraftModule"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"exactly one Craft Module owner"}
+        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"exactly one Craft Module owner"},
+        {"type":"file-contains","path":"config/verification/ownership-map.json","contains":"learn-curriculum-projection"}
       ]
     },
     {

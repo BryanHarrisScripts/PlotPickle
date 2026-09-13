@@ -36,7 +36,7 @@ set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
-set "READY_TIMEOUT_SECONDS=60"
+set "READY_TIMEOUT_SECONDS=240"
 set "READY_REQUEST_TIMEOUT_SECONDS=30"
 set "BROWSER_FAILURE_GRACE_SECONDS=12"
 if /I "%~1"=="--webmcp-testing" set "PLOTPICKLE_STARTUP_TESTING_MODE=webmcp"
@@ -419,9 +419,9 @@ if not exist "%WEBMCP_STARTUP_RUNNER%" (
   echo !ERROR_TAG! The WebMCP startup UAT runner is missing. The test was not started.
   exit /b 1
 )
-echo !INFO! Starting the bounded WebMCP interface/surface UAT after readiness.
-echo !INFO! The UAT window will remain open with its PASS/FAIL report.
-start "PlotPickle WebMCP UAT" cmd.exe /k node "%WEBMCP_STARTUP_RUNNER%" run --server "%PLOTPICKLE_URL%" --home "!PLOTPICKLE_HOME!" --tool-root "!PLOTPICKLE_WEBMCP_TOOL_ROOT!"
+echo !INFO! Waiting for the completed PlotPickle startup contract before launching the bounded WebMCP UAT.
+echo !INFO! The UAT window will open only after readiness and will remain open with its PASS/FAIL report.
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_STARTUP_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
 exit /b 0
 
 :cleanup_webmcp_testing

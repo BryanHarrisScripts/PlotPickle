@@ -12,14 +12,17 @@ test("#1995 Phase 5 keeps Connected Studios and My Presence inside a governed ke
 
   assert.match(studios, /data-community-view="connected-studios"/u);
   assert.match(studios, /data-community-action="my-presence"/u);
-  assert.match(studios, /event\.key === "Escape" && selected/u);
-  assert.match(studios, /event\.stopPropagation\(\)/u);
+  assert.match(studios, /if \(!selected \|\| showPresence\) return/u);
+  assert.match(studios, /window\.addEventListener\("keydown", handleEscape\)/u);
+  assert.match(studios, /if \(event\.key !== "Escape"\) return/u);
+  assert.match(studios, /setSelected\(""\)/u);
   assert.doesNotMatch(studios, /href="\/community-presence"/u);
 
   assert.match(presence, /data-community-presence-governed="true"/u);
   assert.match(presence, /data-community-view="my-presence"/u);
-  assert.match(presence, /event\.key !== "Escape" \|\| busy/u);
-  assert.match(presence, /event\.stopPropagation\(\)/u);
+  assert.match(presence, /if \(busy\) return/u);
+  assert.match(presence, /window\.addEventListener\("keydown", handleEscape\)/u);
+  assert.match(presence, /if \(event\.key !== "Escape"\) return/u);
   assert.match(presence, /onBack\(\)/u);
 });
 

@@ -21,7 +21,7 @@ test("Settings consolidates reviewed technical bins into one yellow Advanced des
   assert.match(dashboard, /background: "var\(--pp-skin-warning\)"/u);
 
   for (const retired of ["id: \"data\"", "id: \"deploy\"", "id: \"repos\"", "id: \"auth\"", "id: \"open-source\""]) {
-    assert.doesNotMatch(dashboard, new RegExp(retired, "u"));
+    assert.ok(!dashboard.includes(retired), `Retired Settings row is still present: ${retired}`);
   }
 });
 
@@ -33,7 +33,9 @@ test("Advanced keeps only useful survivors from DATA DEPLOY REPOS and AUTH", asy
     "Tools &amp; MCP",
     "PlotPickle Source",
     "Technical Diagnostics",
-  ]) assert.match(reviewPanel, new RegExp(label.replace(/[&]/g, "\\&"), "u"));
+  ]) {
+    assert.ok(reviewPanel.includes(label), `Missing Advanced label: ${label}`);
+  }
 
   assert.match(reviewPanel, /Project Files &amp; Backups/u);
   assert.match(reviewPanel, /Example Project Recovery/u);
@@ -56,7 +58,7 @@ test("Advanced keeps technical details subordinate and protects Human project ca
   assert.match(reviewPanel, /Original project files, Human-created story material and user-owned assets are never disposable cache/u);
   assert.match(reviewPanel, /Open diagnostics details/u);
   for (const diagnostic of ["Drizzle ORM", "Drizzle Kit", "Embeddings", "vector stores", "Chroma", "edge-hosting evidence"]) {
-    assert.match(reviewPanel, new RegExp(diagnostic.replace(/[/.]/g, "\\$&"), "u"));
+    assert.ok(reviewPanel.includes(diagnostic), `Missing Advanced diagnostic: ${diagnostic}`);
   }
   assert.doesNotMatch(reviewPanel, /Clear Cache|Rebuild Index|Delete Cache/u);
   assert.doesNotMatch(reviewPanel, /pp-skin-warning/u);

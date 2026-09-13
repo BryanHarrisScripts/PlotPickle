@@ -98,9 +98,20 @@
       "riskTokens": ["canon", "graph"]
     },
     {
+      "id": "learn-curriculum-projection",
+      "classification": "production",
+      "include": [
+        "adapters/curriculum/current-catalog.ts",
+        "adapters/curriculum/current-catalog-integrated.ts",
+        "adapters/curriculum/issue-1976-canonical.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": ["canon", "graph"]
+    },
+    {
       "id": "learn-program-map",
       "classification": "production",
-      "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs"],
+      "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs", "learn/current-program-map.mjs"],
       "ownerLayer": "story-canon",
       "riskTokens": ["canon", "graph"]
     },

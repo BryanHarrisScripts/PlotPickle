@@ -53,3 +53,34 @@ test("#1994 Phase A preserves the six guided Paths as a secondary view", async (
   assert.match(journey, /data-learn-semester-open="true"/u);
   assert.match(journey, /setExploreOpen\(false\)/u);
 });
+
+test("#1994 Phase B1 gives All Curriculum rows a compact title-first hierarchy", async () => {
+  const explore = await read("app/skin-v1/learn-explore.tsx");
+
+  assert.match(explore, /function exploreRowPrimary\(entry: ExploreEntry\)[\s\S]*entry\.presentationOrder[\s\S]*entry\.lesson\.title/u);
+  assert.match(explore, /function exploreRowSecondary\(entry: ExploreEntry\)[\s\S]*entry\.topic\.title[\s\S]*Craft Module/u);
+  assert.match(explore, /\{filteredEntries\.length\} OF \{payload\.presentationLessonCount\} LESSONS/u);
+
+  const rowsStart = explore.indexOf("{filteredEntries.map");
+  const rowsEnd = explore.indexOf("{!filteredEntries.length");
+  assert.ok(rowsStart >= 0 && rowsEnd > rowsStart, "All Curriculum browse-row source must remain identifiable.");
+  const browseRows = explore.slice(rowsStart, rowsEnd);
+
+  assert.match(browseRows, /exploreRowPrimary\(entry\)/u);
+  assert.match(browseRows, /exploreRowSecondary\(entry\)/u);
+  assert.doesNotMatch(browseRows, /entry\.lesson\.apply/u);
+  assert.doesNotMatch(browseRows, /entry\.lesson\.duration/u);
+  assert.doesNotMatch(browseRows, /\bOPEN\b|\bAVAILABLE\b/u);
+});
+
+test("#1994 Phase B1 uses the existing compact status box for completion rather than access prose", async () => {
+  const explore = await read("app/skin-v1/learn-explore.tsx");
+  const rowsStart = explore.indexOf("{filteredEntries.map");
+  const rowsEnd = explore.indexOf("{!filteredEntries.length");
+  const browseRows = explore.slice(rowsStart, rowsEnd);
+
+  assert.match(browseRows, /data-learn-lesson-completed=\{completed \? "true" : "false"\}/u);
+  assert.match(browseRows, /aria-label=\{completed \? "Lesson complete" : "Lesson incomplete"\}/u);
+  assert.match(browseRows, /pp-skin-v1-dashboard-status-box\$\{completed \? " is-active" : ""\}/u);
+  assert.match(explore, /UP\/DOWN MOVES · ENTER OPENS · ESC RETURNS TO JOURNEY\./u);
+});

@@ -38,8 +38,11 @@ test("#1996 Phase 1 fixtures model final text, usage and explicit failure", asyn
 
   assert.equal(success[0].type, "agent.session.created");
   assert.equal(success[1].type, "agent.session.turn.output_text.done");
+  assert.equal(success[1].content_index, 0);
+  assert.equal(success[1].output_index, 0);
   assert.equal(success[1].text, "Mock Sage transport response.");
   assert.equal(success[2].type, "agent.session.turn.completed");
+  assert.equal(success[2].turn.status, "completed");
   assert.deepEqual(success[2].usage, {
     input_tokens: 42,
     output_tokens: 12,
@@ -47,7 +50,9 @@ test("#1996 Phase 1 fixtures model final text, usage and explicit failure", asyn
   });
 
   assert.equal(failure[1].type, "agent.session.turn.failed");
-  assert.equal(failure[1].error.message, "Mock Agents API failure.");
+  assert.equal(failure[1].turn.status, "failed");
+  assert.equal(failure[1].turn.error.code, "invalid_request");
+  assert.equal(failure[1].turn.error.message, "Mock Agents API failure.");
 
   for (const eventType of [
     "agent.session.turn.output_text.done",

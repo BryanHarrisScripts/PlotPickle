@@ -1,53 +1,35 @@
-import character from "../../../../learn/character.json";
-import collaboration from "../../../../learn/collaboration.json";
-import dialogue from "../../../../learn/dialogue.json";
-import drafting from "../../../../learn/drafting.json";
-import foundations from "../../../../learn/foundations.json";
-import industry from "../../../../learn/industry.json";
-import responsibleAi from "../../../../learn/responsible-ai.json";
-import revision from "../../../../learn/revision.json";
-import structure from "../../../../learn/structure.json";
-import theme from "../../../../learn/theme.json";
-import visualStorytelling from "../../../../learn/visual-storytelling.json";
-import world from "../../../../learn/world.json";
+import { canonicalTopicDocuments } from "../../../../adapters/curriculum/current-catalog";
+import { ISSUE_1976_CANONICAL_REGISTRY } from "../../../../adapters/curriculum/issue-1976-canonical";
 import { LEARN_PROGRAM_COURSE_SPECS } from "../../../../learn/program-map-spec.mjs";
 import type { CurriculumLesson } from "../../../../core/contracts/curriculum";
 
 export const runtime = "nodejs";
 export const dynamic = "force-static";
 
-type TopicDocument = Readonly<{
-  topic: Readonly<{ id: string }>;
-  lessons: readonly CurriculumLesson[];
-}>;
+type CourseSpec = (typeof LEARN_PROGRAM_COURSE_SPECS)[number];
+const lessonsByTopic = new Map(canonicalTopicDocuments.map((document) => [document.topic.id, document.lessons]));
 
-const topicDocuments = [
-  foundations,
-  theme,
-  character,
-  world,
-  structure,
-  dialogue,
-  visualStorytelling,
-  drafting,
-  revision,
-  responsibleAi,
-  collaboration,
-  industry,
-] as readonly TopicDocument[];
+function enrichmentLessonsForCourse(course: CourseSpec) {
+  return ISSUE_1976_CANONICAL_REGISTRY.lessons
+    .filter((entry) => entry.ownerCraftModule === course.id)
+    .map((entry) => {
+      const lesson = lessonsByTopic.get(entry.topic)?.find((candidate) => candidate.id === entry.id);
+      if (!lesson) throw new Error(`Phase D cannot resolve canonical enrichment lesson ${entry.id}.`);
+      return lesson;
+    });
+}
 
-const lessonsByTopic = new Map(topicDocuments.map((document) => [document.topic.id, document.lessons]));
-
-function resolveCourseLessons(course: (typeof LEARN_PROGRAM_COURSE_SPECS)[number]) {
-  return course.lessonRefs.flatMap(({ topic, positions }) => {
+function resolveCourseLessons(course: CourseSpec): readonly CurriculumLesson[] {
+  const baseLessons = course.lessonRefs.flatMap(({ topic, positions }) => {
     const lessons = lessonsByTopic.get(topic);
-    if (!lessons) throw new Error(`Phase 5 course ${course.id} references unavailable canonical topic ${topic}.`);
+    if (!lessons) throw new Error(`Journey course ${course.id} references unavailable canonical topic ${topic}.`);
     return positions.map((position) => {
       const lesson = lessons[position - 1];
-      if (!lesson) throw new Error(`Phase 5 course ${course.id} references missing canonical lesson ${topic}:${position}.`);
+      if (!lesson) throw new Error(`Journey course ${course.id} references missing canonical lesson ${topic}:${position}.`);
       return lesson;
     });
   });
+  return [...baseLessons, ...enrichmentLessonsForCourse(course)];
 }
 
 export async function GET() {
@@ -67,16 +49,19 @@ export async function GET() {
     lessons: resolveCourseLessons(course),
   }));
 
-  if (courses.length !== 24) throw new Error(`Phase 5 expected exactly 24 courses, found ${courses.length}.`);
-  if (courses.some((course) => course.lessons.length === 0)) throw new Error("Phase 5 requires every Craft Module to resolve canonical lessons.");
+  if (courses.length !== 24) throw new Error(`Journey expected exactly 24 courses, found ${courses.length}.`);
+  if (courses.some((course) => course.lessons.length === 0)) throw new Error("Journey requires every Craft Module to resolve canonical lessons.");
+  if (new Set(courses.flatMap((course) => course.lessons.map((lesson) => lesson.id))).size !== 89) throw new Error("Phase D expected 89 uniquely owned canonical Journey lessons.");
 
   return Response.json({
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     issue: 1918,
-    phase: "phase-5-all-paths",
+    phase: "phase-d-canonical-integration",
     courseCount: courses.length,
+    canonicalLessonCount: 89,
     authority: {
-      curriculumOwner: "existing LEARN archive",
+      curriculumOwner: "adapters/curriculum/current-catalog.ts",
+      enrichmentOwner: "learn/enrichment/1976-canonical.json",
       progressOwner: "PPFProject.learning.completedLessonIds",
       recommendedSequenceIsAccessControl: false,
       humanMayLearnOutOfOrder: true,

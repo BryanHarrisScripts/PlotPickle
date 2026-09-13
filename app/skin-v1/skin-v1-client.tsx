@@ -127,7 +127,7 @@ export default function SkinV1Client() {
       return;
     }
     if (item.id === "open-source") {
-      window.location.assign("/legal");
+      globalThis.location.assign("/legal");
       return;
     }
     if (item.id === "logout") {

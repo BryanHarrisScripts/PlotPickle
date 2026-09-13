@@ -64,7 +64,7 @@ test("#1848 PlotPickle Agent compute has default, per-Agent override and no sile
   assert.match(writing, /computeSource: assigned\.source/u);
 });
 
-test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async () => {
+test("#1849 Skin V1 Settings is a condensed Dashboard-styled keyboard directory", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
 
   for (const [id, shortcut] of Object.entries({
@@ -74,17 +74,17 @@ test("#1849 Skin V1 Settings is a Dashboard-styled keyboard directory", async ()
     "local-story-mode": "L",
     "node-info": "I",
     cloud: "C",
-    data: "D",
-    deploy: "E",
-    repos: "R",
-    auth: "U",
     agents: "N",
-    "open-source": "O",
+    advanced: "V",
   })) {
     const sourceKey = id.includes("-") ? JSON.stringify(id) : id;
     assert.match(dashboard, new RegExp(`${sourceKey}: "${shortcut}"`, "u"));
   }
 
+  assert.match(dashboard, /id: "advanced"[\s\S]*label: "Advanced"/u);
+  for (const retired of ["id: \"data\"", "id: \"deploy\"", "id: \"repos\"", "id: \"auth\"", "id: \"open-source\""]) {
+    assert.doesNotMatch(dashboard, new RegExp(retired, "u"));
+  }
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);

@@ -14,6 +14,7 @@
     "adapters/curriculum/current-catalog.ts",
     "app/api/learn/journey-courses/route.ts",
     "app/api/learn/explore/route.ts",
+    "tests/issue-1918-learn-semester-one.test.mjs",
     "tests/issue-1976-phase-d-integration.test.mjs"
   ],
   "acceptance": [
@@ -39,7 +40,8 @@
       "criterion": "Current runtime exposes 89 canonical and 96 presentation lessons while preserving 95 bundled sources.",
       "evidence": [
         {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"archive.length !== 89"},
-        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"standalonePlotPickleCurriculum.length !== 96"}
+        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"standalonePlotPickleCurriculum.length !== 96"},
+        {"type":"file-contains","path":"tests/issue-1918-learn-semester-one.test.mjs","contains":"current 96-lesson presentation catalog"}
       ]
     },
     {

@@ -1,0 +1,6 @@
+:global([data-dashboard-menu-item="open-source"] .pp-skin-v1-dashboard-status-box),
+:global([data-dashboard-menu-item="help"] .pp-skin-v1-dashboard-status-box) {
+  border-color: var(--pp-skin-warning) !important;
+  background: var(--pp-skin-warning) !important;
+  box-shadow: var(--pp-skin-shadow-control) !important;
+}

@@ -181,6 +181,17 @@ This is closer to the pre-taxonomy design principle: configure the connection wh
 
 Phase 1 currently favors Candidate B or C over preserving four separate top-level bins.
 
+## Decision gate before Phase 2
+
+Phase 1 does not yet rename or remove the four yellow menu entries. It establishes the evidence necessary for the next Human review.
+
+Before locking the final navigation, compare Candidate B and Candidate C against the complete Settings directory and the preserved pre-taxonomy interaction surfaces. The key decision is whether a central `Accounts & Connections` overview adds genuine Human value or merely recreates the same duplication under a friendlier name.
+
+Regardless of that decision, Phase 1 already establishes two strong directions:
+
+- DEPLOY should not survive as an ordinary top-level Settings destination unless a real Human deployment workflow is introduced.
+- REPOS should not survive as a catch-all top-level Settings destination; its useful functions should move to their actual owning Human tasks.
+
 ## Next implementation phases
 
 Phase 2 — DATA / Project Data & Recovery.

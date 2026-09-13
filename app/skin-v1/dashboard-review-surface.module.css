@@ -11,9 +11,14 @@
 .boundary,
 .form,
 .preview {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   box-shadow: var(--pp-skin-shadow-control);
+}
+
+.hero {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
 }
 
 .hero,
@@ -27,13 +32,12 @@
 .eyebrow,
 .status,
 .fieldLabel {
+  color: var(--pp-skin-accent-bright);
   font-size: 12px;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
-.eyebrow,
-.status,
 .helper,
 .card p,
 .boundary p,
@@ -44,6 +48,7 @@
 
 .hero h2 {
   margin: 6px 0 6px;
+  color: var(--pp-skin-accent-bright);
   font-size: 24px;
 }
 
@@ -63,6 +68,7 @@
 .card h3,
 .preview h3 {
   margin: 0;
+  color: var(--pp-skin-accent-bright);
   font-size: 16px;
 }
 
@@ -71,19 +77,22 @@
   line-height: 1.55;
 }
 
-.card strong {
-  color: var(--pp-skin-ink);
+.card strong,
+.boundary strong {
+  color: var(--pp-skin-accent-bright);
 }
 
 .status {
   display: inline-block;
   margin-bottom: 8px;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
+  background: var(--pp-skin-accent-deep);
   padding: 3px 6px;
 }
 
 .boundary {
   margin-top: 12px;
+  border-color: var(--pp-skin-accent);
 }
 
 .boundary strong {
@@ -113,8 +122,8 @@
 .form select {
   width: 100%;
   box-sizing: border-box;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-fill-control);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
   color: var(--pp-skin-ink);
   padding: 9px 10px;
   font: inherit;
@@ -128,7 +137,7 @@
 .form textarea:focus-visible,
 .form select:focus-visible,
 .action:focus-visible {
-  outline: 2px solid var(--pp-skin-ink);
+  outline: 2px solid var(--pp-skin-focus);
   outline-offset: 2px;
 }
 
@@ -160,13 +169,19 @@
 }
 
 .action {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-fill-control);
-  color: var(--pp-skin-ink);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-accent-bright);
   padding: 8px 10px;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.action:hover:not(:disabled),
+.action:focus-visible {
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
 }
 
 .action:disabled {
@@ -176,7 +191,7 @@
 
 .notice {
   margin: 0;
-  border-left: 3px solid var(--pp-skin-line-strong);
+  border-left: 3px solid var(--pp-skin-accent);
   padding-left: 10px;
   color: var(--pp-skin-ink-soft);
   line-height: 1.45;
@@ -191,7 +206,7 @@
   max-height: 560px;
   white-space: pre-wrap;
   word-break: break-word;
-  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   margin: 12px 0 0;
   padding-top: 12px;
   color: var(--pp-skin-ink-soft);

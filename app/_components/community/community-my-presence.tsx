@@ -67,6 +67,17 @@ export default function CommunityMyPresence({ onBack }: Props) {
     return () => { cancelled = true; };
   }, [apply]);
 
+  useEffect(() => {
+    if (busy) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      onBack();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [busy, onBack]);
+
   async function run(action: "announce" | "withdraw") {
     setBusy(action);
     setNotice("");
@@ -92,18 +103,7 @@ export default function CommunityMyPresence({ onBack }: Props) {
 
   const configured = state?.identity?.configured === true;
 
-  return <section
-    className={styles.card}
-    aria-label="My Community Presence"
-    data-community-presence-governed="true"
-    data-community-view="my-presence"
-    onKeyDown={(event) => {
-      if (event.key !== "Escape" || busy) return;
-      event.preventDefault();
-      event.stopPropagation();
-      onBack();
-    }}
-  >
+  return <section className={styles.card} aria-label="My Community Presence" data-community-presence-governed="true" data-community-view="my-presence">
     <header className={styles.header}>
       <div>
         <span>My Presence</span>

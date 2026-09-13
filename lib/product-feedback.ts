@@ -16,10 +16,13 @@ export type ProductFeedbackInput = {
   privacyConfirmed?: boolean;
 };
 
-export type ProductFeedbackIssue = {
+export type ProductFeedbackDraft = {
   title: string;
   body: string;
   labels: string[];
+};
+
+export type ProductFeedbackIssue = ProductFeedbackDraft & {
   url: string;
 };
 
@@ -107,7 +110,7 @@ function section(title: string, value: string, fallback = "Not provided") {
   return `## ${title}\n\n${value || fallback}`;
 }
 
-export function buildProductFeedbackIssue(input: ProductFeedbackInput): ProductFeedbackIssue {
+export function buildProductFeedbackDraft(input: ProductFeedbackInput): ProductFeedbackDraft {
   const kind = PRODUCT_FEEDBACK_KINDS.find((entry) => entry.id === input.kind) ?? PRODUCT_FEEDBACK_KINDS[0];
   const titleText = redactProductFeedbackText(input.title, 180) || "Untitled PlotPickle feedback";
   const description = redactProductFeedbackText(input.description, 1_800);
@@ -117,7 +120,7 @@ export function buildProductFeedbackIssue(input: ProductFeedbackInput): ProductF
   const diagnostics = redactProductFeedbackText(input.safeDiagnostics || "", 700);
 
   const content = [
-    "> Submitted from PlotPickle's Suggest / Report workspace. Bryan reviews each item and may accept, defer or close it. Submitting an issue does not authorize automatic coding, merging or changes to story canon.",
+    "> Prepared in PlotPickle's Help / Issue Log. Human review is required before any ticket is submitted. Preparing this draft does not authorize automatic coding, merging or changes to story canon.",
     section("Request type", kind.label),
     section("Summary", description),
     input.kind === "bug" ? section("Reproduction steps", reproduction, "No reliable reproduction steps were provided.") : reproduction ? section("Steps or workflow", reproduction) : "",
@@ -128,17 +131,23 @@ export function buildProductFeedbackIssue(input: ProductFeedbackInput): ProductF
   const privacy = `## Privacy confirmation\n\n- No current PlotPickle story or project data was attached automatically.\n- [${input.privacyConfirmed ? "x" : " "}] The reporter confirmed that private story material, credentials and confidential repository information were removed.`;
   const safeBody = `${clamp(content, 5_500)}\n\n${privacy}`;
 
-  const title = `${kind.prefix}: ${titleText}`;
-  const parameters = new URLSearchParams({
-    title,
+  return {
+    title: `${kind.prefix}: ${titleText}`,
     body: safeBody,
-    labels: kind.labels.join(","),
+    labels: [...kind.labels],
+  };
+}
+
+export function buildProductFeedbackIssue(input: ProductFeedbackInput): ProductFeedbackIssue {
+  const draft = buildProductFeedbackDraft(input);
+  const parameters = new URLSearchParams({
+    title: draft.title,
+    body: draft.body,
+    labels: draft.labels.join(","),
   });
 
   return {
-    title,
-    body: safeBody,
-    labels: [...kind.labels],
+    ...draft,
     url: `${PLOTPICKLE_REPOSITORY_URL}/issues/new?${parameters.toString()}`,
   };
 }

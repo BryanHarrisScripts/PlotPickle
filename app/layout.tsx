@@ -78,6 +78,7 @@ import "./pr-613-workflow-nav-alignment.css";
 import "./workspace-continuity.css";
 import "./settings-dark-surface-guard.css";
 import "./skin-v1-dashboard-reference.css";
+import "./issue-2026-dashboard-menu-reset.css";
 import "./skin-v1-settings-directory.css";
 
 export const metadata: Metadata = {

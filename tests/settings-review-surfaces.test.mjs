@@ -39,7 +39,9 @@ test("DATA restores the prior task-oriented Storage and Backups hierarchy", asyn
     "Project Search",
     "Media &amp; Preview Cache",
     "Advanced Data Diagnostics",
-  ]) assert.match(reviewPanel, new RegExp(label.replace(/[&]/g, "\\&"), "u"));
+  ]) {
+    assert.ok(reviewPanel.includes(label), `Missing DATA label: ${label}`);
+  }
 
   assert.match(reviewPanel, /Available now/u);
   assert.match(reviewPanel, /Planned/u);
@@ -58,7 +60,7 @@ test("DATA keeps technical implementation detail behind diagnostics and protects
   assert.match(reviewPanel, /Database migrations are automatic product maintenance/u);
 
   for (const diagnostic of ["Drizzle ORM", "Drizzle Kit", "Embeddings", "vector stores", "Chroma", "executor/index diagnostics"]) {
-    assert.match(reviewPanel, new RegExp(diagnostic.replace(/[/.]/g, "\\$&"), "u"));
+    assert.ok(reviewPanel.includes(diagnostic), `Missing DATA diagnostic: ${diagnostic}`);
   }
 
   assert.doesNotMatch(reviewPanel, /Clear Cache|Rebuild Index|Delete Cache/u);
@@ -102,7 +104,7 @@ test("review shortcuts select first, then Enter opens the active review surface"
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
 
   for (const [id, shortcut] of [["data", "D"], ["deploy", "E"], ["repos", "R"], ["auth", "U"]]) {
-    assert.match(dashboard, new RegExp(`${id}: "${shortcut}"`, "u"));
+    assert.ok(dashboard.includes(`${id}: "${shortcut}"`), `Missing review shortcut ${id}: ${shortcut}`);
   }
 
   assert.match(dashboard, /selectSettingsItem\(shortcutIndex\)/u);

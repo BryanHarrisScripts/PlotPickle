@@ -1,0 +1,29 @@
+[
+  {
+    "type": "agent.session.created",
+    "event_id": "evt_phase1_created_failure",
+    "session": {
+      "id": "sess_phase1_failure",
+      "status": "in_progress",
+      "environment": { "type": "none" }
+    }
+  },
+  {
+    "type": "agent.session.turn.failed",
+    "event_id": "evt_phase1_failed",
+    "session_id": "sess_phase1_failure",
+    "turn_id": "turn_phase1_failure",
+    "turn": {
+      "id": "turn_phase1_failure",
+      "agent_id": "agent_phase1",
+      "created_at": 0,
+      "object": "agent.session.turn",
+      "session_id": "sess_phase1_failure",
+      "status": "failed",
+      "error": {
+        "code": "invalid_request",
+        "message": "Mock Agents API failure."
+      }
+    }
+  }
+]

@@ -91,6 +91,13 @@
       "riskTokens": ["agent", "canon", "provider"]
     },
     {
+      "id": "plotpickle-agent-runtime-contract",
+      "classification": "production",
+      "include": ["build/agent-runtime-contract.ts"],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": ["agent", "provider", "canon"]
+    },
+    {
       "id": "learn-curriculum-content",
       "classification": "production",
       "include": ["learn/*.json", "learn/enrichment/**"],

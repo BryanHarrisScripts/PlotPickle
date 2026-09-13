@@ -32,6 +32,12 @@
   box-shadow: var(--pp-skin-shadow-control);
 }
 
+.legendSquareReview {
+  border-color: var(--pp-skin-warning);
+  background: var(--pp-skin-warning);
+  box-shadow: var(--pp-skin-shadow-control);
+}
+
 @media (max-width: 720px) {
   .legend {
     justify-content: flex-start;

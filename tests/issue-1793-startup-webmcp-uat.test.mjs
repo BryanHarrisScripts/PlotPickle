@@ -21,17 +21,42 @@ test("startup asks Human Testing or WebMCP Testing as the first testing choice",
   assert.match(launcher, /set "PLOTPICKLE_STARTUP_TESTING_MODE=human"/);
 });
 
-test("Human mode keeps the owned browser while WebMCP mode runs the bounded audit after readiness", async () => {
-  const launcher = await read("Start-PlotPickle.bat");
+test("Human and WebMCP modes share a resource-tolerant startup readiness contract", async () => {
+  const [launcher, uiAxe] = await Promise.all([
+    read("Start-PlotPickle.bat"),
+    read("lib/verification/ui-axe-audit.mjs"),
+  ]);
 
   assert.match(launcher, /if \/I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp"/);
   assert.match(launcher, /call :start_webmcp_testing/);
   assert.match(launcher, /call :open_when_ready/);
   assert.match(launcher, /call :start_deferred_companion_maintenance/);
   assert.match(launcher, /WEBMCP_STARTUP_RUNNER=scripts\\run-webmcp-startup-uat\.mjs/);
-  assert.match(launcher, /run --server "%PLOTPICKLE_URL%" --home "!PLOTPICKLE_HOME!" --tool-root "!PLOTPICKLE_WEBMCP_TOOL_ROOT!"/);
+  assert.match(launcher, /set "READY_TIMEOUT_SECONDS=240"/);
+  assert.match(launcher, /Waiting for the completed PlotPickle startup contract before launching the bounded WebMCP UAT/);
+  assert.match(launcher, /AddSeconds\(%READY_TIMEOUT_SECONDS%\)/);
+  assert.match(launcher, /\$ready=\$false/);
+  assert.match(launcher, /WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract/);
+  assert.match(launcher, /Start-Process -FilePath \$env:ComSpec -ArgumentList '\/k', \$command/);
+  assert.doesNotMatch(launcher, /start "PlotPickle WebMCP UAT" cmd\.exe \/k node/);
   assert.match(launcher, /WebMCP Testing uses an isolated synthetic Human profile/);
   assert.match(launcher, /WebMCP Testing requires an isolated PlotPickle test session/);
+
+  const timeoutMatch = launcher.match(/set "READY_TIMEOUT_SECONDS=(\d+)"/u);
+  assert.ok(timeoutMatch, "shared startup readiness timeout is missing");
+  const timeoutSeconds = Number(timeoutMatch[1]);
+  assert.ok(timeoutSeconds >= 180, "startup contract must tolerate a 120-180 second resource-constrained boot");
+  assert.ok(timeoutSeconds > 107.491, "the observed 107.491 second Vite boot must fit inside the startup contract");
+
+  const webmcpLabel = launcher.indexOf("\n:start_webmcp_testing\n");
+  const cleanupLabel = launcher.indexOf("\n:cleanup_webmcp_testing\n", webmcpLabel);
+  assert.ok(webmcpLabel >= 0 && cleanupLabel > webmcpLabel, "WebMCP startup labels must remain ordered and discoverable");
+  const webmcpStart = launcher.slice(webmcpLabel, cleanupLabel);
+  const readinessFailure = webmcpStart.indexOf("if (-not $ready)");
+  const uatLaunch = webmcpStart.indexOf("Start-Process -FilePath $env:ComSpec");
+  assert.ok(readinessFailure >= 0 && uatLaunch > readinessFailure, "WebMCP runner must launch only after the startup readiness gate");
+
+  assert.match(uiAxe, /waitForUiServer\(server, timeoutMs = 90_000\)/u);
 });
 
 test("startup WebMCP runner keeps verification tools isolated, pinned, and validates the shared menu contract", async () => {

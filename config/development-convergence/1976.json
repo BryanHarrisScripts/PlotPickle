@@ -14,6 +14,7 @@
     "adapters/curriculum/current-catalog.ts",
     "app/api/learn/journey-courses/route.ts",
     "app/api/learn/explore/route.ts",
+    "tests/issue-1918-learn-program-map.test.mjs",
     "tests/issue-1918-learn-semester-one.test.mjs",
     "tests/issue-1976-phase-d-integration.test.mjs"
   ],
@@ -49,7 +50,8 @@
       "criterion": "The frozen 1918 archive hashes remain historical evidence and the enrichment layer has its own SHA-256.",
       "evidence": [
         {"type":"file-contains","path":"learn/enrichment/1976-canonical.json","contains":"enrichmentContentSha256"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"frozen #1918 base archive"}
+        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"frozen #1918 base archive"},
+        {"type":"file-contains","path":"tests/issue-1918-learn-program-map.test.mjs","contains":"issue-1976-phase-d-integration.test.mjs"}
       ]
     }
   ]

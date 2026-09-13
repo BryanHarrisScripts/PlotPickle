@@ -21,7 +21,7 @@ export type DashboardBbsItem = Readonly<{
   group?: string;
 }>;
 
-const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "logout", "learn"]);
+const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "open-source", "logout", "learn"]);
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
   appearance: "A",
@@ -29,12 +29,8 @@ const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   "local-story-mode": "L",
   "node-info": "I",
   cloud: "C",
-  data: "D",
-  deploy: "E",
-  repos: "R",
-  auth: "U",
   agents: "N",
-  "open-source": "O",
+  advanced: "V",
 };
 
 const SETTINGS_MENU = [
@@ -52,17 +48,27 @@ const SETTINGS_MENU = [
     description: "Local writing, images, video and Agent compute on this computer.",
     group: "SYSTEMS",
   },
-  ...settingsTaxonomy.systems
-    .filter((system) => system.id !== "local")
-    .map((system) => ({
-      id: system.id,
-      shortcut: SETTINGS_SHORTCUTS[system.id] ?? "?",
-      label: system.id === "cloud" ? "Cloud Story Mode" : system.label,
-      description: system.id === "cloud"
-        ? "Cloud writing, images, video, Agents and user-owned provider authority."
-        : system.description,
-      group: "SYSTEMS",
-    })),
+  {
+    id: "cloud",
+    shortcut: SETTINGS_SHORTCUTS.cloud,
+    label: "Cloud Story Mode",
+    description: "Cloud writing, images, video, Agents and user-owned provider authority.",
+    group: "SYSTEMS",
+  },
+  {
+    id: "agents",
+    shortcut: SETTINGS_SHORTCUTS.agents,
+    label: "Agents",
+    description: "Assign Local or Cloud Story Mode compute to PlotPickle Agents.",
+    group: "SYSTEMS",
+  },
+  {
+    id: "advanced",
+    shortcut: SETTINGS_SHORTCUTS.advanced,
+    label: "Advanced",
+    description: "Project data, recovery, MCP, source references and technical diagnostics.",
+    group: "SYSTEMS",
+  },
   ...settingsTaxonomy.workspace
     .filter((item) => item.id !== "sitemap")
     .map((item) => ({
@@ -267,7 +273,7 @@ export default function DashboardBbsPanel({
         if (event.key === "Escape") { event.preventDefault(); setSettingsReviewSystem(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1 style={{ color: "var(--pp-skin-warning-ink)" }}>{settingsReviewSystem.toUpperCase()} · IN REVIEW</h1>
+          <h1>{settingsReviewSystem.toUpperCase()}</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsReviewSystem(null)}>Back to Settings</button>
         </div>
         <SettingsReviewSystemPanel systemId={settingsReviewSystem} />

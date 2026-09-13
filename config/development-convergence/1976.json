@@ -1,86 +1,68 @@
 {
   "schemaVersion": 1,
   "issue": 1976,
-  "phase": "phase-c1-independent-authoring",
-  "brief": "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md",
+  "phase": "phase-c2-independent-authoring",
+  "brief": "docs/developer-briefs/1976-phase-c2-television-medium-authoring.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
-    "config/verification/ownership-map.json",
-    "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md",
-    "learn/enrichment/1976-c1/manifest.json",
-    "learn/enrichment/1976-c1/scene-craft-pressure-and-turn.json",
-    "learn/enrichment/1976-c1/screenplay-format-and-delivery.json",
-    "learn/enrichment/1976-c1/adaptation-source-to-screen.json",
-    "learn/enrichment/1976-c1/professional-pitching-and-representation.json",
-    "tests/issue-1976-phase-c1-authoring.test.mjs"
+    "docs/developer-briefs/1976-phase-c2-television-medium-authoring.md",
+    "learn/enrichment/1976-c2/manifest.json",
+    "learn/enrichment/1976-c2/series-episode-season-architecture.json",
+    "learn/enrichment/1976-c2/series-engine-and-bible.json",
+    "learn/enrichment/1976-c2/writers-room-story-breaking.json",
+    "learn/enrichment/1976-c2/half-hour-comedy-craft.json",
+    "tests/issue-1976-phase-c2-authoring.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P1976-C1-1",
-      "criterion": "Phase C1 independently authors exactly the four Phase B general-craft lesson bodies and no C2/C3 lesson bodies.",
+      "id": "P1976-C2-1",
+      "criterion": "Phase C2 independently authors exactly the four Phase B television medium-extension lesson bodies.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "\"phase\": \"phase-c1-independent-authoring\"" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "scene-craft-pressure-and-turn" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "professional-pitching-and-representation" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "C2_IDS" }
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"phase\": \"phase-c2-independent-authoring\""},
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"const C2_IDS"}
       ]
     },
     {
-      "id": "P1976-C1-2",
-      "criterion": "Every C1 body preserves the Phase B stable ID, title, canonical topic, content kind, owner Craft Module, related modules, application targets and companion-item design.",
+      "id": "P1976-C2-2",
+      "criterion": "Each C2 body preserves its Phase B stable identity, topic, medium-extension kind, one owner Craft Module, related-module cross-links, application targets and companion design.",
       "evidence": [
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "locked.ownerCraftModule" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "locked.relatedCraftModules" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "locked.applicationTargets" }
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"locked.ownerCraftModule"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"locked.applicationTargets"}
       ]
     },
     {
-      "id": "P1976-C1-3",
-      "criterion": "Each C1 lesson is a complete PlotPickle teaching body with objectives, substantive sections, definitions, rights-safe example, checklist, mistakes, exercise, apply target, tags and provenance metadata.",
+      "id": "P1976-C2-3",
+      "criterion": "Every C2 lesson is a complete PlotPickle teaching body with explicit television/medium boundaries and rights-safe provenance.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/scene-craft-pressure-and-turn.json", "contains": "\"sections\"" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/screenplay-format-and-delivery.json", "contains": "\"checklist\"" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/adaptation-source-to-screen.json", "contains": "\"definitions\"" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/professional-pitching-and-representation.json", "contains": "\"exercise\"" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "REQUIRED_LESSON_FIELDS" }
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"REQUIRED_LESSON_FIELDS"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"lesson.provenance.mediumSpecific"},
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/half-hour-comedy-craft.json","contains":"\"mutableRulesFrozenIntoCanon\": false"}
       ]
     },
     {
-      "id": "P1976-C1-4",
-      "criterion": "External research and primary/authorized references remain provenance inputs only; no external skill/reference/script/source body is imported and mutable legal/industry rules are not frozen into canon.",
+      "id": "P1976-C2-4",
+      "criterion": "C2 adds no grading, mastery gate, compulsory rewrite or Agent authority over learner work, and does not present one television convention as universal craft law.",
       "evidence": [
-        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md", "contains": "Store only concise provenance metadata and source URLs" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "PROHIBITED_SOURCE_BODY_KEYS" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/screenplay-format-and-delivery.json", "contains": "\"mutableRulesFrozenIntoCanon\": false" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/professional-pitching-and-representation.json", "contains": "\"mutableRulesFrozenIntoCanon\": false" }
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"gradingOrMasteryGateAdded\": false"},
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"mediumExtensionsAreUniversalRules\": false"},
+        {"type":"file-contains","path":"docs/developer-briefs/1976-phase-c2-television-medium-authoring.md","contains":"No quiz, grade, mastery score, pass/fail threshold or required revision"}
       ]
     },
     {
-      "id": "P1976-C1-5",
-      "criterion": "C1 adds no grading, mastery gate, mandatory revision or Agent authority over the learner's story.",
+      "id": "P1976-C2-5",
+      "criterion": "All four C2 bodies remain staged until Phase D, leaving the current canonical 12-topic / 81 archived lesson / 95 bundled source / 88 presentation baseline unchanged.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "\"gradingOrMasteryGateAdded\": false" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "grading/gating semantics" },
-        { "type": "file-contains", "path": "docs/developer-briefs/1976-phase-c1-general-craft-authoring.md", "contains": "No quiz, grade, mastery score, pass/fail threshold or required revision" }
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"status\": \"staged-not-canonical\""},
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"archivedLessonCount, 81"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"must remain staged until Phase D"}
       ]
     },
     {
-      "id": "P1976-C1-6",
-      "criterion": "The four authored bodies remain staged until Phase D, leaving the current 12-topic / 81 archived lesson / 95 bundled source / 88 presentation baseline and program map unchanged.",
+      "id": "P1976-C2-6",
+      "criterion": "Phase C1 remains intact and C3 specialist enrichment remains deferred rather than silently expanding the curriculum tree.",
       "evidence": [
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "\"status\": \"staged-not-canonical\"" },
-        { "type": "file-contains", "path": "learn/enrichment/1976-c1/manifest.json", "contains": "\"canonicalIntegrationDeferredToPhaseD\": true" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "archivedLessonCount, 81" },
-        { "type": "file-contains", "path": "tests/issue-1976-phase-c1-authoring.test.mjs", "contains": "must remain staged until Phase D" }
-      ]
-    },
-    {
-      "id": "P1976-C1-7",
-      "criterion": "LEARN curriculum JSON and staged enrichment content are explicitly governed by the Story / Canon / Evidence layer so fail-closed verification does not treat curriculum artifacts as unowned production files.",
-      "evidence": [
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"id\": \"learn-curriculum-content\"" },
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "learn/enrichment/**" },
-        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "\"ownerLayer\": \"story-canon\"" }
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"learn/enrichment/1976-c1/manifest.json"},
+        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"optional specialist enrichment remains unapproved"}
       ]
     }
   ]

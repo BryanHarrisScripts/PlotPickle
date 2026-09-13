@@ -28,6 +28,7 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
           <p>Keep primary files, safety copies, recovery, private project search and replaceable working data in one Human-facing area.</p>
           <ul>
             <li><strong>Project Files &amp; Backups:</strong> persistent project files, rolling backups and recovery.</li>
+            <li><strong>Example Project Recovery:</strong> preserve the pristine Afterglow example and use Make My Own Copy for editable work without overwriting the original.</li>
             <li><strong>Project Search:</strong> private derived search data for scenes, characters, notes and story information.</li>
             <li><strong>Media &amp; Preview Cache:</strong> replaceable previews, thumbnails and temporary working data.</li>
           </ul>

@@ -1,68 +1,79 @@
 {
   "schemaVersion": 1,
   "issue": 1977,
-  "phase": "phase-0-discovery-contract",
-  "brief": "docs/developer-briefs/1977-plotpickle-oss-radar.md",
+  "phase": "phase-1-deterministic-github-discovery",
+  "brief": "docs/developer-briefs/1977-phase-1-github-discovery.md",
   "allowedChanges": [
     "config/development-convergence/1977.json",
-    "config/oss-radar/discovery-contract.json",
     "config/verification/ownership-map.json",
-    "docs/developer-briefs/1977-plotpickle-oss-radar.md",
-    "tests/issue-1977-oss-radar-contract.test.mjs"
+    "docs/developer-briefs/1977-phase-1-github-discovery.md",
+    "scripts/oss-radar/discovery-core.mjs",
+    "scripts/oss-radar/discover-github.mjs",
+    "tests/fixtures/oss-radar/phase-1-github-search.json",
+    "tests/issue-1977-oss-radar-discovery.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P1977-0-1",
-      "criterion": "Phase 0 defines the OSS Radar as a contract-only work unit with six first-class discovery lanes and no GitHub discovery client or scheduled workflow.",
+      "id": "P1977-1-1",
+      "criterion": "Phase 1 adds a read-only GitHub repository-search client that requires GITHUB_TOKEN and introduces no GitHub write endpoint or scheduled workflow.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"phase\": \"phase-0-discovery-contract\""},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"ai-architecture\""},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"scheduledWorkflow\": false"}
+        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"requires GITHUB_TOKEN"},
+        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"https://api.github.com/search/repositories"},
+        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"method: \"GET\""}
       ]
     },
     {
-      "id": "P1977-0-2",
-      "criterion": "The Human-facing report targets five genuine findings, never pads weak findings, and exposes only SAVE, IMPROVE, ADD, LEARN or WATCH while PASS remains internal.",
+      "id": "P1977-1-2",
+      "criterion": "Enabled Phase 0 lanes and queries are converted into bounded GitHub searches and repository results are normalized to stable metadata/evidence rather than source bodies.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"targetFindings\": 5"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"neverPadWeakFindings\": true"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-contract.test.mjs","contains":"humanDispositions"}
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"buildGitHubSearchQuery"},
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"normalizeRepository"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"enabledLaneCount, 6"}
       ]
     },
     {
-      "id": "P1977-0-3",
-      "criterion": "Deterministic scoring totals 100 before a bounded integration-cost penalty and requires explainable evidence rather than model-only ranking.",
+      "id": "P1977-1-3",
+      "criterion": "Deterministic filters reject archived/stale/explicitly unusable evidence, keep unknown-license findings non-adoptable, and do not falsely treat fork status as proof of non-divergence.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"baseMaximum\": 100"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"modelOnlyRankingAllowed\": false"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-contract.test.mjs","contains":"assert.equal(total, 100)"}
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"explicitly-unusable-license"},
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"fork:unverified-divergence"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"dispositionCeiling, \"WATCH\""}
       ]
     },
     {
-      "id": "P1977-0-4",
-      "criterion": "License, staleness and duplicate policy is deterministic, with unknown-license candidates unable to become adoption recommendations.",
+      "id": "P1977-1-4",
+      "criterion": "Base ranking uses only deterministic Phase 0 weights and observable repository/query evidence, remains bounded, and preserves explainable per-dimension evidence.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"unknownLicenseMayRecommendAdoption\": false"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"rejectAfterDays\": 730"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"suppressPreviouslyReviewedWithoutMeaningfulChange\": true"}
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"scoreEvidence"},
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"contract.scoring.weights"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"points <= evidence.weight"}
       ]
     },
     {
-      "id": "P1977-0-5",
-      "criterion": "The Radar cannot autonomously install dependencies, import code/curriculum, mutate the product or create implementation issues; Human adoption authority remains explicit.",
+      "id": "P1977-1-5",
+      "criterion": "Repositories discovered by multiple searches collapse by stable identity while preserving the union of lane and query evidence.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"adoptionDecision\": \"human-only\""},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"automaticDependencyInstall\": false"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"automaticProductMutation\": false"}
+        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"mergeDuplicateCandidates"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"matchedLaneIds"},
+        {"type":"file-contains","path":"tests/fixtures/oss-radar/phase-1-github-search.json","contains":"agent-systems/agent-mesh"}
       ]
     },
     {
-      "id": "P1977-0-6",
-      "criterion": "The contract owns enough report and history evidence to support future idempotent monthly reporting and meaningful-change deduplication.",
+      "id": "P1977-1-6",
+      "criterion": "Fixture tests cover all six lanes, duplicate, archived, stale, unknown-license, fork, deterministic-order, authorization and API-failure paths without network or secrets.",
       "evidence": [
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"dailyReportIdempotent\": true"},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"lastMeaningfulMarker\""},
-        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"What can PlotPickle learn from this?"}
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"fixtureFetch"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"HTTP 403: fixture rate limit"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"fixture-token"}
+      ]
+    },
+    {
+      "id": "P1977-1-7",
+      "criterion": "Phase 2+ responsibilities remain absent: no monthly issue/report lifecycle, persistent history, schedule or model-assisted analysis is introduced.",
+      "evidence": [
+        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-1-github-discovery.md","contains":"does not publish a daily report"},
+        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-1-github-discovery.md","contains":"Do not alter GitHub Actions in this phase."},
+        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-1-github-discovery.md","contains":"Persistent cross-day history/deduplication remains Phase 2."}
       ]
     }
   ]

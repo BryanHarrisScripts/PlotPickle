@@ -13,6 +13,9 @@
     "event_id": "evt_phase1_text_done",
     "session_id": "sess_phase1_success",
     "turn_id": "turn_phase1_success",
+    "item_id": "item_phase1_success",
+    "output_index": 0,
+    "content_index": 0,
     "text": "Mock Sage transport response."
   },
   {
@@ -20,6 +23,14 @@
     "event_id": "evt_phase1_completed",
     "session_id": "sess_phase1_success",
     "turn_id": "turn_phase1_success",
+    "turn": {
+      "id": "turn_phase1_success",
+      "agent_id": "agent_phase1",
+      "created_at": 0,
+      "object": "agent.session.turn",
+      "session_id": "sess_phase1_success",
+      "status": "completed"
+    },
     "usage": {
       "input_tokens": 42,
       "output_tokens": 12,

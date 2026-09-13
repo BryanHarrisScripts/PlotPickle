@@ -45,13 +45,15 @@ test("#1973 Dashboard and Settings derive footer action from the selected row ra
   assert.doesNotMatch(dashboard, /settingsNotice/u);
 });
 
-test("#1973 Dashboard and Settings row semantics explicitly distinguish available, in-review and unavailable", async () => {
+test("#1973 Dashboard and Settings keep review visibility separate from runtime wiring", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
-  assert.match(dashboard, /aria-label=\{`\$\{item\.label\}: \$\{connected \? "available" : "unavailable"\}`\}/u);
-  assert.match(dashboard, /review \? "in review" : connected \? "available" : "unavailable"/u);
   assert.match(dashboard, /data-settings-review=\{review \? "true" : "false"\}/u);
-  assert.match(dashboard, /data-skin-menu-connected=\{openable \? "true" : "false"\}/u);
-  assert.match(dashboard, /data-skin-menu-indicator=\{review \? "review" : connected \? "connected" : "unwired"\}/u);
+  assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
+  assert.match(dashboard, /data-skin-menu-indicator="unwired"/u);
+  assert.match(dashboard, /data-settings-review-indicator="review"/u);
+  assert.match(dashboard, /aria-label=\{`\$\{item\.label\}: in review`\}/u);
+  assert.match(dashboard, /var\(--pp-skin-warning\)/u);
+  assert.match(dashboard, /if \(!isReviewSettingsSystemId\(shortcutItem\.id\)\) activateSettingsItem\(shortcutIndex\)/u);
 });
 
 test("#1973 Local and Cloud directories remain fully available instead of inventing gray states", async () => {

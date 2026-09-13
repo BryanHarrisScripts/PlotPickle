@@ -80,7 +80,7 @@ function directoryAnnouncement(payload: ListingPayload): StoryRoomDirectoryAnnou
 
 async function publishDirectory(payload: ListingPayload) {
   const announcement = directoryAnnouncement(payload);
-  if (!announcement) throw new Error("PlotPickle could not prepare the signed directory announcement for this listing state.");
+  if (!announcement) throw new Error("PlotPickle could not prepare the signed directory announcement for this visibility state.");
   const response = await authenticatedProfileFetch("/api/local-buzz/story-room-directory", {
     method: "POST",
     cache: "no-store",
@@ -125,7 +125,7 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
     setPayload(null);
     setNotice("");
     setDirectorySyncWarning("");
-    void refresh(false).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room listing could not be loaded."));
+    void refresh(false).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room visibility could not be loaded."));
   }, [channel.id]);
 
   async function save() {
@@ -150,11 +150,11 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
         setNotice(`${next.message} ${publicationMessage}`);
       } catch (error) {
         const detail = error instanceof Error ? error.message : "The signed directory update failed.";
-        setDirectorySyncWarning("Directory not synchronized: the local owner setting was saved, but BUZZ did not confirm the public directory update. A previous public listing may still be visible. Retry Save & withdraw/publish until synchronization succeeds.");
+        setDirectorySyncWarning("Directory not synchronized: the local visibility setting was saved, but BUZZ did not confirm the public directory update. A previous listing may still be visible. Retry Save until synchronization succeeds.");
         setNotice(detail);
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Story Room listing could not be saved.");
+      setNotice(error instanceof Error ? error.message : "Story Room visibility could not be saved.");
     } finally {
       setBusy(false);
     }
@@ -162,15 +162,20 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
 
   const preview = payload?.publicPreview ?? null;
   const openAvailable = payload?.capabilities.openMembership === true;
+  const saveLabel = accessMode === "closed"
+    ? "Save Private / Hidden"
+    : accessMode === "listed"
+      ? "Save Listed / Request Access"
+      : "Save Open";
 
-  return <section className={styles.card} aria-label="Story Rooms Directory owner listing">
+  return <section className={styles.card} aria-label="Private Story Room visibility" data-story-room-visibility="phase-3">
     <header>
       <div>
-        <span>Story Rooms Directory</span>
-        <h3>Owner listing & public preview</h3>
-        <p>Closed is the default. PlotPickle publishes only the metadata you approve here; the private BUZZ channel, conversation, project files and PPF stay private.</p>
+        <span>Visibility</span>
+        <h3>Choose who can discover this room.</h3>
+        <p>Private / Hidden is the default. Listed publishes only the metadata you approve here. Changing visibility never removes existing room members; BUZZ remains the membership authority.</p>
       </div>
-      <button type="button" disabled={busy} onClick={() => void refresh(true)}>Refresh listing</button>
+      <button type="button" disabled={busy} onClick={() => void refresh(true)}>Refresh visibility</button>
     </header>
 
     <div className={styles.identityStrip}>
@@ -180,27 +185,27 @@ export default function CommunityStoryRoomListing({ channel }: Props) {
     </div>
 
     <div className={styles.formGrid}>
-      <label><span>Directory access</span><select value={accessMode} onChange={(event) => setAccessMode(event.target.value as BuzzStoryRoomAccessMode)} disabled={!payload || busy}><option value="closed">Closed · hidden</option><option value="listed">Listed · Request Access</option><option value="open" disabled={!openAvailable}>Open · unavailable until BUZZ supports safe admission</option></select></label>
+      <label><span>Visibility</span><select value={accessMode} onChange={(event) => setAccessMode(event.target.value as BuzzStoryRoomAccessMode)} disabled={!payload || busy}><option value="closed">Private / Hidden</option><option value="listed">Listed / Request Access</option><option value="open" disabled={!openAvailable}>Open / automatic admission · not available</option></select></label>
       <label><span>Story title</span><input value={title} maxLength={120} onChange={(event) => setTitle(event.target.value)} disabled={!payload || busy} /></label>
       <label><span>Genre</span><input value={genre} maxLength={80} onChange={(event) => setGenre(event.target.value)} placeholder="Optional" disabled={!payload || busy} /></label>
       <label className={styles.description}><span>Short description</span><textarea value={description} maxLength={500} rows={4} onChange={(event) => setDescription(event.target.value)} placeholder="Write only what you want other people to see." disabled={!payload || busy} /></label>
-      <label className={styles.checkbox}><input type="checkbox" checked={requestsOpen} onChange={(event) => setRequestsOpen(event.target.checked)} disabled={!payload || busy || accessMode !== "listed"} /><span>Accept new access requests while Listed</span></label>
+      <label className={styles.checkbox}><input type="checkbox" checked={requestsOpen} onChange={(event) => setRequestsOpen(event.target.checked)} disabled={!payload || busy || accessMode !== "listed"} /><span>Allow new Request Access submissions while Listed</span></label>
     </div>
 
     <div className={styles.actions}>
-      <button type="button" disabled={!payload || busy || !title.trim()} onClick={() => void save()}>{busy ? "Saving…" : accessMode === "closed" ? "Save & withdraw listing" : "Save & publish listing"}</button>
-      <p>Open is capability-gated. PlotPickle will not simulate automatic admission or silently fall back while claiming the room is Open.</p>
+      <button type="button" disabled={!payload || busy || !title.trim()} onClick={() => void save()}>{busy ? "Saving…" : saveLabel}</button>
+      <p>Open remains capability-gated. PlotPickle will not simulate automatic admission or silently fall back while claiming the room is Open.</p>
     </div>
 
     {directorySyncWarning ? <p className={styles.notice} role="alert">{directorySyncWarning}</p> : null}
 
     <div className={styles.preview}>
-      <span>Exactly what other people can see</span>
+      <span>Public directory preview</span>
       {preview ? <article>
         <div><small>{preview.genre || "Story Room"}</small><h4>{preview.title}</h4></div>
         {preview.description ? <p>{preview.description}</p> : <p>No public description provided.</p>}
         <dl><div><dt>Owner</dt><dd>{preview.ownerDisplayName} · {humanBuzzFingerprint(preview.ownerPublicKey)}</dd></div><div><dt>Community</dt><dd>{preview.hostingCommunityName || "Not shown"}</dd></div><div><dt>Access</dt><dd>{preview.accessMode === "listed" ? (preview.requestsOpen ? "Request Access" : "Listed · requests closed") : "Open"}</dd></div></dl>
-      </article> : <p className={styles.closedPreview}>Nothing is public. Closed Story Rooms do not appear in the Story Rooms Directory.</p>}
+      </article> : <p className={styles.closedPreview}><strong>Private / Hidden.</strong> This room does not appear in the Story Rooms Directory. Existing members keep access until the owner removes them.</p>}
     </div>
 
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}

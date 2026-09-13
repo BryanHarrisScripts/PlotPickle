@@ -24,7 +24,11 @@
     {
       "id": "community-conversation-surface",
       "classification": "production",
-      "include": ["modules/community/community-buzz-social.tsx"],
+      "include": [
+        "modules/community/community-buzz-social.tsx",
+        "app/_components/community/community-workspace.tsx",
+        "app/_components/community/community-private-story-room.tsx"
+      ],
       "ownerLayer": "experience-skins",
       "riskTokens": ["surface", "navigation", "visual", "mcp"]
     },

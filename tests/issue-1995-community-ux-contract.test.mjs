@@ -4,20 +4,58 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1995 Phase 0 makes the profile Project Library the story-selection authority", async () => {
-  const [contract, library, workspace] = await Promise.all([
+test("#1995 Project Library is the story-selection authority", async () => {
+  const [contract, library, workspace, privateRoom] = await Promise.all([
     read("lib/community/community-ux-contract.ts"),
     read("core/storage/project-library-browser.ts"),
     read("app/_components/community/community-workspace.tsx"),
+    read("app/_components/community/community-private-story-room.tsx"),
   ]);
 
   assert.match(contract, /storySource: "project-library"/u);
   assert.match(contract, /storyCollectionLabel: "My Stories"/u);
   assert.match(library, /export function listLibraryProjects\(\)/u);
   assert.match(library, /listProfileProjectSummaries/u);
+  assert.match(privateRoom, /listLibraryProjects\(\)\.filter\(\(story\) => !story\.archivedAt\)/u);
+  assert.match(privateRoom, /PROJECT_LIBRARY_CHANGED_EVENT/u);
+  assert.doesNotMatch(workspace, /loadFoundationProject/u);
+});
 
-  // Characterize the regression that Phase 1 must replace without changing it in Phase 0.
-  assert.match(workspace, /loadFoundationProject\(\)/u);
+test("#1995 Phase 1 shows materialized My Stories without changing the active writing project", async () => {
+  const privateRoom = await read("app/_components/community/community-private-story-room.tsx");
+
+  assert.match(privateRoom, /aria-label="My Stories for Private Story Room"/u);
+  assert.match(privateRoom, /data-private-story-room-story=\{story\.id\}/u);
+  assert.match(privateRoom, /<strong>\{story\.title\}<\/strong>/u);
+  assert.match(privateRoom, /Selecting a story never changes which story is active in your writing workspace\./u);
+  assert.doesNotMatch(privateRoom, /switchActiveLibraryProject/u);
+  assert.doesNotMatch(privateRoom, /loadFoundationProject/u);
+});
+
+test("#1995 Phase 1 resolves existing immutable room identity per story before creating anything", async () => {
+  const privateRoom = await read("app/_components/community/community-private-story-room.tsx");
+
+  assert.match(privateRoom, /storyRoomIdentityBody\(story, false\)/u);
+  assert.match(privateRoom, /projectId: story\.id/u);
+  assert.match(privateRoom, /buzzLegacyStoryRoomName\(story, room\.id\)/u);
+  assert.match(privateRoom, /buzzStoryRoomDisplayName\(story, room\.id\)/u);
+  assert.match(privateRoom, /data-private-story-room-state=\{error \? "unavailable" : room \? "ready" : "not-created"\}/u);
+  assert.match(privateRoom, /room\.roomId === PRIVATE_STORY_ROOM_ID/u);
+});
+
+test("#1995 Phase 1 separates pre-creation from room administration", async () => {
+  const privateRoom = await read("app/_components/community/community-private-story-room.tsx");
+
+  assert.match(privateRoom, /data-private-story-room-selected="not-created"/u);
+  assert.match(privateRoom, /Create one private BUZZ space for this story\. Listing, member and request administration appear only after the room exists\./u);
+  assert.match(privateRoom, /storyRoomIdentityBody\(selectedStory, true\)/u);
+  assert.match(privateRoom, /data-private-story-room-selected="ready"/u);
+  assert.match(privateRoom, /<CommunityStoryRoomAccess channel=\{selectedPrivateRoom\.channel\}/u);
+
+  const notCreatedIndex = privateRoom.indexOf('data-private-story-room-selected="not-created"');
+  const accessIndex = privateRoom.indexOf("<CommunityStoryRoomAccess");
+  assert.ok(notCreatedIndex >= 0 && accessIndex >= 0, "Phase 1 creation and administration states must both exist.");
+  assert.ok(!privateRoom.slice(notCreatedIndex).includes("CommunityStoryRoomAccess channel={selectedPrivateRoom.channel}"), "Pre-creation branch must not render room administration.");
 });
 
 test("#1995 Phase 0 preserves BUZZ public identity and member-only normal admission", async () => {

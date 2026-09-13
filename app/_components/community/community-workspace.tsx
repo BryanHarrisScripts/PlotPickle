@@ -2,32 +2,23 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PPFProject } from "../../../core/project/project";
 import { authenticatedProfileFetch } from "../../../core/auth/profile-request-browser";
-import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
 import { PLOTPICKLE_BUZZ_COMMUNITY } from "../../../lib/buzz/buzz-default-community";
 import {
-  BUZZ_STORY_ROOMS,
   isKnownHumanBuzzIdentity,
-  type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../../../lib/buzz/buzz-story-room";
-import {
-  buzzLegacyStoryRoomName,
-  buzzStoryRoomDisplayName,
-} from "../../../lib/buzz/story-room-identity";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../../../modules/community/community-buzz-social";
 import CommunityStoryRoomDirectory from "../../../modules/community/story-room-directory";
 import { PLOTPICKLE_PLAYHOUSE_PLUGIN } from "../../../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
-import CommunityStoryRoomAccess from "./community-story-room-access";
+import CommunityPrivateStoryRoom from "./community-private-story-room";
 import ConnectedStudiosPanel from "../../connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
 const COMMUNITY_BBS_NAME = PLOTPICKLE_BUZZ_COMMUNITY.name;
-const PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story";
 const ROOM_RAIL_DESCRIPTIONS: Readonly<Record<string, string>> = Object.freeze({
   "great-hall": "Welcome, questions & general chat",
   "story-council": "Story planning, structure & critique",
@@ -75,14 +66,6 @@ type GuildhallStatus = {
   message: string;
 };
 type BuzzDm = { id: string; participants: string[]; createdAt: string };
-type StoryRoomRecord = {
-  roomId: BuzzStoryRoomId;
-  displayName: string;
-  channel: BuzzChannel;
-  listingId: string;
-  created?: boolean;
-  mappedFromLegacy?: boolean;
-};
 type UtilityView = "social" | "directory" | "story-rooms" | "studios" | "agents";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -94,19 +77,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await response.json() as T & { message?: string };
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
   return body;
-}
-
-function storyRoomIdentityBody(project: PPFProject, createMissing: boolean) {
-  return {
-    projectId: project.id,
-    createMissing,
-    rooms: BUZZ_STORY_ROOMS.map((room) => ({
-      id: room.id,
-      legacyName: buzzLegacyStoryRoomName(project, room.id),
-      displayName: buzzStoryRoomDisplayName(project, room.id),
-      description: `${project.title} · ${room.description}`,
-    })),
-  };
 }
 
 function buzzDesktopUrl(relay: string, name: string) {
@@ -154,8 +124,6 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
   const [humanIdentity, setHumanIdentity] = useState<HumanBuzzIdentity | null>(null);
   const [humanPresentation, setHumanPresentation] = useState<HumanPresentation | null>(null);
-  const [project, setProject] = useState<PPFProject | null>(null);
-  const [storyRooms, setStoryRooms] = useState<StoryRoomRecord[]>([]);
   const [dms, setDms] = useState<BuzzDm[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<CommunitySocialTarget | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -167,7 +135,6 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const callerName = humanIdentity?.displayName.trim() || "UNVERIFIED WRITER";
   const desktopUrl = buzzDesktopUrl(community?.relayUrl || "", community?.community || "");
   const readyRoomById = useMemo(() => new Map((guildhall?.readyRooms ?? []).map((room) => [room.id, room])), [guildhall?.readyRooms]);
-  const privateStoryRoom = storyRooms.find((room) => room.roomId === PRIVATE_STORY_ROOM_ID) ?? null;
 
   const chooseRoom = useCallback((roomId: string) => {
     const definition = PUBLIC_ROOMS.find((room) => room.id === roomId);
@@ -211,58 +178,27 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     }
   }, []);
 
-  const loadStoryRooms = useCallback(async (currentProject: PPFProject, identityVerified: boolean) => {
-    if (!identityVerified) { setStoryRooms([]); return; }
-    const body = await request<{ rooms: StoryRoomRecord[] }>("/story-room-identity", {
-      method: "POST",
-      body: JSON.stringify(storyRoomIdentityBody(currentProject, false)),
-    });
-    setStoryRooms(Array.isArray(body.rooms) ? body.rooms : []);
-  }, []);
-
   useEffect(() => {
-    const currentProject = loadFoundationProject();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize from the profile-owned project store
-    setProject(currentProject);
     let cancelled = false;
     void refresh()
-      .then(async ({ communityBody, humanBody, guildhallBody }) => {
+      .then(async ({ humanBody, guildhallBody }) => {
         if (cancelled) return;
         if (humanBody.humanCommunityAllowed && guildhallBody.operational) await refreshDms();
-        if (currentProject && communityBody.identityVerified) await loadStoryRooms(currentProject, true);
       })
       .catch((error) => { if (!cancelled) setNotice(error instanceof Error ? error.message : "Community status could not be loaded."); });
     return () => { cancelled = true; };
-  }, [loadStoryRooms, refresh, refreshDms]);
+  }, [refresh, refreshDms]);
 
   async function setupGuildhall() {
     setBusy("setup");
     try {
       const result = await request<GuildhallStatus & { ok: true }>("/guildhall/setup", { method: "POST" });
       setGuildhall(result);
-      const refreshed = await refresh();
+      await refresh();
       await refreshDms();
-      if (project && refreshed.communityBody.identityVerified) await loadStoryRooms(project, true);
       setNotice(result.message);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The BUZZ Community rooms could not be prepared.");
-    } finally {
-      setBusy("");
-    }
-  }
-
-  async function ensureStoryRooms() {
-    if (!project) { setNotice("Open LEARN or PLAN once so PlotPickle has an active story before creating its Private Story Room."); return; }
-    setBusy("story-rooms");
-    try {
-      const body = await request<{ rooms: StoryRoomRecord[]; message: string }>("/story-room-identity", {
-        method: "POST",
-        body: JSON.stringify(storyRoomIdentityBody(project, true)),
-      });
-      setStoryRooms(Array.isArray(body.rooms) ? body.rooms : []);
-      setNotice(body.message || `Private Story Room is ready for ${project.title}.`);
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The Private Story Room could not be prepared.");
     } finally {
       setBusy("");
     }
@@ -349,7 +285,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           <section aria-labelledby="community-plotpickle-heading">
             <div className={navigationStyles.railHeader}><b id="community-plotpickle-heading">Your PlotPickle</b></div>
             <div className={navigationStyles.subDestinationList}>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Room</span><small>{privateStoryRoom ? "READY" : project ? "SET UP" : "NO STORY"}</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Room</span><small>MY STORIES</small></button>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "studios" ? "page" : undefined} onClick={() => { setUtilityView("studios"); setSelectedTarget(null); }}><span>Connected Studios</span><small>PEOPLE</small></button>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setSelectedAgentId(null); setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>{PLOTPICKLE_PLAYHOUSE_PLUGIN.agents.length} OFFICIAL</small></button>
             </div>
@@ -363,10 +299,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         : utilityView === "directory" ? <CommunityStoryRoomDirectory />
         : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
         : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster selectedAgentId={selectedAgentId} /></main>
-        : utilityView === "story-rooms" ? <main className={styles.stack}>
-            <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? (privateStoryRoom?.displayName || buzzStoryRoomDisplayName(project, PRIVATE_STORY_ROOM_ID)) : "Open a story first"}</h2><p>{project ? `${project.title} · Stable BUZZ channel identity; the normal room name never exposes the project UUID. PlotPickle keeps the older category channels underneath for compatibility.` : "One private project space for story discussion."}</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
-            {privateStoryRoom ? <CommunityStoryRoomAccess channel={privateStoryRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : <p className={styles.empty}>{project ? "Create the Private Story Room when you want a BUZZ space dedicated to this story." : "Start or open a story in LEARN or PLAN first."}</p>}
-          </main>
+        : utilityView === "story-rooms" ? <CommunityPrivateStoryRoom identityVerified={Boolean(community?.identityVerified)} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} />
         : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} humanPresentation={humanPresentation} onOpenDm={openDm} onOpenAgent={(agentId) => { setSelectedAgentId(agentId); setUtilityView("agents"); }} />}
       </div>
     </div>

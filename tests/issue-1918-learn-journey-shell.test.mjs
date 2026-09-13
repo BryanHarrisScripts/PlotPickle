@@ -125,7 +125,10 @@ test("#1918 Phase 6 exposes first-class unrestricted Explore beside the guided J
   assert.match(explore, /aria-label="Search all curriculum"/u);
   assert.match(explore, /aria-label="Filter Explore by topic"/u);
   assert.match(explore, /aria-label="Filter Explore by Craft Module"/u);
-  assert.match(explore, /ORDER DOES NOT CONTROL ACCESS/u);
+  assert.match(explore, /accessMode: "unrestricted"/u);
+  assert.match(explore, /recommendedSequenceIsAccessControl: false/u);
+  assert.match(explore, /humanMayLearnOutOfOrder: true/u);
+  assert.match(explore, /value\.authority\.accessMode !== "unrestricted"/u);
   assert.doesNotMatch(explore, /aria-disabled/iu);
   assert.doesNotMatch(explore, /prerequisite.*(?:disabled|locked)|(?:disabled|locked).*prerequisite/iu);
 });

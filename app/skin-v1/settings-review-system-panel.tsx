@@ -1,4 +1,5 @@
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
+import styles from "./settings-review-system-panel.module.css";
 
 export type ReviewSettingsSystemId = "data" | "deploy" | "repos" | "auth";
 
@@ -62,7 +63,7 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
     : system.description;
 
   return (
-    <div style={shell} data-settings-review-surface={systemId} data-settings-review-state="in-review">
+    <div className={styles.surface} style={shell} data-settings-review-surface={systemId} data-settings-review-state="in-review">
       <section style={panel} aria-labelledby={`settings-review-${systemId}-title`}>
         <h2 id={`settings-review-${systemId}-title`} style={{ margin: "0 0 4px", fontSize: 24 }}>{system.label.toUpperCase()}</h2>
         <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)", lineHeight: 1.55 }}>{description}</p>

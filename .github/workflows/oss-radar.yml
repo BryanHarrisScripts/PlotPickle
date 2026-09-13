@@ -1,0 +1,33 @@
+name: PlotPickle OSS Radar
+
+on:
+  schedule:
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: plotpickle-oss-radar
+  cancel-in-progress: false
+
+jobs:
+  radar:
+    name: daily-discovery-report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - name: Verify OSS Radar contracts
+        run: node --test tests/issue-1977-oss-radar-*.test.mjs
+      - name: Run OSS Radar
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node lib/verification/oss-radar/run-radar.mjs

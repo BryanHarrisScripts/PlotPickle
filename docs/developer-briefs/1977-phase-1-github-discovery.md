@@ -110,9 +110,20 @@ The same repository may appear from several lane queries. Collapse duplicates by
 
 Persistent cross-day history/deduplication remains Phase 2.
 
+## Verification-layer ownership
+
+Phase 0 already assigned OSS Radar operations to the verification layer. Phase 1 implementation therefore lives under `lib/verification/oss-radar/` rather than creating a new production/runtime owner.
+
+The implementation is split into:
+- `query-normalization.mjs` — query construction, license handling, metadata normalization, duplicate merge and deterministic hard filters;
+- `scoring.mjs` — bounded explainable scoring and deterministic ranking;
+- `discover-github.mjs` — read-only authenticated GitHub search client and JSON CLI.
+
+No ownership-map exception is required.
+
 ## CLI output
 
-`node scripts/oss-radar/discover-github.mjs`
+`node lib/verification/oss-radar/discover-github.mjs`
 
 Output one JSON document containing:
 - contract/version marker;
@@ -143,12 +154,12 @@ Use repository-search-shaped fixture data covering:
 
 Expected Phase 1 changes:
 - this brief;
-- `scripts/oss-radar/discovery-core.mjs`;
-- `scripts/oss-radar/discover-github.mjs`;
+- `lib/verification/oss-radar/query-normalization.mjs`;
+- `lib/verification/oss-radar/scoring.mjs`;
+- `lib/verification/oss-radar/discover-github.mjs`;
 - fixture data under `tests/fixtures/oss-radar/`;
 - focused `tests/issue-1977-oss-radar-discovery.test.mjs`;
-- `config/development-convergence/1977.json` advanced to Phase 1;
-- verification ownership mapping for `scripts/oss-radar/**` if required.
+- `config/development-convergence/1977.json` advanced to Phase 1.
 
 Do not alter GitHub Actions in this phase.
 

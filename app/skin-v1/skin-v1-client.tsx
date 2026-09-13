@@ -22,7 +22,8 @@ import {
   type LogonViewModel,
 } from "../../lib/experience/logon-use-case";
 import { deriveExperienceSurfaceTopology, executeOpenSurfaceIntent } from "../../lib/experience/surface-registry";
-import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
+import type { DashboardBbsItem } from "./dashboard-bbs-panel";
+import DashboardBbsReviewHost from "./dashboard-bbs-review-host";
 
 const CommunitySkinHost = lazy(() => import("../_components/community/community-skin-host"));
 const ProfileSkinPanel = lazy(() => import("./profile-skin-panel"));
@@ -51,6 +52,7 @@ const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "C", label: "Community", description: "Talk, Share & Collaborate With Writers" },
   { id: "library", shortcut: "L", label: "Story Library", description: "Load Your Stories" },
   { id: "logout", shortcut: "X", label: "Log Off", description: "End This Human Session & Return To Logon" },
+  { id: "help", shortcut: "H", label: "Help / Issue Log", description: "Get Help or Prepare a PlotPickle Issue" },
   { id: "plan", shortcut: "P", label: "Outline", description: "Shape Story Structure & Narrative Direction", group: "PLANNING & STRUCTURING" },
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "PLANNING & STRUCTURING" },
   { id: "previs", shortcut: "V", label: "Previs", description: "Preview Shots, Timing & Camera Motion", group: "PLANNING & STRUCTURING" },
@@ -124,10 +126,6 @@ export default function SkinV1Client() {
     if (!item) return;
     if (item.id === "profile") {
       setUserProfileOpen(true);
-      return;
-    }
-    if (item.id === "open-source") {
-      globalThis.location.assign("/legal");
       return;
     }
     if (item.id === "logout") {
@@ -306,7 +304,7 @@ export default function SkinV1Client() {
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
           </section>
         ) : (
-          <DashboardBbsPanel
+          <DashboardBbsReviewHost
             items={DASHBOARD_MENU}
             selectedIndex={dashboardSelection}
             onActivate={activateDashboardItem}

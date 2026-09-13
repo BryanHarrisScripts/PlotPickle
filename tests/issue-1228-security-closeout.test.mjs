@@ -73,5 +73,9 @@ test("#1228 retains the source-level fixes behind older CodeQL records", async (
   assert.match(build, /main\(\)\.catch\(\(\) => \{/, "build failure boundary should not log caught exception contents");
   assert.doesNotMatch(build, /console\.error\([^\n]*error/i, "build failure boundary must not echo arbitrary caught error values");
   assert.doesNotMatch(characterImage, /dangerouslySetInnerHTML|\.innerHTML\s*=/, "character image UI must not reinterpret text as HTML");
+  assert.match(characterImage, /function parseReferenceAngle\(value: string\): CharacterReferenceAngle/, "character reference DOM input must cross an explicit allowlist boundary");
+  assert.match(characterImage, /setAngle\(parseReferenceAngle\(event\.currentTarget\.value\)\)/, "reference selection must validate DOM text before storing it");
+  assert.match(characterImage, /function referenceAngleLabel\(value: unknown\)/, "visible reference labels must come from fixed product strings");
+  assert.doesNotMatch(characterImage, /event\.target\.value as CharacterReferenceAngle|angle\.replace\(|reference\.angle\.replace\(/, "DOM-derived reference angles must not be transformed and rendered as free text");
   assert.match(screenplay, /finalDraftPlainText/, "Final Draft import must retain bounded plain-text normalization");
 });

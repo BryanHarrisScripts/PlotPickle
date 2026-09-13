@@ -1,57 +1,21 @@
 {
   "schemaVersion": 1,
   "issue": 1976,
-  "phase": "phase-d-canonical-integration",
-  "brief": "docs/developer-briefs/1976-phase-d-canonical-integration.md",
+  "phase": "phase-e-verification-closeout",
+  "brief": "docs/developer-briefs/1976-phase-e-verification-closeout.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
-    "config/verification/ownership-map.json",
-    "docs/developer-briefs/1976-phase-d-canonical-integration.md",
-    "learn/enrichment/1976-canonical.json",
-    "learn/current-program-map.mjs",
-    "adapters/curriculum/issue-1976-canonical.ts",
-    "adapters/curriculum/current-catalog-integrated.ts",
-    "adapters/curriculum/current-catalog.ts",
-    "app/api/learn/journey-courses/route.ts",
-    "app/api/learn/explore/route.ts",
+    "docs/developer-briefs/1976-phase-e-verification-closeout.md",
     "tests/issue-1918-learn-program-map.test.mjs",
-    "tests/issue-1918-learn-semester-one.test.mjs",
-    "tests/issue-1976-phase-d-integration.test.mjs"
+    "tests/issue-1976-phase-e-verification.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P1976-D-1",
-      "criterion": "Eight C1/C2 lessons are canonical without duplicating their bodies.",
+      "id": "P1976-E-1",
+      "criterion": "Phase E verification is present and wired into Story Canon.",
       "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-canonical.json","contains":"\"archivedLessonCount\": 89"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"promotes exactly eight C1/C2 lessons"}
-      ]
-    },
-    {
-      "id": "P1976-D-2",
-      "criterion": "Current Journey ownership is exact and remains open/advisory-only.",
-      "evidence": [
-        {"type":"file-contains","path":"learn/current-program-map.mjs","contains":"ownerCraftModule"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"exactly one Craft Module owner"},
-        {"type":"file-contains","path":"config/verification/ownership-map.json","contains":"learn-curriculum-projection"}
-      ]
-    },
-    {
-      "id": "P1976-D-3",
-      "criterion": "Current runtime exposes 89 canonical and 96 presentation lessons while preserving 95 bundled sources.",
-      "evidence": [
-        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"archive.length !== 89"},
-        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"standalonePlotPickleCurriculum.length !== 96"},
-        {"type":"file-contains","path":"tests/issue-1918-learn-semester-one.test.mjs","contains":"current 96-lesson presentation catalog"}
-      ]
-    },
-    {
-      "id": "P1976-D-4",
-      "criterion": "The frozen 1918 archive hashes remain historical evidence and the enrichment layer has its own SHA-256.",
-      "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-canonical.json","contains":"enrichmentContentSha256"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"frozen #1918 base archive"},
-        {"type":"file-contains","path":"tests/issue-1918-learn-program-map.test.mjs","contains":"issue-1976-phase-d-integration.test.mjs"}
+        {"type":"file-contains","path":"tests/issue-1976-phase-e-verification.test.mjs","contains":"#1976 Phase E"},
+        {"type":"file-contains","path":"tests/issue-1918-learn-program-map.test.mjs","contains":"issue-1976-phase-e-verification.test.mjs"}
       ]
     }
   ]

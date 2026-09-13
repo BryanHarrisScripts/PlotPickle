@@ -6,12 +6,14 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("Skin V1 Settings exposes a keyboard directory and connects the approved system destinations", async () => {
-  const [dashboard, taxonomyText, cloud, agents] = await Promise.all([
+test("Skin V1 Settings exposes a condensed keyboard directory", async () => {
+  const [dashboard, taxonomyText, cloud, agents, advanced, skin] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("config/settings-system-taxonomy.json"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
     read("app/skin-v1/plotpickle-agents-host.tsx"),
+    read("app/skin-v1/settings-review-system-panel.tsx"),
+    read("app/skin-v1/skin-v1-client.tsx"),
   ]);
   const taxonomy = JSON.parse(taxonomyText);
 
@@ -20,31 +22,39 @@ test("Skin V1 Settings exposes a keyboard directory and connects the approved sy
     ["General", "Appearance & Accessibility", "Project Defaults"],
   );
 
-  // The older taxonomy still carries Local for legacy callers, while Skin V1
-  // now presents Local Story Mode and Node Info as explicit Settings-owned destinations.
   assert.ok(taxonomy.systems.some((system) => system.id === "local"));
-  assert.match(dashboard, /\.filter\(\(system\) => system\.id !== "local"\)/u);
-  assert.match(dashboard, /id: "local-story-mode"[\s\S]*label: "Local Story Mode"/u);
+  for (const id of ["data", "deploy", "repos", "auth", "open-source"]) {
+    assert.ok(taxonomy.systems.some((system) => system.id === id), `${id} remains compatibility taxonomy input`);
+  }
+
   assert.match(dashboard, /id: "node-info"[\s\S]*label: "Node Info"/u);
-  assert.match(dashboard, /system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
-  for (const label of ["Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"]) assert.match(taxonomyText, new RegExp(`"label": "${label}"`, "u"));
+  assert.match(dashboard, /id: "local-story-mode"[\s\S]*label: "Local Story Mode"/u);
+  assert.match(dashboard, /id: "cloud"[\s\S]*label: "Cloud Story Mode"/u);
+  assert.match(dashboard, /id: "agents"[\s\S]*label: "Agents"/u);
+  assert.match(dashboard, /id: "advanced"[\s\S]*label: "Advanced"/u);
+  for (const retired of ["id: \"data\"", "id: \"deploy\"", "id: \"repos\"", "id: \"auth\"", "id: \"open-source\""]) {
+    assert.doesNotMatch(dashboard, new RegExp(retired, "u"));
+  }
 
   assert.match(dashboard, /settingsTaxonomy from "\.\.\/\.\.\/config\/settings-system-taxonomy\.json"/u);
   assert.match(dashboard, /LocalAiSkinHost/u);
   assert.match(dashboard, /NodeSkinPanel/u);
   assert.match(dashboard, /CloudStoryModeHost/u);
   assert.match(dashboard, /PlotPickleAgentsHost/u);
-  assert.match(dashboard, /localStoryModeOpen/u);
-  assert.match(dashboard, /nodeInfoOpen/u);
-  assert.match(dashboard, /cloudStoryModeOpen/u);
-  assert.match(dashboard, /plotPickleAgentsOpen/u);
-  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["local-story-mode", "node-info", "cloud", "agents"\]\)/u);
   assert.match(dashboard, /data-settings-menu="keyboard-directory"/u);
   assert.match(dashboard, /data-settings-shortcut=\{item\.shortcut\}/u);
   assert.doesNotMatch(dashboard, /\sdisabled=\{!connected\}/u);
   assert.match(dashboard, /event\.key === "ArrowDown"/u);
   assert.match(dashboard, /event\.key === "ArrowUp"/u);
   assert.match(dashboard, /event\.key === "Enter" \|\| event\.key === " "/u);
+
+  assert.match(advanced, /Project Data &amp; Recovery/u);
+  assert.match(advanced, /Tools &amp; MCP/u);
+  assert.match(advanced, /PlotPickle Source/u);
+  assert.match(advanced, /Technical Diagnostics/u);
+
+  assert.match(skin, /id: "profile"[\s\S]*id: "open-source"[\s\S]*id: "learn"/u);
+  assert.match(skin, /label: "Open Source"/u);
 
   assert.match(cloud, /CLOUD STORY MODE/u);
   assert.match(cloud, /USER-OWNED PROVIDERS \/ EXPLICIT PAID ROUTES/u);
@@ -95,12 +105,9 @@ test("Local and Cloud Story Modes use modern provider stores without legacy fall
   assert.match(mediaStore, /migration input only/u);
   assert.match(mediaStore, /imported && !next\.profiles\[imported\.provider\]/u);
 
-  for (const decision of [
-    "Data stays separate",
-    "Deploy stays separate",
-    "Repos stays separate",
-    "Auth stays separate",
-    "Open Source stays separate",
-  ]) assert.match(migration, new RegExp(decision, "u"));
-  assert.match(migration, /Agents is now connected as a separate PlotPickle Agent compute assignment surface/u);
+  assert.match(migration, /Options & Settings no longer preserves DATA \/ DEPLOY \/ REPOS \/ AUTH \/ OPEN SOURCE/u);
+  assert.match(migration, /Project Data & Recovery/u);
+  assert.match(migration, /Tools & MCP/u);
+  assert.match(migration, /Open Source is no longer a Settings SYSTEMS row/u);
+  assert.match(migration, /Agents remains a separate PlotPickle Agent compute assignment surface/u);
 });

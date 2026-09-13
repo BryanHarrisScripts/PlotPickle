@@ -1,0 +1,141 @@
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(124, 241, 223, 0.18);
+  border-radius: 14px;
+  background: rgba(9, 22, 22, 0.58);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.header span,
+.controls label > span {
+  color: var(--text-muted, #a7aaa7);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h2,
+.header p,
+.empty,
+.transport,
+.notice,
+.meta {
+  margin: 0;
+}
+
+.header p,
+.empty,
+.transport {
+  color: var(--text-muted, #a7aaa7);
+  line-height: 1.5;
+}
+
+.header button,
+.actions button,
+.controls select {
+  min-height: 38px;
+  border: 1px solid rgba(124, 241, 223, 0.26);
+  border-radius: 10px;
+  background: rgba(16, 38, 36, 0.72);
+  color: inherit;
+  font: inherit;
+}
+
+.header button,
+.actions button {
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.header button:disabled,
+.actions button:disabled,
+.controls select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.controls label {
+  display: grid;
+  gap: 5px;
+}
+
+.controls select {
+  width: 100%;
+  padding: 0 10px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.meta > div {
+  padding: 9px 10px;
+  border: 1px solid rgba(124, 241, 223, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.meta dt {
+  color: var(--text-muted, #a7aaa7);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.meta dd {
+  margin: 3px 0 0;
+}
+
+.notice,
+.transport {
+  padding: 9px 11px;
+  border-radius: 9px;
+}
+
+.notice {
+  background: rgba(124, 241, 223, 0.08);
+}
+
+.transport {
+  background: rgba(241, 209, 131, 0.06);
+}
+
+@media (max-width: 720px) {
+  .header,
+  .controls,
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .header button,
+  .actions button {
+    width: 100%;
+  }
+}

@@ -1,1 +1,26 @@
-{}
+{
+  "schemaVersion": 1,
+  "issue": 1976,
+  "phase": "phase-c2-independent-authoring",
+  "status": "staged-not-canonical",
+  "phaseBDesign": "docs/research/1976-curriculum-design-map.json",
+  "authority": {
+    "canonicalIntegrationDeferredToPhaseD": true,
+    "currentCountsHashesUnchanged": true,
+    "humanMayLearnOutOfOrder": true,
+    "gradingOrMasteryGateAdded": false,
+    "externalResearchDefinesBody": false,
+    "mediumExtensionsAreUniversalRules": false
+  },
+  "lessons": [
+    {"id":"series-episode-season-architecture","file":"learn/enrichment/1976-c2/series-episode-season-architecture.json","topic":"structure","ownerCraftModule":"course-08","kind":"medium-extension"},
+    {"id":"series-engine-and-bible","file":"learn/enrichment/1976-c2/series-engine-and-bible.json","topic":"structure","ownerCraftModule":"course-09","kind":"medium-extension"},
+    {"id":"writers-room-story-breaking","file":"learn/enrichment/1976-c2/writers-room-story-breaking.json","topic":"collaboration","ownerCraftModule":"course-21","kind":"medium-extension"},
+    {"id":"half-hour-comedy-craft","file":"learn/enrichment/1976-c2/half-hour-comedy-craft.json","topic":"structure","ownerCraftModule":"course-08","kind":"medium-extension"}
+  ],
+  "completedPriorWave": "learn/enrichment/1976-c1/manifest.json",
+  "deferred": {
+    "C3": "optional specialist enrichment remains unapproved for body authoring",
+    "PhaseD": "canonical promotion and integrity reconciliation"
+  }
+}

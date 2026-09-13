@@ -120,7 +120,8 @@ test("#1918 Phase 6 exposes first-class unrestricted Explore beside the guided J
   assert.match(explore, /fetch\("\/api\/learn\/explore"/u);
   assert.match(explore, /data-learn-explore-phase="6"/u);
   assert.match(explore, /data-learn-explore-access="unrestricted"/u);
-  assert.match(explore, /ALL CURRICULUM \/ 12 TOPICS \/ 88 PRESENTATION LESSONS \/ 95 BUNDLED SOURCES/u);
+  assert.match(explore, /ALL CURRICULUM \/ \{payload\.topicCount\} TOPICS \/ \{payload\.presentationLessonCount\} PRESENTATION LESSONS \/ \{payload\.bundledSourceCount\} BUNDLED SOURCES/u);
+  assert.doesNotMatch(explore, /\b88\b/u);
   assert.match(explore, /aria-label="Search all curriculum"/u);
   assert.match(explore, /aria-label="Filter Explore by topic"/u);
   assert.match(explore, /aria-label="Filter Explore by Craft Module"/u);

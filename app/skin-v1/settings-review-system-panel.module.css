@@ -8,14 +8,15 @@
 
 .hero,
 .card,
-.genericPanel,
 .boundary {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-surface-1);
   box-shadow: var(--pp-skin-shadow-control);
 }
 
-.hero {
+.hero,
+.card,
+.boundary {
   padding: var(--pp-skin-space-4);
 }
 
@@ -38,13 +39,13 @@
 
 .hero p:last-child,
 .card p,
-.boundary p,
-.genericPanel p {
+.boundary p {
   color: var(--pp-skin-ink-soft);
   line-height: 1.55;
 }
 
-.hero p:last-child {
+.hero p:last-child,
+.boundary p {
   margin: 0;
 }
 
@@ -53,10 +54,6 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 12px;
   margin-top: 12px;
-}
-
-.card {
-  padding: var(--pp-skin-space-4);
 }
 
 .cardHeader {
@@ -91,7 +88,12 @@
   line-height: 1.6;
 }
 
+.card li strong {
+  color: var(--pp-skin-ink);
+}
+
 .action {
+  display: inline-block;
   margin-top: 12px;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-fill-control);
@@ -99,7 +101,7 @@
   padding: 8px 10px;
   font: inherit;
   font-weight: 700;
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .action:focus-visible,
@@ -119,62 +121,9 @@
 
 .boundary {
   margin-top: 12px;
-  padding: var(--pp-skin-space-4);
 }
 
 .boundary strong {
   display: block;
-}
-
-.boundary p {
-  margin: 6px 0 0;
-}
-
-.genericPanel {
-  margin-top: 12px;
-  padding: var(--pp-skin-space-4);
-}
-
-.genericItem {
-  padding: var(--pp-skin-space-4) 0;
-  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-}
-
-.genericItem:first-child {
-  border-top: 0;
-}
-
-.genericItem strong {
-  display: block;
-  font-size: 15px;
-}
-
-.genericItem p {
-  margin: 6px 0 0;
-}
-
-:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1) {
-  color: var(--pp-skin-ink) !important;
-  font-size: 0 !important;
-}
-
-:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1)::after {
-  font-size: 1.5rem;
-  color: var(--pp-skin-ink);
-}
-
-:global(section[aria-label="data settings review"] > .pp-skin-v1-bbs-banner h1)::after {
-  content: "PROJECT DATA & RECOVERY";
-}
-
-:global(section[aria-label="deploy settings review"] > .pp-skin-v1-bbs-banner h1)::after {
-  content: "DEPLOY";
-}
-
-:global(section[aria-label="repos settings review"] > .pp-skin-v1-bbs-banner h1)::after {
-  content: "REPOS";
-}
-
-:global(section[aria-label="auth settings review"] > .pp-skin-v1-bbs-banner h1)::after {
-  content: "AUTH";
+  margin-bottom: 6px;
 }

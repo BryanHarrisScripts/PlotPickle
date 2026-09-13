@@ -33,7 +33,7 @@ test("#536 generic exits name and reach their owning workspaces", async () => {
     "app/core-curriculum/page.tsx": ['href="/?workspace=learn"', "Back to Learn"],
     "app/craftloop/page.tsx": ['href="/?workspace=refine"', "Back to Refine"],
     "app/structure/page.tsx": ['href="/?workspace=plan&section=structureMap"', "Back to Plan"],
-    "app/legal/page.tsx": ['href="/?workspace=settings"', "Back to Settings"],
+    "app/legal/page.tsx": ['href="/"', "Back to Dashboard"],
     "app/suggest-report/page.tsx": ['href="/?workspace=dashboard"', "Back to Dashboard"],
     "app/edit-workspace.tsx": ['window.location.assign("/?workspace=dashboard")'],
   };
@@ -41,7 +41,7 @@ test("#536 generic exits name and reach their owning workspaces", async () => {
     const source = await read(path);
     for (const phrase of phrases) assert.ok(source.includes(phrase), `${path} must contain ${phrase}`);
   }
-  for (const path of ["app/about/page.tsx", "app/afterglow-reconciliation/page.tsx", "app/characters-in-motion/page.tsx", "app/core-curriculum/page.tsx", "app/craftloop/page.tsx", "app/dialogue-in-motion/page.tsx", "app/legal/page.tsx", "app/structure/page.tsx", "app/suggest-report/page.tsx", "app/working-together/page.tsx"]) assert.doesNotMatch(await read(path), /href="\/"/, `${path} must not fall back to the splash/root exit`);
+  for (const path of ["app/about/page.tsx", "app/afterglow-reconciliation/page.tsx", "app/characters-in-motion/page.tsx", "app/core-curriculum/page.tsx", "app/craftloop/page.tsx", "app/dialogue-in-motion/page.tsx", "app/structure/page.tsx", "app/suggest-report/page.tsx", "app/working-together/page.tsx"]) assert.doesNotMatch(await read(path), /href="\/"/, `${path} must not fall back to the splash/root exit`);
 });
 
 test("#536 applies the approved studio theme to unconverted top-level and rabbit-hole surfaces", async () => {

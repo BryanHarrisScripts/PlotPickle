@@ -49,6 +49,7 @@
         "lib/product-direction.ts",
         "app/layout.tsx",
         "app/about/**",
+        "app/legal/**",
         "app/welcome/**",
         "app/marketing-splash-base.tsx",
         "app/profile-access/profile-access-boundary.tsx",

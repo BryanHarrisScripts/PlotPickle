@@ -5,7 +5,9 @@ import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz/buzz-guildhall";
 import { BUZZ_STORY_ROOMS } from "../lib/buzz/buzz-story-room";
 import { buzzChannelMemberPubkeys, buzzChannelMemberRows } from "../lib/buzz/membership/buzz-channel-members";
 import { normalizeBuzzStoryRoomBindings } from "../lib/buzz/story-room-identity";
+import { redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
+import { publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { readCredentialJson } from "./local-credentials";
 import { currentProfileRequestContext } from "./auth/profile-request-context";
 
@@ -74,10 +76,7 @@ export async function readBody(request: IncomingMessage) {
 
 function safeError(error: unknown) {
   const message = error instanceof Error ? error.message : "Story Room access is unavailable.";
-  return message
-    .replace(/nsec1[a-z0-9]+/gi, "[redacted-nsec]")
-    .replace(/(password|secret|private[_ -]?key|api[_ -]?key|token)\s*[=:]\s*\S+/gi, "$1=[redacted]")
-    .slice(0, 600);
+  return redactBuzzDiagnostic(message).slice(0, 600);
 }
 
 function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
@@ -197,7 +196,9 @@ export async function verifiedStoryRoomBuzzConnection() {
 }
 function connectedHumanPubkey(connection: BuzzConnection) {
   if (connection.identityRole !== "human") throw new Error("Verify the Human BUZZ identity before managing Story Room access.");
-  return validPubkey(connection.identityPubkey);
+  const pubkey = validPubkey(connection.identityPubkey);
+  if (publicKeyFromPrivateKey(connection.privateKey) !== pubkey) throw new Error("Re-verify the intended Human BUZZ identity before changing Story Room access.");
+  return pubkey;
 }
 async function mappedStoryRoomChannelIds() {
   const context = currentProfileRequestContext();

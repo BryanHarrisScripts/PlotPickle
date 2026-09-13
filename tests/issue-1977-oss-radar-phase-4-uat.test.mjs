@@ -67,7 +67,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
   assert.match(workflow, /group: plotpickle-oss-radar/u);
   assert.match(workflow, /cancel-in-progress: false/u);
   assert.match(workflow, /timeout-minutes: 10/u);
-  assert.match(workflow, /tests\/issue-1977-oss-radar-\*\.test\.mjs tests\/issue-2015-oss-radar-\*\.test\.mjs/u);
+  assert.match(workflow, /node --test tests\/issue-1977-oss-radar-\*\.test\.mjs/u);
   assert.match(workflow, /node lib\/verification\/oss-radar\/run-radar\.mjs/u);
   assert.match(workflow, /github\.token/u);
 });

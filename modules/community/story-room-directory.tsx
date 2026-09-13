@@ -174,41 +174,61 @@ export function CommunityStoryRoomOwnerRequests({ channel }: { readonly channel:
   }
 
   const requests = payload?.requests ?? [];
+  const pendingRequests = requests.filter((item) => item.status === "pending");
+  const approvedRequests = requests.filter((item) => item.status === "approved");
+  const actionableRequests = [...pendingRequests, ...approvedRequests];
+  const pastRequests = requests.filter((item) => item.status !== "pending" && item.status !== "approved");
 
-  return <section className={styles.panel} aria-label="Pending Story Room access requests">
+  function requestCard(item: OwnerRequestState) {
+    const fingerprint = `${item.request.requesterPublicKey.slice(0, 8)}…${item.request.requesterPublicKey.slice(-6)}`;
+    const pending = item.status === "pending";
+    const approved = item.status === "approved";
+    return <article className={styles.requestCard} key={item.request.requestId} data-story-room-request-status={item.status}>
+      <div>
+        <span className={styles.eyebrow}>{item.status}</span>
+        <h4>Access request</h4>
+        <p className={styles.identity}>{fingerprint}</p>
+        <p>Requested {new Date(item.request.requestedAt).toLocaleString()} · expires {new Date(item.request.expiresAt).toLocaleString()}</p>
+      </div>
+      <div className={styles.actions}>
+        {pending ? <>
+          <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "approved")}>{busy === `${item.request.requestId}:approved` ? "Approving…" : "Approve"}</button>
+          <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "declined")}>{busy === `${item.request.requestId}:declined` ? "Declining…" : "Decline"}</button>
+        </> : null}
+        {approved ? <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "revoked")}>{busy === `${item.request.requestId}:revoked` ? "Revoking…" : "Revoke access"}</button> : null}
+        {!pending && !approved ? <span className={styles.status}>No membership action is available for this {item.status} request.</span> : null}
+      </div>
+    </article>;
+  }
+
+  if (payload && actionableRequests.length === 0) {
+    return <section className={`${styles.panel} ${styles.compactRequests}`} aria-label="Pending Story Room access requests" data-story-room-request-state="empty">
+      <div className={styles.compactRequestRow}>
+        <div>
+          <span className={styles.eyebrow}>Pending requests</span>
+          <strong>No pending requests</strong>
+          <p>Nothing needs an owner decision right now.</p>
+        </div>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh</button>
+      </div>
+      {pastRequests.length ? <details className={styles.requestHistory}><summary>Past requests ({pastRequests.length})</summary><div className={styles.requestList}>{pastRequests.map(requestCard)}</div></details> : null}
+      {payload.invalidMarkedEvents ? <p className={styles.status}>Invalid marked request events were ignored and did not gain access authority.</p> : null}
+      {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+    </section>;
+  }
+
+  return <section className={styles.panel} aria-label="Pending Story Room access requests" data-story-room-request-state={pendingRequests.length ? "pending" : approvedRequests.length ? "approved" : "loading"}>
     <header className={styles.header}>
       <div>
-        <span className={styles.eyebrow}>Owner access decisions</span>
-        <h2>Story Room requests</h2>
-        <p>Approval adds only normal BUZZ membership and is shown as approved only after BUZZ confirms that membership. Decline grants nothing; revoke removes BUZZ access.</p>
+        <span className={styles.eyebrow}>Pending requests</span>
+        <h2>{pendingRequests.length ? `${pendingRequests.length} request${pendingRequests.length === 1 ? "" : "s"} need a decision` : approvedRequests.length ? `${approvedRequests.length} approved member${approvedRequests.length === 1 ? "" : "s"} can be revoked` : "Checking requests"}</h2>
+        <p>Approve or decline pending requests. Approval grants only normal BUZZ membership after BUZZ confirms it; approved access can be revoked later.</p>
       </div>
       <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh requests</button>
     </header>
 
-    {requests.length ? <div className={styles.requestList}>
-      {requests.map((item) => {
-        const fingerprint = `${item.request.requesterPublicKey.slice(0, 8)}…${item.request.requesterPublicKey.slice(-6)}`;
-        const pending = item.status === "pending";
-        const approved = item.status === "approved";
-        return <article className={styles.requestCard} key={item.request.requestId}>
-          <div>
-            <span className={styles.eyebrow}>{item.status}</span>
-            <h4>Access request</h4>
-            <p className={styles.identity}>{fingerprint}</p>
-            <p>Requested {new Date(item.request.requestedAt).toLocaleString()} · expires {new Date(item.request.expiresAt).toLocaleString()}</p>
-          </div>
-          <div className={styles.actions}>
-            {pending ? <>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "approved")}>{busy === `${item.request.requestId}:approved` ? "Approving…" : "Approve"}</button>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "declined")}>{busy === `${item.request.requestId}:declined` ? "Declining…" : "Decline"}</button>
-            </> : null}
-            {approved ? <button type="button" disabled={Boolean(busy)} onClick={() => void decide(item, "revoked")}>{busy === `${item.request.requestId}:revoked` ? "Revoking…" : "Revoke access"}</button> : null}
-            {!pending && !approved ? <span className={styles.status}>No membership action is available for this {item.status} request.</span> : null}
-          </div>
-        </article>;
-      })}
-    </div> : <p className={styles.empty}>{payload?.message || "No Story Room access requests yet."}</p>}
-
+    {actionableRequests.length ? <div className={styles.requestList}>{actionableRequests.map(requestCard)}</div> : <p className={styles.empty}>{notice || "Checking Story Room access requests…"}</p>}
+    {pastRequests.length ? <details className={styles.requestHistory}><summary>Past requests ({pastRequests.length})</summary><div className={styles.requestList}>{pastRequests.map(requestCard)}</div></details> : null}
     {payload?.invalidMarkedEvents ? <p className={styles.status}>Invalid marked request events were ignored and did not gain access authority.</p> : null}
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </section>;

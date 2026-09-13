@@ -26,10 +26,14 @@
       "classification": "production",
       "include": [
         "modules/community/community-buzz-social.tsx",
+        "modules/community/story-room-directory.tsx",
+        "modules/community/story-room-directory.module.css",
         "app/_components/community/community-workspace.tsx",
         "app/_components/community/community-private-story-room.tsx",
         "app/_components/community/community-story-room-access.tsx",
-        "app/_components/community/community-story-room-access.module.css"
+        "app/_components/community/community-story-room-access.module.css",
+        "app/_components/community/community-story-room-listing.tsx",
+        "app/_components/community/community-story-room-listing.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": ["surface", "navigation", "visual", "mcp"]

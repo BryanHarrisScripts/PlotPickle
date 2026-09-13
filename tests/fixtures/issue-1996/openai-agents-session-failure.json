@@ -1,0 +1,20 @@
+[
+  {
+    "type": "agent.session.created",
+    "event_id": "evt_phase1_created_failure",
+    "session": {
+      "id": "sess_phase1_failure",
+      "status": "in_progress",
+      "environment": { "type": "none" }
+    }
+  },
+  {
+    "type": "agent.session.turn.failed",
+    "event_id": "evt_phase1_failed",
+    "session_id": "sess_phase1_failure",
+    "turn_id": "turn_phase1_failure",
+    "error": {
+      "message": "Mock Agents API failure."
+    }
+  }
+]

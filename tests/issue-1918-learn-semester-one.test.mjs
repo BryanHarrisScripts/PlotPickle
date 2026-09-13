@@ -189,7 +189,9 @@ test("#1918 Phase 6 keeps Journey and Explore unrestricted by prerequisites or c
   assert.match(journey, /data-learn-course-status="wired"/u);
   assert.match(journey, /data-learn-course-content="available"/u);
   assert.match(explore, /data-learn-explore-access="unrestricted"/u);
-  assert.match(explore, /EXPLORE IS UNRESTRICTED/u);
+  assert.match(explore, /accessMode: "unrestricted"/u);
+  assert.match(explore, /recommendedSequenceIsAccessControl: false/u);
+  assert.match(explore, /humanMayLearnOutOfOrder: true/u);
   assert.match(route, /accessMode: "unrestricted" as const/u);
   assert.match(route, /recommendedSequenceIsAccessControl: false/u);
   assert.match(route, /humanMayLearnOutOfOrder: true/u);

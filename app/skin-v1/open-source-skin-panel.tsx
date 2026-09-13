@@ -15,11 +15,11 @@ const sections = [
   },
   {
     title: "Software Privacy",
-    body: "PlotPickle is local-first. Human profiles, private projects, writing decisions, credentials and local files stay within the selected PlotPickle Node by default. A deliberate cloud, BUZZ, GitHub, Google or export action sends only the content selected for that action to that external service.",
+    body: "PlotPickle is local-first. Human profiles, private projects, writing decisions, credentials and local files stay within the selected PlotPickle Node by default. A deliberate cloud, Community, connected-account or export action sends only the content selected for that action to the external service involved.",
   },
   {
     title: "Community",
-    body: "Difficult fictional, historical, educational or analytical subject matter is not misconduct merely because it contains a sensitive word. Real-world harassment, credible threats, privacy violations, credential sharing and deliberate disruption remain outside the Community boundary.",
+    body: "Difficult fictional, historical, educational or analytical subject matter is not misconduct merely because it contains sensitive material. Real-world harassment, credible threats, privacy violations, credential sharing and deliberate disruption remain outside the Community boundary.",
   },
   {
     title: "Server Operators",
@@ -29,7 +29,7 @@ const sections = [
 
 export default function OpenSourceSkinPanel() {
   return (
-    <div className={styles.surface} data-open-source-skin-panel="review">
+    <div className={styles.surface} data-open-source-skin-panel="ready">
       <header className={styles.hero}>
         <p className={styles.eyebrow}>Rights · privacy · attribution</p>
         <h2>Open software. Your story remains yours.</h2>
@@ -55,7 +55,7 @@ export default function OpenSourceSkinPanel() {
 
       <section className={styles.boundary} aria-label="Open Source boundary">
         <strong>Practical summary, not legal advice.</strong>
-        <p>Licence, privacy, platform or Community obligations for a particular business, deployment or jurisdiction may require qualified professional advice. Product help and problem reports live in Help / Issue Log on the Dashboard, not on this surface.</p>
+        <p>Licence, privacy, platform or Community obligations for a particular business, deployment or jurisdiction may require qualified professional advice. Product problems and requests live in Issue Log on the Dashboard, not on this surface.</p>
       </section>
     </div>
   );

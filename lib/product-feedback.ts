@@ -120,7 +120,7 @@ export function buildProductFeedbackDraft(input: ProductFeedbackInput): ProductF
   const diagnostics = redactProductFeedbackText(input.safeDiagnostics || "", 700);
 
   const content = [
-    "> Prepared in PlotPickle's Help / Issue Log. Human review is required before any ticket is submitted. Preparing this draft does not authorize automatic coding, merging or changes to story canon.",
+    "> Prepared in PlotPickle's Issue Log. Human review is required before any ticket is submitted. Preparing this draft does not authorize automatic coding, merging or changes to story canon.",
     section("Request type", kind.label),
     section("Summary", description),
     input.kind === "bug" ? section("Reproduction steps", reproduction, "No reliable reproduction steps were provided.") : reproduction ? section("Steps or workflow", reproduction) : "",

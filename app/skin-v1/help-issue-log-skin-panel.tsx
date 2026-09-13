@@ -65,15 +65,15 @@ export default function HelpIssueLogSkinPanel() {
   }
 
   return (
-    <div className={styles.surface} data-help-issue-log-panel="review">
+    <div className={styles.surface} data-issue-log-panel="ready">
       <header className={styles.hero}>
-        <p className={styles.eyebrow}>Help · product problems · suggestions</p>
-        <h2>Prepare a clear PlotPickle issue without leaving PlotPickle.</h2>
-        <p>Describe the smallest useful problem or request. PlotPickle sanitizes obvious credentials and local paths before showing the issue draft. It does not attach your active story or project.</p>
+        <p className={styles.eyebrow}>Feature requests · bugs · design flaws</p>
+        <h2>Prepare a PlotPickle feature request, bug report, design flaw or other issue.</h2>
+        <p>Describe the smallest useful product issue or request. PlotPickle sanitizes obvious credentials and local paths before showing the issue draft. It does not attach your active story or project.</p>
       </header>
 
       <section className={styles.boundary} aria-label="Issue submission status">
-        <strong>Issue submission is not connected in this review build.</strong>
+        <strong>Issue submission is not connected yet.</strong>
         <p>You can prepare and copy a safe issue draft here. Nothing is sent to GitHub, a cloud service or a support queue. PlotPickle will not claim a ticket exists until a real in-app submission boundary is implemented.</p>
       </section>
 

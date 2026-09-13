@@ -70,11 +70,11 @@ export default function DashboardBbsReviewHost({
 
   if (helpIssueLogOpen) {
     return (
-      <section aria-label="Help / Issue Log" data-dashboard-review-surface="help" onKeyDown={(event) => {
+      <section aria-label="Issue Log" data-dashboard-review-surface="help" onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); closeHelpIssueLog(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>HELP / ISSUE LOG</h1>
+          <h1>ISSUE LOG</h1>
           <button type="button" className="pp-skin-v1-return" onClick={closeHelpIssueLog}>Back to Dashboard</button>
         </div>
         <HelpIssueLogSkinPanel />

@@ -75,6 +75,11 @@ function exploreRowSecondary(entry: ExploreEntry) {
   return `${entry.topic.title} · Craft Module ${craftModuleNumber(entry.craftModule.id)}`;
 }
 
+function requestDashboardReturn(onBack: () => void) {
+  window.dispatchEvent(new CustomEvent("plotpickle:return-dashboard"));
+  onBack();
+}
+
 function assertExplorePayload(value: ExplorePayload) {
   if (value.issue !== 1918 || value.phase !== "phase-d-canonical-integration") {
     throw new Error("LEARN Explore returned the wrong canonical curriculum phase.");
@@ -206,7 +211,7 @@ export default function LearnExplore({
     return (
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Explore loading" data-learn-explore-phase="6">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => requestDashboardReturn(onBack)}>Back to Dashboard</button></div>
           <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / UNRESTRICTED ACCESS</div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `EXPLORE UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL ALL-CURRICULUM INDEX…"}</p>
         </div>
@@ -264,12 +269,12 @@ export default function LearnExplore({
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           event.preventDefault();
-          onBack();
+          requestDashboardReturn(onBack);
         }
       }}
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
+        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => requestDashboardReturn(onBack)}>Back to Dashboard</button></div>
         <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / {payload.topicCount} TOPICS / {payload.presentationLessonCount} PRESENTATION LESSONS / {payload.bundledSourceCount} BUNDLED SOURCES</div>
         <div className={styles.exploreControls} data-learn-explore-controls="true">
           <label>

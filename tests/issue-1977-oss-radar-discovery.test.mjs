@@ -3,10 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   buildGitHubSearchQuery,
-  evaluateCandidates,
   normalizeRepository,
-} from "../scripts/oss-radar/discovery-core.mjs";
-import { discoverGitHubRepositories } from "../scripts/oss-radar/discover-github.mjs";
+} from "../lib/verification/oss-radar/query-normalization.mjs";
+import { evaluateCandidates } from "../lib/verification/oss-radar/scoring.mjs";
+import { discoverGitHubRepositories } from "../lib/verification/oss-radar/discover-github.mjs";
 
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 const contract = await readJson("config/oss-radar/discovery-contract.json");

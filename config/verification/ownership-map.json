@@ -43,6 +43,16 @@
       "riskTokens": ["surface", "navigation", "visual", "mcp"]
     },
     {
+      "id": "character-visual-production-surface",
+      "classification": "production",
+      "include": [
+        "app/character-image-generator.tsx",
+        "app/character-image-generator.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["surface", "visual", "canon", "provider"]
+    },
+    {
       "id": "product-identity-surfaces",
       "classification": "production",
       "include": [

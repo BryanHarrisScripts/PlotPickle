@@ -1,68 +1,51 @@
 {
   "schemaVersion": 1,
   "issue": 1976,
-  "phase": "phase-c2-independent-authoring",
-  "brief": "docs/developer-briefs/1976-phase-c2-television-medium-authoring.md",
+  "phase": "phase-d-canonical-integration",
+  "brief": "docs/developer-briefs/1976-phase-d-canonical-integration.md",
   "allowedChanges": [
     "config/development-convergence/1976.json",
-    "docs/developer-briefs/1976-phase-c2-television-medium-authoring.md",
-    "learn/enrichment/1976-c2/manifest.json",
-    "learn/enrichment/1976-c2/series-episode-season-architecture.json",
-    "learn/enrichment/1976-c2/series-engine-and-bible.json",
-    "learn/enrichment/1976-c2/writers-room-story-breaking.json",
-    "learn/enrichment/1976-c2/half-hour-comedy-craft.json",
-    "tests/issue-1976-phase-c2-authoring.test.mjs"
+    "docs/developer-briefs/1976-phase-d-canonical-integration.md",
+    "learn/enrichment/1976-canonical.json",
+    "learn/current-program-map.mjs",
+    "adapters/curriculum/issue-1976-canonical.ts",
+    "adapters/curriculum/current-catalog-integrated.ts",
+    "adapters/curriculum/current-catalog.ts",
+    "app/api/learn/journey-courses/route.ts",
+    "app/api/learn/explore/route.ts",
+    "tests/issue-1976-phase-d-integration.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P1976-C2-1",
-      "criterion": "Phase C2 independently authors exactly the four Phase B television medium-extension lesson bodies.",
+      "id": "P1976-D-1",
+      "criterion": "Eight C1/C2 lessons are canonical without duplicating their bodies.",
       "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"phase\": \"phase-c2-independent-authoring\""},
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"const C2_IDS"}
+        {"type":"file-contains","path":"learn/enrichment/1976-canonical.json","contains":"\"archivedLessonCount\": 89"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"promotes exactly eight C1/C2 lessons"}
       ]
     },
     {
-      "id": "P1976-C2-2",
-      "criterion": "Each C2 body preserves its Phase B stable identity, topic, medium-extension kind, one owner Craft Module, related-module cross-links, application targets and companion design.",
+      "id": "P1976-D-2",
+      "criterion": "Current Journey ownership is exact and remains open/advisory-only.",
       "evidence": [
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"locked.ownerCraftModule"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"locked.applicationTargets"}
+        {"type":"file-contains","path":"learn/current-program-map.mjs","contains":"ownerCraftModule"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"exactly one Craft Module owner"}
       ]
     },
     {
-      "id": "P1976-C2-3",
-      "criterion": "Every C2 lesson is a complete PlotPickle teaching body with explicit television/medium boundaries and rights-safe provenance.",
+      "id": "P1976-D-3",
+      "criterion": "Current runtime exposes 89 canonical and 96 presentation lessons while preserving 95 bundled sources.",
       "evidence": [
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"REQUIRED_LESSON_FIELDS"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"lesson.provenance.mediumSpecific"},
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/half-hour-comedy-craft.json","contains":"\"mutableRulesFrozenIntoCanon\": false"}
+        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"archive.length !== 89"},
+        {"type":"file-contains","path":"adapters/curriculum/current-catalog-integrated.ts","contains":"standalonePlotPickleCurriculum.length !== 96"}
       ]
     },
     {
-      "id": "P1976-C2-4",
-      "criterion": "C2 adds no grading, mastery gate, compulsory rewrite or Agent authority over learner work, and does not present one television convention as universal craft law.",
+      "id": "P1976-D-4",
+      "criterion": "The frozen 1918 archive hashes remain historical evidence and the enrichment layer has its own SHA-256.",
       "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"gradingOrMasteryGateAdded\": false"},
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"mediumExtensionsAreUniversalRules\": false"},
-        {"type":"file-contains","path":"docs/developer-briefs/1976-phase-c2-television-medium-authoring.md","contains":"No quiz, grade, mastery score, pass/fail threshold or required revision"}
-      ]
-    },
-    {
-      "id": "P1976-C2-5",
-      "criterion": "All four C2 bodies remain staged until Phase D, leaving the current canonical 12-topic / 81 archived lesson / 95 bundled source / 88 presentation baseline unchanged.",
-      "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"\"status\": \"staged-not-canonical\""},
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"archivedLessonCount, 81"},
-        {"type":"file-contains","path":"tests/issue-1976-phase-c2-authoring.test.mjs","contains":"must remain staged until Phase D"}
-      ]
-    },
-    {
-      "id": "P1976-C2-6",
-      "criterion": "Phase C1 remains intact and C3 specialist enrichment remains deferred rather than silently expanding the curriculum tree.",
-      "evidence": [
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"learn/enrichment/1976-c1/manifest.json"},
-        {"type":"file-contains","path":"learn/enrichment/1976-c2/manifest.json","contains":"optional specialist enrichment remains unapproved"}
+        {"type":"file-contains","path":"learn/enrichment/1976-canonical.json","contains":"enrichmentContentSha256"},
+        {"type":"file-contains","path":"tests/issue-1976-phase-d-integration.test.mjs","contains":"frozen #1918 base archive"}
       ]
     }
   ]

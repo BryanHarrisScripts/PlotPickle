@@ -1,60 +1,23 @@
 {
   "schemaVersion": 1,
   "issue": 1977,
-  "phase": "phase-2-report-history-lifecycle",
+  "phase": "phase-3-evolutionary-relevance",
   "status": "CONVERGED",
-  "brief": "docs/developer-briefs/1977-phase-2-report-history-lifecycle.md",
+  "brief": "docs/developer-briefs/1977-phase-3-evolutionary-relevance.md",
   "allowedChanges": [
     "config/development-convergence/1977.json",
-    "docs/developer-briefs/1977-phase-2-report-history-lifecycle.md",
-    "lib/verification/oss-radar/history.mjs",
+    "docs/developer-briefs/1977-phase-3-evolutionary-relevance.md",
+    "lib/verification/oss-radar/phase3-fit.mjs",
+    "lib/verification/oss-radar/phase3-decision.mjs",
     "lib/verification/oss-radar/report-renderer.mjs",
-    "lib/verification/oss-radar/issue-lifecycle.mjs",
-    "lib/verification/oss-radar/run-radar.mjs",
-    "tests/fixtures/oss-radar/phase-2-report-candidates.json",
-    "tests/issue-1977-oss-radar-phase-2.test.mjs"
+    "tests/issue-1977-oss-radar-phase-2.test.mjs",
+    "tests/issue-1977-oss-radar-phase-3.test.mjs"
   ],
   "acceptance": [
-    {
-      "id": "P1977-2-1",
-      "criterion": "Daily reports select at most five qualifying findings, never pad weak results and use WATCH as the Phase 2 default.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"primaryDisposition: \"WATCH\""},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"selects five genuine findings and never pads"}
-      ]
-    },
-    {
-      "id": "P1977-2-2",
-      "criterion": "Daily comment state reconstructs cross-day history while excluding same-day state from its own suppression baseline.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/history.mjs","contains":"state.date < end"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"same-day state is excluded"}
-      ]
-    },
-    {
-      "id": "P1977-2-3",
-      "criterion": "History suppresses unchanged recent repositories and permits deterministic material-change reappearance.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/history.mjs","contains":"activity-after-cooldown"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"permits material change"}
-      ]
-    },
-    {
-      "id": "P1977-2-4",
-      "criterion": "One monthly issue is reused, month rollover creates the next issue, and same-day reruns update one comment.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/issue-lifecycle.mjs","contains":"findDailyComment"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"same-day rerun updates one comment"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"month rollover creates one new issue"}
-      ]
-    },
-    {
-      "id": "P1977-2-5",
-      "criterion": "Phase 2 writes are restricted to Radar issues/comments and future schedule/model mapping remains out of scope.",
-      "evidence": [
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-2.test.mjs","contains":"writes stay inside issues/comments"},
-        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-2-report-history-lifecycle.md","contains":"scheduled workflow"}
-      ]
-    }
+    {"id":"P1977-3-1","criterion":"Five deterministic disposition outcomes are covered.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"phase3Decision"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"covers all five Human-facing dispositions"}]},
+    {"id":"P1977-3-2","criterion":"The highest disposition has a license eligibility gate.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"adoptionEligibleForHumanReview === true"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"license ceiling"}]},
+    {"id":"P1977-3-3","criterion":"Reports expose bounded PlotPickle fit evidence.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"phase3Fit"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1675"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1976"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1692"}]},
+    {"id":"P1977-3-4","criterion":"Metadata evidence remains explicitly bounded.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"repository metadata alone does not prove implementation fit"}]},
+    {"id":"P1977-3-5","criterion":"Phase 4 remains out of scope.","evidence":[{"type":"file-contains","path":"docs/developer-briefs/1977-phase-3-evolutionary-relevance.md","contains":"Stop before Phase 4 scheduled workflow/UAT"}]}
   ]
 }

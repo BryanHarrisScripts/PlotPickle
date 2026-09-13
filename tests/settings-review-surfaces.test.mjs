@@ -91,20 +91,22 @@ test("Advanced shortcut selects first and Enter opens the active review surface"
   assert.match(dashboard, />Back to Settings<\/button>/u);
 });
 
-test("#2023 keeps Open Source and Help inside the Skin V1 Dashboard review boundary", async () => {
-  const [skin, dashboard, host, openSource, help, reviewMarker, ownershipText] = await Promise.all([
+test("#2023 keeps accepted Open Source and Issue Log inside the Skin V1 Dashboard boundary", async () => {
+  const [skin, dashboard, host, openSource, issueLog, markerStyles, surfaceStyles, feedback, ownershipText] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/skin-v1/open-source-skin-panel.tsx"),
     read("app/skin-v1/help-issue-log-skin-panel.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.module.css"),
+    read("app/skin-v1/dashboard-review-surface.module.css"),
+    read("lib/product-feedback.ts"),
     read("config/verification/ownership-map.json"),
   ]);
   const ownership = JSON.parse(ownershipText);
   const productIdentity = ownership.rules.find((rule) => rule.id === "product-identity-surfaces");
 
-  assert.match(skin, /id: "logout", shortcut: "X", label: "Log Off"[\s\S]*id: "help", shortcut: "H", label: "Help \/ Issue Log"/u);
+  assert.match(skin, /id: "logout", shortcut: "X", label: "Log Off"[\s\S]*id: "help", shortcut: "H", label: "Issue Log", description: "Prepare a PlotPickle Feature, Bug, Design Flaw or Issue"/u);
   assert.match(skin, /id: "profile"[\s\S]*id: "open-source"[\s\S]*id: "learn"/u);
   assert.match(skin, /id: "open-source", shortcut: "N", label: "Open Source"/u);
   assert.doesNotMatch(skin, /location\.assign\("\/legal"\)/u);
@@ -113,27 +115,38 @@ test("#2023 keeps Open Source and Help inside the Skin V1 Dashboard review bound
 
   assert.match(host, /item\.id === "open-source"[\s\S]*setOpenSourceOpen\(true\)/u);
   assert.match(host, /item\.id === "help"[\s\S]*setHelpIssueLogOpen\(true\)/u);
+  assert.match(host, /aria-label="Issue Log"/u);
+  assert.match(host, /<h1>ISSUE LOG<\/h1>/u);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeOpenSource\(\)/u);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeHelpIssueLog\(\)/u);
   assert.match(host, />Back to Dashboard<\/button>/u);
   assert.match(host, /restoreDashboardFocus\("open-source"\)/u);
   assert.match(host, /restoreDashboardFocus\("help"\)/u);
 
-  assert.match(reviewMarker, /data-dashboard-menu-item="open-source"/u);
-  assert.match(reviewMarker, /data-dashboard-menu-item="help"/u);
-  assert.match(reviewMarker, /var\(--pp-skin-warning\)/u);
+  assert.doesNotMatch(markerStyles, /pp-skin-warning/u);
+  assert.match(markerStyles, /display: contents/u);
+  assert.match(surfaceStyles, /pp-skin-fill-accent-header/u);
+  assert.match(surfaceStyles, /pp-skin-accent-bright/u);
+  assert.match(surfaceStyles, /pp-skin-focus/u);
 
+  assert.match(openSource, /data-open-source-skin-panel="ready"/u);
   assert.match(openSource, /GNU Affero General Public License version 3 or later/u);
   assert.match(openSource, /Creative Commons Attribution-ShareAlike 4\.0 International/u);
   assert.match(openSource, /Your Work/u);
   assert.match(openSource, /Software Privacy/u);
   assert.match(openSource, /Server Operators/u);
+  assert.match(openSource, /Third-Party Material/u);
+  assert.match(openSource, /Brand & Contributions/u);
   assert.doesNotMatch(openSource, /href=|github\.com|Suggest \/ Report/u);
 
-  assert.match(help, /Issue submission is not connected in this review build/u);
-  assert.match(help, /Copy Issue Draft/u);
-  assert.match(help, /buildProductFeedbackDraft/u);
-  assert.doesNotMatch(help, /window\.open|href="https:\/\/github\.com/u);
+  assert.match(issueLog, /data-issue-log-panel="ready"/u);
+  assert.match(issueLog, /Feature requests · bugs · design flaws/u);
+  assert.match(issueLog, /Issue submission is not connected yet/u);
+  assert.match(issueLog, /Copy Issue Draft/u);
+  assert.match(issueLog, /buildProductFeedbackDraft/u);
+  assert.doesNotMatch(issueLog, /window\.open|href="https:\/\/github\.com/u);
+  assert.match(feedback, /Prepared in PlotPickle's Issue Log/u);
+  assert.doesNotMatch(feedback, /Help \/ Issue Log/u);
 
   assert.ok(productIdentity, "product identity ownership rule must exist");
   assert.equal(productIdentity.ownerLayer, "experience-skins");

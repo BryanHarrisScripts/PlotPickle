@@ -78,18 +78,19 @@ Under issue #2023, Open Source stays inside the Skin V1 Dashboard state instead 
 - Third-party material remains under its own licences/notices.
 - Local-first privacy and deliberate external-action boundaries remain visible.
 - Community and advanced server-operator responsibilities remain visible without turning Open Source into a support or deployment console.
+- Brand and contributor boundaries explain contribution licensing without granting permission to present a modified edition as the official PlotPickle edition.
 
-The ordinary Open Source surface does not link the Human to GitHub and does not own Help / Suggest / Report. Direct source/release references remain Advanced/diagnostic material. The standalone `/legal` page may remain as a compatibility/public reference, but it is not the Dashboard navigation path.
+The ordinary Open Source surface does not link the Human to GitHub and does not own product support or issue reporting. Direct source/release references remain Advanced/diagnostic material. The standalone `/legal` page may remain as a compatibility/public reference, but it is not the Dashboard navigation path.
 
-Open Source is yellow and fully openable while Human review is active. Back and Escape return exactly one level to Dashboard. Promote it to green only after focused verification and visible Human acceptance.
+Open Source is a Human-reviewed, accepted connected Dashboard destination. It uses the shared Skin V1 accent treatment, and Back and Escape return exactly one level to Dashboard.
 
-## Dashboard Help / Issue Log
+## Dashboard Issue Log
 
-Help / Issue Log is a first-class Dashboard destination immediately below Log Off. It is not nested under Open Source.
+Issue Log is a first-class Dashboard destination immediately below Log Off. It is not a Help surface and it is not nested under Open Source.
 
-The first #2023 review slice prepares a sanitized product issue draft inside Skin V1 using the existing product-feedback redaction and safe-diagnostic boundary. The current runtime has no safe in-app ticket-submission backend, so the surface must not claim a ticket was submitted and must not open GitHub as its primary action. It may copy the prepared draft for Human use while clearly stating that no upload or support-queue submission occurred.
+Issue Log prepares a sanitized PlotPickle feature request, bug report, usability/design flaw or other product issue inside Skin V1 using the existing product-feedback redaction and safe-diagnostic boundary. The current runtime has no safe in-app ticket-submission backend, so the surface must not claim a ticket was submitted and must not open GitHub as its primary action. It may copy the prepared draft for Human use while clearly stating that no upload or support-queue submission occurred.
 
-Help / Issue Log is yellow and fully openable while Human review is active. Back and Escape return exactly one level to Dashboard and restore a useful Dashboard focus target.
+Issue Log is a Human-reviewed, accepted connected Dashboard destination. It uses the shared Skin V1 accent treatment. Back and Escape return exactly one level to Dashboard and restore a useful Dashboard focus target.
 
 ## Settings directory rule
 

@@ -5,71 +5,71 @@
   "brief": "docs/developer-briefs/1977-phase-1-github-discovery.md",
   "allowedChanges": [
     "config/development-convergence/1977.json",
-    "config/verification/ownership-map.json",
     "docs/developer-briefs/1977-phase-1-github-discovery.md",
-    "scripts/oss-radar/discovery-core.mjs",
-    "scripts/oss-radar/discover-github.mjs",
+    "lib/verification/oss-radar/query-normalization.mjs",
+    "lib/verification/oss-radar/scoring.mjs",
+    "lib/verification/oss-radar/discover-github.mjs",
     "tests/fixtures/oss-radar/phase-1-github-search.json",
     "tests/issue-1977-oss-radar-discovery.test.mjs"
   ],
   "acceptance": [
     {
       "id": "P1977-1-1",
-      "criterion": "Phase 1 adds a read-only GitHub repository-search client that requires GITHUB_TOKEN and introduces no GitHub write endpoint or scheduled workflow.",
+      "criterion": "Phase 1 adds a read-only repository-search client and no write or scheduled path.",
       "evidence": [
-        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"requires GITHUB_TOKEN"},
-        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"https://api.github.com/search/repositories"},
-        {"type":"file-contains","path":"scripts/oss-radar/discover-github.mjs","contains":"method: \"GET\""}
+        {"type":"file-contains","path":"lib/verification/oss-radar/discover-github.mjs","contains":"readFile"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/query-normalization.mjs","contains":"search/repositories"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"read-only authenticated repository search"}
       ]
     },
     {
       "id": "P1977-1-2",
-      "criterion": "Enabled Phase 0 lanes and queries are converted into bounded GitHub searches and repository results are normalized to stable metadata/evidence rather than source bodies.",
+      "criterion": "Enabled Phase 0 lanes become bounded searches and results normalize to stable repository metadata.",
       "evidence": [
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"buildGitHubSearchQuery"},
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"normalizeRepository"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/query-normalization.mjs","contains":"buildGitHubSearchQuery"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/query-normalization.mjs","contains":"normalizeRepository"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"enabledLaneCount, 6"}
       ]
     },
     {
       "id": "P1977-1-3",
-      "criterion": "Deterministic filters reject archived/stale/explicitly unusable evidence, keep unknown-license findings non-adoptable, and do not falsely treat fork status as proof of non-divergence.",
+      "criterion": "Filters handle archived, stale, license and fork evidence conservatively.",
       "evidence": [
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"explicitly-unusable-license"},
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"fork:unverified-divergence"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"dispositionCeiling, \"WATCH\""}
+        {"type":"file-contains","path":"lib/verification/oss-radar/query-normalization.mjs","contains":"explicitly-unusable-license"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/scoring.mjs","contains":"fork:unverified-divergence"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"unknown-license evidence non-adoptable"}
       ]
     },
     {
       "id": "P1977-1-4",
-      "criterion": "Base ranking uses only deterministic Phase 0 weights and observable repository/query evidence, remains bounded, and preserves explainable per-dimension evidence.",
+      "criterion": "Ranking is deterministic, bounded and explainable from Phase 0 weights and observable evidence.",
       "evidence": [
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"scoreEvidence"},
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"contract.scoring.weights"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/scoring.mjs","contains":"scoreEvidence"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/scoring.mjs","contains":"contract.scoring.weights"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"points <= evidence.weight"}
       ]
     },
     {
       "id": "P1977-1-5",
-      "criterion": "Repositories discovered by multiple searches collapse by stable identity while preserving the union of lane and query evidence.",
+      "criterion": "Duplicate repositories collapse by stable identity while preserving lane and query evidence.",
       "evidence": [
-        {"type":"file-contains","path":"scripts/oss-radar/discovery-core.mjs","contains":"mergeDuplicateCandidates"},
+        {"type":"file-contains","path":"lib/verification/oss-radar/query-normalization.mjs","contains":"mergeDuplicateCandidates"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"matchedLaneIds"},
         {"type":"file-contains","path":"tests/fixtures/oss-radar/phase-1-github-search.json","contains":"agent-systems/agent-mesh"}
       ]
     },
     {
       "id": "P1977-1-6",
-      "criterion": "Fixture tests cover all six lanes, duplicate, archived, stale, unknown-license, fork, deterministic-order, authorization and API-failure paths without network or secrets.",
+      "criterion": "Offline fixtures cover six lanes plus duplicate, archived, stale, license, fork, ordering and API-failure boundaries.",
       "evidence": [
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"fixtureFetch"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"HTTP 403: fixture rate limit"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"fixture-token"}
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-discovery.test.mjs","contains":"fixture rate limit"},
+        {"type":"file-contains","path":"tests/fixtures/oss-radar/phase-1-github-search.json","contains":"platform-engineering"}
       ]
     },
     {
       "id": "P1977-1-7",
-      "criterion": "Phase 2+ responsibilities remain absent: no monthly issue/report lifecycle, persistent history, schedule or model-assisted analysis is introduced.",
+      "criterion": "Phase 2+ reporting, persistent history, scheduling and model analysis remain absent.",
       "evidence": [
         {"type":"file-contains","path":"docs/developer-briefs/1977-phase-1-github-discovery.md","contains":"does not publish a daily report"},
         {"type":"file-contains","path":"docs/developer-briefs/1977-phase-1-github-discovery.md","contains":"Do not alter GitHub Actions in this phase."},

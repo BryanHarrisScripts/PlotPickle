@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
@@ -21,6 +21,13 @@ export default function DashboardBbsReviewHost({
 }) {
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
+  const [dashboardGeneration, setDashboardGeneration] = useState(0);
+
+  useEffect(() => {
+    const returnToDashboard = () => setDashboardGeneration((generation) => generation + 1);
+    window.addEventListener("plotpickle:return-dashboard", returnToDashboard);
+    return () => window.removeEventListener("plotpickle:return-dashboard", returnToDashboard);
+  }, []);
 
   function restoreDashboardFocus(itemId: string) {
     window.requestAnimationFrame(() => {
@@ -85,6 +92,7 @@ export default function DashboardBbsReviewHost({
   return (
     <div className={reviewStyles.reviewHost}>
       <DashboardBbsPanel
+        key={dashboardGeneration}
         items={items}
         selectedIndex={selectedIndex}
         onActivate={activateItem}

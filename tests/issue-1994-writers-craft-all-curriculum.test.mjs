@@ -29,6 +29,22 @@ test("#1994 keeps All Curriculum open-access controls and shared progress author
   assert.match(explore, /Back to Journey/u);
 });
 
+test("#1994 consumes the current canonical Explore payload and derives inventory totals", async () => {
+  const [explore, route] = await Promise.all([
+    read("app/skin-v1/learn-explore.tsx"),
+    read("app/api/learn/explore/route.ts"),
+  ]);
+
+  assert.match(route, /phase: "phase-d-canonical-integration"/u);
+  assert.match(route, /presentationLessonCount: entries\.length/u);
+  assert.match(explore, /phase: "phase-d-canonical-integration"/u);
+  assert.match(explore, /value\.presentationLessonCount !== value\.entries\.length/u);
+  assert.match(explore, /\{payload\.presentationLessonCount\} PRESENTATION LESSONS/u);
+  assert.match(explore, /\{payload\.topicCount\} TOPICS/u);
+  assert.match(explore, /\{payload\.craftModuleCount\} CRAFT MODULES/u);
+  assert.doesNotMatch(explore, /\b88\b/u);
+});
+
 test("#1994 Phase A preserves the six guided Paths as a secondary view", async () => {
   const journey = await read("app/skin-v1/learn-journey-preview.tsx");
 

@@ -91,7 +91,7 @@ test("Advanced shortcut selects first and Enter opens the active review surface"
   assert.match(dashboard, />Back to Settings<\/button>/u);
 });
 
-test("#2023 keeps accepted Open Source and Issue Log inside the Skin V1 Dashboard boundary", async () => {
+test("#2023 keeps final Open Source and Issue Log polish inside the yellow Skin V1 review boundary", async () => {
   const [skin, dashboard, host, openSource, issueLog, markerStyles, surfaceStyles, feedback, ownershipText] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
@@ -123,8 +123,9 @@ test("#2023 keeps accepted Open Source and Issue Log inside the Skin V1 Dashboar
   assert.match(host, /restoreDashboardFocus\("open-source"\)/u);
   assert.match(host, /restoreDashboardFocus\("help"\)/u);
 
-  assert.doesNotMatch(markerStyles, /pp-skin-warning/u);
-  assert.match(markerStyles, /display: contents/u);
+  assert.match(markerStyles, /data-dashboard-menu-item="open-source"/u);
+  assert.match(markerStyles, /data-dashboard-menu-item="help"/u);
+  assert.match(markerStyles, /var\(--pp-skin-warning\)/u);
   assert.match(surfaceStyles, /pp-skin-fill-accent-header/u);
   assert.match(surfaceStyles, /pp-skin-accent-bright/u);
   assert.match(surfaceStyles, /pp-skin-focus/u);

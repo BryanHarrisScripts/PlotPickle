@@ -36,6 +36,9 @@ test("Advanced keeps only useful survivors from DATA DEPLOY REPOS and AUTH", asy
   ]) assert.match(reviewPanel, new RegExp(label.replace(/[&]/g, "\\&"), "u"));
 
   assert.match(reviewPanel, /Project Files &amp; Backups/u);
+  assert.match(reviewPanel, /Example Project Recovery/u);
+  assert.match(reviewPanel, /preserve the pristine Afterglow example/u);
+  assert.match(reviewPanel, /Make My Own Copy/u);
   assert.match(reviewPanel, /Project Search/u);
   assert.match(reviewPanel, /Media &amp; Preview Cache/u);
   assert.match(reviewPanel, /MCP server definitions/u);
@@ -87,11 +90,14 @@ test("Advanced shortcut selects first and Enter opens the active review surface"
 });
 
 test("Open Source leaves Settings and becomes a connected Dashboard licensing destination", async () => {
-  const [skin, dashboard, legal] = await Promise.all([
+  const [skin, dashboard, legal, ownershipText] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/legal/page.tsx"),
+    read("config/verification/ownership-map.json"),
   ]);
+  const ownership = JSON.parse(ownershipText);
+  const productIdentity = ownership.rules.find((rule) => rule.id === "product-identity-surfaces");
 
   assert.match(skin, /id: "profile"[\s\S]*id: "open-source"[\s\S]*id: "learn"/u);
   assert.match(skin, /id: "open-source", shortcut: "N", label: "Open Source"/u);
@@ -100,4 +106,7 @@ test("Open Source leaves Settings and becomes a connected Dashboard licensing de
   assert.match(legal, /GNU Affero General Public License/u);
   assert.match(legal, /Creative Commons Attribution-ShareAlike 4\.0 International/u);
   assert.match(legal, /href="\/" className=\{styles\.backLink\}>← Back to Dashboard/u);
+  assert.ok(productIdentity, "product identity ownership rule must exist");
+  assert.equal(productIdentity.ownerLayer, "experience-skins");
+  assert.ok(productIdentity.include.includes("app/legal/**"), "legal/licensing surface must be mapped to Experience ownership");
 });

@@ -142,9 +142,9 @@ test("#1976 Phase E verifies frozen base hashes and the current enrichment corpu
     windowsHide: true,
   });
   assert.equal(stderr, "");
-  assert.match(stdout, /81 archive lessons/u);
-  assert.match(stdout, /95 bundled sources/u);
-  assert.match(stdout, /88 presentation lessons/u);
+  assert.match(stdout, /81\/81 archived lessons/u);
+  assert.match(stdout, /95\/95 bundled sources/u);
+  assert.match(stdout, /88\/88 presentation lessons/u);
 });
 
 test("#1976 Phase E is verification-only and leaves current navigation/access authority intact", () => {

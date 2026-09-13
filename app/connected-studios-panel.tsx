@@ -61,6 +61,17 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (!selected || showPresence) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setSelected("");
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [selected, showPresence]);
+
   async function act(action: "contact" | "remove-contact" | "block" | "report", studio: Studio) {
     setBusy(`${action}:${studio.studioId}`);
     setNotice("");
@@ -90,19 +101,19 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
 
   if (showPresence) return <CommunityMyPresence onBack={() => setShowPresence(false)} />;
 
-  return <div className={styles.wrap}>
+  return <div className={styles.wrap} data-community-view="connected-studios">
     <section className={styles.heading}>
       <div><span>Connected Studios</span><h2>Find the PlotPickle Studios you are permitted to see.</h2><p>This is a community directory, not a server list. BUZZ carries signed presence; private local PlotPickle services remain private.</p></div>
       <div className={styles.headingActions}>
         <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh Studios</button>
-        <button type="button" onClick={() => setShowPresence(true)}>My Presence</button>
+        <button type="button" data-community-action="my-presence" onClick={() => setShowPresence(true)}>My Presence</button>
       </div>
     </section>
 
     <section className={styles.networkState} data-online={directory?.playhouseOnline ? "true" : "false"} role="status">
       <i aria-hidden="true" />
       <div><strong>{directory?.playhouseOnline ? "Community discovery online" : "Community discovery offline"}</strong><p>{directory?.message || "Checking permitted Studio presence…"}</p></div>
-      {!directory?.playhouseOnline ? <button type="button" onClick={() => setShowPresence(true)}>Check my Community presence</button> : null}
+      {!directory?.playhouseOnline ? <button type="button" data-community-action="my-presence" onClick={() => setShowPresence(true)}>Check my Community presence</button> : null}
     </section>
 
     {studios.length ? <section className={styles.grid} aria-label="Permitted PlotPickle Studios">
@@ -112,17 +123,17 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
         return <article key={studio.studioId} className={styles.card} data-presence={studio.availability}>
           <header><img src="/assets/workflow-relics/community.svg" alt="" aria-hidden="true" /><div><strong>{studio.displayName}</strong><small>Studio {studio.shortCode} · {studio.relationship === "contact" ? "Contact" : "Public"}</small></div><span>{studio.availability}</span></header>
           <p>Last seen {when(studio.lastSeen)}</p>
-          <div className={styles.actions}><button type="button" onClick={() => setSelected(open ? "" : studio.studioId)}>{open ? "Close Studio" : "Open Studio"}</button>{studio.publicRooms.includes("great-hall") ? <button type="button" onClick={onOpenGreatHall}>Visit Great Hall</button> : null}</div>
+          <div className={styles.actions}><button type="button" data-community-action="open-studio" onClick={() => setSelected(open ? "" : studio.studioId)}>{open ? "Close Studio" : "Open Studio"}</button>{studio.publicRooms.includes("great-hall") ? <button type="button" onClick={onOpenGreatHall}>Visit Great Hall</button> : null}</div>
           {open ? <div className={styles.details}>
             <p><b>Public rooms</b><span>{studio.publicRooms.length ? studio.publicRooms.map((room) => room.replace(/-/g, " ")).join(" · ") : "No public rooms advertised"}</span></p>
             <p><b>Available agents</b><span>{studio.agents.length ? studio.agents.join(" · ") : "No agents shared"}</span></p>
             <p><b>Compatibility</b><span>{studio.compatible ? "Ready for this Community protocol" : "Compatibility needs attention"}</span></p>
             <div className={styles.moderation}><button type="button" disabled={working} onClick={() => void act(studio.relationship === "contact" ? "remove-contact" : "contact", studio)}>{studio.relationship === "contact" ? "Remove Contact" : "Add to Contacts"}</button><button type="button" disabled={working} onClick={() => void act("block", studio)}>Block</button><button type="button" disabled={working} onClick={() => void act("report", studio)}>Report</button></div>
-            <small>Block and report attach to the permanent Studio ID, not this changeable display name.</small>
+            <small>Block and report attach to the permanent Studio ID, not this changeable display name. Press Escape to close this Studio detail.</small>
           </div> : null}
         </article>;
       })}
-    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contact-only Studios appear only when an approved relationship permits discovery.</p><button type="button" onClick={() => setShowPresence(true)}>Review my visibility</button></section> : null}
+    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contact-only Studios appear only when an approved relationship permits discovery.</p><button type="button" data-community-action="my-presence" onClick={() => setShowPresence(true)}>Review my visibility</button></section> : null}
 
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;

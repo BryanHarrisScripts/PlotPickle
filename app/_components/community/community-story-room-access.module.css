@@ -3,7 +3,7 @@
   gap: 16px;
   padding: 18px;
   border: 1px solid rgba(124, 241, 223, 0.2);
-  border-radius: 14px;
+  border-radius: var(--pp-skin-radius, 0px);
   background: rgba(8, 15, 14, 0.72);
 }
 
@@ -47,9 +47,9 @@
 .card a,
 .inviteCard select,
 .inviteCard input {
-  min-height: 38px;
+  min-height: var(--pp-skin-control-height, 34px);
   border: 1px solid rgba(124, 241, 223, 0.28);
-  border-radius: 8px;
+  border-radius: var(--pp-skin-radius, 0px);
   background: rgba(16, 29, 27, 0.92);
   color: #f1e8c7;
   font: inherit;
@@ -82,7 +82,7 @@
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid rgba(241, 209, 131, 0.14);
-  border-radius: 10px;
+  border-radius: var(--pp-skin-radius, 0px);
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -142,7 +142,7 @@
   gap: 10px;
   padding: 14px;
   border: 1px solid rgba(241, 209, 131, 0.14);
-  border-radius: 10px;
+  border-radius: var(--pp-skin-radius, 0px);
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -160,7 +160,7 @@
 .identityReview {
   padding: 14px;
   border: 1px solid rgba(124, 241, 223, 0.28);
-  border-radius: 10px;
+  border-radius: var(--pp-skin-radius, 0px);
   background: rgba(124, 241, 223, 0.05);
 }
 

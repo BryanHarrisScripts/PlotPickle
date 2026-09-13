@@ -32,32 +32,49 @@ test("#1977 Phase 2 titles monthly issue in UTC", () => {
   assert.equal(monthlyIssueTitle(new Date("2026-10-01T00:00:00Z")), "[OSS RADAR] October 2026");
 });
 
-test("#1977 Phase 2 selects five genuine findings and never pads", () => {
+test("#1977 Phase 2 always returns the Top 5 retained repositories for Human review", () => {
   const full = selection();
-  assert.equal(full.selected.length, 5);
+  assert.equal(full.reviewQueue.length, 5);
   assert.equal(full.target, 5);
-  assert.ok(full.selected.every((candidate) => candidate.primaryDisposition === "WATCH"));
+  assert.equal(full.selected.length, 5);
+  assert.equal(full.belowThreshold.length, 0);
+  assert.deepEqual(full.reviewQueue.map((candidate) => candidate.repositoryStableId), ["201", "202", "203", "204", "205"]);
+
   const short = selection(fixture.candidates.slice(0, 2));
-  assert.equal(short.selected.length, 2);
-  const rendered = renderDailyReport({ reportDate, selection: short, contract, history: new Map() });
-  assert.match(rendered.body, /Only 2 findings qualified/u);
+  assert.equal(short.reviewQueue.length, 2);
+  const shortReport = renderDailyReport({ reportDate, selection: short, contract, history: new Map() });
+  assert.match(shortReport.body, /Top repositories for review:\*\* 2\/5/u);
+  assert.match(shortReport.body, /Only 2\/5 real review candidates were available/u);
+
+  const nearMisses = fixture.candidates.slice(0, 5).map((candidate, index) => ({
+    ...candidate,
+    score: 64 - index,
+  }));
+  const review = selection(nearMisses);
+  assert.equal(review.reviewQueue.length, 5);
+  assert.equal(review.selected.length, 0);
+  assert.equal(review.belowThreshold.length, 5);
+  const rendered = renderDailyReport({ reportDate, selection: review, contract, history: new Map() });
+  assert.match(rendered.body, /Top repositories for review:\*\* 5\/5/u);
+  assert.match(rendered.body, /Meets qualification threshold:\*\* 0\/5/u);
+  assert.match(rendered.body, /Below threshold but included for review:\*\* 5\/5/u);
+  assert.match(rendered.body, /included because it ranked in today's Top 5/u);
   assert.match(rendered.body, /What can PlotPickle learn from this\?/u);
-  const none = selection([fixture.candidates.at(-1)]);
-  assert.equal(none.selected.length, 0);
-  assert.match(renderDailyReport({ reportDate, selection: none, contract, history: new Map() }).body, /No repository qualified/u);
 });
 
 test("#1977 Phase 2 unknown-license evidence remains conservative", () => {
   const unknown = fixture.candidates.find((candidate) => candidate.repositoryStableId === "206");
   const result = selection([unknown]);
+  assert.equal(result.reviewQueue.length, 1);
   assert.equal(result.selected.length, 1);
+  assert.equal(result.belowThreshold.length, 0);
   assert.equal(result.selected[0].primaryDisposition, "WATCH");
   assert.ok(unknown.score < contract.scoring.surfaceThreshold);
   assert.ok(unknown.score >= contract.scoring.watchEvidenceThreshold);
 });
 
 test("#1977 Phase 2 state and history remain deterministic", () => {
-  const candidate = { ...fixture.candidates[0], primaryDisposition: "WATCH" };
+  const candidate = { ...fixture.candidates[0], primaryDisposition: "WATCH", reviewQualification: "qualified" };
   const entry = historyEntryForFinding(candidate, "2026-09-12", null);
   const marker = encodeDailyState({ schemaVersion: 1, date: "2026-09-12", entries: [entry] });
   assert.equal(parseDailyState(`text\n${marker}`).entries[0].repositoryStableId, "201");
@@ -65,18 +82,19 @@ test("#1977 Phase 2 state and history remain deterministic", () => {
   const comments = [{ id: 1, body: `${dailyMarker("2026-09-12")}\n${marker}` }];
   assert.equal(reconstructHistory(comments, { beforeDate: "2026-09-12" }).size, 0);
   assert.equal(reconstructHistory(comments, { beforeDate: "2026-09-13" }).get("201").fullName, candidate.fullName);
-  assert.equal(findDailyComment(comments, "2026-09-12").id, 1);
 });
 
-test("#1977 Phase 2 suppression and material-change rules remain intact", () => {
+test("#1977 Phase 2 history annotates but does not suppress the Top 5", () => {
   const candidate = fixture.candidates[0];
-  const prior = historyEntryForFinding({ ...candidate, primaryDisposition: "WATCH" }, "2026-09-12", null);
+  const prior = historyEntryForFinding({ ...candidate, primaryDisposition: "WATCH", reviewQualification: "qualified" }, "2026-09-12", null);
   const history = new Map([[String(candidate.repositoryStableId), prior]]);
-  const suppressed = selection([candidate], history, new Date("2026-09-13T12:00:00Z"));
-  assert.equal(suppressed.selected.length, 0);
-  assert.equal(suppressed.suppressed.history, 1);
-  assert.equal(shouldResurface({ ...candidate, score: candidate.score + 5 }, prior, "2026-09-13").reason, "score-change");
-  assert.equal(shouldResurface({ ...candidate, matchedLaneIds: ["writer-craft", "learn-education"] }, prior, "2026-09-13").reason, "category-change");
+  const repeated = selection([candidate], history, new Date("2026-09-13T12:00:00Z"));
+  assert.equal(repeated.reviewQueue.length, 1);
+  assert.equal(repeated.reviewQueue[0].previouslyReviewed, true);
+  assert.equal(repeated.reviewQueue[0].resurfacingReason, "recently-reviewed");
+  assert.equal(shouldResurface({ ...candidate, reviewQualification: "qualified", score: candidate.score + 5 }, prior, "2026-09-13").reason, "score-change");
+  assert.equal(shouldResurface({ ...candidate, reviewQualification: "qualified", matchedLaneIds: ["writer-craft", "learn-education"] }, prior, "2026-09-13").reason, "category-change");
+  assert.equal(shouldResurface({ ...candidate, reviewQualification: "below-threshold", score: 40 }, prior, "2026-09-13").reason, "qualification-change");
 });
 
 function githubIssueFixture({ issues = [], comments = {}, failSearch = false } = {}) {
@@ -131,18 +149,20 @@ test("#1977 Phase 2 same-day rerun stays idempotent", async () => {
   const second = await publishDailyRadar(args);
   assert.equal(first.action, "created");
   assert.equal(second.action, "updated");
+  assert.equal(first.reviewCount, 5);
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(900).length, 1);
   assert.equal(parseDailyState(api.state.comments.get(900)[0].body).entries.length, 5);
 });
 
-test("#1977 Phase 2 month rollover carries prior history", async () => {
+test("#1977 Phase 2 month rollover preserves review history without hiding Top 5", async () => {
   const priorBody = dailyComment("2026-09-30", [fixture.candidates[0]]);
   const api = githubIssueFixture({ issues: [{ number: 901, title: "[OSS RADAR] September 2026", created_at: "2026-09-01T00:00:00Z" }], comments: { 901: [{ id: 4999, body: priorBody }] } });
   const result = await publishDailyRadar({ repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", contract, discoveryResult: { candidates: fixture.candidates }, fetchImpl: api.fetchImpl, now: new Date("2026-10-01T12:00:00Z") });
   assert.equal(result.monthlyIssueTitle, "[OSS RADAR] October 2026");
   assert.equal(api.state.issues.length, 2);
-  assert.equal(result.suppressed.history, 1);
+  assert.equal(result.reviewCount, 5);
+  assert.match(result.reportBody, /seen in a previous Radar review/u);
 });
 
 test("#1977 Phase 2 API failures remain explicit and writes stay bounded", async () => {

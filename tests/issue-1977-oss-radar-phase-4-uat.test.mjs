@@ -108,7 +108,13 @@ test("#1977 Phase 4 full UAT runs discovery through monthly reporting without du
   const first = await runRadar({ ...base, now: new Date("2026-09-13T12:17:00Z") });
   assert.equal(first.action, "created");
   assert.equal(first.monthlyIssueTitle, "[OSS RADAR] September 2026");
-  assert.ok(first.selectedCount > 0 && first.selectedCount <= 5);
+  assert.ok(first.selectedCount >= 0 && first.selectedCount <= contract.report.targetFindings);
+  if (first.selectedCount < contract.report.targetFindings) {
+    assert.match(first.reportBody, /did not pad the report/u);
+  }
+  if (first.selectedCount === 0) {
+    assert.match(first.reportBody, /No repository qualified for today's report/u);
+  }
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 1);
   assert.match(first.reportBody, /Phase 3 classifications are deterministic Radar guidance/u);

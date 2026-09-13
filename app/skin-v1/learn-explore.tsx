@@ -67,6 +67,14 @@ function craftModuleNumber(courseId: string) {
   return /^course-(\d+)$/u.exec(courseId)?.[1] ?? courseId.toUpperCase();
 }
 
+function exploreRowPrimary(entry: ExploreEntry) {
+  return `${String(entry.presentationOrder).padStart(2, "0")}  ${entry.lesson.title}`;
+}
+
+function exploreRowSecondary(entry: ExploreEntry) {
+  return `${entry.topic.title} · Craft Module ${craftModuleNumber(entry.craftModule.id)}`;
+}
+
 function assertExplorePayload(value: ExplorePayload) {
   if (value.issue !== 1918 || value.phase !== "phase-d-canonical-integration") {
     throw new Error("LEARN Explore returned the wrong canonical curriculum phase.");
@@ -297,7 +305,7 @@ export default function LearnExplore({
             </select>
           </label>
         </div>
-        <div className={styles.exploreSummary} role="status" aria-live="polite">{filteredEntries.length} OF {payload.presentationLessonCount} PRESENTATION LESSONS SHOWN · ORDER DOES NOT CONTROL ACCESS</div>
+        <div className={styles.exploreSummary} role="status" aria-live="polite">{filteredEntries.length} OF {payload.presentationLessonCount} LESSONS</div>
         <div className={styles.exploreResults} role="listbox" aria-label="All Curriculum results">
           {filteredEntries.map((entry, index) => {
             const selected = index === selectedIndex;
@@ -319,14 +327,14 @@ export default function LearnExplore({
                 onClick={() => openResult(index)}
                 onKeyDown={(event) => handleResultKeyDown(event, index)}
               >
-                <span className="pp-skin-v1-dashboard-command-line">LESSON {String(entry.presentationOrder).padStart(2, "0")} · {entry.lesson.title} - {entry.topic.title} · CRAFT MODULE {craftModuleNumber(entry.craftModule.id)} · {entry.lesson.apply} · {completed ? "COMPLETE" : "OPEN"}</span>
-                <span className="pp-skin-v1-dashboard-status-box is-active" aria-label={completed ? "Lesson complete and available" : "Lesson available"} data-dashboard-status="active" data-skin-menu-indicator="connected" />
+                <span className="pp-skin-v1-dashboard-command-line"><strong>{exploreRowPrimary(entry)}</strong><br /><span>{exploreRowSecondary(entry)}</span></span>
+                <span className={`pp-skin-v1-dashboard-status-box${completed ? " is-active" : ""}`} aria-label={completed ? "Lesson complete" : "Lesson incomplete"} data-dashboard-status={completed ? "active" : "inactive"} data-skin-menu-indicator="connected" />
               </button>
             );
           })}
           {!filteredEntries.length ? <p className={styles.emptyResults}>NO MATCHES. CLEAR A FILTER OR SEARCH ANOTHER TOPIC, CRAFT MODULE, LESSON, CONCEPT OR APPLICATION AREA.</p> : null}
         </div>
-        <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">EXPLORE IS UNRESTRICTED. JOURNEY ORDER IS GUIDANCE, NOT ACCESS CONTROL. ESC RETURNS TO THE JOURNEY.</p>
+        <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">UP/DOWN MOVES · ENTER OPENS · ESC RETURNS TO JOURNEY.</p>
       </div>
     </section>
   );

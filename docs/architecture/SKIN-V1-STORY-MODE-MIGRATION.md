@@ -82,7 +82,7 @@ Under issue #2023, Open Source stays inside the Skin V1 Dashboard state instead 
 
 The ordinary Open Source surface does not link the Human to GitHub and does not own product support or issue reporting. Direct source/release references remain Advanced/diagnostic material. The standalone `/legal` page may remain as a compatibility/public reference, but it is not the Dashboard navigation path.
 
-Open Source is a Human-reviewed, accepted connected Dashboard destination. It uses the shared Skin V1 accent treatment, and Back and Escape return exactly one level to Dashboard.
+Open Source is functionally ready and uses the shared Skin V1 accent treatment. Its Dashboard marker remains yellow only for the final live visual check of this polish pass. Back and Escape return exactly one level to Dashboard.
 
 ## Dashboard Issue Log
 
@@ -90,7 +90,7 @@ Issue Log is a first-class Dashboard destination immediately below Log Off. It i
 
 Issue Log prepares a sanitized PlotPickle feature request, bug report, usability/design flaw or other product issue inside Skin V1 using the existing product-feedback redaction and safe-diagnostic boundary. The current runtime has no safe in-app ticket-submission backend, so the surface must not claim a ticket was submitted and must not open GitHub as its primary action. It may copy the prepared draft for Human use while clearly stating that no upload or support-queue submission occurred.
 
-Issue Log is a Human-reviewed, accepted connected Dashboard destination. It uses the shared Skin V1 accent treatment. Back and Escape return exactly one level to Dashboard and restore a useful Dashboard focus target.
+Issue Log is functionally ready and uses the shared Skin V1 accent treatment. Its Dashboard marker remains yellow only for the final live visual check of this polish pass. Back and Escape return exactly one level to Dashboard and restore a useful Dashboard focus target.
 
 ## Settings directory rule
 

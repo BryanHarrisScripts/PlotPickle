@@ -1,0 +1,205 @@
+.surface {
+  min-height: 100vh;
+  padding: var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7);
+  background: var(--pp-skin-fill-panel);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+.hero,
+.card,
+.boundary,
+.form,
+.preview {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  box-shadow: var(--pp-skin-shadow-control);
+}
+
+.hero,
+.card,
+.boundary,
+.form,
+.preview {
+  padding: var(--pp-skin-space-4);
+}
+
+.eyebrow,
+.status,
+.fieldLabel {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.eyebrow,
+.status,
+.helper,
+.card p,
+.boundary p,
+.preview p,
+.preview small {
+  color: var(--pp-skin-ink-soft);
+}
+
+.hero h2 {
+  margin: 6px 0 6px;
+  font-size: 24px;
+}
+
+.hero p,
+.boundary p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card h3,
+.preview h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.card p {
+  margin: 8px 0 0;
+  line-height: 1.55;
+}
+
+.card strong {
+  color: var(--pp-skin-ink);
+}
+
+.status {
+  display: inline-block;
+  margin-bottom: 8px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  padding: 3px 6px;
+}
+
+.boundary {
+  margin-top: 12px;
+}
+
+.boundary strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.form label {
+  display: grid;
+  gap: 5px;
+}
+
+.form input,
+.form textarea,
+.form select {
+  width: 100%;
+  box-sizing: border-box;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-control);
+  color: var(--pp-skin-ink);
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.form textarea {
+  resize: vertical;
+}
+
+.form input:focus-visible,
+.form textarea:focus-visible,
+.form select:focus-visible,
+.action:focus-visible {
+  outline: 2px solid var(--pp-skin-ink);
+  outline-offset: 2px;
+}
+
+.checkRow {
+  grid-template-columns: auto 1fr !important;
+  align-items: start;
+}
+
+.checkRow input {
+  width: auto;
+  margin-top: 3px;
+}
+
+.checkRow span {
+  display: grid;
+  gap: 3px;
+}
+
+.checkRow small,
+.helper {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-control);
+  color: var(--pp-skin-ink);
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.notice {
+  margin: 0;
+  border-left: 3px solid var(--pp-skin-line-strong);
+  padding-left: 10px;
+  color: var(--pp-skin-ink-soft);
+  line-height: 1.45;
+}
+
+.preview {
+  min-width: 0;
+}
+
+.preview pre {
+  overflow: auto;
+  max-height: 560px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  margin: 12px 0 0;
+  padding-top: 12px;
+  color: var(--pp-skin-ink-soft);
+  font: 12px/1.5 var(--pp-skin-font-mono, monospace);
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

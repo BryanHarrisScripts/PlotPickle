@@ -179,7 +179,7 @@ if (manifest.platform === "windows") {
   assert.match(launcherSource, /\[STEP 3 OF 3\][^\r\n]*Starting the private local server/);
   assert.match(launcherSource, /current PlotPickle build is already running/);
   assert.match(launcherSource, /--strictPort/);
-  assert.match(launcherSource, /READY_TIMEOUT_SECONDS=60/);
+  assert.match(launcherSource, /READY_TIMEOUT_SECONDS=240/);
   assert.match(launcherSource, /independent Settings pages/);
   assert.doesNotMatch(executableLauncher, /install-buzz-desktop\.ps1|install-local-ai-tool\.ps1/i);
   assert.doesNotMatch(executableLauncher, /Install (?:Ollama|ComfyUI|Buzz Desktop).*\[Y\/N\]/i);

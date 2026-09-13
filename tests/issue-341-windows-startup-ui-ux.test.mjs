@@ -73,7 +73,7 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
   const launcher = await source("Start-PlotPickle.bat");
 
   for (const contract of [
-    'set "READY_TIMEOUT_SECONDS=60"',
+    'set "READY_TIMEOUT_SECONDS=240"',
     ":open_when_ready",
     "AddSeconds(%READY_TIMEOUT_SECONDS%)",
     "Start-Sleep -Milliseconds 500",
@@ -83,6 +83,10 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     "did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
+
+  const timeoutMatch = launcher.match(/set "READY_TIMEOUT_SECONDS=(\d+)"/u);
+  assert.ok(timeoutMatch, "startup readiness timeout is missing");
+  assert.ok(Number(timeoutMatch[1]) >= 180, "resource-constrained startup must tolerate at least 180 seconds");
 
   const openWhenReadyLabel = launcher.indexOf("\n:open_when_ready\n");
   const deferredLabel = launcher.indexOf("\n:start_deferred_companion_maintenance\n", openWhenReadyLabel);

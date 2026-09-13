@@ -121,7 +121,10 @@
     {
       "id": "plotpickle-agent-runtime-contract",
       "classification": "production",
-      "include": ["build/agent-runtime-contract.ts"],
+      "include": [
+        "build/agent-runtime-contract.ts",
+        "build/openai-agents-runtime-adapter.ts"
+      ],
       "ownerLayer": "agent-runtime",
       "riskTokens": ["agent", "provider", "canon"]
     },

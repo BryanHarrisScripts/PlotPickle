@@ -15,7 +15,7 @@ The goal is not to preserve those four taxonomy bins. The goal is to recover a c
 
 ## Design authority
 
-The last task-oriented Settings design before the eight-bin taxonomy is the reference UX. The preserved implementation remains in `app/settings-panel-legacy.tsx`.
+The last task-oriented Settings design immediately before the eight-bin taxonomy was introduced on July 31, 2026 is the reference UX. Its implementation was preserved as `app/settings-panel-legacy.tsx` when the taxonomy shell was added.
 
 That surface grouped Settings by Human task:
 

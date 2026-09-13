@@ -152,3 +152,29 @@
 .genericItem p {
   margin: 6px 0 0;
 }
+
+:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1) {
+  color: var(--pp-skin-ink) !important;
+  font-size: 0 !important;
+}
+
+:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  font-size: 1.5rem;
+  color: var(--pp-skin-ink);
+}
+
+:global(section[aria-label="data settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "PROJECT DATA & RECOVERY";
+}
+
+:global(section[aria-label="deploy settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "DEPLOY";
+}
+
+:global(section[aria-label="repos settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "REPOS";
+}
+
+:global(section[aria-label="auth settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "AUTH";
+}

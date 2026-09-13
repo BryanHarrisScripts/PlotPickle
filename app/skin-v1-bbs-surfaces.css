@@ -191,6 +191,119 @@
   margin-top: var(--pp-skin-space-3);
 }
 
+/* #2029: the five Profile readiness signals are a readable vertical group,
+   not a squeezed third column beside the identity copy. */
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :has(> [aria-label="Profile readiness"]) {
+  grid-template-columns: 118px minmax(0, 1fr) !important;
+}
+
+.pp-skin-v1-profile-surface [aria-label="Profile readiness"] {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-content: start !important;
+  gap: var(--pp-skin-space-2) !important;
+  padding: var(--pp-skin-space-3) 0 0 !important;
+  border-left: 0 !important;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+}
+
+.pp-skin-v1-profile-surface [aria-label="Profile readiness"] > * {
+  width: 100% !important;
+}
+
+/* #2029: Issue Log and Licensing use the same restrained Community palette:
+   white Human headings, Matrix green as an accent, and canonical terminal type. */
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) {
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) :is(h2, h3, strong, p, small, label, input, textarea, select, button, pre) {
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) > header {
+  border-color: var(--pp-skin-accent) !important;
+  background: var(--pp-skin-surface-1) !important;
+  box-shadow: inset 3px 0 var(--pp-skin-accent-bright), var(--pp-skin-shadow-control) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) :is(h2, h3, strong) {
+  color: var(--pp-skin-ink) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) :is(section, form, aside) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) :is(input, textarea, select) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+[data-dashboard-review-surface] :is([data-issue-log-panel="ready"], [data-open-source-skin-panel="ready"]) :is(input, textarea, select, button):focus-visible {
+  outline-color: var(--pp-skin-focus) !important;
+}
+
+/* #2029: Agents uses Community's visual hierarchy instead of a flat black/
+   white table: subtle green edge/selection cues while preserving live data. */
+[data-skin-v1-plotpickle-agents="true"] {
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] > section {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-ink) !important;
+  box-shadow: var(--pp-skin-inset-highlight) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] > section:first-of-type {
+  border-color: var(--pp-skin-accent) !important;
+  box-shadow: inset 3px 0 var(--pp-skin-accent-bright), var(--pp-skin-inset-highlight) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] :is(h1, h2, strong) {
+  color: var(--pp-skin-ink) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] > section:first-of-type > p:first-child {
+  color: var(--pp-skin-accent-bright) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] thead tr {
+  background: var(--pp-skin-accent-deep) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] :is(select, button) {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+[data-skin-v1-plotpickle-agents="true"] :is(select, button):focus-visible {
+  border-color: var(--pp-skin-focus) !important;
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
+}
+
+/* #2029: All Curriculum may use the available desktop width and should not
+   force topic/Craft Module context onto a second line when it fits. */
+section[aria-label="LEARN Explore All Curriculum"] [role="listbox"][aria-label="All Curriculum results"] {
+  width: min(var(--pp-skin-shell-max), calc(100% - 40px)) !important;
+}
+
+section[aria-label="LEARN Explore All Curriculum"] [aria-label="All Curriculum results"] .pp-skin-v1-dashboard-command-line {
+  white-space: normal !important;
+}
+
 @media (max-width: 820px) {
   .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] {
     grid-template-columns: 1fr !important;

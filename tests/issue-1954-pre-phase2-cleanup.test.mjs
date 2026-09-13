@@ -58,7 +58,7 @@ test("#1954 Profile uses one page heading and Skin V1 four-pixel control padding
   );
 });
 
-test("#1965 Settings starts with Systems and uses explicit available/unavailable status semantics", async () => {
+test("#1965 Settings starts with Systems and uses explicit available/review status semantics", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
   const start = dashboard.indexOf("const SETTINGS_MENU = [");
   const end = dashboard.indexOf("] as const;", start);
@@ -67,17 +67,22 @@ test("#1965 Settings starts with Systems and uses explicit available/unavailable
 
   const nodeIndex = menuSource.indexOf('id: "node-info"');
   const localIndex = menuSource.indexOf('id: "local-story-mode"');
-  const cloudIndex = menuSource.indexOf("...settingsTaxonomy.systems");
+  const cloudIndex = menuSource.indexOf('id: "cloud"');
+  const agentsIndex = menuSource.indexOf('id: "agents"');
+  const advancedIndex = menuSource.indexOf('id: "advanced"');
   const workspaceIndex = menuSource.indexOf("...settingsTaxonomy.workspace");
   assert.ok(nodeIndex >= 0 && nodeIndex < localIndex, "Node Info must be the first Systems destination");
-  assert.ok(localIndex < cloudIndex, "Local Story Mode must precede the canonical Cloud/system groups");
-  assert.ok(cloudIndex < workspaceIndex, "Systems must render before Workspace");
-  assert.match(menuSource, /label: system\.id === "cloud" \? "Cloud Story Mode" : system\.label/u);
+  assert.ok(localIndex < cloudIndex, "Local Story Mode must precede Cloud Story Mode");
+  assert.ok(cloudIndex < agentsIndex, "Cloud Story Mode must precede Agents");
+  assert.ok(agentsIndex < advancedIndex, "Agents must precede Advanced");
+  assert.ok(advancedIndex < workspaceIndex, "Systems must render before Workspace");
 
   assert.doesNotMatch(dashboard, /\[NOT CONNECTED\]/u);
   assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
   assert.match(dashboard, /aria-label=\{`\$\{item\.label\}: \$\{connected \? "available" : "unavailable"\}`\}/u);
-  assert.match(dashboard, /<MenuFeedbackFooter[\s\S]*id="settings-menu-status"[\s\S]*available=\{selectedSettingsConnected\}/u);
+  assert.match(dashboard, /data-settings-review=\{review \? "true" : "false"\}/u);
+  assert.match(dashboard, /data-dashboard-status="review"/u);
+  assert.match(dashboard, /<MenuFeedbackFooter[\s\S]*id="settings-menu-status"[\s\S]*available=\{selectedSettingsConnected\}[\s\S]*review=\{selectedSettingsReview\}/u);
 });
 
 test("#1965 Profile readiness uses the full identity-summary width without pill-like controls", async () => {

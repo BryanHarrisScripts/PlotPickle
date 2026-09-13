@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "issue": 1977,
+  "phase": "phase-0-discovery-contract",
+  "brief": "docs/developer-briefs/1977-plotpickle-oss-radar.md",
+  "allowedChanges": [
+    "config/development-convergence/1977.json",
+    "config/oss-radar/discovery-contract.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/1977-plotpickle-oss-radar.md",
+    "tests/issue-1977-oss-radar-contract.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P1977-0-1",
+      "criterion": "Phase 0 defines the OSS Radar as a contract-only work unit with six first-class discovery lanes and no GitHub discovery client or scheduled workflow.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"phase\": \"phase-0-discovery-contract\""},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"ai-architecture\""},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"scheduledWorkflow\": false"}
+      ]
+    },
+    {
+      "id": "P1977-0-2",
+      "criterion": "The Human-facing report targets five genuine findings, never pads weak findings, and exposes only SAVE, IMPROVE, ADD, LEARN or WATCH while PASS remains internal.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"targetFindings\": 5"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"neverPadWeakFindings\": true"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-contract.test.mjs","contains":"humanDispositions"}
+      ]
+    },
+    {
+      "id": "P1977-0-3",
+      "criterion": "Deterministic scoring totals 100 before a bounded integration-cost penalty and requires explainable evidence rather than model-only ranking.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"baseMaximum\": 100"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"modelOnlyRankingAllowed\": false"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-contract.test.mjs","contains":"assert.equal(total, 100)"}
+      ]
+    },
+    {
+      "id": "P1977-0-4",
+      "criterion": "License, staleness and duplicate policy is deterministic, with unknown-license candidates unable to become adoption recommendations.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"unknownLicenseMayRecommendAdoption\": false"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"rejectAfterDays\": 730"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"suppressPreviouslyReviewedWithoutMeaningfulChange\": true"}
+      ]
+    },
+    {
+      "id": "P1977-0-5",
+      "criterion": "The Radar cannot autonomously install dependencies, import code/curriculum, mutate the product or create implementation issues; Human adoption authority remains explicit.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"adoptionDecision\": \"human-only\""},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"automaticDependencyInstall\": false"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"automaticProductMutation\": false"}
+      ]
+    },
+    {
+      "id": "P1977-0-6",
+      "criterion": "The contract owns enough report and history evidence to support future idempotent monthly reporting and meaningful-change deduplication.",
+      "evidence": [
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"dailyReportIdempotent\": true"},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"\"lastMeaningfulMarker\""},
+        {"type":"file-contains","path":"config/oss-radar/discovery-contract.json","contains":"What can PlotPickle learn from this?"}
+      ]
+    }
+  ]
+}

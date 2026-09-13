@@ -157,6 +157,13 @@
       "riskTokens": ["test-harness", "cli"]
     },
     {
+      "id": "oss-radar-operations-contract",
+      "classification": "verification",
+      "include": ["config/oss-radar/**"],
+      "ownerLayer": "verification",
+      "riskTokens": ["test-harness", "docs"]
+    },
+    {
       "id": "architecture-blueprint",
       "classification": "docs",
       "include": ["architecture/**"],

@@ -23,36 +23,46 @@ const panel: React.CSSProperties = {
   boxShadow: "var(--pp-skin-shadow-control)",
 };
 
-const reviewBadge: React.CSSProperties = {
-  display: "inline-block",
-  border: "var(--pp-skin-border-thin) solid var(--pp-skin-warning)",
-  background: "var(--pp-skin-warning-surface)",
-  color: "var(--pp-skin-warning-ink)",
-  padding: "5px 9px",
-  fontWeight: 700,
-  letterSpacing: ".06em",
-  whiteSpace: "nowrap",
-};
+const dataItems = [
+  {
+    id: "data-projects",
+    label: "Project Files & Backups",
+    description: "Your stories, project files, rolling backups and recovery. Canonical project storage is not disposable cache.",
+  },
+  {
+    id: "data-retrieval",
+    label: "Project Search",
+    description: "PlotPickle builds a private search index so it can quickly find relevant scenes, characters, notes and story information inside your projects.",
+  },
+  {
+    id: "data-cache",
+    label: "Media & Preview Cache",
+    description: "Temporary previews, thumbnails and replaceable local working data. Canonical project files and user-owned project assets are not disposable cache.",
+  },
+  {
+    id: "data-database",
+    label: "Advanced Data Diagnostics",
+    description: "Database, data-format, search-engine and storage diagnostics for troubleshooting.",
+  },
+] as const;
 
 export default function SettingsReviewSystemPanel({ systemId }: { readonly systemId: ReviewSettingsSystemId }) {
   const system = settingsTaxonomy.systems.find((entry) => entry.id === systemId);
   if (!system) return null;
+  const items = systemId === "data" ? dataItems : system.items;
+  const description = systemId === "data"
+    ? "Project files, backups, private project search and temporary working data."
+    : system.description;
 
   return (
     <div style={shell} data-settings-review-surface={systemId} data-settings-review-state="in-review">
       <section style={panel} aria-labelledby={`settings-review-${systemId}-title`}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <p style={{ margin: 0, color: "var(--pp-skin-warning)", fontSize: 12, letterSpacing: ".08em" }}>SETTINGS / HUMAN REVIEW</p>
-            <h2 id={`settings-review-${systemId}-title`} style={{ margin: "6px 0 4px", fontSize: 24 }}>{system.label.toUpperCase()}</h2>
-            <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)", lineHeight: 1.55 }}>{system.description}</p>
-          </div>
-          <span style={reviewBadge}>IN REVIEW</span>
-        </div>
+        <h2 id={`settings-review-${systemId}-title`} style={{ margin: "0 0 4px", fontSize: 24 }}>{system.label.toUpperCase()}</h2>
+        <p style={{ margin: 0, color: "var(--pp-skin-ink-soft)", lineHeight: 1.55 }}>{description}</p>
       </section>
 
-      <section style={{ ...panel, marginTop: 12 }} aria-label={`${system.label} review surface items`}>
-        {system.items.map((item, index) => (
+      <section style={{ ...panel, marginTop: 12 }} aria-label={`${system.label} settings items`}>
+        {items.map((item, index) => (
           <article
             key={item.id}
             data-settings-review-item={item.id}
@@ -61,32 +71,11 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
               borderTop: index === 0 ? "none" : "var(--pp-skin-border-thin) solid var(--pp-skin-line)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 420px" }}>
-                <strong style={{ display: "block", color: "var(--pp-skin-ink)", fontSize: 15 }}>{item.label}</strong>
-                <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.5 }}>{item.description}</p>
-              </div>
-              <span style={{ ...reviewBadge, fontSize: 11 }}>IN REVIEW</span>
-            </div>
-
-            {"examples" in item && Array.isArray(item.examples) && item.examples.length > 0 ? (
-              <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                CURRENT SCOPE: {item.examples.join(" / ")}
-              </p>
-            ) : null}
-
-            {"mechanics" in item && Array.isArray(item.mechanics) && item.mechanics.length > 0 ? (
-              <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                MECHANICS: {item.mechanics.join(" / ")}
-              </p>
-            ) : null}
+            <strong style={{ display: "block", color: "var(--pp-skin-ink)", fontSize: 15 }}>{item.label}</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--pp-skin-ink-soft)", lineHeight: 1.5 }}>{item.description}</p>
           </article>
         ))}
       </section>
-
-      <p style={{ margin: "12px 0 0", color: "var(--pp-skin-warning-ink)", fontSize: 12, lineHeight: 1.5 }}>
-        REVIEW SURFACE ONLY. THESE ENTRIES SHOW THE CURRENT SETTINGS TAXONOMY; THEY DO NOT CLAIM THAT THE UNDERLYING CONFIGURATION OR RUNTIME IS FINISHED.
-      </p>
     </div>
   );
 }

@@ -1,23 +1,64 @@
 {
   "schemaVersion": 1,
   "issue": 1977,
-  "phase": "phase-3-evolutionary-relevance",
+  "phase": "phase-4-scheduled-radar-uat",
   "status": "CONVERGED",
-  "brief": "docs/developer-briefs/1977-phase-3-evolutionary-relevance.md",
+  "brief": "docs/developer-briefs/1977-phase-4-scheduled-radar-uat.md",
   "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
     "config/development-convergence/1977.json",
-    "docs/developer-briefs/1977-phase-3-evolutionary-relevance.md",
-    "lib/verification/oss-radar/phase3-fit.mjs",
-    "lib/verification/oss-radar/phase3-decision.mjs",
-    "lib/verification/oss-radar/report-renderer.mjs",
-    "tests/issue-1977-oss-radar-phase-2.test.mjs",
-    "tests/issue-1977-oss-radar-phase-3.test.mjs"
+    "docs/developer-briefs/1977-phase-4-scheduled-radar-uat.md",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs"
   ],
   "acceptance": [
-    {"id":"P1977-3-1","criterion":"Five deterministic disposition outcomes are covered.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"phase3Decision"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"covers all five Human-facing dispositions"}]},
-    {"id":"P1977-3-2","criterion":"The highest disposition has a license eligibility gate.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"adoptionEligibleForHumanReview === true"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"license ceiling"}]},
-    {"id":"P1977-3-3","criterion":"Reports expose bounded PlotPickle fit evidence.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"phase3Fit"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1675"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1976"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1692"}]},
-    {"id":"P1977-3-4","criterion":"Metadata evidence remains explicitly bounded.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"repository metadata alone does not prove implementation fit"}]},
-    {"id":"P1977-3-5","criterion":"Phase 4 remains out of scope.","evidence":[{"type":"file-contains","path":"docs/developer-briefs/1977-phase-3-evolutionary-relevance.md","contains":"Stop before Phase 4 scheduled workflow/UAT"}]}
+    {
+      "id": "P1977-4-1",
+      "criterion": "OSS Radar runs daily and supports manual dispatch without push or pull-request execution.",
+      "evidence": [
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '17 12 * * *'"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"workflow_dispatch:"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"daily, manually dispatchable and least-privilege"}
+      ]
+    },
+    {
+      "id": "P1977-4-2",
+      "criterion": "Workflow permissions are restricted to read contents and write Radar issues/comments.",
+      "evidence": [
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"contents: read"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"issues: write"}
+      ]
+    },
+    {
+      "id": "P1977-4-3",
+      "criterion": "Concurrent Radar invocations serialize instead of racing the monthly issue lifecycle.",
+      "evidence": [
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"group: plotpickle-oss-radar"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cancel-in-progress: false"}
+      ]
+    },
+    {
+      "id": "P1977-4-4",
+      "criterion": "The scheduled job runs focused Radar verification before the live Radar entry point.",
+      "evidence": [
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"node --test tests/issue-1977-oss-radar-*.test.mjs"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"node lib/verification/oss-radar/run-radar.mjs"}
+      ]
+    },
+    {
+      "id": "P1977-4-5",
+      "criterion": "Full offline UAT drives runRadar through discovery, classification, monthly reporting, same-day idempotency, cross-day suppression and bounded endpoints.",
+      "evidence": [
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"full UAT runs discovery through monthly reporting"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"rerun.action"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"did not pad the report"}
+      ]
+    },
+    {
+      "id": "P1977-4-6",
+      "criterion": "Model-assisted analysis remains outside Phase 4.",
+      "evidence": [
+        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-4-scheduled-radar-uat.md","contains":"No model provider key or model-assisted analysis is added in Phase 4."}
+      ]
+    }
   ]
 }

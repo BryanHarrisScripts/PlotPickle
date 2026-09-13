@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c2-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "half-hour-comedy-craft",
+    "topic": "structure",
+    "ownerCraftModule": "course-08",
+    "relatedCraftModules": ["course-11", "course-13", "course-14", "course-15"],
+    "kind": "medium-extension",
+    "title": "Half-Hour Comedy Craft",
+    "duration": "35–45 min",
+    "overview": "Build half-hour comedy by combining premise pressure, character contradiction, setup and payoff, escalation, recurring comic devices and precise scene turns. Treat single-camera, multi-camera and distribution conventions as medium context rather than as one permanent structural formula.",
+    "objectives": [
+      "Identify the comic pressure created by premise and character contradiction.",
+      "Track setup, expectation, turn and payoff across scenes and story lines.",
+      "Escalate comedy by changing consequence, commitment or misunderstanding rather than only adding more jokes.",
+      "Use recurring comic devices without letting repetition replace story movement."
+    ],
+    "sections": [
+      {"heading": "Start with comic pressure", "paragraphs": ["Comedy becomes durable when the premise repeatedly puts characters in situations where their habits, values or self-image create trouble. The funny surface can change while the underlying contradiction keeps generating choices."], "points": ["Name what the character wants to preserve.", "Name the contradiction that complicates it.", "Connect the comic problem to story consequence."]},
+      {"heading": "Build setup, expectation, turn and payoff", "paragraphs": ["A setup gives the audience information or an expectation. The turn changes how that expectation lands. A payoff earns its force by being specific to what came before rather than arriving as an unrelated joke."], "points": ["Make the setup clear enough to remember.", "Delay or redirect the expected result.", "Let payoff alter the scene or relationship."]},
+      {"heading": "Escalate commitment", "paragraphs": ["Comic escalation often grows because a character commits harder to a bad strategy, protects a lie, misunderstands evidence or chooses a more costly solution. The scene becomes funnier because the situation changes, not simply because the dialogue becomes denser."], "points": ["Raise commitment.", "Narrow easy exits.", "Let the character cause the next complication."]},
+      {"heading": "Use runners and callbacks as story tools", "paragraphs": ["A runner or callback gains value when repetition changes meaning, expectation or consequence. Repeating the same beat unchanged can flatten rhythm."], "points": ["Track the first setup.", "Vary the later return.", "Connect the callback to current story pressure."]},
+      {"heading": "Choose form after the comic engine", "paragraphs": ["Different half-hour forms support different staging, pacing and production assumptions. Build the comic engine and scene movement first, then adapt presentation choices to the intended format and current production context."], "points": ["Keep craft separate from current production convention.", "Verify real delivery requirements separately.", "Do not measure comedy by a fixed joke count."]}
+    ],
+    "definitions": [
+      {"term": "Comic premise pressure", "meaning": "The recurring situation that exposes character contradiction and creates comic problems."},
+      {"term": "Setup", "meaning": "Information or action that creates an expectation for a later turn or payoff."},
+      {"term": "Payoff", "meaning": "A later beat whose effect depends on a prior setup and changes the current comic or dramatic condition."},
+      {"term": "Runner", "meaning": "A recurring comic element that returns with variation across a scene or episode."}
+    ],
+    "example": {"title": "Harbor Watch staff photo", "text": "Mara insists the terminal staff can take one professional group photo before the first ferry arrives. Each attempt fails because she keeps adding rules about posture, uniforms and background details. The payoff comes when the ferry arrives early and the only usable photo captures everyone abandoning the pose to do their real jobs. The comedy grows from Mara's increasing commitment to control, while the final image also reveals the team clearly."},
+    "checklist": [
+      "The comic problem grows from premise or character contradiction.",
+      "Setups are clear enough for later payoffs to land.",
+      "Escalation changes commitment, consequence or misunderstanding.",
+      "Recurring devices return with variation.",
+      "Comedy still produces story or relationship movement.",
+      "No fixed joke count is treated as a quality measure.",
+      "Production-format conventions remain separate from durable craft principles."
+    ],
+    "mistakes": [
+      "Adding jokes that do not affect character, pressure or rhythm.",
+      "Repeating a runner without changing its meaning or consequence.",
+      "Escalating only through louder dialogue.",
+      "Protecting a clever line when it weakens the scene turn.",
+      "Treating one half-hour production format as universal.",
+      "Using joke quantity as a substitute for comic structure."
+    ],
+    "exercise": "Choose one learner-owned comic scene. Mark the setup, audience expectation, first turn and payoff. Then create two escalation steps that increase character commitment or consequence without simply adding extra jokes. Read the revised beat chain and keep only the changes that support the intended character and story effect.",
+    "apply": "Half-hour episode / comic scene",
+    "applicationTargets": ["half-hour episode map", "comic scene", "dialogue revision"],
+    "tags": ["television", "comedy", "half-hour", "setup", "payoff", "escalation", "runner", "dialogue", "structure"],
+    "companionItems": [
+      {"id": "case-comedy-rewrite-ladder", "type": "case-study", "title": "Escalating a comic beat", "purpose": "Use an invented scene to compare successive comic revisions without copying published material."},
+      {"id": "exercise-comedy-setup-payoff-pass", "type": "exercise", "title": "Setup and payoff pass", "purpose": "Track setup, expectation, turn and payoff through one learner-owned comic scene."}
+    ],
+    "researchSources": [
+      {"id": "plotpickle-existing-dialogue-structure-curriculum", "kind": "internal-curriculum", "title": "Existing PlotPickle structure, dialogue and drafting lessons", "scopeNote": "Provides the general craft foundation extended here for half-hour comedy."},
+      {"id": "1976-phase-a-comedy-gap", "kind": "research-ledger", "title": "#1976 pinned screenwriting gap ledger", "scopeNote": "Used to identify the missing comedy-specific layer without importing external lesson prose."}
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Gap identification and convention verification only; no external skill, script or case-study prose copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "legalAdvice": false,
+      "mediumSpecific": true,
+      "mutableRulesFrozenIntoCanon": false
+    }
+  }
+}

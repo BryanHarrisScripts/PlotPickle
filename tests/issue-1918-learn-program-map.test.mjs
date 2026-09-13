@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import test from "node:test";
 import { LEARN_PROGRAM_ARCHIVE_LESSONS, LEARN_PROGRAM_MAP } from "../learn/program-map.mjs";
 import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-development-convergence.mjs";
+import "./issue-1976-phase-d-integration.test.mjs";
 
 const execFileAsync = promisify(execFile);
 

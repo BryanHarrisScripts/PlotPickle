@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 1976,
+  "phase": "phase-d-canonical-integration",
+  "status": "canonical",
+  "baseArchive": {
+    "lessonCount": 81,
+    "bundledSourceCount": 95,
+    "presentationLessonCount": 88,
+    "foundationReferenceCoverageCount": 7,
+    "lessonContentSha256": "66a9ca2f1ab799c5c7160d3a52d4221dedccc79c4699c80459ca86a165fdeaf2",
+    "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343"
+  },
+  "currentCanonicalInventory": {
+    "topicCount": 12,
+    "archivedLessonCount": 89,
+    "bundledSourceCount": 95,
+    "presentationLessonCount": 96,
+    "craftModuleCount": 24,
+    "enrichmentLessonCount": 8
+  },
+  "authority": {
+    "baseArchiveHashesRemainFrozen": true,
+    "enrichmentBodiesDuplicated": false,
+    "externalResearchBodiesBundled": false,
+    "humanMayLearnOutOfOrder": true,
+    "recommendedSequenceIsAccessControl": false,
+    "progressOwner": "PPFProject.learning.completedLessonIds",
+    "c3Approved": false
+  },
+  "enrichmentContentSha256": "aaba9ad1ed37ea604fba63e7927d41138784a1eda6d1378b7d1e2007e2975e81",
+  "lessons": [
+    {
+      "id": "scene-craft-pressure-and-turn",
+      "file": "learn/enrichment/1976-c1/scene-craft-pressure-and-turn.json",
+      "topic": "drafting",
+      "number": 901,
+      "ownerCraftModule": "course-15"
+    },
+    {
+      "id": "screenplay-format-and-delivery",
+      "file": "learn/enrichment/1976-c1/screenplay-format-and-delivery.json",
+      "topic": "drafting",
+      "number": 902,
+      "ownerCraftModule": "course-15"
+    },
+    {
+      "id": "adaptation-source-to-screen",
+      "file": "learn/enrichment/1976-c1/adaptation-source-to-screen.json",
+      "topic": "drafting",
+      "number": 903,
+      "ownerCraftModule": "course-16"
+    },
+    {
+      "id": "professional-pitching-and-representation",
+      "file": "learn/enrichment/1976-c1/professional-pitching-and-representation.json",
+      "topic": "industry",
+      "number": 901,
+      "ownerCraftModule": "course-24"
+    },
+    {
+      "id": "series-episode-season-architecture",
+      "file": "learn/enrichment/1976-c2/series-episode-season-architecture.json",
+      "topic": "structure",
+      "number": 901,
+      "ownerCraftModule": "course-08"
+    },
+    {
+      "id": "series-engine-and-bible",
+      "file": "learn/enrichment/1976-c2/series-engine-and-bible.json",
+      "topic": "structure",
+      "number": 902,
+      "ownerCraftModule": "course-09"
+    },
+    {
+      "id": "writers-room-story-breaking",
+      "file": "learn/enrichment/1976-c2/writers-room-story-breaking.json",
+      "topic": "collaboration",
+      "number": 901,
+      "ownerCraftModule": "course-21"
+    },
+    {
+      "id": "half-hour-comedy-craft",
+      "file": "learn/enrichment/1976-c2/half-hour-comedy-craft.json",
+      "topic": "structure",
+      "number": 903,
+      "ownerCraftModule": "course-08"
+    }
+  ]
+}

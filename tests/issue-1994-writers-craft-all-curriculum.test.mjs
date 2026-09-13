@@ -84,3 +84,40 @@ test("#1994 Phase B1 uses the existing compact status box for completion rather 
   assert.match(browseRows, /pp-skin-v1-dashboard-status-box\$\{completed \? " is-active" : ""\}/u);
   assert.match(explore, /UP\/DOWN MOVES · ENTER OPENS · ESC RETURNS TO JOURNEY\./u);
 });
+
+test("#1994 Phase B2 removes duration and repeated access prose from secondary Journey lesson rows", async () => {
+  const journey = await read("app/skin-v1/learn-journey-preview.tsx");
+  const lessonsStart = journey.indexOf("{openCourseContent.lessons.map");
+  const lessonsEnd = journey.indexOf("</div>\n          <p", lessonsStart);
+  assert.ok(lessonsStart >= 0 && lessonsEnd > lessonsStart, "Journey lesson-row source must remain identifiable.");
+  const lessonRows = journey.slice(lessonsStart, lessonsEnd);
+
+  assert.match(lessonRows, /\[\{shortcut\}\] \{lesson\.title\}/u);
+  assert.doesNotMatch(lessonRows, /lesson\.duration/u);
+  assert.doesNotMatch(lessonRows, /\bOPEN\b|\bAVAILABLE\b/u);
+  assert.match(lessonRows, /data-learn-lesson-completed=\{completed \? "true" : "false"\}/u);
+  assert.match(lessonRows, /aria-label=\{completed \? "Lesson complete" : "Lesson incomplete"\}/u);
+});
+
+test("#1994 Phase B2 keeps Path and Craft Module rows concise without weakening structural authority", async () => {
+  const journey = await read("app/skin-v1/learn-journey-preview.tsx");
+
+  assert.match(journey, /\{command\} · \{progress\}/u);
+  assert.doesNotMatch(journey, /\{course\.purpose\} · \{progress\} \[AVAILABLE\]/u);
+  assert.match(journey, /\{command\} · CRAFT MODULES \{firstModule\}–\{lastModule\}/u);
+  assert.doesNotMatch(journey, /4 modules · lesson content available/u);
+
+  assert.match(journey, /data-learn-course-status="wired"/u);
+  assert.match(journey, /data-learn-course-content="available"/u);
+  assert.match(journey, /data-learn-semester-content="wired"/u);
+  assert.match(journey, /recommendedSequenceIsAccessControl: false/u);
+  assert.match(journey, /humanMayLearnOutOfOrder: true/u);
+});
+
+test("#1994 Phase B2 removes the obsolete 88-lesson Journey shortcut without inventing a new static count", async () => {
+  const journey = await read("app/skin-v1/learn-journey-preview.tsx");
+
+  assert.match(journey, /\[E\] EXPLORE \/ ALL CURRICULUM - SEARCH · TOPIC · CRAFT MODULE/u);
+  assert.doesNotMatch(journey, /\b88 PRESENTATION LESSONS\b/u);
+  assert.doesNotMatch(journey, /UNRESTRICTED SEARCH \/ BROWSE/u);
+});

@@ -1,11 +1,10 @@
 /* Issue #2026 — Human-approved Dashboard main-menu reset.
- * This layer intentionally overrides only the canonical Dashboard surface.
+ * Issue #2029 keeps that menu contract while restoring the approved dragon.
  * Stable IDs, keyboard behavior and connection truth remain owned by the
  * existing Skin V1 Dashboard components.
  */
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-shell-title,
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-art,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] [data-plotpickle-score="v1"],
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-title {
   display: none !important;
@@ -13,6 +12,13 @@
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {
   min-height: min(1060px, calc(100vh - 40px)) !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-art {
+  display: block !important;
+  width: calc(100% - 48px) !important;
+  max-width: var(--pp-skin-shell-max) !important;
+  margin: 0 auto var(--pp-skin-space-5) !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-brand {
@@ -72,6 +78,7 @@
 }
 
 @media (max-width: 720px) {
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-art,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
     width: calc(100% - 24px) !important;
   }

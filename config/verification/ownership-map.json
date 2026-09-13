@@ -27,7 +27,9 @@
       "include": [
         "modules/community/community-buzz-social.tsx",
         "app/_components/community/community-workspace.tsx",
-        "app/_components/community/community-private-story-room.tsx"
+        "app/_components/community/community-private-story-room.tsx",
+        "app/_components/community/community-story-room-access.tsx",
+        "app/_components/community/community-story-room-access.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": ["surface", "navigation", "visual", "mcp"]
@@ -61,6 +63,13 @@
       "include": ["lib/community/community-ux-contract.ts"],
       "ownerLayer": "experience-contract",
       "riskTokens": ["surface", "navigation", "mcp"]
+    },
+    {
+      "id": "community-story-room-access-gateway",
+      "classification": "production",
+      "include": ["build/buzz-story-room-access-gateway.ts"],
+      "ownerLayer": "production-harness",
+      "riskTokens": ["authority", "community", "provider"]
     },
     {
       "id": "root-story-startup",

@@ -24,13 +24,17 @@ type PresenceState = {
   localCreativeWorkAvailable?: boolean;
 };
 
+type Props = {
+  readonly onBack: () => void;
+};
+
 function timeLabel(value: string | undefined) {
   if (!value) return "Not yet";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "Not yet" : date.toLocaleString();
 }
 
-export default function CommunityMyPresence() {
+export default function CommunityMyPresence({ onBack }: Props) {
   const [state, setState] = useState<PresenceState | null>(null);
   const [availability, setAvailability] = useState<Availability>("online");
   const [visibility, setVisibility] = useState<Visibility>("contacts");
@@ -95,7 +99,7 @@ export default function CommunityMyPresence() {
         <h2>{configured ? (state?.identity?.displayName || "This PlotPickle Studio") : "Studio presence is not configured yet."}</h2>
         <p>Control how this Studio appears to other permitted PlotPickle Studios without leaving Community. Only the signed minimal presence envelope is announced through BUZZ.</p>
       </div>
-      <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh</button>
+      <button type="button" disabled={Boolean(busy)} onClick={onBack}>Back to Connected Studios</button>
     </header>
 
     {configured ? <>
@@ -104,6 +108,7 @@ export default function CommunityMyPresence() {
         <label><span>Visibility</span><select value={visibility} disabled={Boolean(busy)} onChange={(event) => setVisibility(event.target.value as Visibility)}><option value="public">Public</option><option value="contacts">Contacts</option><option value="invisible">Invisible</option></select></label>
       </div>
       <div className={styles.actions}>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh presence</button>
         <button type="button" disabled={Boolean(busy)} onClick={() => void run("announce")}>{busy === "announce" ? "Announcing…" : "Announce / update presence"}</button>
         <button type="button" disabled={Boolean(busy)} onClick={() => void run("withdraw")}>{busy === "withdraw" ? "Withdrawing…" : "Withdraw presence"}</button>
       </div>
@@ -111,7 +116,10 @@ export default function CommunityMyPresence() {
         <div><dt>Last announced</dt><dd>{timeLabel(state?.presence?.announcedAt)}</dd></div>
         <div><dt>Last withdrawn</dt><dd>{timeLabel(state?.presence?.withdrawnAt)}</dd></div>
       </dl>
-    </> : <p className={styles.empty}>A permanent Studio Identity is required before PlotPickle can sign Community presence. Community browsing remains available; no presence event is sent until the Studio identity exists.</p>}
+    </> : <>
+      <p className={styles.empty}>A permanent Studio Identity is required before PlotPickle can sign Community presence. Community browsing remains available; no presence event is sent until the Studio identity exists.</p>
+      <div className={styles.actions}><button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh presence</button></div>
+    </>}
 
     {state?.presence?.lastTransportError ? <p className={styles.transport}>Last transport issue: {state.presence.lastTransportError}</p> : null}
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}

@@ -174,7 +174,8 @@ export default function DashboardBbsPanel({
       if (shortcutIndex >= 0) {
         event.preventDefault();
         selectSettingsItem(shortcutIndex);
-        activateSettingsItem(shortcutIndex);
+        const shortcutItem = SETTINGS_MENU[shortcutIndex];
+        if (!isReviewSettingsSystemId(shortcutItem.id)) activateSettingsItem(shortcutIndex);
         return;
       }
     }
@@ -317,22 +318,40 @@ export default function DashboardBbsPanel({
                     data-settings-review={review ? "true" : "false"}
                     data-skin-menu-row={item.id}
                     data-skin-menu-shortcut={item.shortcut}
-                    data-skin-menu-connected={openable ? "true" : "false"}
+                    data-skin-menu-connected={connected ? "true" : "false"}
                     onClick={() => activateSettingsItem(index)}
                     onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                    <span
-                      className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                      style={review ? {
-                        borderColor: "var(--pp-skin-warning)",
-                        background: "var(--pp-skin-warning)",
-                        boxShadow: "var(--pp-skin-shadow-control)",
-                      } : undefined}
-                      aria-label={`${item.label}: ${review ? "in review" : connected ? "available" : "unavailable"}`}
-                      data-dashboard-status={review ? "review" : connected ? "active" : "inactive"}
-                      data-skin-menu-indicator={review ? "review" : connected ? "connected" : "unwired"}
-                    />
+                    {review ? (
+                      <>
+                        <span
+                          className="pp-skin-v1-dashboard-status-box"
+                          style={{ display: "none" }}
+                          aria-hidden="true"
+                          data-dashboard-status="inactive"
+                          data-skin-menu-indicator="unwired"
+                        />
+                        <span
+                          className="pp-skin-v1-dashboard-status-box"
+                          style={{
+                            borderColor: "var(--pp-skin-warning)",
+                            background: "var(--pp-skin-warning)",
+                            boxShadow: "var(--pp-skin-shadow-control)",
+                          }}
+                          aria-label={`${item.label}: in review`}
+                          data-dashboard-status="review"
+                          data-settings-review-indicator="review"
+                        />
+                      </>
+                    ) : (
+                      <span
+                        className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
+                        aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
+                        data-dashboard-status={connected ? "active" : "inactive"}
+                        data-skin-menu-indicator={connected ? "connected" : "unwired"}
+                      />
+                    )}
                   </button>
                 </Fragment>
               );

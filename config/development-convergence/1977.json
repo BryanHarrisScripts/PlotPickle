@@ -10,48 +10,14 @@
     "lib/verification/oss-radar/phase3-fit.mjs",
     "lib/verification/oss-radar/phase3-decision.mjs",
     "lib/verification/oss-radar/report-renderer.mjs",
+    "tests/issue-1977-oss-radar-phase-2.test.mjs",
     "tests/issue-1977-oss-radar-phase-3.test.mjs"
   ],
   "acceptance": [
-    {
-      "id": "P1977-3-1",
-      "criterion": "Five deterministic disposition outcomes are covered.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"phase3Decision"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"covers all five Human-facing dispositions"}
-      ]
-    },
-    {
-      "id": "P1977-3-2",
-      "criterion": "The highest disposition has a license eligibility gate.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"adoptionEligibleForHumanReview === true"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"license ceiling"}
-      ]
-    },
-    {
-      "id": "P1977-3-3",
-      "criterion": "Reports expose bounded PlotPickle fit evidence.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"phase3Fit"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1675"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1976"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1692"}
-      ]
-    },
-    {
-      "id": "P1977-3-4",
-      "criterion": "Metadata evidence remains explicitly bounded.",
-      "evidence": [
-        {"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"repository metadata alone does not prove implementation fit"}
-      ]
-    },
-    {
-      "id": "P1977-3-5",
-      "criterion": "Phase 4 remains out of scope.",
-      "evidence": [
-        {"type":"file-contains","path":"docs/developer-briefs/1977-phase-3-evolutionary-relevance.md","contains":"Stop before Phase 4 scheduled workflow/UAT"}
-      ]
-    }
+    {"id":"P1977-3-1","criterion":"Five deterministic disposition outcomes are covered.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"phase3Decision"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"covers all five Human-facing dispositions"}]},
+    {"id":"P1977-3-2","criterion":"The highest disposition has a license eligibility gate.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/phase3-decision.mjs","contains":"adoptionEligibleForHumanReview === true"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"license ceiling"}]},
+    {"id":"P1977-3-3","criterion":"Reports expose bounded PlotPickle fit evidence.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"phase3Fit"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1675"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1976"},{"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-3.test.mjs","contains":"#1692"}]},
+    {"id":"P1977-3-4","criterion":"Metadata evidence remains explicitly bounded.","evidence":[{"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"repository metadata alone does not prove implementation fit"}]},
+    {"id":"P1977-3-5","criterion":"Phase 4 remains out of scope.","evidence":[{"type":"file-contains","path":"docs/developer-briefs/1977-phase-3-evolutionary-relevance.md","contains":"Stop before Phase 4 scheduled workflow/UAT"}]}
   ]
 }

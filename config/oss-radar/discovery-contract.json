@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "issue": 1977,
+  "phase": "phase-0-discovery-contract",
+  "status": "contract-only",
+  "humanAuthority": {
+    "adoptionDecision": "human-only",
+    "automaticImplementationIssue": false,
+    "automaticDependencyInstall": false,
+    "automaticCodeImport": false,
+    "automaticCurriculumImport": false,
+    "automaticProductMutation": false
+  },
+  "report": {
+    "targetFindings": 5,
+    "neverPadWeakFindings": true,
+    "monthlyIssueTitlePattern": "[OSS RADAR] {MMMM YYYY}",
+    "dailyReportIdempotent": true,
+    "requiredQuestion": "What can PlotPickle learn from this?",
+    "humanDispositions": ["SAVE", "IMPROVE", "ADD", "LEARN", "WATCH"],
+    "internalOnlyDisposition": "PASS"
+  },
+  "internalCategories": [
+    "SAVE WORK",
+    "STRENGTHEN",
+    "MISSING PIECE",
+    "NEW CAPABILITY",
+    "WRITER CRAFT",
+    "VISUAL STORY",
+    "STORY / GAME ENGINE",
+    "LEARN / EDUCATION",
+    "AI ARCHITECTURE",
+    "CREATIVE UX",
+    "AGENT / AI",
+    "ARCHITECTURE"
+  ],
+  "lanes": [
+    {
+      "id": "writer-craft",
+      "label": "Writer Craft",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "screenwriting storytelling narrative design",
+        "character dialogue scene craft worldbuilding revision",
+        "television writers room comedy screenwriting"
+      ]
+    },
+    {
+      "id": "visual-story",
+      "label": "Visual Story",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "storyboard previs shot planning cinematography",
+        "visual continuity character reference location reference",
+        "ComfyUI video workflow multimodal creative"
+      ]
+    },
+    {
+      "id": "story-game-engine",
+      "label": "STORY / Game Engine",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "interactive narrative story engine deterministic simulation",
+        "narrative game state world simulation",
+        "interactive fiction authoring narrative design tools"
+      ]
+    },
+    {
+      "id": "learn-education",
+      "label": "LEARN / Education",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "learning science tutoring self directed learning",
+        "project based learning feedback reflection education",
+        "creative writing education reader simulation"
+      ]
+    },
+    {
+      "id": "ai-architecture",
+      "label": "AI Architecture",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "agent runtime orchestration context memory evaluation",
+        "MCP agent interoperability tool permissions",
+        "local first AI model routing human in the loop"
+      ]
+    },
+    {
+      "id": "platform-engineering",
+      "label": "Platform / Engineering",
+      "enabled": true,
+      "weight": 1,
+      "queries": [
+        "local first desktop app Windows open source",
+        "browser automation UI visual testing",
+        "architecture documentation drift detection C4",
+        "speech to text whisper local voice"
+      ]
+    }
+  ],
+  "queryDefaults": {
+    "recencyDays": 180,
+    "minimumStars": 0,
+    "positiveTerms": [],
+    "negativeTerms": ["archived", "abandoned"],
+    "allowLowStarSpecialists": true
+  },
+  "filters": {
+    "hardReject": {
+      "archived": true,
+      "nonDivergentFork": true,
+      "clearlyIncompatibleLicense": true,
+      "unrelatedToPlotPickle": true
+    },
+    "activity": {
+      "stalenessPenaltyAfterDays": 365,
+      "rejectAfterDays": 730,
+      "strategicWatchExceptionAllowed": true
+    },
+    "license": {
+      "unknownLicenseMaySurfaceAsWatch": true,
+      "unknownLicenseMayRecommendAdoption": false,
+      "compatibleLicenseStillRequiresHumanApproval": true
+    },
+    "deduplication": {
+      "suppressPreviouslyReviewedWithoutMeaningfulChange": true,
+      "allowReappearanceOnMeaningfulReleaseOrCommit": true,
+      "allowReappearanceOnMaterialRelevanceChange": true,
+      "allowHumanRequestedRevisit": true
+    }
+  },
+  "scoring": {
+    "baseMaximum": 100,
+    "weights": {
+      "problemOpportunityFit": 15,
+      "evolutionValue": 10,
+      "writerValue": 10,
+      "studentLearningValue": 8,
+      "visualStoryValue": 8,
+      "storyGameEngineValue": 8,
+      "aiArchitectureValue": 10,
+      "saveWorkValue": 8,
+      "missingPieceValue": 7,
+      "architectureFit": 6,
+      "maturityMaintenance": 4,
+      "licenseFit": 3,
+      "windowsLocalFit": 1,
+      "roadmapRelevance": 2
+    },
+    "integrationCostPenalty": {
+      "minimum": 0,
+      "maximum": 10
+    },
+    "surfaceThreshold": 65,
+    "watchEvidenceThreshold": 55,
+    "explainableEvidenceRequired": true,
+    "modelOnlyRankingAllowed": false
+  },
+  "findingSchema": {
+    "required": [
+      "repository",
+      "url",
+      "primaryDisposition",
+      "description",
+      "whyPlotPickleShouldCare",
+      "whatCanPlotPickleLearn",
+      "useOrLesson",
+      "writerBenefit",
+      "studentLearnBenefit",
+      "visualStoryBenefit",
+      "storyGameEngineBenefit",
+      "aiArchitectureBenefit",
+      "plotPickleFit",
+      "singleMostUsefulPiece",
+      "integrationEffort",
+      "license",
+      "activitySignal",
+      "scoreEvidence",
+      "recommendedNextDisposition"
+    ]
+  },
+  "history": {
+    "owner": "oss-radar-history",
+    "requiredKeys": [
+      "repositoryStableId",
+      "fullName",
+      "firstSeenDate",
+      "lastReviewedDate",
+      "lastMeaningfulMarker",
+      "previousDisposition",
+      "internalCategories",
+      "previousScoreEvidence",
+      "plotPickleDecision"
+    ]
+  },
+  "copyrightAndTeaching": {
+    "externalCurriculumDefault": "research-gap-analysis-only",
+    "copyThirdPartyLessonBodies": false,
+    "copyScreenplayCorpora": false,
+    "copyLongQuotations": false,
+    "independentlyAuthorPlotPickleTeaching": true,
+    "preserveResearchProvenance": true
+  },
+  "phaseBoundaries": {
+    "githubApiDiscoveryClient": false,
+    "scheduledWorkflow": false,
+    "monthlyIssueAutomation": false,
+    "modelAssistedAnalysis": false
+  }
+}

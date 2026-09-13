@@ -5,21 +5,25 @@ import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-d
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1973 shares one explicit green-available gray-unavailable footer contract", async () => {
+test("#1973 shares explicit green-available yellow-review gray-unavailable footer semantics", async () => {
   const [footer, styles] = await Promise.all([
     read("app/skin-v1/menu-feedback-footer.tsx"),
     read("app/skin-v1/menu-feedback-footer.module.css"),
   ]);
 
   assert.match(footer, /GREEN = AVAILABLE/u);
+  assert.match(footer, /YELLOW = IN REVIEW/u);
   assert.match(footer, /GRAY = UNAVAILABLE/u);
   assert.match(footer, /available \? `ENTER → OPEN \$\{label\.toUpperCase\(\)\}`/u);
+  assert.match(footer, /review \? `ENTER → OPEN \$\{label\.toUpperCase\(\)\} · IN REVIEW`/u);
   assert.match(footer, /UNAVAILABLE/u);
   assert.match(footer, /role="status"/u);
   assert.match(footer, /aria-live="polite"/u);
   assert.match(footer, /aria-atomic="true"/u);
   assert.match(styles, /legendSquareAvailable/u);
+  assert.match(styles, /legendSquareReview/u);
   assert.match(styles, /var\(--pp-skin-accent-bright\)/u);
+  assert.match(styles, /var\(--pp-skin-warning\)/u);
   assert.match(styles, /var\(--pp-skin-ink-muted\)/u);
 });
 
@@ -30,21 +34,26 @@ test("#1973 Dashboard and Settings derive footer action from the selected row ra
   assert.match(dashboard, /const selectedDashboardConnected = Boolean\(selectedDashboardItem && CONNECTED_DASHBOARD_ITEMS\.has\(selectedDashboardItem\.id\)\)/u);
   assert.match(dashboard, /const selectedSettingsItem = SETTINGS_MENU\[settingsSelectedIndex\]/u);
   assert.match(dashboard, /const selectedSettingsConnected = Boolean\(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS\.has\(selectedSettingsItem\.id\)\)/u);
+  assert.match(dashboard, /const selectedSettingsReview = Boolean\(selectedSettingsItem && isReviewSettingsSystemId\(selectedSettingsItem\.id\)\)/u);
   assert.match(dashboard, /id="dashboard-menu-status"[\s\S]*label=\{selectedDashboardItem\?\.label/u);
   assert.match(dashboard, /available=\{selectedDashboardConnected\}/u);
   assert.match(dashboard, /id="settings-menu-status"[\s\S]*label=\{selectedSettingsItem\?\.label/u);
   assert.match(dashboard, /available=\{selectedSettingsConnected\}/u);
+  assert.match(dashboard, /review=\{selectedSettingsReview\}/u);
   assert.doesNotMatch(dashboard, /OTHER MENU ITEMS ARE NOT CONNECTED YET/u);
   assert.doesNotMatch(dashboard, /ENTER: OPEN CONNECTED DESTINATION/u);
   assert.doesNotMatch(dashboard, /settingsNotice/u);
 });
 
-test("#1973 Dashboard and Settings row semantics explicitly say available or unavailable", async () => {
+test("#1973 Dashboard and Settings keep review visibility separate from runtime wiring", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
-  const labels = dashboard.match(/aria-label=\{`\$\{item\.label\}: \$\{connected \? "available" : "unavailable"\}`\}/gu) ?? [];
-  assert.equal(labels.length, 2);
+  assert.match(dashboard, /data-settings-review=\{review \? "true" : "false"\}/u);
   assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
-  assert.match(dashboard, /data-skin-menu-indicator=\{connected \? "connected" : "unwired"\}/u);
+  assert.match(dashboard, /data-skin-menu-indicator="unwired"/u);
+  assert.match(dashboard, /data-settings-review-indicator="review"/u);
+  assert.match(dashboard, /aria-label=\{`\$\{item\.label\}: in review`\}/u);
+  assert.match(dashboard, /var\(--pp-skin-warning\)/u);
+  assert.match(dashboard, /if \(!isReviewSettingsSystemId\(shortcutItem\.id\)\) activateSettingsItem\(shortcutIndex\)/u);
 });
 
 test("#1973 Local and Cloud directories remain fully available instead of inventing gray states", async () => {

@@ -10,6 +10,7 @@ import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
+import SettingsReviewSystemPanel, { isReviewSettingsSystemId, type ReviewSettingsSystemId } from "./settings-review-system-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -98,6 +99,7 @@ export default function DashboardBbsPanel({
   const [localStoryModeOpen, setLocalStoryModeOpen] = useState(false);
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
+  const [settingsReviewSystem, setSettingsReviewSystem] = useState<ReviewSettingsSystemId | null>(null);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -106,6 +108,7 @@ export default function DashboardBbsPanel({
   const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEMS.has(selectedDashboardItem.id));
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
+  const selectedSettingsReview = Boolean(selectedSettingsItem && isReviewSettingsSystemId(selectedSettingsItem.id));
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -157,6 +160,10 @@ export default function DashboardBbsPanel({
     }
     if (item.id === "agents") {
       setPlotPickleAgentsOpen(true);
+      return;
+    }
+    if (isReviewSettingsSystemId(item.id)) {
+      setSettingsReviewSystem(item.id);
     }
   }
 
@@ -167,7 +174,8 @@ export default function DashboardBbsPanel({
       if (shortcutIndex >= 0) {
         event.preventDefault();
         selectSettingsItem(shortcutIndex);
-        activateSettingsItem(shortcutIndex);
+        const shortcutItem = SETTINGS_MENU[shortcutIndex];
+        if (!isReviewSettingsSystemId(shortcutItem.id)) activateSettingsItem(shortcutIndex);
         return;
       }
     }
@@ -253,6 +261,20 @@ export default function DashboardBbsPanel({
     );
   }
 
+  if (settingsMenuOpen && settingsReviewSystem) {
+    return (
+      <section aria-label={`${settingsReviewSystem} settings review`} onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setSettingsReviewSystem(null); }
+      }}>
+        <div className="pp-skin-v1-bbs-banner">
+          <h1 style={{ color: "var(--pp-skin-warning-ink)" }}>{settingsReviewSystem.toUpperCase()} · IN REVIEW</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsReviewSystem(null)}>Back to Settings</button>
+        </div>
+        <SettingsReviewSystemPanel systemId={settingsReviewSystem} />
+      </section>
+    );
+  }
+
   if (settingsMenuOpen) {
     return (
       <section
@@ -274,6 +296,8 @@ export default function DashboardBbsPanel({
             {SETTINGS_MENU.map((item, index) => {
               const showGroup = index === 0 || SETTINGS_MENU[index - 1]?.group !== item.group;
               const connected = CONNECTED_SETTINGS_ITEMS.has(item.id);
+              const review = isReviewSettingsSystemId(item.id);
+              const openable = connected || review;
               const selected = index === settingsSelectedIndex;
               const command = `[${item.shortcut}] ${item.label}`.padEnd(30, " ");
               return (
@@ -284,13 +308,14 @@ export default function DashboardBbsPanel({
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    aria-disabled={!connected}
+                    aria-disabled={!openable}
                     tabIndex={selected ? 0 : -1}
                     autoFocus={index === 0}
                     className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
                     data-settings-secondary-item={item.id}
                     data-settings-shortcut={item.shortcut}
                     data-settings-secondary-connected={connected ? "true" : "false"}
+                    data-settings-review={review ? "true" : "false"}
                     data-skin-menu-row={item.id}
                     data-skin-menu-shortcut={item.shortcut}
                     data-skin-menu-connected={connected ? "true" : "false"}
@@ -298,12 +323,35 @@ export default function DashboardBbsPanel({
                     onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                    <span
-                      className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                      aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
-                      data-dashboard-status={connected ? "active" : "inactive"}
-                      data-skin-menu-indicator={connected ? "connected" : "unwired"}
-                    />
+                    {review ? (
+                      <>
+                        <span
+                          className="pp-skin-v1-dashboard-status-box"
+                          style={{ display: "none" }}
+                          aria-hidden="true"
+                          data-dashboard-status="inactive"
+                          data-skin-menu-indicator="unwired"
+                        />
+                        <span
+                          className="pp-skin-v1-dashboard-status-box"
+                          style={{
+                            borderColor: "var(--pp-skin-warning)",
+                            background: "var(--pp-skin-warning)",
+                            boxShadow: "var(--pp-skin-shadow-control)",
+                          }}
+                          aria-label={`${item.label}: in review`}
+                          data-dashboard-status="review"
+                          data-settings-review-indicator="review"
+                        />
+                      </>
+                    ) : (
+                      <span
+                        className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
+                        aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
+                        data-dashboard-status={connected ? "active" : "inactive"}
+                        data-skin-menu-indicator={connected ? "connected" : "unwired"}
+                      />
+                    )}
                   </button>
                 </Fragment>
               );
@@ -314,6 +362,7 @@ export default function DashboardBbsPanel({
             id="settings-menu-status"
             label={selectedSettingsItem?.label ?? "No destination"}
             available={selectedSettingsConnected}
+            review={selectedSettingsReview}
           />
         </div>
       </section>

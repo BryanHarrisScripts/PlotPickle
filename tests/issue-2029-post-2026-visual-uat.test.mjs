@@ -15,9 +15,10 @@ test("#2029 restores the approved Dashboard dragon without restoring Score", asy
 });
 
 test("#2029 sends Writer's Craft All Curriculum directly back to Dashboard", async () => {
-  const [explore, host] = await Promise.all([
+  const [explore, host, audit] = await Promise.all([
     read("app/skin-v1/learn-explore.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
   ]);
 
   assert.match(explore, /Back to Dashboard/u);
@@ -27,6 +28,9 @@ test("#2029 sends Writer's Craft All Curriculum directly back to Dashboard", asy
   assert.doesNotMatch(explore, /<strong>\{exploreRowPrimary\(entry\)\}<\/strong><br/u);
   assert.match(host, /addEventListener\("plotpickle:return-dashboard"/u);
   assert.match(host, /key=\{dashboardGeneration\}/u);
+  assert.match(audit, /getByRole\("button", \{ name: "Back to Dashboard" \}\)\.click\(\)/u);
+  assert.doesNotMatch(audit, /name: "Back to Journey"/u);
+  assert.match(audit, /await page\.locator\("\[data-skin-menu='dashboard'\]"\)\.waitFor/u);
 });
 
 test("#2029 gives Writer's Craft rows desktop breathing room", async () => {

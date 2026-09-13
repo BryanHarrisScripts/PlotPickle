@@ -52,6 +52,13 @@
       "riskTokens": ["surface", "navigation", "mcp"]
     },
     {
+      "id": "community-human-ux-contract",
+      "classification": "production",
+      "include": ["lib/community/community-ux-contract.ts"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "mcp"]
+    },
+    {
       "id": "root-story-startup",
       "classification": "production",
       "include": ["app/page.tsx"],

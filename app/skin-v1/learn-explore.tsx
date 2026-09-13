@@ -33,15 +33,17 @@ type ExploreEntry = Readonly<{
 type ExplorePayload = Readonly<{
   schemaVersion: string;
   issue: number;
-  phase: "phase-6-explore-all-curriculum";
-  topicCount: 12;
-  presentationLessonCount: 88;
-  craftModuleCount: 24;
-  bundledSourceCount: 95;
-  referenceCoverageCount: 7;
+  phase: "phase-d-canonical-integration";
+  topicCount: number;
+  presentationLessonCount: number;
+  canonicalLessonCount: number;
+  craftModuleCount: number;
+  bundledSourceCount: number;
+  referenceCoverageCount: number;
   authority: Readonly<{
     curriculumOwner: "adapters/curriculum/current-catalog.ts";
     journeyMapOwner: "learn/program-map-spec.mjs";
+    enrichmentOwner: "learn/enrichment/1976-canonical.json";
     progressOwner: "PPFProject.learning.completedLessonIds";
     journeyAndExploreShareProgress: true;
     accessMode: "unrestricted";
@@ -66,24 +68,26 @@ function craftModuleNumber(courseId: string) {
 }
 
 function assertExplorePayload(value: ExplorePayload) {
-  if (value.issue !== 1918 || value.phase !== "phase-6-explore-all-curriculum") {
-    throw new Error("LEARN Explore returned the wrong program phase.");
+  if (value.issue !== 1918 || value.phase !== "phase-d-canonical-integration") {
+    throw new Error("LEARN Explore returned the wrong canonical curriculum phase.");
   }
   if (
-    value.topicCount !== 12
-    || value.presentationLessonCount !== 88
+    value.topicCount !== value.topics.length
+    || value.topicCount !== 12
+    || value.presentationLessonCount !== value.entries.length
+    || value.presentationLessonCount < 1
+    || value.craftModuleCount !== value.craftModules.length
     || value.craftModuleCount !== 24
-    || value.bundledSourceCount !== 95
-    || value.referenceCoverageCount !== 7
+    || value.bundledSourceCount < 1
+    || value.referenceCoverageCount < 0
+    || value.referenceCoverageCount > value.presentationLessonCount
   ) {
-    throw new Error("LEARN Explore returned an incomplete canonical curriculum inventory.");
-  }
-  if (value.topics.length !== 12 || value.craftModules.length !== 24 || value.entries.length !== 88) {
-    throw new Error("LEARN Explore did not return the complete browse index.");
+    throw new Error("LEARN Explore returned an inconsistent canonical curriculum inventory.");
   }
   if (
     value.authority.curriculumOwner !== "adapters/curriculum/current-catalog.ts"
     || value.authority.journeyMapOwner !== "learn/program-map-spec.mjs"
+    || value.authority.enrichmentOwner !== "learn/enrichment/1976-canonical.json"
     || value.authority.progressOwner !== "PPFProject.learning.completedLessonIds"
     || !value.authority.journeyAndExploreShareProgress
     || value.authority.accessMode !== "unrestricted"
@@ -221,7 +225,7 @@ export default function LearnExplore({
           <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={() => setOpenEntry(null)}>Back to All Curriculum</button></div>
           <article className={styles.lesson} data-learn-explore-presentation={openEntry.presentationId} data-learn-explore-coverage={openEntry.coverageMode}>
             <header>
-              <span>ALL CURRICULUM · LESSON {openEntry.presentationOrder} OF 88 · {openEntry.topic.title.toUpperCase()} · CRAFT MODULE {craftModuleNumber(openEntry.craftModule.id)}</span>
+              <span>ALL CURRICULUM · LESSON {openEntry.presentationOrder} OF {payload.presentationLessonCount} · {openEntry.topic.title.toUpperCase()} · CRAFT MODULE {craftModuleNumber(openEntry.craftModule.id)}</span>
               <h2>{openEntry.lesson.title}</h2>
               <p>{openEntry.lesson.overview}</p>
               <p>{openEntry.coverageMode === "reference-coverage" ? "PROMOTED FOUNDATIONS REFERENCE · LINKED TO ITS CANONICAL JOURNEY LESSON" : "JOURNEY-BACKED PRESENTATION LESSON"}</p>
@@ -258,7 +262,7 @@ export default function LearnExplore({
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
         <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Journey</button></div>
-        <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / 12 TOPICS / 88 PRESENTATION LESSONS / 95 BUNDLED SOURCES</div>
+        <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / {payload.topicCount} TOPICS / {payload.presentationLessonCount} PRESENTATION LESSONS / {payload.bundledSourceCount} BUNDLED SOURCES</div>
         <div className={styles.exploreControls} data-learn-explore-controls="true">
           <label>
             <span>SEARCH TOPIC / CRAFT MODULE / LESSON / CONCEPT / APPLICATION</span>
@@ -281,19 +285,19 @@ export default function LearnExplore({
           <label>
             <span>TOPIC</span>
             <select aria-label="Filter Explore by topic" data-learn-explore-topic-filter="true" value={topicFilter} onChange={(event) => setTopicFilter(event.target.value)}>
-              <option value="all">ALL 12 TOPICS</option>
+              <option value="all">ALL {payload.topicCount} TOPICS</option>
               {payload.topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.title}</option>)}
             </select>
           </label>
           <label>
             <span>CRAFT MODULE</span>
             <select aria-label="Filter Explore by Craft Module" data-learn-explore-course-filter="true" value={craftModuleFilter} onChange={(event) => setCraftModuleFilter(event.target.value)}>
-              <option value="all">ALL 24 CRAFT MODULES</option>
+              <option value="all">ALL {payload.craftModuleCount} CRAFT MODULES</option>
               {payload.craftModules.map((course) => <option key={course.id} value={course.id}>CRAFT MODULE {craftModuleNumber(course.id)} · {course.title}</option>)}
             </select>
           </label>
         </div>
-        <div className={styles.exploreSummary} role="status" aria-live="polite">{filteredEntries.length} OF 88 PRESENTATION LESSONS SHOWN · ORDER DOES NOT CONTROL ACCESS</div>
+        <div className={styles.exploreSummary} role="status" aria-live="polite">{filteredEntries.length} OF {payload.presentationLessonCount} PRESENTATION LESSONS SHOWN · ORDER DOES NOT CONTROL ACCESS</div>
         <div className={styles.exploreResults} role="listbox" aria-label="All Curriculum results">
           {filteredEntries.map((entry, index) => {
             const selected = index === selectedIndex;

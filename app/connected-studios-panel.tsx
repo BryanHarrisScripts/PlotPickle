@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CommunityMyPresence from "./_components/community/community-my-presence";
 import styles from "./connected-studios-panel.module.css";
 
 type Studio = {
@@ -35,6 +36,7 @@ function when(value: string) {
 export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly onOpenGreatHall: () => void }) {
   const [directory, setDirectory] = useState<Directory | null>(null);
   const [selected, setSelected] = useState("");
+  const [showPresence, setShowPresence] = useState(false);
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -86,16 +88,21 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
 
   const studios = directory?.studios ?? [];
 
+  if (showPresence) return <CommunityMyPresence onBack={() => setShowPresence(false)} />;
+
   return <div className={styles.wrap}>
     <section className={styles.heading}>
       <div><span>Connected Studios</span><h2>Find the PlotPickle Studios you are permitted to see.</h2><p>This is a community directory, not a server list. BUZZ carries signed presence; private local PlotPickle services remain private.</p></div>
-      <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh Studios</button>
+      <div className={styles.headingActions}>
+        <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh Studios</button>
+        <button type="button" onClick={() => setShowPresence(true)}>My Presence</button>
+      </div>
     </section>
 
     <section className={styles.networkState} data-online={directory?.playhouseOnline ? "true" : "false"} role="status">
       <i aria-hidden="true" />
       <div><strong>{directory?.playhouseOnline ? "Community discovery online" : "Community discovery offline"}</strong><p>{directory?.message || "Checking permitted Studio presence…"}</p></div>
-      {!directory?.playhouseOnline ? <a href="/community-presence">Check my Community presence</a> : null}
+      {!directory?.playhouseOnline ? <button type="button" onClick={() => setShowPresence(true)}>Check my Community presence</button> : null}
     </section>
 
     {studios.length ? <section className={styles.grid} aria-label="Permitted PlotPickle Studios">
@@ -115,7 +122,7 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
           </div> : null}
         </article>;
       })}
-    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contacts/Guilds Studios appear only after this Studio has an approved relationship with their permanent Studio ID.</p><a href="/community-presence">Review my visibility</a></section> : null}
+    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contact-only Studios appear only when an approved relationship permits discovery.</p><button type="button" onClick={() => setShowPresence(true)}>Review my visibility</button></section> : null}
 
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;

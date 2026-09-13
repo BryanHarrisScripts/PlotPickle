@@ -33,7 +33,11 @@
         "app/_components/community/community-story-room-access.tsx",
         "app/_components/community/community-story-room-access.module.css",
         "app/_components/community/community-story-room-listing.tsx",
-        "app/_components/community/community-story-room-listing.module.css"
+        "app/_components/community/community-story-room-listing.module.css",
+        "app/_components/community/community-my-presence.tsx",
+        "app/_components/community/community-my-presence.module.css",
+        "app/connected-studios-panel.tsx",
+        "app/connected-studios-panel.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": ["surface", "navigation", "visual", "mcp"]

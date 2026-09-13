@@ -70,14 +70,26 @@ What does not survive as a normal Settings control:
 
 Open Source is no longer a Settings SYSTEMS row. It is a connected Dashboard destination under PROJECT MANAGEMENT, directly below User Profile.
 
-Open Source opens the canonical `/legal` licensing/ownership surface. That surface is the authority for current licence scope:
+Under issue #2023, Open Source stays inside the Skin V1 Dashboard state instead of leaving the application through `/legal`. It is one informational surface, not a submenu. The Human-facing surface summarizes the authoritative project boundaries directly in PlotPickle:
 
+- Human-created stories and project files remain the Human's work; PlotPickle's software licences do not automatically apply to creative output.
 - PlotPickle software: AGPL-3.0-or-later.
 - 24 Blocks method and reusable non-software instructional/documentation material: CC BY-SA 4.0 where identified.
 - Third-party material remains under its own licences/notices.
-- Human-created stories and project files remain the Human's work; PlotPickle's software licences do not automatically apply to creative output.
+- Local-first privacy and deliberate external-action boundaries remain visible.
+- Community and advanced server-operator responsibilities remain visible without turning Open Source into a support or deployment console.
 
-The licensing surface returns to Dashboard, not Settings.
+The ordinary Open Source surface does not link the Human to GitHub and does not own Help / Suggest / Report. Direct source/release references remain Advanced/diagnostic material. The standalone `/legal` page may remain as a compatibility/public reference, but it is not the Dashboard navigation path.
+
+Open Source is yellow and fully openable while Human review is active. Back and Escape return exactly one level to Dashboard. Promote it to green only after focused verification and visible Human acceptance.
+
+## Dashboard Help / Issue Log
+
+Help / Issue Log is a first-class Dashboard destination immediately below Log Off. It is not nested under Open Source.
+
+The first #2023 review slice prepares a sanitized product issue draft inside Skin V1 using the existing product-feedback redaction and safe-diagnostic boundary. The current runtime has no safe in-app ticket-submission backend, so the surface must not claim a ticket was submitted and must not open GitHub as its primary action. It may copy the prepared draft for Human use while clearly stating that no upload or support-queue submission occurred.
+
+Help / Issue Log is yellow and fully openable while Human review is active. Back and Escape return exactly one level to Dashboard and restore a useful Dashboard focus target.
 
 ## Settings directory rule
 

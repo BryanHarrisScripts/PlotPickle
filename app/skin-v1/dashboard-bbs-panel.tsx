@@ -21,7 +21,7 @@ export type DashboardBbsItem = Readonly<{
   group?: string;
 }>;
 
-const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "open-source", "logout", "learn"]);
+const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "open-source", "help", "logout", "learn"]);
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
   appearance: "A",

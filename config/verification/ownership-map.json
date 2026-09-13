@@ -77,6 +77,13 @@
       "riskTokens": ["surface", "navigation", "mcp"]
     },
     {
+      "id": "product-feedback-contract",
+      "classification": "production",
+      "include": ["lib/product-feedback.ts"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "security", "mcp"]
+    },
+    {
       "id": "community-human-ux-contract",
       "classification": "production",
       "include": ["lib/community/community-ux-contract.ts"],

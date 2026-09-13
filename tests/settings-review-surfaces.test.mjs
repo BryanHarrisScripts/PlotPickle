@@ -91,24 +91,51 @@ test("Advanced shortcut selects first and Enter opens the active review surface"
   assert.match(dashboard, />Back to Settings<\/button>/u);
 });
 
-test("Open Source leaves Settings and becomes a connected Dashboard licensing destination", async () => {
-  const [skin, dashboard, legal, ownershipText] = await Promise.all([
+test("#2023 keeps Open Source and Help inside the Skin V1 Dashboard review boundary", async () => {
+  const [skin, dashboard, host, openSource, help, reviewMarker, ownershipText] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
-    read("app/legal/page.tsx"),
+    read("app/skin-v1/dashboard-bbs-review-host.tsx"),
+    read("app/skin-v1/open-source-skin-panel.tsx"),
+    read("app/skin-v1/help-issue-log-skin-panel.tsx"),
+    read("app/skin-v1/dashboard-bbs-review-host.module.css"),
     read("config/verification/ownership-map.json"),
   ]);
   const ownership = JSON.parse(ownershipText);
   const productIdentity = ownership.rules.find((rule) => rule.id === "product-identity-surfaces");
 
+  assert.match(skin, /id: "logout", shortcut: "X", label: "Log Off"[\s\S]*id: "help", shortcut: "H", label: "Help \/ Issue Log"/u);
   assert.match(skin, /id: "profile"[\s\S]*id: "open-source"[\s\S]*id: "learn"/u);
   assert.match(skin, /id: "open-source", shortcut: "N", label: "Open Source"/u);
-  assert.match(skin, /item\.id === "open-source"[\s\S]*location\.assign\("\/legal"\)/u);
-  assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "open-source", "logout", "learn"\]\)/u);
-  assert.match(legal, /GNU Affero General Public License/u);
-  assert.match(legal, /Creative Commons Attribution-ShareAlike 4\.0 International/u);
-  assert.match(legal, /href="\/" className=\{styles\.backLink\}>← Back to Dashboard/u);
+  assert.doesNotMatch(skin, /location\.assign\("\/legal"\)/u);
+  assert.match(skin, /<DashboardBbsReviewHost/u);
+  assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "open-source", "help", "logout", "learn"\]\)/u);
+
+  assert.match(host, /item\.id === "open-source"[\s\S]*setOpenSourceOpen\(true\)/u);
+  assert.match(host, /item\.id === "help"[\s\S]*setHelpIssueLogOpen\(true\)/u);
+  assert.match(host, /event\.key === "Escape"[\s\S]*closeOpenSource\(\)/u);
+  assert.match(host, /event\.key === "Escape"[\s\S]*closeHelpIssueLog\(\)/u);
+  assert.match(host, />Back to Dashboard<\/button>/u);
+  assert.match(host, /restoreDashboardFocus\("open-source"\)/u);
+  assert.match(host, /restoreDashboardFocus\("help"\)/u);
+
+  assert.match(reviewMarker, /data-dashboard-menu-item="open-source"/u);
+  assert.match(reviewMarker, /data-dashboard-menu-item="help"/u);
+  assert.match(reviewMarker, /var\(--pp-skin-warning\)/u);
+
+  assert.match(openSource, /GNU Affero General Public License version 3 or later/u);
+  assert.match(openSource, /Creative Commons Attribution-ShareAlike 4\.0 International/u);
+  assert.match(openSource, /Your Work/u);
+  assert.match(openSource, /Software Privacy/u);
+  assert.match(openSource, /Server Operators/u);
+  assert.doesNotMatch(openSource, /href=|github\.com|Suggest \/ Report/u);
+
+  assert.match(help, /Issue submission is not connected in this review build/u);
+  assert.match(help, /Copy Issue Draft/u);
+  assert.match(help, /buildProductFeedbackDraft/u);
+  assert.doesNotMatch(help, /window\.open|href="https:\/\/github\.com/u);
+
   assert.ok(productIdentity, "product identity ownership rule must exist");
   assert.equal(productIdentity.ownerLayer, "experience-skins");
-  assert.ok(productIdentity.include.includes("app/legal/**"), "legal/licensing surface must be mapped to Experience ownership");
+  assert.ok(productIdentity.include.includes("app/legal/**"), "standalone legal compatibility surface must remain mapped to Experience ownership");
 });

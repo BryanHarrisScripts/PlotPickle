@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c2-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "series-episode-season-architecture",
+    "topic": "structure",
+    "ownerCraftModule": "course-08",
+    "relatedCraftModules": ["course-07", "course-09"],
+    "kind": "medium-extension",
+    "title": "Series Craft: Episode and Season Architecture",
+    "duration": "40–50 min",
+    "overview": "Design television structure at three connected scales: the episode that must move now, the pilot that demonstrates what the series can repeatedly generate, and the season that changes the larger dramatic condition over time. Treat act patterns, cold opens and streaming or broadcast shapes as selectable medium conventions rather than fixed formulas.",
+    "objectives": [
+      "Separate episode movement, pilot responsibility and season movement so each scale has a clear dramatic job.",
+      "Weave A, B and optional C stories by contrast, collision and convergence rather than by equal page allocation.",
+      "Use act-outs, sequence endings or episode turns as pressure points without assuming one distribution model or timing grid.",
+      "Map how an episode creates consequence for the next episode while still delivering a meaningful local experience."
+    ],
+    "sections": [
+      {
+        "heading": "Think in nested dramatic scales",
+        "paragraphs": [
+          "A television episode belongs to a larger system. The episode needs its own immediate problem and change, while the season carries pressures that cannot be resolved every week. The pilot has an additional burden: it introduces a world, relationships and repeatable tensions that make another episode imaginable.",
+          "Start by naming three conditions: what this episode must change, what the season is gradually changing, and what should remain productively unresolved so the series can continue generating story."
+        ],
+        "points": [
+          "Episode: what dramatic question becomes active now?",
+          "Pilot: what repeatable source of pressure does the audience discover?",
+          "Season: what larger condition is moving across multiple episodes?",
+          "Series: what remains generative after this episode ends?"
+        ]
+      },
+      {
+        "heading": "Build episode movement before choosing a format grid",
+        "paragraphs": [
+          "Some television forms use explicit act boundaries; others flow through sequences with no visible commercial break logic. In either case, useful episode architecture creates renewed pressure at intervals. A turn should change what the characters can do, what they know, or what the audience expects.",
+          "Do not begin with a borrowed number of acts and force the story into it. First map the pressure sequence. Then choose a presentation shape that fits the intended medium, length and delivery context."
+        ],
+        "points": [
+          "Identify the episode's opening disturbance or active condition.",
+          "Mark where options narrow, new information lands or relationships change.",
+          "Use section endings to increase forward pull rather than merely stop on noise.",
+          "Verify current delivery conventions separately when a real production target requires them."
+        ]
+      },
+      {
+        "heading": "Weave A, B and C stories by relationship",
+        "paragraphs": [
+          "Multiple story lines are useful when they create contrast, thematic counterpoint, information pressure or eventual collision. They do not need identical weight. An A story can carry the episode's dominant problem while a B story changes a relationship and a smaller C story plants a consequence that matters later.",
+          "The weave becomes clearer when each return to a story line arrives with a changed condition. If a strand resumes exactly where it left off, the episode may feel segmented instead of cumulative."
+        ],
+        "points": [
+          "Give each strand a distinct immediate objective or pressure source.",
+          "Track what changes before the episode cuts away from a strand.",
+          "Look for collisions where one strand creates consequence for another.",
+          "Use thematic echoes carefully; similarity without escalation can feel repetitive."
+        ]
+      },
+      {
+        "heading": "Make the pilot demonstrate the series",
+        "paragraphs": [
+          "A pilot is not only an introduction. It should let the audience experience the kind of pressure the series can generate again. The pilot can resolve its local problem while opening a larger condition, relationship, institution, mystery or recurring obligation that promises more story.",
+          "Avoid explaining every corner of the world. Demonstrate the engine through decisions and consequences. A clear unresolved future is often more useful than a complete encyclopedia."
+        ],
+        "points": [
+          "Show the central relationship or system under active pressure.",
+          "Demonstrate at least one repeatable conflict source.",
+          "Let the pilot's ending change the ongoing condition.",
+          "Leave room for later episodes to discover rather than merely execute exposition."
+        ]
+      },
+      {
+        "heading": "Track season movement as accumulated consequence",
+        "paragraphs": [
+          "A season can be mapped as a chain of changing conditions rather than a stretched feature plot. Episodes may have local shapes, but important consequences accumulate: alliances shift, secrets change hands, institutions respond, goals mutate and earlier choices remove later options.",
+          "A season map is most useful when it distinguishes fixed commitments from flexible territory. Lock what the story truly depends on and leave enough space for discoveries made while drafting individual episodes."
+        ],
+        "points": [
+          "Name the season's starting condition and desired ending condition.",
+          "Mark irreversible or high-consequence changes rather than every event.",
+          "Track which episode creates each major new condition.",
+          "Preserve flexibility between anchor turns unless continuity requires precision."
+        ]
+      }
+    ],
+    "definitions": [
+      {"term": "Episode arc", "meaning": "The local dramatic movement that becomes active, changes and reaches a meaningful new condition within one episode."},
+      {"term": "Season arc", "meaning": "A larger chain of accumulated changes distributed across multiple episodes."},
+      {"term": "Act-out", "meaning": "A designed pressure point or turn placed at a section boundary; its exact use depends on the intended television form."},
+      {"term": "A/B/C stories", "meaning": "Parallel story strands of different weight that can contrast, echo, collide or converge within an episode."},
+      {"term": "Pilot promise", "meaning": "The repeatable dramatic experience the first episode demonstrates beyond its local plot."}
+    ],
+    "example": {
+      "title": "Harbor Watch pilot map",
+      "text": "A story: Mara must keep a storm-damaged ferry terminal open long enough to evacuate an island. B story: her estranged brother arrives as the new safety inspector and threatens to close it. C story: a deckhand finds an unregistered medical crate. The local evacuation succeeds, but Mara signs a false inspection log to do it. The episode closes with her brother quietly taking a photo of the log. The episode has a local result, while the season now carries a family, institutional and legal pressure condition that can generate future episodes."
+    },
+    "checklist": [
+      "The episode has a clear local dramatic condition and meaningful change.",
+      "The pilot demonstrates a repeatable source of story rather than only setup.",
+      "Each major story strand changes before or when it returns.",
+      "Section endings create forward pressure without depending on one fixed act formula.",
+      "The season map tracks accumulated consequences rather than only chronology.",
+      "The episode ending leaves a useful new condition for future story.",
+      "Any real-world format requirements are treated as current production context, not universal craft law."
+    ],
+    "mistakes": [
+      "Forcing a borrowed act count onto the story before identifying its pressure sequence.",
+      "Treating the pilot as a world encyclopedia instead of a demonstration of the series experience.",
+      "Giving every story strand equal space even when their dramatic jobs differ.",
+      "Returning to a B or C story without changing its condition.",
+      "Stretching one feature-style plot across a season without episode-level dramatic life.",
+      "Confusing current distribution conventions with permanent rules of television writing."
+    ],
+    "exercise": "Create an episode weave for the active story or an invented series. Write one sentence each for the A, B and C story pressures, then map six to ten returns across the episode. At every return, record what changed. Finish by naming the episode exit condition and one season-level consequence. Keep or revise the map according to the experience you intend.",
+    "apply": "Episode / pilot / season map",
+    "applicationTargets": ["episode map", "pilot map", "season map"],
+    "tags": ["television", "episode", "pilot", "season", "A story", "B story", "act-out", "structure", "series"],
+    "companionItems": [
+      {"id": "case-series-form-comparison", "type": "case-study", "title": "Broadcast, streaming and serialized form comparison", "purpose": "Compare invented/right-safe episode structures without reproducing proprietary scripts."},
+      {"id": "exercise-episode-story-weave", "type": "exercise", "title": "Weave A/B/C story movement", "purpose": "Map three story lines across an episode and test convergence, contrast and pacing."}
+    ],
+    "researchSources": [
+      {"id": "plotpickle-existing-structure-curriculum", "kind": "internal-curriculum", "title": "Existing PlotPickle structure and 24/96 architecture lessons", "scopeNote": "Provides the general structural foundation that this television-specific extension builds upon."},
+      {"id": "1976-phase-a-series-gap", "kind": "research-ledger", "title": "#1976 pinned screenwriting gap ledger", "scopeNote": "Used to identify the missing series-architecture layer; no source body text imported."}
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Gap identification and convention verification only; no external skill, case-study, corpus or screenplay prose copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "legalAdvice": false,
+      "mediumSpecific": true,
+      "mutableRulesFrozenIntoCanon": false
+    }
+  }
+}

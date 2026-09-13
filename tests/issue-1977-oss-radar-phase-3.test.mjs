@@ -42,7 +42,7 @@ const samples = {
   improve: candidate(2, "visual-story", 75, "storyboard previs cinematography video"),
   add: candidate(3, "story-game-engine", 75, "interactive narrative story engine replay"),
   learn: candidate(4, "writer-craft", 72, "character dialogue structure revision adaptation television comedy"),
-  watch: candidate(5, "ai-architecture", 60, "agent runtime context memory evaluation"),
+  watch: candidate(5, "ai-architecture", 67, "agent runtime context memory evaluation"),
 };
 
 test("#1977 Phase 3 deterministically covers all five Human-facing dispositions", () => {
@@ -73,10 +73,7 @@ test("#1977 Phase 3 selection resolves classifier indexes through Phase 0 vocabu
     reportDate: "2026-09-13",
   });
   assert.equal(selection.selected.length, 5);
-  assert.deepEqual(
-    selection.selected.map((item) => item.primaryDisposition),
-    contract.report.humanDispositions,
-  );
+  assert.deepEqual(selection.selected.map((item) => item.primaryDisposition), contract.report.humanDispositions);
 });
 
 test("#1977 Phase 3 report exposes bounded PlotPickle fit without claiming implementation facts", () => {

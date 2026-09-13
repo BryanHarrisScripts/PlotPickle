@@ -32,8 +32,11 @@ test("#1918 Phase 5 all-Path Journey wiring survives Phase 6", async () => {
   assert.deepEqual(LEARN_PROGRAM_MAP.semesters.map((semester) => semester.courseIds.length), [4, 4, 4, 4, 4, 4]);
 });
 
-test("#1918 Phase 5 all-Paths API remains the canonical Journey archive projection", async () => {
-  const route = await read("app/api/learn/journey-courses/route.ts");
+test("#1918 all-Paths API follows the current canonical Journey projection while preserving the base archive", async () => {
+  const [route, catalog] = await Promise.all([
+    read("app/api/learn/journey-courses/route.ts"),
+    read("adapters/curriculum/current-catalog-integrated.ts"),
+  ]);
   for (const canonicalImport of [
     "foundations.json",
     "theme.json",
@@ -48,27 +51,32 @@ test("#1918 Phase 5 all-Paths API remains the canonical Journey archive projecti
     "collaboration.json",
     "industry.json",
   ]) {
-    assert.ok(route.includes(canonicalImport), `Phase 5 route must import canonical ${canonicalImport}.`);
+    assert.ok(catalog.includes(canonicalImport), `Current catalog must preserve canonical ${canonicalImport}.`);
   }
+  assert.match(route, /canonicalTopicDocuments/u);
+  assert.match(route, /ISSUE_1976_CANONICAL_REGISTRY/u);
   assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
   assert.match(route, /course\.lessonRefs\.flatMap/u);
   assert.match(route, /lessons\[position - 1\]/u);
   assert.match(route, /courses\.length !== 24/u);
-  assert.match(route, /curriculumOwner: "existing LEARN archive"/u);
+  assert.match(route, /size !== 89/u);
+  assert.match(route, /curriculumOwner: "adapters\/curriculum\/current-catalog\.ts"/u);
   assert.match(route, /progressOwner: "PPFProject\.learning\.completedLessonIds"/u);
   assert.match(route, /curriculumBodiesDuplicated: false/u);
   assert.doesNotMatch(route, /lessonBodies|copiedCurriculum|journeyCurriculum/u);
 });
 
-test("#1918 Phase 6 Explore projects the existing 88-lesson presentation catalog and 24-Craft-Module ownership", async () => {
+test("#1918 Explore projects the current 96-lesson presentation catalog and 24-Craft-Module ownership", async () => {
   const route = await read("app/api/learn/explore/route.ts");
 
   assert.match(route, /plotPickleCurriculum/u);
   assert.match(route, /adapters\/curriculum\/current-catalog/u);
   assert.match(route, /FOUNDATION_PROMOTED_SOURCE_IDS/u);
   assert.match(route, /LEARN_PROGRAM_COURSE_SPECS/u);
+  assert.match(route, /ISSUE_1976_CANONICAL_REGISTRY/u);
   assert.match(route, /coverageMode: lesson\.id === canonicalLessonId \? "journey" as const : "reference-coverage" as const/u);
-  assert.match(route, /entries\.length !== 88/u);
+  assert.match(route, /entries\.length !== 96/u);
+  assert.match(route, /canonicalLessonCount: 89/u);
   assert.match(route, /representedTopics\.size !== 12/u);
   assert.match(route, /representedCraftModules\.size !== 24/u);
   assert.match(route, /sourceIds\.size !== 95/u);

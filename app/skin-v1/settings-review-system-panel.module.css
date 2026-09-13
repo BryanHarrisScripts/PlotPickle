@@ -1,0 +1,180 @@
+.surface {
+  min-height: 100vh;
+  padding: var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7);
+  background: var(--pp-skin-fill-panel);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+.hero,
+.card,
+.genericPanel,
+.boundary {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  box-shadow: var(--pp-skin-shadow-control);
+}
+
+.hero {
+  padding: var(--pp-skin-space-4);
+}
+
+.eyebrow,
+.status {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--pp-skin-ink-muted);
+}
+
+.hero h2 {
+  margin: 6px 0 4px;
+  font-size: 24px;
+}
+
+.hero p:last-child,
+.card p,
+.boundary p,
+.genericPanel p {
+  color: var(--pp-skin-ink-soft);
+  line-height: 1.55;
+}
+
+.hero p:last-child {
+  margin: 0;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  padding: var(--pp-skin-space-4);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.status {
+  flex: 0 0 auto;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  padding: 3px 6px;
+  color: var(--pp-skin-ink-muted);
+}
+
+.card p {
+  margin: 8px 0 0;
+}
+
+.card ul,
+.diagnosticsList {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--pp-skin-ink-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.action {
+  margin-top: 12px;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-fill-control);
+  color: var(--pp-skin-ink);
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action:focus-visible,
+.diagnostics summary:focus-visible {
+  outline: 2px solid var(--pp-skin-ink);
+  outline-offset: 2px;
+}
+
+.diagnostics {
+  margin-top: 12px;
+}
+
+.diagnostics summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.boundary {
+  margin-top: 12px;
+  padding: var(--pp-skin-space-4);
+}
+
+.boundary strong {
+  display: block;
+}
+
+.boundary p {
+  margin: 6px 0 0;
+}
+
+.genericPanel {
+  margin-top: 12px;
+  padding: var(--pp-skin-space-4);
+}
+
+.genericItem {
+  padding: var(--pp-skin-space-4) 0;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.genericItem:first-child {
+  border-top: 0;
+}
+
+.genericItem strong {
+  display: block;
+  font-size: 15px;
+}
+
+.genericItem p {
+  margin: 6px 0 0;
+}
+
+:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1) {
+  color: var(--pp-skin-ink) !important;
+  font-size: 0 !important;
+}
+
+:global(section[aria-label$=" settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  font-size: 1.5rem;
+  color: var(--pp-skin-ink);
+}
+
+:global(section[aria-label="data settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "PROJECT DATA & RECOVERY";
+}
+
+:global(section[aria-label="deploy settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "DEPLOY";
+}
+
+:global(section[aria-label="repos settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "REPOS";
+}
+
+:global(section[aria-label="auth settings review"] > .pp-skin-v1-bbs-banner h1)::after {
+  content: "AUTH";
+}

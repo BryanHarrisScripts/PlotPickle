@@ -45,11 +45,11 @@ test("#2026 locks the Human-approved Dashboard order, labels, descriptions and g
 test("#2026 keeps the compact main-menu composition and one aligned live-status column", async () => {
   const [layout, resetCss, dashboard] = await Promise.all([
     read("app/layout.tsx"),
-    read("app/issue-2026-dashboard-menu-reset.css"),
+    read("app/skin-v1-dashboard-menu-reset.css"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
   ]);
 
-  assert.match(layout, /import "\.\/issue-2026-dashboard-menu-reset\.css"/u);
+  assert.match(layout, /import "\.\/skin-v1-dashboard-menu-reset\.css"/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-shell-title[\s\S]*display: none !important/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-art/u);
   assert.match(resetCss, /\[data-plotpickle-score="v1"\]/u);

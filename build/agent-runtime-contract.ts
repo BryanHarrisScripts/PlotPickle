@@ -89,6 +89,7 @@ export type AgentRuntimeExecutionRequest<TContext = unknown> = {
   provider: TextProvider;
   model: string;
   runtime: AgentRuntimeId;
+  instructions: string;
   input: string;
   context?: TContext;
   outbound: AgentRuntimeOutboundBoundary;

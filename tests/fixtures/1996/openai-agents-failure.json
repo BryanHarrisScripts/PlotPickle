@@ -1,0 +1,12 @@
+{
+  "sessionId": "agent_session_mock_failure_001",
+  "status": "failed",
+  "error": "Mock Agents API beta failure.",
+  "finalText": "",
+  "usage": {
+    "input_tokens": 44,
+    "output_tokens": 0,
+    "total_tokens": 44
+  },
+  "environmentType": "none"
+}

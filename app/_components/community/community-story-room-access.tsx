@@ -61,11 +61,16 @@ export default function CommunityStoryRoomAccess({ channel, greatHallMembers, de
 
   async function refresh(showNotice = false) {
     const body = await request(`/api/local-buzz/story-room-access?channel=${encodeURIComponent(channel.id)}`);
-    setMembers(Array.isArray(body.members) ? body.members : []);
+    const nextMembers = Array.isArray(body.members) ? body.members : [];
+    setMembers(nextMembers);
     if (showNotice) setNotice(body.message);
     setKnownPubkey((current) => {
-      if (current && availableKnownPeople.some((person) => person.pubkey === current)) return current;
-      const next = greatHallMembers.find((person) => !body.members.some((member) => member.pubkey.toLowerCase() === person.pubkey.toLowerCase()));
+      const stillAvailable = current && greatHallMembers.some((person) => (
+        person.pubkey === current
+        && !nextMembers.some((member) => member.pubkey.toLowerCase() === person.pubkey.toLowerCase())
+      ));
+      if (stillAvailable) return current;
+      const next = greatHallMembers.find((person) => !nextMembers.some((member) => member.pubkey.toLowerCase() === person.pubkey.toLowerCase()));
       return next?.pubkey || "";
     });
   }

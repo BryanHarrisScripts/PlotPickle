@@ -7,7 +7,8 @@
   background: rgba(8, 15, 14, 0.72);
 }
 
-.card > header {
+.card > header,
+.identityReview {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -15,7 +16,9 @@
 }
 
 .card header span,
-.controls label > span {
+.inviteCard > span,
+.inviteCard label > span,
+.identityReview span {
   display: block;
   margin-bottom: 4px;
   color: #7cf1df;
@@ -25,11 +28,14 @@
 }
 
 .card h3,
+.card h4,
 .card p {
   margin: 0;
 }
 
 .card header p,
+.inviteCard p,
+.identityReview p,
 .note {
   margin-top: 6px;
   max-width: 76ch;
@@ -39,12 +45,14 @@
 
 .card button,
 .card a,
-.controls select {
+.inviteCard select,
+.inviteCard input {
   min-height: 38px;
   border: 1px solid rgba(124, 241, 223, 0.28);
   border-radius: 8px;
   background: rgba(16, 29, 27, 0.92);
   color: #f1e8c7;
+  font: inherit;
 }
 
 .card button,
@@ -76,6 +84,10 @@
   border: 1px solid rgba(241, 209, 131, 0.14);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.memberList article[data-story-room-owner="true"] {
+  border-color: rgba(124, 241, 223, 0.24);
 }
 
 .memberList article > div {
@@ -111,21 +123,54 @@
   color: rgba(241, 232, 199, 0.58);
 }
 
-.controls {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(120px, 180px) auto auto;
-  align-items: end;
-  gap: 10px;
+.ownerLabel {
+  color: #7cf1df;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.controls label {
+.inviteGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.inviteCard {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(241, 209, 131, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.inviteCard label {
   display: grid;
   gap: 4px;
 }
 
-.controls select {
+.inviteCard select,
+.inviteCard input {
   width: 100%;
   padding: 0 10px;
+}
+
+.identityReview {
+  padding: 14px;
+  border: 1px solid rgba(124, 241, 223, 0.28);
+  border-radius: 10px;
+  background: rgba(124, 241, 223, 0.05);
+}
+
+.identityReview h4 {
+  font-size: 1.05rem;
+}
+
+.desktopLink {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .note {
@@ -140,12 +185,12 @@
 }
 
 @media (max-width: 900px) {
-  .card > header {
+  .card > header,
+  .identityReview {
     display: grid;
   }
 
-  .controls {
+  .inviteGrid {
     grid-template-columns: 1fr;
-    align-items: stretch;
   }
 }

@@ -4,7 +4,7 @@ import { useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
-import "./dashboard-bbs-review-host.module.css";
+import reviewStyles from "./dashboard-bbs-review-host.module.css";
 
 export default function DashboardBbsReviewHost({
   items,
@@ -83,12 +83,14 @@ export default function DashboardBbsReviewHost({
   }
 
   return (
-    <DashboardBbsPanel
-      items={items}
-      selectedIndex={selectedIndex}
-      onActivate={activateItem}
-      onKeyDown={onKeyDown}
-      setItemRef={setItemRef}
-    />
+    <div className={reviewStyles.reviewHost}>
+      <DashboardBbsPanel
+        items={items}
+        selectedIndex={selectedIndex}
+        onActivate={activateItem}
+        onKeyDown={onKeyDown}
+        setItemRef={setItemRef}
+      />
+    </div>
   );
 }

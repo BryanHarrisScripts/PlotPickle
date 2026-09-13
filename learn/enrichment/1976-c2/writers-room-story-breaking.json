@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c2-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "writers-room-story-breaking",
+    "topic": "collaboration",
+    "ownerCraftModule": "course-21",
+    "relatedCraftModules": ["course-20", "course-22", "course-24"],
+    "kind": "medium-extension",
+    "title": "Writers' Room: Story Breaking and Notes",
+    "duration": "35–45 min",
+    "overview": "Use a television writers' room as a structured collaboration process: define the episode problem, generate alternatives, arrange beats, record decisions and hand clear material forward while keeping proposals distinct from accepted story choices.",
+    "objectives": [
+      "Turn an episode problem into a visible sequence of dramatic beats.",
+      "Keep brainstorm proposals separate from accepted story decisions.",
+      "Use notes to support revision without silently rewriting another person's work.",
+      "Create a concise episode-outline handoff with clear open questions."
+    ],
+    "sections": [
+      {"heading": "Define the episode problem", "paragraphs": ["Begin with the active problem, relevant continuity facts and the emotional movement the episode is trying to create."], "points": ["State the episode question.", "List fixed continuity facts.", "Name what remains open."]},
+      {"heading": "Generate alternatives", "paragraphs": ["Collect multiple beat and scene possibilities before choosing. Compare what each option changes in character, pressure and later story."], "points": ["Label proposals clearly.", "Invite alternatives.", "Compare consequences."]},
+      {"heading": "Build the beat chain", "paragraphs": ["Arrange selected beats so each one changes information, leverage, intention or circumstance enough to create the next dramatic condition."], "points": ["Track cause and consequence.", "Mark what changes.", "Expose missing transitions."]},
+      {"heading": "Make notes usable", "paragraphs": ["A useful note identifies an observed story effect and the area involved, while leaving room for a creative response."], "points": ["Describe the observed effect.", "Separate constraints from suggestions.", "Record accepted changes explicitly."]},
+      {"heading": "Hand off the episode", "paragraphs": ["Capture the accepted beat sequence, unresolved questions and next actions so the next collaborator can proceed without replaying the entire conversation."], "points": ["Mark accepted beats.", "Keep open questions visible.", "Preserve contribution provenance."]}
+    ],
+    "definitions": [
+      {"term": "Story break", "meaning": "The collaborative process of turning an episode problem into an ordered sequence of dramatic beats."},
+      {"term": "Beat board", "meaning": "A visible arrangement of story beats used to inspect order, cause and consequence."},
+      {"term": "Notes handoff", "meaning": "A concise record of observations, decisions, open questions and next actions."}
+    ],
+    "example": {"title": "Harbor Watch episode 4", "text": "The group starts with one episode problem, proposes several openings, selects a sequence of six connected beats and records one unresolved question about the ending. Unused ideas remain labeled as alternatives rather than becoming story truth."},
+    "checklist": [
+      "The episode problem is clear before ideation expands.",
+      "Proposals remain distinct from accepted story decisions.",
+      "The beat chain shows cause and consequence.",
+      "Notes describe observed effects before suggesting solutions.",
+      "The handoff records accepted beats and open questions.",
+      "Contribution provenance remains visible."
+    ],
+    "mistakes": [
+      "Starting with isolated scene ideas before defining the episode problem.",
+      "Treating the loudest suggestion as the automatic decision.",
+      "Letting brainstorm material become established story without an explicit choice.",
+      "Writing notes that prescribe a rewrite without explaining the observed story effect.",
+      "Handing off a board that cannot distinguish decisions from questions."
+    ],
+    "exercise": "Choose one episode problem and generate at least six beat proposals. Label them as proposals, select a sequence of five to eight connected beats, and record why each beat follows from the previous one. Finish with an outline, one open question and a short notes handoff.",
+    "apply": "Story-break board / episode outline",
+    "applicationTargets": ["story-break board", "episode outline", "notes handoff"],
+    "tags": ["television", "writers room", "story breaking", "beat board", "collaboration", "notes", "handoff"],
+    "companionItems": [
+      {"id": "exercise-room-break-board", "type": "exercise", "title": "Break an episode as a room", "purpose": "Simulate a bounded story-break workflow with explicit roles, proposals and Human approval."}
+    ],
+    "researchSources": [
+      {"id": "plotpickle-existing-collaboration-curriculum", "kind": "internal-curriculum", "title": "Existing PlotPickle collaboration and handoff teaching", "scopeNote": "Provides the collaboration foundation extended here for television story breaking."}
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Gap identification only; no external teaching prose copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "legalAdvice": false,
+      "mediumSpecific": true,
+      "mutableRulesFrozenIntoCanon": false
+    }
+  }
+}

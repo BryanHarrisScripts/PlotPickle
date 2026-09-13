@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "2.0",
+  "staging": {
+    "issue": 1976,
+    "phase": "phase-c2-independent-authoring",
+    "canonicalOnIntegration": false,
+    "phaseBDesign": "docs/research/1976-curriculum-design-map.json"
+  },
+  "lesson": {
+    "id": "series-engine-and-bible",
+    "topic": "structure",
+    "ownerCraftModule": "course-09",
+    "relatedCraftModules": ["course-01", "course-04", "course-10"],
+    "kind": "medium-extension",
+    "title": "Series Engine and Bible Design",
+    "duration": "35–45 min",
+    "overview": "Learn how a recurring television story system can generate distinct episodes, then capture stable creative information in a concise working series reference document.",
+    "objectives": [
+      "Distinguish the recurring series system from the pilot plot.",
+      "Generate varied episode ideas from the same story foundation.",
+      "Separate established story information from future possibilities."
+    ],
+    "sections": [
+      {"heading": "Recurring story system", "paragraphs": ["Identify the characters, relationships and circumstances that can keep producing new episode problems."], "points": ["Name the recurring situation.", "Name what can vary."]},
+      {"heading": "Episode variety", "paragraphs": ["Generate several distinct episode ideas and compare what each one activates."], "points": ["Vary the immediate problem.", "Vary the relationship in focus."]},
+      {"heading": "Working series reference", "paragraphs": ["Record concise information that helps preserve continuity and generate future story."], "points": ["Separate established information from ideas.", "Keep entries usable."]},
+      {"heading": "Document purpose", "paragraphs": ["Keep the internal creative reference separate from changing external presentation expectations."], "points": ["Know the audience.", "Verify current external requirements separately."]}
+    ],
+    "definitions": [
+      {"term": "Series engine", "meaning": "The repeatable story system that can generate distinct future episodes."},
+      {"term": "Episode springboard", "meaning": "A concise premise for exploring a possible episode."},
+      {"term": "Creative bible", "meaning": "A working series reference for durable story logic and continuity."}
+    ],
+    "example": {"title": "Harbor Watch", "text": "A ferry-terminal drama generates different episode ideas from weather, visitors, family obligations and workplace decisions while preserving the same central relationships."},
+    "checklist": [
+      "The recurring system can generate more than one kind of episode.",
+      "Episode ideas remain recognizably part of the same series.",
+      "Consequences can carry forward.",
+      "Established information is distinct from possible future ideas.",
+      "The working reference stays concise and useful."
+    ],
+    "mistakes": [
+      "Treating the pilot plot as the whole series system.",
+      "Repeating the same episode problem without meaningful variation.",
+      "Mixing possibilities into established continuity.",
+      "Letting the reference document become too large to use."
+    ],
+    "exercise": "Write the recurring series system in two sentences, then create five short episode ideas. Mark which relationship or story rule each idea activates. Finish by listing established information separately from future possibilities.",
+    "apply": "Series engine / creative bible",
+    "applicationTargets": ["series engine", "series bible", "episode springboards"],
+    "tags": ["television", "series", "episode", "continuity", "structure"],
+    "companionItems": [
+      {"id": "exercise-series-engine-five-episode-test", "type": "exercise", "title": "Five-episode engine test", "purpose": "Generate five distinct episode premises to test whether the engine produces repeatable conflict without repetition."}
+    ],
+    "researchSources": [
+      {"id": "plotpickle-existing-story-bible-curriculum", "kind": "internal-curriculum", "title": "Existing PlotPickle story-system teaching", "scopeNote": "Provides the internal foundation for this television extension."}
+    ],
+    "provenance": {
+      "authorship": "Independently authored for PlotPickle.",
+      "externalResearchRole": "Gap identification only; no external prose copied.",
+      "exampleRights": "Invented PlotPickle example.",
+      "legalAdvice": false,
+      "mediumSpecific": true,
+      "mutableRulesFrozenIntoCanon": false
+    }
+  }
+}

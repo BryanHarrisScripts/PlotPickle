@@ -92,7 +92,18 @@ export default function CommunityMyPresence({ onBack }: Props) {
 
   const configured = state?.identity?.configured === true;
 
-  return <section className={styles.card} aria-label="My Community Presence" data-community-presence-governed="true">
+  return <section
+    className={styles.card}
+    aria-label="My Community Presence"
+    data-community-presence-governed="true"
+    data-community-view="my-presence"
+    onKeyDown={(event) => {
+      if (event.key !== "Escape" || busy) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onBack();
+    }}
+  >
     <header className={styles.header}>
       <div>
         <span>My Presence</span>

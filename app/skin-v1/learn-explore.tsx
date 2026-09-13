@@ -206,7 +206,7 @@ export default function LearnExplore({
     return (
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Explore loading" data-learn-explore-phase="6">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Journey</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
           <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / UNRESTRICTED ACCESS</div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `EXPLORE UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL ALL-CURRICULUM INDEX…"}</p>
         </div>
@@ -269,7 +269,7 @@ export default function LearnExplore({
       }}
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Journey</button></div>
+        <div className="pp-skin-v1-bbs-banner"><h1>LEARN EXPLORE</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
         <div className="pp-skin-v1-dashboard-title">ALL CURRICULUM / {payload.topicCount} TOPICS / {payload.presentationLessonCount} PRESENTATION LESSONS / {payload.bundledSourceCount} BUNDLED SOURCES</div>
         <div className={styles.exploreControls} data-learn-explore-controls="true">
           <label>
@@ -327,14 +327,14 @@ export default function LearnExplore({
                 onClick={() => openResult(index)}
                 onKeyDown={(event) => handleResultKeyDown(event, index)}
               >
-                <span className="pp-skin-v1-dashboard-command-line"><strong>{exploreRowPrimary(entry)}</strong><br /><span>{exploreRowSecondary(entry)}</span></span>
+                <span className="pp-skin-v1-dashboard-command-line"><strong>{exploreRowPrimary(entry)}</strong><span> · {exploreRowSecondary(entry)}</span></span>
                 <span className={`pp-skin-v1-dashboard-status-box${completed ? " is-active" : ""}`} aria-label={completed ? "Lesson complete" : "Lesson incomplete"} data-dashboard-status={completed ? "active" : "inactive"} data-skin-menu-indicator="connected" />
               </button>
             );
           })}
           {!filteredEntries.length ? <p className={styles.emptyResults}>NO MATCHES. CLEAR A FILTER OR SEARCH ANOTHER TOPIC, CRAFT MODULE, LESSON, CONCEPT OR APPLICATION AREA.</p> : null}
         </div>
-        <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">UP/DOWN MOVES · ENTER OPENS · ESC RETURNS TO JOURNEY.</p>
+        <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">UP/DOWN MOVES · ENTER OPENS · ESC RETURNS TO DASHBOARD.</p>
       </div>
     </section>
   );

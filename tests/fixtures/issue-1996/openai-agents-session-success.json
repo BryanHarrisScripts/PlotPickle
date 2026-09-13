@@ -1,0 +1,29 @@
+[
+  {
+    "type": "agent.session.created",
+    "event_id": "evt_phase1_created",
+    "session": {
+      "id": "sess_phase1_success",
+      "status": "in_progress",
+      "environment": { "type": "none" }
+    }
+  },
+  {
+    "type": "agent.session.turn.output_text.done",
+    "event_id": "evt_phase1_text_done",
+    "session_id": "sess_phase1_success",
+    "turn_id": "turn_phase1_success",
+    "text": "Mock Sage transport response."
+  },
+  {
+    "type": "agent.session.turn.completed",
+    "event_id": "evt_phase1_completed",
+    "session_id": "sess_phase1_success",
+    "turn_id": "turn_phase1_success",
+    "usage": {
+      "input_tokens": 42,
+      "output_tokens": 12,
+      "total_tokens": 54
+    }
+  }
+]

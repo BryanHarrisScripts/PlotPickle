@@ -43,7 +43,7 @@ function fullRadarFixture() {
       return { ok: true, status: 201, json: async () => comment };
     }
     if (url.pathname === "/repos/BryanHarrisScripts/PlotPickle/issues" && method === "POST") {
-      const issue = { number: state.nextIssue++, title: body.title, body: body.body, created_at: "2026-09-13T12:17:00Z" };
+      const issue = { number: state.nextIssue++, title: body.title, body: body.body, created_at: "2026-09-13T11:00:00Z" };
       state.issues.unshift(issue);
       state.comments.set(issue.number, []);
       return { ok: true, status: 201, json: async () => issue };
@@ -67,7 +67,7 @@ function fullRadarFixture() {
 }
 
 test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege", () => {
-  assert.match(workflow, /schedule:\n\s+- cron: '17 12 \* \* \*'/u);
+  assert.match(workflow, /schedule:\n\s+- cron: '0 11 \* \* \*'/u);
   assert.match(workflow, /workflow_dispatch:/u);
   assert.match(workflow, /permissions:\n\s+contents: read\n\s+issues: write/u);
   assert.doesNotMatch(workflow, /^\s*push:/mu);
@@ -84,7 +84,7 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review 
   const api = fullRadarFixture();
   const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl };
 
-  const first = await runRadar({ ...base, now: new Date("2026-09-13T12:17:00Z") });
+  const first = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });
   assert.equal(first.action, "created");
   assert.equal(first.monthlyIssueTitle, "[OSS RADAR] September 2026");
   assert.ok(first.reviewCount > 0 && first.reviewCount <= contract.report.targetFindings);
@@ -101,14 +101,14 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review 
   assert.match(first.reportBody, /Query effectiveness/u);
   assert.ok(first.state.candidates.length >= first.reviewCount);
 
-  const rerun = await runRadar({ ...base, now: new Date("2026-09-13T12:17:00Z") });
+  const rerun = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });
   assert.equal(rerun.action, "updated");
   assert.equal(rerun.commentId, first.commentId);
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 1);
   assert.deepEqual(rerun.state.candidates.map((entry) => entry.firstSeenDate), first.state.candidates.map((entry) => entry.firstSeenDate));
 
-  const nextDay = await runRadar({ ...base, now: new Date("2026-09-14T12:17:00Z") });
+  const nextDay = await runRadar({ ...base, now: new Date("2026-09-14T11:00:00Z") });
   assert.equal(nextDay.action, "created");
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 2);
   assert.equal(nextDay.reviewCount, first.reviewCount);

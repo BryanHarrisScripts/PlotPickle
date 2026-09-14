@@ -25,12 +25,40 @@
       "candidate": ".artifacts/visual-readiness/community-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/community.png"
     },
+    "writers-craft": {
+      "label": "Writer's Craft",
+      "status": "candidate",
+      "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
+    },
+    "profile": {
+      "label": "Identity",
+      "status": "candidate",
+      "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
+      "candidate": ".artifacts/visual-readiness/profile-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/profile.png"
+    },
     "settings": {
-      "label": "Settings",
+      "label": "Manage",
       "status": "candidate",
       "selector": "section[aria-label='Settings menu']",
       "candidate": ".artifacts/visual-readiness/settings-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/settings.png"
+    },
+    "general": {
+      "label": "General",
+      "status": "candidate",
+      "selector": "section[aria-label='General settings']",
+      "candidate": ".artifacts/visual-readiness/general-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/general.png"
+    },
+    "local-ai": {
+      "label": "Local Story Mode",
+      "status": "candidate",
+      "selector": "section[aria-label='Local Story Mode setup']",
+      "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
     },
     "cloud-story-mode": {
       "label": "Cloud Story Mode",
@@ -39,33 +67,33 @@
       "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
     },
+    "node": {
+      "label": "Node Info",
+      "status": "candidate",
+      "selector": "section[aria-label='Node information']",
+      "candidate": ".artifacts/visual-readiness/node-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/node.png"
+    },
     "agents": {
-      "label": "PlotPickle Agents",
+      "label": "Agents",
       "status": "candidate",
       "selector": "section[aria-label='PlotPickle Agents setup']",
       "candidate": ".artifacts/visual-readiness/agents-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/agents.png"
     },
-    "profile": {
-      "label": "Profile",
+    "issue-log": {
+      "label": "Bug Report",
       "status": "candidate",
-      "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
-      "candidate": ".artifacts/visual-readiness/profile-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/profile.png"
+      "selector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
+      "candidate": ".artifacts/visual-readiness/issue-log-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/issue-log.png"
     },
-    "local-ai": {
-      "label": "Local Story Mode",
+    "licensing": {
+      "label": "Notices",
       "status": "candidate",
-      "selector": "section[aria-label='Local Story Mode setup'], section[aria-label='Local AI setup']",
-      "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
-    },
-    "node": {
-      "label": "Node",
-      "status": "candidate",
-      "selector": "section[aria-label='Node information']",
-      "candidate": ".artifacts/visual-readiness/node-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/node.png"
+      "selector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
+      "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/licensing.png"
     }
   }
 }

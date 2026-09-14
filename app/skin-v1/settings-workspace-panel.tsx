@@ -7,20 +7,15 @@ import {
   type PlotPickleSettings,
 } from "@/lib/runtime/ai/settings";
 import { announceSettingsChanged, SETTINGS_STORAGE_KEY } from "../use-connection-status";
+import { DASHBOARD_STARTUP_CHOICES, isDashboardStartupId } from "./dashboard-menu-registry";
+import SettingsReviewSystemPanel from "./settings-review-system-panel";
 import styles from "./settings-workspace-panel.module.css";
 
-export type WorkspaceSettingsId = "general" | "appearance" | "accessibility" | "defaults";
+export type WorkspaceSettingsId = "general";
 
 export function isWorkspaceSettingsId(value: string): value is WorkspaceSettingsId {
-  return value === "general" || value === "appearance" || value === "accessibility" || value === "defaults";
+  return value === "general";
 }
-
-const TITLES: Record<WorkspaceSettingsId, string> = {
-  general: "General",
-  appearance: "Appearance",
-  accessibility: "Accessibility",
-  defaults: "Defaults",
-};
 
 function readSettings() {
   try {
@@ -45,45 +40,53 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
     announceSettingsChanged();
   }
 
+  const startupPage = isDashboardStartupId(settings.general.startupPage) ? settings.general.startupPage : "dashboard";
+
   return (
     <div className={styles.surface} data-settings-workspace-surface={section}>
       <section className={styles.hero}>
-        <p>SETTINGS / {TITLES[section].toUpperCase()}</p>
-        <h2>{TITLES[section]}</h2>
-        <span>Changes are saved on this device using PlotPickle's existing settings store.</span>
+        <p>SETTINGS / GENERAL</p>
+        <h2>General</h2>
+        <span>Human-facing preferences, interface reference, source information and local project recovery live together here.</span>
       </section>
 
-      {section === "general" ? (
-        <section className={styles.form} aria-label="General settings">
-          <label><span>Language</span><input value={settings.general.language} onChange={(event) => persist({ ...settings, general: { ...settings.general, language: event.currentTarget.value } })} /></label>
-          <label><span>Startup page</span><select value={settings.general.startupPage} onChange={(event) => persist({ ...settings, general: { ...settings.general, startupPage: event.currentTarget.value === "simple-start" ? "simple-start" : "dashboard" } })}><option value="dashboard">Dashboard</option><option value="simple-start">Simple Start</option></select></label>
-          <label className={styles.check}><input type="checkbox" checked={settings.general.confirmDestructiveActions} onChange={(event) => persist({ ...settings, general: { ...settings.general, confirmDestructiveActions: event.currentTarget.checked } })} /><span><strong>Confirm destructive actions</strong><small>Ask before actions that could replace or remove saved work.</small></span></label>
-        </section>
-      ) : null}
+      <section className={styles.form} aria-label="General preferences">
+        <h3>General</h3>
+        <label>
+          <span>Language</span>
+          <output className={styles.value}>English</output>
+          <small>English is currently the only supported PlotPickle interface language.</small>
+        </label>
 
-      {section === "appearance" ? (
-        <section className={styles.form} aria-label="Appearance settings">
-          <label><span>Theme</span><select value={settings.appearance.theme} onChange={(event) => persist({ ...settings, appearance: { ...settings.appearance, theme: event.currentTarget.value as PlotPickleSettings["appearance"]["theme"] } })}><option value="system">System</option><option value="dark">Dark</option><option value="light">Light</option></select></label>
-          <label><span>Density</span><select value={settings.appearance.density} onChange={(event) => persist({ ...settings, appearance: { ...settings.appearance, density: event.currentTarget.value === "compact" ? "compact" : "comfortable" } })}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
-          <label className={styles.check}><input type="checkbox" checked={settings.appearance.reduceTransparency} onChange={(event) => persist({ ...settings, appearance: { ...settings.appearance, reduceTransparency: event.currentTarget.checked } })} /><span><strong>Reduce transparency</strong><small>Use more opaque interface surfaces.</small></span></label>
-        </section>
-      ) : null}
+        <label>
+          <span>Startup page</span>
+          <select
+            value={startupPage}
+            onChange={(event) => persist({ ...settings, general: { ...settings.general, startupPage: event.currentTarget.value } })}
+          >
+            {DASHBOARD_STARTUP_CHOICES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+          <small>Choices come from Dashboard destinations that are currently connected. Unwired Dashboard rows are not presented as working startup destinations.</small>
+        </label>
 
-      {section === "accessibility" ? (
-        <section className={styles.form} aria-label="Accessibility settings">
-          <label className={styles.check}><input type="checkbox" checked={settings.accessibility.highContrast} onChange={(event) => persist({ ...settings, accessibility: { ...settings.accessibility, highContrast: event.currentTarget.checked } })} /><span><strong>High contrast</strong><small>Increase visual separation between controls and surfaces.</small></span></label>
-          <label className={styles.check}><input type="checkbox" checked={settings.accessibility.reducedMotion} onChange={(event) => persist({ ...settings, accessibility: { ...settings.accessibility, reducedMotion: event.currentTarget.checked } })} /><span><strong>Reduced motion</strong><small>Reduce non-essential interface movement.</small></span></label>
-          <label className={styles.check}><input type="checkbox" checked={settings.accessibility.largeText} onChange={(event) => persist({ ...settings, accessibility: { ...settings.accessibility, largeText: event.currentTarget.checked } })} /><span><strong>Large text</strong><small>Increase interface text size where supported.</small></span></label>
-        </section>
-      ) : null}
+        <label>
+          <span>Theme</span>
+          <select value="skin-v1" disabled aria-label="Theme">
+            <option value="skin-v1">Skin V1</option>
+          </select>
+          <small>Skin V1 is the current PlotPickle interface theme. Additional skins can be added here when they exist.</small>
+        </label>
 
-      {section === "defaults" ? (
-        <section className={styles.form} aria-label="Default project settings">
-          <label><span>Starting format</span><select value={settings.projectDefaults.format} onChange={(event) => persist({ ...settings, projectDefaults: { ...settings.projectDefaults, format: event.currentTarget.value as PlotPickleSettings["projectDefaults"]["format"] } })}><option value="feature">Feature</option><option value="short">Short</option><option value="series">Series</option><option value="stage">Stage</option></select></label>
-          <label><span>Target minutes</span><input type="number" min={1} max={600} value={settings.projectDefaults.targetMinutes} onChange={(event) => persist({ ...settings, projectDefaults: { ...settings.projectDefaults, targetMinutes: Number(event.currentTarget.value) } })} /></label>
-          <label><span>Autosave interval (seconds)</span><input type="number" min={5} max={300} value={settings.projectDefaults.autosaveSeconds} onChange={(event) => persist({ ...settings, projectDefaults: { ...settings.projectDefaults, autosaveSeconds: Number(event.currentTarget.value) } })} /></label>
-        </section>
-      ) : null}
+        <label className={`${styles.check} ${styles.parked}`}>
+          <input type="checkbox" checked={settings.general.confirmDestructiveActions} disabled readOnly />
+          <span>
+            <strong>Confirm destructive actions</strong>
+            <small>Parked for now. This preference remains in the settings contract but is not exposed as an active control until its governed behaviour is complete.</small>
+          </span>
+        </label>
+      </section>
+
+      <SettingsReviewSystemPanel systemId="advanced" embedded />
     </div>
   );
 }

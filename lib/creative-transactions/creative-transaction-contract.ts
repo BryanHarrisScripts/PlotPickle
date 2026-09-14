@@ -334,7 +334,7 @@ export const LOCAL_CREATIVE_TRANSACTION_PROVIDER: CreativeTransactionProviderDes
   kind: "local",
   label: "PlotPickle Local",
   transport: "filesystem",
-  capabilities: ["durable-revision", "atomic-commit", "diff", "verification", "human-review", "rollback", "recovery", "reconcile", "artifact-storage", "offline"],
+  capabilities: ["durable-revision", "diff", "verification", "human-review", "rollback", "recovery", "reconcile", "artifact-storage", "offline"],
   priority: 0,
 };
 

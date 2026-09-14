@@ -1,0 +1,112 @@
+name: Issue 2034 Live UAT
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: issue-2034-live-uat
+  cancel-in-progress: false
+
+jobs:
+  live-uat:
+    if: github.event.pull_request.number == 2041
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact pull-request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+
+      - name: Run focused OSS Radar contracts
+        run: node --test tests/issue-1977-oss-radar-*.test.mjs tests/issue-2034-oss-radar-*.test.mjs
+
+      - name: Run bounded live Radar UAT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          mkdir -p .artifacts/issue-2034-live-uat
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { writeFile } from "node:fs/promises";
+          import {
+            discoverGitHubRepositories,
+            loadDiscoveryContract,
+          } from "./lib/verification/oss-radar/discover-github.mjs";
+          import { runRadar } from "./lib/verification/oss-radar/run-radar.mjs";
+
+          const contract = await loadDiscoveryContract();
+          const now = new Date();
+          const discovery = await discoverGitHubRepositories({
+            contract,
+            token: process.env.GITHUB_TOKEN,
+            now,
+            diagnosticTargetFullName: "Narcooo/inkos",
+          });
+
+          assert.ok(discovery.queryCount >= 19 && discovery.queryCount <= 40);
+          assert.ok(discovery.perQueryResultCap <= 20);
+          assert.ok(discovery.rawResultBudget <= 500);
+          assert.ok(discovery.rawResultCount <= discovery.rawResultBudget);
+          assert.equal(
+            discovery.discoveryCoverage.enrichmentShortlistSize,
+            Math.min(discovery.retainedCount, contract.discoveryBudget.enrichmentShortlistSize),
+          );
+          assert.equal(
+            discovery.candidates.slice(0, contract.discoveryBudget.finalReviewCount).length,
+            Math.min(discovery.retainedCount, contract.discoveryBudget.finalReviewCount),
+          );
+
+          const publication = await runRadar({
+            repository: process.env.GITHUB_REPOSITORY,
+            auth: process.env.GITHUB_TOKEN,
+            now,
+            discoveryResult: discovery,
+          });
+          assert.ok(["created", "updated"].includes(publication.action));
+          if (discovery.retainedCount >= contract.discoveryBudget.finalReviewCount) {
+            assert.match(publication.reportBody, /\*\*Top repositories for review:\*\* 5\/5/u);
+          }
+
+          const summary = {
+            headSha: process.env.GITHUB_SHA,
+            queryCount: discovery.queryCount,
+            perQueryResultCap: discovery.perQueryResultCap,
+            rawResultBudget: discovery.rawResultBudget,
+            rawResultCount: discovery.rawResultCount,
+            uniqueCandidateCount: discovery.uniqueCandidateCount,
+            retainedCount: discovery.retainedCount,
+            hardRejectedCount: discovery.rejectedCount,
+            enrichmentShortlistSize: discovery.discoveryCoverage.enrichmentShortlistSize,
+            candidatesRescoredAfterEnrichment: discovery.discoveryCoverage.candidatesRescoredAfterEnrichment,
+            finalReviewCount: Math.min(discovery.retainedCount, contract.discoveryBudget.finalReviewCount),
+            reportAction: publication.action,
+            inkosDiagnostic: discovery.diagnostic,
+          };
+          await writeFile(
+            ".artifacts/issue-2034-live-uat/summary.json",
+            `${JSON.stringify(summary, null, 2)}\n`,
+            "utf8",
+          );
+          process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+          NODE
+
+      - name: Upload live UAT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-2034-live-uat
+          path: .artifacts/issue-2034-live-uat/summary.json
+          if-no-files-found: warn
+          retention-days: 5

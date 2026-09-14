@@ -12,11 +12,6 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   background: var(--pp-skin-surface-1);
   box-shadow: var(--pp-skin-shadow-control);
-}
-
-.hero,
-.card,
-.boundary {
   padding: var(--pp-skin-space-4);
 }
 
@@ -51,7 +46,7 @@
 
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 12px;
   margin-top: 12px;
 }
@@ -63,9 +58,18 @@
   gap: 12px;
 }
 
-.card h3 {
+.card h3,
+.card h4 {
   margin: 0;
+}
+
+.card h3 {
   font-size: 16px;
+}
+
+.card h4 {
+  margin-top: 14px;
+  font-size: 13px;
 }
 
 .status {
@@ -79,23 +83,11 @@
   margin: 8px 0 0;
 }
 
-.card ul,
-.diagnosticsList {
-  margin: 10px 0 0;
-  padding-left: 20px;
-  color: var(--pp-skin-ink-muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.card li strong {
-  color: var(--pp-skin-ink);
-}
-
 .action {
   display: inline-block;
   margin-top: 12px;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: 0;
   background: var(--pp-skin-fill-control);
   color: var(--pp-skin-ink);
   padding: 8px 10px;
@@ -104,19 +96,87 @@
   text-decoration: none;
 }
 
-.action:focus-visible,
-.diagnostics summary:focus-visible {
+button.action {
+  cursor: pointer;
+}
+
+button.action:disabled {
+  cursor: default;
+  opacity: .65;
+}
+
+.action:focus-visible {
   outline: 2px solid var(--pp-skin-ink);
   outline-offset: 2px;
 }
 
-.diagnostics {
+.refreshRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.storageGrid {
+  display: grid;
+  gap: 12px;
   margin-top: 12px;
 }
 
-.diagnostics summary {
-  cursor: pointer;
-  font-weight: 700;
+.pathList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.pathList div {
+  display: grid;
+  gap: 3px;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  padding-top: 8px;
+}
+
+.pathList dt {
+  color: var(--pp-skin-ink-muted);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.pathList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--pp-skin-font-mono);
+  font-size: 12px;
+}
+
+.dataList {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dataList li {
+  display: grid;
+  gap: 2px;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  padding-top: 6px;
+}
+
+.dataList strong {
+  font-size: 12px;
+}
+
+.dataList span,
+.empty,
+.error {
+  color: var(--pp-skin-ink-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.error {
+  color: var(--pp-skin-ink);
 }
 
 .boundary {

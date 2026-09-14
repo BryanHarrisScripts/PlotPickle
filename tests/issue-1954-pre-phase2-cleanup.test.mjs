@@ -58,26 +58,29 @@ test("#1954 Profile uses one page heading and Skin V1 four-pixel control padding
   );
 });
 
-test("#1965 Settings starts with Systems and uses explicit available/review status semantics", async () => {
+test("#1965/#2044 Settings uses the final five-destination directory and explicit available/review semantics", async () => {
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
   const start = dashboard.indexOf("const SETTINGS_MENU = [");
   const end = dashboard.indexOf("] as const;", start);
   assert.ok(start >= 0 && end > start, "SETTINGS_MENU source should remain explicit and testable");
   const menuSource = dashboard.slice(start, end);
 
-  const nodeIndex = menuSource.indexOf('id: "node-info"');
-  const localIndex = menuSource.indexOf('id: "local-story-mode"');
-  const cloudIndex = menuSource.indexOf('id: "cloud"');
-  const agentsIndex = menuSource.indexOf('id: "agents"');
+  const generalIndex = menuSource.indexOf('id: "general"');
+  const appearanceIndex = menuSource.indexOf('id: "appearance"');
+  const accessibilityIndex = menuSource.indexOf('id: "accessibility"');
+  const defaultsIndex = menuSource.indexOf('id: "defaults"');
   const advancedIndex = menuSource.indexOf('id: "advanced"');
-  const workspaceIndex = menuSource.indexOf("...settingsTaxonomy.workspace");
-  assert.ok(nodeIndex >= 0 && nodeIndex < localIndex, "Node Info must be the first Systems destination");
-  assert.ok(localIndex < cloudIndex, "Local Story Mode must precede Cloud Story Mode");
-  assert.ok(cloudIndex < agentsIndex, "Cloud Story Mode must precede Agents");
-  assert.ok(agentsIndex < advancedIndex, "Agents must precede Advanced");
-  assert.ok(advancedIndex < workspaceIndex, "Systems must render before Workspace");
+  assert.ok(generalIndex >= 0, "General must be the first Settings destination");
+  assert.ok(generalIndex < appearanceIndex, "General must precede Appearance");
+  assert.ok(appearanceIndex < accessibilityIndex, "Appearance must precede Accessibility");
+  assert.ok(accessibilityIndex < defaultsIndex, "Accessibility must precede Defaults");
+  assert.ok(defaultsIndex < advancedIndex, "Defaults must precede Advanced");
+  for (const retired of ["node-info", "local-story-mode", "cloud", "agents", "project-defaults"]) {
+    assert.ok(!menuSource.includes(`id: "${retired}"`), `${retired} must not remain in the primary Settings directory`);
+  }
 
   assert.doesNotMatch(dashboard, /\[NOT CONNECTED\]/u);
+  assert.match(dashboard, /CONNECTED_SETTINGS_ITEMS = new Set\(\["general", "appearance", "accessibility", "defaults"\]\)/u);
   assert.match(dashboard, /data-skin-menu-connected=\{connected \? "true" : "false"\}/u);
   assert.match(dashboard, /aria-label=\{`\$\{item\.label\}: \$\{connected \? "available" : "unavailable"\}`\}/u);
   assert.match(dashboard, /data-settings-review=\{review \? "true" : "false"\}/u);

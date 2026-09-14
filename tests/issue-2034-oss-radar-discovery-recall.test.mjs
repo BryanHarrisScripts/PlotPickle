@@ -136,8 +136,12 @@ test("#2034 enforces the raw-pointer budget and deduplicates across atomic queri
     token: "fixture-token",
     fetchImpl: client.fetchImpl,
     now: new Date(fixture.now),
+    perQuery: 50,
+    rawResultBudget: 500,
+    enrichmentShortlistSize: 500,
   });
   assert.equal(result.rawResultCount, 3);
+  assert.equal(result.perQueryResultCap, 2);
   assert.equal(result.rawResultBudget, 3);
   assert.equal(result.uniqueCandidateCount, 2);
   assert.equal(result.executedQueryCount, 2);
@@ -201,6 +205,15 @@ test("#2034 handles missing, oversized and malformed enrichment sources without 
     familyId: "creative-systems",
     query: "AI creative workbench",
   });
+  const missing = await enrichRepositoryCandidate(candidate, {
+    contract,
+    token: "fixture-token",
+    fetchImpl: async () => contentResponse("", 404),
+  });
+  assert.equal(missing.enrichment.readme.status, "missing");
+  assert.equal(missing.enrichment.manifest.status, "missing");
+  assert.equal(missing.enrichment.evidenceAvailable, false);
+
   const calls = [];
   const enriched = await enrichRepositoryCandidate(candidate, {
     contract,

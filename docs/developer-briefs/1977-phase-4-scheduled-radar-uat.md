@@ -9,7 +9,7 @@ Put the deterministic OSS Radar on a bounded daily GitHub Actions schedule and k
 Add one dedicated workflow: `.github/workflows/oss-radar.yml`.
 
 Triggers:
-- daily schedule at 6:00 AM Eastern Standard Time (`0 11 * * *` UTC);
+- daily schedule at 6:00 AM Eastern time using `cron: '0 6 * * *'` with `timezone: 'America/Toronto'`, so the run remains at 6:00 AM through EST/EDT transitions;
 - `workflow_dispatch` for Human-triggered runs;
 - no push or pull-request trigger.
 

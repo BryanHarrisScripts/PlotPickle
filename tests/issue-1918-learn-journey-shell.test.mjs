@@ -59,9 +59,9 @@ test("#1918 Phase 3 shell compatibility survives Phase 6 Explore", async () => {
 });
 
 test("#1967 retired Writer's Craft collection navigation remains retired", async () => {
-  const [dashboard, skin, baselineSource] = await Promise.all([
+  const [dashboard, registry, baselineSource] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
-    read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1/dashboard-menu-registry.ts"),
     read("learn/journey-baseline.json"),
   ]);
   const baseline = JSON.parse(baselineSource);
@@ -78,7 +78,7 @@ test("#1967 retired Writer's Craft collection navigation remains retired", async
   assert.doesNotMatch(dashboard, /const WRITER_CRAFT_MENU/u);
   assert.doesNotMatch(dashboard, /data-skin-menu="writer-craft"/u);
   assert.match(dashboard, /<LearnJourneyPreview onBack=\{\(\) => setWriterCraftMenuOpen\(false\)\} \/>/u);
-  assert.match(skin, /id: "learn", shortcut: "1", label: "Writer's Craft"/u);
+  assert.match(registry, /id: "learn", shortcut: "1", label: "Writer's Craft"/u);
 });
 
 test("#1975 Path and Craft Module presentation language survives Phase 6", async () => {

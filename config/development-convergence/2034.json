@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "issue": 2034,
+  "phase": "oss-radar-discovery-recall",
+  "brief": "docs/developer-briefs/2034-oss-radar-discovery-recall.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    "config/development-convergence/2034.json",
+    "config/oss-radar/discovery-contract.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2034-oss-radar-discovery-recall.md",
+    "lib/verification/oss-radar/discover-github.mjs",
+    "lib/verification/oss-radar/enrichment.mjs",
+    "lib/verification/oss-radar/history.mjs",
+    "lib/verification/oss-radar/phase3-decision.mjs",
+    "lib/verification/oss-radar/phase3-fit.mjs",
+    "lib/verification/oss-radar/query-normalization.mjs",
+    "lib/verification/oss-radar/report-renderer-core.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "lib/verification/oss-radar/report-telemetry.mjs",
+    "lib/verification/oss-radar/run-radar.mjs",
+    "lib/verification/oss-radar/scoring.mjs",
+    "tests/fixtures/oss-radar/issue-2034-inkos.json",
+    "tests/issue-1977-oss-radar-contract.test.mjs",
+    "tests/issue-1977-oss-radar-discovery.test.mjs",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+    "tests/issue-2034-oss-radar-discovery-recall.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2034-1",
+      "criterion": "Discovery uses 19-40 atomic query-family entries, includes the architectural comparator lane, and stays inside configuration-owned pointer and enrichment ceilings.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/discovery-contract.json",
+          "contains": "\"architectural-comparators\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 replaces compound discovery with 19-40 atomic queries and a bounded comparator lane"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "enrichmentShortlistSize: 500"
+        }
+      ]
+    },
+    {
+      "id": "P2034-2",
+      "criterion": "Hard rejection precedes bounded enrichment and incompatible licences cannot reach README or manifest retrieval.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/discover-github.mjs",
+          "contains": "const preliminary = evaluateCandidates(normalized, contract, now, { stage: \"discovery\" });"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 hard-rejects incompatible licences before any README or manifest request"
+        }
+      ]
+    },
+    {
+      "id": "P2034-3",
+      "criterion": "README plus one primary manifest are retrieved read-only with deterministic size limits, non-fatal failure handling, inert content, and derived evidence only.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "lib/verification/oss-radar/enrichment.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 handles missing, oversized and malformed enrichment sources without failing discovery"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 treats adversarial README text as inert data and retains derived evidence only"
+        }
+      ]
+    },
+    {
+      "id": "P2034-4",
+      "criterion": "Discovery Score remains distinct from Enriched PlotPickle Score and final ordering uses deterministic enriched evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/scoring.mjs",
+          "contains": "scoreStage: stage === \"enriched\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "Final rank must use enriched evidence, not metadata ranking alone"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/report-renderer-core.mjs",
+          "contains": "Enriched PlotPickle Score"
+        }
+      ]
+    },
+    {
+      "id": "P2034-5",
+      "criterion": "The synthetic InkOS sentinel reaches enrichment and strong AI-architecture and story-system relevance, with a non-authoritative live diagnostic command.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "tests/fixtures/oss-radar/issue-2034-inkos.json"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 moves the InkOS sentinel through discovery, enrichment and strong final relevance"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/discovery-contract.json",
+          "contains": "--diagnose Narcooo/inkos"
+        }
+      ]
+    },
+    {
+      "id": "P2034-6",
+      "criterion": "Structured evidence reports discovery coverage and accumulates deterministic per-query retained, enrichment-shortlist, and Top-5 contributions.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/history.mjs",
+          "contains": "accumulateQueryEffectiveness"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/report-renderer.mjs",
+          "contains": "### Discovery coverage"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 records discovery blind spots and per-query Top-5 contribution evidence"
+        }
+      ]
+    },
+    {
+      "id": "P2034-7",
+      "criterion": "Existing real Top-5, same-day idempotence, API diagnostics, GitHub-only operation, and least-privilege workflow boundaries remain covered.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 enriched Top 5 reporting remains same-day idempotent and exposes coverage"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2034-oss-radar-discovery-recall.test.mjs",
+          "contains": "#2034 keeps search/rate failures diagnosable and the daily workflow focused"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "contents: read"
+        }
+      ]
+    },
+    {
+      "id": "P2034-8",
+      "criterion": "Architecture Verification runs the deterministic #2034 regression without network or secret requirements.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "verification.oss-radar-discovery-recall"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2034-oss-radar-discovery-recall.test.mjs"
+        }
+      ]
+    }
+  ]
+}

@@ -11,12 +11,14 @@ export default function DashboardBbsReviewHost({
   selectedIndex,
   onActivate,
   onKeyDown,
+  onSurfaceNameChange,
   setItemRef,
 }: {
   readonly items: readonly DashboardBbsItem[];
   readonly selectedIndex: number;
   readonly onActivate: (index: number) => void;
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
+  readonly onSurfaceNameChange: (name: string) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
@@ -24,10 +26,13 @@ export default function DashboardBbsReviewHost({
   const [dashboardGeneration, setDashboardGeneration] = useState(0);
 
   useEffect(() => {
-    const returnToDashboard = () => setDashboardGeneration((generation) => generation + 1);
+    const returnToDashboard = () => {
+      onSurfaceNameChange("DASHBOARD");
+      setDashboardGeneration((generation) => generation + 1);
+    };
     window.addEventListener("plotpickle:return-dashboard", returnToDashboard);
     return () => window.removeEventListener("plotpickle:return-dashboard", returnToDashboard);
-  }, []);
+  }, [onSurfaceNameChange]);
 
   function restoreDashboardFocus(itemId: string) {
     window.requestAnimationFrame(() => {
@@ -37,11 +42,13 @@ export default function DashboardBbsReviewHost({
 
   function closeOpenSource() {
     setOpenSourceOpen(false);
+    onSurfaceNameChange("DASHBOARD");
     restoreDashboardFocus("open-source");
   }
 
   function closeHelpIssueLog() {
     setHelpIssueLogOpen(false);
+    onSurfaceNameChange("DASHBOARD");
     restoreDashboardFocus("help");
   }
 
@@ -50,11 +57,13 @@ export default function DashboardBbsReviewHost({
     if (!item) return;
     if (item.id === "open-source") {
       onActivate(index);
+      onSurfaceNameChange("LICENSING");
       setOpenSourceOpen(true);
       return;
     }
     if (item.id === "help") {
       onActivate(index);
+      onSurfaceNameChange("ISSUE LOG");
       setHelpIssueLogOpen(true);
       return;
     }
@@ -67,7 +76,7 @@ export default function DashboardBbsReviewHost({
         if (event.key === "Escape") { event.preventDefault(); closeOpenSource(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>OPEN SOURCE</h1>
+          <h1>LICENSING</h1>
           <button type="button" className="pp-skin-v1-return" onClick={closeOpenSource}>Back to Dashboard</button>
         </div>
         <OpenSourceSkinPanel />
@@ -97,6 +106,7 @@ export default function DashboardBbsReviewHost({
         selectedIndex={selectedIndex}
         onActivate={activateItem}
         onKeyDown={onKeyDown}
+        onSurfaceNameChange={onSurfaceNameChange}
         setItemRef={setItemRef}
       />
     </div>

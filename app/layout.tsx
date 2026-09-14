@@ -80,6 +80,7 @@ import "./settings-dark-surface-guard.css";
 import "./skin-v1-dashboard-reference.css";
 import "./skin-v1-dashboard-menu-reset.css";
 import "./skin-v1-settings-directory.css";
+import "./skin-v1-standard-surface-shell.css";
 
 export const metadata: Metadata = {
   title: `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`,

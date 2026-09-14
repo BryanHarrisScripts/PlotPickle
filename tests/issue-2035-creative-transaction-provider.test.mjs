@@ -17,7 +17,7 @@ async function providerModules() {
   const typescript = await source("lib/creative-transactions/local-creative-transaction-provider.ts");
   const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
   const runnable = compiled.replace(
-    /import \{ CREATIVE_TRANSACTION_CONTRACT_VERSION, LOCAL_CREATIVE_TRANSACTION_PROVIDER, creativeChangeSetFingerprint, creativeTransactionVerificationComplete, providerSupportsCapabilities, \} from "\.\/creative-transaction-contract";/,
+    /import\s*\{\s*CREATIVE_TRANSACTION_CONTRACT_VERSION,\s*LOCAL_CREATIVE_TRANSACTION_PROVIDER,\s*creativeChangeSetFingerprint,\s*creativeTransactionVerificationComplete,\s*providerSupportsCapabilities\s*\}\s*from\s*["']\.\/creative-transaction-contract["'];?/,
     "const { CREATIVE_TRANSACTION_CONTRACT_VERSION, LOCAL_CREATIVE_TRANSACTION_PROVIDER, creativeChangeSetFingerprint, creativeTransactionVerificationComplete, providerSupportsCapabilities } = globalThis.__plotpickleCreativeTransactionContract;",
   );
   assert.notEqual(runnable, compiled, "Expected local provider contract import to be isolated for runtime tests");

@@ -301,7 +301,8 @@ test("#2039 GitHub adapter completes a deterministic external review and durable
 
   const ppfBridge = await source("lib/creative-transactions/creative-transaction-project-bridge.ts");
   assert.match(ppfBridge, /Only a durable committed Creative Transaction can propose PPF canon admission/);
-  assert.match(ppfBridge, /Explicit writer approval/);
+  assert.match(ppfBridge, /explicit Human acceptance/);
+  assert.match(ppfBridge, /applyWriterApprovedCanonicalProposal/);
 });
 
 test("#2039 GitHub reconciliation fails closed on unavailable state and detects provider-commit acknowledgement gaps", async () => {

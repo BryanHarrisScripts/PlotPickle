@@ -1,0 +1,106 @@
+/*
+ * #2030 standard Skin V1 subordinate-surface shell.
+ *
+ * Dashboard remains the canonical landing composition. Every current connected
+ * subordinate surface uses the same outer width and return-action chrome so
+ * WebMCP candidates are judged inside one consistent shell rather than twelve
+ * unrelated page widths. Surface-specific content and behavior stay untouched.
+ */
+
+html[data-plotpickle-skin="skin-v1"] :is(
+  section[aria-label="PlotPickle Community"],
+  section[aria-label="General settings"],
+  section[aria-label="Cloud Story Mode setup"],
+  section[aria-label="Local Story Mode setup"],
+  section[aria-label="Node information"],
+  section[aria-label="PlotPickle Agents setup"],
+  section[aria-label="Issue Log"][data-dashboard-review-surface="help"],
+  section[aria-label="Open Source"][data-dashboard-review-surface="open-source"],
+  section[aria-label="User Profile"].pp-skin-v1-profile-surface
+) {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding-left: var(--pp-skin-space-5) !important;
+  padding-right: var(--pp-skin-space-5) !important;
+  padding-bottom: var(--pp-skin-space-7) !important;
+  background: var(--pp-skin-canvas) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] :is(
+  section[aria-label="PlotPickle Community"],
+  section[aria-label="General settings"],
+  section[aria-label="Cloud Story Mode setup"],
+  section[aria-label="Local Story Mode setup"],
+  section[aria-label="Node information"],
+  section[aria-label="PlotPickle Agents setup"],
+  section[aria-label="Issue Log"][data-dashboard-review-surface="help"],
+  section[aria-label="Open Source"][data-dashboard-review-surface="open-source"],
+  section[aria-label="User Profile"].pp-skin-v1-profile-surface
+) > :is(.pp-skin-v1-surface-actions, .pp-skin-v1-bbs-banner, .pp-skin-v1-profile-banner) {
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  max-width: var(--pp-skin-shell-max) !important;
+  min-width: 0 !important;
+  min-height: var(--pp-skin-touch-target) !important;
+  margin: 0 auto var(--pp-skin-space-3) !important;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] :is(
+  section[aria-label="PlotPickle Community"],
+  section[aria-label="General settings"],
+  section[aria-label="Cloud Story Mode setup"],
+  section[aria-label="Local Story Mode setup"],
+  section[aria-label="Node information"],
+  section[aria-label="PlotPickle Agents setup"],
+  section[aria-label="Issue Log"][data-dashboard-review-surface="help"],
+  section[aria-label="Open Source"][data-dashboard-review-surface="open-source"]
+) > :not(.pp-skin-v1-surface-actions):not(.pp-skin-v1-bbs-banner) {
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  max-width: var(--pp-skin-shell-max) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-profile-surface > :not(.pp-skin-v1-profile-banner) {
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  max-width: var(--pp-skin-shell-max) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* General used the old stepped accent fill, which made its heading look like a
+   different skin. Keep its content intact but use the same solid subordinate
+   title treatment already used by Local and Cloud Story Mode. */
+html[data-plotpickle-skin="skin-v1"] section[aria-label="General settings"] [data-settings-workspace-surface="general"] {
+  min-height: 0 !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="General settings"] [data-settings-workspace-surface="general"] > section:first-child {
+  background: var(--pp-skin-accent-deep) !important;
+  background-image: none !important;
+}
+
+@media (max-width: 560px) {
+  html[data-plotpickle-skin="skin-v1"] :is(
+    section[aria-label="PlotPickle Community"],
+    section[aria-label="General settings"],
+    section[aria-label="Cloud Story Mode setup"],
+    section[aria-label="Local Story Mode setup"],
+    section[aria-label="Node information"],
+    section[aria-label="PlotPickle Agents setup"],
+    section[aria-label="Issue Log"][data-dashboard-review-surface="help"],
+    section[aria-label="Open Source"][data-dashboard-review-surface="open-source"],
+    section[aria-label="User Profile"].pp-skin-v1-profile-surface
+  ) {
+    padding-left: var(--pp-skin-space-3) !important;
+    padding-right: var(--pp-skin-space-3) !important;
+  }
+}

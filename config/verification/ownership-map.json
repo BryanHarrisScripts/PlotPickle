@@ -98,6 +98,16 @@
       "riskTokens": ["api", "cli", "provider", "security"]
     },
     {
+      "id": "creative-transaction-provider",
+      "classification": "production",
+      "include": [
+        "lib/creative-transactions/**",
+        "build/creative-transaction-local-store.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": ["provider", "canon", "security", "native"]
+    },
+    {
       "id": "root-story-startup",
       "classification": "production",
       "include": ["app/page.tsx"],

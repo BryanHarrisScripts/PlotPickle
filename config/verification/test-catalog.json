@@ -285,6 +285,29 @@
       "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification."
     },
     {
+      "id": "production.creative-transaction-provider",
+      "ownerLayer": "production-harness",
+      "architectureComponents": ["lifecycle-capability-routing", "revision-provenance", "governed-recovery"],
+      "triggerTokens": ["provider", "canon", "security", "native"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2035-creative-transaction-provider.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/production-harness.json", ".artifacts/verification-shadow/production-harness.comparison.json"]
+      },
+      "notes": "#2035 provider-neutral Creative Transaction foundation. Proves Local offline capability resolution, fail-closed provider selection, Change Set/diff semantics, staged verification and Human review, durable reconciliation without guessing success, and strict Responsibility Run/PPF authority separation."
+    },
+    {
       "id": "verification.phase2-core",
       "ownerLayer": "verification",
       "architectureComponents": ["verification-core"],

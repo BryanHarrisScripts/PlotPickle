@@ -143,8 +143,21 @@ test("#1954 canonical development convergence reports CONVERGED against the real
     t.skip("#1954 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
     return;
   }
-  const result = await runDevelopmentConvergence(["--manifest", "config/development-convergence/1954.json", "--base-ref", baseRef]);
+
+  const result = await runDevelopmentConvergence([
+    "--manifest",
+    "config/development-convergence/1954.json",
+    "--base-ref",
+    baseRef,
+    "--report-dir",
+    ".artifacts/development-convergence",
+  ]);
+
   assert.equal(result.exitCode, 0);
+  assert.equal(result.reports.length, 1);
+  assert.equal(result.reports[0].issue, 1954);
+  assert.equal(result.reports[0].status, "CONVERGED");
+  assert.deepEqual(result.reports[0].remaining, []);
 });
 
 test("#1965 canonical development convergence reports CONVERGED against the real diff", async (t) => {
@@ -154,6 +167,19 @@ test("#1965 canonical development convergence reports CONVERGED against the real
     t.skip("#1965 issue-specific convergence only applies when its convergence manifest is part of the current diff.");
     return;
   }
-  const result = await runDevelopmentConvergence(["--manifest", "config/development-convergence/1965.json", "--base-ref", baseRef]);
+
+  const result = await runDevelopmentConvergence([
+    "--manifest",
+    "config/development-convergence/1965.json",
+    "--base-ref",
+    baseRef,
+    "--report-dir",
+    ".artifacts/development-convergence",
+  ]);
+
   assert.equal(result.exitCode, 0);
+  assert.equal(result.reports.length, 1);
+  assert.equal(result.reports[0].issue, 1965);
+  assert.equal(result.reports[0].status, "CONVERGED");
+  assert.deepEqual(result.reports[0].remaining, []);
 });

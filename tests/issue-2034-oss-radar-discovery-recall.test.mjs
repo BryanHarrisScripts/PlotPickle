@@ -277,7 +277,17 @@ test("#2034 records discovery blind spots and per-query Top-5 contribution evide
   assert.equal(coverage.candidatesRescoredAfterEnrichment, 2);
   const comparator = coverage.queryEffectiveness.find((entry) => entry.query === "AI creative workbench");
   assert.ok(comparator.rawPointerCount >= 2);
-  assert.ok(comparator.retainedCandidateCount >= 2);
+  assert.equal(
+    comparator.retainedCandidateCount,
+    2,
+    JSON.stringify({
+      effectiveness: comparator,
+      candidates: result.candidates.map((candidate) => ({
+        fullName: candidate.fullName,
+        matchedQueryRefs: candidate.matchedQueryRefs,
+      })),
+    }),
+  );
   assert.ok(comparator.enrichmentShortlistCount >= 2);
   assert.ok(comparator.topFiveCount >= 2);
 });

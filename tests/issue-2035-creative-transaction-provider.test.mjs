@@ -1,25 +1,21 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { stripTypeScriptTypes } from "node:module";
 import test from "node:test";
-import * as ts from "typescript";
 
 const root = new URL("../", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 async function contractModule() {
   const typescript = await source("lib/creative-transactions/creative-transaction-contract.ts");
-  const compiled = ts.transpileModule(typescript, {
-    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
-  }).outputText;
+  const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}#contract-${Date.now()}-${Math.random()}`);
 }
 
 async function providerModules() {
   const contract = await contractModule();
   const typescript = await source("lib/creative-transactions/local-creative-transaction-provider.ts");
-  const compiled = ts.transpileModule(typescript, {
-    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
-  }).outputText;
+  const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
   const runnable = compiled.replace(
     /import \{ CREATIVE_TRANSACTION_CONTRACT_VERSION, LOCAL_CREATIVE_TRANSACTION_PROVIDER, creativeChangeSetFingerprint, creativeTransactionVerificationComplete, providerSupportsCapabilities, \} from "\.\/creative-transaction-contract";/,
     "const { CREATIVE_TRANSACTION_CONTRACT_VERSION, LOCAL_CREATIVE_TRANSACTION_PROVIDER, creativeChangeSetFingerprint, creativeTransactionVerificationComplete, providerSupportsCapabilities } = globalThis.__plotpickleCreativeTransactionContract;",

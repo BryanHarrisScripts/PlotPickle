@@ -13,9 +13,9 @@
   "acceptance": [
     {
       "id": "P1977-4-1",
-      "criterion": "OSS Radar runs daily and supports manual dispatch without push or pull-request execution.",
+      "criterion": "OSS Radar runs daily at 6:00 AM EST and supports manual dispatch without push or pull-request execution.",
       "evidence": [
-        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '17 12 * * *'"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '0 11 * * *'"},
         {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"workflow_dispatch:"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"daily, manually dispatchable and least-privilege"}
       ]
@@ -48,9 +48,9 @@
       "id": "P1977-4-5",
       "criterion": "Full offline UAT drives runRadar through discovery, classification, monthly reporting, same-day idempotency, cross-day suppression and bounded endpoints.",
       "evidence": [
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"full UAT runs discovery through monthly reporting"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"full UAT keeps one monthly thread"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"rerun.action"},
-        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"did not pad the report"}
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"bounded read-only enrichment"}
       ]
     },
     {

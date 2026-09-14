@@ -70,6 +70,16 @@ test("#1837 preserves the already-landed workflow, Casebook, randomness and proc
   assert.doesNotMatch(spawnCommand, /spawn\(\s*["']cmd\.exe/u);
 });
 
+test("#1837 keeps DOM-edited identity text separate from rendered reference URLs", async () => {
+  const source = await read("app/character-image-generator.tsx");
+
+  assert.ok(source.includes("const [renderedReferences, setRenderedReferences] = useState<CharacterVisualReference[]>(() => initialIdentity.references);"));
+  assert.ok(source.includes("referenceImages: renderedReferences.filter((reference) => reference.approved).map((reference) => reference.src)"));
+  assert.ok(source.includes("{renderedReferences.length ? <div className={styles.references}>{renderedReferences.map((reference) =>"));
+  assert.equal(source.includes("{identity.references.length ?"), false, "DOM-edited identity state must not drive the image-reference render boundary");
+  assert.equal(source.includes("identity.references.map((reference) => <article"), false, "rendered image URLs must stay outside the DOM-text identity state");
+});
+
 test("#1837 keeps retired CodeQL workflow configurations out of the tree and runs this closeout in both gates", async () => {
   for (const path of [".github/workflows/public-security.yml", ".github/workflows/safety.yml"]) {
     await assert.rejects(access(new URL(`../${path}`, import.meta.url)), { code: "ENOENT" });

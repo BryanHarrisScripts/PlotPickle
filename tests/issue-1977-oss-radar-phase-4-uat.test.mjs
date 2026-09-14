@@ -17,9 +17,17 @@ function fullRadarFixture() {
 
     if (url.pathname === "/search/repositories" && method === "GET") {
       const query = url.searchParams.get("q") || "";
-      const lane = contract.lanes.find((entry) => entry.queries.some((configuredQuery) => query.includes(configuredQuery)));
+      const lane = contract.lanes.find((entry) => entry.queryFamilies.some((family) => family.queries.some((configuredQuery) => query.includes(configuredQuery))));
       assert.ok(lane, `fixture could not resolve Radar lane for ${query}`);
       return { ok: true, status: 200, json: async () => ({ items: discoveryFixture.responses[lane.id] || [] }) };
+    }
+    const readmeMatch = url.pathname.match(/^\/repos\/[^/]+\/[^/]+\/readme$/u);
+    if (readmeMatch && method === "GET") {
+      const text = "agent runtime context management human approval story state creative writing";
+      return { ok: true, status: 200, json: async () => ({ encoding: "base64", size: Buffer.byteLength(text), content: Buffer.from(text).toString("base64") }) };
+    }
+    if (/^\/repos\/[^/]+\/[^/]+\/contents\//u.test(url.pathname) && method === "GET") {
+      return { ok: false, status: 404, json: async () => ({ message: "fixture manifest missing" }) };
     }
     if (url.pathname === "/search/issues" && method === "GET") {
       return { ok: true, status: 200, json: async () => ({ items: state.issues }) };
@@ -67,7 +75,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
   assert.match(workflow, /group: plotpickle-oss-radar/u);
   assert.match(workflow, /cancel-in-progress: false/u);
   assert.match(workflow, /timeout-minutes: 10/u);
-  assert.match(workflow, /node --test tests\/issue-1977-oss-radar-\*\.test\.mjs/u);
+  assert.match(workflow, /node --test tests\/issue-1977-oss-radar-\*\.test\.mjs tests\/issue-2034-oss-radar-\*\.test\.mjs/u);
   assert.match(workflow, /node lib\/verification\/oss-radar\/run-radar\.mjs/u);
   assert.match(workflow, /github\.token/u);
 });
@@ -88,7 +96,9 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review 
   assert.match(first.reportBody, /Repository creation age/u);
   assert.match(first.reportBody, /Radar candidate history/u);
   assert.match(first.reportBody, /Top repositories for review/u);
-  assert.match(first.reportBody, /metadata; it does not clone or inspect repository source trees/u);
+  assert.match(first.reportBody, /bounded read-only enrichment/u);
+  assert.match(first.reportBody, /Discovery coverage/u);
+  assert.match(first.reportBody, /Query effectiveness/u);
   assert.ok(first.state.candidates.length >= first.reviewCount);
 
   const rerun = await runRadar({ ...base, now: new Date("2026-09-13T12:17:00Z") });
@@ -107,6 +117,8 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review 
 
   assert.ok(api.state.calls.every(({ pathname }) =>
     pathname === "/search/repositories"
+    || /^\/repos\/[^/]+\/[^/]+\/readme$/u.test(pathname)
+    || /^\/repos\/[^/]+\/[^/]+\/contents\//u.test(pathname)
     || pathname === "/search/issues"
     || pathname === "/repos/BryanHarrisScripts/PlotPickle/issues"
     || /^\/repos\/BryanHarrisScripts\/PlotPickle\/issues\/\d+\/comments$/u.test(pathname)

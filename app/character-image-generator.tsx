@@ -38,17 +38,10 @@ const traitFields: Array<[keyof CharacterVisualTraits, string, string]> = [
   ["colourCues", "Character colour cues", "Recurring colours that identify this character"],
 ];
 
-function parseReferenceAngle(value: string): CharacterReferenceAngle {
-  switch (value) {
-    case "master":
-    case "front":
-    case "profile":
-    case "three-quarter":
-    case "full-body":
-      return value;
-    default:
-      return "master";
-  }
+const referenceAngles: CharacterReferenceAngle[] = ["master", "front", "profile", "three-quarter", "full-body"];
+
+function referenceAngleFromSelectedIndex(index: number): CharacterReferenceAngle {
+  return referenceAngles[index] ?? "master";
 }
 
 function referenceAngleLabel(value: unknown) {
@@ -276,7 +269,7 @@ export default function CharacterImageGenerator({ project, character, onImage }:
       <label><span>Negative identity prompt — details that must not drift</span><textarea rows={4} value={identity.negativePrompt} onChange={(event) => setIdentity((current) => ({ ...current, negativePrompt: event.target.value }))} /></label>
 
       <div className={styles.referenceControls}>
-        <label><span>Reference view</span><select value={angle} onChange={(event) => setAngle(parseReferenceAngle(event.currentTarget.value))}><option value="master">Master three-quarter portrait</option><option value="front">Front</option><option value="profile">Profile</option><option value="three-quarter">Three-quarter</option><option value="full-body">Full body</option></select></label>
+        <label><span>Reference view</span><select value={angle} onChange={(event) => setAngle(referenceAngleFromSelectedIndex(event.currentTarget.selectedIndex))}><option value="master">Master three-quarter portrait</option><option value="front">Front</option><option value="profile">Profile</option><option value="three-quarter">Three-quarter</option><option value="full-body">Full body</option></select></label>
         <button type="button" className={styles.generate} disabled={state === "working" || !identity.draftPrompt.trim()} onClick={generate}>{state === "working" ? "Generating…" : `Generate ${referenceAngleLabel(angle)} reference`}</button>
       </div>
 

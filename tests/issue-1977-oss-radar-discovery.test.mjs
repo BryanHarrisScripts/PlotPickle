@@ -41,7 +41,10 @@ function fixtureFetch({ fail = false } = {}) {
     return {
       ok: true,
       status: 200,
-      json: async () => ({ total_count: fixture.responses[lane.id].length, items: fixture.responses[lane.id] }),
+      json: async () => {
+        const items = fixture.responses[lane.id] || [];
+        return { total_count: items.length, items };
+      },
     };
   };
   return { calls, fetchImpl };

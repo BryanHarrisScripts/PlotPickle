@@ -82,7 +82,7 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and valid
   assert.match(menuAudit, /ArrowDown/u);
   assert.match(menuAudit, /keyboard\.press\("O"\)/u);
   assert.match(menuAudit, /keyboard\.press\("U"\)/u);
-  assert.match(menuAudit, /keyboard\.press\("N"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("V"\)/u);
   assert.match(menuAudit, /chromeBackgroundImage/u);
   assert.match(menuAudit, /--pp-skin-accent-deep/u);
   assert.match(runner, /import \{ spawnCommand \} from "\.\/spawn-command\.mjs"/);
@@ -94,7 +94,7 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and valid
   assert.doesNotMatch(packageJson, /@mcp-b\/webmcp-polyfill/);
 });
 
-test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage from system status text", async () => {
+test("#1872 keeps Story Mode chrome solid while the current Settings audit checks active Human destinations", async () => {
   const [menuAudit, cloud, local, auth] = await Promise.all([
     read("lib/verification/skin-v1-menu-contract-audit.mjs"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
@@ -107,7 +107,8 @@ test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage f
   assert.match(menuAudit, /skin-v1-system-content-contract/u);
   assert.match(menuAudit, /scope\.querySelectorAll\("\[role='status'\], \[role='alert'\]"\)/u);
   assert.match(menuAudit, /keyboard\.press\("C"\)/u);
-  assert.match(menuAudit, /keyboard\.press\("L"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("D"\)/u);
+  assert.match(menuAudit, /keyboard\.press\("V"\)/u);
   assert.doesNotMatch(menuAudit, /querySelectorAll\("p, label, small"\)/u);
   for (const source of [cloud, local]) {
     assert.match(source, /const chromeBoundary: React\.CSSProperties/u);
@@ -119,7 +120,7 @@ test("#1872 keeps Story Mode chrome solid and blocks raw runtime error leakage f
   assert.match(auth, /await prepareSyntheticProfileStorage\(home, profileId\);[\s\S]*const signedIn = await profilePost/u);
 });
 
-test("#1874 normalizes Cloud and Local Story Mode to the shared Skin V1 keyboard-directory contract", async () => {
+test("#1874 retains Cloud and Local Story Mode component contracts without treating them as primary Settings destinations", async () => {
   const [menuAudit, cloud, local] = await Promise.all([
     read("lib/verification/skin-v1-menu-contract-audit.mjs"),
     read("app/skin-v1/cloud-story-mode-host.tsx"),
@@ -139,13 +140,13 @@ test("#1874 normalizes Cloud and Local Story Mode to the shared Skin V1 keyboard
     assert.doesNotMatch(source, /&gt;/u);
   }
 
-  assert.match(menuAudit, /inspectMenu\(page, "cloud-story-mode", failures\)/u);
-  assert.match(menuAudit, /inspectMenu\(page, "local-story-mode", failures\)/u);
   assert.match(menuAudit, /selectedBackground/u);
   assert.match(menuAudit, /selectedBorder/u);
-  assert.match(menuAudit, /data-cloud-story-view='openai'/u);
-  assert.match(menuAudit, /data-local-ai-view='ollama'/u);
-  assert.match(menuAudit, /"dashboard", "settings", "cloud-story-mode", "profile", "local-story-mode"/u);
+  assert.match(menuAudit, /general,appearance,accessibility,defaults,advanced/u);
+  assert.match(menuAudit, /section\[aria-label='accessibility settings'\]/u);
+  assert.match(menuAudit, /section\[aria-label='defaults settings'\]/u);
+  assert.match(menuAudit, /section\[aria-label='advanced settings review'\]/u);
+  assert.match(menuAudit, /return \{ menus: \["dashboard", "settings"\], status: "pass" \}/u);
 });
 
 test("CodeQL-sensitive browser labels stay out of executable source", async () => {
@@ -164,21 +165,17 @@ test("CodeQL-sensitive browser labels stay out of executable source", async () =
   assert.match(casebook, /creativeBrowser\.focusVisible\(String\(label\)\)/);
 });
 
-test("WebMCP CMD output lists every lockable surface and never auto-approves screenshots", async () => {
+test("WebMCP CMD output lists every currently reachable lockable surface and never auto-approves screenshots", async () => {
   const { formatPassTag, visualBaselineApprovalLines } = await import("../scripts/run-webmcp-startup-uat.mjs");
   const lines = visualBaselineApprovalLines();
   const output = lines.join("\n");
 
-  assert.equal(lines[0], "Captured 8 surfaces:");
+  assert.equal(lines[0], "Captured 4 surfaces:");
   assert.match(output, /\[1\] dashboard \(Dashboard\)/u);
   assert.match(output, /\[2\] community \(Community\)/u);
   assert.match(output, /\[3\] settings \(Settings\)/u);
-  assert.match(output, /\[4\] cloud-story-mode \(Cloud Story Mode\)/u);
-  assert.match(output, /\[5\] agents \(PlotPickle Agents\)/u);
-  assert.match(output, /\[6\] profile \(Profile\)/u);
-  assert.match(output, /\[7\] local-ai \(Local Story Mode\)/u);
-  assert.match(output, /\[8\] node \(Node\)/u);
-  for (const surface of ["dashboard", "community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
+  assert.match(output, /\[4\] profile \(Profile\)/u);
+  for (const surface of ["dashboard", "community", "settings", "profile"]) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
   assert.match(output, /none of the screenshots are automatically declared "locked\."/u);

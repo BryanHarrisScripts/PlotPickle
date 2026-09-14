@@ -16,6 +16,7 @@ import {
   setCharacterVisualIdentity,
   type CharacterReferenceAngle,
   type CharacterVisualIdentity,
+  type CharacterVisualReference,
   type CharacterVisualTraits,
   type CharacterWithVisualIdentity,
 } from "@/lib/projects/visual/character-visual-identity";
@@ -59,8 +60,8 @@ function cloneIdentity(identity: CharacterVisualIdentity): CharacterVisualIdenti
   return JSON.parse(JSON.stringify(identity)) as CharacterVisualIdentity;
 }
 
-function masterReference(identity: CharacterVisualIdentity) {
-  return identity.references.find((reference) => reference.angle === "master")?.src || "";
+function masterReference(references: CharacterVisualReference[]) {
+  return references.find((reference) => reference.angle === "master")?.src || "";
 }
 
 function evidenceText(values: Array<string | undefined>) {
@@ -129,7 +130,10 @@ function stateLabel(value: string) {
 
 export default function CharacterImageGenerator({ project, character, onImage }: { project: PlotPickleProject; character: Character; onImage: (value: string) => void }) {
   const visualCharacter = character as CharacterWithVisualIdentity;
-  const [identity, setIdentity] = useState<CharacterVisualIdentity>(() => getCharacterVisualIdentity(visualCharacter));
+  const initialIdentity = useMemo(() => getCharacterVisualIdentity(visualCharacter), [visualCharacter]);
+  const [identity, setIdentity] = useState<CharacterVisualIdentity>(() => initialIdentity);
+  const [renderedReferences, setRenderedReferences] = useState<CharacterVisualReference[]>(() => initialIdentity.references);
+  const [pendingReferences, setPendingReferences] = useState<CharacterVisualReference[]>(() => initialIdentity.pendingRevision?.references ?? []);
   const [angle, setAngle] = useState<CharacterReferenceAngle>("master");
   const [state, setState] = useState<"idle" | "working" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -141,16 +145,21 @@ export default function CharacterImageGenerator({ project, character, onImage }:
     characterName: character.name,
     identityStatus: identity.status,
     characterEvidence: characterDevelopmentEvidence(project, character, identity),
-    approvedVisualRefs: identity.references.filter((reference) => reference.approved).map((reference) => reference.src),
-    observedVisualRefs: identity.references.filter((reference) => !reference.approved).map((reference) => reference.src),
-    referenceAngles: identity.references.map((reference) => reference.angle),
-  }), [character, identity, project]);
+    approvedVisualRefs: renderedReferences.filter((reference) => reference.approved).map((reference) => reference.src),
+    observedVisualRefs: renderedReferences.filter((reference) => !reference.approved).map((reference) => reference.src),
+    referenceAngles: renderedReferences.map((reference) => reference.angle),
+  }), [character, identity, project, renderedReferences]);
 
-  function persist(next: CharacterVisualIdentity, notice: string, approvedThumbnail?: string) {
-    setIdentity(next);
-    setCharacterVisualIdentity(visualCharacter, next);
-    onImage(approvedThumbnail ?? character.image ?? masterReference(next));
+  function persist(next: CharacterVisualIdentity, notice: string, references = renderedReferences, approvedThumbnail?: string) {
+    const stored = { ...next, references };
+    setIdentity(stored);
+    setCharacterVisualIdentity(visualCharacter, stored);
+    onImage(approvedThumbnail ?? character.image ?? masterReference(references));
     setMessage(notice);
+  }
+
+  function currentIdentity() {
+    return { ...identity, references: renderedReferences };
   }
 
   function updateTrait(key: keyof CharacterVisualTraits, value: string) {
@@ -158,31 +167,40 @@ export default function CharacterImageGenerator({ project, character, onImage }:
   }
 
   function rebuildPrompt() {
-    const next = cloneIdentity(identity);
+    const next = cloneIdentity(currentIdentity());
     next.draftPrompt = buildCharacterIdentityPrompt({ ...visualCharacter, visualIdentity: next }, project.world.visualLanguage, project.world.period);
     setIdentity(next);
     setMessage("Draft prompt rebuilt from the character and visual identity fields. Review it before saving.");
   }
 
   function saveDraft() {
-    const next = saveVisualIdentityDraft(visualCharacter, identity, "Writer edited the visual identity package");
-    persist(next, identity.status === "locked" ? "The locked identity was not changed. A reviewable version is waiting for approval." : "Visual identity draft saved in the canonical project.");
+    const next = saveVisualIdentityDraft(visualCharacter, currentIdentity(), "Writer edited the visual identity package");
+    setPendingReferences(next.pendingRevision ? renderedReferences : []);
+    persist(next, identity.status === "locked" ? "The locked identity was not changed. A reviewable version is waiting for approval." : "Visual identity draft saved in the canonical project.", renderedReferences);
   }
 
   function markReviewed() {
-    const next = reviewCharacterVisualIdentity(identity);
-    persist(next, "Visual identity marked reviewed. Lock it when the prompt and references are ready to become canon.");
+    const next = reviewCharacterVisualIdentity(currentIdentity());
+    persist(next, "Visual identity marked reviewed. Lock it when the prompt and references are ready to become canon.", renderedReferences);
   }
 
   function lockIdentity() {
-    const prepared = identity.draftPrompt.trim() ? identity : { ...identity, draftPrompt: buildCharacterIdentityPrompt({ ...visualCharacter, visualIdentity: identity }, project.world.visualLanguage, project.world.period) };
-    const next = lockCharacterVisualIdentity(prepared);
-    persist(next, `Visual identity locked at version ${next.version}. Storyboard prompts will now use this exact approved identity.`, masterReference(next) || character.image);
+    const current = currentIdentity();
+    const prepared = current.draftPrompt.trim() ? current : { ...current, draftPrompt: buildCharacterIdentityPrompt({ ...visualCharacter, visualIdentity: current }, project.world.visualLanguage, project.world.period) };
+    const approvedReferences = renderedReferences.map((reference) => ({ ...reference, approved: Boolean(reference.src) }));
+    const next = lockCharacterVisualIdentity({ ...prepared, references: renderedReferences });
+    setRenderedReferences(approvedReferences);
+    setPendingReferences([]);
+    persist({ ...next, references: approvedReferences }, `Visual identity locked at version ${next.version}. Storyboard prompts will now use this exact approved identity.`, approvedReferences, masterReference(approvedReferences) || character.image);
   }
 
   function approveReplacement() {
-    const next = approvePendingVisualIdentity(identity);
-    persist(next, `The pending visual identity was approved and locked as version ${next.version}.`, masterReference(next) || character.image);
+    const pendingRevision = identity.pendingRevision ? { ...identity.pendingRevision, references: pendingReferences } : null;
+    const next = approvePendingVisualIdentity({ ...identity, references: renderedReferences, pendingRevision });
+    const approvedReferences = pendingRevision ? pendingReferences.map((reference) => ({ ...reference, approved: Boolean(reference.src) })) : renderedReferences;
+    setRenderedReferences(approvedReferences);
+    setPendingReferences([]);
+    persist({ ...next, references: approvedReferences }, `The pending visual identity was approved and locked as version ${next.version}.`, approvedReferences, masterReference(approvedReferences) || character.image);
   }
 
   async function generate() {
@@ -211,7 +229,7 @@ export default function CharacterImageGenerator({ project, character, onImage }:
           characterId: character.id,
           assetId: `character-${character.id}-${angle}-v${identity.version}`,
           aspect: "portrait",
-          referenceImages: identity.references.filter((reference) => reference.approved).map((reference) => reference.src),
+          referenceImages: renderedReferences.filter((reference) => reference.approved).map((reference) => reference.src),
           identityLock: { characterId: character.id, version: identity.version, status: identity.status, approvedPrompt: identity.approvedPrompt },
           requestCount: 1,
           billingAcknowledged,
@@ -221,16 +239,20 @@ export default function CharacterImageGenerator({ project, character, onImage }:
       if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image provider returned no image.");
       const now = new Date().toISOString();
       const reference = { id: `character-${character.id}-${angle}-${Date.now()}`, angle, src: result.assetUrl, prompt: result.revisedPrompt || prompt, approved: false, createdAt: now };
+      const proposedReferences = [...renderedReferences.filter((item) => item.angle !== angle), reference];
       const proposed = {
         ...identity,
         draftPrompt: result.revisedPrompt || identity.draftPrompt,
-        references: [...identity.references.filter((item) => item.angle !== angle), reference],
+        references: proposedReferences,
       };
       if (identity.status === "locked") {
         const next = saveVisualIdentityDraft(visualCharacter, proposed, `Generated a new ${angleLabel} reference`);
-        persist(next, "The locked identity and thumbnail remain unchanged. The new reference is waiting in a proposed version for writer approval.");
+        setPendingReferences(proposedReferences);
+        persist(next, "The locked identity and thumbnail remain unchanged. The new reference is waiting in a proposed version for writer approval.", renderedReferences);
       } else {
-        persist(proposed, "Reference generated and attached as a draft. Review the complete identity package before locking it.", angle === "master" ? result.assetUrl : character.image);
+        setRenderedReferences(proposedReferences);
+        setPendingReferences([]);
+        persist(proposed, "Reference generated and attached as a draft. Review the complete identity package before locking it.", proposedReferences, angle === "master" ? result.assetUrl : character.image);
       }
       setState("idle");
     } catch (error) {
@@ -273,7 +295,7 @@ export default function CharacterImageGenerator({ project, character, onImage }:
         <button type="button" className={styles.generate} disabled={state === "working" || !identity.draftPrompt.trim()} onClick={generate}>{state === "working" ? "Generating…" : `Generate ${referenceAngleLabel(angle)} reference`}</button>
       </div>
 
-      {identity.references.length ? <div className={styles.references}>{identity.references.map((reference) => <article key={reference.id}><img src={reference.src} alt={`${character.name} ${referenceAngleLabel(reference.angle)} reference`} /><div><strong>{referenceAngleLabel(reference.angle)}</strong><span>{reference.approved ? "Approved" : "Draft"}</span></div></article>)}</div> : <p className={styles.empty}>No visual references yet. The identity prompt can still be locked, but at least one approved image is recommended.</p>}
+      {renderedReferences.length ? <div className={styles.references}>{renderedReferences.map((reference) => <article key={reference.id}><img src={reference.src} alt={`${character.name} ${referenceAngleLabel(reference.angle)} reference`} /><div><strong>{referenceAngleLabel(reference.angle)}</strong><span>{reference.approved ? "Approved" : "Draft"}</span></div></article>)}</div> : <p className={styles.empty}>No visual references yet. The identity prompt can still be locked, but at least one approved image is recommended.</p>}
 
       <section className={styles.developmentBoard} data-character-development-board data-ppf-revision={development.ppfRevision}>
         <div className={styles.developmentHeading}>

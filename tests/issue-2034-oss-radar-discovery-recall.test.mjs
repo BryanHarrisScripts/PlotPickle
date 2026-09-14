@@ -256,7 +256,7 @@ test("#2034 treats adversarial README text as inert data and retains derived evi
   assert.ok(enriched.enrichment.evidenceConcepts.some((entry) => entry.id === "agent-runtime"));
   assert.ok(!persisted.includes("rm -rf"));
   assert.ok(!persisted.includes("Ignore prior instructions"));
-  assert.doesNotMatch(enrichmentSource, /node:child_process|\\bexec\\s*\\(|\\bspawn\\s*\\(|\\beval\\s*\\(|\\bimport\\s*\\(/u);
+  assert.doesNotMatch(enrichmentSource, /node:child_process|\bexec\s*\(|\bspawn\s*\(|\beval\s*\(|\bimport\s*\(/u);
 });
 
 test("#2034 records discovery blind spots and per-query Top-5 contribution evidence", async () => {
@@ -320,7 +320,7 @@ test("#2034 live diagnostic reports whether current discovery sees a named repos
   assert.equal(diagnostic.diagnostic.seenInRawDiscovery, true);
   assert.equal(diagnostic.diagnostic.liveSearchIsAuthoritativeCiEvidence, false);
   assert.equal(contract.diagnostics.liveSearchIsRequiredCiGate, false);
-  assert.match(contract.diagnostics.liveRepositoryCommand, /--diagnose Narcooo\\/inkos/u);
+  assert.match(contract.diagnostics.liveRepositoryCommand, /--diagnose Narcooo\/inkos/u);
 });
 
 function issueApiFixture() {
@@ -342,7 +342,7 @@ function issueApiFixture() {
       state.comments.push(comment);
       return { ok: true, status: 201, json: async () => comment };
     }
-    if (/^\\/repos\\/BryanHarrisScripts\\/PlotPickle\\/issues\\/comments\\/\\d+$/u.test(url.pathname) && method === "PATCH") {
+    if (/^\/repos\/BryanHarrisScripts\/PlotPickle\/issues\/comments\/\d+$/u.test(url.pathname) && method === "PATCH") {
       const id = Number(url.pathname.split("/").at(-1));
       const index = state.comments.findIndex((comment) => comment.id === id);
       state.comments[index] = { ...state.comments[index], body: body.body };
@@ -403,11 +403,11 @@ test("#2034 keeps search/rate failures diagnosable and the daily workflow focuse
       fetchImpl: async () => ({ ok: false, status: 403, json: async () => ({ message: "rate limit" }) }),
       now: new Date(fixture.now),
     }),
-    /architectural-comparators\\/creative-systems\\/01.*HTTP 403: rate limit/u,
+    /architectural-comparators\/creative-systems\/01.*HTTP 403: rate limit/u,
   );
-  assert.match(workflow, /issue-2034-oss-radar-\\*\\.test\\.mjs/u);
-  assert.match(workflow, /contents: read\\n\\s+issues: write/u);
-  assert.doesNotMatch(workflow, /^\\s*pull_request:/mu);
+  assert.match(workflow, /issue-2034-oss-radar-\*\.test\.mjs/u);
+  assert.match(workflow, /contents: read\n\s+issues: write/u);
+  assert.doesNotMatch(workflow, /^\s*pull_request:/mu);
 });
 
 test("#2034 deterministic evidence taxonomy covers the agreed InkOS architectural signals", () => {

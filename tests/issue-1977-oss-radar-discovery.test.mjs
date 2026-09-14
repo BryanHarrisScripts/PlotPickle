@@ -14,7 +14,14 @@ const fixture = await readJson("tests/fixtures/oss-radar/phase-1-github-search.j
 const now = new Date(fixture.now);
 const reducedContract = {
   ...contract,
-  lanes: contract.lanes.map((lane) => ({ ...lane, queries: [lane.queries[0]] })),
+  enrichment: { ...contract.enrichment, enabled: false },
+  lanes: contract.lanes.map((lane) => ({
+    ...lane,
+    queryFamilies: [{
+      ...lane.queryFamilies[0],
+      queries: [lane.queryFamilies[0].queries[0]],
+    }],
+  })),
 };
 
 function fixtureFetch({ fail = false } = {}) {
@@ -29,21 +36,31 @@ function fixtureFetch({ fail = false } = {}) {
       };
     }
     const q = new URL(url).searchParams.get("q") || "";
-    const lane = reducedContract.lanes.find((entry) => q.startsWith(entry.queries[0]));
+    const lane = reducedContract.lanes.find((entry) => q.startsWith(entry.queryFamilies[0].queries[0]));
     assert.ok(lane, `fixture lane must resolve for query: ${q}`);
     return {
       ok: true,
       status: 200,
-      json: async () => ({ total_count: fixture.responses[lane.id].length, items: fixture.responses[lane.id] }),
+      json: async () => {
+        const items = fixture.responses[lane.id] || [];
+        return { total_count: items.length, items };
+      },
     };
   };
   return { calls, fetchImpl };
 }
 
 function fixtureCandidates() {
-  return reducedContract.lanes.flatMap((lane) =>
-    fixture.responses[lane.id].map((item) => normalizeRepository(item, { laneId: lane.id, query: lane.queries[0] })),
-  );
+  return reducedContract.lanes.flatMap((lane) => {
+    const family = lane.queryFamilies[0];
+    const query = family.queries[0];
+    return (fixture.responses[lane.id] || []).map((item) => normalizeRepository(item, {
+      laneId: lane.id,
+      familyId: family.id,
+      queryId: `${lane.id}/${family.id}/01`,
+      query,
+    }));
+  });
 }
 
 test("#1977 Phase 1 builds deterministic bounded GitHub search queries", () => {
@@ -63,15 +80,15 @@ test("#1977 Phase 1 discovers all six lanes through read-only authenticated repo
     perQuery: 10,
   });
 
-  assert.equal(result.enabledLaneCount, 6);
-  assert.equal(result.queryCount, 6);
+  assert.equal(result.enabledLaneCount, 7);
+  assert.equal(result.queryCount, 7);
   assert.equal(result.rawResultCount, 10);
   assert.equal(result.uniqueCandidateCount, 9);
   assert.equal(result.retainedCount, 7);
   assert.equal(result.rejectedCount, 2);
   assert.equal(result.rejectionReasons.archived, 1);
   assert.equal(result.rejectionReasons.stale, 1);
-  assert.equal(fixtureClient.calls.length, 6);
+  assert.equal(fixtureClient.calls.length, 7);
 
   for (const call of fixtureClient.calls) {
     const url = new URL(call.url);
@@ -83,7 +100,7 @@ test("#1977 Phase 1 discovers all six lanes through read-only authenticated repo
   }
 
   const observedLanes = new Set(result.candidates.flatMap((candidate) => candidate.matchedLaneIds));
-  assert.deepEqual([...observedLanes].sort(), reducedContract.lanes.map((lane) => lane.id).sort());
+  assert.deepEqual([...observedLanes].sort(), reducedContract.lanes.filter((lane) => (fixture.responses[lane.id] || []).length).map((lane) => lane.id).sort());
 });
 
 test("#1977 Phase 1 collapses duplicate repositories without losing lane/query evidence", async () => {

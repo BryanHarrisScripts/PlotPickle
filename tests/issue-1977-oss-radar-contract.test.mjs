@@ -16,10 +16,12 @@ test("#1977 Phase 0 discovery lanes", async () => {
     "learn-education",
     "ai-architecture",
     "platform-engineering",
+    "architectural-comparators",
   ]);
   for (const lane of c.lanes) {
     assert.equal(lane.enabled, true);
-    assert.ok(lane.queries.length >= 3);
+    assert.ok(lane.queryFamilies.length >= 1);
+    assert.ok(lane.queryFamilies.flatMap((family) => family.queries).length >= 3);
   }
 });
 

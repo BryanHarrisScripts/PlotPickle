@@ -102,6 +102,7 @@
       "classification": "production",
       "include": [
         "lib/creative-transactions/**",
+        "lib/integrations/github/github-creative-transaction-provider.ts",
         "build/creative-transaction-local-store.ts",
         "build/github-creative-transaction-bridge.ts"
       ],

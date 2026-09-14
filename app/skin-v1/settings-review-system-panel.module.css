@@ -15,14 +15,20 @@
 .hero,
 .card,
 .boundary {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   box-shadow: var(--pp-skin-shadow-control);
   padding: var(--pp-skin-space-4);
 }
 
+.hero {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
+}
+
 .eyebrow,
 .status {
+  color: var(--pp-skin-accent-bright);
   font-size: 12px;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -30,11 +36,11 @@
 
 .eyebrow {
   margin: 0;
-  color: var(--pp-skin-ink-muted);
 }
 
 .hero h2 {
   margin: 6px 0 4px;
+  color: var(--pp-skin-accent-bright);
   font-size: 24px;
 }
 
@@ -67,6 +73,7 @@
 .card h3,
 .card h4 {
   margin: 0;
+  color: var(--pp-skin-accent-bright);
 }
 
 .card h3 {
@@ -80,9 +87,9 @@
 
 .status {
   flex: 0 0 auto;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
+  background: var(--pp-skin-accent-deep);
   padding: 3px 6px;
-  color: var(--pp-skin-ink-muted);
 }
 
 .card p {
@@ -92,10 +99,10 @@
 .action {
   display: inline-block;
   margin-top: 12px;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
   border-radius: 0;
-  background: var(--pp-skin-fill-control);
-  color: var(--pp-skin-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-accent-bright);
   padding: 8px 10px;
   font: inherit;
   font-weight: 700;
@@ -111,8 +118,14 @@ button.action:disabled {
   opacity: .65;
 }
 
+.action:hover:not(:disabled),
 .action:focus-visible {
-  outline: 2px solid var(--pp-skin-ink);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--pp-skin-focus);
   outline-offset: 2px;
 }
 
@@ -141,7 +154,7 @@ button.action:disabled {
 }
 
 .pathList dt {
-  color: var(--pp-skin-ink-muted);
+  color: var(--pp-skin-accent-bright);
   font-size: 11px;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -170,6 +183,7 @@ button.action:disabled {
 }
 
 .dataList strong {
+  color: var(--pp-skin-accent-bright);
   font-size: 12px;
 }
 
@@ -187,9 +201,11 @@ button.action:disabled {
 
 .boundary {
   margin-top: 12px;
+  border-color: var(--pp-skin-accent);
 }
 
 .boundary strong {
   display: block;
   margin-bottom: 6px;
+  color: var(--pp-skin-accent-bright);
 }

@@ -13,9 +13,13 @@ import {
 import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
-  WEBMCP_ALLOWED_TARGETS,
   runWebMcpSurfaceVisualAudit,
 } from "../lib/verification/webmcp-surface-visual-audit.mjs";
+import {
+  WEBMCP_STANDARD_SURFACE_LABELS,
+  WEBMCP_STANDARD_SURFACE_TARGETS,
+} from "../lib/verification/webmcp-surface-capture-registry.mjs";
+import { runWebMcpStandardSurfaceCatalogue } from "../lib/verification/webmcp-standard-surface-catalogue.mjs";
 import {
   VISUAL_DIRECTOR_REPORT_PATH,
   runSkinV1VisualDirector,
@@ -39,16 +43,7 @@ export const WEBMCP_STARTUP_PACKAGES = Object.freeze([
 ]);
 export const WEBMCP_STARTUP_EVIDENCE = ".artifacts/webmcp-startup/summary.json";
 export const WEBMCP_UAT_FINDINGS = ".artifacts/webmcp-startup/uat-findings.json";
-export const WEBMCP_SURFACE_LABELS = Object.freeze({
-  dashboard: "Dashboard",
-  community: "Community",
-  settings: "Settings",
-  "cloud-story-mode": "Cloud Story Mode",
-  agents: "PlotPickle Agents",
-  profile: "Profile",
-  "local-ai": "Local Story Mode",
-  node: "Node",
-});
+export const WEBMCP_SURFACE_LABELS = WEBMCP_STANDARD_SURFACE_LABELS;
 
 function argument(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -63,7 +58,7 @@ export function formatPassTag({ color = Boolean(process.stdout.isTTY && process.
   return color ? "\u001b[32m[PASS]\u001b[0m" : "[PASS]";
 }
 
-export function visualBaselineApprovalLines(targets = WEBMCP_ALLOWED_TARGETS) {
+export function visualBaselineApprovalLines(targets = WEBMCP_STANDARD_SURFACE_TARGETS) {
   const lines = [`Captured ${targets.length} surfaces:`];
   targets.forEach((surface, index) => {
     const label = WEBMCP_SURFACE_LABELS[surface] || surface;
@@ -173,6 +168,10 @@ export async function writeWebMcpFindingsReport({ status, target, findings = [] 
         code: status === "pass" ? 0 : 1,
         source: "lib/verification/webmcp-surface-visual-audit.mjs",
       },
+      webmcpStandardSurfaceCatalogue: {
+        code: status === "pass" ? 0 : 1,
+        source: "lib/verification/webmcp-standard-surface-catalogue.mjs",
+      },
     },
     findings,
   };
@@ -234,6 +233,11 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
+    const standardCatalogue = await runWebMcpStandardSurfaceCatalogue({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
     const visualDirector = await runSkinV1VisualDirector({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
@@ -248,6 +252,7 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     const evidence = await writeEvidence("pass", {
       findingsReport,
       findingCount: 0,
+      standardSurfaceCatalogue: standardCatalogue,
       visualDirector: {
         report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
         surfaces: visualDirector.totals.surfaces,
@@ -260,8 +265,9 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     console.log("");
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
+    console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
     console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
-    console.log(`${pass} Dashboard remains the sole canonical screenshot: ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
     console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);

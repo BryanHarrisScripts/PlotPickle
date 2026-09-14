@@ -1,0 +1,87 @@
+.surface {
+  min-height: 100vh;
+  padding: var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7);
+  background: var(--pp-skin-fill-panel);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+.hero,
+.form {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+  box-shadow: var(--pp-skin-shadow-control);
+  padding: var(--pp-skin-space-4);
+}
+
+.hero p {
+  margin: 0;
+  color: var(--pp-skin-ink-muted);
+  font-size: 12px;
+  letter-spacing: .08em;
+}
+
+.hero h2 {
+  margin: 6px 0 4px;
+  font-size: 24px;
+}
+
+.hero span {
+  color: var(--pp-skin-ink-soft);
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  max-width: 760px;
+}
+
+.form label:not(.check) {
+  display: grid;
+  gap: 6px;
+}
+
+.form label > span,
+.check strong {
+  font-weight: 700;
+}
+
+.form input,
+.form select {
+  min-height: var(--pp-skin-control-height);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: 0;
+  background: var(--pp-skin-fill-control);
+  color: var(--pp-skin-ink);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  font: inherit;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.check input {
+  min-height: auto;
+  margin-top: 3px;
+}
+
+.check span {
+  display: grid;
+  gap: 3px;
+}
+
+.check small {
+  color: var(--pp-skin-ink-muted);
+  line-height: 1.45;
+}
+
+.form input:focus-visible,
+.form select:focus-visible {
+  outline: 2px solid var(--pp-skin-ink);
+  outline-offset: 2px;
+}

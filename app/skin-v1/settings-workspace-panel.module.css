@@ -8,26 +8,34 @@
 
 .hero,
 .form {
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-1);
   box-shadow: var(--pp-skin-shadow-control);
   padding: var(--pp-skin-space-4);
 }
 
+.hero {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-fill-accent-header);
+}
+
 .hero p {
   margin: 0;
-  color: var(--pp-skin-ink-muted);
+  color: var(--pp-skin-accent-bright);
   font-size: 12px;
   letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .hero h2 {
   margin: 6px 0 4px;
+  color: var(--pp-skin-accent-bright);
   font-size: 24px;
 }
 
 .hero span {
   color: var(--pp-skin-ink-soft);
+  line-height: 1.55;
 }
 
 .form {
@@ -39,6 +47,7 @@
 
 .form h3 {
   margin: 0;
+  color: var(--pp-skin-accent-bright);
   font-size: 18px;
 }
 
@@ -49,11 +58,12 @@
 
 .form label > span,
 .check strong {
+  color: var(--pp-skin-accent-bright);
   font-weight: 700;
 }
 
 .form small {
-  color: var(--pp-skin-ink-muted);
+  color: var(--pp-skin-ink-soft);
   line-height: 1.45;
 }
 
@@ -61,9 +71,9 @@
 .form select,
 .value {
   min-height: var(--pp-skin-control-height);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   border-radius: 0;
-  background: var(--pp-skin-fill-control);
+  background: var(--pp-skin-surface-0);
   color: var(--pp-skin-ink);
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   font: inherit;
@@ -99,6 +109,6 @@
 
 .form input:focus-visible,
 .form select:focus-visible {
-  outline: 2px solid var(--pp-skin-ink);
+  outline: 2px solid var(--pp-skin-focus);
   outline-offset: 2px;
 }

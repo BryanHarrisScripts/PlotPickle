@@ -21,6 +21,7 @@
     "lib/verification/oss-radar/run-radar.mjs",
     "lib/verification/oss-radar/scoring.mjs",
     "tests/fixtures/oss-radar/issue-2034-inkos.json",
+    "tests/issue-1938-verification-core.test.mjs",
     "tests/issue-1977-oss-radar-contract.test.mjs",
     "tests/issue-1977-oss-radar-discovery.test.mjs",
     "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",

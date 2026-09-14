@@ -13,46 +13,42 @@ const audit = read("lib/verification/webmcp-surface-visual-audit.mjs");
 const dashboard = read("app/skin-v1/dashboard-bbs-panel.tsx");
 const manifest = JSON.parse(read("tests/visual-baselines/skin-v1/manifest.json"));
 
-test("#1856 adds Settings and its connected sub-surfaces to the same WebMCP conformance registry", () => {
+test("#1856/#2044 scopes live WebMCP conformance to Human-reachable Skin V1 destinations", () => {
   assert.deepEqual(WEBMCP_ALLOWED_TARGETS, [
     "dashboard",
     "community",
     "settings",
-    "cloud-story-mode",
-    "agents",
     "profile",
-    "local-ai",
-    "node",
   ]);
   assert.match(dashboard, /data-dashboard-menu-item=\{item\.id\}/);
   assert.match(dashboard, /data-settings-secondary-item=\{item\.id\}/);
   assert.match(dashboard, /data-settings-secondary-connected=\{connected \? "true" : "false"\}/);
   assert.match(audit, /section\[aria-label='Settings menu'\]/);
-  assert.match(audit, /section\[aria-label='Cloud Story Mode setup'\]/);
-  assert.match(audit, /section\[aria-label='PlotPickle Agents setup'\]/);
-  assert.match(audit, /\[data-settings-secondary-item='cloud'\]/);
-  assert.match(audit, /\[data-settings-secondary-item='agents'\]/);
+  assert.match(audit, /general,appearance,accessibility,defaults,advanced/);
 });
 
-test("#1856 captures candidate evidence and semantic conformance for all eight surfaces", () => {
+test("#1856 preserves historical candidates while live capture follows the reachable four-surface contract", () => {
   assert.equal(Object.keys(manifest.surfaces).length, 8);
   for (const surface of WEBMCP_ALLOWED_TARGETS) {
     assert.ok(manifest.surfaces[surface], `${surface} missing from visual manifest`);
     assert.equal(manifest.surfaces[surface].status, "candidate");
     assert.match(audit, new RegExp(`inspectCurrent\\("${surface}"\\)`));
-    if (surface !== "dashboard") {
-      assert.match(audit, new RegExp(`captureSurfaceCandidate\\(page, manifest, "${surface}"`));
-    }
+    assert.match(audit, new RegExp(`captureSurfaceCandidate\\(page, manifest, "${surface}"`));
   }
-  assert.match(audit, /captureSurfaceCandidate\(page, manifest, "dashboard"/);
+  for (const historical of ["cloud-story-mode", "agents", "local-ai", "node"]) {
+    assert.ok(manifest.surfaces[historical], `${historical} historical candidate missing from visual manifest`);
+    assert.equal(manifest.surfaces[historical].status, "candidate");
+  }
 });
 
-test("#1856 startup output exposes all eight baselines without auto-approval", () => {
+test("#1856 startup output exposes the four current baselines without auto-approval", () => {
   const output = visualBaselineApprovalLines().join("\n");
-  assert.match(output, /^Captured 8 surfaces:/);
+  assert.match(output, /^Captured 4 surfaces:/);
   assert.match(output, /settings \(Settings\)/);
-  assert.match(output, /cloud-story-mode \(Cloud Story Mode\)/);
-  assert.match(output, /agents \(PlotPickle Agents\)/);
-  assert.match(output, /local-ai \(Local Story Mode\)/);
+  assert.match(output, /profile \(Profile\)/);
+  assert.doesNotMatch(output, /cloud-story-mode \(Cloud Story Mode\)/);
+  assert.doesNotMatch(output, /agents \(PlotPickle Agents\)/);
+  assert.doesNotMatch(output, /local-ai \(Local Story Mode\)/);
+  assert.doesNotMatch(output, /node \(Node\)/);
   assert.match(output, /none of the screenshots are automatically declared "locked\."/);
 });

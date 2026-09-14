@@ -29,6 +29,13 @@
       "riskTokens": ["provider", "security", "native"]
     },
     {
+      "id": "ai-runtime-settings-contract",
+      "classification": "production",
+      "include": ["lib/runtime/ai/settings.ts"],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": ["provider", "security"]
+    },
+    {
       "id": "community-conversation-surface",
       "classification": "production",
       "include": [

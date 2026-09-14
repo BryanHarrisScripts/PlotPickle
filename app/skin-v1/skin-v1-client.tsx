@@ -62,10 +62,10 @@ const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "reports", shortcut: "A", label: "Analytics", description: "Review Story Health and Coverage Reports", group: "DRAFTING" },
   { id: "wyrmwood", shortcut: "2", label: "Wyrmwood Game", description: "Practice Narrative Craft", group: "INTERACTIVE LEARNING" },
   { id: "story", shortcut: "3", label: "The Unwritten", description: "Story Game Engine", group: "INTERACTIVE LEARNING" },
-  { id: "profile", shortcut: "U", label: "User Profile", description: "Manage Identity", group: "MANAGEMENT" },
+  { id: "profile", shortcut: "U", label: "Profile", description: "Manage User Identity", group: "MANAGEMENT" },
   { id: "settings", shortcut: "O", label: "Settings", description: "Configure PlotPickle", group: "MANAGEMENT" },
   { id: "help", shortcut: "H", label: "Issue Log", description: "Prepare a PlotPickle Issue", group: "MANAGEMENT" },
-  { id: "open-source", shortcut: "N", label: "Licensing", description: "Review Source and Attribution", group: "MANAGEMENT" },
+  { id: "open-source", shortcut: "N", label: "Licensing", description: "Review Open Source Licensing and Attribution", group: "MANAGEMENT" },
   { id: "logout", shortcut: "X", label: "Log Off", description: "End This Session" },
 ];
 
@@ -86,6 +86,7 @@ export default function SkinV1Client() {
   const [busy, setBusy] = useState(false);
   const [userProfileOpen, setUserProfileOpen] = useState(false);
   const [dashboardSelection, setDashboardSelection] = useState(0);
+  const [dashboardSurfaceName, setDashboardSurfaceName] = useState("DASHBOARD");
   const [activeSurface, setActiveSurface] = useState<ExperienceSurfaceId>("DASHBOARD");
   const returnButtonRef = useRef<HTMLButtonElement>(null);
   const dashboardMenuRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -117,7 +118,10 @@ export default function SkinV1Client() {
     const result = executeOpenSurfaceIntent({
       type: "OpenSurface", intentId: nextIntentId(), surfaceId, baseRevision: null,
     }, { authenticated: view.state === "authenticated" });
-    if (result.outcome === "accepted") setActiveSurface(surfaceId);
+    if (result.outcome === "accepted") {
+      setActiveSurface(surfaceId);
+      if (surfaceId === "DASHBOARD") setDashboardSurfaceName("DASHBOARD");
+    }
   }
 
   function activateDashboardItem(index: number) {
@@ -149,6 +153,7 @@ export default function SkinV1Client() {
       setView(resolved.view);
       setUserProfileOpen(false);
       setActiveSurface("DASHBOARD");
+      setDashboardSurfaceName("DASHBOARD");
       setCredential("");
       if (resolved.view.profiles.length === 1) setLocator(resolved.view.profiles[0].profileId);
       if (resolved.result.outcome !== "accepted") setError(resolved.result.reason || "LOG OFF rejected");
@@ -278,29 +283,30 @@ export default function SkinV1Client() {
     if (next.state !== "authenticated") {
       setUserProfileOpen(false);
       setActiveSurface("DASHBOARD");
+      setDashboardSurfaceName("DASHBOARD");
     }
   }
 
   if (view.state === "authenticated") {
     const selectedMenuItem = DASHBOARD_MENU[dashboardSelection] ?? DASHBOARD_MENU[0];
-    const businessUseCase = userProfileOpen ? "USER PROFILE" : activeSurface;
+    const businessUseCase = userProfileOpen ? "PROFILE" : activeSurface === "DASHBOARD" ? dashboardSurfaceName : activeSurface;
     return (
       <main className="pp-skin-v1-home" data-experience-surface={topology.activeSurfaces.includes(activeSurface) ? activeSurface : topology.defaultSurface}>
-        <header className="pp-skin-v1-bar">
+        <header className="pp-skin-v1-bar" data-skin-v1-standard-header="true">
           <strong>PLOTPICKLE</strong>
           <span>{businessUseCase}</span>
           <span>SKIN V1</span>
-          {activeSurface === "COMMUNITY" ? (
-            <button className="pp-skin-v1-return" ref={returnButtonRef} type="button" onClick={() => openSurface("DASHBOARD")}>Back to Dashboard</button>
-          ) : null}
         </header>
 
         {userProfileOpen ? (
-          <Suspense fallback={<p role="status">Loading User Profile...</p>}>
+          <Suspense fallback={<p role="status">Loading Profile...</p>}>
             <ProfileSkinPanel onBack={() => setUserProfileOpen(false)} onSessionChanged={refreshSessionAfterProfileAction} />
           </Suspense>
         ) : activeSurface === "COMMUNITY" ? (
           <section aria-label="PlotPickle Community">
+            <div className="pp-skin-v1-surface-actions">
+              <button className="pp-skin-v1-return" ref={returnButtonRef} type="button" onClick={() => openSurface("DASHBOARD")}>Back to Dashboard</button>
+            </div>
             <Suspense fallback={<p role="status">Loading Community...</p>}><CommunitySkinHost /></Suspense>
           </section>
         ) : (
@@ -309,6 +315,7 @@ export default function SkinV1Client() {
             selectedIndex={dashboardSelection}
             onActivate={activateDashboardItem}
             onKeyDown={dashboardMenuKeyDown}
+            onSurfaceNameChange={setDashboardSurfaceName}
             setItemRef={(index, node) => { dashboardMenuRefs.current[index] = node; }}
           />
         )}
@@ -341,9 +348,10 @@ export default function SkinV1Client() {
   return (
     <main className="pp-skin-v1-logon" data-experience-surface="LOGON">
       <section className="pp-skin-v1-panel">
-        <header className="pp-skin-v1-title">
+        <header className="pp-skin-v1-title" data-skin-v1-standard-header="true">
           <strong>PLOTPICKLE</strong>
-          <span>SKIN V1 / LOGON</span>
+          <span>LOGON</span>
+          <span>SKIN V1</span>
         </header>
 
         {view.state === "loading" ? <p>INITIALIZING LOGON...</p> : null}

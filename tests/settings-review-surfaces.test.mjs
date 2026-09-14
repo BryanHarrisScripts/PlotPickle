@@ -75,7 +75,7 @@ test("opened Advanced surface stays monochrome while review state remains naviga
   assert.match(reviewPanel, /settings-review-system-panel\.module\.css/u);
   assert.doesNotMatch(reviewStyles, /pp-skin-warning/u);
   assert.doesNotMatch(dashboard, /settingsReviewSystem\.toUpperCase\(\)\} · IN REVIEW/u);
-  assert.match(dashboard, /<h1>\{settingsReviewSystem\.toUpperCase\(\)\}<\/h1>/u);
+  assert.match(dashboard, /<h1>ADVANCED<\/h1>/u);
 });
 
 test("Advanced shortcut selects first and Enter opens the active review surface", async () => {
@@ -91,7 +91,7 @@ test("Advanced shortcut selects first and Enter opens the active review surface"
   assert.match(dashboard, />Back to Settings<\/button>/u);
 });
 
-test("#2023 keeps final Open Source and Issue Log polish inside the yellow Skin V1 review boundary", async () => {
+test("#2023/#2032 keeps Licensing and Issue Log in Skin V1 and promotes accepted navigation markers to green", async () => {
   const [skin, dashboard, host, openSource, issueLog, markerStyles, surfaceStyles, feedback, ownershipText] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
@@ -106,9 +106,9 @@ test("#2023 keeps final Open Source and Issue Log polish inside the yellow Skin 
   const ownership = JSON.parse(ownershipText);
   const productIdentity = ownership.rules.find((rule) => rule.id === "product-identity-surfaces");
 
-  assert.match(skin, /id: "logout", shortcut: "X", label: "Log Off"[\s\S]*id: "help", shortcut: "H", label: "Issue Log", description: "Prepare a PlotPickle Feature, Bug, Design Flaw or Issue"/u);
-  assert.match(skin, /id: "profile"[\s\S]*id: "open-source"[\s\S]*id: "learn"/u);
-  assert.match(skin, /id: "open-source", shortcut: "N", label: "Open Source"/u);
+  assert.match(skin, /id: "profile", shortcut: "U", label: "Profile", description: "Manage User Identity"/u);
+  assert.match(skin, /id: "help", shortcut: "H", label: "Issue Log", description: "Prepare a PlotPickle Issue"/u);
+  assert.match(skin, /id: "open-source", shortcut: "N", label: "Licensing", description: "Review Open Source Licensing and Attribution"/u);
   assert.doesNotMatch(skin, /location\.assign\("\/legal"\)/u);
   assert.match(skin, /<DashboardBbsReviewHost/u);
   assert.match(dashboard, /CONNECTED_DASHBOARD_ITEMS = new Set\(\["community", "settings", "profile", "open-source", "help", "logout", "learn"\]\)/u);
@@ -117,15 +117,14 @@ test("#2023 keeps final Open Source and Issue Log polish inside the yellow Skin 
   assert.match(host, /item\.id === "help"[\s\S]*setHelpIssueLogOpen\(true\)/u);
   assert.match(host, /aria-label="Issue Log"/u);
   assert.match(host, /<h1>ISSUE LOG<\/h1>/u);
+  assert.match(host, /<h1>LICENSING<\/h1>/u);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeOpenSource\(\)/u);
   assert.match(host, /event\.key === "Escape"[\s\S]*closeHelpIssueLog\(\)/u);
   assert.match(host, />Back to Dashboard<\/button>/u);
   assert.match(host, /restoreDashboardFocus\("open-source"\)/u);
   assert.match(host, /restoreDashboardFocus\("help"\)/u);
 
-  assert.match(markerStyles, /data-dashboard-menu-item="open-source"/u);
-  assert.match(markerStyles, /data-dashboard-menu-item="help"/u);
-  assert.match(markerStyles, /var\(--pp-skin-warning\)/u);
+  assert.doesNotMatch(markerStyles, /pp-skin-warning|data-dashboard-menu-item="open-source"|data-dashboard-menu-item="help"/u);
   assert.match(surfaceStyles, /pp-skin-fill-accent-header/u);
   assert.match(surfaceStyles, /pp-skin-accent-bright/u);
   assert.match(surfaceStyles, /pp-skin-focus/u);

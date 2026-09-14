@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LearnJourneyPreview from "./learn-journey-preview";
@@ -91,12 +91,14 @@ export default function DashboardBbsPanel({
   selectedIndex,
   onActivate,
   onKeyDown,
+  onSurfaceNameChange,
   setItemRef,
 }: {
   readonly items: readonly DashboardBbsItem[];
   readonly selectedIndex: number;
   readonly onActivate: (index: number) => void;
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
+  readonly onSurfaceNameChange: (name: string) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
@@ -115,6 +117,43 @@ export default function DashboardBbsPanel({
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
   const selectedSettingsReview = Boolean(selectedSettingsItem && isReviewSettingsSystemId(selectedSettingsItem.id));
+
+  useEffect(() => {
+    if (writerCraftMenuOpen) {
+      onSurfaceNameChange("WRITER'S CRAFT");
+      return;
+    }
+    if (settingsMenuOpen && cloudStoryModeOpen) {
+      onSurfaceNameChange("CLOUD STORY MODE");
+      return;
+    }
+    if (settingsMenuOpen && localStoryModeOpen) {
+      onSurfaceNameChange("LOCAL STORY MODE");
+      return;
+    }
+    if (settingsMenuOpen && nodeInfoOpen) {
+      onSurfaceNameChange("NODE");
+      return;
+    }
+    if (settingsMenuOpen && plotPickleAgentsOpen) {
+      onSurfaceNameChange("AGENTS");
+      return;
+    }
+    if (settingsMenuOpen && settingsReviewSystem) {
+      onSurfaceNameChange("ADVANCED");
+      return;
+    }
+    onSurfaceNameChange(settingsMenuOpen ? "SETTINGS" : "DASHBOARD");
+  }, [
+    cloudStoryModeOpen,
+    localStoryModeOpen,
+    nodeInfoOpen,
+    onSurfaceNameChange,
+    plotPickleAgentsOpen,
+    settingsMenuOpen,
+    settingsReviewSystem,
+    writerCraftMenuOpen,
+  ]);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -259,7 +298,7 @@ export default function DashboardBbsPanel({
         if (event.key === "Escape") { event.preventDefault(); setPlotPickleAgentsOpen(false); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>PLOTPICKLE AGENTS</h1>
+          <h1>AGENTS</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setPlotPickleAgentsOpen(false)}>Back to Settings</button>
         </div>
         <PlotPickleAgentsHost />
@@ -273,7 +312,7 @@ export default function DashboardBbsPanel({
         if (event.key === "Escape") { event.preventDefault(); setSettingsReviewSystem(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>{settingsReviewSystem.toUpperCase()}</h1>
+          <h1>ADVANCED</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsReviewSystem(null)}>Back to Settings</button>
         </div>
         <SettingsReviewSystemPanel systemId={settingsReviewSystem} />

@@ -6,7 +6,7 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const skin = await read("app/skin-v1/skin-v1-client.tsx");
   const menu = skin.slice(skin.indexOf("const DASHBOARD_MENU"), skin.indexOf("function nextIntentId"));
 
@@ -24,10 +24,10 @@ test("#2026 locks the Human-approved Dashboard order, labels, descriptions and g
     ['reports', 'A', 'Analytics', 'Review Story Health and Coverage Reports', 'DRAFTING'],
     ['wyrmwood', '2', 'Wyrmwood Game', 'Practice Narrative Craft', 'INTERACTIVE LEARNING'],
     ['story', '3', 'The Unwritten', 'Story Game Engine', 'INTERACTIVE LEARNING'],
-    ['profile', 'U', 'User Profile', 'Manage Identity', 'MANAGEMENT'],
+    ['profile', 'U', 'Profile', 'Manage User Identity', 'MANAGEMENT'],
     ['settings', 'O', 'Settings', 'Configure PlotPickle', 'MANAGEMENT'],
     ['help', 'H', 'Issue Log', 'Prepare a PlotPickle Issue', 'MANAGEMENT'],
-    ['open-source', 'N', 'Licensing', 'Review Source and Attribution', 'MANAGEMENT'],
+    ['open-source', 'N', 'Licensing', 'Review Open Source Licensing and Attribution', 'MANAGEMENT'],
     ['logout', 'X', 'Log Off', 'End This Session', null],
   ];
 
@@ -35,7 +35,7 @@ test("#2026 locks the Human-approved Dashboard order, labels, descriptions and g
   for (const [id, shortcut, label, description, group] of ordered) {
     const token = `{ id: "${id}", shortcut: "${shortcut}", label: "${label}", description: "${description}"${group ? `, group: "${group}"` : ""} }`;
     const index = menu.indexOf(token);
-    assert.ok(index > cursor, `${label} must appear in the #2026 canonical Dashboard order`);
+    assert.ok(index > cursor, `${label} must appear in the #2026/#2032 canonical Dashboard order`);
     cursor = index;
   }
 

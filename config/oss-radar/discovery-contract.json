@@ -17,7 +17,13 @@
     "monthlyIssueTitlePattern": "[OSS RADAR] {MMMM YYYY}",
     "dailyReportIdempotent": true,
     "requiredQuestion": "What can PlotPickle learn from this?",
-    "humanDispositions": ["SAVE", "IMPROVE", "ADD", "LEARN", "WATCH"],
+    "humanDispositions": [
+      "SAVE",
+      "IMPROVE",
+      "ADD",
+      "LEARN",
+      "WATCH"
+    ],
     "internalOnlyDisposition": "PASS"
   },
   "internalCategories": [
@@ -40,10 +46,23 @@
       "label": "Writer Craft",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "screenwriting storytelling narrative design",
-        "character dialogue scene craft worldbuilding revision",
-        "television writers room comedy screenwriting"
+      "queryFamilies": [
+        {
+          "id": "story-agents",
+          "label": "Story and fiction agents",
+          "queries": [
+            "creative writing agent",
+            "fiction writing agent"
+          ]
+        },
+        {
+          "id": "screen-world",
+          "label": "Screen and world craft",
+          "queries": [
+            "screenwriting AI",
+            "worldbuilding agent"
+          ]
+        }
       ]
     },
     {
@@ -51,10 +70,22 @@
       "label": "Visual Story",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "storyboard previs shot planning cinematography",
-        "visual continuity character reference location reference",
-        "ComfyUI video workflow multimodal creative"
+      "queryFamilies": [
+        {
+          "id": "planning",
+          "label": "Storyboard and previs",
+          "queries": [
+            "storyboard AI",
+            "previs tool"
+          ]
+        },
+        {
+          "id": "multimodal",
+          "label": "Multimodal storytelling",
+          "queries": [
+            "multimodal storytelling"
+          ]
+        }
       ]
     },
     {
@@ -62,10 +93,23 @@
       "label": "STORY / Game Engine",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "interactive narrative story engine deterministic simulation",
-        "narrative game state world simulation",
-        "interactive fiction authoring narrative design tools"
+      "queryFamilies": [
+        {
+          "id": "engines",
+          "label": "Narrative engines",
+          "queries": [
+            "story engine",
+            "interactive narrative"
+          ]
+        },
+        {
+          "id": "state-authoring",
+          "label": "State and authoring",
+          "queries": [
+            "narrative game state",
+            "interactive fiction authoring"
+          ]
+        }
       ]
     },
     {
@@ -73,10 +117,22 @@
       "label": "LEARN / Education",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "learning science tutoring self directed learning",
-        "project based learning feedback reflection education",
-        "creative writing education reader simulation"
+      "queryFamilies": [
+        {
+          "id": "tutoring",
+          "label": "Writing guidance",
+          "queries": [
+            "writing tutor",
+            "learning feedback agent"
+          ]
+        },
+        {
+          "id": "simulation",
+          "label": "Reader simulation",
+          "queries": [
+            "reader simulation"
+          ]
+        }
       ]
     },
     {
@@ -84,10 +140,25 @@
       "label": "AI Architecture",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "agent runtime orchestration context memory evaluation",
-        "MCP agent interoperability tool permissions",
-        "local first AI model routing human in the loop"
+      "queryFamilies": [
+        {
+          "id": "runtime-tools",
+          "label": "Runtime, Skills and tools",
+          "queries": [
+            "agent runtime",
+            "agent skills",
+            "tool calling agent"
+          ]
+        },
+        {
+          "id": "context-human",
+          "label": "Context, memory and Human control",
+          "queries": [
+            "context orchestration",
+            "AI agent memory",
+            "human in the loop agent"
+          ]
+        }
       ]
     },
     {
@@ -95,11 +166,45 @@
       "label": "Platform / Engineering",
       "enabled": true,
       "weight": 1,
-      "queries": [
-        "local first desktop app Windows open source",
-        "browser automation UI visual testing",
-        "architecture documentation drift detection C4",
-        "speech to text whisper local voice"
+      "queryFamilies": [
+        {
+          "id": "local-platform",
+          "label": "Local platforms",
+          "queries": [
+            "local AI workbench",
+            "Windows local AI"
+          ]
+        },
+        {
+          "id": "evaluation",
+          "label": "Agent evaluation",
+          "queries": [
+            "agent evaluation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "architectural-comparators",
+      "label": "Adjacent Systems / Architectural Comparators",
+      "enabled": true,
+      "weight": 1,
+      "queryFamilies": [
+        {
+          "id": "creative-systems",
+          "label": "Complete creative systems",
+          "queries": [
+            "AI creative workbench",
+            "agentic writing system"
+          ]
+        },
+        {
+          "id": "production-systems",
+          "label": "Production operating systems",
+          "queries": [
+            "AI production operating system"
+          ]
+        }
       ]
     }
   ],
@@ -107,7 +212,10 @@
     "recencyDays": 180,
     "minimumStars": 0,
     "positiveTerms": [],
-    "negativeTerms": ["archived", "abandoned"],
+    "negativeTerms": [
+      "archived",
+      "abandoned"
+    ],
     "allowLowStarSpecialists": true
   },
   "filters": {
@@ -211,5 +319,403 @@
     "scheduledWorkflow": false,
     "monthlyIssueAutomation": false,
     "modelAssistedAnalysis": false
+  },
+  "recallContractVersion": 1,
+  "discoveryBudget": {
+    "perQueryResultCap": 19,
+    "rawResultBudget": 500,
+    "enrichmentShortlistSize": 25,
+    "finalReviewCount": 5
+  },
+  "enrichment": {
+    "enabled": true,
+    "readmeMaxBytes": 96000,
+    "manifestMaxBytes": 32000,
+    "manifestByLanguage": {
+      "JavaScript": "package.json",
+      "TypeScript": "package.json",
+      "Python": "pyproject.toml",
+      "Rust": "Cargo.toml",
+      "Go": "go.mod",
+      "Ruby": "Gemfile",
+      "PHP": "composer.json"
+    },
+    "untrustedTextPolicy": "bounded-parse-only-never-execute",
+    "retainCompleteThirdPartyDocuments": false,
+    "evidenceConcepts": [
+      {
+        "id": "agent-runtime",
+        "phrases": [
+          "agent runtime",
+          "agent orchestration",
+          "multi-agent",
+          "multi agent"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Agent Compute"
+        ]
+      },
+      {
+        "id": "tool-execution",
+        "phrases": [
+          "tool execution",
+          "tool calling",
+          "tool host"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Responsibility Run"
+        ]
+      },
+      {
+        "id": "deterministic-host",
+        "phrases": [
+          "deterministic host",
+          "deterministic tool",
+          "bounded host"
+        ],
+        "laneIds": [
+          "ai-architecture",
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Responsibility Run",
+          "Verification"
+        ]
+      },
+      {
+        "id": "human-approval",
+        "phrases": [
+          "human approval",
+          "human-in-the-loop",
+          "human in the loop"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "PPF",
+          "Human Authority"
+        ]
+      },
+      {
+        "id": "skills-plugins",
+        "phrases": [
+          "agent skills",
+          "skills",
+          "plugins",
+          "plug-ins"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Skills"
+        ]
+      },
+      {
+        "id": "memory",
+        "phrases": [
+          "agent memory",
+          "persistent memory",
+          "memory"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Context Engine"
+        ]
+      },
+      {
+        "id": "retrieval",
+        "phrases": [
+          "retrieval augmented",
+          "retrieval",
+          "rag"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Context Engine"
+        ]
+      },
+      {
+        "id": "context-management",
+        "phrases": [
+          "context management",
+          "context governance",
+          "context window"
+        ],
+        "laneIds": [
+          "ai-architecture"
+        ],
+        "plotPickleTargets": [
+          "Context Engine"
+        ]
+      },
+      {
+        "id": "provider-routing",
+        "phrases": [
+          "multi-model",
+          "multi model",
+          "model routing",
+          "provider routing"
+        ],
+        "laneIds": [
+          "ai-architecture",
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Agent Compute"
+        ]
+      },
+      {
+        "id": "local-ai",
+        "phrases": [
+          "local ai",
+          "offline ai",
+          "ollama"
+        ],
+        "laneIds": [
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Local Story Mode"
+        ]
+      },
+      {
+        "id": "mcp-interoperability",
+        "phrases": [
+          "model context protocol",
+          "mcp",
+          "interoperability"
+        ],
+        "laneIds": [
+          "ai-architecture",
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Tools & MCP"
+        ]
+      },
+      {
+        "id": "story-state",
+        "phrases": [
+          "story state",
+          "narrative state",
+          "canon state",
+          "persistent state"
+        ],
+        "laneIds": [
+          "story-game-engine"
+        ],
+        "plotPickleTargets": [
+          "PPF",
+          "STORY"
+        ]
+      },
+      {
+        "id": "workflow-orchestration",
+        "phrases": [
+          "workflow orchestration",
+          "long-running production",
+          "production workflow"
+        ],
+        "laneIds": [
+          "ai-architecture",
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Responsibility Run"
+        ]
+      },
+      {
+        "id": "evaluation",
+        "phrases": [
+          "agent evaluation",
+          "evaluation harness",
+          "evals"
+        ],
+        "laneIds": [
+          "ai-architecture",
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Verification"
+        ]
+      },
+      {
+        "id": "observability",
+        "phrases": [
+          "observability",
+          "telemetry",
+          "tracing"
+        ],
+        "laneIds": [
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Evidence"
+        ]
+      },
+      {
+        "id": "rollback-recovery",
+        "phrases": [
+          "rollback",
+          "recovery",
+          "reconciliation"
+        ],
+        "laneIds": [
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Creative Transactions"
+        ]
+      },
+      {
+        "id": "atomic-persistence",
+        "phrases": [
+          "atomic persistence",
+          "atomic write",
+          "transactional persistence"
+        ],
+        "laneIds": [
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Creative Transactions"
+        ]
+      },
+      {
+        "id": "windows-local",
+        "phrases": [
+          "windows",
+          "desktop app",
+          "local-first",
+          "local first"
+        ],
+        "laneIds": [
+          "platform-engineering"
+        ],
+        "plotPickleTargets": [
+          "Local Story Mode"
+        ]
+      },
+      {
+        "id": "creative-writing",
+        "phrases": [
+          "creative writing",
+          "fiction writing",
+          "screenwriting",
+          "story creation"
+        ],
+        "laneIds": [
+          "writer-craft"
+        ],
+        "plotPickleTargets": [
+          "Writer's Craft"
+        ]
+      },
+      {
+        "id": "interactive-narrative",
+        "phrases": [
+          "interactive narrative",
+          "interactive fiction",
+          "story engine"
+        ],
+        "laneIds": [
+          "story-game-engine"
+        ],
+        "plotPickleTargets": [
+          "STORY"
+        ]
+      },
+      {
+        "id": "storyboard-previs",
+        "phrases": [
+          "storyboard",
+          "previs",
+          "shot planning"
+        ],
+        "laneIds": [
+          "visual-story"
+        ],
+        "plotPickleTargets": [
+          "Storyboard",
+          "Previs"
+        ]
+      },
+      {
+        "id": "education",
+        "phrases": [
+          "learning",
+          "education",
+          "tutor"
+        ],
+        "laneIds": [
+          "learn-education"
+        ],
+        "plotPickleTargets": [
+          "LEARN"
+        ]
+      },
+      {
+        "id": "multimodal-production",
+        "phrases": [
+          "multimodal",
+          "video generation",
+          "image generation"
+        ],
+        "laneIds": [
+          "visual-story"
+        ],
+        "plotPickleTargets": [
+          "Visual Production"
+        ]
+      },
+      {
+        "id": "visual-continuity",
+        "phrases": [
+          "visual continuity",
+          "character reference",
+          "continuity"
+        ],
+        "laneIds": [
+          "visual-story"
+        ],
+        "plotPickleTargets": [
+          "Continuity"
+        ]
+      }
+    ]
+  },
+  "discoveryEvidence": {
+    "preliminaryScoreLabel": "Discovery Score",
+    "finalScoreLabel": "Enriched PlotPickle Score",
+    "queryEffectivenessHistory": true,
+    "discoveryCoverageTelemetry": true
+  },
+  "diagnostics": {
+    "liveRepositoryCommand": "node lib/verification/oss-radar/discover-github.mjs --diagnose Narcooo/inkos",
+    "discoveryRecallSentinels": [
+      "Narcooo/inkos"
+    ],
+    "liveSearchIsRequiredCiGate": false
+  },
+  "thirdPartyContentTrust": {
+    "authority": "untrusted-research-data",
+    "executeInstructions": false,
+    "executePackageScripts": false,
+    "installDependencies": false,
+    "cloneRepositories": false,
+    "grantToolsOrSkills": false,
+    "exposeCredentials": false
   }
 }

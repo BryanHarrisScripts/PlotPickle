@@ -2,15 +2,11 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import settingsTaxonomy from "../../config/settings-system-taxonomy.json";
-import CloudStoryModeHost from "./cloud-story-mode-host";
 import LearnJourneyPreview from "./learn-journey-preview";
-import LocalAiSkinHost from "./local-ai-skin-host";
 import MenuFeedbackFooter from "./menu-feedback-footer";
-import NodeSkinPanel from "./node-skin-panel";
-import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
 import SettingsReviewSystemPanel, { isReviewSettingsSystemId, type ReviewSettingsSystemId } from "./settings-review-system-panel";
+import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
 export type DashboardBbsItem = Readonly<{
@@ -25,62 +21,50 @@ const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
   appearance: "A",
-  "project-defaults": "P",
-  "local-story-mode": "L",
-  "node-info": "I",
-  cloud: "C",
-  agents: "N",
+  accessibility: "C",
+  defaults: "D",
   advanced: "V",
 };
 
 const SETTINGS_MENU = [
   {
-    id: "node-info",
-    shortcut: SETTINGS_SHORTCUTS["node-info"],
-    label: "Node Info",
-    description: "PlotPickle Node identity, lifecycle, readiness and current project.",
-    group: "SYSTEMS",
+    id: "general",
+    shortcut: SETTINGS_SHORTCUTS.general,
+    label: "General",
+    description: "Language, startup and confirmation preferences.",
+    group: "SETTINGS",
   },
   {
-    id: "local-story-mode",
-    shortcut: SETTINGS_SHORTCUTS["local-story-mode"],
-    label: "Local Story Mode",
-    description: "Local writing, images, video and Agent compute on this computer.",
-    group: "SYSTEMS",
+    id: "appearance",
+    shortcut: SETTINGS_SHORTCUTS.appearance,
+    label: "Appearance",
+    description: "Theme, density and transparency preferences.",
+    group: "SETTINGS",
   },
   {
-    id: "cloud",
-    shortcut: SETTINGS_SHORTCUTS.cloud,
-    label: "Cloud Story Mode",
-    description: "Cloud writing, images, video, Agents and user-owned provider authority.",
-    group: "SYSTEMS",
+    id: "accessibility",
+    shortcut: SETTINGS_SHORTCUTS.accessibility,
+    label: "Accessibility",
+    description: "Contrast, motion and interface text preferences.",
+    group: "SETTINGS",
   },
   {
-    id: "agents",
-    shortcut: SETTINGS_SHORTCUTS.agents,
-    label: "Agents",
-    description: "Assign Local or Cloud Story Mode compute to PlotPickle Agents.",
-    group: "SYSTEMS",
+    id: "defaults",
+    shortcut: SETTINGS_SHORTCUTS.defaults,
+    label: "Defaults",
+    description: "Starting format, target length and autosave behaviour.",
+    group: "SETTINGS",
   },
   {
     id: "advanced",
     shortcut: SETTINGS_SHORTCUTS.advanced,
     label: "Advanced",
-    description: "Project data, recovery, MCP, source references and technical diagnostics.",
-    group: "SYSTEMS",
+    description: "PlotPickle source plus project data and recovery review.",
+    group: "SETTINGS",
   },
-  ...settingsTaxonomy.workspace
-    .filter((item) => item.id !== "sitemap")
-    .map((item) => ({
-      id: item.id,
-      shortcut: SETTINGS_SHORTCUTS[item.id] ?? "?",
-      label: item.label,
-      description: item.description,
-      group: "WORKSPACE",
-    })),
 ] as const;
 
-const CONNECTED_SETTINGS_ITEMS = new Set(["local-story-mode", "node-info", "cloud", "agents"]);
+const CONNECTED_SETTINGS_ITEMS = new Set(["general", "appearance", "accessibility", "defaults"]);
 
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
@@ -103,10 +87,7 @@ export default function DashboardBbsPanel({
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
-  const [cloudStoryModeOpen, setCloudStoryModeOpen] = useState(false);
-  const [localStoryModeOpen, setLocalStoryModeOpen] = useState(false);
-  const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
-  const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
+  const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
   const [settingsReviewSystem, setSettingsReviewSystem] = useState<ReviewSettingsSystemId | null>(null);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
@@ -123,20 +104,8 @@ export default function DashboardBbsPanel({
       onSurfaceNameChange("WRITER'S CRAFT");
       return;
     }
-    if (settingsMenuOpen && cloudStoryModeOpen) {
-      onSurfaceNameChange("CLOUD STORY MODE");
-      return;
-    }
-    if (settingsMenuOpen && localStoryModeOpen) {
-      onSurfaceNameChange("LOCAL STORY MODE");
-      return;
-    }
-    if (settingsMenuOpen && nodeInfoOpen) {
-      onSurfaceNameChange("NODE");
-      return;
-    }
-    if (settingsMenuOpen && plotPickleAgentsOpen) {
-      onSurfaceNameChange("AGENTS");
+    if (settingsMenuOpen && settingsWorkspace) {
+      onSurfaceNameChange(settingsWorkspace.toUpperCase());
       return;
     }
     if (settingsMenuOpen && settingsReviewSystem) {
@@ -144,16 +113,7 @@ export default function DashboardBbsPanel({
       return;
     }
     onSurfaceNameChange(settingsMenuOpen ? "SETTINGS" : "DASHBOARD");
-  }, [
-    cloudStoryModeOpen,
-    localStoryModeOpen,
-    nodeInfoOpen,
-    onSurfaceNameChange,
-    plotPickleAgentsOpen,
-    settingsMenuOpen,
-    settingsReviewSystem,
-    writerCraftMenuOpen,
-  ]);
+  }, [onSurfaceNameChange, settingsMenuOpen, settingsReviewSystem, settingsWorkspace, writerCraftMenuOpen]);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -191,25 +151,11 @@ export default function DashboardBbsPanel({
     const item = SETTINGS_MENU[index];
     if (!item) return;
     setSettingsSelectedIndex(index);
-    if (item.id === "local-story-mode") {
-      setLocalStoryModeOpen(true);
+    if (isWorkspaceSettingsId(item.id)) {
+      setSettingsWorkspace(item.id);
       return;
     }
-    if (item.id === "node-info") {
-      setNodeInfoOpen(true);
-      return;
-    }
-    if (item.id === "cloud") {
-      setCloudStoryModeOpen(true);
-      return;
-    }
-    if (item.id === "agents") {
-      setPlotPickleAgentsOpen(true);
-      return;
-    }
-    if (isReviewSettingsSystemId(item.id)) {
-      setSettingsReviewSystem(item.id);
-    }
+    if (isReviewSettingsSystemId(item.id)) setSettingsReviewSystem(item.id);
   }
 
   function handleSettingsKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -250,58 +196,16 @@ export default function DashboardBbsPanel({
     }
   }
 
-  if (settingsMenuOpen && cloudStoryModeOpen) {
+  if (settingsMenuOpen && settingsWorkspace) {
     return (
-      <section aria-label="Cloud Story Mode setup" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setCloudStoryModeOpen(false); }
+      <section aria-label={`${settingsWorkspace} settings`} onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setSettingsWorkspace(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>CLOUD STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setCloudStoryModeOpen(false)}>Back to Settings</button>
+          <h1>{settingsWorkspace.toUpperCase()}</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsWorkspace(null)}>Back to Settings</button>
         </div>
-        <CloudStoryModeHost />
-      </section>
-    );
-  }
-
-  if (settingsMenuOpen && localStoryModeOpen) {
-    return (
-      <section aria-label="Local Story Mode setup" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setLocalStoryModeOpen(false); }
-      }}>
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>LOCAL STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setLocalStoryModeOpen(false)}>Back to Settings</button>
-        </div>
-        <LocalAiSkinHost />
-      </section>
-    );
-  }
-
-  if (settingsMenuOpen && nodeInfoOpen) {
-    return (
-      <section aria-label="Node information" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setNodeInfoOpen(false); }
-      }}>
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>NODE INFO</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setNodeInfoOpen(false)}>Back to Settings</button>
-        </div>
-        <NodeSkinPanel />
-      </section>
-    );
-  }
-
-  if (settingsMenuOpen && plotPickleAgentsOpen) {
-    return (
-      <section aria-label="PlotPickle Agents setup" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setPlotPickleAgentsOpen(false); }
-      }}>
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>AGENTS</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setPlotPickleAgentsOpen(false)}>Back to Settings</button>
-        </div>
-        <PlotPickleAgentsHost />
+        <SettingsWorkspacePanel section={settingsWorkspace} />
       </section>
     );
   }

@@ -6,28 +6,27 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
-  const skin = await read("app/skin-v1/skin-v1-client.tsx");
-  const menu = skin.slice(skin.indexOf("const DASHBOARD_MENU"), skin.indexOf("function nextIntentId"));
+test("#2026/#2032/#2050 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+  const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
     ['community', 'C', 'Community', 'Share and Collaborate', null],
     ['learn', '1', "Writer's Craft", 'Learn Story Craft', null],
-    ['library', 'L', 'Story Library', 'Load Your Stories', null],
-    ['plan', 'P', 'Outline', 'Visualize Story Structure', 'STRUCTURING'],
+    ['library', 'L', 'Library', 'Load Your Stories', null],
+    ['plan', 'O', 'Outline', 'Visualize Story Structure', 'STRUCTURING'],
     ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'STRUCTURING'],
-    ['previs', 'V', 'Previs', 'Preview Shots, Timing and Camera Motion', 'STRUCTURING'],
+    ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'STRUCTURING'],
     ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'DRAFTING'],
     ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'DRAFTING'],
     ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'DRAFTING'],
-    ['refine', 'R', 'Polish', 'Enhance Dialogue and Story Choices', 'DRAFTING'],
+    ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'DRAFTING'],
     ['reports', 'A', 'Analytics', 'Review Story Health and Coverage Reports', 'DRAFTING'],
     ['wyrmwood', '2', 'Wyrmwood Game', 'Practice Narrative Craft', 'INTERACTIVE LEARNING'],
     ['story', '3', 'The Unwritten', 'Story Game Engine', 'INTERACTIVE LEARNING'],
-    ['profile', 'U', 'Profile', 'Manage User Identity', 'MANAGEMENT'],
-    ['settings', 'O', 'Settings', 'Configure PlotPickle', 'MANAGEMENT'],
-    ['help', 'H', 'Issue Log', 'Prepare a PlotPickle Issue', 'MANAGEMENT'],
-    ['open-source', 'N', 'Licensing', 'Review Open Source Licensing and Attribution', 'MANAGEMENT'],
+    ['profile', 'I', 'Identity', 'Manage User Profile', 'MANAGEMENT'],
+    ['settings', 'M', 'Manage', 'Configure PlotPickle', 'MANAGEMENT'],
+    ['help', 'B', 'Bug Report', 'Prepare a PlotPickle Issue', 'MANAGEMENT'],
+    ['open-source', 'N', 'Notices', 'Review Open Source Licensing and Attribution', 'MANAGEMENT'],
     ['logout', 'X', 'Log Off', 'End This Session', null],
   ];
 
@@ -35,10 +34,12 @@ test("#2026/#2032 locks the Human-approved Dashboard order, labels, descriptions
   for (const [id, shortcut, label, description, group] of ordered) {
     const token = `{ id: "${id}", shortcut: "${shortcut}", label: "${label}", description: "${description}"${group ? `, group: "${group}"` : ""} }`;
     const index = menu.indexOf(token);
-    assert.ok(index > cursor, `${label} must appear in the #2026/#2032 canonical Dashboard order`);
+    assert.ok(index > cursor, `${label} must appear in the #2050 canonical Dashboard order`);
     cursor = index;
   }
 
+  const shortcuts = ordered.map(([, shortcut]) => shortcut);
+  assert.equal(new Set(shortcuts).size, shortcuts.length, "Dashboard keyboard shortcuts must be unique");
   assert.doesNotMatch(menu, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
 });
 

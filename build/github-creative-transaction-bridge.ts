@@ -1,29 +1,13 @@
 import type { PlotPickleProject } from "../lib/projects/project";
 import type { StoryProposalGroupId } from "../lib/projects/story/story-proposals";
-import type {
-  CreativeChangeSet,
-} from "../lib/creative-transactions/creative-transaction-contract";
-import type {
-  GitHubCreativeTransactionBridge,
-  GitHubProposalInspection,
-} from "../lib/creative-transactions/github-creative-transaction-provider";
+import type { CreativeChangeSet } from "../lib/creative-transactions/creative-transaction-contract";
+import type { GitHubCreativeTransactionBridge, GitHubProposalInspection } from "../lib/creative-transactions/github-creative-transaction-provider";
 
 const API = "/api/local-github";
 
 type FetchLike = typeof fetch;
-
-type ProposalItem = {
-  number: number;
-  state: "open" | "draft" | "approved" | "merged" | "declined";
-};
-
-type ProposalReview = {
-  proposal: ProposalItem;
-  baseCommit: string;
-  headCommit: string;
-  groups: Array<{ id: StoryProposalGroupId; changed: boolean }>;
-};
-
+type ProposalItem = { number: number; state: "open" | "draft" | "approved" | "merged" | "declined" };
+type ProposalReview = { proposal: ProposalItem; baseCommit: string; headCommit: string; groups: Array<{ id: StoryProposalGroupId; changed: boolean }> };
 type BridgeOptions = {
   resolveProject(changeSet: CreativeChangeSet, artifactRefs: readonly string[]): Promise<PlotPickleProject> | PlotPickleProject;
   fetchImpl?: FetchLike;
@@ -60,7 +44,7 @@ function proposalItems(value: unknown): ProposalItem[] {
   });
 }
 
-function proposalReview(value: Record<string, unknown>): ProposalReview {
+function reviewFrom(value: Record<string, unknown>): ProposalReview {
   const proposalValue = value.proposal && typeof value.proposal === "object" ? value.proposal as Record<string, unknown> : {};
   const number = Number(proposalValue.number) || 0;
   const state = String(proposalValue.state || "open");
@@ -114,7 +98,7 @@ export function createLocalGitHubCreativeTransactionBridge(options: BridgeOption
           return {
             state: "committed",
             durableRevisionId: "",
-            summary: "GitHub confirms the Story Proposal completed, but the proposal list does not expose the exact approved revision. PlotPickle retains its durable revision receipt when acknowledgement succeeded.",
+            summary: "GitHub confirms the Story Proposal completed. If local acknowledgement was interrupted, PlotPickle reports the commit/revision gap instead of inventing a durable revision ID.",
           };
         }
         return { state: "open", durableRevisionId: "", summary: "GitHub Story Proposal remains open for review." };
@@ -123,13 +107,11 @@ export function createLocalGitHubCreativeTransactionBridge(options: BridgeOption
       }
     },
 
-    async commitApprovedProposal({ providerTransactionId, expectedBaseRevisionId }) {
+    async commitApprovedProposal({ providerTransactionId }) {
       const number = providerNumber(providerTransactionId);
       const reviewValue = await request(fetchImpl, `${API}/proposal-review?number=${encodeURIComponent(number)}`);
-      const review = proposalReview(reviewValue);
-      if (!review.baseCommit || (expectedBaseRevisionId && review.baseCommit !== expectedBaseRevisionId)) {
-        throw new Error("The approved GitHub base changed after Creative Transaction review began. Reconcile and review again before commit.");
-      }
+      const review = reviewFrom(reviewValue);
+      if (!review.baseCommit) throw new Error("GitHub Story Proposal review did not expose the approved base revision.");
       const selectedGroups = review.groups.filter((group) => group.changed).map((group) => group.id);
       if (!selectedGroups.length) throw new Error("The GitHub Story Proposal contains no changed semantic groups to commit.");
       const value = await request(fetchImpl, `${API}/approve-proposal`, "POST", {

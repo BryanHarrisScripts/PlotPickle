@@ -28,17 +28,9 @@ export type GitHubProposalInspection = {
 };
 
 export interface GitHubCreativeTransactionBridge {
-  createProposal(input: {
-    changeSet: CreativeChangeSet;
-    artifactRefs: readonly string[];
-  }): Promise<GitHubProposalReceipt>;
+  createProposal(input: { changeSet: CreativeChangeSet; artifactRefs: readonly string[] }): Promise<GitHubProposalReceipt>;
   inspectProposal(providerTransactionId: string): Promise<GitHubProposalInspection>;
-  commitApprovedProposal(input: {
-    providerTransactionId: string;
-    writerId: string;
-    note: string;
-    expectedBaseRevisionId: string;
-  }): Promise<{ durableRevisionId: string }>;
+  commitApprovedProposal(input: { providerTransactionId: string; writerId: string; note: string }): Promise<{ durableRevisionId: string }>;
   declineProposal(input: { providerTransactionId: string; writerId: string; note: string }): Promise<void>;
   requestRevision?(input: { providerTransactionId: string; writerId: string; note: string }): Promise<void>;
   rollbackCommittedProposal?(input: { providerTransactionId: string; durableRevisionId: string; writerId: string; note: string }): Promise<{ durableRevisionId: string }>;
@@ -85,38 +77,19 @@ function transactionId(changeSet: CreativeChangeSet) {
   return `github-${changeSet.projectId}-${changeSet.changeSetId}`.slice(0, 220);
 }
 
-function providerTransactionId(record: CreativeTransactionRecord) {
+function externalTransactionId(record: CreativeTransactionRecord) {
   return record.changeSet.transaction?.providerId === GITHUB_CREATIVE_TRANSACTION_PROVIDER.id
     ? text(record.changeSet.transaction.transactionId, 220)
     : "";
 }
 
-function providerBaseRevisionId(record: CreativeTransactionRecord) {
-  const reference = record.changeSet.context?.sourceRevisions.find((item) => item.sourceId === "creative-transaction-provider-base");
-  return reference ? text(reference.revision, 220) : "";
-}
-
-function withProviderReceipt(record: CreativeTransactionRecord, receipt: GitHubProposalReceipt) {
-  const otherSourceRevisions = (record.changeSet.context?.sourceRevisions ?? []).filter((item) => item.sourceId !== "creative-transaction-provider-base");
-  const context = record.changeSet.context
-    ? {
-        ...record.changeSet.context,
-        sourceRevisions: [...otherSourceRevisions, { sourceId: "creative-transaction-provider-base", revision: text(receipt.baseRevisionId, 220) }],
-      }
-    : {
-        taskId: record.changeSet.changeSetId,
-        profileId: "creative-transaction",
-        sourceIds: [],
-        sourceRevisions: [{ sourceId: "creative-transaction-provider-base", revision: text(receipt.baseRevisionId, 220) }],
-        generatedAt: record.createdAt,
-      };
+function withProviderTransaction(record: CreativeTransactionRecord, providerTransactionId: string, durableRevisionId = "") {
   return {
     ...record.changeSet,
-    context,
     transaction: {
       providerId: GITHUB_CREATIVE_TRANSACTION_PROVIDER.id,
-      transactionId: text(receipt.providerTransactionId, 220),
-      durableRevisionId: text(receipt.proposedRevisionId, 220),
+      transactionId: text(providerTransactionId, 220),
+      durableRevisionId: text(durableRevisionId, 220),
     },
   };
 }
@@ -146,7 +119,7 @@ function normalizeEvidence(evidence: readonly CreativeVerificationEvidence[]) {
   })) satisfies CreativeVerificationEvidence[];
 }
 
-function unknownReconciliation(record: CreativeTransactionRecord, summary: string, authoritative = false): CreativeTransactionReconciliation {
+function unknown(record: CreativeTransactionRecord, summary: string, authoritative = false): CreativeTransactionReconciliation {
   return {
     transactionId: record.transactionId,
     providerId: record.providerId,
@@ -160,19 +133,19 @@ function unknownReconciliation(record: CreativeTransactionRecord, summary: strin
 }
 
 async function reconcileRecord(bridge: GitHubCreativeTransactionBridge, record: CreativeTransactionRecord): Promise<CreativeTransactionReconciliation> {
-  const externalId = providerTransactionId(record);
-  if (!externalId) return unknownReconciliation(record, "No external transaction identity has been established. PlotPickle will not infer provider success.");
+  const providerId = externalTransactionId(record);
+  if (!providerId) return unknown(record, "No external transaction identity has been established. PlotPickle will not infer provider success.");
   let inspection: GitHubProposalInspection;
   try {
-    inspection = await bridge.inspectProposal(externalId);
+    inspection = await bridge.inspectProposal(providerId);
   } catch (error) {
-    return unknownReconciliation(record, error instanceof Error ? `GitHub provider state is unavailable: ${error.message}` : "GitHub provider state is unavailable.");
+    return unknown(record, error instanceof Error ? `GitHub provider state is unavailable: ${error.message}` : "GitHub provider state is unavailable.");
   }
   if (inspection.state === "unavailable" || inspection.state === "unknown") {
-    return unknownReconciliation(record, inspection.summary || "GitHub provider state is ambiguous; PlotPickle will not infer success.");
+    return unknown(record, inspection.summary || "GitHub provider state is ambiguous; PlotPickle will not infer success.");
   }
   if (inspection.state === "missing" || inspection.state === "changed") {
-    return unknownReconciliation(record, inspection.summary || "GitHub provider state no longer matches the transaction. Review is required before recovery continues.", true);
+    return unknown(record, inspection.summary || "GitHub provider state no longer matches the transaction. Review is required before recovery continues.", true);
   }
   const state = inspection.state === "committed"
     ? "committed"
@@ -194,10 +167,7 @@ async function reconcileRecord(bridge: GitHubCreativeTransactionBridge, record: 
   };
 }
 
-export function createGitHubCreativeTransactionProvider(
-  store: GitHubCreativeTransactionStore,
-  bridge: GitHubCreativeTransactionBridge,
-): CreativeTransactionProvider {
+export function createGitHubCreativeTransactionProvider(store: GitHubCreativeTransactionStore, bridge: GitHubCreativeTransactionBridge): CreativeTransactionProvider {
   const descriptor = descriptorFor(bridge);
   return {
     descriptor,
@@ -269,11 +239,12 @@ export function createGitHubCreativeTransactionProvider(
         throw new Error("Creative Transaction cannot request review before blocking verification passes.");
       }
       const receipt = await bridge.createProposal({ changeSet: clone(record.changeSet), artifactRefs: record.stagedArtifactRefs });
-      if (!text(receipt.providerTransactionId, 220)) throw new Error("GitHub did not return a provider transaction identity.");
+      const providerId = text(receipt.providerTransactionId, 220);
+      if (!providerId) throw new Error("GitHub did not return a provider transaction identity.");
       return save(store, {
         ...record,
         state: "awaiting-review",
-        changeSet: withProviderReceipt(record, receipt),
+        changeSet: withProviderTransaction(record, providerId),
         updatedAt: now(),
       });
     },
@@ -292,8 +263,8 @@ export function createGitHubCreativeTransactionProvider(
       assertState(record, ["awaiting-review"], "reject");
       const writerId = text(decision.writerId, 180);
       if (!writerId) throw new Error("Writer identity is required to reject a Creative Transaction.");
-      const externalId = providerTransactionId(record);
-      if (externalId) await bridge.declineProposal({ providerTransactionId: externalId, writerId, note: text(decision.note, 800) });
+      const providerId = externalTransactionId(record);
+      if (providerId) await bridge.declineProposal({ providerTransactionId: providerId, writerId, note: text(decision.note, 800) });
       const review: CreativeReviewDecision = { status: "rejected", writerId, note: text(decision.note, 800), decidedAt: now(decision.decidedAt) };
       return save(store, { ...record, state: "rejected", review, updatedAt: review.decidedAt });
     },
@@ -303,11 +274,11 @@ export function createGitHubCreativeTransactionProvider(
       assertState(record, ["awaiting-review", "rejected"], "revise");
       const writerId = text(decision.writerId, 180);
       if (!writerId) throw new Error("Writer identity is required to request Creative Transaction revision.");
-      const externalId = providerTransactionId(record);
-      if (externalId && bridge.requestRevision) {
-        await bridge.requestRevision({ providerTransactionId: externalId, writerId, note: text(decision.note, 800) });
-      } else if (externalId) {
-        await bridge.declineProposal({ providerTransactionId: externalId, writerId, note: text(decision.note, 800) || "Revision requested; supersede this proposal with a revised transaction." });
+      const providerId = externalTransactionId(record);
+      if (providerId && bridge.requestRevision) {
+        await bridge.requestRevision({ providerTransactionId: providerId, writerId, note: text(decision.note, 800) });
+      } else if (providerId) {
+        await bridge.declineProposal({ providerTransactionId: providerId, writerId, note: text(decision.note, 800) || "Revision requested; supersede this proposal with a revised transaction." });
       }
       const review: CreativeReviewDecision = { status: "revise", writerId, note: text(decision.note, 800), decidedAt: now(decision.decidedAt) };
       return save(store, {
@@ -326,26 +297,20 @@ export function createGitHubCreativeTransactionProvider(
       assertState(record, ["approved"], "commit");
       if (record.review.status !== "accepted" || !record.review.writerId) throw new Error("Creative Transaction requires explicit writer acceptance before provider commit.");
       if (!creativeTransactionVerificationComplete(record.changeSet, record.verificationEvidence)) throw new Error("Creative Transaction cannot commit without complete blocking verification evidence.");
-      const externalId = providerTransactionId(record);
-      if (!externalId) throw new Error("GitHub Creative Transaction has no external proposal identity.");
-      const inspection = await bridge.inspectProposal(externalId);
+      const providerId = externalTransactionId(record);
+      if (!providerId) throw new Error("GitHub Creative Transaction has no external proposal identity.");
+      const inspection = await bridge.inspectProposal(providerId);
       if (["missing", "changed", "unavailable", "unknown", "declined"].includes(inspection.state)) {
         throw new Error(`GitHub Creative Transaction cannot commit while provider state is ${inspection.state}. Reconcile and review before retrying.`);
       }
-      const committed = await bridge.commitApprovedProposal({
-        providerTransactionId: externalId,
-        writerId: record.review.writerId,
-        note: record.review.note,
-        expectedBaseRevisionId: providerBaseRevisionId(record),
-      });
+      const committed = await bridge.commitApprovedProposal({ providerTransactionId: providerId, writerId: record.review.writerId, note: record.review.note });
       const durableRevisionId = text(committed.durableRevisionId, 220);
       if (!durableRevisionId) throw new Error("GitHub did not confirm a durable provider revision.");
       const committedAt = now();
       const nextChangeSet = {
-        ...record.changeSet,
+        ...withProviderTransaction(record, providerId, durableRevisionId),
         verificationEvidence: clone(record.verificationEvidence),
         review: clone(record.review),
-        transaction: { providerId: descriptor.id, transactionId: externalId, durableRevisionId },
         updatedAt: committedAt,
         committedAt,
       };
@@ -373,9 +338,9 @@ export function createGitHubCreativeTransactionProvider(
       const record = await required(store, id);
       assertState(record, ["committed"], "rollback");
       if (!bridge.rollbackCommittedProposal) throw new Error("GitHub Creative Transaction provider does not advertise a safe rollback capability for this bridge.");
-      const externalId = providerTransactionId(record);
+      const providerId = externalTransactionId(record);
       const result = await bridge.rollbackCommittedProposal({
-        providerTransactionId: externalId,
+        providerTransactionId: providerId,
         durableRevisionId: record.durableRevisionId,
         writerId: record.review.writerId,
         note: `Rollback of Creative Transaction ${record.transactionId}`,

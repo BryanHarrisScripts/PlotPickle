@@ -26,6 +26,20 @@ async function providerModules() {
   return { contract, provider };
 }
 
+async function githubProviderModules() {
+  const contract = await contractModule();
+  const typescript = await source("lib/creative-transactions/github-creative-transaction-provider.ts");
+  const compiled = stripTypeScriptTypes(typescript, { mode: "transform" });
+  const runnable = compiled.replace(
+    /import\s*\{[\s\S]*?\}\s*from\s*["']\.\/creative-transaction-contract["'];?/,
+    "const { CREATIVE_TRANSACTION_CONTRACT_VERSION, creativeTransactionVerificationComplete, providerSupportsCapabilities } = globalThis.__plotpickleCreativeTransactionContract;",
+  );
+  assert.notEqual(runnable, compiled, "Expected GitHub provider contract import to be isolated for runtime tests");
+  globalThis.__plotpickleCreativeTransactionContract = contract;
+  const provider = await import(`data:text/javascript;base64,${Buffer.from(runnable).toString("base64")}#github-provider-${Date.now()}-${Math.random()}`);
+  return { contract, provider };
+}
+
 function changeInput(overrides = {}) {
   return {
     changeSetId: "change-2035",
@@ -45,6 +59,17 @@ function changeInput(overrides = {}) {
     createdAt: "2026-09-14T12:00:00.000Z",
     ...overrides,
   };
+}
+
+function passingEvidence() {
+  return [{
+    requirementId: "ppf-fresh",
+    authority: "plotpickle",
+    result: "PASS",
+    evidenceRef: "verification/ppf-fresh.json",
+    summary: "Revision 7 remains current.",
+    recordedAt: "2026-09-14T12:01:00.000Z",
+  }];
 }
 
 test("#2035 keeps Creative Transaction semantics provider-neutral and transport-last", async () => {
@@ -114,14 +139,7 @@ test("#2035 Local provider performs the full offline stage → verify → review
   assert.equal(staged.state, "staged");
   assert.equal(staged.stagedArtifactRefs.length, 2);
 
-  const verified = await local.verify(created.transactionId, [{
-    requirementId: "ppf-fresh",
-    authority: "plotpickle",
-    result: "PASS",
-    evidenceRef: "verification/ppf-fresh.json",
-    summary: "Revision 7 remains current.",
-    recordedAt: "2026-09-14T12:01:00.000Z",
-  }]);
+  const verified = await local.verify(created.transactionId, passingEvidence());
   assert.equal(verified.state, "verified");
 
   const review = await local.requestReview(created.transactionId);
@@ -200,4 +218,135 @@ test("#2035 bridge preserves Responsibility Run and PPF authority separation", a
   assert.match(bridge, /Canonical proposal fingerprint does not match the committed Creative Change Set/);
   assert.match(runs, /canonical: false/);
   assert.match(revisions, /Explicit writer approval is required for canonical mutation/);
+});
+
+test("#2039 GitHub is an optional external provider while Local remains the default canonical route", async () => {
+  const { contract, provider } = await githubProviderModules();
+  const descriptor = provider.GITHUB_CREATIVE_TRANSACTION_PROVIDER;
+  assert.equal(descriptor.kind, "external");
+  assert.ok(descriptor.capabilities.includes("remote"));
+  assert.ok(!descriptor.capabilities.includes("offline"));
+  assert.ok(!descriptor.capabilities.includes("atomic-commit"));
+  assert.ok(!descriptor.capabilities.includes("rollback"));
+
+  const automatic = contract.resolveCreativeTransactionProvider(
+    [descriptor, contract.LOCAL_CREATIVE_TRANSACTION_PROVIDER],
+    contract.CANONICAL_CREATIVE_TRANSACTION_CAPABILITIES,
+  );
+  assert.equal(automatic.id, "plotpickle-local");
+
+  const explicit = contract.resolveCreativeTransactionProvider(
+    [descriptor, contract.LOCAL_CREATIVE_TRANSACTION_PROVIDER],
+    contract.CANONICAL_CREATIVE_TRANSACTION_CAPABILITIES,
+    { preferredProviderId: descriptor.id },
+  );
+  assert.equal(explicit.id, descriptor.id);
+
+  assert.throws(
+    () => contract.resolveCreativeTransactionProvider(
+      [descriptor, contract.LOCAL_CREATIVE_TRANSACTION_PROVIDER],
+      ["offline"],
+      { preferredProviderId: descriptor.id },
+    ),
+    /No silent fallback was used/,
+  );
+});
+
+test("#2039 GitHub adapter completes a deterministic external review and durable commit without becoming PPF canon", async () => {
+  const { contract, provider } = await githubProviderModules();
+  const store = new provider.MemoryGitHubCreativeTransactionStore();
+  let remoteState = "open";
+  let durableRevisionId = "";
+  const calls = [];
+  const bridge = {
+    async createProposal(input) {
+      calls.push(["create", input.changeSet.changeSetId, [...input.artifactRefs]]);
+      return { providerTransactionId: "42", reviewRef: "review/42", baseRevisionId: "base-42", proposedRevisionId: "head-42" };
+    },
+    async inspectProposal() {
+      return { state: remoteState, durableRevisionId, summary: `remote ${remoteState}` };
+    },
+    async commitApprovedProposal(input) {
+      calls.push(["commit", input.providerTransactionId, input.writerId]);
+      remoteState = "committed";
+      durableRevisionId = "github-approved-42";
+      return { durableRevisionId };
+    },
+    async declineProposal(input) { calls.push(["decline", input.providerTransactionId]); remoteState = "declined"; },
+  };
+  const github = provider.createGitHubCreativeTransactionProvider(store, bridge);
+  const changeSet = contract.createCreativeChangeSet(changeInput({ changeSetId: "change-2039" }));
+  const created = await github.create(changeSet);
+  await github.stage(created.transactionId, ["project/storyboard/mini-07-02.json"]);
+  await github.verify(created.transactionId, passingEvidence());
+  const reviewing = await github.requestReview(created.transactionId);
+  assert.equal(reviewing.state, "awaiting-review");
+  assert.equal(reviewing.changeSet.transaction.providerId, "github-story-proposals");
+  assert.equal(reviewing.changeSet.transaction.transactionId, "42");
+  assert.equal(reviewing.changeSet.transaction.durableRevisionId, "");
+  assert.equal(reviewing.changeSet.context, null, "Provider metadata must not be smuggled into Context provenance");
+
+  await github.accept(created.transactionId, { writerId: "writer-2039", note: "Approve complete change set.", decidedAt: "2026-09-14T13:40:00.000Z" });
+  const committed = await github.commit(created.transactionId);
+  assert.equal(committed.state, "committed");
+  assert.equal(committed.durableRevisionId, "github-approved-42");
+  assert.equal(committed.changeSet.transaction.durableRevisionId, "github-approved-42");
+  assert.deepEqual(calls[0], ["create", "change-2039", ["project/storyboard/mini-07-02.json"]]);
+  assert.deepEqual(calls[1], ["commit", "42", "writer-2039"]);
+
+  const reconciled = await github.reconcile(created.transactionId);
+  assert.equal(reconciled.state, "committed");
+  assert.equal(reconciled.authoritative, true);
+  assert.equal(reconciled.durableRevisionId, "github-approved-42");
+
+  const ppfBridge = await source("lib/creative-transactions/creative-transaction-project-bridge.ts");
+  assert.match(ppfBridge, /Only a durable committed Creative Transaction can propose PPF canon admission/);
+  assert.match(ppfBridge, /Explicit writer approval/);
+});
+
+test("#2039 GitHub reconciliation fails closed on unavailable state and detects provider-commit acknowledgement gaps", async () => {
+  const { contract, provider } = await githubProviderModules();
+  const store = new provider.MemoryGitHubCreativeTransactionStore();
+  let remote = { state: "open", durableRevisionId: "", summary: "open" };
+  const bridge = {
+    async createProposal() { return { providerTransactionId: "77", reviewRef: "review/77", baseRevisionId: "base-77", proposedRevisionId: "head-77" }; },
+    async inspectProposal() { return remote; },
+    async commitApprovedProposal() { return { durableRevisionId: "approved-77" }; },
+    async declineProposal() {},
+  };
+  const github = provider.createGitHubCreativeTransactionProvider(store, bridge);
+  const changeSet = contract.createCreativeChangeSet(changeInput({ changeSetId: "change-reconcile-2039" }));
+  const created = await github.create(changeSet);
+  await github.stage(created.transactionId, ["project/story.json"]);
+  await github.verify(created.transactionId, passingEvidence());
+  await github.requestReview(created.transactionId);
+
+  remote = { state: "unavailable", durableRevisionId: "", summary: "network unavailable" };
+  const unavailable = await github.reconcile(created.transactionId);
+  assert.equal(unavailable.state, "unknown");
+  assert.equal(unavailable.authoritative, false);
+  assert.match(unavailable.summary, /network unavailable/);
+
+  await github.accept(created.transactionId, { writerId: "writer-2039", note: "accept", decidedAt: "2026-09-14T13:41:00.000Z" });
+  await assert.rejects(() => github.commit(created.transactionId), /cannot commit while provider state is unavailable/);
+
+  remote = { state: "committed", durableRevisionId: "", summary: "provider committed but exact receipt was not acknowledged locally" };
+  const gap = await github.reconcile(created.transactionId);
+  assert.equal(gap.state, "committed");
+  assert.equal(gap.durableRevisionId, "");
+  assert.equal(gap.authoritative, false);
+});
+
+test("#2039 concrete GitHub bridge reuses the existing local Story Proposal gateway instead of duplicating GitHub transport", async () => {
+  const [bridge, gateway, contract] = await Promise.all([
+    source("build/github-creative-transaction-bridge.ts"),
+    source("build/github-review-gateway.ts"),
+    source("lib/creative-transactions/creative-transaction-contract.ts"),
+  ]);
+  for (const endpoint of ["submit-proposal", "proposals", "proposal-review", "approve-proposal", "decline-proposal"]) assert.match(bridge, new RegExp(endpoint));
+  assert.doesNotMatch(bridge, /api\.github\.com|Authorization:|Bearer\s/);
+  assert.match(gateway, /expectedBaseCommit/);
+  assert.match(gateway, /force: false/);
+  assert.match(gateway, /safeManagedDeletionPath/);
+  assert.doesNotMatch(contract, /GitHub|pull request|GitHub Actions|branch protection/i);
 });

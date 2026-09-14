@@ -32,9 +32,14 @@
 
 .form {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   margin-top: 12px;
   max-width: 760px;
+}
+
+.form h3 {
+  margin: 0;
+  font-size: 18px;
 }
 
 .form label:not(.check) {
@@ -47,8 +52,14 @@
   font-weight: 700;
 }
 
+.form small {
+  color: var(--pp-skin-ink-muted);
+  line-height: 1.45;
+}
+
 .form input,
-.form select {
+.form select,
+.value {
   min-height: var(--pp-skin-control-height);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: 0;
@@ -56,6 +67,17 @@
   color: var(--pp-skin-ink);
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   font: inherit;
+  box-sizing: border-box;
+}
+
+.value {
+  display: flex;
+  align-items: center;
+}
+
+.form select:disabled,
+.parked {
+  opacity: .62;
 }
 
 .check {
@@ -73,11 +95,6 @@
 .check span {
   display: grid;
   gap: 3px;
-}
-
-.check small {
-  color: var(--pp-skin-ink-muted);
-  line-height: 1.45;
 }
 
 .form input:focus-visible,

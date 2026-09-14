@@ -6,6 +6,12 @@
   font-family: var(--pp-skin-font-ui);
 }
 
+.embedded {
+  max-width: 1040px;
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
 .hero,
 .card,
 .boundary {

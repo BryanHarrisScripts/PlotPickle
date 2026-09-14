@@ -2,28 +2,25 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import CloudStoryModeHost from "./cloud-story-mode-host";
+import { CONNECTED_DASHBOARD_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import LearnJourneyPreview from "./learn-journey-preview";
+import LocalAiSkinHost from "./local-ai-skin-host";
 import MenuFeedbackFooter from "./menu-feedback-footer";
+import NodeSkinPanel from "./node-skin-panel";
+import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
-import SettingsReviewSystemPanel, { isReviewSettingsSystemId, type ReviewSettingsSystemId } from "./settings-review-system-panel";
 import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 
-export type DashboardBbsItem = Readonly<{
-  id: string;
-  shortcut: string;
-  label: string;
-  description: string;
-  group?: string;
-}>;
+export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
-const CONNECTED_DASHBOARD_ITEMS = new Set(["community", "settings", "profile", "open-source", "help", "logout", "learn"]);
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
-  appearance: "A",
-  accessibility: "C",
-  defaults: "D",
-  advanced: "V",
+  "local-story-mode": "L",
+  cloud: "C",
+  "node-info": "I",
+  agents: "N",
 };
 
 const SETTINGS_MENU = [
@@ -31,40 +28,40 @@ const SETTINGS_MENU = [
     id: "general",
     shortcut: SETTINGS_SHORTCUTS.general,
     label: "General",
-    description: "Language, startup and confirmation preferences.",
+    description: "Language, startup, interface reference and project data.",
     group: "SETTINGS",
   },
   {
-    id: "appearance",
-    shortcut: SETTINGS_SHORTCUTS.appearance,
-    label: "Appearance",
-    description: "Theme, density and transparency preferences.",
-    group: "SETTINGS",
+    id: "local-story-mode",
+    shortcut: SETTINGS_SHORTCUTS["local-story-mode"],
+    label: "Local Story Mode",
+    description: "Local writing, images, video and Agent compute on this computer.",
+    group: "SYSTEMS",
   },
   {
-    id: "accessibility",
-    shortcut: SETTINGS_SHORTCUTS.accessibility,
-    label: "Accessibility",
-    description: "Contrast, motion and interface text preferences.",
-    group: "SETTINGS",
+    id: "cloud",
+    shortcut: SETTINGS_SHORTCUTS.cloud,
+    label: "Cloud Story Mode",
+    description: "Cloud writing, images, video, Agents and user-owned provider authority.",
+    group: "SYSTEMS",
   },
   {
-    id: "defaults",
-    shortcut: SETTINGS_SHORTCUTS.defaults,
-    label: "Defaults",
-    description: "Starting format, target length and autosave behaviour.",
-    group: "SETTINGS",
+    id: "node-info",
+    shortcut: SETTINGS_SHORTCUTS["node-info"],
+    label: "Node Info",
+    description: "PlotPickle Node identity, lifecycle, readiness and current project.",
+    group: "SYSTEMS",
   },
   {
-    id: "advanced",
-    shortcut: SETTINGS_SHORTCUTS.advanced,
-    label: "Advanced",
-    description: "PlotPickle source plus project data and recovery review.",
-    group: "SETTINGS",
+    id: "agents",
+    shortcut: SETTINGS_SHORTCUTS.agents,
+    label: "Agents",
+    description: "Assign Local or Cloud Story Mode compute to PlotPickle Agents.",
+    group: "SYSTEMS",
   },
 ] as const;
 
-const CONNECTED_SETTINGS_ITEMS = new Set(["general", "appearance", "accessibility", "defaults"]);
+const CONNECTED_SETTINGS_ITEMS = new Set(SETTINGS_MENU.map((item) => item.id));
 
 // Compatibility contract for the original #1754 fallback assertion: /api/skin-v1/dashboard-art
 // Runtime ownership now lives in SKIN_V1_ASSETS so future skins can swap their own artwork.
@@ -88,16 +85,18 @@ export default function DashboardBbsPanel({
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
-  const [settingsReviewSystem, setSettingsReviewSystem] = useState<ReviewSettingsSystemId | null>(null);
+  const [cloudStoryModeOpen, setCloudStoryModeOpen] = useState(false);
+  const [localStoryModeOpen, setLocalStoryModeOpen] = useState(false);
+  const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
+  const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
   const [settingsSelectedIndex, setSettingsSelectedIndex] = useState(0);
   const settingsItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedDashboardItem = items[selectedIndex];
-  const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEMS.has(selectedDashboardItem.id));
+  const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEM_IDS.has(selectedDashboardItem.id));
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
-  const selectedSettingsReview = Boolean(selectedSettingsItem && isReviewSettingsSystemId(selectedSettingsItem.id));
 
   useEffect(() => {
     if (writerCraftMenuOpen) {
@@ -105,15 +104,36 @@ export default function DashboardBbsPanel({
       return;
     }
     if (settingsMenuOpen && settingsWorkspace) {
-      onSurfaceNameChange(settingsWorkspace.toUpperCase());
+      onSurfaceNameChange("GENERAL");
       return;
     }
-    if (settingsMenuOpen && settingsReviewSystem) {
-      onSurfaceNameChange("ADVANCED");
+    if (settingsMenuOpen && cloudStoryModeOpen) {
+      onSurfaceNameChange("CLOUD STORY MODE");
+      return;
+    }
+    if (settingsMenuOpen && localStoryModeOpen) {
+      onSurfaceNameChange("LOCAL STORY MODE");
+      return;
+    }
+    if (settingsMenuOpen && nodeInfoOpen) {
+      onSurfaceNameChange("NODE");
+      return;
+    }
+    if (settingsMenuOpen && plotPickleAgentsOpen) {
+      onSurfaceNameChange("AGENTS");
       return;
     }
     onSurfaceNameChange(settingsMenuOpen ? "SETTINGS" : "DASHBOARD");
-  }, [onSurfaceNameChange, settingsMenuOpen, settingsReviewSystem, settingsWorkspace, writerCraftMenuOpen]);
+  }, [
+    cloudStoryModeOpen,
+    localStoryModeOpen,
+    nodeInfoOpen,
+    onSurfaceNameChange,
+    plotPickleAgentsOpen,
+    settingsMenuOpen,
+    settingsWorkspace,
+    writerCraftMenuOpen,
+  ]);
 
   function activateItem(index: number) {
     if (items[index]?.id === "settings") {
@@ -155,7 +175,19 @@ export default function DashboardBbsPanel({
       setSettingsWorkspace(item.id);
       return;
     }
-    if (isReviewSettingsSystemId(item.id)) setSettingsReviewSystem(item.id);
+    if (item.id === "local-story-mode") {
+      setLocalStoryModeOpen(true);
+      return;
+    }
+    if (item.id === "cloud") {
+      setCloudStoryModeOpen(true);
+      return;
+    }
+    if (item.id === "node-info") {
+      setNodeInfoOpen(true);
+      return;
+    }
+    if (item.id === "agents") setPlotPickleAgentsOpen(true);
   }
 
   function handleSettingsKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -165,8 +197,7 @@ export default function DashboardBbsPanel({
       if (shortcutIndex >= 0) {
         event.preventDefault();
         selectSettingsItem(shortcutIndex);
-        const shortcutItem = SETTINGS_MENU[shortcutIndex];
-        if (!isReviewSettingsSystemId(shortcutItem.id)) activateSettingsItem(shortcutIndex);
+        activateSettingsItem(shortcutIndex);
         return;
       }
     }
@@ -198,11 +229,11 @@ export default function DashboardBbsPanel({
 
   if (settingsMenuOpen && settingsWorkspace) {
     return (
-      <section aria-label={`${settingsWorkspace} settings`} onKeyDown={(event) => {
+      <section aria-label="General settings" onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); setSettingsWorkspace(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>{settingsWorkspace.toUpperCase()}</h1>
+          <h1>GENERAL</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsWorkspace(null)}>Back to Settings</button>
         </div>
         <SettingsWorkspacePanel section={settingsWorkspace} />
@@ -210,16 +241,58 @@ export default function DashboardBbsPanel({
     );
   }
 
-  if (settingsMenuOpen && settingsReviewSystem) {
+  if (settingsMenuOpen && cloudStoryModeOpen) {
     return (
-      <section aria-label={`${settingsReviewSystem} settings review`} onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setSettingsReviewSystem(null); }
+      <section aria-label="Cloud Story Mode setup" onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setCloudStoryModeOpen(false); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>ADVANCED</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setSettingsReviewSystem(null)}>Back to Settings</button>
+          <h1>CLOUD STORY MODE</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setCloudStoryModeOpen(false)}>Back to Settings</button>
         </div>
-        <SettingsReviewSystemPanel systemId={settingsReviewSystem} />
+        <CloudStoryModeHost />
+      </section>
+    );
+  }
+
+  if (settingsMenuOpen && localStoryModeOpen) {
+    return (
+      <section aria-label="Local Story Mode setup" onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setLocalStoryModeOpen(false); }
+      }}>
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>LOCAL STORY MODE</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setLocalStoryModeOpen(false)}>Back to Settings</button>
+        </div>
+        <LocalAiSkinHost />
+      </section>
+    );
+  }
+
+  if (settingsMenuOpen && nodeInfoOpen) {
+    return (
+      <section aria-label="Node information" onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setNodeInfoOpen(false); }
+      }}>
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>NODE INFO</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setNodeInfoOpen(false)}>Back to Settings</button>
+        </div>
+        <NodeSkinPanel />
+      </section>
+    );
+  }
+
+  if (settingsMenuOpen && plotPickleAgentsOpen) {
+    return (
+      <section aria-label="PlotPickle Agents setup" onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setPlotPickleAgentsOpen(false); }
+      }}>
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>AGENTS</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setPlotPickleAgentsOpen(false)}>Back to Settings</button>
+        </div>
+        <PlotPickleAgentsHost />
       </section>
     );
   }
@@ -245,8 +318,6 @@ export default function DashboardBbsPanel({
             {SETTINGS_MENU.map((item, index) => {
               const showGroup = index === 0 || SETTINGS_MENU[index - 1]?.group !== item.group;
               const connected = CONNECTED_SETTINGS_ITEMS.has(item.id);
-              const review = isReviewSettingsSystemId(item.id);
-              const openable = connected || review;
               const selected = index === settingsSelectedIndex;
               const command = `[${item.shortcut}] ${item.label}`.padEnd(30, " ");
               return (
@@ -257,14 +328,14 @@ export default function DashboardBbsPanel({
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    aria-disabled={!openable}
+                    aria-disabled={!connected}
                     tabIndex={selected ? 0 : -1}
                     autoFocus={index === 0}
                     className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
                     data-settings-secondary-item={item.id}
                     data-settings-shortcut={item.shortcut}
                     data-settings-secondary-connected={connected ? "true" : "false"}
-                    data-settings-review={review ? "true" : "false"}
+                    data-settings-review="false"
                     data-skin-menu-row={item.id}
                     data-skin-menu-shortcut={item.shortcut}
                     data-skin-menu-connected={connected ? "true" : "false"}
@@ -272,35 +343,12 @@ export default function DashboardBbsPanel({
                     onKeyDown={(event) => handleSettingsKeyDown(event, index)}
                   >
                     <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                    {review ? (
-                      <>
-                        <span
-                          className="pp-skin-v1-dashboard-status-box"
-                          style={{ display: "none" }}
-                          aria-hidden="true"
-                          data-dashboard-status="inactive"
-                          data-skin-menu-indicator="unwired"
-                        />
-                        <span
-                          className="pp-skin-v1-dashboard-status-box"
-                          style={{
-                            borderColor: "var(--pp-skin-warning)",
-                            background: "var(--pp-skin-warning)",
-                            boxShadow: "var(--pp-skin-shadow-control)",
-                          }}
-                          aria-label={`${item.label}: in review`}
-                          data-dashboard-status="review"
-                          data-settings-review-indicator="review"
-                        />
-                      </>
-                    ) : (
-                      <span
-                        className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                        aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
-                        data-dashboard-status={connected ? "active" : "inactive"}
-                        data-skin-menu-indicator={connected ? "connected" : "unwired"}
-                      />
-                    )}
+                    <span
+                      className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
+                      aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
+                      data-dashboard-status={connected ? "active" : "inactive"}
+                      data-skin-menu-indicator={connected ? "connected" : "unwired"}
+                    />
                   </button>
                 </Fragment>
               );
@@ -311,7 +359,6 @@ export default function DashboardBbsPanel({
             id="settings-menu-status"
             label={selectedSettingsItem?.label ?? "No destination"}
             available={selectedSettingsConnected}
-            review={selectedSettingsReview}
           />
         </div>
       </section>
@@ -366,7 +413,7 @@ export default function DashboardBbsPanel({
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu" aria-describedby="dashboard-menu-status">
           {items.map((item, index) => {
             const selected = index === selectedIndex;
-            const connected = CONNECTED_DASHBOARD_ITEMS.has(item.id);
+            const connected = CONNECTED_DASHBOARD_ITEM_IDS.has(item.id);
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
             return (

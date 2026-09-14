@@ -21,7 +21,7 @@ export type PlotPickleSettings = {
   version: typeof SETTINGS_VERSION;
   general: {
     language: string;
-    startupPage: "dashboard" | "simple-start";
+    startupPage: string;
     confirmDestructiveActions: boolean;
   };
   appearance: {
@@ -151,7 +151,9 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
     version: SETTINGS_VERSION,
     general: {
       language: typeof general.language === "string" && general.language.trim() ? general.language.trim() : defaultPlotPickleSettings.general.language,
-      startupPage: general.startupPage === "simple-start" ? "simple-start" : "dashboard",
+      startupPage: typeof general.startupPage === "string" && general.startupPage.trim() && general.startupPage !== "simple-start"
+        ? general.startupPage.trim()
+        : "dashboard",
       confirmDestructiveActions: typeof general.confirmDestructiveActions === "boolean" ? general.confirmDestructiveActions : true,
     },
     appearance: {

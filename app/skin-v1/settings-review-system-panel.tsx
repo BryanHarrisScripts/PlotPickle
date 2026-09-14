@@ -46,7 +46,13 @@ function formatBytes(bytes: number) {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
-export default function SettingsReviewSystemPanel({ systemId }: { readonly systemId: ReviewSettingsSystemId }) {
+export default function SettingsReviewSystemPanel({
+  systemId,
+  embedded = false,
+}: {
+  readonly systemId: ReviewSettingsSystemId;
+  readonly embedded?: boolean;
+}) {
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [projects, setProjects] = useState<ProjectFile[]>([]);
   const [backups, setBackups] = useState<BackupFile[]>([]);
@@ -88,15 +94,9 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
 
   if (systemId !== "advanced") return null;
 
-  return (
-    <div className={styles.surface} data-settings-review-surface="advanced" data-settings-review-state="in-review">
-      <section className={styles.hero} aria-labelledby="settings-review-advanced-title">
-        <p className={styles.eyebrow}>SETTINGS / ADVANCED</p>
-        <h2 id="settings-review-advanced-title">Advanced</h2>
-        <p>Reference PlotPickle source information and review the local project data and recovery storage already maintained by this computer.</p>
-      </section>
-
-      <section className={styles.cardGrid} aria-label="Advanced settings">
+  const content = (
+    <>
+      <section className={styles.cardGrid} aria-label={embedded ? "General settings references" : "Advanced settings"}>
         <article className={styles.card} data-settings-review-item="advanced-source">
           <div className={styles.cardHeader}>
             <h3>PlotPickle Source</h3>
@@ -112,6 +112,7 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
             <span className={styles.status}>{loading ? "Checking" : storage?.available ? "Available" : "Unavailable"}</span>
           </div>
           <p>Review the same local project files and rolling restore points already owned by PlotPickle's local-project gateway. Nothing is restored or changed from this screen.</p>
+          <p>The old autosave interval preference is parked because it is not connected to a project save scheduler. The recovery points below come from actual local-project saves and backups, not from that dormant interval value.</p>
           <div className={styles.refreshRow}><button type="button" className={styles.action} onClick={() => void refreshStorage()} disabled={loading}>{loading ? "Checking local storage…" : "Refresh local storage"}</button></div>
           {error ? <p className={styles.error} role="status">{error}</p> : null}
           {storage ? (
@@ -137,10 +138,25 @@ export default function SettingsReviewSystemPanel({ systemId }: { readonly syste
         </article>
       </section>
 
-      <section className={styles.boundary} aria-label="Advanced settings boundaries">
+      <section className={styles.boundary} aria-label="Project data recovery boundaries">
         <strong>Read-only recovery review</strong>
         <p>Original project files, Human-created story material and user-owned assets remain canonical data. This surface reads existing local storage only; restore operations still require the active project context and explicit Human confirmation.</p>
       </section>
+    </>
+  );
+
+  if (embedded) {
+    return <div className={styles.embedded} data-settings-general-references="true">{content}</div>;
+  }
+
+  return (
+    <div className={styles.surface} data-settings-review-surface="advanced" data-settings-review-state="in-review">
+      <section className={styles.hero} aria-labelledby="settings-review-advanced-title">
+        <p className={styles.eyebrow}>SETTINGS / ADVANCED</p>
+        <h2 id="settings-review-advanced-title">Advanced</h2>
+        <p>Reference PlotPickle source information and review the local project data and recovery storage already maintained by this computer.</p>
+      </section>
+      {content}
     </div>
   );
 }

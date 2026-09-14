@@ -13,9 +13,10 @@
   "acceptance": [
     {
       "id": "P1977-4-1",
-      "criterion": "OSS Radar runs daily at 6:00 AM EST and supports manual dispatch without push or pull-request execution.",
+      "criterion": "OSS Radar runs daily at 6:00 AM Eastern time and supports manual dispatch without push or pull-request execution.",
       "evidence": [
-        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '0 11 * * *'"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '0 6 * * *'"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"timezone: 'America/Toronto'"},
         {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"workflow_dispatch:"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"daily, manually dispatchable and least-privilege"}
       ]

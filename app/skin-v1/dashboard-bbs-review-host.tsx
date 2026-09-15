@@ -35,8 +35,6 @@ export default function DashboardBbsReviewHost({
     const returnToDashboard = () => {
       setLibraryOpen(false);
       setOutlineOpen(false);
-      setOpenSourceOpen(false);
-      setHelpIssueLogOpen(false);
       setShutdownOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);

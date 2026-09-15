@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import {
   PROJECT_LIBRARY_CHANGED_EVENT,
@@ -26,16 +26,19 @@ import {
 } from "../project-library-catalog";
 import styles from "./library-workspace.module.css";
 
-type LibraryTab = "featured" | "presets" | "stories" | "archive";
+type LibraryDestination = "new" | "import" | "load" | "examples" | "presets" | "avery" | "archive";
 type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
-const TABS: readonly { readonly id: LibraryTab; readonly label: string }[] = [
-  { id: "stories", label: "My Stories" },
-  { id: "featured", label: "Featured Examples" },
-  { id: "presets", label: "Genre Presets" },
-  { id: "archive", label: "Archive" },
+const DESTINATIONS: readonly { readonly id: LibraryDestination; readonly label: string }[] = [
+  { id: "new", label: "NEW" },
+  { id: "import", label: "IMPORT" },
+  { id: "load", label: "LOAD" },
+  { id: "examples", label: "EXAMPLES" },
+  { id: "presets", label: "PRESETS" },
+  { id: "avery", label: "AVERY" },
+  { id: "archive", label: "ARCHIVE" },
 ];
 
 const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> = {
@@ -54,6 +57,19 @@ function displayDate(value: string) {
 
 function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
+}
+
+function moveLibraryFocus(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  const buttons = Array.from(event.currentTarget.closest("nav")?.querySelectorAll<HTMLButtonElement>("button") || []);
+  if (!buttons.length) return;
+  let nextIndex = index;
+  if (event.key === "ArrowDown") nextIndex = (index + 1) % buttons.length;
+  else if (event.key === "ArrowUp") nextIndex = (index - 1 + buttons.length) % buttons.length;
+  else if (event.key === "Home") nextIndex = 0;
+  else if (event.key === "End") nextIndex = buttons.length - 1;
+  else return;
+  event.preventDefault();
+  buttons[nextIndex]?.focus();
 }
 
 function CatalogCard({ item, sourceKind, onLoad }: {
@@ -116,8 +132,8 @@ function NewStoryCard({ onCreate }: { readonly onCreate: () => void }) {
       <div className={styles.cardBody}>
         <div className={styles.meta}><span>Story</span><span>Local PPF</span></div>
         <h3>New Story</h3>
-        <p>Start a clean local PlotPickle story and move straight into LEARN. Nothing is filled in or accepted for you.</p>
-        <small>The new story uses the same profile-owned PPF authority as every other Library project.</small>
+        <p>Start a clean local PlotPickle story. Nothing is automatically treated as canon.</p>
+        <small>This is the primary entry point for creating a new Human-owned story.</small>
         <button className={styles.primaryButton} onClick={onCreate} type="button">Create New Story</button>
       </div>
     </article>
@@ -129,7 +145,7 @@ export default function LibraryWorkspace() {
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
   const ppfInput = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<LibraryTab>("stories");
+  const [destination, setDestination] = useState<LibraryDestination>("load");
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
@@ -144,12 +160,16 @@ export default function LibraryWorkspace() {
       setActiveProject(library.activeProject);
       setStories(listLibraryProjects());
       setArchivedCount(listArchivedLibraryProjects().length);
-      if (library.migrated) setNotice("Your existing PlotPickle project was safely added to My Stories.");
+      if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
       else if (library.quarantined.length) setNotice("PlotPickle preserved an unreadable record for recovery and opened the last good story.");
     };
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+  }, []);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has("averySession")) setDestination("avery");
   }, []);
 
   function createNewStory() {
@@ -228,7 +248,7 @@ export default function LibraryWorkspace() {
         title: result.project.title,
         format: `Imported · ${result.project.sourceEvidence.screenplay?.sourceFormat || "PPF"}`,
       });
-      setTab("stories");
+      setDestination("load");
       setNotice(`${imported.title} was imported into Library. Screenplay passages stay evidence; imported interpretation still requires your review.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not import this .ppf.");
@@ -238,39 +258,45 @@ export default function LibraryWorkspace() {
     }
   }
 
-  const visibleCatalog = tab === "featured" ? examples : presets;
+  function renderSurface() {
+    if (destination === "new") {
+      return (
+        <section aria-labelledby="new-title" className={styles.section} data-library-surface="new">
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>Create a Human-owned story</p><h2 id="new-title">NEW</h2></div>
+            <p>Start a clean local project. Nothing is automatically treated as canon, so creative decisions remain yours from the beginning.</p>
+          </div>
+          <div className={styles.singleCard}><NewStoryCard onCreate={createNewStory} /></div>
+        </section>
+      );
+    }
 
-  return (
-    <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v1">
-      <header className={styles.hero}>
-        <div><p className={styles.eyebrow}>Local story library</p><h1 id="library-title">Library</h1><p>Your stories first</p></div>
-        <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Create, restore, or import a story when you are ready."}</small></aside>
-      </header>
+    if (destination === "import") {
+      return (
+        <section aria-labelledby="import-title" className={styles.section} data-library-surface="import">
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>Bring in existing work</p><h2 id="import-title">IMPORT</h2></div>
+            <p>.PPF is the currently supported Library import path. Imported material remains source evidence until reviewed, and importer interpretation never silently becomes canon.</p>
+          </div>
+          <div className={styles.actionPanel}>
+            <div><strong>Import a .PPF story</strong><p>Choose an existing PlotPickle PPF file and add it to your local Library.</p></div>
+            <input ref={ppfInput} accept=".ppf,application/octet-stream" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
+            <button className={styles.primaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import .PPF"}</button>
+          </div>
+        </section>
+      );
+    }
 
-      <div className={styles.libraryColumn}>
-        <nav aria-label="Library filters" className={styles.tabs}>
-          {TABS.map((item) => (
-            <button aria-current={tab === item.id ? "page" : undefined} key={item.id} onClick={() => setTab(item.id)} type="button">
-              {item.label}
-              {item.id === "stories" ? <span>{stories.length}</span> : item.id === "archive" ? <span>{archivedCount}</span> : null}
-            </button>
-          ))}
-        </nav>
-        {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-
-        {tab === "archive" ? <ArchiveStoriesPanel /> : tab === "stories" ? (
-          <section aria-labelledby="my-stories-title" className={styles.section}>
-            <div className={styles.sectionHeading}>
-              <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div>
-              <div className={styles.storyTools}>
-                <p>Open saved Human projects here without mixing them with Avery’s read-only Writer-in-Residence sessions. Start clean, or import a .PPF without turning importer suggestions into canon.</p>
-                <input ref={ppfInput} accept=".ppf,application/octet-stream" hidden onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void importPpf(file); }} type="file" />
-                <button className={styles.primaryButton} onClick={createNewStory} type="button">New Story</button>
-                <button className={styles.secondaryButton} disabled={importingPpf} onClick={() => ppfInput.current?.click()} type="button">{importingPpf ? "Importing…" : "Import .PPF"}</button>
-              </div>
-            </div>
+    if (destination === "load") {
+      return (
+        <section aria-labelledby="load-title" className={styles.section} data-library-surface="load">
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="load-title">LOAD</h2></div>
+            <p>Open, resume, and manage your saved Human-owned PlotPickle stories. Avery Writer-in-Residence work is kept separate.</p>
+          </div>
+          {stories.length ? (
             <div className={styles.grid}>
-              {stories.length ? stories.map((item) => (
+              {stories.map((item) => (
                 <StoryCard
                   activeProjectId={activeProject?.id || ""}
                   item={item}
@@ -278,23 +304,82 @@ export default function LibraryWorkspace() {
                   onArchive={() => archiveStory(item)}
                   onOpen={() => setPending({ kind: "story", item })}
                 />
-              )) : <NewStoryCard onCreate={createNewStory} />}
+              ))}
             </div>
-          </section>
-        ) : (
-          <section aria-labelledby={`${tab}-title`} className={styles.section}>
-            <div className={styles.sectionHeading}>
-              <div><p className={styles.eyebrow}>{tab === "featured" ? "Immutable source projects" : "Canonical PPF starters"}</p><h2 id={`${tab}-title`}>{tab === "featured" ? "Featured Examples" : "Genre Presets"}</h2></div>
-              <p>{tab === "featured" ? "Load a user-owned working copy, then explore it through the normal PlotPickle workflow. The packaged source never changes." : "Each preset fills only fields supported by the current PPF model, leaving your creative decisions open."}</p>
-            </div>
-            <div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: tab === "featured" ? "example" : "preset", item })} sourceKind={tab === "featured" ? "example" : "preset"} />)}</div>
-          </section>
-        )}
+          ) : (
+            <div className={styles.empty}><h3>No saved stories yet.</h3><p>Use NEW to start a clean project or IMPORT to bring in an existing .PPF.</p></div>
+          )}
+        </section>
+      );
+    }
 
-        <details className={styles.averyDisclosure}>
-          <summary><span>Avery Writer-in-Residence sessions</span><small>Read-only review history</small></summary>
+    if (destination === "examples" || destination === "presets") {
+      const isExamples = destination === "examples";
+      const visibleCatalog = isExamples ? examples : presets;
+      return (
+        <section aria-labelledby={`${destination}-title`} className={styles.section} data-library-surface={destination}>
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>{isExamples ? "Packaged reference stories" : "Supported starter structures"}</p><h2 id={`${destination}-title`}>{isExamples ? "EXAMPLES" : "PRESETS"}</h2></div>
+            <p>{isExamples
+              ? "These are complete reference stories supplied with PlotPickle. Loading one creates a user-owned working copy while the packaged source remains unchanged."
+              : "Presets provide a starting structure for a genre or story type. They fill only supported starter fields, keep creative decisions with the Human, and create normal user-owned working projects."}</p>
+          </div>
+          <div className={styles.grid}>{visibleCatalog.map((item) => <CatalogCard item={item} key={item.id} onLoad={() => setPending({ kind: "catalog", sourceKind: isExamples ? "example" : "preset", item })} sourceKind={isExamples ? "example" : "preset"} />)}</div>
+        </section>
+      );
+    }
+
+    if (destination === "avery") {
+      return (
+        <section aria-labelledby="avery-title" className={styles.section} data-library-surface="avery">
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>Writer-in-Residence</p><h2 id="avery-title">AVERY</h2></div>
+            <p>Avery synthetic work and Writer-in-Residence history stay read-only and separate from Human-owned Library stories.</p>
+          </div>
           <AverySessionHistory />
-        </details>
+        </section>
+      );
+    }
+
+    return (
+      <section aria-labelledby="archive-title" className={styles.section} data-library-surface="archive">
+        <div className={styles.sectionHeading}>
+          <div><p className={styles.eyebrow}>Human-owned story history</p><h2 id="archive-title">ARCHIVE</h2></div>
+          <p>Review Human-owned stories you deliberately archived and restore them when needed. Avery sessions, examples, and presets do not enter this archive lifecycle.</p>
+        </div>
+        <ArchiveStoriesPanel />
+      </section>
+    );
+  }
+
+  return (
+    <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v2">
+      <header className={styles.hero}>
+        <div><p className={styles.eyebrow}>Local story library</p><h1 id="library-title">Library</h1><p>Your stories first</p></div>
+        <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Create, restore, or import a story when you are ready."}</small></aside>
+      </header>
+
+      <div className={styles.libraryLayout}>
+        <nav aria-label="Library navigation" className={styles.libraryNav}>
+          {DESTINATIONS.map((item, index) => (
+            <button
+              aria-current={destination === item.id ? "page" : undefined}
+              data-library-nav={item.id}
+              key={item.id}
+              onClick={() => setDestination(item.id)}
+              onKeyDown={(event) => moveLibraryFocus(event, index)}
+              type="button"
+            >
+              <strong>{item.label}</strong>
+              {item.id === "load" ? <span>{stories.length}</span> : item.id === "archive" ? <span>{archivedCount}</span> : null}
+            </button>
+          ))}
+        </nav>
+
+        <div className={styles.libraryColumn}>
+          {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+          {renderSurface()}
+        </div>
       </div>
 
       {pending ? (

@@ -2,7 +2,7 @@ name: PlotPickle OSS Radar
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '7 6 * * *'
       timezone: 'America/Toronto'
   workflow_dispatch:
 

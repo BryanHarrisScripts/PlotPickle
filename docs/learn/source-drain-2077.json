@@ -1,0 +1,463 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 2077,
+  "scope": "LEARN source drain 2/3: Structure and 24 Blocks, Dialogue, and Visual Storytelling",
+  "attachmentCount": 27,
+  "uniqueSourceCount": 27,
+  "topicCounts": {
+    "structure": 11,
+    "dialogue": 13,
+    "visual-storytelling": 3
+  },
+  "governingRule": "Current PlotPickle lessons are the learner-facing teaching authority; original source records remain provenance and local retrieval evidence.",
+  "sources": [
+    {
+      "sourceId": "24-blocks-24-blocks-readme-md",
+      "topic": "structure",
+      "path": "24 Blocks/README.md",
+      "title": "Screenwriting: 24 Blocks in 5-Minutes",
+      "decisions": [
+        {
+          "concept": "24-block grid as a planning resolution for a feature screenplay",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-new-spin"
+        },
+        {
+          "concept": "fixed five-minute/five-page timing and prescribed block events",
+          "disposition": "REJECTED_OUTDATED"
+        },
+        {
+          "concept": "repository table of contents and Home/navigation markup",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-screenplays-to-improv-md",
+      "topic": "structure",
+      "path": "General/General - Screenplays to Improv.md",
+      "title": "The Diversity of Structures",
+      "decisions": [
+        {
+          "concept": "multiple structural traditions and alternative forms",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:structures"
+        },
+        {
+          "concept": "medium-by-medium generalizations that are not required for screenplay planning",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-a-new-spin-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - A New Spin.md",
+      "title": "24 Blocks - A New Spin on Screenwriting",
+      "decisions": [
+        {
+          "concept": "Blocks as manageable planning containers rather than mandatory beats",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-new-spin"
+        },
+        {
+          "concept": "personal origin/history of the Blocks method",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-structure-guide-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Structure Guide.md",
+      "title": "Structure Guide: Blocks in Four-Acts",
+      "decisions": [
+        {
+          "concept": "four-act/six-block grid as a diagnostic planning map",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-structure-guide"
+        },
+        {
+          "concept": "exact beat placement or timing prescriptions",
+          "disposition": "REJECTED_OUTDATED"
+        },
+        {
+          "concept": "legacy HTML navigation/scaffolding",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-reflection-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Reflection.md",
+      "title": "Reflection and Parallels: 24-Block Four-Act Structure",
+      "decisions": [
+        {
+          "concept": "setup/payoff, opening/closing reflection and changed meaning",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-reflection"
+        },
+        {
+          "concept": "fixed mirrored-block expectations",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-structures-role-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Structures Role.md",
+      "title": "Structure's Role in Screenwriting",
+      "decisions": [
+        {
+          "concept": "structure as pressure, causality, audience orientation and choice",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-structures-role"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-story-beats-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Story Beats.md",
+      "title": "Block by Block: Building Your Screenplay in 24 Beats",
+      "decisions": [
+        {
+          "concept": "nested beat/scene/block/sequence/act planning scales",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-story-beats"
+        },
+        {
+          "concept": "one prescribed story beat per block",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-principle-of-three-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Principle of Three.md",
+      "title": "Fractal Storytelling: Principle of Three Meets 24 Blocks",
+      "decisions": [
+        {
+          "concept": "Promise–Progress–Payoff as a useful triad and PlotPickle Pressure extension",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-principle-three"
+        },
+        {
+          "concept": "mechanically repeating the same triad at every scale",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-dramatic-question-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Dramatic Question.md",
+      "title": "Dramatic Question",
+      "decisions": [
+        {
+          "concept": "nested dramatic questions that open, transform and resolve",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-dramatic-question"
+        },
+        {
+          "concept": "source table-of-contents/navigation scaffolding",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-structure-diversity-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Structure Diversity.md",
+      "title": "Structure Diversity",
+      "decisions": [
+        {
+          "concept": "nonlinear, parallel, episodic, circular and framed story shapes",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-structure-diversity"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-dynamic-scenes-md",
+      "topic": "structure",
+      "path": "24 Blocks/24 Blocks - Dynamic Scenes.md",
+      "title": "Building Dynamic Scenes",
+      "decisions": [
+        {
+          "concept": "scene objective, opposition, reversal, turn, consequence and handoff",
+          "disposition": "ALREADY_COVERED",
+          "destination": "structure:24b-dynamic-scenes"
+        },
+        {
+          "concept": "dialogue tactics and line-level performance choices",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2077 dialogue:dialogue-action / dialogue:dialogue-exchange-turn"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-dialogue-md",
+      "topic": "dialogue",
+      "path": "AI Prompts/24 Blocks - Dialogue.md",
+      "title": "Dialogue",
+      "decisions": [
+        {
+          "concept": "voice, purpose, subtext, conflict, brevity, action and revision checklist",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-action / dialogue:dialogue-voiceprint / dialogue:dialogue-revision"
+        },
+        {
+          "concept": "legacy prompt wrapper that asks an AI to improve supplied dialogue",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-readme-md",
+      "topic": "dialogue",
+      "path": "Dialogue/README.md",
+      "title": "Table of Contents",
+      "decisions": [
+        {
+          "concept": "dialogue craft overview: naturalism, subtext, conflict, voice and exposition",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-action / dialogue:dialogue-subtext / dialogue:dialogue-conflict / dialogue:dialogue-exposition-genre"
+        },
+        {
+          "concept": "repository table of contents and navigation markup",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-realistic-dialogue-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Realistic Dialogue.md",
+      "title": "Writing Realistic Dialogue",
+      "decisions": [
+        {
+          "concept": "crafted naturalism, rhythm, observation and read-aloud testing",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-voiceprint / dialogue:dialogue-revision"
+        },
+        {
+          "concept": "treating naturalism as literal transcription of everyday filler",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-distinctive-voices-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Distinctive Voices.md",
+      "title": "Creating Distinctive Voices",
+      "decisions": [
+        {
+          "concept": "distinct voice through worldview, rhythm, vocabulary, status and relationship",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-voiceprint"
+        },
+        {
+          "concept": "accent/demographic shorthand as a primary voice definition",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-reveal-character-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Reveal Character.md",
+      "title": "Using Dialogue to Reveal Character",
+      "decisions": [
+        {
+          "concept": "dialogue as behaviour that reveals objective, belief, status and strategy",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-action / dialogue:dialogue-voiceprint"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-subtext-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Subtext.md",
+      "title": "Writing Subtext in Dialogue",
+      "decisions": [
+        {
+          "concept": "subtext from protected information, relationship pressure and the cost of direct speech",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-subtext"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-conflict-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Conflict.md",
+      "title": "Dialogue and Conflict",
+      "decisions": [
+        {
+          "concept": "conflict from incompatible objectives, knowledge, status and changing tactics",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-conflict"
+        },
+        {
+          "concept": "equating useful dialogue conflict with constant argument or shouting",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-art-of-silence-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Art of Silence.md",
+      "title": "The Art of Silence",
+      "decisions": [
+        {
+          "concept": "silence, reaction and refusal as playable dramatic action",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-speech-silence-action"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-balancing-action-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Balancing Action.md",
+      "title": "Balancing Dialogue and Action",
+      "decisions": [
+        {
+          "concept": "speech, physical task, reaction and visible behaviour as one exchange",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-speech-silence-action"
+        },
+        {
+          "concept": "screen evidence beyond the exchange itself",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2077 visual-storytelling:essentials-screen-evidence"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-tags-and-beats-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Tags and Beats.md",
+      "title": "Dialogue Tags and Beats",
+      "decisions": [
+        {
+          "concept": "screenplay-form action beats, speaker clarity and playable interruptions",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-speech-silence-action"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-dialogue-pitfalls-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Dialogue Pitfalls.md",
+      "title": "Avoiding Common Dialogue Pitfalls",
+      "decisions": [
+        {
+          "concept": "diagnosing exposition, sameness, on-the-nose intention, weak conflict and overwritten lines",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-revision"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-different-genres-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Different Genres.md",
+      "title": "Writing Dialogue for Different Genres",
+      "decisions": [
+        {
+          "concept": "genre as pressure on information, pace, expectation and scene function",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-exposition-genre"
+        },
+        {
+          "concept": "genre stereotypes as fixed character voices",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-dialogue-24-blocks-refining-dialogue-md",
+      "topic": "dialogue",
+      "path": "Dialogue/24 Blocks - Refining Dialogue.md",
+      "title": "Editing and Refining Dialogue",
+      "decisions": [
+        {
+          "concept": "focused revision passes for purpose, tactic, voice, subtext, exposition, status, rhythm and performance",
+          "disposition": "ALREADY_COVERED",
+          "destination": "dialogue:dialogue-revision"
+        },
+        {
+          "concept": "broader drafting/revision workflow beyond dialogue",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2078 revision"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-moodboard-readme-md",
+      "topic": "visual-storytelling",
+      "path": "MoodBoard/README.md",
+      "title": "Mood Board Collection",
+      "decisions": [
+        {
+          "concept": "reference boards as visual vocabulary rather than canonical production assets",
+          "disposition": "ALREADY_COVERED",
+          "destination": "theme:mood-colour-visual-language / visual-storytelling:early-visual-development"
+        },
+        {
+          "concept": "raw gallery navigation, external tools and named-style image collection",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "bryanharrisscripts-github-io-video-retalking-md",
+      "topic": "visual-storytelling",
+      "path": "Video-Retalking.md",
+      "title": "Launching After Installation",
+      "decisions": [
+        {
+          "concept": "historical third-party Video-Retalking installation/runtime notes",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        },
+        {
+          "concept": "machine-specific paths and third-party installation commands as current guidance",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "bryanharrisscripts-github-io-lost-and-found-md",
+      "topic": "visual-storytelling",
+      "path": "Lost And Found.md",
+      "title": "30-Second Video Creation Challenge",
+      "decisions": [
+        {
+          "concept": "constrained visual-story exercise: tell a short story with limited motion and deliberate screen evidence",
+          "disposition": "ALREADY_COVERED",
+          "destination": "visual-storytelling:essentials-screen-evidence"
+        },
+        {
+          "concept": "legacy community/social navigation around the exercise",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "All 27 attachments are unique by source ID in the current topic files.",
+    "Structure sources are retained for provenance while fixed timing/beat prescriptions are not reintroduced as rules.",
+    "Dialogue sources are allocated across action, voiceprint, subtext, conflict, speech/silence/action, exposition/genre, exchange-turn and revision lessons rather than appended as a second dialogue course.",
+    "Visual Storytelling keeps historical visual/technical sources traceable without presenting old galleries or machine-specific setup instructions as current teaching.",
+    "Cross-domain process/revision material is handed to #2078 rather than duplicated."
+  ]
+}

@@ -243,7 +243,8 @@
       "include": [
         "adapters/curriculum/current-catalog.ts",
         "adapters/curriculum/current-catalog-integrated.ts",
-        "adapters/curriculum/issue-1976-canonical.ts"
+        "adapters/curriculum/issue-1976-canonical.ts",
+        "adapters/curriculum/foundation-course-material.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": ["canon", "graph"]

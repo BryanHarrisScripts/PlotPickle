@@ -62,6 +62,13 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         ],
       },
       {
+        heading: "Recognize the symbolic tools",
+        paragraphs: [
+          "Subtext is what a person means, wants or fears beneath the literal exchange. Foreshadowing plants a detail that prepares a later development. A motif is an image, sound, object or action that returns; a symbol carries an association beyond its immediate use. Repetition alone does not create meaning: the situation around the detail must let the audience infer the connection.",
+          "Mara's sealed file first represents protection through secrecy. When she later opens it in public, the same object carries accountability. Its repeated appearances make it a motif; its changing relationship to concealment gives it symbolic meaning. Showing her hide the file early can also prepare the later reveal. The audience should understand the immediate action even without noticing the symbol.",
+        ],
+      },
+      {
         heading: "Causality is the thread that holds the system together",
         paragraphs: [
           "A screenplay is more than a series of interesting moments. One action changes the conditions for the next. The protagonist chooses because of pressure; the choice produces a consequence; the consequence creates a harder problem or a more specific commitment. This cause-and-effect chain lets character and plot become the same movement rather than parallel tracks.",
@@ -223,6 +230,19 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         ],
       },
       {
+        heading: "Connect the source terms to visible choices",
+        paragraphs: [
+          "A character's overarching pursuit is sometimes called a super-objective; its desired result is the object of desire. A scene objective is the smaller result pursued now. A dramatic need describes what must change or be faced beneath that conscious pursuit. Keep these distinctions practical: Mara wants the recording now, wants to expose the chief across the story, and needs to face her own responsibility. A quest is one possible pursuit shape, not a required journey for every protagonist.",
+          "A character arc tracks how a person's strategy, understanding or commitments change under pressure. Change can be constructive, destructive or resisted. A steadfast character may change the people around them. A past wound or blind spot matters when it alters present choices; avoid treating a 'fatal flaw' as an obligatory moral defect or assigning an unconscious motive the screenplay never makes observable.",
+          "Point of view determines whose experience and knowledge guide the audience. Mara may see a withheld file as protection while her ally sees betrayal. Physical danger, emotional trust and deeply held beliefs can therefore be at stake in the same action. Show the different interpretations through behavior and consequence rather than explaining everyone's private thoughts.",
+        ],
+        points: [
+          "A subplot earns its place when it changes the main pursuit, its cost or the meaning of the outcome. It need not fit a fixed A/B/C label.",
+          "Conflict with another person, an institution, technology or oneself names a source of resistance. It becomes a thematic question only when choices test competing values; machines need not be superior or emotionless by definition.",
+          "Thematic agreement means the story's parts examine a shared question, not that every character gives the same answer. World rules should change what can be attempted or lost.",
+        ],
+      },
+      {
         heading: "Assemble the story engine",
         paragraphs: [
           "Write one connected paragraph that names the protagonist's want, protective strategy, opposition, escalating consequences, thematic question and likely final choice. Then test every clause against an action the audience could witness. Replace abstract virtues and flaws with behaviour.",
@@ -327,6 +347,12 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         paragraphs: [
           "An unusual setup can attract attention without producing a movie. 'A paramedic hears the dead' is a situation. 'A paramedic must prove a police chief is a murderer before he exposes her buried crime' implies continuing action, adaptive opposition and costly choices. The objective gives the middle a verb.",
           "Test the verb across several possible scenes. Can the protagonist attempt it in different ways? Can the opposing force block, tempt, mislead or raise the cost? Does each failure produce a more specific next action? If not, the sentence may describe Act One while leaving the rest of the screenplay unsupported.",
+        ],
+      },
+      {
+        heading: "A logline is different from a tagline",
+        paragraphs: [
+          "A one-sentence pitch can use the logline to introduce the project. A tagline is a short promotional phrase that suggests a feeling or hook and may omit the story engine entirely. 'Every secret has a witness' could be a tagline for Mara's film, but it does not identify her pursuit or opposition. Keep it beside the development logline rather than treating it as a replacement. A teaser can withhold a reveal while still giving its intended reader a truthful story promise.",
         ],
       },
       {
@@ -516,6 +542,13 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         ],
       },
       {
+        heading: "Where the 96 Mini-Blocks fit",
+        paragraphs: [
+          "The working scaffold gives each of the 24 Blocks four Mini-Blocks, making 96 smaller planning units. Use them to examine how a Block develops through changes in pressure, action and consequence. They are not automatically 96 scenes or 96 equal lengths of screen time. A beat is a dramatic change; a shot is a visual unit. Neither must match a Mini-Block one for one.",
+          "For the archive Block, the smaller movements might be Mara's attempt to gain access, the chief testing her story, his coercive offer and her costly exit choice. Check what each movement changes and how it serves the Block. The grid helps you inspect the story; it does not decide whether the creative choice works.",
+        ],
+      },
+      {
         heading: "Test alignment above and below every change",
         paragraphs: [
           "When a lower-level idea changes, ask what it changes above it. A new scene that does not alter its Block may be optional texture. A Block turn that cannot be expressed through scenes may still be abstract. A striking shot that contradicts the scene's emotional purpose can weaken the story even if it looks impressive.",
@@ -577,6 +610,20 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
           "Structure is not the mere presence of an inciting incident, midpoint and climax. Those terms are useful when they name changes in commitment, knowledge, cost or available action. The deeper principle is progressive consequence: each important choice removes easy options and makes the conflict more specific.",
           "Three-act structure is one optional diagnostic map, not a required architecture for every screenplay. A story may use three acts, another named model, PlotPickle's broad movements or a shape discovered from the material. What matters is that pressure, meaningful turns, causality and consequence remain legible; never force a living story into a diagram only to satisfy the diagram.",
           "At scene level, something must become different because the scene happened. The change may be external, relational, informational or internal, but it should affect what can happen next. A scene that only repeats known information can be beautifully written and still stall the story.",
+        ],
+      },
+      {
+        heading: "Name the landmarks by what they change",
+        paragraphs: [
+          "In a three-act description, setup establishes conditions and a pursuit, confrontation develops resistance and consequences, and resolution addresses the decisive outcome. An inciting incident disrupts the starting situation. A major commitment carries the protagonist into sustained pursuit. A midpoint can change understanding, leverage or strategy. These names describe useful functions, not mandatory page positions or one universal numbering of plot points.",
+          "The climax is the decisive confrontation or choice that answers the central dramatic conflict. Resolution shows what follows and what that outcome costs. The climax need not be the loudest event, and resolution need not explain every uncertainty. In Mara's story, choosing to disclose her own file can be the climax; seeing what this does to her work and relationships supplies resolution.",
+        ],
+      },
+      {
+        heading: "Prepare a surprise and carry its consequence",
+        paragraphs: [
+          "A plot twist changes how the audience understands the situation. Foreshadowing gives that change a foundation in earlier evidence without announcing the answer. Show the chief's access to a sealed file before he uses it as leverage; the later threat then surprises Mara without inventing new power at the last moment.",
+          "A transition can carry a question, contrasting image, sound or consequence across a scene boundary. Mara leaving the archive empty-handed can cut to her ally waiting for the promised recording. The connection creates pressure without a decorative transition instruction. Use spectacle when scale makes the choice or danger concrete, rather than adding an impressive event with no effect on the story.",
         ],
       },
       {
@@ -700,6 +747,13 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         ],
       },
       {
+        heading: "Try a controlled pace-and-tone experiment",
+        paragraphs: [
+          "Rewrite a short exchange twice while keeping its objective and outcome fixed. In one version, let quick replies repeatedly change leverage. In the other, let a pause, a physical task and a withheld answer delay the same decision. Rapid dialogue can accelerate attention, but repeated information still stalls. A reflective passage needs observable behavior, sound or a deliberate voice-over choice; adding private thoughts or longer description alone does not create screen time.",
+          "Then try the exchange with a different tonal attitude or genre promise. Let a character's choice of words and response to harm carry the difference, and compare what the audience now expects. A brief exploratory monologue can help find that voice without needing to enter the screenplay. Prepare a serious turn with an earlier reaction, image or consequence so the change feels earned. Keep the version that serves the story, not an automatic rule that comedy must be fast or drama slow.",
+        ],
+      },
+      {
         heading: "Define the final after-effect",
         paragraphs: [
           "Name what you want the audience to carry out of the ending: relief complicated by accountability, exhilaration shadowed by loss, grief opening into connection. Then trace where pacing and tone prepare that after-effect. An ending cannot suddenly manufacture an emotion the rest of the screenplay never rehearsed.",
@@ -767,6 +821,20 @@ export const FOUNDATION_LESSON_MATERIAL: Readonly<Record<FoundationLessonTitle, 
         paragraphs: [
           "Scope includes locations, cast, period detail, visual effects, stunts, animals, music, specialized access and episodic requirements. You do not need a full budget to acknowledge the choices that shape feasibility. Do not promise a contained production while the story depends on large public disasters and extensive supernatural effects.",
           "Separate confirmed facts from aspirations. If a collaborator, attachment or right is not secured, do not imply otherwise. Truthful uncertainty builds more trust than manufactured certainty.",
+        ],
+      },
+      {
+        heading: "Explain an episodic promise when the format needs it",
+        paragraphs: [
+          "For a series, distinguish the episode engine from the season arc. The episode engine explains what can generate a fresh pursuit and resistance each time; the season arc explains what accumulates or changes across episodes. State whether the proposed story closes within a limited run or has a credible way to continue. A long feature synopsis split into installments does not by itself demonstrate an episodic engine.",
+          "An alternative series version of Mara's premise might give each episode a different last-thought investigation while the chief's leverage grows across the season. This is a format experiment, not a silent change to the feature used in these lessons. Describe the recurring problem, changing relationships and intended season outcome only if that is the project you are actually pitching.",
+        ],
+      },
+      {
+        heading: "Separate reaching an audience from delivering the work",
+        paragraphs: [
+          "Marketing explains how a relevant audience might discover the project: a credible community, partner, event or campaign. Distribution explains how the finished work might reach that audience. Name a plausible route and the assumptions that require checking; an intention to approach a distributor or platform is not an agreement or a guarantee of demand.",
+          "If the listener needs market evidence, explain which comparison supports the claim, where the information came from and when it was checked. Verify changing figures, program requirements and submission routes with the responsible organization before external use. Keep unsupported audience-size, sales and revenue predictions out of the pitch. Rehearse a short version and a longer version, ask what the listener understood and end with one feasible next step.",
         ],
       },
       {

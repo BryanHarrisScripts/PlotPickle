@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 1,
+  "issue": 2094,
+  "baseCommit": "19e3b1fe502dc7edf2ee16614ba2679b25b5c400",
+  "phase": 1,
+  "reviewedThrough": 10,
+  "nextPresentationOrder": 11,
+  "totalPresentationLessons": 96,
+  "sourceViewerRetirement": "Deferred until all 96 lessons pass; Journey and Explore unchanged.",
+  "reviewMethod": "Read each full composed presentation lesson and every attached bundled source. Compare concepts, make targeted edits, then reread normal teaching without sources. Automated checks protect identity/provenance/evidence; they do not establish educational sufficiency.",
+  "lessons": {
+    "1": {
+      "presentationOrder": 1,
+      "lessonId": "foundations-general-readme-md",
+      "topic": "foundations",
+      "title": "The Anatomy of a Screenplay",
+      "sourceIds": [
+        "24-blocks-general-readme-md"
+      ],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Seven interacting craft lenses; causal scene example",
+          "action": "ALREADY_CLEAR",
+          "evidence": "The seven essential craft lenses; Causality is the thread that holds the system together"
+        },
+        {
+          "concept": "Subtext, foreshadowing, motif and symbol distinctions were named without enough explanation",
+          "action": "INTEGRATE",
+          "evidence": "Recognize the symbolic tools"
+        },
+        {
+          "concept": "Three-act setup, confrontation and resolution",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Lesson 8: Name the landmarks by what they change"
+        },
+        {
+          "concept": "Repository contents, Home links and HTML layout",
+          "action": "HISTORICAL_ONLY",
+          "evidence": "Preserved in source; no teaching value"
+        },
+        {
+          "concept": "Guaranteed masterpiece/success language and tone equated with mood",
+          "action": "REJECT",
+          "evidence": "No guaranteed outcomes; Lesson 9 distinguishes mood from tone"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "b68209c2dd450dfd54dd87178addf6f823cfb30f7281e09bff48a4f4be5d2eef",
+      "sourceHashes": {
+        "24-blocks-general-readme-md": "10198f05b6090046084ca5898575710f396249086fb97d9589e77d3cbb0b2340"
+      }
+    },
+    "2": {
+      "presentationOrder": 2,
+      "lessonId": "foundations-essentials-readme-md",
+      "topic": "foundations",
+      "title": "The Screenwriting Essentials Roadmap",
+      "sourceIds": [
+        "24-blocks-essentials-readme-md"
+      ],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Orientation to dynamics, theme, scene craft, symbolism and essential craft topics",
+          "action": "ALREADY_CLEAR",
+          "evidence": "A beginner's dependency path; Diagnose the problem before choosing the tool"
+        },
+        {
+          "concept": "Beginner/advanced table as mandatory learning order",
+          "action": "REJECT",
+          "evidence": "Current risk-led route remains advisory"
+        },
+        {
+          "concept": "Linked repository table of contents and navigation markup",
+          "action": "HISTORICAL_ONLY",
+          "evidence": "Source is a directory, not additional missing explanatory teaching"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "c98cc29296c7cc23ac7538c47ac33d96adc4b93d8d00ab2c5af7331b654a34b0",
+      "sourceHashes": {
+        "24-blocks-essentials-readme-md": "920bf6d691b1adfa50bbe6649e260882415219c7ff9fef3178899e6d7ed0a128"
+      }
+    },
+    "3": {
+      "presentationOrder": 3,
+      "lessonId": "foundations-essentials-essential-aspects-2-md",
+      "topic": "foundations",
+      "title": "Story Essentials: Theme, Plot, Character and Stakes",
+      "sourceIds": [
+        "24-blocks-essentials-essential-aspects-2-md"
+      ],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Theme/anti-theme; protective strategy, backstory, want/need; external/internal/relationship movement; action/reaction; escalation and stakes transformation",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Turn theme into a question with credible answers; Build character from strategy, not biography alone; Unify external, internal and relationship stories; Plot is escalating action and reaction; Let stakes transform"
+        },
+        {
+          "concept": "Super-objective/object of desire versus scene objective; quest; arcs; perspective; physical/emotional/belief stakes; subplots and thematic agreement; world pressure",
+          "action": "INTEGRATE",
+          "evidence": "Connect the source terms to visible choices"
+        },
+        {
+          "concept": "Machine/self/other conflict labels as themes; universal positive arc or inherent fatal defect; unsupported unconscious motives",
+          "action": "REJECT",
+          "evidence": "Rewritten as forms of resistance and observable choices, with constructive, destructive and steadfast possibilities"
+        },
+        {
+          "concept": "Fixed plot-point numbering and obligatory closure",
+          "action": "REJECT",
+          "evidence": "Functions instead of universal act/plot-point labels; Lesson 8 explains landmarks"
+        },
+        {
+          "concept": "Symbols and motifs; twists and foreshadowing; dialogue; hook; pace and tone",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Lesson 1: Recognize the symbolic tools; Lesson 8: Prepare a surprise and carry its consequence and Dialogue is action under relationship pressure; Lesson 6: Test hook, irony, tone and world pressure; Lesson 9: Tone is the story's attitude"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "47fc15698b795a44b429a3d24823283458daf760d6e41436fe9815cd09647b10",
+      "sourceHashes": {
+        "24-blocks-essentials-essential-aspects-2-md": "72a11d5704800a21166d9cbfcc3f0d3551bdc5956326ffbc12d8a9944bee4cbc"
+      }
+    },
+    "4": {
+      "presentationOrder": 4,
+      "lessonId": "pitch",
+      "topic": "foundations",
+      "title": "The Pitch",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Complete presented lesson including inherited overview/objectives/definitions/example/checklist/mistakes and curated exercise",
+          "action": "ALREADY_CLEAR",
+          "evidence": "The pitch is the first model of the movie; Premise, logline, short pitch and synopsis do different jobs; Mara's story at four resolutions; Speak from the causal path, not memorized sales copy"
+        },
+        {
+          "concept": "Pitch source moved to its promoted presentation owner, rather than attached here",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Lesson 10 owns 24-blocks-general-general-the-pitch-md; no source reattachment or duplication"
+        },
+        {
+          "concept": "No-spoilers instruction applied to all synopses",
+          "action": "REJECT",
+          "evidence": "Existing synopsis teaching reveals the ending when evaluation needs it"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "e5610255c9f03ae2f68018ed4810adab8dd8c4a46afc8195a9114b3e265f6cf0",
+      "sourceHashes": {}
+    },
+    "5": {
+      "presentationOrder": 5,
+      "lessonId": "loglines-that-carry-the-movie",
+      "topic": "foundations",
+      "title": "Loglines That Carry the Movie",
+      "sourceIds": [],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Engine, purpose, evidence states, optional enhancements, sentence specificity and approval/synchronization boundary",
+          "action": "ALREADY_CLEAR",
+          "evidence": "A development logline must carry the middle; Separate sentence evidence from private knowledge; Name the primary sentence and its synchronization boundary"
+        },
+        {
+          "concept": "Objective promises tagline/one-sentence-pitch distinction absent from presented sections",
+          "action": "INTEGRATE",
+          "evidence": "A logline is different from a tagline"
+        },
+        {
+          "concept": "Logline source belongs to the promoted presentation lesson",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Lesson 6 owns 24-blocks-loglines-loglines-md; no source reattachment"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "e086eb66b0d9cf523018d319f824d2606ff99d112dc2dbbf133c6c0c99a1a4ee",
+      "sourceHashes": {}
+    },
+    "6": {
+      "presentationOrder": 6,
+      "lessonId": "foundations-loglines-loglines-md",
+      "topic": "foundations",
+      "title": "Crafting and Testing Loglines",
+      "sourceIds": [
+        "24-blocks-loglines-loglines-md"
+      ],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "All 20 guide prompts: core, protagonist, conflict, setting, stakes, brevity, plain/active language, image, intrigue, disclosure, genre, irony, specificity, names, distinction, revision, feedback, reader and tone",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Rules are tests, not commandments; A repeatable testing sequence; Compare sentence shapes without surrendering the engine; Test hook, irony, tone and world pressure; Use feedback without surrendering the story"
+        },
+        {
+          "concept": "Example deconstruction and shorter variants that preserve the underlying project",
+          "action": "ALREADY_CLEAR",
+          "evidence": "One project can need several truthful versions; Approve a version without erasing the alternatives; existing worked Mara examples replace borrowed film blurbs"
+        },
+        {
+          "concept": "Every script begins with a logline; perfect/success guarantee; no endings or names as absolutes",
+          "action": "REJECT",
+          "evidence": "Purpose-based tests already replace universal rules"
+        },
+        {
+          "concept": "Home markup, assistant prompts, generated Amy/Ren answer and box-office prestige",
+          "action": "HISTORICAL_ONLY",
+          "evidence": "Keep provenance; do not make example fiction or commercial standing current authority"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "b4f6018341d5e18db68ad45d7f6a9e4c8ad66e0010e91d6e32491bcaa9dd5d94",
+      "sourceHashes": {
+        "24-blocks-loglines-loglines-md": "2d934e650eb3f9ac0142e3a8e10f725c9b7b90dcd5fed6eb9134f24abeb2a398"
+      }
+    },
+    "7": {
+      "presentationOrder": 7,
+      "lessonId": "why-plotpickle-works-in-layers",
+      "topic": "foundations",
+      "title": "Why PlotPickle Works in Layers",
+      "sourceIds": [],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Story resolutions, optional timing grid, alignment, discovery, Human approval and page-to-production traceability",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Different resolutions, one causal story; Use the 24-Block grid as a working resolution, not a timing law; Keep canon separate from proposals; Carry intention from page to production"
+        },
+        {
+          "concept": "Mini-Blocks mentioned without explaining 24 x 4 = 96 or distinction from scenes/beats/shots",
+          "action": "INTEGRATE",
+          "evidence": "Where the 96 Mini-Blocks fit"
+        },
+        {
+          "concept": "No linked source on this presentation lesson",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Reviewed full current teaching and inherited lesson fields; sourceIds intentionally empty"
+        },
+        {
+          "concept": "Historical product names, guaranteed production, compulsory AI/GitHub and equal timing",
+          "action": "REJECT",
+          "evidence": "Existing learner material rejects timing/automation guarantees; no new product claims"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "f3419025516b74d225ae2c621c5cc6cf7efa2e830536bfbb94814ce57cd3193a",
+      "sourceHashes": {}
+    },
+    "8": {
+      "presentationOrder": 8,
+      "lessonId": "foundations-essentials-essential-aspects-1-md",
+      "topic": "foundations",
+      "title": "Screenplay Essentials: Structure, Dialogue and Visuals",
+      "sourceIds": [
+        "24-blocks-essentials-essential-aspects-1-md"
+      ],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Scene breakdown, dialogue/characterization, visual evidence, formatting, tension, length, revision and spectacle serving consequence",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Build a complete scene movement; Dialogue is action under relationship pressure; Visual writing selects observable evidence; Format the evidence for a reader and production team; Revise by function and evidence"
+        },
+        {
+          "concept": "Inciting incident, commitment, midpoint, climax versus resolution; three-act functions",
+          "action": "INTEGRATE",
+          "evidence": "Name the landmarks by what they change"
+        },
+        {
+          "concept": "Twists, foreshadowing, scene transitions and purposeful spectacle",
+          "action": "INTEGRATE",
+          "evidence": "Prepare a surprise and carry its consequence"
+        },
+        {
+          "concept": "Theme; audience/genre/pace; project title",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Lesson 3: Turn theme into a question with credible answers; Lesson 9: Use genre as an audience agreement; Lesson 10: Group the possible components by purpose"
+        },
+        {
+          "concept": "Mandatory three acts/page timing; climax necessarily loudest; resolving every loose end; exhaustive visual/camera instructions",
+          "action": "REJECT",
+          "evidence": "Functional landmarks, selected evidence and meaningful consequence replace absolutes"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "5a0d77b16c0e1687672b75c6817ecd22c343bb23e661471c940990b5b22e1038",
+      "sourceHashes": {
+        "24-blocks-essentials-essential-aspects-1-md": "627c5e79301b058746fbd8a8a9da11851e0482d492039966553f797fb35c2800"
+      }
+    },
+    "9": {
+      "presentationOrder": 9,
+      "lessonId": "foundations-essentials-storytelling-dynamics-md",
+      "topic": "foundations",
+      "title": "Pacing and Tone: Storytelling Dynamics",
+      "sourceIds": [
+        "24-blocks-essentials-storytelling-dynamics-md"
+      ],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Rhythm and contrast, emotional processing, character behavior carrying tone, mood distinction, genre flexibility and pace/tone balance",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Pacing is rhythm, not constant speed; Tone is the story's attitude; Distinguish local mood from the governing tone; Use genre as an audience agreement; Worked rhythm: Mara's archive sequence"
+        },
+        {
+          "concept": "Rapid dialogue versus repetition; observable reflection; prepared tonal change; scene rewrite, genre swap and exploratory character monologue",
+          "action": "INTEGRATE",
+          "evidence": "Try a controlled pace-and-tone experiment"
+        },
+        {
+          "concept": "Genre dictates speed; internal thoughts/long description automatically slow screen time; named-film examples as compulsory models",
+          "action": "REJECT",
+          "evidence": "Conditional techniques and a controlled original exercise replace blanket rules and unnecessary example duplication"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "893fed5f1c28418f1181814263eab57bd4b5e9445b1dd735f17b284e4721e323",
+      "sourceHashes": {
+        "24-blocks-essentials-storytelling-dynamics-md": "53772edfe795791d949393e10f332a996d34af9feba414bbe6cbffd6755d97f5"
+      }
+    },
+    "10": {
+      "presentationOrder": 10,
+      "lessonId": "foundations-general-general-the-pitch-md",
+      "topic": "foundations",
+      "title": "Pitch Components and Project Positioning",
+      "sourceIds": [
+        "24-blocks-general-general-the-pitch-md"
+      ],
+      "learnerSufficientBefore": false,
+      "decisions": [
+        {
+          "concept": "Title/logline, overview, synopsis, distinctive story/world/character, audience/comparables, scope, creator credibility, call to action, listener-specific selection",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Story first, project information second; Group the possible components by purpose; State status, rights and relationships truthfully; Comparables are coordinates, not claims of quality; Be specific and honest about production scope; Mara pitched to two different listeners"
+        },
+        {
+          "concept": "Episode engine versus accumulating season arc and continuation; distribution versus marketing; rehearsal and feedback",
+          "action": "INTEGRATE",
+          "evidence": "Explain an episodic promise when the format needs it; Separate reaching an audience from delivering the work"
+        },
+        {
+          "concept": "Current market size, trends, sales/viewership figures, budgets and submission requirements",
+          "action": "DO_NOT_FREEZE",
+          "evidence": "Teach claim/source/date verification with responsible official authority, without inventing current numbers"
+        },
+        {
+          "concept": "Universal pitch checklist, avoid all synopsis spoilers, novelty guarantees viability or success",
+          "action": "REJECT",
+          "evidence": "Listener purpose controls disclosure and selection; no commercial guarantees"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Normal sections explain the retained concepts at this lesson's scope; the source viewer is not needed. Cross-lesson ownership is explicit above; no new deep-topic content or raw source text is appended.",
+      "lessonContentSha256": "e17518e2d9f8ec569e9115315d69ff70fcdf1f77d51002978f1684cbb898dda4",
+      "sourceHashes": {
+        "24-blocks-general-general-the-pitch-md": "d2fa2f1bfba04d9256ea67e792acfdc00c11c6c961cb3468f439d7f7b90b20a9"
+      }
+    }
+  },
+  "presentationOrderSha256": "be54835767c5b9a034537adfb1e610e580fd5a965cb1b1e12136c3f99a99b633",
+  "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343"
+}

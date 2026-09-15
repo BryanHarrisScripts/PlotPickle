@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import LibraryWorkspace from "../../modules/library/ui/library-workspace";
+import StructureEnginePage from "../structure/page";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
+import DashboardReadinessRail from "./dashboard-readiness-rail";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
@@ -21,12 +24,16 @@ export default function DashboardBbsReviewHost({
   readonly onSurfaceNameChange: (name: string) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [outlineOpen, setOutlineOpen] = useState(false);
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
   const [dashboardGeneration, setDashboardGeneration] = useState(0);
 
   useEffect(() => {
     const returnToDashboard = () => {
+      setLibraryOpen(false);
+      setOutlineOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);
     };
@@ -38,6 +45,13 @@ export default function DashboardBbsReviewHost({
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-dashboard-menu-item="${itemId}"]`)?.focus();
     });
+  }
+
+  function closeReview(itemId: "library" | "plan") {
+    if (itemId === "library") setLibraryOpen(false);
+    else setOutlineOpen(false);
+    onSurfaceNameChange("DASHBOARD");
+    restoreDashboardFocus(itemId);
   }
 
   function closeOpenSource() {
@@ -55,6 +69,18 @@ export default function DashboardBbsReviewHost({
   function activateItem(index: number) {
     const item = items[index];
     if (!item) return;
+    if (item.id === "library") {
+      onActivate(index);
+      onSurfaceNameChange("LIBRARY");
+      setLibraryOpen(true);
+      return;
+    }
+    if (item.id === "plan") {
+      onActivate(index);
+      onSurfaceNameChange("OUTLINE");
+      setOutlineOpen(true);
+      return;
+    }
     if (item.id === "open-source") {
       onActivate(index);
       onSurfaceNameChange("LICENSING");
@@ -68,6 +94,48 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (libraryOpen) {
+    return (
+      <section
+        className={reviewStyles.reviewSurface}
+        aria-label="Library review"
+        data-dashboard-review-surface="library"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); closeReview("library"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>LIBRARY</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("library")}>Back to Dashboard</button>
+        </div>
+        <LibraryWorkspace />
+      </section>
+    );
+  }
+
+  if (outlineOpen) {
+    return (
+      <section
+        className={reviewStyles.reviewSurface}
+        aria-label="Outline review"
+        data-dashboard-review-surface="outline"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); closeReview("plan"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>OUTLINE</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
+        </div>
+        <StructureEnginePage />
+      </section>
+    );
   }
 
   if (openSourceOpen) {
@@ -100,6 +168,7 @@ export default function DashboardBbsReviewHost({
 
   return (
     <div className={reviewStyles.reviewHost}>
+      <DashboardReadinessRail />
       <DashboardBbsPanel
         key={dashboardGeneration}
         items={items}

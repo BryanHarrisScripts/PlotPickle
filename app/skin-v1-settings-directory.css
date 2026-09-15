@@ -167,7 +167,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
 }
 
-/* #1965: keep Profile readiness truthful and actionable without sacrificing
+/* #1965/#2071: keep Profile readiness truthful and actionable without sacrificing
    the Human identity/character copy to a narrow desktop third column. */
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Identity summary"] {
   grid-template-columns: 108px minmax(0, 1fr) !important;
@@ -175,8 +175,8 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] {
   grid-column: 1 / -1 !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: var(--pp-skin-space-2) var(--pp-skin-space-4) !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
   padding: var(--pp-skin-space-3) 0 0 !important;
   border-left: 0 !important;
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
@@ -185,6 +185,8 @@ html[data-plotpickle-skin="skin-v1"] :is(
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] > div {
   min-width: 0 !important;
   grid-template-columns: minmax(0, 1fr) 11px !important;
+  gap: var(--pp-skin-space-2) !important;
+  font-size: var(--pp-skin-font-xs) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] button {
@@ -197,7 +199,12 @@ html[data-plotpickle-skin="skin-v1"] :is(
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  font-size: var(--pp-skin-font-xs) !important;
   text-align: left !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [data-lore-avatar-prompt-state="inactive"] {
+  opacity: 0.52 !important;
 }
 
 @media (max-width: 720px) {

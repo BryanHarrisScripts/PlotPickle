@@ -150,14 +150,14 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
   assert.match(sitemapContext, /"\/library":\s*\{[\s\S]*?activeShortcutId:\s*"library"[\s\S]*?rootContext:\s*"library"[\s\S]*?area:\s*"home"/);
   assert.match(releaseBoundary, /sitemapShellTarget\(pathname,\s*searchParams\.toString\(\)\)/);
   assert.match(releaseBoundary, /<PlotPickleWorkspaceShell[\s\S]*?activeWorkspace=\{target\.rootContext\}/);
-  assert.match(workspace, /Featured Examples/);
-  assert.match(workspace, /Genre Presets/);
-  assert.match(workspace, /My Stories/);
+  assert.match(workspace, /label: "EXAMPLES"/);
+  assert.match(workspace, /label: "PRESETS"/);
+  assert.match(workspace, /label: "LOAD"/);
   assert.match(workspace, /Load & Explore/);
   assert.match(workspace, /Your current work will be saved as a local story before PlotPickle switches projects/);
   assert.match(workspace, /role="dialog"/);
   assert.match(workspace, /aria-modal="true"/);
-  assert.match(workspace, /Avery’s read-only Writer-in-Residence sessions/);
+  assert.match(workspace, /destination === "avery"[\s\S]*<AverySessionHistory \/>/);
   assert.match(catalog, /createEmptyProject/);
   assert.match(catalog, /normalizeFoundationProject/);
   assert.match(catalog, /library-featured-example-v1/);

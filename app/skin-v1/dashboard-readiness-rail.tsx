@@ -22,8 +22,9 @@ type LocalConnectionsStatus = {
 type ReadinessState = {
   buzz: boolean | null;
   community: boolean | null;
-  local: boolean | null;
+  models: boolean | null;
   comfyui: boolean | null;
+  local: boolean | null;
   cloud: boolean | null;
 };
 
@@ -32,8 +33,9 @@ type ReadinessTarget = "profile" | "local-story-mode" | "cloud";
 const INITIAL_STATE: ReadinessState = {
   buzz: null,
   community: null,
-  local: null,
+  models: null,
   comfyui: null,
+  local: null,
   cloud: null,
 };
 
@@ -80,14 +82,18 @@ export default function DashboardReadinessRail() {
     const activeProvider = assistant?.activeProvider;
     const localProvider = activeProvider === "local" || activeProvider === "ollama" ? activeProvider : null;
     const cloudProvider = activeProvider === "openai" || activeProvider === "minimax" ? activeProvider : null;
+    const activeProfile = activeProvider && activeProvider !== "disabled" ? assistant?.providers?.[activeProvider] : null;
     const localProfile = localProvider ? assistant?.providers?.[localProvider] : null;
     const cloudProfile = cloudProvider ? assistant?.providers?.[cloudProvider] : null;
+    const localReady = Boolean(localProvider && (localProfile?.ready || (localProvider === "local" && assistant?.localRuntime?.ready)));
+    const activeModelReady = Boolean(activeProvider && activeProvider !== "disabled" && (activeProfile?.ready || (activeProvider === "local" && assistant?.localRuntime?.ready)));
 
     setReadiness({
       buzz: buzzReady,
       community: Boolean(buzzReady && guildhall?.operational),
-      local: Boolean(localProvider && (localProfile?.ready || (localProvider === "local" && assistant?.localRuntime?.ready))),
+      models: activeModelReady,
       comfyui: connections?.comfyui?.state === "connected",
+      local: localReady,
       cloud: Boolean(cloudProvider && cloudProfile?.ready),
     });
   }, []);
@@ -100,9 +106,10 @@ export default function DashboardReadinessRail() {
 
   const items: ReadonlyArray<{ label: string; shortLabel: string; ready: boolean | null; target: ReadinessTarget }> = [
     { label: "BUZZ Identity", shortLabel: "BUZZ", ready: readiness.buzz, target: "profile" },
-    { label: "Community BBS", shortLabel: "BBS", ready: readiness.community, target: "profile" },
-    { label: "Local Model", shortLabel: "MODEL", ready: readiness.local, target: "local-story-mode" },
+    { label: "BUZZ Community", shortLabel: "COMMUNITY", ready: readiness.community, target: "profile" },
+    { label: "Models", shortLabel: "MODELS", ready: readiness.models, target: "local-story-mode" },
     { label: "ComfyUI", shortLabel: "COMFY", ready: readiness.comfyui, target: "local-story-mode" },
+    { label: "Local Compute", shortLabel: "LOCAL", ready: readiness.local, target: "local-story-mode" },
     { label: "Cloud Compute", shortLabel: "CLOUD", ready: readiness.cloud, target: "cloud" },
   ];
 
@@ -116,6 +123,7 @@ export default function DashboardReadinessRail() {
             key={item.label}
             type="button"
             className={styles.item}
+            data-readiness-break={item.shortLabel === "LOCAL" ? "true" : undefined}
             onClick={() => openConfiguration(item.target)}
             title={`${item.label}: ${stateLabel}`}
             aria-label={`${item.label}: ${stateLabel}`}

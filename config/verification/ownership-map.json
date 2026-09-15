@@ -36,6 +36,13 @@
       "riskTokens": ["surface", "navigation", "agent"]
     },
     {
+      "id": "sage-brinewick-skill",
+      "classification": "production",
+      "include": [".agents/skills/sage-brinewick/SKILL.md"],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": ["agent", "canon", "provider"]
+    },
+    {
       "id": "windows-local-launcher",
       "classification": "production",
       "include": ["GIT-PlotPickle.ps1", "PlotPickle.ps1", "Start-PlotPickle.bat"],

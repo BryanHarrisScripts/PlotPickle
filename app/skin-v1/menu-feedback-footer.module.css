@@ -3,17 +3,9 @@
   align-items: center;
 }
 
-.legend {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: var(--pp-skin-space-2);
-  white-space: nowrap;
-}
-
-.legendReserved {
+.dashboardReserve {
   visibility: hidden;
+  white-space: nowrap;
 }
 
 .dashboardReadiness {
@@ -21,37 +13,4 @@
   inset-inline-end: 0;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.legendKey {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--pp-skin-space-1);
-}
-
-.legendSquare {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  flex: 0 0 auto;
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-ink-muted);
-  background: var(--pp-skin-ink-muted);
-}
-
-.legendSquareAvailable {
-  border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-accent-bright);
-  box-shadow: var(--pp-skin-shadow-control);
-}
-
-.legendSquareReview {
-  border-color: var(--pp-skin-warning);
-  background: var(--pp-skin-warning);
-  box-shadow: var(--pp-skin-shadow-control);
-}
-
-@media (max-width: 720px) {
-  .legend {
-    justify-content: flex-start;
-  }
 }

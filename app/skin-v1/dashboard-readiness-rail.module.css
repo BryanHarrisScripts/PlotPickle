@@ -3,6 +3,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--pp-skin-space-1);
+  padding-bottom: 4px;
   white-space: nowrap;
 }
 
@@ -21,6 +22,10 @@
   font: inherit;
   line-height: inherit;
   cursor: pointer;
+}
+
+.item[data-readiness-break="true"] {
+  margin-inline-start: 4px;
 }
 
 .item:hover,

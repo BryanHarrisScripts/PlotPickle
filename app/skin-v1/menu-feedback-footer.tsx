@@ -20,22 +20,25 @@ export default function MenuFeedbackFooter({ id, label, available, review = fals
     <div className={`pp-skin-v1-bbs-help ${styles.footer}`} data-menu-feedback="contextual">
       <span>UP/DOWN OR SHORTCUT KEY: SELECT</span>
       <span id={id} role="status" aria-live="polite" aria-atomic="true">{action}</span>
-      {dashboardFooter ? <DashboardReadinessRail /> : (
-        <span className={styles.legend} aria-label="Menu status legend">
-          <span className={styles.legendKey}>
-            <span className={`${styles.legendSquare} ${styles.legendSquareAvailable}`} aria-hidden="true" />
-            GREEN = AVAILABLE
-          </span>
-          <span className={styles.legendKey}>
-            <span className={`${styles.legendSquare} ${styles.legendSquareReview}`} aria-hidden="true" />
-            YELLOW = IN REVIEW
-          </span>
-          <span className={styles.legendKey}>
-            <span className={styles.legendSquare} aria-hidden="true" />
-            GRAY = UNAVAILABLE
-          </span>
+      <span
+        className={`${styles.legend} ${dashboardFooter ? styles.legendReserved : ""}`}
+        aria-label={dashboardFooter ? undefined : "Menu status legend"}
+        aria-hidden={dashboardFooter ? "true" : undefined}
+      >
+        <span className={styles.legendKey}>
+          <span className={`${styles.legendSquare} ${styles.legendSquareAvailable}`} aria-hidden="true" />
+          GREEN = AVAILABLE
         </span>
-      )}
+        <span className={styles.legendKey}>
+          <span className={`${styles.legendSquare} ${styles.legendSquareReview}`} aria-hidden="true" />
+          YELLOW = IN REVIEW
+        </span>
+        <span className={styles.legendKey}>
+          <span className={styles.legendSquare} aria-hidden="true" />
+          GRAY = UNAVAILABLE
+        </span>
+      </span>
+      {dashboardFooter ? <span className={styles.dashboardReadiness}><DashboardReadinessRail /></span> : null}
     </div>
   );
 }

@@ -71,7 +71,10 @@ test("#2076 audits exactly the 27 attached source records in its four topic grou
   assert.equal(attachedSourceIds.length, 27);
   assert.equal(new Set(attachedSourceIds).size, 27);
   assert.deepEqual(sorted(attachedSourceIds), sorted(EXPECTED_SOURCE_IDS));
-  assert.deepEqual(sorted(manifest.integratedSourceIds), sorted(EXPECTED_SOURCE_IDS));
+  for (const sourceId of EXPECTED_SOURCE_IDS) {
+    assert.ok(manifest.integratedSourceIds.includes(sourceId), `#2076 source ${sourceId} must remain integrated`);
+  }
+  assert.ok(manifest.auditedIssues.includes(2076), "The cumulative source manifest must retain the #2076 audit marker");
   assert.deepEqual(sorted(ledger.sources.map((source) => source.sourceId)), sorted(EXPECTED_SOURCE_IDS));
   assert.equal(ledger.attachmentCount, 27);
   assert.equal(ledger.uniqueSourceCount, 27);

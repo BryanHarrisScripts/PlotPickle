@@ -67,7 +67,7 @@ function fullRadarFixture() {
 }
 
 test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege", () => {
-  assert.match(workflow, /schedule:\n\s+- cron: '0 6 \* \* \*'\n\s+timezone: 'America\/Toronto'/u);
+  assert.match(workflow, /schedule:\n\s+- cron: '24 4 \* \* \*'\n\s+timezone: 'America\/Toronto'/u);
   assert.match(workflow, /workflow_dispatch:/u);
   assert.match(workflow, /permissions:\n\s+contents: read\n\s+issues: write/u);
   assert.doesNotMatch(workflow, /^\s*push:/mu);

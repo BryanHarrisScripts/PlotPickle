@@ -14,6 +14,7 @@ const phase4Baseline = "628b01e05d8568048b9fe176a1ab50aa9848ddc3";
 const phase5Baseline = "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4";
 const phase6Baseline = "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e";
 const phase7Baseline = "d12e18a279ee56032d8c7939232c1ddc4ccb9180";
+const phase8Baseline = "495ca1b8f0633f267460e007eeb18a9eb931a8ac";
 
 // Load the actual dependency-free curriculum projection on CI's Node 22.13.
 // Resolve its relative TS/JSON imports without installing the application stack.
@@ -51,14 +52,14 @@ test("#2094 audit follows actual presentation order and reviewed source routing"
   const sources = lessons.flatMap((lesson) => lesson.sources);
   assert.equal(sources.length, 95);
   assert.equal(new Set(sources.map((source) => source.id)).size, 95);
-  assert.equal(ledger.phase, 7);
-  assert.equal(ledger.phaseBaselineCommit, phase7Baseline);
-  assert.equal(ledger.reviewedThrough, 70);
-  assert.equal(ledger.nextPresentationOrder, 71);
-  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 70 }, (_, i) => String(i + 1)));
+  assert.equal(ledger.phase, 8);
+  assert.equal(ledger.phaseBaselineCommit, phase8Baseline);
+  assert.equal(ledger.reviewedThrough, 80);
+  assert.equal(ledger.nextPresentationOrder, 81);
+  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 80 }, (_, i) => String(i + 1)));
   const actions = new Set(["ALREADY_CLEAR", "INTEGRATE", "BETTER_ELSEWHERE", "HISTORICAL_ONLY", "REJECT", "DO_NOT_FREEZE"]);
   const differentGenres = "24-blocks-dialogue-24-blocks-different-genres-md";
-  for (const [index, lesson] of lessons.slice(0, 70).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 80).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     assert.equal(record.presentationOrder, order);
@@ -259,6 +260,31 @@ test("#2094 Phase 7 teaching is sufficient without source-driven rewrites", () =
   }
 });
 
+test("#2094 Phase 8 teaching is sufficient without source-driven rewrites", () => {
+  const expected = new Map([
+    [71, ["When this pass helps", "Blocks feel episodic or interchangeable", "Confusing chronology with causality"]],
+    [72, ["Build a checklist", "The scene starts too early or ends too late", "The scene can be removed without consequence"]],
+    [73, ["Compare two approaches", "The middle plateaus", "Bigger explosions as default escalation"]],
+    [74, ["Identify evidence and risks", "Readers report drag", "Arbitrary percentage cuts"]],
+    [75, ["Build a checklist", "Formatting inconsistencies distract from the read", "Treating one house style as universal law"]],
+    [76, ["Compare two approaches", "The screenplay direction is stable", "Generic hype"]],
+    [77, ["Why → how → evidence → diagnose → revise", "Questions, not verdicts", "Revision priorities"]],
+    [78, ["Define the job before the prompt", "Privacy, rights and provenance", "Bias, culture and human review"]],
+    [79, ["Match the request to the level", "How PlotPickle applies this", "Generated", "Canonical"]],
+    [80, ["Choose the tool after defining the task", "Bound context and preserve approval", "Collaboration is not publication"]],
+  ]);
+  for (const [order, concepts] of expected) {
+    const lesson = lessons[order - 1];
+    const record = ledger.lessons[String(order)];
+    const body = text({ ...lesson, sources: [] });
+    assert.equal(record.learnerSufficientBefore, true, `Lesson ${order}: unexpected source-dependent gap`);
+    assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `Lesson ${order}: unimplemented integration decision`);
+    assert.equal(record.reviewedAtCommit, phase8Baseline);
+    for (const concept of concepts) assert.ok(body.includes(concept), `Lesson ${order}: missing ${concept}`);
+    assert.doesNotMatch(body, /<pre>|<details>/);
+  }
+});
+
 test("#2094 keeps phased source retirement and shared presentation authority", () => {
   const read = (path) => readFileSync(resolve(root, path), "utf8");
   for (const path of ["app/skin-v1/learn-journey-preview.tsx", "app/skin-v1/learn-explore.tsx"]) {
@@ -273,6 +299,8 @@ test("#2094 keeps phased source retirement and shared presentation authority", (
   assert.equal(lessons[60].title, "Subtext, status and silence pass");
   assert.equal(lessons[69].title, "Diagnose without rewriting");
   assert.equal(lessons[70].title, "Structure and causality audit");
+  assert.equal(lessons[79].title, "AI, GitHub and Public Publishing as Optional Tools");
+  assert.equal(lessons[80].title, "The Film Industry");
 });
 
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -280,7 +308,7 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
   assert.equal(hash(lessons.map(({ id, topic, number }) => ({ id, topic, number }))), ledger.presentationOrderSha256);
   const sources = lessons.flatMap((lesson) => lesson.sources).sort((a, b) => a.id.localeCompare(b.id));
   assert.equal(hash(sources), ledger.sourceContentSha256);
-  for (const [index, lesson] of lessons.slice(0, 70).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 80).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     if (record.lessonContentSha256) {
@@ -298,7 +326,9 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
               ? phase5Baseline
               : order <= 60
                 ? phase6Baseline
-                : phase7Baseline;
+                : order <= 70
+                  ? phase7Baseline
+                  : phase8Baseline;
       assert.equal(record.reviewedAtCommit, expectedReviewCommit, `${lesson.title}: missing phase baseline evidence`);
       assert.equal(record.learnerSufficientBefore, true, `${lesson.title}: untracked teaching gap needs a fingerprinted edit`);
       assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `${lesson.title}: integration decision requires a content fingerprint`);

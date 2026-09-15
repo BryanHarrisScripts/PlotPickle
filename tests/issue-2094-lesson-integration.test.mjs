@@ -262,12 +262,12 @@ test("#2094 Phase 7 teaching is sufficient without source-driven rewrites", () =
 
 test("#2094 Phase 8 teaching is sufficient without source-driven rewrites", () => {
   const expected = new Map([
-    [71, ["When this pass helps", "Causality is traced between units", "Confusing chronology with causality"]],
-    [72, ["Build a checklist", "The scene begins in an active condition", "A turn changes the dramatic situation"]],
-    [73, ["Compare two approaches", "Escalation changes available choices", "Costs become concrete and cumulative"]],
-    [74, ["Identify evidence and risks", "Every redundancy claim cites evidence", "Compression preserves setup and payoff"]],
-    [75, ["Build a checklist", "Technical fixes remain separate from creative changes", "No arbitrary character-count target is imposed"]],
-    [76, ["Compare two approaches", "The central promise is accurate", "Audience language matches the intended destination"]],
+    [71, ["When this pass helps", "Blocks feel episodic or interchangeable", "Confusing chronology with causality"]],
+    [72, ["Build a checklist", "The scene starts too early or ends too late", "The scene can be removed without consequence"]],
+    [73, ["Compare two approaches", "The middle plateaus", "Bigger explosions as default escalation"]],
+    [74, ["Identify evidence and risks", "Readers report drag", "Arbitrary percentage cuts"]],
+    [75, ["Build a checklist", "Formatting inconsistencies distract from the read", "Treating one house style as universal law"]],
+    [76, ["Compare two approaches", "The screenplay direction is stable", "Generic hype"]],
     [77, ["Why → how → evidence → diagnose → revise", "Questions, not verdicts", "Revision priorities"]],
     [78, ["Define the job before the prompt", "Privacy, rights and provenance", "Bias, culture and human review"]],
     [79, ["Match the request to the level", "How PlotPickle applies this", "Generated", "Canonical"]],

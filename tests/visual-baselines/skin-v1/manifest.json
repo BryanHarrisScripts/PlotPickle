@@ -13,7 +13,7 @@
   "surfaces": {
     "dashboard": {
       "label": "Dashboard",
-      "status": "locked",
+      "status": "candidate",
       "selector": "[data-skin-reference='dashboard-canonical']",
       "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
       "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
@@ -27,14 +27,14 @@
     },
     "writers-craft": {
       "label": "Writer's Craft",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
       "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
     },
     "profile": {
       "label": "Identity",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
       "candidate": ".artifacts/visual-readiness/profile-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/profile.png"
@@ -48,7 +48,7 @@
     },
     "general": {
       "label": "General",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='General settings']",
       "candidate": ".artifacts/visual-readiness/general-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/general.png"
@@ -76,21 +76,21 @@
     },
     "agents": {
       "label": "Agents",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='PlotPickle Agents setup']",
       "candidate": ".artifacts/visual-readiness/agents-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/agents.png"
     },
     "issue-log": {
       "label": "Bug Report",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
       "candidate": ".artifacts/visual-readiness/issue-log-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/issue-log.png"
     },
     "licensing": {
       "label": "Notices",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
       "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/licensing.png"

@@ -12,6 +12,9 @@ import SettingsReviewSystemPanel from "./settings-review-system-panel";
 import styles from "./settings-workspace-panel.module.css";
 
 export type WorkspaceSettingsId = "general";
+type SkinTheme = "skin-v1" | "skin-v2";
+
+const SKIN_STORAGE_KEY = "plotpickle.skin";
 
 export function isWorkspaceSettingsId(value: string): value is WorkspaceSettingsId {
   return value === "general";
@@ -26,11 +29,17 @@ function readSettings() {
   }
 }
 
+function readSkinTheme(): SkinTheme {
+  return window.localStorage.getItem(SKIN_STORAGE_KEY) === "skin-v2" ? "skin-v2" : "skin-v1";
+}
+
 export default function SettingsWorkspacePanel({ section }: { readonly section: WorkspaceSettingsId }) {
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
+  const [skinTheme, setSkinTheme] = useState<SkinTheme>("skin-v1");
 
   useEffect(() => {
     setSettings(readSettings());
+    setSkinTheme(readSkinTheme());
   }, []);
 
   function persist(next: PlotPickleSettings) {
@@ -38,6 +47,12 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
     setSettings(normalized);
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
     announceSettingsChanged();
+  }
+
+  function persistSkinTheme(next: SkinTheme) {
+    setSkinTheme(next);
+    window.localStorage.setItem(SKIN_STORAGE_KEY, next);
+    window.dispatchEvent(new CustomEvent("plotpickle:skin-change"));
   }
 
   const startupPage = isDashboardStartupId(settings.general.startupPage) ? settings.general.startupPage : "dashboard";
@@ -71,10 +86,15 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
 
         <label>
           <span>Theme</span>
-          <select value="skin-v1" disabled aria-label="Theme">
-            <option value="skin-v1">Skin V1</option>
+          <select
+            value={skinTheme}
+            aria-label="Theme"
+            onChange={(event) => persistSkinTheme(event.currentTarget.value as SkinTheme)}
+          >
+            <option value="skin-v1">Matrix</option>
+            <option value="skin-v2">Black and White</option>
           </select>
-          <small>Skin V1 is the current PlotPickle interface theme. Additional skins can be added here when they exist.</small>
+          <small>Theme changes apply immediately and stay on this computer.</small>
         </label>
 
         <label className={`${styles.check} ${styles.parked}`}>

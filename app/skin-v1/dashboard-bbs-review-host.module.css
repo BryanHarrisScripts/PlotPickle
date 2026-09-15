@@ -1,3 +1,27 @@
 .reviewHost {
   display: contents;
 }
+
+.reviewSurface {
+  margin: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-warning-line);
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+}
+
+.reviewSurface :global(.pp-skin-v1-bbs-banner) {
+  border-color: var(--pp-skin-warning-line) !important;
+  background: var(--pp-skin-warning-surface) !important;
+  color: var(--pp-skin-warning-ink) !important;
+}
+
+.reviewBadge {
+  margin-left: auto;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-warning);
+  background: var(--pp-skin-warning);
+  color: var(--pp-skin-selected-ink);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}

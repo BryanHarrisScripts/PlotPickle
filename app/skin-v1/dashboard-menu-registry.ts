@@ -35,6 +35,8 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "help",
   "logout",
   "learn",
+  "library",
+  "plan",
 ]);
 
 export const DASHBOARD_STARTUP_CHOICES = [

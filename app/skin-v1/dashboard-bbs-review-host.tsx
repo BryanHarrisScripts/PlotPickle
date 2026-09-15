@@ -5,6 +5,7 @@ import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import StructureEnginePage from "../structure/page";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
+import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
 
@@ -27,12 +28,14 @@ export default function DashboardBbsReviewHost({
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
+  const [shutdownOpen, setShutdownOpen] = useState(false);
   const [dashboardGeneration, setDashboardGeneration] = useState(0);
 
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
       setOutlineOpen(false);
+      setShutdownOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);
     };
@@ -65,6 +68,12 @@ export default function DashboardBbsReviewHost({
     restoreDashboardFocus("help");
   }
 
+  function closeShutdown() {
+    setShutdownOpen(false);
+    onSurfaceNameChange("DASHBOARD");
+    restoreDashboardFocus("shutdown");
+  }
+
   function activateItem(index: number) {
     const item = items[index];
     if (!item) return;
@@ -90,6 +99,12 @@ export default function DashboardBbsReviewHost({
       onActivate(index);
       onSurfaceNameChange("ISSUE LOG");
       setHelpIssueLogOpen(true);
+      return;
+    }
+    if (item.id === "shutdown") {
+      onActivate(index);
+      onSurfaceNameChange("SHUT DOWN NODE");
+      setShutdownOpen(true);
       return;
     }
     onActivate(index);
@@ -162,6 +177,16 @@ export default function DashboardBbsReviewHost({
         </div>
         <HelpIssueLogSkinPanel />
       </section>
+    );
+  }
+
+  if (shutdownOpen) {
+    return (
+      <div onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); closeShutdown(); }
+      }}>
+        <NodeShutdownPanel onCancel={closeShutdown} />
+      </div>
     );
   }
 

@@ -199,10 +199,10 @@ test("#2094 Phase 6 teaching is sufficient without source-driven rewrites", () =
     [54, ["Story and structure problems", "The writer's practical challenges", "Escalation means qualitative change"]],
     [55, ["Complete scene movement", "Pressure Lock", "Cut Line"]],
     [56, ["Technique follows purpose", "Secondary heading / mini-slug", "Montage: Compress a process or transformation"]],
-    [57, ["When this pass helps", "Set the operation and scope", "Review the response before approval"]],
-    [58, ["When this pass helps", "Set the operation and scope", "Review the response before approval"]],
-    [59, ["The playable exchange", "Selected reality", "A line is not merely information"]],
-    [60, ["Voice is perception plus strategy", "Consistency does not mean sameness.", "Accent and dialect require care"]],
+    [57, ["Start with the condition, not the furniture", "Pressure creates tactics", "Turn the condition"]],
+    [58, ["Format is a reading interface", "Spec draft and production document have different jobs", "Verify the rule that actually applies"]],
+    [59, ["When this pass helps", "Set the operation and scope", "Review the response before approval"]],
+    [60, ["When this pass helps", "Status changes during the exchange.", "Recognize predictable AI failure modes"]],
   ]);
   for (const [order, concepts] of expected) {
     const lesson = lessons[order - 1];
@@ -225,8 +225,9 @@ test("#2094 keeps phased source retirement and shared presentation authority", (
   assert.match(read("app/api/learn/explore/route.ts"), /plotPickleCurriculum.*map/);
   assert.match(read("app/page.tsx"), /curriculum=\{plotPickleCurriculum\}/);
   assert.equal(lessons[50].title, "The Pickle Draft");
-  assert.equal(lessons[59].title, "Build a Playable Voiceprint");
-  assert.equal(lessons[60].title, "Write Subtext and Withheld Information");
+  assert.equal(lessons[56].title, "Scene Craft: Objective, Pressure and Turn");
+  assert.equal(lessons[59].title, "Subtext, status and silence pass");
+  assert.equal(lessons[60].title, "Dialogue Is Action");
 });
 
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");

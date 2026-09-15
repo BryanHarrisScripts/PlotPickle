@@ -148,7 +148,7 @@ test("moved material has an audited destination while every original remains att
   const { plotPickleCurriculum } = loadLocalModule(
     resolve(root, "adapters/curriculum/current-catalog.ts"),
   );
-  assert.equal(plotPickleCurriculum.length, 88);
+  assert.equal(plotPickleCurriculum.length, 96);
   assert.equal(plotPickleCurriculum.flatMap((lesson) => lesson.sources).length, 95);
   assert.equal(new Set(plotPickleCurriculum.flatMap((lesson) => lesson.sources.map((source) => source.id))).size, 95);
 });

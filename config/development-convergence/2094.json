@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "issue": 2094,
+  "phase": "phase-1-lessons-1-10",
+  "brief": "docs/learn/lesson-integration-2094-phase-1.md",
+  "allowedChanges": [
+    "adapters/curriculum/foundation-course-material.ts",
+    "docs/learn/lesson-integration-2094.json",
+    "docs/learn/lesson-integration-2094-phase-1.md",
+    "tests/issue-2094-lesson-integration.test.mjs",
+    "tests/issue-593-foundations-depth-and-placement.test.mjs",
+    "config/development-convergence/2094.json",
+    ".github/workflows/pr-gate.yml"
+  ],
+  "acceptance": [
+    {
+      "id": "P2094-1",
+      "criterion": "Ten individually reviewed lessons in actual presentation order with source decisions and fingerprint evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2094-lesson-integration.test.mjs",
+          "contains": "#2094 audit follows actual presentation order and attached provenance"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2094-lesson-integration.test.mjs",
+          "contains": "#2094 audit fingerprints match reviewed teaching, sources and order"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/pr-gate.yml",
+          "contains": "node --test tests/issue-2094-lesson-integration.test.mjs"
+        }
+      ]
+    },
+    {
+      "id": "P2094-2",
+      "criterion": "Retained missing concepts reach normal teaching; provenance and staged UI retirement remain protected.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2094-lesson-integration.test.mjs",
+          "contains": "#2094 retained gaps reach normal lesson sections without source records"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2094-lesson-integration.test.mjs",
+          "contains": "#2094 keeps phased source retirement and shared presentation authority"
+        }
+      ]
+    },
+    {
+      "id": "P2094-3",
+      "criterion": "Stop after Lesson 10 with focused validation and a restart checkpoint; no whole-issue completion claim.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/learn/lesson-integration-2094.json",
+          "contains": "\"nextPresentationOrder\": 11"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/learn/lesson-integration-2094-phase-1.md",
+          "contains": "19/19 focused tests passed"
+        }
+      ]
+    }
+  ]
+}

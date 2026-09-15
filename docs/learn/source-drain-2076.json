@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 2076,
+  "scope": ["foundations", "theme", "world", "character"],
+  "presentationLessonCount": 96,
+  "sourceRecordCount": 95,
+  "attachmentCount": 27,
+  "uniqueSourceCount": 27,
+  "dispositions": [
+    "INTEGRATED_HERE",
+    "INTEGRATED_ELSEWHERE",
+    "ALREADY_COVERED",
+    "HISTORICAL_REFERENCE_ONLY",
+    "REJECTED_OUTDATED"
+  ],
+  "sources": [
+    {
+      "sourceId": "24-blocks-general-general-the-pitch-md",
+      "topic": "foundations",
+      "path": "General/General - The Pitch.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "story promise, premise, logline, synopsis, protagonist, objective, opposition and stakes", "disposition": "ALREADY_COVERED", "destination": "The Pitch"},
+        {"concept": "audience, format, comparables, production scope and call to action", "disposition": "ALREADY_COVERED", "destination": "Pitch Components and Project Positioning"},
+        {"concept": "marketability claims and one universal pitch checklist", "disposition": "REJECTED_OUTDATED", "reason": "Current teaching uses evidence and audience-purpose selection rather than unsupported absolutes."}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-readme-md",
+      "topic": "foundations",
+      "path": "General/README.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "screenplay craft as interacting systems: structure, dialogue, character, theme, world, pacing, tone and motif", "disposition": "ALREADY_COVERED", "destination": "The Anatomy of a Screenplay"},
+        {"concept": "theme, scene function, dialogue as action, screen evidence, pacing and tone", "disposition": "ALREADY_COVERED", "destination": "Story Essentials; Screenplay Essentials; Pacing and Tone"},
+        {"concept": "repository Table of Contents, Home links and navigation markup", "disposition": "HISTORICAL_REFERENCE_ONLY"},
+        {"concept": "three-act structure as required architecture and theme as one underlying message", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-loglines-loglines-md",
+      "topic": "foundations",
+      "path": "Loglines/Loglines.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "protagonist, disruption, objective, opposition, stakes, specificity and purpose-specific logline variants", "disposition": "ALREADY_COVERED", "destination": "Loglines That Carry the Movie; Crafting and Testing Loglines"},
+        {"concept": "approval and downstream synchronization", "disposition": "ALREADY_COVERED", "destination": "Why PlotPickle Works in Layers"},
+        {"concept": "absolute word counts, mandatory irony, hidden endings and prompt/generated-answer residue", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-essential-aspects-1-md",
+      "topic": "foundations",
+      "path": "Essentials/Essential Aspects 1.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "structure, scene movement, dialogue, subtext, physical behaviour, visual evidence and escalation", "disposition": "ALREADY_COVERED", "destination": "Story Essentials; Screenplay Essentials"},
+        {"concept": "setup, payoff, ending consequence and coherence", "disposition": "ALREADY_COVERED", "destination": "Build the Story Experience"},
+        {"concept": "climax as necessarily loudest, resolution tying every loose end, one-page-per-minute as law", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-essential-aspects-2-md",
+      "topic": "foundations",
+      "path": "Essentials/Essential Aspects 2.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "theme, plot, character, want, need, opposition, relationship movement and changing stakes", "disposition": "ALREADY_COVERED", "destination": "Story Essentials: Theme, Plot, Character and Stakes"},
+        {"concept": "playable character intention and ending proof", "disposition": "ALREADY_COVERED", "destination": "Screenplay Essentials; Build the Story Experience"},
+        {"concept": "anti-theme as villain opposite, fatal flaw as moral defect, gendered conflict labels and universal positive arcs", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-readme-md",
+      "topic": "foundations",
+      "path": "Essentials/README.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "topic orientation, problem-led learning routes and dependency path", "disposition": "ALREADY_COVERED", "destination": "The Screenwriting Essentials Roadmap"},
+        {"concept": "repository table-of-contents markup presented as curriculum", "disposition": "HISTORICAL_REFERENCE_ONLY"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-storytelling-dynamics-md",
+      "topic": "foundations",
+      "path": "Essentials/Storytelling Dynamics.md",
+      "coverageReference": "adapters/curriculum/foundation-content-coverage.ts",
+      "decisions": [
+        {"concept": "anticipation, withholding, reveal, reversal, transition, meaningful change, tonal attitude and audience rhythm", "disposition": "ALREADY_COVERED", "destination": "Screenplay Essentials; Pacing and Tone"},
+        {"concept": "tonal promise, emotional movement and ending after-effect", "disposition": "ALREADY_COVERED", "destination": "Build the Story Experience"},
+        {"concept": "genre determines pace and tone equals mood", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-thematic-components-md",
+      "topic": "theme",
+      "path": "Essentials/Thematic Components.md",
+      "decisions": [
+        {"concept": "theme tested through plot, character beliefs, conflict, choice and consequence", "disposition": "ALREADY_COVERED", "destination": "Make Theme a Dramatic Argument"},
+        {"concept": "multiple and competing interpretations of a thematic question", "disposition": "ALREADY_COVERED", "destination": "Make Theme a Dramatic Argument"},
+        {"concept": "symbolic reinforcement of thematic meaning", "disposition": "ALREADY_COVERED", "destination": "Build Motifs, Symbols and Echoes"},
+        {"concept": "theme as a moral compass/underlying message that every event and line must reflect", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-symbolic-techniques-md",
+      "topic": "theme",
+      "path": "Essentials/Symbolic Techniques.md",
+      "decisions": [
+        {"concept": "motifs, symbols, repeated actions, colour, sound, metaphor, allegory, irony, foreshadowing and changed repetition", "disposition": "ALREADY_COVERED", "destination": "Build Motifs, Symbols and Echoes; Mood, Colour and Visual Language; Theme, motif and foreshadowing pass"},
+        {"concept": "subtext as dialogue behaviour", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Dialogue"},
+        {"concept": "visual storytelling as shot/screen evidence", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Visual Storytelling"},
+        {"concept": "mirror-character function", "disposition": "ALREADY_COVERED", "destination": "Build Opposition as a Competing Worldview; Design the Cast as a Dramatic System"},
+        {"concept": "fixed symbol dictionaries or guaranteed universal meanings", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-tropes-and-genres-md",
+      "topic": "world",
+      "path": "General/General - Tropes and Genres.md",
+      "decisions": [
+        {"concept": "genre as audience promise, conventions, trope recognition, subversion and genre mixing", "disposition": "ALREADY_COVERED", "destination": "Tropes and Genres"},
+        {"concept": "genre-specific craft pressures such as anticipation, escalation, conflict and speculation", "disposition": "ALREADY_COVERED", "destination": "Tropes and Genres"},
+        {"concept": "prescriptive genre stereotypes such as punchy dialogue as comedy law or good-versus-evil as fantasy requirement", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-world-building-md",
+      "topic": "world",
+      "path": "General/General - World Building.md",
+      "decisions": [
+        {"concept": "history, cultures, institutions, rules, geography, language, mundane life and selective exposition", "disposition": "ALREADY_COVERED", "destination": "World-Building"},
+        {"concept": "world detail affecting character behaviour and present story pressure", "disposition": "ALREADY_COVERED", "destination": "World-Building"},
+        {"concept": "world-building framed as primarily fantasy/science-fiction work", "disposition": "REJECTED_OUTDATED", "reason": "Current lesson correctly applies world-building to every genre."}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-story-bible-character-md",
+      "topic": "world",
+      "path": "General/General - Story Bible - Character.md",
+      "decisions": [
+        {"concept": "character profiles, goals, motivations, backstory, relationships, conflicts, strengths and consistency", "disposition": "ALREADY_COVERED", "destination": "Story Bible: Character; The Story Bible"},
+        {"concept": "character relationship with setting", "disposition": "ALREADY_COVERED", "destination": "World-Building; Story Bible: Character"},
+        {"concept": "character arcs as normally requiring transformation", "disposition": "REJECTED_OUTDATED", "reason": "Current Character curriculum supports positive, flat, negative, tragic and ambiguous arcs."}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-story-bible-md",
+      "topic": "world",
+      "path": "General/General - Story Bible.md",
+      "decisions": [
+        {"concept": "living story bible containing premise, world, characters, chronology, tone, themes and continuity", "disposition": "ALREADY_COVERED", "destination": "The Story Bible"},
+        {"concept": "production plan, marketing/audience and professional selling material", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2078 Industry / Collaboration"},
+        {"concept": "story bible as a sales document whose universal goal is to sell", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-character-archetypes-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Character Archetypes.md",
+      "decisions": [
+        {"concept": "archetypes as flexible dramatic functions that characters can combine or move between", "disposition": "ALREADY_COVERED", "destination": "Design the Cast as a Dramatic System"},
+        {"concept": "archetypes shaping relationships and story pressure", "disposition": "ALREADY_COVERED", "destination": "Design Relationships That Change Both People; Design the Cast as a Dramatic System"},
+        {"concept": "gendered Damsel label and fixed Hero/Mentor/Villain interaction table as normative casting", "disposition": "REJECTED_OUTDATED"},
+        {"concept": "named franchise examples", "disposition": "HISTORICAL_REFERENCE_ONLY"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-development-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Development.md",
+      "decisions": [
+        {"concept": "character strategy changing under escalating pressure, choices and consequences", "disposition": "ALREADY_COVERED", "destination": "Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "exact 24-Block/four-act placement as a structural diagnostic", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"},
+        {"concept": "mandatory temporary triumph, fixed block timing and substantial positive transformation", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-man-vs-himself-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Man vs Himself.md",
+      "decisions": [
+        {"concept": "internal, interpersonal and system/technology pressures exposing fear, belief, morality and strategy", "disposition": "ALREADY_COVERED", "destination": "Join Inner and Outer Conflict"},
+        {"concept": "gendered Man-versus labels and machine-versus-human emotional absolutes", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-readme-md",
+      "topic": "character",
+      "path": "Character/README.md",
+      "decisions": [
+        {"concept": "repository Table of Contents, Home link and source navigation", "disposition": "HISTORICAL_REFERENCE_ONLY"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-compelling-characters-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Compelling Characters.md",
+      "decisions": [
+        {"concept": "motivation contrasts, transformation, identity, redemption, loyalty, betrayal, power, family, companionship and rivalry as possible character pressures", "disposition": "ALREADY_COVERED", "destination": "Build the Character Engine; Design Relationships That Change Both People; Build Opposition as a Competing Worldview; Design the Cast as a Dramatic System"},
+        {"concept": "strength becoming liability and character pressure producing costly choices", "disposition": "ALREADY_COVERED", "destination": "Build the Character Engine; Prove Character Through Choice"},
+        {"concept": "ranking character devices by film profitability or implying box-office success proves a craft device", "disposition": "REJECTED_OUTDATED"},
+        {"concept": "specific commercial-title examples", "disposition": "HISTORICAL_REFERENCE_ONLY"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-questions-act-1-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Questions Act 1.md",
+      "decisions": [
+        {"concept": "ordinary condition, disruption, stakes, worldview pressure, want, choice, plan, adaptation and opposition questions", "disposition": "ALREADY_COVERED", "destination": "Build the Character Engine; Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "exact Act 1 / Blocks 1-6 placement", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-questions-act-2-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Questions Act 2.md",
+      "decisions": [
+        {"concept": "new conditions, escalating action, changed strategy, revelation, choice and consequence questions", "disposition": "ALREADY_COVERED", "destination": "Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "exact Act 2 / Blocks 7-12 placement", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-questions-act-3-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Questions Act 3.md",
+      "decisions": [
+        {"concept": "consequence, crisis, doubt, revelation, changed plan and final-test questions", "disposition": "ALREADY_COVERED", "destination": "Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "exact Act 3 / Blocks 13-18 placement", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"},
+        {"concept": "mandatory All Is Lost and Dark Night of the Soul beats", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-questions-act-4-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Questions Act 4.md",
+      "decisions": [
+        {"concept": "aftermath, final choice, changed equilibrium, reflection and closing-image proof", "disposition": "ALREADY_COVERED", "destination": "Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "exact Act 4 / Blocks 19-24 placement", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"},
+        {"concept": "secondary climax as an expected requirement", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-character-guide-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Character Guide.md",
+      "decisions": [
+        {"concept": "motivation, backstory, strengths/liabilities, moral dilemmas and transformation", "disposition": "ALREADY_COVERED", "destination": "Build the Character Engine; Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "antagonists, foils, rivals and competing motivations", "disposition": "ALREADY_COVERED", "destination": "Build Opposition as a Competing Worldview"},
+        {"concept": "relationships, chemistry, supporting characters and cast balance", "disposition": "ALREADY_COVERED", "destination": "Design Relationships That Change Both People; Design the Cast as a Dramatic System"},
+        {"concept": "voice, background, language community and identity specificity", "disposition": "ALREADY_COVERED", "destination": "Give Every Character a Playable Voice; Representation and research-question pass"},
+        {"concept": "setting shaping character", "disposition": "ALREADY_COVERED", "destination": "World-Building"},
+        {"concept": "realistic dialogue craft and character-driven subplot structure", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Dialogue / Structure"},
+        {"concept": "villain as a required role or demographic shorthand as voice", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-dialectical-triad-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Dialectical Triad.md",
+      "decisions": [
+        {"concept": "thesis/antithesis/synthesis as an optional lens for competing worldviews and changed state", "disposition": "ALREADY_COVERED", "destination": "Build Opposition as a Competing Worldview"},
+        {"concept": "dialectical triad as a fundamental required screenplay structure or synthesis as universal climax/resolution", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-heart-of-conflict-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Heart of Conflict.md",
+      "decisions": [
+        {"concept": "internal, interpersonal, institutional and technological pressures as ways to expose character", "disposition": "ALREADY_COVERED", "destination": "Join Inner and Outer Conflict"},
+        {"concept": "gendered Man-versus taxonomy as current terminology", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-inner-journey-4-acts-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Inner Journey 4 Acts.md",
+      "decisions": [
+        {"concept": "before state, disruption, threshold, tests, midpoint learning, crisis, decision, final proof and new normal as optional checkpoints", "disposition": "ALREADY_COVERED", "destination": "Map the Inner Journey Without Forcing It"},
+        {"concept": "four-act placement as structural map", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"},
+        {"concept": "mandatory transformation, rock-bottom reaction or one fixed sequence", "disposition": "REJECTED_OUTDATED"}
+      ]
+    },
+    {
+      "sourceId": "24-blocks-character-24-blocks-inner-journey-md",
+      "topic": "character",
+      "path": "Character/24 Blocks - Inner Journey.md",
+      "decisions": [
+        {"concept": "belief, desire, vulnerability, relationships, choices, consequences and final proof of change", "disposition": "ALREADY_COVERED", "destination": "Build the Character Engine; Prove Character Through Choice; Map the Inner Journey Without Forcing It"},
+        {"concept": "Hero's Journey stages as one optional structural lens", "disposition": "INTEGRATED_ELSEWHERE", "destination": "#2077 Structure and 24 Blocks"},
+        {"concept": "every character must complete a transformational Hero's Journey and learn a lesson", "disposition": "REJECTED_OUTDATED"}
+      ]
+    }
+  ]
+}

@@ -31,6 +31,7 @@ import UniversalVoiceInputLayer from "./_components/universal-voice-input-layer"
 import "./design-tokens.css";
 import "./globals.css";
 import "./skin-v1-definition.css";
+import "./skin-v2-definition.css";
 import "./skin-v1.css";
 import "./skin-v1-bbs-surfaces.css";
 import "./community-monochrome-skin.css";
@@ -81,6 +82,7 @@ import "./skin-v1-dashboard-reference.css";
 import "./skin-v1-dashboard-menu-reset.css";
 import "./skin-v1-settings-directory.css";
 import "./skin-v1-standard-surface-shell.css";
+import "./issue-2061.css";
 
 export const metadata: Metadata = {
   title: `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`,

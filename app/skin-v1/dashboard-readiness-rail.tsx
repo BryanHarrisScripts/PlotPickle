@@ -98,34 +98,33 @@ export default function DashboardReadinessRail() {
     return () => window.removeEventListener("plotpickle:setup-status-refresh", refresh);
   }, [refresh]);
 
-  const items: ReadonlyArray<{ label: string; ready: boolean | null; target: ReadinessTarget }> = [
-    { label: "BUZZ Identity", ready: readiness.buzz, target: "profile" },
-    { label: "Community BBS", ready: readiness.community, target: "profile" },
-    { label: "Local Model", ready: readiness.local, target: "local-story-mode" },
-    { label: "ComfyUI", ready: readiness.comfyui, target: "local-story-mode" },
-    { label: "Cloud Compute", ready: readiness.cloud, target: "cloud" },
+  const items: ReadonlyArray<{ label: string; shortLabel: string; ready: boolean | null; target: ReadinessTarget }> = [
+    { label: "BUZZ Identity", shortLabel: "BUZZ", ready: readiness.buzz, target: "profile" },
+    { label: "Community BBS", shortLabel: "BBS", ready: readiness.community, target: "profile" },
+    { label: "Local Model", shortLabel: "MODEL", ready: readiness.local, target: "local-story-mode" },
+    { label: "ComfyUI", shortLabel: "COMFY", ready: readiness.comfyui, target: "local-story-mode" },
+    { label: "Cloud Compute", shortLabel: "CLOUD", ready: readiness.cloud, target: "cloud" },
   ];
 
   return (
-    <section className={styles.rail} aria-label="Dashboard backend readiness">
-      <span className={styles.heading}>SYSTEM READINESS</span>
-      <div className={styles.items}>
-        {items.map((item) => {
-          const state = indicatorState(item.ready);
-          return (
-            <button
-              key={item.label}
-              type="button"
-              className={styles.item}
-              onClick={() => openConfiguration(item.target)}
-              aria-label={`${item.label}: ${state === "checking" ? "checking" : state === "ready" ? "ready" : "not ready"}`}
-            >
-              <span>{item.label}</span>
-              <i data-ready={state} aria-hidden="true" />
-            </button>
-          );
-        })}
-      </div>
-    </section>
+    <span className={styles.rail} aria-label="Dashboard backend readiness">
+      {items.map((item) => {
+        const state = indicatorState(item.ready);
+        const stateLabel = state === "checking" ? "checking" : state === "ready" ? "ready" : "not ready";
+        return (
+          <button
+            key={item.label}
+            type="button"
+            className={styles.item}
+            onClick={() => openConfiguration(item.target)}
+            title={`${item.label}: ${stateLabel}`}
+            aria-label={`${item.label}: ${stateLabel}`}
+          >
+            <i data-ready={state} aria-hidden="true" />
+            <span>{item.shortLabel}</span>
+          </button>
+        );
+      })}
+    </span>
   );
 }

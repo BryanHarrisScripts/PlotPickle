@@ -68,20 +68,21 @@ test("#2061 exposes existing Library and Structure Engine implementations as yel
   assert.match(issueStyles, /data-dashboard-menu-item="plan"[\s\S]*--pp-skin-warning/u);
 });
 
-test("#2061 projects the five existing backend readiness authorities only inside the Dashboard footer", async () => {
-  const [rail, footer, footerStyles, host, issueStyles] = await Promise.all([
+test("#2061 presents six compact Dashboard readiness entries from the existing backend authorities", async () => {
+  const [rail, railStyles, footer, footerStyles, host, issueStyles] = await Promise.all([
     read("app/skin-v1/dashboard-readiness-rail.tsx"),
+    read("app/skin-v1/dashboard-readiness-rail.module.css"),
     read("app/skin-v1/menu-feedback-footer.tsx"),
     read("app/skin-v1/menu-feedback-footer.module.css"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/issue-2061.css"),
   ]);
 
-  for (const label of ["BUZZ Identity", "Community BBS", "Local Model", "ComfyUI", "Cloud Compute"]) {
+  for (const label of ["BUZZ Identity", "BUZZ Community", "Models", "ComfyUI", "Local Compute", "Cloud Compute"]) {
     assert.equal(rail.split(`label: "${label}"`).length - 1, 1, `${label} should appear once in the Dashboard readiness model`);
   }
 
-  for (const shortLabel of ["BUZZ", "BBS", "MODEL", "COMFY", "CLOUD"]) {
+  for (const shortLabel of ["BUZZ", "COMMUNITY", "MODELS", "COMFY", "LOCAL", "CLOUD"]) {
     assert.match(rail, new RegExp(`shortLabel: "${shortLabel}"`, "u"));
   }
 
@@ -95,11 +96,14 @@ test("#2061 projects the five existing backend readiness authorities only inside
   assert.match(rail, /target: "profile"/u);
   assert.match(rail, /target: "local-story-mode"/u);
   assert.match(rail, /target: "cloud"/u);
+  assert.match(rail, /data-readiness-break=\{item\.shortLabel === "LOCAL" \? "true" : undefined\}/u);
+  assert.match(railStyles, /padding-bottom: 4px/u);
+  assert.match(railStyles, /data-readiness-break="true"[\s\S]*margin-inline-start: 4px/u);
   assert.match(footer, /import DashboardReadinessRail/u);
   assert.match(footer, /id === "dashboard-menu-status"/u);
-  assert.match(footer, /dashboardFooter \? styles\.legendReserved/u);
+  assert.match(footer, /styles\.dashboardReserve/u);
   assert.match(footer, /dashboardFooter \? <span className=\{styles\.dashboardReadiness\}><DashboardReadinessRail \/><\/span>/u);
-  assert.match(footerStyles, /\.legendReserved[\s\S]*visibility: hidden/u);
+  assert.match(footerStyles, /\.dashboardReserve[\s\S]*visibility: hidden/u);
   assert.match(footerStyles, /\.dashboardReadiness[\s\S]*position: absolute/u);
   assert.doesNotMatch(host, /DashboardReadinessRail/u);
   assert.doesNotMatch(issueStyles, /Profile readiness/u);

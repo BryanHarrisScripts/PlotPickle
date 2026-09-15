@@ -40,7 +40,7 @@ test("LEARN navigation stays inside the active topic and search covers the compl
   assert.match(languageAdapter, /\[data-preserve-story-language\]/);
 });
 
-test("imported teaching renders directly inside the normal lesson curriculum", async () => {
+test("audited source teaching stays local while legacy source documents stop interrupting integrated lessons", async () => {
   const [workspace, sourceMaterial] = await Promise.all([
     read("modules/learn/ui/learn-workspace.tsx"),
     read("modules/learn/ui/curriculum-material.tsx"),
@@ -49,6 +49,14 @@ test("imported teaching renders directly inside the normal lesson curriculum", a
   assert.match(workspace, /data-integrated-curriculum-section/);
   assert.match(workspace, /<CurriculumMaterial[\s\S]*?source=\{source\}/);
   assert.match(workspace, /activeLesson\.sources\.map/);
+
+  assert.match(sourceMaterial, /integrated-source-manifest\.json/);
+  assert.match(sourceMaterial, /INTEGRATED_SOURCE_IDS\.has\(source\.id\)/);
+  assert.match(sourceMaterial, /return null/);
+  assert.match(sourceMaterial, /INTEGRATED_SOURCE_IDS\.has\(target\.sourceId\)/);
+
+  // The legacy renderer remains available for source records that have not yet
+  // completed the phased source-drain audit in #2077 / #2078.
   assert.match(sourceMaterial, /data-integrated-curriculum-content/);
   assert.match(sourceMaterial, /<ol key=\{key\} start=\{block\.start\}>/);
   assert.match(sourceMaterial, /<blockquote key=\{key\}>/);

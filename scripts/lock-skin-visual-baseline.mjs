@@ -25,6 +25,20 @@ function assertPng(contents, candidatePath) {
   }
 }
 
+async function readCandidate(root, entry, surface) {
+  if (!["candidate", "locked"].includes(entry.status)) {
+    throw new Error(`${entry.label || surface} has unsupported baseline status: ${entry.status}`);
+  }
+  const candidatePath = path.join(root, entry.candidate);
+  const baselinePath = path.join(root, entry.baseline);
+  const candidate = await readFile(candidatePath).catch((error) => {
+    if (error?.code === "ENOENT") throw new Error(`Candidate screenshot does not exist: ${candidatePath}`);
+    throw error;
+  });
+  assertPng(candidate, candidatePath);
+  return { surface, entry, candidatePath, baselinePath };
+}
+
 export async function lockVisualBaseline(surface, { root = DEFAULT_ROOT } = {}) {
   const normalized = String(surface || "").trim().toLowerCase();
   const { manifest, manifestPath } = await readManifest(root);
@@ -57,13 +71,44 @@ export async function lockVisualBaseline(surface, { root = DEFAULT_ROOT } = {}) 
   return { surface: normalized, candidatePath, baselinePath, manifestPath };
 }
 
+export async function lockAllVisualBaselines({ root = DEFAULT_ROOT, replace = false } = {}) {
+  if (!replace) {
+    throw new Error("Bulk Skin V1 baseline replacement requires the explicit --replace flag.");
+  }
+
+  const { manifest, manifestPath } = await readManifest(root);
+  const candidates = await Promise.all(Object.entries(manifest.surfaces).map(([surface, entry]) => readCandidate(root, entry, surface)));
+
+  for (const candidate of candidates) {
+    await mkdir(path.dirname(candidate.baselinePath), { recursive: true });
+    await copyFile(candidate.candidatePath, candidate.baselinePath);
+    manifest.surfaces[candidate.surface] = { ...candidate.entry, status: "locked" };
+  }
+
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  return { baselines: candidates, manifestPath };
+}
+
 const directExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(SCRIPT_PATH);
 if (directExecution) {
-  lockVisualBaseline(process.argv[2]).then(({ surface, baselinePath }) => {
-    console.log(`Locked Skin V1 ${surface} baseline: ${baselinePath}`);
-    console.log("Review and commit the baseline PNG plus manifest change in a normal pull request.");
-  }).catch((error) => {
-    console.error(error.message);
-    process.exitCode = 1;
-  });
+  const surface = process.argv[2];
+  if (surface === "all") {
+    lockAllVisualBaselines({ replace: process.argv.includes("--replace") }).then(({ baselines, manifestPath }) => {
+      console.log(`Replaced and locked ${baselines.length} Skin V1 visual baselines locally:`);
+      for (const baseline of baselines) console.log(`- ${baseline.surface}: ${baseline.baselinePath}`);
+      console.log(`Updated manifest: ${manifestPath}`);
+      console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
+    }).catch((error) => {
+      console.error(error.message);
+      process.exitCode = 1;
+    });
+  } else {
+    lockVisualBaseline(surface).then(({ surface: lockedSurface, baselinePath }) => {
+      console.log(`Locked Skin V1 ${lockedSurface} baseline: ${baselinePath}`);
+      console.log("Review and commit the baseline PNG plus manifest change in a normal pull request.");
+    }).catch((error) => {
+      console.error(error.message);
+      process.exitCode = 1;
+    });
+  }
 }

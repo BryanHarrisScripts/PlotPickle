@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "skin": "skin-v1",
+  "canonicalReference": "dashboard",
+  "rule": "A target surface is judged against Dashboard's rendered visual language; its own historical screenshot is regression evidence only.",
+  "totals": {
+    "surfaces": 3,
+    "blockers": 0,
+    "advisories": 1
+  },
+  "surfaces": {
+    "community": {
+      "blockers": 0,
+      "advisories": 0,
+      "findings": []
+    },
+    "settings": {
+      "blockers": 0,
+      "advisories": 0,
+      "findings": []
+    },
+    "profile": {
+      "blockers": 0,
+      "advisories": 1,
+      "findings": [
+        {
+          "surface": "PROFILE",
+          "severity": "advisory",
+          "category": "hierarchy",
+          "identity": "profile-identity-heading",
+          "property": "dominantHeadingCount",
+          "actual": "4",
+          "expected": "approximately 1 dominant Dashboard heading",
+          "guidance": "Too many headings are competing at the top visual level. Keep one dominant page title and demote secondary headings."
+        }
+      ]
+    }
+  }
+}

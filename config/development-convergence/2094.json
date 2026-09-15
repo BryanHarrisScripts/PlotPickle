@@ -50,7 +50,7 @@
         {
           "type": "file-contains",
           "path": "docs/learn/lesson-integration-2094-phase-9.md",
-          "contains": "does not freeze membership counts"
+          "contains": "does **not** freeze membership counts"
         }
       ]
     },

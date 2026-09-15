@@ -2,7 +2,7 @@
 
 ## Baseline
 
-Phase 7 started from merged `main` commit `d12e18a279ee56032d8c7939232c1ddc4ccb9180` on branch `issue-2094-phase-7`. No Phase 7 PR is opened.
+Phase 7 started from merged `main` commit `d12e18a279ee56032d8c7939232c1ddc4ccb9180` on branch `issue-2094-phase-7`. The PR was opened only after the user authorized the Phase 7 merge.
 
 The review re-read #2094 and its architecture addendum, then followed the canonical presentation projection rather than topic-local numbering.
 
@@ -37,11 +37,11 @@ All ten Phase 7 lessons were learner-sufficient before changes. No learner-facin
 
 `Balance Speech, Silence and Physical Action` already combines visible behaviour, reaction, task, interruption, distance, silence and accurate screenplay form. The Art of Silence, Balancing Action and Tags and Beats sources are represented directly; broader screen-evidence craft remains with Visual Storytelling.
 
-`Handle Exposition, World and Genre` already attaches information to conflict, task, urgency, misunderstanding and consequence, reveals world rules through use, and treats genre as pressure rather than a voice stereotype. The Different Genres source is sufficiently integrated.
+`Handle Exposition, World and Genre` is source-free in the actual presentation attachment projection but already owns the durable Different Genres teaching: attach information to conflict, task, urgency, misunderstanding and consequence, reveal world rules through use, and treat genre as pressure rather than a voice stereotype.
 
 `Shape the Exchange and Scene Turn` is source-free in the canonical topic file and already teaches entry tension, tactic, resistance, tactic change, reveal/misinterpretation, status shift, irreversible action, turn and exit consequence. Historical Conflict/Realistic Dialogue aliases are retrieval links, not additional required source records.
 
-`Revise for Voice, Purpose and Performance` already turns Dialogue Pitfalls and Refining Dialogue into twelve bounded revision passes, read-aloud evidence and optional/human-approved AI assistance. Diagnostic counts are not grades and synthetic voice use remains permission-bound.
+`Revise for Voice, Purpose and Performance` carries the attached Dialogue Pitfalls, Different Genres and Refining Dialogue provenance. The revision lesson uses the stable revision material while the Different Genres source's durable craft teaching remains owned by Lesson 67 rather than being duplicated here. Diagnostic counts are not grades and synthetic voice use remains permission-bound.
 
 ### Revision
 
@@ -53,7 +53,7 @@ The 96-lesson presentation order and 95 unique bundled source records remain unc
 
 ## Verification contract
 
-The focused #2094 test is extended through presentation Lesson 70. It verifies exact presentation order, attached source IDs, normal learner-facing teaching markers, Phase 7 baseline evidence and unchanged global lesson/source fingerprints.
+The focused #2094 test is extended through presentation Lesson 70. It verifies presentation order, the legacy attachment-versus-teaching-owner routing for Different Genres, normal learner-facing teaching markers, Phase 7 baseline evidence and unchanged global lesson/source fingerprints.
 
 Because Phase 7 required no teaching edits, Lessons 61–70 are anchored to the exact Phase 7 baseline commit. Any later change to these lessons must trigger re-review.
 

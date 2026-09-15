@@ -24,7 +24,8 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "settings", shortcut: "M", label: "Manage", description: "Configure PlotPickle", group: "MANAGEMENT" },
   { id: "help", shortcut: "B", label: "Bug Report", description: "Prepare a PlotPickle Issue", group: "MANAGEMENT" },
   { id: "open-source", shortcut: "N", label: "Notices", description: "Review Open Source Licensing and Attribution", group: "MANAGEMENT" },
-  { id: "logout", shortcut: "X", label: "Log Off", description: "End This Session" },
+  { id: "logout", shortcut: "X", label: "Log Off", description: "End This Session", group: "SESSION" },
+  { id: "shutdown", shortcut: "Q", label: "Shut Down Node", description: "Safely Close PlotPickle and Local Services", group: "SESSION" },
 ];
 
 export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
@@ -34,6 +35,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "open-source",
   "help",
   "logout",
+  "shutdown",
   "learn",
   "library",
   "plan",
@@ -42,7 +44,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
 export const DASHBOARD_STARTUP_CHOICES = [
   { id: "dashboard", label: "Dashboard" },
   ...DASHBOARD_MENU
-    .filter((item) => item.id !== "logout" && CONNECTED_DASHBOARD_ITEM_IDS.has(item.id))
+    .filter((item) => !["logout", "shutdown"].includes(item.id) && CONNECTED_DASHBOARD_ITEM_IDS.has(item.id))
     .map((item) => ({ id: item.id, label: item.label })),
 ] as const;
 

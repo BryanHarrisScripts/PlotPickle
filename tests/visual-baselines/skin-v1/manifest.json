@@ -13,7 +13,7 @@
   "surfaces": {
     "dashboard": {
       "label": "Dashboard",
-      "status": "locked",
+      "status": "candidate",
       "selector": "[data-skin-reference='dashboard-canonical']",
       "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
       "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
@@ -34,7 +34,7 @@
     },
     "profile": {
       "label": "Identity",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
       "candidate": ".artifacts/visual-readiness/profile-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/profile.png"

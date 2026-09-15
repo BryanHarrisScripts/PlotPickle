@@ -6,29 +6,29 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032/#2050/#2068 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
-    ['community', 'C', 'Community', 'Share and Collaborate', null],
-    ['learn', '1', "Writer's Craft", 'Learn Story Craft', null],
-    ['library', 'L', 'Library', 'Load Your Stories', null],
-    ['plan', 'O', 'Outline', 'Visualize Story Structure', 'STRUCTURING'],
-    ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'STRUCTURING'],
-    ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'STRUCTURING'],
-    ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'DRAFTING'],
-    ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'DRAFTING'],
-    ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'DRAFTING'],
-    ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'DRAFTING'],
-    ['reports', 'A', 'Analytics', 'Review Story Health and Coverage Reports', 'DRAFTING'],
-    ['wyrmwood', '2', 'Wyrmwood Game', 'Practice Narrative Craft', 'INTERACTIVE LEARNING'],
-    ['story', '3', 'The Unwritten', 'Story Game Engine', 'INTERACTIVE LEARNING'],
-    ['profile', 'I', 'Identity', 'Manage User Profile', 'MANAGEMENT'],
-    ['settings', 'M', 'Manage', 'Configure PlotPickle', 'MANAGEMENT'],
-    ['help', 'B', 'Bug Report', 'Prepare a PlotPickle Issue', 'MANAGEMENT'],
-    ['open-source', 'N', 'Notices', 'Review Open Source Licensing and Attribution', 'MANAGEMENT'],
-    ['logout', 'X', 'Log Off', 'End This Session', 'SESSION'],
-    ['shutdown', 'Q', 'Shut Down Node', 'Safely Close PlotPickle and Local Services', 'SESSION'],
+    ['community', 'C', 'Community', 'Share and Collaborate', 'DEVELOPMENT'],
+    ['learn', '1', "Writer's Craft", 'Learn Story Craft', 'DEVELOPMENT'],
+    ['library', 'L', 'Library', 'Load Your Stories', 'DEVELOPMENT'],
+    ['plan', 'O', 'Outline', 'Visualize Story Structure', 'PRE-PRODUCTION'],
+    ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'PRE-PRODUCTION'],
+    ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'PRE-PRODUCTION'],
+    ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'PRODUCTION'],
+    ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'PRODUCTION'],
+    ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'PRODUCTION'],
+    ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'PRODUCTION'],
+    ['reports', 'A', 'Analytics', 'Review Story Health and Coverage Reports', 'PRODUCTION'],
+    ['wyrmwood', '2', 'Wyrmwood Game', 'Practice Narrative Craft', 'WORKSHOPS'],
+    ['story', '3', 'The Unwritten', 'Story Game Engine', 'WORKSHOPS'],
+    ['profile', 'I', 'Identity', 'Manage User Profile', 'CALL SHEET'],
+    ['settings', 'M', 'Manage', 'Configure PlotPickle', 'CALL SHEET'],
+    ['help', 'B', 'Bug Report', 'Prepare a PlotPickle Issue', 'CALL SHEET'],
+    ['open-source', 'N', 'Notices', 'Review Open Source Licensing and Attribution', 'CALL SHEET'],
+    ['logout', 'X', 'Log Off', 'End This Session', 'WRAP'],
+    ['shutdown', 'Q', 'Shut Down Node', 'Safely Close PlotPickle and Local Services', 'WRAP'],
   ];
 
   let cursor = -1;
@@ -47,10 +47,12 @@ test("#2026/#2032/#2050/#2068 locks the Human-approved Dashboard order, labels, 
     if (!group) continue;
     groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
   }
+  assert.deepEqual([...groupCounts.keys()], ["DEVELOPMENT", "PRE-PRODUCTION", "PRODUCTION", "WORKSHOPS", "CALL SHEET", "WRAP"]);
   for (const [group, count] of groupCounts) {
     assert.ok(count <= 5, `${group} must stay at five Dashboard rows or fewer`);
   }
 
+  assert.doesNotMatch(menu, /group: "(?:STRUCTURING|DRAFTING|INTERACTIVE LEARNING|MANAGEMENT|SESSION)"/u);
   assert.doesNotMatch(menu, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
 });

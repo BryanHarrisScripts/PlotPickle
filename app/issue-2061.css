@@ -1,0 +1,23 @@
+/* Issue #2061 — presentation-only status moves and review markers. */
+
+/* General backend readiness now lives on Dashboard. Keep the existing Profile
+   authority intact while removing the duplicate visible rail there. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-profile-surface [aria-label="Profile readiness"] {
+  display: none !important;
+}
+
+/* Black and White keeps semantic readiness green even though its theme palette
+   is monochrome. */
+html[data-plotpickle-skin-theme="skin-v2"] .pp-skin-v1-dashboard-status-box.is-active {
+  border-color: var(--pp-skin-ready) !important;
+  background: var(--pp-skin-ready) !important;
+}
+
+/* Library and Outline are deliberately open for review, not represented as
+   production-ready green destinations. */
+[data-dashboard-menu-item="library"] .pp-skin-v1-dashboard-status-box,
+[data-dashboard-menu-item="plan"] .pp-skin-v1-dashboard-status-box {
+  border-color: var(--pp-skin-warning) !important;
+  background: var(--pp-skin-warning) !important;
+  box-shadow: var(--pp-skin-shadow-control) !important;
+}

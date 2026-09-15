@@ -88,10 +88,6 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
   const diary = report.diary || [];
   const findings = report.promotedFindings?.length ? report.promotedFindings : report.observations || [];
   const visualScreens = report.visualReview?.screens || [];
-  const reachedBuild = visited.includes("world-build") || summary.completionFrontier === "BUILD";
-  const firstTimeSummary = reachedBuild && report.journeyCoverage?.complete
-    ? "Yes. Avery reached the current BUILD frontier through the visible writer journey."
-    : `Not yet. Avery stopped at ${summary.completionFrontier || "the recorded frontier"}; review the evidence below before treating BUILD as reachable.`;
 
   return (
     <section className={styles.review} aria-label="Avery Writer-in-Residence session review">
@@ -106,16 +102,10 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
 
       <div className={styles.reviewSummary}>
         <div><span>Run</span><strong>{friendlyDate(summary.generatedAt)}</strong></div>
-        <div><span>Frontier</span><strong>{summary.completionFrontier}</strong></div>
-        <div><span>State</span><strong>{summary.completionState}</strong></div>
-        <div><span>Findings</span><strong>{summary.findingCount} promoted · {summary.frictionCount} friction</strong></div>
+        <div><span>Last stage</span><strong>{summary.completionFrontier || "Not recorded"}</strong></div>
+        <div><span>Status</span><strong>{summary.completionState || "Recorded"}</strong></div>
+        <div><span>Review notes</span><strong>{summary.findingCount + summary.frictionCount}</strong></div>
       </div>
-
-      <article className={styles.answerCard}>
-        <p className={styles.kicker}>Could a first-time writer reach BUILD?</p>
-        <h3>{firstTimeSummary}</h3>
-        <p>Stopped because: {report.finishedReason || summary.finishedReason || "not recorded"}.</p>
-      </article>
 
       <div className={styles.artifactReview}>
         {summary.posterUrl ? <a href={summary.posterUrl} rel="noreferrer" target="_blank">Open session POSTER</a> : <span>POSTER not produced in this session</span>}
@@ -151,7 +141,7 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
       </section>
 
       <section className={styles.reviewSection}>
-        <h3>Confusion, friction, needs and possible bugs</h3>
+        <h3>Review notes</h3>
         <div className={styles.findings}>
           {findings.length ? findings.map((finding, index) => (
             <article key={`${finding.kind || "finding"}-${index}`}>
@@ -159,27 +149,27 @@ function SessionReview({ detail }: { readonly detail: SessionDetail }) {
               <p>{finding.summary || "Finding recorded without a summary."}</p>
               {finding.impact ? <small>{finding.impact}</small> : null}
             </article>
-          )) : <p>No promoted writer findings were recorded.</p>}
+          )) : <p>No review notes were recorded.</p>}
         </div>
       </section>
 
       <section className={styles.reviewSection}>
-        <h3>Screenshots and visual observations</h3>
+        <h3>Visual review</h3>
         <div className={styles.visualList}>
           {visualScreens.length ? visualScreens.map((screen, index) => (
             <article key={`${screen.id || screen.label || "screen"}-${index}`}>
               <strong>{screen.label || screen.id || "Reviewed screen"}</strong>
               {(screen.findings || []).length
                 ? (screen.findings || []).map((finding, findingIndex) => <p key={findingIndex}>{finding.severity || "review"}: {finding.summary}</p>)
-                : <p>No deterministic visual-layout finding.</p>}
+                : <p>No visual-layout note.</p>}
             </article>
-          )) : <p>No rendered visual review was recorded.</p>}
+          )) : <p>No visual review was recorded.</p>}
         </div>
       </section>
 
       {report.runnerFindings?.length ? (
         <section className={styles.reviewSection}>
-          <h3>Runner recovery notes</h3>
+          <h3>Session recovery notes</h3>
           {report.runnerFindings.map((finding, index) => <p key={index}>{String(finding.turn ?? "run")}: {finding.message}</p>)}
         </section>
       ) : null}
@@ -222,17 +212,25 @@ export default function AverySessionHistory() {
   }
 
   const slots = Array.from({ length: SLOT_COUNT }, (_, index) => sessions[index] || null);
+  const latestSession = sessions[0] || null;
+  const storyCount = new Set(sessions.map((session) => session.projectName)).size;
 
   return (
     <section className={styles.panel} aria-label="Avery Writer-in-Residence sessions">
       <header className={styles.heading}>
         <div>
           <p className={styles.kicker}>Writer-in-Residence · Avery North</p>
-          <h2>Latest synthetic writer sessions</h2>
-          <p>Exactly four Library positions stay reserved. These are read-only test sessions and never replace your active project.</p>
+          <h2>Synthetic writer history</h2>
+          <p>Read-only Avery work stays separate from Human-owned stories and never enters the Human archive lifecycle.</p>
         </div>
-        <span>{sessions.length} local session{sessions.length === 1 ? "" : "s"}</span>
       </header>
+
+      <div className={styles.kpiGrid} aria-label="Avery status">
+        <div><span>Sessions</span><strong>{sessions.length}</strong></div>
+        <div><span>Synthetic stories</span><strong>{storyCount}</strong></div>
+        <div><span>Latest activity</span><strong>{latestSession ? friendlyDate(latestSession.generatedAt) : "No runs yet"}</strong></div>
+        <div><span>Status</span><strong>{latestSession?.completionState || "Idle"}</strong></div>
+      </div>
 
       {notice ? <p className={styles.notice}>{notice}</p> : null}
 
@@ -255,8 +253,7 @@ export default function AverySessionHistory() {
                     <small>SYNTHETIC AVERY SESSION</small>
                     <strong>{session.projectName}</strong>
                     <span>{friendlyDate(session.generatedAt)}</span>
-                    <span>{session.completionFrontier} · {session.completionState}</span>
-                    <span>{session.findingCount} findings · {session.frictionCount} friction</span>
+                    <span>{session.completionState || "Recorded"}</span>
                   </>
                 ) : (
                   <>
@@ -282,7 +279,7 @@ export default function AverySessionHistory() {
             {sessions.map((session) => (
               <button key={session.id} onClick={() => openSession(session.id)} type="button">
                 <strong>{session.projectName}</strong>
-                <span>{friendlyDate(session.generatedAt)} · {session.completionFrontier} · {session.completionState}</span>
+                <span>{friendlyDate(session.generatedAt)} · {session.completionState || "Recorded"}</span>
               </button>
             ))}
           </div>

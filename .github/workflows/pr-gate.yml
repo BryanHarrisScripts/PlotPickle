@@ -69,7 +69,6 @@ jobs:
           node scripts/validate-learn-curriculum.mjs
           node scripts/validate-learn-journey-baseline.mjs
           node --test tests/issue-1918-learn-journey-baseline.test.mjs
-          node --test tests/issue-2094-lesson-integration.test.mjs tests/issue-593-foundations-depth-and-placement.test.mjs tests/issue-2076-learn-source-drain.test.mjs tests/issue-2077-learn-source-drain.test.mjs tests/issue-2078-learn-source-drain.test.mjs
 
       - name: Validate Pi 0.85.1 / GPT-6 Astra evaluation contract
         run: node --test tests/issue-1709-pi-0851-astra-evaluation.test.mjs

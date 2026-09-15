@@ -245,7 +245,13 @@
       "triggerTokens": ["canon", "graph", "test-harness"],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1918-learn-curriculum-integrity.test.mjs"]
+        "targets": [
+          "tests/issue-1918-learn-curriculum-integrity.test.mjs",
+          "tests/issue-2094-lesson-integration.test.mjs",
+          "tests/issue-2076-learn-source-drain.test.mjs",
+          "tests/issue-2077-learn-source-drain.test.mjs",
+          "tests/issue-2078-learn-source-drain.test.mjs"
+        ]
       },
       "cost": "fast",
       "modes": ["baseline", "impact"],

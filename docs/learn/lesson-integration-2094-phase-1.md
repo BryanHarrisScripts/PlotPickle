@@ -50,9 +50,12 @@ Full checkout obtained in this session; this is not the reconstructed handoff ba
 - Focused TypeScript check of the Foundations material and composition passed.
 - Runtime comparison against base main: all 96 identities/order and all 95 source
   records unchanged; Lessons 11–96 and reviewed-clear Lessons 2, 4 and 6 identical.
-- The existing PR Gate runs the focused lesson/source tests for independent CI verification.
+- The active Layer 5 Story / Canon / Evidence check runs the focused lesson/source tests.
+  The current merge-authority contract requires seven architecture checks; legacy
+  PR Gate and Product Gate remain manual diagnostics. The initial CI run exposed
+  missing ownership for the Foundations material; it is now mapped to Story/Canon.
 - Diff whitespace check passed. Local convergence evidence prepared for this phase;
-  independent PR/CI gates have not run.
+  independent CI results are tracked in the PR execution ledger.
 
 Automated checks protect the reviewed content and boundaries. They do not prove
 educational sufficiency; that judgment comes from the recorded individual editorial

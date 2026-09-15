@@ -1,56 +1,38 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { stripTypeScriptTypes } from "node:module";
 import { dirname, extname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
-const ts = require("typescript");
 const root = fileURLToPath(new URL("..", import.meta.url));
-const moduleCache = new Map();
+const moduleUrls = new Map();
 
-function resolveLocalModule(parentPath, request) {
-  const requested = resolve(dirname(parentPath), request);
-  for (const candidate of [requested, `${requested}.ts`, `${requested}.json`]) {
-    if (existsSync(candidate)) return candidate;
-  }
-  throw new Error(`Could not resolve ${request} from ${parentPath}`);
-}
-
-function loadLocalModule(path) {
+// Load the actual dependency-free curriculum projection on CI's Node 22.13.
+// Resolve its relative TS/JSON imports without installing the application stack.
+async function moduleUrl(path) {
   const absolute = resolve(path);
-  if (moduleCache.has(absolute)) return moduleCache.get(absolute).exports;
-  if (extname(absolute) === ".json") return JSON.parse(readFileSync(absolute, "utf8"));
-
-  const module = { exports: {} };
-  moduleCache.set(absolute, module);
-  const source = readFileSync(absolute, "utf8");
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      esModuleInterop: true,
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-    },
-    fileName: absolute,
-  }).outputText;
-  const localRequire = (request) => (
-    request.startsWith(".")
-      ? loadLocalModule(resolveLocalModule(absolute, request))
-      : require(request)
-  );
-  new Function("exports", "module", "require", "__filename", "__dirname", output)(
-    module.exports,
-    module,
-    localRequire,
-    absolute,
-    dirname(absolute),
-  );
-  return module.exports;
+  if (moduleUrls.has(absolute)) return moduleUrls.get(absolute);
+  let source = extname(absolute) === ".json"
+    ? `export default ${readFileSync(absolute, "utf8")};`
+    : stripTypeScriptTypes(readFileSync(absolute, "utf8"));
+  if (extname(absolute) !== ".json") {
+    for (const match of [...source.matchAll(/from\s*["'](\.[^"']+)["']/gu)]) {
+      const requested = resolve(dirname(absolute), match[1]);
+      const target = [requested, `${requested}.ts`, `${requested}.json`, resolve(requested, "index.ts")]
+        .find((candidate) => existsSync(candidate) && /\.(ts|json)$/u.test(candidate));
+      assert.ok(target, `Missing curriculum import ${match[1]}`);
+      source = source.replace(match[0], `from "${await moduleUrl(target)}"`);
+    }
+  }
+  const url = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
+  moduleUrls.set(absolute, url);
+  return url;
 }
+const loadLocalModule = async (path) => import(await moduleUrl(path));
 
-const { plotPickleCurriculum: lessons } = loadLocalModule(
+const { plotPickleCurriculum: lessons } = await loadLocalModule(
   resolve(root, "adapters/curriculum/current-catalog.ts"),
 );
 const ledger = JSON.parse(readFileSync(resolve(root, "docs/learn/lesson-integration-2094.json"), "utf8"));

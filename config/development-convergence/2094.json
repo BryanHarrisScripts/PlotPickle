@@ -10,7 +10,8 @@
     "tests/issue-2094-lesson-integration.test.mjs",
     "tests/issue-593-foundations-depth-and-placement.test.mjs",
     "config/development-convergence/2094.json",
-    ".github/workflows/pr-gate.yml"
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json"
   ],
   "acceptance": [
     {
@@ -29,8 +30,8 @@
         },
         {
           "type": "file-contains",
-          "path": ".github/workflows/pr-gate.yml",
-          "contains": "node --test tests/issue-2094-lesson-integration.test.mjs"
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2094-lesson-integration.test.mjs"
         }
       ]
     },

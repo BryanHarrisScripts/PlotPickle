@@ -84,7 +84,7 @@ test("#1965/#2046 Settings consolidates preferences and restores operational des
   assert.match(dashboard, /<MenuFeedbackFooter[\s\S]*id="settings-menu-status"[\s\S]*available=\{selectedSettingsConnected\}/u);
 });
 
-test("#1965 Profile readiness uses the full identity-summary width without pill-like controls", async () => {
+test("#1965/#2071 Profile readiness matches the Dashboard six-label status vocabulary", async () => {
   const [directoryCss, identityPanel] = await Promise.all([
     read("app/skin-v1-settings-directory.css"),
     read("app/profile-access/profile-identity-panel.tsx"),
@@ -96,19 +96,26 @@ test("#1965 Profile readiness uses the full identity-summary width without pill-
   );
   assert.match(
     directoryCss,
-    /\[aria-label="Profile readiness"\]\s*\{[\s\S]{0,220}grid-column: 1 \/ -1 !important;[\s\S]{0,180}grid-template-columns: repeat\(5, minmax\(0, 1fr\)\) !important;/u,
+    /\[aria-label="Profile readiness"\]\s*\{[\s\S]{0,220}grid-column: 1 \/ -1 !important;[\s\S]{0,180}grid-template-columns: repeat\(6, minmax\(0, 1fr\)\) !important;/u,
   );
   assert.match(
     directoryCss,
     /\[aria-label="Profile readiness"\] button\s*\{[\s\S]{0,260}min-height: var\(--pp-skin-control-height\) !important;[\s\S]{0,180}border: 0 !important;[\s\S]{0,120}border-radius: 0 !important;[\s\S]{0,120}background: transparent !important;/u,
   );
+  assert.match(directoryCss, /\[aria-label="Profile readiness"\] button\s*\{[\s\S]*font-size: var\(--pp-skin-font-xs\) !important;/u);
 
-  for (const label of ["BUZZ Identity", "Community BBS", "Local Model", "ComfyUI", "Cloud Compute"]) {
-    assert.match(identityPanel, new RegExp(`ReadinessIndicator label="${label}"`, "u"));
+  const labels = ["BUZZ", "COMMUNITY", "MODELS", "COMFY", "LOCAL", "CLOUD"];
+  let previous = -1;
+  for (const label of labels) {
+    const index = identityPanel.indexOf(`ReadinessIndicator label="${label}"`);
+    assert.ok(index > previous, `${label} must follow the Dashboard readiness order`);
+    previous = index;
   }
   assert.match(identityPanel, /settingsTarget="buzz"/u);
   assert.match(identityPanel, /settingsTarget="ollama"/u);
   assert.match(identityPanel, /settingsTarget="comfyui"/u);
+  assert.match(identityPanel, /modelSettingsTarget/u);
+  assert.match(identityPanel, /cloudSettingsTarget/u);
 });
 
 test("#1954 is governed and selected by the seven-layer verification mesh", async () => {

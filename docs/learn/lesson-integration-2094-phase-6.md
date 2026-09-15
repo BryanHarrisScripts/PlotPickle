@@ -16,8 +16,8 @@ The review continued the existing #2094 method: read the complete composed prese
 56. Use Advanced Screenplay Forms Clearly
 57. Scene Craft: Objective, Pressure and Turn
 58. Screenplay Format and Delivery
-59. Dialogue and Voiceprint pass
-60. Subtext, status and silence pass
+59. Adaptation: Source to Screen
+60. Dialogue and Voiceprint pass
 
 ## Result
 
@@ -41,11 +41,11 @@ All ten Phase 6 lessons were learner-sufficient before changes. No learner-facin
 
 `Screenplay Format and Delivery` is also source-free enrichment. It already distinguishes durable readability conventions from document purpose, production metadata, export inspection and current recipient-specific delivery requirements. Time-sensitive competition, guild, employer or production rules remain outside frozen curriculum authority.
 
+`Adaptation: Source to Screen` is source-free enrichment and already teaches the adaptation promise, deliberate selection/compression/expansion/combination, externalization of internal source material, screen point of view, decision provenance and propagation into the new story's source of truth. Creative adaptation craft stays separate from rights, permissions, public-domain status and jurisdiction-specific legal questions; those must be verified against current authoritative information when they matter.
+
 ### Dialogue
 
 `Dialogue and Voiceprint pass` is intentionally a narrow guided pass. It already establishes bounded scope, reviewable alternatives, preservation of facts/intent and explicit human approval. The attached legacy Dialogue prompt and repository overview contain broader action, subtext, conflict, exposition and revision teaching that is owned by the dedicated Dialogue lessons rather than duplicated here. The old prompt wrapper and repository navigation remain historical only.
-
-`Subtext, status and silence pass` is source-free and already teaches the intended narrow operation: identify on-the-nose speech, static status and inactive silence; keep suggestions bounded; preserve writer intent and require explicit approval.
 
 ## Preserved boundaries
 
@@ -59,6 +59,6 @@ Because Phase 6 required no teaching edits, Lessons 51–60 are anchored to the 
 
 ## Stop boundary
 
-Phase 6 stops after presentation Lesson 60, `Subtext, status and silence pass`.
+Phase 6 stops after presentation Lesson 60, `Dialogue and Voiceprint pass`.
 
-Phase 7 must restart at presentation Lesson 61, `Dialogue Is Action`, from the current ledger and merged main state. Re-read #2094 and its architecture addendum before continuing. Do not retire source viewers and do not claim whole-issue completion.
+Phase 7 must restart at presentation Lesson 61, `Subtext, status and silence pass`, from the current ledger and merged main state. Re-read #2094 and its architecture addendum before continuing. Do not retire source viewers and do not claim whole-issue completion.

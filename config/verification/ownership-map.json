@@ -46,6 +46,13 @@
       "riskTokens": ["skin", "surface", "navigation", "visual"]
     },
     {
+      "id": "outline-ui-skin",
+      "classification": "production",
+      "include": ["app/structure/structure.module.css"],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "visual"]
+    },
+    {
       "id": "library-ui-surface",
       "classification": "production",
       "include": [

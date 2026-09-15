@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   BUZZ_IDENTITY_ONBOARDING_URL,
   buildHumanLoreAvatarPrompt,
@@ -67,6 +67,7 @@ type SetupMode = "connect" | null;
 
 type ReadinessIndicatorProps = {
   readonly label: string;
+  readonly name?: string;
   readonly ready: boolean | null;
   readonly detail?: string;
   readonly settingsTarget: string;
@@ -98,12 +99,12 @@ function openSettingsTarget(target: string) {
   window.setTimeout(() => window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: target })), 0);
 }
 
-function ReadinessIndicator({ label, ready, detail, settingsTarget }: ReadinessIndicatorProps) {
+function ReadinessIndicator({ label, name = label, ready, detail, settingsTarget }: ReadinessIndicatorProps) {
   const state = ready === null ? "Checking" : ready ? "Active" : "Not active";
   return (
-    <div className={styles.statusItem} title={detail || `${label}: ${state}`}>
-      <button type="button" className={styles.statusLink} onClick={() => openSettingsTarget(settingsTarget)} aria-label={`Configure ${label}`}>{label}</button>
-      <i data-ready={ready === null ? "checking" : ready ? "true" : "false"} aria-label={`${label}: ${state}`} />
+    <div className={styles.statusItem} title={detail || `${name}: ${state}`}>
+      <button type="button" className={styles.statusLink} onClick={() => openSettingsTarget(settingsTarget)} aria-label={`Configure ${name}`}>{label}</button>
+      <i data-ready={ready === null ? "checking" : ready ? "true" : "false"} aria-label={`${name}: ${state}`} />
     </div>
   );
 }
@@ -139,7 +140,9 @@ export default function ProfileIdentityPanel({
   const [readinessLoaded, setReadinessLoaded] = useState(false);
   const [setupMode, setSetupMode] = useState<SetupMode>(null);
   const [privateKey, setPrivateKey] = useState("");
+  const [avatarPromptEnabled, setAvatarPromptEnabled] = useState(false);
   const [avatarDescription, setAvatarDescription] = useState("");
+  const avatarPromptRef = useRef<HTMLTextAreaElement>(null);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState("");
 
@@ -163,6 +166,8 @@ export default function ProfileIdentityPanel({
 
   useEffect(() => {
     setReadinessLoaded(false);
+    setAvatarPromptEnabled(false);
+    setAvatarDescription("");
     void refresh().catch((cause) => {
       setReadinessLoaded(true);
       setNotice(cause instanceof Error ? cause.message : "Profile details could not be loaded.");
@@ -217,6 +222,17 @@ export default function ProfileIdentityPanel({
     } finally { setBusy(""); }
   }
 
+  function beginOrGenerateLoreAvatar() {
+    if (busy) return;
+    if (!avatarPromptEnabled) {
+      setAvatarPromptEnabled(true);
+      setNotice("Describe the Lore Avatar you want, then select Generate Lore Avatar again.");
+      window.requestAnimationFrame(() => avatarPromptRef.current?.focus());
+      return;
+    }
+    void generateLoreAvatar();
+  }
+
   async function generateLoreAvatar() {
     const description = avatarDescription.trim();
     if (!description || busy) return;
@@ -244,16 +260,12 @@ export default function ProfileIdentityPanel({
       if (!response.ok || !generated.assetUrl) throw new Error(generated.message || "The selected image route returned no Lore Avatar.");
 
       const next = { ...presentation, avatarUrl: generated.assetUrl };
-      const saved = await saveLocalPresentation(next);
-      setPresentation(saved.profile);
+      setPresentation(next);
       setAvatarDescription("");
-      await onProfileChanged();
-      setNotice(isPlotPickleGeneratedAvatarRef(saved.profile.avatarUrl)
-        ? "Lore Avatar generated and saved to this Human profile. It did not alter any other Human profile or Agent identity. BUZZ keeps its current public avatar until a publicly reachable image is available."
-        : "Lore Avatar generated and saved to this Human profile.");
-      await refresh();
+      setAvatarPromptEnabled(false);
+      setNotice("Lore Avatar generated for review. Select Save Profile to keep it with this Human profile and the current Display Description.");
     } catch (cause) {
-      setNotice(cause instanceof Error ? `${cause.message} Your current avatar was not changed.` : "Lore Avatar generation failed. Your current avatar was not changed.");
+      setNotice(cause instanceof Error ? `${cause.message} Your current saved avatar was not changed.` : "Lore Avatar generation failed. Your current saved avatar was not changed.");
     } finally { setBusy(""); }
   }
 
@@ -314,9 +326,11 @@ export default function ProfileIdentityPanel({
   const activeProvider = assistantStatus?.activeProvider;
   const localProvider = activeProvider === "local" || activeProvider === "ollama" ? activeProvider : null;
   const cloudProvider = activeProvider === "openai" || activeProvider === "minimax" ? activeProvider : null;
+  const activeProfile = activeProvider && activeProvider !== "disabled" ? assistantStatus?.providers?.[activeProvider] : null;
   const localProfile = localProvider ? assistantStatus?.providers?.[localProvider] : null;
   const cloudProfile = cloudProvider ? assistantStatus?.providers?.[cloudProvider] : null;
   const communityReady = readinessLoaded ? Boolean(connected && guildhallStatus?.operational) : null;
+  const modelsReady = readinessLoaded ? Boolean(activeProvider && activeProvider !== "disabled" && (activeProfile?.ready || (activeProvider === "local" && assistantStatus?.localRuntime?.ready))) : null;
   const localModelReady = readinessLoaded ? Boolean(localProvider && (localProfile?.ready || (localProvider === "local" && assistantStatus?.localRuntime?.ready))) : null;
   const comfyReady = readinessLoaded ? connectionsStatus?.comfyui?.state === "connected" : null;
   const cloudComputeReady = readinessLoaded ? Boolean(cloudProvider && cloudProfile?.ready) : null;
@@ -328,6 +342,7 @@ export default function ProfileIdentityPanel({
     : "Cloud compute is not the active text route.";
   const comfyDetail = connectionsStatus?.comfyui?.detail || connectionsStatus?.comfyui?.identity || "ComfyUI is not active.";
   const cloudSettingsTarget = cloudProvider === "minimax" ? "minimax" : "openai";
+  const modelSettingsTarget = cloudProvider ? cloudSettingsTarget : "ollama";
 
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v2">
@@ -347,11 +362,12 @@ export default function ProfileIdentityPanel({
             <blockquote className={styles.motto}>The agents are the workshop. Stories—and better storytellers—are the product.</blockquote>
           </div>
           <div className={styles.statusRail} aria-label="Profile readiness">
-            <ReadinessIndicator label="BUZZ Identity" ready={connected} detail={identityLabel} settingsTarget="buzz" />
-            <ReadinessIndicator label="Community BBS" ready={communityReady} detail={guildhallStatus?.message} settingsTarget="buzz" />
-            <ReadinessIndicator label="Local Model" ready={localModelReady} detail={localDetail} settingsTarget="ollama" />
-            <ReadinessIndicator label="ComfyUI" ready={comfyReady} detail={comfyDetail} settingsTarget="comfyui" />
-            <ReadinessIndicator label="Cloud Compute" ready={cloudComputeReady} detail={cloudDetail} settingsTarget={cloudSettingsTarget} />
+            <ReadinessIndicator label="BUZZ" name="BUZZ Identity" ready={connected} detail={identityLabel} settingsTarget="buzz" />
+            <ReadinessIndicator label="COMMUNITY" name="BUZZ Community" ready={communityReady} detail={guildhallStatus?.message} settingsTarget="buzz" />
+            <ReadinessIndicator label="MODELS" name="Models" ready={modelsReady} detail={activeProfile?.model} settingsTarget={modelSettingsTarget} />
+            <ReadinessIndicator label="COMFY" name="ComfyUI" ready={comfyReady} detail={comfyDetail} settingsTarget="comfyui" />
+            <ReadinessIndicator label="LOCAL" name="Local Compute" ready={localModelReady} detail={localDetail} settingsTarget="ollama" />
+            <ReadinessIndicator label="CLOUD" name="Cloud Compute" ready={cloudComputeReady} detail={cloudDetail} settingsTarget={cloudSettingsTarget} />
           </div>
         </section>
 
@@ -407,8 +423,8 @@ export default function ProfileIdentityPanel({
           <form className={styles.identityForm} onSubmit={savePresentation}>
             <label><span>Display name (agent name)</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
             <label><span>Display Description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500</small></label>
-            <button type="button" disabled={Boolean(busy) || !avatarDescription.trim()} onClick={() => void generateLoreAvatar()}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
-            <label><span>Lore Avatar prompt</span><textarea rows={3} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /></label>
+            <button type="button" aria-controls="lore-avatar-prompt" aria-expanded={avatarPromptEnabled} disabled={Boolean(busy) || (avatarPromptEnabled && !avatarDescription.trim())} onClick={beginOrGenerateLoreAvatar}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
+            <label data-lore-avatar-prompt-state={avatarPromptEnabled ? "active" : "inactive"}><span>Lore Avatar prompt</span><textarea id="lore-avatar-prompt" ref={avatarPromptRef} rows={3} maxLength={1000} disabled={!avatarPromptEnabled || Boolean(busy)} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /></label>
             <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>
           </form>
         </section>

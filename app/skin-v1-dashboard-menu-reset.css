@@ -65,10 +65,6 @@
   right: var(--pp-skin-space-2) !important;
 }
 
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] [data-dashboard-menu-item="logout"] {
-  margin-top: var(--pp-skin-space-6) !important;
-}
-
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-rule {
   margin-top: var(--pp-skin-space-5) !important;
 }

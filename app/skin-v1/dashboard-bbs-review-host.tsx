@@ -4,7 +4,6 @@ import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "r
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import StructureEnginePage from "../structure/page";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
-import DashboardReadinessRail from "./dashboard-readiness-rail";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
@@ -168,7 +167,6 @@ export default function DashboardBbsReviewHost({
 
   return (
     <div className={reviewStyles.reviewHost}>
-      <DashboardReadinessRail />
       <DashboardBbsPanel
         key={dashboardGeneration}
         items={items}

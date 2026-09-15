@@ -8,14 +8,16 @@
     ".github/workflows/oss-radar.yml",
     "config/development-convergence/1977.json",
     "docs/developer-briefs/1977-phase-4-scheduled-radar-uat.md",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "tests/issue-1977-oss-radar-newest-first.test.mjs",
     "tests/issue-1977-oss-radar-phase-4-uat.test.mjs"
   ],
   "acceptance": [
     {
       "id": "P1977-4-1",
-      "criterion": "OSS Radar runs daily at 6:00 AM Eastern time and supports manual dispatch without push or pull-request execution.",
+      "criterion": "OSS Radar runs daily at 4:24 AM Eastern time and supports manual dispatch without push or pull-request execution.",
       "evidence": [
-        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '0 6 * * *'"},
+        {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"cron: '24 4 * * *'"},
         {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"timezone: 'America/Toronto'"},
         {"type":"file-contains","path":".github/workflows/oss-radar.yml","contains":"workflow_dispatch:"},
         {"type":"file-contains","path":"tests/issue-1977-oss-radar-phase-4-uat.test.mjs","contains":"daily, manually dispatchable and least-privilege"}
@@ -56,6 +58,14 @@
     },
     {
       "id": "P1977-4-6",
+      "criterion": "The selected Top 5 are displayed newest-created first without changing which repositories qualify for review.",
+      "evidence": [
+        {"type":"file-contains","path":"lib/verification/oss-radar/report-renderer.mjs","contains":"newestCreatedFirst"},
+        {"type":"file-contains","path":"tests/issue-1977-oss-radar-newest-first.test.mjs","contains":"newest-created first"}
+      ]
+    },
+    {
+      "id": "P1977-4-7",
       "criterion": "Model-assisted analysis remains outside Phase 4.",
       "evidence": [
         {"type":"file-contains","path":"docs/developer-briefs/1977-phase-4-scheduled-radar-uat.md","contains":"No model provider key or model-assisted analysis is added in Phase 4."}

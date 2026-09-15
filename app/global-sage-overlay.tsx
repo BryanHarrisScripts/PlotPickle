@@ -15,6 +15,15 @@ type SageMessage = {
 
 let fallbackMessageId = 0;
 
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
 function messageId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${++fallbackMessageId}`;
 }
@@ -48,6 +57,11 @@ function hasVisiblePlotPickleSurface() {
   return Array.from(surfaces).some((surface) => (
     surface.getClientRects().length > 0 && window.getComputedStyle(surface).visibility !== "hidden"
   ));
+}
+
+function visibleFocusableElements(container: HTMLElement) {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    .filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true" && element.getClientRects().length > 0);
 }
 
 function currentSageContext() {
@@ -86,7 +100,18 @@ export default function GlobalSageOverlay() {
   const [draft, setDraft] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
+  const panelRef = useRef<HTMLElement | null>(null);
+  const questionRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
+  const originRef = useRef<HTMLElement | null>(null);
+
+  function closeOverlay() {
+    setOpen(false);
+    window.requestAnimationFrame(() => {
+      if (originRef.current?.isConnected) originRef.current.focus();
+      originRef.current = null;
+    });
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -95,12 +120,49 @@ export default function GlobalSageOverlay() {
       if (isTextEditingTarget(event.target) || hasBlockingOverlay() || !hasVisiblePlotPickleSurface()) return;
       event.preventDefault();
       event.stopPropagation();
+      originRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       setError("");
       setOpen(true);
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => questionRef.current?.focus());
+    const onDialogKeyDown = (event: KeyboardEvent) => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeOverlay();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = visibleFocusableElements(panel);
+      if (!focusable.length) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onDialogKeyDown, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onDialogKeyDown, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -157,7 +219,9 @@ export default function GlobalSageOverlay() {
         className={styles.panel}
         data-disable-global-shortcuts="true"
         data-global-sage-overlay="true"
+        ref={panelRef}
         role="dialog"
+        tabIndex={-1}
       >
         <header className={styles.header}>
           <AgentPortrait id="sage-brinewick" alt="" size={52} />
@@ -193,6 +257,7 @@ export default function GlobalSageOverlay() {
             disabled={working}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="What do you need help with?"
+            ref={questionRef}
             rows={3}
             value={draft}
           />
@@ -206,7 +271,7 @@ export default function GlobalSageOverlay() {
           aria-label="Close Sage help"
           className={styles.close}
           data-overlay-close
-          onClick={() => setOpen(false)}
+          onClick={closeOverlay}
           type="button"
         >
           Close

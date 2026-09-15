@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "issue": 2094,
-  "phase": "phase-4-lessons-31-40",
-  "brief": "docs/learn/lesson-integration-2094-phase-4.md",
+  "phase": "phase-5-lessons-41-50",
+  "brief": "docs/learn/lesson-integration-2094-phase-5.md",
   "allowedChanges": [
     "docs/learn/lesson-integration-2094.json",
-    "docs/learn/lesson-integration-2094-phase-4.md",
+    "docs/learn/lesson-integration-2094-phase-5.md",
     "tests/issue-2094-lesson-integration.test.mjs",
     "config/development-convergence/2094.json"
   ],
   "acceptance": [
     {
       "id": "P2094-1",
-      "criterion": "Forty individually reviewed lessons in actual presentation order with source decisions and restart evidence through Phase 4.",
+      "criterion": "Fifty individually reviewed lessons in actual presentation order with source decisions and restart evidence through Phase 5.",
       "evidence": [
         {
           "type": "file-contains",
@@ -22,18 +22,18 @@
         {
           "type": "file-contains",
           "path": "tests/issue-2094-lesson-integration.test.mjs",
-          "contains": "#2094 Phase 4 teaching is sufficient without source-driven rewrites"
+          "contains": "#2094 Phase 5 teaching is sufficient without source-driven rewrites"
         },
         {
           "type": "file-contains",
           "path": "docs/learn/lesson-integration-2094.json",
-          "contains": "\"reviewedThrough\": 40"
+          "contains": "\"reviewedThrough\": 50"
         }
       ]
     },
     {
       "id": "P2094-2",
-      "criterion": "Lessons 31–40 are learner-sufficient without raw source dependence; stable concepts are already clear or explicitly routed and outdated material is not promoted.",
+      "criterion": "Lessons 41–50 are learner-sufficient without raw source dependence; stable concepts are already clear or explicitly routed and outdated material is not promoted.",
       "evidence": [
         {
           "type": "file-contains",
@@ -47,24 +47,24 @@
         },
         {
           "type": "file-contains",
-          "path": "docs/learn/lesson-integration-2094-phase-4.md",
-          "contains": "All ten Phase 4 lessons were learner-sufficient before changes"
+          "path": "docs/learn/lesson-integration-2094-phase-5.md",
+          "contains": "All ten Phase 5 lessons were learner-sufficient before changes"
         }
       ]
     },
     {
       "id": "P2094-3",
-      "criterion": "Stop after Lesson 40 with a Phase 5 restart checkpoint; source-viewer retirement and whole-issue completion remain deferred.",
+      "criterion": "Stop after Lesson 50 with a Phase 6 restart checkpoint; source-viewer retirement and whole-issue completion remain deferred.",
       "evidence": [
         {
           "type": "file-contains",
           "path": "docs/learn/lesson-integration-2094.json",
-          "contains": "\"nextPresentationOrder\": 41"
+          "contains": "\"nextPresentationOrder\": 51"
         },
         {
           "type": "file-contains",
-          "path": "docs/learn/lesson-integration-2094-phase-4.md",
-          "contains": "Phase 5 must restart at presentation Lesson 41"
+          "path": "docs/learn/lesson-integration-2094-phase-5.md",
+          "contains": "Phase 6 must restart at presentation Lesson 51"
         }
       ]
     }

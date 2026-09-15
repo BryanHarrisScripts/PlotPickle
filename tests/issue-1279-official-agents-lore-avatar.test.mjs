@@ -95,7 +95,7 @@ test("#1279 Community shows official Agent state without requiring ownedByMe", a
   assert.match(roster, /will not substitute the connected Human identity/);
 });
 
-test("#1279 Generate Lore Avatar reuses the selected image route and saves only after generation succeeds", async () => {
+test("#1279/#2071 Generate Lore Avatar reuses the selected image route and stages the result until Save Profile", async () => {
   const [contract, panel, route] = await Promise.all([
     read("lib/buzz/buzz-default-community.ts"),
     read("app/profile-access/profile-identity-panel.tsx"),
@@ -106,10 +106,14 @@ test("#1279 Generate Lore Avatar reuses the selected image route and saves only 
   assert.match(panel, /buildHumanLoreAvatarPrompt\(description\)/);
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/image"/);
   assert.match(panel, /assetId: `human-lore-avatar-\$\{profile\.profileId\}`/);
-  assert.match(panel, /const saved = await saveLocalPresentation\(next\)/);
-  assert.match(panel, /setPresentation\(saved\.profile\)/);
-  assert.ok(panel.indexOf("const saved = await saveLocalPresentation(next)") < panel.indexOf("setPresentation(saved.profile)"));
-  assert.match(panel, /Your current avatar was not changed/);
+  assert.match(panel, /const next = \{ \.\.\.presentation, avatarUrl: generated\.assetUrl \};[\s\S]*setPresentation\(next\)/u);
+  const generationStart = panel.indexOf("async function generateLoreAvatar");
+  const generationEnd = panel.indexOf("async function finishBuzzSetup", generationStart);
+  const generation = panel.slice(generationStart, generationEnd);
+  assert.doesNotMatch(generation, /saveLocalPresentation\(next\)/);
+  assert.match(panel, /const result = await saveLocalPresentation\(presentation\)/);
+  assert.match(panel, /Select Save Profile to keep it/u);
+  assert.match(panel, /Your current saved avatar was not changed/u);
   assert.doesNotMatch(panel, /\/api\/(?:auth\/)?(?:generate-)?lore-avatar/);
 
   assert.match(route, /isPlotPickleGeneratedAvatarRef\(normalized\)/);

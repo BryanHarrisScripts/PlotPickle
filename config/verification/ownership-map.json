@@ -36,6 +36,26 @@
       "riskTokens": ["surface", "navigation", "agent"]
     },
     {
+      "id": "library-ui-skin",
+      "classification": "production",
+      "include": [
+        "modules/library/ui/avery-session-history/avery-session-history.module.css",
+        "modules/library/ui/library-workspace.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "navigation", "visual"]
+    },
+    {
+      "id": "library-ui-surface",
+      "classification": "production",
+      "include": [
+        "modules/library/ui/avery-session-history/index.tsx",
+        "modules/library/ui/library-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation"]
+    },
+    {
       "id": "sage-brinewick-skill",
       "classification": "production",
       "include": [".agents/skills/sage-brinewick/SKILL.md"],

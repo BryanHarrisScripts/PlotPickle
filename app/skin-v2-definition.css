@@ -1,0 +1,58 @@
+/*
+ * Skin V2 — Black and White.
+ *
+ * Skin V2 consumes the shared Skin contract from skin-v1-definition.css and
+ * changes palette only. Geometry, typography, spacing, motion and component
+ * sizing remain owned by the shared contract.
+ */
+
+html[data-plotpickle-skin-theme="skin-v2"] {
+  --pp-skin-version: "2";
+
+  /* Nine black steps. */
+  --pp-skin-black-1: #000000;
+  --pp-skin-black-2: #050505;
+  --pp-skin-black-3: #0b0b0b;
+  --pp-skin-black-4: #121212;
+  --pp-skin-black-5: #1a1a1a;
+  --pp-skin-black-6: #242424;
+  --pp-skin-black-7: #303030;
+  --pp-skin-black-8: #3d3d3d;
+  --pp-skin-black-9: #4b4b4b;
+
+  /* Nine white steps. */
+  --pp-skin-white-1: #ffffff;
+  --pp-skin-white-2: #fafafa;
+  --pp-skin-white-3: #f4f4f4;
+  --pp-skin-white-4: #ececec;
+  --pp-skin-white-5: #e2e2e2;
+  --pp-skin-white-6: #d6d6d6;
+  --pp-skin-white-7: #c8c8c8;
+  --pp-skin-white-8: #b8b8b8;
+  --pp-skin-white-9: #a6a6a6;
+
+  --pp-skin-canvas: var(--pp-skin-black-1);
+  --pp-skin-surface-0: var(--pp-skin-black-2);
+  --pp-skin-surface-1: var(--pp-skin-black-3);
+  --pp-skin-surface-2: var(--pp-skin-black-4);
+  --pp-skin-surface-3: var(--pp-skin-black-5);
+  --pp-skin-surface-4: var(--pp-skin-black-6);
+  --pp-skin-surface-highlight: var(--pp-skin-black-8);
+  --pp-skin-ink: var(--pp-skin-white-3);
+  --pp-skin-ink-soft: var(--pp-skin-white-6);
+  --pp-skin-ink-muted: var(--pp-skin-white-9);
+  --pp-skin-line: var(--pp-skin-black-8);
+  --pp-skin-line-soft: var(--pp-skin-black-6);
+  --pp-skin-line-strong: var(--pp-skin-white-4);
+  --pp-skin-accent-deep: var(--pp-skin-black-7);
+  --pp-skin-accent: var(--pp-skin-white-8);
+  --pp-skin-accent-bright: var(--pp-skin-white-3);
+  --pp-skin-focus: var(--pp-skin-white-1);
+  --pp-skin-selected-bg: var(--pp-skin-white-3);
+  --pp-skin-selected-ink: var(--pp-skin-black-1);
+  --pp-skin-disabled: var(--pp-skin-black-9);
+  --pp-skin-shadow-ink: var(--pp-skin-black-1);
+
+  /* Semantic status colours remain truthful exceptions to the motif. */
+  --pp-skin-ready: #79bd92;
+}

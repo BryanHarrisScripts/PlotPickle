@@ -1,4 +1,5 @@
 .footer {
+  position: relative;
   align-items: center;
 }
 
@@ -9,6 +10,17 @@
   flex-wrap: wrap;
   gap: var(--pp-skin-space-2);
   white-space: nowrap;
+}
+
+.legendReserved {
+  visibility: hidden;
+}
+
+.dashboardReadiness {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .legendKey {

@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import AgentPortrait from "../components/agent-portrait";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
@@ -105,13 +105,13 @@ export default function GlobalSageOverlay() {
   const threadRef = useRef<HTMLDivElement | null>(null);
   const originRef = useRef<HTMLElement | null>(null);
 
-  function closeOverlay() {
+  const closeOverlay = useCallback(() => {
     setOpen(false);
     window.requestAnimationFrame(() => {
       if (originRef.current?.isConnected) originRef.current.focus();
       originRef.current = null;
     });
-  }
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -162,7 +162,7 @@ export default function GlobalSageOverlay() {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onDialogKeyDown, true);
     };
-  }, [open]);
+  }, [closeOverlay, open]);
 
   useEffect(() => {
     if (!open) return;

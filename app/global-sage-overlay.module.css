@@ -34,8 +34,8 @@
   align-items: center;
   min-height: 76px;
   padding: var(--pp-skin-space-3, 12px) 96px var(--pp-skin-space-3, 12px) var(--pp-skin-space-4, 16px);
-  border-bottom: var(--pp-skin-border-thin, 1px) solid var(--pp-skin-accent, #287a4b);
-  background: var(--pp-skin-fill-accent-header, #151515);
+  border-bottom: var(--pp-skin-border-thin, 1px) solid var(--pp-skin-line, #333);
+  background: var(--pp-skin-surface-1, #090909);
 }
 
 .header h2,

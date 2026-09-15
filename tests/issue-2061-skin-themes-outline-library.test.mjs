@@ -68,15 +68,20 @@ test("#2061 exposes existing Library and Structure Engine implementations as yel
   assert.match(issueStyles, /data-dashboard-menu-item="plan"[\s\S]*--pp-skin-warning/u);
 });
 
-test("#2061 projects the five existing backend readiness authorities on Dashboard once", async () => {
-  const [rail, host, issueStyles] = await Promise.all([
+test("#2061 projects the five existing backend readiness authorities only inside the Dashboard footer", async () => {
+  const [rail, footer, host, issueStyles] = await Promise.all([
     read("app/skin-v1/dashboard-readiness-rail.tsx"),
+    read("app/skin-v1/menu-feedback-footer.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/issue-2061.css"),
   ]);
 
   for (const label of ["BUZZ Identity", "Community BBS", "Local Model", "ComfyUI", "Cloud Compute"]) {
     assert.equal(rail.split(`label: "${label}"`).length - 1, 1, `${label} should appear once in the Dashboard readiness model`);
+  }
+
+  for (const shortLabel of ["BUZZ", "BBS", "MODEL", "COMFY", "CLOUD"]) {
+    assert.match(rail, new RegExp(`shortLabel: "${shortLabel}"`, "u"));
   }
 
   for (const endpoint of [
@@ -89,6 +94,10 @@ test("#2061 projects the five existing backend readiness authorities on Dashboar
   assert.match(rail, /target: "profile"/u);
   assert.match(rail, /target: "local-story-mode"/u);
   assert.match(rail, /target: "cloud"/u);
-  assert.match(host, /<DashboardReadinessRail \/>[\s\S]*<DashboardBbsPanel/u);
-  assert.match(issueStyles, /aria-label="Profile readiness"[\s\S]*display: none !important/u);
+  assert.match(footer, /import DashboardReadinessRail/u);
+  assert.match(footer, /id === "dashboard-menu-status"/u);
+  assert.match(footer, /dashboardFooter \? <DashboardReadinessRail \/>/u);
+  assert.doesNotMatch(host, /DashboardReadinessRail/u);
+  assert.doesNotMatch(issueStyles, /Profile readiness/u);
+  assert.doesNotMatch(issueStyles, /display: none !important/u);
 });

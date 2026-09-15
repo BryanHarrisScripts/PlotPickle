@@ -1,0 +1,88 @@
+.rail {
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: var(--pp-skin-space-4) auto 0;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+.heading {
+  display: block;
+  margin-bottom: var(--pp-skin-space-2);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  min-height: var(--pp-skin-control-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-2);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover,
+.item:focus-visible {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-3);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 1px;
+}
+
+.item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item i {
+  flex: 0 0 auto;
+  width: var(--pp-skin-status-dot);
+  height: var(--pp-skin-status-dot);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-ink-muted);
+  background: var(--pp-skin-ink-muted);
+}
+
+.item i[data-ready="ready"] {
+  border-color: var(--pp-skin-ready, var(--pp-skin-accent-bright));
+  background: var(--pp-skin-ready, var(--pp-skin-accent-bright));
+}
+
+.item i[data-ready="not-ready"] {
+  border-color: var(--pp-skin-danger);
+  background: var(--pp-skin-danger);
+}
+
+@media (max-width: 840px) {
+  .items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .rail {
+    width: calc(100% - 32px);
+  }
+
+  .items {
+    grid-template-columns: 1fr;
+  }
+}

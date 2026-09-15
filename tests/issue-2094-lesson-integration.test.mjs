@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const moduleUrls = new Map();
+const phase2Baseline = "d288609ec844977c7178bf7ef46324f59fb5e90e";
+const phase3Baseline = "cf59920491891e9c367c542cd0209d3f5f89bf6b";
 
 // Load the actual dependency-free curriculum projection on CI's Node 22.13.
 // Resolve its relative TS/JSON imports without installing the application stack.
@@ -45,12 +47,13 @@ test("#2094 audit follows actual presentation order and attached provenance", ()
   const sources = lessons.flatMap((lesson) => lesson.sources);
   assert.equal(sources.length, 95);
   assert.equal(new Set(sources.map((source) => source.id)).size, 95);
-  assert.equal(ledger.phase, 2);
-  assert.equal(ledger.reviewedThrough, 20);
-  assert.equal(ledger.nextPresentationOrder, 21);
-  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 20 }, (_, i) => String(i + 1)));
+  assert.equal(ledger.phase, 3);
+  assert.equal(ledger.phaseBaselineCommit, phase3Baseline);
+  assert.equal(ledger.reviewedThrough, 30);
+  assert.equal(ledger.nextPresentationOrder, 31);
+  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 30 }, (_, i) => String(i + 1)));
   const actions = new Set(["ALREADY_CLEAR", "INTEGRATE", "BETTER_ELSEWHERE", "HISTORICAL_ONLY", "REJECT", "DO_NOT_FREEZE"]);
-  for (const [index, lesson] of lessons.slice(0, 20).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 30).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     assert.equal(record.presentationOrder, order);
@@ -104,7 +107,32 @@ test("#2094 Phase 2 teaching is sufficient without source-driven rewrites", () =
     const body = text({ ...lesson, sources: [] });
     assert.equal(record.learnerSufficientBefore, true, `Lesson ${order}: unexpected source-dependent gap`);
     assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `Lesson ${order}: unimplemented integration decision`);
-    assert.equal(record.reviewedAtCommit, ledger.phaseBaselineCommit);
+    assert.equal(record.reviewedAtCommit, phase2Baseline);
+    for (const concept of concepts) assert.ok(body.includes(concept), `Lesson ${order}: missing ${concept}`);
+    assert.doesNotMatch(body, /<pre>|<details>/);
+  }
+});
+
+test("#2094 Phase 3 teaching is sufficient without source-driven rewrites", () => {
+  const expected = new Map([
+    [21, ["Choose the shape, then test it", "Use flexible checkpoints", "Let the active story choose the questions"]],
+    [22, ["Use a pressure spectrum", "Make internal conflict playable", "Connect pressure to consequence"]],
+    [23, ["Start with incompatible objectives", "Use the dialectical lens carefully", "Let foils reveal strategy"]],
+    [24, ["Write both perspectives", "Track the turning event", "Allow adaptation in both directions"]],
+    [25, ["Voice begins before dialogue", "Change voice by relationship and pressure", "Research without certification claims"]],
+    [26, ["Use functions, not identity boxes", "Audit cast economy", "Do not promise commercial outcomes"]],
+    [27, ["Mood, tone and visual ingredients", "Repetition with variation", "Reference, project asset and generated asset"]],
+    [28, ["When this pass helps", "Review the response before approval", "Recognize predictable AI failure modes"]],
+    [29, ["Attitude, not one mood", "Tonal promise", "Controlled tonal turn"]],
+    [30, ["The argument stays alive", "Contribution without repetition", "Competing answer"]],
+  ]);
+  for (const [order, concepts] of expected) {
+    const lesson = lessons[order - 1];
+    const record = ledger.lessons[String(order)];
+    const body = text({ ...lesson, sources: [] });
+    assert.equal(record.learnerSufficientBefore, true, `Lesson ${order}: unexpected source-dependent gap`);
+    assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `Lesson ${order}: unimplemented integration decision`);
+    assert.equal(record.reviewedAtCommit, phase3Baseline);
     for (const concept of concepts) assert.ok(body.includes(concept), `Lesson ${order}: missing ${concept}`);
     assert.doesNotMatch(body, /<pre>|<details>/);
   }
@@ -118,9 +146,9 @@ test("#2094 keeps phased source retirement and shared presentation authority", (
   }
   assert.match(read("app/api/learn/explore/route.ts"), /plotPickleCurriculum.*map/);
   assert.match(read("app/page.tsx"), /curriculum=\{plotPickleCurriculum\}/);
-  assert.equal(lessons[10].title, "Build the Story Experience");
-  assert.equal(lessons[19].title, "Prove Character Through Choice");
   assert.equal(lessons[20].title, "Map the Inner Journey Without Forcing It");
+  assert.equal(lessons[29].title, "Make Theme a Dramatic Argument");
+  assert.equal(lessons[30].title, "Build Motifs, Symbols and Echoes");
 });
 
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -128,7 +156,7 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
   assert.equal(hash(lessons.map(({ id, topic, number }) => ({ id, topic, number }))), ledger.presentationOrderSha256);
   const sources = lessons.flatMap((lesson) => lesson.sources).sort((a, b) => a.id.localeCompare(b.id));
   assert.equal(hash(sources), ledger.sourceContentSha256);
-  for (const [index, lesson] of lessons.slice(0, 20).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 30).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     if (record.lessonContentSha256) {
@@ -136,7 +164,8 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
       assert.equal(hash(teaching), record.lessonContentSha256, `${lesson.title}: teaching changed since individual review`);
       assert.deepEqual(Object.fromEntries(attached.map((source) => [source.id, hash(source)])), record.sourceHashes);
     } else {
-      assert.equal(record.reviewedAtCommit, ledger.phaseBaselineCommit, `${lesson.title}: missing Phase 2 baseline evidence`);
+      const expectedReviewCommit = order <= 20 ? phase2Baseline : phase3Baseline;
+      assert.equal(record.reviewedAtCommit, expectedReviewCommit, `${lesson.title}: missing phase baseline evidence`);
       assert.equal(record.learnerSufficientBefore, true, `${lesson.title}: untracked teaching gap needs a fingerprinted edit`);
       assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `${lesson.title}: integration decision requires a content fingerprint`);
     }

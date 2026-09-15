@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "issue": 2094,
   "baseCommit": "19e3b1fe502dc7edf2ee16614ba2679b25b5c400",
-  "phaseBaselineCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
-  "phase": 2,
-  "reviewedThrough": 20,
-  "nextPresentationOrder": 21,
+  "phaseBaselineCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+  "phase": 3,
+  "reviewedThrough": 30,
+  "nextPresentationOrder": 31,
   "totalPresentationLessons": 96,
   "sourceViewerRetirement": "Deferred until all 96 lessons pass; Journey and Explore unchanged.",
   "reviewMethod": "Read each full composed presentation lesson and every attached bundled source. Compare concepts, make targeted edits only when required, then reread normal teaching without sources. Automated checks protect identity/provenance/evidence; they do not establish educational sufficiency.",
@@ -347,6 +347,162 @@
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already provides a complete evidence method for proving character through consequential choice.",
       "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+    },
+    "21": {
+      "presentationOrder": 21,
+      "lessonId": "characters-inner-journey",
+      "topic": "character",
+      "title": "Map the Inner Journey Without Forcing It",
+      "sourceIds": ["24-blocks-character-24-blocks-inner-journey-4-acts-md", "24-blocks-character-24-blocks-inner-journey-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Flexible arc shapes and evidence checkpoints including opening, catalyst, threshold, midpoint, crisis, climax and ending", "action": "ALREADY_CLEAR", "evidence": "Choose the shape, then test it; Use flexible checkpoints; Let the active story choose the questions"},
+        {"concept": "Fixed four-act or Hero's Journey structural placement", "action": "BETTER_ELSEWHERE", "evidence": "#2077 Structure and 24 Blocks owns structural placement; this lesson explicitly avoids fixed Block assignments"},
+        {"concept": "Mandatory transformation, rock-bottom beat, fixed sequence, or every character learning a lesson", "action": "REJECT", "evidence": "Multiple arc shapes and custom checkpoints remain valid"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The durable teaching from both inner-journey sources is already normal learner-facing content; prescriptive structural claims remain outside this lesson.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "22": {
+      "presentationOrder": 22,
+      "lessonId": "characters-conflict",
+      "topic": "character",
+      "title": "Join Inner and Outer Conflict",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Internal, interpersonal, institutional, environmental, technological and time/history/social pressures made character-specific and playable", "action": "ALREADY_CLEAR", "evidence": "Use a pressure spectrum; Make internal conflict playable; Connect pressure to consequence"},
+        {"concept": "Gendered Man-versus taxonomy or treating a category name as the scene", "action": "REJECT", "evidence": "The neutral pressure spectrum and common-mistake guidance replace dated labels with observable conflict"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "This source-free lesson already contains a complete modern conflict method at its intended scope.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "23": {
+      "presentationOrder": 23,
+      "lessonId": "characters-opposition",
+      "topic": "character",
+      "title": "Build Opposition as a Competing Worldview",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Opposing-force agency, incompatible objectives, coherent self-justification and foil function", "action": "ALREADY_CLEAR", "evidence": "Start with incompatible objectives; Let foils reveal strategy"},
+        {"concept": "Dialectical triad as an optional lens with synthesis, rejection, stalemate or tragedy remaining possible", "action": "ALREADY_CLEAR", "evidence": "Use the dialectical lens carefully"},
+        {"concept": "Required villain, moral equivalence, fixed archetype identity or forced synthesis", "action": "REJECT", "evidence": "Current teaching separates dramatic credibility from moral equivalence and keeps the lens optional"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The source-free opposition lesson is already learner-sufficient and correctly avoids turning a useful lens into required story architecture.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "24": {
+      "presentationOrder": 24,
+      "lessonId": "characters-relationships",
+      "topic": "character",
+      "title": "Design Relationships That Change Both People",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Reciprocal relationship perspectives, status/power, withheld needs, turning events and mutual adaptation", "action": "ALREADY_CLEAR", "evidence": "Write both perspectives; Track the turning event; Allow adaptation in both directions"},
+        {"concept": "Chemistry or conflict alone as proof of depth, or one-sided relationship descriptions", "action": "REJECT", "evidence": "Current teaching requires objectives, tactics, evidence and change from both directions"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The current relationship lesson already teaches the durable method directly in the normal lesson surface.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "25": {
+      "presentationOrder": 25,
+      "lessonId": "characters-voiceprint",
+      "topic": "character",
+      "title": "Give Every Character a Playable Voice",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Voice built from worldview, attention, rhythm, vocabulary, status, persuasion, silence and relationship pressure", "action": "ALREADY_CLEAR", "evidence": "Voice begins before dialogue; Change voice by relationship and pressure"},
+        {"concept": "Research language communities with specificity and informed human review; AI cannot certify authenticity", "action": "ALREADY_CLEAR", "evidence": "Research without certification claims"},
+        {"concept": "Accent, demographic shorthand or phonetic stereotype as a substitute for character voice", "action": "REJECT", "evidence": "Current lesson explicitly rejects demographic shortcuts and authenticity certification"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The voice lesson is already sufficiently specific, playable and representation-safe without source expansion.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "26": {
+      "presentationOrder": 26,
+      "lessonId": "characters-cast-system",
+      "topic": "character",
+      "title": "Design the Cast as a Dramatic System",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Flexible cast functions and cast-economy audit with writer-owned merge decisions", "action": "ALREADY_CLEAR", "evidence": "Use functions, not identity boxes; Audit cast economy"},
+        {"concept": "Agency/vulnerability framing and no profitability or authenticity certification", "action": "ALREADY_CLEAR", "evidence": "Modernize vulnerability and rescue; Do not promise commercial outcomes"},
+        {"concept": "Dated gendered cast slots, automatic character merges or commercial guarantees", "action": "REJECT", "evidence": "Current lesson treats archetypes as optional functions and preserves explicit writer ownership"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The cast-system lesson already absorbs the useful archetype/cast-economy teaching while rejecting dated labels and unsupported commercial claims.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "27": {
+      "presentationOrder": 27,
+      "lessonId": "mood-colour-visual-language",
+      "topic": "theme",
+      "title": "Mood, Colour and Visual Language",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Mood versus tone, contextual colour/light/texture/composition/lens vocabulary, and repetition with variation", "action": "ALREADY_CLEAR", "evidence": "Mood, tone and visual ingredients; Repetition with variation"},
+        {"concept": "Reference assets remain separate from canonical or generated project assets with provenance and rights boundaries", "action": "ALREADY_CLEAR", "evidence": "Reference, project asset and generated asset"},
+        {"concept": "Universal colour meanings, named-film or creator style as a complete instruction, or automatic reference-board application", "action": "REJECT", "evidence": "Current lesson explicitly treats visual meaning as contextual and references as inspiration rather than canonical assets"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "This source-free visual-language lesson is already complete at its intended theme/tone scope.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "28": {
+      "presentationOrder": 28,
+      "lessonId": "ai-revision-theme-motif-foreshadowing",
+      "topic": "theme",
+      "title": "Theme, motif and foreshadowing pass",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Narrow craft-problem diagnosis, scoped operation, explicit approval boundary and separation of evidence, questions and optional suggestions", "action": "ALREADY_CLEAR", "evidence": "When this pass helps; Set the operation and scope; Review the response before approval"},
+        {"concept": "Declaring theme as objective truth, adding symbols everywhere, over-signalling twists or replacing ambiguity with explanation", "action": "REJECT", "evidence": "Recognize predictable AI failure modes"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The guided pass is intentionally narrow and already complete without bundled-source dependence.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "29": {
+      "presentationOrder": 29,
+      "lessonId": "essentials-tone",
+      "topic": "theme",
+      "title": "Design Tone Without Monotony",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Tone as attitude expressed through point of view, narrative distance, consequence, image, sound, rhythm and diction with intentional range and contrast", "action": "ALREADY_CLEAR", "evidence": "Attitude, not one mood; Tonal promise; Controlled tonal turn"},
+        {"concept": "One-emotion tone or treating any tonal contrast as inconsistency", "action": "REJECT", "evidence": "Current teaching distinguishes purposeful emotional variety from incoherent consequence or point of view"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The tone lesson is already sufficient and does not need source-driven expansion.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "30": {
+      "presentationOrder": 30,
+      "lessonId": "essentials-theme",
+      "topic": "theme",
+      "title": "Make Theme a Dramatic Argument",
+      "sourceIds": ["24-blocks-essentials-thematic-components-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Theme as a contested question or proposition tested by beliefs, choices, consequences and competing answers", "action": "ALREADY_CLEAR", "evidence": "The argument stays alive; Contribution without repetition"},
+        {"concept": "Symbolic reinforcement as motif/symbol technique", "action": "BETTER_ELSEWHERE", "evidence": "Presentation Lesson 31, Build Motifs, Symbols and Echoes, owns symbolic-technique depth"},
+        {"concept": "Theme as one mandatory moral message every event or line must repeat", "action": "REJECT", "evidence": "Current lesson warns that excessive thematic agreement becomes preachy and predictable"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The durable thematic teaching is already learner-facing; symbolic technique depth remains with the next lesson and prescriptive moral-message framing remains rejected.",
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
     }
   },
   "presentationOrderSha256": "be54835767c5b9a034537adfb1e610e580fd5a965cb1b1e12136c3f99a99b633",

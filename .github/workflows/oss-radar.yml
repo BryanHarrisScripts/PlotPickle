@@ -5,6 +5,15 @@ on:
     - cron: '24 4 * * *'
       timezone: 'America/Toronto'
   workflow_dispatch:
+    inputs:
+      email_mode:
+        description: 'Email behavior for a manual Radar run'
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - send
 
 permissions:
   contents: read
@@ -27,8 +36,54 @@ jobs:
         with:
           node-version: '22.13.0'
       - name: Verify OSS Radar contracts
-        run: node --test tests/issue-1977-oss-radar-*.test.mjs tests/issue-2034-oss-radar-*.test.mjs
+        run: node --test tests/issue-1977-oss-radar-*.test.mjs tests/issue-2034-oss-radar-*.test.mjs tests/issue-2087-oss-radar-*.test.mjs
       - name: Run OSS Radar
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node lib/verification/oss-radar/run-radar.mjs
+        run: node lib/verification/oss-radar/run-radar.mjs > oss-radar-result.json
+      - name: Build staging email preview
+        env:
+          OSS_RADAR_EMAIL_FROM: oss-radar@plotpickle.invalid
+          OSS_RADAR_EMAIL_TO: human-review@plotpickle.invalid
+        run: node lib/verification/oss-radar/email-artifact.mjs oss-radar-result.json oss-radar-email-preview.eml
+      - name: Show staging email preview
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          {
+            echo '### OSS Radar email preview'
+            echo
+            echo '```text'
+            cat oss-radar-email-preview.eml
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Send OSS Radar review email
+        env:
+          OSS_RADAR_SMTP_URL: ${{ secrets.OSS_RADAR_SMTP_URL }}
+          OSS_RADAR_SMTP_USERNAME: ${{ secrets.OSS_RADAR_SMTP_USERNAME }}
+          OSS_RADAR_SMTP_PASSWORD: ${{ secrets.OSS_RADAR_SMTP_PASSWORD }}
+          OSS_RADAR_EMAIL_FROM: ${{ secrets.OSS_RADAR_EMAIL_FROM }}
+          OSS_RADAR_EMAIL_TO: ${{ secrets.OSS_RADAR_EMAIL_TO }}
+          MANUAL_EMAIL_MODE: ${{ inputs.email_mode }}
+        run: |
+          MODE="$MANUAL_EMAIL_MODE"
+          if [ "${{ github.event_name }}" = "schedule" ]; then MODE="send"; fi
+          if [ "$MODE" != "send" ]; then
+            echo "OSS Radar email is in preview mode; no message sent."
+            exit 0
+          fi
+          if [ -z "$OSS_RADAR_SMTP_URL" ] || [ -z "$OSS_RADAR_SMTP_USERNAME" ] || [ -z "$OSS_RADAR_SMTP_PASSWORD" ] || [ -z "$OSS_RADAR_EMAIL_FROM" ] || [ -z "$OSS_RADAR_EMAIL_TO" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "Manual send requested but OSS Radar SMTP/email secrets are incomplete." >&2
+              exit 1
+            fi
+            echo "::warning::OSS Radar email delivery skipped because SMTP/email secrets are not configured."
+            exit 0
+          fi
+          node lib/verification/oss-radar/email-artifact.mjs oss-radar-result.json oss-radar-email-send.eml
+          curl --fail --silent --show-error \
+            --url "$OSS_RADAR_SMTP_URL" \
+            --ssl-reqd \
+            --user "$OSS_RADAR_SMTP_USERNAME:$OSS_RADAR_SMTP_PASSWORD" \
+            --mail-from "$OSS_RADAR_EMAIL_FROM" \
+            --mail-rcpt "$OSS_RADAR_EMAIL_TO" \
+            --upload-file oss-radar-email-send.eml

@@ -17,6 +17,7 @@ import { FOUNDATION_SOURCE_COVERAGE } from "./foundation-content-coverage";
 import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
 import { FOUNDATION_PROMOTED_SOURCE_IDS } from "./foundation-reference-lessons";
 import { ISSUE_1976_CANONICAL_LESSON_COUNT, withIssue1976CanonicalEnrichment } from "./issue-1976-canonical";
+import { withIssue2094LearnerIntegration } from "./issue-2094-learner-integration";
 
 type TopicDocument = {
   readonly schemaVersion: string;
@@ -48,7 +49,9 @@ for (const document of baseTopicDocuments) {
   if (document.sourceCount !== sourceCount) throw new Error(`LEARN topic ${document.topic.id} declares ${document.sourceCount} sources but contains ${sourceCount}.`);
 }
 
-export const canonicalTopicDocuments = withIssue1976CanonicalEnrichment(baseTopicDocuments);
+export const canonicalTopicDocuments = withIssue2094LearnerIntegration(
+  withIssue1976CanonicalEnrichment(baseTopicDocuments),
+);
 const archive = canonicalTopicDocuments.flatMap((document) => document.lessons).sort(compareVisualWriterCurriculumOrder);
 const sourceIds = archive.flatMap((lesson) => lesson.sources.map((source) => source.id));
 const expectedArchiveLessons = index.lessonCount + ISSUE_1976_CANONICAL_LESSON_COUNT;

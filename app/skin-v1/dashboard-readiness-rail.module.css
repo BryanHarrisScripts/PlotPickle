@@ -11,7 +11,7 @@
   min-width: 0;
   min-height: var(--pp-skin-control-height);
   height: var(--pp-skin-control-height);
-  margin-block: -10px;
+  margin-block: -10.25px;
   align-items: center;
   gap: 2px;
   padding: 0;

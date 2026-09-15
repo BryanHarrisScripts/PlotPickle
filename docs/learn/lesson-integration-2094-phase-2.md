@@ -55,7 +55,7 @@ The 96-lesson presentation order and 95 unique bundled source records remain unc
 
 The #2094 focused test now covers records 1–20 in actual presentation order, verifies the Phase 2 learner-facing teaching markers, preserves the global presentation/source fingerprints, and fixes the per-lesson audit lookup so World and Character lesson numbers cannot be mistaken for presentation positions.
 
-Because Phase 2 required no teaching edits, records 11–20 are anchored to the reviewed baseline commit instead of inventing new lesson-content fingerprints. Any future teaching change will still invalidate the global presentation/source fingerprint or require a fingerprinted integration decision when that lesson is edited.
+Because Phase 2 required no teaching edits, records 11–20 are anchored to the exact reviewed baseline commit rather than claiming newly computed full-content hashes that were not produced in this phase. The focused teaching-marker checks guard the audited concepts, while a later edit to one of these lessons must be re-reviewed and fingerprinted when it becomes part of an integration change.
 
 ## Stop boundary
 

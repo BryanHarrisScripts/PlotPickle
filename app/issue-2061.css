@@ -1,10 +1,8 @@
-/* Issue #2061 — presentation-only status moves and review markers. */
+/* Issue #2061 — presentation-only status and review markers. */
 
-/* General backend readiness now lives on Dashboard. Keep the existing Profile
-   authority intact while removing the duplicate visible rail there. */
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-profile-surface [aria-label="Profile readiness"] {
-  display: none !important;
-}
+/* Profile keeps its established readiness detail so the locked Identity surface
+   does not move. Dashboard projects the same authorities compactly in its
+   existing footer rather than replacing Profile's detailed presentation. */
 
 /* Black and White keeps semantic readiness green even though its theme palette
    is monochrome. */

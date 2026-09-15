@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createRequire } from "node:module";
+import { createInterface } from "node:readline/promises";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -73,6 +74,22 @@ export function visualBaselineApprovalLines(targets = WEBMCP_STANDARD_SURFACE_TA
   lines.push("That copies the approved PNG into tests/visual-baselines/skin-v1/dashboard.png and marks Dashboard locked.");
   lines.push("Commit that PNG and tests/visual-baselines/skin-v1/manifest.json. From then on Dashboard is a permanent repo baseline.");
   return lines;
+}
+
+export function approvesVisualBaselineReplacement(answer) {
+  return String(answer || "").trim().toLowerCase() === "y";
+}
+
+export async function promptVisualBaselineReplacement({ input = process.stdin, output = process.stdout } = {}) {
+  if (!input?.isTTY || !output?.isTTY) return false;
+  output.write("\nReview the captured screenshots before replacing the approved Skin V1 baselines.\n");
+  const prompt = createInterface({ input, output });
+  try {
+    const answer = await prompt.question("Replace ALL Skin V1 visual baselines with the screenshots from this run? [Y/N] ");
+    return approvesVisualBaselineReplacement(answer);
+  } finally {
+    prompt.close();
+  }
 }
 
 export function runCommand(command, args, options = {}) {
@@ -271,6 +288,16 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
+
+    if (await promptVisualBaselineReplacement()) {
+      try {
+        await runExistingScript("scripts/lock-skin-visual-baseline.mjs", ["all", "--replace"]);
+      } catch (approvalError) {
+        console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
+      }
+    } else if (process.stdin.isTTY && process.stdout.isTTY) {
+      console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
+    }
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

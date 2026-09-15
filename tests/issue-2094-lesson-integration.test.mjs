@@ -46,7 +46,7 @@ const text = (lesson) => lesson.sections.flatMap((section) => [
   section.heading, ...section.paragraphs, ...(section.points ?? []),
 ]).join(" ");
 
-test("#2094 audit follows actual presentation order and attached provenance", () => {
+test("#2094 audit follows actual presentation order and reviewed source routing", () => {
   assert.equal(lessons.length, 96);
   const sources = lessons.flatMap((lesson) => lesson.sources);
   assert.equal(sources.length, 95);
@@ -57,6 +57,7 @@ test("#2094 audit follows actual presentation order and attached provenance", ()
   assert.equal(ledger.nextPresentationOrder, 71);
   assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 70 }, (_, i) => String(i + 1)));
   const actions = new Set(["ALREADY_CLEAR", "INTEGRATE", "BETTER_ELSEWHERE", "HISTORICAL_ONLY", "REJECT", "DO_NOT_FREEZE"]);
+  const differentGenres = "24-blocks-dialogue-24-blocks-different-genres-md";
   for (const [index, lesson] of lessons.slice(0, 70).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
@@ -64,7 +65,23 @@ test("#2094 audit follows actual presentation order and attached provenance", ()
     assert.equal(record.lessonId, lesson.id);
     assert.equal(record.title, lesson.title);
     assert.equal(record.topic, lesson.topic);
-    assert.deepEqual(record.sourceIds, lesson.sources.map((source) => source.id));
+    const attachedSourceIds = lesson.sources.map((source) => source.id);
+    if (order === 67) {
+      assert.deepEqual(record.sourceIds, [differentGenres]);
+      assert.deepEqual(attachedSourceIds, []);
+    } else if (order === 69) {
+      assert.deepEqual(record.sourceIds, [
+        "24-blocks-dialogue-24-blocks-dialogue-pitfalls-md",
+        "24-blocks-dialogue-24-blocks-refining-dialogue-md",
+      ]);
+      assert.deepEqual(attachedSourceIds, [
+        "24-blocks-dialogue-24-blocks-dialogue-pitfalls-md",
+        differentGenres,
+        "24-blocks-dialogue-24-blocks-refining-dialogue-md",
+      ]);
+    } else {
+      assert.deepEqual(record.sourceIds, attachedSourceIds);
+    }
     assert.equal(typeof record.learnerSufficientBefore, "boolean");
     assert.equal(record.learnerSufficientAfter, true);
     assert.ok(record.decisions.length > 0);

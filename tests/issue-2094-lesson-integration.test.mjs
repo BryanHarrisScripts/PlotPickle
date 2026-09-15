@@ -10,6 +10,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const moduleUrls = new Map();
 const phase2Baseline = "d288609ec844977c7178bf7ef46324f59fb5e90e";
 const phase3Baseline = "cf59920491891e9c367c542cd0209d3f5f89bf6b";
+const phase4Baseline = "628b01e05d8568048b9fe176a1ab50aa9848ddc3";
 
 // Load the actual dependency-free curriculum projection on CI's Node 22.13.
 // Resolve its relative TS/JSON imports without installing the application stack.
@@ -47,13 +48,13 @@ test("#2094 audit follows actual presentation order and attached provenance", ()
   const sources = lessons.flatMap((lesson) => lesson.sources);
   assert.equal(sources.length, 95);
   assert.equal(new Set(sources.map((source) => source.id)).size, 95);
-  assert.equal(ledger.phase, 3);
-  assert.equal(ledger.phaseBaselineCommit, phase3Baseline);
-  assert.equal(ledger.reviewedThrough, 30);
-  assert.equal(ledger.nextPresentationOrder, 31);
-  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 30 }, (_, i) => String(i + 1)));
+  assert.equal(ledger.phase, 4);
+  assert.equal(ledger.phaseBaselineCommit, phase4Baseline);
+  assert.equal(ledger.reviewedThrough, 40);
+  assert.equal(ledger.nextPresentationOrder, 41);
+  assert.deepEqual(Object.keys(ledger.lessons), Array.from({ length: 40 }, (_, i) => String(i + 1)));
   const actions = new Set(["ALREADY_CLEAR", "INTEGRATE", "BETTER_ELSEWHERE", "HISTORICAL_ONLY", "REJECT", "DO_NOT_FREEZE"]);
-  for (const [index, lesson] of lessons.slice(0, 30).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 40).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     assert.equal(record.presentationOrder, order);
@@ -138,6 +139,31 @@ test("#2094 Phase 3 teaching is sufficient without source-driven rewrites", () =
   }
 });
 
+test("#2094 Phase 4 teaching is sufficient without source-driven rewrites", () => {
+  const expected = new Map([
+    [31, ["Pattern through context and change", "Meaning is not universal", "Foreshadowing is not merely hiding a clue"]],
+    [32, ["Structure organizes change", "Alternative forms", "Choose and map"]],
+    [33, ["Story reason first", "4 acts", "Flexible scene count"]],
+    [34, ["A visible thinking surface", "Move a turn when the story earns it", "Combine Blocks when one movement carries both jobs"]],
+    [35, ["Pressure produces decisions", "Objective", "Handoff"]],
+    [36, ["The hierarchy", "Beat: moment-to-moment change.", "Navigate without flattening."]],
+    [37, ["The original foundation", "PlotPickle’s expansion", "Pressure: escalate."]],
+    [38, ["Nested curiosity", "Story: can the protagonist achieve the defining objective?", "Sequence question"]],
+    [39, ["Different shapes, same need for movement", "Presentation order", "Convergence points"]],
+    [40, ["Reflection is transformation", "Opening image", "Changed context"]],
+  ]);
+  for (const [order, concepts] of expected) {
+    const lesson = lessons[order - 1];
+    const record = ledger.lessons[String(order)];
+    const body = text({ ...lesson, sources: [] });
+    assert.equal(record.learnerSufficientBefore, true, `Lesson ${order}: unexpected source-dependent gap`);
+    assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `Lesson ${order}: unimplemented integration decision`);
+    assert.equal(record.reviewedAtCommit, phase4Baseline);
+    for (const concept of concepts) assert.ok(body.includes(concept), `Lesson ${order}: missing ${concept}`);
+    assert.doesNotMatch(body, /<pre>|<details>/);
+  }
+});
+
 test("#2094 keeps phased source retirement and shared presentation authority", () => {
   const read = (path) => readFileSync(resolve(root, path), "utf8");
   for (const path of ["app/skin-v1/learn-journey-preview.tsx", "app/skin-v1/learn-explore.tsx"]) {
@@ -146,9 +172,9 @@ test("#2094 keeps phased source retirement and shared presentation authority", (
   }
   assert.match(read("app/api/learn/explore/route.ts"), /plotPickleCurriculum.*map/);
   assert.match(read("app/page.tsx"), /curriculum=\{plotPickleCurriculum\}/);
-  assert.equal(lessons[20].title, "Map the Inner Journey Without Forcing It");
-  assert.equal(lessons[29].title, "Make Theme a Dramatic Argument");
   assert.equal(lessons[30].title, "Build Motifs, Symbols and Echoes");
+  assert.equal(lessons[39].title, "Setup, Payoff and the Closing Image");
+  assert.equal(lessons[40].title, "Scenes That Turn and Hand Off");
 });
 
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -156,7 +182,7 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
   assert.equal(hash(lessons.map(({ id, topic, number }) => ({ id, topic, number }))), ledger.presentationOrderSha256);
   const sources = lessons.flatMap((lesson) => lesson.sources).sort((a, b) => a.id.localeCompare(b.id));
   assert.equal(hash(sources), ledger.sourceContentSha256);
-  for (const [index, lesson] of lessons.slice(0, 30).entries()) {
+  for (const [index, lesson] of lessons.slice(0, 40).entries()) {
     const order = index + 1;
     const record = ledger.lessons[String(order)];
     if (record.lessonContentSha256) {
@@ -164,7 +190,7 @@ test("#2094 audit fingerprints match reviewed teaching, sources and order", () =
       assert.equal(hash(teaching), record.lessonContentSha256, `${lesson.title}: teaching changed since individual review`);
       assert.deepEqual(Object.fromEntries(attached.map((source) => [source.id, hash(source)])), record.sourceHashes);
     } else {
-      const expectedReviewCommit = order <= 20 ? phase2Baseline : phase3Baseline;
+      const expectedReviewCommit = order <= 20 ? phase2Baseline : order <= 30 ? phase3Baseline : phase4Baseline;
       assert.equal(record.reviewedAtCommit, expectedReviewCommit, `${lesson.title}: missing phase baseline evidence`);
       assert.equal(record.learnerSufficientBefore, true, `${lesson.title}: untracked teaching gap needs a fingerprinted edit`);
       assert.ok(record.decisions.every((decision) => decision.action !== "INTEGRATE"), `${lesson.title}: integration decision requires a content fingerprint`);

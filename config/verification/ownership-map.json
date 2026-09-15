@@ -10,7 +10,14 @@
     {
       "id": "experience-skin-v1",
       "classification": "production",
-      "include": ["app/skin-v1/**", "app/skin-v1-*.css", "app/skin-v1-definition.css"],
+      "include": [
+        "app/skin-v1/**",
+        "app/skin-v1-*.css",
+        "app/skin-v1-definition.css",
+        "app/skin-v1-runtime.tsx",
+        "app/skin-v2-definition.css",
+        "app/issue-2061.css"
+      ],
       "ownerLayer": "experience-skins",
       "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
     },

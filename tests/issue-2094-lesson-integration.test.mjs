@@ -293,7 +293,7 @@ test("#2094 Phase 9 integrates Film Industry roles and keeps Lessons 82–90 sel
     [83, ["Begin with the creative relationship", "Name the canonical project", "Choose only what the project needs"]],
     [84, ["Define roles and decision ownership", "Propose rather than overwrite", "Git concepts in writer language"]],
     [85, ["Choose by purpose, not familiarity", "Use direct Final Draft interchange", "Plan for round trips"]],
-    [86, ["The operating agreement", "Private feature team", "Open-source experiment"]],
+    [86, ["The operating agreement", "Production-team collaboration", "Openly licensed community project"]],
     [87, ["Responsibility and enforcement", "Authority matrix", "Creative authority", "Technical permission"]],
     [88, ["Brief the work", "Template: Feedback only", "Template: Rewrite proposal"]],
     [89, ["Safe sequence", "stale base", "human reconsideration"]],

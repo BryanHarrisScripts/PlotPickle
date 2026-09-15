@@ -22,6 +22,20 @@
       "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
     },
     {
+      "id": "global-sage-help-skin",
+      "classification": "production",
+      "include": ["app/global-sage-overlay.module.css"],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "visual"]
+    },
+    {
+      "id": "global-sage-help-surface",
+      "classification": "production",
+      "include": ["app/global-sage-overlay.tsx"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "agent"]
+    },
+    {
       "id": "windows-local-launcher",
       "classification": "production",
       "include": ["GIT-PlotPickle.ps1", "PlotPickle.ps1", "Start-PlotPickle.bat"],

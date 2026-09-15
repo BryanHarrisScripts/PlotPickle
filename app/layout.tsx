@@ -13,6 +13,7 @@ import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
 import FeedbackStudioHost from "./feedback-studio-host";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
+import GlobalSageOverlay from "./global-sage-overlay";
 import GraphicNovelBuildHandoff from "./graphic-novel-build-handoff";
 import GraphicNovelStudioHost from "./graphic-novel-studio-host";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
@@ -126,6 +127,7 @@ export default function RootLayout({
         <LegacyDemoBoundary>
           <ProfileAccessRouter>
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
+            <GlobalSageOverlay />
           </ProfileAccessRouter>
           <LegacySkinOnly>
             <ProfileIdentityOverlay />

@@ -93,9 +93,13 @@ export default function DashboardReadinessRail() {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    window.addEventListener("plotpickle:setup-status-refresh", refresh);
-    return () => window.removeEventListener("plotpickle:setup-status-refresh", refresh);
+    const initialRefresh = window.setTimeout(() => { void refresh(); }, 250);
+    const handleRefresh = () => { void refresh(); };
+    window.addEventListener("plotpickle:setup-status-refresh", handleRefresh);
+    return () => {
+      window.clearTimeout(initialRefresh);
+      window.removeEventListener("plotpickle:setup-status-refresh", handleRefresh);
+    };
   }, [refresh]);
 
   const items: ReadonlyArray<{ label: string; shortLabel: string; ready: boolean | null; target: ReadinessTarget }> = [

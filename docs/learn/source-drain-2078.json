@@ -1,0 +1,714 @@
+{
+  "schemaVersion": "1.0",
+  "issue": 2078,
+  "scope": "LEARN source drain 3/3: Drafting, Revision, Industry, Responsible AI, and Collaboration",
+  "attachmentCount": 41,
+  "uniqueSourceCount": 41,
+  "topicCounts": {
+    "drafting": 8,
+    "revision": 5,
+    "industry": 2,
+    "responsible-ai": 8,
+    "collaboration": 18
+  },
+  "governingRule": "Current PlotPickle lessons are the learner-facing teaching authority; original source records remain provenance and local retrieval evidence.",
+  "sources": [
+    {
+      "sourceId": "24-blocks-general-general-the-writing-process-md",
+      "topic": "drafting",
+      "path": "General/General - The Writing Process.md",
+      "title": "Navigating the Writing Process",
+      "decisions": [
+        {
+          "concept": "separating idea generation, research, planning, drafting, feedback, revision and proofreading into purposeful modes",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:writing-process"
+        },
+        {
+          "concept": "treating one named drafting sequence or rough-draft technique as mandatory for every writer",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-concept-to-draft-md",
+      "topic": "drafting",
+      "path": "General/General - Concept to Draft.md",
+      "title": "Screenplay Development: From Concept to Final Draft",
+      "decisions": [
+        {
+          "concept": "developing one dramatic spine from concept and premise through beats, treatment, screenplay and revision",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:concept-to-draft"
+        },
+        {
+          "concept": "a fixed universal ten-step development order",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-the-vomit-draft-md",
+      "topic": "drafting",
+      "path": "General/General - The Vomit Draft.md",
+      "title": "The Power of the Vomit Draft",
+      "decisions": [
+        {
+          "concept": "fast forward-moving first drafting as discovery while postponing local polish",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:pickle-draft"
+        },
+        {
+          "concept": "legacy terminology and motivational framing around the named 'vomit draft'",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-script-formatting-md",
+      "topic": "drafting",
+      "path": "General/Script Formatting.md",
+      "title": "The Art of Script Formatting",
+      "decisions": [
+        {
+          "concept": "screenplay formatting as readable production language for scene headings, action, dialogue and transitions",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:formatting"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-popular-books-md",
+      "topic": "drafting",
+      "path": "General/General - Popular Books.md",
+      "title": "Popular Screenplay Books",
+      "decisions": [
+        {
+          "concept": "learning craft by reading produced screenplays and comparing examples critically rather than adopting formulas",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:books-scripts"
+        },
+        {
+          "concept": "legacy book/resource list, rankings and external recommendations",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-screenplay-challenges-guide-md",
+      "topic": "drafting",
+      "path": "General/Screenplay Challenges Guide.md",
+      "title": "Screenplay Challenges Guide",
+      "decisions": [
+        {
+          "concept": "diagnosing common screenplay problems by tracing visible symptoms to the underlying story, character, scene, dialogue, process or continuity layer",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:challenges"
+        },
+        {
+          "concept": "revision-specific diagnosis and repair sequencing",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2078 revision:ai-revision-diagnose-only / revision:ai-revision-pacing-repetition"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-scene-writing-md",
+      "topic": "drafting",
+      "path": "Essentials/Scene Writing.md",
+      "title": "A Comprehensive Exploration of Scene Writing for Screenplays",
+      "decisions": [
+        {
+          "concept": "scene purpose, objective, opposition, tactic, turn, changed condition and handoff",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:essentials-scene"
+        },
+        {
+          "concept": "line-level dialogue craft inside scenes",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2077 dialogue current lessons"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-essentials-beyond-sluglines-md",
+      "topic": "drafting",
+      "path": "Essentials/Beyond Sluglines.md",
+      "title": "The Art of Screenplay Formatting",
+      "decisions": [
+        {
+          "concept": "using montage, mini-slugs, intercutting, voice extensions, dual dialogue, inserts and transitions only when they improve dramatic readability",
+          "disposition": "ALREADY_COVERED",
+          "destination": "drafting:essentials-formatting"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-individual-critical-md",
+      "topic": "revision",
+      "path": "AI Prompts/24 Blocks - Individual Critical.md",
+      "title": "Individual Prompts for Screenwriting",
+      "decisions": [
+        {
+          "concept": "diagnosing high-impact structure, character, conflict, theme and dialogue problems before polishing",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision:ai-revision-diagnose-only / revision:ai-revision-structure-causality / revision:ai-revision-conflict-stakes-escalation"
+        },
+        {
+          "concept": "legacy ChatGPT prompt wrapper and instructions to rewrite supplied screenplay material",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-individual-fine-tuning-md",
+      "topic": "revision",
+      "path": "AI Prompts/24 Blocks - Individual Fine-Tuning.md",
+      "title": "Individual Prompts for Screenwriting",
+      "decisions": [
+        {
+          "concept": "focused late-stage passes for pacing, readability, formatting and audience-facing language",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision:ai-revision-pacing-repetition / revision:ai-revision-formatting-readability / revision:ai-revision-pitch-audience-language"
+        },
+        {
+          "concept": "unbounded AI rewriting and one-size-fits-all prompt sequences",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-individual-intermediate-md",
+      "topic": "revision",
+      "path": "AI Prompts/24 Blocks - Individual Intermediate.md",
+      "title": "Individual Prompts for Screenwriting",
+      "decisions": [
+        {
+          "concept": "intermediate diagnosis of genre, symbolism, culture, subplots and audience experience as separate review questions",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision:ai-revision-diagnose-only"
+        },
+        {
+          "concept": "bias, cultural context and factual verification questions that require human review rather than automated rewriting",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2078 responsible-ai:responsible-ai"
+        },
+        {
+          "concept": "legacy ChatGPT prompt wrapper",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-critique-and-pacing-md",
+      "topic": "revision",
+      "path": "AI Prompts/24 Blocks - Critique and Pacing.md",
+      "title": "Critique, Pacing, & Character Consistency",
+      "decisions": [
+        {
+          "concept": "pacing diagnosis, repeated information, scene rhythm and continuity checks",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision:ai-revision-pacing-repetition"
+        },
+        {
+          "concept": "character-continuity craft already owned by current Character teaching",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2076 Character current lessons"
+        },
+        {
+          "concept": "legacy prompt wrapper that asks an AI to directly rewrite the script",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-redundancy-and-streamlining-md",
+      "topic": "revision",
+      "path": "AI Prompts/24 Blocks - Redundancy and Streamlining.md",
+      "title": "Redundancy, Streamlining, & Enhancing",
+      "decisions": [
+        {
+          "concept": "finding duplicated information, delayed turns and expendable material before line polishing",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision:ai-revision-pacing-repetition / revision:ai-revision-diagnose-only"
+        },
+        {
+          "concept": "automatic enhancement or rewrite instructions without an explicit approval boundary",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-the-film-industry-md",
+      "topic": "industry",
+      "path": "General/General - The Film Industry.md",
+      "title": "Understanding the Key Organizations in the Film Industry",
+      "decisions": [
+        {
+          "concept": "distinguishing guilds, unions, associations, funders, festivals, distributors and production collaborators by role and jurisdiction",
+          "disposition": "ALREADY_COVERED",
+          "destination": "industry:industry"
+        },
+        {
+          "concept": "named membership counts, benefits, agreements, rates, eligibility and other live organizational claims",
+          "disposition": "REJECTED_OUTDATED"
+        },
+        {
+          "concept": "the historical organization directory as a snapshot of when the source was written",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-copywriting-and-marketing-md",
+      "topic": "industry",
+      "path": "AI Prompts/24 Blocks - Copywriting and Marketing.md",
+      "title": "Copywriting Formulas",
+      "decisions": [
+        {
+          "concept": "clear audience-facing pitch, synopsis and project-language choices grounded in the approved story promise",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2078 revision:ai-revision-pitch-audience-language"
+        },
+        {
+          "concept": "generic marketing/copywriting formulas and legacy AI prompt wrappers presented as screenplay-industry strategy",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-24-blocks-24-blocks-blocks-with-ai-md",
+      "topic": "responsible-ai",
+      "path": "24 Blocks/24 Blocks - Blocks with AI.md",
+      "title": "24 Blocks with AI: A Screenwriting Guide",
+      "decisions": [
+        {
+          "concept": "writer-led optional AI assistance at bounded story levels with iterative human review",
+          "disposition": "ALREADY_COVERED",
+          "destination": "responsible-ai:responsible-ai / responsible-ai:24b-ai"
+        },
+        {
+          "concept": "ChatGPT-specific product framing as the method authority",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-chatgpt-tips-md",
+      "topic": "responsible-ai",
+      "path": "AI Prompts/24 Blocks - ChatGPT Tips.md",
+      "title": "ChatGPT Tips",
+      "decisions": [
+        {
+          "concept": "specific task, relevant context, constraints, requested format and iterative questioning",
+          "disposition": "ALREADY_COVERED",
+          "destination": "responsible-ai:responsible-ai"
+        },
+        {
+          "concept": "dated model cutoff, memory and product-behaviour claims",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-principle-of-three-md",
+      "topic": "responsible-ai",
+      "path": "AI Prompts/24 Blocks - Principle of Three.md",
+      "title": "Principle of Three Prompt",
+      "decisions": [
+        {
+          "concept": "causal 'but/because/therefore' analysis and Promise–Progress–Payoff questions",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2077 structure:24b-principle-three / #2078 revision:ai-revision-structure-causality"
+        },
+        {
+          "concept": "legacy copy-and-paste AI prompt wrapper",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-suggested-additions-md",
+      "topic": "responsible-ai",
+      "path": "AI Prompts/24-Blocks - Suggested Additions.md",
+      "title": "Suggested Additions",
+      "decisions": [
+        {
+          "concept": "asking bounded questions about scene theme, context, characters, goals and intended audience effect before proposing changes",
+          "disposition": "ALREADY_COVERED",
+          "destination": "responsible-ai:responsible-ai / revision:ai-revision-diagnose-only / revision:ai-revision-scene-purpose-turn"
+        },
+        {
+          "concept": "instructions to finish or rewrite the screenplay automatically after questioning",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-readme-md",
+      "topic": "responsible-ai",
+      "path": "AI Prompts/README.md",
+      "title": "Table of Contents",
+      "decisions": [
+        {
+          "concept": "the broad idea of choosing a purpose-specific assistance/revision pass",
+          "disposition": "ALREADY_COVERED",
+          "destination": "revision current guided passes / responsible-ai:responsible-ai"
+        },
+        {
+          "concept": "repository table of contents, Home links and legacy prompt catalog navigation",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-general-general-ai-framework-ideas-md",
+      "topic": "responsible-ai",
+      "path": "General/General - AI Framework Ideas.md",
+      "title": "AI Framework Ideas",
+      "decisions": [
+        {
+          "concept": "AI as optional assistance that supports rather than replaces the writer and should be assigned explicit roles/tasks",
+          "disposition": "ALREADY_COVERED",
+          "destination": "responsible-ai:responsible-ai / responsible-ai:collaboration-ai-github-publishing"
+        },
+        {
+          "concept": "provider-specific framework speculation and historical implementation ideas",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-experiment-learnings-md",
+      "topic": "responsible-ai",
+      "path": "Experiment Learnings.md",
+      "title": "Table of Contents",
+      "decisions": [
+        {
+          "concept": "historical experiment index and repository navigation",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-ai-prompts-24-blocks-structure-and-characters-md",
+      "topic": "responsible-ai",
+      "path": "AI Prompts/24 Blocks - Structure and Characters.md",
+      "title": "Structure, Characters, Conflict, & Beyond",
+      "decisions": [
+        {
+          "concept": "structure, character, conflict and scene questions as bounded evidence for diagnosis",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2076 Character current lessons / #2077 Structure current lessons / #2078 revision:ai-revision-diagnose-only"
+        },
+        {
+          "concept": "legacy prompt wrapper that delegates broad screenplay rewriting to a model",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-github-for-screenwriters-md",
+      "topic": "collaboration",
+      "path": "Blog/Github for Screenwriters.md",
+      "title": "GitHub for Screenwriters: A Step-by-Step Guide",
+      "decisions": [
+        {
+          "concept": "versioned proposals, reviewable branches and discussion as one optional collaboration workflow",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-choose-workflow / collaboration:collaboration-source-of-truth"
+        },
+        {
+          "concept": "GitHub account, plan and UI setup instructions as required screenwriting workflow",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-open-sourcing-your-screenplay-md",
+      "topic": "collaboration",
+      "path": "Blog/Open-Sourcing Your Screenplay.md",
+      "title": "Open-Sourcing Your Screenplay",
+      "decisions": [
+        {
+          "concept": "separating public access, contribution and reuse permission when choosing an open workflow",
+          "disposition": "ALREADY_COVERED",
+          "destination": "industry:collaboration-ownership-sharing / collaboration:working-together-rights"
+        },
+        {
+          "concept": "claims that open-sourcing inherently produces visibility, innovation, inclusion or industry access",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-readme-md",
+      "topic": "collaboration",
+      "path": "Blog/README.md",
+      "title": "Table of Contents",
+      "decisions": [
+        {
+          "concept": "repository blog table of contents and navigation markup",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-collaborators-readme-md",
+      "topic": "collaboration",
+      "path": "Collaborators/README.md",
+      "title": "Your Role And Key Questions",
+      "decisions": [
+        {
+          "concept": "contributors need a defined role, bounded questions and clarity about what feedback is being requested",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-authority / collaboration:working-together-brief"
+        },
+        {
+          "concept": "Afterglow-specific collaborator prompts and repository navigation",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-opensource-1-million-voices-md",
+      "topic": "collaboration",
+      "path": "OpenSource/1 Million Voices.md",
+      "title": "1 MILLION CREATORS, COLLABORATORS, VOICES",
+      "decisions": [
+        {
+          "concept": "large contributor pools require explicit intake, review status and scaling boundaries",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-scale"
+        },
+        {
+          "concept": "aspirational campaign language, participation targets and historical project promotion",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-opensource-centralvsdecentral-md",
+      "topic": "collaboration",
+      "path": "OpenSource/centralvsdecentral.md",
+      "title": "Introduction to OpenStorytelling:",
+      "decisions": [
+        {
+          "concept": "centralized and decentralized collaboration are workflow choices with different coordination and authority tradeoffs",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-choose-workflow / collaboration:working-together-model"
+        },
+        {
+          "concept": "legacy OpenStorytelling platform architecture and navigation",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-readme-md",
+      "topic": "collaboration",
+      "path": "README.md",
+      "title": "A Common Language for AI, Writers,and Teams to Communicate Story Seamlessly",
+      "decisions": [
+        {
+          "concept": "shared structured story language helps humans, tools and collaborators exchange work without replacing the approved source of truth",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-source-of-truth / collaboration:collaboration-formats-that-travel"
+        },
+        {
+          "concept": "repository landing-page navigation, promotional claims and legacy product framing",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-github-collaborative-writing-md",
+      "topic": "collaboration",
+      "path": "Blog/Github Collaborative Writing.md",
+      "title": "The Art of Collaborative Writing",
+      "decisions": [
+        {
+          "concept": "clear roles, communication, respectful disagreement and conflict resolution in collaborative writing",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-authority / collaboration:working-together-disagreements"
+        },
+        {
+          "concept": "GitHub-specific collaboration instructions presented as the general solution",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-opensource-open-source-collaboration-md",
+      "topic": "collaboration",
+      "path": "OpenSource/Open Source Collaboration.md",
+      "title": "Unleashing the Power of Collaboration",
+      "decisions": [
+        {
+          "concept": "bounded contribution, review, attribution and acceptance are necessary before outside work affects canon",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-brief / collaboration:working-together-proposal / collaboration:working-together-rights"
+        },
+        {
+          "concept": "generic open-source advocacy and repository-specific participation instructions",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "bryanharrisscripts-github-io-ai-teams-collaboration-md",
+      "topic": "collaboration",
+      "path": "AI-Teams/Collaboration.md",
+      "title": "Collaboration Over Isolation",
+      "decisions": [
+        {
+          "concept": "human and specialist/agent roles need explicit responsibilities and authority rather than an undifferentiated team",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-authority / collaboration:working-together-model"
+        },
+        {
+          "concept": "legacy OpenStory navigation and historical AI-team implementation framing",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-github-mastering-markdown-md",
+      "topic": "collaboration",
+      "path": "Blog/Github Mastering Markdown.md",
+      "title": "Mastering Markdown for GitHub",
+      "decisions": [
+        {
+          "concept": "Markdown as one portable documentation/exchange format rather than the canonical screenplay source",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-formats-that-travel"
+        },
+        {
+          "concept": "GitHub-flavoured Markdown tutorial and product UI instructions",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-github-merging-final-draft-and-text-md",
+      "topic": "collaboration",
+      "path": "Blog/Github Merging Final Draft and Text.md",
+      "title": "An Experiment in Collaboration:",
+      "decisions": [
+        {
+          "concept": "separating screenplay interchange/export formats from the canonical project and reviewing changes before adoption",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-formats-that-travel / collaboration:collaboration-source-of-truth"
+        },
+        {
+          "concept": "historical experiment instructions coupling Final Draft, text files and GitHub",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "afterglow-contributing-md",
+      "topic": "collaboration",
+      "path": "CONTRIBUTING.md",
+      "title": "Contributing to Afterglow",
+      "decisions": [
+        {
+          "concept": "focused contributions need scope, provenance, rights, review and explicit acceptance before becoming canon",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:working-together-brief / collaboration:working-together-proposal / collaboration:working-together-rights"
+        },
+        {
+          "concept": "Afterglow-specific contribution policy and project rules",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-llms-twitter-github-and-ai-md",
+      "topic": "collaboration",
+      "path": "Blog/LLMs, Twitter, Github, and AI.md",
+      "title": "LLMs Twitter, Github, and AI",
+      "decisions": [
+        {
+          "concept": "AI assistance, private version control, public/social sharing and the writing method are separate optional choices",
+          "disposition": "ALREADY_COVERED",
+          "destination": "responsible-ai:collaboration-ai-github-publishing / collaboration:collaboration-choose-workflow"
+        },
+        {
+          "concept": "Twitter/GitHub/AI experimental stack and speculative adoption claims",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-open-sourcing-licensing-and-protection-md",
+      "topic": "collaboration",
+      "path": "Blog/Open-Sourcing Licensing and Protection.md",
+      "title": "Licensing and Protection",
+      "decisions": [
+        {
+          "concept": "ownership, access, publication, licensing, credit and provenance are separate rights decisions",
+          "disposition": "ALREADY_COVERED",
+          "destination": "industry:collaboration-ownership-sharing / collaboration:working-together-rights"
+        },
+        {
+          "concept": "claims that selecting an open licence guarantees protection, attribution, compensation or practical control",
+          "disposition": "REJECTED_OUTDATED"
+        }
+      ]
+    },
+    {
+      "sourceId": "24-blocks-blog-llms-and-ai-navigation-md",
+      "topic": "collaboration",
+      "path": "Blog/LLMs and AI Navigation.md",
+      "title": "The Future of Writing: LLMs and AI Navigation",
+      "decisions": [
+        {
+          "concept": "AI use should remain optional, bounded, reviewable and subordinate to human creative authority",
+          "disposition": "INTEGRATED_ELSEWHERE",
+          "destination": "#2078 responsible-ai:responsible-ai / responsible-ai:collaboration-ai-github-publishing"
+        },
+        {
+          "concept": "dated product examples and speculative claims about the future of writing",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "afterglow-readme-md-instructional-sections",
+      "topic": "collaboration",
+      "path": "README.md#instructional-sections",
+      "title": "A New Way",
+      "decisions": [
+        {
+          "concept": "collaboration needs feedback, edit history, IP/rights awareness and explicit review before changes affect the approved story",
+          "disposition": "ALREADY_COVERED",
+          "destination": "collaboration:collaboration-source-of-truth / collaboration:working-together-rights"
+        },
+        {
+          "concept": "Afterglow-specific historical product vision",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    },
+    {
+      "sourceId": "bryanharrisscripts-github-io-readme-md",
+      "topic": "collaboration",
+      "path": "README.md",
+      "title": "Table of Contents",
+      "decisions": [
+        {
+          "concept": "legacy OpenStory/Storytellers Collective site index and navigation",
+          "disposition": "HISTORICAL_REFERENCE_ONLY"
+        }
+      ]
+    }
+  ],
+  "completionNotes": [
+    "This phase consumes the process/revision handoff from #2077 without duplicating Structure, Dialogue or Visual Storytelling teaching.",
+    "Time-sensitive Industry facts remain historical or require current authoritative verification; current lessons teach durable categories and verification questions instead.",
+    "Responsible AI retains Human creative/canon authority, bounded context, privacy, provenance and explicit approval.",
+    "Collaboration retains local-first/no-cloud validity, contribution boundaries, privacy, rights, credit, provenance and explicit canon decisions.",
+    "Completing #2078 marks all 95 bundled source records audited for learner-facing source suppression while preserving every source record for provenance, search and RAG."
+  ]
+}

@@ -105,6 +105,7 @@
         "app/welcome/**",
         "app/marketing-splash-base.tsx",
         "app/profile-access/profile-access-boundary.tsx",
+        "app/profile-access/profile-identity-panel.tsx",
         "public/manifest.webmanifest",
         "public/brand/favicon/plotpickle-green-square.svg"
       ],

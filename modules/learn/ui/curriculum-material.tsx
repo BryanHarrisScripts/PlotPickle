@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { CurriculumSource } from "../../../core/contracts/curriculum";
 import { decodeHtmlEntitiesOnce, stripHtmlComments, stripMarkupTags } from "../../../core/security/text-normalization";
+import integratedSourceManifest from "../../../learn/enrichment/integrated-source-manifest.json";
 import type { LocalCurriculumSourceTarget } from "../model/local-curriculum-links";
 
 type CurriculumMaterialProps = {
@@ -22,6 +23,8 @@ type SourceBlock =
   | { readonly kind: "quote"; readonly lines: readonly string[] }
   | { readonly kind: "rule" }
   | { readonly kind: "table"; readonly headings: readonly string[]; readonly rows: readonly (readonly string[])[] };
+
+const INTEGRATED_SOURCE_IDS = new Set<string>(integratedSourceManifest.integratedSourceIds);
 
 /**
  * The archived lessons contain a mixture of Markdown and presentation-only HTML.
@@ -198,7 +201,7 @@ function localReference(
   { onOpenReference, resolveLocalReference }: InlineRenderContext,
 ): ReactNode {
   const target = resolveLocalReference(href.trim().replace(/^<|>$/g, ""));
-  if (!target) {
+  if (!target || INTEGRATED_SOURCE_IDS.has(target.sourceId)) {
     return <span data-source-recorded-reference key={key}>{label}</span>;
   }
   return (
@@ -307,9 +310,9 @@ function SourceBlocks({ content, ...context }: { readonly content: string } & In
 }
 
 /**
- * Render imported teaching as part of the lesson itself. The exact source text
- * stays immutable in learn/*.json for integrity and local retrieval, but a
- * student never has to open a provenance card or leave PlotPickle to learn it.
+ * Render legacy bundled teaching only until its educational concepts have been
+ * audited into the current PlotPickle curriculum. The exact source text stays
+ * attached to the curriculum for provenance and local retrieval.
  */
 export function CurriculumMaterial({
   emphasizeKeyLabels = false,
@@ -318,6 +321,7 @@ export function CurriculumMaterial({
   source,
 }: CurriculumMaterialProps) {
   const [navigationStatus, setNavigationStatus] = useState("");
+  if (INTEGRATED_SOURCE_IDS.has(source.id)) return null;
 
   function onOpenReference(target: LocalCurriculumSourceTarget) {
     const targetElement = Array.from(document.querySelectorAll<HTMLElement>("[data-source-id]"))

@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "issue": 2094,
   "baseCommit": "19e3b1fe502dc7edf2ee16614ba2679b25b5c400",
-  "phaseBaselineCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
-  "phase": 3,
-  "reviewedThrough": 30,
-  "nextPresentationOrder": 31,
+  "phaseBaselineCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+  "phase": 4,
+  "reviewedThrough": 40,
+  "nextPresentationOrder": 41,
   "totalPresentationLessons": 96,
   "sourceViewerRetirement": "Deferred until all 96 lessons pass; Journey and Explore unchanged.",
   "reviewMethod": "Read each full composed presentation lesson and every attached bundled source. Compare concepts, make targeted edits only when required, then reread normal teaching without sources. Automated checks protect identity/provenance/evidence; they do not establish educational sufficiency.",
@@ -503,6 +503,164 @@
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable thematic teaching is already learner-facing; symbolic technique depth remains with the next lesson and prescriptive moral-message framing remains rejected.",
       "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+    },
+    "31": {
+      "presentationOrder": 31,
+      "lessonId": "essentials-motif",
+      "topic": "theme",
+      "title": "Build Motifs, Symbols and Echoes",
+      "sourceIds": ["24-blocks-essentials-symbolic-techniques-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Motifs, symbols, metaphor, visual or sonic rhyme, foreshadowing, setup/payoff, dramatic irony, allegorical design and opening/closing echoes gain meaning through context and changed repetition", "action": "ALREADY_CLEAR", "evidence": "Pattern through context and change; Meaning is not universal"},
+        {"concept": "Dialogue subtext and broader visual-storytelling craft from the historical source", "action": "BETTER_ELSEWHERE", "evidence": "#2077 Dialogue and Visual Storytelling own line-level subtext and screen-evidence teaching"},
+        {"concept": "Fixed symbol dictionaries, universal colour/object meanings or archetypes as universal symbols", "action": "REJECT", "evidence": "Current lesson explicitly makes meaning dependent on culture, context, repetition and change"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The durable symbolic-technique teaching is already present in the normal lesson body; adjacent dialogue/visual craft remains with its dedicated lessons.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "32": {
+      "presentationOrder": 32,
+      "lessonId": "structures",
+      "topic": "structure",
+      "title": "Story Structures: Screenplays to Improv",
+      "sourceIds": ["24-blocks-24-blocks-readme-md", "24-blocks-general-general-screenplays-to-improv-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Structure as pressure, choice, consequence and revelation; multiple act/journey traditions and nonlinear, parallel, circular, framed, episodic and improvisational forms", "action": "ALREADY_CLEAR", "evidence": "Structure organizes change; Alternative forms; Choose and map"},
+        {"concept": "Medium-by-medium generalizations, repository navigation and named examples", "action": "HISTORICAL_ONLY", "evidence": "They remain provenance/reference rather than required screenplay-planning instruction"},
+        {"concept": "Fixed five-minute/five-page Blocks or prescribed Block events as the required 24-Block method", "action": "REJECT", "evidence": "The current lesson treats the grid as a resolution tool and rejects identical turns, equal scene counts and template-forced character decisions"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Both source records are absorbed at the lesson's intended structural-overview scope without importing rigid timing or historical navigation material.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "33": {
+      "presentationOrder": 33,
+      "lessonId": "24b-new-spin",
+      "topic": "structure",
+      "title": "Why 24 Blocks Work",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-a-new-spin-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Blocks as manageable planning movements rather than mandatory beats, with four acts, twelve sequences, twenty-four Blocks and ninety-six mini-blocks as linked planning resolutions", "action": "ALREADY_CLEAR", "evidence": "Story reason first; How PlotPickle applies this"},
+        {"concept": "Personal origin/history of the Blocks method", "action": "HISTORICAL_ONLY", "evidence": "The Afterglow origin remains provenance rather than necessary learner instruction"},
+        {"concept": "Equal Block length or filler added to occupy a grid cell", "action": "REJECT", "evidence": "Current checklist and mistakes explicitly keep scene count and movement length flexible"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The current lesson already contains the useful method while preserving the source's flexibility and leaving personal history as provenance.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "34": {
+      "presentationOrder": 34,
+      "lessonId": "24b-structure-guide",
+      "topic": "structure",
+      "title": "The Grid Is a Guide, Not a Cage",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-structure-guide-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Four-act/six-Block grid as a visible diagnostic planning surface that can expose thin, balanced or overloaded movement", "action": "ALREADY_CLEAR", "evidence": "A visible thinking surface; How PlotPickle applies this"},
+        {"concept": "Legacy HTML/navigation scaffolding", "action": "HISTORICAL_ONLY", "evidence": "Formatting and navigation in the source do not add current teaching"},
+        {"concept": "Exact beat placement, stopwatch equality, mandatory midpoint or prescribed Hero's Journey labels per Block", "action": "REJECT", "evidence": "Current lesson explicitly says move, combine or split Blocks when the story requires it"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The source's durable grid concept is already learner-facing; its fixed template remains historical evidence rather than authority.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "35": {
+      "presentationOrder": 35,
+      "lessonId": "24b-structures-role",
+      "topic": "structure",
+      "title": "Structure Creates Pressure and Choice",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-reflection-md", "24-blocks-24-blocks-24-blocks-structures-role-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Structure as pressure, causality, audience orientation and consequential choice", "action": "ALREADY_CLEAR", "evidence": "Pressure produces decisions; How PlotPickle applies this"},
+        {"concept": "Setup/payoff, opening/closing reflection and changed meaning", "action": "BETTER_ELSEWHERE", "evidence": "Presentation Lesson 40, Setup, Payoff and the Closing Image, owns the reflection material routed by #2077"},
+        {"concept": "Fixed mirrored-Block expectations or unsupported claims that conforming to a standard structure increases acceptance/production likelihood", "action": "REJECT", "evidence": "Current lesson teaches causal story function without commercial or template guarantees"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The lesson is sufficient for structure's causal role; reflection teaching is deliberately owned by Lesson 40 instead of duplicated here.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "36": {
+      "presentationOrder": 36,
+      "lessonId": "24b-story-beats",
+      "topic": "structure",
+      "title": "From Beat to Act",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-story-beats-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Nested beat, scene, mini-block, Block, sequence and act planning scales with traceable handoffs", "action": "ALREADY_CLEAR", "evidence": "The hierarchy; How PlotPickle applies this"},
+        {"concept": "One prescribed story beat per Block, fixed five-minute timing, mandatory All Is Lost/Dark Night sequence or required secondary climax", "action": "REJECT", "evidence": "Current hierarchy separates planning scales and explicitly rejects treating one scene as automatically equal to one Block"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The useful source principle is the nested planning hierarchy; the source's fixed Block-by-Block beat prescription is not needed for current learner understanding.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "37": {
+      "presentationOrder": 37,
+      "lessonId": "24b-principle-three",
+      "topic": "structure",
+      "title": "Promise, Progress, Pressure, Payoff",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-principle-of-three-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Promise–Progress–Payoff as the original triad, with Pressure clearly identified as PlotPickle's escalation extension", "action": "ALREADY_CLEAR", "evidence": "The original foundation; PlotPickle's expansion; How PlotPickle applies this"},
+        {"concept": "Mechanically repeating the same triad at every narrative scale or treating fixed timing as inherent to the method", "action": "REJECT", "evidence": "Current lesson preserves flexible scene execution and warns against mechanical repetition"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The current lesson already carries the complete retained principle and clearly distinguishes the PlotPickle extension from the historical source triad.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "38": {
+      "presentationOrder": 38,
+      "lessonId": "24b-dramatic-question",
+      "topic": "structure",
+      "title": "Questions That Pull the Story Forward",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-dramatic-question-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Nested story, act, sequence, Block and scene questions whose answers change conditions and hand off to the next uncertainty", "action": "ALREADY_CLEAR", "evidence": "Nested curiosity; How PlotPickle applies this"},
+        {"concept": "Source table of contents and navigation scaffolding", "action": "HISTORICAL_ONLY", "evidence": "Navigation remains provenance only"},
+        {"concept": "Fixed act/block placement or dividing each five-minute Block into exact 1.67-minute Promise/Progress/Payoff slices", "action": "REJECT", "evidence": "Current lesson teaches question hierarchy and handoff without timing prescriptions"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The durable dramatic-question method is already taught directly; the source's rigid timing/map examples are not required current instruction.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "39": {
+      "presentationOrder": 39,
+      "lessonId": "24b-structure-diversity",
+      "topic": "structure",
+      "title": "One Grid, Many Story Shapes",
+      "sourceIds": ["24-blocks-24-blocks-24-blocks-structure-diversity-md"],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Nonlinear, parallel, episodic, circular, framed and mosaic story shapes with presentation order separated from story chronology", "action": "ALREADY_CLEAR", "evidence": "Different shapes, same need for movement; How PlotPickle applies this"},
+        {"concept": "Named-film examples and looser source classifications such as unreliable narrator as a complete structural form", "action": "HISTORICAL_ONLY", "evidence": "Examples and mixed taxonomy are provenance/reference rather than required structural instruction"},
+        {"concept": "Using nonlinear order to hide weak causality or allowing parallel/episodic lines to remain unrelated", "action": "REJECT", "evidence": "Current lesson requires dramatic reason, thread movement, meaningful reordered information and prepared convergence"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "The current lesson teaches the durable structural-diversity method without requiring the source's example catalogue or mixed device taxonomy.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+    },
+    "40": {
+      "presentationOrder": 40,
+      "lessonId": "24b-reflection",
+      "topic": "structure",
+      "title": "Setup, Payoff and the Closing Image",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {"concept": "Setup, development, consequence, payoff, changed meaning and opening/closing-image reflection", "action": "ALREADY_CLEAR", "evidence": "Reflection is transformation; How PlotPickle applies this"},
+        {"concept": "Reflection source is historically attached to Lesson 35 but its durable teaching is routed here by #2077", "action": "BETTER_ELSEWHERE", "evidence": "No source reattachment or duplication is needed because this presentation lesson already owns the retained reflection teaching"},
+        {"concept": "Repeating an image without changed meaning or using symbolism instead of resolving consequence", "action": "REJECT", "evidence": "Current mistakes and checklist require prior evidence, consequence and changed interpretation"}
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "This source-free presentation lesson already contains the durable reflection material assigned to it by the source-drain ledger.",
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
     }
   },
   "presentationOrderSha256": "be54835767c5b9a034537adfb1e610e580fd5a965cb1b1e12136c3f99a99b633",

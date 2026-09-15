@@ -69,9 +69,10 @@ test("#2061 exposes existing Library and Structure Engine implementations as yel
 });
 
 test("#2061 projects the five existing backend readiness authorities only inside the Dashboard footer", async () => {
-  const [rail, footer, host, issueStyles] = await Promise.all([
+  const [rail, footer, footerStyles, host, issueStyles] = await Promise.all([
     read("app/skin-v1/dashboard-readiness-rail.tsx"),
     read("app/skin-v1/menu-feedback-footer.tsx"),
+    read("app/skin-v1/menu-feedback-footer.module.css"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/issue-2061.css"),
   ]);
@@ -96,7 +97,10 @@ test("#2061 projects the five existing backend readiness authorities only inside
   assert.match(rail, /target: "cloud"/u);
   assert.match(footer, /import DashboardReadinessRail/u);
   assert.match(footer, /id === "dashboard-menu-status"/u);
-  assert.match(footer, /dashboardFooter \? <DashboardReadinessRail \/>/u);
+  assert.match(footer, /dashboardFooter \? styles\.legendReserved/u);
+  assert.match(footer, /dashboardFooter \? <span className=\{styles\.dashboardReadiness\}><DashboardReadinessRail \/><\/span>/u);
+  assert.match(footerStyles, /\.legendReserved[\s\S]*visibility: hidden/u);
+  assert.match(footerStyles, /\.dashboardReadiness[\s\S]*position: absolute/u);
   assert.doesNotMatch(host, /DashboardReadinessRail/u);
   assert.doesNotMatch(issueStyles, /Profile readiness/u);
   assert.doesNotMatch(issueStyles, /display: none !important/u);

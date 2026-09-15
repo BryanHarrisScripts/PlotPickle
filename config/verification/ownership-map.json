@@ -257,6 +257,7 @@
         "lib/verification/webmcp-*.mjs",
         "lib/verification/skin-v1-menu-contract-audit.mjs",
         "scripts/run-webmcp-startup-uat.mjs",
+        "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs"
       ],
       "ownerLayer": "verification",

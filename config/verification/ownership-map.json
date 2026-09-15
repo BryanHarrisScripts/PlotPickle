@@ -197,7 +197,8 @@
       "classification": "production",
       "include": [
         "core/contracts/learning-application.ts",
-        "core/learning/application-view.ts"
+        "core/learning/application-view.ts",
+        "modules/learn/ui/curriculum-material.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": ["surface", "canon", "graph"]

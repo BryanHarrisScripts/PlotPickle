@@ -5,26 +5,18 @@ import { changedFilesFromGit, runDevelopmentConvergence } from "../scripts/run-d
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1973 shares explicit green-available yellow-review gray-unavailable footer semantics", async () => {
-  const [footer, styles] = await Promise.all([
-    read("app/skin-v1/menu-feedback-footer.tsx"),
-    read("app/skin-v1/menu-feedback-footer.module.css"),
-  ]);
+test("#1973 keeps contextual footer actions without repeating the color legend", async () => {
+  const footer = await read("app/skin-v1/menu-feedback-footer.tsx");
 
-  assert.match(footer, /GREEN = AVAILABLE/u);
-  assert.match(footer, /YELLOW = IN REVIEW/u);
-  assert.match(footer, /GRAY = UNAVAILABLE/u);
+  assert.doesNotMatch(footer, /GREEN = AVAILABLE/u);
+  assert.doesNotMatch(footer, /YELLOW = IN REVIEW/u);
+  assert.doesNotMatch(footer, /GRAY = UNAVAILABLE/u);
   assert.match(footer, /available \? `ENTER → OPEN \$\{label\.toUpperCase\(\)\}`/u);
   assert.match(footer, /review \? `ENTER → OPEN \$\{label\.toUpperCase\(\)\} · IN REVIEW`/u);
   assert.match(footer, /UNAVAILABLE/u);
   assert.match(footer, /role="status"/u);
   assert.match(footer, /aria-live="polite"/u);
   assert.match(footer, /aria-atomic="true"/u);
-  assert.match(styles, /legendSquareAvailable/u);
-  assert.match(styles, /legendSquareReview/u);
-  assert.match(styles, /var\(--pp-skin-accent-bright\)/u);
-  assert.match(styles, /var\(--pp-skin-warning\)/u);
-  assert.match(styles, /var\(--pp-skin-ink-muted\)/u);
 });
 
 test("#1973 Dashboard and Settings derive footer action from the selected row rather than generic copy", async () => {

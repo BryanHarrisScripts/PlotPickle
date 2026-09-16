@@ -181,6 +181,16 @@
       "riskTokens": ["provider", "canon", "security", "native"]
     },
     {
+      "id": "preproduction-creative-state-semantics",
+      "classification": "production",
+      "include": [
+        "core/contracts/storyboard/**",
+        "lib/preproduction/**"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": ["canon", "graph", "visual"]
+    },
+    {
       "id": "root-story-startup",
       "classification": "production",
       "include": ["app/page.tsx"],

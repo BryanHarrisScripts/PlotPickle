@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "1.0.0",
+  "issue": 2124,
+  "providerNeutral": true,
+  "masterPrompt": {
+    "id": "matrix-master-v1",
+    "version": "1.0.0",
+    "path": "docs/experience/matrix-reference/master-generation-prompt.md"
+  },
+  "boards": [
+    {
+      "id": "matrix-board-a-interface-blueprint-v1",
+      "artifactType": "matrix-interface-blueprint",
+      "version": "1.0.0",
+      "path": "docs/experience/matrix-reference/board-a-interface-blueprint.md",
+      "initialApprovalState": "candidate-reference"
+    },
+    {
+      "id": "matrix-board-b-interaction-state-v1",
+      "artifactType": "matrix-interaction-state-guide",
+      "version": "1.0.0",
+      "path": "docs/experience/matrix-reference/board-b-interaction-state.md",
+      "initialApprovalState": "candidate-reference"
+    },
+    {
+      "id": "matrix-board-c-tokens-operational-v1",
+      "artifactType": "matrix-tokens-operational-style-guide",
+      "version": "1.0.0",
+      "path": "docs/experience/matrix-reference/board-c-tokens-operational.md",
+      "initialApprovalState": "candidate-reference"
+    }
+  ],
+  "authority": {
+    "generatedBoard": "design-intent-only",
+    "engineeringTruth": "Experience Surface Contract",
+    "regressionEvidence": "real PlotPickle application screenshot",
+    "humanApprovalRequired": true
+  },
+  "allowedUsage": [
+    "inform implementation after Human review",
+    "inform Experience Surface Contract sections",
+    "guide shared Matrix component and token work",
+    "guide existing WebMCP verification expectations"
+  ],
+  "disallowedUsage": [
+    "PPF or story canon",
+    "production screenshot",
+    "automatic locked baseline",
+    "automatic visual approval",
+    "parallel UI framework",
+    "parallel visual verifier"
+  ]
+}

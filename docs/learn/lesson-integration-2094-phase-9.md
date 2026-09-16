@@ -4,7 +4,7 @@
 
 Phase 9 started from merged `main` commit `dd3867465e3e745b675ed0d8d5f73a82910969c8` on branch `issue-2094-phase-9`. Scope is presentation Lessons 81–90 only.
 
-The first Architecture Verification run exposed one bookkeeping error: the independently authored `Professional Practice: Pitching and Representation` enrichment is presentation Lesson 83. Phase 9 was corrected to the actual canonical presentation order before merge.
+The first Architecture Verification run exposed one bookkeeping error: the independently authored `Professional Practice: Pitching and Representation` enrichment is presentation Lesson 83. Phase 9 was corrected to the actual canonical presentation order before merge. Follow-up verification also aligned Lesson 84 source-ID ordering with the attached canonical source order and kept the Lesson 81 test focused on learner-body text rather than definition-only text.
 
 ## Reviewed lessons
 

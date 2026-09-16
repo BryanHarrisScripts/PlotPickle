@@ -83,7 +83,7 @@ function projectFrames(project: LibraryPPFProject, anchorRef: string): readonly 
       anchorRef,
       assetUrl: artifact.assetUrl,
       narrativePurpose: artifact.narrativeIntention || "",
-      reviewState: artifact.reviewState,
+      reviewState: artifact.reviewState ?? "draft",
       accepted: artifact.reviewState === "accepted" && foundationAccepted.has(artifact.id),
       source: "foundations" as const,
     }));

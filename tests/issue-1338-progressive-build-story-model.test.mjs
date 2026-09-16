@@ -96,10 +96,10 @@ test("issue #1338/#1410 exposes visible Story Coverage and 24/96 explainability 
   assert.match(mapModel, /\["Promise", "Progress", "Pressure", "Payoff"\]/);
   assert.match(mapModel, /analysisStatus === "reviewed"/);
   assert.match(mapModel, /placement remains importer-suggested and requires Human review/);
-  assert.match(mapCss, /grid-template-columns:\s*repeat\(3/);
+  assert.match(mapCss, /grid-template-columns:\s*repeat\(4/);
 });
 
-test("issue #1357/#1392/#1402 groups the 24 Blocks and keeps the approved side markers", async () => {
+test("issue #1357/#1392/#1402/#2125 groups the 24 Blocks into four Act columns and keeps act-end markers", async () => {
   const [mapComponent, mapCss] = await Promise.all([
     source("modules/build/ui/progressive-story-map.tsx"),
     source("modules/build/ui/progressive-story-map.module.css"),
@@ -118,10 +118,22 @@ test("issue #1357/#1392/#1402 groups the 24 Blocks and keeps the approved side m
     "FINALE",
   ]) assert.ok(mapComponent.includes(contract), `BUILD sequence/turning-point contract is missing: ${contract}`);
   assert.doesNotMatch(mapComponent, /ABSOLUTE_TURNING_POINTS|turningPointSpacer/);
-  for (const contract of [".sequenceSlot", ".sequenceSlotWithMarker", ".sequenceBox", ".sequenceBlocks", ".turningPoint"]) {
-    assert.ok(mapCss.includes(contract), `BUILD sequence/turning-point styling is missing: ${contract}`);
+  for (const contract of [
+    ".sequenceSlot",
+    ".sequenceSlotWithMarker",
+    ".sequenceBox",
+    ".sequenceBlocks",
+    ".turningPoint",
+    'grid-auto-flow: column',
+    'content: "ACT 1"',
+    'content: "ACT 2"',
+    'content: "ACT 3"',
+    'content: "ACT 4"',
+  ]) {
+    assert.ok(mapCss.includes(contract), `BUILD four-Act Story Map styling is missing: ${contract}`);
   }
-  assert.match(mapCss, /grid-template-columns:\s*repeat\(3\s*,\s*minmax\(0\s*,\s*1fr\)\)/);
+  assert.match(mapCss, /grid-template-columns:\s*repeat\(4\s*,\s*minmax\(250px\s*,\s*1fr\)\)/);
+  assert.match(mapCss, /grid-template-rows:\s*repeat\(3\s*,\s*minmax\(0\s*,\s*auto\)\)/);
   assert.match(mapCss, /grid-template-columns:\s*repeat\(2\s*,\s*minmax\(0\s*,\s*1fr\)\)/);
   assert.doesNotMatch(mapCss, /\.turningPointSpacer/);
 });

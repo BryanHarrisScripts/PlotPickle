@@ -4,7 +4,6 @@
   "phase": "phase-10-lessons-91-96-final-fidelity-and-source-ui-retirement",
   "brief": "docs/learn/lesson-integration-2094-phase-10.md",
   "allowedChanges": [
-    ".github/workflows/learn-fidelity-phase-10.yml",
     "adapters/curriculum/current-catalog-integrated.ts",
     "adapters/curriculum/current-catalog.ts",
     "app/skin-v1/learn-explore.tsx",
@@ -21,7 +20,6 @@
     "docs/learn/lesson-fidelity-2094-recheck-1-40.md",
     "docs/learn/lesson-integration-2094.json",
     "docs/learn/lesson-integration-2094-phase-10.md",
-    "scripts/learn-curriculum-word-count.mjs",
     "tests/issue-2094-lesson-integration.test.mjs",
     "config/development-convergence/2094.json"
   ],

@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  word-count:
-    name: LEARN Fidelity Word Count
+  fidelity:
+    name: LEARN Fidelity Focused Verification
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,6 +28,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
+
+      - name: Run #2094 final audit test
+        run: node --test tests/issue-2094-lesson-integration.test.mjs
+
+      - name: Run retained-source regression
+        run: node --test tests/issue-2078-learn-source-drain.test.mjs
+
+      - name: Validate LEARN curriculum
+        run: node scripts/validate-learn-curriculum.mjs
 
       - name: Count learner and bundled-source words
         run: node scripts/learn-curriculum-word-count.mjs

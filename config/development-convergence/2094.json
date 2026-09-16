@@ -1,18 +1,19 @@
 {
   "schemaVersion": 1,
   "issue": 2094,
-  "phase": "phase-8-lessons-71-80",
-  "brief": "docs/learn/lesson-integration-2094-phase-8.md",
+  "phase": "phase-9-lessons-81-90",
+  "brief": "docs/learn/lesson-integration-2094-phase-9.md",
   "allowedChanges": [
+    "adapters/curriculum/current-catalog-integrated.ts",
     "docs/learn/lesson-integration-2094.json",
-    "docs/learn/lesson-integration-2094-phase-8.md",
+    "docs/learn/lesson-integration-2094-phase-9.md",
     "tests/issue-2094-lesson-integration.test.mjs",
     "config/development-convergence/2094.json"
   ],
   "acceptance": [
     {
       "id": "P2094-1",
-      "criterion": "Eighty individually reviewed lessons in actual presentation order with source decisions and restart evidence through Phase 8.",
+      "criterion": "Ninety individually reviewed lessons in actual presentation order with source decisions and restart evidence through Phase 9.",
       "evidence": [
         {
           "type": "file-contains",
@@ -22,49 +23,49 @@
         {
           "type": "file-contains",
           "path": "tests/issue-2094-lesson-integration.test.mjs",
-          "contains": "#2094 Phase 8 teaching is sufficient without source-driven rewrites"
+          "contains": "#2094 Phase 9 integrates Film Industry roles and keeps Lessons 82–90 self-contained"
         },
         {
           "type": "file-contains",
           "path": "docs/learn/lesson-integration-2094.json",
-          "contains": "\"reviewedThrough\": 80"
+          "contains": "\"reviewedThrough\": 90"
         }
       ]
     },
     {
       "id": "P2094-2",
-      "criterion": "Lessons 71–80 are learner-sufficient without raw source dependence; stable concepts are already clear or explicitly routed and outdated/live material is not promoted.",
+      "criterion": "Lesson 81 exposes durable organization-role distinctions in normal teaching without freezing live industry rules; Lessons 82–90 remain learner-sufficient without raw source dependence.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "tests/issue-2094-lesson-integration.test.mjs",
-          "contains": "unexpected source-dependent gap"
+          "path": "adapters/curriculum/current-catalog-integrated.ts",
+          "contains": "What the major organizations actually do"
         },
         {
           "type": "file-contains",
-          "path": "tests/issue-2094-lesson-integration.test.mjs",
-          "contains": "unimplemented integration decision"
+          "path": "adapters/curriculum/current-catalog-integrated.ts",
+          "contains": "rather than the labour-union equivalent"
         },
         {
           "type": "file-contains",
-          "path": "docs/learn/lesson-integration-2094-phase-8.md",
-          "contains": "All ten Phase 8 lessons were learner-sufficient before changes"
+          "path": "docs/learn/lesson-integration-2094-phase-9.md",
+          "contains": "does **not** freeze membership counts"
         }
       ]
     },
     {
       "id": "P2094-3",
-      "criterion": "Stop after Lesson 80 with a Phase 9 restart checkpoint; source-viewer retirement and whole-issue completion remain deferred.",
+      "criterion": "Stop after Lesson 90 with a Phase 10 restart checkpoint; learner-facing source-viewer retirement remains deferred until Lessons 91–96 pass.",
       "evidence": [
         {
           "type": "file-contains",
           "path": "docs/learn/lesson-integration-2094.json",
-          "contains": "\"nextPresentationOrder\": 81"
+          "contains": "\"nextPresentationOrder\": 91"
         },
         {
           "type": "file-contains",
-          "path": "docs/learn/lesson-integration-2094-phase-8.md",
-          "contains": "Phase 9 must restart at presentation Lesson 81"
+          "path": "docs/learn/lesson-integration-2094-phase-9.md",
+          "contains": "Phase 10 must restart at presentation Lesson 91"
         }
       ]
     }

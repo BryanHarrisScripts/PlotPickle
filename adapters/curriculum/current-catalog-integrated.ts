@@ -48,7 +48,45 @@ for (const document of baseTopicDocuments) {
   if (document.sourceCount !== sourceCount) throw new Error(`LEARN topic ${document.topic.id} declares ${document.sourceCount} sources but contains ${sourceCount}.`);
 }
 
-export const canonicalTopicDocuments = withIssue1976CanonicalEnrichment(baseTopicDocuments);
+const withIssue2094LearnerIntegration = (documents: readonly TopicDocument[]): readonly TopicDocument[] => documents.map((document) => {
+  if (document.topic.id !== "industry") return document;
+  return {
+    ...document,
+    lessons: document.lessons.map((lesson) => {
+      if (lesson.id !== "industry") return lesson;
+      return {
+        ...lesson,
+        sections: [
+          ...lesson.sections.slice(0, 2),
+          {
+            heading: "What the major organizations actually do",
+            paragraphs: [
+              "Major film organizations are not interchangeable. The Writers Guild of America (WGA), Directors Guild of America (DGA) and SAG-AFTRA are labour organizations for writers, directors/directorial teams and performers/media professionals; the International Alliance of Theatrical Stage Employees (IATSE) represents many technicians, artisans and craftspeople. The Producers Guild of America (PGA) is a professional trade association for producers rather than the labour-union equivalent of those guilds.",
+              "AMPAS, BAFTA and the European Film Academy are professional or cultural academies focused on recognition and screen culture. ASC, ACE and VES are professional societies serving cinematography, editing and visual-effects communities. BFI supports and develops UK moving-image culture and funding activity; FERA advocates for European film directors; the Cinémathèque Française preserves and presents film heritage; the Motion Picture Association and cinema-exhibition trade associations represent business sectors rather than individual creative labour.",
+              "These descriptions are role distinctions, not current membership, eligibility, rate or agreement advice. For a real project, verify the organization's current official information and the jurisdiction and agreement that actually apply.",
+            ],
+          },
+          ...lesson.sections.slice(2),
+        ],
+        definitions: [
+          ...lesson.definitions,
+          {
+            term: "Trade association",
+            meaning: "An organization representing the shared professional or business interests of a sector or member group; it is not automatically a labour union or regulator.",
+          },
+          {
+            term: "Professional society or academy",
+            meaning: "An organization centered on a craft, profession or screen culture through recognition, education, standards, preservation or community rather than collective bargaining.",
+          },
+        ],
+      };
+    }),
+  };
+});
+
+export const canonicalTopicDocuments = withIssue2094LearnerIntegration(
+  withIssue1976CanonicalEnrichment(baseTopicDocuments),
+);
 const archive = canonicalTopicDocuments.flatMap((document) => document.lessons).sort(compareVisualWriterCurriculumOrder);
 const sourceIds = archive.flatMap((lesson) => lesson.sources.map((source) => source.id));
 const expectedArchiveLessons = index.lessonCount + ISSUE_1976_CANONICAL_LESSON_COUNT;

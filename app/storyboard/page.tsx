@@ -36,6 +36,8 @@ export default function StoryboardPage() {
   const [initialBlockNumber, setInitialBlockNumber] = useState(1);
   const [initialMiniBlockNumber, setInitialMiniBlockNumber] = useState(1);
   const [initialSceneId, setInitialSceneId] = useState<string | undefined>();
+  const [initialShotId, setInitialShotId] = useState<string | undefined>();
+  const [initialVisualView, setInitialVisualView] = useState<"story" | "timeline">("story");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -45,6 +47,8 @@ export default function StoryboardPage() {
         setInitialBlockNumber(boundedBlock(search.get("block")));
         setInitialMiniBlockNumber(boundedMini(search.get("mini")));
         setInitialSceneId(search.get("scene")?.trim() || undefined);
+        setInitialShotId(search.get("shot")?.trim() || undefined);
+        setInitialVisualView(search.get("view") === "timeline" ? "timeline" : "story");
         setLegacyProject(legacySceneProjectionSource());
         setProject(loadFoundationProject());
       } catch (cause) {
@@ -78,6 +82,8 @@ export default function StoryboardPage() {
         initialBlockNumber={initialBlockNumber}
         initialMiniBlockNumber={initialMiniBlockNumber}
         initialSceneId={initialSceneId}
+        initialShotId={initialShotId}
+        initialVisualView={initialVisualView}
         legacyProject={legacyProject}
         project={project}
         onProjectChange={applyProjectChange}

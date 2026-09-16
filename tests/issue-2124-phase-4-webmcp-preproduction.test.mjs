@@ -8,14 +8,16 @@ import {
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 
-test("#2124 Phase 4 connects Matrix Outline and Storyboard to the existing pre-production surfaces", async () => {
+test("#2124 Phase 4 routes Matrix Outline and Storyboard to the existing pre-production surfaces without changing Dashboard readiness presentation", async () => {
   const [menu, host, storyMapSurface] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/skin-v1/matrix-story-map-surface.tsx"),
   ]);
 
-  assert.match(menu, /CONNECTED_DASHBOARD_ITEM_IDS[\s\S]*"plan"[\s\S]*"storyboard"/u);
+  assert.match(menu, /CONNECTED_DASHBOARD_ITEM_IDS[\s\S]*"plan"/u);
+  const connectedBlock = menu.match(/CONNECTED_DASHBOARD_ITEM_IDS = new Set\(\[([\s\S]*?)\]\)/u)?.[1] ?? "";
+  assert.doesNotMatch(connectedBlock, /"storyboard"/u);
   assert.match(host, /item\.id === "plan"[\s\S]*onSurfaceNameChange\("STORY MAP"\)[\s\S]*setOutlineOpen\(true\)/u);
   assert.match(host, /item\.id === "storyboard"[\s\S]*onSurfaceNameChange\("STORYBOARD"\)[\s\S]*setStoryboardOpen\(true\)/u);
   assert.match(host, /<MatrixStoryMapSurface \/>/u);

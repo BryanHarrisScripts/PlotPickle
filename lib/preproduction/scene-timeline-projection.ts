@@ -54,6 +54,10 @@ function actionText(shot: VisualStoryShotProjection) {
   return shot.narrativePurpose || shot.visualIntent || "Action intent not authored";
 }
 
+function uniqueFrames(frames: readonly VisualStoryFrameProjection[]) {
+  return frames.filter((frame, index, all) => all.findIndex((candidate) => candidate.id === frame.id) === index);
+}
+
 function projectAnchor(
   anchor: VisualStoryProjection["anchors"][number],
   firstAddressIndex: number,
@@ -141,6 +145,11 @@ export function projectSceneTimeline(visualStory: VisualStoryProjection): SceneT
   );
   const anchors = orderedAnchors.map((anchor) => projectAnchor(anchor, firstAddressIndex));
   const shots = anchors.flatMap((anchor) => anchor.shots);
+  const untimedShots = shots.filter((shot) => shot.positionState !== "timed");
+  const untimedFrames = uniqueFrames([
+    ...anchors.flatMap((anchor) => anchor.unassignedFrames),
+    ...untimedShots.flatMap((shot) => shot.frames),
+  ]);
 
   return {
     projectionOnly: true,
@@ -150,8 +159,8 @@ export function projectSceneTimeline(visualStory: VisualStoryProjection): SceneT
     totalSeconds: ((lastAddressIndex - firstAddressIndex) + 1) * RENDER_MINI_BLOCK_SECONDS,
     anchors,
     shots,
-    untimedShots: shots.filter((shot) => shot.positionState !== "timed"),
-    untimedFrames: anchors.flatMap((anchor) => anchor.unassignedFrames),
+    untimedShots,
+    untimedFrames,
     timedShotCount: shots.filter((shot) => shot.positionState === "timed").length,
   };
 }

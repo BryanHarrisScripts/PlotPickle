@@ -80,11 +80,48 @@ export default function VisualStoryWorkspace({
             <h2>Black-and-white visual screenplay</h2>
           </div>
         </header>
-        <div className={styles.empty} role="status">
-          <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
-          <p>Visual Story does not manufacture a Scene to fill the surface. Add or relate a real Scene through the existing story authority, then this projection will expose its Beats, Shots and Frames here.</p>
-          {projection.legacyDetailStatus === "project-id-mismatch" ? <small>The available richer Scene detail belongs to a different project and was intentionally ignored.</small> : null}
-        </div>
+
+        <nav className={styles.sceneRail} aria-label="Visual pre-production view">
+          <button
+            aria-pressed={view === "story"}
+            data-visual-story-view="story"
+            onClick={() => setView("story")}
+            type="button"
+          >
+            Visual Story
+          </button>
+          <button
+            aria-pressed={view === "timeline"}
+            data-visual-story-view="timeline"
+            onClick={() => setView("timeline")}
+            type="button"
+          >
+            Scene Timeline
+          </button>
+        </nav>
+
+        {view === "story" ? (
+          <div className={styles.empty} role="status">
+            <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
+            <p>Visual Story does not manufacture a Scene to fill the surface. Add or relate a real Scene through the existing story authority, then this projection will expose its Beats, Shots and Frames here.</p>
+            {projection.legacyDetailStatus === "project-id-mismatch" ? <small>The available richer Scene detail belongs to a different project and was intentionally ignored.</small> : null}
+          </div>
+        ) : (
+          <section
+            aria-label="Scene Timeline empty state"
+            className={styles.empty}
+            data-projection-only="true"
+            data-scene-timeline="frames-shots-action-timing"
+            role="status"
+          >
+            <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
+            <p>Scene Timeline does not manufacture timing material to fill the surface. Add or relate a real Scene through the existing story authority; only real Shot and Previs timing can then occupy the timeline.</p>
+          </section>
+        )}
+
+        <footer className={styles.boundary}>
+          Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
+        </footer>
       </section>
     );
   }
@@ -139,8 +176,22 @@ export default function VisualStoryWorkspace({
       </dl>
 
       <nav className={styles.sceneRail} aria-label="Visual pre-production view">
-        <button aria-pressed={view === "story"} onClick={() => setView("story")} type="button">Visual Story</button>
-        <button aria-pressed={view === "timeline"} onClick={() => setView("timeline")} type="button">Scene Timeline</button>
+        <button
+          aria-pressed={view === "story"}
+          data-visual-story-view="story"
+          onClick={() => setView("story")}
+          type="button"
+        >
+          Visual Story
+        </button>
+        <button
+          aria-pressed={view === "timeline"}
+          data-visual-story-view="timeline"
+          onClick={() => setView("timeline")}
+          type="button"
+        >
+          Scene Timeline
+        </button>
       </nav>
 
       {view === "story" ? (

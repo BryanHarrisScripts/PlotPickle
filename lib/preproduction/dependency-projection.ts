@@ -192,22 +192,32 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
   for (const beat of input.beats ?? []) {
     addAnchorDependent(input, nodes, edges, beat.anchorRef, {
       id: beat.id,
-      kind: "beat",
+      kind: "production-cue",
       label: beat.label || beat.id,
       module: "sequence-director",
       path: `projection.beat.${beat.id}`,
-      metadata: { order: beat.order, startSecond: beat.startSecond, endSecond: beat.endSecond },
+      metadata: {
+        semanticKind: "beat",
+        order: beat.order,
+        startSecond: beat.startSecond,
+        endSecond: beat.endSecond,
+      },
     }, "contains-beat");
   }
 
   for (const shot of input.editorialShots ?? []) {
     addAnchorDependent(input, nodes, edges, shot.anchorRef, {
       id: shot.shotId,
-      kind: "storyboard-shot",
+      kind: "storyboard-frame",
       label: shot.narrativePurpose || shot.shotId,
       module: "storyboard",
       path: `projection.storyboardShot.${shot.shotId}`,
-      metadata: { order: shot.order, shotSize: shot.shotSize, cameraAngle: shot.cameraAngle },
+      metadata: {
+        semanticKind: "storyboard-shot",
+        order: shot.order,
+        shotSize: shot.shotSize,
+        cameraAngle: shot.cameraAngle,
+      },
     }, "visualized-by-shot");
 
     for (const directive of shot.informationDirectives) {
@@ -234,6 +244,7 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
       module: "storyboard",
       path: `projection.frame.${frame.frameId}`,
       metadata: {
+        semanticKind: "frame",
         storyboardArtifactId: frame.storyboardArtifactId,
         storyboardDependencyKey: frame.storyboardDependencyKey,
       },
@@ -268,11 +279,11 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
     const instructionId = `production-instruction:${instruction.projectId}:revision-${instruction.canonicalRevision}`;
     addNode(nodes, {
       id: instructionId,
-      kind: "production-instruction",
+      kind: "production-cue",
       label: "Provider-neutral production instruction",
       module: "preproduction",
       path: `projection.productionInstruction.revision.${instruction.canonicalRevision}`,
-      metadata: { providerNeutral: instruction.providerNeutral },
+      metadata: { semanticKind: "production-instruction", providerNeutral: instruction.providerNeutral },
     });
     for (const frameId of instruction.storyboardFrameRefs) addEdge(edges, frameId, instructionId, "assembled-into");
     for (const shotId of instruction.productionShotRefs) addEdge(edges, shotId, instructionId, "assembled-into");

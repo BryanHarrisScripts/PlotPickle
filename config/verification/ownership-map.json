@@ -91,6 +91,16 @@
       "riskTokens": ["provider", "security"]
     },
     {
+      "id": "story-mode-provider-policy",
+      "classification": "production",
+      "include": [
+        "build/local-ai-gateway.ts",
+        "build/story-mode-policy-gateway.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": ["provider", "security", "api"]
+    },
+    {
       "id": "community-conversation-surface",
       "classification": "production",
       "include": [

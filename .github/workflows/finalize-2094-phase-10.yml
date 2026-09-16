@@ -31,6 +31,11 @@ jobs:
       - name: Finalize ledger, fidelity content and learner source UI
         run: node scripts/finalize-2094-phase-10.mjs
 
+      - name: Normalize learner source-viewer file endings
+        run: |
+          sed -i -e '${/^$/d;}' app/skin-v1/learn-journey-preview.tsx
+          sed -i -e '${/^$/d;}' app/skin-v1/learn-explore.tsx
+
       - name: Remove one-shot finalizer
         run: git rm scripts/finalize-2094-phase-10.mjs .github/workflows/finalize-2094-phase-10.yml
 

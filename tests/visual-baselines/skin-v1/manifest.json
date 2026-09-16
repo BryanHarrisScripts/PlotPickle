@@ -41,7 +41,7 @@
     },
     "settings": {
       "label": "Manage",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Settings menu']",
       "candidate": ".artifacts/visual-readiness/settings-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/settings.png"
@@ -55,14 +55,14 @@
     },
     "local-ai": {
       "label": "Local Story Mode",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Local Story Mode setup']",
       "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
     },
     "cloud-story-mode": {
       "label": "Cloud Story Mode",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Cloud Story Mode setup']",
       "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"

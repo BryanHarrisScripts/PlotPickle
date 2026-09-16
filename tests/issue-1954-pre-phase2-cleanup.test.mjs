@@ -65,13 +65,15 @@ test("#1965/#2046 Settings consolidates preferences and restores operational des
   assert.ok(start >= 0 && end > start, "SETTINGS_MENU source should remain explicit and testable");
   const menuSource = dashboard.slice(start, end);
 
-  const expected = ["general", "local-story-mode", "cloud", "node-info", "agents"];
+  const expected = ["general", "story-mode", "node-info", "agents"];
   let previousIndex = -1;
   for (const id of expected) {
     const index = menuSource.indexOf(`id: "${id}"`);
     assert.ok(index > previousIndex, `${id} must appear in the intended Settings order`);
     previousIndex = index;
   }
+  assert.ok(!menuSource.includes('id: "local-story-mode"'), "Local Story Mode is now nested under the Story Mode parent");
+  assert.ok(!menuSource.includes('id: "cloud"'), "Cloud Story Mode is now nested under the Story Mode parent");
   for (const retiredPreferenceRow of ["appearance", "accessibility", "defaults", "advanced", "project-defaults"]) {
     assert.ok(!menuSource.includes(`id: "${retiredPreferenceRow}"`), `${retiredPreferenceRow} must not remain a separate Settings destination`);
   }

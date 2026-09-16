@@ -2,23 +2,21 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import CloudStoryModeHost from "./cloud-story-mode-host";
 import { CONNECTED_DASHBOARD_ITEM_IDS, type DashboardBbsItem } from "./dashboard-menu-registry";
 import LearnJourneyPreview from "./learn-journey-preview";
-import LocalAiSkinHost from "./local-ai-skin-host";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 import NodeSkinPanel from "./node-skin-panel";
 import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
 import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
+import StoryModeHost from "./story-mode-host";
 
 export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
-  "local-story-mode": "L",
-  cloud: "C",
+  "story-mode": "S",
   "node-info": "I",
   agents: "N",
 };
@@ -32,17 +30,10 @@ const SETTINGS_MENU = [
     group: "SETTINGS",
   },
   {
-    id: "local-story-mode",
-    shortcut: SETTINGS_SHORTCUTS["local-story-mode"],
-    label: "Local Story Mode",
-    description: "Local writing, images, video and Agent compute on this computer.",
-    group: "SYSTEMS",
-  },
-  {
-    id: "cloud",
-    shortcut: SETTINGS_SHORTCUTS.cloud,
-    label: "Cloud Story Mode",
-    description: "Cloud writing, images, video, Agents and user-owned provider authority.",
+    id: "story-mode",
+    shortcut: SETTINGS_SHORTCUTS["story-mode"],
+    label: "Story Mode",
+    description: "Choose Local, Cloud or Hybrid Story compute and generation.",
     group: "SYSTEMS",
   },
   {
@@ -85,8 +76,7 @@ export default function DashboardBbsPanel({
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
-  const [cloudStoryModeOpen, setCloudStoryModeOpen] = useState(false);
-  const [localStoryModeOpen, setLocalStoryModeOpen] = useState(false);
+  const [storyModeOpen, setStoryModeOpen] = useState(false);
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
@@ -107,12 +97,8 @@ export default function DashboardBbsPanel({
       onSurfaceNameChange("GENERAL");
       return;
     }
-    if (settingsMenuOpen && cloudStoryModeOpen) {
-      onSurfaceNameChange("CLOUD STORY MODE");
-      return;
-    }
-    if (settingsMenuOpen && localStoryModeOpen) {
-      onSurfaceNameChange("LOCAL STORY MODE");
+    if (settingsMenuOpen && storyModeOpen) {
+      onSurfaceNameChange("STORY MODE");
       return;
     }
     if (settingsMenuOpen && nodeInfoOpen) {
@@ -125,13 +111,12 @@ export default function DashboardBbsPanel({
     }
     onSurfaceNameChange(settingsMenuOpen ? "SETTINGS" : "DASHBOARD");
   }, [
-    cloudStoryModeOpen,
-    localStoryModeOpen,
     nodeInfoOpen,
     onSurfaceNameChange,
     plotPickleAgentsOpen,
     settingsMenuOpen,
     settingsWorkspace,
+    storyModeOpen,
     writerCraftMenuOpen,
   ]);
 
@@ -175,12 +160,8 @@ export default function DashboardBbsPanel({
       setSettingsWorkspace(item.id);
       return;
     }
-    if (item.id === "local-story-mode") {
-      setLocalStoryModeOpen(true);
-      return;
-    }
-    if (item.id === "cloud") {
-      setCloudStoryModeOpen(true);
+    if (item.id === "story-mode") {
+      setStoryModeOpen(true);
       return;
     }
     if (item.id === "node-info") {
@@ -241,30 +222,16 @@ export default function DashboardBbsPanel({
     );
   }
 
-  if (settingsMenuOpen && cloudStoryModeOpen) {
+  if (settingsMenuOpen && storyModeOpen) {
     return (
-      <section aria-label="Cloud Story Mode setup" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setCloudStoryModeOpen(false); }
+      <section aria-label="Story Mode settings" onKeyDown={(event) => {
+        if (event.key === "Escape") { event.preventDefault(); setStoryModeOpen(false); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>CLOUD STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setCloudStoryModeOpen(false)}>Back to Settings</button>
+          <h1>STORY MODE</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={() => setStoryModeOpen(false)}>Back to Settings</button>
         </div>
-        <CloudStoryModeHost />
-      </section>
-    );
-  }
-
-  if (settingsMenuOpen && localStoryModeOpen) {
-    return (
-      <section aria-label="Local Story Mode setup" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setLocalStoryModeOpen(false); }
-      }}>
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>LOCAL STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setLocalStoryModeOpen(false)}>Back to Settings</button>
-        </div>
-        <LocalAiSkinHost />
+        <StoryModeHost />
       </section>
     );
   }

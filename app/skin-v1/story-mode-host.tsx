@@ -181,7 +181,7 @@ export default function StoryModeHost() {
 
   if (view === "local") {
     return (
-      <section aria-label="Local Story Mode" data-story-mode-view="local" onKeyDown={(event) => {
+      <section aria-label="Local Story Mode setup" data-story-mode-view="local" onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
@@ -195,7 +195,7 @@ export default function StoryModeHost() {
 
   if (view === "cloud") {
     return (
-      <section aria-label="Cloud Story Mode" data-story-mode-view="cloud" onKeyDown={(event) => {
+      <section aria-label="Cloud Story Mode setup" data-story-mode-view="cloud" onKeyDown={(event) => {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
       }}>
         <div className="pp-skin-v1-bbs-banner">

@@ -35,6 +35,8 @@ test("#2106 parent reuses current Local and Cloud configuration owners", async (
   assert.match(host, /import LocalAiSkinHost from "\.\/local-ai-skin-host"/u);
   assert.match(host, /<LocalAiSkinHost \/>/u);
   assert.match(host, /<CloudStoryModeHost \/>/u);
+  assert.match(host, /aria-label="Local Story Mode setup"/u);
+  assert.match(host, /aria-label="Cloud Story Mode setup"/u);
   assert.match(host, /data-story-mode-hybrid="policy-only"/u);
   assert.doesNotMatch(host, /Ollama Hybrid|ollama-hybrid|new provider registry|multiplexer/iu);
 });
@@ -63,4 +65,12 @@ test("#2106 choosing a directory policy updates the execution policy boundary", 
   assert.match(host, /setMode\(nextMode\)/u);
   assert.match(host, /setView\(nextMode\)/u);
   assert.match(host, /Existing capability selection and cloud consent rules remain authoritative/u);
+
+  const activateStart = host.indexOf("async function activate");
+  const viewIndex = host.indexOf("setView(nextMode)", activateStart);
+  const policyWriteIndex = host.indexOf('fetch("/api/story-mode/policy"', activateStart);
+  const modeIndex = host.indexOf("setMode(nextMode)", activateStart);
+  assert.ok(activateStart >= 0 && viewIndex > activateStart, "Story Mode activation must expose the selected setup view.");
+  assert.ok(viewIndex < policyWriteIndex, "Local/Cloud/Hybrid setup must remain reachable while the policy write is pending.");
+  assert.ok(modeIndex > policyWriteIndex, "The active Story Mode policy must change only after the policy authority confirms the write.");
 });

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { applyStoryCommand } from "@/core/project/apply-command";
+import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import styles from "./preproduction-context-nav.module.css";
 
 export type PreproductionArea = "outline" | "storyboard" | "previs";
@@ -24,6 +26,21 @@ const AREAS: Record<PreproductionArea, { label: string; href: string; depth: str
   },
 };
 
+const LEARN_BY_AREA: Record<PreproductionArea, readonly { lessonId: string; label: string }[]> = {
+  outline: [
+    { lessonId: "24b-structure-guide", label: "Structure · Grid as guide" },
+    { lessonId: "mood-colour-visual-language", label: "Visual language" },
+  ],
+  storyboard: [
+    { lessonId: "early-visual-development", label: "Concept → Storyboard frame" },
+    { lessonId: "essentials-screen-evidence", label: "Screen evidence" },
+  ],
+  previs: [
+    { lessonId: "early-visual-development", label: "Frame → Production keyframe" },
+    { lessonId: "essentials-screen-evidence", label: "Playable visual evidence" },
+  ],
+};
+
 function boundedBlock(value: string | null) {
   const number = Number(value || 0);
   return Number.isFinite(number) && number >= 1 && number <= 24 ? Math.trunc(number) : null;
@@ -31,6 +48,33 @@ function boundedBlock(value: string | null) {
 
 function withBlock(href: string, blockNumber: number | null) {
   return blockNumber ? `${href}?block=${blockNumber}` : href;
+}
+
+function learnHref(lessonId: string, returnPath: string) {
+  const query = new URLSearchParams({
+    workspace: "learn",
+    lesson: lessonId,
+    from: "preproduction",
+    return: returnPath,
+  });
+  return `/?${query.toString()}`;
+}
+
+function openContextLesson(event: MouseEvent<HTMLAnchorElement>, lessonId: string, href: string) {
+  event.preventDefault();
+  try {
+    const project = loadFoundationProject();
+    const next = applyStoryCommand(project, {
+      type: "lesson.open",
+      lessonId,
+      occurredAt: new Date().toISOString(),
+    });
+    saveFoundationProject(next);
+  } catch {
+    // LEARN can still open without an active PPF project; its normal recovery
+    // path remains authoritative for project loading.
+  }
+  window.location.assign(href);
 }
 
 export default function PreproductionContextNav({
@@ -49,6 +93,7 @@ export default function PreproductionContextNav({
   const activeBlock = Number.isFinite(blockNumber) && (blockNumber ?? 0) >= 1 && (blockNumber ?? 0) <= 24
     ? Math.trunc(blockNumber!)
     : routeBlock;
+  const currentReturn = useMemo(() => withBlock(AREAS[area].href, activeBlock), [activeBlock, area]);
   const outlineReturn = useMemo(() => withBlock("/structure", activeBlock), [activeBlock]);
   const contextualReturn = encodeURIComponent(outlineReturn);
 
@@ -76,6 +121,22 @@ export default function PreproductionContextNav({
       <div className={styles.depth}>
         <span>Nested depth</span>
         <strong>{AREAS[area].depth}</strong>
+      </div>
+
+      <div className={styles.learn} aria-label={`${AREAS[area].label} LEARN help`}>
+        <span>LEARN</span>
+        {LEARN_BY_AREA[area].map((lesson) => {
+          const href = learnHref(lesson.lessonId, currentReturn);
+          return (
+            <Link
+              href={href}
+              key={lesson.lessonId}
+              onClick={(event) => openContextLesson(event, lesson.lessonId, href)}
+            >
+              {lesson.label}
+            </Link>
+          );
+        })}
       </div>
 
       {area === "outline" ? (

@@ -23,6 +23,8 @@ All 96 presentation lessons now pass learner sufficiency. Journey and Explore th
 
 Before fidelity pass: **52,124 learner-facing words** across 96 lessons; raw 95-source corpus: **79,597 words**. The after count is produced by the same `scripts/learn-curriculum-word-count.mjs` contract after the final teaching changes. Word count is evidence rather than a target; duplicated navigation, obsolete/live claims and deliberately re-homed teaching are not copied simply to increase the number.
 
+Final runtime content is now locked for the after-count measurement; this documentation checkpoint intentionally changes no curriculum teaching.
+
 ## Verification boundary
 
 Focused #2094 validation must prove: exactly 96 ledger records, 96 presentation lessons, 95 unique retained source records, unchanged presentation/source fingerprints, current teaching fingerprints, final Lessons 91–96 identity, restored fidelity markers, and absence of raw source viewers from both learner surfaces.

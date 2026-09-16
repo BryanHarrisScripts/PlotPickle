@@ -187,7 +187,7 @@ export default function StoryModeHost() {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h2>LOCAL</h2>
+          <h1>LOCAL STORY MODE</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
         </div>
         <LocalAiSkinHost />
@@ -201,7 +201,7 @@ export default function StoryModeHost() {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h2>CLOUD</h2>
+          <h1>CLOUD STORY MODE</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
         </div>
         <CloudStoryModeHost />

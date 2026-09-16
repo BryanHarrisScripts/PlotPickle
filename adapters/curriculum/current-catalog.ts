@@ -1,3 +1,4 @@
+// Runtime catalog: current canonical projection including #1976 enrichment and #2094 fidelity restoration.
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import {
   canonicalTopicDocuments as integratedCanonicalTopicDocuments,
@@ -253,6 +254,106 @@ function enrichFidelityLesson(lesson: CurriculumLesson): CurriculumLesson {
             "Act 2 ↔ Act 4 — choices and strategies from the pursuit phase may return as consequences, reversals, debts or payoffs during resolution.",
             "Opening ↔ closing — a repeated image, action, location or relationship state can mirror, invert or complicate the opening and reveal changed meaning.",
             "Reflection without symmetry — a payoff can answer an earlier setup without matching its Block number, act position or surface event.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "24b-dynamic-scenes") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the source's scene vocabulary without turning it into a shot formula",
+          paragraphs: [
+            "The original Dynamic Scenes source names Establishing Shot, Objective, Conflict, Action, Turn or Reversal, Resolution and Outcome. Preserve those terms because writers will encounter them, while separating screenplay function from routine camera coverage.",
+          ],
+          points: [
+            "Establishing shot — a production/cinematic term for orienting the audience to place or spatial relationship; a screenplay scene does not require a camera establishing shot if heading and selected action already orient the reader.",
+            "Objective — the result a scene driver is trying to obtain now.",
+            "Conflict / opposition — the incompatible pressure, obstacle or competing result that prevents easy success.",
+            "Action — the tactic or behaviour used to pursue the objective, not merely physical movement.",
+            "Turn / reversal — new information, refusal, interruption or consequence that makes the opening tactic or understanding insufficient.",
+            "Resolution — the local result of the scene's immediate dramatic problem; it may answer, postpone, worsen or transform the question rather than closing the whole story.",
+            "Outcome / handoff — the changed condition or consequence that makes the next movement necessary.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "early-visual-development") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Practice visual sequencing with a limited-motion story",
+          paragraphs: [
+            "The historical Lost & Found exercise is useful because it separates storytelling from production scale. Build a short sequence in which composition, order, transition, sound and one changing visual state carry the story even when motion is limited.",
+          ],
+          points: [
+            "Possible forms — static images with voice-over, kinetic typography, stop motion, digital animation, slideshow with music, or interview/testimonial structure.",
+            "Shot choice — use close, medium and wide framing deliberately to control attention, isolation, context and reveal.",
+            "Transitions — fades, crossfades, cuts and other transitions should express time, comparison or change rather than decorate every image.",
+            "Sound — ambient sound, sound effects, music, silence and voice-over can provide continuity or a turn that still images cannot carry alone.",
+            "Visual-state change — a shift such as monochrome to colour, stillness to movement or distance to intimacy can become a payoff when the earlier pattern prepares it.",
+            "Storyboard record — capture image/frame intention, narrative beat, shot type, transition or sound note and scene/frame order so the sequence can be reviewed before production.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "writing-process") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the legacy rough-draft term discoverable",
+          paragraphs: [
+            "The source uses the phrase 'vomit draft' for a fast, permission-giving first pass in which ideas are put on the page before local polish and self-censorship take over. PlotPickle's preferred learner-facing name is Pickle Draft, but the older phrase remains useful search vocabulary because writers will encounter it in the archive and in wider writing culture.",
+            "The larger source point is that writing behaves more like a cycle or spiral than a one-way assembly line: research can send you back to the premise, a draft can expose a planning problem, and revision can reveal missing research. The stages are modes of work, not locked gates.",
+          ],
+          points: [
+            "Idea generation — capture possibilities before evaluating all of them.",
+            "Research — gather enough evidence and context to make informed story choices.",
+            "Outlining / plotting — use as much or as little roadmap as helps the writer see the next meaningful movement.",
+            "Rough / Pickle Draft — move forward through the work without requiring polished prose at every step.",
+            "Major revision — repair structure, flow, causality and large-scale story problems before cosmetic polish.",
+            "Further revision / editing — refine specific layers through additional passes as needed.",
+            "Proofreading — correct surface errors after the story and wording are stable enough for final checking.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "concept-to-draft") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the original ten-step development path as a reference",
+          paragraphs: [
+            "The source presents one recognizable screenplay-development sequence. Preserve it because the terms are useful and widely understandable, but treat the order as a reference path rather than a mandatory pipeline. Writers may combine stages, skip some, discover material later or cycle backward when the draft changes the plan.",
+          ],
+          points: [
+            "1. Concept / Idea — the initial story possibility, situation, image or dramatic seed.",
+            "2. Research — factual, experiential or contextual investigation needed to write with enough accuracy and specificity.",
+            "3. Logline — a compact statement of protagonist, conflict, pursuit/stakes and distinctive story engine.",
+            "4. Beat Sheet — a concise bullet map of significant story events or turns.",
+            "5. Outline — a more detailed planning document that may include scene movement, character arcs and selected dialogue ideas.",
+            "6. Treatment — present-tense prose that tells the screen story and tests flow before or alongside screenplay pages.",
+            "7. Scene Structure — define setting, characters, objective/conflict, turn and what the scene changes or contributes.",
+            "8. First Draft — turn the planning material into a complete screenplay and allow scene writing to reveal what the plan could not.",
+            "9. Revision — diagnose and improve the screenplay through as many focused passes as the project needs.",
+            "10. Polishing — proofread, correct formatting and refine surface execution once larger story decisions are stable.",
+            "PlotPickle addition — 24 Blocks and 96 Mini-Blocks provide intermediate planning resolutions; they extend this vocabulary rather than erasing beat sheet, outline, treatment or scene planning.",
           ],
         },
       ],

@@ -524,6 +524,137 @@ function enrichFidelityLesson(lesson: CurriculumLesson): CurriculumLesson {
     };
   }
 
+  if (lesson.id === "dialogue-action") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Practice selected naturalism",
+          paragraphs: [
+            "The original Realistic Dialogue source recommends observation as a craft exercise. Listen ethically to ordinary speech for rhythm, interruption, incomplete sentences, contractions and the gap between literal wording and social intention; then select only what serves the character and scene.",
+          ],
+          points: [
+            "Observation exercise — notice phrase patterns, rhythm, interruption and how people avoid, revise or trail off rather than collecting private content.",
+            "Contractions — forms such as I'm, don't or we'll may support casual naturalism when they fit the character, period and context; they are not mandatory.",
+            "Revision exercise — take one page of dialogue, cut unnecessary wording and test whether purposeful interruption, contraction or nonverbal response makes the exchange more playable.",
+            "Crafted speech — filler, repetition and grammatical looseness are ingredients to select, not proof of realism by themselves.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "dialogue-conflict") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the source's conflict technique names",
+          paragraphs: [
+            "The legacy Conflict lesson names two useful forms that remain easy to search for: verbal sparring and subtle disagreement. They describe delivery, not different kinds of story conflict.",
+          ],
+          points: [
+            "Verbal sparring — a direct exchange in which characters challenge beliefs, desires, status or tactics; heat can be playful, intellectual, hostile or intimate.",
+            "Subtle disagreement — conflict carried through qualification, politeness, omission, redirection, selective agreement or restrained refusal rather than overt argument.",
+            "Hiding the truth — lies, evasions and half-truths create pressure when concealment affects what another person can decide or safely do.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "dialogue-speech-silence-action") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Translate dialogue tags and action beats into screenplay form",
+          paragraphs: [
+            "The legacy source uses the general-writing terms dialogue tag and action beat. Keep them recognizable while translating them into screenplay practice: a character cue normally identifies the speaker, and a small visible action normally belongs in an action line rather than a prose 'he said/she asked' construction.",
+          ],
+          points: [
+            "Dialogue tag — prose terminology such as 'he said' or 'she asked' that identifies a speaker; screenplays usually use character cues instead.",
+            "Action beat — a brief action around speech that can clarify who acts, reveal emotion or strategy, break up an exchange, regulate pacing or contradict the spoken words.",
+            "Use action beats for dramatic evidence, not constant choreography. A hand movement matters when it changes interpretation, status, information or choice.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "dialogue-exposition-genre") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the source's genre dialogue possibilities",
+          paragraphs: [
+            "The original Different Genres lesson gives concrete examples. Preserve them as possibilities writers may test, never as rules that every work in a genre must follow.",
+          ],
+          points: [
+            "Comedy — wordplay, puns, quick back-and-forth, comic timing, character quirks, situational comedy and absurdity can create humour when they fit the comic engine.",
+            "Drama — complex emotion, sustained conversation and philosophical or moral questions may carry weight; drama does not require formal speech.",
+            "Horror — fear, denial, incomplete knowledge, uncertain description and strategic silence can build dread without requiring characters to announce that they are afraid.",
+            "Science fiction — technical terms, invented/future slang and questions about technology, society, space or humanity can belong when characters and world rules support them; jargon is not a genre requirement.",
+            "Romance — intimacy, desire, vulnerability, avoidance, conflict and subtext can carry attraction and changing relationship stakes without requiring emotional explicitness in every line.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "dialogue-revision") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Run the original practical dialogue checks",
+          paragraphs: [
+            "The Refining Dialogue source adds a simple performance-oriented revision sequence worth keeping beside PlotPickle's deeper diagnostic passes.",
+          ],
+          points: [
+            "Read aloud — hear where phrasing, breath, rhythm or sentence length becomes awkward in performance.",
+            "Check consistency — compare speech patterns, vocabulary, directness and tone with the established Voiceprint while allowing motivated variation.",
+            "Cut unnecessary words — test whether concision strengthens purpose without removing character, hesitation, humour, release or intentional repetition.",
+            "Clarify purpose — ask what each line or exchange is doing: pursuing, resisting, revealing, hiding, changing status, regulating pace or preparing consequence.",
+            "Get feedback — use another reader/listener to report confusion, authenticity, memorable lines, status changes and what they believed each person wanted; proposed fixes remain optional hypotheses.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "ai-revision-diagnose-only") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the legacy Critical → Intermediate → Fine-Tuning index",
+          paragraphs: [
+            "The original prompt library divided screenplay review into three levels. Preserve the taxonomy as a diagnostic index that helps route a problem to the right specialist lesson; it is not a scoring hierarchy and does not authorize automatic rewriting.",
+          ],
+          points: [
+            "Most Critical — story/structure; emotion/conflict; character development and arc consistency; dialogue; analysis/feedback; subplots; theme/irony; inciting incidents/twists; emotional appeal; resolution/climax; visual imagery; antagonist; relationships; introductions; motivations; backstories.",
+            "Intermediate — scene/narrative analysis; exposition; genre/world-building; motifs and symbolism; nonlinear form; cinematic/visual language; tone/atmosphere; humour/surprise; sound; genre conventions; pathos/catharsis; ensemble dynamics; culture/time; continuity; sensory detail; foreshadowing; subtext.",
+            "Fine-Tuning — pacing/rhythm; voice-over/narration; formatting/style; rewriting/editing; title significance; action description; diction/language; dialogue authenticity; representation; feedback/revision; marketing/pitching; audience engagement/perspective.",
+          ],
+        },
+        {
+          heading: "Retain the questions; retire the obsolete prompt wrapper",
+          paragraphs: [
+            "The useful part of the old resources is their breadth of review questions. Their ChatGPT token-limit framing, fixed 500/1500-character wrappers, copy-box instructions and requests to rewrite the whole screenplay are historical workflow artifacts. Cultural authenticity, producer appeal, ratings, market fit and legal/factual questions require appropriate human or current authoritative verification rather than model certification.",
+          ],
+        },
+      ],
+    };
+  }
+
   return lesson;
 }
 

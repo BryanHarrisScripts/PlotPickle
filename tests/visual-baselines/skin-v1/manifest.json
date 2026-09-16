@@ -32,6 +32,27 @@
       "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
     },
+    "story-map": {
+      "label": "Story Map",
+      "status": "candidate",
+      "selector": "[data-progressive-story-map='24x96']",
+      "candidate": ".artifacts/visual-readiness/story-map-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/story-map.png"
+    },
+    "scene-timeline": {
+      "label": "Scene Timeline",
+      "status": "candidate",
+      "selector": "[data-scene-timeline='frames-shots-action-timing']",
+      "candidate": ".artifacts/visual-readiness/scene-timeline-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/scene-timeline.png"
+    },
+    "visual-story": {
+      "label": "Visual Story",
+      "status": "candidate",
+      "selector": "[data-visual-story='scene-beat-shot-frame']",
+      "candidate": ".artifacts/visual-readiness/visual-story-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/visual-story.png"
+    },
     "profile": {
       "label": "Identity",
       "status": "candidate",

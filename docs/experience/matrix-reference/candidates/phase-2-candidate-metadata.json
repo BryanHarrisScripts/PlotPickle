@@ -1,15 +1,16 @@
 {
   "issue": 2124,
   "phase": 2,
-  "status": "approved-reference",
+  "status": "superseded-reference",
   "sourcePromptId": "matrix-master-v1",
   "sourcePromptVersion": "1.0.0",
   "renderMethod": "deterministic-svg-from-current-pp-skin-token-roles",
   "humanApprovalRequired": true,
-  "humanApprovalState": "approved",
+  "humanApprovalState": "superseded-after-review",
   "humanApprovalRecordedAt": "2026-09-16",
-  "approvalBasis": "Human explicitly instructed PlotPickle workstream to continue from the Phase 2 review gate.",
+  "approvalBasis": "Human initially instructed the PlotPickle workstream to continue from the Phase 2 review gate, then clarified that the SVG boards should not be treated as implementable visual targets.",
   "engineeringTruth": "Experience Surface Contract",
+  "visualPrecedent": "existing Matrix implementation and real Matrix screenshots, with Dashboard as the sole locked baseline",
   "regressionEvidence": "real PlotPickle application screenshot",
   "boards": [
     {
@@ -17,26 +18,27 @@
       "artifactType": "matrix-interface-blueprint",
       "promptId": "matrix-board-a-interface-blueprint-v1",
       "path": "docs/experience/matrix-reference/candidates/board-a-interface-blueprint-v1.svg",
-      "approvalState": "approved-reference"
+      "approvalState": "superseded-reference"
     },
     {
       "artifactId": "matrix-board-b-interaction-state-v1-candidate",
       "artifactType": "matrix-interaction-state-guide",
       "promptId": "matrix-board-b-interaction-state-v1",
       "path": "docs/experience/matrix-reference/candidates/board-b-interaction-state-v1.svg",
-      "approvalState": "approved-reference"
+      "approvalState": "superseded-reference"
     },
     {
       "artifactId": "matrix-board-c-tokens-operational-v1-candidate",
       "artifactType": "matrix-tokens-operational-style-guide",
       "promptId": "matrix-board-c-tokens-operational-v1",
       "path": "docs/experience/matrix-reference/candidates/board-c-tokens-operational-v1.svg",
-      "approvalState": "approved-reference"
+      "approvalState": "superseded-reference"
     }
   ],
   "generationNotes": [
     "Two initial image-generator attempts were rejected before repository admission because they drifted into the retired bronze/stone visual language and combined multiple board scopes.",
-    "The admitted SVGs use current Skin V1 token roles.",
-    "Human approval promotes the admitted SVGs to approved design references only; they are not production screenshots or regression baselines."
+    "The admitted SVGs use current Skin V1 token roles and remain useful as conceptual studies.",
+    "Human follow-up review determined that the SVG compositions should not be implemented as visual targets.",
+    "The SVGs remain preserved for design history but are superseded by the existing Matrix implementation and real Matrix screenshots as visual precedent."
   ]
 }

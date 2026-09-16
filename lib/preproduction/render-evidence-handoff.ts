@@ -3,7 +3,6 @@ import {
   type ProductionShotIntent,
   type RenderClipSlot,
 } from "../../core/contracts/previs";
-import type { SequenceEvidenceClipMeasurement } from "../../core/contracts/sequence-evidence";
 import type { PreproductionProductionIntent } from "./production-intent-handoff";
 
 export type PreproductionSequenceEvidenceBindingMode =
@@ -18,6 +17,12 @@ export type PreproductionCreativeShotEvidenceRef = {
   readonly order: number;
   readonly storyboardArtifactId: string;
   readonly storyboardDependencyKey: string;
+};
+
+/** Minimal existing Sequence Evidence measurement identity needed by this adapter. */
+export type PreproductionSequenceEvidenceMeasurementRef = {
+  readonly renderAddress: string;
+  readonly productionShotId?: string;
 };
 
 export type PreproductionRenderEvidenceHandoff = {
@@ -44,7 +49,7 @@ export type PreparePreproductionRenderEvidenceHandoffInput = {
   readonly productionShots: readonly ProductionShotIntent[];
   readonly blockNumber: number;
   readonly miniBlockNumber: number;
-  readonly measurements?: readonly Pick<SequenceEvidenceClipMeasurement, "renderAddress" | "productionShotId">[];
+  readonly measurements?: readonly PreproductionSequenceEvidenceMeasurementRef[];
 };
 
 function stableStrings(values: readonly string[]) {

@@ -17,7 +17,12 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.13.0
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Lint changed Library component
+        run: npx eslint modules/library/ui/library-workspace.tsx
       - name: Run focused Library regressions
         run: >-
           node --test

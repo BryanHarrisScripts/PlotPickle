@@ -1,0 +1,5 @@
+.boundary :global(.standalone-studio-surface) a[href="/?workspace=plan&section=structureMap"],
+.boundary :global(.standalone-studio-surface) a[href="/craftloop"],
+.boundary :global(.standalone-studio-surface) a[href="/pageflow"] {
+  display: none;
+}

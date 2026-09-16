@@ -191,6 +191,32 @@
       "riskTokens": ["canon", "graph", "visual"]
     },
     {
+      "id": "preproduction-connected-experience",
+      "classification": "production",
+      "include": [
+        "app/_components/preproduction/*.tsx",
+        "app/structure/layout.tsx",
+        "app/storyboard/layout.tsx",
+        "app/previs/layout.tsx",
+        "app/craftloop/layout.tsx",
+        "app/pageflow/layout.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "canon"]
+    },
+    {
+      "id": "preproduction-connected-skin",
+      "classification": "production",
+      "include": [
+        "app/_components/preproduction/*.module.css",
+        "app/structure/preproduction-context.module.css",
+        "app/craftloop/preproduction-context.module.css",
+        "app/pageflow/preproduction-context.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "navigation", "visual"]
+    },
+    {
       "id": "root-story-startup",
       "classification": "production",
       "include": ["app/page.tsx"],

@@ -28,13 +28,14 @@ export type ApprovedShotTimingChangePlan = {
   readonly candidateShot: ProductionShotIntent;
   readonly changeSet: ReturnType<typeof createPreproductionCreativeChangeSet>;
   readonly verificationEvidence: readonly CreativeVerificationEvidence[];
-  readonly staleDerivativeIds: readonly string[];
+  readonly downstreamAffectedIds: readonly string[];
   readonly unaffectedProductionShotIds: readonly string[];
 };
 
 export type ApprovedShotTimingAdmission = {
   readonly project: PPFProject;
   readonly productionShotId: string;
+  readonly downstreamAffectedIds: readonly string[];
   readonly staleDerivativeIds: readonly string[];
   readonly unaffectedProductionShotIds: readonly string[];
   readonly transactionId: string;
@@ -60,6 +61,10 @@ function timingFingerprint(shot: Pick<ProductionShotIntent, "id" | "durationSeco
 
 function stableIds(values: readonly string[]) {
   return [...new Set(values.filter(Boolean))].sort();
+}
+
+function productionInstructionId(projectId: string, canonicalRevision: number) {
+  return `production-instruction:${projectId}:revision-${canonicalRevision}`;
 }
 
 /**
@@ -119,7 +124,7 @@ export function planApprovedShotTimingChange(input: {
     currentStaleIds: input.currentStaleIds,
     recordedAt: occurredAt,
   });
-  const staleDerivativeIds = stableIds(downstreamImpactIds(dependencySnapshot, [shot.id]));
+  const downstreamAffectedIds = stableIds(downstreamImpactIds(dependencySnapshot, [shot.id]));
   const affected = new Set(changeSet.affectedIds);
   const unaffectedProductionShotIds = stableIds(
     input.project.production.shots
@@ -134,7 +139,7 @@ export function planApprovedShotTimingChange(input: {
     candidateShot,
     changeSet,
     verificationEvidence,
-    staleDerivativeIds,
+    downstreamAffectedIds,
     unaffectedProductionShotIds,
   };
 }
@@ -183,10 +188,21 @@ export function admitCommittedApprovedShotTimingChange(input: {
     occurredAt,
   });
 
+  // The provider-neutral production instruction is explicitly revision-bound.
+  // After admission, the old revision derivative is stale while the new projection
+  // receives a new revision identity. No separate staleness store is introduced.
+  const currentInstruction = projectProductionInstruction(next);
+  const currentInstructionId = productionInstructionId(currentInstruction.projectId, currentInstruction.canonicalRevision);
+  const staleDerivativeIds = stableIds(plan.downstreamAffectedIds.filter((id) => (
+    id.startsWith(`production-instruction:${project.id}:revision-`)
+    && id !== currentInstructionId
+  )));
+
   return {
     project: next,
     productionShotId: plan.productionShotId,
-    staleDerivativeIds: plan.staleDerivativeIds,
+    downstreamAffectedIds: plan.downstreamAffectedIds,
+    staleDerivativeIds,
     unaffectedProductionShotIds: plan.unaffectedProductionShotIds,
     transactionId: transaction.transactionId,
     durableRevisionId: transaction.durableRevisionId,

@@ -124,6 +124,9 @@ export default function StoryModeHost() {
   }
 
   async function activate(nextMode: StoryModePolicy) {
+    // Configuration remains reachable even while the execution-policy write is pending or unavailable.
+    // The active policy indicator changes only after the policy authority confirms the write.
+    setView(nextMode);
     setMessage(`Switching Story Mode to ${nextMode.toUpperCase()}...`);
     try {
       const response = await fetch("/api/story-mode/policy", {
@@ -134,7 +137,6 @@ export default function StoryModeHost() {
       const payload = await response.json() as StoryModePolicyResponse;
       if (!response.ok || !payload.ok || payload.mode !== nextMode) throw new Error(payload.message || "Story Mode policy update failed.");
       setMode(nextMode);
-      setView(nextMode);
       setMessage(`Story Mode is ${nextMode.toUpperCase()}.`);
       void refresh();
     } catch (error) {

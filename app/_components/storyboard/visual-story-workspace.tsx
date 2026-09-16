@@ -59,7 +59,11 @@ export default function VisualStoryWorkspace({
   }, [projection.selectedScene, selectedSceneId]);
 
   const shots = projection.anchors.flatMap((anchor) => anchor.shots);
-  const selectedShot = shots.find((shot) => shot.id === selectedShotId) ?? shots[0] ?? null;
+  const selectedShot = shots.find((shot) => (
+    shot.id === selectedShotId
+    || shot.productionShotId === selectedShotId
+    || shot.editorialShotId === selectedShotId
+  )) ?? shots[0] ?? null;
 
   useEffect(() => {
     if (selectedShot && selectedShot.id !== selectedShotId) setSelectedShotId(selectedShot.id);

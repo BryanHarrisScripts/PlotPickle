@@ -250,7 +250,6 @@ export default function LearnExplore({
             <section><h3>Checklist</h3><ul>{openEntry.lesson.checklist.map((item) => <li key={item}>{item}</li>)}</ul></section>
             <section><h3>Common mistakes</h3><ul>{openEntry.lesson.mistakes.map((item) => <li key={item}>{item}</li>)}</ul></section>
             <section><h3>Exercise</h3><p>{openEntry.lesson.exercise}</p><h3>Apply in PlotPickle</h3><p>{openEntry.lesson.apply}</p></section>
-            {openEntry.lesson.sources.map((source) => <details className={styles.source} key={source.id}><summary>{source.title} · canonical bundled source</summary><p>{source.scopeNote}</p><pre>{source.content}</pre></details>)}
             <button className={styles.completeButton} type="button" data-learn-progress-owner="PPFProject.learning.completedLessonIds" data-learn-lesson-completed={completed ? "true" : "false"} onClick={() => onToggleLessonCompletion(openEntry.lesson)}>{completed ? "Mark lesson incomplete" : "Mark lesson complete"}</button>
           </article>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role="status">EXPLORE AND JOURNEY SHARE THE SAME LEARNING HISTORY. NO PATH OR PREREQUISITE GATES ACCESS.</p>

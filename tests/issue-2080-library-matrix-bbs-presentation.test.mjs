@@ -5,7 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#2080 Library consumes the canonical Matrix / Skin V1 presentation tokens", async () => {
-  const css = await read("modules/library/ui/library-workspace.module.css");
+  const [workspace, css] = await Promise.all([
+    read("modules/library/ui/library-workspace.tsx"),
+    read("modules/library/ui/library-workspace.module.css"),
+  ]);
 
   for (const token of [
     "--pp-skin-font-ui",
@@ -20,7 +23,9 @@ test("#2080 Library consumes the canonical Matrix / Skin V1 presentation tokens"
   }
 
   assert.match(css, /\.activeCard\s*\{[\s\S]*?border:\s*var\(--pp-skin-border-strong\) solid var\(--pp-skin-accent-bright\)/);
-  assert.match(css, /\.libraryNav button\[aria-current="page"\][\s\S]*?background:\s*var\(--pp-skin-accent-deep\)/);
+  assert.match(workspace, /pp-skin-v1-menu pp-skin-v1-dashboard-menu/);
+  assert.match(workspace, /pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item/);
+  assert.match(workspace, /pp-skin-v1-dashboard-status-box is-active/);
 });
 
 test("#2080 removes the modern editorial/gallery visual drift", async () => {
@@ -34,14 +39,22 @@ test("#2080 removes the modern editorial/gallery visual drift", async () => {
   assert.doesNotMatch(css, /font-size:\s*clamp\(44px|font-size:\s*88px/i);
 });
 
-test("#2080 preserves the #2072 Library navigation and behavior surface", async () => {
+test("#2080 preserves the #2072 Library destinations and behavior surface", async () => {
   const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  const expected = ["NEW", "IMPORT", "LOAD", "EXAMPLES", "PRESETS", "AVERY", "ARCHIVE"];
+  const expected = [
+    ["N", "NEW"],
+    ["I", "IMPORT"],
+    ["L", "LOAD"],
+    ["E", "EXAMPLES"],
+    ["P", "PRESETS"],
+    ["A", "AVERY"],
+    ["R", "ARCHIVE"],
+  ];
   let cursor = -1;
-  for (const label of expected) {
-    const next = workspace.indexOf(`label: "${label}"`, cursor + 1);
-    assert.ok(next > cursor, `Expected ${label} in canonical Library navigation order`);
+  for (const [shortcut, label] of expected) {
+    const next = workspace.indexOf(`shortcut: "${shortcut}", label: "${label}"`, cursor + 1);
+    assert.ok(next > cursor, `Expected [${shortcut}] ${label} in canonical Library navigation order`);
     cursor = next;
   }
 

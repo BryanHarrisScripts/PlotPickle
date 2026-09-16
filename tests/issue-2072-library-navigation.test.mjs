@@ -5,19 +5,20 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#2072 gives Library one vertical destination per task in the required order", async () => {
-  const [workspace, styles] = await Promise.all([
-    read("modules/library/ui/library-workspace.tsx"),
-    read("modules/library/ui/library-workspace.module.css"),
-  ]);
+  const workspace = await read("modules/library/ui/library-workspace.tsx");
 
-  assert.match(workspace, /const DESTINATIONS[\s\S]*id: "new", label: "NEW"[\s\S]*id: "import", label: "IMPORT"[\s\S]*id: "load", label: "LOAD"[\s\S]*id: "examples", label: "EXAMPLES"[\s\S]*id: "presets", label: "PRESETS"[\s\S]*id: "avery", label: "AVERY"[\s\S]*id: "archive", label: "ARCHIVE"/);
-  assert.match(workspace, /aria-label="Library navigation"/);
-  assert.match(workspace, /onKeyDown=\{\(event\) => moveLibraryFocus\(event, index\)\}/);
+  assert.match(workspace, /const DESTINATIONS[\s\S]*id: "new", shortcut: "N", label: "NEW"[\s\S]*id: "import", shortcut: "I", label: "IMPORT"[\s\S]*id: "load", shortcut: "L", label: "LOAD"[\s\S]*id: "examples", shortcut: "E", label: "EXAMPLES"[\s\S]*id: "presets", shortcut: "P", label: "PRESETS"[\s\S]*id: "avery", shortcut: "A", label: "AVERY"[\s\S]*id: "archive", shortcut: "R", label: "ARCHIVE"/);
+  assert.match(workspace, /data-library-directory="keyboard-directory"/);
+  assert.match(workspace, /role="listbox" aria-label="Library directory"/);
+  assert.match(workspace, /onKeyDown=\{\(event\) => handleDirectoryKeyDown\(event, index\)\}/);
   assert.match(workspace, /event\.key === "ArrowDown"/);
   assert.match(workspace, /event\.key === "ArrowUp"/);
-  assert.match(styles, /\.libraryLayout\s*\{[\s\S]*grid-template-columns:\s*minmax\(170px, 210px\) minmax\(0, 1fr\)/);
-  assert.match(styles, /\.libraryNav\s*\{[\s\S]*display:\s*grid/);
-  assert.match(styles, /\.libraryNav button\[aria-current="page"\]/);
+  assert.match(workspace, /event\.key === "Home"/);
+  assert.match(workspace, /event\.key === "End"/);
+  assert.match(workspace, /event\.key === "Enter" \|\| event\.key === " "/);
+  assert.match(workspace, /pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item/);
+  assert.doesNotMatch(workspace, /<nav aria-label="Library navigation"/);
+  assert.doesNotMatch(workspace, /className=\{styles\.libraryNav\}/);
   assert.doesNotMatch(workspace, /className=\{styles\.tabs\}/);
 });
 

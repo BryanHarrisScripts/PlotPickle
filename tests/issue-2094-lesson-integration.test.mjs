@@ -86,7 +86,7 @@ test("#2094 audit follows actual presentation order and reviewed source routing"
         "24-blocks-dialogue-24-blocks-refining-dialogue-md",
       ]);
     } else {
-      assert.deepEqual([...record.sourceIds].sort(), [...attachedSourceIds].sort());
+      assert.deepEqual(record.sourceIds, attachedSourceIds);
     }
     assert.equal(typeof record.learnerSufficientBefore, "boolean");
     assert.equal(record.learnerSufficientAfter, true);
@@ -107,7 +107,7 @@ test("#2094 Phase 9 integrates Film Industry roles and keeps Lessons 82–90 sel
     [85, ["Define roles and decision ownership", "Propose rather than overwrite"]],
     [86, ["Choose by purpose, not familiarity", "Plan for round trips"]],
     [87, ["The operating agreement"]],
-    [88, ["creative authority", "technical permission"]],
+    [88, ["Responsibility and enforcement", "Authority matrix"]],
     [89, ["acceptance criteria"]],
     [90, ["approved", "stale"]],
   ]);

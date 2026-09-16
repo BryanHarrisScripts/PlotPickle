@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "issue": 2094,
   "baseCommit": "19e3b1fe502dc7edf2ee16614ba2679b25b5c400",
-  "phaseBaselineCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
-  "phase": 9,
-  "reviewedThrough": 90,
-  "nextPresentationOrder": 91,
+  "phaseBaselineCommit": "8d792d460fe8fdd57c440572018be02728bb4594",
+  "phase": 10,
+  "reviewedThrough": 96,
+  "nextPresentationOrder": null,
   "totalPresentationLessons": 96,
-  "sourceViewerRetirement": "Learner-facing source-viewer retirement is deferred until all 96 lessons pass; underlying source records and provenance remain retained; Journey and Explore unchanged.",
-  "reviewMethod": "Read each full composed presentation lesson and every attached bundled source. Compare concepts, make targeted edits only when required, then reread normal teaching without sources. Automated checks protect identity/provenance/evidence; they do not establish educational sufficiency.",
+  "sourceViewerRetirement": "Completed after all 96 lessons passed final fidelity review: Journey and Explore no longer render raw canonical bundled source details/pre viewers; all 95 source records/content/IDs/provenance remain retained internally for audit, retrieval and history.",
+  "reviewMethod": "Read each full presentation lesson and every attached source, preserve useful durable teaching at explanatory depth, retain useful legacy terminology as discoverable aliases, follow predecessor/original repository provenance where present, judge source-free PlotPickle enrichments on their own teaching quality, and improve formatting without reducing nuance.",
   "lessons": {
     "1": {
       "presentationOrder": 1,
@@ -399,7 +399,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Normal teaching is already sufficient at this lesson's scope without the source viewer. No learner-facing rewrite was justified.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "a950814c34a595ff27fbda4fbe0406aedf076da2d6c0448736c7928dda256884",
+      "sourceHashes": {}
     },
     "12": {
       "presentationOrder": 12,
@@ -424,7 +426,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The stable source concepts are already normal learner-facing teaching; the source viewer adds provenance, not required instruction.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "d29c83d8689eb56bee21846a0b865e578ff4b710a496863ed04516d7f2d35f3f",
+      "sourceHashes": {
+        "24-blocks-general-general-tropes-and-genres-md": "9183c6c1284a1e56c9561fcb737d910c11a1d4ec58ea457045f21001b47e9679"
+      }
     },
     "13": {
       "presentationOrder": 13,
@@ -449,7 +455,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source's durable world-building principles are already taught with broader, more causal framing.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "ef0df551ea084fa9fbdcb9986a0dd0c7ab3ebd96c442db4e16130a460dd9adac",
+      "sourceHashes": {
+        "24-blocks-general-general-world-building-md": "d35bd8415377f00694fce9e5855809e523bae745021e892655bb82d72d2e2004"
+      }
     },
     "14": {
       "presentationOrder": 14,
@@ -480,7 +490,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both attached sources are accounted for without importing sales-oriented or mandatory-transformation claims.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "653af0e2fa64287709098b084f855fa70cf97503d22f7e8c5f40b97a2b913161",
+      "sourceHashes": {
+        "24-blocks-general-general-story-bible-character-md": "ad52b141aaac5adb89f4798c0668f88b645f13fed8006b096a491e6f53917c8b",
+        "24-blocks-general-general-story-bible-md": "9cd9ff74da81ce003198b3d301d204aa8dec0e85a5813deec616e9fa016483d8"
+      }
     },
     "15": {
       "presentationOrder": 15,
@@ -508,7 +523,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free guided pass is already complete at its intentionally narrow diagnostic scope.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "57f4ad2d1e2f61758d28ee9f6a48b0c1c97ef108a290079363acb2c2c30dc133",
+      "sourceHashes": {}
     },
     "16": {
       "presentationOrder": 16,
@@ -531,7 +548,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The lesson already makes human verification and AI limits explicit; no source-driven expansion is needed.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "e48a5c4ec53bdee47e92725285a00af3d9b80c7301e57716a1a777cc70229ac3",
+      "sourceHashes": {}
     },
     "17": {
       "presentationOrder": 17,
@@ -569,7 +588,14 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The lesson is sufficient as a character-bible lesson; deeper archetype, conflict and structure teaching remains with its proper owners.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "428319b3369baaf23a6707fa6a0e43588fd0cd06f46c67320fd23fd2a76de840",
+      "sourceHashes": {
+        "24-blocks-character-24-blocks-character-archetypes-md": "9f16823d380e6af22cbb4003a192dccbfb21b579693784376c8cd37ab2727066",
+        "24-blocks-character-24-blocks-development-md": "0dbc28ebc03b991fbfcaea230970dfda7be58fe80f1e0221f92c9f210d176f3e",
+        "24-blocks-character-24-blocks-man-vs-himself-md": "ec59c3b76c53da8699b4479a69bc372e693ed778b07c9a77a5803bee60165d99",
+        "24-blocks-character-readme-md": "4b0ef88c881c3426589f2d09449503c2a8bc778327abbbe854e3c13ee2683552"
+      }
     },
     "18": {
       "presentationOrder": 18,
@@ -608,7 +634,15 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The guided audit remains intentionally narrow; attached deep craft sources are already taught by the lessons that own those concepts.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "3d7da5598e658ce5f5329af1f2e88bb799a2483bdd3039c0262a50f1fb262a37",
+      "sourceHashes": {
+        "24-blocks-character-24-blocks-compelling-characters-md": "abd1452ca2806bb93e7d7883897390aa4a62b071039002bd9932b6582995de6c",
+        "24-blocks-character-24-blocks-questions-act-1-md": "22a7428a6bcd8bbd8e3fb2017927f382ce8dc0e85fcfc122d733e66eb290b8b4",
+        "24-blocks-character-24-blocks-questions-act-2-md": "07fdac667dc9d13f284346a8e131d4ae80f22cb4ac97a633927e3b522f0721da",
+        "24-blocks-character-24-blocks-questions-act-3-md": "c0c23a716c884dfac26ff90e71640895dfb5bc295b6a4400b42151d95e8af730",
+        "24-blocks-character-24-blocks-questions-act-4-md": "e2fd1dd63d81c46b9b2900c656310dcd23bcd837f631141d5e1fe2d02b19bc3d"
+      }
     },
     "19": {
       "presentationOrder": 19,
@@ -640,7 +674,13 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The character-engine teaching is already focused and sufficient; adjacent source concepts remain with later specialist lessons instead of being duplicated.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "236c9a0a0a4367768b8f016a7c8cd3094f6f0e12d740951acfaaee9af663ccf9",
+      "sourceHashes": {
+        "24-blocks-character-24-blocks-character-guide-md": "c5980c80d923b44a7bd365d1f2cf29f2687544473bb86addc44c94ada9bf7148",
+        "24-blocks-character-24-blocks-dialectical-triad-md": "cf6e00b60d7d3890c656520064f1496006cc925b37cbf05ba2f71e93f1abcf5e",
+        "24-blocks-character-24-blocks-heart-of-conflict-md": "225440d2e95d31b6fa25030c3b9d9fd990ff3ffa207a3a5583139fb3d70e7215"
+      }
     },
     "20": {
       "presentationOrder": 20,
@@ -668,7 +708,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already provides a complete evidence method for proving character through consequential choice.",
-      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e"
+      "reviewedAtCommit": "d288609ec844977c7178bf7ef46324f59fb5e90e",
+      "lessonContentSha256": "148fd4b804223c19211b327ff02af3e3db206777650531b7869535c734e97d30",
+      "sourceHashes": {}
     },
     "21": {
       "presentationOrder": 21,
@@ -699,7 +741,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable teaching from both inner-journey sources is already normal learner-facing content; prescriptive structural claims remain outside this lesson.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "021d13e861b8b7943aa2d07c7aa793db5b487e0093c90bc80e19cc4e49ec32b4",
+      "sourceHashes": {
+        "24-blocks-character-24-blocks-inner-journey-4-acts-md": "cdb8e373d6b4b4cb9a7a82b348d412ce5af36bbcea0cfd1b57ca4eadc4d8bbd9",
+        "24-blocks-character-24-blocks-inner-journey-md": "5bae27901b56fcebf74c05f29ff26197072d0a66f1e12d487031311f1e8dc9ab"
+      }
     },
     "22": {
       "presentationOrder": 22,
@@ -722,7 +769,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already contains a complete modern conflict method at its intended scope.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "07d57fdfe3461c547f28d996163c0da77bdd7756f27b78972d0aa3fec490afa5",
+      "sourceHashes": {}
     },
     "23": {
       "presentationOrder": 23,
@@ -750,7 +799,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source-free opposition lesson is already learner-sufficient and correctly avoids turning a useful lens into required story architecture.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "d7426e3752d782f1b8f4d6f4c7bffee89a8c27f95ad67c7ce81bf797340c92d4",
+      "sourceHashes": {}
     },
     "24": {
       "presentationOrder": 24,
@@ -773,7 +824,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current relationship lesson already teaches the durable method directly in the normal lesson surface.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "25b07cdbfa1789ea40712045046501732e9ce88de9f2e193f938e05d6e0ffec6",
+      "sourceHashes": {}
     },
     "25": {
       "presentationOrder": 25,
@@ -801,7 +854,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The voice lesson is already sufficiently specific, playable and representation-safe without source expansion.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "b8873c3e2388bd60ebcd906826eaa5b943188eea45d26ed45a7e217a5ca65757",
+      "sourceHashes": {}
     },
     "26": {
       "presentationOrder": 26,
@@ -829,7 +884,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The cast-system lesson already absorbs the useful archetype/cast-economy teaching while rejecting dated labels and unsupported commercial claims.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "b04f7773cc6ab2ac8a14576718da5fdba1c45e35fa20f12482484a5ab5dba3f4",
+      "sourceHashes": {}
     },
     "27": {
       "presentationOrder": 27,
@@ -857,7 +914,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free visual-language lesson is already complete at its intended theme/tone scope.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "7840d688f042b828493cd7f89d65219e27a94dbbeccfe0340fcdd84633e86586",
+      "sourceHashes": {}
     },
     "28": {
       "presentationOrder": 28,
@@ -880,7 +939,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The guided pass is intentionally narrow and already complete without bundled-source dependence.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "b210e304f7674eb3a52f8d68706f196b491160de2e2cc83c856afee7c941cbf5",
+      "sourceHashes": {}
     },
     "29": {
       "presentationOrder": 29,
@@ -903,7 +964,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The tone lesson is already sufficient and does not need source-driven expansion.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "26d2587e7ae1bfc7370e82ecc0cb227ed18a950936d63cc7d863d5ffce0ca90a",
+      "sourceHashes": {}
     },
     "30": {
       "presentationOrder": 30,
@@ -933,7 +996,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable thematic teaching is already learner-facing; symbolic technique depth remains with the next lesson and prescriptive moral-message framing remains rejected.",
-      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b"
+      "reviewedAtCommit": "cf59920491891e9c367c542cd0209d3f5f89bf6b",
+      "lessonContentSha256": "1a8763f1a232934ad59c898242171fc35ba77565fb7a9b5d1e357b36294438f5",
+      "sourceHashes": {
+        "24-blocks-essentials-thematic-components-md": "35f0f93785c01856639fbb49674166b0fcec214f3badfd11b6312cbc61acad42"
+      }
     },
     "31": {
       "presentationOrder": 31,
@@ -963,7 +1030,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable symbolic-technique teaching is already present in the normal lesson body; adjacent dialogue/visual craft remains with its dedicated lessons.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "07a5f3b8ecd4896cba5d1b2d5e9517c5020973e0fa2d3cfc7b57d121e69809a7",
+      "sourceHashes": {
+        "24-blocks-essentials-symbolic-techniques-md": "9e312a064c2195ecc87625ec974333910e49427a2fac6fd581fd3022db5aee44"
+      }
     },
     "32": {
       "presentationOrder": 32,
@@ -994,7 +1065,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both source records are absorbed at the lesson's intended structural-overview scope without importing rigid timing or historical navigation material.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "1f82f18057c0fd63056eda70a9e1d22bf252f3821d2e894e7bd0a20d55a42ca9",
+      "sourceHashes": {
+        "24-blocks-24-blocks-readme-md": "30fe5e296bbcad3c3ed963b7c432a273cdcea7e2e459a348615f7b666abf42f6",
+        "24-blocks-general-general-screenplays-to-improv-md": "b156c9bd0efa495e7b34336fae01083f406637c9d17a8f5c7d740d48898ccba4"
+      }
     },
     "33": {
       "presentationOrder": 33,
@@ -1024,7 +1100,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current lesson already contains the useful method while preserving the source's flexibility and leaving personal history as provenance.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "5269727560cbbe32b9c3ddd4e87ba6dc00655a8a910573846c161a3bbc34486a",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-a-new-spin-md": "f153ea8294088f2a05b5e282f979087bfccbe26ff7c84cb4dad8b4d23cfc11cf"
+      }
     },
     "34": {
       "presentationOrder": 34,
@@ -1054,7 +1134,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source's durable grid concept is already learner-facing; its fixed template remains historical evidence rather than authority.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "d048892f1d2cd96d2274c4c14b2c61cb265304f2faa45f7cf5f1d7b78fc63658",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-structure-guide-md": "3a72eec9095c956b1a77609d659bf2504762e0b724f99747a0d0b503b858cf4d"
+      }
     },
     "35": {
       "presentationOrder": 35,
@@ -1085,7 +1169,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The lesson is sufficient for structure's causal role; reflection teaching is deliberately owned by Lesson 40 instead of duplicated here.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "14e964979befd151f3662eae947367d0f73e7e0f36a9dbe04c235066ab8c39ca",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-reflection-md": "1a43dc0772fbafe75020287dab99b51a066756584100b3a02635ccd40c4b1681",
+        "24-blocks-24-blocks-24-blocks-structures-role-md": "24ded263863c4fe5c3d53de23cc2e516ec08b8334dec0572466062ef705932e3"
+      }
     },
     "36": {
       "presentationOrder": 36,
@@ -1110,7 +1199,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The useful source principle is the nested planning hierarchy; the source's fixed Block-by-Block beat prescription is not needed for current learner understanding.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "41c69d3974d8f17b7bad588b699540734777996f1ec80458a224a94b0bb0ecc4",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-story-beats-md": "d2cc68f97466c5c922a2c9f5b9d54325d53b485e4ba62cce5cd89b24281846a9"
+      }
     },
     "37": {
       "presentationOrder": 37,
@@ -1135,7 +1228,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current lesson already carries the complete retained principle and clearly distinguishes the PlotPickle extension from the historical source triad.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "7056c31edffde7e44cdcf55c450b55ac59d0ed1ce126aa9ab9cbb1015f021027",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-principle-of-three-md": "9c56b8e1d5510a17c92c2859aee321842354ed4a8b30c9ea62fafa901f4cd02d"
+      }
     },
     "38": {
       "presentationOrder": 38,
@@ -1165,7 +1262,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable dramatic-question method is already taught directly; the source's rigid timing/map examples are not required current instruction.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "0d7bf88299ed849555774c3c022d3bc5abb6e09daadf28013bc1e1e6df73bf0f",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-dramatic-question-md": "8679f63dc45818c16d9023e5ba2007f98176601f22fa8c5eeb5af142ca576773"
+      }
     },
     "39": {
       "presentationOrder": 39,
@@ -1195,7 +1296,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current lesson teaches the durable structural-diversity method without requiring the source's example catalogue or mixed device taxonomy.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "d7b3c7ee40f2ba8b5071656c9d6c8747f505c41a5aac4bdc1ce7788a280f5d7f",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-structure-diversity-md": "17d90be80b7cde1960673903d2c9b5e687c2c187a960f90f2cce063bb4b15c55"
+      }
     },
     "40": {
       "presentationOrder": 40,
@@ -1223,7 +1328,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free presentation lesson already contains the durable reflection material assigned to it by the source-drain ledger.",
-      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3"
+      "reviewedAtCommit": "628b01e05d8568048b9fe176a1ab50aa9848ddc3",
+      "lessonContentSha256": "84331431a0083cdbd9b518e50f3c0827ea3081abd9b6b8e84b572c54f6a8a090",
+      "sourceHashes": {}
     },
     "41": {
       "presentationOrder": 41,
@@ -1253,7 +1360,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source's durable scene-causality teaching is already learner-facing; dialogue depth remains with Dialogue and fixed feature/scene formulas are not current authority.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "d511cf705b49dc2c1ea1279d7308a5369571898236d2d2cb3a45a2f5310590e0",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-dynamic-scenes-md": "3ccb052839c625c17f51074249dedd3365f335b0e6ce56c2c0a51792e67506f3"
+      }
     },
     "42": {
       "presentationOrder": 42,
@@ -1276,7 +1387,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free pacing lesson already provides a complete diagnostic method at its intended scope.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "14e56a194ffd75901e7a2f9099ddf78ceb1ba6947805c18d26e81c178337b4ea",
+      "sourceHashes": {}
     },
     "43": {
       "presentationOrder": 43,
@@ -1304,7 +1417,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The independently authored enrichment lesson is already complete at its television-structure scope and keeps mutable production conventions outside durable craft authority.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "73fad514b47ccb8fd76d06754eb264af3e41b48f6a463495014b0ad1af8d3532",
+      "sourceHashes": {}
     },
     "44": {
       "presentationOrder": 44,
@@ -1332,7 +1447,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The enrichment lesson already teaches the durable series-engine and creative-bible method without freezing mutable external requirements.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "b67702015bd8797cead78949c1b769355a0f3aa11efc23805c7ec92200a88ad0",
+      "sourceHashes": {}
     },
     "45": {
       "presentationOrder": 45,
@@ -1360,7 +1477,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The comedy lesson is already learner-sufficient and keeps durable comic structure separate from changing production conventions.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "ba6a18c37b5da69499bc5db73b6d4198ae7136dd96c45b8fefddb24780e53dcf",
+      "sourceHashes": {}
     },
     "46": {
       "presentationOrder": 46,
@@ -1396,7 +1515,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both attached sources are accounted for: durable visual reference craft is already owned in the curriculum, while obsolete tool setup remains provenance rather than current instruction.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "d4b964d07145343f7ba7ee705908ecd13940ee69a2f168966c6e00f791bc33bc",
+      "sourceHashes": {
+        "24-blocks-moodboard-readme-md": "db9336d62f714b466f0dcb3e093c1327629164802b32b04247d515d0bedbcea1",
+        "bryanharrisscripts-github-io-video-retalking-md": "af12a93de9a6a9da14039d57c884a519f6de8c381280a9a6ad6a715bb01b9788"
+      }
     },
     "47": {
       "presentationOrder": 47,
@@ -1431,7 +1555,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The guided pass is already complete at its deliberately narrow scope; the attached historical exercise does not contain missing essential instruction for this lesson.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "0f0efd47efe47819dc358daec7f4a36ab1b5a1a4189d826e3580a40d02200501",
+      "sourceHashes": {
+        "bryanharrisscripts-github-io-lost-and-found-md": "d7de9b198eb41f23906602f609cb40142fafc7569d7a3d3bebf76906392efe7e"
+      }
     },
     "48": {
       "presentationOrder": 48,
@@ -1454,7 +1582,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already provides complete screen-evidence teaching at its intended visual-writing scope.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "daa895caf8df9734f8bd89e217b33384d0b671df0be7375f3429b1d42a0c9fe8",
+      "sourceHashes": {}
     },
     "49": {
       "presentationOrder": 49,
@@ -1484,7 +1614,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source's durable process distinctions are already normal learner-facing teaching; the named historical drafting technique remains optional provenance.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "04d9cd34bb2de0677f705e09a008939e62f02e5b17d97ab6e5d5341c03c3ff0a",
+      "sourceHashes": {
+        "24-blocks-general-general-the-writing-process-md": "e46eb7ad82aa5512c17a845a4140b2757c88916e9a691fdaa2066135fb56977a"
+      }
     },
     "50": {
       "presentationOrder": 50,
@@ -1509,7 +1643,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current lesson already contains the retained development method without turning the historical source sequence into a universal law.",
-      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4"
+      "reviewedAtCommit": "ad6fae93f5895087d9179dbbf352ba5d5f0fe5b4",
+      "lessonContentSha256": "3982d8a60a0f777e68b285875cb865b1e88883db91a39d156fdaad2fe12d3889",
+      "sourceHashes": {
+        "24-blocks-general-general-concept-to-draft-md": "0f85dba5ab8af6f54fbe370a7f6c6cb6f75dc060cedd8351a293fa31ebe5721b"
+      }
     },
     "51": {
       "presentationOrder": 51,
@@ -1539,7 +1677,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable rough-drafting method is already learner-facing; the historical label remains provenance only.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "599c6172c424a0ec959105e2ba183d6e2fa81ba5f30c87a576215b5e7670a19f",
+      "sourceHashes": {
+        "24-blocks-general-general-the-vomit-draft-md": "5de63496b5698b4d9d007c0a2d25445ea297f962a489189a09aa6d1ff8ec7002"
+      }
     },
     "52": {
       "presentationOrder": 52,
@@ -1569,7 +1711,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The current lesson already contains the durable formatting method and portable interchange guidance.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "9cf7966ce831583fd474472a1ec4a82f17b9daf160d9f8dda60c361dd293eeaf",
+      "sourceHashes": {
+        "24-blocks-general-script-formatting-md": "0060f40344721afd46445725f60eca0bc3972c8e457866dc05462cdc35203c44"
+      }
     },
     "53": {
       "presentationOrder": 53,
@@ -1599,7 +1745,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable study method is already learner-facing; changing resource lists remain historical reference only.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "13f2d4bd2ce2c2b59260ce6d8d05841c25e7337d4cc5896944c46840d1e4aa08",
+      "sourceHashes": {
+        "24-blocks-general-general-popular-books-md": "cbc583d53ef30b4f54e7e31a67c3b88b231adf54d14b957aed51532bf225320a"
+      }
     },
     "54": {
       "presentationOrder": 54,
@@ -1629,7 +1779,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The challenge guide is already learner-sufficient at its diagnostic orientation scope; deeper repair sequencing remains with Revision.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "25ab86976696f0a4eb54fd166140724afccd4efb0d0e08ff0c69ca7917900fc5",
+      "sourceHashes": {
+        "24-blocks-general-screenplay-challenges-guide-md": "3fb4bc95e904312053b9234210a5dcaba7e16ff4a774f4264d21ff640eba8609"
+      }
     },
     "55": {
       "presentationOrder": 55,
@@ -1659,7 +1813,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The durable scene-writing method is already present; dialogue depth remains with its dedicated curriculum.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "c1ebf951ec3c6d51c92e98047e73e81b09f1cc5b0bdebc8229b23c8380965c34",
+      "sourceHashes": {
+        "24-blocks-essentials-scene-writing-md": "4c9cdf1c67c1eb375ceeb1f93b86c1b293932c31afab45d52015059f331e2304"
+      }
     },
     "56": {
       "presentationOrder": 56,
@@ -1684,7 +1842,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached advanced-formatting source is already absorbed into purpose-first current teaching.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "35ae4a9481ca3583746cefb4204ca2a8f8698f7b2f018e5b9fb6a8b60378bfbf",
+      "sourceHashes": {
+        "24-blocks-essentials-beyond-sluglines-md": "54577ec0a75868ee4407de037086c99be84fe0d46f13154e2c3f486526b63251"
+      }
     },
     "57": {
       "presentationOrder": 57,
@@ -1707,7 +1869,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This independently authored source-free enrichment lesson is already complete and learner-facing at its scene-craft scope.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "c5847d42befacc39ea5f5a17c67456ef5bd7a1782d30790faf8fd38ba6397dd6",
+      "sourceHashes": {}
     },
     "58": {
       "presentationOrder": 58,
@@ -1735,7 +1899,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free enrichment lesson already separates durable formatting craft from mutable delivery requirements.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "80150216aa81267c958ec9735d347e906652905868c64250a55c356db2f679b7",
+      "sourceHashes": {}
     },
     "59": {
       "presentationOrder": 59,
@@ -1768,7 +1934,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This independently authored source-free enrichment lesson already teaches durable adaptation craft while keeping mutable legal-rights determinations outside frozen curriculum authority.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "97aeb52c5d59274f05ec3ac6c09b2a45c71ad40ca061f13d4e3588153bfb444d",
+      "sourceHashes": {}
     },
     "60": {
       "presentationOrder": 60,
@@ -1799,7 +1967,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The guided pass is complete at its intended narrow scope; broad source teaching is allocated to the specialist Dialogue lessons.",
-      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e"
+      "reviewedAtCommit": "72c6c537f29d2ea6ad6f404296600ea3bd3ee26e",
+      "lessonContentSha256": "2c0fbe58130f527ef258241ce412619c0669e68b1a04b8250e91a23fe177ebfb",
+      "sourceHashes": {
+        "24-blocks-ai-prompts-24-blocks-dialogue-md": "becd5f9c12082510debd99dc70f30aceeeee707e474531ebf8600886aef41c48",
+        "24-blocks-dialogue-readme-md": "532de4b175511ee6ad3c1ccd8fe469bf1a8b43307e6c78423839b49416306b5e"
+      }
     },
     "61": {
       "presentationOrder": 61,
@@ -1822,7 +1995,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free guided pass is already complete at its deliberately narrow scope; deeper subtext craft remains with the dedicated Dialogue lesson.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "fa6e1f3342cf8dec4686e6bf8fe6a31247aff505cd78023c8331c83a39fe5bf7",
+      "sourceHashes": {}
     },
     "62": {
       "presentationOrder": 62,
@@ -1852,7 +2027,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached Realistic Dialogue source's durable teaching is already present in normal learner-facing sections.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "6f007fe32bdaf8f1c07ce34fb433fb5864152e423bdefc9e35391458e10e79a7",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-realistic-dialogue-md": "00b8c235c8ef5618e36f74af9eaea2e5807c9dfa5eceb893e2bce8644f103cec"
+      }
     },
     "63": {
       "presentationOrder": 63,
@@ -1883,7 +2062,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both attached voice/character sources are already absorbed into a playable, representation-safe learner method.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "f8d7c44ce632b3d85f9fa98ef05b674e3782120a7db73f2a0b0935890032c457",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-distinctive-voices-md": "5c8bbc14bc72cc731395655d5278140424ed95326ce7b25b509f9fcc744dab37",
+        "24-blocks-dialogue-24-blocks-reveal-character-md": "33cfd023af5b173fcbc8495188cea128d2ea42a7bae6965b171dda2694805319"
+      }
     },
     "64": {
       "presentationOrder": 64,
@@ -1908,7 +2092,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached Subtext source's durable method is already normal learner-facing teaching.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "b456a1b6626c6b5f4183cdfaf7d39720975e964eb2e18459627e702d322442c1",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-subtext-md": "f79ad1abc96f43c605812a7bd7bcf1d7490222a87c95d9e7df6be7efc620b78c"
+      }
     },
     "65": {
       "presentationOrder": 65,
@@ -1938,7 +2126,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached Conflict source is fully represented without equating useful dramatic conflict with volume.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "60819c1ef61c234e70f1a3f86a93c870859212377ea9df06fbbce455218951ab",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-conflict-md": "7844789f68238fac74369fe707f54a4a222aa9a29be78dbdeca06f763eb7df75"
+      }
     },
     "66": {
       "presentationOrder": 66,
@@ -1975,7 +2167,13 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "All three attached sources are represented directly at this lesson's speech/silence/action scope.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "61794ce1d83f4e916e11554c4082a5527369b066480ebacbfb75cd65ab2792b9",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-art-of-silence-md": "1de50e1175c51c2ab1bc4f6463f2a7f24e83a347dc704480e190bf0c2d984e17",
+        "24-blocks-dialogue-24-blocks-balancing-action-md": "6adef855e7b70d4b6c08ecb87965631e68af3596c6ffd41d0988a883e661c163",
+        "24-blocks-dialogue-24-blocks-tags-and-beats-md": "c765b5a2c781be1aaed3aef9b0e3c215de445d6f0394cf3a08d68f6a9235d314"
+      }
     },
     "67": {
       "presentationOrder": 67,
@@ -2005,7 +2203,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached Different Genres source is sufficiently integrated into durable exposition and genre-pressure teaching.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "407718f1ed15284623ee7dadecd8245f568407d7ac7fd740bbb9ff2c1dac566b",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-different-genres-md": "684553e0050a3b05f50a5171c61cc977e0450270f06c54a7cad37421baf40ec5"
+      }
     },
     "68": {
       "presentationOrder": 68,
@@ -2028,7 +2230,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free presentation lesson already owns the exchange-turn teaching routed to it by the source-drain work.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "2e9b3b70b9f679e658caac99cbd251d5bf919c5e05de0cb8816b815ceaaa8cad",
+      "sourceHashes": {}
     },
     "69": {
       "presentationOrder": 69,
@@ -2059,7 +2263,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Dialogue Pitfalls and Refining Dialogue are already absorbed into a focused, evidence-based revision method.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "9dcaf8fff594a326b145ed40f9a25f8bca26ce62a60e970fa76a710b9ba0026a",
+      "sourceHashes": {
+        "24-blocks-dialogue-24-blocks-dialogue-pitfalls-md": "c0f19354a8a01778bb10ce353134d4513533dad549388812556d718df12d9807",
+        "24-blocks-dialogue-24-blocks-refining-dialogue-md": "ee277637562d0befe2f48352419a4a616b834ca719a74620f1e16e14dbf2660e"
+      }
     },
     "70": {
       "presentationOrder": 70,
@@ -2096,7 +2305,13 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The three broad historical prompt sources do not contain missing essential diagnosis teaching for this narrow evidence-first pass.",
-      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180"
+      "reviewedAtCommit": "d12e18a279ee56032d8c7939232c1ddc4ccb9180",
+      "lessonContentSha256": "ffc6c12a80bc56769f2a404034bf512150a556474cf3a5232093a588e9ffd791",
+      "sourceHashes": {
+        "24-blocks-ai-prompts-24-blocks-individual-critical-md": "15420003ef3ee5da0b28f8796572041453093fe3a8e0147b297f03e0ec494966",
+        "24-blocks-ai-prompts-24-blocks-individual-fine-tuning-md": "88b931b90b51e0ba31382e088c2ec8ef28096c665c97e3cb4699f9f1f74f88a7",
+        "24-blocks-ai-prompts-24-blocks-individual-intermediate-md": "c584a73741423fd832471fe3c59dd4632b245398ec9fd69bb3a6232136219db1"
+      }
     },
     "71": {
       "presentationOrder": 71,
@@ -2119,7 +2334,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free guided audit is complete at its narrow structural-diagnosis scope.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "ad19a0af27298bed95a1b4873ec819d4569b1e9d6402c024fe0829142fc03995",
+      "sourceHashes": {}
     },
     "72": {
       "presentationOrder": 72,
@@ -2142,7 +2359,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free scene audit already provides a complete bounded diagnostic workflow.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "0214a78c1285c999acfc8f52b6b5452722eadf6c4f028f053dba6806fd7e456c",
+      "sourceHashes": {}
     },
     "73": {
       "presentationOrder": 73,
@@ -2165,7 +2384,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source-free audit already distinguishes meaningful escalation from spectacle and preserves writer intent.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "7cb97e2a509be1d9fb6364619980b2d64cb06c111c84f60973a797caaeebfe19",
+      "sourceHashes": {}
     },
     "74": {
       "presentationOrder": 74,
@@ -2196,7 +2417,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both attached sources are sufficiently drained for this pass; adjacent craft remains with specialist lessons and obsolete rewrite targets are rejected.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "8d8c9aa83ce5689746d112f48734cd06ee5413ceb5d27c31a8ad78c3334fbd80",
+      "sourceHashes": {
+        "24-blocks-ai-prompts-24-blocks-critique-and-pacing-md": "8b7d326d4cb0a62ad743bdd90c444cca96fd8557c91411d282b831646246baab",
+        "24-blocks-ai-prompts-24-blocks-redundancy-and-streamlining-md": "5ba19decee70b576c422aa2e8a9e273176b0c0a08001a67022ce3a1c1e0900ee"
+      }
     },
     "75": {
       "presentationOrder": 75,
@@ -2224,7 +2450,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source-free formatting pass already teaches durable technical review while leaving mutable delivery rules external.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "9c39ab8b142d03432da4d0c26d1a787072acb7f84efb89799f863e5e31e2c784",
+      "sourceHashes": {}
     },
     "76": {
       "presentationOrder": 76,
@@ -2252,7 +2480,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The source-free pass is already complete at its packaging-language scope without freezing mutable market claims.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "ad8724cde03468867254c87f7ad78e681543673b877ce31583eae6d949e0f7c1",
+      "sourceHashes": {}
     },
     "77": {
       "presentationOrder": 77,
@@ -2275,7 +2505,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free synthesis lesson already provides a complete evidence-first craft audit and bounded revision-priority method.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "49710f93661ce285af7f3ed8fb3094e0adb8eb9030e06c197ac19fc66857b7af",
+      "sourceHashes": {}
     },
     "78": {
       "presentationOrder": 78,
@@ -2316,7 +2548,17 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The seven-source bundle is already represented by durable provider-neutral responsible-AI teaching; historical technology/legal claims remain provenance or require current verification.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "d1b6963c7b259b02bdfef34ea332dbbff3dd5bf86c885aca326dd4cf5ecc8954",
+      "sourceHashes": {
+        "24-blocks-24-blocks-24-blocks-blocks-with-ai-md": "b85b163a6f00cda7f805dc7a3e51ce4b4e93ebc3bbdf313f1737f2e6785ebd9d",
+        "24-blocks-ai-prompts-24-blocks-chatgpt-tips-md": "9bac273c3186f7de0a51a1cf17828c37ef5a4d9080e420152eb046f026d2f15f",
+        "24-blocks-ai-prompts-24-blocks-principle-of-three-md": "dc5fe5db348ff1c066a32a93b7a13ca9c6cb42ddfb25348a0d6d9582246a3417",
+        "24-blocks-ai-prompts-24-blocks-suggested-additions-md": "53e5ef62e2e66225121780188c4973583b2c5c339cc1d01ea6a6517cb6d8b436",
+        "24-blocks-ai-prompts-readme-md": "efd6f6a9a2f29c1b459bfd6dbe48a623a3316b1123fa6ee4a91de8254d340313",
+        "24-blocks-general-general-ai-framework-ideas-md": "fc35766ed4b39bd8a3ca04b14170c0f4bf360eb0e09db947d80c6513a2f9e12d",
+        "24-blocks-experiment-learnings-md": "1dd4bd6ce2e576ae772fe3a37449ee2ed237efb2364ef19a0f5220d24f00fe82"
+      }
     },
     "79": {
       "presentationOrder": 79,
@@ -2339,7 +2581,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already provides the complete structural-scope and approval-boundary method.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "c71766d843ee0361146ac35b0b67f471aa1a75c3e1c1c20dfd72d03e030d90ef",
+      "sourceHashes": {}
     },
     "80": {
       "presentationOrder": 80,
@@ -2374,7 +2618,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The historical source's durable craft is already owned elsewhere; this lesson is complete at its optional-tool, privacy, publishing and approval scope.",
-      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac"
+      "reviewedAtCommit": "495ca1b8f0633f267460e007eeb18a9eb931a8ac",
+      "lessonContentSha256": "4217d458dad46b9fcb764ad6c67bd9de3c0fc0e30d50bbe8bdfcdd2d47129edd",
+      "sourceHashes": {
+        "24-blocks-ai-prompts-24-blocks-structure-and-characters-md": "20b7c5485f64ed775455276d3eb0080ff3fda16eedd068e0e2720484e1d455f3"
+      }
     },
     "81": {
       "presentationOrder": 81,
@@ -2413,7 +2661,11 @@
         }
       ],
       "learnerSufficientAfter": true,
-      "sufficiencyNote": "The normal lesson now explains stable organization-role distinctions while explicitly routing mutable rules and live facts to current official sources."
+      "sufficiencyNote": "The normal lesson now explains stable organization-role distinctions while explicitly routing mutable rules and live facts to current official sources.",
+      "lessonContentSha256": "05e1fe9beee292dc3435c568f12175fe9200ff6e5260bcb3fecbeff324aa96f8",
+      "sourceHashes": {
+        "24-blocks-general-general-the-film-industry-md": "d39184a53af8c6ff612f3514e22a58840cf093bf534661d5264873867b38e327"
+      }
     },
     "82": {
       "presentationOrder": 82,
@@ -2448,7 +2700,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The lesson is already complete at its rights-choice scope; its attached marketing source does not justify unrelated learner-facing duplication.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "ab7e050939ae2d678ac390c341f24bfc02a56024f3b1f468fa7e788acb8c16ac",
+      "sourceHashes": {
+        "24-blocks-ai-prompts-24-blocks-copywriting-and-marketing-md": "f2ffda91d02a0f3317cb1d6527198d8e0d1fdcb0f6a0de0fda1b305983781656"
+      }
     },
     "83": {
       "presentationOrder": 83,
@@ -2476,7 +2732,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This independently authored enrichment lesson is already learner-sufficient and keeps mutable industry rules outside frozen curriculum authority.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "ac0531cc99051e569bb4f5d481621587286aa431762355ce7a54cba7aa6daf2c",
+      "sourceHashes": {}
     },
     "84": {
       "presentationOrder": 84,
@@ -2519,7 +2777,19 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "All nine attached sources are sufficiently drained into a local-first workflow choice or routed to later specialist lessons; no new teaching is required.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "3be8ff41091e5ca0e237f6cbe1f0b78919a210d30a9a7d5bfe11582aa2db61f1",
+      "sourceHashes": {
+        "24-blocks-blog-github-for-screenwriters-md": "810dfe693838bcc462c83b76b5f215de4c4975b64caa8cb07e4b1528f507fb04",
+        "24-blocks-blog-open-sourcing-your-screenplay-md": "e7e874be3207e631c2b9ec83fa473bb4e590961d191a99c176b3cf0502e598cd",
+        "24-blocks-blog-readme-md": "a4e646a5582347beabfdac522ef6d376441b2dcd9f17c7655990dda566722d5e",
+        "24-blocks-collaborators-readme-md": "43531c9444969b6f9bbbdf0bc576cc9efff52fb075e571b527a0dea5cbaa528c",
+        "24-blocks-opensource-1-million-voices-md": "6764578a3f982a9ead4d8d86d878404e3e846554038cee79456614fb59d84560",
+        "24-blocks-opensource-centralvsdecentral-md": "a7f65f4f53f8bf9cc5f42ff61d259e912b6c9cb0043cd2615d9d9061956bb359",
+        "afterglow-readme-md-instructional-sections": "ac166067c035c1ee7235e4b1712024035d86c18be0827f4c4b8c5e197efad202",
+        "bryanharrisscripts-github-io-readme-md": "93140776deeb4ebe964f267df557209efc307eaabe960dc8732db6f23e0cc8f6",
+        "24-blocks-readme-md": "78eaa1691802eb0904fa6247f81f5b4177417f33aa903f396a6b4607fee49287"
+      }
     },
     "85": {
       "presentationOrder": 85,
@@ -2556,7 +2826,13 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The three attached sources are already represented by the lesson's proposal, role and source-of-truth method without making GitHub mandatory.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "90af9b8ea47bc6542600485c0f9533563adcede329fa09a7e5d1980dcb7fea3d",
+      "sourceHashes": {
+        "24-blocks-blog-github-collaborative-writing-md": "4ed7b8fd952dcb938951fd9c2e162e79a875847623cca8729d73a63b65885f62",
+        "24-blocks-opensource-open-source-collaboration-md": "fa2491ddf5e86c4e6191a69dc071fb6754992c24512266dd81b8c47732a0a597",
+        "bryanharrisscripts-github-io-ai-teams-collaboration-md": "3003dbdbfb72478809dc2351c2dfd8f33d1734db4755d27c5b9f6b8569945ccb"
+      }
     },
     "86": {
       "presentationOrder": 86,
@@ -2587,7 +2863,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "Both attached format sources are fully represented by current purpose-first interchange teaching; obsolete workarounds remain historical.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "d2c77f6bfdf3ec7a6a065f14fb33690b063b0a4a4ee6b4dcb0a93d7771498b4a",
+      "sourceHashes": {
+        "24-blocks-blog-github-mastering-markdown-md": "6da82d5342f9edaea21a1b37ec68bcec85e810672d50a454e689642a366977ee",
+        "24-blocks-blog-github-merging-final-draft-and-text-md": "7861e32b56dba4cff8d82e96a1f23c4953a3390d83fc2923b73fb1774979b2d8"
+      }
     },
     "87": {
       "presentationOrder": 87,
@@ -2617,7 +2898,11 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The attached contribution policy supplies historical evidence for bounded contribution and explicit acceptance, all of which is already taught generically.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "3350b85d2b8505173bb3415a76673a0a65ae82c18131de137925c00334cd9929",
+      "sourceHashes": {
+        "afterglow-contributing-md": "87c5f8ab955f80b6ee5e5c8916f2b4b9c655917942d83068de1715f5ca5c4098"
+      }
     },
     "88": {
       "presentationOrder": 88,
@@ -2653,7 +2938,12 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "The two attached sources contain no missing authority teaching; current role/permission distinctions are already explicit.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "da7782b4dca4a65db5031e16f912df0fc4cfa10512f944723237bc9235e6fd4c",
+      "sourceHashes": {
+        "24-blocks-blog-llms-twitter-github-and-ai-md": "bdfc014c454745bea44a12416f17f8b7b35eb75476a64ea8e7b017c2c4353419",
+        "24-blocks-blog-open-sourcing-licensing-and-protection-md": "2bf7dd0163f1d10781e864f6d12f8beb4a412b14eeefc95237ca52a4612e462b"
+      }
     },
     "89": {
       "presentationOrder": 89,
@@ -2676,7 +2966,9 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already provides a complete contribution-brief contract at its intended scope.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "55a16aefea50b0f1811ab2a5d64dfdc2ce156c46b9ca70cadd0a65c5cc1dfc82",
+      "sourceHashes": {}
     },
     "90": {
       "presentationOrder": 90,
@@ -2699,7 +2991,167 @@
       ],
       "learnerSufficientAfter": true,
       "sufficiencyNote": "This source-free lesson already protects the approved story and handles stale bases without adding infrastructure requirements.",
-      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8"
+      "reviewedAtCommit": "dd3867465e3e745b675ed0d8d5f73a82910969c8",
+      "lessonContentSha256": "e5f5428a49733729e072a5064f62ec873001b64319e756c2916caaf4e880cd41",
+      "sourceHashes": {}
+    },
+    "91": {
+      "presentationOrder": 91,
+      "lessonId": "working-together-proposal",
+      "topic": "collaboration",
+      "title": "Submit a Reviewable Proposal",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Purpose, scope, before/after evidence, dependencies, unresolved questions, provenance, credit and rights are packaged before review",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Proposal packet"
+        },
+        {
+          "concept": "Legacy Process Post-Submission material is deliberately distributed across the approved-base, proposal and canon-decision lessons",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Start From the Approved Story; Decide, Disagree and Record Canon"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "580cce1b768553ee69cbf23c7fb39efb24d1245363467d004ed683739d00aed5",
+      "sourceHashes": {}
+    },
+    "92": {
+      "presentationOrder": 92,
+      "lessonId": "working-together-review",
+      "topic": "collaboration",
+      "title": "Review the Change, Not the Person",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Evidence-first anchored feedback, feedback categories, reason/outcome and distinction between requirement and preference",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Evidence first"
+        },
+        {
+          "concept": "Legacy Act/Block review questions remain optional lenses rather than a fixed structure requirement",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Act and Block questions are optional lenses"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "a4ef1fa168c1136c178dacd8a548257a3237a16bfc661c6a6a362827ae25c358",
+      "sourceHashes": {}
+    },
+    "93": {
+      "presentationOrder": 93,
+      "lessonId": "working-together-disagreements",
+      "topic": "collaboration",
+      "title": "Decide, Disagree and Record Canon",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Proposal decision lifecycle, disagreement by evidence, final authority and recorded rationale",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Explicit decision"
+        },
+        {
+          "concept": "Consensus is not required and declined/deferred/superseded history remains visible",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Outcome: declined"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "cefe83d995ad29ebb2c9b5d5d3c5ce65f81d5d6e73bbb37b76a27d8a979e808c",
+      "sourceHashes": {}
+    },
+    "94": {
+      "presentationOrder": 94,
+      "lessonId": "working-together-rights",
+      "topic": "collaboration",
+      "title": "Record Credit, Ownership and Permissions",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Credit, contribution, ownership, licence, permission, compensation/agreement references and provenance remain separate records",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Rights distinctions"
+        },
+        {
+          "concept": "Current copyright, employment, assignment and jurisdiction-specific legal consequences",
+          "action": "DO_NOT_FREEZE",
+          "evidence": "A contribution does not automatically transfer copyright"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "b5e6a1ca5a5992ef544f693d5b569f012eac4f7e0264e6f5fd17da627af39975",
+      "sourceHashes": {}
+    },
+    "95": {
+      "presentationOrder": 95,
+      "lessonId": "working-together-scale",
+      "topic": "collaboration",
+      "title": "Protect Privacy and Scale the Review Queue",
+      "sourceIds": [
+        "24-blocks-blog-llms-and-ai-navigation-md"
+      ],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Local/private material, intentional submission boundaries, review capacity, dependencies and bounded proposal queues",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Privacy and scale"
+        },
+        {
+          "concept": "AI-assisted versus AI-generated work, disclosure, training transparency, ethics, literacy and human authority",
+          "action": "BETTER_ELSEWHERE",
+          "evidence": "Responsible AI-Assisted Writing owns durable AI practice and rights/provenance questions"
+        },
+        {
+          "concept": "GPT-4-era page limits, generalized future-of-work predictions and supposedly standardized future regulation",
+          "action": "HISTORICAL_ONLY",
+          "evidence": "Retained in The Future of Writing: LLMs and AI Navigation source; not current authority"
+        },
+        {
+          "concept": "Current law, platform policy, disclosure requirements and provider behavior",
+          "action": "DO_NOT_FREEZE",
+          "evidence": "Verify current authoritative rules when a real project depends on them"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "e033cc66d0fa60712ccd091f082dbc9a05fe5126c04737b6d271e0151f7973d0",
+      "sourceHashes": {
+        "24-blocks-blog-llms-and-ai-navigation-md": "8b2467a8529ee48b29f8e3698bc91b3ff0b036301522973e9090102181430617"
+      }
+    },
+    "96": {
+      "presentationOrder": 96,
+      "lessonId": "writers-room-story-breaking",
+      "topic": "collaboration",
+      "title": "Writers' Room: Story Breaking and Notes",
+      "sourceIds": [],
+      "learnerSufficientBefore": true,
+      "decisions": [
+        {
+          "concept": "Episode problem, alternatives, causal beat chain, notes, decisions, open questions and provenance-aware handoff",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Define the episode problem; Generate alternatives; Build the beat chain; Make notes usable; Hand off the episode"
+        },
+        {
+          "concept": "Source-free PlotPickle enrichment authored to extend existing collaboration teaching into television story breaking",
+          "action": "ALREADY_CLEAR",
+          "evidence": "Independently authored for PlotPickle; external research role is gap identification only"
+        }
+      ],
+      "learnerSufficientAfter": true,
+      "sufficiencyNote": "Final fidelity review confirms the normal learner-facing teaching is sufficient without opening a bundled source viewer; source data remains internal provenance/retrieval/history.",
+      "lessonContentSha256": "6c84c4ac76e5aaafe53cfabbd6b549e6067ecf092d0f513c606a1291e90cb9f7",
+      "sourceHashes": {}
     }
   },
   "presentationOrderSha256": "be54835767c5b9a034537adfb1e610e580fd5a965cb1b1e12136c3f99a99b633",

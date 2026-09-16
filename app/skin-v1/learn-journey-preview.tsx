@@ -371,7 +371,6 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
             <section><h3>Checklist</h3><ul>{openLesson.checklist.map((item) => <li key={item}>{item}</li>)}</ul></section>
             <section><h3>Common mistakes</h3><ul>{openLesson.mistakes.map((item) => <li key={item}>{item}</li>)}</ul></section>
             <section><h3>Exercise</h3><p>{openLesson.exercise}</p><h3>Apply in PlotPickle</h3><p>{openLesson.apply}</p></section>
-            {openLesson.sources.map((source) => <details className={styles.source} key={source.id}><summary>{source.title} · canonical bundled source</summary><p>{source.scopeNote}</p><pre>{source.content}</pre></details>)}
             <button className={styles.applicationButton} type="button" data-learn-application-open="true" onClick={() => setApplicationOpen(true)}>Apply → deterministic view → EA reflection</button>
             <button className={styles.completeButton} type="button" data-learn-progress-owner="PPFProject.learning.completedLessonIds" data-learn-lesson-completed={isCompleted ? "true" : "false"} onClick={() => toggleLessonCompletion(openLesson)}>{isCompleted ? "Mark lesson incomplete" : "Mark lesson complete"}</button>
           </article>

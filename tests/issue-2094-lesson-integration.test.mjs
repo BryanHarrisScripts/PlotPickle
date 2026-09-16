@@ -100,7 +100,7 @@ test("#2094 audit follows actual presentation order and reviewed source routing"
 
 test("#2094 Phase 9 integrates Film Industry roles and keeps Lessons 82–90 self-contained", () => {
   const expected = new Map([
-    [81, ["What the major organizations actually do", "Writers Guild of America", "Producers Guild of America", "Professional society or academy"]],
+    [81, ["What the major organizations actually do", "Writers Guild of America", "Producers Guild of America", "professional societies"]],
     [82, ["Ownership and licences answer different questions", "Choose access, publication and reuse separately"]],
     [83, ["Know what conversation you are having", "A query is a truthful doorway", "Representation is a working relationship"]],
     [84, ["Begin with the creative relationship", "Name the canonical project", "Choose only what the project needs"]],

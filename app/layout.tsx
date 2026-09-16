@@ -29,6 +29,7 @@ import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import UiContinuityAnchor from "./ui-continuity-anchor";
 import UniversalVoiceInputLayer from "./_components/universal-voice-input-layer";
+import PreproductionLearnReturnHost from "./_components/preproduction/preproduction-learn-return-host";
 import "./design-tokens.css";
 import "./globals.css";
 import "./skin-v1-definition.css";
@@ -126,6 +127,7 @@ export default function RootLayout({
         <UniversalVoiceInputLayer />
         <LegacyDemoBoundary>
           <ProfileAccessRouter>
+            <PreproductionLearnReturnHost />
             <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
             <GlobalSageOverlay />
           </ProfileAccessRouter>

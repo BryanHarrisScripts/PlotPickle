@@ -102,14 +102,14 @@ test("#2094 Phase 9 integrates Film Industry roles and keeps Lessons 82–90 sel
   const expected = new Map([
     [81, ["What the major organizations actually do", "Writers Guild of America", "Producers Guild of America", "Professional society or academy"]],
     [82, ["Ownership and licences answer different questions", "Choose access, publication and reuse separately"]],
-    [83, ["Begin with the creative relationship", "Name the canonical project", "Choose only what the project needs"]],
-    [84, ["Define roles and decision ownership", "Propose rather than overwrite"]],
-    [85, ["Choose by purpose, not familiarity", "Plan for round trips"]],
-    [86, ["The operating agreement"]],
-    [87, ["creative authority", "technical permission"]],
-    [88, ["acceptance criteria"]],
-    [89, ["approved", "stale"]],
-    [90, ["proposal", "provenance"]],
+    [83, ["Know what conversation you are having", "A query is a truthful doorway", "Representation is a working relationship"]],
+    [84, ["Begin with the creative relationship", "Name the canonical project", "Choose only what the project needs"]],
+    [85, ["Define roles and decision ownership", "Propose rather than overwrite"]],
+    [86, ["Choose by purpose, not familiarity", "Plan for round trips"]],
+    [87, ["The operating agreement"]],
+    [88, ["creative authority", "technical permission"]],
+    [89, ["acceptance criteria"]],
+    [90, ["approved", "stale"]],
   ]);
 
   for (const [order, concepts] of expected) {
@@ -158,6 +158,6 @@ test("#2094 keeps source-viewer retirement deferred through Phase 9", () => {
     assert.match(read(path), /<pre>\{source.content\}<\/pre>/);
   }
   assert.equal(lessons[80].title, "The Film Industry");
-  assert.equal(lessons[89].title, "Submit a Reviewable Proposal");
-  assert.equal(lessons[90].title, "Review the Change, Not the Person");
+  assert.equal(lessons[89].title, "Start From the Approved Story");
+  assert.equal(lessons[90].title, "Submit a Reviewable Proposal");
 });

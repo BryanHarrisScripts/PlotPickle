@@ -31,14 +31,17 @@ test("#2125 Slice 5 keeps Human review and durable #2035 commit ahead of PPF adm
   assert.doesNotMatch(module, /saveFoundationProject|localStorage|sessionStorage|createLocalCreativeTransactionProvider|createGitHubCreativeTransactionProvider/);
 });
 
-test("#2125 Slice 5 exposes bounded invalidation and preserves unrelated Production Shots", async () => {
+test("#2125 Slice 5 distinguishes bounded impact from revision-proven stale derivatives", async () => {
   const module = await source("lib/preproduction/approved-shot-timing-transaction.ts");
   const visual = await source("lib/preproduction/visual-story-projection.ts");
   const timeline = await source("lib/preproduction/scene-timeline-projection.ts");
 
-  assert.match(module, /staleDerivativeIds:\s*stableIds\(downstreamImpactIds/);
+  assert.match(module, /downstreamAffectedIds\s*=\s*stableIds\(downstreamImpactIds/);
   assert.match(module, /unaffectedProductionShotIds/);
   assert.match(module, /filter\(\(candidate\) => !affected\.has\(candidate\.id\)\)/);
+  assert.match(module, /projectProductionInstruction\(next\)/);
+  assert.match(module, /production-instruction:\$\{project\.id\}:revision-/);
+  assert.match(module, /staleDerivativeIds\s*=\s*stableIds\(plan\.downstreamAffectedIds\.filter/);
 
   // The edited Shot keeps one stable identity across Visual Story and Scene Timeline.
   assert.match(visual, /productionShotId:\s*production\?\.id\s*\?\?\s*null/);
@@ -46,7 +49,7 @@ test("#2125 Slice 5 exposes bounded invalidation and preserves unrelated Product
   assert.match(timeline, /id:\s*shot\.id/);
 });
 
-test("#2125 Slice 5 does not introduce a second transaction, dependency or canon authority", async () => {
+test("#2125 Slice 5 does not introduce a second transaction, dependency, staleness or canon authority", async () => {
   const module = await source("lib/preproduction/approved-shot-timing-transaction.ts");
 
   assert.doesNotMatch(module, /class\s+.*Transaction|new\s+Map|createCreativeChangeSet\s*\(/);

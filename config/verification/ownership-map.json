@@ -216,8 +216,10 @@
       "classification": "production",
       "include": [
         "app/_components/preproduction/*.tsx",
+        "app/_components/storyboard/*.tsx",
         "app/structure/layout.tsx",
         "app/storyboard/layout.tsx",
+        "app/storyboard/page.tsx",
         "app/previs/layout.tsx",
         "app/craftloop/layout.tsx",
         "app/pageflow/layout.tsx"
@@ -230,7 +232,9 @@
       "classification": "production",
       "include": [
         "app/_components/preproduction/*.module.css",
+        "app/_components/storyboard/*.module.css",
         "app/structure/preproduction-context.module.css",
+        "app/storyboard/*.module.css",
         "app/craftloop/preproduction-context.module.css",
         "app/pageflow/preproduction-context.module.css",
         "modules/build/ui/progressive-story-map.module.css"

@@ -16,7 +16,8 @@
 
 .identity,
 .depth,
-.tools {
+.tools,
+.learn {
   min-width: 0;
   border-right: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   padding-right: var(--pp-skin-space-3);
@@ -27,7 +28,8 @@
 
 .identity span,
 .depth span,
-.tools > span {
+.tools > span,
+.learn > span {
   color: var(--pp-skin-accent-bright);
   font-size: var(--pp-skin-font-meta);
   font-weight: 700;
@@ -48,7 +50,8 @@
 }
 
 .stageNav,
-.tools {
+.tools,
+.learn {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -57,6 +60,7 @@
 
 .stageNav a,
 .tools a,
+.learn a,
 .dashboardExit {
   min-height: var(--pp-skin-control-height);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -75,6 +79,11 @@
   text-transform: uppercase;
 }
 
+.learn a {
+  min-height: auto;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+}
+
 .stageNav a[data-active="true"] {
   border-color: var(--pp-skin-accent);
   background: var(--pp-skin-selected-bg);
@@ -85,6 +94,8 @@
 .stageNav a:focus-visible,
 .tools a:hover,
 .tools a:focus-visible,
+.learn a:hover,
+.learn a:focus-visible,
 .dashboardExit:hover,
 .dashboardExit:focus-visible {
   background: var(--pp-skin-selected-bg);
@@ -96,6 +107,15 @@
 .dashboardExit {
   align-self: center;
   white-space: nowrap;
+}
+
+.learn {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  border-right: 0;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  padding-top: var(--pp-skin-space-3);
+  padding-right: 0;
 }
 
 .tools {
@@ -133,12 +153,14 @@
   }
 
   .stageNav,
-  .tools {
+  .tools,
+  .learn {
     grid-column: 1;
   }
 
   .stageNav a,
   .tools a,
+  .learn a,
   .dashboardExit {
     width: 100%;
   }

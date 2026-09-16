@@ -360,6 +360,170 @@ function enrichFidelityLesson(lesson: CurriculumLesson): CurriculumLesson {
     };
   }
 
+  if (lesson.id === "pickle-draft") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "The legacy 'vomit draft' term and what it was trying to solve",
+          paragraphs: [
+            "The original source called this technique a 'vomit draft': a deliberately rough first pass written quickly enough that perfectionism and line-editing do not prevent the writer from discovering the whole piece. PlotPickle uses Pickle Draft as the preferred name, but keeps the legacy term visible because writers will encounter it in the archive and in other writing communities.",
+            "The useful principle is not mess for its own sake. It is sequencing the work: after enough brainstorming or planning to begin, draft forward; postpone local correction; reach the end or a complete intended movement; then revise something that actually exists.",
+          ],
+          points: [
+            "Just write — prioritize generating the next meaningful movement over polishing the current sentence.",
+            "No editing during the discovery pass — record obvious problems or placeholders, but defer repair unless the problem blocks continuation.",
+            "Keep going until the intended draft or movement exists — completion gives you evidence about structure, motive, missing information and unexpected connections.",
+            "Use the rough pass to reduce blank-page pressure — the first version only needs to create material that later passes can evaluate.",
+            "Expect discovery — fast drafting can surface images, relationships, motives or turns that planning alone did not reveal.",
+            "Return for disciplined revision — the technique is a drafting mode, not a substitute for rewriting, accuracy, craft or final polish.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "formatting") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the source's complete basic-format vocabulary",
+          paragraphs: [
+            "The original formatting source describes the screenplay as a shared blueprint: standardized page language helps readers, performers and production collaborators understand what is happening without decorative document design. Current tools can automate layout, but the writer still needs to understand what each element communicates.",
+          ],
+          points: [
+            "Scene heading / slugline — establishes a new primary location and usually interior/exterior plus time context.",
+            "Action / description — present-tense visible or audible story information selected for the reader and screen.",
+            "Character cue — identifies the speaker before dialogue.",
+            "Dialogue — the character's spoken words, formatted separately from action.",
+            "Parenthetical — a brief clarification used only when performance or action would otherwise be materially ambiguous.",
+            "Transition — an editing relationship such as CUT TO: or DISSOLVE TO: when the transition itself contributes meaning.",
+            "Shot — a named camera view or angle; useful occasionally when a specific visual reveal, relationship or transition is essential, but routine coverage normally belongs to directing/production rather than a spec writer prescribing every setup.",
+            "Historical software examples — Final Draft, Celtx and WriterDuet appeared in the source; treat them as period examples, not a permanent 'best software' list.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "books-scripts") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the original reading shelf as a legacy bibliography",
+          paragraphs: [
+            "The source preserved a broad screenwriting reading list. Keep it for discoverability and comparison, but do not treat the order as a ranking or any one author's method as universal law. Editions, availability and current relevance can change; the learning task is to compare frameworks against actual screenplay evidence.",
+          ],
+          points: [
+            "Blake Snyder — Save the Cat! The Last Book on Screenwriting You'll Ever Need.",
+            "Robert McKee — Story: Substance, Structure, Style, and the Principles of Screenwriting.",
+            "David Trottier — The Screenwriter's Bible: A Complete Guide to Writing, Formatting, and Selling Your Script.",
+            "Syd Field — Screenplay: The Foundations of Screenwriting.",
+            "William Goldman — Adventures in the Screen Trade: A Personal View of Hollywood and Screenwriting.",
+            "Michael Hauge — Writing Screenplays That Sell.",
+            "John Truby — The Anatomy of Story: 22 Steps to Becoming a Master Storyteller.",
+            "Laura Schellhardt and John Logan — Screenwriting for Dummies.",
+            "Viki King — How to Write a Movie in 21 Days: The Inner Movie Method.",
+            "Christopher Vogler — The Writer's Journey: Mythic Structure for Writers.",
+            "Pilar Alessandra — The Coffee Break Screenwriter: Writing Your Script Ten Minutes at a Time.",
+            "William M. Akers — Your Screenplay Sucks!: 100 Ways to Make It Great.",
+            "Alexandra Sokoloff — Screenwriting Tricks for Authors (and Screenwriters!).",
+            "Linda Aronson — Screenwriting Updated: New (and Conventional) Ways of Writing for the Screen.",
+            "Christopher Riley — The Hollywood Standard: The Complete and Authoritative Guide to Script Format and Style.",
+            "Jill Chamberlain — The Nutshell Technique.",
+            "Robert Ben Garant and Thomas Lennon — Writing Movies for Fun and Profit.",
+            "Benjamin Sobieck and Eva Solarik — The Writer's Guide to Wattpad.",
+            "Skip Press — The Complete Idiot's Guide to Screenwriting, 2nd Edition.",
+            "Billy Mernit — Writing the Romantic Comedy: The Art and Craft of Writing Screenplays That Sell.",
+          ],
+        },
+        {
+          heading: "Keep the historical script-library names, but verify them now",
+          paragraphs: [
+            "The source also named several screenplay sites: IMSDB, Simply Scripts, The Daily Script, Script Slug, AwesomeFilm and Drew's Script-O-Rama. Preserve those names as research history and discovery leads, not as guarantees that a site is currently active, complete, lawful for every use or serving an authoritative draft.",
+          ],
+          points: [
+            "Verify the site's current availability and terms before relying on it.",
+            "Identify whether the document is a spec, shooting script, transcript, continuity script or fan reconstruction before studying craft choices.",
+            "Respect copyright, access terms and legitimate educational use; a downloadable file is not automatically permission to republish it.",
+            "Prefer traceable studio, writer, guild, library, archive or otherwise authoritative provenance when multiple versions exist.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "challenges") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the original challenge index visible",
+          paragraphs: [
+            "The original Screenplay Challenges Guide is valuable partly because it gives writers names for problems before they know which deeper craft lesson owns the repair. Use this index as a diagnostic vocabulary, then move to evidence and a bounded experiment rather than applying generic advice automatically.",
+          ],
+          points: [
+            "Story craft — originality; structure; insufficient conflict; pacing; suspense; theme development; cliché; openings and closures; scene transitions; writing action; escalating conflict; incorporating backstory.",
+            "Storytelling form — unreliable narration; nonlinear clarity; brevity and efficiency; character arcs; maintaining perspective on the whole story.",
+            "Character — poorly defined characters; empathy without requiring likability; authentic relationships; subtext; emotional expression; distinctive/consistent voice; stereotype avoidance; believable antagonists; character consistency; diverse representation.",
+            "Language and dialogue — compelling dialogue; exposition; show-versus-tell judgment; developing a distinctive writing style while remaining readable.",
+            "World, genre and production awareness — world-building; visualizing sets/locations; audience and genre expectations; cultural sensitivity; managing scope; genre mixing; technology as changing story context.",
+            "Audience and emotion — making emotion legible without melodrama; sustaining engagement; controlling reveal/withhold; creating investment in difficult or unlikeable characters.",
+            "Writer and process — writer's block; feedback and rejection; revision; finding time; accuracy; anachronisms; contradictory notes; solitude; motivation; writer fatigue; transitions between comic and dramatic registers.",
+            "Industry and business questions — genre conventions; changing trends; selling and pitching; art versus commerce; juggling multiple projects; communicating what distinguishes the work.",
+            "Technical and practical — continuity; research; rights/legal questions; formatting; film-language detail; symbolism; sequencing scenes for clarity and emotional effect.",
+            "Finishing and presentation — choosing a title; handling feedback; pitching the completed work; knowing when a story problem is actually a process, delivery or current-information problem.",
+          ],
+        },
+        {
+          heading: "Separate durable craft from changing industry advice",
+          paragraphs: [
+            "Some items in the old guide point toward live legal, market and professional questions rather than permanent craft rules. Keep the questions, but verify the answers against current authoritative sources for the relevant jurisdiction, agreement, recipient and date.",
+          ],
+          points: [
+            "Registration, copyright, contracts and adaptation rights require current legal/official information; the old source's WGA/U.S.-specific examples are not universal instructions.",
+            "Competition strategy, market trends, buyer preferences and sales pathways change and should not be frozen as timeless curriculum facts.",
+            "A roughly 120-page screenplay may be a useful historical reference for some feature contexts, but page count is not a universal craft ceiling and one-page-per-minute is not exact runtime arithmetic.",
+          ],
+        },
+      ],
+    };
+  }
+
+  if (lesson.id === "essentials-scene") {
+    return {
+      ...lesson,
+      sections: [
+        ...lesson.sections,
+        {
+          heading: "Keep the source's wider scene toolkit",
+          paragraphs: [
+            "The source describes a scene as a small narrative with a beginning, middle and end. Keep that familiar lens for writers who find it useful, but do not force three equal internal parts: PlotPickle's stronger test is whether the entry condition, pressure, turn and exit condition create meaningful change.",
+            "It also distinguishes conflict from tension and names several scene delivery modes and time/space techniques worth retaining as vocabulary. These describe how a scene may work on the page and screen; they do not replace the scene's dramatic purpose.",
+          ],
+          points: [
+            "Beginning / middle / end — orient the immediate situation, develop pressure or understanding, then land a result/change; use as a lens, not a compulsory miniature formula.",
+            "Conflict — incompatible goals, values, needs or circumstances actively preventing easy success.",
+            "Tension — anticipation created by possible consequences, uncertainty, delay, danger, withheld information or an approaching choice; a scene can carry tension without an argument.",
+            "Action-led scene — physical behaviour and changing conditions carry much of the movement; spectacle still needs objective, consequence or meaning.",
+            "Dialogue-led scene — spoken tactics, subtext, status and information shifts carry much of the movement; conversation still needs pressure and change.",
+            "Suspense / anticipation-led scene — delay, information control, vulnerability or a looming consequence makes waiting and expectation dramatically active.",
+            "Flashback — move to an earlier event only when experiencing that event now changes meaning more effectively than reporting it.",
+            "Cross-cutting / intercutting — alternate locations or actions to create simultaneity, comparison, collision or suspense between strands.",
+            "Dramatic use of setting — claustrophobic, exposed, vast, unstable or otherwise specific space can change available tactics and make emotional/theme pressure visible.",
+            "Visual writing — tangible action, expressive detail and selected symbolic evidence can let the audience infer meaning without turning 'show, don't tell' into an absolute ban on speech or narration.",
+          ],
+        },
+      ],
+    };
+  }
+
   return lesson;
 }
 

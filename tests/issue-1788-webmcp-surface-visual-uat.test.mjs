@@ -14,11 +14,12 @@ const settingsDirectory = read("app/skin-v1-settings-directory.css");
 const layout = read("app/layout.tsx");
 const skin = read("app/skin-v1-definition.css");
 const audit = read("lib/verification/webmcp-surface-visual-audit.mjs");
+const catalogue = read("lib/verification/webmcp-standard-surface-catalogue.mjs");
 const manifest = JSON.parse(read("tests/visual-baselines/skin-v1/manifest.json"));
 const visualReadiness = read(".github/workflows/visual-readiness.yml");
 const packageJson = read("package.json");
 
-test("Dashboard stays the canonical Skin V1 design reference while every bounded surface gets candidate screenshot evidence", () => {
+test("Dashboard stays the canonical locked Matrix reference while the standard catalogue owns candidate evidence for every other registered surface", () => {
   assert.match(dashboard, /data-skin-reference="dashboard-canonical"/);
   assert.match(dashboard, /data-skin-reference-panel="standard"/);
   assert.match(dashboard, /data-skin-reference-media="primary"/);
@@ -32,19 +33,32 @@ test("Dashboard stays the canonical Skin V1 design reference while every bounded
   assert.deepEqual(Object.keys(manifest.surfaces), [
     "dashboard",
     "community",
-    "settings",
-    "cloud-story-mode",
-    "agents",
+    "writers-craft",
+    "story-map",
+    "scene-timeline",
+    "visual-story",
     "profile",
+    "settings",
+    "general",
     "local-ai",
+    "cloud-story-mode",
     "node",
+    "agents",
+    "issue-log",
+    "licensing",
   ]);
+  assert.equal(manifest.surfaces.dashboard.status, "locked");
+  for (const [surface, entry] of Object.entries(manifest.surfaces)) {
+    if (surface !== "dashboard") assert.equal(entry.status, "candidate");
+  }
+
   assert.match(audit, /captureSurfaceCandidate/);
   assert.match(audit, /dashboard-canonical\.png/);
-  for (const surface of ["community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
+  for (const surface of ["community", "settings", "profile"]) {
     assert.match(audit, new RegExp(`captureSurfaceCandidate\\(page, manifest, "${surface}"`));
   }
-  for (const entry of Object.values(manifest.surfaces)) assert.equal(entry.status, "candidate");
+  assert.match(catalogue, /for \(const surface of WEBMCP_STANDARD_SURFACE_TARGETS\)/u);
+  assert.match(catalogue, /await capture\(page, manifest, surface, failures\)/u);
 });
 
 test("WebMCP UAT is bounded to read/navigation tools and keeps authority outside the test adapter", () => {
@@ -66,7 +80,7 @@ test("WebMCP UAT is bounded to read/navigation tools and keeps authority outside
   assert.match(audit, /page\.keyboard\.press\("W"\)/);
 });
 
-test("all eight visual surfaces have explicit loaded-state contracts before inspection or capture", () => {
+test("the original bounded visual audit retains explicit loaded-state contracts while the standard catalogue carries expanded surfaces", () => {
   assert.deepEqual(Object.keys(WEBMCP_SURFACE_READINESS), [
     "dashboard",
     "community",
@@ -85,6 +99,7 @@ test("all eight visual surfaces have explicit loaded-state contracts before insp
   assert.match(nodePanel, /node && profile && topology \? "ready" : "loading"/);
   assert.match(audit, /await waitForSurfaceReady\(page, surface\);[\s\S]*inspect_surface_visual_contract/u);
   assert.match(audit, /source: "surface-readiness"/);
+  assert.match(catalogue, /WEBMCP_STANDARD_SURFACE_REGISTRY/u);
 });
 
 test("Settings consumes Dashboard directory geometry instead of the legacy three-column row grid", () => {
@@ -121,7 +136,7 @@ test("pathologically wrapped Dashboard-style directory rows are deterministic UI
   assert.equal(rowFailure.actual, "180px");
 });
 
-test("non-Dashboard surfaces inherit the same rendered Skin V1 contract", () => {
+test("non-Dashboard surfaces inherit the same rendered Skin V1 token contract", () => {
   for (const token of [
     "--pp-skin-canvas",
     "--pp-skin-accent-deep",
@@ -138,9 +153,14 @@ test("non-Dashboard surfaces inherit the same rendered Skin V1 contract", () => 
     assert.match(audit, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(audit, /getComputedStyle/);
-  for (const surface of ["community", "settings", "cloud-story-mode", "agents", "profile", "local-ai", "node"]) {
+  for (const surface of ["community", "settings", "profile"]) {
     assert.match(audit, new RegExp(`inspectCurrent\\("${surface}"\\)`));
   }
+  assert.match(catalogue, /rootStyle = getComputedStyle\(scope\)/u);
+  assert.match(catalogue, /--pp-skin-font-ui/u);
+  assert.match(catalogue, /--pp-skin-radius/u);
+  assert.match(catalogue, /--pp-skin-accent/u);
+  assert.match(catalogue, /--pp-skin-canvas/u);
 });
 
 test("locked visual baselines stay repository-owned and Visual Readiness remains manual", () => {

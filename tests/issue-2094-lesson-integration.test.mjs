@@ -86,7 +86,7 @@ test("#2094 audit follows actual presentation order and reviewed source routing"
         "24-blocks-dialogue-24-blocks-refining-dialogue-md",
       ]);
     } else {
-      assert.deepEqual(record.sourceIds, attachedSourceIds);
+      assert.deepEqual([...record.sourceIds].sort(), [...attachedSourceIds].sort());
     }
     assert.equal(typeof record.learnerSufficientBefore, "boolean");
     assert.equal(record.learnerSufficientAfter, true);

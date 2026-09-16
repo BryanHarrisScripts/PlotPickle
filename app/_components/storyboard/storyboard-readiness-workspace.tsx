@@ -42,6 +42,8 @@ export default function StoryboardReadinessWorkspace({
   initialBlockNumber,
   initialMiniBlockNumber,
   initialSceneId,
+  initialShotId,
+  initialVisualView,
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
@@ -50,6 +52,8 @@ export default function StoryboardReadinessWorkspace({
   readonly initialBlockNumber?: number;
   readonly initialMiniBlockNumber?: number;
   readonly initialSceneId?: string;
+  readonly initialShotId?: string;
+  readonly initialVisualView?: "story" | "timeline";
 }) {
   const readiness = deriveVisualReadiness({ project });
   const blocks = readiness.targets
@@ -201,8 +205,11 @@ export default function StoryboardReadinessWorkspace({
         <VisualStoryWorkspace
           blockNumber={selectedNumber}
           initialSceneId={initialSceneId}
+          initialShotId={initialShotId}
+          initialView={initialVisualView}
           legacyProject={legacyProject}
           miniBlockNumber={selectedMiniBlockNumber}
+          onProjectChange={onProjectChange}
           project={project}
         />
       ) : null}

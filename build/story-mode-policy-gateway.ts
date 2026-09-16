@@ -134,11 +134,11 @@ async function selectedRoute(capability: "text" | "image" | "video") {
     readMediaRoutingStore(),
     readNativeH3Store(),
   ]);
+  if (capability === "text") return assistantResult.store.activeProvider;
   if (routing && typeof routing === "object" && !Array.isArray(routing)) {
     const route = routing[capability];
     if (typeof route === "string") return route;
   }
-  if (capability === "text") return assistantResult.store.activeProvider;
   if (capability === "image") return media.imageRoute;
   if (native.active) return "comfyui-native";
   return media.videoRoute === "none" ? "off" : "minimax";

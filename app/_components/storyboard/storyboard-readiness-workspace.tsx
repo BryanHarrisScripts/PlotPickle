@@ -4,9 +4,12 @@
 
 import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
+import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
+import VisualStoryWorkspace from "./visual-story-workspace";
 import { storyboardAnchorTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
 import styles from "./storyboard-readiness-workspace.module.css";
 
@@ -27,11 +30,26 @@ function boundedBlockNumber(value: number | undefined) {
   return Number.isFinite(value) ? Math.min(24, Math.max(1, Math.trunc(value ?? 1))) : 1;
 }
 
-export default function StoryboardReadinessWorkspace({ project, onProjectChange, onOpenBuild, initialBlockNumber }: {
-  readonly project: PPFProject;
+function boundedMiniBlockNumber(value: number | undefined) {
+  return Number.isFinite(value) ? Math.min(4, Math.max(1, Math.trunc(value ?? 1))) : 1;
+}
+
+export default function StoryboardReadinessWorkspace({
+  project,
+  legacyProject,
+  onProjectChange,
+  onOpenBuild,
+  initialBlockNumber,
+  initialMiniBlockNumber,
+  initialSceneId,
+}: {
+  readonly project: LibraryPPFProject;
+  readonly legacyProject: PlotPickleProject | null;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenBuild: () => void;
   readonly initialBlockNumber?: number;
+  readonly initialMiniBlockNumber?: number;
+  readonly initialSceneId?: string;
 }) {
   const readiness = deriveVisualReadiness({ project });
   const blocks = readiness.targets
@@ -39,6 +57,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
+  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedMiniBlockNumber(initialMiniBlockNumber));
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
@@ -49,7 +68,8 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
     [project, selectedTarget],
   );
 
-  function openEditorial(candidateId: string) {
+  function openEditorial(candidateId: string, miniNumber: number) {
+    setSelectedMiniBlockNumber(miniNumber);
     setRequestedCandidateId(candidateId);
     window.requestAnimationFrame(() => {
       document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -94,6 +114,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
               key={target.id}
               onClick={() => {
                 setSelectedBlockNumber(number);
+                setSelectedMiniBlockNumber(1);
                 setRequestedCandidateId(undefined);
               }}
               role="tab"
@@ -138,6 +159,7 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                 <article
                   className={styles.miniBlock}
                   data-authorable={storyboardAccessible ? "true" : "false"}
+                  data-selected={selectedMiniBlockNumber === miniNumber ? "true" : undefined}
                   data-story-decision-target={storyboardAnchorTargetRef(selectedTarget.id, miniNumber)}
                   key={miniNumber}
                 >
@@ -158,9 +180,10 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
                     : qaOnlyAccess
                       ? "QA access is open. A real visual candidate is still required before this anchor can be reviewed."
                       : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
+                  <button onClick={() => setSelectedMiniBlockNumber(miniNumber)} type="button">Open Visual Story</button>
                   <button
                     disabled={!canReviewReference}
-                    onClick={reference && canReviewReference ? () => openEditorial(reference.id) : undefined}
+                    onClick={reference && canReviewReference ? () => openEditorial(reference.id, miniNumber) : undefined}
                     type="button"
                   >
                     {reference
@@ -172,6 +195,16 @@ export default function StoryboardReadinessWorkspace({ project, onProjectChange,
             })}
           </div>
         </section>
+      ) : null}
+
+      {selectedTarget ? (
+        <VisualStoryWorkspace
+          blockNumber={selectedNumber}
+          initialSceneId={initialSceneId}
+          legacyProject={legacyProject}
+          miniBlockNumber={selectedMiniBlockNumber}
+          project={project}
+        />
       ) : null}
 
       {storyboardAccessible && selectedTarget ? (

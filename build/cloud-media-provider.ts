@@ -8,6 +8,7 @@ import {
   providerJson,
   providerRequest,
   referenceImages,
+  resolveImageStoryJobClass,
   safeAssetStem,
   saveGeneratedAsset,
   videoSourceReference,
@@ -60,6 +61,7 @@ export async function generateCloudImage(profile: MediaProfile, input: ImageGene
   }
   if (!profile.imageModel) throw new Error(`Choose an image model for ${profile.provider} in Settings.`);
   const quality = input.quality === "low" || input.quality === "medium" || input.quality === "high" ? input.quality : "medium";
+  const jobClass = resolveImageStoryJobClass(input);
   const size = input.aspect === "landscape" ? "1536x1024" : "1024x1536";
   const references = await referenceImages(input);
   let base64 = "";
@@ -128,6 +130,7 @@ export async function generateCloudImage(profile: MediaProfile, input: ImageGene
     revisedPrompt,
     referenceImagesUsed: Math.min(references.length, profile.provider === "minimax" ? 1 : references.length),
     providerRequestId,
+    jobClass,
   };
 }
 
@@ -166,7 +169,7 @@ export async function createCloudVideo(profile: MediaProfile, input: VideoGenera
     id,
     route: "minimax-direct",
     provider: "minimax",
-    model,
+    model: profile.videoModel || "MiniMax-H3",
     status: "queued",
     prompt,
     sourceAssetUrl,

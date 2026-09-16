@@ -101,6 +101,17 @@
       "riskTokens": ["provider", "security", "api"]
     },
     {
+      "id": "story-mode-image-job-routing",
+      "classification": "production",
+      "include": [
+        "build/media-provider-common.ts",
+        "build/cloud-media-provider.ts",
+        "build/ai/comfyui-media-provider.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": ["provider", "api", "security"]
+    },
+    {
       "id": "community-conversation-surface",
       "classification": "production",
       "include": [

@@ -13,14 +13,14 @@
   "surfaces": {
     "dashboard": {
       "label": "Dashboard",
-      "status": "candidate",
+      "status": "locked",
       "selector": "[data-skin-reference='dashboard-canonical']",
       "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
       "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
     },
     "community": {
       "label": "Community",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='PlotPickle Community']",
       "candidate": ".artifacts/visual-readiness/community-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/community.png"
@@ -69,7 +69,7 @@
     },
     "node": {
       "label": "Node Info",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Node information']",
       "candidate": ".artifacts/visual-readiness/node-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/node.png"

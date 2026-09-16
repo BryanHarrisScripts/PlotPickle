@@ -24,6 +24,12 @@ type AiRoutingStatus = {
   readonly video?: CapabilityStatus;
 };
 
+type LocalRuntimeStatus = {
+  readonly ok?: boolean;
+  readonly activeRuntime?: { readonly reachable?: boolean };
+  readonly roles?: Readonly<Record<string, { readonly available?: boolean }>>;
+};
+
 type StoryModePolicyResponse = {
   readonly ok?: boolean;
   readonly mode?: StoryModePolicy;
@@ -58,6 +64,11 @@ function localityReady(status: AiRoutingStatus | null, locality: "local" | "clou
   );
 }
 
+function hardwareLocalReady(status: LocalRuntimeStatus | null) {
+  if (!status?.ok || status.activeRuntime?.reachable !== true) return false;
+  return Object.values(status.roles ?? {}).some((role) => role.available === true);
+}
+
 function readinessLabel(ready: boolean, loaded: boolean) {
   if (!loaded) return "CHECKING";
   return ready ? "READY" : "NOT READY";
@@ -67,30 +78,37 @@ export default function StoryModeHost() {
   const [view, setView] = useState<StoryModeView>("landing");
   const [mode, setMode] = useState<StoryModePolicy>("hybrid");
   const [routingStatus, setRoutingStatus] = useState<AiRoutingStatus | null>(null);
+  const [localRuntimeStatus, setLocalRuntimeStatus] = useState<LocalRuntimeStatus | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("Loading Story Mode readiness...");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const localReady = localityReady(routingStatus, "local");
+  const localReady = localityReady(routingStatus, "local") || hardwareLocalReady(localRuntimeStatus);
   const cloudReady = localityReady(routingStatus, "cloud");
   const hybridReady = localReady && cloudReady;
 
   async function refresh() {
     try {
-      const [policyResponse, routingResponse] = await Promise.all([
+      const [policyResponse, routingResponse, localRuntimeResponse] = await Promise.all([
         fetch("/api/story-mode/policy", { cache: "no-store" }),
         fetch("/api/ai-routing/status", { cache: "no-store" }),
+        fetch("/api/local-ai/runtime", { cache: "no-store" }).catch(() => null),
       ]);
       const policy = await policyResponse.json() as StoryModePolicyResponse;
       const routing = await routingResponse.json() as AiRoutingStatus & { readonly message?: string };
+      const localRuntime = localRuntimeResponse?.ok
+        ? await localRuntimeResponse.json() as LocalRuntimeStatus
+        : null;
       if (!policyResponse.ok || !policy.ok || !policy.mode) throw new Error(policy.message || "Story Mode policy is unavailable.");
       if (!routingResponse.ok || !routing.ok) throw new Error(routing.message || "Story Mode readiness is unavailable.");
       setMode(policy.mode);
       setRoutingStatus(routing);
+      setLocalRuntimeStatus(localRuntime);
       setMessage("Story Mode readiness follows the current tested Local and Cloud routes.");
     } catch (error) {
       setRoutingStatus(null);
+      setLocalRuntimeStatus(null);
       setMessage(error instanceof Error ? error.message : "Story Mode readiness is unavailable.");
     } finally {
       setLoaded(true);
@@ -215,9 +233,6 @@ export default function StoryModeHost() {
       className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
       aria-label="Story Mode directory"
       data-story-mode-parent="true"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") event.stopPropagation();
-      }}
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
         <div className="pp-skin-v1-dashboard-title">*** STORY MODE ***</div>

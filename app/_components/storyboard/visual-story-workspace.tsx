@@ -9,6 +9,7 @@ import type { PPFProject } from "@/core/project/project";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
+import ProgressiveProductionLanes from "./progressive-production-lanes";
 import SceneTimelineWorkspace from "./scene-timeline-workspace";
 import styles from "./visual-story-workspace.module.css";
 
@@ -255,6 +256,15 @@ export default function VisualStoryWorkspace({
         selectedShotId={selectedShot?.id ?? ""}
         visualStory={projection}
       />
+
+      {view === "timeline" ? (
+        <ProgressiveProductionLanes
+          legacyProject={legacyProject}
+          onSelectShot={setSelectedShotId}
+          selectedShotId={selectedShot?.id ?? ""}
+          visualStory={projection}
+        />
+      ) : null}
 
       <footer className={styles.boundary}>
         Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.

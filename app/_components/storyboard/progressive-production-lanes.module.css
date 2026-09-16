@@ -1,0 +1,206 @@
+.workspace {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.11);
+  color: #e9e9e3;
+}
+
+.kicker {
+  margin: 0 0 5px;
+  color: #92928d;
+  font: 900 .62rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.header h3 {
+  margin: 0;
+  color: #f1f1eb;
+  font-size: 1rem;
+}
+
+.header p:not(.kicker) {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: #888883;
+  font-size: .69rem;
+  line-height: 1.45;
+}
+
+.available {
+  padding: 6px 8px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 4px;
+  background: #111110;
+  color: #aaa9a4;
+  font: 800 .6rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  white-space: nowrap;
+}
+
+.layerControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.layerControls button,
+.contextItems button {
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 4px;
+  color: #cfcfc8;
+  background: #141413;
+  font: 800 .62rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  cursor: pointer;
+}
+
+.layerControls button { min-height: 31px; padding: 6px 9px; }
+.layerControls button[aria-pressed="true"] { border-color: #ecece5; color: #f5f5ee; background: #20201e; }
+.layerControls button:disabled { cursor: not-allowed; opacity: .35; }
+
+.empty {
+  margin: 0;
+  padding: 10px;
+  border: 1px dashed rgba(255,255,255,.12);
+  color: #777772;
+  background: #0b0b0a;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+.lanes {
+  display: grid;
+  gap: 8px;
+  min-width: 760px;
+  overflow-x: auto;
+}
+
+.lane {
+  display: grid;
+  grid-template-columns: 78px minmax(0,1fr);
+  gap: 8px;
+}
+
+.laneLabel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 15px;
+  color: #81817c;
+  font: 900 .6rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing: .08em;
+}
+
+.laneBody {
+  display: grid;
+  gap: 6px;
+}
+
+.track,
+.contextTrack {
+  position: relative;
+  min-height: 48px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0,rgba(255,255,255,.018) 1px,transparent 1px,transparent 5%),
+    #0a0a09;
+}
+
+.contextTrack {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+}
+
+.contextTrack span {
+  color: #666661;
+  font: 800 .55rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing: .08em;
+}
+
+.timedItem,
+.timedButton {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  min-width: 22px;
+  overflow: hidden;
+  padding: 5px 7px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 3px;
+  color: #c7c7c1;
+  background: #171716;
+  font: 750 .58rem/1.25 ui-monospace,SFMono-Regular,Menlo,monospace;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.timedButton { cursor: pointer; }
+.timedButton[aria-pressed="true"] { border-color: #f1f1e9; box-shadow: inset 0 0 0 1px #6f6f69; }
+.timedButton:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+.contextItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.contextItems article,
+.contextItems button {
+  max-width: 360px;
+  padding: 7px 8px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 3px;
+  background: #111110;
+}
+
+.contextItems article {
+  display: grid;
+  gap: 3px;
+}
+
+.contextItems strong {
+  color: #c7c7c1;
+  font: 800 .58rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+.contextItems p {
+  margin: 0;
+  color: #999994;
+  font-size: .64rem;
+  line-height: 1.35;
+}
+
+.contextItems small {
+  color: #686864;
+  font-size: .57rem;
+  line-height: 1.3;
+}
+
+.contextItems button {
+  color: #aaa9a4;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.boundary {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: #666661;
+  font-size: .62rem;
+  line-height: 1.45;
+}
+
+@media (max-width:900px) {
+  .header { display: grid; }
+  .available { width: fit-content; }
+}

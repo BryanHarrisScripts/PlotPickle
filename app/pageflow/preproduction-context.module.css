@@ -1,0 +1,4 @@
+.boundary[data-preproduction-context="true"] :global(nav[aria-label="Refine navigation"]),
+.boundary[data-preproduction-context="true"] :global(a[href="/?workspace=refine"]) {
+  display: none;
+}

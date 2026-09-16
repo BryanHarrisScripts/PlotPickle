@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">PlotPickle Matrix Interaction and State Guide — candidate reference</title>
+<desc id="desc">Candidate Matrix interaction-state board showing default, hover, selected, focused, disabled, empty, loading, error, validation, overflow and constrained-width behavior.</desc>
+<rect width="1600" height="1000" fill="#000000"/>
+<style>
+.ui{font-family:'Courier New','Liberation Mono',Consolas,monospace}.brand{font-family:Arial,Helvetica,sans-serif}.ink{fill:#f4f4f4}.soft{fill:#d0d0d0}.muted{fill:#888888}.green{fill:#79bd92}.warn{fill:#d8c85d}.danger{fill:#d98c8c}.panel{fill:#090909;stroke:#333333;stroke-width:1}.row{fill:#121212;stroke:#333333;stroke-width:1}.hover{fill:#181818;stroke:#333333;stroke-width:1}.selected{fill:#f4f4f4;stroke:#f4f4f4;stroke-width:1}.selectedText{fill:#000000}.focus{fill:#121212;stroke:#79bd92;stroke-width:2}.disabled{fill:#090909;stroke:#242424;stroke-width:1}.errorPanel{fill:#1a0b0b;stroke:#743737;stroke-width:1}.warningPanel{fill:#171508;stroke:#746a24;stroke-width:1}.small{font-size:16px}.body{font-size:20px}.title{font-size:28px;font-weight:700}.meta{font-size:14px;letter-spacing:1.3px}.label{font-size:16px;font-weight:700;letter-spacing:1.6px}.strong{stroke:#efefef;stroke-width:2;fill:none}
+</style>
+<g class="ui">
+<text x="48" y="58" class="brand ink" font-size="34" font-weight="700">PLOTPICKLE</text><text x="48" y="86" class="green meta">MATRIX REFERENCE ARTIFACT · BOARD B · INTERACTION &amp; STATE GUIDE · CANDIDATE-REFERENCE</text><text x="48" y="116" class="muted small">Focus ≠ selected · state meaning never depends on color alone · loading preserves structure</text>
+
+<rect x="48" y="152" width="720" height="768" class="strong"/><text x="76" y="194" class="green label">CONTROL STATE MATRIX</text>
+<text x="76" y="236" class="muted meta">DEFAULT</text><rect x="230" y="210" width="470" height="50" class="row"/><text x="254" y="242" class="ink body">[S] STORYBOARD</text>
+<text x="76" y="304" class="muted meta">HOVER</text><rect x="230" y="278" width="470" height="50" class="hover"/><text x="254" y="310" class="ink body">[S] STORYBOARD</text><text x="610" y="310" class="muted small">pointer only</text>
+<text x="76" y="372" class="muted meta">SELECTED</text><rect x="230" y="346" width="470" height="50" class="selected"/><text x="254" y="378" class="selectedText body">[S] STORYBOARD</text><text x="590" y="378" class="selectedText small">CURRENT</text>
+<text x="76" y="440" class="muted meta">KEYBOARD FOCUSED</text><rect x="230" y="414" width="470" height="50" class="focus"/><text x="254" y="446" class="green body">[P] PREVIS</text><text x="610" y="446" class="green small">ENTER</text>
+<text x="76" y="508" class="muted meta">DISABLED</text><rect x="230" y="482" width="470" height="50" class="disabled"/><text x="254" y="514" fill="#666666" class="body">[G] GENERATE</text><text x="562" y="514" fill="#666666" class="small">UNAVAILABLE</text>
+
+<text x="76" y="574" class="green label">KEYBOARD-FIRST LIST</text>
+<rect x="76" y="598" width="624" height="182" class="panel"/>
+<rect x="94" y="616" width="588" height="42" class="row"/><text x="112" y="644" class="ink small">[O] OUTLINE</text>
+<rect x="94" y="662" width="588" height="42" class="focus"/><text x="112" y="690" class="green small">[V] VISUAL STORY</text><text x="580" y="690" class="green small">FOCUS</text>
+<rect x="94" y="708" width="588" height="42" class="selected"/><text x="112" y="736" class="selectedText small">[T] SCENE TIMELINE</text><text x="558" y="736" class="selectedText small">SELECTED</text>
+<text x="76" y="824" class="muted small">ESC returns · arrows move focus · ENTER activates · no hidden state change</text>
+
+<rect x="804" y="152" width="748" height="768" class="strong"/><text x="832" y="194" class="green label">OPERATIONAL STATES</text>
+<rect x="832" y="218" width="322" height="130" class="panel"/><text x="854" y="250" class="ink label">EMPTY</text><text x="854" y="282" class="soft small">No Frames exist yet.</text><rect x="854" y="302" width="184" height="30" class="row"/><text x="868" y="323" class="green small">ADD REFERENCE</text>
+<rect x="1184" y="218" width="340" height="130" class="panel"/><text x="1206" y="250" class="ink label">LOADING / ASYNC</text><text x="1206" y="282" class="soft small">Storyboard candidates loading…</text><rect x="1206" y="306" width="280" height="10" fill="#242424"/><rect x="1206" y="306" width="118" height="10" fill="#287a4b"/>
+<rect x="832" y="372" width="322" height="130" class="errorPanel"/><text x="854" y="404" class="danger label">ERROR</text><text x="854" y="436" class="soft small">Preview unavailable.</text><text x="854" y="464" class="danger small">Intent remains accessible.</text>
+<rect x="1184" y="372" width="340" height="130" class="warningPanel"/><text x="1206" y="404" class="warn label">VALIDATION</text><text x="1206" y="436" class="soft small">Duration must be greater than 0.</text><text x="1206" y="464" class="warn small">Field remains editable.</text>
+
+<text x="832" y="554" class="green label">SCROLLBAR / OVERFLOW</text><rect x="832" y="578" width="692" height="140" class="panel"/>
+<rect x="852" y="596" width="626" height="36" class="row"/><text x="870" y="620" class="soft small">Shot 01 · opening image</text>
+<rect x="852" y="636" width="626" height="36" class="focus"/><text x="870" y="660" class="green small">Shot 02 · reveal held back</text>
+<rect x="852" y="676" width="626" height="22" class="row"/><rect x="1490" y="590" width="8" height="114" fill="#242424"/><rect x="1490" y="614" width="8" height="44" fill="#79bd92"/>
+<text x="832" y="750" class="muted small">Active focus stays visible while the content area scrolls.</text>
+
+<text x="832" y="800" class="green label">CONSTRAINED WIDTH</text><rect x="832" y="824" width="330" height="70" class="panel"/><text x="850" y="850" class="ink small">[V] VISUAL STORY</text><text x="850" y="876" class="muted small">Labels wrap; controls remain reachable.</text><rect x="1190" y="824" width="334" height="70" class="panel"/><text x="1208" y="850" class="ink small">STATUS: READY</text><text x="1208" y="876" class="muted small">No clipped focus or hidden action.</text>
+
+<text x="48" y="958" class="green meta">CANDIDATE-REFERENCE · SOURCE: matrix-master-v1 + matrix-board-b-interaction-state-v1 · HUMAN APPROVAL REQUIRED</text>
+</g></svg>

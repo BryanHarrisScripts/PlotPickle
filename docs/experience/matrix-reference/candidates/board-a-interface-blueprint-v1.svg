@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">PlotPickle Matrix Interface Blueprint — candidate reference</title>
+<desc id="desc">Candidate design-reference board showing the current Matrix screen anatomy using PlotPickle Skin V1 semantic roles.</desc>
+<rect width="1600" height="1000" fill="#000000"/>
+<style>
+.ui{font-family:'Courier New','Liberation Mono',Consolas,monospace}.brand{font-family:Arial,Helvetica,sans-serif}.ink{fill:#f4f4f4}.soft{fill:#d0d0d0}.muted{fill:#888888}.green{fill:#79bd92}.mid{fill:#287a4b}.panel{fill:#090909;stroke:#333333;stroke-width:1}.row{fill:#121212;stroke:#333333;stroke-width:1}.selected{fill:#f4f4f4;stroke:#f4f4f4;stroke-width:1}.selectedText{fill:#000000}.focus{stroke:#79bd92;stroke-width:2;fill:#121212}.strong{stroke:#efefef;stroke-width:2;fill:none}.small{font-size:16px}.body{font-size:20px}.title{font-size:28px;font-weight:700}.meta{font-size:14px;letter-spacing:1.3px}.label{font-size:16px;font-weight:700;letter-spacing:1.6px}.call{fill:#030303;stroke:#287a4b;stroke-width:1}
+</style>
+<g class="ui">
+<text x="48" y="58" class="brand ink" font-size="34" font-weight="700">PLOTPICKLE</text>
+<text x="48" y="86" class="green meta">MATRIX REFERENCE ARTIFACT · BOARD A · INTERFACE BLUEPRINT · CANDIDATE-REFERENCE</text>
+<text x="48" y="116" class="muted small">Design intent only · not a production screenshot · engineering truth remains the Experience Surface Contract</text>
+<rect x="48" y="150" width="1120" height="760" class="strong"/>
+<rect x="48" y="150" width="1120" height="64" fill="#121212" stroke="#333333"/>
+<text x="72" y="190" class="brand ink" font-size="24" font-weight="700">PLOTPICKLE</text><text x="860" y="188" class="soft meta">STORY MAP</text><text x="1014" y="188" class="green meta">ONLINE</text>
+<rect x="48" y="214" width="250" height="636" class="panel"/><text x="72" y="252" class="green label">MASTER NAVIGATION</text>
+<rect x="68" y="276" width="210" height="44" class="selected"/><text x="84" y="304" class="selectedText body">[O] OUTLINE</text>
+<rect x="68" y="328" width="210" height="44" class="row"/><text x="84" y="356" class="ink body">[S] STORYBOARD</text>
+<rect x="68" y="380" width="210" height="44" class="row"/><text x="84" y="408" class="ink body">[P] PREVIS</text>
+<rect x="68" y="432" width="210" height="44" class="focus"/><text x="84" y="460" class="green body">[L] LIBRARY</text>
+<rect x="68" y="484" width="210" height="44" fill="#090909" stroke="#242424"/><text x="84" y="512" fill="#666666" class="body">[G] GENERATE</text>
+<text x="72" y="566" class="muted small">↑ ↓ move</text><text x="72" y="592" class="muted small">ENTER open</text><text x="72" y="618" class="muted small">ESC back</text>
+<rect x="298" y="214" width="870" height="636" fill="#030303" stroke="#333333"/>
+<text x="330" y="254" class="green label">MAIN VIEWPORT</text><text x="330" y="292" class="ink title">ACT 1 · SEQUENCE 01 · BLOCK 01</text><text x="330" y="322" class="soft body">Visualize story structure while preserving one authoritative production identity.</text>
+<line x1="330" y1="344" x2="1134" y2="344" stroke="#333333"/>
+<text x="330" y="380" class="muted meta">PRIMARY WORK AREA</text>
+<rect x="330" y="400" width="240" height="130" class="row"/><text x="350" y="432" class="green label">BLOCK 01</text><text x="350" y="464" class="ink body">Opening state</text><text x="350" y="496" class="muted small">4 Mini-Blocks</text>
+<rect x="586" y="400" width="240" height="130" class="focus"/><text x="606" y="432" class="green label">BLOCK 02</text><text x="606" y="464" class="ink body">Pressure begins</text><text x="606" y="496" class="muted small">FOCUSED · ENTER</text>
+<rect x="842" y="400" width="240" height="130" class="row"/><text x="862" y="432" class="green label">BLOCK 03</text><text x="862" y="464" class="ink body">Choice turns</text><text x="862" y="496" class="muted small">3 Mini-Blocks</text>
+<rect x="330" y="562" width="752" height="104" class="panel"/><text x="350" y="594" class="green label">CONTEXT</text><text x="350" y="626" class="soft body">Scene → Beat → Shot → Frame remains progressive, not duplicated.</text>
+<rect x="884" y="692" width="198" height="48" class="focus"/><text x="904" y="723" class="green label">OPEN VISUAL STORY</text><rect x="666" y="692" width="198" height="48" class="row"/><text x="729" y="723" class="ink label">BACK</text>
+<rect x="48" y="850" width="1120" height="60" fill="#121212" stroke="#333333"/>
+<circle cx="76" cy="880" r="5" fill="#79bd92"/><text x="92" y="886" class="soft small">BUZZ</text><circle cx="178" cy="880" r="5" fill="#79bd92"/><text x="194" y="886" class="soft small">COMMUNITY</text><circle cx="322" cy="880" r="5" fill="#79bd92"/><text x="338" y="886" class="soft small">MODELS</text><circle cx="458" cy="880" r="5" fill="#79bd92"/><text x="474" y="886" class="soft small">COMFY</text><circle cx="604" cy="880" r="5" fill="#79bd92"/><text x="620" y="886" class="soft small">LOCAL</text><circle cx="730" cy="880" r="5" fill="#d98c8c"/><text x="746" y="886" class="soft small">CLOUD</text>
+<rect x="1204" y="150" width="348" height="760" class="panel"/><text x="1232" y="190" class="green label">ANATOMY KEY</text>
+<rect x="1232" y="222" width="292" height="58" class="call"/><text x="1250" y="248" class="ink small">SURFACE</text><text x="1250" y="270" class="muted small">One bounded experience</text>
+<rect x="1232" y="296" width="292" height="58" class="call"/><text x="1250" y="322" class="ink small">HEADER</text><text x="1250" y="344" class="muted small">Identity + context + status</text>
+<rect x="1232" y="370" width="292" height="58" class="call"/><text x="1250" y="396" class="ink small">MASTER NAVIGATION</text><text x="1250" y="418" class="muted small">Keyboard-first destinations</text>
+<rect x="1232" y="444" width="292" height="58" class="call"/><text x="1250" y="470" class="ink small">MAIN VIEWPORT</text><text x="1250" y="492" class="muted small">One dominant work area</text>
+<rect x="1232" y="518" width="292" height="58" class="call"/><text x="1250" y="544" class="ink small">PRIMARY ACTION</text><text x="1250" y="566" class="muted small">Focused, explicit, reversible</text>
+<rect x="1232" y="592" width="292" height="58" class="call"/><text x="1250" y="618" class="ink small">STATUS BAR</text><text x="1250" y="640" class="muted small">Operational state, not decoration</text>
+<text x="1232" y="704" class="green label">STATE EXAMPLES</text><rect x="1232" y="728" width="132" height="44" class="row"/><text x="1252" y="756" class="ink small">NORMAL</text><rect x="1392" y="728" width="132" height="44" class="selected"/><text x="1408" y="756" class="selectedText small">SELECTED</text><rect x="1232" y="788" width="132" height="44" class="focus"/><text x="1252" y="816" class="green small">FOCUSED</text><rect x="1392" y="788" width="132" height="44" fill="#090909" stroke="#242424"/><text x="1408" y="816" fill="#666666" class="small">DISABLED</text>
+<text x="1232" y="870" class="muted small">Square geometry · thin borders</text><text x="1232" y="894" class="muted small">4 px spacing grid · no soft glass</text>
+<text x="48" y="958" class="green meta">CANDIDATE-REFERENCE · SOURCE: matrix-master-v1 + matrix-board-a-interface-blueprint-v1 · HUMAN APPROVAL REQUIRED</text>
+</g></svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">PlotPickle Matrix Tokens and Operational Style Guide — candidate reference</title>
+<desc id="desc">Candidate Matrix style board showing semantic token roles, typography, spacing, geometry, focus and operational status examples based on the current PlotPickle Skin V1 contract.</desc>
+<rect width="1600" height="1000" fill="#000000"/>
+<style>
+.ui{font-family:'Courier New','Liberation Mono',Consolas,monospace}.brand{font-family:Arial,Helvetica,sans-serif}.ink{fill:#f4f4f4}.soft{fill:#d0d0d0}.muted{fill:#888888}.green{fill:#79bd92}.mid{fill:#287a4b}.deep{fill:#123524}.warn{fill:#d8c85d}.danger{fill:#d98c8c}.panel{fill:#090909;stroke:#333333;stroke-width:1}.row{fill:#121212;stroke:#333333;stroke-width:1}.focus{fill:#121212;stroke:#79bd92;stroke-width:2}.small{font-size:16px}.body{font-size:20px}.title{font-size:28px;font-weight:700}.meta{font-size:14px;letter-spacing:1.3px}.label{font-size:16px;font-weight:700;letter-spacing:1.6px}.strong{stroke:#efefef;stroke-width:2;fill:none}
+</style>
+<g class="ui">
+<text x="48" y="58" class="brand ink" font-size="34" font-weight="700">PLOTPICKLE</text><text x="48" y="86" class="green meta">MATRIX REFERENCE ARTIFACT · BOARD C · TOKENS &amp; OPERATIONAL STYLE GUIDE · CANDIDATE-REFERENCE</text><text x="48" y="116" class="muted small">Illustrative roles map back to existing --pp-skin-* tokens · no replacement token namespace</text>
+
+<rect x="48" y="150" width="720" height="770" class="strong"/><text x="76" y="192" class="green label">SEMANTIC COLOR ROLES</text>
+<g class="small">
+<rect x="76" y="220" width="122" height="78" fill="#000000" stroke="#333333"/><text x="76" y="322" class="ink">CANVAS</text><text x="76" y="344" class="muted">#000000</text>
+<rect x="220" y="220" width="122" height="78" fill="#090909" stroke="#333333"/><text x="220" y="322" class="ink">SURFACE 1</text><text x="220" y="344" class="muted">#090909</text>
+<rect x="364" y="220" width="122" height="78" fill="#181818" stroke="#333333"/><text x="364" y="322" class="ink">SURFACE 3</text><text x="364" y="344" class="muted">#181818</text>
+<rect x="508" y="220" width="122" height="78" fill="#f4f4f4" stroke="#333333"/><text x="508" y="322" class="ink">PRIMARY TEXT</text><text x="508" y="344" class="muted">#f4f4f4</text>
+<rect x="652" y="220" width="88" height="78" fill="#888888" stroke="#333333"/><text x="652" y="322" class="ink">MUTED</text><text x="652" y="344" class="muted">#888</text>
+<rect x="76" y="380" width="122" height="78" fill="#123524" stroke="#333333"/><text x="76" y="482" class="ink">ACCENT DEEP</text>
+<rect x="220" y="380" width="122" height="78" fill="#287a4b" stroke="#333333"/><text x="220" y="482" class="ink">ACCENT</text>
+<rect x="364" y="380" width="122" height="78" fill="#79bd92" stroke="#333333"/><text x="364" y="482" class="ink">FOCUS</text>
+<rect x="508" y="380" width="122" height="78" fill="#d8c85d" stroke="#333333"/><text x="508" y="482" class="ink">WARNING</text>
+<rect x="652" y="380" width="88" height="78" fill="#d98c8c" stroke="#333333"/><text x="652" y="482" class="ink">ERROR</text>
+</g>
+<text x="76" y="538" class="green label">TYPOGRAPHY SCALE</text><text x="76" y="582" class="brand ink" font-size="34" font-weight="700">PLOTPICKLE</text><text x="76" y="622" class="ink title">PAGE TITLE · 16 px role</text><text x="76" y="656" class="ink body">BODY COPY · readable operational text</text><text x="76" y="688" class="green label">SECTION LABEL · tracking</text><text x="76" y="718" class="muted meta">META / STATUS / SHORTCUT</text><text x="76" y="750" class="soft small">[S] STORYBOARD · monospace UI discipline</text>
+<text x="76" y="804" class="green label">SPACING / DENSITY</text><rect x="76" y="828" width="72" height="40" class="row"/><text x="96" y="854" class="ink small">4 px</text><rect x="168" y="820" width="92" height="48" class="row"/><text x="188" y="850" class="ink small">8 px</text><rect x="280" y="812" width="112" height="56" class="row"/><text x="302" y="846" class="ink small">16 px</text><text x="430" y="846" class="muted small">Strict 4 px grid · compact / standard / spacious roles</text>
+
+<rect x="804" y="150" width="748" height="770" class="strong"/><text x="832" y="192" class="green label">GEOMETRY &amp; COMPONENT RULES</text>
+<rect x="832" y="220" width="314" height="126" class="panel"/><text x="854" y="252" class="ink label">PANEL</text><text x="854" y="284" class="soft small">1 px line · radius 0</text><text x="854" y="314" class="muted small">No glass / blur / floaty elevation</text>
+<rect x="1180" y="220" width="344" height="126" class="focus"/><text x="1202" y="252" class="green label">FOCUS INDICATOR</text><text x="1202" y="284" class="soft small">2 px semantic focus boundary</text><text x="1202" y="314" class="muted small">Visible on dark + raised surfaces</text>
+
+<text x="832" y="398" class="green label">OPERATIONAL STATUS SEMANTICS</text>
+<circle cx="846" cy="438" r="6" fill="#79bd92"/><text x="866" y="444" class="ink small">READY / AVAILABLE — paired with text</text>
+<circle cx="846" cy="474" r="6" fill="#d8c85d"/><text x="866" y="480" class="ink small">ATTENTION / WORKING — bounded, not alarm-wide</text>
+<circle cx="846" cy="510" r="6" fill="#d98c8c"/><text x="866" y="516" class="ink small">BLOCKED / ERROR — explicit cause remains readable</text>
+<circle cx="846" cy="546" r="6" fill="#666666"/><text x="866" y="552" class="ink small">DISABLED / UNAVAILABLE — readable, non-active</text>
+
+<text x="832" y="610" class="green label">OPERATIONAL EXAMPLES</text>
+<rect x="832" y="636" width="216" height="118" class="panel"/><text x="850" y="664" class="ink label">LOADING</text><text x="850" y="694" class="soft small">Frames loading…</text><rect x="850" y="718" width="176" height="8" fill="#242424"/><rect x="850" y="718" width="76" height="8" fill="#287a4b"/>
+<rect x="1068" y="636" width="216" height="118" class="panel"/><text x="1086" y="664" class="ink label">EMPTY</text><text x="1086" y="694" class="soft small">No Shot selected.</text><text x="1086" y="722" class="green small">NEXT: SELECT SHOT</text>
+<rect x="1304" y="636" width="220" height="118" fill="#1a0b0b" stroke="#743737"/><text x="1322" y="664" class="danger label">ERROR</text><text x="1322" y="694" class="soft small">Preview unavailable.</text><text x="1322" y="722" class="danger small">Intent remains accessible.</text>
+
+<text x="832" y="802" class="green label">Z-INDEX / OVERLAY GUIDANCE</text><rect x="832" y="828" width="260" height="56" class="row"/><text x="850" y="862" class="ink small">BASE SURFACE</text><rect x="978" y="816" width="260" height="56" fill="#181818" stroke="#333333"/><text x="996" y="850" class="ink small">CONTEXT PANEL</text><rect x="1126" y="804" width="260" height="56" class="focus"/><text x="1144" y="838" class="green small">FOCUSED OVERLAY</text><text x="1404" y="840" class="muted small">Layering stays explicit.</text>
+
+<text x="48" y="958" class="green meta">CANDIDATE-REFERENCE · SOURCE: matrix-master-v1 + matrix-board-c-tokens-operational-v1 · HUMAN APPROVAL REQUIRED</text>
+</g></svg>

@@ -1,0 +1,44 @@
+name: Finalize LEARN 2094 Phase 10
+
+on:
+  push:
+    branches:
+      - issue-2094-phase-10
+    paths:
+      - scripts/finalize-2094-phase-10.mjs
+      - .github/workflows/finalize-2094-phase-10.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    name: Finalize #2094 Phase 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: issue-2094-phase-10
+
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Finalize ledger, fidelity content and learner source UI
+        run: node scripts/finalize-2094-phase-10.mjs
+
+      - name: Remove one-shot finalizer
+        run: git rm scripts/finalize-2094-phase-10.mjs .github/workflows/finalize-2094-phase-10.yml
+
+      - name: Commit finalized Phase 10
+        run: |
+          git config user.name "PlotPickle"
+          git config user.email "bryan@bryanharris.ca"
+          git add -A
+          git diff --cached --check
+          git commit -m "LEARN: finalize #2094 Phase 10 fidelity and source UI retirement"
+          git push origin HEAD:issue-2094-phase-10

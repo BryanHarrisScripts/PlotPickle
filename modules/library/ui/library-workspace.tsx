@@ -31,14 +31,19 @@ type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
-const DESTINATIONS: readonly { readonly id: LibraryDestination; readonly label: string }[] = [
-  { id: "new", label: "NEW" },
-  { id: "import", label: "IMPORT" },
-  { id: "load", label: "LOAD" },
-  { id: "examples", label: "EXAMPLES" },
-  { id: "presets", label: "PRESETS" },
-  { id: "avery", label: "AVERY" },
-  { id: "archive", label: "ARCHIVE" },
+const DESTINATIONS: readonly {
+  readonly id: LibraryDestination;
+  readonly shortcut: string;
+  readonly label: string;
+  readonly description: string;
+}[] = [
+  { id: "new", shortcut: "N", label: "NEW", description: "Start a New Story" },
+  { id: "import", shortcut: "I", label: "IMPORT", description: "Import Existing Work" },
+  { id: "load", shortcut: "L", label: "LOAD", description: "Load Your Stories" },
+  { id: "examples", shortcut: "E", label: "EXAMPLES", description: "Explore Reference Stories" },
+  { id: "presets", shortcut: "P", label: "PRESETS", description: "Start From a Story Preset" },
+  { id: "avery", shortcut: "A", label: "AVERY", description: "Writer-in-Residence History" },
+  { id: "archive", shortcut: "R", label: "ARCHIVE", description: "Archived Stories" },
 ];
 
 const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> = {
@@ -57,19 +62,6 @@ function displayDate(value: string) {
 
 function openActiveProject() {
   window.location.assign("/?workspace=dashboard");
-}
-
-function moveLibraryFocus(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-  const buttons = Array.from(event.currentTarget.closest("nav")?.querySelectorAll<HTMLButtonElement>("button") || []);
-  if (!buttons.length) return;
-  let nextIndex = index;
-  if (event.key === "ArrowDown") nextIndex = (index + 1) % buttons.length;
-  else if (event.key === "ArrowUp") nextIndex = (index - 1 + buttons.length) % buttons.length;
-  else if (event.key === "Home") nextIndex = 0;
-  else if (event.key === "End") nextIndex = buttons.length - 1;
-  else return;
-  event.preventDefault();
-  buttons[nextIndex]?.focus();
 }
 
 function CatalogCard({ item, sourceKind, onLoad }: {
@@ -145,7 +137,9 @@ export default function LibraryWorkspace() {
   const examples = useMemo(() => createFeaturedExamples(catalogCreatedAt), [catalogCreatedAt]);
   const presets = useMemo(() => createGenrePresets(catalogCreatedAt), [catalogCreatedAt]);
   const ppfInput = useRef<HTMLInputElement>(null);
-  const [destination, setDestination] = useState<LibraryDestination>("load");
+  const directoryItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [destination, setDestination] = useState<LibraryDestination | null>(null);
+  const [directorySelectedIndex, setDirectorySelectedIndex] = useState(0);
   const [activeProject, setActiveProject] = useState<PPFProject | null>(null);
   const [stories, setStories] = useState<readonly ProjectLibrarySummary[]>([]);
   const [archivedCount, setArchivedCount] = useState(0);
@@ -169,8 +163,65 @@ export default function LibraryWorkspace() {
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has("averySession")) setDestination("avery");
+    if (!new URLSearchParams(window.location.search).has("averySession")) return;
+    const averyIndex = DESTINATIONS.findIndex((item) => item.id === "avery");
+    setDirectorySelectedIndex(averyIndex);
+    setDestination("avery");
   }, []);
+
+  function selectDirectoryItem(index: number) {
+    const normalized = (index + DESTINATIONS.length) % DESTINATIONS.length;
+    setDirectorySelectedIndex(normalized);
+    window.requestAnimationFrame(() => directoryItemRefs.current[normalized]?.focus());
+  }
+
+  function activateDestination(index: number) {
+    const item = DESTINATIONS[index];
+    if (!item) return;
+    setDirectorySelectedIndex(index);
+    setDestination(item.id);
+  }
+
+  function returnToDirectory() {
+    setDestination(null);
+    window.requestAnimationFrame(() => directoryItemRefs.current[directorySelectedIndex]?.focus());
+  }
+
+  function handleDirectoryKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.key.length === 1) {
+      const shortcut = event.key.toUpperCase();
+      const shortcutIndex = DESTINATIONS.findIndex((item) => item.shortcut === shortcut);
+      if (shortcutIndex >= 0) {
+        event.preventDefault();
+        activateDestination(shortcutIndex);
+        return;
+      }
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      selectDirectoryItem(index + 1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      selectDirectoryItem(index - 1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      selectDirectoryItem(0);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      selectDirectoryItem(DESTINATIONS.length - 1);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activateDestination(index);
+    }
+  }
 
   function createNewStory() {
     try {
@@ -248,6 +299,8 @@ export default function LibraryWorkspace() {
         title: result.project.title,
         format: `Imported · ${result.project.sourceEvidence.screenplay?.sourceFormat || "PPF"}`,
       });
+      const loadIndex = DESTINATIONS.findIndex((item) => item.id === "load");
+      setDirectorySelectedIndex(loadIndex);
       setDestination("load");
       setNotice(`${imported.title} was imported into Library. Screenplay passages stay evidence; imported interpretation still requires your review.`);
     } catch (error) {
@@ -352,6 +405,8 @@ export default function LibraryWorkspace() {
     );
   }
 
+  const selectedDirectoryItem = DESTINATIONS[directorySelectedIndex];
+
   return (
     <main className={styles.workspace} aria-labelledby="library-title" data-library-workspace="v2">
       <header className={styles.hero}>
@@ -359,27 +414,71 @@ export default function LibraryWorkspace() {
         <aside aria-label="Active story"><span>Active story</span><strong>{activeProject?.title || "No active story"}</strong><small>{activeProject ? "Your work stays local and is saved before every story switch." : "Create, restore, or import a story when you are ready."}</small></aside>
       </header>
 
-      <div className={styles.libraryLayout}>
-        <nav aria-label="Library navigation" className={styles.libraryNav}>
-          {DESTINATIONS.map((item, index) => (
-            <button
-              aria-current={destination === item.id ? "page" : undefined}
-              data-library-nav={item.id}
-              key={item.id}
-              onClick={() => setDestination(item.id)}
-              onKeyDown={(event) => moveLibraryFocus(event, index)}
-              type="button"
-            >
-              <strong>{item.label}</strong>
-              {item.id === "load" ? <span>{stories.length}</span> : item.id === "archive" ? <span>{archivedCount}</span> : null}
-            </button>
-          ))}
-        </nav>
+      <div className={styles.libraryLayout} data-library-layout="single-surface" style={{ display: "block" }}>
+        {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
 
-        <div className={styles.libraryColumn}>
-          {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-          {renderSurface()}
-        </div>
+        {destination === null ? (
+          <section
+            className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
+            aria-label="Library menu"
+            data-library-directory="keyboard-directory"
+            data-skin-menu="library"
+          >
+            <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+              <div className="pp-skin-v1-dashboard-title">*** LIBRARY DIRECTORY ***</div>
+              <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Library directory">
+                {DESTINATIONS.map((item, index) => {
+                  const selected = index === directorySelectedIndex;
+                  const count = item.id === "load" ? stories.length : item.id === "archive" ? archivedCount : null;
+                  const description = count === null ? item.description : `${item.description} (${count})`;
+                  const command = `[${item.shortcut}] ${item.label}`.padEnd(22, " ");
+                  return (
+                    <button
+                      ref={(node) => { directoryItemRefs.current[index] = node; }}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      tabIndex={selected ? 0 : -1}
+                      autoFocus={selected}
+                      className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
+                      data-library-nav={item.id}
+                      data-library-shortcut={item.shortcut}
+                      data-skin-menu-row={item.id}
+                      data-skin-menu-shortcut={item.shortcut}
+                      data-skin-menu-connected="true"
+                      onClick={() => activateDestination(index)}
+                      onKeyDown={(event) => handleDirectoryKeyDown(event, index)}
+                    >
+                      <span className="pp-skin-v1-dashboard-command-line">{command} - {description}</span>
+                      <span
+                        className="pp-skin-v1-dashboard-status-box is-active"
+                        aria-label={`${item.label}: available`}
+                        data-dashboard-status="active"
+                        data-skin-menu-indicator="connected"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="pp-skin-v1-dashboard-reminder" aria-live="polite">Selected: {selectedDirectoryItem?.label || "NEW"}</p>
+            </div>
+          </section>
+        ) : (
+          <section
+            className={styles.libraryColumn}
+            aria-label={`${selectedDirectoryItem?.label || destination} Library destination`}
+            data-library-destination={destination}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                returnToDirectory();
+              }
+            }}
+          >
+            <button className="pp-skin-v1-return" data-library-back="directory" onClick={returnToDirectory} type="button">Back to Library</button>
+            {renderSurface()}
+          </section>
+        )}
       </div>
 
       {pending ? (

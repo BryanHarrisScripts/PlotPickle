@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { persistentHome } from "../local-credentials";
 import type { ComfyWorkflow, MediaProfile } from "../media-routing-store";
 import {
+  resolveImageStoryJobClass,
   safeAssetStem,
   saveGeneratedAsset,
   videoSourceReference,
@@ -229,6 +230,7 @@ export async function generateComfyImage(baseUrl: string, checkpoint: string, in
   const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 30_000) : "";
   if (!prompt) throw new Error("Enter an image prompt before generating.");
   if (!checkpoint) throw new Error("Select a ComfyUI checkpoint before testing image generation.");
+  const jobClass = resolveImageStoryJobClass(input);
   const promptId = await submitWorkflow(baseUrl, imageWorkflow(prompt, checkpoint, input));
   const started = Date.now();
   while (Date.now() - started < IMAGE_TIMEOUT_MS) {
@@ -240,7 +242,7 @@ export async function generateComfyImage(baseUrl: string, checkpoint: string, in
       const assetUrl = await saveGeneratedAsset(await downloadOutput(baseUrl, output), input.assetId || input.characterId || "comfyui-image", ".png");
       const fileName = assetUrl.slice(assetUrl.lastIndexOf("/") + 1);
       const assetLocation = path.join(persistentHome(), "assets", fileName);
-      return { assetUrl, assetLocation, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId };
+      return { assetUrl, assetLocation, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId, jobClass };
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }

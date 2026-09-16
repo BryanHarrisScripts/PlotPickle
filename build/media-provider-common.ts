@@ -3,12 +3,15 @@ import path from "node:path";
 import { persistentHome } from "./local-credentials";
 import type { MediaProfile } from "./media-routing-store";
 
+export type ImageStoryJobClass = "image-fast-draft" | "image-precision-edit";
+
 export type ImageGenerationInput = {
   prompt?: unknown;
   characterId?: unknown;
   assetId?: unknown;
   aspect?: unknown;
   quality?: unknown;
+  jobClass?: unknown;
   referenceImages?: unknown;
   approvedCharacterReferences?: unknown;
   environmentReferences?: unknown;
@@ -50,6 +53,25 @@ export type VisualContinuityEnvelope = {
 export const ASSET_PATH = "/api/local-ai/assets/";
 export const MAX_ASSET_BYTES = 20 * 1024 * 1024;
 export const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
+
+function hasImageIntent(value: unknown) {
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "string") return Boolean(value.trim());
+  return Boolean(value && typeof value === "object");
+}
+
+export function resolveImageStoryJobClass(input: ImageGenerationInput): ImageStoryJobClass {
+  if (input.jobClass === "image-fast-draft" || input.jobClass === "image-precision-edit") return input.jobClass;
+  const precisionIntent = input.quality === "high" || [
+    input.referenceImages,
+    input.approvedCharacterReferences,
+    input.environmentReferences,
+    input.identityLocks,
+    input.wardrobeLookIds,
+    input.continuityMetadata,
+  ].some(hasImageIntent);
+  return precisionIntent ? "image-precision-edit" : "image-fast-draft";
+}
 
 export function assetsDirectory() {
   return path.join(persistentHome(), "assets");

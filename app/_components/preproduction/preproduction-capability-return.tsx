@@ -9,6 +9,12 @@ function safeReturnPath(value: string | null) {
   return value;
 }
 
+function returnLabel(path: string) {
+  if (path.startsWith("/storyboard")) return "Return to Storyboard";
+  if (path.startsWith("/previs")) return "Return to Previs";
+  return "Return to Outline";
+}
+
 export default function PreproductionCapabilityReturn() {
   const [context, setContext] = useState<{ active: boolean; returnPath: string }>({
     active: false,
@@ -31,7 +37,7 @@ export default function PreproductionCapabilityReturn() {
         <span>CONTEXT TOOL</span>
         <strong>PRE-PRODUCTION remains your parent workspace.</strong>
       </div>
-      <Link href={context.returnPath}>Return to Outline</Link>
+      <Link href={context.returnPath}>{returnLabel(context.returnPath)}</Link>
       <Link href="/?workspace=dashboard">Dashboard</Link>
     </nav>
   );

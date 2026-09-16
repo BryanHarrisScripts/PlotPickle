@@ -41,7 +41,7 @@
     },
     "settings": {
       "label": "Manage",
-      "status": "locked",
+      "status": "candidate",
       "selector": "section[aria-label='Settings menu']",
       "candidate": ".artifacts/visual-readiness/settings-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/settings.png"

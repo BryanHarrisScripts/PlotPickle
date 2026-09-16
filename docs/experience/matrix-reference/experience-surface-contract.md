@@ -2,10 +2,24 @@
 
 Issue: #2124  
 Contract ID: `matrix-experience-surface-v1`  
-Version: `1.0.0`  
+Version: `1.1.0`  
 Authority: engineering presentation contract
 
 ## Authority hierarchy
+
+The Matrix implementation authority is now:
+
+```text
+Existing Matrix implementation + existing --pp-skin-* tokens
+→ Dashboard locked real-app baseline as canonical visual precedent
+→ other real Matrix screenshots as unlocked/candidate reference corpus
+→ Experience Surface Contract
+→ implemented PlotPickle surface
+→ existing WebMCP / Experience Skins verification
+→ real application screenshot candidate / locked baseline
+```
+
+Historical reference lifecycle remains valid:
 
 ```text
 Approved Matrix reference artifact
@@ -15,7 +29,11 @@ Approved Matrix reference artifact
 → real application screenshot candidate / locked baseline
 ```
 
-The approved reference boards communicate design intent. This document is the engineering truth for Matrix presentation behaviour. Real PlotPickle screenshots remain regression evidence. Generated or deterministic reference boards are never production screenshots and never become regression baselines.
+However, the three Phase 2 SVG boards are now `superseded-reference`. They remain useful conceptual studies but are not implementation targets and must not be reproduced pixel-for-pixel.
+
+The Dashboard real application screenshot is the sole locked Matrix baseline and the canonical visual precedent for extending Matrix into new surfaces. Other existing real Matrix screenshots remain legitimate visual examples while they are `candidate`, but they are not frozen regression truth.
+
+This document is the engineering truth for Matrix presentation behaviour. Real PlotPickle screenshots remain regression evidence. Generated or deterministic reference boards are never production screenshots and never become regression baselines.
 
 No rule in this contract changes Story/PPF, provider, Agent, Creative Transaction or production-object authority.
 
@@ -29,6 +47,20 @@ Surface → Region → Component → State → Tokens → Behaviour
 
 A component is incomplete when only its happy/default state is implemented. Where relevant, implementation and verification must cover default, hover, selected, keyboard-focused, disabled, empty, loading/async, error, validation and overflow/constrained-width behaviour.
 
+## Visual precedent rule
+
+When implementing a new Matrix surface:
+
+1. start from the current Matrix implementation and existing `--pp-skin-*` tokens;
+2. use the locked Dashboard real-app screenshot as the canonical visual precedent;
+3. use other current Matrix screenshots as supporting unlocked examples;
+4. apply the written behaviour and hierarchy rules in this contract;
+5. do not treat the superseded SVG compositions as layout specifications;
+6. capture the real application output through the existing WebMCP / Experience Skins path;
+7. keep the new capture candidate until Human approval explicitly locks it.
+
+The objective is to extend Matrix, not redesign Matrix around a mockup.
+
 ## Shared Matrix invariants
 
 ### Visual language
@@ -38,8 +70,9 @@ A component is incomplete when only its happy/default state is implemented. Wher
 - Restrained three-role Matrix green: deep, standard accent and bright/focus. Green communicates focus, active state, readiness or bounded emphasis; it is not broad decoration.
 - Square or near-square geometry. The canonical radius remains `--pp-skin-radius` and is currently zero.
 - Thin borders and stepped 8/16-bit shading. Do not add glass, blur, floating soft cards or ornamental frame stacks.
-- One dominant work area per surface. Supporting rails, inspectors and status areas must remain subordinate to it.
+- One dominant work area per surface. Supporting rails, inspectors and status areas remain subordinate to it.
 - Media may retain source colour, but visual-story planning surfaces may intentionally present black-and-white or low-fidelity planning imagery when the owning workflow calls for it.
+- New pre-production surfaces should look like the current PlotPickle Matrix application first; domain-specific layout may increase density but must not introduce a separate visual system.
 
 ### Canonical token authority
 
@@ -61,7 +94,7 @@ No second Matrix token namespace is permitted.
 - Keyboard-first UI text uses the existing Matrix monospace stack.
 - Brand treatment may use the existing brand stack; work-area labels, controls, metadata and status text remain compact and utilitarian.
 - Spacing follows the existing four-pixel grid.
-- Dense information is allowed, but grouping must be achieved through alignment, spacing and line hierarchy rather than nested decorative boxes.
+- Dense information is allowed, but grouping is achieved through alignment, spacing and line hierarchy rather than nested decorative boxes.
 
 ## Regions
 
@@ -94,7 +127,7 @@ Behaviour:
 - receives the largest spatial allocation;
 - scrolls intentionally when content exceeds available space;
 - preserves selected/focused context during overflow;
-- loading retains skeleton/structural context rather than replacing the surface with an unrelated full-page state;
+- loading retains structural context rather than replacing the surface with an unrelated full-page state;
 - empty state explains what is missing and the legitimate next action without manufacturing content.
 
 ### Inspector / Detail Region
@@ -102,9 +135,9 @@ Behaviour:
 Purpose: explain or edit the currently selected object when the owning workflow permits editing.
 
 Behaviour:
-- selection identity must match the same stable underlying object used by the main viewport;
-- inspector state must not create a parallel copy of Story/Shot/Frame data;
-- read-only authority must remain visibly read-only;
+- selection identity matches the same stable underlying object used by the main viewport;
+- inspector state does not create a parallel copy of Story/Shot/Frame data;
+- read-only authority remains visibly read-only;
 - validation is local to the relevant control or section.
 
 ### Status Bar
@@ -150,7 +183,7 @@ Behaviour:
 - Placement reflects existing timing authority only.
 - Untimed material remains visibly untimed/unplaced rather than receiving invented timestamps.
 - Selected clip maps to the same Shot/Frame identity exposed by Visual Story.
-- Playhead and focus treatment must remain legible over dense lanes.
+- Playhead and focus treatment remain legible over dense lanes.
 
 ### Messages
 
@@ -171,7 +204,7 @@ Behaviour:
 
 ### Scroll / overflow
 
-- Vertical/horizontal overflow must be intentional and discoverable.
+- Vertical/horizontal overflow is intentional and discoverable.
 - Active selection/focus must not become hidden without a way to bring it back into view.
 - Timeline and dense board surfaces may scroll internally when this preserves surrounding context better than whole-page scrolling.
 
@@ -184,7 +217,8 @@ Behaviour:
 ### Human approval
 
 - Candidate generation, AI suggestions or imported visuals must never look Human-approved unless their owning data actually records that approval.
-- Approved design references may guide implementation but do not approve application screenshots or story artifacts.
+- A request to continue work does not by itself make a conceptual design artifact a pixel-level implementation target.
+- Superseded reference boards remain available for design history but do not outrank the existing Matrix application or the locked Dashboard baseline.
 
 ## Surface profiles
 
@@ -198,10 +232,11 @@ Behaviour:
 Rules:
 - retain the calendar-like whole-film scanability;
 - Acts and Sequences provide spatial grouping, not new storage;
-- selected Block/Mini-Block must be obvious and keyboard reachable;
+- selected Block/Mini-Block is obvious and keyboard reachable;
 - Act-turn/finale markers remain structural context, not decorative badges;
 - the map is the macro orientation layer and should not imitate a timeline;
-- opening Visual Story carries the same selected structural address forward.
+- opening Visual Story carries the same selected structural address forward;
+- visual chrome extends the existing Matrix Dashboard language rather than the superseded Board A SVG composition.
 
 ### Visual Story
 
@@ -218,7 +253,8 @@ Rules:
 - selected Shot identity is shared with Scene Timeline;
 - #2107 SHOW_NOW / WITHHOLD_NOW information is presented as Shot meaning, not a separate authority;
 - candidate versus kept/accepted Frame state remains visible;
-- moving to Scene Timeline preserves selected Scene/Shot when representable.
+- moving to Scene Timeline preserves selected Scene/Shot when representable;
+- Matrix controls, borders, typography and status treatment follow the existing application precedent rather than the superseded SVG boards.
 
 ### Scene Timeline
 
@@ -233,7 +269,8 @@ Rules:
 - untimed material remains visibly unplaced;
 - selection synchronizes with Visual Story through stable identities;
 - timing edits use the existing permitted authority/change path and must not bypass #2035 for approved creative state;
-- a timeline is a projection over production state, not a second timeline store.
+- a timeline is a projection over production state, not a second timeline store;
+- Premiere-like density may inform the work-area arrangement, but chrome and state treatment remain Matrix-native.
 
 ## Matrix Reference Artifact Contract
 
@@ -263,11 +300,15 @@ superseded-reference
 ```
 
 Allowed usage of an approved reference:
-- inform implementation;
+- inform implementation where it remains compatible with the current Matrix application;
 - be cited by this Experience Surface Contract;
 - guide shared component/token work;
-- guide existing WebMCP expectations;
-- justify moving a conflicting locked application screenshot back to candidate only when Human-approved scope explicitly calls for it.
+- guide existing WebMCP expectations.
+
+Allowed usage of a superseded reference:
+- preserve design history;
+- explain prior exploration;
+- retain conceptual ideas that are independently supported by the written contract or current Matrix implementation.
 
 Disallowed usage:
 - Story/PPF canon;
@@ -275,31 +316,47 @@ Disallowed usage:
 - locked baseline;
 - automatic visual approval;
 - sole regression oracle;
+- pixel-level implementation target after supersession;
 - justification for unrelated surface rewrites.
 
-Current approved design references:
+Current superseded design studies:
 - `matrix-board-a-interface-blueprint-v1-candidate` — Interface Blueprint;
 - `matrix-board-b-interaction-state-v1-candidate` — Interaction & State Guide;
 - `matrix-board-c-tokens-operational-v1-candidate` — Tokens & Operational Style Guide.
 
-The artifact IDs remain stable even though their current `approvalState` is `approved-reference`.
+The artifact IDs remain stable while their current `approvalState` is `superseded-reference`.
+
+Reference SVGs never enter the real-app baseline set.
 
 ## Baseline governance
 
+Current Human-approved baseline rule:
+
 ```text
-Existing locked real-app baseline
-+ Human-approved contract that intentionally supersedes it
-→ affected surface moves to candidate
-→ implementation changes through shared contract/tokens
-→ existing WebMCP / Experience Skins verification
-→ Human review of real PlotPickle output
-→ approved real screenshot re-locks
+Dashboard real-app screenshot = locked canonical Matrix baseline
+All other current Matrix surfaces = candidate/unlocked
+New pre-production surfaces = candidate until explicit Human approval
 ```
 
-Do not unlock unrelated baselines. Reference SVGs never enter the real-app baseline set.
+A candidate screenshot may still be used as a supporting example of the current Matrix implementation, but only a `locked` entry is strict regression truth.
+
+For a new or materially changed surface:
+
+```text
+Existing Matrix implementation + Dashboard locked precedent
+→ implement through shared contract/tokens
+→ existing WebMCP / Experience Skins verification
+→ capture real PlotPickle output as candidate
+→ Human review
+→ optionally lock that real screenshot explicitly
+```
+
+Do not automatically lock any surface because it was generated, implemented or successfully verified. Do not unlock Dashboard without explicit Human direction.
 
 ## Verification handoff
 
 Phase 4 may extend only the existing standard-surface catalogue/selectors/ownership metadata required to make governed surfaces navigable and inspectable by current WebMCP + Experience Skins verification.
 
-It must not create a second verifier, second visual harness, new design Agent or parallel screenshot governance system.
+Story Map, Visual Story and Scene Timeline should first enter the verification system as candidate/unlocked surfaces. Their real application captures, not the superseded SVGs, are the review material for any future lock decision.
+
+Phase 4 must not create a second verifier, second visual harness, new design Agent or parallel screenshot governance system.

@@ -1,11 +1,14 @@
 {
   "issue": 2124,
   "phase": 2,
-  "status": "candidate-reference",
+  "status": "approved-reference",
   "sourcePromptId": "matrix-master-v1",
   "sourcePromptVersion": "1.0.0",
   "renderMethod": "deterministic-svg-from-current-pp-skin-token-roles",
   "humanApprovalRequired": true,
+  "humanApprovalState": "approved",
+  "humanApprovalRecordedAt": "2026-09-16",
+  "approvalBasis": "Human explicitly instructed PlotPickle workstream to continue from the Phase 2 review gate.",
   "engineeringTruth": "Experience Surface Contract",
   "regressionEvidence": "real PlotPickle application screenshot",
   "boards": [
@@ -14,25 +17,26 @@
       "artifactType": "matrix-interface-blueprint",
       "promptId": "matrix-board-a-interface-blueprint-v1",
       "path": "docs/experience/matrix-reference/candidates/board-a-interface-blueprint-v1.svg",
-      "approvalState": "candidate-reference"
+      "approvalState": "approved-reference"
     },
     {
       "artifactId": "matrix-board-b-interaction-state-v1-candidate",
       "artifactType": "matrix-interaction-state-guide",
       "promptId": "matrix-board-b-interaction-state-v1",
       "path": "docs/experience/matrix-reference/candidates/board-b-interaction-state-v1.svg",
-      "approvalState": "candidate-reference"
+      "approvalState": "approved-reference"
     },
     {
       "artifactId": "matrix-board-c-tokens-operational-v1-candidate",
       "artifactType": "matrix-tokens-operational-style-guide",
       "promptId": "matrix-board-c-tokens-operational-v1",
       "path": "docs/experience/matrix-reference/candidates/board-c-tokens-operational-v1.svg",
-      "approvalState": "candidate-reference"
+      "approvalState": "approved-reference"
     }
   ],
   "generationNotes": [
     "Two initial image-generator attempts were rejected before repository admission because they drifted into the retired bronze/stone visual language and combined multiple board scopes.",
-    "The admitted candidates use current Skin V1 token roles and remain non-authoritative until Human approval."
+    "The admitted SVGs use current Skin V1 token roles.",
+    "Human approval promotes the admitted SVGs to approved design references only; they are not production screenshots or regression baselines."
   ]
 }

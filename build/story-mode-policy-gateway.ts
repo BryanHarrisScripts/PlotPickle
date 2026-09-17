@@ -3,6 +3,12 @@ import type { ViteDevServer } from "vite";
 import { readNativeH3Store } from "./ai/h3/comfyui-h3-native-provider";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import { readMediaRoutingStore } from "./media-routing-store";
+import {
+  isStoryModeImageJobClass,
+  isStoryModeJobPreference,
+  readStoryModeJobRouting,
+  writeStoryModeJobRoutingPreference,
+} from "./story-mode-job-routing";
 import { readSynchronizedAssistantStore } from "./writing-assistant-store";
 
 export type StoryModePolicy = "local" | "cloud" | "hybrid";
@@ -21,6 +27,7 @@ type RoutingChoiceSnapshot = {
 };
 
 const POLICY_PATH = "/api/story-mode/policy";
+const JOB_ROUTING_PATH = "/api/story-mode/job-routing";
 const POLICY_FILE = "story-mode-policy.json";
 const ROUTING_FILE = "ai-routing.json";
 const GENERATION_CAPABILITIES = new Map<string, "text" | "image" | "video">([
@@ -74,7 +81,7 @@ function normalizeMode(value: unknown): StoryModePolicy | null {
   return value === "local" || value === "cloud" || value === "hybrid" ? value : null;
 }
 
-async function readPolicy(): Promise<StoryModePolicyStore> {
+export async function readStoryModePolicy(): Promise<StoryModePolicyStore> {
   const stored = await readCredentialJson<unknown>(POLICY_FILE);
   if (stored && typeof stored === "object" && !Array.isArray(stored)) {
     const source = stored as Partial<StoryModePolicyStore>;
@@ -147,7 +154,7 @@ async function selectedRoute(capability: "text" | "image" | "video") {
 async function enforceGenerationPolicy(pathname: string, response: ServerResponse, next: () => void) {
   const capability = GENERATION_CAPABILITIES.get(pathname);
   if (!capability) { next(); return; }
-  const policy = await readPolicy();
+  const policy = await readStoryModePolicy();
   if (policy.mode === "hybrid") { next(); return; }
   const route = await selectedRoute(capability);
   const locality = storyModeRouteLocality(capability, route);
@@ -167,7 +174,7 @@ async function enforceGenerationPolicy(pathname: string, response: ServerRespons
 
 async function handlePolicy(request: IncomingMessage, response: ServerResponse) {
   if (request.method === "GET") {
-    const policy = await readPolicy();
+    const policy = await readStoryModePolicy();
     sendJson(response, 200, { ok: true, ...policy });
     return;
   }
@@ -182,10 +189,32 @@ async function handlePolicy(request: IncomingMessage, response: ServerResponse) 
   sendJson(response, 200, { ok: true, ...policy });
 }
 
+async function handleJobRouting(request: IncomingMessage, response: ServerResponse) {
+  if (request.method === "GET") {
+    sendJson(response, 200, { ok: true, ...(await readStoryModeJobRouting()) });
+    return;
+  }
+  if (request.method !== "POST") {
+    sendJson(response, 405, { ok: false, message: "Method not allowed." });
+    return;
+  }
+  const body = await readBody(request);
+  if (!isStoryModeImageJobClass(body.jobClass)) {
+    throw new Error("Choose Images — Fast / Draft or Images — Precision / Edit.");
+  }
+  if (!isStoryModeJobPreference(body.preference)) {
+    throw new Error("Choose AUTO, LOCAL FIRST or CLOUD FIRST Job Routing.");
+  }
+  sendJson(response, 200, {
+    ok: true,
+    ...(await writeStoryModeJobRoutingPreference(body.jobClass, body.preference)),
+  });
+}
+
 export function registerStoryModePolicyGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
-    if (pathname !== POLICY_PATH && !GENERATION_CAPABILITIES.has(pathname)) { next(); return; }
+    if (pathname !== POLICY_PATH && pathname !== JOB_ROUTING_PATH && !GENERATION_CAPABILITIES.has(pathname)) { next(); return; }
     if (!isLocalRequest(request)) {
       sendJson(response, 403, { ok: false, message: "Story Mode policy accepts requests only from this PlotPickle server." });
       return;
@@ -194,6 +223,13 @@ export function registerStoryModePolicyGateway(server: ViteDevServer) {
       void handlePolicy(request, response).catch((error) => sendJson(response, 400, {
         ok: false,
         message: error instanceof Error ? error.message : "Story Mode policy update failed.",
+      }));
+      return;
+    }
+    if (pathname === JOB_ROUTING_PATH) {
+      void handleJobRouting(request, response).catch((error) => sendJson(response, 400, {
+        ok: false,
+        message: error instanceof Error ? error.message : "Story Mode Job Routing update failed.",
       }));
       return;
     }

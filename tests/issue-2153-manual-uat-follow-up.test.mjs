@@ -48,9 +48,10 @@ test("#2153 makes existing Story Mode readiness visually legible without a new a
 });
 
 test("#2153 marks Storyboard and Previs as yellow in-review destinations", async () => {
-  const [dashboard, styles] = await Promise.all([
+  const [dashboard, styles, audit] = await Promise.all([
     read("app/skin-v1/dashboard-bbs-panel.tsx"),
     read("app/issue-2061.css"),
+    read("lib/verification/skin-v1-menu-contract-audit.mjs"),
   ]);
 
   assert.match(dashboard, /item\.id === "storyboard" \|\| item\.id === "previs"/u);
@@ -58,6 +59,8 @@ test("#2153 marks Storyboard and Previs as yellow in-review destinations", async
   assert.match(dashboard, /inReview \? " is-review" : ""/u);
   assert.match(dashboard, /inReview \? "in review"/u);
   assert.match(styles, /data-dashboard-menu-item="storyboard"[^}]*data-dashboard-menu-item="previs"[^}]*--pp-skin-warning/su);
+  assert.match(audit, /\["library", "plan", "storyboard", "previs"\]\.includes\(row\.id\)/u);
+  assert.match(audit, /isDashboardReviewItem[\s\S]*result\.warning/u);
 });
 
 test("#2153 keeps Local and Cloud in the existing Dashboard rail and Hybrid and Mode on Story Mode", async () => {

@@ -195,6 +195,10 @@ test("#2166 projects observed rich/Afterglow Block identities into the same card
   assert.match(reconciliation, /20 explicit titled source sections/u);
   assert.match(reconciliation, /Most Complete 2023 Baseline/u);
   assert.match(reconciliation, /without asserting 24 authored source Blocks/u);
+  assert.match(reconciliation, /afterglowSourceUsePolicy/u);
+  assert.match(reconciliation, /review-as-later-proposal/u);
+  assert.match(reconciliation, /gap-recovery-and-structural-comparison/u);
+  assert.match(reconciliation, /v10-later-partial/u);
   assert.doesNotMatch(importer, /stages:\s*\{\s*plan:/u);
   assert.doesNotMatch(board, /\/api\/|generate\/image|createScene|createBeat|createShot|createFrame/u);
   assert.match(board, /Empty cards stay empty/u);

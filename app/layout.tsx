@@ -36,6 +36,7 @@ import "./skin-v1-definition.css";
 import "./skin-v2-definition.css";
 import "./skin-v1.css";
 import "./skin-v1-bbs-surfaces.css";
+import "./skin-v1-library-archive.css";
 import "./community-monochrome-skin.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";

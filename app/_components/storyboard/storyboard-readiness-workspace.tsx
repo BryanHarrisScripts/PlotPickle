@@ -8,6 +8,7 @@ import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import type { PlotPickleProject } from "@/lib/projects/project";
+import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import { storyboardAnchorTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
@@ -37,6 +38,7 @@ function boundedMiniBlockNumber(value: number | undefined) {
 export default function StoryboardReadinessWorkspace({
   project,
   legacyProject,
+  providerInstructions = null,
   onProjectChange,
   onOpenBuild,
   initialBlockNumber,
@@ -47,6 +49,7 @@ export default function StoryboardReadinessWorkspace({
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
+  readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenBuild: () => void;
   readonly initialBlockNumber?: number;
@@ -211,6 +214,7 @@ export default function StoryboardReadinessWorkspace({
           miniBlockNumber={selectedMiniBlockNumber}
           onProjectChange={onProjectChange}
           project={project}
+          providerInstructions={providerInstructions}
         />
       ) : null}
 

@@ -6,14 +6,31 @@ import {
   plotPickleScorePercent,
 } from "../../core/project/plotpickle-score";
 import {
+  DEFAULT_LOCAL_PROFILE_ID,
+  PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
+  initializeProjectLibrary,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
-import {
-  PROJECT_LIBRARY_SESSION_CHANGED_EVENT,
-  currentSessionLibraryProject,
-} from "../../core/storage/project-library-session-browser";
 import styles from "./plotpickle-score-panel.module.css";
+
+const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
+const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
+
+function currentProfileId() {
+  return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
+}
+
+function currentSessionProjectKey() {
+  return `${SESSION_PROJECT_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function currentSessionLibraryProject(): LibraryPPFProject | null {
+  const projectId = window.sessionStorage.getItem(currentSessionProjectKey())?.trim();
+  if (!projectId) return null;
+  const activeProject = initializeProjectLibrary().activeProject;
+  return activeProject?.id === projectId ? activeProject : null;
+}
 
 function readActiveProject() {
   try {

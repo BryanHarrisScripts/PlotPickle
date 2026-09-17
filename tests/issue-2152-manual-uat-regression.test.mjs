@@ -6,14 +6,16 @@ const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
 test("#2152 keeps persisted Library selection separate from the explicit current-session story", async () => {
-  const session = await read("core/storage/project-library-session-browser.ts");
   const library = await read("modules/library/ui/library-workspace.tsx");
+  const score = await read("app/skin-v1/plotpickle-score-panel.tsx");
 
-  assert.match(session, /PROJECT_LIBRARY_SESSION_CHANGED_EVENT/u);
-  assert.match(session, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
-  assert.match(session, /currentSessionLibraryProject/u);
-  assert.match(session, /initializeProjectLibrary\(\)\.activeProject/u);
-  assert.match(session, /activeProject\.id !== projectId/u);
+  for (const surface of [library, score]) {
+    assert.match(surface, /PROJECT_LIBRARY_SESSION_CHANGED_EVENT/u);
+    assert.match(surface, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/u);
+    assert.match(surface, /plotpickle\.project-library\.session-project/u);
+    assert.match(surface, /currentSessionLibraryProject/u);
+    assert.match(surface, /initializeProjectLibrary\(\)\.activeProject/u);
+  }
 
   assert.match(library, /setActiveProject\(currentSessionLibraryProject\(\)\)/u);
   assert.doesNotMatch(library, /setActiveProject\(library\.activeProject\)/u);
@@ -21,6 +23,7 @@ test("#2152 keeps persisted Library selection separate from the explicit current
   assert.match(library, /markCurrentSessionLibraryProject\(openedProject\.id\)/u);
   assert.match(library, /markCurrentSessionLibraryProject\(imported\.id\)/u);
   assert.match(library, /clearCurrentSessionLibraryProject\(\)/u);
+  assert.doesNotMatch(score, /project-library-session-browser/u);
 });
 
 test("#2152 restores the Library BBS directory as readable full-width command rows", async () => {

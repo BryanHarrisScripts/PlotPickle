@@ -10,7 +10,7 @@ const DEFAULT_ROOT = path.resolve(path.dirname(SCRIPT_PATH), "..");
 export const SKIN_V1_BASELINE_MANIFEST = "tests/visual-baselines/skin-v1/manifest.json";
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
-async function readManifest(root) {
+export async function readVisualBaselineManifest({ root = DEFAULT_ROOT } = {}) {
   const manifestPath = path.join(root, SKIN_V1_BASELINE_MANIFEST);
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   if (manifest?.skin !== "skin-v1" || !manifest?.surfaces || typeof manifest.surfaces !== "object") {
@@ -41,7 +41,7 @@ async function readCandidate(root, entry, surface) {
 
 export async function lockVisualBaseline(surface, { root = DEFAULT_ROOT } = {}) {
   const normalized = String(surface || "").trim().toLowerCase();
-  const { manifest, manifestPath } = await readManifest(root);
+  const { manifest, manifestPath } = await readVisualBaselineManifest({ root });
   const entry = manifest.surfaces[normalized];
   if (!entry) throw new Error(`Unknown Skin V1 visual surface: ${normalized || "empty"}`);
   if (entry.status === "locked") {
@@ -76,7 +76,7 @@ export async function lockAllVisualBaselines({ root = DEFAULT_ROOT, replace = fa
     throw new Error("Bulk Skin V1 baseline replacement requires the explicit --replace flag.");
   }
 
-  const { manifest, manifestPath } = await readManifest(root);
+  const { manifest, manifestPath } = await readVisualBaselineManifest({ root });
   const candidates = await Promise.all(Object.entries(manifest.surfaces).map(([surface, entry]) => readCandidate(root, entry, surface)));
 
   for (const candidate of candidates) {
@@ -87,6 +87,56 @@ export async function lockAllVisualBaselines({ root = DEFAULT_ROOT, replace = fa
 
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
   return { baselines: candidates, manifestPath };
+}
+
+function normalizeToggleSelection(surfaces) {
+  if (!Array.isArray(surfaces) || surfaces.length === 0) {
+    throw new Error("Select at least one Skin V1 visual surface to toggle.");
+  }
+  const normalized = surfaces.map((surface) => String(surface || "").trim().toLowerCase());
+  if (normalized.some((surface) => !surface)) throw new Error("Visual baseline selection contains an empty surface.");
+  if (new Set(normalized).size !== normalized.length) throw new Error("Visual baseline selection contains duplicate surfaces.");
+  return normalized;
+}
+
+export async function toggleVisualBaselines(surfaces, { root = DEFAULT_ROOT } = {}) {
+  const selected = normalizeToggleSelection(surfaces);
+  const { manifest, manifestPath } = await readVisualBaselineManifest({ root });
+  const changes = selected.map((surface) => {
+    const entry = manifest.surfaces[surface];
+    if (!entry) throw new Error(`Unknown Skin V1 visual surface: ${surface}`);
+    if (!["candidate", "locked"].includes(entry.status)) {
+      throw new Error(`${entry.label || surface} has unsupported baseline status: ${entry.status}`);
+    }
+    return {
+      surface,
+      label: entry.label || surface,
+      before: entry.status,
+      after: entry.status === "locked" ? "candidate" : "locked",
+      entry,
+    };
+  });
+
+  const baselines = await Promise.all(changes
+    .filter((change) => change.after === "locked")
+    .map((change) => readCandidate(root, change.entry, change.surface)));
+
+  for (const baseline of baselines) {
+    await mkdir(path.dirname(baseline.baselinePath), { recursive: true });
+    await copyFile(baseline.candidatePath, baseline.baselinePath);
+  }
+  for (const change of changes) {
+    manifest.surfaces[change.surface] = { ...change.entry, status: change.after };
+  }
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
+  return {
+    changes: changes.map(({ entry: _entry, ...change }) => change),
+    lockedSurfaces: Object.entries(manifest.surfaces)
+      .filter(([, entry]) => entry.status === "locked")
+      .map(([surface]) => surface),
+    manifestPath,
+  };
 }
 
 const directExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(SCRIPT_PATH);

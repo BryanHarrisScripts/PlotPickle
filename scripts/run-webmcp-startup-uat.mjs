@@ -35,6 +35,10 @@ import {
   WEBMCP_UAT_SKILL_POLICY,
 } from "../lib/verification/webmcp-uat-skills.mjs";
 import { validateLocalServer, waitForUiServer } from "../lib/verification/ui-axe-audit.mjs";
+import {
+  readVisualBaselineManifest,
+  toggleVisualBaselines,
+} from "./lock-skin-visual-baseline.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -76,19 +80,104 @@ export function visualBaselineApprovalLines(targets = WEBMCP_STANDARD_SURFACE_TA
   return lines;
 }
 
-export function approvesVisualBaselineReplacement(answer) {
-  return String(answer || "").trim().toLowerCase() === "y";
+export function approvesVisualBaselineChanges(answer) {
+  const normalized = String(answer || "").trim().toLowerCase();
+  if (normalized === "y") return true;
+  if (normalized === "n") return false;
+  throw new Error("Visual baseline approval must be Y or N.");
 }
 
-export async function promptVisualBaselineReplacement({ input = process.stdin, output = process.stdout } = {}) {
-  if (!input?.isTTY || !output?.isTTY) return false;
-  output.write("\nReview the captured screenshots before replacing the approved Skin V1 baselines.\n");
-  const prompt = createInterface({ input, output });
+function surfaceState(manifest, surface) {
+  const state = manifest?.surfaces?.[surface]?.status;
+  if (!["candidate", "locked"].includes(state)) {
+    throw new Error(`Visual baseline manifest is missing a valid state for ${surface}.`);
+  }
+  return state;
+}
+
+export function visualBaselineReviewLines({
+  manifest,
+  targets = WEBMCP_STANDARD_SURFACE_TARGETS,
+  labels = WEBMCP_SURFACE_LABELS,
+} = {}) {
+  const locked = targets.flatMap((surface, index) => surfaceState(manifest, surface) === "locked"
+    ? [`[${index + 1}] ${labels[surface] || surface}`]
+    : []);
+  return [
+    "Visual review complete.",
+    `${targets.length} surfaces captured.`,
+    `Currently locked: ${locked.length ? locked.join(", ") : "none"}`,
+  ];
+}
+
+export function visualBaselineSelectionLines({
+  manifest,
+  targets = WEBMCP_STANDARD_SURFACE_TARGETS,
+  labels = WEBMCP_SURFACE_LABELS,
+} = {}) {
+  const width = Math.max(...targets.map((surface) => (labels[surface] || surface).length));
+  return [
+    "Select the surface numbers that should be LOCKED.",
+    "Entering an already-locked surface will UNLOCK it.",
+    "",
+    ...targets.map((surface, index) => {
+      const label = labels[surface] || surface;
+      const state = surfaceState(manifest, surface) === "locked" ? "LOCKED" : "UNLOCKED";
+      return `[${index + 1}] ${label.padEnd(width)} [${state}]`;
+    }),
+  ];
+}
+
+export function parseVisualBaselineSelection(answer, targets = WEBMCP_STANDARD_SURFACE_TARGETS) {
+  const raw = String(answer || "").trim();
+  if (!raw) throw new Error("Select at least one surface number.");
+  if (!/^\d+(?:\s*,\s*\d+)*$/u.test(raw)) {
+    throw new Error("Enter surface numbers separated by commas.");
+  }
+  const numbers = raw.split(",").map((value) => Number.parseInt(value.trim(), 10));
+  if (new Set(numbers).size !== numbers.length) throw new Error("Enter each surface number only once.");
+  const invalid = numbers.find((number) => number < 1 || number > targets.length);
+  if (invalid !== undefined) throw new Error(`Unknown visual surface number: ${invalid}.`);
+  return numbers.map((number) => targets[number - 1]);
+}
+
+export function visualBaselineResultLines(result, {
+  targets = WEBMCP_STANDARD_SURFACE_TARGETS,
+} = {}) {
+  const lines = ["Updated visual baselines:"];
+  for (const change of result.changes) {
+    const number = targets.indexOf(change.surface) + 1;
+    const before = change.before === "locked" ? "LOCKED" : "UNLOCKED";
+    const after = change.after === "locked" ? "LOCKED" : "UNLOCKED";
+    lines.push(`[${number}] ${change.label} [${before} → ${after}]`);
+  }
+  const locked = targets.flatMap((surface, index) => result.lockedSurfaces.includes(surface) ? [`[${index + 1}]`] : []);
+  lines.push("");
+  lines.push(`Locked baselines now: ${locked.length ? locked.join(", ") : "none"}`);
+  return lines;
+}
+
+export async function promptVisualBaselineChanges({
+  input = process.stdin,
+  output = process.stdout,
+  manifest,
+  targets = WEBMCP_STANDARD_SURFACE_TARGETS,
+  labels = WEBMCP_SURFACE_LABELS,
+  question,
+} = {}) {
+  if (!question && (!input?.isTTY || !output?.isTTY)) return { prompted: false, approved: false, surfaces: [] };
+  const prompt = question ? null : createInterface({ input, output });
+  const ask = question || ((text) => prompt.question(text));
   try {
-    const answer = await prompt.question("Replace ALL Skin V1 visual baselines with the screenshots from this run? [Y/N] ");
-    return approvesVisualBaselineReplacement(answer);
+    const approved = approvesVisualBaselineChanges(await ask("Do you want to change the locked visual baselines? [Y/N] "));
+    if (!approved) return { prompted: true, approved: false, surfaces: [] };
+    output.write("\n");
+    for (const line of visualBaselineSelectionLines({ manifest, targets, labels })) output.write(`${line}\n`);
+    output.write("\n");
+    const surfaces = parseVisualBaselineSelection(await ask("Enter numbers, separated by commas: "), targets);
+    return { prompted: true, approved: true, surfaces };
   } finally {
-    prompt.close();
+    prompt?.close();
   }
 }
 
@@ -277,9 +366,6 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
         advisories: visualDirector.totals.advisories,
       },
     });
-    console.log("");
-    for (const line of visualBaselineApprovalLines()) console.log(line);
-    console.log("");
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
     console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
@@ -289,13 +375,23 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
 
-    if (await promptVisualBaselineReplacement()) {
-      try {
-        await runExistingScript("scripts/lock-skin-visual-baseline.mjs", ["all", "--replace"]);
-      } catch (approvalError) {
-        console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
+    const { manifest } = await readVisualBaselineManifest({ root: repoRoot });
+    console.log("");
+    for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
+    console.log("");
+    try {
+      const approval = await promptVisualBaselineChanges({ manifest });
+      if (approval.approved) {
+        const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
+        console.log("");
+        for (const line of visualBaselineResultLines(result)) console.log(line);
+        console.log(`Updated manifest: ${result.manifestPath}`);
+        console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
+      } else if (approval.prompted) {
+        console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
       }
-    } else if (process.stdin.isTTY && process.stdout.isTTY) {
+    } catch (approvalError) {
+      console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
       console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
     }
     return 0;

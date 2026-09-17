@@ -34,6 +34,35 @@
       "notes": "Phase 5 live read-only WebMCP observer. It is single-owned by Experience Skins but can be selected by Skin, Experience surface/navigation, or WebMCP verifier risk tokens. Network permission is limited to repository dependencies plus pinned Playwright/WebMCP verification tooling; no external AI provider calls or secrets are permitted."
     },
     {
+      "id": "experience.webmcp-baseline-approval-2151",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["webmcp-live-observer", "skin-surface-readiness"],
+      "triggerTokens": ["mcp", "skin", "surface", "visual", "test-harness"],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2070-webmcp-baseline-approval.test.mjs",
+          "tests/issue-2151-webmcp-baseline-toggle.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2151 protects the explicit Y/N plus numbered per-surface visual-baseline toggle flow, including no-change, validation, mixed lock/unlock and single-source catalogue/manifest behavior."
+    },
+    {
       "id": "experience.pre-phase2-1954",
       "ownerLayer": "experience-skins",
       "architectureComponents": ["skin-surface-readiness", "experience-navigation"],

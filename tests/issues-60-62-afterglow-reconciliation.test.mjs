@@ -15,11 +15,16 @@ test("source ledger preserves current and legacy titles with explicit statuses",
 
 test("v9 remains complete, v10 remains partial and current draft stays complete through baseline fallback", async () => {
   const data = await source("data/afterglow-reconciliation.ts");
-  assert.match(data, /Afterglow v9 — Complete 2023 Baseline/);
+  assert.match(data, /Afterglow v9 — Most Complete 2023 Baseline/);
   assert.match(data, /complete-baseline/);
   assert.match(data, /Afterglow v10 — Unfinished Blocks 1–8 Rewrite/);
   assert.match(data, /partial-alternate/);
   assert.match(data, /Blocks 1–8 only; Blocks 9–24 not attempted/);
+  assert.match(data, /afterglowSourceUsePolicy/);
+  assert.match(data, /review-as-later-proposal/);
+  assert.match(data, /gap-recovery-and-structural-comparison/);
+  assert.match(data, /v10-later-partial/);
+  assert.match(data, /v8-historical-comparison/);
   assert.match(data, /v11 Working Rewrite/);
   assert.match(data, /baseline-not-yet-rewritten/);
   assert.match(data, /Not attempted in v10/);

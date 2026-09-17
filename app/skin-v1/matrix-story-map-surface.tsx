@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { PPFProject } from "@/core/project/project";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
@@ -16,14 +17,26 @@ function bounded(value: string | null, maximum: number) {
   return Number.isFinite(number) ? Math.min(maximum, Math.max(1, Math.trunc(number))) : 1;
 }
 
+function currentAddress(): PreproductionReviewAddress {
+  if (typeof window === "undefined") return { blockNumber: 1, miniBlockNumber: 1 };
+  const query = new URLSearchParams(window.location.search);
+  return {
+    blockNumber: bounded(query.get("block"), 24),
+    miniBlockNumber: bounded(query.get("mini"), 4),
+  };
+}
+
 export default function MatrixStoryMapSurface({
   onOpenStage,
+  onOpenPrevis,
   onOpenStoryModeSettings,
 }: {
   readonly onOpenStage?: (stage: StoryMapReviewStage, address: PreproductionReviewAddress) => void;
+  readonly onOpenPrevis?: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryModeSettings?: () => void;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
+  const [address, setAddress] = useState<PreproductionReviewAddress>(() => currentAddress());
 
   useEffect(() => {
     const sync = () => setProject(loadFoundationProject());
@@ -36,7 +49,27 @@ export default function MatrixStoryMapSurface({
     };
   }, []);
 
+  const screenplay = useMemo(
+    () => project ? normalizeProjectSourceEvidence(project.sourceEvidence).screenplay : null,
+    [project],
+  );
+  const blockPassages = useMemo(
+    () => screenplay?.passages.filter((passage) => passage.blockNumber === address.blockNumber) ?? [],
+    [address.blockNumber, screenplay],
+  );
+  const miniPassages = useMemo(
+    () => blockPassages.filter((passage) => passage.miniBlockNumber === address.miniBlockNumber),
+    [address.miniBlockNumber, blockPassages],
+  );
+
+  function syncAddressAfterSelection() {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => setAddress(currentAddress()));
+    });
+  }
+
   function handleClickCapture(event: ReactMouseEvent<HTMLDivElement>) {
+    syncAddressAfterSelection();
     if (!onOpenStage) return;
     const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
     if (!link) return;
@@ -53,21 +86,76 @@ export default function MatrixStoryMapSurface({
 
     event.preventDefault();
     event.stopPropagation();
-    onOpenStage(stage, {
+    const nextAddress = {
       blockNumber: bounded(destination.searchParams.get("block"), 24),
       miniBlockNumber: bounded(destination.searchParams.get("mini"), 4),
-    });
+    };
+    setAddress(nextAddress);
+    onOpenStage(stage, nextAddress);
   }
 
   if (!project) return <p role="status">Opening Story Map…</p>;
   return (
     <div data-skin-v1-story-map-review="true" onClickCapture={handleClickCapture}>
+      <ProgressiveStoryMap project={project} />
+
+      <section className="pp-skin-v1-writer-story-panel" aria-labelledby="writer-story-position-title" data-writer-story-projection="mini-block-source">
+        <header>
+          <div>
+            <p>SELECTED STORY POSITION</p>
+            <h2 id="writer-story-position-title">Block {String(address.blockNumber).padStart(2, "0")} · Mini-Block {address.miniBlockNumber}</h2>
+          </div>
+          <div className="pp-skin-v1-writer-flow" aria-label="Writer story flow">
+            <span aria-current="step">WRITTEN STORY</span>
+            <button type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
+            <button type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
+          </div>
+        </header>
+
+        <div className="pp-skin-v1-story-layer-explainer">
+          <strong>HOW THIS STORY ADDRESS CONNECTS</strong>
+          <p><b>Block / Mini-Block</b> tells you where you are in the story structure. <b>Scene / Beat</b> is authored story material related to that address. <b>Shot / Frame</b> is how that material is visualized. These relationships are variable-density, not a forced one-to-one ladder.</p>
+        </div>
+
+        <section className="pp-skin-v1-written-story" aria-label="Written Story for selected Mini-Block">
+          <div className="pp-skin-v1-written-story-heading">
+            <div><p>WRITTEN STORY</p><h3>What is actually written here?</h3></div>
+            <small>{miniPassages.length} source passage{miniPassages.length === 1 ? "" : "s"}</small>
+          </div>
+          {miniPassages.length ? (
+            <ol>
+              {miniPassages.map((passage) => (
+                <li key={passage.id}>
+                  <small>Scene {passage.sceneNumber || "—"} · {passage.type}</small>
+                  <p>{passage.text}</p>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="pp-skin-v1-writer-empty">No observed screenplay text is attached to this Mini-Block. PlotPickle leaves it empty rather than inventing story text.</p>
+          )}
+
+          <details>
+            <summary>View the whole Block source ({blockPassages.length} passage{blockPassages.length === 1 ? "" : "s"})</summary>
+            {blockPassages.length ? (
+              <ol>
+                {blockPassages.map((passage) => (
+                  <li key={passage.id}>
+                    <small>Scene {passage.sceneNumber || "—"} · Mini-Block {passage.miniBlockNumber} · {passage.type}</small>
+                    <p>{passage.text}</p>
+                  </li>
+                ))}
+              </ol>
+            ) : <p className="pp-skin-v1-writer-empty">No observed screenplay text is attached to this Block.</p>}
+          </details>
+        </section>
+      </section>
+
       <div className="pp-skin-v1-preproduction-context">
         <strong>VISUAL GENERATION ROUTING</strong>
         <span>Story Mode and the selected image route remain governed by Manage → Story Mode. If Add a Visual reports a Local / Cloud mismatch, review that existing configuration rather than changing policy here.</span>
         {onOpenStoryModeSettings ? <button type="button" onClick={onOpenStoryModeSettings}>Open Story Mode Settings</button> : null}
       </div>
-      <ProgressiveStoryMap project={project} />
     </div>
   );
 }

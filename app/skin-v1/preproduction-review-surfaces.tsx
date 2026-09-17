@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -14,6 +14,12 @@ import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-r
 export type PreproductionReviewAddress = Readonly<{
   blockNumber: number;
   miniBlockNumber: number;
+}>;
+
+type MiniBlockVisualCoverage = Readonly<{
+  miniBlockNumber: number;
+  state: "accepted" | "candidate" | "missing";
+  candidateCount: number;
 }>;
 
 const LEGACY_PROJECT_STORAGE_KEY = "plotpickle.project.v1";
@@ -42,6 +48,30 @@ function addressFromStoryboardTarget(target: string | null) {
   const match = String(target || "").match(/block:block-(\d{2}):mini-(\d+)/u);
   if (!match) return null;
   return normalizedAddress({ blockNumber: Number(match[1]), miniBlockNumber: Number(match[2]) });
+}
+
+function visualCoverageForBlock(project: PPFProject, blockNumber: number): readonly MiniBlockVisualCoverage[] {
+  const blockId = `block-${String(blockNumber).padStart(2, "0")}`;
+  const artifacts = [
+    ...project.build.foundations.visualArtifacts,
+    ...project.build.world.visualArtifacts,
+  ].filter((artifact) => artifact.reviewState !== "rejected");
+  const acceptedIds = new Set([
+    ...project.build.foundations.acceptedVisualArtifactIds,
+    ...project.build.world.acceptedVisualArtifactIds,
+  ]);
+
+  return Array.from({ length: 4 }, (_, index): MiniBlockVisualCoverage => {
+    const miniBlockNumber = index + 1;
+    const anchor = `storyboard-anchor:block:${blockId}:mini-${miniBlockNumber}`;
+    const candidates = artifacts.filter((artifact) => (artifact.sourceDecisionKeys ?? []).includes(anchor));
+    const accepted = candidates.some((artifact) => acceptedIds.has(artifact.id) && artifact.reviewState === "accepted");
+    return {
+      miniBlockNumber,
+      state: accepted ? "accepted" : candidates.length ? "candidate" : "missing",
+      candidateCount: candidates.length,
+    };
+  });
 }
 
 export function SkinV1StoryboardReviewSurface({
@@ -110,7 +140,7 @@ export function SkinV1StoryboardReviewSurface({
     <div data-skin-v1-preproduction-review="storyboard" onClickCapture={handleClickCapture}>
       <div className="pp-skin-v1-preproduction-context" role="status">
         <strong>BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>Visual Story and Scene Timeline are sibling views of the same real Scene / Beat / Shot / Frame material.</span>
+        <span>Block / Mini-Block is the structural address. Scene & Shots shows the real Scene / Beat / Shot / Frame material related to that address; Timeline shows the same material over time.</span>
       </div>
       <StoryboardReadinessWorkspace
         initialBlockNumber={normalized.blockNumber}
@@ -139,6 +169,10 @@ export function SkinV1PrevisReviewSurface({
   const [error, setError] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const normalized = normalizedAddress(address);
+  const coverage = useMemo(
+    () => project ? visualCoverageForBlock(project, normalized.blockNumber) : [],
+    [normalized.blockNumber, project],
+  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -181,9 +215,31 @@ export function SkinV1PrevisReviewSurface({
 
   return (
     <div ref={rootRef} data-skin-v1-preproduction-review="previs" onClickCapture={handleClickCapture}>
+      <section className="pp-skin-v1-previs-coverage" aria-labelledby="previs-visual-coverage-title">
+        <header>
+          <div><p>VISUAL COVERAGE</p><h2 id="previs-visual-coverage-title">Block {String(normalized.blockNumber).padStart(2, "0")} preview</h2></div>
+          <span>{coverage.filter((item) => item.state === "accepted").length}/4 accepted visuals</span>
+        </header>
+        <p>Start with what you can already see. Previs then adds timing and camera intent without turning technical render slots into creative Shots.</p>
+        <div className="pp-skin-v1-previs-coverage-grid" aria-label={`Block ${normalized.blockNumber} Mini-Block visual coverage`}>
+          {coverage.map((item) => (
+            <button
+              aria-pressed={item.miniBlockNumber === normalized.miniBlockNumber}
+              data-visual-coverage-state={item.state}
+              key={item.miniBlockNumber}
+              onClick={() => onAddressChange({ blockNumber: normalized.blockNumber, miniBlockNumber: item.miniBlockNumber })}
+              type="button"
+            >
+              <strong>MINI {item.miniBlockNumber}</strong>
+              <span>{item.state === "accepted" ? "Accepted visual" : item.state === "candidate" ? `${item.candidateCount} candidate${item.candidateCount === 1 ? "" : "s"}` : "No visual yet"}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <div className="pp-skin-v1-preproduction-context" role="status">
         <strong>BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>Previs is downstream camera and timing intent for the same selected story address.</span>
+        <span>Previs is the visual preview/readiness view first, then downstream camera and timing intent for the same selected story address.</span>
       </div>
       <PrevisReadinessWorkspace
         project={project}

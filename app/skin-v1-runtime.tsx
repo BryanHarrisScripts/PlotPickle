@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import "./skin-v1/preproduction-matrix-contract.css";
 import "./skin-v1/preproduction-review-flow.css";
+import "./skin-v1/previs-visual-coverage.css";
+import "./skin-v1/library-writer-discovery.css";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 const SKIN_V1 = "skin-v1";

@@ -1,4 +1,4 @@
-/* #2161 — bounded Skin V1 continuity for the Human pre-production review path. */
+/* #2161 / #2164 — bounded Skin V1 continuity for the Human pre-production review path. */
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context {
   display: grid;
@@ -27,7 +27,8 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context span {
 }
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button,
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button {
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow button {
   min-height: var(--pp-skin-control-height);
   padding: var(--pp-skin-space-2) var(--pp-skin-space-4);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -45,7 +46,9 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button {
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button:hover,
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button:focus-visible,
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button:hover,
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button:focus-visible {
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button:focus-visible,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow button:hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow button:focus-visible {
   border-color: var(--pp-skin-focus);
   background: var(--pp-skin-selected-bg);
   color: var(--pp-skin-selected-ink);
@@ -55,6 +58,183 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff {
   display: flex;
   justify-content: flex-end;
   margin: var(--pp-skin-space-4) var(--pp-skin-space-5) var(--pp-skin-space-6);
+}
+
+/* #2164: read one Act left-to-right, then continue on the next row. */
+html[data-plotpickle-skin^="skin-"] [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"] > div[aria-label="12 story Sequences containing 24 Blocks"] {
+  grid-template-columns: repeat(3, minmax(250px, 1fr)) !important;
+  grid-template-rows: repeat(4, minmax(0, auto)) !important;
+  grid-auto-flow: row !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"] :is(
+  [data-sequence="4"], [data-sequence="5"], [data-sequence="6"],
+  [data-sequence="7"], [data-sequence="8"], [data-sequence="9"],
+  [data-sequence="10"], [data-sequence="11"], [data-sequence="12"]
+) {
+  margin-top: var(--pp-skin-space-5) !important;
+  padding-top: var(--pp-skin-space-3) !important;
+  padding-left: 0 !important;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft) !important;
+  border-left: 0 !important;
+}
+
+/* The old PLAN / BUILD / STORYBOARD strip and Block-wide source panel are replaced
+   inside the Skin V1 writer review by the selected Mini-Block Written Story projection. */
+html[data-plotpickle-skin^="skin-"] [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"] [aria-label$="local workflow"],
+html[data-plotpickle-skin^="skin-"] [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"] details[data-text-projection] {
+  display: none !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-story-panel {
+  display: grid;
+  gap: var(--pp-skin-space-4);
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-story-panel > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+  padding-bottom: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-story-panel > header p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story-heading p {
+  margin: 0 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-story-panel h2,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story h3 {
+  margin: 0;
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-title);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pp-skin-space-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow span {
+  min-height: var(--pp-skin-control-height);
+  display: inline-grid;
+  place-items: center;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-layer-explainer,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story {
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-layer-explainer strong {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-layer-explainer p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story p {
+  margin: var(--pp-skin-space-2) 0 0;
+  color: var(--pp-skin-ink-soft);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story-heading small,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story li small {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story ol {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story li {
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story details {
+  margin-top: var(--pp-skin-space-3);
+  padding-top: var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-story summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-empty {
+  font-style: italic;
+  color: var(--pp-skin-ink-muted) !important;
+}
+
+/* Writer-facing names for the two existing Storyboard projections. Internal
+   data ids remain Visual Story / Scene Timeline for architecture compatibility. */
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="story"],
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="timeline"] {
+  font-size: 0 !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="story"]::after {
+  content: "SCENE & SHOTS";
+  font-size: var(--pp-skin-font-body);
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="timeline"]::after {
+  content: "TIMELINE";
+  font-size: var(--pp-skin-font-body);
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] [data-visual-story="scene-beat-shot-frame"] > header p:first-child {
+  font-size: 0 !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] [data-visual-story="scene-beat-shot-frame"] > header p:first-child::after {
+  content: "STORYBOARD DETAIL · SCENE → BEAT → SHOT → FRAME";
+  font-size: var(--pp-skin-font-meta);
 }
 
 /* The old plus was a non-interactive empty preview, but read visually as an action. */
@@ -78,5 +258,14 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
     grid-column: 1;
     grid-row: auto;
     justify-self: start;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-story-panel > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow {
+    justify-content: flex-start;
   }
 }

@@ -1,0 +1,33 @@
+/* #2164 — writer-facing identity for packaged references. The actionable
+   Load-to-Examples handoff is rendered by the Library workspace itself. */
+
+/* The catalog title is the story identity. The visual label is descriptive metadata,
+   so Afterglow no longer leads with Pacific road as though that were its title. */
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] {
+  align-content: end;
+  gap: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span {
+  font-size: 0 !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span::before {
+  display: block;
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-title);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+  content: "AFTERGLOW: REFLECTIONS OF SENTIENCE";
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span::after {
+  display: block;
+  margin-top: var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 400;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  content: "PACIFIC ROAD · AI FAMILY · VISUAL REFERENCE";
+}

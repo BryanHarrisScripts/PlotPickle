@@ -218,6 +218,8 @@
 
 .actionPanel button { flex: none; }
 
+.referenceHandoff { margin-bottom: var(--pp-skin-space-4); }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));

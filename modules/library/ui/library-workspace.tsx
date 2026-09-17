@@ -389,6 +389,19 @@ export default function LibraryWorkspace() {
             <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="load-title">LOAD</h2></div>
             <p>Open, resume, and manage your saved Human-owned PlotPickle stories. Avery Writer-in-Residence work is kept separate.</p>
           </div>
+          <div className={`${styles.actionPanel} ${styles.referenceHandoff}`} data-library-reference-handoff="examples">
+            <div><strong>Looking for Afterglow?</strong><p>Packaged reference stories live in Examples. Load remains reserved for your saved working stories.</p></div>
+            <button
+              className={styles.primaryButton}
+              onClick={() => {
+                setDirectorySelectedIndex(DESTINATIONS.findIndex((item) => item.id === "examples"));
+                setDestination("examples");
+              }}
+              type="button"
+            >
+              Open Examples
+            </button>
+          </div>
           {stories.length ? (
             <div className={styles.grid}>
               {stories.map((item) => (

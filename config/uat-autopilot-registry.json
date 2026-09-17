@@ -281,6 +281,7 @@
       "minimumTextLength": 500,
       "tests": [
         "tests/issue-1122-library-persistence.test.mjs",
+        "tests/issue-2164-writer-first-outline-flow.test.mjs",
         "tests/issue-1141-profile-private-storage.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/workspace-navigation-contract.test.mjs"

@@ -1,8 +1,8 @@
 /*
  * Skin V1 directory geometry + shared navigation chrome.
  *
- * Dashboard remains the canonical visual reference. Settings, Profile and
- * Writer's Craft consume the same directory-row geometry while all colour,
+ * Dashboard remains the canonical visual reference. Settings, Story Mode,
+ * Profile and Writer's Craft consume the same directory-row geometry while all colour,
  * typography, spacing and state values continue to come from the shared
  * --pp-skin-* contract. This file does not define a second Skin authority.
  */
@@ -23,6 +23,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"],
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"],
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"],
 .pp-skin-v1-dashboard[aria-label="Profile menu"] {
   width: 100% !important;
@@ -37,6 +38,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] > .pp-skin-v1-bbs,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] > .pp-skin-v1-bbs,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] > .pp-skin-v1-bbs {
   width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
@@ -53,6 +55,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
   display: block !important;
@@ -63,6 +66,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
   position: relative !important;
@@ -87,6 +91,8 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::after,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row::before,
@@ -96,6 +102,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row.is-selected {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright) !important;
@@ -105,6 +112,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
@@ -112,6 +120,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row:not(.is-selected):hover {
   background: var(--pp-skin-fill-row-hover) !important;
@@ -119,6 +128,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-bbs-help,
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-bbs-help,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-bbs-help,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-bbs-help {
   display: flex !important;
@@ -132,6 +142,43 @@ html[data-plotpickle-skin="skin-v1"] :is(
   font-size: var(--pp-skin-font-sm) !important;
   line-height: 1.35 !important;
   text-transform: uppercase !important;
+}
+
+.pp-skin-v1-story-mode-readiness {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  width: min(var(--pp-skin-menu-max), calc(100% - 72px));
+  margin: var(--pp-skin-space-4) auto;
+  font-size: var(--pp-skin-font-meta);
+}
+
+.pp-skin-v1-story-mode-readiness > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-fill-row);
+}
+
+.pp-skin-v1-story-mode-readiness i {
+  width: var(--pp-skin-status-dot);
+  height: var(--pp-skin-status-dot);
+  flex: 0 0 auto;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-ink-muted);
+  background: var(--pp-skin-ink-muted);
+}
+
+.pp-skin-v1-story-mode-readiness [data-story-mode-readiness="ready"] i {
+  border-color: var(--pp-skin-ready, var(--pp-skin-accent-bright));
+  background: var(--pp-skin-ready, var(--pp-skin-accent-bright));
+}
+
+.pp-skin-v1-story-mode-readiness [data-story-mode-readiness="not-ready"] i {
+  border-color: var(--pp-skin-danger);
+  background: var(--pp-skin-danger);
 }
 
 /* Profile keeps one dominant page title. Internal Profile headings are
@@ -209,12 +256,14 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
 @media (max-width: 720px) {
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"],
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"],
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"],
   .pp-skin-v1-dashboard[aria-label="Profile menu"] {
     padding: var(--pp-skin-space-2) !important;
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] > .pp-skin-v1-bbs,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] > .pp-skin-v1-bbs,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] > .pp-skin-v1-bbs,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] > .pp-skin-v1-bbs {
     width: min(650px, 100%) !important;
@@ -222,6 +271,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
   }
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu.pp-skin-v1-dashboard-menu {
     width: calc(100% - 24px) !important;
@@ -229,9 +279,15 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Settings menu"] .pp-skin-v1-dashboard-group,
+  .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row,
   .pp-skin-v1-dashboard[aria-label="Profile menu"] .pp-skin-v1-menu-item.pp-skin-v1-dashboard-row {
     font-size: 12px !important;
+  }
+
+  .pp-skin-v1-story-mode-readiness {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: calc(100% - 24px);
   }
 }
 

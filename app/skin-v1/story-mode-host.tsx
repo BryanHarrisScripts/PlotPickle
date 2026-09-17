@@ -74,6 +74,43 @@ function readinessLabel(ready: boolean, loaded: boolean) {
   return ready ? "READY" : "NOT READY";
 }
 
+function readinessState(ready: boolean, loaded: boolean) {
+  if (!loaded) return "checking";
+  return ready ? "ready" : "not-ready";
+}
+
+function StoryModeReadiness({
+  localReady,
+  cloudReady,
+  hybridReady,
+  loaded,
+  mode,
+}: {
+  readonly localReady: boolean;
+  readonly cloudReady: boolean;
+  readonly hybridReady: boolean;
+  readonly loaded: boolean;
+  readonly mode: StoryModePolicy;
+}) {
+  const statuses = [
+    { label: "LOCAL", ready: localReady },
+    { label: "CLOUD", ready: cloudReady },
+    { label: "HYBRID", ready: hybridReady },
+  ] as const;
+
+  return (
+    <div className="pp-skin-v1-story-mode-readiness" aria-label="Story Mode status" data-story-mode-status="derived">
+      {statuses.map((status) => (
+        <span key={status.label} data-story-mode-readiness={readinessState(status.ready, loaded)}>
+          <i aria-hidden="true" />
+          <strong>{status.label}</strong>: {readinessLabel(status.ready, loaded)}
+        </span>
+      ))}
+      <span data-story-mode-active-policy={mode}><strong>MODE</strong>: {mode.toUpperCase()}</span>
+    </div>
+  );
+}
+
 export default function StoryModeHost() {
   const [view, setView] = useState<StoryModeView>("landing");
   const [mode, setMode] = useState<StoryModePolicy>("hybrid");
@@ -220,10 +257,7 @@ export default function StoryModeHost() {
         </div>
         <div className="pp-skin-v1-bbs" data-story-mode-hybrid="policy-only">
           <p>Hybrid allows tested Local and Cloud routes. Existing capability selection and cloud consent rules remain authoritative.</p>
-          <p>LOCAL: {readinessLabel(localReady, loaded)}</p>
-          <p>CLOUD: {readinessLabel(cloudReady, loaded)}</p>
-          <p>HYBRID: {readinessLabel(hybridReady, loaded)}</p>
-          <p>MODE: {mode.toUpperCase()}</p>
+          <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
           <p>Routing preference remains with the existing capability router; this surface does not create a Hybrid provider layer.</p>
         </div>
       </section>
@@ -235,15 +269,11 @@ export default function StoryModeHost() {
       className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
       aria-label="Story Mode directory"
       data-story-mode-parent="true"
+      data-skin-menu="story-mode"
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
         <div className="pp-skin-v1-dashboard-title">*** STORY MODE ***</div>
-        <div aria-label="Story Mode status" data-story-mode-status="derived">
-          <p>LOCAL: {readinessLabel(localReady, loaded)}</p>
-          <p>CLOUD: {readinessLabel(cloudReady, loaded)}</p>
-          <p>HYBRID: {readinessLabel(hybridReady, loaded)}</p>
-          <p>MODE: {mode.toUpperCase()}</p>
-        </div>
+        <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Story Mode policies" aria-describedby="story-mode-status-message">
           {STORY_MODE_ROWS.map((item, index) => {

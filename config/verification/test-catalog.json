@@ -63,6 +63,36 @@
       "notes": "#2151 protects the explicit Y/N plus numbered per-surface visual-baseline toggle flow, including no-change, validation, mixed lock/unlock and single-source catalogue/manifest behavior."
     },
     {
+      "id": "experience.manual-uat-follow-up-2153",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["skin", "surface", "visual", "navigation"],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
+          "tests/issue-2106-story-mode-surface.test.mjs",
+          "tests/issue-2153-manual-uat-follow-up.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2153 protects the Notices copy, compact Story Mode directory, existing readiness projection, and yellow Storyboard/Previs in-review state without creating new routing or readiness authority."
+    },
+    {
       "id": "experience.pre-phase2-1954",
       "ownerLayer": "experience-skins",
       "architectureComponents": ["skin-surface-readiness", "experience-navigation"],

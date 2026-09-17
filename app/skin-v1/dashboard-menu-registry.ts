@@ -23,7 +23,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "profile", shortcut: "I", label: "Identity", description: "Manage User Profile", group: "CALL SHEET" },
   { id: "settings", shortcut: "M", label: "Manage", description: "Configure PlotPickle", group: "CALL SHEET" },
   { id: "help", shortcut: "B", label: "Bug Report", description: "Prepare a PlotPickle Issue", group: "CALL SHEET" },
-  { id: "open-source", shortcut: "N", label: "Notices", description: "Review Open Source Licensing and Attribution", group: "CALL SHEET" },
+  { id: "open-source", shortcut: "N", label: "Notices", description: "Open Source Licensing and Attribution", group: "CALL SHEET" },
   { id: "logout", shortcut: "X", label: "Log Off", description: "End This Session", group: "WRAP" },
   { id: "shutdown", shortcut: "Q", label: "Shut Down Node", description: "Safely Close PlotPickle and Local Services", group: "WRAP" },
 ];

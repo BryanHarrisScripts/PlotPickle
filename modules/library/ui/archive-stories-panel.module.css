@@ -24,10 +24,7 @@
 .panel > header h2 {
   margin: 0;
   color: #f4fff9;
-  font-family: var(--pp-skin-font-ui, var(--pp-font-code, "Courier New", monospace));
-  font-size: clamp(28px, 3vw, 40px);
-  font-weight: 500;
-  line-height: 1.1;
+  font: 500 clamp(28px, 3vw, 40px)/1.1 Georgia, serif;
 }
 
 .panel > header > span {
@@ -74,10 +71,7 @@
 
 .visual span {
   color: rgba(235, 255, 247, 0.75);
-  font-family: var(--pp-skin-font-ui, var(--pp-font-code, "Courier New", monospace));
-  font-size: 54px;
-  font-weight: 500;
-  line-height: 1;
+  font: 500 54px/1 Georgia, serif;
 }
 
 .body {
@@ -104,10 +98,7 @@
   margin: 0;
   overflow-wrap: anywhere;
   color: #f4fff9;
-  font-family: var(--pp-skin-font-ui, var(--pp-font-code, "Courier New", monospace));
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.15;
+  font: 500 22px/1.15 Georgia, serif;
 }
 
 .body p,
@@ -145,10 +136,7 @@
 .empty h3 {
   margin: 0;
   color: #f4fff9;
-  font-family: var(--pp-skin-font-ui, var(--pp-font-code, "Courier New", monospace));
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 1.2;
+  font: 500 28px/1.2 Georgia, serif;
 }
 
 .empty p {

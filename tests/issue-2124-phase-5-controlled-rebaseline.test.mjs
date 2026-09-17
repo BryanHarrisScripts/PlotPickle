@@ -16,20 +16,22 @@ test("#2124 Phase 5 keeps Dashboard as the sole locked Matrix baseline while pre
   }
 });
 
-test("#2124 Phase 5 drives the Story Map correction through canonical Matrix skin tokens rather than another colour system", async () => {
-  const css = await read("modules/build/ui/progressive-story-map-v2.module.css");
-  const marker = "/* #2124 Phase 5:";
-  const phase5 = css.slice(css.indexOf(marker));
+test("#2124 Phase 5 Story Map correction is now enforced by the canonical Skin V1 presentation bridge", async () => {
+  const [runtime, bridge] = await Promise.all([
+    read("app/skin-v1-runtime.tsx"),
+    read("app/skin-v1/preproduction-matrix-contract.css"),
+  ]);
 
-  assert.ok(css.includes(marker), "Phase 5 Matrix contract bridge should remain explicit");
-  assert.match(phase5, /--story-defined:\s*var\(--pp-skin-accent-bright\)/u);
-  assert.match(phase5, /--story-observed:\s*var\(--pp-skin-accent\)/u);
-  assert.match(phase5, /--story-missing:\s*var\(--pp-skin-ink-muted\)/u);
-  assert.match(phase5, /--story-locked:\s*var\(--pp-skin-disabled\)/u);
-  assert.match(phase5, /var\(--pp-skin-focus\)/u);
-  assert.match(phase5, /var\(--pp-skin-line-strong\)/u);
-  assert.doesNotMatch(phase5, /#[0-9a-f]{3,8}\b/iu);
-  assert.doesNotMatch(phase5, /--pp-shell-/u);
+  assert.match(runtime, /import "\.\/skin-v1\/preproduction-matrix-contract\.css"/u);
+  assert.match(bridge, /\[data-progressive-story-map="24x96"\]/u);
+  assert.match(bridge, /--story-defined:\s*var\(--pp-skin-accent-bright\)/u);
+  assert.match(bridge, /--story-observed:\s*var\(--pp-skin-accent\)/u);
+  assert.match(bridge, /--story-missing:\s*var\(--pp-skin-ink-muted\)/u);
+  assert.match(bridge, /--story-locked:\s*var\(--pp-skin-disabled\)/u);
+  assert.match(bridge, /var\(--pp-skin-focus\)/u);
+  assert.match(bridge, /var\(--pp-skin-line-strong\)/u);
+  assert.doesNotMatch(bridge, /#[0-9a-f]{3,8}\b/iu);
+  assert.doesNotMatch(bridge, /--pp-shell-/u);
 });
 
 test("#2124 Phase 5 preserves non-colour evidence-state meaning while reducing Story Map colour dependence", async () => {

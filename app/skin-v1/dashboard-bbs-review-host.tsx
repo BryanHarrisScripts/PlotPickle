@@ -2,13 +2,20 @@
 
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
-import StoryboardPage from "../storyboard/page";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
-import MatrixStoryMapSurface from "./matrix-story-map-surface";
+import MatrixStoryMapSurface, { type StoryMapReviewStage } from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
+import {
+  SkinV1BuildReviewSurface,
+  SkinV1PrevisReviewSurface,
+  SkinV1StoryboardReviewSurface,
+  type PreproductionReviewAddress,
+} from "./preproduction-review-surfaces";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
+
+const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, miniBlockNumber: 1 };
 
 export default function DashboardBbsReviewHost({
   items,
@@ -27,17 +34,26 @@ export default function DashboardBbsReviewHost({
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
+  const [buildOpen, setBuildOpen] = useState(false);
   const [storyboardOpen, setStoryboardOpen] = useState(false);
+  const [previsOpen, setPrevisOpen] = useState(false);
+  const [reviewAddress, setReviewAddress] = useState<PreproductionReviewAddress>(DEFAULT_REVIEW_ADDRESS);
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
   const [dashboardGeneration, setDashboardGeneration] = useState(0);
 
+  function closePreproductionSurfaces() {
+    setOutlineOpen(false);
+    setBuildOpen(false);
+    setStoryboardOpen(false);
+    setPrevisOpen(false);
+  }
+
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
-      setOutlineOpen(false);
-      setStoryboardOpen(false);
+      closePreproductionSurfaces();
       setShutdownOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);
@@ -52,6 +68,12 @@ export default function DashboardBbsReviewHost({
     });
   }
 
+  function returnDashboard(itemId?: string) {
+    closePreproductionSurfaces();
+    onSurfaceNameChange("DASHBOARD");
+    if (itemId) restoreDashboardFocus(itemId);
+  }
+
   function closeReview(itemId: "library" | "plan") {
     if (itemId === "library") setLibraryOpen(false);
     else setOutlineOpen(false);
@@ -59,10 +81,60 @@ export default function DashboardBbsReviewHost({
     restoreDashboardFocus(itemId);
   }
 
-  function closeStoryboard() {
-    setStoryboardOpen(false);
+  function openStoryMapStage(stage: StoryMapReviewStage, address: PreproductionReviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    if (stage === "outline") {
+      setOutlineOpen(true);
+      onSurfaceNameChange("STORY MAP");
+      return;
+    }
+    if (stage === "build") {
+      setBuildOpen(true);
+      onSurfaceNameChange("BUILD EVIDENCE");
+      return;
+    }
+    setStoryboardOpen(true);
+    onSurfaceNameChange("STORYBOARD");
+  }
+
+  function openStoryboard(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setStoryboardOpen(true);
+    onSurfaceNameChange("STORYBOARD");
+  }
+
+  function openPrevis(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setPrevisOpen(true);
+    onSurfaceNameChange("PREVIS");
+  }
+
+  function openBuild(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setBuildOpen(true);
+    onSurfaceNameChange("BUILD EVIDENCE");
+  }
+
+  function openOutline(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setOutlineOpen(true);
+    onSurfaceNameChange("STORY MAP");
+  }
+
+  function openStoryModeSettings() {
+    closePreproductionSurfaces();
     onSurfaceNameChange("DASHBOARD");
-    restoreDashboardFocus("storyboard");
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLButtonElement>("[data-dashboard-menu-item='settings']")?.click();
+      window.setTimeout(() => {
+        document.querySelector<HTMLButtonElement>("[data-settings-secondary-item='story-mode']")?.click();
+      }, 0);
+    });
   }
 
   function closeOpenSource() {
@@ -94,14 +166,17 @@ export default function DashboardBbsReviewHost({
     }
     if (item.id === "plan") {
       onActivate(index);
-      onSurfaceNameChange("STORY MAP");
-      setOutlineOpen(true);
+      openOutline(reviewAddress);
       return;
     }
     if (item.id === "storyboard") {
       onActivate(index);
-      onSurfaceNameChange("STORYBOARD");
-      setStoryboardOpen(true);
+      openStoryboard(reviewAddress);
+      return;
+    }
+    if (item.id === "previs") {
+      onActivate(index);
+      openPrevis(reviewAddress);
       return;
     }
     if (item.id === "open-source") {
@@ -159,7 +234,29 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
-        <MatrixStoryMapSurface />
+        <MatrixStoryMapSurface onOpenStage={openStoryMapStage} onOpenStoryModeSettings={openStoryModeSettings} />
+      </section>
+    );
+  }
+
+  if (buildOpen) {
+    return (
+      <section
+        aria-label="Build evidence"
+        data-dashboard-review-surface="build"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); openOutline(reviewAddress); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>BUILD EVIDENCE</h1>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => openOutline(reviewAddress)}>Back to Outline</button>
+        </div>
+        <SkinV1BuildReviewSurface
+          address={reviewAddress}
+          onOpenDashboard={() => returnDashboard("plan")}
+          onOpenOutline={() => openOutline(reviewAddress)}
+        />
       </section>
     );
   }
@@ -169,15 +266,49 @@ export default function DashboardBbsReviewHost({
       <section
         aria-label="Storyboard pre-production"
         data-dashboard-review-surface="storyboard"
+        data-review-state="in-review"
         onKeyDown={(event) => {
-          if (event.key === "Escape") { event.preventDefault(); closeStoryboard(); }
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard("storyboard"); }
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
           <h1>STORYBOARD</h1>
-          <button autoFocus type="button" className="pp-skin-v1-return" onClick={closeStoryboard}>Back to Dashboard</button>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("storyboard")}>Back to Dashboard</button>
         </div>
-        <StoryboardPage />
+        <SkinV1StoryboardReviewSurface
+          address={reviewAddress}
+          onAddressChange={setReviewAddress}
+          onOpenBuild={() => openBuild(reviewAddress)}
+        />
+        <div className="pp-skin-v1-preproduction-handoff">
+          <button type="button" onClick={() => openPrevis(reviewAddress)}>Continue to Previs</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (previsOpen) {
+    return (
+      <section
+        aria-label="Previs pre-production"
+        data-dashboard-review-surface="previs"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard("previs"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>PREVIS</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
+        </div>
+        <SkinV1PrevisReviewSurface
+          address={reviewAddress}
+          onAddressChange={setReviewAddress}
+          onOpenStoryboard={openStoryboard}
+          onOpenBuild={() => openBuild(reviewAddress)}
+        />
       </section>
     );
   }

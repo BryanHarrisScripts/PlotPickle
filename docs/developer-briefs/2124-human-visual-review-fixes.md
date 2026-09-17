@@ -12,6 +12,8 @@ The reviewed local WebMCP run captured 26 registered surfaces, compared 25 candi
 
 The current Dashboard source renders `PlotPickleScorePanel`, including the unrated `NR / NOT RATED` state when no active story exists. The reviewed `dashboard-canonical.png` did not visibly contain that panel.
 
+Exact-head CI confirmed the same rendered absence. The root cause was the older `#2026` Dashboard menu-reset stylesheet explicitly grouping `[data-plotpickle-score="v1"]` with hidden Dashboard chrome. The #2124 repair restores the existing Score panel while preserving the intentionally hidden shell title and BBS title.
+
 Repair the existing WebMCP readiness contract so Dashboard capture cannot pass unless the PlotPickle Score surface is rendered inside the canonical Dashboard. Do not synthesize a score or invent story evidence. The existing unrated state is the correct no-story presentation.
 
 ### 2. Hybrid Story Mode must use the same subordinate Matrix shell as Local and Cloud
@@ -49,7 +51,7 @@ A future populated verification fixture is allowed only if it enters through an 
 
 ## Implementation plan
 
-1. Make canonical Dashboard readiness require the existing PlotPickle Score panel.
+1. Restore the existing PlotPickle Score panel from the legacy #2026 hide rule and make canonical Dashboard readiness require it.
 2. Bring Hybrid Story Mode into the existing subordinate Skin V1 shell and heading hierarchy.
 3. Retoken Avery's session-history CSS onto `--pp-skin-*` and the four-pixel spacing grid.
 4. Extend the existing Skin V1 Library Archive adapter to normalize hierarchy, palette and controls without changing the shared Archive component.
@@ -58,10 +60,11 @@ A future populated verification fixture is allowed only if it enters through an 
 
 ## Exit criteria
 
+- Dashboard visibly renders its existing `NR / NOT RATED` PlotPickle Score state when there is no active story.
 - Dashboard WebMCP capture cannot be declared ready without `[data-plotpickle-score='v1']` inside the canonical Dashboard.
 - Hybrid Story Mode uses the same subordinate shell contract as Local/Cloud.
 - Avery no longer sources its visible Skin V1 palette from local teal/rgba/hex presentation values, and its explicit paddings sit on the four-pixel grid.
 - Archive's Skin V1 presentation uses canonical Matrix tokens and a subordinate heading scale rather than the old oversized heading treatment.
 - Existing story/provider/canon boundaries are unchanged.
-- No new baseline is locked by the implementation.
+- No new baseline is locked automatically by the implementation.
 - CI is green before merge.

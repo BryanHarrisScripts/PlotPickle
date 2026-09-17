@@ -1,0 +1,9 @@
+/* Matrix/Skin V1 integration for the shared Library archive component.
+ * The Archive component is also reused outside Skin V1, so keep the component
+ * neutral and apply the canonical Matrix typography only inside Skin V1.
+ */
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h2,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h3,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] [aria-hidden="true"] span {
+  font-family: var(--pp-skin-font-ui) !important;
+}

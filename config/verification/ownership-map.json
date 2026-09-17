@@ -370,6 +370,13 @@
       "riskTokens": ["surface", "navigation", "visual", "mcp", "test-harness"]
     },
     {
+      "id": "ui-continuity-verification-agent",
+      "classification": "verification",
+      "include": ["scripts/ui-continuity-agent.mjs"],
+      "ownerLayer": "verification",
+      "riskTokens": ["surface", "navigation", "visual", "agent", "test-harness"]
+    },
+    {
       "id": "verification-contract-files",
       "classification": "verification",
       "include": [

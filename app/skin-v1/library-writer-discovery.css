@@ -1,0 +1,48 @@
+/* #2164 — writer-facing discovery cues for saved stories versus packaged examples. */
+
+html[data-plotpickle-skin^="skin-"] [data-library-surface="load"]::before {
+  display: block;
+  margin-bottom: var(--pp-skin-space-4);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  box-shadow: var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-body);
+  line-height: var(--pp-skin-leading-body);
+  content: "LOOKING FOR AFTERGLOW?  Packaged reference stories live in EXAMPLES. Back to Library, then choose EXAMPLES. LOAD is for your saved working stories.";
+}
+
+/* The catalog title is the story identity. The visual label is descriptive metadata,
+   so Afterglow no longer leads with Pacific road as though that were its title. */
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] {
+  align-content: end;
+  gap: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span {
+  font-size: 0 !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span::before {
+  display: block;
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+  font-size: var(--pp-skin-font-title);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+  content: "AFTERGLOW: REFLECTIONS OF SENTIENCE";
+}
+
+html[data-plotpickle-skin^="skin-"] [data-library-catalog-id="afterglow-v9"] [data-visual-kind="afterglow-v9"] span::after {
+  display: block;
+  margin-top: var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 400;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  content: "PACIFIC ROAD · AI FAMILY · VISUAL REFERENCE";
+}

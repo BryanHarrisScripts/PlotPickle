@@ -85,6 +85,33 @@
   font-size: 9px;
 }
 
+.explanation {
+  margin-top: var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+
+.explanation summary {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-sm);
+  font-weight: 800;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  cursor: pointer;
+}
+
+.explanation p {
+  margin: var(--pp-skin-space-2) 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-sm);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.explanation small {
+  color: var(--pp-skin-ink-muted);
+  line-height: var(--pp-skin-leading-body);
+}
+
 .evidence {
   display: flex;
   flex-wrap: wrap;

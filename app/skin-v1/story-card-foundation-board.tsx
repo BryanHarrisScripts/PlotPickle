@@ -27,6 +27,10 @@ function structuralMiniTitle(number: number) {
   return `Mini-Block ${String(number).padStart(2, "0")}`;
 }
 
+function actLocalBlockNumber(blockNumber: number) {
+  return ((blockNumber - 1) % 6) + 1;
+}
+
 export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
@@ -117,7 +121,7 @@ export default function StoryCardFoundationBoard({
         <div>
           <p>STORY CARDS · FOUNDATION BOARD</p>
           <h2 id="story-card-board-title">Plan the whole story like a wall of Post-it notes.</h2>
-          <span>Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The 24 Block and 96 Mini-Block addresses never move; only your planning content does.</span>
+          <span>Four Acts, six Blocks per Act. Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does.</span>
         </div>
         <div className="pp-skin-v1-story-card-board-key">
           <strong>{project.title || "Untitled Story"}</strong>
@@ -163,8 +167,8 @@ export default function StoryCardFoundationBoard({
                   >
                     <header className="pp-skin-v1-story-card-topline">
                       <div>
-                        <strong>BLOCK {String(block.number).padStart(2, "0")}</strong>
-                        <small>A{block.actNumber} · S{String(block.sequenceNumber).padStart(2, "0")} · {block.id}</small>
+                        <strong>ACT {block.actNumber} · BLOCK {actLocalBlockNumber(block.number)}</strong>
+                        <small>PPF Block {String(block.number).padStart(2, "0")} · S{String(block.sequenceNumber).padStart(2, "0")} · {block.id}</small>
                       </div>
                       <span data-story-card-lock-state={locked ? "locked" : "exploratory"}>{locked ? "LOCKED" : "MOVE"}</span>
                     </header>

@@ -155,6 +155,14 @@ export default function PlotPickleScorePanel() {
         ))}
       </div>
 
+      <details className={styles.explanation}>
+        <summary>How can this score be {result.displayScore}?</summary>
+        <p>
+          PlotPickle balances all five structural dimensions geometrically. Alignment, Progression and Coverage reward higher values; Verbosity and Erosion are inverted because lower is better. A non-zero Erosion signal therefore lowers one of five balanced factors rather than subtracting that percentage directly from 100.
+        </p>
+        <small>This is a structural rating, not a judgment of creative quality, originality, emotion or commercial potential.</small>
+      </details>
+
       <div className={styles.evidence}>
         <span>{evidenceLabel(result.evidence.basis)}</span>
         <span>{result.evidence.populatedUnits}/{result.evidence.totalUnits} MINI-BLOCKS POPULATED</span>

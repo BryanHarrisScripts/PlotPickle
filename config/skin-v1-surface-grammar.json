@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "issue": 2159,
+  "contractId": "skin-v1-surface-grammar-v1",
+  "experienceContractId": "matrix-experience-surface-v1",
+  "designSystem": "skin-v1-matrix",
+  "referenceSurface": "dashboard",
+  "tokenSource": "app/skin-v1-definition.css",
+  "standardShellSource": "app/skin-v1-standard-surface-shell.css",
+  "standardHeaderSource": "app/skin-v1-bbs-surfaces.css",
+  "surfaceClasses": [
+    "reference",
+    "directory",
+    "workspace",
+    "nested",
+    "public-exception"
+  ],
+  "capturePolicies": [
+    "standard",
+    "census-only",
+    "public-exception"
+  ],
+  "governanceStates": [
+    "reference",
+    "candidate",
+    "census",
+    "exception"
+  ],
+  "rules": {
+    "standardHeader": {
+      "requiredFor": ["directory", "workspace", "nested"],
+      "selectors": [
+        ".pp-skin-v1-bar",
+        ".pp-skin-v1-title[data-skin-v1-standard-header='true']"
+      ],
+      "leftText": "PLOTPICKLE",
+      "centerRole": "surface-name",
+      "rightText": "SKIN V1",
+      "minHeightPx": 42,
+      "duplicateHeadersAllowed": false,
+      "sourceIssue": 2032
+    },
+    "returnAction": {
+      "requiredFor": ["directory", "workspace", "nested"],
+      "exemptSurfaceIds": ["dashboard"],
+      "selector": ".pp-skin-v1-return",
+      "containerSelectors": [
+        ".pp-skin-v1-surface-actions",
+        ".pp-skin-v1-bbs-banner",
+        ".pp-skin-v1-profile-banner"
+      ],
+      "placement": "below-standard-header",
+      "horizontalAlignment": "right",
+      "cssJustifyContent": "flex-end",
+      "textTransform": "none"
+    },
+    "shellMeasure": {
+      "token": "--pp-skin-shell-max",
+      "currentMaxPx": 1180,
+      "desktopViewportInsetPx": 40,
+      "standardExpression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))"
+    },
+    "spacing": {
+      "unitPx": 4,
+      "tokenPrefix": "--pp-skin-space-",
+      "allowedTokenValuesPx": [4, 8, 12, 16, 20, 24, 28, 32, 36],
+      "structuralPaddingMustUseGrid": true
+    },
+    "geometry": {
+      "radiusToken": "--pp-skin-radius",
+      "currentRadiusPx": 0,
+      "borderThinToken": "--pp-skin-border-thin",
+      "currentBorderThinPx": 1,
+      "borderStrongToken": "--pp-skin-border-strong",
+      "currentBorderStrongPx": 2,
+      "squareStandard": true
+    },
+    "controls": {
+      "heightToken": "--pp-skin-control-height",
+      "currentHeightPx": 34,
+      "touchTargetToken": "--pp-skin-touch-target",
+      "currentTouchTargetPx": 44
+    },
+    "palette": {
+      "tokenPrefix": "--pp-skin-",
+      "localStructuralPaletteAllowed": false,
+      "semanticStateExceptionsAllowed": true
+    },
+    "panelTreatment": {
+      "standardBorderTokens": ["--pp-skin-border-thin", "--pp-skin-border-strong"],
+      "standardLineTokens": ["--pp-skin-line", "--pp-skin-line-soft", "--pp-skin-line-strong", "--pp-skin-accent"],
+      "standardFillTokens": ["--pp-skin-fill-panel", "--pp-skin-fill-header", "--pp-skin-fill-accent-header", "--pp-skin-surface-0", "--pp-skin-surface-1", "--pp-skin-accent-deep"]
+    },
+    "screenshotRole": {
+      "primaryConsistencyAuthority": false,
+      "purpose": "secondary regression evidence after deterministic geometry, token and structure checks"
+    }
+  }
+}

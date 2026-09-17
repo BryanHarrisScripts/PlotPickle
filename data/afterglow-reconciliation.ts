@@ -36,7 +36,7 @@ export const afterglowSourceClaims: AfterglowSourceClaim[] = [
 ];
 
 export const afterglowVersions = [
-  { id: "v9", label: "Afterglow v9 — Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Complete screenplay; 24-Block demonstration baseline", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
+  { id: "v9", label: "Afterglow v9 — Most Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Most complete screenplay baseline; PlotPickle normalizes its passages onto the 24-Block planning grid without asserting 24 authored source Blocks", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
   { id: "v10", label: "Afterglow v10 — Unfinished Blocks 1–8 Rewrite", status: "partial-alternate" as AfterglowVersionStatus, scope: "Blocks 1–8 only; Blocks 9–24 not attempted", sourcePath: "Afterglow v10 X Rewrite Bryan E. Harris 2023.md", sourceSha: "042427931c4a74a5dbe48e05750aea66f6b2486e", immutable: true },
   { id: "v11", label: "Afterglow: Reflections of Sentience — v11 Working Rewrite", status: "working-current" as AfterglowVersionStatus, scope: "Complete working screenplay initialized from v9 with reviewed v10 proposals for the opening", sourcePath: "PlotPickle canonical project", sourceSha: "", immutable: false },
 ] as const;

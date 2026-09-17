@@ -42,6 +42,22 @@ export const afterglowVersions = [
   { id: "v11", label: "Afterglow: Reflections of Sentience — v11 Working Rewrite", status: "working-current" as AfterglowVersionStatus, scope: "Complete working screenplay initialized from v9 with reviewed v10 proposals for the opening", sourcePath: "PlotPickle canonical project", sourceSha: "", immutable: false },
 ] as const;
 
+export const afterglowSourceUsePolicy = {
+  canonicalPlanningGrid: "24-blocks",
+  baseline: "v9",
+  laterPartialRewrite: {
+    source: "v10",
+    coveredBlocks: [1, 2, 3, 4, 5, 6, 7, 8],
+    scenes: 38,
+    use: "review-as-later-proposal",
+  },
+  historicalComparison: {
+    source: "v8",
+    use: "gap-recovery-and-structural-comparison",
+  },
+  rule: "A later partial draft may propose replacement material only where it contains source evidence. It never erases complete baseline coverage outside its frontier. Historical drafts may reveal missing or compressed narrative responsibility, but Human review decides whether anything is restored.",
+} as const;
+
 const v9Headings = ["Puppets and Puppeteers", "Broken Numbers, Shattered Hearts", "Summer's Symphony", "Dawn of Departure and Reflection", "Remnants / road material", "The Long Road to Silence", "From Dusk to Drive", "Continuation from complete v9"];
 const v10Headings = ["BBT boardroom and origin prologue", "Puppets and Puppeteers", "Summer's Symphony", "Broken Numbers, Shattered Hearts", "Dawn of Departure and Reflection", "Remnants of the Past and Echoes of the Future", "The Long Road to Silence", "From Dusk to Drive: AI Road Trip Rumble"];
 
@@ -52,6 +68,12 @@ export const afterglowVersionBlockMap = Array.from({ length: 24 }, (_, index) =>
     v9Heading: blockNumber <= 7 ? v9Headings[blockNumber - 1] : `Verified v9 baseline mapping required for current Block ${blockNumber}`,
     v10Heading: blockNumber <= 8 ? v10Headings[blockNumber - 1] : "Not attempted in v10",
     currentSource: "v9-baseline" as "v9-baseline" | "v10-proposal" | "current-writing" | "merged-approved",
+    evidenceSources: blockNumber <= 8
+      ? ["v9-baseline", "v10-later-partial", "v8-historical-comparison"] as const
+      : ["v9-baseline", "v8-historical-comparison"] as const,
+    gapRecoveryOrder: blockNumber <= 8
+      ? ["v9", "v10", "v8"] as const
+      : ["v9", "v8"] as const,
     action: "defer" as AfterglowRewriteAction,
     status: blockNumber <= 8 ? "v10-review-needed" : "baseline-not-yet-rewritten",
     continuityEffects: blockNumber <= 8 ? ["opening point of view", "opening order", "Claire/Sarah incident", "Amy/Claire role", "Summer/Isobel identity", "BBT naming", "route chronology"] : [],

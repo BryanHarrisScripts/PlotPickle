@@ -436,6 +436,28 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline > span[data-s
   color: var(--pp-skin-accent-bright);
 }
 
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage strong {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage span {
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card label {
   display: grid;
   gap: var(--pp-skin-space-1);

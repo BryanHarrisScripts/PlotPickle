@@ -272,6 +272,10 @@ async function selectedRoute(capability: "text" | "image" | "video") {
 async function enforceGenerationPolicy(pathname: string, response: ServerResponse, next: () => void) {
   const capability = GENERATION_CAPABILITIES.get(pathname);
   if (!capability) { next(); return; }
+  // Image execution now resolves policy + job preference together in the media
+  // gateway. Keeping the older selected-route guard here would pre-block a
+  // legitimate per-job locality override before the canonical resolver runs.
+  if (capability === "image") { next(); return; }
   const policy = await readStoryModePolicy();
   if (policy.mode === "hybrid") { next(); return; }
   const route = await selectedRoute(capability);

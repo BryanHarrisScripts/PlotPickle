@@ -8,6 +8,8 @@ import type { StoryboardEditorialShot } from "@/core/contracts/storyboard/editor
 import type { PPFProject } from "@/core/project/project";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { PlotPickleProject } from "@/lib/projects/project";
+import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
+import { inspectProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-inspection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
 import ProgressiveProductionLanes from "./progressive-production-lanes";
 import SceneTimelineWorkspace from "./scene-timeline-workspace";
@@ -27,6 +29,7 @@ export default function VisualStoryWorkspace({
   initialView = "story",
   sequenceDirectorDrafts = [],
   editorialShots = [],
+  providerInstructions = null,
   onProjectChange,
 }: {
   readonly project: LibraryPPFProject;
@@ -38,6 +41,7 @@ export default function VisualStoryWorkspace({
   readonly initialView?: "story" | "timeline";
   readonly sequenceDirectorDrafts?: readonly SequenceDirectorDraft[];
   readonly editorialShots?: readonly StoryboardEditorialShot[];
+  readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
 }) {
   const [selectedSceneId, setSelectedSceneId] = useState(initialSceneId ?? "");
@@ -65,6 +69,23 @@ export default function VisualStoryWorkspace({
     || shot.productionShotId === selectedShotId
     || shot.editorialShotId === selectedShotId
   )) ?? shots[0] ?? null;
+  const providerInstructionInspection = useMemo(() => {
+    if (!providerInstructions) return { inspection: null, error: "" };
+    try {
+      return {
+        inspection: inspectProviderInstructionBundle(providerInstructions, {
+          editorialShotId: selectedShot?.editorialShotId,
+          productionShotId: selectedShot?.productionShotId,
+        }),
+        error: "",
+      };
+    } catch (cause) {
+      return {
+        inspection: null,
+        error: cause instanceof Error ? cause.message : "Generated director instructions could not be inspected.",
+      };
+    }
+  }, [providerInstructions, selectedShot?.editorialShotId, selectedShot?.productionShotId]);
 
   useEffect(() => {
     if (selectedShot && selectedShot.id !== selectedShotId) setSelectedShotId(selectedShot.id);
@@ -128,6 +149,7 @@ export default function VisualStoryWorkspace({
 
   const showNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "SHOW_NOW") ?? [];
   const withholdNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "WITHHOLD_NOW") ?? [];
+  const instructionInspection = providerInstructionInspection.inspection;
 
   return (
     <section
@@ -291,6 +313,43 @@ export default function VisualStoryWorkspace({
                     </article>
                   )) : <p>No WITHHOLD_NOW information directive is recorded for this Shot.</p>}
                 </section>
+
+                <details className={styles.informationBoundary} data-provider-instruction-inspection="read-only">
+                  <summary>View generated director instructions</summary>
+                  {instructionInspection ? (
+                    <>
+                      <p><strong>Disposable provider output — not Story / PPF / canon.</strong> Read-only inspection does not save or promote generated prose.</p>
+                      <dl className={styles.shotFacts}>
+                        <div><dt>Provider</dt><dd>{instructionInspection.providerId}</dd></div>
+                        <div><dt>Strategy</dt><dd>{instructionInspection.strategy}</dd></div>
+                        <div><dt>Direction</dt><dd>{instructionInspection.directionLevel}</dd></div>
+                        <div><dt>PPF revision</dt><dd>{instructionInspection.canonicalRevision}</dd></div>
+                      </dl>
+                      {instructionInspection.instructions.length ? instructionInspection.instructions.map((instruction) => (
+                        <article key={instruction.id}>
+                          <strong>{instruction.scope === "master" ? "Master instruction" : `Shot instruction · ${instruction.editorialShotId || instruction.productionShotId || "selected Shot"}`}</strong>
+                          <pre style={{ margin: "6px 0 0", overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>{instruction.text}</pre>
+                        </article>
+                      )) : <p>No generated per-shot instruction matches the selected Shot identity.</p>}
+                      {instructionInspection.warnings.length ? (
+                        <article>
+                          <strong>Capability warnings</strong>
+                          {instructionInspection.warnings.map((warning) => <p key={warning}>{warning}</p>)}
+                        </article>
+                      ) : null}
+                      {instructionInspection.finishingRequirements.length ? (
+                        <article>
+                          <strong>Finishing / post requirements</strong>
+                          {instructionInspection.finishingRequirements.map((requirement) => (
+                            <p key={`${requirement.property}:${requirement.sourceRef || ""}`}>{requirement.property}{requirement.note ? ` — ${requirement.note}` : ""}</p>
+                          ))}
+                        </article>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p>{providerInstructionInspection.error || "No generated provider instructions are available for this Scene yet. They appear after an already-selected provider target receives a Director Spec-ready scene."}</p>
+                  )}
+                </details>
               </>
             ) : (
               <p className={styles.unassigned}>Select a real Shot when one exists. Visual Story does not create a placeholder Shot merely to populate the inspector.</p>

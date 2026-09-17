@@ -111,6 +111,24 @@ test("#2166 locks planning explicitly and blocks edits or moves until Human unlo
   ]);
 });
 
+test("#2166 reports mapped source density without claiming authored 24-Block boundaries", async () => {
+  const boardRuntime = await runtime("modules/plan/story-card-board.ts");
+  const board = boardRuntime.exports;
+  const passages = [
+    { text: "one two three", blockNumber: 1, miniBlockNumber: 1, sceneNumber: 1 },
+    { text: "four five", blockNumber: 1, miniBlockNumber: 2, sceneNumber: 1 },
+    { text: "six seven eight nine", blockNumber: 1, miniBlockNumber: 4, sceneNumber: 2 },
+    { text: "ten", blockNumber: 2, miniBlockNumber: 1, sceneNumber: 3 },
+  ];
+  const coverage = board.storyCardSourceCoverage(passages, 1);
+  assert.equal(coverage.passageCount, 3);
+  assert.equal(coverage.sceneCount, 2);
+  assert.equal(coverage.wordCount, 9);
+  assert.equal(coverage.sourceSharePercent, 75);
+  assert.equal(coverage.miniBlocksWithEvidence, 3);
+  assert.equal(JSON.stringify(coverage.miniPassageCounts), JSON.stringify([1, 1, 0, 1]));
+});
+
 test("#2166 mounts one Post-it-style board in Outline with pointer and keyboard movement", async () => {
   const [surface, board, css] = await Promise.all([
     read("app/skin-v1/matrix-story-map-surface.tsx"),
@@ -124,6 +142,12 @@ test("#2166 mounts one Post-it-style board in Outline with pointer and keyboard 
     "Story Cards should be the earliest writer-facing planning projection in Outline",
   );
   assert.match(board, /data-story-card-foundation-board="24x96"/u);
+  assert.match(board, /MAPPED SCREENPLAY EVIDENCE/u);
+  assert.match(board, /coverage\.passageCount/u);
+  assert.match(board, /coverage\.sceneCount/u);
+  assert.match(board, /coverage\.wordCount/u);
+  assert.match(board, /coverage\.sourceSharePercent/u);
+  assert.match(board, /Screenplay evidence metrics describe mapped source density, not authored Block boundaries/u);
   assert.match(board, /function actLocalBlockNumber\(blockNumber: number\)/u);
   assert.match(board, /Four Acts, six Blocks per Act/u);
   assert.match(board, /ACT \{block\.actNumber\} · BLOCK \{actLocalBlockNumber\(block\.number\)\}/u);
@@ -154,6 +178,15 @@ test("#2166 projects observed rich/Afterglow Block identities into the same card
   assert.match(importer, /title: sourceMini\.label\?\.trim\(\) \|\| mini\.title/u);
   assert.match(importer, /structure: importedStoryStructure\(project\)/u);
   assert.match(reference, /createRichAfterglowProject/u);
+  const [afterglowScreenplay, reconciliation] = await Promise.all([
+    read("data/afterglow-screenplay.ts"),
+    read("data/afterglow-reconciliation.ts"),
+  ]);
+  assert.match(afterglowScreenplay, /projectionMethod: "page-progress-normalized-to-24-block-grid"/u);
+  assert.match(afterglowScreenplay, /authoredBlockCount: "not-asserted"/u);
+  assert.match(afterglowScreenplay, /trustworthyLegacyStoryboardBlocks: 21/u);
+  assert.match(reconciliation, /Most Complete 2023 Baseline/u);
+  assert.match(reconciliation, /without asserting 24 authored source Blocks/u);
   assert.doesNotMatch(importer, /stages:\s*\{\s*plan:/u);
   assert.doesNotMatch(board, /\/api\/|generate\/image|createScene|createBeat|createShot|createFrame/u);
   assert.match(board, /Empty cards stay empty/u);

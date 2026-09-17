@@ -1,5 +1,5 @@
 export type AfterglowClaimStatus = "confirmed" | "candidate" | "historical" | "superseded" | "conflict" | "unresolved" | "reference-only";
-export type AfterglowVersionStatus = "complete-baseline" | "partial-alternate" | "working-current";
+export type AfterglowVersionStatus = "historical-complete" | "complete-baseline" | "partial-alternate" | "working-current";
 export type AfterglowRewriteAction = "keep-v9" | "start-from-v10" | "combine-selected" | "write-new" | "defer";
 
 export const AFTERGLOW_CURRENT_TITLE = "Afterglow: Reflections of Sentience";
@@ -36,10 +36,27 @@ export const afterglowSourceClaims: AfterglowSourceClaim[] = [
 ];
 
 export const afterglowVersions = [
-  { id: "v9", label: "Afterglow v9 — Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Complete screenplay; 24-Block demonstration baseline", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
+  { id: "v8", label: "Afterglow v8 — Historical Complete Rewrite", status: "historical-complete" as AfterglowVersionStatus, scope: "Earlier 86-page complete rewrite used as a comparison source for pre-v9 structure; its FDX does not itself prove 24 explicit authored Block markers", sourcePath: "AfterGlow v8 Twitter Rewrite Bryan E. Harris 2023 Github.fdx", sourceSha: "ed77d9bda97854fb23500d9eb44ada148c9a4ef8", immutable: true },
+  { id: "v9", label: "Afterglow v9 — Most Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Most complete screenplay baseline; its FDX contains 20 explicit titled source sections, while PlotPickle normalizes passages onto the 24-Block planning grid without asserting 24 authored source Blocks", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
   { id: "v10", label: "Afterglow v10 — Unfinished Blocks 1–8 Rewrite", status: "partial-alternate" as AfterglowVersionStatus, scope: "Blocks 1–8 only; Blocks 9–24 not attempted", sourcePath: "Afterglow v10 X Rewrite Bryan E. Harris 2023.md", sourceSha: "042427931c4a74a5dbe48e05750aea66f6b2486e", immutable: true },
   { id: "v11", label: "Afterglow: Reflections of Sentience — v11 Working Rewrite", status: "working-current" as AfterglowVersionStatus, scope: "Complete working screenplay initialized from v9 with reviewed v10 proposals for the opening", sourcePath: "PlotPickle canonical project", sourceSha: "", immutable: false },
 ] as const;
+
+export const afterglowSourceUsePolicy = {
+  canonicalPlanningGrid: "24-blocks",
+  baseline: "v9",
+  laterPartialRewrite: {
+    source: "v10",
+    coveredBlocks: [1, 2, 3, 4, 5, 6, 7, 8],
+    scenes: 38,
+    use: "review-as-later-proposal",
+  },
+  historicalComparison: {
+    source: "v8",
+    use: "gap-recovery-and-structural-comparison",
+  },
+  rule: "A later partial draft may propose replacement material only where it contains source evidence. It never erases complete baseline coverage outside its frontier. Historical drafts may reveal missing or compressed narrative responsibility, but Human review decides whether anything is restored.",
+} as const;
 
 const v9Headings = ["Puppets and Puppeteers", "Broken Numbers, Shattered Hearts", "Summer's Symphony", "Dawn of Departure and Reflection", "Remnants / road material", "The Long Road to Silence", "From Dusk to Drive", "Continuation from complete v9"];
 const v10Headings = ["BBT boardroom and origin prologue", "Puppets and Puppeteers", "Summer's Symphony", "Broken Numbers, Shattered Hearts", "Dawn of Departure and Reflection", "Remnants of the Past and Echoes of the Future", "The Long Road to Silence", "From Dusk to Drive: AI Road Trip Rumble"];
@@ -51,6 +68,12 @@ export const afterglowVersionBlockMap = Array.from({ length: 24 }, (_, index) =>
     v9Heading: blockNumber <= 7 ? v9Headings[blockNumber - 1] : `Verified v9 baseline mapping required for current Block ${blockNumber}`,
     v10Heading: blockNumber <= 8 ? v10Headings[blockNumber - 1] : "Not attempted in v10",
     currentSource: "v9-baseline" as "v9-baseline" | "v10-proposal" | "current-writing" | "merged-approved",
+    evidenceSources: blockNumber <= 8
+      ? ["v9-baseline", "v10-later-partial", "v8-historical-comparison"] as const
+      : ["v9-baseline", "v8-historical-comparison"] as const,
+    gapRecoveryOrder: blockNumber <= 8
+      ? ["v9", "v10", "v8"] as const
+      : ["v9", "v8"] as const,
     action: "defer" as AfterglowRewriteAction,
     status: blockNumber <= 8 ? "v10-review-needed" : "baseline-not-yet-rewritten",
     continuityEffects: blockNumber <= 8 ? ["opening point of view", "opening order", "Claire/Sarah incident", "Amy/Claire role", "Summer/Isobel identity", "BBT naming", "route chronology"] : [],

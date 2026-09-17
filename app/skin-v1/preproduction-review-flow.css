@@ -269,3 +269,314 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
     justify-content: flex-start;
   }
 }
+
+
+/* #2166 — Story Cards Foundation Board. The card wall is a planning projection
+   over the canonical 24/96 structure; visual treatment never creates a second store. */
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board {
+  display: grid;
+  gap: var(--pp-skin-space-4);
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+  padding-bottom: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-heading p {
+  margin: 0 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-heading h2 {
+  margin: 0;
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-title);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-heading > div:first-child > span,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-key small,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-footnote,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-status {
+  color: var(--pp-skin-ink-soft);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-key {
+  display: grid;
+  min-width: 220px;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  text-align: right;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-status {
+  margin: 0;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-accent);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-act-stack {
+  display: grid;
+  gap: var(--pp-skin-space-5);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-act {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-act > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  color: var(--pp-skin-ink-soft);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-act > header strong {
+  color: var(--pp-skin-accent-bright);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(210px, 1fr));
+  gap: var(--pp-skin-space-3);
+  overflow-x: auto;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-1) var(--pp-skin-space-3);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card {
+  display: grid;
+  align-content: start;
+  gap: var(--pp-skin-space-3);
+  min-width: 210px;
+  min-height: 310px;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-2);
+  box-shadow: var(--pp-skin-inset-highlight);
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card[draggable="true"] {
+  cursor: grab;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card[draggable="true"]:active {
+  cursor: grabbing;
+  transform: translateY(1px);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card:focus-within,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card:hover {
+  border-color: var(--pp-skin-focus);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card[data-locked="true"] {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline > div {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline strong {
+  color: var(--pp-skin-accent-bright);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline small,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis small {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline > span {
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-topline > span[data-story-card-lock-state="locked"] {
+  border-color: var(--pp-skin-accent);
+  color: var(--pp-skin-accent-bright);
+}
+
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage strong {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage span {
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card label {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea) {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  resize: vertical;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea):focus-visible {
+  outline: var(--pp-skin-border-strong) solid var(--pp-skin-focus);
+  outline-offset: 1px;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea):disabled {
+  color: var(--pp-skin-disabled);
+  cursor: not-allowed;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis {
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  padding-top: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis ol {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  margin: var(--pp-skin-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis li {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin-top: auto;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font: inherit;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions button:hover:not(:disabled),
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions button:focus-visible {
+  border-color: var(--pp-skin-focus);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions button:disabled {
+  color: var(--pp-skin-disabled);
+  cursor: not-allowed;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-actions .pp-skin-v1-story-card-lock {
+  grid-column: 1 / -1;
+  border-color: var(--pp-skin-line-strong);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-footnote {
+  margin: 0;
+  padding-top: var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+@media (max-width: 1100px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-row {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-key {
+    text-align: left;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-row {
+    grid-template-columns: minmax(240px, 1fr);
+  }
+}

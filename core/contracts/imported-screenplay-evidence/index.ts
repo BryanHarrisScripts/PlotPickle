@@ -10,6 +10,14 @@ export type ImportedScreenplayPassage = {
   readonly sceneId: string | null;
 };
 
+export type ImportedScreenplaySectionMarker = {
+  readonly id: string;
+  readonly title: string;
+  readonly page: number;
+  readonly blockNumber: number;
+  readonly sceneNumber: number;
+};
+
 export type ImportedScreenplayProjectionReview = {
   readonly blockNumber: number;
   readonly state: "needs-review";
@@ -26,6 +34,7 @@ export type ImportedScreenplayEvidence = {
   readonly storedPassageCount: number;
   readonly passagesTruncated: boolean;
   readonly passages: readonly ImportedScreenplayPassage[];
+  readonly sectionMarkers?: readonly ImportedScreenplaySectionMarker[];
   readonly projectionReviews?: readonly ImportedScreenplayProjectionReview[];
 };
 
@@ -98,6 +107,22 @@ function normalizePassage(value: unknown): ImportedScreenplayPassage | null {
     miniBlockNumber: boundedInteger(source.miniBlockNumber, 1, 4),
     sceneNumber: boundedInteger(source.sceneNumber, 0, 9999),
     sceneId: cleanText(source.sceneId, 240) || null,
+  };
+}
+
+
+function normalizeSectionMarker(value: unknown): ImportedScreenplaySectionMarker | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Partial<ImportedScreenplaySectionMarker>;
+  const id = cleanText(source.id, 240);
+  const title = cleanText(source.title, 500);
+  if (!id || !title) return null;
+  return {
+    id,
+    title,
+    page: boundedInteger(source.page, 1, 10000),
+    blockNumber: boundedInteger(source.blockNumber, 1, 24),
+    sceneNumber: boundedInteger(source.sceneNumber, 0, 9999),
   };
 }
 
@@ -189,6 +214,14 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
       .slice(0, 2500)
     : [];
+  const sectionMarkers = Array.isArray(screenplay.sectionMarkers)
+    ? screenplay.sectionMarkers
+      .map(normalizeSectionMarker)
+      .filter((item): item is ImportedScreenplaySectionMarker => Boolean(item))
+      .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
+      .sort((left, right) => left.page - right.page || left.id.localeCompare(right.id))
+      .slice(0, 256)
+    : [];
   const projectionReviews = Array.isArray(screenplay.projectionReviews)
     ? screenplay.projectionReviews
       .map(normalizeProjectionReview)
@@ -213,6 +246,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       storedPassageCount: passages.length,
       passagesTruncated: Boolean(screenplay.passagesTruncated) || totalPassageCount > passages.length,
       passages,
+      sectionMarkers,
       projectionReviews,
     },
     referenceFixture,

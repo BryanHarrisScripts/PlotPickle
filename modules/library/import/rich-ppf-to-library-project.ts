@@ -5,9 +5,12 @@ import type {
   ProjectSourceEvidence,
 } from "../../../core/contracts/imported-screenplay-evidence";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
+import { createEmptyStoryStructureV2, type StoryStructureV2 } from "../../../core/project/story-structure-v2";
 import type { PlotPickleProject } from "../../../lib/projects/project";
+import { parseScreenplay } from "../../../lib/projects/screenplay/screenplay";
 
 export type ImportedLibraryProject = PPFProject & {
+  readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
 };
 
@@ -135,6 +138,48 @@ function importedPassages(project: PlotPickleProject): readonly ImportedScreenpl
   }));
 }
 
+function importedSectionMarkers(project: PlotPickleProject) {
+  return parseScreenplay(project.screenplay)
+    .filter((element) => element.type === "section")
+    .map((element, index) => ({
+      id: `source-section-${String(index + 1).padStart(3, "0")}`,
+      title: element.text,
+      page: element.page,
+      blockNumber: element.blockNumber,
+      sceneNumber: element.scene,
+    }))
+    .slice(0, 256);
+}
+
+function importedStoryStructure(project: PlotPickleProject): StoryStructureV2 {
+  const empty = createEmptyStoryStructureV2();
+  return {
+    ...empty,
+    blocks: empty.blocks.map((slot) => {
+      const sourceBlock = project.blocks.find((block) => block.number === slot.number);
+      if (!sourceBlock) return slot;
+      const sourceMinis = sourceBlock.scenes
+        .flatMap((scene) => scene.miniBlocks)
+        .sort((left, right) => left.number - right.number)
+        .slice(0, 4);
+      return {
+        ...slot,
+        title: sourceBlock.title?.trim() || slot.title,
+        note: (sourceBlock.purpose || sourceBlock.summary || "").trim().slice(0, 1200),
+        miniBlocks: slot.miniBlocks.map((mini, index) => {
+          const sourceMini = sourceMinis[index];
+          if (!sourceMini) return mini;
+          return {
+            ...mini,
+            title: sourceMini.label?.trim() || mini.title,
+            note: compact([sourceMini.purpose, sourceMini.notes]).slice(0, 800),
+          };
+        }),
+      };
+    }),
+  };
+}
+
 /**
  * Project the existing rich screenplay/import PPF into the current modular PPF.
  * Imported interpretation stays a PLAN proposal; direct screenplay passages stay
@@ -149,6 +194,7 @@ export function richPpfToLibraryProject(project: PlotPickleProject, importedAt =
   const passages = importedPassages(project);
   return {
     ...base,
+    structure: importedStoryStructure(project),
     foundations: {
       ...base.foundations,
       lessons: importedFoundationProposals(project, importedAt),
@@ -163,6 +209,7 @@ export function richPpfToLibraryProject(project: PlotPickleProject, importedAt =
         storedPassageCount: passages.length,
         passagesTruncated: project.screenplay.draftElements.length > passages.length,
         passages,
+        sectionMarkers: importedSectionMarkers(project),
       },
       referenceFixture: null,
     },

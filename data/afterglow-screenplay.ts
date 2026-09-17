@@ -93,12 +93,15 @@ const coverageDocument = sourceDocument("2023-08-01T00:00:00.000Z");
 const coverageElements = parseScreenplay(coverageDocument);
 
 export const afterglowScreenplayCoverage = {
-  source: "Afterglow v9 Twitter Rewrite (2023) — complete screenplay",
+  source: "Afterglow v9 Twitter Rewrite (2023) — most complete screenplay baseline",
   originalTitle: "Afterglow: Echoes of Sentience",
   displayTitle: "Afterglow: Reflections of Sentience",
   author: "Bryan Elgin Harris",
   license: "CC BY-SA 4.0",
-  blocks: 24,
+  projectionBlocks: 24,
+  projectionMethod: "page-progress-normalized-to-24-block-grid",
+  authoredBlockCount: "not-asserted",
+  trustworthyLegacyStoryboardBlocks: 21,
   screenplayPages: 80,
   scenes: Math.max(0, ...coverageElements.map((element) => element.scene)),
   elements: coverageElements.filter((element) => editableTypes.includes(element.type as ScreenplayDraftElementType)).length,

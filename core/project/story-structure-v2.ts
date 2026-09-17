@@ -24,6 +24,7 @@ export type StoryMiniBlockV2 = {
   readonly blockNumber: number;
   readonly ordinal: number;
   readonly title: string;
+  readonly note: string;
   readonly stages: Readonly<Record<StoryWorkflowStage, StoryStageState>>;
 };
 
@@ -33,6 +34,8 @@ export type StoryBlockV2 = {
   readonly actNumber: StoryActNumber;
   readonly sequenceNumber: number;
   readonly title: string;
+  readonly note: string;
+  readonly planningLockedAt: string | null;
   readonly miniBlocks: readonly StoryMiniBlockV2[];
 };
 
@@ -75,6 +78,7 @@ function createMiniBlock(blockNumber: number, ordinal: number, blockUnlocked: bo
     blockNumber,
     ordinal,
     title: `Mini-Block ${String(number).padStart(2, "0")}`,
+    note: "",
     stages: {
       plan: createStage(blockUnlocked ? "available" : "locked"),
       build: createStage("locked"),
@@ -90,6 +94,8 @@ function createBlock(number: number, unlocked: boolean): StoryBlockV2 {
     actNumber: blockAct(number),
     sequenceNumber: blockSequence(number),
     title: `Block ${String(number).padStart(2, "0")}`,
+    note: "",
+    planningLockedAt: null,
     miniBlocks: Array.from(
       { length: MINI_BLOCKS_PER_BLOCK },
       (_, index) => createMiniBlock(number, index + 1, unlocked),
@@ -171,6 +177,7 @@ function normalizeMiniBlock(
     blockNumber,
     ordinal,
     title: text(miniSource.title, 160).trim() || `Mini-Block ${String(number).padStart(2, "0")}`,
+    note: text(miniSource.note, 800),
     stages: { plan, build, storyboard },
   };
 }
@@ -202,6 +209,8 @@ function normalizeBlocks(source: Readonly<Record<string, unknown>>) {
       actNumber: blockAct(blockNumber),
       sequenceNumber: blockSequence(blockNumber),
       title: text(blockSource.title, 160).trim() || `Block ${String(blockNumber).padStart(2, "0")}`,
+      note: text(blockSource.note, 1200),
+      planningLockedAt: timestamp(blockSource.planningLockedAt),
       miniBlocks: Array.from(
         { length: MINI_BLOCKS_PER_BLOCK },
         (_, index) => normalizeMiniBlock(source, blockNumber, index + 1, unlocked),

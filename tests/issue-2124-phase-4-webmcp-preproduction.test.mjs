@@ -50,6 +50,18 @@ test("#2124 Phase 4 keeps empty Visual Story and Scene Timeline inspectable with
   assert.match(visualStory, /only real Shot and Previs timing can then occupy the timeline/u);
 });
 
+test("#2124 keeps the Dashboard mathematical score contract visible when no story is active", async () => {
+  const scorePanel = await read("app/skin-v1/plotpickle-score-panel.tsx");
+
+  assert.match(scorePanel, /function EmptyScorePanel\(\)/u);
+  assert.match(scorePanel, /data-plotpickle-score-project="none"/u);
+  assert.match(scorePanel, /<output className=\{styles\.score\} aria-label="PlotPickle Score NR">NR<\/output>/u);
+  assert.match(scorePanel, /NO ACTIVE STORY/u);
+  assert.match(scorePanel, /0\/96 MINI-BLOCKS POPULATED/u);
+  assert.match(scorePanel, /if \(!project \|\| !result\) return <EmptyScorePanel \/>/u);
+  assert.doesNotMatch(scorePanel, /if \(!project \|\| !result\) return null/u);
+});
+
 test("#2124 Phase 4 adds only candidate pre-production captures while Dashboard remains the sole locked Matrix baseline", async () => {
   const manifest = JSON.parse(await read("tests/visual-baselines/skin-v1/manifest.json"));
   const locked = Object.entries(manifest.surfaces)

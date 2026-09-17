@@ -221,6 +221,154 @@
   padding: 0 var(--pp-space-3) var(--pp-space-3);
 }
 
+/* #2124 Phase 5: Matrix is the presentation authority for Story Map.
+   Keep the existing Story Map structure/semantics, but neutralize its legacy
+   independent colour system through the canonical --pp-skin-* roles. */
+:global([data-progressive-story-map="24x96"]) {
+  --story-defined: var(--pp-skin-accent-bright);
+  --story-observed: var(--pp-skin-accent);
+  --story-emerging: var(--pp-skin-accent);
+  --story-missing: var(--pp-skin-ink-muted);
+  --story-locked: var(--pp-skin-disabled);
+  --story-teal: var(--pp-skin-accent-bright);
+  --story-orange: var(--pp-skin-ink-soft);
+  --story-focus: var(--pp-skin-focus);
+  gap: var(--pp-skin-space-4);
+  margin-bottom: var(--pp-skin-space-6);
+  padding: var(--pp-skin-space-5);
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+:global([data-progressive-story-map="24x96"] > header p),
+:global([data-progressive-story-map="24x96"] [data-selected-block] > p) {
+  color: var(--pp-skin-ink-soft);
+}
+
+:global([data-progressive-story-map="24x96"] > header > div:last-child),
+:global([data-progressive-story-map="24x96"] section[data-sequence] > div:first-child),
+:global([data-progressive-story-map="24x96"] [data-selected-block]),
+:global([data-progressive-story-map="24x96"] details) {
+  border-color: var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+  box-shadow: none;
+}
+
+:global([data-progressive-story-map="24x96"] section[data-sequence]) {
+  border-color: var(--pp-skin-line-soft);
+}
+
+:global([data-progressive-story-map="24x96"] section[data-sequence] header strong),
+:global([data-progressive-story-map="24x96"] > header > div:first-child > p:first-child) {
+  color: var(--pp-skin-accent-bright) !important;
+}
+
+:global([data-progressive-story-map="24x96"] section[data-sequence] header span),
+:global([data-progressive-story-map="24x96"] > header > div:last-child span),
+:global([data-progressive-story-map="24x96"] > header > div:last-child small) {
+  color: var(--pp-skin-ink-muted);
+}
+
+:global([data-progressive-story-map="24x96"] button[data-canonical-story-id]) {
+  border-color: color-mix(in srgb, var(--story-state) 42%, var(--pp-skin-line));
+  background: color-mix(in srgb, var(--story-state) 4%, var(--pp-skin-surface-1));
+  color: var(--pp-skin-ink);
+  box-shadow: none;
+}
+
+:global([data-progressive-story-map="24x96"] button[data-canonical-story-id]:hover) {
+  border-color: color-mix(in srgb, var(--story-state) 70%, var(--pp-skin-line-strong));
+  transform: none;
+}
+
+:global([data-progressive-story-map="24x96"] button[data-canonical-story-id][aria-pressed="true"]) {
+  outline: var(--pp-skin-border-strong) solid var(--pp-skin-focus);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+:global([data-progressive-story-map="24x96"] button[data-canonical-story-id] > span:first-child) {
+  color: var(--pp-skin-accent-bright);
+}
+
+:global([data-progressive-story-map="24x96"] [data-state] > i),
+:global([data-progressive-story-map="24x96"] i[data-state]) {
+  background: var(--story-state);
+  box-shadow: none;
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label="24/96 evidence states"]) {
+  border-color: var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label="24/96 evidence states"] > span) {
+  border-color: color-mix(in srgb, var(--story-state) 50%, var(--pp-skin-line));
+  background: var(--pp-skin-surface-1);
+}
+
+:global([data-progressive-story-map="24x96"] [data-marker]) {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-accent-bright);
+  box-shadow: none;
+}
+
+:global([data-progressive-story-map="24x96"] button[aria-label^="Shift:"]) {
+  color: var(--pp-skin-ink-soft);
+  background: transparent;
+}
+
+:global([data-progressive-story-map="24x96"] button[aria-label^="Shift:"] span) {
+  color: var(--pp-skin-ink-soft);
+}
+
+:global([data-progressive-story-map="24x96"] [role="listbox"]) {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-shadow-panel);
+}
+
+:global([data-progressive-story-map="24x96"] [role="listbox"] button:hover),
+:global([data-progressive-story-map="24x96"] [role="listbox"] button[aria-selected="true"]) {
+  background: var(--pp-skin-surface-3);
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label*="local workflow"]),
+:global([data-progressive-story-map="24x96"] [aria-label^="Visual candidates for"]) {
+  border-color: var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label*="local workflow"] a),
+:global([data-progressive-story-map="24x96"] [aria-label^="Visual candidates for"] button) {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label*="local workflow"] a:last-child),
+:global([data-progressive-story-map="24x96"] [aria-label^="Visual candidates for"] > div:first-child button) {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+}
+
+:global([data-progressive-story-map="24x96"] [aria-label*="local workflow"] a:focus-visible),
+:global([data-progressive-story-map="24x96"] [aria-label^="Visual candidates for"] button:focus-visible),
+:global([data-progressive-story-map="24x96"] button:focus-visible) {
+  outline-color: var(--pp-skin-focus);
+  filter: none;
+}
+
+:global([data-progressive-story-map="24x96"] details summary),
+:global([data-progressive-story-map="24x96"] details p),
+:global([data-progressive-story-map="24x96"] details li) {
+  color: var(--pp-skin-ink-soft);
+}
+
 @media (max-width: 760px) {
   .storyActions {
     display: grid;

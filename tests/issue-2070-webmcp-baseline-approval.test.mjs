@@ -7,7 +7,7 @@ import {
   lockAllVisualBaselines,
   lockVisualBaseline,
 } from "../scripts/lock-skin-visual-baseline.mjs";
-import { approvesVisualBaselineReplacement } from "../scripts/run-webmcp-startup-uat.mjs";
+import { approvesVisualBaselineChanges } from "../scripts/run-webmcp-startup-uat.mjs";
 
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
@@ -74,24 +74,28 @@ test("#2070 explicit replace-all promotes every current candidate locally", asyn
   }
 });
 
-test("#2070 Y is explicit approval and every other answer is the safe no-change default", () => {
-  assert.equal(approvesVisualBaselineReplacement("Y"), true);
-  assert.equal(approvesVisualBaselineReplacement("y"), true);
-  for (const answer of ["", "N", "n", "yes", "anything else"]) {
-    assert.equal(approvesVisualBaselineReplacement(answer), false);
+test("#2070/#2151 requires an explicit Y or N baseline decision", () => {
+  assert.equal(approvesVisualBaselineChanges("Y"), true);
+  assert.equal(approvesVisualBaselineChanges("y"), true);
+  assert.equal(approvesVisualBaselineChanges("N"), false);
+  assert.equal(approvesVisualBaselineChanges("n"), false);
+  for (const answer of ["", "yes", "anything else"]) {
+    assert.throws(() => approvesVisualBaselineChanges(answer), /must be Y or N/u);
   }
 });
 
 test("#2070 successful WebMCP runs offer local approval while failed runs never reach the prompt", async () => {
   const runner = await read("scripts/run-webmcp-startup-uat.mjs");
   const lockScript = await read("scripts/lock-skin-visual-baseline.mjs");
-  const prompt = runner.indexOf("await promptVisualBaselineReplacement()");
+  const prompt = runner.indexOf("await promptVisualBaselineChanges({ manifest })");
   const successReturn = runner.indexOf("return 0;", prompt);
   const catchBlock = runner.indexOf("} catch (error) {", successReturn);
 
   assert.ok(prompt >= 0 && successReturn > prompt && catchBlock > successReturn);
-  assert.match(runner, /Replace ALL Skin V1 visual baselines with the screenshots from this run\? \[Y\/N\]/u);
-  assert.match(runner, /runExistingScript\("scripts\/lock-skin-visual-baseline\.mjs", \["all", "--replace"\]\)/u);
+  assert.match(runner, /Do you want to change the locked visual baselines\? \[Y\/N\]/u);
+  assert.doesNotMatch(runner, /Replace ALL Skin V1 visual baselines/u);
+  assert.match(runner, /toggleVisualBaselines\(approval\.surfaces/u);
+  assert.doesNotMatch(runner, /runExistingScript\("scripts\/lock-skin-visual-baseline\.mjs", \["all", "--replace"\]\)/u);
   assert.match(runner, /Existing Skin V1 visual baselines were left unchanged/u);
   assert.match(lockScript, /surface === "all"/u);
   assert.match(lockScript, /process\.argv\.includes\("--replace"\)/u);

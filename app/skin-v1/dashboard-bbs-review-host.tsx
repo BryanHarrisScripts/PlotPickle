@@ -128,17 +128,14 @@ export default function DashboardBbsReviewHost({
   if (libraryOpen) {
     return (
       <section
-        className={reviewStyles.reviewSurface}
-        aria-label="Library review"
+        aria-label="Library"
         data-dashboard-review-surface="library"
-        data-review-state="in-review"
         onKeyDown={(event) => {
           if (event.key === "Escape") { event.preventDefault(); closeReview("library"); }
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
           <h1>LIBRARY</h1>
-          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("library")}>Back to Dashboard</button>
         </div>
         <LibraryWorkspace />

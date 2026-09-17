@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import {
+  DEFAULT_LOCAL_PROFILE_ID,
+  PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
   archiveLibraryProject,
   createLibraryUserProject,
@@ -31,6 +33,9 @@ type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
 
+const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
+const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
+
 const DESTINATIONS: readonly {
   readonly id: LibraryDestination;
   readonly shortcut: string;
@@ -53,6 +58,33 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
   structure: "Structure",
   storyboard: "Storyboard",
 };
+
+function currentProfileId() {
+  return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
+}
+
+function currentSessionProjectKey() {
+  return `${SESSION_PROJECT_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function markCurrentSessionLibraryProject(projectId: string) {
+  const normalized = projectId.trim();
+  if (!normalized) throw new Error("A current-session story requires a project ID.");
+  window.sessionStorage.setItem(currentSessionProjectKey(), normalized);
+  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
+}
+
+function clearCurrentSessionLibraryProject() {
+  window.sessionStorage.removeItem(currentSessionProjectKey());
+  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
+}
+
+function currentSessionLibraryProject(): LibraryPPFProject | null {
+  const projectId = window.sessionStorage.getItem(currentSessionProjectKey())?.trim();
+  if (!projectId) return null;
+  const activeProject = initializeProjectLibrary().activeProject;
+  return activeProject?.id === projectId ? activeProject : null;
+}
 
 function displayDate(value: string) {
   const date = new Date(value);
@@ -151,7 +183,7 @@ export default function LibraryWorkspace() {
   useEffect(() => {
     const refresh = () => {
       const library = initializeProjectLibrary();
-      setActiveProject(library.activeProject);
+      setActiveProject(currentSessionLibraryProject());
       setStories(listLibraryProjects());
       setArchivedCount(listArchivedLibraryProjects().length);
       if (library.migrated) setNotice("Your existing PlotPickle project was safely added to LOAD.");
@@ -159,7 +191,11 @@ export default function LibraryWorkspace() {
     };
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    window.addEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    return () => {
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+      window.removeEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -225,7 +261,8 @@ export default function LibraryWorkspace() {
 
   function createNewStory() {
     try {
-      createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
+      const project = createLibraryUserProject({ title: "Untitled Story", format: "Feature" });
+      markCurrentSessionLibraryProject(project.id);
       window.location.assign("/?workspace=learn");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "PlotPickle could not create a new story.");
@@ -236,15 +273,16 @@ export default function LibraryWorkspace() {
     if (!pending || loadingReference) return;
     setLoadingReference(true);
     try {
+      let openedProject: LibraryPPFProject;
       if (pending.kind === "story") {
-        switchActiveLibraryProject(pending.item.id);
+        openedProject = switchActiveLibraryProject(pending.item.id);
       } else {
         let sourceProject = pending.item.project;
         if (pending.item.referenceLoader === "afterglow-v9-foundations") {
           const { createAfterglowV9FoundationsReference } = await import("../reference/afterglow-v9-foundations");
           sourceProject = createAfterglowV9FoundationsReference();
         }
-        createLibraryWorkingCopy({
+        openedProject = createLibraryWorkingCopy({
           sourceProject,
           sourceKind: pending.sourceKind,
           sourceId: pending.item.id,
@@ -253,6 +291,7 @@ export default function LibraryWorkspace() {
           format: pending.item.format,
         });
       }
+      markCurrentSessionLibraryProject(openedProject.id);
       setPending(null);
       openActiveProject();
     } catch (error) {
@@ -265,7 +304,9 @@ export default function LibraryWorkspace() {
 
   function archiveStory(item: ProjectLibrarySummary) {
     try {
+      const wasCurrentSessionStory = activeProject?.id === item.id;
       archiveLibraryProject(item.id);
+      if (wasCurrentSessionStory) clearCurrentSessionLibraryProject();
       setPending((current) => current?.kind === "story" && current.item.id === item.id ? null : current);
       setNotice(`${item.title} moved to Archive. You can restore it at any time.`);
     } catch (error) {
@@ -299,6 +340,7 @@ export default function LibraryWorkspace() {
         title: result.project.title,
         format: `Imported · ${result.project.sourceEvidence.screenplay?.sourceFormat || "PPF"}`,
       });
+      markCurrentSessionLibraryProject(imported.id);
       const loadIndex = DESTINATIONS.findIndex((item) => item.id === "load");
       setDirectorySelectedIndex(loadIndex);
       setDestination("load");
@@ -446,6 +488,24 @@ export default function LibraryWorkspace() {
                       data-skin-menu-row={item.id}
                       data-skin-menu-shortcut={item.shortcut}
                       data-skin-menu-connected="true"
+                      style={{
+                        position: "relative",
+                        display: "block",
+                        width: "100%",
+                        minHeight: "var(--pp-skin-control-height)",
+                        margin: 0,
+                        padding: "var(--pp-skin-space-1) var(--pp-skin-space-9) var(--pp-skin-space-1) var(--pp-skin-space-2)",
+                        border: `var(--pp-skin-border-thin) solid ${selected ? "var(--pp-skin-accent-bright)" : "transparent"}`,
+                        background: selected ? "var(--pp-skin-accent-deep)" : "transparent",
+                        color: "var(--pp-skin-ink)",
+                        boxShadow: "none",
+                        fontFamily: "var(--pp-skin-font-ui)",
+                        fontSize: "var(--pp-skin-font-body)",
+                        fontWeight: 400,
+                        lineHeight: "var(--pp-skin-leading-body)",
+                        textAlign: "left",
+                        whiteSpace: "pre-wrap",
+                      }}
                       onClick={() => activateDestination(index)}
                       onKeyDown={(event) => handleDirectoryKeyDown(event, index)}
                     >

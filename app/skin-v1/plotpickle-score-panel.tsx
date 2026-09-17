@@ -6,15 +6,35 @@ import {
   plotPickleScorePercent,
 } from "../../core/project/plotpickle-score";
 import {
-  initializeProjectLibrary,
+  DEFAULT_LOCAL_PROFILE_ID,
+  PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
+  initializeProjectLibrary,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
 import styles from "./plotpickle-score-panel.module.css";
 
+const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
+const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
+
+function currentProfileId() {
+  return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
+}
+
+function currentSessionProjectKey() {
+  return `${SESSION_PROJECT_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function currentSessionLibraryProject(): LibraryPPFProject | null {
+  const projectId = window.sessionStorage.getItem(currentSessionProjectKey())?.trim();
+  if (!projectId) return null;
+  const activeProject = initializeProjectLibrary().activeProject;
+  return activeProject?.id === projectId ? activeProject : null;
+}
+
 function readActiveProject() {
   try {
-    return initializeProjectLibrary().activeProject;
+    return currentSessionLibraryProject();
   } catch {
     return null;
   }
@@ -39,7 +59,11 @@ export default function PlotPickleScorePanel() {
     const refresh = () => setProject(readActiveProject());
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    window.addEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    return () => {
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+      window.removeEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   const result = useMemo(() => project

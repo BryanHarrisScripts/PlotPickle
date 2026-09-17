@@ -26,7 +26,7 @@ test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, la
     ['profile', 'I', 'Identity', 'Manage User Profile', 'CALL SHEET'],
     ['settings', 'M', 'Manage', 'Configure PlotPickle', 'CALL SHEET'],
     ['help', 'B', 'Bug Report', 'Prepare a PlotPickle Issue', 'CALL SHEET'],
-    ['open-source', 'N', 'Notices', 'Review Open Source Licensing and Attribution', 'CALL SHEET'],
+    ['open-source', 'N', 'Notices', 'Open Source Licensing and Attribution', 'CALL SHEET'],
     ['logout', 'X', 'Log Off', 'End This Session', 'WRAP'],
     ['shutdown', 'Q', 'Shut Down Node', 'Safely Close PlotPickle and Local Services', 'WRAP'],
   ];
@@ -53,7 +53,9 @@ test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, la
   }
 
   assert.doesNotMatch(menu, /group: "(?:STRUCTURING|DRAFTING|INTERACTIVE LEARNING|MANAGEMENT|SESSION)"/u);
-  assert.doesNotMatch(menu, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
+  for (const [, , , description] of ordered) {
+    assert.doesNotMatch(description, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
+  }
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
 });
 

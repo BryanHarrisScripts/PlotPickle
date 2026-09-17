@@ -51,10 +51,11 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /status\.activeRuntime\?\.reachable !== true/u);
   assert.match(host, /role\.available === true/u);
   assert.match(host, /const hybridReady = localReady && cloudReady/u);
-  assert.match(host, /LOCAL: \{readinessLabel\(localReady, loaded\)\}/u);
-  assert.match(host, /CLOUD: \{readinessLabel\(cloudReady, loaded\)\}/u);
-  assert.match(host, /HYBRID: \{readinessLabel\(hybridReady, loaded\)\}/u);
-  assert.match(host, /MODE: \{mode\.toUpperCase\(\)\}/u);
+  assert.match(host, /\{ label: "LOCAL", ready: localReady \}/u);
+  assert.match(host, /\{ label: "CLOUD", ready: cloudReady \}/u);
+  assert.match(host, /\{ label: "HYBRID", ready: hybridReady \}/u);
+  assert.match(host, /<strong>MODE<\/strong>: \{mode\.toUpperCase\(\)\}/u);
+  assert.match(host, /data-story-mode-readiness=\{readinessState\(status\.ready, loaded\)\}/u);
 });
 
 test("#2106 choosing a directory policy updates the execution policy boundary", async () => {

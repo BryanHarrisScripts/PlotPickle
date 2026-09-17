@@ -381,6 +381,7 @@ export default function DashboardBbsPanel({
           {items.map((item, index) => {
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEM_IDS.has(item.id);
+            const inReview = item.id === "storyboard" || item.id === "previs";
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
             const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
             return (
@@ -396,6 +397,7 @@ export default function DashboardBbsPanel({
                   data-dashboard-menu-item={item.id}
                   data-dashboard-shortcut={item.shortcut}
                   data-dashboard-connected={connected ? "true" : "false"}
+                  data-dashboard-review={inReview ? "in-review" : undefined}
                   data-skin-menu-row={item.id}
                   data-skin-menu-shortcut={item.shortcut}
                   data-skin-menu-connected={connected ? "true" : "false"}
@@ -405,8 +407,8 @@ export default function DashboardBbsPanel({
                 >
                   <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
                   <span
-                    className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}`}
-                    aria-label={`${item.label}: ${connected ? "available" : "unavailable"}`}
+                    className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}${inReview ? " is-review" : ""}`}
+                    aria-label={`${item.label}: ${inReview ? "in review" : connected ? "available" : "unavailable"}`}
                     data-skin-reference-state="status"
                     data-dashboard-status={connected ? "active" : "inactive"}
                     data-skin-menu-indicator={connected ? "connected" : "unwired"}

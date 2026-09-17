@@ -12,8 +12,12 @@ test("#2124 records the Human visual-review evidence, including Avery's 140 pale
   assert.match(brief, /0 automated blockers and 16 advisories/u);
 });
 
-test("#2124 WebMCP refuses an incomplete canonical Dashboard capture without PlotPickle Score", async () => {
-  const catalogue = await read("lib/verification/webmcp-standard-surface-catalogue.mjs");
+test("#2124 restores PlotPickle Score visibility and WebMCP refuses an incomplete canonical Dashboard capture", async () => {
+  const [catalogue, resetCss] = await Promise.all([
+    read("lib/verification/webmcp-standard-surface-catalogue.mjs"),
+    read("app/skin-v1-dashboard-menu-reset.css"),
+  ]);
+  assert.match(resetCss, /\[data-plotpickle-score="v1"\][\s\S]*display: block !important/u);
   assert.match(catalogue, /DASHBOARD_SCORE_SELECTOR/u);
   assert.match(catalogue, /\[data-plotpickle-score='v1'\]/u);
   assert.match(catalogue, /Dashboard is missing the visible PlotPickle Score mathematical panel/u);

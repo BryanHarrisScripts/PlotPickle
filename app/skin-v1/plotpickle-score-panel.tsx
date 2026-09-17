@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  PLOTPICKLE_SCORE_VERSION,
   calculatePlotPickleScore,
   plotPickleScorePercent,
 } from "../../core/project/plotpickle-score";
@@ -52,6 +53,48 @@ function evidenceLabel(basis: "imported-screenplay" | "native-structure" | "none
   return "NO USABLE STORY EVIDENCE";
 }
 
+const METRIC_LABELS = ["ALIGNMENT", "VERBOSITY", "EROSION", "PROGRESSION", "COVERAGE"] as const;
+
+function EmptyScorePanel() {
+  return (
+    <section
+      className={styles.panel}
+      aria-label="PlotPickle Score"
+      data-plotpickle-score="v1"
+      data-plotpickle-score-state="unrated"
+      data-plotpickle-score-basis="none"
+      data-plotpickle-score-project="none"
+    >
+      <div className={styles.headingRow}>
+        <div>
+          <div className={styles.eyebrow}>PLOTPICKLE SCORE</div>
+          <div className={styles.storyTitle}>No active story</div>
+        </div>
+        <div className={styles.scoreCluster}>
+          <output className={styles.score} aria-label="PlotPickle Score NR">NR</output>
+          <span className={styles.ratingState}>NOT RATED</span>
+        </div>
+      </div>
+
+      <div className={styles.metrics} aria-label="PlotPickle Score dimensions">
+        {METRIC_LABELS.map((label) => (
+          <div className={styles.metric} key={label}>
+            <span>{label}</span>
+            <strong aria-label={`${label} unavailable`}>—</strong>
+            {label === "VERBOSITY" || label === "EROSION" ? <small>LOWER IS BETTER</small> : null}
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.evidence}>
+        <span>NO ACTIVE STORY</span>
+        <span>0/96 MINI-BLOCKS POPULATED</span>
+        <span>SCORE MODEL V{PLOTPICKLE_SCORE_VERSION}</span>
+      </div>
+    </section>
+  );
+}
+
 export default function PlotPickleScorePanel() {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
 
@@ -70,7 +113,7 @@ export default function PlotPickleScorePanel() {
     ? calculatePlotPickleScore({ structure: project.structure, sourceEvidence: project.sourceEvidence })
     : null, [project]);
 
-  if (!project || !result) return null;
+  if (!project || !result) return <EmptyScorePanel />;
 
   const metrics = [
     ["ALIGNMENT", result.metrics.alignment, false],
@@ -87,6 +130,7 @@ export default function PlotPickleScorePanel() {
       data-plotpickle-score="v1"
       data-plotpickle-score-state={result.ratingState}
       data-plotpickle-score-basis={result.evidence.basis}
+      data-plotpickle-score-project="active"
     >
       <div className={styles.headingRow}>
         <div>

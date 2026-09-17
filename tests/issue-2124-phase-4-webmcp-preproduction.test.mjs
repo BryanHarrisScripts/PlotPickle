@@ -8,7 +8,7 @@ import {
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 
-test("#2124 Phase 4 routes Matrix Outline and Storyboard to existing pre-production authorities; #2161 connects the in-shell review path", async () => {
+test("#2124 Phase 4 routes Matrix Outline and Storyboard to existing pre-production authorities; #2161/#2164 connect the in-shell writer path", async () => {
   const [menu, host, storyMapSurface] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -19,7 +19,7 @@ test("#2124 Phase 4 routes Matrix Outline and Storyboard to existing pre-product
   assert.match(host, /item\.id === "plan"[\s\S]*openOutline\(reviewAddress\)/u);
   assert.match(host, /item\.id === "storyboard"[\s\S]*openStoryboard\(reviewAddress\)/u);
   assert.match(host, /item\.id === "previs"[\s\S]*openPrevis\(reviewAddress\)/u);
-  assert.match(host, /<MatrixStoryMapSurface onOpenStage=\{openStoryMapStage\} onOpenStoryModeSettings=\{openStoryModeSettings\} \/>/u);
+  assert.match(host, /<MatrixStoryMapSurface onOpenStage=\{openStoryMapStage\} onOpenPrevis=\{openPrevis\} onOpenStoryModeSettings=\{openStoryModeSettings\} \/>/u);
   assert.match(host, /<SkinV1StoryboardReviewSurface/u);
   assert.match(host, /<SkinV1PrevisReviewSurface/u);
   assert.doesNotMatch(host, /<StoryboardPage \/>/u);

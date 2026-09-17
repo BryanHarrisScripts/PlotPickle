@@ -40,6 +40,7 @@ export default function StoryCardFoundationBoard({
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
   const screenplayEvidence = normalizeProjectSourceEvidence(project.sourceEvidence).screenplay;
   const sourcePassages = screenplayEvidence?.passages ?? [];
+  const sourceSectionMarkers = screenplayEvidence?.sectionMarkers ?? [];
 
   function commitStructure(
     structure: LibraryPPFProject["structure"],
@@ -146,6 +147,7 @@ export default function StoryCardFoundationBoard({
                 const locked = Boolean(block.planningLockedAt);
                 const authoredTitle = block.title === structuralBlockTitle(block.number) ? "" : block.title;
                 const coverage = storyCardSourceCoverage(sourcePassages, block.number);
+                const sectionMarkers = sourceSectionMarkers.filter((marker) => marker.blockNumber === block.number);
                 return (
                   <article
                     className="pp-skin-v1-story-card"
@@ -181,6 +183,11 @@ export default function StoryCardFoundationBoard({
                       <strong>MAPPED SCREENPLAY EVIDENCE</strong>
                       <span>{coverage.passageCount} passages · {coverage.sceneCount} scenes · {coverage.wordCount} words · {coverage.sourceSharePercent}% of stored source</span>
                       <span>Mini-Blocks with evidence {coverage.miniBlocksWithEvidence}/4 · {coverage.miniPassageCounts.join(" / ")} passages</span>
+                      {sectionMarkers.length ? (
+                        <span className="pp-skin-v1-story-card-source-sections">
+                          Source section{sectionMarkers.length === 1 ? "" : "s"} starting here: {sectionMarkers.map((marker) => `${marker.title} (p.${marker.page})`).join(" · ")}
+                        </span>
+                      ) : null}
                     </div>
 
                     <label>

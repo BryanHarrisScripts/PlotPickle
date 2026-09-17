@@ -49,7 +49,7 @@ test("#2166 reorders planning content while structural Block and Mini-Block iden
   structure = board.updateStoryCardMini(structure, 1, 1, { title: "First signal", note: "Audience notices the mismatch." });
   structure = board.updateStoryCard(structure, 2, { title: "Immediate response", note: "The protagonist tests the easy answer." });
 
-  const addressSnapshot = structure.blocks.map((block) => ({
+  const addressSnapshot = JSON.stringify(structure.blocks.map((block) => ({
     id: block.id,
     number: block.number,
     actNumber: block.actNumber,
@@ -60,8 +60,8 @@ test("#2166 reorders planning content while structural Block and Mini-Block iden
       blockNumber: mini.blockNumber,
       ordinal: mini.ordinal,
     })),
-  }));
-  const stageSnapshot = structure.blocks.map((block) => block.miniBlocks.map((mini) => JSON.stringify(mini.stages)));
+  })));
+  const stageSnapshot = JSON.stringify(structure.blocks.map((block) => block.miniBlocks.map((mini) => mini.stages)));
 
   const moved = board.moveStoryCardContent(structure, 1, 2);
 
@@ -71,7 +71,7 @@ test("#2166 reorders planning content while structural Block and Mini-Block iden
   assert.equal(moved.blocks[1].note, "The ordinary pattern breaks.");
   assert.equal(moved.blocks[1].miniBlocks[0].title, "First signal");
   assert.equal(moved.blocks[1].miniBlocks[0].note, "Audience notices the mismatch.");
-  assert.deepEqual(JSON.parse(JSON.stringify(moved.blocks.map((block) => ({
+  assert.equal(JSON.stringify(moved.blocks.map((block) => ({
     id: block.id,
     number: block.number,
     actNumber: block.actNumber,
@@ -82,9 +82,9 @@ test("#2166 reorders planning content while structural Block and Mini-Block iden
       blockNumber: mini.blockNumber,
       ordinal: mini.ordinal,
     })),
-  })))), addressSnapshot);
-  assert.deepEqual(
-    moved.blocks.map((block) => block.miniBlocks.map((mini) => JSON.stringify(mini.stages))),
+  }))), addressSnapshot);
+  assert.equal(
+    JSON.stringify(moved.blocks.map((block) => block.miniBlocks.map((mini) => mini.stages))),
     stageSnapshot,
   );
 });

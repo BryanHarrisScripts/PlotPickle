@@ -1,9 +1,106 @@
 /* Matrix/Skin V1 integration for the shared Library archive component.
  * The Archive component is also reused outside Skin V1, so keep the component
- * neutral and apply the canonical Matrix typography only inside Skin V1.
+ * neutral and apply the canonical Matrix presentation only inside Skin V1.
  */
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] {
+  gap: var(--pp-skin-space-4) !important;
+  color: var(--pp-skin-ink) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] > header {
+  gap: var(--pp-skin-space-4) !important;
+  padding-bottom: var(--pp-skin-space-3) !important;
+  border-bottom-color: var(--pp-skin-line) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] > header p {
+  margin-bottom: var(--pp-skin-space-1) !important;
+  color: var(--pp-skin-accent-bright) !important;
+  font-size: var(--pp-skin-font-meta) !important;
+  letter-spacing: var(--pp-skin-tracking-label) !important;
+}
+
 html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h2,
 html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h3,
 html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] [aria-hidden="true"] span {
+  color: var(--pp-skin-ink) !important;
   font-family: var(--pp-skin-font-ui) !important;
+  font-weight: 700 !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h2,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] h3 {
+  font-size: var(--pp-skin-font-title) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] > header > span,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] > p,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article p,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article small {
+  color: var(--pp-skin-ink-muted) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article {
+  border-color: var(--pp-skin-line) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-surface-1) !important;
+  box-shadow: var(--pp-skin-inset-highlight) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article > div[aria-hidden="true"] {
+  min-height: 120px !important;
+  padding: var(--pp-skin-space-4) !important;
+  background: var(--pp-skin-fill-panel) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article > div[aria-hidden="true"] span {
+  color: var(--pp-skin-accent-bright) !important;
+  font-size: var(--pp-skin-font-title) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article > div:not([aria-hidden="true"]) {
+  gap: var(--pp-skin-space-2) !important;
+  padding: var(--pp-skin-space-4) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] article div > span {
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2) !important;
+  border-color: var(--pp-skin-line) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  color: var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-surface-0) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] button {
+  min-height: var(--pp-skin-control-height) !important;
+  margin-top: var(--pp-skin-space-1) !important;
+  padding: 0 var(--pp-skin-space-3) !important;
+  border-color: var(--pp-skin-line-strong) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  color: var(--pp-skin-ink) !important;
+  background: var(--pp-skin-surface-0) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] button:hover,
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] button:focus-visible {
+  color: var(--pp-skin-selected-ink) !important;
+  background: var(--pp-skin-selected-bg) !important;
+  outline-color: var(--pp-skin-focus) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] [role="status"] {
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4) !important;
+  border-left-color: var(--pp-skin-accent-bright) !important;
+  color: var(--pp-skin-ink) !important;
+  background: var(--pp-skin-accent-deep) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-library-surface="archive"] [data-library-archive="stories"] > div:not([role="status"]):last-child {
+  padding: var(--pp-skin-space-6) !important;
+  border-color: var(--pp-skin-line) !important;
+  border-radius: var(--pp-skin-radius) !important;
+  background: var(--pp-skin-surface-0) !important;
 }

@@ -124,6 +124,10 @@ test("#2166 mounts one Post-it-style board in Outline with pointer and keyboard 
     "Story Cards should be the earliest writer-facing planning projection in Outline",
   );
   assert.match(board, /data-story-card-foundation-board="24x96"/u);
+  assert.match(board, /function actLocalBlockNumber\(blockNumber: number\)/u);
+  assert.match(board, /Four Acts, six Blocks per Act/u);
+  assert.match(board, /ACT \{block\.actNumber\} · BLOCK \{actLocalBlockNumber\(block\.number\)\}/u);
+  assert.match(board, /PPF Block \{String\(block\.number\)\.padStart\(2, "0"\)\}/u);
   assert.match(board, /draggable=\{!locked\}/u);
   assert.match(board, /application\/x-plotpickle-story-card/u);
   assert.match(board, /Alt\+Left \/ Alt\+Right/u);

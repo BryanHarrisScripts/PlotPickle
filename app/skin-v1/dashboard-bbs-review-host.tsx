@@ -234,7 +234,7 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
-        <MatrixStoryMapSurface onOpenStage={openStoryMapStage} onOpenStoryModeSettings={openStoryModeSettings} />
+        <MatrixStoryMapSurface onOpenStage={openStoryMapStage} onOpenPrevis={openPrevis} onOpenStoryModeSettings={openStoryModeSettings} />
       </section>
     );
   }

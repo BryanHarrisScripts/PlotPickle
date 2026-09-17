@@ -1,0 +1,109 @@
+/* #2164 — writer-first visual coverage summary over existing Previs evidence. */
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage > header p {
+  margin: 0 0 var(--pp-skin-space-1);
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage h2 {
+  margin: 0;
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-title);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage > header > span {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-sm);
+  font-weight: 700;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage > p {
+  margin: 0;
+  color: var(--pp-skin-ink-soft);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button {
+  display: grid;
+  min-height: calc(var(--pp-skin-control-height) * 2);
+  gap: var(--pp-skin-space-1);
+  place-content: center;
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button strong {
+  color: var(--pp-skin-ink);
+  font-size: var(--pp-skin-font-sm);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button span {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button[data-visual-coverage-state="accepted"] {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button[data-visual-coverage-state="candidate"] {
+  border-color: var(--pp-skin-line-strong);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button[aria-pressed="true"],
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button:hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid button:focus-visible {
+  border-color: var(--pp-skin-focus);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: var(--pp-skin-space-1);
+}
+
+@media (max-width: 760px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-previs-coverage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

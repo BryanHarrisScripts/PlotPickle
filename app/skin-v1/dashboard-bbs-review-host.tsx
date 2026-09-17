@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
-import StructureEnginePage from "../structure/page";
+import StoryboardPage from "../storyboard/page";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
+import MatrixStoryMapSurface from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
@@ -26,6 +27,7 @@ export default function DashboardBbsReviewHost({
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
+  const [storyboardOpen, setStoryboardOpen] = useState(false);
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
@@ -35,6 +37,7 @@ export default function DashboardBbsReviewHost({
     const returnToDashboard = () => {
       setLibraryOpen(false);
       setOutlineOpen(false);
+      setStoryboardOpen(false);
       setShutdownOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);
@@ -54,6 +57,12 @@ export default function DashboardBbsReviewHost({
     else setOutlineOpen(false);
     onSurfaceNameChange("DASHBOARD");
     restoreDashboardFocus(itemId);
+  }
+
+  function closeStoryboard() {
+    setStoryboardOpen(false);
+    onSurfaceNameChange("DASHBOARD");
+    restoreDashboardFocus("storyboard");
   }
 
   function closeOpenSource() {
@@ -85,8 +94,14 @@ export default function DashboardBbsReviewHost({
     }
     if (item.id === "plan") {
       onActivate(index);
-      onSurfaceNameChange("OUTLINE");
+      onSurfaceNameChange("STORY MAP");
       setOutlineOpen(true);
+      return;
+    }
+    if (item.id === "storyboard") {
+      onActivate(index);
+      onSurfaceNameChange("STORYBOARD");
+      setStoryboardOpen(true);
       return;
     }
     if (item.id === "open-source") {
@@ -135,7 +150,7 @@ export default function DashboardBbsReviewHost({
     return (
       <section
         className={reviewStyles.reviewSurface}
-        aria-label="Outline review"
+        aria-label="Story Map"
         data-dashboard-review-surface="outline"
         data-review-state="in-review"
         onKeyDown={(event) => {
@@ -143,11 +158,29 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>OUTLINE</h1>
+          <h1>STORY MAP</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
-        <StructureEnginePage />
+        <MatrixStoryMapSurface />
+      </section>
+    );
+  }
+
+  if (storyboardOpen) {
+    return (
+      <section
+        aria-label="Storyboard pre-production"
+        data-dashboard-review-surface="storyboard"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); closeStoryboard(); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>STORYBOARD</h1>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={closeStoryboard}>Back to Dashboard</button>
+        </div>
+        <StoryboardPage />
       </section>
     );
   }

@@ -8,7 +8,7 @@ import { lockVisualBaseline, SKIN_V1_BASELINE_MANIFEST } from "../scripts/lock-s
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
-test("#1815 defines one versioned Skin V1 manifest for candidate and locked surface baselines", async () => {
+test("#1815/#2124 defines one versioned Skin V1 manifest with Dashboard locked and every other standard surface candidate", async () => {
   const manifest = JSON.parse(await read(SKIN_V1_BASELINE_MANIFEST));
   assert.equal(manifest.version, 1);
   assert.equal(manifest.skin, "skin-v1");
@@ -19,15 +19,22 @@ test("#1815 defines one versioned Skin V1 manifest for candidate and locked surf
   assert.deepEqual(Object.keys(manifest.surfaces), [
     "dashboard",
     "community",
-    "settings",
-    "cloud-story-mode",
-    "agents",
+    "writers-craft",
+    "story-map",
+    "scene-timeline",
+    "visual-story",
     "profile",
+    "settings",
+    "general",
     "local-ai",
+    "cloud-story-mode",
     "node",
+    "agents",
+    "issue-log",
+    "licensing",
   ]);
   for (const [surface, entry] of Object.entries(manifest.surfaces)) {
-    assert.equal(entry.status, "candidate", `${surface} should start as candidate until its actual approved PNG is committed`);
+    assert.equal(entry.status, surface === "dashboard" ? "locked" : "candidate");
     assert.match(entry.candidate, /^\.artifacts\/visual-readiness\/.+\.png$/u);
     assert.match(entry.baseline, /^tests\/visual-baselines\/skin-v1\/.+\.png$/u);
     assert.ok(entry.selector);

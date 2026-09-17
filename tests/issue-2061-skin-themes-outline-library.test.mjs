@@ -44,17 +44,19 @@ test("#2061 Black and White is a palette-only skin with exactly nine black and n
   assert.doesNotMatch(skin, /--pp-skin-control-height:/u);
 });
 
-test("#2061 exposes existing Library and Structure Engine implementations as yellow review destinations", async () => {
-  const [menu, host, hostStyles, issueStyles] = await Promise.all([
+test("#2061/#2124 exposes Library and the PPF-backed Story Map as Matrix review destinations", async () => {
+  const [menu, host, hostStyles, issueStyles, storyMapSurface] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.module.css"),
     read("app/issue-2061.css"),
+    read("app/skin-v1/matrix-story-map-surface.tsx"),
   ]);
 
   assert.match(menu, /CONNECTED_DASHBOARD_ITEM_IDS[\s\S]*"library"[\s\S]*"plan"/u);
   assert.match(host, /import LibraryWorkspace from "\.\.\/\.\.\/modules\/library\/ui\/library-workspace"/u);
-  assert.match(host, /import StructureEnginePage from "\.\.\/structure\/page"/u);
+  assert.match(host, /import MatrixStoryMapSurface from "\.\/matrix-story-map-surface"/u);
+  assert.doesNotMatch(host, /StructureEnginePage/u);
   assert.match(host, /data-dashboard-review-surface="library"/u);
   assert.match(host, /data-dashboard-review-surface="outline"/u);
   assert.equal((host.match(/>IN REVIEW</gu) || []).length, 2);
@@ -62,7 +64,9 @@ test("#2061 exposes existing Library and Structure Engine implementations as yel
   assert.match(host, /event\.key === "Escape"[\s\S]*closeReview\("plan"\)/u);
   assert.match(host, /restoreDashboardFocus\(itemId\)/u);
   assert.match(host, /<LibraryWorkspace \/>/u);
-  assert.match(host, /<StructureEnginePage \/>/u);
+  assert.match(host, /<MatrixStoryMapSurface \/>/u);
+  assert.match(storyMapSurface, /loadFoundationProject/u);
+  assert.match(storyMapSurface, /<ProgressiveStoryMap project=\{project\} \/>/u);
   assert.match(hostStyles, /\.reviewSurface[\s\S]*--pp-skin-warning-line/u);
   assert.match(issueStyles, /data-dashboard-menu-item="library"[\s\S]*--pp-skin-warning/u);
   assert.match(issueStyles, /data-dashboard-menu-item="plan"[\s\S]*--pp-skin-warning/u);

@@ -18,7 +18,7 @@ const catalogue = read("lib/verification/webmcp-standard-surface-catalogue.mjs")
 const dashboard = read("app/skin-v1/dashboard-bbs-panel.tsx");
 const manifest = JSON.parse(read("tests/visual-baselines/skin-v1/manifest.json"));
 
-test("#1856 keeps the original four-surface conformance audit while #2030 adds the full standard catalogue", () => {
+test("#1856 keeps the original four-surface conformance audit while #2030/#2124 use the full standard catalogue", () => {
   assert.deepEqual(WEBMCP_ALLOWED_TARGETS, [
     "dashboard",
     "community",
@@ -32,11 +32,14 @@ test("#1856 keeps the original four-surface conformance audit while #2030 adds t
   assert.match(catalogue, /runWebMcpStandardSurfaceCatalogue/u);
 });
 
-test("#2030 registers every currently reachable Human-approved standard surface", () => {
+test("#2030/#2124 registers every currently reachable Human-approved standard surface", () => {
   assert.deepEqual(WEBMCP_STANDARD_SURFACE_TARGETS, [
     "dashboard",
     "community",
     "writers-craft",
+    "story-map",
+    "scene-timeline",
+    "visual-story",
     "profile",
     "settings",
     "general",
@@ -52,7 +55,7 @@ test("#2030 registers every currently reachable Human-approved standard surface"
     const contract = WEBMCP_STANDARD_SURFACE_REGISTRY[surface];
     const entry = manifest.surfaces[surface];
     assert.ok(entry, `${surface} missing from visual manifest`);
-    assert.equal(entry.status, "candidate");
+    assert.equal(entry.status, surface === "dashboard" ? "locked" : "candidate");
     assert.equal(entry.selector, contract.rootSelector);
     assert.equal(entry.candidate, contract.candidate);
     assert.equal(entry.baseline, contract.baseline);
@@ -64,17 +67,22 @@ test("#2030 registers every currently reachable Human-approved standard surface"
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.profile.navigation[0].shortcut, "I");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["issue-log"].navigation[0].shortcut, "B");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.licensing.navigation[0].shortcut, "N");
-  assert.ok(!WEBMCP_STANDARD_SURFACE_TARGETS.includes("library"), "Library must remain outside the capture registry while its Dashboard row is unwired");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["story-map"].navigation[0].shortcut, "O");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["visual-story"].navigation[0].shortcut, "S");
+  assert.ok(!WEBMCP_STANDARD_SURFACE_TARGETS.includes("library"), "Library remains a Matrix review destination rather than a standard visual capture surface");
   assert.ok(!WEBMCP_STANDARD_SURFACE_TARGETS.includes("advanced"), "Advanced must not return as a fake destination after its content moved into General");
 });
 
-test("#2030 startup output exposes all twelve candidates without auto-approval", () => {
+test("#2030/#2124 startup output exposes all fifteen standard captures without automatic approval", () => {
   const output = visualBaselineApprovalLines().join("\n");
-  assert.match(output, /^Captured 12 surfaces:/);
+  assert.match(output, /^Captured 15 surfaces:/);
   for (const surface of WEBMCP_STANDARD_SURFACE_TARGETS) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
   assert.match(output, /writers-craft \(Writer's Craft\)/u);
+  assert.match(output, /story-map \(Story Map\)/u);
+  assert.match(output, /visual-story \(Visual Story\)/u);
+  assert.match(output, /scene-timeline \(Scene Timeline\)/u);
   assert.match(output, /profile \(Identity\)/u);
   assert.match(output, /settings \(Manage\)/u);
   assert.match(output, /issue-log \(Bug Report\)/u);

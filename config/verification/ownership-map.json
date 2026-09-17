@@ -22,6 +22,20 @@
       "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
     },
     {
+      "id": "skin-v1-surface-grammar",
+      "classification": "production",
+      "include": ["config/skin-v1-surface-grammar.json"],
+      "ownerLayer": "experience-skins",
+      "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
+    },
+    {
+      "id": "skin-v1-surface-registry",
+      "classification": "production",
+      "include": ["config/skin-v1-surface-registry.json"],
+      "ownerLayer": "experience-contract",
+      "riskTokens": ["surface", "navigation", "visual", "mcp"]
+    },
+    {
       "id": "global-sage-help-skin",
       "classification": "production",
       "include": ["app/global-sage-overlay.module.css"],

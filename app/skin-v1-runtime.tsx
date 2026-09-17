@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import "./skin-v1/preproduction-matrix-contract.css";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 const SKIN_V1 = "skin-v1";

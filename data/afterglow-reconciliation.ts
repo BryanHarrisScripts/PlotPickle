@@ -1,5 +1,5 @@
 export type AfterglowClaimStatus = "confirmed" | "candidate" | "historical" | "superseded" | "conflict" | "unresolved" | "reference-only";
-export type AfterglowVersionStatus = "complete-baseline" | "partial-alternate" | "working-current";
+export type AfterglowVersionStatus = "historical-complete" | "complete-baseline" | "partial-alternate" | "working-current";
 export type AfterglowRewriteAction = "keep-v9" | "start-from-v10" | "combine-selected" | "write-new" | "defer";
 
 export const AFTERGLOW_CURRENT_TITLE = "Afterglow: Reflections of Sentience";
@@ -36,7 +36,8 @@ export const afterglowSourceClaims: AfterglowSourceClaim[] = [
 ];
 
 export const afterglowVersions = [
-  { id: "v9", label: "Afterglow v9 — Most Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Most complete screenplay baseline; PlotPickle normalizes its passages onto the 24-Block planning grid without asserting 24 authored source Blocks", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
+  { id: "v8", label: "Afterglow v8 — Historical Complete Rewrite", status: "historical-complete" as AfterglowVersionStatus, scope: "Earlier 86-page complete rewrite used as a comparison source for pre-v9 structure; its FDX does not itself prove 24 explicit authored Block markers", sourcePath: "AfterGlow v8 Twitter Rewrite Bryan E. Harris 2023 Github.fdx", sourceSha: "ed77d9bda97854fb23500d9eb44ada148c9a4ef8", immutable: true },
+  { id: "v9", label: "Afterglow v9 — Most Complete 2023 Baseline", status: "complete-baseline" as AfterglowVersionStatus, scope: "Most complete screenplay baseline; its FDX contains 20 explicit titled source sections, while PlotPickle normalizes passages onto the 24-Block planning grid without asserting 24 authored source Blocks", sourcePath: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023.fdx", sourceSha: "54b5967644c5a41363fa88f57b02473ea758acc2", immutable: true },
   { id: "v10", label: "Afterglow v10 — Unfinished Blocks 1–8 Rewrite", status: "partial-alternate" as AfterglowVersionStatus, scope: "Blocks 1–8 only; Blocks 9–24 not attempted", sourcePath: "Afterglow v10 X Rewrite Bryan E. Harris 2023.md", sourceSha: "042427931c4a74a5dbe48e05750aea66f6b2486e", immutable: true },
   { id: "v11", label: "Afterglow: Reflections of Sentience — v11 Working Rewrite", status: "working-current" as AfterglowVersionStatus, scope: "Complete working screenplay initialized from v9 with reviewed v10 proposals for the opening", sourcePath: "PlotPickle canonical project", sourceSha: "", immutable: false },
 ] as const;

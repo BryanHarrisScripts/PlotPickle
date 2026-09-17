@@ -36,6 +36,9 @@ export type ProjectLibrarySummary = {
 export const PROJECT_LIBRARY_CHANGED_EVENT = libraryCore.PROJECT_LIBRARY_CHANGED_EVENT as string;
 export const PROJECT_LIBRARY_ACTIVE_PROFILE_KEY = libraryCore.PROJECT_LIBRARY_ACTIVE_PROFILE_KEY as string;
 export const DEFAULT_LOCAL_PROFILE_ID = libraryCore.DEFAULT_LOCAL_PROFILE_ID as string;
+export const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
+
+const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
 
 function storage() {
   if (typeof window === "undefined") throw new Error("Project Library is available only in the local PlotPickle browser session.");
@@ -99,6 +102,10 @@ function profileId() {
   return libraryCore.resolveProjectLibraryProfileId(storage()) as string;
 }
 
+function sessionProjectKey() {
+  return `${SESSION_PROJECT_KEY_PREFIX}:${profileId()}`;
+}
+
 function coreInput() {
   return {
     storage: storage(),
@@ -115,6 +122,10 @@ function announceChange() {
   window.dispatchEvent(new Event(PROJECT_LIBRARY_CHANGED_EVENT));
 }
 
+function announceSessionChange() {
+  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
+}
+
 export function initializeProjectLibrary() {
   return libraryCore.initializeProfileProjectLibrary(coreInput()) as {
     readonly registry: { readonly activeProjectId: string | null; readonly projects: readonly ProjectLibrarySummary[] };
@@ -122,6 +133,27 @@ export function initializeProjectLibrary() {
     readonly migrated: boolean;
     readonly quarantined: readonly string[];
   };
+}
+
+export function markCurrentSessionLibraryProject(projectId: string) {
+  const normalized = projectId.trim();
+  if (!normalized) throw new Error("A current-session story requires a project ID.");
+  storage().setItem(sessionProjectKey(), normalized);
+  announceSessionChange();
+}
+
+export function clearCurrentSessionLibraryProject() {
+  storage().removeItem(sessionProjectKey());
+  announceSessionChange();
+}
+
+export function currentSessionLibraryProject(): LibraryPPFProject | null {
+  const projectId = storage().getItem(sessionProjectKey())?.trim();
+  if (!projectId) return null;
+
+  const activeProject = initializeProjectLibrary().activeProject;
+  if (!activeProject || activeProject.id !== projectId) return null;
+  return activeProject;
 }
 
 export function hasActiveLibraryProject() {

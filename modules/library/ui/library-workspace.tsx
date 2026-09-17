@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
 import {
+  DEFAULT_LOCAL_PROFILE_ID,
+  PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
   PROJECT_LIBRARY_CHANGED_EVENT,
   archiveLibraryProject,
   createLibraryUserProject,
@@ -16,12 +18,6 @@ import {
   type LibraryPPFProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
-import {
-  PROJECT_LIBRARY_SESSION_CHANGED_EVENT,
-  clearCurrentSessionLibraryProject,
-  currentSessionLibraryProject,
-  markCurrentSessionLibraryProject,
-} from "../../../core/storage/project-library-session-browser";
 import AverySessionHistory from "./avery-session-history/index";
 import ArchiveStoriesPanel from "./archive-stories-panel";
 import {
@@ -36,6 +32,9 @@ type LibraryDestination = "new" | "import" | "load" | "examples" | "presets" | "
 type PendingLoad =
   | { readonly kind: "catalog"; readonly sourceKind: "example" | "preset"; readonly item: LibraryCatalogItem }
   | { readonly kind: "story"; readonly item: ProjectLibrarySummary };
+
+const PROJECT_LIBRARY_SESSION_CHANGED_EVENT = "plotpickle:project-library-session-changed";
+const SESSION_PROJECT_KEY_PREFIX = "plotpickle.project-library.session-project";
 
 const DESTINATIONS: readonly {
   readonly id: LibraryDestination;
@@ -59,6 +58,33 @@ const COVERAGE_LABELS: Readonly<Record<keyof LibraryFrontierCoverage, string>> =
   structure: "Structure",
   storyboard: "Storyboard",
 };
+
+function currentProfileId() {
+  return window.sessionStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY)?.trim() || DEFAULT_LOCAL_PROFILE_ID;
+}
+
+function currentSessionProjectKey() {
+  return `${SESSION_PROJECT_KEY_PREFIX}:${currentProfileId()}`;
+}
+
+function markCurrentSessionLibraryProject(projectId: string) {
+  const normalized = projectId.trim();
+  if (!normalized) throw new Error("A current-session story requires a project ID.");
+  window.sessionStorage.setItem(currentSessionProjectKey(), normalized);
+  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
+}
+
+function clearCurrentSessionLibraryProject() {
+  window.sessionStorage.removeItem(currentSessionProjectKey());
+  window.dispatchEvent(new Event(PROJECT_LIBRARY_SESSION_CHANGED_EVENT));
+}
+
+function currentSessionLibraryProject(): LibraryPPFProject | null {
+  const projectId = window.sessionStorage.getItem(currentSessionProjectKey())?.trim();
+  if (!projectId) return null;
+  const activeProject = initializeProjectLibrary().activeProject;
+  return activeProject?.id === projectId ? activeProject : null;
+}
 
 function displayDate(value: string) {
   const date = new Date(value);

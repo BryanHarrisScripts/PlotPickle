@@ -19,35 +19,68 @@
         "app/issue-2061.css"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "visual",
+        "mcp"
+      ]
     },
     {
       "id": "skin-v1-surface-grammar",
       "classification": "production",
-      "include": ["config/skin-v1-surface-grammar.json"],
+      "include": [
+        "config/skin-v1-surface-grammar.json"
+      ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "navigation", "visual", "mcp"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "visual",
+        "mcp"
+      ]
     },
     {
       "id": "skin-v1-surface-registry",
       "classification": "production",
-      "include": ["config/skin-v1-surface-registry.json"],
+      "include": [
+        "config/skin-v1-surface-registry.json"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "visual", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "visual",
+        "mcp"
+      ]
     },
     {
       "id": "global-sage-help-skin",
       "classification": "production",
-      "include": ["app/global-sage-overlay.module.css"],
+      "include": [
+        "app/global-sage-overlay.module.css"
+      ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "visual"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
     },
     {
       "id": "global-sage-help-surface",
       "classification": "production",
-      "include": ["app/global-sage-overlay.tsx"],
+      "include": [
+        "app/global-sage-overlay.tsx"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "agent"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "agent"
+      ]
     },
     {
       "id": "library-ui-skin",
@@ -57,14 +90,25 @@
         "modules/library/ui/library-workspace.module.css"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "navigation", "visual"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "visual"
+      ]
     },
     {
       "id": "outline-ui-skin",
       "classification": "production",
-      "include": ["app/structure/structure.module.css"],
+      "include": [
+        "app/structure/structure.module.css"
+      ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "visual"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
     },
     {
       "id": "library-ui-surface",
@@ -74,35 +118,65 @@
         "modules/library/ui/library-workspace.tsx"
       ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation"]
+      "riskTokens": [
+        "surface",
+        "navigation"
+      ]
     },
     {
       "id": "sage-brinewick-skill",
       "classification": "production",
-      "include": [".agents/skills/sage-brinewick/SKILL.md"],
+      "include": [
+        ".agents/skills/sage-brinewick/SKILL.md"
+      ],
       "ownerLayer": "agent-runtime",
-      "riskTokens": ["agent", "canon", "provider"]
+      "riskTokens": [
+        "agent",
+        "canon",
+        "provider"
+      ]
     },
     {
       "id": "windows-local-launcher",
       "classification": "production",
-      "include": ["GIT-PlotPickle.ps1", "PlotPickle.ps1", "Start-PlotPickle.bat"],
+      "include": [
+        "GIT-PlotPickle.ps1",
+        "PlotPickle.ps1",
+        "Start-PlotPickle.bat"
+      ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["windows", "native", "mcp", "surface"]
+      "riskTokens": [
+        "windows",
+        "native",
+        "mcp",
+        "surface"
+      ]
     },
     {
       "id": "root-dependency-manifests",
       "classification": "production",
-      "include": ["package.json", "package-lock.json"],
+      "include": [
+        "package.json",
+        "package-lock.json"
+      ],
       "ownerLayer": "production-harness",
-      "riskTokens": ["provider", "security", "native"]
+      "riskTokens": [
+        "provider",
+        "security",
+        "native"
+      ]
     },
     {
       "id": "ai-runtime-settings-contract",
       "classification": "production",
-      "include": ["lib/runtime/ai/settings.ts"],
+      "include": [
+        "lib/runtime/ai/settings.ts"
+      ],
       "ownerLayer": "provider-runtime",
-      "riskTokens": ["provider", "security"]
+      "riskTokens": [
+        "provider",
+        "security"
+      ]
     },
     {
       "id": "story-mode-provider-policy",
@@ -112,7 +186,11 @@
         "build/story-mode-policy-gateway.ts"
       ],
       "ownerLayer": "provider-runtime",
-      "riskTokens": ["provider", "security", "api"]
+      "riskTokens": [
+        "provider",
+        "security",
+        "api"
+      ]
     },
     {
       "id": "story-mode-image-job-routing",
@@ -123,7 +201,11 @@
         "build/ai/comfyui-media-provider.ts"
       ],
       "ownerLayer": "provider-runtime",
-      "riskTokens": ["provider", "api", "security"]
+      "riskTokens": [
+        "provider",
+        "api",
+        "security"
+      ]
     },
     {
       "id": "community-conversation-surface",
@@ -144,7 +226,12 @@
         "app/connected-studios-panel.module.css"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["surface", "navigation", "visual", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "visual",
+        "mcp"
+      ]
     },
     {
       "id": "character-visual-production-surface",
@@ -154,7 +241,12 @@
         "app/character-image-generator.module.css"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["surface", "visual", "canon", "provider"]
+      "riskTokens": [
+        "surface",
+        "visual",
+        "canon",
+        "provider"
+      ]
     },
     {
       "id": "product-identity-surfaces",
@@ -172,35 +264,66 @@
         "public/brand/favicon/plotpickle-green-square.svg"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["surface", "visual", "navigation", "mcp"]
+      "riskTokens": [
+        "surface",
+        "visual",
+        "navigation",
+        "mcp"
+      ]
     },
     {
       "id": "experience-surface-registry",
       "classification": "production",
-      "include": ["lib/experience/surface-registry.ts"],
+      "include": [
+        "lib/experience/surface-registry.ts"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "mcp"
+      ]
     },
     {
       "id": "product-feedback-contract",
       "classification": "production",
-      "include": ["lib/product-feedback.ts"],
+      "include": [
+        "lib/product-feedback.ts"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "security", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "security",
+        "mcp"
+      ]
     },
     {
       "id": "community-human-ux-contract",
       "classification": "production",
-      "include": ["lib/community/community-ux-contract.ts"],
+      "include": [
+        "lib/community/community-ux-contract.ts"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "mcp"
+      ]
     },
     {
       "id": "community-story-room-access-gateway",
       "classification": "production",
-      "include": ["build/buzz-story-room-access-gateway.ts"],
+      "include": [
+        "build/buzz-story-room-access-gateway.ts"
+      ],
       "ownerLayer": "production-harness",
-      "riskTokens": ["api", "cli", "provider", "security"]
+      "riskTokens": [
+        "api",
+        "cli",
+        "provider",
+        "security"
+      ]
     },
     {
       "id": "creative-transaction-provider",
@@ -213,7 +336,27 @@
         "build/github-creative-transaction-binding-store.ts"
       ],
       "ownerLayer": "production-harness",
-      "riskTokens": ["provider", "canon", "security", "native"]
+      "riskTokens": [
+        "provider",
+        "canon",
+        "security",
+        "native"
+      ]
+    },
+    {
+      "id": "story-card-foundation-model",
+      "classification": "production",
+      "include": [
+        "core/project/story-structure-v2.ts",
+        "modules/library/import/rich-ppf-to-library-project.ts",
+        "modules/plan/story-card-board.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "surface"
+      ]
     },
     {
       "id": "preproduction-creative-state-semantics",
@@ -223,7 +366,11 @@
         "lib/preproduction/**"
       ],
       "ownerLayer": "story-canon",
-      "riskTokens": ["canon", "graph", "visual"]
+      "riskTokens": [
+        "canon",
+        "graph",
+        "visual"
+      ]
     },
     {
       "id": "preproduction-connected-experience",
@@ -239,7 +386,11 @@
         "app/pageflow/layout.tsx"
       ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "canon"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon"
+      ]
     },
     {
       "id": "preproduction-connected-skin",
@@ -254,14 +405,25 @@
         "modules/build/ui/progressive-story-map.module.css"
       ],
       "ownerLayer": "experience-skins",
-      "riskTokens": ["skin", "surface", "navigation", "visual"]
+      "riskTokens": [
+        "skin",
+        "surface",
+        "navigation",
+        "visual"
+      ]
     },
     {
       "id": "root-story-startup",
       "classification": "production",
-      "include": ["app/page.tsx"],
+      "include": [
+        "app/page.tsx"
+      ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "mcp"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "mcp"
+      ]
     },
     {
       "id": "learn-journey-preview-api",
@@ -273,7 +435,11 @@
         "app/api/learn/explore/route.ts"
       ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "navigation", "canon"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon"
+      ]
     },
     {
       "id": "learn-application-contract",
@@ -284,7 +450,11 @@
         "modules/learn/ui/curriculum-material.tsx"
       ],
       "ownerLayer": "experience-contract",
-      "riskTokens": ["surface", "canon", "graph"]
+      "riskTokens": [
+        "surface",
+        "canon",
+        "graph"
+      ]
     },
     {
       "id": "learn-ea-reflection-agent",
@@ -294,7 +464,11 @@
         "modules/creative-room/ea-reflection-guide.ts"
       ],
       "ownerLayer": "agent-runtime",
-      "riskTokens": ["agent", "canon", "provider"]
+      "riskTokens": [
+        "agent",
+        "canon",
+        "provider"
+      ]
     },
     {
       "id": "plotpickle-agent-runtime-contract",
@@ -304,14 +478,24 @@
         "build/openai-agents-runtime-adapter.ts"
       ],
       "ownerLayer": "agent-runtime",
-      "riskTokens": ["agent", "provider", "canon"]
+      "riskTokens": [
+        "agent",
+        "provider",
+        "canon"
+      ]
     },
     {
       "id": "learn-curriculum-content",
       "classification": "production",
-      "include": ["learn/*.json", "learn/enrichment/**"],
+      "include": [
+        "learn/*.json",
+        "learn/enrichment/**"
+      ],
       "ownerLayer": "story-canon",
-      "riskTokens": ["canon", "graph"]
+      "riskTokens": [
+        "canon",
+        "graph"
+      ]
     },
     {
       "id": "learn-curriculum-projection",
@@ -323,28 +507,50 @@
         "adapters/curriculum/foundation-course-material.ts"
       ],
       "ownerLayer": "story-canon",
-      "riskTokens": ["canon", "graph"]
+      "riskTokens": [
+        "canon",
+        "graph"
+      ]
     },
     {
       "id": "learn-program-map",
       "classification": "production",
-      "include": ["learn/program-map.mjs", "learn/program-map-spec.mjs", "learn/current-program-map.mjs"],
+      "include": [
+        "learn/program-map.mjs",
+        "learn/program-map-spec.mjs",
+        "learn/current-program-map.mjs"
+      ],
       "ownerLayer": "story-canon",
-      "riskTokens": ["canon", "graph"]
+      "riskTokens": [
+        "canon",
+        "graph"
+      ]
     },
     {
       "id": "learn-journey-baseline-validator",
       "classification": "verification",
-      "include": ["scripts/validate-learn-journey-baseline.mjs"],
+      "include": [
+        "scripts/validate-learn-journey-baseline.mjs"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["canon", "test-harness", "cli"]
+      "riskTokens": [
+        "canon",
+        "test-harness",
+        "cli"
+      ]
     },
     {
       "id": "learn-program-map-validator",
       "classification": "verification",
-      "include": ["scripts/validate-learn-program-map.mjs"],
+      "include": [
+        "scripts/validate-learn-program-map.mjs"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["canon", "test-harness", "cli"]
+      "riskTokens": [
+        "canon",
+        "test-harness",
+        "cli"
+      ]
     },
     {
       "id": "learn-curriculum-integrity-harness",
@@ -354,7 +560,12 @@
         "scripts/validate-learn-curriculum-integrity.mjs"
       ],
       "ownerLayer": "verification",
-      "riskTokens": ["canon", "graph", "test-harness", "cli"]
+      "riskTokens": [
+        "canon",
+        "graph",
+        "test-harness",
+        "cli"
+      ]
     },
     {
       "id": "webmcp-live-verifier",
@@ -367,14 +578,28 @@
         "scripts/verification-webmcp-live.mjs"
       ],
       "ownerLayer": "verification",
-      "riskTokens": ["surface", "navigation", "visual", "mcp", "test-harness"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "visual",
+        "mcp",
+        "test-harness"
+      ]
     },
     {
       "id": "ui-continuity-verification-agent",
       "classification": "verification",
-      "include": ["scripts/ui-continuity-agent.mjs"],
+      "include": [
+        "scripts/ui-continuity-agent.mjs"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["surface", "navigation", "visual", "agent", "test-harness"]
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "visual",
+        "agent",
+        "test-harness"
+      ]
     },
     {
       "id": "verification-contract-files",
@@ -391,42 +616,67 @@
         "scripts/package-smoke.mjs"
       ],
       "ownerLayer": "verification",
-      "riskTokens": ["test-harness", "cli"]
+      "riskTokens": [
+        "test-harness",
+        "cli"
+      ]
     },
     {
       "id": "oss-radar-operations-contract",
       "classification": "verification",
-      "include": ["config/oss-radar/**"],
+      "include": [
+        "config/oss-radar/**"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["test-harness", "docs"]
+      "riskTokens": [
+        "test-harness",
+        "docs"
+      ]
     },
     {
       "id": "architecture-blueprint",
       "classification": "docs",
-      "include": ["architecture/**"],
+      "include": [
+        "architecture/**"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["docs", "test-harness"]
+      "riskTokens": [
+        "docs",
+        "test-harness"
+      ]
     },
     {
       "id": "repository-readme",
       "classification": "docs",
-      "include": ["README.md"],
+      "include": [
+        "README.md"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["docs"]
+      "riskTokens": [
+        "docs"
+      ]
     },
     {
       "id": "verification-tests",
       "classification": "test",
-      "include": ["tests/**"],
+      "include": [
+        "tests/**"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["test-harness"]
+      "riskTokens": [
+        "test-harness"
+      ]
     },
     {
       "id": "verification-docs",
       "classification": "docs",
-      "include": ["docs/**"],
+      "include": [
+        "docs/**"
+      ],
       "ownerLayer": "verification",
-      "riskTokens": ["docs"]
+      "riskTokens": [
+        "docs"
+      ]
     }
   ]
 }

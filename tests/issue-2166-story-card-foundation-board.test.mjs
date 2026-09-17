@@ -143,6 +143,8 @@ test("#2166 mounts one Post-it-style board in Outline with pointer and keyboard 
   );
   assert.match(board, /data-story-card-foundation-board="24x96"/u);
   assert.match(board, /MAPPED SCREENPLAY EVIDENCE/u);
+  assert.match(board, /sourceSectionMarkers/u);
+  assert.match(board, /Source section\{sectionMarkers\.length === 1 \? "" : "s"\} starting here/u);
   assert.match(board, /coverage\.passageCount/u);
   assert.match(board, /coverage\.sceneCount/u);
   assert.match(board, /coverage\.wordCount/u);
@@ -173,6 +175,9 @@ test("#2166 projects observed rich/Afterglow Block identities into the same card
   ]);
 
   assert.match(importer, /function importedStoryStructure\(project: PlotPickleProject\): StoryStructureV2/u);
+  assert.match(importer, /function importedSectionMarkers\(project: PlotPickleProject\)/u);
+  assert.match(importer, /filter\(\(element\) => element\.type === "section"\)/u);
+  assert.match(importer, /sectionMarkers: importedSectionMarkers\(project\)/u);
   assert.match(importer, /title: sourceBlock\.title\?\.trim\(\) \|\| slot\.title/u);
   assert.match(importer, /note: \(sourceBlock\.purpose \|\| sourceBlock\.summary \|\| ""\)/u);
   assert.match(importer, /title: sourceMini\.label\?\.trim\(\) \|\| mini\.title/u);
@@ -185,6 +190,9 @@ test("#2166 projects observed rich/Afterglow Block identities into the same card
   assert.match(afterglowScreenplay, /projectionMethod: "page-progress-normalized-to-24-block-grid"/u);
   assert.match(afterglowScreenplay, /authoredBlockCount: "not-asserted"/u);
   assert.match(afterglowScreenplay, /trustworthyLegacyStoryboardBlocks: 21/u);
+  assert.match(reconciliation, /Afterglow v8 — Historical Complete Rewrite/u);
+  assert.match(reconciliation, /Earlier 86-page complete rewrite/u);
+  assert.match(reconciliation, /20 explicit titled source sections/u);
   assert.match(reconciliation, /Most Complete 2023 Baseline/u);
   assert.match(reconciliation, /without asserting 24 authored source Blocks/u);
   assert.doesNotMatch(importer, /stages:\s*\{\s*plan:/u);

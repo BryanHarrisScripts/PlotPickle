@@ -1,13 +1,18 @@
 /* Issue #2026 — Human-approved Dashboard main-menu reset.
  * Issue #2029 keeps that menu contract while restoring the approved dragon.
+ * Issue #2124 restores the existing PlotPickle Score mathematical panel while
+ * preserving the compact shell-title and BBS-title reset.
  * Stable IDs, keyboard behavior and connection truth remain owned by the
  * existing Skin V1 Dashboard components.
  */
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-shell-title,
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] [data-plotpickle-score="v1"],
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-title {
   display: none !important;
+}
+
+.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] [data-plotpickle-score="v1"] {
+  display: block !important;
 }
 
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] > .pp-skin-v1-bbs {

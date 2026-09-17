@@ -16,6 +16,45 @@ export type StoryCardMiniPatch = {
   readonly note?: string;
 };
 
+export type StoryCardSourcePassage = {
+  readonly text: string;
+  readonly blockNumber: number;
+  readonly miniBlockNumber: number;
+  readonly sceneNumber: number;
+};
+
+export type StoryCardSourceCoverage = {
+  readonly passageCount: number;
+  readonly sceneCount: number;
+  readonly wordCount: number;
+  readonly sourceSharePercent: number;
+  readonly miniBlocksWithEvidence: number;
+  readonly miniPassageCounts: readonly [number, number, number, number];
+};
+
+export function storyCardSourceCoverage(
+  passages: readonly StoryCardSourcePassage[],
+  blockNumber: number,
+): StoryCardSourceCoverage {
+  const blockPassages = passages.filter((passage) => passage.blockNumber === blockNumber);
+  const miniPassageCounts = [1, 2, 3, 4].map(
+    (ordinal) => blockPassages.filter((passage) => passage.miniBlockNumber === ordinal).length,
+  ) as [number, number, number, number];
+  const wordCount = blockPassages.reduce((total, passage) => {
+    const words = passage.text.trim().split(/\s+/).filter(Boolean).length;
+    return total + words;
+  }, 0);
+  const scenes = new Set(blockPassages.map((passage) => passage.sceneNumber).filter((scene) => scene > 0));
+  return {
+    passageCount: blockPassages.length,
+    sceneCount: scenes.size,
+    wordCount,
+    sourceSharePercent: passages.length ? Math.round((blockPassages.length / passages.length) * 1000) / 10 : 0,
+    miniBlocksWithEvidence: miniPassageCounts.filter((count) => count > 0).length,
+    miniPassageCounts,
+  };
+}
+
 type PlanningPayload = {
   readonly title: string;
   readonly note: string;

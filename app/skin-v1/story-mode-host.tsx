@@ -252,7 +252,7 @@ export default function StoryModeHost() {
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h2>HYBRID</h2>
+          <h1>HYBRID STORY MODE</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
         </div>
         <div className="pp-skin-v1-bbs" data-story-mode-hybrid="policy-only">

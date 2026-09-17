@@ -1,0 +1,82 @@
+/* #2161 — bounded Skin V1 continuity for the Human pre-production review path. */
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pp-skin-space-2) var(--pp-skin-space-4);
+  align-items: center;
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context strong {
+  color: var(--pp-skin-accent-bright);
+  letter-spacing: var(--pp-skin-tracking-wide);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context span {
+  grid-column: 1;
+  color: var(--pp-skin-ink-soft);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font: inherit;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button:hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button:focus-visible,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button:hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button:focus-visible {
+  border-color: var(--pp-skin-focus);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff {
+  display: flex;
+  justify-content: flex-end;
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5) var(--pp-skin-space-6);
+}
+
+/* The old plus was a non-interactive empty preview, but read visually as an action. */
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] [class*="emptyFrame"] {
+  font-size: 0 !important;
+  color: var(--pp-skin-ink-muted) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] [class*="emptyFrame"]::after {
+  content: "NO VISUAL YET";
+  font-size: var(--pp-skin-font-size-xs);
+  letter-spacing: var(--pp-skin-tracking-wide);
+}
+
+@media (max-width: 760px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
+}

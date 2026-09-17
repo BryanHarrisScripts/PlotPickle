@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
-import { markImportedScreenplayProjectionStale } from "@/core/contracts/imported-screenplay-evidence";
+import { markImportedScreenplayProjectionStale, normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -10,6 +10,7 @@ import {
   setStoryCardPlanningLock,
   storyCardActRows,
   storyCardAffectedRefs,
+  storyCardSourceCoverage,
   updateStoryCard,
   updateStoryCardMini,
 } from "@/modules/plan/story-card-board";
@@ -37,6 +38,8 @@ export default function StoryCardFoundationBoard({
 }: StoryCardFoundationBoardProps) {
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
+  const screenplayEvidence = normalizeProjectSourceEvidence(project.sourceEvidence).screenplay;
+  const sourcePassages = screenplayEvidence?.passages ?? [];
 
   function commitStructure(
     structure: LibraryPPFProject["structure"],
@@ -121,7 +124,7 @@ export default function StoryCardFoundationBoard({
         <div>
           <p>STORY CARDS · FOUNDATION BOARD</p>
           <h2 id="story-card-board-title">Plan the whole story like a wall of Post-it notes.</h2>
-          <span>Four Acts, six Blocks per Act. Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does.</span>
+          <span>Four Acts, six Blocks per Act. Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does. Screenplay coverage shows how much observed source material is mapped into each card; it does not claim the source was authored as 24 equal Blocks.</span>
         </div>
         <div className="pp-skin-v1-story-card-board-key">
           <strong>{project.title || "Untitled Story"}</strong>
@@ -142,6 +145,7 @@ export default function StoryCardFoundationBoard({
               {row.blocks.map((block) => {
                 const locked = Boolean(block.planningLockedAt);
                 const authoredTitle = block.title === structuralBlockTitle(block.number) ? "" : block.title;
+                const coverage = storyCardSourceCoverage(sourcePassages, block.number);
                 return (
                   <article
                     className="pp-skin-v1-story-card"
@@ -172,6 +176,12 @@ export default function StoryCardFoundationBoard({
                       </div>
                       <span data-story-card-lock-state={locked ? "locked" : "exploratory"}>{locked ? "LOCKED" : "MOVE"}</span>
                     </header>
+
+                    <div className="pp-skin-v1-story-card-coverage" aria-label={`Mapped screenplay coverage for PPF Block ${block.number}`}>
+                      <strong>MAPPED SCREENPLAY EVIDENCE</strong>
+                      <span>{coverage.passageCount} passages · {coverage.sceneCount} scenes · {coverage.wordCount} words · {coverage.sourceSharePercent}% of stored source</span>
+                      <span>Mini-Blocks with evidence {coverage.miniBlocksWithEvidence}/4 · {coverage.miniPassageCounts.join(" / ")} passages</span>
+                    </div>
 
                     <label>
                       <span>Card title</span>
@@ -247,7 +257,7 @@ export default function StoryCardFoundationBoard({
         ))}
       </div>
 
-      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
+      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
     </section>
   );
 }

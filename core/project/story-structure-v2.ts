@@ -24,6 +24,7 @@ export type StoryMiniBlockV2 = {
   readonly blockNumber: number;
   readonly ordinal: number;
   readonly title: string;
+  readonly note: string;
   readonly stages: Readonly<Record<StoryWorkflowStage, StoryStageState>>;
 };
 
@@ -77,6 +78,7 @@ function createMiniBlock(blockNumber: number, ordinal: number, blockUnlocked: bo
     blockNumber,
     ordinal,
     title: `Mini-Block ${String(number).padStart(2, "0")}`,
+    note: "",
     stages: {
       plan: createStage(blockUnlocked ? "available" : "locked"),
       build: createStage("locked"),
@@ -175,6 +177,7 @@ function normalizeMiniBlock(
     blockNumber,
     ordinal,
     title: text(miniSource.title, 160).trim() || `Mini-Block ${String(number).padStart(2, "0")}`,
+    note: text(miniSource.note, 800),
     stages: { plan, build, storyboard },
   };
 }

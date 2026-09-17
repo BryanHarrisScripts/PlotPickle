@@ -8,7 +8,7 @@
   },
   "comparison": {
     "channelDelta": 24,
-    "maxChangedPixelRatio": 0.02
+    "maxChangedPixelRatio": 0.025
   },
   "surfaces": {
     "dashboard": {

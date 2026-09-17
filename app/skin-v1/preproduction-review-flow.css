@@ -17,7 +17,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context {
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context strong {
   color: var(--pp-skin-accent-bright);
-  letter-spacing: var(--pp-skin-tracking-wide);
+  letter-spacing: var(--pp-skin-tracking-label);
 }
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context span {
@@ -65,8 +65,8 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
 
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] [class*="emptyFrame"]::after {
   content: "NO VISUAL YET";
-  font-size: var(--pp-skin-font-size-xs);
-  letter-spacing: var(--pp-skin-tracking-wide);
+  font-size: var(--pp-skin-font-meta);
+  letter-spacing: var(--pp-skin-tracking-label);
 }
 
 @media (max-width: 760px) {

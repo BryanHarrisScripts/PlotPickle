@@ -59,7 +59,7 @@ test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, la
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
 });
 
-test("#2026/#2068 keeps the compact main-menu composition and one aligned live-status column", async () => {
+test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {
   const [layout, resetCss, dashboard] = await Promise.all([
     read("app/layout.tsx"),
     read("app/skin-v1-dashboard-menu-reset.css"),
@@ -69,11 +69,12 @@ test("#2026/#2068 keeps the compact main-menu composition and one aligned live-s
   assert.match(layout, /import "\.\/skin-v1-dashboard-menu-reset\.css"/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-shell-title[\s\S]*display: none !important/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-art/u);
-  assert.match(resetCss, /\[data-plotpickle-score="v1"\]/u);
+  assert.match(resetCss, /\[data-plotpickle-score="v1"\][\s\S]*display: block !important/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-title/u);
   assert.match(resetCss, /\.pp-skin-v1-dashboard-status-box[\s\S]*right: var\(--pp-skin-space-2\) !important/u);
   assert.doesNotMatch(resetCss, /data-dashboard-menu-item="logout"[\s\S]*margin-top/u);
 
+  assert.match(dashboard, /<PlotPickleScorePanel \/>/u);
   assert.match(dashboard, /const connected = CONNECTED_DASHBOARD_ITEM_IDS\.has\(item\.id\)/u);
   assert.match(dashboard, /data-skin-menu-indicator=\{connected \? "connected" : "unwired"\}/u);
   assert.match(dashboard, /data-dashboard-status=\{connected \? "active" : "inactive"\}/u);

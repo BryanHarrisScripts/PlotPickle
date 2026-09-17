@@ -32,6 +32,62 @@
       "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
     },
+    "library": {
+      "label": "Library",
+      "status": "candidate",
+      "selector": "main[data-library-workspace='v2']",
+      "candidate": ".artifacts/visual-readiness/library-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library.png"
+    },
+    "library-new": {
+      "label": "Library · New",
+      "status": "candidate",
+      "selector": "section[data-library-destination='new']",
+      "candidate": ".artifacts/visual-readiness/library-new-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-new.png"
+    },
+    "library-import": {
+      "label": "Library · Import",
+      "status": "candidate",
+      "selector": "section[data-library-destination='import']",
+      "candidate": ".artifacts/visual-readiness/library-import-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-import.png"
+    },
+    "library-load": {
+      "label": "Library · Load",
+      "status": "candidate",
+      "selector": "section[data-library-destination='load']",
+      "candidate": ".artifacts/visual-readiness/library-load-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-load.png"
+    },
+    "library-examples": {
+      "label": "Library · Examples",
+      "status": "candidate",
+      "selector": "section[data-library-destination='examples']",
+      "candidate": ".artifacts/visual-readiness/library-examples-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-examples.png"
+    },
+    "library-presets": {
+      "label": "Library · Presets",
+      "status": "candidate",
+      "selector": "section[data-library-destination='presets']",
+      "candidate": ".artifacts/visual-readiness/library-presets-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-presets.png"
+    },
+    "library-avery": {
+      "label": "Library · Avery",
+      "status": "candidate",
+      "selector": "section[data-library-destination='avery']",
+      "candidate": ".artifacts/visual-readiness/library-avery-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-avery.png"
+    },
+    "library-archive": {
+      "label": "Library · Archive",
+      "status": "candidate",
+      "selector": "section[data-library-destination='archive']",
+      "candidate": ".artifacts/visual-readiness/library-archive-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/library-archive.png"
+    },
     "story-map": {
       "label": "Story Map",
       "status": "candidate",
@@ -74,6 +130,13 @@
       "candidate": ".artifacts/visual-readiness/general-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/general.png"
     },
+    "story-mode": {
+      "label": "Story Mode",
+      "status": "candidate",
+      "selector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "candidate": ".artifacts/visual-readiness/story-mode-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/story-mode.png"
+    },
     "local-ai": {
       "label": "Local Story Mode",
       "status": "candidate",
@@ -87,6 +150,13 @@
       "selector": "section[aria-label='Cloud Story Mode setup']",
       "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
+    },
+    "hybrid-story-mode": {
+      "label": "Hybrid Story Mode",
+      "status": "candidate",
+      "selector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
+      "candidate": ".artifacts/visual-readiness/hybrid-story-mode-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/hybrid-story-mode.png"
     },
     "node": {
       "label": "Node Info",
@@ -115,6 +185,13 @@
       "selector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
       "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/licensing.png"
+    },
+    "shutdown-node": {
+      "label": "Shut Down Node",
+      "status": "candidate",
+      "selector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
+      "candidate": ".artifacts/visual-readiness/shutdown-node-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/shutdown-node.png"
     }
   }
 }

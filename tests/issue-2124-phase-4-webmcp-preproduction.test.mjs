@@ -8,20 +8,21 @@ import {
 
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 
-test("#2124 Phase 4 routes Matrix Outline and Storyboard to the existing pre-production surfaces without changing Dashboard readiness presentation", async () => {
+test("#2124 Phase 4 routes Matrix Outline and Storyboard to existing pre-production authorities; #2161 connects the in-shell review path", async () => {
   const [menu, host, storyMapSurface] = await Promise.all([
     read("app/skin-v1/dashboard-menu-registry.ts"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
     read("app/skin-v1/matrix-story-map-surface.tsx"),
   ]);
 
-  assert.match(menu, /CONNECTED_DASHBOARD_ITEM_IDS[\s\S]*"plan"/u);
-  const connectedBlock = menu.match(/CONNECTED_DASHBOARD_ITEM_IDS = new Set\(\[([\s\S]*?)\]\)/u)?.[1] ?? "";
-  assert.doesNotMatch(connectedBlock, /"storyboard"/u);
-  assert.match(host, /item\.id === "plan"[\s\S]*onSurfaceNameChange\("STORY MAP"\)[\s\S]*setOutlineOpen\(true\)/u);
-  assert.match(host, /item\.id === "storyboard"[\s\S]*onSurfaceNameChange\("STORYBOARD"\)[\s\S]*setStoryboardOpen\(true\)/u);
-  assert.match(host, /<MatrixStoryMapSurface \/>/u);
-  assert.match(host, /<StoryboardPage \/>/u);
+  assert.match(menu, /CONNECTED_DASHBOARD_ITEM_IDS[\s\S]*"plan"[\s\S]*"storyboard"[\s\S]*"previs"/u);
+  assert.match(host, /item\.id === "plan"[\s\S]*openOutline\(reviewAddress\)/u);
+  assert.match(host, /item\.id === "storyboard"[\s\S]*openStoryboard\(reviewAddress\)/u);
+  assert.match(host, /item\.id === "previs"[\s\S]*openPrevis\(reviewAddress\)/u);
+  assert.match(host, /<MatrixStoryMapSurface onOpenStage=\{openStoryMapStage\} onOpenStoryModeSettings=\{openStoryModeSettings\} \/>/u);
+  assert.match(host, /<SkinV1StoryboardReviewSurface/u);
+  assert.match(host, /<SkinV1PrevisReviewSurface/u);
+  assert.doesNotMatch(host, /<StoryboardPage \/>/u);
   assert.match(storyMapSurface, /<ProgressiveStoryMap project=\{project\} \/>/u);
 });
 

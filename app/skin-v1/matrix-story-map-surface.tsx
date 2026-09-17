@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
-import type { PPFProject } from "@/core/project/project";
+import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
+import StoryCardFoundationBoard from "./story-card-foundation-board";
 
 export type StoryMapReviewStage = "outline" | "build" | "storyboard";
 
@@ -35,7 +36,7 @@ export default function MatrixStoryMapSurface({
   readonly onOpenPrevis?: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryModeSettings?: () => void;
 }) {
-  const [project, setProject] = useState<PPFProject | null>(null);
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState<PreproductionReviewAddress>(() => currentAddress());
 
   useEffect(() => {
@@ -97,6 +98,7 @@ export default function MatrixStoryMapSurface({
   if (!project) return <p role="status">Opening Story Map…</p>;
   return (
     <div data-skin-v1-story-map-review="true" onClickCapture={handleClickCapture}>
+      <StoryCardFoundationBoard project={project} onProjectChange={setProject} />
       <ProgressiveStoryMap project={project} />
 
       <section className="pp-skin-v1-writer-story-panel" aria-labelledby="writer-story-position-title" data-writer-story-projection="mini-block-source">

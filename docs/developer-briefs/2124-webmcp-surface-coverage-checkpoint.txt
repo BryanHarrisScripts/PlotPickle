@@ -1,1 +1,0 @@
-Verification branch checkpoint: complete reachable Matrix surface coverage, Dashboard score zero-state, and full-catalogue Visual Director.

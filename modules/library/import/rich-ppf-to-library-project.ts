@@ -7,6 +7,7 @@ import type {
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
 import { createEmptyStoryStructureV2, type StoryStructureV2 } from "../../../core/project/story-structure-v2";
 import type { PlotPickleProject } from "../../../lib/projects/project";
+import { parseScreenplay } from "../../../lib/projects/screenplay/screenplay";
 
 export type ImportedLibraryProject = PPFProject & {
   readonly structure: StoryStructureV2;
@@ -137,6 +138,19 @@ function importedPassages(project: PlotPickleProject): readonly ImportedScreenpl
   }));
 }
 
+function importedSectionMarkers(project: PlotPickleProject) {
+  return parseScreenplay(project.screenplay)
+    .filter((element) => element.type === "section")
+    .map((element, index) => ({
+      id: `source-section-${String(index + 1).padStart(3, "0")}`,
+      title: element.text,
+      page: element.page,
+      blockNumber: element.blockNumber,
+      sceneNumber: element.scene,
+    }))
+    .slice(0, 256);
+}
+
 function importedStoryStructure(project: PlotPickleProject): StoryStructureV2 {
   const empty = createEmptyStoryStructureV2();
   return {
@@ -195,6 +209,7 @@ export function richPpfToLibraryProject(project: PlotPickleProject, importedAt =
         storedPassageCount: passages.length,
         passagesTruncated: project.screenplay.draftElements.length > passages.length,
         passages,
+        sectionMarkers: importedSectionMarkers(project),
       },
       referenceFixture: null,
     },

@@ -6,15 +6,18 @@ import {
   plotPickleScorePercent,
 } from "../../core/project/plotpickle-score";
 import {
-  initializeProjectLibrary,
   PROJECT_LIBRARY_CHANGED_EVENT,
   type LibraryPPFProject,
 } from "../../core/storage/project-library-browser";
+import {
+  PROJECT_LIBRARY_SESSION_CHANGED_EVENT,
+  currentSessionLibraryProject,
+} from "../../core/storage/project-library-session-browser";
 import styles from "./plotpickle-score-panel.module.css";
 
 function readActiveProject() {
   try {
-    return initializeProjectLibrary().activeProject;
+    return currentSessionLibraryProject();
   } catch {
     return null;
   }
@@ -39,7 +42,11 @@ export default function PlotPickleScorePanel() {
     const refresh = () => setProject(readActiveProject());
     refresh();
     window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
-    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+    window.addEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    return () => {
+      window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refresh);
+      window.removeEventListener(PROJECT_LIBRARY_SESSION_CHANGED_EVENT, refresh);
+    };
   }, []);
 
   const result = useMemo(() => project

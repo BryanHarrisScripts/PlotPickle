@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { auditContinuitySnapshot, continuityReport } from "../lib/verification/ui-continuity-audit.mjs";
+import { projectUiContinuityScreens } from "../lib/verification/skin-v1-surface-registry.mjs";
 import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agents/agent-window-status.mjs";
 import { delay, extractPageState, McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
 
@@ -23,7 +24,7 @@ if (server.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(server.h
 
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const reportPath = path.resolve(argument("--report", path.join(localRoot, "PlotPickle", "reports", "ui-continuity-report.md")));
-const registryPath = path.join(repoRoot, "config", "ui-continuity-agent-registry.json");
+const compatibilityRegistryPath = path.join(repoRoot, "config", "ui-continuity-agent-registry.json");
 const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
 
 async function waitForServer(timeoutMs = 90_000) {
@@ -207,15 +208,16 @@ async function cleanupPluginData(pluginData) {
 async function main() {
   agentLoaded({
     name: "PlotPickle UI Continuity Agent",
-    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, canonical destination reachability, forgiving navigation groups, visible orientation, project/status context, return paths, and navigation overlap.",
+    purpose: "Inspect canonical Surface Registry screens for shared layout, approved visual system, destination reachability, navigation groups, orientation, project/status context, return paths and navigation overlap.",
     instructions: "None. This read-only audit starts automatically and never changes your story or source files.",
     automatic: true,
   });
-  agentStatus("WORKING AUTOMATICALLY", "Waiting for PlotPickle, then inspecting every registered screen.");
-  const registry = JSON.parse(await readFile(registryPath, "utf8"));
-  if (registry.mode !== "read-only" || registry.autoFix !== false || registry.fixApprovalRequired !== true) {
-    throw new Error("UI Continuity Agent registry must preserve the read-only, approval-required boundary.");
+  agentStatus("WORKING AUTOMATICALLY", "Waiting for PlotPickle, then inspecting every canonical UI Continuity surface.");
+  const compatibilityRegistry = JSON.parse(await readFile(compatibilityRegistryPath, "utf8"));
+  if (compatibilityRegistry.mode !== "read-only" || compatibilityRegistry.autoFix !== false || compatibilityRegistry.fixApprovalRequired !== true) {
+    throw new Error("UI Continuity compatibility metadata must preserve the read-only, approval-required boundary.");
   }
+  const screens = projectUiContinuityScreens(compatibilityRegistry);
   await mkdir(path.dirname(reportPath), { recursive: true });
   await waitForServer();
 
@@ -240,7 +242,7 @@ async function main() {
     for (const required of ["browser_navigate", "browser_evaluate"]) {
       if (!tools.some((tool) => tool.name === required)) throw new Error(`Playwright agent runtime is missing ${required}.`);
     }
-    for (const screen of registry.screens) {
+    for (const screen of screens) {
       const snapshot = await inspectScreen(client, screen);
       if (screen.id === "dashboard" && snapshot.shell) baseline = snapshot.shell;
       results.push(auditContinuitySnapshot(screen, snapshot, baseline));
@@ -255,14 +257,14 @@ async function main() {
   const report = continuityReport({ generatedAt: new Date().toISOString(), server: server.origin, results });
   await writeFile(reportPath, report, "utf8");
   const findings = results.reduce((count, result) => count + result.findings.length, 0);
-  process.stdout.write(`UI Continuity Agent inspected ${results.length} screens and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}\n`);
+  process.stdout.write(`UI Continuity Agent inspected ${results.length} canonical surfaces and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}\n`);
   return { findings, screens: results.length };
 }
 
 const stayOpen = argv.includes("--stay-open");
 
 main().then(async ({ findings, screens }) => {
-  agentCompleted(`Inspected ${screens} screens and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}`);
+  agentCompleted(`Inspected ${screens} canonical surfaces and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}`);
   if (stayOpen) await keepAgentWindowOpen("UI Continuity Agent");
 }).catch(async (error) => {
   const message = error instanceof Error ? error.message : String(error);

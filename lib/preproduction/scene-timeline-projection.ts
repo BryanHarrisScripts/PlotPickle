@@ -1,4 +1,3 @@
-import { RENDER_MINI_BLOCK_SECONDS } from "../../core/contracts/previs";
 import type {
   VisualStoryFrameProjection,
   VisualStoryProjection,
@@ -27,8 +26,9 @@ export type SceneTimelineAnchorProjection = {
   readonly anchorRef: string;
   readonly blockNumber: number;
   readonly miniBlockNumber: number;
-  readonly startSecond: number;
-  readonly endSecond: number;
+  readonly startSecond: number | null;
+  readonly endSecond: number | null;
+  readonly positionState: SceneTimelinePositionState;
   readonly shots: readonly SceneTimelineShotProjection[];
   readonly unassignedFrames: readonly VisualStoryFrameProjection[];
 };
@@ -37,7 +37,6 @@ export type SceneTimelineProjection = {
   readonly projectionOnly: true;
   readonly sceneId: string | null;
   readonly sceneTitle: string;
-  readonly anchorSeconds: number;
   readonly totalSeconds: number;
   readonly anchors: readonly SceneTimelineAnchorProjection[];
   readonly shots: readonly SceneTimelineShotProjection[];
@@ -60,16 +59,16 @@ function uniqueFrames(frames: readonly VisualStoryFrameProjection[]) {
 
 function projectAnchor(
   anchor: VisualStoryProjection["anchors"][number],
-  firstAddressIndex: number,
-): SceneTimelineAnchorProjection {
-  const anchorStartSecond = (addressIndex(anchor.blockNumber, anchor.miniBlockNumber) - firstAddressIndex)
-    * RENDER_MINI_BLOCK_SECONDS;
-  let cursor = anchorStartSecond;
-  let positionKnown = true;
+  initialCursor: number,
+  initialPositionKnown: boolean,
+) {
+  const anchorStartSecond = initialPositionKnown ? initialCursor : null;
+  let cursor = initialCursor;
+  let positionKnown = initialPositionKnown;
 
   const shots = anchor.shots.map((shot) => {
     const durationSeconds = shot.durationSeconds;
-    let positionState: SceneTimelinePositionState = "untimed";
+    let positionState: SceneTimelinePositionState = positionKnown ? "untimed" : "blocked-by-untimed-predecessor";
     let startSecond: number | null = null;
     let endSecond: number | null = null;
 
@@ -101,23 +100,33 @@ function projectAnchor(
     } satisfies SceneTimelineShotProjection;
   });
 
+  const anchorPositionState: SceneTimelinePositionState = !initialPositionKnown
+    ? "blocked-by-untimed-predecessor"
+    : shots.some((shot) => shot.positionState !== "timed")
+      ? "untimed"
+      : "timed";
+
   return {
-    anchorRef: anchor.anchorRef,
-    blockNumber: anchor.blockNumber,
-    miniBlockNumber: anchor.miniBlockNumber,
-    startSecond: anchorStartSecond,
-    endSecond: anchorStartSecond + RENDER_MINI_BLOCK_SECONDS,
-    shots,
-    unassignedFrames: anchor.unassignedFrames,
+    anchor: {
+      anchorRef: anchor.anchorRef,
+      blockNumber: anchor.blockNumber,
+      miniBlockNumber: anchor.miniBlockNumber,
+      startSecond: anchorStartSecond,
+      endSecond: positionKnown ? cursor : null,
+      positionState: anchorPositionState,
+      shots,
+      unassignedFrames: anchor.unassignedFrames,
+    } satisfies SceneTimelineAnchorProjection,
+    cursor,
+    positionKnown,
   };
 }
 
 /**
- * Temporal projection over the existing Visual Story / Previs authorities.
- * Shot order + Human-authored ProductionShotIntent duration determine placement.
- * If an earlier Shot is untimed, later Shots keep their authored duration but do
- * not receive an invented start timestamp. The technical RenderClip grid is not
- * projected into this creator-facing timeline.
+ * Temporal projection over existing Visual Story / Previs authorities.
+ * Only Human-authored ProductionShotIntent durations place material on the clock.
+ * If any preceding Shot is untimed, later Shots and later anchors remain unplaced
+ * rather than inheriting a synthetic Mini-Block/render-grid timestamp.
  */
 export function projectSceneTimeline(visualStory: VisualStoryProjection): SceneTimelineProjection {
   if (!visualStory.selectedScene || !visualStory.anchors.length) {
@@ -125,7 +134,6 @@ export function projectSceneTimeline(visualStory: VisualStoryProjection): SceneT
       projectionOnly: true,
       sceneId: visualStory.selectedScene?.id ?? null,
       sceneTitle: visualStory.selectedScene?.title ?? "",
-      anchorSeconds: RENDER_MINI_BLOCK_SECONDS,
       totalSeconds: 0,
       anchors: [],
       shots: [],
@@ -138,25 +146,33 @@ export function projectSceneTimeline(visualStory: VisualStoryProjection): SceneT
   const orderedAnchors = [...visualStory.anchors].sort((left, right) => (
     addressIndex(left.blockNumber, left.miniBlockNumber) - addressIndex(right.blockNumber, right.miniBlockNumber)
   ));
-  const firstAddressIndex = addressIndex(orderedAnchors[0].blockNumber, orderedAnchors[0].miniBlockNumber);
-  const lastAddressIndex = addressIndex(
-    orderedAnchors[orderedAnchors.length - 1].blockNumber,
-    orderedAnchors[orderedAnchors.length - 1].miniBlockNumber,
-  );
-  const anchors = orderedAnchors.map((anchor) => projectAnchor(anchor, firstAddressIndex));
+  const anchors: SceneTimelineAnchorProjection[] = [];
+  let cursor = 0;
+  let positionKnown = true;
+
+  for (const anchor of orderedAnchors) {
+    const projected = projectAnchor(anchor, cursor, positionKnown);
+    anchors.push(projected.anchor);
+    cursor = projected.cursor;
+    positionKnown = projected.positionKnown;
+  }
+
   const shots = anchors.flatMap((anchor) => anchor.shots);
   const untimedShots = shots.filter((shot) => shot.positionState !== "timed");
   const untimedFrames = uniqueFrames([
     ...anchors.flatMap((anchor) => anchor.unassignedFrames),
     ...untimedShots.flatMap((shot) => shot.frames),
   ]);
+  const timedEnds = shots
+    .map((shot) => shot.endSecond)
+    .filter((value): value is number => value !== null);
+  const totalSeconds = timedEnds.length ? Math.max(...timedEnds) : 0;
 
   return {
     projectionOnly: true,
     sceneId: visualStory.selectedScene.id,
     sceneTitle: visualStory.selectedScene.title,
-    anchorSeconds: RENDER_MINI_BLOCK_SECONDS,
-    totalSeconds: ((lastAddressIndex - firstAddressIndex) + 1) * RENDER_MINI_BLOCK_SECONDS,
+    totalSeconds,
     anchors,
     shots,
     untimedShots,

@@ -1,6 +1,6 @@
 # Issue #2226 Phase 3 — Canonical shell and measure proposal
 
-Status: AWAITING EXPLICIT HUMAN APPROVAL. This proposal does not change Dashboard CSS or any locked baseline.
+Status: HUMAN APPROVED 2026-09-18. Dashboard candidate implementation may proceed; locked baseline replacement still requires separate Human acceptance of the resulting candidate.
 
 ## Evidence compared
 
@@ -64,9 +64,9 @@ If approved, Phase 3 implementation should deliberately re-express Dashboard usi
 
 Only after the resulting Dashboard candidate is reviewed and explicitly accepted should the locked Dashboard baseline be replaced.
 
-## Approval requested
+## Human decision
 
-Approve the following as the Phase 3 canonical shell:
+Approved on 2026-09-18 as the Phase 3 canonical shell:
 1180px outer shell + 20px-per-side desktop gutter + 1060px directory body, with full-shell workspaces where declared; 2px solid outer frame + 1px solid inset/panel framing; square matte Skin V1 fills; dark/green selected state; restrained subordinate accent treatment.
 
-No locked baseline replacement occurs until the resulting Dashboard candidate is separately accepted.
+Implementation is authorized. No locked baseline replacement occurs until the resulting Dashboard candidate is separately accepted.

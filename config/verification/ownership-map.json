@@ -488,7 +488,6 @@
         "core/contracts/previs/index.ts",
         "app/_components/previs/previs-projection-model.ts",
         "app/_components/previs/previs-readiness-workspace.tsx",
-        "app/_components/previs/previs-readiness-workspace.module.css",
         "app/previs/page.tsx"
       ],
       "ownerLayer": "story-canon",
@@ -530,7 +529,10 @@
         "app/storyboard/*.module.css",
         "app/craftloop/preproduction-context.module.css",
         "app/pageflow/preproduction-context.module.css",
-        "modules/build/ui/progressive-story-map.module.css"
+        "modules/build/ui/progressive-story-map.module.css",
+        "app/_components/previs/previs-readiness-workspace.module.css",
+        "app/pageflow/pageflow.module.css",
+        "app/craftloop/craftloop.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

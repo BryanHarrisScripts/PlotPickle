@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { loadDiscoveryContract } from "../lib/verification/oss-radar/discover-github.mjs";\nimport { runRadar } from "../lib/verification/oss-radar/run-radar.mjs";
+import { loadDiscoveryContract } from "../lib/verification/oss-radar/discover-github.mjs";
+import { runRadar } from "../lib/verification/oss-radar/run-radar.mjs";
 
 const contract = await loadDiscoveryContract();
 const discoveryFixture = JSON.parse(await readFile("tests/fixtures/oss-radar/phase-1-github-search.json", "utf8"));

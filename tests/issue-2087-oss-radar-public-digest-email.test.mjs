@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { renderEmailArtifact } from "../lib/verification/oss-radar/email-artifact.mjs";\nimport { renderGitHubSummary } from "../lib/verification/oss-radar/github-summary.mjs";
+import { renderEmailArtifact } from "../lib/verification/oss-radar/email-artifact.mjs";
+import { renderGitHubSummary } from "../lib/verification/oss-radar/github-summary.mjs";
 import { renderRadarReviewEmail, renderXReadyDigest } from "../lib/verification/oss-radar/public-digest.mjs";
 import { renderDailyReport } from "../lib/verification/oss-radar/report-renderer.mjs";
 

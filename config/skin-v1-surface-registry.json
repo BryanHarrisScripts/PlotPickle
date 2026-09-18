@@ -392,7 +392,7 @@
       "continuityIds": [
         "write"
       ],
-      "route": "/?workspace=write",
+      "route": "/write",
       "webmcpId": "write"
     },
     {

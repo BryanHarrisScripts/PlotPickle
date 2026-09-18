@@ -17,6 +17,7 @@ import {
   storyboardReferenceCandidates,
   STORYBOARD_REFERENCE_WORKFLOW,
 } from "./storyboard-editorial-model";
+import { planCreativeRevisionPropagation } from "@/lib/preproduction/creative-revision-propagation";
 import styles from "./storyboard-editorial-workspace.module.css";
 
 export default function StoryboardEditorialWorkspace({
@@ -61,6 +62,29 @@ export default function StoryboardEditorialWorkspace({
     () => storyboardArtifactStaleReasons(project, target.id, selectedMiniBlockNumber, current),
     [current, project, selectedMiniBlockNumber, target.id],
   );
+  const visualRevisionImpact = useMemo(() => {
+    if (!current || !selected || current.id === selected.acceptedArtifactId) return null;
+    try {
+      return planCreativeRevisionPropagation({
+        project,
+        target: { kind: "accepted-visual", artifactId: current.id },
+        beforeValue: {
+          artifactId: current.id,
+          sourceDecisionKeys: current.sourceDecisionKeys ?? [],
+        },
+        afterValue: {
+          candidateId: selected.id,
+          sourceRef: selected.sourceRef,
+          provenanceRefs: selected.provenanceRefs,
+        },
+        changeSetId: `storyboard-impact-${project.revision}-${current.id}`,
+        summary: `Replace the Human-kept Storyboard visual at Block ${target.blockNumber} · Mini-Block ${selectedMiniBlockNumber}.`,
+        occurredAt: project.updatedAt,
+      });
+    } catch {
+      return null;
+    }
+  }, [current, project, selected, selectedMiniBlockNumber, target.blockNumber]);
   const editorialAccessible = hasQaWorkspaceAccess(target.storyboardAllowed);
   const qaOnlyAccess = isQaAccessOverride(target.storyboardAllowed);
 
@@ -118,7 +142,11 @@ export default function StoryboardEditorialWorkspace({
     });
     saveFoundationProject(next);
     onProjectChange(next);
-    setMessage(`${selected.label} kept as the current preferred visual for this anchor. PlotPickle did not change story canon or remove room for later variations.`);
+    const affectedShots = visualRevisionImpact?.staleProductionShotIds.length ?? 0;
+    setMessage(
+      `${selected.label} kept as the current preferred visual for this anchor. `
+      + `${affectedShots} dependent Previs Shot${affectedShots === 1 ? "" : "s"} now require review; unrelated accepted work remains intact. PlotPickle did not regenerate or approve replacement production work automatically.`,
+    );
   }
 
   function changeCandidate() {
@@ -153,6 +181,15 @@ export default function StoryboardEditorialWorkspace({
         <div className={styles.stale} role="status">
           <strong>Kept visual needs review.</strong>
           <span>{staleReasons.join(" ")}</span>
+        </div>
+      ) : null}
+
+      {visualRevisionImpact ? (
+        <div className={styles.impact} aria-label="Accepted visual change consequence preview">
+          <strong>CHANGE CONSEQUENCE · #2035 CHANGE SET</strong>
+          <span>{visualRevisionImpact.staleProductionShotIds.length} dependent Previs Shot{visualRevisionImpact.staleProductionShotIds.length === 1 ? "" : "s"} would require review.</span>
+          <span>{visualRevisionImpact.unaffectedProductionShotIds.length} unrelated Previs Shot{visualRevisionImpact.unaffectedProductionShotIds.length === 1 ? "" : "s"} remain current.</span>
+          <small>Keep changes the accepted visual authority only. Invalidation does not trigger regeneration, provider spend or downstream approval.</small>
         </div>
       ) : null}
 

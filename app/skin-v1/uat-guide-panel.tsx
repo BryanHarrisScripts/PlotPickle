@@ -32,7 +32,6 @@ type GuideStatus = {
   };
   events?: GuideEvent[];
   evidence?: {
-    verificationInbox?: string;
     webmcp?: string;
     findings?: string;
     afterglow?: string;
@@ -53,7 +52,6 @@ type Payload = {
   reviews: HumanReview[];
   isolation: string;
   providerSpendAllowed: boolean;
-  verificationInbox: string;
   message?: string;
 };
 
@@ -94,7 +92,7 @@ async function ensureLocalStoryMode() {
   window.dispatchEvent(new CustomEvent("plotpickle:story-mode-policy-change", { detail: "local" }));
 }
 
-async function ensureAfterglowWorkingCopy() {
+async function ensureAfterglowWorkingCopy(csrf: string) {
   const existing = listLibraryProjects().find((item) => (
     !item.archivedAt
     && item.sourceKind === "example"
@@ -112,7 +110,7 @@ async function ensureAfterglowWorkingCopy() {
       format: "Screenplay · v9 reference",
     });
 
-  await persistActiveProfileProject();
+  await persistActiveProfileProject(csrf);
   return { project, reused: Boolean(existing) };
 }
 
@@ -158,20 +156,19 @@ export default function UatGuidePanel() {
     ? payload?.reviews?.find((item) => item.runId === payload?.status?.runId && item.eventKey === latestEventKey)
     : undefined;
 
-  function requestProfileUnlock() {
-    setMessage("Your Human session needs to be unlocked again before PlotPickle can save the Afterglow UAT working copy. Reopening the profile boundary.");
-    window.setTimeout(() => window.location.reload(), 120);
+  function reportProfileLocked() {
+    setMessage("Your Human profile session is locked or expired. Unlock the profile using PlotPickle's normal profile control, then return here and start UAT Review again. Your local Afterglow working copy is not discarded.");
   }
 
   async function start() {
     setBusy(true);
     setMessage("");
     try {
+      const csrf = await csrfToken();
       await ensureLocalStoryMode();
       setMessage("Preparing the persistent Afterglow working copy before semantic testing starts…");
-      const prepared = await ensureAfterglowWorkingCopy();
+      const prepared = await ensureAfterglowWorkingCopy(csrf);
       setWorkingCopy(prepared.project.title);
-      const csrf = await csrfToken();
       const response = await fetch("/api/auth/uat-guide", {
         method: "POST",
         credentials: "same-origin",
@@ -186,7 +183,7 @@ export default function UatGuidePanel() {
     } catch (error) {
       setStartPending(false);
       const detail = error instanceof Error ? error.message : "UAT Semantic Review could not start.";
-      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile|human profile is locked/i.test(detail)) requestProfileUnlock();
+      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile|human profile is locked/i.test(detail)) reportProfileLocked();
       else setMessage(detail);
     } finally {
       setBusy(false);
@@ -215,7 +212,7 @@ export default function UatGuidePanel() {
       await refresh();
     } catch (error) {
       const detail = error instanceof Error ? error.message : "PlotPickle could not save the UAT review.";
-      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile|human profile is locked/i.test(detail)) requestProfileUnlock();
+      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile|human profile is locked/i.test(detail)) reportProfileLocked();
       else setMessage(detail);
     } finally {
       setBusy(false);
@@ -241,7 +238,6 @@ export default function UatGuidePanel() {
         <button type="button" onClick={() => void start()} disabled={busy || running || startPending}>
           {running ? "UAT RUNNING" : busy || startPending ? "STARTING…" : "START UAT REVIEW"}
         </button>
-        <Link href={payload?.verificationInbox || "/verification-inbox"}>Verification Inbox</Link>
       </div>
 
       <div className={styles.current} aria-live="polite">

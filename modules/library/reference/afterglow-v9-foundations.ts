@@ -20,6 +20,7 @@ import type {
   ReferenceFixtureFieldKind,
 } from "../../../core/contracts/imported-screenplay-evidence";
 import { richPpfToLibraryProject, type ImportedLibraryProject } from "../import/rich-ppf-to-library-project";
+import { createAfterglowCharacterTruthEvidence } from "./afterglow-character-truth";
 import { createAfterglowGoldenStoryMatrix } from "./afterglow-golden-story-fixture";
 
 export const AFTERGLOW_V9_FOUNDATIONS_WORKING_TITLE = "Afterglow: Reflections of Sentience" as const;
@@ -292,6 +293,12 @@ export function createAfterglowV9FoundationsReference(): ImportedLibraryProject 
   if (!storyMatrix) {
     throw new Error("#2168 Afterglow golden fixture requires imported screenplay evidence.");
   }
+  const characterTruth = imported.sourceEvidence.screenplay
+    ? createAfterglowCharacterTruthEvidence(imported.sourceEvidence.screenplay)
+    : null;
+  if (!characterTruth) {
+    throw new Error("#2178 Afterglow character fixture requires imported screenplay evidence.");
+  }
   const { lessons, lessonStates, fieldEvidence } = buildReferenceLessons();
   const completedLessonIds = lessons.map((lesson) => lesson.id);
   const activeLessonId = completedLessonIds.at(-1) ?? null;
@@ -324,6 +331,7 @@ export function createAfterglowV9FoundationsReference(): ImportedLibraryProject 
     sourceEvidence: {
       ...imported.sourceEvidence,
       storyMatrix,
+      characterTruth,
       referenceFixture: {
         fixtureId: AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID,
         fixtureVersion: AFTERGLOW_V9_FOUNDATIONS_FIXTURE_VERSION,

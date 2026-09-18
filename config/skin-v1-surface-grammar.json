@@ -28,7 +28,11 @@
   ],
   "rules": {
     "standardHeader": {
-      "requiredFor": ["directory", "workspace", "nested"],
+      "requiredFor": [
+        "directory",
+        "workspace",
+        "nested"
+      ],
       "selectors": [
         ".pp-skin-v1-bar",
         ".pp-skin-v1-title[data-skin-v1-standard-header='true']"
@@ -41,8 +45,14 @@
       "sourceIssue": 2032
     },
     "returnAction": {
-      "requiredFor": ["directory", "workspace", "nested"],
-      "exemptSurfaceIds": ["dashboard"],
+      "requiredFor": [
+        "directory",
+        "workspace",
+        "nested"
+      ],
+      "exemptSurfaceIds": [
+        "dashboard"
+      ],
       "selector": ".pp-skin-v1-return",
       "containerSelectors": [
         ".pp-skin-v1-surface-actions",
@@ -63,7 +73,17 @@
     "spacing": {
       "unitPx": 4,
       "tokenPrefix": "--pp-skin-space-",
-      "allowedTokenValuesPx": [4, 8, 12, 16, 20, 24, 28, 32, 36],
+      "allowedTokenValuesPx": [
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36
+      ],
       "structuralPaddingMustUseGrid": true
     },
     "geometry": {
@@ -87,13 +107,275 @@
       "semanticStateExceptionsAllowed": true
     },
     "panelTreatment": {
-      "standardBorderTokens": ["--pp-skin-border-thin", "--pp-skin-border-strong"],
-      "standardLineTokens": ["--pp-skin-line", "--pp-skin-line-soft", "--pp-skin-line-strong", "--pp-skin-accent"],
-      "standardFillTokens": ["--pp-skin-fill-panel", "--pp-skin-fill-header", "--pp-skin-fill-accent-header", "--pp-skin-surface-0", "--pp-skin-surface-1", "--pp-skin-accent-deep"]
+      "standardBorderTokens": [
+        "--pp-skin-border-thin",
+        "--pp-skin-border-strong"
+      ],
+      "standardLineTokens": [
+        "--pp-skin-line",
+        "--pp-skin-line-soft",
+        "--pp-skin-line-strong",
+        "--pp-skin-accent"
+      ],
+      "standardFillTokens": [
+        "--pp-skin-fill-panel",
+        "--pp-skin-fill-header",
+        "--pp-skin-fill-accent-header",
+        "--pp-skin-surface-0",
+        "--pp-skin-surface-1",
+        "--pp-skin-accent-deep"
+      ]
     },
     "screenshotRole": {
       "primaryConsistencyAuthority": false,
       "purpose": "secondary regression evidence after deterministic geometry, token and structure checks"
+    }
+  },
+  "profileContract": {
+    "issue": 2226,
+    "phase": 2,
+    "authority": "config/skin-v1-surface-grammar.json",
+    "censusEvidence": "docs/architecture/skin-v1-surface-blueprint-phase-0-census.md",
+    "dashboardMeasureDecision": "deferred-to-phase-3-human-approval",
+    "shellLevelFourColumnArchetype": false
+  },
+  "layoutArchetypes": {
+    "one-column": {
+      "primaryStructure": "single dominant content column",
+      "censusEvidence": "one-column content/action/configuration/history/workspace surfaces"
+    },
+    "two-column": {
+      "primaryStructure": "dominant content plus secondary column",
+      "censusEvidence": "Profile and current two-column surfaces"
+    },
+    "three-column": {
+      "primaryStructure": "three coordinated workspace columns",
+      "censusEvidence": "existing three-column workspaces",
+      "standardSurfaceAssignmentsRequired": false
+    },
+    "directory-grid": {
+      "primaryStructure": "directory or adaptive card/grid browsing",
+      "censusEvidence": "Dashboard, Library, Writer's Craft and current directories"
+    },
+    "editor-inspector": {
+      "primaryStructure": "dominant editor with inspector/evidence region",
+      "censusEvidence": "Write and PageFlow"
+    },
+    "timeline-workspace": {
+      "primaryStructure": "workspace with time-oriented nested projection",
+      "censusEvidence": "Scene Workspace inside Storyboard / Visual Story"
+    },
+    "canvas-visual-workspace": {
+      "primaryStructure": "visual/canvas workspace",
+      "censusEvidence": "Story Map, Storyboard, Visual Story and Previs"
+    },
+    "settings-directory": {
+      "primaryStructure": "configuration directory with capability/detail regions",
+      "censusEvidence": "Local, Cloud, Hybrid and Agents"
+    }
+  },
+  "bodyMeasureProfiles": {
+    "dashboard-reference-current": {
+      "policy": "preserve locked rendered Dashboard measure until Phase 3",
+      "explicitHumanApprovalRequiredToChange": true
+    },
+    "standard-shell": {
+      "token": "--pp-skin-shell-max",
+      "maxPx": 1180,
+      "desktopViewportInsetPx": 40,
+      "expression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))"
+    }
+  },
+  "headerProfiles": {
+    "dashboard-reference": {
+      "policy": "preserve current locked Dashboard header until Phase 3 approval"
+    },
+    "standard": {
+      "sourceRule": "rules.standardHeader",
+      "required": true
+    },
+    "restrained-subheader": {
+      "sourceEvidence": "Issue Log",
+      "treatment": "standard header plus restrained green left-edge/eyebrow subordinate treatment",
+      "mayReplaceStandardHeader": false
+    }
+  },
+  "footerProfiles": {
+    "standard-status": {
+      "required": true,
+      "role": "surface status/context footer",
+      "localDesignAuthorityAllowed": false
+    },
+    "workspace-context": {
+      "required": true,
+      "role": "project/workspace context and status footer",
+      "localDesignAuthorityAllowed": false
+    },
+    "dashboard-reference": {
+      "policy": "preserve current locked Dashboard footer/status treatment until Phase 3 approval"
+    }
+  },
+  "returnProfiles": {
+    "none-reference": {
+      "required": false,
+      "allowedSurfaceIds": [
+        "dashboard"
+      ]
+    },
+    "upper-right-parent": {
+      "required": true,
+      "selector": ".pp-skin-v1-return",
+      "horizontalAlignment": "right",
+      "placement": "below-standard-header",
+      "destination": "canonical parent"
+    },
+    "upper-right-origin-aware": {
+      "required": true,
+      "selector": ".pp-skin-v1-return",
+      "horizontalAlignment": "right",
+      "placement": "below-standard-header",
+      "destination": "canonical origin/parent"
+    }
+  },
+  "frameProfiles": {
+    "solid-standard": {
+      "borderStyle": "solid",
+      "outerBorderToken": "--pp-skin-border-strong",
+      "innerBorderToken": "--pp-skin-border-thin",
+      "lineTokens": [
+        "--pp-skin-line",
+        "--pp-skin-line-soft",
+        "--pp-skin-line-strong",
+        "--pp-skin-accent"
+      ]
+    },
+    "layered-inset": {
+      "borderStyle": "solid",
+      "sourceEvidence": "Profile",
+      "outerBorderToken": "--pp-skin-border-strong",
+      "insetBorderToken": "--pp-skin-border-thin",
+      "localRadiusAllowed": false
+    }
+  },
+  "selectedStateProfiles": {
+    "canonical-dark-accent": {
+      "sourceEvidence": [
+        "Local Story Mode",
+        "Settings directory",
+        "Dashboard current selected row"
+      ],
+      "backgroundToken": "--pp-skin-accent-deep",
+      "borderWidthToken": "--pp-skin-border-thin",
+      "borderColorToken": "--pp-skin-accent-bright",
+      "textToken": "--pp-skin-ink",
+      "starkWhiteFillAllowed": false
+    },
+    "not-applicable": {
+      "required": false
+    }
+  },
+  "typographyProfiles": {
+    "standard-ui": {
+      "fontToken": "--pp-skin-font-ui",
+      "brandFontToken": "--pp-skin-font-brand",
+      "localFontFamilyAllowed": false
+    },
+    "project-workspace": {
+      "fontToken": "--pp-skin-font-ui",
+      "brandFontToken": "--pp-skin-font-brand",
+      "localFontFamilyAllowed": false,
+      "projectAwareTitleAllowed": true,
+      "hardCodedProjectNameAllowed": false
+    }
+  },
+  "semanticBorderExceptions": [
+    {
+      "id": "disabled-control-dashed",
+      "selector": ".pp-skin-v1-panel button:disabled",
+      "borderStyle": "dashed",
+      "semanticState": "disabled/unavailable",
+      "source": "app/skin-v1.css",
+      "structuralFrameException": false
+    }
+  ],
+  "borderPolicy": {
+    "structuralStyles": [
+      "solid"
+    ],
+    "dottedStructuralBordersAllowed": false,
+    "dashedStructuralBordersAllowed": false,
+    "exceptionRegistry": "semanticBorderExceptions"
+  },
+  "shellProfiles": {
+    "dashboard-reference": {
+      "header": "dashboard-reference",
+      "footer": "dashboard-reference",
+      "return": "none-reference",
+      "bodyMeasure": "dashboard-reference-current",
+      "frame": "solid-standard"
+    },
+    "standard": {
+      "header": "standard",
+      "footer": "standard-status",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard"
+    },
+    "standard-restrained": {
+      "header": "restrained-subheader",
+      "footer": "standard-status",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard"
+    },
+    "library-family": {
+      "header": "standard",
+      "footer": "standard-status",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "family": "library"
+    },
+    "production": {
+      "header": "standard",
+      "footer": "workspace-context",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "projectAware": true
+    },
+    "production-nested": {
+      "header": "standard",
+      "footer": "workspace-context",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "projectAware": true,
+      "nested": true
+    },
+    "settings": {
+      "header": "standard",
+      "footer": "standard-status",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "family": "settings"
+    },
+    "diagnostic": {
+      "header": "standard",
+      "footer": "workspace-context",
+      "return": "upper-right-origin-aware",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "projectAware": true
+    },
+    "action": {
+      "header": "standard",
+      "footer": "standard-status",
+      "return": "upper-right-parent",
+      "bodyMeasure": "standard-shell",
+      "frame": "solid-standard",
+      "centeredPrimaryAction": true
     }
   }
 }

@@ -99,6 +99,20 @@ function storyboardDependencyKey(artifact: FoundationsVisualArtifact | null) {
   return (artifact?.sourceDecisionKeys ?? []).find((key) => key.startsWith("storyboard-upstream:")) ?? "";
 }
 
+function keptStoryboardSourceKind(artifact: FoundationsVisualArtifact | null) {
+  const value = (artifact?.sourceDecisionKeys ?? [])
+    .find((key) => key.startsWith("storyboard-source-kind:"))
+    ?.slice("storyboard-source-kind:".length);
+  return value === "historical-storyboard" || value === "replacement-concept" ? value : null;
+}
+
+function keptStoryboardEvidenceRefs(artifact: FoundationsVisualArtifact | null) {
+  return (artifact?.sourceDecisionKeys ?? [])
+    .filter((key) => key.startsWith("storyboard-evidence:"))
+    .map((key) => key.slice("storyboard-evidence:".length))
+    .filter(Boolean);
+}
+
 function anchorState(input: {
   readonly blockState: VisualReadinessState;
   readonly storyboardAllowed: boolean;
@@ -170,6 +184,11 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
       const observed = references.find((candidate) => candidate.miniBlockNumber === miniBlockNumber) ?? null;
       const storyEvidence = storyboardAnchorEvidence(project, target.id, miniBlockNumber);
       const storyboardCoverage = kept ? "kept" as const : observed ? "candidate" as const : "none" as const;
+      const keptSourceKind = keptStoryboardSourceKind(kept);
+      const provenanceRefs = [...new Set([
+        ...(observed?.provenanceRefs ?? []),
+        ...keptStoryboardEvidenceRefs(kept),
+      ])];
       const staleBecause = kept
         ? storyboardArtifactStaleReasons(project, target.id, miniBlockNumber, kept)
         : [];
@@ -223,8 +242,8 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         storyboardDependencyKey: dependencyKey,
         observedReference: Boolean(observed && !kept),
         storyboardCoverage,
-        storyboardSourceKind: observed?.sourceKind ?? null,
-        storyboardProvenanceRefs: observed?.provenanceRefs ?? [],
+        storyboardSourceKind: observed?.sourceKind ?? keptSourceKind,
+        storyboardProvenanceRefs: provenanceRefs,
         sourcePassageCount: storyEvidence.passages.length,
         sourceSceneCount: new Set(storyEvidence.passages.map((passage) => passage.sceneNumber)).size,
         sourceFileName: storyEvidence.sourceFileName,

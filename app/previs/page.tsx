@@ -33,8 +33,12 @@ export default function PrevisPage() {
       <PrevisReadinessWorkspace
         project={project}
         onProjectChange={setProject}
-        onOpenStoryboard={() => window.location.assign("/storyboard")}
-        onOpenBuild={() => window.location.assign("/?workspace=build")}
+        onOpenStoryboard={(anchor) => window.location.assign(anchor
+          ? `/storyboard?block=${anchor.blockNumber}&mini=${anchor.miniBlockNumber}`
+          : "/storyboard")}
+        onOpenBuild={(anchor) => window.location.assign(anchor
+          ? `/?workspace=build&block=${anchor.blockNumber}&mini=${anchor.miniBlockNumber}`
+          : "/?workspace=build")}
       />
     </div>
   );

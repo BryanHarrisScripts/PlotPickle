@@ -119,7 +119,7 @@ export default function PreproductionContextNav({
   const contextualReturn = encodeURIComponent(outlineReturn);
 
   return (
-    <section className={styles.context} aria-label="PRE-PRODUCTION context">
+    <header className={styles.context} aria-label="PRE-PRODUCTION context" data-matrix-preproduction-context="current">
       <div className={styles.identity}>
         <span>PRE-PRODUCTION</span>
         <strong>{AREAS[area].label}</strong>
@@ -173,6 +173,6 @@ export default function PreproductionContextNav({
       ) : null}
 
       <Link className={styles.dashboardExit} href={dashboardReturn}>Dashboard</Link>
-    </section>
+    </header>
   );
 }

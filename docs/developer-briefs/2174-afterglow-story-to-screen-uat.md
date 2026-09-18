@@ -47,7 +47,7 @@ For every stage, the report names the exact stage and missing file/contract term
 The harness verifies three independent source facts before accepting the chain:
 
 1. the #2168 fixture still reports the canonical 24 × 96 grid;
-2. v9 still preserves its actual 20 titled source sections rather than being relabelled as 24 authored source Blocks;
+2. v9 still preserves its actual 21 titled source sections rather than being relabelled as 24 authored source Blocks;
 3. Block 17 remains Waves of Connections and sits inside the 21 Blocks with original historical Storyboard material.
 
 The current Storyboard reference for the acceptance address is:
@@ -120,7 +120,7 @@ The verifier fails the affected stage and reports the exact missing contract. It
 
 #2168 remains the owner of full source coverage. #2174 consumes that fixture and verifies that full 24-Block / 96-Mini-Block coverage remains reportable while preserving:
 
-- v9 20-section source topology;
+- v9 21-section source topology;
 - explicit missing/unresolved states;
 - mapping method provenance;
 - the distinction between source density and structural judgment.

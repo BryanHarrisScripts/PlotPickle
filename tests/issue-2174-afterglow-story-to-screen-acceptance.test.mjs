@@ -75,7 +75,7 @@ test("#2174 full 24/96 fixture coverage remains reportable without claiming v9 w
 
   assert.match(fixture, /canonicalGrid: "24x96"/u);
   assert.match(fixture, /project\.blocks\.length !== 24/u);
-  assert.match(fixture, /sections\.length !== 20/u);
+  assert.match(fixture, /sections\.length !== AFTERGLOW_V9_EXPLICIT_SECTION_COUNT/u);
   assert.match(fixture, /authoredBlockCount: "not-asserted"/u);
   assert.match(fixture, /page-progress-fallback/u);
   assert.match(source, /flatMap\(\(block\) => block\.miniBlocks\)\.length, 96/u);

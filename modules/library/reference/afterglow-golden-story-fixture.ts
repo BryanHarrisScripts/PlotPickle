@@ -4,6 +4,7 @@ import {
   afterglowVersions,
 } from "../../../data/afterglow-reconciliation";
 import { createAfterglowProject as createCompleteAfterglowProject } from "../../../data/afterglow-complete";
+import { AFTERGLOW_V9_EXPLICIT_SECTION_COUNT } from "../../../data/afterglow-reference-identity";
 import type { ImportedScreenplayEvidence } from "../../../core/contracts/imported-screenplay-evidence";
 import type {
   StoryBlockEvidenceCell,
@@ -147,7 +148,7 @@ function blockCell(
  *
  * This fixture intentionally separates:
  * - the canonical PlotPickle 24/96 coordinates;
- * - v9's actual source topology (20 titled sections);
+ * - v9's actual source topology (21 titled sections);
  * - page-progress fallback placement of v9 passages;
  * - v10's bounded later-rewrite frontier;
  * - v8's historical comparison role;
@@ -164,8 +165,8 @@ export function createAfterglowGoldenStoryMatrix(
   if (project.blocks.length !== 24) {
     throw new Error(`#2168 expected the canonical Afterglow projection to contain 24 Blocks, found ${project.blocks.length}.`);
   }
-  if (sections.length !== 20) {
-    throw new Error(`#2168 expected the v9 source topology to contain 20 explicit titled sections, found ${sections.length}. Review the source before accepting topology drift.`);
+  if (sections.length !== AFTERGLOW_V9_EXPLICIT_SECTION_COUNT) {
+    throw new Error(`#2168 expected the v9 source topology to contain ${AFTERGLOW_V9_EXPLICIT_SECTION_COUNT} explicit titled sections, found ${sections.length}. Review the source before accepting topology drift.`);
   }
 
   return {

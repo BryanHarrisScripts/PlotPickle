@@ -194,7 +194,7 @@ test("#2166 projects observed rich/Afterglow Block identities into the same card
   assert.match(afterglowScreenplay, /trustworthyLegacyStoryboardBlocks: 21/u);
   assert.match(reconciliation, /Afterglow v8 — Historical Complete Rewrite/u);
   assert.match(reconciliation, /Earlier 86-page complete rewrite/u);
-  assert.match(reconciliation, /20 explicit titled source sections/u);
+  assert.match(reconciliation, /21 explicit titled source sections/u);
   assert.match(reconciliation, /Most Complete 2023 Baseline/u);
   assert.match(reconciliation, /without asserting 24 authored source Blocks/u);
   assert.match(reconciliation, /afterglowSourceUsePolicy/u);

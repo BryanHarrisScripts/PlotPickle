@@ -192,7 +192,7 @@
       "id": "write",
       "label": "Block-native Write",
       "order": 110,
-      "route": "/?workspace=write&block=1&mini=1",
+      "route": "/write&block=1&mini=1",
       "operation": "operate",
       "requiredTerms": [
         "WRITE",

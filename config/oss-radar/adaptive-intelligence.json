@@ -14,7 +14,11 @@
     "rawResultBudget": 500,
     "enrichmentShortlistSize": 42,
     "finalReviewCount": 21,
-    "laneBalancedEnrichment": true
+    "laneBalancedEnrichment": true,
+    "searchMinIntervalMs": 2250,
+    "searchRateLimitRetries": 2,
+    "searchRateLimitFallbackWaitMs": 65000,
+    "searchRateLimitMaxWaitMs": 90000
   },
   "priorityProfile": {
     "architectureAdaptability": 30,

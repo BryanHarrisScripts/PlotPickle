@@ -226,14 +226,14 @@ export default function VisualStoryWorkspace({
           </>
         ) : (
           <section
-            aria-label="Scene Timeline empty state"
+            aria-label="Scene Workspace empty state"
             className={styles.empty}
             data-projection-only="true"
-            data-scene-timeline="frames-shots-action-timing"
+            data-scene-workspace="dialogue-action-shot-audio"
             role="status"
           >
             <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
-            <p>Scene Workspace does not manufacture timing material to fill the surface. Add or relate a real Scene through the existing story authority; only real Shot and Previs timing can then occupy the timeline.</p>
+            <p>Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
           </section>
         )}
 

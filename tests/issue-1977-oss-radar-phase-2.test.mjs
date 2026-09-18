@@ -152,13 +152,17 @@ test("#1977 Phase 2 same-day rerun stays idempotent", async () => {
   assert.equal(first.reviewCount, 5);
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(900).length, 1);
-  assert.equal(parseDailyState(api.state.comments.get(900)[0].body).entries.length, 5);
+  assert.equal(first.state.entries.length, 5);
+  assert.equal(parseDailyState(api.state.comments.get(900)[0].body), null);
+  assert.doesNotMatch(api.state.comments.get(900)[0].body, /PLOTPICKLE-OSS-RADAR-STATE/u);
 });
 
-test("#1977 Phase 2 month rollover preserves review history without hiding Top 5", async () => {
-  const priorBody = dailyComment("2026-09-30", [fixture.candidates[0]]);
-  const api = githubIssueFixture({ issues: [{ number: 901, title: "[OSS RADAR] September 2026", created_at: "2026-09-01T00:00:00Z" }], comments: { 901: [{ id: 4999, body: priorBody }] } });
-  const result = await publishDailyRadar({ repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", contract, discoveryResult: { candidates: fixture.candidates }, fetchImpl: api.fetchImpl, now: new Date("2026-10-01T12:00:00Z") });
+test("#1977 Phase 2 month rollover preserves external review history without hiding Top 5", async () => {
+  const priorCandidate = fixture.candidates[0];
+  const priorEntry = historyEntryForFinding({ ...priorCandidate, primaryDisposition: "WATCH", reviewQualification: "qualified" }, "2026-09-30", null);
+  const history = new Map([[String(priorCandidate.repositoryStableId), priorEntry]]);
+  const api = githubIssueFixture({ issues: [{ number: 901, title: "[OSS RADAR] September 2026", created_at: "2026-09-01T00:00:00Z" }], comments: { 901: [] } });
+  const result = await publishDailyRadar({ repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", contract, discoveryResult: { candidates: fixture.candidates }, history, fetchImpl: api.fetchImpl, now: new Date("2026-10-01T12:00:00Z") });
   assert.equal(result.monthlyIssueTitle, "[OSS RADAR] October 2026");
   assert.equal(api.state.issues.length, 2);
   assert.equal(result.reviewCount, 5);

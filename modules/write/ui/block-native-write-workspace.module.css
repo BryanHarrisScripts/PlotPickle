@@ -1,7 +1,7 @@
 .workspace {
   display: grid;
   gap: var(--pp-skin-space-3);
-  width: min(1500px, calc(100% - (2 * var(--pp-skin-space-3))));
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
   padding: var(--pp-skin-space-3) 0 var(--pp-skin-space-6);
   color: var(--pp-skin-ink);
@@ -95,8 +95,8 @@
 .workspace button:hover:not(:disabled),
 .workspace button:focus-visible,
 .workspace select:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }
@@ -133,8 +133,8 @@
 
 .miniButtons button[aria-current="true"] {
   border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
 }
 
 .storyHeading {

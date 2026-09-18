@@ -139,3 +139,13 @@ test("#2189 lets only the current Block-native Write deep link bypass the defaul
   assert.match(startupRegression, /default startup reaches Skin V1 before Legacy Skin can render/u);
   assert.doesNotMatch(proxy, /if \(searchParams\.has\("workspace"\)\) return NextResponse\.next/u);
 });
+
+
+test("#2189 maps the root startup proxy into existing Experience Contract ownership", async () => {
+  const ownership = await readJson("config/verification/ownership-map.json");
+  const startup = ownership.rules.find((rule) => rule.id === "root-story-startup");
+
+  assert.equal(startup?.ownerLayer, "experience-contract");
+  assert.ok(startup?.include.includes("app/page.tsx"));
+  assert.ok(startup?.include.includes("proxy.ts"));
+});

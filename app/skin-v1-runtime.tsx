@@ -12,6 +12,7 @@ const SKIN_V2 = "skin-v2";
 const LEGACY_SKIN = "legacy";
 const MEDIA_STATUS_PATH = "/api/media-routing/status";
 const COMFY_START_PATH = "/api/media-routing/comfyui/start";
+const CANONICAL_SKIN_V1_ROUTES = new Set(["/write", "/storyboard", "/previs", "/pageflow"]);
 
 type SkinTheme = typeof SKIN_V1 | typeof SKIN_V2;
 type LocalMediaStatus = {
@@ -38,7 +39,9 @@ function applySkin() {
   const url = new URL(window.location.href);
   const explicit = url.searchParams.get("skin");
   const stored = window.localStorage.getItem(SKIN_STORAGE_KEY);
-  const skinV1Route = url.pathname === "/skin-v1" || url.pathname.startsWith("/skin-v1/");
+  const skinV1Route = url.pathname === "/skin-v1"
+    || url.pathname.startsWith("/skin-v1/")
+    || CANONICAL_SKIN_V1_ROUTES.has(url.pathname);
 
   if (explicit === LEGACY_SKIN) {
     window.localStorage.setItem(SKIN_STORAGE_KEY, LEGACY_SKIN);

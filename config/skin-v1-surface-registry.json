@@ -53,7 +53,18 @@
       "continuityIds": [
         "dashboard"
       ],
-      "route": "/?workspace=dashboard"
+      "route": "/?workspace=dashboard",
+      "navigationPath": [
+        {
+          "order": 0,
+          "slug": "dashboard",
+          "label": "Dashboard"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
+        "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
+      }
     },
     {
       "id": "community",
@@ -67,7 +78,18 @@
       "continuityIds": [
         "community"
       ],
-      "route": "/?workspace=community"
+      "route": "/?workspace=community",
+      "navigationPath": [
+        {
+          "order": 1,
+          "slug": "community",
+          "label": "Community"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/community-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/community.png"
+      }
     },
     {
       "id": "writers-craft",
@@ -81,7 +103,18 @@
       "continuityIds": [
         "learn"
       ],
-      "route": "/?workspace=learn"
+      "route": "/?workspace=learn",
+      "navigationPath": [
+        {
+          "order": 2,
+          "slug": "writers-craft",
+          "label": "Writer's Craft"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
+      }
     },
     {
       "id": "library",
@@ -95,7 +128,18 @@
       "continuityIds": [
         "library"
       ],
-      "route": "/library"
+      "route": "/library",
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library.png"
+      }
     },
     {
       "id": "library-new",
@@ -106,7 +150,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-new",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 1,
+          "slug": "new",
+          "label": "New"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-new-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-new.png"
+      }
     },
     {
       "id": "library-import",
@@ -117,7 +177,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-import",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 2,
+          "slug": "import",
+          "label": "Import"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-import-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-import.png"
+      }
     },
     {
       "id": "library-load",
@@ -128,7 +204,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-load",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 3,
+          "slug": "load",
+          "label": "Load"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-load-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-load.png"
+      }
     },
     {
       "id": "library-examples",
@@ -139,7 +231,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-examples",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 4,
+          "slug": "examples",
+          "label": "Examples"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-examples-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-examples.png"
+      }
     },
     {
       "id": "library-presets",
@@ -150,7 +258,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-presets",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 5,
+          "slug": "presets",
+          "label": "Presets"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-presets-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-presets.png"
+      }
     },
     {
       "id": "library-avery",
@@ -161,7 +285,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-avery",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 6,
+          "slug": "avery",
+          "label": "Avery"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-avery-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-avery.png"
+      }
     },
     {
       "id": "library-archive",
@@ -172,7 +312,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library-archive",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "library",
+          "label": "Library"
+        },
+        {
+          "order": 7,
+          "slug": "archive",
+          "label": "Archive"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/library-archive-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/library-archive.png"
+      }
     },
     {
       "id": "story-map",
@@ -183,7 +339,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "story-map",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 4,
+          "slug": "outline",
+          "label": "Outline"
+        },
+        {
+          "order": 1,
+          "slug": "story-map",
+          "label": "Story Map"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/story-map-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/story-map.png"
+      }
     },
     {
       "id": "scene-timeline",
@@ -194,7 +366,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "scene-timeline",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 5,
+          "slug": "storyboard",
+          "label": "Storyboard"
+        },
+        {
+          "order": 2,
+          "slug": "scene-workspace",
+          "label": "Scene Workspace"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/scene-timeline-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/scene-timeline.png"
+      }
     },
     {
       "id": "visual-story",
@@ -205,7 +393,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "visual-story",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 5,
+          "slug": "storyboard",
+          "label": "Storyboard"
+        },
+        {
+          "order": 1,
+          "slug": "visual-story",
+          "label": "Visual Story"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/visual-story-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/visual-story.png"
+      }
     },
     {
       "id": "profile",
@@ -216,7 +420,18 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "profile",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 14,
+          "slug": "identity",
+          "label": "Identity"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/profile-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/profile.png"
+      }
     },
     {
       "id": "settings",
@@ -230,7 +445,18 @@
       "continuityIds": [
         "settings"
       ],
-      "route": "/?workspace=settings"
+      "route": "/?workspace=settings",
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/settings-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/settings.png"
+      }
     },
     {
       "id": "general",
@@ -241,7 +467,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "general",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 1,
+          "slug": "general",
+          "label": "General"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/general-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/general.png"
+      }
     },
     {
       "id": "story-mode",
@@ -252,7 +494,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "story-mode",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 2,
+          "slug": "story-mode",
+          "label": "Story Mode"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/story-mode-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/story-mode.png"
+      }
     },
     {
       "id": "local-ai",
@@ -263,7 +521,28 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "local-ai",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 2,
+          "slug": "story-mode",
+          "label": "Story Mode"
+        },
+        {
+          "order": 1,
+          "slug": "local",
+          "label": "Local"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
+      }
     },
     {
       "id": "cloud-story-mode",
@@ -274,7 +553,28 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "cloud-story-mode",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 2,
+          "slug": "story-mode",
+          "label": "Story Mode"
+        },
+        {
+          "order": 2,
+          "slug": "cloud",
+          "label": "Cloud"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
+      }
     },
     {
       "id": "hybrid-story-mode",
@@ -285,7 +585,28 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "hybrid-story-mode",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 2,
+          "slug": "story-mode",
+          "label": "Story Mode"
+        },
+        {
+          "order": 3,
+          "slug": "hybrid",
+          "label": "Hybrid"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/hybrid-story-mode-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/hybrid-story-mode.png"
+      }
     },
     {
       "id": "node",
@@ -296,7 +617,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "node",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 3,
+          "slug": "node-info",
+          "label": "Node Info"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/node-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/node.png"
+      }
     },
     {
       "id": "agents",
@@ -307,7 +644,23 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "agents",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 4,
+          "slug": "agents",
+          "label": "Agents"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/agents-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/agents.png"
+      }
     },
     {
       "id": "issue-log",
@@ -318,7 +671,18 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "issue-log",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 16,
+          "slug": "bug-report",
+          "label": "Bug Report"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/issue-log-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/issue-log.png"
+      }
     },
     {
       "id": "licensing",
@@ -329,7 +693,18 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "licensing",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 17,
+          "slug": "notices",
+          "label": "Notices"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/licensing.png"
+      }
     },
     {
       "id": "shutdown-node",
@@ -340,7 +715,18 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "shutdown-node",
-      "continuityIds": []
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 19,
+          "slug": "shutdown-node",
+          "label": "Shut Down Node"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/shutdown-node-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/shutdown-node.png"
+      }
     },
     {
       "id": "plan",
@@ -393,7 +779,18 @@
         "write"
       ],
       "route": "/write",
-      "webmcpId": "write"
+      "webmcpId": "write",
+      "navigationPath": [
+        {
+          "order": 7,
+          "slug": "write",
+          "label": "Write"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/write-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/write.png"
+      }
     },
     {
       "id": "story",
@@ -537,7 +934,18 @@
         "storyboard"
       ],
       "route": "/storyboard",
-      "webmcpId": "storyboard"
+      "webmcpId": "storyboard",
+      "navigationPath": [
+        {
+          "order": 5,
+          "slug": "storyboard",
+          "label": "Storyboard"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/storyboard-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/storyboard.png"
+      }
     },
     {
       "id": "previs",
@@ -551,7 +959,18 @@
         "previs"
       ],
       "route": "/previs",
-      "webmcpId": "previs"
+      "webmcpId": "previs",
+      "navigationPath": [
+        {
+          "order": 6,
+          "slug": "previs",
+          "label": "Previs"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/previs-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/previs.png"
+      }
     },
     {
       "id": "pageflow",
@@ -565,7 +984,23 @@
         "pageflow"
       ],
       "route": "/pageflow",
-      "webmcpId": "pageflow"
+      "webmcpId": "pageflow",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 3,
+          "slug": "pageflow",
+          "label": "PageFlow"
+        }
+      ],
+      "legacyEvidence": {
+        "candidate": ".artifacts/visual-readiness/pageflow-candidate.png",
+        "baseline": "tests/visual-baselines/skin-v1/pageflow.png"
+      }
     },
     {
       "id": "edit",
@@ -987,5 +1422,15 @@
       ],
       "route": "/suggest-report"
     }
-  ]
+  ],
+  "navigationIdentity": {
+    "issue": 2226,
+    "orderWidth": 2,
+    "segmentSeparator": "__",
+    "candidateRoot": ".artifacts/visual-readiness",
+    "baselineRoot": "tests/visual-baselines/skin-v1",
+    "candidateSuffix": "__candidate.png",
+    "baselineSuffix": ".png",
+    "migrationPolicy": "derived-canonical-paths-with-legacy-aliases"
+  }
 }

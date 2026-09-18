@@ -92,6 +92,12 @@ export default function VisualStoryWorkspace({
     if (!selectedShot && selectedShotId) setSelectedShotId("");
   }, [selectedShot, selectedShotId]);
 
+  const selectedAnchor = projection.anchors.find((anchor) => (
+    anchor.blockNumber === blockNumber && anchor.miniBlockNumber === miniBlockNumber
+  )) ?? projection.anchors[0] ?? null;
+  const showNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "SHOW_NOW") ?? [];
+  const withholdNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "WITHHOLD_NOW") ?? [];
+
   if (!projection.selectedScene) {
     return (
       <section className={styles.workspace} data-projection-only="true" data-visual-story="scene-beat-shot-frame">
@@ -122,11 +128,103 @@ export default function VisualStoryWorkspace({
         </nav>
 
         {view === "story" ? (
-          <div className={styles.empty} role="status">
-            <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
-            <p>Visual Story does not manufacture a Scene to fill the surface. Add or relate a real Scene through the existing story authority, then this projection will expose its Beats, Shots and Frames here.</p>
-            {projection.legacyDetailStatus === "project-id-mismatch" ? <small>The available richer Scene detail belongs to a different project and was intentionally ignored.</small> : null}
-          </div>
+          <>
+            <div className={styles.empty} role="status">
+              <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
+              <p>Visual Story does not manufacture a Scene to fill the surface. Existing Beats, Shots or kept Frames attached directly to this canonical anchor remain visible below without inventing Scene ownership.</p>
+              {projection.legacyDetailStatus === "project-id-mismatch" ? <small>The available richer Scene detail belongs to a different project and was intentionally ignored.</small> : null}
+            </div>
+
+            {selectedAnchor ? (
+              <div className={styles.storyBody} data-anchor-only-projection="true">
+                <div className={styles.visualScript}>
+                  <section className={styles.anchor} data-anchor-ref={selectedAnchor.anchorRef}>
+                    <header className={styles.anchorHeader}>
+                      <div>
+                        <span>Canonical anchor · Mini-Block {selectedAnchor.blockNumber}.{selectedAnchor.miniBlockNumber}</span>
+                        <code>{selectedAnchor.anchorRef}</code>
+                      </div>
+                      <small>{selectedAnchor.shots.length} Shot{selectedAnchor.shots.length === 1 ? "" : "s"} · {selectedAnchor.frames.length} kept/candidate PPF Frame{selectedAnchor.frames.length === 1 ? "" : "s"}</small>
+                    </header>
+
+                    <div className={styles.beatSpan} aria-label={`Beats for ${selectedAnchor.anchorRef}`}>
+                      <div className={styles.rowLabel}>BEAT</div>
+                      {selectedAnchor.beats.length ? selectedAnchor.beats.map((beat) => (
+                        <article className={styles.beat} key={beat.id}>
+                          <strong>{String(beat.order).padStart(2, "0")} · {beat.label || beat.id}</strong>
+                          <p>{beat.visualAction || beat.purpose || "Beat is authored without visual-action detail."}</p>
+                        </article>
+                      )) : <p className={styles.unassigned}>No authored Sequence Director Beat is attached to this anchor.</p>}
+                    </div>
+
+                    <div className={styles.shotRow} aria-label={`Shots for ${selectedAnchor.anchorRef}`}>
+                      <div className={styles.rowLabel}>SHOT</div>
+                      {selectedAnchor.shots.length ? selectedAnchor.shots.map((shot) => (
+                        <button
+                          aria-pressed={selectedShot?.id === shot.id}
+                          className={styles.shot}
+                          data-shot-source={shot.source}
+                          key={shot.id}
+                          onClick={() => setSelectedShotId(shot.id)}
+                          type="button"
+                        >
+                          <span className={styles.shotNumber}>SHOT {String(shot.order).padStart(2, "0")}</span>
+                          {shot.frames[0] ? <img alt={shot.frames[0].narrativePurpose || `Frame for Shot ${shot.order}`} src={shot.frames[0].assetUrl} /> : <span className={styles.noFrame}>NO LINKED FRAME</span>}
+                          <strong>{shot.narrativePurpose || shot.visualIntent || "Shot intent not yet described"}</strong>
+                          <small>{[shot.shotSize, shot.angle, shot.movement].filter(Boolean).join(" · ") || "Camera detail not authored"}</small>
+                        </button>
+                      )) : <p className={styles.unassigned}>No creative Shot exists at this anchor. PlotPickle does not create one to satisfy the 24/96 grid.</p>}
+                    </div>
+
+                    <div className={styles.frameRow} aria-label={`Frames for ${selectedAnchor.anchorRef}`}>
+                      <div className={styles.rowLabel}>FRAME</div>
+                      {selectedAnchor.frames.length ? selectedAnchor.frames.map((frame) => (
+                        <figure className={styles.frame} data-accepted={frame.accepted ? "true" : undefined} key={frame.id}>
+                          <img alt={frame.narrativePurpose || "Storyboard Frame"} src={frame.assetUrl} />
+                          <figcaption>{frame.accepted ? "KEPT" : "CANDIDATE"} · {frame.narrativePurpose || frame.id}</figcaption>
+                        </figure>
+                      )) : <p className={styles.unassigned}>No kept or stored PPF Frame exists at this anchor yet.</p>}
+                    </div>
+                  </section>
+                </div>
+
+                <aside className={styles.inspector} aria-label="Selected Shot inspector without Scene relationship">
+                  <p className={styles.kicker}>Selected Shot · existing authority</p>
+                  {selectedShot ? (
+                    <>
+                      <h3>Shot {String(selectedShot.order).padStart(2, "0")}</h3>
+                      <code>{selectedShot.id}</code>
+                      <p className={styles.intent}>{selectedShot.narrativePurpose || selectedShot.visualIntent || "No narrative or visual intent has been authored for this Shot."}</p>
+                      <dl className={styles.shotFacts}>
+                        <div><dt>Size</dt><dd>{detail(selectedShot.shotSize)}</dd></div>
+                        <div><dt>Angle</dt><dd>{detail(selectedShot.angle)}</dd></div>
+                        <div><dt>Movement</dt><dd>{detail(selectedShot.movement)}</dd></div>
+                        <div><dt>Lens</dt><dd>{detail(selectedShot.lens)}</dd></div>
+                        <div><dt>Lighting</dt><dd>{detail(selectedShot.lightingIntent)}</dd></div>
+                        <div><dt>State</dt><dd>{selectedShot.reviewState}</dd></div>
+                      </dl>
+                      <section className={styles.informationBoundary}>
+                        <h4>AUDIENCE LEARNS NOW</h4>
+                        {showNow.length ? showNow.map((directive) => (
+                          <article key={directive.id}><strong>{directive.statement}</strong><p>{directive.carrier || "No carrier detail is recorded."}</p></article>
+                        )) : <p>No SHOW_NOW information directive is recorded for this Shot.</p>}
+                      </section>
+                      <section className={styles.informationBoundary}>
+                        <h4>AUDIENCE MUST NOT KNOW YET</h4>
+                        {withholdNow.length ? withholdNow.map((directive) => (
+                          <article key={directive.id}>
+                            <strong>{directive.statement}</strong>
+                            <p>{directive.protectionIntent || "No protection intent is recorded."}</p>
+                            <small>Release: {directive.release.state}{directive.release.reference ? ` · ${directive.release.reference}` : ""}{directive.release.condition ? ` · ${directive.release.condition}` : ""}</small>
+                          </article>
+                        )) : <p>No WITHHOLD_NOW information directive is recorded for this Shot.</p>}
+                      </section>
+                    </>
+                  ) : <p className={styles.unassigned}>No real Storyboard/Previs Shot is attached. Reveal/withhold intent is not inferred from prose or visual references.</p>}
+                </aside>
+              </div>
+            ) : null}
+          </>
         ) : (
           <section
             aria-label="Scene Timeline empty state"
@@ -147,8 +245,6 @@ export default function VisualStoryWorkspace({
     );
   }
 
-  const showNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "SHOW_NOW") ?? [];
-  const withholdNow = selectedShot?.informationDirectives.filter((directive) => directive.mode === "WITHHOLD_NOW") ?? [];
   const instructionInspection = providerInstructionInspection.inspection;
 
   return (

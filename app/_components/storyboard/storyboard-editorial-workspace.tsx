@@ -63,7 +63,7 @@ export default function StoryboardEditorialWorkspace({
     [current, project, selectedMiniBlockNumber, target.id],
   );
   const visualRevisionImpact = useMemo(() => {
-    if (!current || !selected || current.id === selected.acceptedArtifactId) return null;
+    if (!current || !selected || (current.id === selected.acceptedArtifactId && staleReasons.length === 0)) return null;
     try {
       return planCreativeRevisionPropagation({
         project,
@@ -78,13 +78,13 @@ export default function StoryboardEditorialWorkspace({
           provenanceRefs: selected.provenanceRefs,
         },
         changeSetId: `storyboard-impact-${project.revision}-${current.id}`,
-        summary: `Replace the Human-kept Storyboard visual at Block ${target.blockNumber} · Mini-Block ${selectedMiniBlockNumber}.`,
+        summary: `Replace the Human-kept Storyboard visual at ${target.id} · Mini-Block ${selectedMiniBlockNumber}.`,
         occurredAt: project.updatedAt,
       });
     } catch {
       return null;
     }
-  }, [current, project, selected, selectedMiniBlockNumber, target.blockNumber]);
+  }, [current, project, selected, selectedMiniBlockNumber, staleReasons.length, target.id]);
   const editorialAccessible = hasQaWorkspaceAccess(target.storyboardAllowed);
   const qaOnlyAccess = isQaAccessOverride(target.storyboardAllowed);
 

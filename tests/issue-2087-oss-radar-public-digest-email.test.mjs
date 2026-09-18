@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { renderEmailArtifact } from "../lib/verification/oss-radar/email-artifact.mjs";
+import { renderEmailArtifact } from "../lib/verification/oss-radar/email-artifact.mjs";\nimport { renderGitHubSummary } from "../lib/verification/oss-radar/github-summary.mjs";
 import { renderRadarReviewEmail, renderXReadyDigest } from "../lib/verification/oss-radar/public-digest.mjs";
 import { renderDailyReport } from "../lib/verification/oss-radar/report-renderer.mjs";
 
@@ -132,17 +132,27 @@ test("#2087 email artifact is standard plain text and rejects header injection",
   }), /subject is invalid/u);
 });
 
-test("#2087 workflow stages email before optional SMTP send without adding a mail dependency", () => {
-  assert.match(workflow, /workflow_dispatch:\n\s+inputs:\n\s+email_mode:/u);
-  assert.match(workflow, /default: preview/u);
+test("#2087 workflow uses GitHub-native summary delivery without custom SMTP", () => {
+  assert.match(workflow, /workflow_dispatch:/u);
   assert.match(workflow, /tests\/issue-2087-oss-radar-\*\.test\.mjs/u);
   assert.match(workflow, /oss-radar-result\.json/u);
-  assert.match(workflow, /email-artifact\.mjs oss-radar-result\.json oss-radar-email-preview\.eml/u);
-  assert.match(workflow, /OSS_RADAR_SMTP_URL: \$\{\{ secrets\.OSS_RADAR_SMTP_URL \}\}/u);
-  assert.match(workflow, /OSS_RADAR_EMAIL_TO: \$\{\{ secrets\.OSS_RADAR_EMAIL_TO \}\}/u);
-  assert.match(workflow, /curl --fail --silent --show-error/u);
-  assert.match(workflow, /--mail-from/u);
-  assert.match(workflow, /--mail-rcpt/u);
-  assert.doesNotMatch(workflow, /action-send-mail|nodemailer|resend/u);
-  assert.doesNotMatch(workflow, /@[A-Za-z0-9.-]+\.(?:com|ca|org|net)/u);
+  assert.match(workflow, /github-summary\.mjs oss-radar-result\.json/u);
+  assert.doesNotMatch(workflow, /email_mode|OSS_RADAR_SMTP|OSS_RADAR_EMAIL_TO|curl --fail|--mail-from|--mail-rcpt/u);
+});
+
+test("#2087 GitHub run summary carries report link, X-ready copy and PlotPickle footer", () => {
+  const digest = renderXReadyDigest({ reportDate: "2026-09-15", candidates: [candidate()] });
+  const summary = renderGitHubSummary({
+    reportDate: "2026-09-15",
+    reportUrl: "https://github.com/BryanHarrisScripts/PlotPickle/issues/3000#issuecomment-7000",
+    reviewCount: 7,
+    reviewTarget: 21,
+    publicDigest: digest,
+  });
+  assert.match(summary, /PlotPickle OSS Radar — 2026-09-15/u);
+  assert.match(summary, /Open the full OSS Radar report/u);
+  assert.match(summary, /Architecture findings: 7\/21/u);
+  assert.match(summary, /X-ready post/u);
+  assert.match(summary, /Script-to-Screen OSS Radar/u);
+  assert.match(summary, /Presented by PlotPickle — Today’s OSS Radar/u);
 });

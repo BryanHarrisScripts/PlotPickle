@@ -26,11 +26,6 @@ type AiRoutingStatus = {
   readonly video?: CapabilityStatus;
 };
 
-type LocalRuntimeStatus = {
-  readonly ok?: boolean;
-  readonly activeRuntime?: { readonly reachable?: boolean };
-  readonly roles?: Readonly<Record<string, { readonly available?: boolean }>>;
-};
 
 type StoryModePolicyResponse = {
   readonly ok?: boolean;
@@ -77,10 +72,6 @@ function hybridSelectionReady(status: AiRoutingStatus | null) {
   return selected.every(Boolean) && selected.includes("local") && selected.includes("cloud");
 }
 
-function hardwareLocalReady(status: LocalRuntimeStatus | null) {
-  if (!status?.ok || status.activeRuntime?.reachable !== true) return false;
-  return Object.values(status.roles ?? {}).some((role) => role.available === true);
-}
 
 function readinessLabel(ready: boolean, loaded: boolean) {
   if (!loaded) return "CHECKING";
@@ -128,37 +119,31 @@ export default function StoryModeHost() {
   const [view, setView] = useState<StoryModeView>("landing");
   const [mode, setMode] = useState<StoryModePolicy>("hybrid");
   const [routingStatus, setRoutingStatus] = useState<AiRoutingStatus | null>(null);
-  const [localRuntimeStatus, setLocalRuntimeStatus] = useState<LocalRuntimeStatus | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("Loading Story Mode readiness...");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const localReady = localityReady(routingStatus, "local") && hardwareLocalReady(localRuntimeStatus);
+  const localReady = localityReady(routingStatus, "local");
   const cloudReady = localityReady(routingStatus, "cloud");
   const hybridReady = hybridSelectionReady(routingStatus);
 
   async function refresh() {
     try {
-      const [policyResponse, routingResponse, localRuntimeResponse] = await Promise.all([
+      const [policyResponse, routingResponse] = await Promise.all([
         fetch("/api/story-mode/policy", { cache: "no-store" }),
         fetch("/api/ai-routing/status", { cache: "no-store" }),
         fetch("/api/local-ai/runtime", { cache: "no-store" }).catch(() => null),
       ]);
       const policy = await policyResponse.json() as StoryModePolicyResponse;
       const routing = await routingResponse.json() as AiRoutingStatus & { readonly message?: string };
-      const localRuntime = localRuntimeResponse?.ok
-        ? await localRuntimeResponse.json() as LocalRuntimeStatus
-        : null;
       if (!policyResponse.ok || !policy.ok || !policy.mode) throw new Error(policy.message || "Story Mode policy is unavailable.");
       if (!routingResponse.ok || !routing.ok) throw new Error(routing.message || "Story Mode readiness is unavailable.");
       setMode(policy.mode);
       setRoutingStatus(routing);
-      setLocalRuntimeStatus(localRuntime);
       setMessage("LOCAL and CLOUD are READY only when Writing, Images and Video each have a tested route. HYBRID is READY only when the selected capability mix uses both Local and Cloud.");
     } catch (error) {
       setRoutingStatus(null);
-      setLocalRuntimeStatus(null);
       setMessage(error instanceof Error ? error.message : "Story Mode readiness is unavailable.");
     } finally {
       setLoaded(true);

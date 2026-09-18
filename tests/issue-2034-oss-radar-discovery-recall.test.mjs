@@ -458,7 +458,8 @@ test("#2034 keeps search/rate failures diagnosable and the daily workflow focuse
     /architectural-comparators\/creative-systems\/01.*HTTP 403: rate limit/u,
   );
   assert.match(workflow, /issue-2034-oss-radar-\*\.test\.mjs/u);
-  assert.match(workflow, /contents: write\n\s+issues: write/u);\n  assert.doesNotMatch(workflow, /pull-requests:\s*write|actions:\s*write|packages:\s*write/u);
+  assert.match(workflow, /contents: write\n\s+issues: write/u);
+  assert.doesNotMatch(workflow, /pull-requests:\s*write|actions:\s*write|packages:\s*write/u);
   assert.doesNotMatch(workflow, /^\s*pull_request:/mu);
 });
 

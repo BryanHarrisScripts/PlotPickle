@@ -131,4 +131,6 @@ test("#2226 Phase 1 keeps Dashboard as the sole locked reference and changes no 
   }
   assert.match(locker, /canonicalEvidencePaths/u);
   assert.match(locker, /visual evidence path drifted from canonical navigation identity/u);
+  assert.match(standardCatalogue, /new URL\(page\.url\(\)\)\.pathname !== "\\/skin-v1"/u);
+  assert.match(standardCatalogue, /restore the Dashboard route before visible-control navigation/u);
 });

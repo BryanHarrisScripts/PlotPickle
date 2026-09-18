@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "issue": 2196,
+  "phase": "oss-radar-run-regression",
+  "brief": "docs/developer-briefs/2196-oss-radar-run-regression.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    "config/development-convergence/2196.json",
+    "docs/developer-briefs/2196-oss-radar-run-regression.md",
+    "lib/verification/oss-radar/github-summary.mjs",
+    "lib/verification/oss-radar/public-digest.mjs",
+    "lib/verification/oss-radar/report-renderer-core.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+    "tests/issue-2087-oss-radar-public-digest-email.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2196-1",
+      "criterion": "The workflow publishes the Radar through GitHub-native run summary delivery and has no custom SMTP recipient or send path.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "Publish GitHub Actions summary"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2087-oss-radar-public-digest-email.test.mjs",
+          "contains": "workflow uses GitHub-native summary delivery without custom SMTP"
+        }
+      ]
+    },
+    {
+      "id": "P2196-2",
+      "criterion": "The X-ready digest keeps the recognizable Script-to-Screen format and includes the PlotPickle footer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/public-digest.mjs",
+          "contains": "Script-to-Screen OSS Radar"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/public-digest.mjs",
+          "contains": "Presented by PlotPickle"
+        }
+      ]
+    },
+    {
+      "id": "P2196-3",
+      "criterion": "Legacy base-contract Radar regressions remain compatible while the live UAT uses the merged adaptive 7x3 contract.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+          "contains": "loadDiscoveryContract"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/report-renderer-core.mjs",
+          "contains": "included because it ranked in today's Top 5"
+        }
+      ]
+    },
+    {
+      "id": "P2196-4",
+      "criterion": "The GitHub run summary contains a full-report link, X-ready copy and the requested PlotPickle footer.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "lib/verification/oss-radar/github-summary.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2087-oss-radar-public-digest-email.test.mjs",
+          "contains": "GitHub run summary carries report link, X-ready copy and PlotPickle footer"
+        }
+      ]
+    }
+  ]
+}

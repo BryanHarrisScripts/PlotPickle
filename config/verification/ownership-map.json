@@ -838,7 +838,8 @@
       "classification": "production",
       "include": [
         "app/api/auth/profile-private/route.ts",
-        "core/auth/profile-experience/profile-experience-runtime.ts"
+        "core/auth/profile-experience/profile-experience-runtime.ts",
+        "core/storage/profile-private-browser.ts"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

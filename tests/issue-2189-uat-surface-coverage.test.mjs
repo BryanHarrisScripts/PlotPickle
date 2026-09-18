@@ -46,6 +46,17 @@ test("#2189 keeps legacy Reports /production visible to audits but out of the ca
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired.includes("reports"));
 });
 
+test("#2189 canonical Write route is first-class and profile-shell owned", async () => {
+  const [route, sitemap, shortcuts] = await Promise.all([
+    read("app/write/page.tsx"),
+    read("app/navigation/sitemap-route-context.ts"),
+    read("app/navigation/global-shortcuts.ts"),
+  ]);
+  assert.match(route, /<BlockNativeWriteWorkspace \/>/u);
+  assert.match(sitemap, /"\/write": \{[\s\S]*?migrationClass: "canonical"[\s\S]*?activeShortcutId: "write"/u);
+  assert.match(shortcuts, /id: "write"[^\n]+kind: "route"[^\n]+href: "\/write"/u);
+});
+
 test("#2189 promotes the rebuilt Human UAT surfaces into the one canonical WebMCP registry", () => {
   for (const id of ["write", "storyboard", "previs", "pageflow"]) {
     assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes(id), `${id} should be a standard UAT capture`);
@@ -83,7 +94,7 @@ test("#2189 pins the visible Story Map handoffs used by Human UAT", async () => 
   for (const action of ["write", "pageflow", "storyboard", "previs"]) {
     assert.match(storyMap, new RegExp(`data-writer-story-action=["']${action}["']`, "u"));
   }
-  assert.match(storyMap, /workspace=write&block=\$\{address\.blockNumber\}&mini=\$\{address\.miniBlockNumber\}/u);
+  assert.match(storyMap, /\/write\?block=\$\{address\.blockNumber\}&mini=\$\{address\.miniBlockNumber\}/u);
   assert.match(storyMap, /\/pageflow\?block=\$\{address\.blockNumber\}&mini=\$\{address\.miniBlockNumber\}/u);
   assert.match(storyMap, /onOpenStage\?\.\("storyboard", address\)/u);
   assert.match(storyMap, /onOpenPrevis\?\.\(address\)/u);

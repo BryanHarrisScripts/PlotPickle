@@ -183,3 +183,17 @@ test("#2189 maps the repaired Write handoffs and capture registries to existing 
     assert.ok(verification?.include.includes(path), `${path} should remain under verification ownership`);
   }
 });
+
+
+test("#2189 activates Skin V1 on every canonical routed UAT surface", async () => {
+  const runtime = await read("app/skin-v1-runtime.tsx");
+  assert.match(runtime, /CANONICAL_SKIN_V1_ROUTES = new Set\(\["\/write", "\/storyboard", "\/previs", "\/pageflow"\]\)/u);
+  assert.match(runtime, /CANONICAL_SKIN_V1_ROUTES\.has\(url\.pathname\)/u);
+
+  for (const id of ["write", "storyboard", "previs", "pageflow"]) {
+    const route = WEBMCP_STANDARD_SURFACE_REGISTRY[id].route;
+    assert.ok(route);
+    const pathname = new URL(route, "http://plotpickle.local").pathname;
+    assert.match(runtime, new RegExp(`["']${pathname.replaceAll("/", "\\/")}["']`, "u"));
+  }
+});

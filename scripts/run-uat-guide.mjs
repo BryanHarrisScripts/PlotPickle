@@ -49,7 +49,6 @@ const state = {
   },
   events: [],
   evidence: {
-    verificationInbox: "/verification-inbox",
     webmcp: ".artifacts/webmcp-startup/summary.json",
     findings: ".artifacts/webmcp-startup/uat-findings.json",
     afterglow: "tests/issue-2174-afterglow-story-to-screen-acceptance.test.mjs",
@@ -177,7 +176,7 @@ async function main() {
   state.completedAt = new Date().toISOString();
   state.current.state = "PASS";
   await persist();
-  agentCompleted("UAT Semantic Review PASS. The in-page review and Verification Inbox retain the bounded result and linked evidence.");
+  agentCompleted("UAT Semantic Review PASS. The in-page review retains the bounded result and linked evidence for this run.");
   return 0;
 }
 
@@ -196,7 +195,7 @@ try {
     state: "NEEDS_ATTENTION",
   }).catch(() => undefined);
   await persist().catch(() => undefined);
-  agentNeedsAttention(`${message}\nOpen the in-app UAT Semantic Review and Verification Inbox/evidence for the bounded result.`);
+  agentNeedsAttention(`${message}\nOpen the in-app UAT Semantic Review for the bounded result and linked evidence.`);
   process.exitCode = 1;
 } finally {
   await cleanupVerificationSyntheticHome(syntheticHome).catch(() => undefined);

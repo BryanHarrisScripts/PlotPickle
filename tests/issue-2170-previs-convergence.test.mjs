@@ -177,11 +177,12 @@ test("#2170 convergence surfaces use one Skin V1 palette, typography and square 
   ]);
 
   for (const [index, css] of surfaces.entries()) {
-    assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/iu, `Surface ${index} must not carry a local hex palette`);
-    assert.doesNotMatch(css, /rgba?\(/iu, `Surface ${index} must not carry local rgba presentation`);
-    assert.doesNotMatch(css, /border-radius:\s*(?!var\(--pp-skin-radius\))[^;]+;/iu, `Surface ${index} must use canonical square radius`);
-    assert.doesNotMatch(css, /ui-monospace|SFMono-Regular|Menlo|Arial|Helvetica|Consolas/u, `Surface ${index} must use the canonical Skin font token`);
-    assert.match(css, /var\(--pp-skin-/u, `Surface ${index} must consume Skin V1 tokens`);
+    const presentation = css.replace(/\/\*[\s\S]*?\*\//gu, "");
+    assert.doesNotMatch(presentation, /#[0-9a-f]{3,8}\b/iu, `Surface ${index} must not carry a local hex palette`);
+    assert.doesNotMatch(presentation, /rgba?\(/iu, `Surface ${index} must not carry local rgba presentation`);
+    assert.doesNotMatch(presentation, /border-radius:\s*(?!var\(--pp-skin-radius\))[^;]+;/iu, `Surface ${index} must use canonical square radius`);
+    assert.doesNotMatch(presentation, /ui-monospace|SFMono-Regular|Menlo|Arial|Helvetica|Consolas/u, `Surface ${index} must use the canonical Skin font token`);
+    assert.match(presentation, /var\(--pp-skin-/u, `Surface ${index} must consume Skin V1 tokens`);
   }
 });
 

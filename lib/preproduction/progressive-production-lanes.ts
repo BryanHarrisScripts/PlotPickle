@@ -103,9 +103,13 @@ function soundItems(
     return anchor.beats.flatMap((beat) => {
       const detail = beat.soundIntent.trim();
       if (!detail) return [];
-      const timed = beat.startSecond !== null && beat.endSecond !== null;
-      const startSecond = timed ? timelineAnchor.startSecond + beat.startSecond! : null;
-      const endSecond = timed ? Math.min(totalSeconds, timelineAnchor.startSecond + beat.endSecond!) : null;
+      const timed = (
+        beat.startSecond !== null
+        && beat.endSecond !== null
+        && timelineAnchor.startSecond !== null
+      );
+      const startSecond = timed ? timelineAnchor.startSecond! + beat.startSecond! : null;
+      const endSecond = timed ? Math.min(totalSeconds, timelineAnchor.startSecond! + beat.endSecond!) : null;
       return [{
         id: beat.id,
         source: "sequence-director" as const,

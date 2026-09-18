@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LocalAiSkinHost from "./local-ai-skin-host";
+import HybridStoryModePanel from "./hybrid-story-mode-panel";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 
 type StoryModePolicy = "local" | "cloud" | "hybrid";
@@ -14,6 +15,7 @@ type RouteStatus = {
 };
 
 type CapabilityStatus = {
+  readonly selected?: string;
   readonly options?: Readonly<Record<string, RouteStatus>>;
 };
 
@@ -59,9 +61,20 @@ const STORY_MODE_ROWS = [
 
 function localityReady(status: AiRoutingStatus | null, locality: "local" | "cloud") {
   if (!status) return false;
-  return [status.text, status.image, status.video].some((capability) =>
+  return [status.text, status.image, status.video].every((capability) =>
     Object.values(capability?.options ?? {}).some((route) => route.locality === locality && route.ready === true),
   );
+}
+
+function hybridSelectionReady(status: AiRoutingStatus | null) {
+  if (!status) return false;
+  const selected = [status.text, status.image, status.video].map((capability) => {
+    const route = capability?.selected ? capability.options?.[capability.selected] : null;
+    return route?.ready === true && (route.locality === "local" || route.locality === "cloud")
+      ? route.locality
+      : null;
+  });
+  return selected.every(Boolean) && selected.includes("local") && selected.includes("cloud");
 }
 
 function hardwareLocalReady(status: LocalRuntimeStatus | null) {
@@ -121,9 +134,9 @@ export default function StoryModeHost() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const localReady = localityReady(routingStatus, "local") || hardwareLocalReady(localRuntimeStatus);
+  const localReady = localityReady(routingStatus, "local") && hardwareLocalReady(localRuntimeStatus);
   const cloudReady = localityReady(routingStatus, "cloud");
-  const hybridReady = localReady && cloudReady;
+  const hybridReady = hybridSelectionReady(routingStatus);
 
   async function refresh() {
     try {
@@ -142,7 +155,7 @@ export default function StoryModeHost() {
       setMode(policy.mode);
       setRoutingStatus(routing);
       setLocalRuntimeStatus(localRuntime);
-      setMessage("Story Mode readiness follows the current tested Local and Cloud routes.");
+      setMessage("LOCAL and CLOUD are READY only when Writing, Images and Video each have a tested route. HYBRID is READY only when the selected capability mix uses both Local and Cloud.");
     } catch (error) {
       setRoutingStatus(null);
       setLocalRuntimeStatus(null);
@@ -255,11 +268,8 @@ export default function StoryModeHost() {
           <h1>HYBRID STORY MODE</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
         </div>
-        <div className="pp-skin-v1-bbs" data-story-mode-hybrid="policy-only">
-          <p>Hybrid allows tested Local and Cloud routes. Existing capability selection and cloud consent rules remain authoritative.</p>
-          <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
-          <p>Routing preference remains with the existing capability router; this surface does not create a Hybrid provider layer.</p>
-        </div>
+        <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
+        <HybridStoryModePanel onChanged={() => void refresh()} />
       </section>
     );
   }

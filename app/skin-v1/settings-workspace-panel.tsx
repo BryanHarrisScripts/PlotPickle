@@ -53,6 +53,16 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
         setStoryModeMessage(`Story Mode is ${body.mode.toUpperCase()}.`);
       })
       .catch((error) => setStoryModeMessage(error instanceof Error ? error.message : "Story Mode is unavailable."));
+
+    const changed = (event: Event) => {
+      const mode = (event as CustomEvent<StoryModePolicy>).detail;
+      if (mode === "local" || mode === "cloud" || mode === "hybrid") {
+        setStoryMode(mode);
+        setStoryModeMessage(`Story Mode is ${mode.toUpperCase()}.`);
+      }
+    };
+    window.addEventListener("plotpickle:story-mode-policy-change", changed);
+    return () => window.removeEventListener("plotpickle:story-mode-policy-change", changed);
   }, []);
 
   function persist(next: PlotPickleSettings) {

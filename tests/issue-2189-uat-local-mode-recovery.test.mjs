@@ -4,25 +4,23 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#2189 UAT opt-in stays interactive and automatically selects Local Story Mode", async () => {
+test("#2189 built-in UAT still automatically selects Local Story Mode", async () => {
   const panel = await read("app/skin-v1/uat-guide-panel.tsx");
 
   assert.match(panel, /async function ensureLocalStoryMode\(\)/u);
   assert.match(panel, /body: JSON\.stringify\(\{ mode: "local" \}\)/u);
-  assert.match(panel, /if \(enabled\) \{[\s\S]*await ensureLocalStoryMode\(\)/u);
   assert.match(panel, /async function start\(\)[\s\S]*await ensureLocalStoryMode\(\)/u);
-  assert.match(panel, /disabled=\{busy\}/u);
-  assert.doesNotMatch(panel, /disabled=\{busy \|\| !payload\}/u);
-  assert.match(panel, /Selecting this automatically switches Story Mode to Local/u);
+  assert.match(panel, /START UAT REVIEW/u);
+  assert.doesNotMatch(panel, /Show Start UAT Guide|setEnabled|mode="settings"|mode="dashboard"/u);
 });
 
 test("#2189 expired UAT profile sessions recover through the normal profile boundary", async () => {
   const panel = await read("app/skin-v1/uat-guide-panel.tsx");
 
   assert.match(panel, /PROFILE_UNLOCK_REQUIRED/u);
-  assert.match(panel, /session is invalid or expired\|unlock a human profile/i);
+  assert.match(panel, /session is invalid or expired\|unlock a human profile\|human profile is locked/i);
   assert.match(panel, /window\.setTimeout\(\(\) => window\.location\.reload\(\), 120\)/u);
-  assert.match(panel, /PlotPickle is reopening the profile boundary/u);
+  assert.match(panel, /Reopening the profile boundary/u);
 });
 
 test("#2189 UAT runner independently forces Local Story Mode before any acceptance checks", async () => {
@@ -76,14 +74,17 @@ test("#2189 Hybrid Cloud selections retain charge and video data-sharing consent
   assert.match(hybrid, /dataSharingAcknowledged: capability === "video" && locality === "cloud"/u);
 });
 
-test("#2189 General Settings does not duplicate Story Mode authority", async () => {
-  const general = await read("app/skin-v1/settings-workspace-panel.tsx");
+test("#2189 General Settings remains the single UAT entry without duplicating Story Mode authority", async () => {
+  const [general, dashboard] = await Promise.all([
+    read("app/skin-v1/settings-workspace-panel.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+  ]);
 
   assert.doesNotMatch(general, /aria-label="Story Mode"/u);
   assert.doesNotMatch(general, /persistStoryMode/u);
-  assert.match(general, /<UatGuidePanel mode="settings" \/>/u);
+  assert.match(general, /<UatGuidePanel \/>/u);
+  assert.doesNotMatch(dashboard, /UatGuidePanel/u);
 });
-
 
 test("#2189 WebMCP waits for the new Hybrid capability matrix", async () => {
   const registry = await read("lib/verification/webmcp-surface-capture-registry.mjs");

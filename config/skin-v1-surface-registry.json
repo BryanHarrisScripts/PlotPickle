@@ -187,7 +187,7 @@
     },
     {
       "id": "scene-timeline",
-      "label": "Scene Timeline",
+      "label": "Scene Workspace",
       "family": "storyboard",
       "parent": "storyboard",
       "surfaceClass": "nested",

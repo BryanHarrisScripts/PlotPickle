@@ -124,6 +124,12 @@ export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellT
     contextDetail: "Plan-owned character voice definitions",
     contextScope: "Plan · Character voice",
   },
+  "/write": {
+    migrationClass: "canonical",
+    activeShortcutId: "write",
+    rootContext: "write",
+    area: "produce",
+  },
   "/storyboard": {
     migrationClass: "canonical",
     activeShortcutId: "storyboard",

@@ -10,7 +10,7 @@ import {
   type LibraryPPFProject,
 } from "@/core/storage/project-library-browser";
 import {
-  markCreativeRevisionSourceProjectionStale,
+  markCreativeRevisionDependentsStale,
   planCreativeRevisionPropagation,
 } from "@/lib/preproduction/creative-revision-propagation";
 import {
@@ -115,15 +115,15 @@ export default function BlockNativeWriteWorkspace() {
   function save() {
     const savedAt = new Date().toISOString();
     const revision = project.revision + 1;
-    const next: LibraryPPFProject = {
+    const revised: LibraryPPFProject = {
       ...project,
       revision,
       updatedAt: savedAt,
       writing: updateBlockWritingEntry(project.writing, address, draftText, savedAt),
-      sourceEvidence: revisionImpact
-        ? markCreativeRevisionSourceProjectionStale(project.sourceEvidence, revisionImpact, revision)
-        : project.sourceEvidence,
     };
+    const next = revisionImpact
+      ? markCreativeRevisionDependentsStale(revised, revisionImpact, revision)
+      : revised;
     const saved = saveActiveLibraryProject(next);
     setProject(saved);
     setSavedText(draftText);

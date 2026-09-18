@@ -5,7 +5,6 @@ import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
-import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
 import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
 import type { PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
@@ -22,8 +21,6 @@ type MiniBlockVisualCoverage = Readonly<{
   candidateCount: number;
 }>;
 
-const LEGACY_PROJECT_STORAGE_KEY = "plotpickle.project.v1";
-
 function bounded(value: number, maximum: number) {
   return Number.isFinite(value) ? Math.min(maximum, Math.max(1, Math.trunc(value))) : 1;
 }
@@ -33,15 +30,6 @@ function normalizedAddress(address: PreproductionReviewAddress): PreproductionRe
     blockNumber: bounded(address.blockNumber, 24),
     miniBlockNumber: bounded(address.miniBlockNumber, 4),
   };
-}
-
-function legacySceneProjectionSource() {
-  try {
-    const stored = window.localStorage.getItem(LEGACY_PROJECT_STORAGE_KEY);
-    return stored ? normalizePlotPickleProject(JSON.parse(stored)) : null;
-  } catch {
-    return null;
-  }
 }
 
 function addressFromStoryboardTarget(target: string | null) {
@@ -84,14 +72,12 @@ export function SkinV1StoryboardReviewSurface({
   readonly onOpenBuild: () => void;
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
-  const [legacyProject, setLegacyProject] = useState<PlotPickleProject | null>(null);
   const [error, setError] = useState("");
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        setLegacyProject(legacySceneProjectionSource());
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
@@ -145,7 +131,7 @@ export function SkinV1StoryboardReviewSurface({
       <StoryboardReadinessWorkspace
         initialBlockNumber={normalized.blockNumber}
         initialMiniBlockNumber={normalized.miniBlockNumber}
-        legacyProject={legacyProject}
+        legacyProject={null}
         project={project}
         onProjectChange={applyProjectChange}
         onOpenBuild={onOpenBuild}

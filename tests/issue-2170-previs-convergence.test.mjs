@@ -201,7 +201,7 @@ test("#2170 keeps linked alternate screens intentional and preserves exact Block
   assert.match(storyLearning, /mini: String\(context\.address\.miniBlockNumber\)/);
   assert.match(root, /workspace === "dashboard"[\s\S]*<StoryMapWorkspace/u);
   assert.match(root, /case "visual-storytelling":[\s\S]*window\.location\.assign\("\/storyboard"\)/u);
-  assert.match(root, /case "drafting":[\s\S]*navigateWorkspace\("write"\)/u);
+  assert.match(root, /case "drafting":[\s\S]*window\.location\.assign\("\/write"\)/u);
   assert.doesNotMatch(root, /case "drafting":[\s\S]*\/pageflow/u);
 
   assert.match(preproductionNav, /outline:[\s\S]*href: "\/structure"/u);

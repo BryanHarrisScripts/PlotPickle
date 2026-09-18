@@ -18,15 +18,6 @@ function boundedMini(value: string | null) {
   return Number.isFinite(number) ? Math.min(4, Math.max(1, Math.trunc(number))) : 1;
 }
 
-function legacySceneProjectionSource() {
-  try {
-    const stored = window.localStorage.getItem(LEGACY_PROJECT_STORAGE_KEY);
-    return stored ? normalizePlotPickleProject(JSON.parse(stored)) : null;
-  } catch {
-    return null;
-  }
-}
-
 export default function StoryboardPage() {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [initialBlockNumber, setInitialBlockNumber] = useState(1);

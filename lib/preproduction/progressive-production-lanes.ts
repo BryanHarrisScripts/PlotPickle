@@ -109,7 +109,7 @@ function soundItems(
         && timelineAnchor.startSecond !== null
       );
       const startSecond = timed ? timelineAnchor.startSecond! + beat.startSecond! : null;
-      const endSecond = timed ? Math.min(totalSeconds, timelineAnchor.startSecond! + beat.endSecond!) : null;
+      const endSecond = timed ? timelineAnchor.startSecond! + beat.endSecond! : null;
       return [{
         id: beat.id,
         source: "sequence-director" as const,

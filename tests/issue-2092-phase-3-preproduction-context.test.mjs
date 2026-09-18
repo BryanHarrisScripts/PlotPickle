@@ -13,7 +13,7 @@ test("#2092 phase 3 keeps the Dashboard PRE-PRODUCTION IA at Outline / Storyboar
   assert.doesNotMatch(registry, /label: "Production Plan"/);
 });
 
-test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the three current stages", async () => {
+test("#2092/#2189 uses one shared PRE-PRODUCTION context strip while canonical Outline returns to the PPF Story Map", async () => {
   const [nav, outlineLayout, storyboardLayout, previsLayout] = await Promise.all([
     read("app/_components/preproduction/preproduction-context-nav.tsx"),
     read("app/structure/layout.tsx"),
@@ -22,7 +22,7 @@ test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the thre
   ]);
 
   assert.match(nav, /PRE-PRODUCTION/);
-  assert.match(nav, /Structure → Breakdown · Scenes \+ Assets/);
+  assert.match(nav, /Story Cards → 24\/96 Story Map · source evidence/);
   assert.match(nav, /Visual Beats → Shots → Frames/);
   assert.match(nav, /Timing → Production Plan · Provider-neutral handoff/);
   assert.match(nav, /href: "\/\?workspace=dashboard"/);
@@ -33,6 +33,7 @@ test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the thre
   assert.match(nav, /url\.searchParams\.set\("mini", String\(miniBlockNumber\)\)/);
   assert.match(nav, /withAddress\(AREAS\[stage\]\.href, activeBlock, routeMini\)/);
   assert.match(nav, /withAddress\("\/\?workspace=dashboard", activeBlock, routeMini\)/);
+  assert.doesNotMatch(nav, /href: "\/structure"/);
 
   assert.match(outlineLayout, /PreproductionContextNav area="outline"/);
   assert.match(storyboardLayout, /PreproductionContextNav area="storyboard"/);
@@ -55,7 +56,9 @@ test("#2092/#2189 keeps legacy Outline peers contextual while returning to the c
   assert.match(returnNav, /Return to Outline/);
   assert.match(returnNav, /startsWith\("\/"\)/);
   assert.match(returnNav, /startsWith\("\/\/"\)/);
-  assert.match(returnNav, /function dashboardReturnPath/);\n  assert.doesNotMatch(nav, /href: "\\/structure"/);\n  assert.doesNotMatch(returnNav, /return "\\/structure"|returnPath: "\\/structure"/);
+  assert.match(returnNav, /function dashboardReturnPath/);
+  assert.doesNotMatch(nav, /href: "\/structure"/);
+  assert.doesNotMatch(returnNav, /return "\/structure"|returnPath: "\/structure"/);
   assert.match(returnNav, /source\.searchParams\.get\("block"\)/);
   assert.match(returnNav, /source\.searchParams\.get\("mini"\)/);
 });

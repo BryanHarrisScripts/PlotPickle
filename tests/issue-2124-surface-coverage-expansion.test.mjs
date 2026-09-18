@@ -10,7 +10,7 @@ import {
 const read = (relative) => readFile(new URL(`../${relative}`, import.meta.url), "utf8");
 
 test("#2124 expands WebMCP through reachable nested Matrix directories", () => {
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 26);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.deepEqual(
     WEBMCP_STANDARD_SURFACE_REGISTRY["library-new"].navigation.map((step) => step.selector),
     ["[data-dashboard-menu-item='library']", "[data-library-nav='new']"],
@@ -24,10 +24,13 @@ test("#2124 expands WebMCP through reachable nested Matrix directories", () => {
 
 test("#2124 coverage contract distinguishes real captures from actions and unwired placeholders", () => {
   assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.nonVisualActions, ["logout"]);
-  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired, ["previs", "write", "edit", "feedback", "refine", "reports", "wyrmwood", "story"]);
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired, ["edit", "feedback", "refine", "reports", "wyrmwood", "story"]);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.library.includes("library-archive"));
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.settings.includes("story-mode"));
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.settings.includes("hybrid-story-mode"));
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.write, ["write"]);
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.previs, ["previs"]);
+  assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.storyboard.includes("storyboard"));
 });
 
 test("#2124 Visual Director consumes the same complete surface registry", async () => {

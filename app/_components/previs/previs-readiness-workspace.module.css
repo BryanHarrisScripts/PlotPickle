@@ -197,6 +197,11 @@
   color: #e8f5f0;
 }
 
+.anchorCard[data-selected="true"] {
+  border-color: #69e3d3;
+  box-shadow: 0 0 0 1px rgba(105, 227, 211, 0.16);
+}
+
 .videoFrame {
   position: relative;
   overflow: hidden;
@@ -279,6 +284,82 @@
 
 .anchorActions button {
   flex: 1 1 120px;
+}
+
+.evidencePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #23483e;
+  border-radius: 12px;
+  background: #081512;
+}
+
+.evidencePanel > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+}
+
+.evidencePanel > header span {
+  color: #69e3d3;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evidencePanel h3 {
+  margin: 4px 0 0;
+}
+
+.evidencePanel > header > strong {
+  color: #d9f4ec;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.evidenceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.evidenceGrid > div,
+.mappingRefs {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #1f3932;
+  border-radius: 9px;
+  background: #07110f;
+}
+
+.evidenceGrid b {
+  color: #cce9e1;
+  font-size: 0.75rem;
+}
+
+.evidenceGrid p,
+.evidenceBoundary {
+  margin: 0;
+  color: #a9c5bc;
+  line-height: 1.45;
+}
+
+.evidenceGrid small,
+.mappingRefs small {
+  color: #7fa69b;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.evidenceBoundary {
+  padding-top: 10px;
+  border-top: 1px solid #1f3932;
+  font-size: 0.78rem;
 }
 
 .shotEditor {
@@ -391,6 +472,9 @@
   .notice,
   .blockHeader,
   .timelinePreview > header,
-  .shotEditor > header { flex-direction: column; }
+  .shotEditor > header,
+  .evidencePanel > header { flex-direction: column; }
+
+  .evidenceGrid { grid-template-columns: 1fr; }
   .fullField { grid-column: auto; }
 }

@@ -1,8 +1,11 @@
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { PPFProject } from "@/core/project/project";
-import { AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID } from "@/data/afterglow-reference-identity";
-import { createAfterglowStoryboardFrames } from "@/data/afterglow-storyboard";
+import {
+  AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID,
+  AFTERGLOW_V9_REFERENCE_SOURCE_ID,
+} from "@/data/afterglow-reference-identity";
+import { afterglowStoryboardCoverage, createAfterglowStoryboardFrames } from "@/data/afterglow-storyboard";
 import { deriveVisualReadiness } from "@/modules/build/visual-readiness";
 
 export const STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1" as const;
@@ -23,7 +26,42 @@ export type StoryboardEditorialCandidate = {
   readonly caption: string;
   readonly assetUrl: string;
   readonly sourceRef: string;
+  readonly sourceKind: "historical-storyboard" | "replacement-concept";
+  readonly provenanceRefs: readonly string[];
   readonly acceptedArtifactId: string | null;
+};
+
+export type StoryboardAnchorEvidenceProjection = {
+  readonly anchorRef: string;
+  readonly blockNumber: number;
+  readonly miniBlockNumber: number;
+  readonly sourceFileName: string;
+  readonly passages: readonly {
+    readonly id: string;
+    readonly type: string;
+    readonly text: string;
+    readonly sceneId: string | null;
+    readonly sceneNumber: number;
+  }[];
+  readonly blockTitle: string;
+  readonly responsibility: string;
+  readonly structuralFinding: string;
+  readonly structuralReviewNote: string;
+  readonly sourceMappings: readonly {
+    readonly sourceVersion: string;
+    readonly sourceRole: string;
+    readonly mappingMethod: string;
+    readonly sourceRef: string;
+    readonly candidateOnly: boolean;
+  }[];
+  readonly sourceSections: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly page: number;
+    readonly mappingMethod: string;
+  }[];
+  readonly characterEvidenceRefs: readonly string[];
+  readonly acceptedVisualRefs: readonly string[];
 };
 
 export function storyboardTargetSourceKey(targetId: string) {
@@ -66,7 +104,7 @@ function targetBlockNumber(targetId: string) {
   return match ? Number(match[1]) : 0;
 }
 
-function sourceEvidenceForAnchor(project: PPFProject, targetId: string, miniBlockNumber: number) {
+export function storyboardSourceEvidenceForAnchor(project: PPFProject, targetId: string, miniBlockNumber: number) {
   const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];
   const screenplay = normalizeProjectSourceEvidence(
@@ -95,7 +133,7 @@ function artifactTargetsFrame(
     && keys.includes(storyboardAnchorTargetRef(targetId, miniBlockNumber));
 }
 
-function acceptedTargetScopedVisualIds(project: PPFProject, targetId: string, miniBlockNumber: number) {
+export function acceptedTargetScopedVisualIds(project: PPFProject, targetId: string, miniBlockNumber: number) {
   const targetKey = storyboardTargetSourceKey(targetId);
   const anchorKey = storyboardAnchorTargetRef(targetId, miniBlockNumber);
   const foundationAccepted = new Set(project.build.foundations.acceptedVisualArtifactIds);
@@ -123,6 +161,64 @@ function acceptedTargetScopedVisualIds(project: PPFProject, targetId: string, mi
   ].sort();
 }
 
+export function storyboardAnchorEvidence(
+  project: PPFProject,
+  targetId: string,
+  miniBlockNumber: number,
+): StoryboardAnchorEvidenceProjection {
+  const blockNumber = targetBlockNumber(targetId);
+  const evidence = normalizeProjectSourceEvidence(
+    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
+  );
+  const passages = blockNumber
+    ? storyboardSourceEvidenceForAnchor(project, targetId, miniBlockNumber)
+    : [];
+  const matrixBlock = blockNumber
+    ? evidence.storyMatrix?.blocks.find((block) => block.blockNumber === blockNumber) ?? null
+    : null;
+  const sourceSections = blockNumber
+    ? (evidence.storyMatrix?.sourceSections ?? [])
+      .filter((section) => section.projectedBlockNumber === blockNumber)
+      .map((section) => ({
+        id: section.id,
+        title: section.title,
+        page: section.page,
+        mappingMethod: section.mappingMethod,
+      }))
+    : [];
+  return {
+    anchorRef: storyboardAnchorTargetRef(targetId, miniBlockNumber),
+    blockNumber,
+    miniBlockNumber,
+    sourceFileName: evidence.screenplay?.sourceFileName ?? "",
+    passages,
+    blockTitle: matrixBlock?.title ?? "",
+    responsibility: matrixBlock?.responsibility ?? "",
+    structuralFinding: matrixBlock?.structuralFinding.state ?? "unresolved",
+    structuralReviewNote: matrixBlock?.structuralFinding.reason ?? "",
+    sourceMappings: (matrixBlock?.sourceMappings ?? []).map((mapping) => ({
+      sourceVersion: mapping.sourceVersion,
+      sourceRole: mapping.sourceRole,
+      mappingMethod: mapping.mappingMethod,
+      sourceRef: mapping.sourceRef,
+      candidateOnly: mapping.candidateOnly,
+    })),
+    sourceSections,
+    characterEvidenceRefs: matrixBlock?.characterEvidenceRefs ?? [],
+    acceptedVisualRefs: blockNumber
+      ? acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber)
+      : [],
+  };
+}
+
+function isAfterglowReferenceProject(project: PPFProject) {
+  const evidence = normalizeProjectSourceEvidence(
+    (project as PPFProject & { readonly sourceEvidence?: unknown }).sourceEvidence,
+  );
+  return evidence.referenceFixture?.fixtureId === AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID
+    || evidence.referenceFixture?.sourceId === AFTERGLOW_V9_REFERENCE_SOURCE_ID;
+}
+
 export function storyboardFrameDependencySourceKey(
   project: PPFProject,
   targetId: string,
@@ -135,7 +231,7 @@ export function storyboardFrameDependencySourceKey(
     state: target?.state ?? "missing",
     storyboardAllowed: target?.storyboardAllowed ?? false,
     provenance: (target?.provenance ?? []).map((item) => `${item.source}:${item.ref}`).sort(),
-    sourceEvidence: sourceEvidenceForAnchor(project, targetId, miniBlockNumber),
+    sourceEvidence: storyboardSourceEvidenceForAnchor(project, targetId, miniBlockNumber),
     scopedAcceptedVisuals: acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber),
   });
   const checksum = Array.from(snapshot).reduce(
@@ -177,12 +273,16 @@ function acceptedArtifactForSource(
 }
 
 export function storyboardReferenceCandidates(project: PPFProject, targetId: string): readonly StoryboardEditorialCandidate[] {
-  if (project.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID) return [];
+  if (!isAfterglowReferenceProject(project)) return [];
   const blockNumber = targetBlockNumber(targetId);
   if (!blockNumber) return [];
 
   return createAfterglowStoryboardFrames(blockNumber).map((frame) => {
     const acceptedArtifact = acceptedArtifactForSource(project, targetId, frame.miniBlockNumber, frame.id);
+    const anchorEvidence = storyboardAnchorEvidence(project, targetId, frame.miniBlockNumber);
+    const sourceKind = blockNumber <= afterglowStoryboardCoverage.sourceBlocks
+      ? "historical-storyboard" as const
+      : "replacement-concept" as const;
     return {
       id: frame.id,
       targetId,
@@ -191,6 +291,13 @@ export function storyboardReferenceCandidates(project: PPFProject, targetId: str
       caption: frame.caption || frame.alt,
       assetUrl: `/api/local-ai/assets/storyboard-reference?block=${blockNumber}&mini=${frame.miniBlockNumber}`,
       sourceRef: frame.id,
+      sourceKind,
+      provenanceRefs: [
+        frame.id,
+        ...anchorEvidence.passages.map((passage) => passage.id),
+        ...anchorEvidence.sourceMappings.map((mapping) => mapping.sourceRef),
+        ...anchorEvidence.sourceSections.map((section) => section.id),
+      ].filter((value, index, all) => all.indexOf(value) === index),
       acceptedArtifactId: acceptedArtifact?.id ?? null,
     };
   });

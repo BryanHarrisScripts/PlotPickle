@@ -25,7 +25,7 @@ test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the thre
   assert.match(nav, /Structure → Breakdown · Scenes \+ Assets/);
   assert.match(nav, /Visual Beats → Shots → Frames/);
   assert.match(nav, /Timing → Production Plan · Provider-neutral handoff/);
-  assert.match(nav, /href: "\/structure"/);
+  assert.match(nav, /href: "\/\?workspace=dashboard"/);
   assert.match(nav, /href: "\/storyboard"/);
   assert.match(nav, /href: "\/previs"/);
   assert.match(nav, /function withAddress/);

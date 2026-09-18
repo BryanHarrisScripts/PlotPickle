@@ -1,26 +1,11 @@
+import { createEmptyProject, type PPFProject } from "../project/project";
 import {
-  createEmptyProjectSourceEvidence,
-  normalizeProjectSourceEvidence,
-  type ProjectSourceEvidence,
-} from "../contracts/imported-screenplay-evidence";
-import {
-  createEmptyBlockWritingState,
-  normalizeBlockWritingState,
-  type BlockWritingState,
-} from "../contracts/block-writing";
-import {
-  createEmptyStoryStructureV2,
-  normalizeStoryStructureV2,
-  type StoryStructureV2,
-} from "../project/story-structure-v2";
-import { createEmptyProject, normalizeFoundationProject, type PPFProject } from "../project/project";
+  normalizeLibraryProject,
+  type LibraryPPFProject,
+} from "./library-project";
 import * as libraryCore from "./project-library-core.mjs";
 
-export type LibraryPPFProject = PPFProject & {
-  readonly structure: StoryStructureV2;
-  readonly sourceEvidence: ProjectSourceEvidence;
-  readonly writing: BlockWritingState;
-};
+export type { LibraryPPFProject } from "./library-project";
 
 export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import";
 
@@ -58,22 +43,8 @@ function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
     : {};
 }
 
-function normalizeLibraryProject(value: unknown): LibraryPPFProject {
-  const source = objectRecord(value);
-  const project = normalizeFoundationProject(value);
-  const structure = normalizeStoryStructureV2(source.structure);
-  const sourceEvidence = normalizeProjectSourceEvidence(source.sourceEvidence);
-  const writing = normalizeBlockWritingState(source.writing);
-  return { ...project, structure, sourceEvidence, writing };
-}
-
 function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
-  return {
-    ...createEmptyProject(input),
-    structure: createEmptyStoryStructureV2(),
-    sourceEvidence: createEmptyProjectSourceEvidence(),
-    writing: createEmptyBlockWritingState(),
-  };
+  return normalizeLibraryProject(createEmptyProject(input));
 }
 
 function answerCount(project: PPFProject) {
@@ -161,7 +132,13 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
       ? initialized.activeProject.writing
       : createEmptyBlockWritingState();
   const projectWithStructure = { ...project, structure, writing };
-  const result = libraryCore.saveProfileActiveProject({ ...coreInput(), project: projectWithStructure }) as {
+  const referenceFixture = objectRecord(objectRecord(incoming.sourceEvidence).referenceFixture);
+  const afterglowReference = referenceFixture.sourceId === "afterglow-v9-complete-baseline";
+  const result = libraryCore.saveProfileActiveProject({
+    ...coreInput(),
+    project: projectWithStructure,
+    ...(afterglowReference ? { sourceKind: "example", sourceId: "afterglow-v9" } : {}),
+  }) as {
     readonly activeProject: LibraryPPFProject;
   };
   announceChange();

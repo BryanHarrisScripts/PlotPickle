@@ -41,7 +41,7 @@ const state = {
   startedAt: new Date().toISOString(),
   completedAt: "",
   current: {
-    agent: "UAT Guide",
+    agent: "UAT Semantic Review",
     check: "Starting",
     surface: "",
     storyAddress: "Block 17 / Mini-Block 1",
@@ -107,7 +107,7 @@ async function forceLocalStoryMode() {
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok || body?.ok !== true || body?.mode !== "local") {
-    throw new Error(body?.message || "UAT Guide could not switch Story Mode to LOCAL.");
+    throw new Error(body?.message || "UAT Semantic Review could not switch Story Mode to LOCAL.");
   }
 }
 
@@ -128,15 +128,15 @@ function runNodeTest(files) {
 
 async function main() {
   agentLoaded({
-    name: "PlotPickle UAT Guide",
-    purpose: "Narrate the existing deterministic PlotPickle acceptance checks in plain language.",
+    name: "PlotPickle UAT Semantic Review",
+    purpose: "Run and narrate the deterministic PlotPickle Writer-to-Screen acceptance checks for the in-page Human review surface.",
     instructions: "None. This guide reports observable test operations only; deterministic verification owns PASS/FAIL.",
     automatic: true,
   });
 
   await emit({
-    label: "UAT Guide started",
-    detail: "Checking the current Skin V1 Writer-to-Screen workflow with an isolated synthetic Human.",
+    label: "UAT Semantic Review started",
+    detail: "Checking the current Skin V1 Writer-to-Screen workflow with an isolated synthetic Human while the Human reviews progress in PlotPickle.",
   });
   await forceLocalStoryMode();
   await emit({
@@ -168,7 +168,7 @@ async function main() {
 
   await emit({
     type: "result",
-    label: "UAT scan complete",
+    label: "UAT Semantic Review complete",
     detail: "Rendered workflow and deterministic Afterglow acceptance passed. No provider was called and no candidate was promoted to canon.",
     surface: "verification-inbox",
     state: "PASS",
@@ -177,7 +177,7 @@ async function main() {
   state.completedAt = new Date().toISOString();
   state.current.state = "PASS";
   await persist();
-  agentCompleted("UAT Guide PASS. Open Verification Inbox for durable verification history and the linked WebMCP evidence for this acceptance pass.");
+  agentCompleted("UAT Semantic Review PASS. The in-page review and Verification Inbox retain the bounded result and linked evidence.");
   return 0;
 }
 
@@ -190,16 +190,16 @@ try {
   state.current.state = "NEEDS_ATTENTION";
   await emit({
     type: "result",
-    label: "UAT scan needs attention",
+    label: "UAT Semantic Review needs attention",
     detail: message,
     surface: state.current.surface,
     state: "NEEDS_ATTENTION",
   }).catch(() => undefined);
   await persist().catch(() => undefined);
-  agentNeedsAttention(`${message}\nOpen the in-app UAT Guide and Verification Inbox/evidence for the bounded result.`);
+  agentNeedsAttention(`${message}\nOpen the in-app UAT Semantic Review and Verification Inbox/evidence for the bounded result.`);
   process.exitCode = 1;
 } finally {
   await cleanupVerificationSyntheticHome(syntheticHome).catch(() => undefined);
   await rm(path.join(guideRoot, "synthetic-humans", runId), { recursive: true, force: true }).catch(() => undefined);
-  if (stayOpen) await keepAgentWindowOpen("PlotPickle UAT Guide");
+  if (stayOpen) await keepAgentWindowOpen("PlotPickle UAT Semantic Review");
 }

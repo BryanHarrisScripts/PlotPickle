@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "issue": 2194,
+  "phase": "oss-radar-adaptive-7x3",
+  "brief": "docs/developer-briefs/2194-oss-radar-adaptive-7x3.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    "config/development-convergence/2194.json",
+    "config/oss-radar/adaptive-intelligence.json",
+    "docs/developer-briefs/2194-oss-radar-adaptive-7x3.md",
+    "lib/verification/oss-radar/discover-github.mjs",
+    "lib/verification/oss-radar/public-digest.mjs",
+    "lib/verification/oss-radar/report-renderer-core.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "tests/issue-2194-oss-radar-adaptive-7x3.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2194-1",
+      "criterion": "The merged live Radar contract exposes seven plain-language architecture areas with canonical backend aliases and targets three findings per area.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/adaptive-intelligence.json",
+          "contains": "\"targetFindings\": 21"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/adaptive-intelligence.json",
+          "contains": "\"Validation & Operations\""
+        }
+      ]
+    },
+    {
+      "id": "P2194-2",
+      "criterion": "Selection is globally unique across areas, complementary within an area and suppresses unchanged prior reviews.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/report-renderer-core.mjs",
+          "contains": "selectArchitectureFindings"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2194-oss-radar-adaptive-7x3.test.mjs",
+          "contains": "#2194 suppresses unchanged prior reviews and fills each area from fresh candidates"
+        }
+      ]
+    },
+    {
+      "id": "P2194-3",
+      "criterion": "Discovery remains bounded while broadening terminology and balancing the enrichment shortlist.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/adaptive-intelligence.json",
+          "contains": "\"enrichmentShortlistSize\": 42"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/oss-radar/discover-github.mjs",
+          "contains": "laneBalancedShortlist"
+        }
+      ]
+    },
+    {
+      "id": "P2194-4",
+      "criterion": "Architecture adaptability is weighted above narrow storytelling-only fit and popularity remains only one bounded scoring signal.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/oss-radar/adaptive-intelligence.json",
+          "contains": "\"architectureAdaptability\": 30"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2194-oss-radar-adaptive-7x3.test.mjs",
+          "contains": "aiArchitectureValue > contract.scoring.weights.writerValue"
+        }
+      ]
+    },
+    {
+      "id": "P2194-5",
+      "criterion": "Daily workflow runs the #2194 deterministic regression before live OSS Radar execution.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "tests/issue-2194-oss-radar-*.test.mjs"
+        }
+      ]
+    }
+  ]
+}

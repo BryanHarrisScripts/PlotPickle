@@ -203,14 +203,14 @@
     "storyboard": {
       "label": "Storyboard",
       "status": "candidate",
-      "selector": "[data-skin-v1-preproduction-review='storyboard']",
+      "selector": "main[aria-labelledby='storyboard-readiness-title']",
       "candidate": ".artifacts/visual-readiness/storyboard-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/storyboard.png"
     },
     "previs": {
       "label": "Previs",
       "status": "candidate",
-      "selector": "[data-skin-v1-preproduction-review='previs']",
+      "selector": "main[aria-labelledby='previs-title']",
       "candidate": ".artifacts/visual-readiness/previs-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/previs.png"
     },

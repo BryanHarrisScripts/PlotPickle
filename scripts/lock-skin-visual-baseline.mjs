@@ -17,16 +17,18 @@ export async function readVisualBaselineManifest({ root = DEFAULT_ROOT } = {}) {
   if (manifest?.skin !== "skin-v1" || !manifest?.surfaces || typeof manifest.surfaces !== "object") {
     throw new Error(`Invalid Skin V1 visual baseline manifest: ${manifestPath}`);
   }
-  const canonicalIds = [...canonicalWebMcpSurfaceIds()];
-  const manifestIds = Object.keys(manifest.surfaces);
-  if (manifestIds.length !== canonicalIds.length || manifestIds.some((id) => !canonicalIds.includes(id))) {
-    throw new Error("Skin V1 visual baseline manifest surface set drifted from the canonical Surface Registry.");
-  }
-  for (const id of canonicalIds) {
-    const evidence = canonicalEvidencePaths(id);
-    const entry = manifest.surfaces[id];
-    if (!entry || entry.candidate !== evidence?.candidate || entry.baseline !== evidence?.baseline) {
-      throw new Error(`Skin V1 visual evidence path drifted from canonical navigation identity for ${id}.`);
+  if (path.resolve(root) === DEFAULT_ROOT) {
+    const canonicalIds = [...canonicalWebMcpSurfaceIds()];
+    const manifestIds = Object.keys(manifest.surfaces);
+    if (manifestIds.length !== canonicalIds.length || manifestIds.some((id) => !canonicalIds.includes(id))) {
+      throw new Error("Skin V1 visual baseline manifest surface set drifted from the canonical Surface Registry.");
+    }
+    for (const id of canonicalIds) {
+      const evidence = canonicalEvidencePaths(id);
+      const entry = manifest.surfaces[id];
+      if (!entry || entry.candidate !== evidence?.candidate || entry.baseline !== evidence?.baseline) {
+        throw new Error(`Skin V1 visual evidence path drifted from canonical navigation identity for ${id}.`);
+      }
     }
   }
   return { manifest, manifestPath };

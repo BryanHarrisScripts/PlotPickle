@@ -430,7 +430,9 @@
         "modules/write/ui/block-native-write-workspace.tsx",
         "app/_components/plotpickle-system/screen-registry.json",
         "app/navigation/sitemap-route-context.ts",
-        "app/write/page.tsx"
+        "app/write/page.tsx",
+        "app/edit-workspace.tsx",
+        "app/storyboard-write-handoff.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [
@@ -749,7 +751,9 @@
         "scripts/verification-shadow.mjs",
         "scripts/package-smoke.mjs",
         "config/uat-autopilot-registry.json",
-        "config/ui-continuity-agent-registry.json"
+        "config/ui-continuity-agent-registry.json",
+        "config/visual-audit-captures.json",
+        "config/visual-capture-registry.json"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

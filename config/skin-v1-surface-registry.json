@@ -64,6 +64,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
         "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "dashboard-reference",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -89,6 +96,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/community-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/community.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -114,6 +128,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -139,6 +160,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -166,6 +194,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-new-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-new.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -193,6 +228,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-import-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-import.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -220,6 +262,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-load-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-load.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -247,6 +296,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-examples-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-examples.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -274,6 +330,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-presets-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-presets.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -301,6 +364,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-avery-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-avery.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -328,6 +398,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/library-archive-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/library-archive.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -355,6 +432,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/story-map-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/story-map.png"
+      },
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -382,6 +466,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/scene-timeline-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/scene-timeline.png"
+      },
+      "formatProfile": {
+        "layout": "timeline-workspace",
+        "shell": "production-nested",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -409,6 +500,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/visual-story-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/visual-story.png"
+      },
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production-nested",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -431,6 +529,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/profile-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/profile.png"
+      },
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "standard",
+        "frame": "layered-inset",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -456,6 +561,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/settings-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/settings.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -483,6 +595,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/general-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/general.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -510,6 +629,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/story-mode-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/story-mode.png"
+      },
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -542,6 +668,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
+      },
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -574,6 +707,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
+      },
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -606,6 +746,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/hybrid-story-mode-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/hybrid-story-mode.png"
+      },
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -633,6 +780,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/node-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/node.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -660,6 +814,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/agents-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/agents.png"
+      },
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
       }
     },
     {
@@ -682,6 +843,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/issue-log-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/issue-log.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard-restrained",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -704,6 +872,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/licensing.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -726,6 +901,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/shutdown-node-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/shutdown-node.png"
+      },
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "action",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
       }
     },
     {
@@ -790,6 +972,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/write-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/write.png"
+      },
+      "formatProfile": {
+        "layout": "editor-inspector",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -945,6 +1134,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/storyboard-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/storyboard.png"
+      },
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -970,6 +1166,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/previs-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/previs.png"
+      },
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -1000,6 +1203,13 @@
       "legacyEvidence": {
         "candidate": ".artifacts/visual-readiness/pageflow-candidate.png",
         "baseline": "tests/visual-baselines/skin-v1/pageflow.png"
+      },
+      "formatProfile": {
+        "layout": "editor-inspector",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
       }
     },
     {
@@ -1432,5 +1642,11 @@
     "candidateSuffix": "__candidate.png",
     "baselineSuffix": ".png",
     "migrationPolicy": "derived-canonical-paths-with-legacy-aliases"
+  },
+  "formatProfileContract": {
+    "issue": 2226,
+    "phase": 2,
+    "grammar": "config/skin-v1-surface-grammar.json",
+    "requiredForCapturePolicy": "standard"
   }
 }

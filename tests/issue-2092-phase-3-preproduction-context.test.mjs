@@ -28,8 +28,11 @@ test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the thre
   assert.match(nav, /href: "\/structure"/);
   assert.match(nav, /href: "\/storyboard"/);
   assert.match(nav, /href: "\/previs"/);
-  assert.match(nav, /\?block=\$\{blockNumber\}/);
-  assert.match(nav, /\?workspace=dashboard/);
+  assert.match(nav, /function withAddress/);
+  assert.match(nav, /url\.searchParams\.set\("block", String\(blockNumber\)\)/);
+  assert.match(nav, /url\.searchParams\.set\("mini", String\(miniBlockNumber\)\)/);
+  assert.match(nav, /withAddress\(AREAS\[stage\]\.href, activeBlock, routeMini\)/);
+  assert.match(nav, /withAddress\("\/\?workspace=dashboard", activeBlock, routeMini\)/);
 
   assert.match(outlineLayout, /PreproductionContextNav area="outline"/);
   assert.match(storyboardLayout, /PreproductionContextNav area="storyboard"/);
@@ -52,6 +55,9 @@ test("#2092 phase 3 demotes legacy Outline peers into contextual tools with dete
   assert.match(returnNav, /Return to Outline/);
   assert.match(returnNav, /startsWith\("\/"\)/);
   assert.match(returnNav, /startsWith\("\/\/"\)/);
+  assert.match(returnNav, /function dashboardReturnPath/);
+  assert.match(returnNav, /source\.searchParams\.get\("block"\)/);
+  assert.match(returnNav, /source\.searchParams\.get\("mini"\)/);
 });
 
 test("#2092 phase 3 prevents contextual CraftLoop and PageFlow from replacing PRE-PRODUCTION orientation", async () => {

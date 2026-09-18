@@ -5,7 +5,7 @@ import {
   reviewCharacterArcEvidence,
   type CharacterArcEvidenceState,
 } from "@/core/contracts/character-truth-evidence";
-import { markImportedScreenplayProjectionStale, normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
   reviewStoryEvidenceBlock,
   type StoryStructuralFindingState,
@@ -13,11 +13,16 @@ import {
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
+  markCreativeRevisionSourceProjectionStale,
+  planCreativeRevisionPropagation,
+  type CreativeRevisionPropagationPlan,
+  type CreativeRevisionTarget,
+} from "@/lib/preproduction/creative-revision-propagation";
+import {
   STORY_CARD_MINI_LABELS,
   moveStoryCardContent,
   setStoryCardPlanningLock,
   storyCardActRows,
-  storyCardAffectedRefs,
   storyCardSourceCoverage,
   updateStoryCard,
   updateStoryCardMini,
@@ -76,10 +81,77 @@ export default function StoryCardFoundationBoard({
   const sourcePassages = screenplayEvidence?.passages ?? [];
   const sourceSectionMarkers = screenplayEvidence?.sectionMarkers ?? [];
 
+  function structureRevisionTargets(
+    structure: LibraryPPFProject["structure"],
+  ): readonly { target: CreativeRevisionTarget; beforeValue: unknown; afterValue: unknown }[] {
+    const revisions: { target: CreativeRevisionTarget; beforeValue: unknown; afterValue: unknown }[] = [];
+    for (const currentBlock of project.structure.blocks) {
+      const nextBlock = structure.blocks.find((candidate) => candidate.number === currentBlock.number);
+      if (!nextBlock) continue;
+
+      const blockBefore = { title: currentBlock.title, note: currentBlock.note };
+      const blockAfter = { title: nextBlock.title, note: nextBlock.note };
+      if (JSON.stringify(blockBefore) !== JSON.stringify(blockAfter)) {
+        revisions.push({
+          target: { kind: "block-content", blockNumber: currentBlock.number },
+          beforeValue: blockBefore,
+          afterValue: blockAfter,
+        });
+      }
+
+      for (const currentMini of currentBlock.miniBlocks) {
+        const nextMini = nextBlock.miniBlocks.find((candidate) => candidate.ordinal === currentMini.ordinal);
+        if (!nextMini) continue;
+        const miniBefore = { title: currentMini.title, note: currentMini.note };
+        const miniAfter = { title: nextMini.title, note: nextMini.note };
+        if (JSON.stringify(miniBefore) !== JSON.stringify(miniAfter)) {
+          revisions.push({
+            target: {
+              kind: "mini-content",
+              blockNumber: currentBlock.number,
+              miniBlockNumber: currentMini.ordinal,
+            },
+            beforeValue: miniBefore,
+            afterValue: miniAfter,
+          });
+        }
+      }
+
+      if (currentBlock.planningLockedAt !== nextBlock.planningLockedAt) {
+        revisions.push({
+          target: { kind: "planning-lock", blockNumber: currentBlock.number },
+          beforeValue: currentBlock.planningLockedAt,
+          afterValue: nextBlock.planningLockedAt,
+        });
+      }
+    }
+    return revisions;
+  }
+
+  function revisionPlans(
+    structure: LibraryPPFProject["structure"],
+    occurredAt: string,
+  ): readonly CreativeRevisionPropagationPlan[] {
+    return structureRevisionTargets(structure).flatMap((revision, index) => {
+      try {
+        return [planCreativeRevisionPropagation({
+          project,
+          target: revision.target,
+          beforeValue: revision.beforeValue,
+          afterValue: revision.afterValue,
+          changeSetId: `story-card-impact-${project.revision}-${index + 1}`,
+          summary: "Story Card planning revision",
+          occurredAt,
+        })];
+      } catch {
+        return [];
+      }
+    });
+  }
+
   function commitStructure(
     structure: LibraryPPFProject["structure"],
     messageText: string,
-    staleBlockNumbers: readonly number[] = [],
   ) {
     if (structure === project.structure) {
       setMessage(messageText);
@@ -87,22 +159,29 @@ export default function StoryCardFoundationBoard({
     }
     const occurredAt = new Date().toISOString();
     const revision = project.revision + 1;
+    const plans = revisionPlans(structure, occurredAt);
+    const sourceEvidence = plans.reduce(
+      (evidence, plan) => markCreativeRevisionSourceProjectionStale(evidence, plan, revision),
+      project.sourceEvidence,
+    );
+    const affectedVisualIds = new Set(plans.flatMap((plan) => plan.staleAcceptedVisualArtifactIds));
+    const affectedShotIds = new Set(plans.flatMap((plan) => plan.staleProductionShotIds));
+    const contentPlans = plans.filter((plan) => plan.target.kind !== "planning-lock");
     const next: LibraryPPFProject = {
       ...project,
       structure,
       revision,
       updatedAt: occurredAt,
-      sourceEvidence: staleBlockNumbers.length
-        ? markImportedScreenplayProjectionStale(
-          project.sourceEvidence,
-          storyCardAffectedRefs(staleBlockNumbers),
-          revision,
-        )
-        : project.sourceEvidence,
+      sourceEvidence,
     };
     const saved = saveFoundationProject(next) as LibraryPPFProject;
     onProjectChange(saved);
-    setMessage(messageText);
+    setMessage(
+      `${messageText} `
+      + (contentPlans.length
+        ? `${affectedVisualIds.size} accepted visual${affectedVisualIds.size === 1 ? "" : "s"} and ${affectedShotIds.size} Previs Shot${affectedShotIds.size === 1 ? "" : "s"} are dependency-affected; unrelated accepted work remains intact. No regeneration was triggered.`
+        : "Planning lock state changed without invalidating downstream creative work."),
+    );
   }
 
   function moveCard(sourceBlockNumber: number, targetBlockNumber: number) {
@@ -148,8 +227,7 @@ export default function StoryCardFoundationBoard({
       next,
       locked
         ? `Locked Block ${String(blockNumber).padStart(2, "0")} planning arrangement. Unlock it explicitly before revising or moving it.`
-        : `Unlocked Block ${String(blockNumber).padStart(2, "0")} for Human-authorized revision. Dependency-backed screenplay projection is marked for review before changes continue.`,
-      locked ? [] : [blockNumber],
+        : `Unlocked Block ${String(blockNumber).padStart(2, "0")} for Human-authorized revision. No story content changed merely because the lock changed.`,
     );
   }
 

@@ -250,26 +250,28 @@ Rules:
 - Beat density, Shot density and Frame density are variable;
 - rough/black-and-white visual planning is allowed and should dominate over prose when visual material exists;
 - missing Beat/Shot/Frame relationships are shown truthfully; the surface does not manufacture them;
-- selected Shot identity is shared with Scene Timeline;
+- selected Shot identity is shared with Scene Workspace;
 - #2107 SHOW_NOW / WITHHOLD_NOW information is presented as Shot meaning, not a separate authority;
 - candidate versus kept/accepted Frame state remains visible;
-- moving to Scene Timeline preserves selected Scene/Shot when representable;
+- moving to Scene Workspace preserves selected Scene/Shot when representable;
 - Matrix controls, borders, typography and status treatment follow the existing application precedent rather than the superseded SVG boards.
 
-### Scene Timeline
+### Scene Workspace
 
-**Surface:** temporal assembly of the selected Scene.  
-**Primary Region:** Main Viewport timeline.  
-**Primary Components:** transport/playhead, Frames lane, Shots lane, Action lane, Timing, optional progressive production lanes, untimed tray.
+**Surface:** synchronized selected-Scene workbench.  
+**Primary Regions:** screenplay source preview, intent playback, cue inspector, synchronized timeline.  
+**Primary Components:** context strip, source passages, transport/playhead, Dialogue lane, Action lane, Shot lane, Audio lane, cue inspector, truthful untimed/unplaced material.
 
 Rules:
-- the first-order visual workflow remains Frames / Shots / Action / Timing;
-- Dialogue, Sound, Camera and Transitions are progressive optional layers and remain subordinate to the visual cut;
+- the first-order synchronization workflow is Dialogue / Action / Shot / Audio;
+- cue identities reference real screenplay passages, Previs Shots, Sequence Director Beats or Sonic Cues rather than free-floating timeline blocks;
 - only actual timing authority places material on the clock;
-- untimed material remains visibly unplaced;
-- selection synchronizes with Visual Story through stable identities;
-- timing edits use the existing permitted authority/change path and must not bypass #2035 for approved creative state;
-- a timeline is a projection over production state, not a second timeline store;
+- untimed Dialogue/Action/Audio remains visibly unplaced rather than receiving invented timestamps;
+- selected Shot identity synchronizes with Visual Story through stable identities;
+- the inspector preserves owner/source/address/timing and routes back to Write or forward to Previs without creating a new authority;
+- timing edits reuse the existing permitted Previs authority/change path and must not bypass #2035 for approved creative state;
+- playback is an intent preview over rough/candidate/kept media and does not claim frame-accurate final playback;
+- the workspace is a projection over existing creative state, not a second timeline or cue store;
 - Premiere-like density may inform the work-area arrangement, but chrome and state treatment remain Matrix-native.
 
 ## Matrix Reference Artifact Contract
@@ -357,6 +359,6 @@ Do not automatically lock any surface because it was generated, implemented or s
 
 Phase 4 may extend only the existing standard-surface catalogue/selectors/ownership metadata required to make governed surfaces navigable and inspectable by current WebMCP + Experience Skins verification.
 
-Story Map, Visual Story and Scene Timeline should first enter the verification system as candidate/unlocked surfaces. Their real application captures, not the superseded SVGs, are the review material for any future lock decision.
+Story Map, Visual Story and Scene Workspace should first enter the verification system as candidate/unlocked surfaces. Their real application captures, not the superseded SVGs, are the review material for any future lock decision.
 
 Phase 4 must not create a second verifier, second visual harness, new design Agent or parallel screenshot governance system.

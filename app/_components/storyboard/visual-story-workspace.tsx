@@ -11,7 +11,6 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { inspectProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-inspection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
-import ProgressiveProductionLanes from "./progressive-production-lanes";
 import SceneTimelineWorkspace from "./scene-timeline-workspace";
 import styles from "./visual-story-workspace.module.css";
 
@@ -123,7 +122,7 @@ export default function VisualStoryWorkspace({
             onClick={() => setView("timeline")}
             type="button"
           >
-            Scene Timeline
+            Scene Workspace
           </button>
         </nav>
 
@@ -227,19 +226,19 @@ export default function VisualStoryWorkspace({
           </>
         ) : (
           <section
-            aria-label="Scene Timeline empty state"
+            aria-label="Scene Workspace empty state"
             className={styles.empty}
             data-projection-only="true"
-            data-scene-timeline="frames-shots-action-timing"
+            data-scene-workspace="dialogue-action-shot-audio"
             role="status"
           >
             <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
-            <p>Scene Timeline does not manufacture timing material to fill the surface. Add or relate a real Scene through the existing story authority; only real Shot and Previs timing can then occupy the timeline.</p>
+            <p>Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
           </section>
         )}
 
         <footer className={styles.boundary}>
-          Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
+          Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Workspace share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
         </footer>
       </section>
     );
@@ -460,20 +459,12 @@ export default function VisualStoryWorkspace({
         onSelectShot={setSelectedShotId}
         project={project}
         selectedShotId={selectedShot?.id ?? ""}
+        legacyProject={legacyProject}
         visualStory={projection}
       />
 
-      {view === "timeline" ? (
-        <ProgressiveProductionLanes
-          legacyProject={legacyProject}
-          onSelectShot={setSelectedShotId}
-          selectedShotId={selectedShot?.id ?? ""}
-          visualStory={projection}
-        />
-      ) : null}
-
       <footer className={styles.boundary}>
-        Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
+        Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Workspace share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
       </footer>
     </section>
   );

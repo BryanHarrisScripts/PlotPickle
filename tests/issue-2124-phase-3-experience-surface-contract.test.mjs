@@ -40,16 +40,16 @@ test("#2124 Phase 3 reuses Matrix token and interaction authority", async () => 
   assert.match(contract, /No second Matrix token namespace is permitted/u);
 });
 
-test("#2124 Phase 3 governs Story Map, Visual Story and Scene Timeline without new creative authority", async () => {
+test("#2124/#2171 governs Story Map, Visual Story and Scene Workspace without new creative authority", async () => {
   const contract = await read(contractPath);
 
   assert.match(contract, /### Story Map[\s\S]*4 Acts → 12 Sequences → 24 Blocks → 96 Mini-Blocks/u);
   assert.match(contract, /### Visual Story[\s\S]*Scene → Beat → Shot → Frame/u);
   assert.match(contract, /#2107 SHOW_NOW \/ WITHHOLD_NOW/u);
-  assert.match(contract, /### Scene Timeline[\s\S]*Frames \/ Shots \/ Action \/ Timing/u);
-  assert.match(contract, /untimed material remains visibly unplaced/u);
+  assert.match(contract, /### Scene Workspace[\s\S]*Dialogue \/ Action \/ Shot \/ Audio/u);
+  assert.match(contract, /untimed Dialogue\/Action\/Audio remains visibly unplaced/u);
   assert.match(contract, /must not bypass #2035/u);
-  assert.match(contract, /not a second timeline store/u);
+  assert.match(contract, /not a second timeline or cue store/u);
 });
 
 test("#2124 Phase 3 defines artifact and baseline governance without a parallel verifier", async () => {

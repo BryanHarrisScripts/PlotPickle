@@ -53,10 +53,11 @@ test("#2125 Slice 2 delivers a monochrome visual screenplay and compact #2107 Sh
     "does not guess that relationship",
   ]) assert.ok(workspace.includes(contract), `Visual Story surface is missing: ${contract}`);
 
-  assert.match(css, /filter:\s*grayscale\(1\)/);
-  assert.match(css, /background:\s*#0[0-9a-f]{5}/i);
+  assert.match(css, /filter:\s*var\(--pp-skin-media-filter\)/u);
+  assert.match(css, /background:\s*var\(--pp-skin-surface-0\)/u);
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(/iu);
   assert.doesNotMatch(workspace, /FOLEY|AMBIENCE|MUSIC|VOICE|VFX|TRANSITIONS/,
-    "Slice 2 must not pull later Scene Timeline production lanes into Visual Story.");
+    "Visual Story must not duplicate the synchronized Scene Workspace production lanes.");
 });
 
 test("#2125 Slice 2 keeps Story Map Block/Mini selection and reads richer legacy Scene detail projection-only", async () => {

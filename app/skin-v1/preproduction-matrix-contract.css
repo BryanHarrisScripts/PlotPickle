@@ -1,6 +1,6 @@
 /* #2125 Slice 6 — Matrix presentation bridge for the existing pre-production projections.
  *
- * Story Map, Visual Story, Scene Timeline and progressive production lanes keep
+ * Story Map, Visual Story, Scene Workspace and progressive production lanes keep
  * their existing feature/layout CSS and data authorities. This Skin V1 layer
  * owns only presentation and maps those surfaces onto the canonical
  * --pp-skin-* semantic contract. The selectors are deliberately scoped to the
@@ -10,7 +10,7 @@
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) {
   --story-defined: var(--pp-skin-accent-bright);
@@ -33,7 +33,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(section, article, aside, details, figure, dl, nav, footer, header, div, button, a, input) {
   border-radius: var(--pp-skin-radius) !important;
@@ -43,7 +43,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(h2, h3, h4, strong, b) {
   color: var(--pp-skin-ink) !important;
@@ -53,7 +53,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(p, span, small, dd, figcaption, code, label) {
   color: var(--pp-skin-ink-soft) !important;
@@ -63,7 +63,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) dt {
   color: var(--pp-skin-ink-muted) !important;
@@ -73,17 +73,17 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"]
+  [data-scene-workspace="dialogue-action-shot-audio"]
 ) > header p:first-child,
 html[data-plotpickle-skin^="skin-"] [data-progressive-production-lanes="dialogue-sound-camera-transitions"] > header p:first-child,
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] section[aria-label="Selected Shot timing controls"] p:first-child {
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] section[aria-label="Selected Shot bounded timing edit"] p:first-child {
   color: var(--pp-skin-accent-bright) !important;
 }
 
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button, input) {
   border-color: var(--pp-skin-line) !important;
@@ -96,7 +96,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) button:hover:not(:disabled) {
   border-color: var(--pp-skin-line-strong) !important;
@@ -109,7 +109,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button[aria-pressed="true"], button[data-selected="true"], li[data-selected="true"] button) {
   border-color: var(--pp-skin-line-strong) !important;
@@ -121,7 +121,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button[aria-pressed="true"], button[data-selected="true"], li[data-selected="true"] button) :is(span, strong, small) {
   color: var(--pp-skin-selected-ink) !important;
@@ -130,7 +130,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button, a, input):focus-visible {
   outline: var(--pp-skin-border-strong) solid var(--pp-skin-focus) !important;
@@ -140,7 +140,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button, input):disabled {
   border-color: var(--pp-skin-line-soft) !important;
@@ -151,7 +151,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) a {
   color: var(--pp-skin-accent-bright) !important;
@@ -161,7 +161,7 @@ html[data-plotpickle-skin^="skin-"] :is(
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],
-  [data-scene-timeline="frames-shots-action-timing"],
+  [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(section[aria-label], article, aside, details, figure, dl, div[role="status"]) {
   border-color: var(--pp-skin-line) !important;
@@ -243,7 +243,7 @@ html[data-plotpickle-skin^="skin-"] [data-visual-story="scene-beat-shot-frame"] 
 }
 
 html[data-plotpickle-skin^="skin-"] [data-visual-story="scene-beat-shot-frame"] :is(img),
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] :is(img) {
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] :is(img) {
   background: var(--pp-skin-surface-0) !important;
   filter: grayscale(1) contrast(1.04) !important;
 }
@@ -253,20 +253,20 @@ html[data-plotpickle-skin^="skin-"] [data-visual-story="scene-beat-shot-frame"] 
   background: var(--pp-skin-surface-0) !important;
 }
 
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] section[aria-label="Scene Timeline intent preview"] > div:first-child,
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] [data-lane] > div,
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] div[aria-label="Scene timing ruler"] {
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] section[aria-label="Scene Workspace intent preview"] > div:first-child,
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] [data-lane] > div,
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] div[aria-label="Scene timing ruler"] {
   border-color: var(--pp-skin-line) !important;
   background: var(--pp-skin-surface-1) !important;
   box-shadow: none !important;
 }
 
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] div[aria-hidden="true"] {
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] div[aria-hidden="true"] {
   background: var(--pp-skin-focus) !important;
   box-shadow: none !important;
 }
 
-html[data-plotpickle-skin^="skin-"] [data-scene-timeline="frames-shots-action-timing"] input[type="range"] {
+html[data-plotpickle-skin^="skin-"] [data-scene-workspace="dialogue-action-shot-audio"] input[type="range"] {
   accent-color: var(--pp-skin-accent-bright) !important;
 }
 
@@ -285,7 +285,7 @@ html[data-plotpickle-skin^="skin-"] [data-progressive-production-lanes="dialogue
   html[data-plotpickle-skin^="skin-"] :is(
     [data-progressive-story-map="24x96"],
     [data-visual-story="scene-beat-shot-frame"],
-    [data-scene-timeline="frames-shots-action-timing"],
+    [data-scene-workspace="dialogue-action-shot-audio"],
     [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
   ) * {
     transition-duration: var(--pp-skin-motion-fast) !important;

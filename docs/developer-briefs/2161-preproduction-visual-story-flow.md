@@ -10,7 +10,7 @@ This work follows #2159 Phase 1: the canonical Surface Registry now owns verific
 
 The September 17 UAT walked:
 
-`Dashboard → Outline → Block 01 / Awakening → Mini-Blocks 1–4 → Storyboard → Visual Story / Scene Timeline → Previs / Build`.
+`Dashboard → Outline → Block 01 / Awakening → Mini-Blocks 1–4 → Storyboard → Visual Story / Scene Workspace → Previs / Build`.
 
 Observed behavior:
 
@@ -20,7 +20,7 @@ Observed behavior:
 - Storyboard is functionally present but feels like an older/parallel application rather than the current Skin V1 continuation.
 - the empty `+` preview in Storyboard looks interactive but is not an action.
 - `Open Visual Story` changes selection but can look like a no-op because the projection is below the fold and may truthfully contain no related Scene.
-- Scene Timeline exists but its relationship to Visual Story is not obvious.
+- Scene Workspace exists but its relationship to Visual Story is not obvious.
 - `Open BUILD evidence` and other `/?workspace=build` handoffs leave Skin V1 and, after the Skin V1 bootstrap takes authority, appear to drop the Human back rather than continue the flow.
 - Add a Visual can correctly reject a Story Mode CLOUD / selected image route LOCAL mismatch, but the message does not provide a clear in-context path to the governing configuration.
 
@@ -32,7 +32,7 @@ Observed behavior:
 4. Outline / Story Map owns structural navigation.
 5. Storyboard owns visual planning around the selected Block and Mini-Block addresses.
 6. Visual Story projects real `Scene → Beat → Shot → Frame` relationships.
-7. Scene Timeline is a sibling timing/order view over the same selected material.
+7. Scene Workspace is a sibling timing/order view over the same selected material.
 8. Previs owns creative camera/timing intent downstream of kept Storyboard evidence.
 9. Missing Scene/Beat/Shot/Frame material stays truthfully empty. PlotPickle never manufactures canon to make a screen look populated.
 10. Settings / Story Mode remains Local/Cloud/Hybrid provider-policy authority.
@@ -66,7 +66,7 @@ The standalone `/storyboard`, `/previs` and `/?workspace=build` routes remain av
 
 `Block NN · Mini-Block N` must remain visible and preserved when moving:
 
-`Outline → Storyboard → Visual Story / Scene Timeline → Previs`.
+`Outline → Storyboard → Visual Story / Scene Workspace → Previs`.
 
 Where a downstream authority only uses Block initially, preserve the Mini-Block as review context and use it when opening the owning Storyboard anchor.
 
@@ -81,9 +81,9 @@ Where a downstream authority only uses Block initially, preserve the Mini-Block 
 
 No synthetic Scene is created.
 
-### Scene Timeline affordance
+### Scene Workspace affordance
 
-Visual Story and Scene Timeline are explicitly labeled as sibling views over the same selected material. Switching view preserves Block/Mini-Block and real Scene/Shot selection.
+Visual Story and Scene Workspace are explicitly labeled as sibling views over the same selected material. Switching view preserves Block/Mini-Block and real Scene/Shot selection. The Scene Workspace converges the source preview, intent playback, cue inspector and Dialogue / Action / Shot / Audio lanes without introducing another timeline store.
 
 ### Empty `+` preview
 
@@ -115,7 +115,7 @@ The existing Add-a-Visual logic remains authoritative. When policy and selected 
 3. Outline can hand off the selected Block/Mini-Block to Storyboard and Build without leaving Skin V1.
 4. Storyboard clearly displays the current Block/Mini-Block address.
 5. `Open Visual Story` visibly moves to the projection and always produces either real content or a truthful explicit empty state.
-6. Scene Timeline is clearly a sibling view over the same selection.
+6. Scene Workspace is clearly a sibling view over the same selection.
 7. Previs receives the selected Block context and can return to the owning Storyboard address.
 8. `Open BUILD evidence` opens canonical Build inside Skin V1.
 9. Dead `+` chrome is removed/replaced with an honest empty-preview label.

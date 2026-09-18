@@ -1,10 +1,12 @@
 import type { SequenceDirectorDraft } from "../../core/contracts/sequence-director";
+import { normalizeProjectSourceEvidence } from "../../core/contracts/imported-screenplay-evidence";
 import type { PPFProject } from "../../core/project/project";
 import type { StoryStructureV2 } from "../../core/project/story-structure-v2";
 import type { PlotPickleProject, StoryScene } from "../projects/project";
 
 export type CanonicalPreproductionProject = PPFProject & {
   readonly structure: StoryStructureV2;
+  readonly sourceEvidence?: unknown;
 };
 
 export type PreproductionAssetReference = {
@@ -123,6 +125,59 @@ function canonicalMiniForLegacy(
     ?.miniBlocks.find((mini) => mini.ordinal === localMiniNumber) ?? null;
 }
 
+type SourceSceneProjection = {
+  readonly scene: SceneSemanticProjection;
+  readonly sourceMiniBlockIds: readonly string[];
+};
+
+function sourceSceneId(sceneId: string | null, sceneNumber: number) {
+  return sceneId || `source-scene:${sceneNumber}`;
+}
+
+function projectSourceScenes(canonical: CanonicalPreproductionProject): readonly SourceSceneProjection[] {
+  const screenplay = normalizeProjectSourceEvidence(canonical.sourceEvidence).screenplay;
+  if (!screenplay) return [];
+  const byScene = new Map<string, typeof screenplay.passages>();
+  for (const passage of screenplay.passages) {
+    if (passage.sceneNumber <= 0) continue;
+    const id = sourceSceneId(passage.sceneId, passage.sceneNumber);
+    const current = byScene.get(id) ?? [];
+    byScene.set(id, [...current, passage]);
+  }
+
+  return [...byScene.entries()].map(([id, passages]) => {
+    const ordered = [...passages];
+    const heading = ordered.find((passage) => /scene[- ]?heading|slug/i.test(passage.type));
+    const first = ordered[0];
+    const canonicalBlock = canonical.structure.blocks.find((block) => block.number === first.blockNumber);
+    const relatedMiniBlockIds = unique(ordered.flatMap((passage) => {
+      const mini = canonicalMiniForLegacy(canonical.structure, passage.blockNumber, passage.miniBlockNumber);
+      return mini ? [mini.id] : [];
+    }));
+    return {
+      scene: {
+        id,
+        sourceRef: `screenplay-scene:${screenplay.sourceFileName}:scene-${first.sceneNumber}`,
+        blockId: canonicalBlock?.id ?? `block-${String(first.blockNumber).padStart(2, "0")}`,
+        blockNumber: first.blockNumber,
+        title: heading?.text || `Scene ${first.sceneNumber}`,
+        purpose: "",
+        objective: "",
+        opposition: "",
+        action: "",
+        turn: "",
+        outcome: "",
+        relatedMiniBlockIds,
+        assetRefs: [],
+      },
+      sourceMiniBlockIds: relatedMiniBlockIds,
+    };
+  }).sort((left, right) => {
+    if (left.scene.blockNumber !== right.scene.blockNumber) return left.scene.blockNumber - right.scene.blockNumber;
+    return left.scene.id.localeCompare(right.scene.id);
+  });
+}
+
 function projectScene(
   canonical: CanonicalPreproductionProject,
   blockNumber: number,
@@ -163,9 +218,10 @@ export function projectPreproductionSemantics(
   legacy: PlotPickleProject | null = null,
 ): PreproductionSemanticProjection {
   const matched = legacyMatches(canonical, legacy);
+  const sourceScenes = matched ? [] : projectSourceScenes(canonical);
   const scenes = matched
     ? legacy!.blocks.flatMap((block) => block.scenes.map((scene) => projectScene(canonical, block.number, scene)))
-    : [];
+    : sourceScenes.map((entry) => entry.scene);
   const scenesByMini = new Map<string, { sceneIds: string[]; sourceMiniBlockIds: string[] }>();
 
   if (matched) {
@@ -179,6 +235,15 @@ export function projectPreproductionSemantics(
           entry.sourceMiniBlockIds.push(mini.id);
           scenesByMini.set(canonicalMini.id, entry);
         }
+      }
+    }
+  } else {
+    for (const entry of sourceScenes) {
+      for (const miniBlockId of entry.scene.relatedMiniBlockIds) {
+        const relation = scenesByMini.get(miniBlockId) ?? { sceneIds: [], sourceMiniBlockIds: [] };
+        relation.sceneIds.push(entry.scene.id);
+        relation.sourceMiniBlockIds.push(miniBlockId);
+        scenesByMini.set(miniBlockId, relation);
       }
     }
   }

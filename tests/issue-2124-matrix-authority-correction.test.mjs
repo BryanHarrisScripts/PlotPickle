@@ -36,5 +36,5 @@ test("#2124 makes real Matrix implementation the visual precedent for Phase 4", 
   assert.match(contract, /other real Matrix screenshots as unlocked\/candidate reference corpus/u);
   assert.match(contract, /three Phase 2 SVG boards are now `superseded-reference`/u);
   assert.match(contract, /do not treat the superseded SVG compositions as layout specifications/u);
-  assert.match(contract, /Story Map, Visual Story and Scene Timeline should first enter the verification system as candidate\/unlocked surfaces/u);
+  assert.match(contract, /Story Map, Visual Story and Scene Workspace should first enter the verification system as candidate\/unlocked surfaces/u);
 });

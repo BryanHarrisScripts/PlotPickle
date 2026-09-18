@@ -43,7 +43,7 @@ test("#2125 Slice 5 distinguishes bounded impact from revision-proven stale deri
   assert.match(module, /production-instruction:\$\{project\.id\}:revision-/);
   assert.match(module, /staleDerivativeIds\s*=\s*stableIds\(plan\.downstreamAffectedIds\.filter/);
 
-  // The edited Shot keeps one stable identity across Visual Story and Scene Timeline.
+  // The edited Shot keeps one stable identity across Visual Story and Scene Workspace.
   assert.match(visual, /productionShotId:\s*production\?\.id\s*\?\?\s*null/);
   assert.match(timeline, /productionShotId:\s*shot\.productionShotId/);
   assert.match(timeline, /id:\s*shot\.id/);

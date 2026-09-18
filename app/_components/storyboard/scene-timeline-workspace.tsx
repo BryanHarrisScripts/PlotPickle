@@ -1,16 +1,17 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Scene Timeline previews existing local Storyboard artifacts. */
+/* eslint-disable @next/next/no-img-element -- Scene Workspace previews existing local Storyboard/Previs artifacts. */
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
+import type { PlotPickleProject } from "@/lib/projects/project";
 import {
-  projectSceneTimeline,
-  type SceneTimelineShotProjection,
-} from "@/lib/preproduction/scene-timeline-projection";
+  projectSceneWorkspace,
+  type SceneWorkspaceCue,
+} from "@/lib/preproduction/scene-workspace-projection";
 import type { VisualStoryProjection } from "@/lib/preproduction/visual-story-projection";
 import styles from "./scene-timeline-workspace.module.css";
 
@@ -33,12 +34,24 @@ function markerStyle(second: number, totalSeconds: number): CSSProperties {
   return { left: `${Math.max(0, Math.min(100, (second / total) * 100))}%` };
 }
 
-function canEditTiming(shot: SceneTimelineShotProjection | null) {
+function canEditTiming(
+  shot: ReturnType<typeof projectSceneWorkspace>["timeline"]["shots"][number] | null,
+) {
   return Boolean(shot?.productionShotId && shot.reviewState === "planned");
+}
+
+function timingLabel(cue: SceneWorkspaceCue) {
+  if (cue.startSecond !== null && cue.endSecond !== null) {
+    return `${clock(cue.startSecond)} → ${clock(cue.endSecond)}`;
+  }
+  return cue.timingState === "blocked"
+    ? "Position blocked by earlier untimed Shot"
+    : "Timing not authored";
 }
 
 export default function SceneTimelineWorkspace({
   project,
+  legacyProject,
   visualStory,
   selectedShotId,
   active,
@@ -46,18 +59,36 @@ export default function SceneTimelineWorkspace({
   onProjectChange,
 }: {
   readonly project: LibraryPPFProject;
+  readonly legacyProject: PlotPickleProject | null;
   readonly visualStory: VisualStoryProjection;
   readonly selectedShotId: string;
   readonly active: boolean;
   readonly onSelectShot: (shotId: string) => void;
   readonly onProjectChange: (project: PPFProject) => void;
 }) {
-  const timeline = useMemo(() => projectSceneTimeline(visualStory), [visualStory]);
+  const workspace = useMemo(
+    () => projectSceneWorkspace({ project, visualStory, legacyProject }),
+    [legacyProject, project, visualStory],
+  );
+  const timeline = workspace.timeline;
+  const [selectedCueId, setSelectedCueId] = useState("");
   const [playheadSeconds, setPlayheadSeconds] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [message, setMessage] = useState("");
-  const selectedShot = timeline.shots.find((shot) => shot.id === selectedShotId) ?? timeline.shots[0] ?? null;
-  const previewFrame = selectedShot?.frames[0] ?? null;
+
+  const selectedCue = workspace.cues.find((cue) => cue.id === selectedCueId)
+    ?? workspace.shot.find((cue) => cue.shotId === selectedShotId)
+    ?? workspace.shot[0]
+    ?? workspace.dialogue[0]
+    ?? workspace.action[0]
+    ?? workspace.audio[0]
+    ?? null;
+  const selectedShot = timeline.shots.find((shot) => (
+    shot.id === selectedCue?.shotId || shot.id === selectedShotId
+  )) ?? timeline.shots[0] ?? null;
+  const previewFrame = selectedShot?.frames[0]
+    ?? visualStory.anchors.flatMap((anchor) => anchor.frames)[0]
+    ?? null;
   const activeShot = timeline.shots.find((shot) => (
     shot.startSecond !== null
     && shot.endSecond !== null
@@ -70,43 +101,60 @@ export default function SceneTimelineWorkspace({
   }, [active, playing]);
 
   useEffect(() => {
-    if (timeline.totalSeconds <= 0) {
+    if (workspace.totalSeconds <= 0) {
       setPlayheadSeconds(0);
       setPlaying(false);
       return;
     }
-    setPlayheadSeconds((current) => Math.min(current, timeline.totalSeconds));
-  }, [timeline.sceneId, timeline.totalSeconds]);
+    setPlayheadSeconds((current) => Math.min(current, workspace.totalSeconds));
+  }, [timeline.sceneId, workspace.totalSeconds]);
 
   useEffect(() => {
-    if (!active || playing || !selectedShot || selectedShot.startSecond === null) return;
-    setPlayheadSeconds(selectedShot.startSecond);
-  }, [active, playing, selectedShot?.id, selectedShot?.startSecond]);
+    if (!active || playing || !selectedCue || selectedCue.startSecond === null) return;
+    setPlayheadSeconds(selectedCue.startSecond);
+  }, [active, playing, selectedCue?.id, selectedCue?.startSecond]);
 
   useEffect(() => {
-    if (!active || !playing || timeline.totalSeconds <= 0) return;
+    if (!active || !playing || workspace.totalSeconds <= 0) return;
     const interval = window.setInterval(() => {
       setPlayheadSeconds((current) => {
-        const next = Math.min(timeline.totalSeconds, current + 0.1);
-        if (next >= timeline.totalSeconds) window.setTimeout(() => setPlaying(false), 0);
+        const next = Math.min(workspace.totalSeconds, current + 0.1);
+        if (next >= workspace.totalSeconds) window.setTimeout(() => setPlaying(false), 0);
         return next;
       });
     }, 100);
     return () => window.clearInterval(interval);
-  }, [active, playing, timeline.totalSeconds]);
+  }, [active, playing, workspace.totalSeconds]);
 
   useEffect(() => {
-    if (active && playing && activeShot && activeShot.id !== selectedShotId) onSelectShot(activeShot.id);
-  }, [active, activeShot?.id, onSelectShot, playing, selectedShotId]);
+    if (!active || !playing || !activeShot || activeShot.id === selectedShotId) return;
+    onSelectShot(activeShot.id);
+    const cue = workspace.shot.find((candidate) => candidate.shotId === activeShot.id);
+    if (cue) setSelectedCueId(cue.id);
+  }, [active, activeShot?.id, onSelectShot, playing, selectedShotId, workspace.shot]);
 
-  function selectShot(shot: SceneTimelineShotProjection) {
-    onSelectShot(shot.id);
-    if (shot.startSecond !== null) setPlayheadSeconds(shot.startSecond);
+  function preserveSceneWorkspaceAddress(cue: SceneWorkspaceCue | null) {
+    if (!cue) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", "timeline");
+    url.searchParams.set("block", String(cue.blockNumber));
+    url.searchParams.set("mini", String(cue.miniBlockNumber));
+    if (workspace.sceneId) url.searchParams.set("scene", workspace.sceneId);
+    if (cue.shotId) url.searchParams.set("shot", cue.shotId);
+    else url.searchParams.delete("shot");
+    window.history.replaceState(window.history.state, "", url);
+  }
+
+  function selectCue(cue: SceneWorkspaceCue) {
+    setSelectedCueId(cue.id);
+    preserveSceneWorkspaceAddress(cue);
+    if (cue.shotId) onSelectShot(cue.shotId);
+    if (cue.startSecond !== null) setPlayheadSeconds(cue.startSecond);
   }
 
   function saveDuration(durationSeconds: number | null) {
     if (!selectedShot?.productionShotId) {
-      setMessage("This visual Shot has no persisted Previs ProductionShotIntent yet, so there is no timing authority to update.");
+      setMessage("This cue has no persisted Previs ProductionShotIntent, so Scene Workspace has no timing authority to update.");
       return;
     }
     const current = project.production.shots.find((shot) => shot.id === selectedShot.productionShotId);
@@ -115,13 +163,14 @@ export default function SceneTimelineWorkspace({
       return;
     }
     if (current.reviewState === "approved") {
-      setMessage("Approved timing is protected in Slice 3. Consequential approved changes remain on the #2035 path proved in Slice 5.");
+      setMessage("Approved Shot timing is protected. Consequential approved changes remain on the existing #2035 creative-transaction path.");
       return;
     }
     if (current.reviewState === "omitted") {
-      setMessage("Omitted Shots are not timing-editable from the Scene Timeline.");
+      setMessage("Omitted Shots are not timing-editable from Scene Workspace.");
       return;
     }
+
     const normalized = durationSeconds === null
       ? null
       : Math.max(0.01, Math.min(3600, Math.round(durationSeconds * 100) / 100));
@@ -135,7 +184,7 @@ export default function SceneTimelineWorkspace({
     onProjectChange(saved);
     setMessage(normalized === null
       ? `Shot ${selectedShot.order} is untimed again. No replacement timestamp was invented.`
-      : `Shot ${selectedShot.order} duration saved to ${normalized}s through the existing Previs Shot authority.`);
+      : `Shot ${selectedShot.order} duration saved to ${normalized}s through the existing Previs authority. Dialogue, Action and Audio source cues were unchanged.`);
   }
 
   function submitDuration(event: FormEvent<HTMLFormElement>) {
@@ -156,174 +205,197 @@ export default function SceneTimelineWorkspace({
 
   function nudgeDuration(deltaSeconds: number) {
     if (!selectedShot) return;
-    const baseline = selectedShot.durationSeconds ?? 0;
-    saveDuration(Math.max(0.01, baseline + deltaSeconds));
+    saveDuration(Math.max(0.01, (selectedShot.durationSeconds ?? 0) + deltaSeconds));
+  }
+
+  function renderLane(label: string, cues: readonly SceneWorkspaceCue[]) {
+    const timed = cues.filter((cue) => cue.startSecond !== null && cue.endSecond !== null);
+    const unplaced = cues.filter((cue) => cue.startSecond === null || cue.endSecond === null);
+    return (
+      <div className={styles.lane} data-lane={label.toLowerCase()}>
+        <strong className={styles.laneLabel}>{label}</strong>
+        <div className={styles.laneBody}>
+          <div className={styles.track}>
+            {timed.map((cue) => (
+              <button
+                aria-pressed={cue.id === selectedCue?.id}
+                className={styles.timedCue}
+                data-owner={cue.owner}
+                key={cue.id}
+                onClick={() => selectCue(cue)}
+                style={spanStyle(cue.startSecond!, cue.endSecond!, workspace.totalSeconds)}
+                title={cue.detail}
+                type="button"
+              >
+                {cue.label}
+              </button>
+            ))}
+          </div>
+          {unplaced.length ? (
+            <div className={styles.unplaced}>
+              {unplaced.map((cue) => (
+                <button
+                  aria-pressed={cue.id === selectedCue?.id}
+                  data-owner={cue.owner}
+                  key={cue.id}
+                  onClick={() => selectCue(cue)}
+                  type="button"
+                >
+                  <strong>{cue.label}</strong>
+                  <span>{cue.detail}</span>
+                  <small>{cue.timingState === "blocked" ? "BLOCKED" : "UNTIMED"} · {cue.sourceRef}</small>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   if (!visualStory.selectedScene) return null;
 
   return (
     <section
-      aria-label={`Scene Timeline for ${visualStory.selectedScene.title}`}
+      aria-label={`Scene Workspace for ${visualStory.selectedScene.title}`}
       className={styles.workspace}
       data-projection-only="true"
-      data-scene-timeline="frames-shots-action-timing"
+      data-scene-workspace="dialogue-action-shot-audio"
       hidden={!active}
     >
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>Scene Timeline · Frames / Shots / Action / Timing</p>
-          <h3>{timeline.sceneTitle}</h3>
-          <p>Temporal view of the same Visual Story objects. Shot order and authored Previs duration determine placement; untimed material remains untimed.</p>
+          <p className={styles.kicker}>Scene Workspace · Dialogue / Action / Shot / Audio</p>
+          <h3>{workspace.sceneTitle}</h3>
+          <p>One synchronized projection over the screenplay, Storyboard, Previs and audio authorities. Cue placement never creates a parallel timeline canon.</p>
         </div>
         <div className={styles.summary}>
+          <span>{workspace.sourcePassages.length} source passages</span>
+          <span>{workspace.cues.length} cues</span>
           <span>{timeline.timedShotCount}/{timeline.shots.length} timed Shots</span>
-          <span>{clock(timeline.totalSeconds)} scene span</span>
         </div>
       </header>
 
-      <section className={styles.preview} aria-label="Scene Timeline intent preview">
-        <div className={styles.previewImage}>
-          {previewFrame
-            ? <img alt={previewFrame.narrativePurpose || "Selected Shot frame"} src={previewFrame.assetUrl} />
-            : <span>NO LINKED PREVIEW FRAME</span>}
-          <i>INTENT PREVIEW</i>
-        </div>
-        <div className={styles.transport}>
-          <div className={styles.transportButtons}>
-            <button disabled={timeline.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(0); }} type="button">|◀</button>
-            <button disabled={timeline.totalSeconds <= 0} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
-            <button disabled={timeline.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(timeline.totalSeconds); }} type="button">▶|</button>
-          </div>
-          <strong>{clock(playheadSeconds)}</strong>
-          <input
-            aria-label="Scene Timeline playhead"
-            disabled={timeline.totalSeconds <= 0}
-            max={Math.max(0.1, timeline.totalSeconds)}
-            min="0"
-            onChange={(event) => { setPlaying(false); setPlayheadSeconds(Number(event.currentTarget.value)); }}
-            step="0.1"
-            type="range"
-            value={Math.min(playheadSeconds, Math.max(0.1, timeline.totalSeconds))}
-          />
-          <small>Transport previews intended timing only; it does not claim frame-accurate media playback or observed take timing.</small>
-        </div>
-      </section>
+      <div className={styles.contextStrip} aria-label="Scene Workspace story address">
+        <span>Scene · {workspace.sceneId}</span>
+        {selectedCue ? <span>Block {String(selectedCue.blockNumber).padStart(2, "0")} · Mini-Block {selectedCue.miniBlockNumber}</span> : null}
+        <span>{workspace.sourceFileName || "No screenplay source file"}</span>
+      </div>
 
-      <div className={styles.timeline}>
-        <div className={styles.ruler} aria-label="Scene timing ruler">
-          {timeline.anchors.map((anchor) => (
-            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond, timeline.totalSeconds)}>
-              {anchor.blockNumber}.{anchor.miniBlockNumber} · {clock(anchor.startSecond)}
+      <div className={styles.topGrid}>
+        <section className={styles.sourcePanel} aria-label="Scene screenplay source">
+          <div className={styles.panelHeading}>
+            <p className={styles.kicker}>Screenplay source</p>
+            <strong>{workspace.sourcePassages.length ? "REAL IMPORTED EVIDENCE" : "NO MAPPED SOURCE"}</strong>
+          </div>
+          <div className={styles.sourceScroll}>
+            {workspace.sourcePassages.length ? workspace.sourcePassages.map((passage) => (
+              <button
+                className={styles.sourcePassage}
+                data-source-type={passage.type}
+                key={passage.id}
+                onClick={() => {
+                  const cue = workspace.cues.find((candidate) => candidate.sourceRef === passage.sourceRef);
+                  if (cue) selectCue(cue);
+                }}
+                type="button"
+              >
+                <small>{passage.type} · Scene {passage.sceneNumber} · {passage.blockNumber}.{passage.miniBlockNumber}</small>
+                <span>{passage.text}</span>
+              </button>
+            )) : (
+              <p className={styles.empty}>No imported screenplay passage is mapped to this Scene. Scene Workspace does not fabricate dialogue or action to fill the source panel.</p>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.preview} aria-label="Scene intent playback">
+          <div className={styles.panelHeading}>
+            <p className={styles.kicker}>Intent playback</p>
+            <strong>ROUGH / PREVIS MEDIA IS VALID</strong>
+          </div>
+          <div className={styles.previewImage}>
+            {previewFrame
+              ? <img alt={previewFrame.narrativePurpose || "Selected Scene Workspace frame"} src={previewFrame.assetUrl} />
+              : <span>NO LINKED PLAYBACK FRAME</span>}
+            <i>INTENT PREVIEW</i>
+          </div>
+          <div className={styles.transport}>
+            <div className={styles.transportButtons}>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(0); }} type="button">|◀</button>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(workspace.totalSeconds); }} type="button">▶|</button>
+            </div>
+            <strong>{clock(playheadSeconds)}</strong>
+            <input
+              aria-label="Scene Workspace playhead"
+              disabled={workspace.totalSeconds <= 0}
+              max={Math.max(0.1, workspace.totalSeconds)}
+              min="0"
+              onChange={(event) => { setPlaying(false); setPlayheadSeconds(Number(event.currentTarget.value)); }}
+              step="0.1"
+              type="range"
+              value={Math.min(playheadSeconds, Math.max(0.1, workspace.totalSeconds))}
+            />
+            <small>Intent playback follows authored Shot timing only. It does not claim frame-accurate final-media playback.</small>
+          </div>
+        </section>
+
+        <aside className={styles.inspector} aria-label="Selected Scene Workspace cue inspector">
+          <p className={styles.kicker}>Cue inspector</p>
+          {selectedCue ? (
+            <>
+              <h4>{selectedCue.lane.toUpperCase()} · {selectedCue.label}</h4>
+              <p className={styles.intent}>{selectedCue.detail || "No intent detail is authored for this cue."}</p>
+              <dl className={styles.cueFacts}>
+                <div><dt>Owner</dt><dd>{selectedCue.owner}</dd></div>
+                <div><dt>Timing</dt><dd>{timingLabel(selectedCue)}</dd></div>
+                <div><dt>Address</dt><dd>{selectedCue.blockNumber}.{selectedCue.miniBlockNumber}</dd></div>
+                <div><dt>Source</dt><dd>{selectedCue.sourceRef}</dd></div>
+              </dl>
+              <div className={styles.inspectorActions}>
+                <button
+                  onClick={() => window.location.assign(`/?workspace=write&block=${selectedCue.blockNumber}&mini=${selectedCue.miniBlockNumber}`)}
+                  type="button"
+                >
+                  Back to Write
+                </button>
+                <button
+                  onClick={() => window.location.assign(`/previs?block=${selectedCue.blockNumber}&mini=${selectedCue.miniBlockNumber}`)}
+                  type="button"
+                >
+                  Open Previs / Production intent
+                </button>
+              </div>
+            </>
+          ) : <p className={styles.empty}>No real cue exists in this Scene yet.</p>}
+        </aside>
+      </div>
+
+      <section className={styles.timelinePanel} aria-label="Synchronized Scene Workspace timeline">
+        <div className={styles.ruler}>
+          {timeline.anchors.filter((anchor) => anchor.startSecond !== null).map((anchor) => (
+            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond!, workspace.totalSeconds)}>
+              {anchor.blockNumber}.{anchor.miniBlockNumber}
             </span>
           ))}
         </div>
+        {renderLane("Dialogue", workspace.dialogue)}
+        {renderLane("Action", workspace.action)}
+        {renderLane("Shot", workspace.shot)}
+        {renderLane("Audio", workspace.audio)}
+        {workspace.totalSeconds > 0 ? (
+          <div aria-hidden="true" className={styles.playhead} style={markerStyle(playheadSeconds, workspace.totalSeconds)} />
+        ) : null}
+      </section>
 
-        <div className={styles.lane} data-lane="frames">
-          <strong className={styles.laneLabel}>FRAMES</strong>
-          <div className={styles.track}>
-            {timeline.shots.flatMap((shot) => shot.startSecond === null || shot.endSecond === null
-              ? []
-              : shot.frames.map((frame, frameIndex) => {
-                const count = Math.max(1, shot.frames.length);
-                const segment = (shot.endSecond! - shot.startSecond!) / count;
-                const start = shot.startSecond! + (segment * frameIndex);
-                return (
-                  <button
-                    aria-label={`Select Shot ${shot.order} from Frame ${frame.id}`}
-                    className={styles.frameItem}
-                    data-selected={shot.id === selectedShot?.id ? "true" : undefined}
-                    key={`${shot.id}:${frame.id}`}
-                    onClick={() => selectShot(shot)}
-                    style={spanStyle(start, start + segment, timeline.totalSeconds)}
-                    type="button"
-                  >
-                    <img alt="" src={frame.assetUrl} />
-                  </button>
-                );
-              }))}
-          </div>
-        </div>
-
-        <div className={styles.lane} data-lane="shots">
-          <strong className={styles.laneLabel}>SHOTS</strong>
-          <div className={styles.track}>
-            {timeline.shots.filter((shot) => shot.startSecond !== null && shot.endSecond !== null).map((shot) => (
-              <button
-                aria-pressed={shot.id === selectedShot?.id}
-                className={styles.shotItem}
-                key={shot.id}
-                onClick={() => selectShot(shot)}
-                style={spanStyle(shot.startSecond!, shot.endSecond!, timeline.totalSeconds)}
-                type="button"
-              >
-                S{shot.order} · {shot.durationSeconds}s
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.lane} data-lane="action">
-          <strong className={styles.laneLabel}>ACTION</strong>
-          <div className={styles.track}>
-            {timeline.shots.filter((shot) => shot.startSecond !== null && shot.endSecond !== null).map((shot) => (
-              <button
-                aria-label={`Select Shot ${shot.order}: ${shot.action}`}
-                className={styles.actionItem}
-                data-selected={shot.id === selectedShot?.id ? "true" : undefined}
-                key={shot.id}
-                onClick={() => selectShot(shot)}
-                style={spanStyle(shot.startSecond!, shot.endSecond!, timeline.totalSeconds)}
-                type="button"
-              >
-                {shot.action}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.lane} data-lane="timing">
-          <strong className={styles.laneLabel}>TIMING</strong>
-          <div className={`${styles.track} ${styles.timingTrack}`}>
-            {timeline.anchors.map((anchor) => (
-              <span className={styles.anchorSpan} key={anchor.anchorRef} style={spanStyle(anchor.startSecond, anchor.endSecond, timeline.totalSeconds)}>
-                {clock(anchor.startSecond)}–{clock(anchor.endSecond)}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div aria-hidden="true" className={styles.playhead} style={markerStyle(playheadSeconds, timeline.totalSeconds)} />
-      </div>
-
-      {(timeline.untimedShots.length || timeline.untimedFrames.length) ? (
-        <section className={styles.untimed} aria-label="Untimed Scene material">
+      {selectedCue?.lane === "shot" && selectedShot ? (
+        <section className={styles.timingControls} aria-label="Selected Shot bounded timing edit">
           <div>
-            <strong>UNTIMED MATERIAL</strong>
-            <span>Kept out of the temporal lanes until the existing timing authority can place it.</span>
+            <p className={styles.kicker}>Bounded Shot timing change</p>
+            <strong>Shot {selectedShot.order}</strong>
+            <span>{selectedShot.startSecond === null ? "Start unresolved" : `${clock(selectedShot.startSecond)} → ${clock(selectedShot.endSecond ?? selectedShot.startSecond)}`}</span>
           </div>
-          <div className={styles.untimedItems}>
-            {timeline.untimedShots.map((shot) => (
-              <button key={shot.id} onClick={() => selectShot(shot)} type="button">
-                Shot {shot.order} · {shot.durationSeconds === null ? "duration open" : `${shot.durationSeconds}s · start blocked by earlier untimed Shot`}
-              </button>
-            ))}
-            {timeline.untimedFrames.map((frame) => <span key={frame.id}>Frame · {frame.narrativePurpose || frame.id}</span>)}
-          </div>
-        </section>
-      ) : null}
-
-      <section className={styles.timingControls} aria-label="Selected Shot timing controls">
-        <div>
-          <p className={styles.kicker}>Selected Shot Timing</p>
-          {selectedShot ? (
-            <>
-              <strong>Shot {selectedShot.order}</strong>
-              <span>{selectedShot.startSecond === null ? "Start unresolved" : `${clock(selectedShot.startSecond)} → ${clock(selectedShot.endSecond ?? selectedShot.startSecond)}`}</span>
-            </>
-          ) : <span>No Shot is selected.</span>}
-        </div>
-        {selectedShot ? (
           <form key={`${selectedShot.id}:${selectedShot.durationSeconds ?? "untimed"}`} onSubmit={submitDuration}>
             <label>
               Duration seconds
@@ -346,15 +418,15 @@ export default function SceneTimelineWorkspace({
               <button disabled={!canEditTiming(selectedShot)} type="submit">Save duration</button>
             </div>
           </form>
-        ) : null}
-        <p className={styles.authorityNote}>
-          Start position is derived from Shot order plus preceding authored durations; this Slice does not invent an independent start-time store. Planned Previs Shots can edit duration here. Approved timing remains protected for the later #2035 cross-view change proof.
-        </p>
-      </section>
+          <p className={styles.authorityNote}>
+            Only the existing planned Previs ProductionShotIntent duration is editable here. Approved timing must stay on the #2035 creative-transaction path. Dialogue, Action and Audio remain source-owned and are never shifted into a Scene Workspace store.
+          </p>
+        </section>
+      ) : null}
 
       <p className={styles.message} aria-live="polite">{message}</p>
       <footer className={styles.boundary}>
-        Projection only. Frames, Shots, action intent and timing remain owned by existing Storyboard / editorial Shot / Previs authorities. No technical RenderClip lane, audio lane or timeline-only canon is created here.
+        Projection only. Dialogue stays screenplay-owned; Action stays screenplay/Beat-owned; Shot timing stays Previs-owned; Audio stays Sequence Director / Sonic Cue-owned. Missing cues remain missing and no Scene Workspace canon store is created.
       </footer>
     </section>
   );

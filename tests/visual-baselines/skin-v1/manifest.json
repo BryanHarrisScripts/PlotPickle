@@ -96,9 +96,9 @@
       "baseline": "tests/visual-baselines/skin-v1/story-map.png"
     },
     "scene-timeline": {
-      "label": "Scene Timeline",
+      "label": "Scene Workspace",
       "status": "candidate",
-      "selector": "[data-scene-timeline='frames-shots-action-timing']",
+      "selector": "[data-scene-workspace='dialogue-action-shot-audio']",
       "candidate": ".artifacts/visual-readiness/scene-timeline-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/scene-timeline.png"
     },

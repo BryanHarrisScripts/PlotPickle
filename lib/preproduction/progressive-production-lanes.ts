@@ -93,7 +93,6 @@ function dialogueItems(visualStory: VisualStoryProjection, legacyProject: PlotPi
 function soundItems(
   visualStory: VisualStoryProjection,
   legacyProject: PlotPickleProject | null,
-  totalSeconds: number,
 ): readonly SoundLaneItem[] {
   const timeline = projectSceneTimeline(visualStory);
   const anchorByRef = new Map(timeline.anchors.map((anchor) => [anchor.anchorRef, anchor]));
@@ -103,9 +102,13 @@ function soundItems(
     return anchor.beats.flatMap((beat) => {
       const detail = beat.soundIntent.trim();
       if (!detail) return [];
-      const timed = beat.startSecond !== null && beat.endSecond !== null;
-      const startSecond = timed ? timelineAnchor.startSecond + beat.startSecond! : null;
-      const endSecond = timed ? Math.min(totalSeconds, timelineAnchor.startSecond + beat.endSecond!) : null;
+      const timed = (
+        beat.startSecond !== null
+        && beat.endSecond !== null
+        && timelineAnchor.startSecond !== null
+      );
+      const startSecond = timed ? timelineAnchor.startSecond! + beat.startSecond! : null;
+      const endSecond = timed ? timelineAnchor.startSecond! + beat.endSecond! : null;
       return [{
         id: beat.id,
         source: "sequence-director" as const,
@@ -203,7 +206,7 @@ export function projectProgressiveProductionLanes(input: {
     sceneId: input.visualStory.selectedScene?.id ?? null,
     totalSeconds: timeline.totalSeconds,
     dialogue: dialogueItems(input.visualStory, input.legacyProject),
-    sound: soundItems(input.visualStory, input.legacyProject, timeline.totalSeconds),
+    sound: soundItems(input.visualStory, input.legacyProject),
     camera: cameraItems(input.visualStory),
     transitions: transitionItems(input.visualStory),
   };

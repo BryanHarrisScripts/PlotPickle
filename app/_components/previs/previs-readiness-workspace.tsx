@@ -361,7 +361,11 @@ export default function PrevisReadinessWorkspace({
             <div className={styles.timelineAnchor} data-state={anchor.state} key={anchor.id}>
               <i aria-hidden="true" className={styles.stateLight} />
               <span>{anchor.blockNumber}.{anchor.miniBlockNumber}</span>
-              <small>{anchor.renderPlanReady ? `${RENDER_CLIPS_PER_MINI_BLOCK} render clips ready` : `${anchor.authoredDurationSeconds}/${RENDER_MINI_BLOCK_SECONDS}s Previs · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved clips`}</small>
+              <small>{anchor.renderPlanReady
+                ? `${RENDER_CLIPS_PER_MINI_BLOCK} render clips ready`
+                : anchor.authoredDurationSeconds
+                  ? `${anchor.authoredDurationSeconds}/${RENDER_MINI_BLOCK_SECONDS}s authored · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved technical clips`
+                  : `timing missing · ${RENDER_CLIPS_PER_MINI_BLOCK} reserved technical clips`}</small>
             </div>
           ))}
         </div>

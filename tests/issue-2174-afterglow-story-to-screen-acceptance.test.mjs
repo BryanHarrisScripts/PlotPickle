@@ -74,7 +74,7 @@ test("#2174 full 24/96 fixture coverage remains reportable without claiming v9 w
   assert.match(fixture, /sections\.length !== 20/u);
   assert.match(fixture, /authoredBlockCount: "not-asserted"/u);
   assert.match(fixture, /page-progress-fallback/u);
-  assert.match(source, /96 Mini-Block cells/u);
+  assert.match(source, /flatMap\(\(block\) => block\.miniBlocks\)\.length, 96/u);
 });
 
 test("#2174 keeps provider-backed generation and creative-quality judgment outside ordinary CI", async () => {

@@ -77,6 +77,37 @@ test("#2215 Afterglow source provenance survives hydration so later UAT runs reu
   assert.match(browser, /normalizeLibraryProject/u);
 });
 
+test("#2215 the packaged v9 source truth is 21 explicit titled sections", async () => {
+  const [identity, fixture, ...parts] = await Promise.all([
+    read("data/afterglow-reference-identity.ts"),
+    read("modules/library/reference/afterglow-golden-story-fixture.ts"),
+    ...Array.from({ length: 8 }, (_, index) => read(`data/afterglow-screenplay/part-${String(index + 1).padStart(2, "0")}.ts`)),
+  ]);
+  const screenplaySource = parts.map((part) => {
+    const first = part.indexOf("`");
+    const last = part.lastIndexOf("`");
+    return first >= 0 && last > first ? part.slice(first + 1, last) : "";
+  }).join("");
+  const sectionCount = screenplaySource
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .filter((line) => /^#{1,6}\s*/u.test(line.trim()))
+    .length;
+
+  assert.equal(sectionCount, 21);
+  assert.match(identity, /AFTERGLOW_V9_EXPLICIT_SECTION_COUNT = 21/u);
+  assert.match(fixture, /sections\.length !== AFTERGLOW_V9_EXPLICIT_SECTION_COUNT/u);
+});
+
+test("#2215 tested-surface navigation keeps every Library runtime dependency defined", async () => {
+  const browser = await read("core/storage/project-library-browser.ts");
+
+  assert.match(browser, /createEmptyStoryStructureV2,[\s\S]*normalizeStoryStructureV2/u);
+  assert.match(browser, /createEmptyBlockWritingState,[\s\S]*normalizeBlockWritingState/u);
+  assert.match(browser, /const structure = hasStructure[\s\S]*normalizeStoryStructureV2\(incoming\.structure\)/u);
+  assert.match(browser, /const writing = "writing" in incoming[\s\S]*normalizeBlockWritingState\(incoming\.writing\)/u);
+});
+
 test("#2215 Human review annotations are durable steering evidence and cannot override PASS or FAIL", async () => {
   const [route, panel] = await Promise.all([
     read("app/api/auth/uat-guide/route.ts"),

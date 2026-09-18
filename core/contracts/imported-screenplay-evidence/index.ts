@@ -1,3 +1,8 @@
+import {
+  normalizeStoryEvidenceMatrix,
+  type StoryEvidenceMatrix,
+} from "../story-evidence-matrix";
+
 export type ImportedScreenplayEvidenceState = "none" | "suggested" | "reviewed";
 
 export type ImportedScreenplayPassage = {
@@ -67,10 +72,11 @@ export type ReferenceFixtureEvidence = {
 export type ProjectSourceEvidence = {
   readonly screenplay: ImportedScreenplayEvidence | null;
   readonly referenceFixture: ReferenceFixtureEvidence | null;
+  readonly storyMatrix?: StoryEvidenceMatrix | null;
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
-  return { screenplay: null, referenceFixture: null };
+  return { screenplay: null, referenceFixture: null, storyMatrix: null };
 }
 
 function cleanText(value: unknown, limit: number) {
@@ -201,10 +207,15 @@ function normalizeReferenceFixture(value: unknown): ReferenceFixtureEvidence | n
 
 export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvidence {
   if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyProjectSourceEvidence();
-  const source = value as { readonly screenplay?: unknown; readonly referenceFixture?: unknown };
+  const source = value as {
+    readonly screenplay?: unknown;
+    readonly referenceFixture?: unknown;
+    readonly storyMatrix?: unknown;
+  };
   const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
+  const storyMatrix = normalizeStoryEvidenceMatrix(source.storyMatrix);
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return { screenplay: null, referenceFixture };
+    return { screenplay: null, referenceFixture, storyMatrix };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -250,6 +261,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
       projectionReviews,
     },
     referenceFixture,
+    storyMatrix,
   };
 }
 

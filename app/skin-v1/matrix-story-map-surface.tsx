@@ -120,6 +120,15 @@ export default function MatrixStoryMapSurface({
             >
               WRITE
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                const returnPath = encodeURIComponent(`/?workspace=dashboard&block=${address.blockNumber}&mini=${address.miniBlockNumber}`);
+                window.location.assign(`/pageflow?block=${address.blockNumber}&mini=${address.miniBlockNumber}&from=preproduction&return=${returnPath}`);
+              }}
+            >
+              PAGEFLOW
+            </button>
             <button type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
             <button type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
           </div>

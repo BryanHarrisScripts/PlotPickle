@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
+import {
+  reviewCharacterArcEvidence,
+  type CharacterArcEvidenceState,
+} from "@/core/contracts/character-truth-evidence";
 import { markImportedScreenplayProjectionStale, normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import {
   reviewStoryEvidenceBlock,
@@ -36,6 +40,29 @@ function actLocalBlockNumber(blockNumber: number) {
   return ((blockNumber - 1) % 6) + 1;
 }
 
+const CHARACTER_NAMES: Readonly<Record<string, string>> = {
+  ren: "Ren",
+  amy: "Amy",
+  isobel: "Summer / Isobel",
+  joy: "Joy",
+  kai: "Kai",
+  jai: "Jai",
+};
+
+function characterEvidenceLabel(state: CharacterArcEvidenceState) {
+  return state
+    .replace("not-present-no-evidence", "No observed evidence")
+    .replace("present-arc-neutral", "Present / arc-neutral")
+    .replace("pressure-introduced", "Pressure introduced")
+    .replace("belief-strategy-reinforced", "Belief / strategy reinforced")
+    .replace("belief-strategy-challenged", "Belief / strategy challenged")
+    .replace("meaningful-choice", "Meaningful choice")
+    .replace("consequence", "Consequence")
+    .replace("relationship-movement", "Relationship movement")
+    .replace("arc-transition", "Arc transition")
+    .replace("unresolved-insufficient-evidence", "Unresolved / insufficient evidence");
+}
+
 export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
@@ -45,6 +72,7 @@ export default function StoryCardFoundationBoard({
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
   const screenplayEvidence = normalizedSourceEvidence.screenplay;
   const storyMatrix = normalizedSourceEvidence.storyMatrix;
+  const characterTruth = normalizedSourceEvidence.characterTruth;
   const sourcePassages = screenplayEvidence?.passages ?? [];
   const sourceSectionMarkers = screenplayEvidence?.sectionMarkers ?? [];
 
@@ -147,6 +175,36 @@ export default function StoryCardFoundationBoard({
     setMessage(`Saved Human structural review for Block ${String(blockNumber).padStart(2, "0")}. No screenplay text or comparison source was changed.`);
   }
 
+  function saveCharacterArcFinding(
+    characterId: string,
+    blockNumber: number,
+    state: CharacterArcEvidenceState,
+    note: string,
+  ) {
+    if (!characterTruth) return;
+    const reviewedAt = new Date().toISOString();
+    const nextCharacterTruth = reviewCharacterArcEvidence(
+      characterTruth,
+      characterId,
+      blockNumber,
+      state,
+      note,
+      reviewedAt,
+    );
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: reviewedAt,
+      sourceEvidence: {
+        ...normalizedSourceEvidence,
+        characterTruth: nextCharacterTruth,
+      },
+    };
+    const saved = saveFoundationProject(next) as LibraryPPFProject;
+    onProjectChange(saved);
+    setMessage(`Saved Human character-arc evidence review for ${CHARACTER_NAMES[characterId] ?? characterId} at Block ${String(blockNumber).padStart(2, "0")}. Character profile source and screenplay text were not changed.`);
+  }
+
   return (
     <section className="pp-skin-v1-story-card-board" aria-labelledby="story-card-board-title" data-story-card-foundation-board="24x96">
       <header className="pp-skin-v1-story-card-board-heading">
@@ -177,6 +235,8 @@ export default function StoryCardFoundationBoard({
                 const coverage = storyCardSourceCoverage(sourcePassages, block.number);
                 const sectionMarkers = sourceSectionMarkers.filter((marker) => marker.blockNumber === block.number);
                 const matrixBlock = storyMatrix?.blocks.find((candidate) => candidate.blockNumber === block.number) ?? null;
+                const characterCells = characterTruth?.arcCells.filter((cell) => cell.blockNumber === block.number) ?? [];
+                const observedCharacterCount = characterCells.filter((cell) => cell.passageIds.length > 0).length;
                 return (
                   <article
                     className="pp-skin-v1-story-card"
@@ -271,6 +331,97 @@ export default function StoryCardFoundationBoard({
                       </details>
                     ) : null}
 
+                    {characterTruth && characterCells.length ? (
+                      <details className="pp-skin-v1-story-card-character-review">
+                        <summary>Character arc evidence · {observedCharacterCount}/{characterCells.length} observed here</summary>
+                        <p className="pp-skin-v1-story-card-character-rule">{characterTruth.governingRule}</p>
+                        <div className="pp-skin-v1-story-card-character-grid">
+                          {characterCells.map((cell) => {
+                            const profileClaims = characterTruth.claims.filter((claim) => (
+                              claim.characterIds.includes(cell.characterId)
+                              && claim.handling === "writer-reference"
+                            ));
+                            const restrictedCount = characterTruth.claims.filter((claim) => (
+                              claim.characterIds.includes(cell.characterId)
+                              && claim.handling === "restricted-reference"
+                            )).length;
+                            const checkpointHints = characterTruth.checkpoints.filter((checkpoint) => (
+                              checkpoint.characterId === cell.characterId
+                              && checkpoint.blockNumbers.includes(block.number)
+                            ));
+                            return (
+                              <article key={`${block.id}-character-${cell.characterId}`} data-character-arc-state={cell.state}>
+                                <header>
+                                  <strong>{CHARACTER_NAMES[cell.characterId] ?? cell.characterId}</strong>
+                                  <span>{cell.passageIds.length} passages · {cell.sceneNumbers.length} scenes</span>
+                                </header>
+                                <p>{characterEvidenceLabel(cell.state)}</p>
+                                {checkpointHints.length ? (
+                                  <p className="pp-skin-v1-story-card-checkpoint-hint">
+                                    Flexible checkpoint: {checkpointHints.map((checkpoint) => `${checkpoint.kind} → Arc Matrix.${checkpoint.targetArcField}`).join(" · ")}
+                                  </p>
+                                ) : null}
+                                <label>
+                                  <span>Human arc-evidence finding</span>
+                                  <select
+                                    defaultValue={cell.state}
+                                    key={`arc-state-${block.id}-${cell.characterId}-${project.revision}`}
+                                    onChange={(event) => saveCharacterArcFinding(
+                                      cell.characterId,
+                                      block.number,
+                                      event.currentTarget.value as CharacterArcEvidenceState,
+                                      cell.note,
+                                    )}
+                                  >
+                                    <option value="not-present-no-evidence">No observed evidence</option>
+                                    <option value="present-arc-neutral">Present / arc-neutral</option>
+                                    <option value="pressure-introduced">Pressure introduced</option>
+                                    <option value="belief-strategy-reinforced">Belief / strategy reinforced</option>
+                                    <option value="belief-strategy-challenged">Belief / strategy challenged</option>
+                                    <option value="meaningful-choice">Meaningful choice</option>
+                                    <option value="consequence">Consequence</option>
+                                    <option value="relationship-movement">Relationship movement</option>
+                                    <option value="arc-transition">Arc transition</option>
+                                    <option value="unresolved-insufficient-evidence">Unresolved / insufficient evidence</option>
+                                  </select>
+                                </label>
+                                <label>
+                                  <span>Evidence note</span>
+                                  <textarea
+                                    defaultValue={cell.note}
+                                    key={`arc-note-${block.id}-${cell.characterId}-${project.revision}`}
+                                    maxLength={2400}
+                                    onBlur={(event) => {
+                                      const value = event.currentTarget.value.trim();
+                                      if (value !== cell.note) {
+                                        saveCharacterArcFinding(
+                                          cell.characterId,
+                                          block.number,
+                                          cell.state,
+                                          value,
+                                        );
+                                      }
+                                    }}
+                                    rows={3}
+                                  />
+                                </label>
+                                <details>
+                                  <summary>Profile context · source-only</summary>
+                                  {profileClaims.slice(0, 4).map((claim) => (
+                                    <p key={claim.id}>{claim.summary}</p>
+                                  ))}
+                                  {restrictedCount ? (
+                                    <small>{restrictedCount} restricted historical reference{restrictedCount === 1 ? "" : "s"} retained in provenance and not surfaced as character guidance.</small>
+                                  ) : null}
+                                </details>
+                              </article>
+                            );
+                          })}
+                        </div>
+                        <small>Profile/backstory may explain motivation, but it is not audience-visible screenplay proof and is never inserted as exposition automatically.</small>
+                      </details>
+                    ) : null}
+
                     <label>
                       <span>Card title</span>
                       <input
@@ -345,7 +496,7 @@ export default function StoryCardFoundationBoard({
         ))}
       </div>
 
-      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Structural findings are Human review states, not creative-quality scores. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
+      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Structural and character-arc findings are Human review states, not creative-quality scores. Character Truth stays separate from audience-visible screenplay evidence. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
     </section>
   );
 }

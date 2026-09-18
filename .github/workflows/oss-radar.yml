@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: '22.13.0'
       - name: Verify OSS Radar contracts
-        run: node --test tests/issue-1977-oss-radar-*.test.mjs tests/issue-2034-oss-radar-*.test.mjs tests/issue-2087-oss-radar-*.test.mjs
+        run: node --test tests/issue-1977-oss-radar-*.test.mjs tests/issue-2034-oss-radar-*.test.mjs tests/issue-2087-oss-radar-*.test.mjs tests/issue-2194-oss-radar-*.test.mjs
       - name: Run OSS Radar
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -52,9 +52,9 @@ jobs:
           {
             echo '### OSS Radar email preview'
             echo
-            echo '```text'
+            echo '~~~text'
             cat oss-radar-email-preview.eml
-            echo '```'
+            echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Send OSS Radar review email
         env:

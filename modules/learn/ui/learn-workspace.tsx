@@ -513,7 +513,7 @@ export default function LearnWorkspace({
               </button>
               {" "}
               <button
-                onClick={() => window.location.assign(`/?workspace=write&block=${storyContext.address.blockNumber}&mini=${storyContext.address.miniBlockNumber}`)}
+                onClick={() => window.location.assign(`/write?block=${storyContext.address.blockNumber}&mini=${storyContext.address.miniBlockNumber}`)}
                 type="button"
               >
                 Apply in Write at this position

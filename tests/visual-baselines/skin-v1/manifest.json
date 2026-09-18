@@ -15,211 +15,216 @@
       "label": "Dashboard",
       "status": "locked",
       "selector": "[data-skin-reference='dashboard-canonical']",
-      "candidate": ".artifacts/visual-readiness/dashboard-canonical.png",
-      "baseline": "tests/visual-baselines/skin-v1/dashboard.png"
+      "candidate": ".artifacts/visual-readiness/00-dashboard__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/00-dashboard.png"
     },
     "community": {
       "label": "Community",
       "status": "candidate",
       "selector": "section[aria-label='PlotPickle Community']",
-      "candidate": ".artifacts/visual-readiness/community-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/community.png"
+      "candidate": ".artifacts/visual-readiness/01-community__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/01-community.png"
     },
     "writers-craft": {
       "label": "Writer's Craft",
       "status": "candidate",
       "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
-      "candidate": ".artifacts/visual-readiness/writers-craft-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/writers-craft.png"
+      "candidate": ".artifacts/visual-readiness/02-writers-craft__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/02-writers-craft.png"
     },
     "library": {
       "label": "Library",
       "status": "candidate",
       "selector": "main[data-library-workspace='v2']",
-      "candidate": ".artifacts/visual-readiness/library-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library.png"
+      "candidate": ".artifacts/visual-readiness/03-library__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library.png"
     },
     "library-new": {
       "label": "Library · New",
       "status": "candidate",
       "selector": "section[data-library-destination='new']",
-      "candidate": ".artifacts/visual-readiness/library-new-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-new.png"
+      "candidate": ".artifacts/visual-readiness/03-library__01-new__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__01-new.png"
     },
     "library-import": {
       "label": "Library · Import",
       "status": "candidate",
       "selector": "section[data-library-destination='import']",
-      "candidate": ".artifacts/visual-readiness/library-import-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-import.png"
+      "candidate": ".artifacts/visual-readiness/03-library__02-import__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__02-import.png"
     },
     "library-load": {
       "label": "Library · Load",
       "status": "candidate",
       "selector": "section[data-library-destination='load']",
-      "candidate": ".artifacts/visual-readiness/library-load-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-load.png"
+      "candidate": ".artifacts/visual-readiness/03-library__03-load__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__03-load.png"
     },
     "library-examples": {
       "label": "Library · Examples",
       "status": "candidate",
       "selector": "section[data-library-destination='examples']",
-      "candidate": ".artifacts/visual-readiness/library-examples-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-examples.png"
+      "candidate": ".artifacts/visual-readiness/03-library__04-examples__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__04-examples.png"
     },
     "library-presets": {
       "label": "Library · Presets",
       "status": "candidate",
       "selector": "section[data-library-destination='presets']",
-      "candidate": ".artifacts/visual-readiness/library-presets-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-presets.png"
+      "candidate": ".artifacts/visual-readiness/03-library__05-presets__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__05-presets.png"
     },
     "library-avery": {
       "label": "Library · Avery",
       "status": "candidate",
       "selector": "section[data-library-destination='avery']",
-      "candidate": ".artifacts/visual-readiness/library-avery-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-avery.png"
+      "candidate": ".artifacts/visual-readiness/03-library__06-avery__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__06-avery.png"
     },
     "library-archive": {
       "label": "Library · Archive",
       "status": "candidate",
       "selector": "section[data-library-destination='archive']",
-      "candidate": ".artifacts/visual-readiness/library-archive-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/library-archive.png"
+      "candidate": ".artifacts/visual-readiness/03-library__07-archive__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/03-library__07-archive.png"
     },
     "story-map": {
       "label": "Story Map",
       "status": "candidate",
       "selector": "[data-progressive-story-map='24x96']",
-      "candidate": ".artifacts/visual-readiness/story-map-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/story-map.png"
+      "candidate": ".artifacts/visual-readiness/04-outline__01-story-map__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/04-outline__01-story-map.png"
     },
     "scene-timeline": {
       "label": "Scene Workspace",
       "status": "candidate",
       "selector": "[data-scene-workspace='dialogue-action-shot-audio']",
-      "candidate": ".artifacts/visual-readiness/scene-timeline-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/scene-timeline.png"
+      "candidate": ".artifacts/visual-readiness/05-storyboard__02-scene-workspace__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/05-storyboard__02-scene-workspace.png"
     },
     "visual-story": {
       "label": "Visual Story",
       "status": "candidate",
       "selector": "[data-visual-story='scene-beat-shot-frame']",
-      "candidate": ".artifacts/visual-readiness/visual-story-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/visual-story.png"
+      "candidate": ".artifacts/visual-readiness/05-storyboard__01-visual-story__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/05-storyboard__01-visual-story.png"
     },
     "profile": {
       "label": "Identity",
       "status": "candidate",
       "selector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
-      "candidate": ".artifacts/visual-readiness/profile-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/profile.png"
+      "candidate": ".artifacts/visual-readiness/14-identity__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/14-identity.png"
     },
     "settings": {
       "label": "Manage",
       "status": "candidate",
       "selector": "section[aria-label='Settings menu']",
-      "candidate": ".artifacts/visual-readiness/settings-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/settings.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage.png"
     },
     "general": {
       "label": "General",
       "status": "candidate",
       "selector": "section[aria-label='General settings']",
-      "candidate": ".artifacts/visual-readiness/general-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/general.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__01-general__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__01-general.png"
     },
     "story-mode": {
       "label": "Story Mode",
       "status": "candidate",
       "selector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
-      "candidate": ".artifacts/visual-readiness/story-mode-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/story-mode.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode.png"
     },
     "local-ai": {
       "label": "Local Story Mode",
       "status": "candidate",
       "selector": "section[aria-label='Local Story Mode setup']",
-      "candidate": ".artifacts/visual-readiness/local-ai-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/local-ai.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__01-local__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__01-local.png"
     },
     "cloud-story-mode": {
       "label": "Cloud Story Mode",
       "status": "candidate",
       "selector": "section[aria-label='Cloud Story Mode setup']",
-      "candidate": ".artifacts/visual-readiness/cloud-story-mode-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/cloud-story-mode.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__02-cloud__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__02-cloud.png"
     },
     "hybrid-story-mode": {
       "label": "Hybrid Story Mode",
       "status": "candidate",
       "selector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
-      "candidate": ".artifacts/visual-readiness/hybrid-story-mode-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/hybrid-story-mode.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__03-hybrid__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__03-hybrid.png"
     },
     "node": {
       "label": "Node Info",
       "status": "candidate",
       "selector": "section[aria-label='Node information']",
-      "candidate": ".artifacts/visual-readiness/node-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/node.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__03-node-info__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__03-node-info.png"
     },
     "agents": {
       "label": "Agents",
       "status": "candidate",
       "selector": "section[aria-label='PlotPickle Agents setup']",
-      "candidate": ".artifacts/visual-readiness/agents-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/agents.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__04-agents__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__04-agents.png"
     },
     "issue-log": {
       "label": "Bug Report",
       "status": "candidate",
       "selector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
-      "candidate": ".artifacts/visual-readiness/issue-log-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/issue-log.png"
+      "candidate": ".artifacts/visual-readiness/16-bug-report__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/16-bug-report.png"
     },
     "licensing": {
       "label": "Notices",
       "status": "candidate",
       "selector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
-      "candidate": ".artifacts/visual-readiness/licensing-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/licensing.png"
+      "candidate": ".artifacts/visual-readiness/17-notices__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/17-notices.png"
     },
     "shutdown-node": {
       "label": "Shut Down Node",
       "status": "candidate",
       "selector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
-      "candidate": ".artifacts/visual-readiness/shutdown-node-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/shutdown-node.png"
+      "candidate": ".artifacts/visual-readiness/19-shutdown-node__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/19-shutdown-node.png"
     },
     "write": {
       "label": "Write",
       "status": "candidate",
       "selector": "[data-block-native-write='24x96']",
-      "candidate": ".artifacts/visual-readiness/write-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/write.png"
+      "candidate": ".artifacts/visual-readiness/07-write__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/07-write.png"
     },
     "storyboard": {
       "label": "Storyboard",
       "status": "candidate",
       "selector": "main[aria-labelledby='storyboard-readiness-title']",
-      "candidate": ".artifacts/visual-readiness/storyboard-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/storyboard.png"
+      "candidate": ".artifacts/visual-readiness/05-storyboard__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/05-storyboard.png"
     },
     "previs": {
       "label": "Previs",
       "status": "candidate",
       "selector": "main[aria-labelledby='previs-title']",
-      "candidate": ".artifacts/visual-readiness/previs-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/previs.png"
+      "candidate": ".artifacts/visual-readiness/06-previs__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/06-previs.png"
     },
     "pageflow": {
       "label": "PageFlow",
       "status": "candidate",
       "selector": "[data-pageflow-authority='ppf-block-writing-read-only']",
-      "candidate": ".artifacts/visual-readiness/pageflow-candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/pageflow.png"
+      "candidate": ".artifacts/visual-readiness/10-refine__03-pageflow__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/10-refine__03-pageflow.png"
     }
+  },
+  "evidenceNaming": {
+    "issue": 2226,
+    "authority": "config/skin-v1-surface-registry.json#navigationIdentity",
+    "migration": "legacy paths remain discoverable through each canonical surface legacyEvidence alias"
   }
 }

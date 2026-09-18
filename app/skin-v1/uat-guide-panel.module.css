@@ -114,6 +114,8 @@
 
 .current span {
   display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: var(--pp-skin-space-1);
   padding: var(--pp-skin-space-2);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);

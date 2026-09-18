@@ -20,7 +20,7 @@
       "requiredTerms": [
         "AFTERGLOW_GOLDEN_STORY_FIXTURE_ID = \"afterglow-v8-v9-v10-24x96-evidence-matrix\"",
         "project.blocks.length !== 24",
-        "sections.length !== 20",
+        "sections.length !== AFTERGLOW_V9_EXPLICIT_SECTION_COUNT",
         "sourceId: \"v9\"",
         "sourceRole: \"baseline\""
       ]

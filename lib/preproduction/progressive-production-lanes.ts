@@ -93,7 +93,6 @@ function dialogueItems(visualStory: VisualStoryProjection, legacyProject: PlotPi
 function soundItems(
   visualStory: VisualStoryProjection,
   legacyProject: PlotPickleProject | null,
-  totalSeconds: number,
 ): readonly SoundLaneItem[] {
   const timeline = projectSceneTimeline(visualStory);
   const anchorByRef = new Map(timeline.anchors.map((anchor) => [anchor.anchorRef, anchor]));
@@ -207,7 +206,7 @@ export function projectProgressiveProductionLanes(input: {
     sceneId: input.visualStory.selectedScene?.id ?? null,
     totalSeconds: timeline.totalSeconds,
     dialogue: dialogueItems(input.visualStory, input.legacyProject),
-    sound: soundItems(input.visualStory, input.legacyProject, timeline.totalSeconds),
+    sound: soundItems(input.visualStory, input.legacyProject),
     camera: cameraItems(input.visualStory),
     transitions: transitionItems(input.visualStory),
   };

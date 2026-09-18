@@ -184,13 +184,32 @@ export function projectVisualStory(input: {
   const selectedScene = scenes.find((scene) => scene.id === input.requestedSceneId) ?? scenes[0] ?? null;
 
   if (!selectedScene) {
+    const anchorRef = sequenceDirectorAnchorRef(input.blockNumber, input.miniBlockNumber);
+    const drafts = input.sequenceDirectorDrafts ?? [];
+    const editorialShots = input.editorialShots ?? [];
+    const beats = drafts
+      .filter((draft) => draft.anchorRef === anchorRef)
+      .flatMap((draft) => projectSequenceDirectorBeats(draft))
+      .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+    const frames = projectFrames(input.project, anchorRef);
+    const shots = projectShots(input.project, anchorRef, frames, editorialShots);
+    const assignedFrameIds = new Set(shots.flatMap((shot) => shot.frames.map((frame) => frame.id)));
+    const anchor: VisualStoryAnchorProjection = {
+      anchorRef,
+      blockNumber: input.blockNumber,
+      miniBlockNumber: input.miniBlockNumber,
+      beats,
+      shots,
+      frames,
+      unassignedFrames: frames.filter((frame) => !assignedFrameIds.has(frame.id)),
+    };
     return {
       projectionOnly: true,
       legacyDetailStatus: semantics.legacyDetailStatus,
       scenes,
       selectedScene: null,
-      anchors: [],
-      counts: { beats: 0, shots: 0, frames: 0 },
+      anchors: [anchor],
+      counts: { beats: beats.length, shots: shots.length, frames: frames.length },
     };
   }
 

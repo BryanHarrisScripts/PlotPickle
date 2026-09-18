@@ -125,3 +125,17 @@ test("#2189 routed capture roots match the actual standalone Storyboard and Prev
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.previs.rootSelector, "main[aria-labelledby='previs-title']");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.previs.readySelector, "#previs-block-panel");
 });
+
+
+test("#2189 lets only the current Block-native Write deep link bypass the default Skin V1 startup redirect", async () => {
+  const [proxy, startupRegression] = await Promise.all([
+    read("proxy.ts"),
+    read("tests/issue-1754-startup-no-legacy-flash.test.mjs"),
+  ]);
+
+  assert.match(proxy, /if \(searchParams\.get\("workspace"\) === "write"\) return NextResponse\.next\(\)/u);
+  assert.match(proxy, /destination\.pathname = "\/skin-v1"/u);
+  assert.match(proxy, /if \(searchParams\.get\("skin"\) === "legacy"\) return NextResponse\.next\(\)/u);
+  assert.match(startupRegression, /default startup reaches Skin V1 before Legacy Skin can render/u);
+  assert.doesNotMatch(proxy, /if \(searchParams\.has\("workspace"\)\) return NextResponse\.next/u);
+});

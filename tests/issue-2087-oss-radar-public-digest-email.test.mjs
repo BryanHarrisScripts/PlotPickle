@@ -63,7 +63,7 @@ test("#2087 public digest is copy-ready and strips internal Radar metadata", () 
   assert.match(digest, /example\/agent-runtime/u);
   assert.match(digest, /AGENTS/u);
   assert.match(digest, /Why it matters:/u);
-  assert.match(digest, /PlotPickle OSS Radar/u);
+  assert.match(digest, /Presented by PlotPickle/u);
   assert.doesNotMatch(digest, /88\.5|77\.2|Enriched PlotPickle Score|Discovery Score/u);
   assert.doesNotMatch(digest, /#1918|evidence-lane|qualification|reason code/u);
 });

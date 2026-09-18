@@ -96,7 +96,8 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architect
   assert.match(first.reportBody, /Raw repository pointers returned/u);
   assert.match(first.reportBody, /Repository creation age/u);
   assert.match(first.reportBody, /Radar candidate history/u);
-  assert.match(first.reportBody, /Architecture findings for review/u);\n  assert.match(first.reportBody, /Seven PlotPickle Architecture Areas/u);
+  assert.match(first.reportBody, /Architecture findings for review/u);
+  assert.match(first.reportBody, /Seven PlotPickle Architecture Areas/u);
   assert.match(first.reportBody, /bounded read-only enrichment/u);
   assert.match(first.reportBody, /Discovery coverage/u);
   assert.match(first.reportBody, /Query effectiveness/u);

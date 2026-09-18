@@ -87,7 +87,7 @@ Story Cards
 /?workspace=dashboard&block=17&mini=1
 
 Write
-/?workspace=write&block=17&mini=1
+/write?block=17&mini=1
 
 Outline
 /?workspace=dashboard&block=17&mini=1

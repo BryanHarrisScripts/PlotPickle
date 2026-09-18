@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import CloudStoryModeHost from "./cloud-story-mode-host";
 import LocalAiSkinHost from "./local-ai-skin-host";
+import HybridStoryModePanel from "./hybrid-story-mode-panel";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 
 type StoryModePolicy = "local" | "cloud" | "hybrid";
@@ -14,6 +15,7 @@ type RouteStatus = {
 };
 
 type CapabilityStatus = {
+  readonly selected?: string;
   readonly options?: Readonly<Record<string, RouteStatus>>;
 };
 
@@ -24,11 +26,6 @@ type AiRoutingStatus = {
   readonly video?: CapabilityStatus;
 };
 
-type LocalRuntimeStatus = {
-  readonly ok?: boolean;
-  readonly activeRuntime?: { readonly reachable?: boolean };
-  readonly roles?: Readonly<Record<string, { readonly available?: boolean }>>;
-};
 
 type StoryModePolicyResponse = {
   readonly ok?: boolean;
@@ -59,15 +56,22 @@ const STORY_MODE_ROWS = [
 
 function localityReady(status: AiRoutingStatus | null, locality: "local" | "cloud") {
   if (!status) return false;
-  return [status.text, status.image, status.video].some((capability) =>
+  return [status.text, status.image, status.video].every((capability) =>
     Object.values(capability?.options ?? {}).some((route) => route.locality === locality && route.ready === true),
   );
 }
 
-function hardwareLocalReady(status: LocalRuntimeStatus | null) {
-  if (!status?.ok || status.activeRuntime?.reachable !== true) return false;
-  return Object.values(status.roles ?? {}).some((role) => role.available === true);
+function hybridSelectionReady(status: AiRoutingStatus | null) {
+  if (!status) return false;
+  const selected = [status.text, status.image, status.video].map((capability) => {
+    const route = capability?.selected ? capability.options?.[capability.selected] : null;
+    return route?.ready === true && (route.locality === "local" || route.locality === "cloud")
+      ? route.locality
+      : null;
+  });
+  return selected.every(Boolean) && selected.includes("local") && selected.includes("cloud");
 }
+
 
 function readinessLabel(ready: boolean, loaded: boolean) {
   if (!loaded) return "CHECKING";
@@ -115,37 +119,31 @@ export default function StoryModeHost() {
   const [view, setView] = useState<StoryModeView>("landing");
   const [mode, setMode] = useState<StoryModePolicy>("hybrid");
   const [routingStatus, setRoutingStatus] = useState<AiRoutingStatus | null>(null);
-  const [localRuntimeStatus, setLocalRuntimeStatus] = useState<LocalRuntimeStatus | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("Loading Story Mode readiness...");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const localReady = localityReady(routingStatus, "local") || hardwareLocalReady(localRuntimeStatus);
+  const localReady = localityReady(routingStatus, "local");
   const cloudReady = localityReady(routingStatus, "cloud");
-  const hybridReady = localReady && cloudReady;
+  const hybridReady = hybridSelectionReady(routingStatus);
 
   async function refresh() {
     try {
-      const [policyResponse, routingResponse, localRuntimeResponse] = await Promise.all([
+      const [policyResponse, routingResponse] = await Promise.all([
         fetch("/api/story-mode/policy", { cache: "no-store" }),
         fetch("/api/ai-routing/status", { cache: "no-store" }),
         fetch("/api/local-ai/runtime", { cache: "no-store" }).catch(() => null),
       ]);
       const policy = await policyResponse.json() as StoryModePolicyResponse;
       const routing = await routingResponse.json() as AiRoutingStatus & { readonly message?: string };
-      const localRuntime = localRuntimeResponse?.ok
-        ? await localRuntimeResponse.json() as LocalRuntimeStatus
-        : null;
       if (!policyResponse.ok || !policy.ok || !policy.mode) throw new Error(policy.message || "Story Mode policy is unavailable.");
       if (!routingResponse.ok || !routing.ok) throw new Error(routing.message || "Story Mode readiness is unavailable.");
       setMode(policy.mode);
       setRoutingStatus(routing);
-      setLocalRuntimeStatus(localRuntime);
-      setMessage("Story Mode readiness follows the current tested Local and Cloud routes.");
+      setMessage("LOCAL and CLOUD are READY only when Writing, Images and Video each have a tested route. HYBRID is READY only when the selected capability mix uses both Local and Cloud.");
     } catch (error) {
       setRoutingStatus(null);
-      setLocalRuntimeStatus(null);
       setMessage(error instanceof Error ? error.message : "Story Mode readiness is unavailable.");
     } finally {
       setLoaded(true);
@@ -255,11 +253,8 @@ export default function StoryModeHost() {
           <h1>HYBRID STORY MODE</h1>
           <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
         </div>
-        <div className="pp-skin-v1-bbs" data-story-mode-hybrid="policy-only">
-          <p>Hybrid allows tested Local and Cloud routes. Existing capability selection and cloud consent rules remain authoritative.</p>
-          <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
-          <p>Routing preference remains with the existing capability router; this surface does not create a Hybrid provider layer.</p>
-        </div>
+        <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
+        <HybridStoryModePanel onChanged={() => void refresh()} />
       </section>
     );
   }
@@ -279,6 +274,7 @@ export default function StoryModeHost() {
           {STORY_MODE_ROWS.map((item, index) => {
             const selected = index === selectedIndex;
             const active = item.mode === mode;
+            const ready = item.mode === "local" ? localReady : item.mode === "cloud" ? cloudReady : hybridReady;
             return (
               <Fragment key={item.mode}>
                 <button
@@ -297,9 +293,10 @@ export default function StoryModeHost() {
                 >
                   <span className="pp-skin-v1-dashboard-command-line">[{item.shortcut}] {item.label} - {item.description}</span>
                   <span
-                    className={`pp-skin-v1-dashboard-status-box${active ? " is-active" : ""}`}
-                    aria-label={`${item.label}: ${active ? "active mode" : "available policy"}`}
-                    data-dashboard-status={active ? "active" : "inactive"}
+                    className={`pp-skin-v1-dashboard-status-box${active && ready ? " is-active" : ""}`}
+                    aria-label={`${item.label}: ${active ? (ready ? "active and ready" : "active but not ready") : (ready ? "ready" : "not ready")}`}
+                    data-dashboard-status={active && ready ? "active" : "inactive"}
+                    data-story-mode-ready={ready ? "true" : "false"}
                   />
                 </button>
               </Fragment>

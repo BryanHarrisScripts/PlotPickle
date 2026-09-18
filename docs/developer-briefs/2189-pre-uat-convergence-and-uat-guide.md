@@ -7,6 +7,22 @@ Pre-UAT umbrella brief.
 This brief records the final convergence requirements before broad Human testing begins.
 
 
+## Story Mode clarification from first Human UAT entry — September 18, 2026
+
+The first Human attempt to enable UAT exposed two UX/contract gaps that are now part of #2189:
+
+- the UAT opt-in must remain actionable even when the profile session needs renewal; selecting it must recover through the normal Human profile unlock boundary rather than leaving a disabled control;
+- enabling or starting the default UAT Guide automatically switches the existing Story Mode policy to **LOCAL** before acceptance begins, and the Guide must say so explicitly;
+- Story Mode remains the single Local / Cloud / Hybrid policy surface; General Settings does not duplicate that authority;
+- **LOCAL READY** means Writing, Images and Video each have at least one tested Local route;
+- **CLOUD READY** means Writing, Images and Video each have at least one tested Cloud route;
+- **HYBRID READY** means Writing, Images and Video each have a selected ready route and the active selection uses at least one Local and at least one Cloud route;
+- Hybrid configuration is a two-column capability matrix: Local resources on the left, Cloud resources on the right, with Writing / Images / Video as rows;
+- Hybrid route selection reuses the existing `/api/ai-routing/status` and `/api/ai-routing/select` authorities; it does not create a new provider registry, multiplexer or Hybrid provider;
+- existing cloud charge acknowledgement and cloud-video data-sharing acknowledgement remain mandatory when a Cloud resource is selected.
+
+The small Story Mode status box is green only when that mode is both the active policy and actually READY.
+
 ## Final pre-UAT slice checkpoint — September 18, 2026
 
 #2193 is merged and established the current routed UAT surface set, first-class `/write`, legacy Reports fencing, routed Skin V1 activation, and expanded WebMCP/Visual Director coverage.

@@ -52,8 +52,19 @@ async function json<T>(response: Response): Promise<T> {
 async function csrfToken() {
   const response = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
   const body = await json<{ authenticated: boolean; csrfToken: string | null }>(response);
-  if (!body.authenticated || !body.csrfToken) throw new Error("Unlock a Human profile before changing UAT tools.");
+  if (!body.authenticated || !body.csrfToken) throw new Error("PROFILE_UNLOCK_REQUIRED");
   return body.csrfToken;
+}
+
+async function ensureLocalStoryMode() {
+  const response = await fetch("/api/story-mode/policy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "local" }),
+  });
+  const body = await response.json() as { ok?: boolean; mode?: string; message?: string };
+  if (!response.ok || !body.ok || body.mode !== "local") throw new Error(body.message || "PlotPickle could not switch Story Mode to Local.");
+  window.dispatchEvent(new CustomEvent("plotpickle:story-mode-policy-change", { detail: "local" }));
 }
 
 function time(value?: string) {
@@ -89,9 +100,18 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
 
   const recentEvents = useMemo(() => (payload?.status?.events || []).slice(-8).reverse(), [payload?.status?.events]);
 
+  function requestProfileUnlock() {
+    setMessage("Story Mode is LOCAL. Your Human session needs to be unlocked again. PlotPickle is reopening the profile boundary.");
+    window.setTimeout(() => window.location.reload(), 120);
+  }
+
   async function setEnabled(enabled: boolean) {
     setBusy(true);
     try {
+      if (enabled) {
+        await ensureLocalStoryMode();
+        setMessage("UAT uses Local Story Mode. PlotPickle switched Story Mode to LOCAL automatically.");
+      }
       const csrf = await csrfToken();
       await json(await fetch("/api/auth/uat-guide", {
         method: "POST",
@@ -101,7 +121,10 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
       }));
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "UAT preference could not be saved.");
+      const detail = error instanceof Error ? error.message : "UAT preference could not be saved.";
+      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile/i.test(detail)) requestProfileUnlock();
+      else setMessage(detail);
+
     } finally {
       setBusy(false);
     }
@@ -111,6 +134,8 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
     setBusy(true);
     setMessage("");
     try {
+      await ensureLocalStoryMode();
+      setMessage("UAT uses Local Story Mode. PlotPickle switched Story Mode to LOCAL automatically.");
       const csrf = await csrfToken();
       const response = await fetch("/api/auth/uat-guide", {
         method: "POST",
@@ -125,7 +150,9 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
       await refresh();
     } catch (error) {
       setStartPending(false);
-      setMessage(error instanceof Error ? error.message : "UAT Guide could not start.");
+      const detail = error instanceof Error ? error.message : "UAT Guide could not start.";
+      if (detail === "PROFILE_UNLOCK_REQUIRED" || /session is invalid or expired|unlock a human profile/i.test(detail)) requestProfileUnlock();
+      else setMessage(detail);
     } finally {
       setBusy(false);
     }
@@ -139,16 +166,16 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
         <div>
           <p>QUALITY / HUMAN UAT</p>
           <h3 id="uat-tools-title">UAT tools</h3>
-          <span>Enable the local acceptance guide for this Human profile. The scanner still uses a separate synthetic Human and never inherits this profile&apos;s private story, cookies or credentials.</span>
+          <span>Enable the local acceptance guide for this Human profile. UAT automatically switches Story Mode to LOCAL before it runs, so the default acceptance pass cannot spend cloud-provider credits. The scanner still uses a separate synthetic Human and never inherits this profile&apos;s private story, cookies or credentials.</span>
         </div>
         <label className={styles.toggle}>
           <input
             type="checkbox"
             checked={payload?.enabled ?? false}
-            disabled={busy || !payload}
+            disabled={busy}
             onChange={(event) => void setEnabled(event.currentTarget.checked)}
           />
-          <span><strong>Show Start UAT Guide</strong><small>Profile-private opt-in. No provider spend is allowed in the default acceptance run.</small></span>
+          <span><strong>Show Start UAT Guide</strong><small>Selecting this automatically switches Story Mode to Local. If your Human session needs renewal, PlotPickle opens Profile unlock instead of disabling this control.</small></span>
         </label>
         {message ? <p className={styles.message} role="status">{message}</p> : null}
       </section>
@@ -165,7 +192,7 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
         <div>
           <p>QUALITY / UAT GUIDE</p>
           <h2 id="uat-guide-title">Start UAT</h2>
-          <span>Run the isolated Writer-to-Screen acceptance pass and see what PlotPickle is checking in plain language.</span>
+          <span>Run the isolated Writer-to-Screen acceptance pass and see what PlotPickle is checking in plain language. Starting UAT automatically switches Story Mode to LOCAL.</span>
         </div>
         <strong data-state={status?.status || "ready"}>{resultLabel}</strong>
       </header>

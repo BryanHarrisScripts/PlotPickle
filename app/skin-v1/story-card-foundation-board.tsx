@@ -13,7 +13,7 @@ import {
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
-  markCreativeRevisionSourceProjectionStale,
+  markCreativeRevisionDependentsStale,
   planCreativeRevisionPropagation,
   type CreativeRevisionPropagationPlan,
   type CreativeRevisionTarget,
@@ -160,20 +160,19 @@ export default function StoryCardFoundationBoard({
     const occurredAt = new Date().toISOString();
     const revision = project.revision + 1;
     const plans = revisionPlans(structure, occurredAt);
-    const sourceEvidence = plans.reduce(
-      (evidence, plan) => markCreativeRevisionSourceProjectionStale(evidence, plan, revision),
-      project.sourceEvidence,
-    );
     const affectedVisualIds = new Set(plans.flatMap((plan) => plan.staleAcceptedVisualArtifactIds));
     const affectedShotIds = new Set(plans.flatMap((plan) => plan.staleProductionShotIds));
     const contentPlans = plans.filter((plan) => plan.target.kind !== "planning-lock");
-    const next: LibraryPPFProject = {
+    const revised: LibraryPPFProject = {
       ...project,
       structure,
       revision,
       updatedAt: occurredAt,
-      sourceEvidence,
     };
+    const next = plans.reduce(
+      (current, plan) => markCreativeRevisionDependentsStale(current, plan, revision),
+      revised,
+    );
     const saved = saveFoundationProject(next) as LibraryPPFProject;
     onProjectChange(saved);
     setMessage(

@@ -78,6 +78,14 @@ export interface ProductionShotIntent {
   readonly lens: string;
   /** Human-authored production/composition intent only; story canon stays upstream. */
   readonly visualIntent: string;
+  /** Optional Human-authored blocking intent. No blocking is inferred from the 24/96 address. */
+  readonly blockingIntent?: string;
+  /** Optional Human-authored performance energy / acting direction for this production shot. */
+  readonly performanceEnergy?: string;
+  /** Optional Human-authored pacing/rhythm intent, separate from exact duration. */
+  readonly pacingIntent?: string;
+  /** Optional refs to rough/local motion or animatic evidence. Evidence never self-promotes review state. */
+  readonly roughMotionEvidenceRefs?: readonly string[];
   /** Null until the Human authors timing. Creative shots may span one or more fixed 3-second render clips. */
   readonly durationSeconds: number | null;
   readonly transitionIn: string;
@@ -130,6 +138,15 @@ export function normalizeProductionShotIntent(value: unknown): ProductionShotInt
     movement: cleanText(item.movement, 120),
     lens: cleanText(item.lens, 120),
     visualIntent: cleanText(item.visualIntent, 2_000),
+    blockingIntent: cleanText(item.blockingIntent, 1_000),
+    performanceEnergy: cleanText(item.performanceEnergy, 1_000),
+    pacingIntent: cleanText(item.pacingIntent, 1_000),
+    roughMotionEvidenceRefs: Array.isArray(item.roughMotionEvidenceRefs)
+      ? [...new Set(item.roughMotionEvidenceRefs
+        .map((ref) => cleanText(ref, 500))
+        .filter(Boolean))]
+        .slice(0, 32)
+      : [],
     durationSeconds,
     transitionIn: cleanText(item.transitionIn, 120),
     transitionOut: cleanText(item.transitionOut, 120),

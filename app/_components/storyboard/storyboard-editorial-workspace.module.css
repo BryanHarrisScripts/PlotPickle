@@ -131,6 +131,87 @@
   color: #e4ae7c;
 }
 
+.sourceEvidence {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(139, 174, 168, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.sourceEvidence > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: end;
+}
+
+.sourceEvidence h3 {
+  margin: 0;
+}
+
+.sourceEvidence > header > span {
+  padding: 7px 10px;
+  border: 1px solid rgba(121, 207, 194, 0.26);
+  border-radius: 999px;
+  color: #c9e8e3;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.sourceColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 14px;
+}
+
+.sourceText,
+.provenance {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid rgba(139, 174, 168, 0.12);
+  border-radius: 12px;
+  background: rgba(5, 13, 12, 0.62);
+}
+
+.sourceText > strong,
+.provenance > strong {
+  color: #79cfc2;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.sourceText article {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(139, 174, 168, 0.1);
+}
+
+.sourceText p,
+.provenance p,
+.evidenceBoundary {
+  margin: 0;
+  color: #a9c0bc;
+  line-height: 1.5;
+}
+
+.sourceText small,
+.provenance small {
+  color: #819c97;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.evidenceBoundary {
+  padding-top: 10px;
+  border-top: 1px solid rgba(139, 174, 168, 0.1);
+  font-size: 0.82rem;
+}
+
 .compare {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -178,7 +259,9 @@
 
 @media (max-width: 900px) {
   .header,
-  .focus {
+  .focus,
+  .sourceEvidence > header,
+  .sourceColumns {
     display: grid;
     grid-template-columns: 1fr;
   }

@@ -242,7 +242,7 @@
       "label": "Reports",
       "path": "/production",
       "kind": "workspace",
-      "migrationClass": "canonical",
+      "migrationClass": "legacy",
       "activeWorkspace": "build",
       "expectedArea": "review",
       "expectedDestination": "reports"

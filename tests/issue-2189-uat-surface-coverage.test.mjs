@@ -197,3 +197,11 @@ test("#2189 activates Skin V1 on every canonical routed UAT surface", async () =
     assert.match(runtime, new RegExp(`["']${pathname.replaceAll("/", "\\/")}["']`, "u"));
   }
 });
+
+
+test("#2189 waits for the canonical Dashboard artwork before locked visual comparison", async () => {
+  const catalogue = await read("lib/verification/webmcp-standard-surface-catalogue.mjs");
+  assert.match(catalogue, /DASHBOARD_ART_SELECTOR = "\[data-dashboard-art='skin-v1'\]"/u);
+  assert.match(catalogue, /image instanceof HTMLImageElement && image\.complete && image\.naturalWidth > 0/u);
+  assert.match(catalogue, /fully loaded canonical artwork/u);
+});

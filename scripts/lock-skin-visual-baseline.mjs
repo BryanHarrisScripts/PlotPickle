@@ -4,6 +4,7 @@ import { constants, copyFile, mkdir, readFile, writeFile } from "node:fs/promise
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { canonicalEvidencePaths, canonicalWebMcpSurfaceIds } from "../lib/verification/skin-v1-surface-registry.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const DEFAULT_ROOT = path.resolve(path.dirname(SCRIPT_PATH), "..");
@@ -15,6 +16,18 @@ export async function readVisualBaselineManifest({ root = DEFAULT_ROOT } = {}) {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   if (manifest?.skin !== "skin-v1" || !manifest?.surfaces || typeof manifest.surfaces !== "object") {
     throw new Error(`Invalid Skin V1 visual baseline manifest: ${manifestPath}`);
+  }
+  const canonicalIds = [...canonicalWebMcpSurfaceIds()];
+  const manifestIds = Object.keys(manifest.surfaces);
+  if (manifestIds.length !== canonicalIds.length || manifestIds.some((id) => !canonicalIds.includes(id))) {
+    throw new Error("Skin V1 visual baseline manifest surface set drifted from the canonical Surface Registry.");
+  }
+  for (const id of canonicalIds) {
+    const evidence = canonicalEvidencePaths(id);
+    const entry = manifest.surfaces[id];
+    if (!entry || entry.candidate !== evidence?.candidate || entry.baseline !== evidence?.baseline) {
+      throw new Error(`Skin V1 visual evidence path drifted from canonical navigation identity for ${id}.`);
+    }
   }
   return { manifest, manifestPath };
 }

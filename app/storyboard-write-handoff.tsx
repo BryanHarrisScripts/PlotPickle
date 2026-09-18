@@ -54,7 +54,7 @@ export default function StoryboardWriteHandoff() {
 
   if (!moment) return null;
 
-  const href = `/?workspace=write&block=${moment.block}&mini=${moment.mini}`;
+  const href = `/write?block=${moment.block}&mini=${moment.mini}`;
   return (
     <aside className="storyboard-write-handoff" aria-label="Continue selected Storyboard moment">
       <div>

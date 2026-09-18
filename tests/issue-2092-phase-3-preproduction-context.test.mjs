@@ -39,7 +39,7 @@ test("#2092 phase 3 uses one shared PRE-PRODUCTION context strip across the thre
   assert.match(previsLayout, /PreproductionContextNav area="previs"/);
 });
 
-test("#2092 phase 3 demotes legacy Outline peers into contextual tools with deterministic return", async () => {
+test("#2092/#2189 keeps legacy Outline peers contextual while returning to the canonical PPF Story Map", async () => {
   const [nav, outlineCss, returnNav] = await Promise.all([
     read("app/_components/preproduction/preproduction-context-nav.tsx"),
     read("app/structure/preproduction-context.module.css"),
@@ -55,7 +55,7 @@ test("#2092 phase 3 demotes legacy Outline peers into contextual tools with dete
   assert.match(returnNav, /Return to Outline/);
   assert.match(returnNav, /startsWith\("\/"\)/);
   assert.match(returnNav, /startsWith\("\/\/"\)/);
-  assert.match(returnNav, /function dashboardReturnPath/);
+  assert.match(returnNav, /function dashboardReturnPath/);\n  assert.doesNotMatch(nav, /href: "\\/structure"/);\n  assert.doesNotMatch(returnNav, /return "\\/structure"|returnPath: "\\/structure"/);
   assert.match(returnNav, /source\.searchParams\.get\("block"\)/);
   assert.match(returnNav, /source\.searchParams\.get\("mini"\)/);
 });

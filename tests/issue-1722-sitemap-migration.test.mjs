@@ -54,10 +54,10 @@ test("#1722 removes stale audit aliases and verifies all six areas plus Public\/
   assert.equal(registry.fixApprovalRequired, true);
 
   const paths = new Set(registry.screens.map((screen) => screen.path));
-  for (const stale of ["/?workspace=storyboard", "/?workspace=write", "/?workspace=pitch", "/?workspace=feedback", "/?workspace=refine", "/?workspace=reports"]) {
+  for (const stale of ["/?workspace=storyboard", "/?workspace=pitch", "/?workspace=feedback", "/?workspace=refine", "/?workspace=reports"]) {
     assert.equal(paths.has(stale), false, `Stale audit alias remains: ${stale}`);
   }
-  for (const current of ["/storyboard", "/previs", "/pageflow", "/edit", "/pitch-review", "/diagnostics", "/production", "/story", "/?workspace=collab"]) {
+  for (const current of ["/storyboard", "/previs", "/?workspace=write", "/pageflow", "/edit", "/pitch-review", "/diagnostics", "/production", "/story", "/?workspace=collab"]) {
     assert.equal(paths.has(current), true, `Current sitemap route missing from audit registry: ${current}`);
   }
 

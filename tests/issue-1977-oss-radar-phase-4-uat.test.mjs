@@ -113,7 +113,8 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architect
   const nextDay = await runRadar({ ...base, now: new Date("2026-09-14T11:00:00Z") });
   assert.equal(nextDay.action, "created");
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 2);
-  assert.equal(nextDay.reviewCount, first.reviewCount);
+  assert.equal(nextDay.reviewCount, 0);
+  assert.match(nextDay.reportBody, /Previously reviewed unchanged candidates suppressed:\*\* [1-9]/u);
   assert.match(nextDay.reportBody, /Seen by Radar yesterday:\*\* [1-9]/u);
   assert.match(nextDay.reportBody, /seen by Radar yesterday/u);
 

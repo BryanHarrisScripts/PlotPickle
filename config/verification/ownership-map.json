@@ -377,6 +377,37 @@
       ]
     },
     {
+      "id": "afterglow-character-truth-fixture",
+      "classification": "production",
+      "include": [
+        "core/contracts/character-truth-evidence.ts",
+        "modules/library/reference/afterglow-character-truth.ts",
+        "data/reference/afterglow/character-profiles/index.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "surface"
+      ]
+    },
+    {
+      "id": "afterglow-character-profile-sources",
+      "classification": "docs",
+      "include": [
+        "data/reference/afterglow/character-profiles/Character Profile - AMY.md",
+        "data/reference/afterglow/character-profiles/Character Profile - JOY.md",
+        "data/reference/afterglow/character-profiles/Character Profile - REN.md",
+        "data/reference/afterglow/character-profiles/Character Profile - SUMMER.md",
+        "data/reference/afterglow/character-profiles/Character Profile - The TWINS.md"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "docs",
+        "canon"
+      ]
+    },
+    {
       "id": "block-native-writing-skin",
       "classification": "production",
       "include": [

@@ -181,7 +181,7 @@
     {
       "id": "write",
       "label": "Write",
-      "path": "/?workspace=write",
+      "path": "/write",
       "kind": "workspace",
       "migrationClass": "canonical",
       "activeWorkspace": "write",

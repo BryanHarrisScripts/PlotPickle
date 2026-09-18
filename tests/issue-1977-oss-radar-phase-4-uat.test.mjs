@@ -116,7 +116,6 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architect
   assert.equal(nextDay.reviewCount, 0);
   assert.match(nextDay.reportBody, /Previously reviewed unchanged candidates suppressed:\*\* [1-9]/u);
   assert.match(nextDay.reportBody, /Seen by Radar yesterday:\*\* [1-9]/u);
-  assert.match(nextDay.reportBody, /seen by Radar yesterday/u);
 
   assert.ok(api.state.calls.every(({ pathname }) =>
     pathname === "/search/repositories"

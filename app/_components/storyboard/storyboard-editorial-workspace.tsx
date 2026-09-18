@@ -241,7 +241,7 @@ export default function StoryboardEditorialWorkspace({
       ) : null}
 
       <p className={styles.boundary}>
-        The 24/96 model supplies canonical addresses, not a fixed final image count. Candidates and later visual beats may expand beneath an anchor; viewing, changing or comparing them never promotes a reference or silently rewrites story canon.
+        The 24/96 model supplies canonical addresses, not a fixed final image count. Candidates and later visual beats may expand beneath an anchor; viewing, changing or comparing them never promotes a reference or silently rewrites story canon. SHOW_NOW / WITHHOLD_NOW reveal timing belongs only to real Storyboard Editorial Shots under the #2107 information boundary; selecting a visual never invents those directives.
       </p>
     </section>
   );

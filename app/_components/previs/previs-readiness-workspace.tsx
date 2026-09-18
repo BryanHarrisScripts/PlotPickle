@@ -90,7 +90,7 @@ export default function PrevisReadinessWorkspace({
     }
     commit({ type: "previs.shot.store", shot, occurredAt: now });
     setSelectedShotId(shot.id);
-    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Author the creative timing until this Mini-Block totals ${RENDER_MINI_BLOCK_SECONDS}s.`);
+    setMessage(`Shot ${shot.order} added under ${anchor.blockNumber}.${anchor.miniBlockNumber}. Camera, blocking, performance and timing remain Human-authored; leave unknown fields empty rather than inferring them from the story grid.`);
   }
 
   function saveShot(event: FormEvent<HTMLFormElement>) {
@@ -142,7 +142,7 @@ export default function PrevisReadinessWorkspace({
           <span className={styles.eyebrow}>Previs · 24 Blocks / 96 Mini-Blocks / {RENDER_CLIPS_PER_FEATURE.toLocaleString()} render clips</span>
           <h1 id="previs-title">See how the visual story plays before PlotPickle renders it.</h1>
           <p>
-            Storyboard and Visualize establish what the film looks like. Previs authors camera and editorial timing. Render Plan then maps every 75-second Mini-Block onto exactly 25 technical 3-second generation clips. A creative shot may span one clip or several; the clip grid is production plumbing, not a second storytelling structure.
+            Storyboard and Visualize establish what the film looks like. Previs authors camera, blocking, performance energy, motion and timing only where the Human has evidence or intent to record. For the current two-hour technical preset, Render Plan can project a completed 75-second Mini-Block onto 25 × 3-second generation clips. A creative shot may span one clip or several; the clip grid is production plumbing, not a source of creative timing.
           </p>
         </div>
         <dl className={styles.summary}>
@@ -203,7 +203,7 @@ export default function PrevisReadinessWorkspace({
             <div>
               <p className={styles.blockKicker}>Block {String(selectedBlock.blockNumber).padStart(2, "0")}</p>
               <h2>{selectedBlock.label.replace(/^Block \d+: /, "")}</h2>
-              <p>Four 75-second Mini-Blocks preserve story structure. Each becomes a fixed {RENDER_CLIPS_PER_MINI_BLOCK} × {RENDER_CLIP_SECONDS}s Render Plan, for {RENDER_CLIPS_PER_BLOCK} generation clips per five-minute Block.</p>
+              <p>Four canonical Mini-Block addresses preserve story provenance. Their creative shot density and timing remain variable. Under the current two-hour technical preset, a fully timed Mini-Block can project to {RENDER_CLIPS_PER_MINI_BLOCK} × {RENDER_CLIP_SECONDS}s render slots, for {RENDER_CLIPS_PER_BLOCK} technical clips per Block.</p>
             </div>
             <span aria-label={`Status: ${STATE_LABELS[selectedBlock.state]}`} className={styles.blockState} data-state={selectedBlock.state}>
               <i aria-hidden="true" className={styles.stateLight} />

@@ -31,7 +31,7 @@
   border-radius: var(--pp-skin-radius) !important;
   background: var(--pp-skin-fill-panel) !important;
   color: var(--pp-skin-ink) !important;
-  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight) !important;
+  box-shadow: var(--pp-skin-shadow-panel), inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-line), var(--pp-skin-inset-highlight) !important;
 }
 
 .pp-skin-v1-dashboard-shell-title {

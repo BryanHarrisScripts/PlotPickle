@@ -68,7 +68,7 @@
       "formatProfile": {
         "layout": "directory-grid",
         "shell": "dashboard-reference",
-        "frame": "solid-standard",
+        "frame": "layered-inset",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
       }

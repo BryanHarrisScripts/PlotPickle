@@ -146,9 +146,10 @@ function projectSourceScenes(canonical: CanonicalPreproductionProject): readonly
   }
 
   return [...byScene.entries()].map(([id, passages]) => {
-    const ordered = [...passages].sort((left, right) => left.id.localeCompare(right.id));
+    const ordered = [...passages];
     const heading = ordered.find((passage) => /scene[- ]?heading|slug/i.test(passage.type));
     const first = ordered[0];
+    const canonicalBlock = canonical.structure.blocks.find((block) => block.number === first.blockNumber);
     const relatedMiniBlockIds = unique(ordered.flatMap((passage) => {
       const mini = canonicalMiniForLegacy(canonical.structure, passage.blockNumber, passage.miniBlockNumber);
       return mini ? [mini.id] : [];
@@ -157,7 +158,7 @@ function projectSourceScenes(canonical: CanonicalPreproductionProject): readonly
       scene: {
         id,
         sourceRef: `screenplay-scene:${screenplay.sourceFileName}:scene-${first.sceneNumber}`,
-        blockId: `block-${String(first.blockNumber).padStart(2, "0")}`,
+        blockId: canonicalBlock?.id ?? `block-${String(first.blockNumber).padStart(2, "0")}`,
         blockNumber: first.blockNumber,
         title: heading?.text || `Scene ${first.sceneNumber}`,
         purpose: "",

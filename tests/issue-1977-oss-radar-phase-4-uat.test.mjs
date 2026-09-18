@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { runRadar } from "../lib/verification/oss-radar/run-radar.mjs";
+import { loadDiscoveryContract } from "../lib/verification/oss-radar/discover-github.mjs";\nimport { runRadar } from "../lib/verification/oss-radar/run-radar.mjs";
 
-const contract = JSON.parse(await readFile("config/oss-radar/discovery-contract.json", "utf8"));
+const contract = await loadDiscoveryContract();
 const discoveryFixture = JSON.parse(await readFile("tests/fixtures/oss-radar/phase-1-github-search.json", "utf8"));
 const workflow = await readFile(".github/workflows/oss-radar.yml", "utf8");
 
@@ -80,7 +80,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
   assert.match(workflow, /github\.token/u);
 });
 
-test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review queue", async () => {
+test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architecture review queue", async () => {
   const api = fullRadarFixture();
   const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl };
 
@@ -88,14 +88,14 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and a useful Top 5 review 
   assert.equal(first.action, "created");
   assert.equal(first.monthlyIssueTitle, "[OSS RADAR] September 2026");
   assert.ok(first.reviewCount > 0 && first.reviewCount <= contract.report.targetFindings);
-  assert.equal(first.reviewCount, Math.min(contract.report.targetFindings, first.state.candidates.length));
+  assert.ok(first.reviewCount <= Math.min(contract.report.targetFindings, first.state.candidates.length));
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 1);
   assert.match(first.reportBody, /GitHub discovery/u);
   assert.match(first.reportBody, /Raw repository pointers returned/u);
   assert.match(first.reportBody, /Repository creation age/u);
   assert.match(first.reportBody, /Radar candidate history/u);
-  assert.match(first.reportBody, /Top repositories for review/u);
+  assert.match(first.reportBody, /Architecture findings for review/u);\n  assert.match(first.reportBody, /Seven PlotPickle Architecture Areas/u);
   assert.match(first.reportBody, /bounded read-only enrichment/u);
   assert.match(first.reportBody, /Discovery coverage/u);
   assert.match(first.reportBody, /Query effectiveness/u);

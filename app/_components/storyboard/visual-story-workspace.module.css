@@ -311,7 +311,7 @@
   display: grid;
   aspect-ratio: 16 / 9;
   place-items: center;
-  border: var(--pp-skin-border-thin) dashed var(--pp-skin-line);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   color: var(--pp-skin-ink-muted);
   background: var(--pp-skin-surface-0);
   font-size: var(--pp-skin-font-sm);
@@ -352,7 +352,7 @@
 .relationshipNote {
   margin-left: 66px;
   padding-top: var(--pp-skin-space-2);
-  border-top: var(--pp-skin-border-thin) dashed var(--pp-skin-line);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
 }
 
 .inspector {
@@ -413,7 +413,7 @@
 
 .empty {
   padding: var(--pp-skin-space-4);
-  border-style: dashed;
+  border-style: solid;
   color: var(--pp-skin-ink-soft);
 }
 

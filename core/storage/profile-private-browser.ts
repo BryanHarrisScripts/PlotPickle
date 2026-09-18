@@ -46,8 +46,8 @@ async function privateMutation(action: string, payload: Record<string, unknown>,
   return body;
 }
 
-function queueWrite(action: string, payload: Record<string, unknown>) {
-  const token = csrfToken;
+function queueWrite(action: string, payload: Record<string, unknown>, explicitToken = "") {
+  const token = explicitToken || csrfToken;
   if (!token) return Promise.reject(new Error("The Human profile is locked."));
   updateSaveState("saving", "Unsaved changes");
   const current = pendingWrite.catch(() => undefined).then(async () => {
@@ -141,8 +141,8 @@ export function hydratedStoryMapContext(projectId: string) {
   return normalizeStoryMapContextRegistry(hydrated.storyMapContexts)[projectId] ?? null;
 }
 
-export function persistActiveProfileProject() {
-  return queueWrite("save-project", { project: loadFoundationProject() });
+export function persistActiveProfileProject(explicitToken = "") {
+  return queueWrite("save-project", { project: loadFoundationProject() }, explicitToken);
 }
 
 export function persistProfilePrivateValue(key: "wyrmwood", value: unknown) {

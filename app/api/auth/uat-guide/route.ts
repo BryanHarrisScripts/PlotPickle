@@ -153,7 +153,6 @@ export async function GET(request: Request) {
       reviews: normalizeReviewState(reviewState).records,
       isolation: "synthetic-human",
       providerSpendAllowed: false,
-      verificationInbox: "/verification-inbox",
     });
   } catch (error) {
     return errorResponse(error);

@@ -409,7 +409,7 @@ export default function VisualStoryWorkspace({
                   )) : <p>No WITHHOLD_NOW information directive is recorded for this Shot.</p>}
                 </section>
 
-                <details className={styles.informationBoundary} data-provider-instruction-inspection="read-only">
+                <details className={styles.informationBoundary} data-provider-instruction-inspection="read-only" id="production-inspection">
                   <summary>View generated director instructions</summary>
                   {instructionInspection ? (
                     <>

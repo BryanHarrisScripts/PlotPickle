@@ -70,6 +70,8 @@ test("#2189 WebMCP catalogue and Visual Director both understand route-backed ca
   assert.match(catalogue, /if \(contract\.route\)/u);
   assert.match(catalogue, /page\.goto\(new URL\(contract\.route, server\)/u);
   assert.match(catalogue, /await installCatalogueWebMcp\(page, toolRoot\)/u);
+  assert.match(catalogue, /routeMatchesLocation/u);
+  assert.match(catalogue, /expected\.pathname !== location\.pathname/u);
   assert.match(director, /if \(contract\.route\)/u);
   assert.match(director, /page\.goto\(new URL\(contract\.route, server\)/u);
   assert.match(director, /analyzeVisualContinuity\(dashboard, await navigateAndCollect\(page, surface, server\)\)/u);
@@ -94,4 +96,32 @@ test("#2189 keeps all added visual references as Human-review candidates", async
     assert.equal(manifest.surfaces[id]?.selector, WEBMCP_STANDARD_SURFACE_REGISTRY[id].rootSelector);
   }
   assert.equal(manifest.surfaces.dashboard.status, "locked");
+});
+
+
+test("#2189 canonical Storyboard routes no longer read the legacy browser project store", async () => {
+  const [route, skin] = await Promise.all([
+    read("app/storyboard/page.tsx"),
+    read("app/skin-v1/preproduction-review-surfaces.tsx"),
+  ]);
+
+  for (const source of [route, skin]) {
+    assert.doesNotMatch(source, /plotpickle\.project\.v1|localStorage|getItem\(|normalizePlotPickleProject|legacySceneProjectionSource/u);
+  }
+  assert.match(route, /legacyProject=\{null\}/u);
+  assert.match(skin, /legacyProject=\{null\}/u);
+});
+
+test("#2189 routed capture roots match the actual standalone Storyboard and Previs surfaces", async () => {
+  const [storyboard, previs] = await Promise.all([
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(storyboard, /<main className=\{styles\.workspace\} aria-labelledby="storyboard-readiness-title">/u);
+  assert.match(previs, /<main className=\{styles\.workspace\} aria-labelledby="previs-title">/u);
+  assert.match(previs, /id="previs-block-panel"/u);
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.storyboard.rootSelector, "main[aria-labelledby='storyboard-readiness-title']");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.previs.rootSelector, "main[aria-labelledby='previs-title']");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.previs.readySelector, "#previs-block-panel");
 });

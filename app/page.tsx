@@ -15,6 +15,7 @@ import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
+import BlockNativeWriteWorkspace from "../modules/write/ui/block-native-write-workspace";
 import LibraryWorkspace from "../modules/library/ui/library-workspace";
 import FoundationsStoryWorkflowPanel from "../modules/story-workflow/ui/foundations-story-workflow-panel";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
@@ -37,6 +38,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "dashboard") return "dashboard";
   if (requested === "learn") return "learn";
   if (requested === "plan") return "plan";
+  if (requested === "write") return "write";
   if (requested === "build") return "build";
   if (requested === "community") return "community";
   if (requested === "collab") return "collab";
@@ -99,7 +101,8 @@ function navigateGuided(workspace: "learn" | "plan" | "build", section: GuidedSe
   destination.searchParams.set("workspace", workspace);
   if (workspace === "learn") {
     destination.searchParams.delete("section");
-    destination.searchParams.delete("lesson");
+    if (lessonId) destination.searchParams.set("lesson", lessonId);
+    else destination.searchParams.delete("lesson");
   } else {
     destination.searchParams.set("section", section);
     if (lessonId) destination.searchParams.set("lesson", lessonId);
@@ -153,7 +156,7 @@ function openLearningApplication(topic: string, lessonId?: string) {
       return;
     case "drafting":
     case "dialogue":
-      window.location.assign("/pageflow");
+      navigateWorkspace("write");
       return;
     case "revision":
       window.location.assign("/edit");
@@ -250,6 +253,14 @@ export default function Home() {
     return (
       <PlotPickleWorkspaceShell activeWorkspace="library" onNavigate={navigateWorkspace}>
         <LibraryWorkspace />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
+  if (workspace === "write") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="write" onNavigate={navigateWorkspace}>
+        <BlockNativeWriteWorkspace />
       </PlotPickleWorkspaceShell>
     );
   }

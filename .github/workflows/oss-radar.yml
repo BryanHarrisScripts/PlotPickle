@@ -33,6 +33,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node lib/verification/oss-radar/run-radar.mjs > oss-radar-result.json
       - name: Publish GitHub Actions summary
-        env:
-          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: node lib/verification/oss-radar/github-summary.mjs oss-radar-result.json

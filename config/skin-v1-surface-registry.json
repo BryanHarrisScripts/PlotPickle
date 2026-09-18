@@ -68,7 +68,7 @@
       "formatProfile": {
         "layout": "directory-grid",
         "shell": "dashboard-reference",
-        "frame": "solid-standard",
+        "frame": "layered-inset",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
       }
@@ -1645,7 +1645,7 @@
   },
   "formatProfileContract": {
     "issue": 2226,
-    "phase": 2,
+    "phase": 3,
     "grammar": "config/skin-v1-surface-grammar.json",
     "requiredForCapturePolicy": "standard"
   }

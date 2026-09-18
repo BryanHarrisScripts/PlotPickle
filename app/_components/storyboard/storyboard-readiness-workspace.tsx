@@ -55,7 +55,7 @@ export default function StoryboardReadinessWorkspace({
   readonly legacyProject: PlotPickleProject | null;
   readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
-  readonly onOpenBuild: () => void;
+  readonly onOpenBuild: (blockNumber: number, miniBlockNumber: number) => void;
   readonly initialBlockNumber?: number;
   readonly initialMiniBlockNumber?: number;
   readonly initialSceneId?: string;
@@ -79,8 +79,16 @@ export default function StoryboardReadinessWorkspace({
     [project, selectedTarget],
   );
 
+  function preserveStoryboardAddress(block: number, mini: number) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("block", String(block));
+    url.searchParams.set("mini", String(mini));
+    window.history.replaceState(window.history.state, "", url);
+  }
+
   function openEditorial(candidateId: string, miniNumber: number) {
     setSelectedMiniBlockNumber(miniNumber);
+    preserveStoryboardAddress(selectedNumber, miniNumber);
     setRequestedCandidateId(candidateId);
     window.requestAnimationFrame(() => {
       document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -108,7 +116,7 @@ export default function StoryboardReadinessWorkspace({
       <section className={styles.notice} aria-label="Storyboard authority boundary">
         <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "QA access is open; BUILD readiness remains unresolved."}</strong>
         <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth. Storyboard acceptance reports visual evidence at a stable address; it does not gate later Blocks or require one kept image per Mini-Block. QA access never promotes an unearned target.</span>
-        <button type="button" onClick={onOpenBuild}>Open BUILD evidence</button>
+        <button type="button" onClick={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}>Open BUILD evidence</button>
       </section>
 
       <nav aria-label="Storyboard Block tabs" className={styles.tabRail} role="tablist">
@@ -127,6 +135,7 @@ export default function StoryboardReadinessWorkspace({
                 setSelectedBlockNumber(number);
                 setSelectedMiniBlockNumber(1);
                 setRequestedCandidateId(undefined);
+                preserveStoryboardAddress(number, 1);
               }}
               role="tab"
               type="button"
@@ -201,7 +210,10 @@ export default function StoryboardReadinessWorkspace({
                           : "replacement concept candidate"
                       : "no visual candidate"}
                   </small>
-                  <button onClick={() => setSelectedMiniBlockNumber(miniNumber)} type="button">Open Visual Story</button>
+                  <button onClick={() => {
+                    setSelectedMiniBlockNumber(miniNumber);
+                    preserveStoryboardAddress(selectedNumber, miniNumber);
+                  }} type="button">Open Visual Story</button>
                   <button
                     disabled={!canReviewReference}
                     onClick={reference && canReviewReference ? () => openEditorial(reference.id, miniNumber) : undefined}
@@ -239,7 +251,7 @@ export default function StoryboardReadinessWorkspace({
             requestedCandidateId={requestedCandidateId}
             target={selectedTarget}
             onProjectChange={onProjectChange}
-            onOpenBuild={onOpenBuild}
+            onOpenBuild={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}
           />
         </div>
       ) : null}

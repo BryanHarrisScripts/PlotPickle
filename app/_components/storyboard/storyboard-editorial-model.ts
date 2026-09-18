@@ -344,6 +344,11 @@ export function createStoryboardReferenceArtifact(input: {
       anchorRef,
       storyboardFrameDependencySourceKey(input.project, input.targetId, input.candidate.miniBlockNumber),
       observedReferenceSourceKey(input.candidate.sourceRef),
+      `storyboard-source-kind:${input.candidate.sourceKind}`,
+      ...input.candidate.provenanceRefs
+        .map((ref) => approvalValue(ref, 500))
+        .filter(Boolean)
+        .map((ref) => `storyboard-evidence:${ref}`),
       `ppf-revision:${input.project.revision}`,
       ...approvalSourceKeys(input.approvalAuthority),
     ],

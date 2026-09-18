@@ -47,6 +47,7 @@ export type SceneWorkspaceProjection = {
   readonly sourceFileName: string;
   readonly sourcePassages: readonly SceneWorkspaceSourcePassage[];
   readonly timeline: SceneTimelineProjection;
+  readonly totalSeconds: number;
   readonly cues: readonly SceneWorkspaceCue[];
   readonly dialogue: readonly SceneWorkspaceCue[];
   readonly action: readonly SceneWorkspaceCue[];
@@ -208,6 +209,10 @@ export function projectSceneWorkspace(input: {
   const shot = shotCues(timeline);
   const audio = audioCues(input.visualStory, input.legacyProject);
   const cues = [...dialogue, ...action, ...shot, ...audio];
+  const timedEnds = cues
+    .map((cue) => cue.endSecond)
+    .filter((value): value is number => value !== null);
+  const totalSeconds = timedEnds.length ? Math.max(...timedEnds) : timeline.totalSeconds;
 
   return {
     projectionOnly: true,
@@ -216,6 +221,7 @@ export function projectSceneWorkspace(input: {
     sourceFileName: normalizeProjectSourceEvidence(input.project.sourceEvidence).screenplay?.sourceFileName ?? "",
     sourcePassages: passages,
     timeline,
+    totalSeconds,
     cues,
     dialogue,
     action,

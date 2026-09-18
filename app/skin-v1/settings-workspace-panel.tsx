@@ -14,6 +14,7 @@ import styles from "./settings-workspace-panel.module.css";
 
 export type WorkspaceSettingsId = "general";
 type SkinTheme = "skin-v1" | "skin-v2";
+type StoryModePolicy = "local" | "cloud" | "hybrid";
 
 const SKIN_STORAGE_KEY = "plotpickle.skin";
 
@@ -37,10 +38,21 @@ function readSkinTheme(): SkinTheme {
 export default function SettingsWorkspacePanel({ section }: { readonly section: WorkspaceSettingsId }) {
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [skinTheme, setSkinTheme] = useState<SkinTheme>("skin-v1");
+  const [storyMode, setStoryMode] = useState<StoryModePolicy>("hybrid");
+  const [storyModeBusy, setStoryModeBusy] = useState(false);
+  const [storyModeMessage, setStoryModeMessage] = useState("Loading Story Mode…");
 
   useEffect(() => {
     setSettings(readSettings());
     setSkinTheme(readSkinTheme());
+    void fetch("/api/story-mode/policy", { cache: "no-store" })
+      .then(async (response) => {
+        const body = await response.json() as { ok?: boolean; mode?: StoryModePolicy; message?: string };
+        if (!response.ok || !body.ok || !body.mode) throw new Error(body.message || "Story Mode is unavailable.");
+        setStoryMode(body.mode);
+        setStoryModeMessage(`Story Mode is ${body.mode.toUpperCase()}.`);
+      })
+      .catch((error) => setStoryModeMessage(error instanceof Error ? error.message : "Story Mode is unavailable."));
   }, []);
 
   function persist(next: PlotPickleSettings) {
@@ -54,6 +66,27 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
     setSkinTheme(next);
     window.localStorage.setItem(SKIN_STORAGE_KEY, next);
     window.dispatchEvent(new CustomEvent("plotpickle:skin-change"));
+  }
+
+  async function persistStoryMode(next: StoryModePolicy) {
+    setStoryModeBusy(true);
+    setStoryModeMessage(`Switching Story Mode to ${next.toUpperCase()}…`);
+    try {
+      const response = await fetch("/api/story-mode/policy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: next }),
+      });
+      const body = await response.json() as { ok?: boolean; mode?: StoryModePolicy; message?: string };
+      if (!response.ok || !body.ok || body.mode !== next) throw new Error(body.message || "Story Mode policy update failed.");
+      setStoryMode(next);
+      setStoryModeMessage(`Story Mode is ${next.toUpperCase()}.`);
+      window.dispatchEvent(new CustomEvent("plotpickle:story-mode-policy-change", { detail: next }));
+    } catch (error) {
+      setStoryModeMessage(error instanceof Error ? error.message : "Story Mode policy update failed.");
+    } finally {
+      setStoryModeBusy(false);
+    }
   }
 
   const startupPage = isDashboardStartupId(settings.general.startupPage) ? settings.general.startupPage : "dashboard";
@@ -83,6 +116,21 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
             {DASHBOARD_STARTUP_CHOICES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
           </select>
           <small>Choices come from Dashboard destinations that are currently connected. Unwired Dashboard rows are not presented as working startup destinations.</small>
+        </label>
+
+        <label>
+          <span>Story Mode</span>
+          <select
+            value={storyMode}
+            aria-label="Story Mode"
+            disabled={storyModeBusy}
+            onChange={(event) => void persistStoryMode(event.currentTarget.value as StoryModePolicy)}
+          >
+            <option value="local">Local</option>
+            <option value="cloud">Cloud</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+          <small>{storyModeMessage} Starting UAT automatically selects Local so no paid provider is used.</small>
         </label>
 
         <label>

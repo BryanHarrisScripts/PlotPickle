@@ -33,11 +33,14 @@ test("#2215 starting UAT creates or reuses the Human Afterglow working copy and 
   assert.match(panel, /switchActiveLibraryProject\(existing\.id\)/u);
   assert.match(panel, /createAfterglowV9FoundationsReference\(\)/u);
   assert.match(panel, /createLibraryWorkingCopy\(\{/u);
-  assert.match(panel, /await persistActiveProfileProject\(\)/u);
+  assert.match(panel, /await persistActiveProfileProject\(csrf\)/u);
+  assert.match(panel, /const csrf = await csrfToken\(\)/u);
 
-  const persistIndex = panel.indexOf("await ensureAfterglowWorkingCopy()");
+  const authIndex = panel.indexOf("const csrf = await csrfToken()");
+  const persistIndex = panel.indexOf("await ensureAfterglowWorkingCopy(csrf)");
   const startRequestIndex = panel.indexOf('action: "start"');
-  assert.ok(persistIndex >= 0 && startRequestIndex > persistIndex, "Afterglow must be prepared and persisted before the UAT runner starts.");
+  assert.ok(authIndex >= 0 && persistIndex > authIndex, "UAT must verify Human profile authority before persisting Afterglow.");
+  assert.ok(startRequestIndex > persistIndex, "Afterglow must be prepared and persisted before the UAT runner starts.");
 });
 
 test("#2215 complete Writer-to-Screen Library PPF state survives encrypted profile persistence", async () => {
@@ -54,7 +57,8 @@ test("#2215 complete Writer-to-Screen Library PPF state survives encrypted profi
   assert.match(normalizer, /return \{ \.\.\.project, structure, sourceEvidence, writing \}/u);
   assert.match(runtime, /normalizeProject: normalizeLibraryProject/u);
   assert.match(route, /const project = normalizeLibraryProject\(input\.project\)/u);
-  assert.match(privateBrowser, /queueWrite\("save-project", \{ project: loadFoundationProject\(\) \}\)/u);
+  assert.match(privateBrowser, /persistActiveProfileProject\(explicitToken = ""\)/u);
+  assert.match(privateBrowser, /queueWrite\("save-project", \{ project: loadFoundationProject\(\) \}, explicitToken\)/u);
 });
 
 test("#2215 ongoing Human edits keep using the profile-private encrypted-on-disk save boundary", async () => {

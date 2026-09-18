@@ -50,187 +50,63 @@
       "label": "What the user sees and interacts with",
       "backendAlias": "Experience Skins",
       "description": "Interfaces, visual surfaces and interaction patterns that make PlotPickle understandable and usable.",
-      "discoveryLaneIds": [
-        "visual-story",
-        "architectural-comparators",
-        "learn-education"
-      ],
-      "evidenceConceptIds": [
-        "generative-ui",
-        "visual-continuity",
-        "multimodal-production",
-        "windows-local"
-      ],
-      "keywords": [
-        "generative ui",
-        "interface",
-        "workbench",
-        "workspace",
-        "dashboard",
-        "component"
-      ]
+      "discoveryLaneIds": ["visual-story", "architectural-comparators", "learn-education"],
+      "evidenceConceptIds": ["generative-ui", "visual-continuity", "multimodal-production", "windows-local"],
+      "keywords": ["generative ui", "interface", "workbench", "workspace", "dashboard", "component"]
     },
     {
       "id": "experience-contract",
       "label": "How the experience stays consistent",
       "backendAlias": "Experience Contract",
       "description": "Contracts, schemas, design-system rules and Human-control boundaries that keep every surface behaving consistently.",
-      "discoveryLaneIds": [
-        "platform-engineering",
-        "ai-architecture",
-        "architectural-comparators"
-      ],
-      "evidenceConceptIds": [
-        "ui-contract",
-        "deterministic-host",
-        "human-approval",
-        "skills-plugins"
-      ],
-      "keywords": [
-        "design system",
-        "schema",
-        "contract",
-        "renderer",
-        "component library",
-        "accessibility"
-      ]
+      "discoveryLaneIds": ["platform-engineering", "ai-architecture", "architectural-comparators"],
+      "evidenceConceptIds": ["ui-contract", "deterministic-host", "human-approval", "skills-plugins"],
+      "keywords": ["design system", "schema", "contract", "renderer", "component library", "accessibility"]
     },
     {
       "id": "production-orchestration",
       "label": "How work moves from idea to finished story",
       "backendAlias": "Production Orchestration",
       "description": "Workflows that coordinate planning, generation, review, approval and delivery across long-running creative production.",
-      "discoveryLaneIds": [
-        "visual-story",
-        "story-game-engine",
-        "architectural-comparators",
-        "ai-architecture"
-      ],
-      "evidenceConceptIds": [
-        "workflow-orchestration",
-        "human-approval",
-        "storyboard-previs",
-        "multimodal-production"
-      ],
-      "keywords": [
-        "workflow",
-        "production",
-        "pipeline",
-        "orchestration",
-        "storyboard",
-        "previs"
-      ]
+      "discoveryLaneIds": ["visual-story", "story-game-engine", "architectural-comparators", "ai-architecture"],
+      "evidenceConceptIds": ["workflow-orchestration", "human-approval", "storyboard-previs", "multimodal-production"],
+      "keywords": ["workflow", "production", "pipeline", "orchestration", "storyboard", "previs"]
     },
     {
       "id": "agent-skill-mesh",
       "label": "How agents, skills and tools work together",
       "backendAlias": "Agent & Skill Mesh",
       "description": "Agent runtimes, Skills, plugins, CLIs, MCP/tool boundaries and coordination patterns that keep capabilities modular.",
-      "discoveryLaneIds": [
-        "ai-architecture",
-        "platform-engineering",
-        "architectural-comparators"
-      ],
-      "evidenceConceptIds": [
-        "agent-runtime",
-        "tool-execution",
-        "skills-plugins",
-        "mcp-interoperability",
-        "coding-harness",
-        "cli-extension"
-      ],
-      "keywords": [
-        "agent",
-        "skill",
-        "plugin",
-        "extension",
-        "mcp",
-        "cli",
-        "harness"
-      ]
+      "discoveryLaneIds": ["ai-architecture", "platform-engineering", "architectural-comparators"],
+      "evidenceConceptIds": ["agent-runtime", "tool-execution", "skills-plugins", "mcp-interoperability", "coding-harness", "cli-extension"],
+      "keywords": ["agent", "skill", "plugin", "extension", "mcp", "cli", "harness"]
     },
     {
       "id": "story-canon-evidence",
       "label": "How story knowledge, canon and evidence stay coherent",
       "backendAlias": "Story / Canon / Evidence",
       "description": "State, memory, context, graphs, retrieval and provenance patterns that preserve story truth and explain where information came from.",
-      "discoveryLaneIds": [
-        "story-game-engine",
-        "writer-craft",
-        "ai-architecture"
-      ],
-      "evidenceConceptIds": [
-        "story-state",
-        "memory",
-        "retrieval",
-        "context-management",
-        "context-graph",
-        "token-efficiency"
-      ],
-      "keywords": [
-        "canon",
-        "story state",
-        "knowledge graph",
-        "context graph",
-        "memory",
-        "provenance",
-        "retrieval"
-      ]
+      "discoveryLaneIds": ["story-game-engine", "writer-craft", "ai-architecture"],
+      "evidenceConceptIds": ["story-state", "memory", "retrieval", "context-management", "context-graph", "token-efficiency"],
+      "keywords": ["canon", "story state", "knowledge graph", "context graph", "memory", "provenance", "retrieval"]
     },
     {
       "id": "provider-runtime",
       "label": "How models, providers and local/cloud compute plug in",
       "backendAlias": "Provider Runtime",
       "description": "Model routing, gateways, local/cloud runtimes and interoperability patterns that prevent PlotPickle from locking itself to one provider.",
-      "discoveryLaneIds": [
-        "ai-architecture",
-        "platform-engineering",
-        "architectural-comparators"
-      ],
-      "evidenceConceptIds": [
-        "provider-routing",
-        "local-ai",
-        "windows-local",
-        "mcp-interoperability",
-        "api-gateway"
-      ],
-      "keywords": [
-        "model routing",
-        "gateway",
-        "provider",
-        "local ai",
-        "inference",
-        "api",
-        "runtime"
-      ]
+      "discoveryLaneIds": ["ai-architecture", "platform-engineering", "architectural-comparators"],
+      "evidenceConceptIds": ["provider-routing", "local-ai", "windows-local", "mcp-interoperability", "api-gateway"],
+      "keywords": ["model routing", "gateway", "provider", "local ai", "inference", "api", "runtime"]
     },
     {
       "id": "validation-operations",
       "label": "How PlotPickle stays reliable, secure and maintainable",
       "backendAlias": "Validation & Operations",
       "description": "Testing, evaluation, review, security, observability, rollback and operational patterns that keep the system trustworthy.",
-      "discoveryLaneIds": [
-        "platform-engineering",
-        "ai-architecture"
-      ],
-      "evidenceConceptIds": [
-        "evaluation",
-        "observability",
-        "rollback-recovery",
-        "atomic-persistence",
-        "deterministic-host",
-        "security-audit",
-        "coding-harness"
-      ],
-      "keywords": [
-        "evaluation",
-        "audit",
-        "security",
-        "observability",
-        "review",
-        "sandbox",
-        "testing"
-      ]
+      "discoveryLaneIds": ["platform-engineering", "ai-architecture"],
+      "evidenceConceptIds": ["evaluation", "observability", "rollback-recovery", "atomic-persistence", "deterministic-host", "security-audit", "coding-harness"],
+      "keywords": ["evaluation", "audit", "security", "observability", "review", "sandbox", "testing"]
     }
   ],
   "additionalQueryFamilies": [
@@ -238,203 +114,93 @@
       "laneId": "writer-craft",
       "id": "adaptive-authoring",
       "label": "Adaptive authoring systems",
-      "queries": [
-        "AI authoring workbench",
-        "story production system"
-      ]
+      "queries": ["AI authoring workbench", "story production system"]
     },
     {
       "laneId": "visual-story",
       "id": "adaptive-interface",
       "label": "Generative and creative interfaces",
-      "queries": [
-        "generative UI",
-        "creative workbench UI"
-      ]
+      "queries": ["generative UI", "creative workbench UI"]
     },
     {
       "laneId": "story-game-engine",
       "id": "adaptive-graphs",
       "label": "Graph and context systems",
-      "queries": [
-        "knowledge graph agent",
-        "context graph"
-      ]
+      "queries": ["knowledge graph agent", "context graph"]
     },
     {
       "laneId": "learn-education",
       "id": "adaptive-human-workflow",
       "label": "Human-agent exploration",
-      "queries": [
-        "human agent collaboration",
-        "branching workspace AI"
-      ]
+      "queries": ["human agent collaboration", "branching workspace AI"]
     },
     {
       "laneId": "ai-architecture",
       "id": "adaptive-agent-systems",
       "label": "Coding agents, CLIs and gateways",
-      "queries": [
-        "coding agent harness",
-        "agent CLI",
-        "MCP gateway"
-      ]
+      "queries": ["coding agent harness", "agent CLI", "MCP gateway"]
     },
     {
       "laneId": "platform-engineering",
       "id": "adaptive-validation",
       "label": "Security, observability and review",
-      "queries": [
-        "security audit skill",
-        "AI observability",
-        "agent review workflow"
-      ]
+      "queries": ["security audit skill", "AI observability", "agent review workflow"]
     },
     {
       "laneId": "architectural-comparators",
       "id": "adaptive-comparators",
       "label": "Transferable adjacent systems",
-      "queries": [
-        "data thread workspace",
-        "plugin based AI platform"
-      ]
+      "queries": ["data thread workspace", "plugin based AI platform"]
     }
   ],
   "additionalEvidenceConcepts": [
     {
       "id": "generative-ui",
-      "phrases": [
-        "generative ui",
-        "generated ui",
-        "streaming ui",
-        "component library"
-      ],
-      "laneIds": [
-        "visual-story",
-        "architectural-comparators"
-      ],
-      "plotPickleTargets": [
-        "Experience Skins"
-      ]
+      "phrases": ["generative ui", "generated ui", "streaming ui", "component library"],
+      "laneIds": ["visual-story", "architectural-comparators"],
+      "plotPickleTargets": ["Experience Skins"]
     },
     {
       "id": "ui-contract",
-      "phrases": [
-        "component contract",
-        "ui schema",
-        "renderer agnostic",
-        "design system"
-      ],
-      "laneIds": [
-        "platform-engineering",
-        "ai-architecture"
-      ],
-      "plotPickleTargets": [
-        "Experience Contract"
-      ]
+      "phrases": ["component contract", "ui schema", "renderer agnostic", "design system"],
+      "laneIds": ["platform-engineering", "ai-architecture"],
+      "plotPickleTargets": ["Experience Contract"]
     },
     {
       "id": "context-graph",
-      "phrases": [
-        "context graph",
-        "knowledge graph",
-        "memory graph",
-        "provenance graph"
-      ],
-      "laneIds": [
-        "story-game-engine",
-        "ai-architecture"
-      ],
-      "plotPickleTargets": [
-        "Context Engine",
-        "PPF",
-        "Evidence"
-      ]
+      "phrases": ["context graph", "knowledge graph", "memory graph", "provenance graph"],
+      "laneIds": ["story-game-engine", "ai-architecture"],
+      "plotPickleTargets": ["Context Engine", "PPF", "Evidence"]
     },
     {
       "id": "token-efficiency",
-      "phrases": [
-        "token efficiency",
-        "token budget",
-        "context tokens",
-        "token usage"
-      ],
-      "laneIds": [
-        "ai-architecture",
-        "platform-engineering"
-      ],
-      "plotPickleTargets": [
-        "Context Engine",
-        "Agent Compute"
-      ]
+      "phrases": ["token efficiency", "token budget", "context tokens", "token usage"],
+      "laneIds": ["ai-architecture", "platform-engineering"],
+      "plotPickleTargets": ["Context Engine", "Agent Compute"]
     },
     {
       "id": "coding-harness",
-      "phrases": [
-        "coding agent",
-        "agent harness",
-        "sandbox",
-        "code interpreter"
-      ],
-      "laneIds": [
-        "ai-architecture",
-        "platform-engineering"
-      ],
-      "plotPickleTargets": [
-        "Agent Compute",
-        "Verification"
-      ]
+      "phrases": ["coding agent", "agent harness", "sandbox", "code interpreter"],
+      "laneIds": ["ai-architecture", "platform-engineering"],
+      "plotPickleTargets": ["Agent Compute", "Verification"]
     },
     {
       "id": "security-audit",
-      "phrases": [
-        "security audit",
-        "security skill",
-        "vulnerability",
-        "threat model"
-      ],
-      "laneIds": [
-        "platform-engineering"
-      ],
-      "plotPickleTargets": [
-        "Verification",
-        "Evidence"
-      ]
+      "phrases": ["security audit", "security skill", "vulnerability", "threat model"],
+      "laneIds": ["platform-engineering"],
+      "plotPickleTargets": ["Verification", "Evidence"]
     },
     {
       "id": "cli-extension",
-      "phrases": [
-        "cli",
-        "command line",
-        "extension api",
-        "plugin api",
-        "multiplexer"
-      ],
-      "laneIds": [
-        "ai-architecture",
-        "platform-engineering"
-      ],
-      "plotPickleTargets": [
-        "Skills",
-        "Tools & MCP"
-      ]
+      "phrases": ["cli", "command line", "extension api", "plugin api", "multiplexer"],
+      "laneIds": ["ai-architecture", "platform-engineering"],
+      "plotPickleTargets": ["Skills", "Tools & MCP"]
     },
     {
       "id": "api-gateway",
-      "phrases": [
-        "api gateway",
-        "llm gateway",
-        "model gateway",
-        "provider gateway"
-      ],
-      "laneIds": [
-        "ai-architecture",
-        "platform-engineering"
-      ],
-      "plotPickleTargets": [
-        "Agent Compute",
-        "Tools & MCP"
-      ]
+      "phrases": ["api gateway", "llm gateway", "model gateway", "provider gateway"],
+      "laneIds": ["ai-architecture", "platform-engineering"],
+      "plotPickleTargets": ["Agent Compute", "Tools & MCP"]
     }
   ]
 }

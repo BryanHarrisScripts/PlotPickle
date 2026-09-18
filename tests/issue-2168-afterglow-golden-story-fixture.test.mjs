@@ -86,7 +86,7 @@ test("#2168 golden fixture preserves v8/v9/v10 topology and mapping-method bound
   ]);
 
   assert.match(fixture, /AFTERGLOW_GOLDEN_STORY_FIXTURE_ID = "afterglow-v8-v9-v10-24x96-evidence-matrix"/u);
-  assert.match(fixture, /sections\.length !== 20/u);
+  assert.match(fixture, /sections\.length !== AFTERGLOW_V9_EXPLICIT_SECTION_COUNT/u);
   assert.match(fixture, /sourceId: "v9"/u);
   assert.match(fixture, /sourceRole: "baseline"/u);
   assert.match(fixture, /mappingMethod: "page-progress-fallback"/u);

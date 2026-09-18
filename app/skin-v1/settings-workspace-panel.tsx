@@ -9,6 +9,7 @@ import {
 import { announceSettingsChanged, SETTINGS_STORAGE_KEY } from "../use-connection-status";
 import { DASHBOARD_STARTUP_CHOICES, isDashboardStartupId } from "./dashboard-menu-registry";
 import SettingsReviewSystemPanel from "./settings-review-system-panel";
+import UatGuidePanel from "./uat-guide-panel";
 import styles from "./settings-workspace-panel.module.css";
 
 export type WorkspaceSettingsId = "general";
@@ -106,6 +107,7 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
         </label>
       </section>
 
+      <UatGuidePanel mode="settings" />
       <SettingsReviewSystemPanel systemId="advanced" embedded />
     </div>
   );

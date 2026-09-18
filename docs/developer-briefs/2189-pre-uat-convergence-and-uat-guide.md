@@ -7,6 +7,24 @@ Pre-UAT umbrella brief.
 This brief records the final convergence requirements before broad Human testing begins.
 
 
+## Final pre-UAT slice checkpoint — September 18, 2026
+
+#2193 is merged and established the current routed UAT surface set, first-class `/write`, legacy Reports fencing, routed Skin V1 activation, and expanded WebMCP/Visual Director coverage.
+
+This final #2189 slice adds:
+
+- an authenticated `/api/auth/uat-guide` boundary;
+- an encrypted profile-private UAT-tools opt-in;
+- a Dashboard `START UAT GUIDE` control that is absent until that profile opts in;
+- a synthetic-Human UAT runner that does not inherit Human cookies, credentials or private story state;
+- live sanitized UAT Guide events from the existing WebMCP standard-surface verifier;
+- the existing #2174 Afterglow Block 17.1 deterministic acceptance as the provider-neutral Production proof;
+- a Verification Inbox link plus durable WebMCP/finding evidence references;
+- an optional Windows command-window mirror driven by the same event-producing runner;
+- no visual-baseline auto-approval, provider spend, canon mutation, second project store, second router or second verification authority.
+
+The merge gate for this slice remains exact-head Architecture Verification. After merge, run the complete Start UAT path against current `main`. If that acceptance run is green, #2189 reaches its stop condition and broad Human UAT begins.
+
 ## Implementation checkpoint — September 18, 2026
 
 Completed before this surface-coverage slice:

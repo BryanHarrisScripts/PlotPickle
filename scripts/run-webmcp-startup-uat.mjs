@@ -319,7 +319,7 @@ async function cleanup(home) {
   await cleanupVerificationSyntheticHome(path.resolve(home));
 }
 
-async function run({ serverUrl, home, toolRoot, githubReport = false, repair = false, repairWorker = "pi" }) {
+export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubReport = false, repair = false, repairWorker = "pi", allowBaselinePrompt = true, onEvent = null }) {
   if (!home) throw new Error("Pass --home for the isolated WebMCP synthetic test home.");
   if (!toolRoot) throw new Error("Pass --tool-root pointing to the isolated WebMCP verification install.");
   const resolvedHome = path.resolve(home);
@@ -331,9 +331,12 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
   console.log("Waiting for the private PlotPickle test session...");
 
   try {
+    await onEvent?.({ type: "stage", label: "Preparing isolated UAT", detail: "Using a synthetic Human profile separated from the signed-in Human." });
     await ensureVerificationTools(resolvedToolRoot);
     await waitForUiServer(server);
     const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: resolvedHome });
+    await onEvent?.({ type: "stage", label: "Synthetic Human ready", detail: "Private Human cookies, credentials and story data are not inherited." });
+    await onEvent?.({ type: "stage", label: "Checking Skin V1 entry", detail: "Verifying the rendered authenticated experience." });
     await runWebMcpSurfaceVisualAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
@@ -343,12 +346,20 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
+      onSurface: async (surface) => onEvent?.({
+        type: "surface",
+        label: `Checking ${surface.label}`,
+        detail: "Verifying route, visible boundary and current Skin V1 presentation.",
+        surface: surface.id,
+      }),
     });
+    await onEvent?.({ type: "stage", label: "Comparing visual continuity", detail: "Dashboard remains the canonical Skin V1 reference." });
     const visualDirector = await runSkinV1VisualDirector({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
     });
+    await onEvent?.({ type: "stage", label: "Checking navigation contract", detail: "Verifying menu reachability and safe return paths." });
     await runSkinV1MenuContractAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
@@ -380,7 +391,9 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
     for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
     console.log("");
     try {
-      const approval = await promptVisualBaselineChanges({ manifest });
+      const approval = allowBaselinePrompt
+        ? await promptVisualBaselineChanges({ manifest })
+        : { prompted: false, approved: false, surfaces: [] };
       if (approval.approved) {
         const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
         console.log("");
@@ -394,6 +407,7 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
       console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
       console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
     }
+    await onEvent?.({ type: "result", label: "WebMCP acceptance passed", detail: `${standardCatalogue.surfaces} registered surfaces checked; no visual baseline was auto-approved.`, state: "PASS" });
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -425,6 +439,7 @@ async function run({ serverUrl, home, toolRoot, githubReport = false, repair = f
       });
     }
 
+    await onEvent?.({ type: "result", label: "WebMCP acceptance needs attention", detail: message, state: "FAIL" }).catch(() => undefined);
     return 1;
   }
 }
@@ -444,7 +459,7 @@ if (directExecution) {
       process.exitCode = 1;
     });
   } else if (command === "run") {
-    run({
+    runWebMcpStartupUat({
       serverUrl: argument("--server", "http://127.0.0.1:4173"),
       home,
       toolRoot: argument("--tool-root"),

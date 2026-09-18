@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { analyzeVisualContinuity, VISUAL_DIRECTOR_REPORT_PATH } from "../lib/verification/skin-v1-visual-director.mjs";
+import { analyzeVisualContinuity, derivePeerCorpus, VISUAL_DIRECTOR_REPORT_PATH } from "../lib/verification/skin-v1-visual-director.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
@@ -86,10 +86,47 @@ test("Visual Director turns Dashboard differences into concrete blocker and advi
   }
 });
 
+test("#2224 Visual Director uses governed peers for structural outliers and blocks broken rendered media", () => {
+  const peers = [
+    { surface: "GENERAL", root: { height: "900px" }, layout: { largestVerticalGap: 44, shellLandmarks: 2 } },
+    { surface: "STORY_MAP", root: { height: "980px" }, layout: { largestVerticalGap: 64, shellLandmarks: 3 } },
+    { surface: "WRITE", root: { height: "1040px" }, layout: { largestVerticalGap: 72, shellLandmarks: 2 } },
+  ];
+  const candidate = {
+    surface: "STORYBOARD",
+    root: { fontFamily: '"Courier New", monospace', width: "1000px", height: "3600px" },
+    tokens: {},
+    resolvedColors: {},
+    layout: { viewportHeight: 1100, largestVerticalGap: 820, shellLandmarks: 11 },
+    media: {
+      broken: [{ identity: "afterglow-frame-17-1", detail: "image failed: /missing-frame.webp" }],
+    },
+    items: [
+      item("heading", "storyboard-title", { fontSize: "20px" }),
+      item("panel", "storyboard-panel", { backgroundImage: "linear-gradient(rgb(24, 24, 24), rgb(18, 18, 18))" }),
+      item("control", "storyboard-control", { height: "34px" }),
+    ],
+  };
+
+  const corpus = derivePeerCorpus(peers);
+  assert.equal(corpus.surfaces, 3);
+  assert.equal(corpus.largestVerticalGapMedian, 64);
+  assert.equal(corpus.rootHeightMedian, 980);
+
+  const findings = analyzeVisualContinuity(dashboardProfile(), candidate, peers);
+  assert.ok(findings.some((finding) => finding.severity === "blocker" && finding.category === "broken-media" && finding.identity === "afterglow-frame-17-1"));
+  assert.ok(findings.some((finding) => finding.severity === "advisory" && finding.category === "structural-dead-space"));
+  assert.ok(findings.some((finding) => finding.severity === "advisory" && finding.category === "structural-height"));
+  assert.ok(findings.some((finding) => finding.severity === "advisory" && finding.category === "shell-density"));
+});
+
+
 test("Visual Director does not compare a surface to its own historical screenshot", () => {
   const source = read("lib/verification/skin-v1-visual-director.mjs");
   assert.match(source, /canonicalReference: "dashboard"/);
   assert.match(source, /historical screenshot is regression evidence only/);
+  assert.match(source, /peerCorpus: derivePeerCorpus/);
+  assert.match(source, /Governed peer surfaces provide supplemental structural norms/);
   assert.equal(VISUAL_DIRECTOR_REPORT_PATH, ".artifacts/visual-readiness/visual-director-report.json");
 });
 
@@ -102,6 +139,8 @@ test("Visual QA and Developer Workbench require Dashboard-vs-target guidance for
   assert.match(visualQa, /Dashboard.*target/is);
   assert.match(visualQa, /historical.*baseline/is);
   assert.match(visualQa, /visual-director-report\.json/);
+  assert.match(visualQa, /dead\/unused regions|broken or unloaded media|duplicated application shells/i);
+  assert.match(visualQa, /governed WebMCP surface set.*supplemental peer evidence/is);
   assert.match(developerInstructions, /skin[-_/ ]?v?1|dashboard|surface/i);
   assert.match(workflow, /skin-v1-visual-director\.mjs/);
   assert.match(workflow, /visual-director-report\.json/);

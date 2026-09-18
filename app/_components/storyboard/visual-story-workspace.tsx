@@ -103,7 +103,7 @@ export default function VisualStoryWorkspace({
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>
-            <h2>Black-and-white visual screenplay</h2>
+            <h2>Visual {project.title || "Untitled Story"} Screenplay</h2>
           </div>
         </header>
 

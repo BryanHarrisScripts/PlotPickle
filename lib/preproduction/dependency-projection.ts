@@ -154,6 +154,17 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
     });
     addEdge(edges, seqId, block.id, "contains");
 
+    const planningLockId = `planning-lock:${block.id}`;
+    addNode(nodes, {
+      id: planningLockId,
+      kind: "provenance",
+      label: `Planning lock for ${block.title}`,
+      module: "story-planning",
+      path: `structure.block.${block.number}.planningLock`,
+      metadata: { blockId: block.id, planningLockedAt: block.planningLockedAt },
+    });
+    addEdge(edges, block.id, planningLockId, "governs-planning-lock");
+
     for (const mini of block.miniBlocks) {
       addNode(nodes, {
         id: mini.id,
@@ -335,4 +346,29 @@ export function downstreamImpactIds(snapshot: StoryDependencySnapshot, changedId
 /** Stable upstream trace used to explain why a downstream element exists or is stale. */
 export function upstreamTraceIds(snapshot: StoryDependencySnapshot, targetId: string) {
   return traverse(snapshot.reverseIndex, [targetId]);
+}
+
+
+/** Shortest deterministic dependency paths from changed roots to downstream refs. */
+export function downstreamImpactPaths(
+  snapshot: StoryDependencySnapshot,
+  changedIds: readonly string[],
+): Readonly<Record<string, readonly string[]>> {
+  const roots = [...new Set(changedIds.filter(Boolean))].sort();
+  const paths = new Map<string, string[]>();
+  const queue = roots.map((id) => ({ id, path: [id] }));
+  const visited = new Set(roots);
+
+  while (queue.length) {
+    const current = queue.shift()!;
+    for (const next of [...(snapshot.references[current.id] ?? [])].sort()) {
+      if (visited.has(next)) continue;
+      visited.add(next);
+      const path = [...current.path, next];
+      paths.set(next, path);
+      queue.push({ id: next, path });
+    }
+  }
+
+  return Object.fromEntries([...paths.entries()].sort(([left], [right]) => left.localeCompare(right)));
 }

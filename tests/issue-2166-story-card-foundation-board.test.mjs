@@ -161,8 +161,10 @@ test("#2166 mounts one Post-it-style board in Outline with pointer and keyboard 
   assert.match(board, /Move earlier/u);
   assert.match(board, /Move later/u);
   assert.match(board, /Unlock to revise/u);
-  assert.match(board, /markImportedScreenplayProjectionStale/u);
-  assert.match(board, /storyCardAffectedRefs\(staleBlockNumbers\)/u);
+  assert.match(board, /planCreativeRevisionPropagation/u);
+  assert.match(board, /markCreativeRevisionDependentsStale/u);
+  assert.match(board, /kind: "planning-lock"/u);
+  assert.match(board, /No story content changed merely because the lock changed/u);
   assert.match(css, /grid-template-columns: repeat\(6, minmax\(210px, 1fr\)\)/u);
   assert.match(css, /pp-skin-v1-story-card-act-stack/u);
 });

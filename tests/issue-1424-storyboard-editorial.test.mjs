@@ -99,7 +99,10 @@ test("#1424 makes staleness depend on exact Mini-Block evidence rather than ever
   assert.match(model, /passage\.blockNumber === blockNumber && passage\.miniBlockNumber === miniBlockNumber/);
   assert.match(model, /sourceEvidence: storyboardSourceEvidenceForAnchor\(project, targetId, miniBlockNumber\)/);
   assert.match(model, /storyboardArtifactStaleReasons/);
-  assert.match(model, /recorded === current/);
+  assert.match(model, /recordedV2 === current/);
+  assert.match(model, /STORYBOARD_UPSTREAM_V2_PREFIX/);
+  assert.match(model, /STORYBOARD_STALE_PREFIX/);
+  assert.match(model, /legacyPrefix/);
   assert.doesNotMatch(dependencyBody, /project\.revision/);
 });
 

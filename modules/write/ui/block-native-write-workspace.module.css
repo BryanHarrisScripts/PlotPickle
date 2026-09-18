@@ -149,8 +149,81 @@
 
 .sourcePanel,
 .editorPanel,
-.learningPanel {
+.learningPanel,
+.impactPanel {
   padding: var(--pp-skin-space-4);
+}
+
+.impactPanel {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-fill-panel);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.impactSummary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin-top: var(--pp-skin-space-3);
+}
+
+.impactSummary span {
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.impactPanel details {
+  margin-top: var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  padding-top: var(--pp-skin-space-3);
+}
+
+.impactPanel summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-meta);
+  text-transform: uppercase;
+}
+
+.impactPanel ol {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-3) 0 0;
+  padding-left: var(--pp-skin-space-5);
+}
+
+.impactPanel li {
+  color: var(--pp-skin-ink-soft);
+}
+
+.impactPanel li strong,
+.impactPanel li span,
+.impactPanel li small {
+  display: block;
+}
+
+.impactPanel li strong {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  text-transform: uppercase;
+}
+
+.impactPanel li small,
+.impactPanel > small {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.impactPanel > small {
+  display: block;
+  margin-top: var(--pp-skin-space-3);
 }
 
 .sourcePanel ol {
@@ -255,7 +328,8 @@
 
   .storyHeading,
   .columns,
-  .learningGrid {
+  .learningGrid,
+  .impactSummary {
     grid-template-columns: 1fr;
   }
 

@@ -62,6 +62,10 @@ test("#2124 registers the complete currently reachable Matrix capture tree", () 
     "issue-log",
     "licensing",
     "shutdown-node",
+    "write",
+    "storyboard",
+    "previs",
+    "pageflow",
   ]);
   assert.equal(Object.keys(manifest.surfaces).length, WEBMCP_STANDARD_SURFACE_TARGETS.length);
   for (const surface of WEBMCP_STANDARD_SURFACE_TARGETS) {
@@ -109,7 +113,7 @@ test("#2124 classifies every Dashboard destination as captured, non-visual, or c
 
 test("#2124 startup output exposes all complete-tree captures without automatic approval", () => {
   const output = visualBaselineApprovalLines().join("\n");
-  assert.match(output, /^Captured 26 surfaces:/);
+  assert.match(output, /^Captured 30 surfaces:/);
   for (const surface of WEBMCP_STANDARD_SURFACE_TARGETS) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
@@ -117,5 +121,9 @@ test("#2124 startup output exposes all complete-tree captures without automatic 
   assert.match(output, /story-mode \(Story Mode\)/u);
   assert.match(output, /hybrid-story-mode \(Hybrid Story Mode\)/u);
   assert.match(output, /shutdown-node \(Shut Down Node\)/u);
+  assert.match(output, /write \(Write\)/u);
+  assert.match(output, /storyboard \(Storyboard\)/u);
+  assert.match(output, /previs \(Previs\)/u);
+  assert.match(output, /pageflow \(PageFlow\)/u);
   assert.match(output, /none of the screenshots are automatically declared "locked\."/u);
 });

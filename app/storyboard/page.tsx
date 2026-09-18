@@ -4,12 +4,9 @@ import { useEffect, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
-import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import StoryMapContextRuntime from "../story-map-workspace/context-runtime";
 import stateStyles from "../_components/preproduction/preproduction-route-state.module.css";
-
-const LEGACY_PROJECT_STORAGE_KEY = "plotpickle.project.v1";
 
 function boundedBlock(value: string | null) {
   const number = Number(value || 1);
@@ -21,18 +18,8 @@ function boundedMini(value: string | null) {
   return Number.isFinite(number) ? Math.min(4, Math.max(1, Math.trunc(number))) : 1;
 }
 
-function legacySceneProjectionSource() {
-  try {
-    const stored = window.localStorage.getItem(LEGACY_PROJECT_STORAGE_KEY);
-    return stored ? normalizePlotPickleProject(JSON.parse(stored)) : null;
-  } catch {
-    return null;
-  }
-}
-
 export default function StoryboardPage() {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
-  const [legacyProject, setLegacyProject] = useState<PlotPickleProject | null>(null);
   const [initialBlockNumber, setInitialBlockNumber] = useState(1);
   const [initialMiniBlockNumber, setInitialMiniBlockNumber] = useState(1);
   const [initialSceneId, setInitialSceneId] = useState<string | undefined>();
@@ -49,7 +36,6 @@ export default function StoryboardPage() {
         setInitialSceneId(search.get("scene")?.trim() || undefined);
         setInitialShotId(search.get("shot")?.trim() || undefined);
         setInitialVisualView(search.get("view") === "timeline" ? "timeline" : "story");
-        setLegacyProject(legacySceneProjectionSource());
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
@@ -84,7 +70,7 @@ export default function StoryboardPage() {
         initialSceneId={initialSceneId}
         initialShotId={initialShotId}
         initialVisualView={initialVisualView}
-        legacyProject={legacyProject}
+        legacyProject={null}
         project={project}
         onProjectChange={applyProjectChange}
         onOpenBuild={(blockNumber, miniBlockNumber) => window.location.assign(

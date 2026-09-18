@@ -106,7 +106,7 @@ test("#2171 preserves Block Mini Scene Shot context and routes to current Write 
   assert.match(surface, /url\.searchParams\.set\("mini", String\(cue\.miniBlockNumber\)\)/u);
   assert.match(surface, /url\.searchParams\.set\("scene", workspace\.sceneId\)/u);
   assert.match(surface, /url\.searchParams\.set\("shot", cue\.shotId\)/u);
-  assert.match(surface, /\?workspace=write&block=\$\{selectedCue\.blockNumber\}&mini=\$\{selectedCue\.miniBlockNumber\}/u);
+  assert.match(surface, /\\/write\\?block=\\$\\{selectedCue\\.blockNumber\\}&mini=\\$\\{selectedCue\\.miniBlockNumber\\}/u);
   assert.match(surface, /\/previs\?block=\$\{selectedCue\.blockNumber\}&mini=\$\{selectedCue\.miniBlockNumber\}/u);
 });
 

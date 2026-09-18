@@ -174,7 +174,7 @@
       },
       {
         "id": "write",
-        "route": "/?workspace=write&block=17&mini=1",
+        "route": "/write?block=17&mini=1",
         "selector": "[data-block-native-write='24x96']",
         "expectedTerms": [
           "WRITE",

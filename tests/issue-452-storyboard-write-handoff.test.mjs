@@ -20,7 +20,7 @@ test("#452 exposes a direct Write handoff only for an exact selected Storyboard 
 test("#452 hands the selected canonical Block and mini-block directly to Write", async () => {
   const handoff = await source("app/storyboard-write-handoff.tsx");
 
-  assert.match(handoff, /`\/\?workspace=write&block=\$\{moment\.block\}&mini=\$\{moment\.mini\}`/);
+  assert.match(handoff, /`\\/write\\?block=\\$\\{moment\\.block\\}&mini=\\$\\{moment\\.mini\\}`/);
   assert.doesNotMatch(handoff, /setProject|onChange|fetch\(|localStorage|sessionStorage|provider|apiKey/i);
 });
 

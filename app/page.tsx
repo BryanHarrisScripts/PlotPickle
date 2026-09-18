@@ -156,7 +156,7 @@ function openLearningApplication(topic: string, lessonId?: string) {
       return;
     case "drafting":
     case "dialogue":
-      navigateWorkspace("write");
+      window.location.assign("/write");
       return;
     case "revision":
       window.location.assign("/edit");

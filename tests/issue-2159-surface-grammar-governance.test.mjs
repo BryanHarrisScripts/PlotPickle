@@ -62,7 +62,7 @@ test("#2159 Phase 0 defines one current Skin V1 Matrix Surface Grammar", async (
   assert.match(standardShell, /width:\s*min\(var\(--pp-skin-shell-max\), calc\(100vw - 40px\)\) !important;/u);
 });
 
-test("#2159 canonical Surface Registry owns the current census and maps all 26 WebMCP standard surfaces", async () => {
+test("#2159 canonical Surface Registry owns the current census and maps all 30 WebMCP standard surfaces", async () => {
   const registry = await readJson(canonicalPath);
   const ids = registry.surfaces.map((surface) => surface.id);
   const unique = new Set(ids);
@@ -85,7 +85,7 @@ test("#2159 canonical Surface Registry owns the current census and maps all 26 W
   }
 
   const standard = registry.surfaces.filter((surface) => surface.capturePolicy === "standard");
-  assert.equal(standard.length, 26, "Phase 0 must preserve the current 26-surface WebMCP standard set");
+  assert.equal(standard.length, 30, "The canonical registry must preserve the current 30-surface WebMCP standard set");
   const canonicalWebmcpIds = new Set(standard.map((surface) => surface.webmcpId));
   assert.deepEqual(
     [...canonicalWebmcpIds].sort(),

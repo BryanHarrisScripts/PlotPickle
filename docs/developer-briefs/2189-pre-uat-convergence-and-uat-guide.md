@@ -6,6 +6,27 @@ Pre-UAT umbrella brief.
 
 This brief records the final convergence requirements before broad Human testing begins.
 
+
+## Implementation checkpoint — September 18, 2026
+
+Completed before this surface-coverage slice:
+
+- #2191 removed legacy `/structure` from the canonical Outline handoff and pinned Outline UAT to the current profile-owned PPF Story Map.
+- #2192 completed #2180. PageFlow now reads the current profile-owned PPF / Block-native Write authority, keeps imported source evidence separate, preserves Block / Mini-Block context and no longer uses `plotpickle.project.v1` or legacy `scriptExcerpt` as its diagnostic source.
+
+Current surface-coverage work:
+
+- #2193 establishes `/write` as the first-class authenticated Block-native Write route so Skin V1 handoffs no longer depend on the redirected root `/?workspace=write` alias.
+
+- restore Write to canonical UI Continuity ownership;
+- classify legacy Reports `/production` truthfully as legacy rather than canonical;
+- expand the existing WebMCP / Visual Director standard catalogue from 26 to 30 surfaces by adding Write, Storyboard, Previs and PageFlow;
+- use the same real Human UAT routes at Block 17 / Mini-Block 1 for those routed captures;
+- keep all four new visual references as Human-review candidates rather than automatically locking them;
+- retain #2174 as the deterministic nonvisual proof for the provider-neutral Production/compiler stage.
+
+The next slice after this one remains the authenticated Start UAT entry and the plain-language UAT Guide / optional Windows status-window mirror.
+
 ## Background
 
 The recent Writer-to-Screen rebuild is internally healthy. The rebuilt chain now includes:

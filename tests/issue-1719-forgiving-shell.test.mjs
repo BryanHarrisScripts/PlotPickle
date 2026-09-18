@@ -20,7 +20,7 @@ test("#1719 preserves canonical shortcut keys, actions and deep-link destination
   for (const route of ["/storyboard", "/previs", "/edit", "/pitch-review", "/diagnostics", "/production"]) {
     assert.ok(shortcuts.includes(`href: "${route}"`), `Canonical route changed: ${route}`);
   }
-  assert.match(shortcuts, /id: "write"[^\n]+kind: "workspace"[^\n]+workspace: "write"/);
+  assert.match(shortcuts, /id: "write"[^\n]+kind: "route"[^\n]+href: "/write"/);
   assert.match(shortcuts, /WORKFLOW_SHORTCUTS = GLOBAL_SHORTCUTS\.filter/);
   assert.match(shortcuts, /shortcutsForArea\(area: NavigationAreaId\)[\s\S]*WORKFLOW_SHORTCUTS\.filter/);
   assert.doesNotMatch(shortcuts, /\{ id: "story", key:/);

@@ -27,7 +27,7 @@ test('evidence index keeps every registered desktop workspace and key story-cont
   assert.ok(registry.screens.some((screen) => screen.id === 'storyboard-story-world' && screen.path === '/?workspace=storyboard&visualSection=characters'))
   assert.ok(registry.screens.some((screen) => screen.id === 'storyboard-plan-context' && screen.path === '/?workspace=storyboard&block=7&mini=3&visualSection=frames'))
   assert.ok(registry.screens.some((screen) => screen.id === 'storyboard-decisions' && screen.path === '/?workspace=storyboard&block=7&mini=3&visualSection=frames&decision=review'))
-  assert.ok(registry.screens.some((screen) => screen.id === 'write-plan-context' && screen.path === '/?workspace=write&block=7&mini=3'))
+  assert.ok(registry.screens.some((screen) => screen.id === 'write-plan-context' && screen.path === '/write?block=7&mini=3'))
   assert.ok(registry.screens.some((screen) => screen.id === 'edit' && screen.path === '/edit'))
   assert.ok(registry.screens.some((screen) => screen.id === 'edit-plan-context' && screen.path === '/edit?block=7&mini=3'))
   for (const screen of registry.screens) {

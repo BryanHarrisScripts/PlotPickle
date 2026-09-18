@@ -33,11 +33,10 @@ function currentAddress() {
 
 function writeHref(blockNumber: number, miniBlockNumber: number) {
   const query = new URLSearchParams({
-    workspace: "write",
     block: String(blockNumber),
     mini: String(miniBlockNumber),
   });
-  return `/?${query.toString()}`;
+  return `/write?${query.toString()}`;
 }
 
 function pageFlowHref(blockNumber: number, miniBlockNumber: number) {
@@ -119,7 +118,7 @@ export default function PageFlowPage() {
   }
 
   return (
-    <main className={`${styles.page} standalone-studio-surface`} data-pageflow-authority="ppf-block-writing-read-only">
+    <main className={styles.page} data-pageflow-authority="ppf-block-writing-read-only">
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>

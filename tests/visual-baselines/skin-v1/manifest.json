@@ -192,6 +192,34 @@
       "selector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
       "candidate": ".artifacts/visual-readiness/shutdown-node-candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/shutdown-node.png"
+    },
+    "write": {
+      "label": "Write",
+      "status": "candidate",
+      "selector": "[data-block-native-write='24x96']",
+      "candidate": ".artifacts/visual-readiness/write-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/write.png"
+    },
+    "storyboard": {
+      "label": "Storyboard",
+      "status": "candidate",
+      "selector": "main[aria-labelledby='storyboard-readiness-title']",
+      "candidate": ".artifacts/visual-readiness/storyboard-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/storyboard.png"
+    },
+    "previs": {
+      "label": "Previs",
+      "status": "candidate",
+      "selector": "main[aria-labelledby='previs-title']",
+      "candidate": ".artifacts/visual-readiness/previs-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/previs.png"
+    },
+    "pageflow": {
+      "label": "PageFlow",
+      "status": "candidate",
+      "selector": "[data-pageflow-authority='ppf-block-writing-read-only']",
+      "candidate": ".artifacts/visual-readiness/pageflow-candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/pageflow.png"
     }
   }
 }

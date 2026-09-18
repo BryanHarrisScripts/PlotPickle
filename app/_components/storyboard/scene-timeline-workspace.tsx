@@ -355,7 +355,7 @@ export default function SceneTimelineWorkspace({
               </dl>
               <div className={styles.inspectorActions}>
                 <button
-                  onClick={() => window.location.assign(`/?workspace=write&block=${selectedCue.blockNumber}&mini=${selectedCue.miniBlockNumber}`)}
+                  onClick={() => window.location.assign(`/write?block=${selectedCue.blockNumber}&mini=${selectedCue.miniBlockNumber}`)}
                   type="button"
                 >
                   Back to Write

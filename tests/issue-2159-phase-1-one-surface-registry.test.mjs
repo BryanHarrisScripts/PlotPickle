@@ -49,7 +49,7 @@ test("#2159 Phase 1 fails closed when UI Continuity compatibility metadata diver
 });
 
 test("#2159 Phase 1 makes canonical webmcpId mappings own the standard target set", () => {
-  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 26);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.deepEqual(WEBMCP_STANDARD_SURFACE_TARGETS, [...canonicalWebMcpSurfaceIds()]);
   assert.deepEqual(Object.keys(WEBMCP_STANDARD_SURFACE_REGISTRY), [...canonicalWebMcpSurfaceIds()]);
   assert.deepEqual(WEBMCP_UAT_SKILL_POLICY.allowedTargets, WEBMCP_STANDARD_SURFACE_TARGETS);

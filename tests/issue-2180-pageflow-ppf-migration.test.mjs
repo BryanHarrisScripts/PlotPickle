@@ -63,7 +63,7 @@ test("#2180 preserves Block/Mini address across Write, Story Map, PageFlow, Outl
 
   assert.match(page, /query\.get\("block"\)/u);
   assert.match(page, /query\.get\("mini"\)/u);
-  assert.match(page, /workspace: "write"/u);
+  assert.match(page, /return `\/write\?\$\{query\.toString\(\)\}`/u);
   assert.match(page, /block: String\(blockNumber\)/u);
   assert.match(page, /mini: String\(miniBlockNumber\)/u);
   assert.match(page, /storyLearningReturnHref\(normalizedAddress\)/u);

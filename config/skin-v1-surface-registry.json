@@ -387,10 +387,13 @@
       "family": "story",
       "parent": "dashboard",
       "surfaceClass": "workspace",
-      "capturePolicy": "census-only",
-      "governance": "census",
-      "continuityIds": [],
-      "route": "/?workspace=write"
+      "capturePolicy": "standard",
+      "governance": "candidate",
+      "continuityIds": [
+        "write"
+      ],
+      "route": "/write",
+      "webmcpId": "write"
     },
     {
       "id": "story",
@@ -528,12 +531,13 @@
       "family": "storyboard",
       "parent": "dashboard",
       "surfaceClass": "workspace",
-      "capturePolicy": "census-only",
-      "governance": "census",
+      "capturePolicy": "standard",
+      "governance": "candidate",
       "continuityIds": [
         "storyboard"
       ],
-      "route": "/storyboard"
+      "route": "/storyboard",
+      "webmcpId": "storyboard"
     },
     {
       "id": "previs",
@@ -541,12 +545,13 @@
       "family": "production",
       "parent": "dashboard",
       "surfaceClass": "workspace",
-      "capturePolicy": "census-only",
-      "governance": "census",
+      "capturePolicy": "standard",
+      "governance": "candidate",
       "continuityIds": [
         "previs"
       ],
-      "route": "/previs"
+      "route": "/previs",
+      "webmcpId": "previs"
     },
     {
       "id": "pageflow",
@@ -554,12 +559,13 @@
       "family": "review",
       "parent": "refine",
       "surfaceClass": "workspace",
-      "capturePolicy": "census-only",
-      "governance": "census",
+      "capturePolicy": "standard",
+      "governance": "candidate",
       "continuityIds": [
         "pageflow"
       ],
-      "route": "/pageflow"
+      "route": "/pageflow",
+      "webmcpId": "pageflow"
     },
     {
       "id": "edit",

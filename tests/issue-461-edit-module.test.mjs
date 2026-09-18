@@ -46,7 +46,7 @@ test("#461 Edit preserves Block, mini-block and owning-scene identity", async ()
   assert.match(edit, /entry\.blockNumber === blockNumber && entry\.miniBlockNumbers\.includes\(miniBlockNumber\)/);
   assert.match(edit, /element\.blockNumber === blockNumber/);
   assert.match(edit, /element\.miniBlockNumber === miniBlockNumber/);
-  assert.match(edit, /`\/\?workspace=write&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}`/);
+  assert.match(edit, /`\\/write\\?block=\\$\\{blockNumber\\}&mini=\\$\\{miniBlockNumber\\}`/);
 });
 
 test("#461 Write hands its current canonical story position to Edit", async () => {

@@ -181,7 +181,7 @@
     {
       "id": "write",
       "label": "Write",
-      "path": "/?workspace=write",
+      "path": "/write",
       "kind": "workspace",
       "migrationClass": "canonical",
       "activeWorkspace": "write",
@@ -242,7 +242,7 @@
       "label": "Reports",
       "path": "/production",
       "kind": "workspace",
-      "migrationClass": "canonical",
+      "migrationClass": "legacy",
       "activeWorkspace": "build",
       "expectedArea": "review",
       "expectedDestination": "reports"

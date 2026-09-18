@@ -58,7 +58,7 @@ test("#2189 Semantic Review reports safe operational facts rather than model rea
   assert.match(guide, /\[redacted-api-key\]/u);
   assert.match(panel, /synthetic verification isolation/u);
   assert.match(panel, /deterministic verification owns PASS\/FAIL/u);
-  assert.match(panel, /Verification Inbox/u);
+  assert.doesNotMatch(panel, />Verification Inbox<|href=\{payload\?\.verificationInbox|\/verification-inbox/u);
   assert.doesNotMatch(panel, /chain-of-thought|prompt text|model response/u);
 });
 

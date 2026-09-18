@@ -16,6 +16,8 @@ Completed before this surface-coverage slice:
 
 Current surface-coverage work:
 
+- #2193 establishes `/write` as the first-class authenticated Block-native Write route so Skin V1 handoffs no longer depend on the redirected root `/?workspace=write` alias.
+
 - restore Write to canonical UI Continuity ownership;
 - classify legacy Reports `/production` truthfully as legacy rather than canonical;
 - expand the existing WebMCP / Visual Director standard catalogue from 26 to 30 surfaces by adding Write, Storyboard, Previs and PageFlow;

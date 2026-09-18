@@ -302,3 +302,70 @@ export function markCreativeRevisionSourceProjectionStale(
     )
     : sourceEvidence;
 }
+
+
+function storyboardAnchorFromKeys(keys: readonly string[] | undefined) {
+  return (keys ?? []).find((key) => /^storyboard-anchor:block:block-\d{2}:mini-[1-4]$/u.test(key)) ?? "";
+}
+
+function markVisualArtifactStale<T extends {
+  readonly id: string;
+  readonly sourceDecisionKeys?: readonly string[];
+}>(
+  artifact: T,
+  affectedIds: ReadonlySet<string>,
+  atRevision: number,
+): T {
+  if (!affectedIds.has(artifact.id)) return artifact;
+  const anchorRef = storyboardAnchorFromKeys(artifact.sourceDecisionKeys);
+  if (!anchorRef) return artifact;
+  const staleKey = `storyboard-stale:${anchorRef}:revision-${atRevision}`;
+  if ((artifact.sourceDecisionKeys ?? []).includes(staleKey)) return artifact;
+  return {
+    ...artifact,
+    sourceDecisionKeys: [...(artifact.sourceDecisionKeys ?? []), staleKey],
+  };
+}
+
+/**
+ * Applies only review provenance to already accepted visual artifacts that are
+ * in the planner's bounded affected set. Artifact identity, accepted ids, media
+ * and Previs records remain intact; existing projections derive "needs review"
+ * from these dependency keys.
+ */
+export function markCreativeRevisionDependentsStale(
+  project: LibraryPPFProject,
+  plan: Pick<CreativeRevisionPropagationPlan, "staleAcceptedVisualArtifactIds" | "sourceProjectionRefs">,
+  atRevision: number,
+): LibraryPPFProject {
+  const affectedIds = new Set(plan.staleAcceptedVisualArtifactIds);
+  const sourceEvidence = markCreativeRevisionSourceProjectionStale(
+    project.sourceEvidence,
+    plan,
+    atRevision,
+  );
+  if (!affectedIds.size) {
+    return sourceEvidence === project.sourceEvidence
+      ? project
+      : { ...project, sourceEvidence };
+  }
+
+  return {
+    ...project,
+    sourceEvidence,
+    build: {
+      foundations: {
+        ...project.build.foundations,
+        visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
+          markVisualArtifactStale(artifact, affectedIds, atRevision)
+        )),
+      },
+      world: {
+        ...project.build.world,
+        visualArtifacts: project.build.world.visualArtifacts.map((artifact) => (
+          markVisualArtifactStale(artifact, affectedIds, atRevision)
+        )),
+      },
+    },
+  };
+}

@@ -299,6 +299,15 @@ export function createAfterglowV9FoundationsReference(): ImportedLibraryProject 
   if (!characterTruth) {
     throw new Error("#2178 Afterglow character fixture requires imported screenplay evidence.");
   }
+  const storyMatrixWithCharacterEvidence = {
+    ...storyMatrix,
+    blocks: storyMatrix.blocks.map((block) => ({
+      ...block,
+      characterEvidenceRefs: characterTruth.arcCells
+        .filter((cell) => cell.blockNumber === block.blockNumber)
+        .map((cell) => `character:${cell.characterId}:block-${String(block.blockNumber).padStart(2, "0")}`),
+    })),
+  };
   const { lessons, lessonStates, fieldEvidence } = buildReferenceLessons();
   const completedLessonIds = lessons.map((lesson) => lesson.id);
   const activeLessonId = completedLessonIds.at(-1) ?? null;
@@ -330,7 +339,7 @@ export function createAfterglowV9FoundationsReference(): ImportedLibraryProject 
     },
     sourceEvidence: {
       ...imported.sourceEvidence,
-      storyMatrix,
+      storyMatrix: storyMatrixWithCharacterEvidence,
       characterTruth,
       referenceFixture: {
         fixtureId: AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID,

@@ -547,7 +547,8 @@
       "id": "root-story-startup",
       "classification": "production",
       "include": [
-        "app/page.tsx"
+        "app/page.tsx",
+        "proxy.ts"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

@@ -115,12 +115,14 @@ export default function MatrixStoryMapSurface({
           <div className="pp-skin-v1-writer-flow" aria-label="Writer story flow">
             <span aria-current="step">WRITTEN STORY</span>
             <button
+              data-writer-story-action="write"
               type="button"
               onClick={() => window.location.assign(`/?workspace=write&block=${address.blockNumber}&mini=${address.miniBlockNumber}`)}
             >
               WRITE
             </button>
             <button
+              data-writer-story-action="pageflow"
               type="button"
               onClick={() => {
                 const returnPath = encodeURIComponent(`/?workspace=dashboard&block=${address.blockNumber}&mini=${address.miniBlockNumber}`);
@@ -129,8 +131,8 @@ export default function MatrixStoryMapSurface({
             >
               PAGEFLOW
             </button>
-            <button type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
-            <button type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
+            <button data-writer-story-action="storyboard" type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
+            <button data-writer-story-action="previs" type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
           </div>
         </header>
 

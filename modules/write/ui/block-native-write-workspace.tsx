@@ -43,6 +43,14 @@ function addressHref(blockNumber: number, miniBlockNumber: number) {
   return `/?${query.toString()}`;
 }
 
+function pageFlowHref(blockNumber: number, miniBlockNumber: number) {
+  const query = new URLSearchParams({
+    block: String(blockNumber),
+    mini: String(miniBlockNumber),
+  });
+  return `/pageflow?${query.toString()}`;
+}
+
 export default function BlockNativeWriteWorkspace() {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState(() => currentAddress());
@@ -151,6 +159,7 @@ export default function BlockNativeWriteWorkspace() {
         </div>
         <div className={styles.headerActions}>
           <button type="button" onClick={() => window.location.assign(storyLearningReturnHref(address))}>Outline this position</button>
+          <button type="button" onClick={() => window.location.assign(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
           <button type="button" onClick={() => window.location.assign(storyLearningHref(learning.references[0], address))}>Learn this position</button>
         </div>
       </header>

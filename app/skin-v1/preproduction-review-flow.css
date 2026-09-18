@@ -212,7 +212,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-empty {
 }
 
 /* Writer-facing names for the two existing Storyboard projections. Internal
-   data ids remain Visual Story / Scene Timeline for architecture compatibility. */
+   data ids remain Visual Story / Scene Workspace for architecture compatibility. */
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="story"],
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="timeline"] {
   font-size: 0 !important;
@@ -224,7 +224,7 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
 }
 
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="timeline"]::after {
-  content: "TIMELINE";
+  content: "SCENE WORKSPACE";
   font-size: var(--pp-skin-font-body);
 }
 

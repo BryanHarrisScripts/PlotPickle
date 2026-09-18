@@ -711,7 +711,9 @@
         "lib/verification/skin-v1-menu-contract-audit.mjs",
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
-        "scripts/verification-webmcp-live.mjs"
+        "scripts/verification-webmcp-live.mjs",
+        "scripts/run-uat-guide.mjs",
+        "scripts/start-uat-guide-window.ps1"
       ],
       "ownerLayer": "verification",
       "riskTokens": [
@@ -827,6 +829,20 @@
       "ownerLayer": "verification",
       "riskTokens": [
         "docs"
+      ]
+    },
+    {
+      "id": "uat-guide-authenticated-entry",
+      "classification": "verification",
+      "include": [
+        "app/api/auth/uat-guide/route.ts"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "test-harness",
+        "surface",
+        "security",
+        "native"
       ]
     }
   ]

@@ -362,6 +362,49 @@
       ]
     },
     {
+      "id": "block-native-writing-skin",
+      "classification": "production",
+      "include": [
+        "modules/write/ui/block-native-write-workspace.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
+    },
+    {
+      "id": "block-native-learning-experience",
+      "classification": "production",
+      "include": [
+        "app/navigation/global-shortcuts.ts",
+        "modules/learn/model/story-learning-context.ts",
+        "modules/learn/ui/learn-workspace.tsx",
+        "modules/write/ui/block-native-write-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon"
+      ]
+    },
+    {
+      "id": "block-native-writing-model",
+      "classification": "production",
+      "include": [
+        "core/contracts/block-writing.ts",
+        "core/storage/project-library-browser.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage"
+      ]
+    },
+    {
       "id": "preproduction-creative-state-semantics",
       "classification": "production",
       "include": [

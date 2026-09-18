@@ -57,7 +57,7 @@ test("#2087 public digest is copy-ready and strips internal Radar metadata", () 
   });
   const digest = renderXReadyDigest({ reportDate: "2026-09-15", candidates: [first, second] });
 
-  assert.match(digest, /Script-to-Screen OSS Radar — 2026-09-15/u);
+  assert.match(digest, /Story-to-Screen OSS Radar — 2026-09-15/u);
   assert.match(digest, /example\/story-tool/u);
   assert.match(digest, /STORYBOARD/u);
   assert.match(digest, /example\/agent-runtime/u);
@@ -96,7 +96,7 @@ test("#2087 detailed Radar report keeps internal evidence and appends a separate
   assert.match(rendered.body, /Enriched PlotPickle Score/u);
   assert.match(rendered.body, /Related Issue fit/u);
   assert.match(rendered.body, /## X-ready public digest/u);
-  assert.match(rendered.body, /```text\n🎬 Script-to-Screen OSS Radar/u);
+  assert.match(rendered.body, /```text\n🎬 Story-to-Screen OSS Radar/u);
   const publicSection = rendered.body.split("## X-ready public digest")[1] || "";
   assert.doesNotMatch(publicSection.split("<!-- PLOTPICKLE-OSS-RADAR-STATE:")[0] || "", /Enriched PlotPickle Score|Related Issue fit|#1918|evidence-lane/u);
 });
@@ -154,6 +154,6 @@ test("#2087 GitHub run summary carries report link, X-ready copy and PlotPickle 
   assert.match(summary, /Open the full OSS Radar report/u);
   assert.match(summary, /Architecture findings: 7\/21/u);
   assert.match(summary, /X-ready post/u);
-  assert.match(summary, /Script-to-Screen OSS Radar/u);
+  assert.match(summary, /Story-to-Screen OSS Radar/u);
   assert.match(summary, /Presented by PlotPickle — Today’s OSS Radar/u);
 });

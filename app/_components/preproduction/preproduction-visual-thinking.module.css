@@ -1,5 +1,5 @@
 .panel {
-  width: min(1500px, calc(100% - (2 * var(--pp-skin-space-3))));
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: var(--pp-skin-space-3) auto 0;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -113,8 +113,8 @@
 .actions button:focus-visible,
 .referenceArea button:hover:not(:disabled),
 .referenceArea button:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }

@@ -65,6 +65,7 @@ function time(value?: string) {
 export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "dashboard" }) {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [busy, setBusy] = useState(false);
+  const [startPending, setStartPending] = useState(false);
   const [mirrorWindows, setMirrorWindows] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -72,6 +73,7 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
     try {
       const next = await json<Payload>(await fetch("/api/auth/uat-guide", { credentials: "same-origin", cache: "no-store" }));
       setPayload(next);
+      if (next.status) setStartPending(false);
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "UAT Guide is unavailable.");
@@ -80,10 +82,10 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
-    if (payload?.status?.status !== "running") return;
+    if (payload?.status?.status !== "running" && !startPending) return;
     const timer = window.setInterval(() => void refresh(), 1500);
     return () => window.clearInterval(timer);
-  }, [payload?.status?.status, refresh]);
+  }, [payload?.status?.status, refresh, startPending]);
 
   const recentEvents = useMemo(() => (payload?.status?.events || []).slice(-8).reverse(), [payload?.status?.events]);
 
@@ -118,9 +120,11 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
       });
       const body = await response.json() as { message?: string };
       if (!response.ok && response.status !== 409) throw new Error(body.message || "UAT Guide could not start.");
+      setStartPending(true);
       setMessage(body.message || "UAT Guide started.");
       await refresh();
     } catch (error) {
+      setStartPending(false);
       setMessage(error instanceof Error ? error.message : "UAT Guide could not start.");
     } finally {
       setBusy(false);
@@ -167,8 +171,8 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
       </header>
 
       <div className={styles.actions}>
-        <button type="button" onClick={() => void start()} disabled={busy || running}>
-          {running ? "UAT RUNNING" : busy ? "STARTING…" : "START UAT GUIDE"}
+        <button type="button" onClick={() => void start()} disabled={busy || running || startPending}>
+          {running ? "UAT RUNNING" : busy || startPending ? "STARTING…" : "START UAT GUIDE"}
         </button>
         {payload?.canMirrorWindows ? (
           <label>

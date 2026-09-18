@@ -37,7 +37,8 @@ test("#2106 parent reuses current Local and Cloud configuration owners", async (
   assert.match(host, /<CloudStoryModeHost \/>/u);
   assert.match(host, /aria-label="Local Story Mode setup"/u);
   assert.match(host, /aria-label="Cloud Story Mode setup"/u);
-  assert.match(host, /data-story-mode-hybrid="policy-only"/u);
+  assert.match(host, /import HybridStoryModePanel from "\.\/hybrid-story-mode-panel"/u);
+  assert.match(host, /<HybridStoryModePanel onChanged=\{\(\) => void refresh\(\)\} \/>/u);
   assert.doesNotMatch(host, /Ollama Hybrid|ollama-hybrid|new provider registry|multiplexer/iu);
 });
 
@@ -50,7 +51,9 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /route\.locality === locality && route\.ready === true/u);
   assert.match(host, /status\.activeRuntime\?\.reachable !== true/u);
   assert.match(host, /role\.available === true/u);
-  assert.match(host, /const hybridReady = localReady && cloudReady/u);
+  assert.match(host, /\.every\(\(capability\) =>[\s\S]*route\.locality === locality && route\.ready === true/u);
+  assert.match(host, /const hybridReady = hybridSelectionReady\(routingStatus\)/u);
+  assert.match(host, /selected\.includes\("local"\) && selected\.includes\("cloud"\)/u);
   assert.match(host, /\{ label: "LOCAL", ready: localReady \}/u);
   assert.match(host, /\{ label: "CLOUD", ready: cloudReady \}/u);
   assert.match(host, /\{ label: "HYBRID", ready: hybridReady \}/u);
@@ -65,7 +68,7 @@ test("#2106 choosing a directory policy updates the execution policy boundary", 
   assert.match(host, /body: JSON\.stringify\(\{ mode: nextMode \}\)/u);
   assert.match(host, /setMode\(nextMode\)/u);
   assert.match(host, /setView\(nextMode\)/u);
-  assert.match(host, /Existing capability selection and cloud consent rules remain authoritative/u);
+  assert.match(host, /<HybridStoryModePanel onChanged=\{\(\) => void refresh\(\)\} \/>/u);
 
   const activateStart = host.indexOf("async function activate");
   const viewIndex = host.indexOf("setView(nextMode)", activateStart);

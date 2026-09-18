@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  SKIN_V1_RUNTIME_SELECTOR,
   WEBMCP_DASHBOARD_DESTINATION_COVERAGE,
   WEBMCP_STANDARD_SURFACE_REGISTRY,
   WEBMCP_STANDARD_SURFACE_TARGETS,
@@ -204,4 +205,16 @@ test("#2189 waits for the canonical Dashboard artwork before locked visual compa
   assert.match(catalogue, /DASHBOARD_ART_SELECTOR = "\[data-dashboard-art='skin-v1'\]"/u);
   assert.match(catalogue, /image instanceof HTMLImageElement && image\.complete && image\.naturalWidth > 0/u);
   assert.match(catalogue, /fully loaded canonical artwork/u);
+});
+
+
+test("#2189 route-aware scanners wait for Skin V1 runtime activation before visual inspection", async () => {
+  const [catalogue, director] = await Promise.all([
+    read("lib/verification/webmcp-standard-surface-catalogue.mjs"),
+    read("lib/verification/skin-v1-visual-director.mjs"),
+  ]);
+
+  assert.equal(SKIN_V1_RUNTIME_SELECTOR, "html[data-plotpickle-skin='skin-v1']");
+  assert.match(catalogue, /page\.locator\(SKIN_V1_RUNTIME_SELECTOR\)\.waitFor\(\{ state: "attached", timeout: contract\.timeout \}\)/u);
+  assert.match(director, /page\.locator\(SKIN_V1_RUNTIME_SELECTOR\)\.waitFor\(\{ state: "attached", timeout: contract\.timeout \?\? 30_000 \}\)/u);
 });

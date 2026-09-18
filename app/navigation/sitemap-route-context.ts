@@ -1,6 +1,6 @@
 import type { NavigationAreaId, RootWorkspace } from "./global-shortcuts";
 
-export type SitemapMigrationClass = "canonical" | "contextual" | "public-exception";
+export type SitemapMigrationClass = "canonical" | "contextual" | "legacy" | "public-exception";
 
 export type SitemapShellTarget = {
   readonly migrationClass: Exclude<SitemapMigrationClass, "public-exception">;
@@ -205,10 +205,14 @@ export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellT
     contextScope: "Refine",
   },
   "/production": {
-    migrationClass: "canonical",
+    migrationClass: "legacy",
     activeShortcutId: "reports",
     rootContext: "build",
     area: "review",
+    contextId: "reports-legacy",
+    contextLabel: "Reports · Legacy",
+    contextDetail: "Legacy project authority; excluded from the canonical Writer-to-Screen UAT path",
+    contextScope: "Legacy review",
   },
   "/git": {
     migrationClass: "contextual",

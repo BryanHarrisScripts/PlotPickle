@@ -274,6 +274,7 @@ export default function StoryModeHost() {
           {STORY_MODE_ROWS.map((item, index) => {
             const selected = index === selectedIndex;
             const active = item.mode === mode;
+            const ready = item.mode === "local" ? localReady : item.mode === "cloud" ? cloudReady : hybridReady;
             return (
               <Fragment key={item.mode}>
                 <button
@@ -292,9 +293,10 @@ export default function StoryModeHost() {
                 >
                   <span className="pp-skin-v1-dashboard-command-line">[{item.shortcut}] {item.label} - {item.description}</span>
                   <span
-                    className={`pp-skin-v1-dashboard-status-box${active ? " is-active" : ""}`}
-                    aria-label={`${item.label}: ${active ? "active mode" : "available policy"}`}
-                    data-dashboard-status={active ? "active" : "inactive"}
+                    className={`pp-skin-v1-dashboard-status-box${active && ready ? " is-active" : ""}`}
+                    aria-label={`${item.label}: ${active ? (ready ? "active and ready" : "active but not ready") : (ready ? "ready" : "not ready")}`}
+                    data-dashboard-status={active && ready ? "active" : "inactive"}
+                    data-story-mode-ready={ready ? "true" : "false"}
                   />
                 </button>
               </Fragment>

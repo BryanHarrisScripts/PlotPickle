@@ -121,7 +121,7 @@
     {
       "id": "write",
       "label": "Write",
-      "entry": "/?workspace=write",
+      "entry": "/write",
       "area": "produce",
       "maturity": "experimental",
       "contractVersion": 1,

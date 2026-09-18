@@ -362,6 +362,21 @@
       ]
     },
     {
+      "id": "afterglow-golden-story-fixture",
+      "classification": "production",
+      "include": [
+        "core/contracts/story-evidence-matrix.ts",
+        "modules/library/reference/afterglow-golden-story-fixture.ts",
+        "modules/library/reference/afterglow-v9-foundations.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "surface"
+      ]
+    },
+    {
       "id": "block-native-writing-skin",
       "classification": "production",
       "include": [

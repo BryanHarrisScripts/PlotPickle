@@ -345,12 +345,13 @@ export function createStoryboardReferenceArtifact(input: {
       storyboardFrameDependencySourceKey(input.project, input.targetId, input.candidate.miniBlockNumber),
       observedReferenceSourceKey(input.candidate.sourceRef),
       `storyboard-source-kind:${input.candidate.sourceKind}`,
-      ...input.candidate.provenanceRefs
-        .map((ref) => approvalValue(ref, 500))
-        .filter(Boolean)
-        .map((ref) => `storyboard-evidence:${ref}`),
       `ppf-revision:${input.project.revision}`,
       ...approvalSourceKeys(input.approvalAuthority),
+      ...input.candidate.provenanceRefs
+        .slice(0, 32)
+        .map((ref) => approvalValue(ref, 200))
+        .filter(Boolean)
+        .map((ref) => `storyboard-evidence:${ref}`),
     ],
     workflow: STORYBOARD_REFERENCE_WORKFLOW,
     reviewState: "draft",

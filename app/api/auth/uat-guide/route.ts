@@ -102,7 +102,8 @@ function processAlive(pid: unknown) {
 }
 
 function launchGuide({ origin, statusFile, mirrorWindows }: { origin: string; statusFile: string; mirrorWindows: boolean }) {
-  const { guideScript, windowScript } = guidePaths("launcher-placeholder");
+  const guideScript = path.join(process.cwd(), "scripts", "run-uat-guide.mjs");
+  const windowScript = path.join(process.cwd(), "scripts", "start-uat-guide-window.ps1");
   if (!existsSync(guideScript)) throw new Error("The local UAT Guide runner is unavailable in this PlotPickle build.");
 
   const runId = `uat-${randomUUID()}`;

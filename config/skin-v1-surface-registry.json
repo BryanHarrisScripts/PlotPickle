@@ -389,7 +389,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": [],
+      "continuityIds": [
+        "write"
+      ],
       "route": "/?workspace=write"
     },
     {

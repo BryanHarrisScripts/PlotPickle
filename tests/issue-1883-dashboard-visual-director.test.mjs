@@ -134,6 +134,7 @@ test("Visual QA and Developer Workbench require Dashboard-vs-target guidance for
   const visualQa = read(".agents/skills/visual-qa/SKILL.md");
   const developerInstructions = read("Utilities/DeveloperWorkbench/pi-review-instructions.mjs");
   const workflow = read(".github/workflows/visual-readiness.yml");
+  const ownership = JSON.parse(read("config/verification/ownership-map.json"));
 
   assert.match(visualQa, /Dashboard.*canonical.*visual authority/is);
   assert.match(visualQa, /Dashboard.*target/is);
@@ -145,4 +146,7 @@ test("Visual QA and Developer Workbench require Dashboard-vs-target guidance for
   assert.match(workflow, /skin-v1-visual-director\.mjs/);
   assert.match(workflow, /visual-director-report\.json/);
   assert.match(workflow, /issue-1883-dashboard-visual-director\.test\.mjs/);
+  const visualQaOwner = ownership.rules.find((rule) => rule.id === "visual-qa-skill");
+  assert.equal(visualQaOwner?.ownerLayer, "agent-runtime");
+  assert.ok(visualQaOwner?.include.includes(".agents/skills/visual-qa/SKILL.md"));
 });

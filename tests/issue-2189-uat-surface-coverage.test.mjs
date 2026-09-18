@@ -54,7 +54,7 @@ test("#2189 promotes the rebuilt Human UAT surfaces into the one canonical WebMC
     assert.ok(WEBMCP_STANDARD_SURFACE_REGISTRY[id].route, `${id} should use its real Human UAT route`);
   }
 
-  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.write.route, "/?workspace=write&block=17&mini=1");
+  assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.write.route, "/write?block=17&mini=1");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.storyboard.route, "/storyboard?block=17&mini=1");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.previs.route, "/previs?block=17&mini=1");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY.pageflow.route, "/pageflow?block=17&mini=1");

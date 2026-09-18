@@ -10,39 +10,41 @@ test("#2125 Slice 3 is a temporal projection over Visual Story and Previs, not a
   for (const contract of [
     "VisualStoryProjection",
     "VisualStoryShotProjection",
-    "RENDER_MINI_BLOCK_SECONDS",
     "projectionOnly: true",
     '"timed"',
     '"untimed"',
     '"blocked-by-untimed-predecessor"',
-  ]) assert.ok(source.includes(contract), `Scene Timeline projection is missing: ${contract}`);
+    "Only Human-authored ProductionShotIntent durations place material on the clock",
+  ]) assert.ok(source.includes(contract), `Scene Workspace timing projection is missing: ${contract}`);
 
   assert.match(source, /if \(durationSeconds === null\)[\s\S]*positionKnown = false/);
   assert.match(source, /else if \(positionKnown\)[\s\S]*startSecond = cursor[\s\S]*endSecond = cursor \+ durationSeconds/);
   assert.match(source, /else \{[\s\S]*positionState = "blocked-by-untimed-predecessor"/);
+  assert.match(source, /startSecond: anchorStartSecond/);
+  assert.match(source, /endSecond: positionKnown \? cursor : null/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|saveFoundationProject|writeStore|createEmpty.*Store/);
-  assert.doesNotMatch(source, /renderClipSlotsForAnchor|RENDER_CLIPS_PER_FEATURE|RENDER_CLIPS_PER_MINI_BLOCK/,
-    "The Human Scene Timeline must not project the 2,400 technical RenderClip grid as creative timing.");
+  assert.doesNotMatch(source, /renderClipSlotsForAnchor|RENDER_CLIPS_PER_FEATURE|RENDER_CLIPS_PER_MINI_BLOCK|RENDER_MINI_BLOCK_SECONDS/,
+    "Scene Workspace must not derive creative timing from the technical RenderClip/Mini-Block grid.");
 });
 
-test("#2125 Slice 3 exposes only Frames, Shots, Action and Timing lanes with synchronized selection/transport", async () => {
+test("#2125/#2171 exposes one synchronized Dialogue Action Shot Audio Scene Workspace", async () => {
   const source = await read("app/_components/storyboard/scene-timeline-workspace.tsx");
 
   for (const contract of [
-    'data-scene-timeline="frames-shots-action-timing"',
-    'data-lane="frames"',
-    'data-lane="shots"',
-    'data-lane="action"',
-    'data-lane="timing"',
-    "Scene Timeline playhead",
+    'data-scene-workspace="dialogue-action-shot-audio"',
+    'renderLane("Dialogue", workspace.dialogue)',
+    'renderLane("Action", workspace.action)',
+    'renderLane("Shot", workspace.shot)',
+    'renderLane("Audio", workspace.audio)',
+    "Scene Workspace playhead",
+    "Cue inspector",
+    "Screenplay source",
+    "Intent playback",
     "onSelectShot(activeShot.id)",
-    "setPlayheadSeconds(shot.startSecond)",
     "INTENT PREVIEW",
-    "does not claim frame-accurate media playback",
-  ]) assert.ok(source.includes(contract), `Scene Timeline surface is missing: ${contract}`);
+    "does not claim frame-accurate final-media playback",
+  ]) assert.ok(source.includes(contract), `Scene Workspace surface is missing: ${contract}`);
 
-  assert.doesNotMatch(source, /data-lane="(?:dialogue|foley|ambience|music|voice|transitions|vfx|camera)"/i,
-    "Slice 3 must not pull Slice 4 production lanes into the visual core.");
   assert.doesNotMatch(source, /previs\.shot\.store[\s\S]{0,500}(setInterval|requestAnimationFrame)/,
     "Transport ticks must not write project state every animation/timer frame.");
 });
@@ -60,20 +62,22 @@ test("#2125 Slice 3 timing controls reuse ProductionShotIntent authority and pro
   assert.match(source, /Clear timing/);
   assert.match(source, /−1s/);
   assert.match(source, /\+\.25/);
-  assert.match(source, /Start position is derived from Shot order plus preceding authored durations/);
+  assert.match(source, /Only the existing planned Previs ProductionShotIntent duration is editable here/);
+  assert.match(source, /#2035/);
   assert.doesNotMatch(source, /startSecond:\s*(?:Number|parseFloat|parseInt)|name="startSecond"/,
     "Slice 3 must not invent an independent persisted start-time field.");
 });
 
-test("#2125 Slice 3 keeps Visual Story and Scene Timeline on one shared Scene/Shot selection", async () => {
+test("#2125/#2171 keeps Visual Story and Scene Workspace on one shared Scene/Shot selection", async () => {
   const source = await read("app/_components/storyboard/visual-story-workspace.tsx");
 
   assert.match(source, /useState\(initialShotId \?\? ""\)/);
   assert.match(source, /useState<"story" \| "timeline">\(initialView\)/);
   assert.match(source, />Visual Story<\/button>/);
-  assert.match(source, />Scene Timeline<\/button>/);
+  assert.match(source, />Scene Workspace<\/button>/);
   assert.match(source, /selectedShotId=\{selectedShot\?\.id \?\? ""\}/);
   assert.match(source, /onSelectShot=\{setSelectedShotId\}/);
+  assert.match(source, /legacyProject=\{legacyProject\}/);
   assert.match(source, /active=\{view === "timeline"\}/);
 });
 

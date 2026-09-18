@@ -1,4 +1,5 @@
 import { plotPickleCurriculum } from "../../../adapters/curriculum/current-catalog";
+import { createEmptyBlockWritingState, type BlockWritingState } from "../../../core/contracts/block-writing";
 import { buildFoundationPlanLessons, createEmptyFoundationLessonAnswers } from "../../../core/contracts/foundation-plan";
 import type {
   ImportedScreenplayPassage,
@@ -12,6 +13,7 @@ import { parseScreenplay } from "../../../lib/projects/screenplay/screenplay";
 export type ImportedLibraryProject = PPFProject & {
   readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
+  readonly writing: BlockWritingState;
 };
 
 const MAX_IMPORTED_PASSAGES = 2500;
@@ -195,6 +197,7 @@ export function richPpfToLibraryProject(project: PlotPickleProject, importedAt =
   return {
     ...base,
     structure: importedStoryStructure(project),
+    writing: createEmptyBlockWritingState(),
     foundations: {
       ...base.foundations,
       lessons: importedFoundationProposals(project, importedAt),

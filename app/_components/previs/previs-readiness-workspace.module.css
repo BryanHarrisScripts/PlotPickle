@@ -510,3 +510,131 @@
 
   .fullField { grid-column: auto; }
 }
+
+
+/* #2222 — keep canonical Previs authority while matching the compact Matrix workspace hierarchy. */
+.workspace {
+  min-height: 100%;
+  padding-top: var(--pp-skin-space-3);
+  padding-bottom: var(--pp-skin-space-6);
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1.35fr) minmax(520px, 1fr);
+  gap: var(--pp-skin-space-4);
+  margin-bottom: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(18px, 2vw, 24px);
+  margin-bottom: var(--pp-skin-space-1);
+}
+
+.hero p {
+  margin: var(--pp-skin-space-1) 0 0;
+  font-size: var(--pp-skin-font-meta);
+}
+
+.summary {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--pp-skin-space-1);
+}
+
+.summary div {
+  padding: var(--pp-skin-space-2);
+}
+
+.summary dd {
+  overflow: hidden;
+  font-size: var(--pp-skin-font-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notice {
+  gap: var(--pp-skin-space-3);
+  margin-bottom: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+}
+
+.notice span {
+  font-size: var(--pp-skin-font-meta);
+}
+
+.tabRail {
+  padding: var(--pp-skin-space-1) 0;
+}
+
+.blockTab {
+  min-height: 34px;
+  padding: var(--pp-skin-space-1) !important;
+}
+
+.blockWorkspace,
+.timelinePreview,
+.shotEditor,
+.evidencePanel {
+  padding: var(--pp-skin-space-3);
+  margin-top: var(--pp-skin-space-2);
+}
+
+.blockHeader,
+.timelinePreview > header,
+.shotEditor > header,
+.evidencePanel > header {
+  gap: var(--pp-skin-space-4);
+  margin-bottom: var(--pp-skin-space-3);
+}
+
+.blockHeader h2 {
+  font-size: var(--pp-skin-font-body);
+}
+
+.blockHeader p,
+.anchorCard p {
+  margin-top: var(--pp-skin-space-1);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.anchorGrid {
+  gap: var(--pp-skin-space-2);
+}
+
+.anchorCard {
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2);
+}
+
+.videoFrame {
+  max-height: 150px;
+}
+
+.anchorMeta {
+  gap: var(--pp-skin-space-1);
+}
+
+.anchorMeta div {
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+}
+
+.footer {
+  padding-top: var(--pp-skin-space-3);
+}
+
+@media (max-width: 1180px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+}

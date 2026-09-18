@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import styles from "./preproduction-capability-return.module.css";
 
 function safeReturnPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/structure";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/?workspace=dashboard";
   return value;
 }
 
@@ -28,7 +28,7 @@ function dashboardReturnPath(returnPath: string) {
 export default function PreproductionCapabilityReturn() {
   const [context, setContext] = useState<{ active: boolean; returnPath: string }>({
     active: false,
-    returnPath: "/structure",
+    returnPath: "/?workspace=dashboard",
   });
 
   useEffect(() => {

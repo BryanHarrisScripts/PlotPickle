@@ -11,6 +11,8 @@ import { deriveVisualReadiness } from "@/modules/build/visual-readiness";
 
 export const STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1" as const;
 const STORYBOARD_UPSTREAM_PREFIX = "storyboard-upstream:" as const;
+const STORYBOARD_UPSTREAM_V2_PREFIX = "storyboard-upstream:v2:" as const;
+const STORYBOARD_STALE_PREFIX = "storyboard-stale:" as const;
 
 export type StoryboardApprovalAuthority = Readonly<{
   readonly authorityClass: "authenticated-human" | "delegated-autonomous-operator";
@@ -270,7 +272,7 @@ export function storyboardFrameDependencySourceKey(
     (value, character, index) => (((value * 33) ^ character.charCodeAt(0) ^ index) >>> 0),
     5381,
   ).toString(36);
-  return `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${checksum}`;
+  return `${STORYBOARD_UPSTREAM_V2_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:${checksum}`;
 }
 
 export function storyboardArtifactStaleReasons(
@@ -280,13 +282,27 @@ export function storyboardArtifactStaleReasons(
   artifact: FoundationsVisualArtifact | null,
 ) {
   if (!artifact) return [];
-  const prefix = `${STORYBOARD_UPSTREAM_PREFIX}${storyboardAnchorTargetRef(targetId, miniBlockNumber)}:`;
-  const recorded = (artifact.sourceDecisionKeys ?? []).find((key) => key.startsWith(prefix));
-  if (!recorded) return [];
-  const current = storyboardFrameDependencySourceKey(project, targetId, miniBlockNumber);
-  return recorded === current
+  const anchorRef = storyboardAnchorTargetRef(targetId, miniBlockNumber);
+  const keys = artifact.sourceDecisionKeys ?? [];
+  const staleMarker = keys.find((key) => key.startsWith(`${STORYBOARD_STALE_PREFIX}${anchorRef}:revision-`));
+  if (staleMarker) {
+    return [`Upstream story content changed for ${anchorRef}. Review this kept visual anchor before carrying it forward.`];
+  }
+
+  const v2Prefix = `${STORYBOARD_UPSTREAM_V2_PREFIX}${anchorRef}:`;
+  const recordedV2 = keys.find((key) => key.startsWith(v2Prefix));
+  if (recordedV2) {
+    const current = storyboardFrameDependencySourceKey(project, targetId, miniBlockNumber);
+    return recordedV2 === current
+      ? []
+      : [`Upstream story or visual identity evidence changed for ${anchorRef}. Review this kept visual anchor before carrying it forward.`];
+  }
+
+  const legacyPrefix = `${STORYBOARD_UPSTREAM_PREFIX}${anchorRef}:`;
+  const legacyRecorded = keys.find((key) => key.startsWith(legacyPrefix));
+  return legacyRecorded
     ? []
-    : [`Upstream story or visual identity evidence changed for ${storyboardAnchorTargetRef(targetId, miniBlockNumber)}. Review this kept visual anchor before carrying it forward.`];
+    : [];
 }
 
 function acceptedArtifactForSource(

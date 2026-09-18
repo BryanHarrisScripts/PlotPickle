@@ -1,4 +1,4 @@
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "collab" | "dashboard" | "build" | "story";
+export type RootWorkspace = "learn" | "plan" | "write" | "wyrmwood" | "library" | "community" | "settings" | "collab" | "dashboard" | "build" | "story";
 
 export type NavigationAreaId = "home" | "create" | "produce" | "review" | "connect" | "settings";
 
@@ -45,7 +45,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "build", key: "B", label: "Build", detail: "Assemble", relic: "/assets/workflow-relics/build.webp", area: "create", action: { kind: "workspace", workspace: "build" } },
   { id: "storyboard", key: "S", label: "Storyboard", detail: "Sketch", relic: "/assets/workflow-relics/storyboard.webp", area: "produce", action: { kind: "route", href: "/storyboard" } },
   { id: "graphic-novel", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", area: "produce", action: { kind: "route", href: "/previs" } },
-  { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", area: "produce", action: { kind: "route", href: "/pageflow" } },
+  { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", area: "produce", action: { kind: "workspace", workspace: "write" } },
   { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", area: "produce", action: { kind: "route", href: "/edit" } },
   { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", area: "review", action: { kind: "route", href: "/pitch-review" } },
   { id: "refine", key: "R", label: "Refine", detail: "Decide", relic: "/assets/workflow-relics/refine.webp", area: "review", action: { kind: "route", href: "/diagnostics" } },

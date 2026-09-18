@@ -129,3 +129,35 @@ test("#2170 keeps Storyboard dependency staleness and Human approval boundaries 
   assert.match(workspace, /option value="approved">Approved/u);
   assert.doesNotMatch(workspace, /auto.*approved|self-promot/iu);
 });
+
+
+test("#2170 Previs consumes the current Skin V1 screen contract instead of the old bespoke green palette", async () => {
+  const css = await read("app/_components/previs/previs-readiness-workspace.module.css");
+
+  for (const token of [
+    "--pp-skin-canvas",
+    "--pp-skin-font-ui",
+    "--pp-skin-line-strong",
+    "--pp-skin-fill-panel",
+    "--pp-skin-fill-accent-header",
+    "--pp-skin-accent-bright",
+    "--pp-skin-selected-bg",
+    "--pp-skin-selected-ink",
+    "--pp-skin-focus",
+    "--pp-skin-shadow-panel",
+    "--pp-skin-radius",
+    "--pp-skin-control-height",
+    "--pp-skin-warning",
+    "--pp-skin-danger",
+  ]) {
+    assert.ok(css.includes(token), `Previs is missing current Skin V1 token ${token}`);
+  }
+
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/iu);
+  assert.doesNotMatch(css, /rgba?\(/iu);
+  assert.doesNotMatch(css, /border-radius:\s*(?:[1-9]\d*px|999px)/iu);
+  assert.match(css, /background:\s*var\(--pp-skin-canvas\)/u);
+  assert.match(css, /font-family:\s*var\(--pp-skin-font-ui\)/u);
+  assert.match(css, /background:\s*var\(--pp-skin-selected-bg\)/u);
+  assert.match(css, /outline:\s*var\(--pp-skin-border-thin\) solid var\(--pp-skin-focus\)/u);
+});

@@ -137,14 +137,14 @@ export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellT
     area: "produce",
   },
   "/pageflow": {
-    migrationClass: "canonical",
-    activeShortcutId: "write",
+    migrationClass: "contextual",
+    activeShortcutId: "refine",
     rootContext: "build",
-    area: "produce",
+    area: "review",
     contextId: "pageflow",
     contextLabel: "PageFlow Diagnostics",
     contextDetail: "Refine diagnostic over Write-owned screenplay text",
-    contextScope: "Write text · Refine diagnostic",
+    contextScope: "Refine · Write evidence",
   },
   "/edit": {
     migrationClass: "canonical",

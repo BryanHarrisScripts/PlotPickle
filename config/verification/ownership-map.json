@@ -362,6 +362,51 @@
       ]
     },
     {
+      "id": "block-native-writing-skin",
+      "classification": "production",
+      "include": [
+        "modules/write/ui/block-native-write-workspace.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
+    },
+    {
+      "id": "block-native-learning-experience",
+      "classification": "production",
+      "include": [
+        "app/navigation/global-shortcuts.ts",
+        "modules/learn/model/story-learning-context.ts",
+        "modules/learn/ui/learn-workspace.tsx",
+        "modules/write/ui/block-native-write-workspace.tsx",
+        "app/_components/plotpickle-system/screen-registry.json",
+        "app/navigation/sitemap-route-context.ts"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon"
+      ]
+    },
+    {
+      "id": "block-native-writing-model",
+      "classification": "production",
+      "include": [
+        "core/contracts/block-writing.ts",
+        "core/storage/project-library-browser.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage"
+      ]
+    },
+    {
       "id": "preproduction-creative-state-semantics",
       "classification": "production",
       "include": [
@@ -507,7 +552,8 @@
         "adapters/curriculum/current-catalog.ts",
         "adapters/curriculum/current-catalog-integrated.ts",
         "adapters/curriculum/issue-1976-canonical.ts",
-        "adapters/curriculum/foundation-course-material.ts"
+        "adapters/curriculum/foundation-course-material.ts",
+        "app/learning-core-curriculum.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [
@@ -616,7 +662,9 @@
         "scripts/validate-verification-phase-1.mjs",
         "scripts/verification-core.mjs",
         "scripts/verification-shadow.mjs",
-        "scripts/package-smoke.mjs"
+        "scripts/package-smoke.mjs",
+        "config/uat-autopilot-registry.json",
+        "config/ui-continuity-agent-registry.json"
       ],
       "ownerLayer": "verification",
       "riskTokens": [
@@ -653,6 +701,17 @@
       "classification": "docs",
       "include": [
         "README.md"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs"
+      ]
+    },
+    {
+      "id": "repository-sitemap",
+      "classification": "docs",
+      "include": [
+        "PLOTPICKLE-SITEMAP.txt"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

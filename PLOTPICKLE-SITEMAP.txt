@@ -931,7 +931,7 @@ Create
 Produce
   /storyboard                   -> Storyboard
   /previs                       -> Previs / Graphic Novel
-  /pageflow                     -> PageFlow Diagnostics launch alias from the Write shortcut
+  /?workspace=write             -> Write · Block-native screenplay workspace
   /edit                         -> Edit
   /labs?scope=storyboard        -> Specialist Labs contextual child of Storyboard
 
@@ -943,6 +943,7 @@ Review
   /draftlens                    -> DraftLens contextual child of Refine
   /resonance                    -> Resonance contextual child of Refine
   /screenplay-readiness         -> Screenplay Readiness contextual child of Refine
+  /pageflow                     -> PageFlow Diagnostics contextual child of Refine over Write-owned screenplay evidence
   /labs?scope=feedback          -> Specialist Labs contextual child of Feedback
   /labs?scope=refine            -> Specialist Labs contextual child of Refine
 
@@ -969,8 +970,10 @@ Public / Startup exceptions
 Ownership clarifications found during migration
 -----------------------------------------------
 
-PageFlow
-  PageFlow is a Refine diagnostic over Write-owned screenplay evidence. The existing W shortcut continues to launch /pageflow as a compatibility/convenience alias because #1719 preserved keyboard behavior. The page does not gain ownership of screenplay text, and the shell identifies the PageFlow diagnostic context rather than creating a second Write or Refine owner.
+Write and PageFlow
+  Issue #2167 restores Write as the profile-owned PPF screenplay-authoring surface at ?workspace=write. The W shortcut opens Write and preserves Block/Mini-Block context. Imported screenplay passages remain immutable source evidence unless the Human explicitly copies them into working text and saves.
+
+  PageFlow remains a Refine diagnostic over Write-owned screenplay evidence. It no longer stands in for Write and does not gain ownership of screenplay text.
 
 Voiceprint
   Current code identifies Voiceprint definitions as Plan-owned character voice definitions. Refine may compare screenplay text against those definitions, but Voiceprint itself remains a Plan contextual child.
@@ -987,7 +990,7 @@ Subsystems
 Audit reconciliation
 --------------------
 
-The UI Continuity registry audits actual current routes rather than legacy workspace aliases. Retired audit aliases such as ?workspace=storyboard, ?workspace=write, ?workspace=pitch, ?workspace=feedback, ?workspace=refine and ?workspace=reports are not treated as canonical routes.
+The UI Continuity registry audits actual current routes rather than legacy workspace aliases. Retired audit aliases such as ?workspace=storyboard, ?workspace=pitch, ?workspace=feedback, ?workspace=refine and ?workspace=reports are not treated as canonical routes. Issue #2167 deliberately restores ?workspace=write as the current PPF-owned screenplay workspace.
 
 The read-only UI Continuity Agent verifies:
 - no more than six normal areas;

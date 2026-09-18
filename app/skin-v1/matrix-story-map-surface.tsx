@@ -8,6 +8,7 @@ import {
   loadFoundationProject,
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
+import { storyLearningContext, storyLearningHref } from "@/modules/learn/model/story-learning-context";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 import StoryCardFoundationBoard from "./story-card-foundation-board";
 
@@ -62,6 +63,10 @@ export default function MatrixStoryMapSurface({
     () => blockPassages.filter((passage) => passage.miniBlockNumber === address.miniBlockNumber),
     [address.miniBlockNumber, blockPassages],
   );
+  const learningContext = useMemo(
+    () => storyLearningContext(address),
+    [address],
+  );
 
   function syncAddressAfterSelection() {
     window.requestAnimationFrame(() => {
@@ -109,6 +114,12 @@ export default function MatrixStoryMapSurface({
           </div>
           <div className="pp-skin-v1-writer-flow" aria-label="Writer story flow">
             <span aria-current="step">WRITTEN STORY</span>
+            <button
+              type="button"
+              onClick={() => window.location.assign(`/?workspace=write&block=${address.blockNumber}&mini=${address.miniBlockNumber}`)}
+            >
+              WRITE
+            </button>
             <button type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
             <button type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
           </div>
@@ -117,6 +128,23 @@ export default function MatrixStoryMapSurface({
         <div className="pp-skin-v1-story-layer-explainer">
           <strong>HOW THIS STORY ADDRESS CONNECTS</strong>
           <p><b>Block / Mini-Block</b> tells you where you are in the story structure. <b>Scene / Beat</b> is authored story material related to that address. <b>Shot / Frame</b> is how that material is visualized. These relationships are variable-density, not a forced one-to-one ladder.</p>
+        </div>
+
+        <div className="pp-skin-v1-story-layer-explainer" data-story-learning-context="true">
+          <strong>LEARN THIS STORY POSITION</strong>
+          <p>{learningContext.positionNote}</p>
+          <div className="pp-skin-v1-writer-flow">
+            {learningContext.references.map((reference) => (
+              <button
+                data-learning-lesson-id={reference.lessonId}
+                key={reference.lessonId}
+                onClick={() => window.location.assign(storyLearningHref(reference, address))}
+                type="button"
+              >
+                {reference.actionLabel}
+              </button>
+            ))}
+          </div>
         </div>
 
         <section className="pp-skin-v1-written-story" aria-label="Written Story for selected Mini-Block">

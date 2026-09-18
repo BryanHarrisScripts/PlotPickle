@@ -37,7 +37,7 @@ test("#1528 keeps one canonical registry for all 17 approved single-letter desti
   assert.equal([...registry.matchAll(/key: "[A-Z]", label:/g)].length, 17);
   assert.match(registry, /href: "\/storyboard"/);
   assert.match(registry, /href: "\/previs"/);
-  assert.match(registry, /href: "\/pageflow"/);
+  assert.match(registry, /id: "write"[^\n]+kind: "workspace"[^\n]+workspace: "write"/);
   assert.match(registry, /href: "\/edit"/);
   assert.match(registry, /href: "\/pitch-review"/);
   assert.match(registry, /href: "\/diagnostics"/);

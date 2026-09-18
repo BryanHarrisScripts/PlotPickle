@@ -7,10 +7,16 @@
       "order": 10,
       "route": "/library",
       "operation": "operate",
-      "requiredTerms": ["Library", "My Stories", "Afterglow"],
+      "requiredTerms": [
+        "Library",
+        "My Stories",
+        "Afterglow"
+      ],
       "minimumTextLength": 500,
       "prerequisites": [],
-      "tests": ["tests/issue-1122-library-persistence.test.mjs"]
+      "tests": [
+        "tests/issue-1122-library-persistence.test.mjs"
+      ]
     },
     {
       "id": "learn",
@@ -18,10 +24,15 @@
       "order": 20,
       "route": "/?workspace=learn",
       "operation": "inspect",
-      "requiredTerms": ["Foundations", "Learn"],
+      "requiredTerms": [
+        "Foundations",
+        "Learn"
+      ],
       "minimumTextLength": 1200,
       "prerequisites": [],
-      "tests": ["tests/issue-444-phase-b-learn.test.mjs"]
+      "tests": [
+        "tests/issue-444-phase-b-learn.test.mjs"
+      ]
     },
     {
       "id": "plan",
@@ -29,10 +40,17 @@
       "order": 30,
       "route": "/?workspace=plan&section=foundations",
       "operation": "operate",
-      "requiredTerms": ["Foundations", "Plan"],
+      "requiredTerms": [
+        "Foundations",
+        "Plan"
+      ],
       "minimumTextLength": 700,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-617-plan-selective-ai-drafting.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-617-plan-selective-ai-drafting.test.mjs"
+      ]
     },
     {
       "id": "build",
@@ -40,10 +58,17 @@
       "order": 40,
       "route": "/?workspace=build&block=1&mini=1",
       "operation": "operate",
-      "requiredTerms": ["Build", "sequence"],
+      "requiredTerms": [
+        "Build",
+        "sequence"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-114-build-workspace.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-114-build-workspace.test.mjs"
+      ]
     },
     {
       "id": "story-decisions",
@@ -51,22 +76,40 @@
       "order": 50,
       "route": "/story-decisions",
       "operation": "operate",
-      "requiredTerms": ["Story Decisions", "Decision"],
+      "requiredTerms": [
+        "Story Decisions",
+        "Decision"
+      ],
       "minimumTextLength": 300,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-1420-visible-story-decisions.test.mjs", "tests/issue-1553-autonomous-story-decision-authority.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-1420-visible-story-decisions.test.mjs",
+        "tests/issue-1553-autonomous-story-decision-authority.test.mjs"
+      ]
     },
     {
       "id": "story-workbench",
       "label": "Story Workbench",
       "order": 60,
       "routeTemplate": "/story-workbench?decisionId={decisionId}",
-      "routeInputs": ["decisionId"],
+      "routeInputs": [
+        "decisionId"
+      ],
       "operation": "operate",
-      "requiredTerms": ["Story Workbench", "revision"],
+      "requiredTerms": [
+        "Story Workbench",
+        "revision"
+      ],
       "minimumTextLength": 300,
-      "prerequisites": ["answered-story-decision"],
-      "tests": ["tests/issue-1419-story-workbench.test.mjs", "tests/issue-1553-autonomous-story-decision-authority.test.mjs"]
+      "prerequisites": [
+        "answered-story-decision"
+      ],
+      "tests": [
+        "tests/issue-1419-story-workbench.test.mjs",
+        "tests/issue-1553-autonomous-story-decision-authority.test.mjs"
+      ]
     },
     {
       "id": "visual-readiness",
@@ -74,10 +117,19 @@
       "order": 70,
       "route": "/screenplay-readiness",
       "operation": "inspect",
-      "requiredTerms": ["Story readiness", "canonical", "Storyboard", "Previs"],
+      "requiredTerms": [
+        "Story readiness",
+        "canonical",
+        "Storyboard",
+        "Previs"
+      ],
       "minimumTextLength": 400,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-1423-visual-readiness.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-1423-visual-readiness.test.mjs"
+      ]
     },
     {
       "id": "storyboard",
@@ -85,10 +137,18 @@
       "order": 80,
       "route": "/storyboard",
       "operation": "operate",
-      "requiredTerms": ["Storyboard", "24 Blocks"],
+      "requiredTerms": [
+        "Storyboard",
+        "24 Blocks"
+      ],
       "minimumTextLength": 400,
-      "prerequisites": ["storyboard-allowed-target"],
-      "tests": ["tests/issue-1424-storyboard-readiness.test.mjs", "tests/issue-1424-storyboard-editorial.test.mjs"]
+      "prerequisites": [
+        "storyboard-allowed-target"
+      ],
+      "tests": [
+        "tests/issue-1424-storyboard-readiness.test.mjs",
+        "tests/issue-1424-storyboard-editorial.test.mjs"
+      ]
     },
     {
       "id": "production-shots",
@@ -96,10 +156,17 @@
       "order": 90,
       "route": "/previs",
       "operation": "operate",
-      "requiredTerms": ["Creative shots", "Render clips"],
+      "requiredTerms": [
+        "Creative shots",
+        "Render clips"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["kept-storyboard-reference"],
-      "tests": ["tests/issue-1425-production-shots.test.mjs"]
+      "prerequisites": [
+        "kept-storyboard-reference"
+      ],
+      "tests": [
+        "tests/issue-1425-production-shots.test.mjs"
+      ]
     },
     {
       "id": "previs-animatic",
@@ -107,22 +174,39 @@
       "order": 100,
       "route": "/previs",
       "operation": "operate",
-      "requiredTerms": ["Previs", "Creative timing", "Render Plan"],
+      "requiredTerms": [
+        "Previs",
+        "Creative timing",
+        "Render Plan"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["production-shot"],
-      "tests": ["tests/issue-1425-previs-projection.test.mjs", "tests/issue-1421-render-plan-grid.test.mjs"]
+      "prerequisites": [
+        "production-shot"
+      ],
+      "tests": [
+        "tests/issue-1425-previs-projection.test.mjs",
+        "tests/issue-1421-render-plan-grid.test.mjs"
+      ]
     },
     {
       "id": "write",
-      "label": "Legacy WRITE return to Story Map",
+      "label": "Block-native Write",
       "order": 110,
-      "route": "/?workspace=write",
-      "expectedRoute": "/?workspace=dashboard&block=1&mini=1",
-      "operation": "inspect",
-      "requiredTerms": ["Story Map", "4 Acts", "24 Blocks", "96 Mini-Blocks"],
+      "route": "/?workspace=write&block=1&mini=1",
+      "operation": "operate",
+      "requiredTerms": [
+        "WRITE",
+        "BLOCK-NATIVE SCREENPLAY",
+        "WORKING SCREENPLAY TEXT",
+        "IMMUTABLE SOURCE EVIDENCE"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-2167-block-native-learning-bridge.test.mjs"
+      ]
     },
     {
       "id": "edit",
@@ -130,10 +214,17 @@
       "order": 120,
       "route": "/edit",
       "operation": "operate",
-      "requiredTerms": ["Edit", "screenplay"],
+      "requiredTerms": [
+        "Edit",
+        "screenplay"
+      ],
       "minimumTextLength": 300,
-      "prerequisites": ["screenplay-content"],
-      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+      "prerequisites": [
+        "screenplay-content"
+      ],
+      "tests": [
+        "tests/issue-1553-autonomous-route-orchestrator.test.mjs"
+      ]
     },
     {
       "id": "refine",
@@ -142,10 +233,19 @@
       "route": "/?workspace=refine",
       "expectedRoute": "/?workspace=dashboard&block=1&mini=1",
       "operation": "inspect",
-      "requiredTerms": ["Story Map", "4 Acts", "24 Blocks", "96 Mini-Blocks"],
+      "requiredTerms": [
+        "Story Map",
+        "4 Acts",
+        "24 Blocks",
+        "96 Mini-Blocks"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-1553-autonomous-route-orchestrator.test.mjs"
+      ]
     },
     {
       "id": "reports",
@@ -153,10 +253,16 @@
       "order": 140,
       "route": "/production",
       "operation": "inspect",
-      "requiredTerms": ["Reports"],
+      "requiredTerms": [
+        "Reports"
+      ],
       "minimumTextLength": 500,
-      "prerequisites": ["active-working-copy"],
-      "tests": ["tests/issue-1553-autonomous-route-orchestrator.test.mjs"]
+      "prerequisites": [
+        "active-working-copy"
+      ],
+      "tests": [
+        "tests/issue-1553-autonomous-route-orchestrator.test.mjs"
+      ]
     }
   ],
   "areas": [
@@ -203,7 +309,13 @@
       "id": "settings",
       "label": "Settings",
       "route": "/?workspace=settings",
-      "requiredTerms": ["Settings", "Sage & PLAN Setup", "Local Compute", "Cloud Compute", "Agent Activity"],
+      "requiredTerms": [
+        "Settings",
+        "Sage & PLAN Setup",
+        "Local Compute",
+        "Cloud Compute",
+        "Agent Activity"
+      ],
       "minimumTextLength": 300,
       "tests": [
         "tests/learn-sage-settings-entry.test.mjs",
@@ -230,7 +342,12 @@
       "id": "community",
       "label": "Community and Guildhall",
       "route": "/?workspace=community",
-      "requiredTerms": ["Community", "Great Hall", "Story Rooms", "Agents & Stewards"],
+      "requiredTerms": [
+        "Community",
+        "Great Hall",
+        "Story Rooms",
+        "Agents & Stewards"
+      ],
       "minimumTextLength": 900,
       "tests": [
         "tests/community-workspace.test.mjs",
@@ -248,7 +365,10 @@
       "id": "foundations-learn",
       "label": "Foundations and LEARN",
       "route": "/?workspace=learn",
-      "requiredTerms": ["Foundations", "Learn"],
+      "requiredTerms": [
+        "Foundations",
+        "Learn"
+      ],
       "minimumTextLength": 1200,
       "tests": [
         "tests/foundation-architecture.test.mjs",
@@ -277,7 +397,12 @@
       "id": "library",
       "label": "Library, examples and saved stories",
       "route": "/?workspace=library",
-      "requiredTerms": ["Library", "Featured Examples", "Genre Presets", "My Stories"],
+      "requiredTerms": [
+        "Library",
+        "Featured Examples",
+        "Genre Presets",
+        "My Stories"
+      ],
       "minimumTextLength": 500,
       "tests": [
         "tests/issue-1122-library-persistence.test.mjs",
@@ -290,7 +415,10 @@
       "id": "plan",
       "label": "PLAN and Foundations handoff",
       "route": "/?workspace=plan&section=foundations",
-      "requiredTerms": ["Foundations", "Plan"],
+      "requiredTerms": [
+        "Foundations",
+        "Plan"
+      ],
       "minimumTextLength": 700,
       "tests": [
         "tests/issue-595-foundations-plan-starter.test.mjs",
@@ -311,7 +439,11 @@
       "id": "build",
       "label": "BUILD and local animatic",
       "route": "/?workspace=build&block=1&mini=1",
-      "requiredTerms": ["Build", "sequence", "Animatic"],
+      "requiredTerms": [
+        "Build",
+        "sequence",
+        "Animatic"
+      ],
       "minimumTextLength": 500,
       "tests": [
         "tests/issue-114-build-workspace.test.mjs",
@@ -325,7 +457,10 @@
       "id": "wyrmwood",
       "label": "Wyrmwood game",
       "route": "/?workspace=wyrmwood",
-      "requiredTerms": ["Wyrmwood", "Pickle"],
+      "requiredTerms": [
+        "Wyrmwood",
+        "Pickle"
+      ],
       "minimumTextLength": 500,
       "tests": [
         "tests/wyrmwood-phase-1.test.mjs",

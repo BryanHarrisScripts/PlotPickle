@@ -117,7 +117,6 @@ test("Dashboard, BUILD and approved production shortcuts expose real destination
   for (const [id, href] of [
     ["storyboard", "/storyboard"],
     ["graphic-novel", "/previs"],
-    ["write", "/pageflow"],
     ["edit", "/edit"],
     ["feedback", "/pitch-review"],
     ["refine", "/diagnostics"],
@@ -125,6 +124,7 @@ test("Dashboard, BUILD and approved production shortcuts expose real destination
   ]) {
     assert.match(navigation, new RegExp(`id: "${id}"[^\\n]+kind: "route"[^\\n]+href: "${href.replaceAll("/", "\\/")}"`));
   }
+  assert.match(navigation, /id: "write"[^\n]+kind: "workspace"[^\n]+workspace: "write"/);
 });
 
 test("focused Settings and Community UAT own the visual continuity regression", async () => {

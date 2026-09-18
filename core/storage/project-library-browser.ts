@@ -4,6 +4,11 @@ import {
   type ProjectSourceEvidence,
 } from "../contracts/imported-screenplay-evidence";
 import {
+  createEmptyBlockWritingState,
+  normalizeBlockWritingState,
+  type BlockWritingState,
+} from "../contracts/block-writing";
+import {
   createEmptyStoryStructureV2,
   normalizeStoryStructureV2,
   type StoryStructureV2,
@@ -14,6 +19,7 @@ import * as libraryCore from "./project-library-core.mjs";
 export type LibraryPPFProject = PPFProject & {
   readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
+  readonly writing: BlockWritingState;
 };
 
 export type ProjectLibrarySourceKind = "user" | "example" | "preset" | "migrated" | "import";
@@ -57,7 +63,8 @@ function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const project = normalizeFoundationProject(value);
   const structure = normalizeStoryStructureV2(source.structure);
   const sourceEvidence = normalizeProjectSourceEvidence(source.sourceEvidence);
-  return { ...project, structure, sourceEvidence };
+  const writing = normalizeBlockWritingState(source.writing);
+  return { ...project, structure, sourceEvidence, writing };
 }
 
 function createEmptyLibraryProject(input: { readonly id: string; readonly now: string; readonly title?: string }): LibraryPPFProject {
@@ -65,6 +72,7 @@ function createEmptyLibraryProject(input: { readonly id: string; readonly now: s
     ...createEmptyProject(input),
     structure: createEmptyStoryStructureV2(),
     sourceEvidence: createEmptyProjectSourceEvidence(),
+    writing: createEmptyBlockWritingState(),
   };
 }
 
@@ -147,7 +155,12 @@ export function saveActiveLibraryProject(project: PPFProject | LibraryPPFProject
     : initialized.activeProject?.id === project.id
       ? initialized.activeProject.structure
       : createEmptyStoryStructureV2();
-  const projectWithStructure = { ...project, structure };
+  const writing = "writing" in incoming
+    ? normalizeBlockWritingState(incoming.writing)
+    : initialized.activeProject?.id === project.id
+      ? initialized.activeProject.writing
+      : createEmptyBlockWritingState();
+  const projectWithStructure = { ...project, structure, writing };
   const result = libraryCore.saveProfileActiveProject({ ...coreInput(), project: projectWithStructure }) as {
     readonly activeProject: LibraryPPFProject;
   };

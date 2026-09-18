@@ -19,8 +19,8 @@ test("#2189 expired UAT profile sessions recover through the normal profile boun
 
   assert.match(panel, /PROFILE_UNLOCK_REQUIRED/u);
   assert.match(panel, /session is invalid or expired\|unlock a human profile\|human profile is locked/i);
-  assert.match(panel, /window\.setTimeout\(\(\) => window\.location\.reload\(\), 120\)/u);
-  assert.match(panel, /Reopening the profile boundary/u);
+  assert.doesNotMatch(panel, /window\.location\.reload|window\.setTimeout\(\(\) => window\.location\.reload/u);
+  assert.match(panel, /Unlock the profile using PlotPickle's normal profile control/u);
 });
 
 test("#2189 UAT runner independently forces Local Story Mode before any acceptance checks", async () => {

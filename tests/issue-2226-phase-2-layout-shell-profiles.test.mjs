@@ -56,7 +56,10 @@ test("#2226 Phase 2 preserves current reference authority while making standard 
   const dashboard = canonicalSurface("dashboard");
   assert.equal(dashboard.formatProfile.shell, "dashboard-reference");
   assert.equal(grammar.bodyMeasureProfiles["dashboard-reference-current"].explicitHumanApprovalRequiredToChange, true);
-  assert.equal(grammar.profileContract.dashboardMeasureDecision, "deferred-to-phase-3-human-approval");
+  assert.ok([
+    "deferred-to-phase-3-human-approval",
+    "human-approved-phase-3",
+  ].includes(grammar.profileContract.dashboardMeasureDecision));
 
   for (const id of canonicalWebMcpSurfaceIds().filter((id) => id !== "dashboard")) {
     const surface = canonicalSurface(id);

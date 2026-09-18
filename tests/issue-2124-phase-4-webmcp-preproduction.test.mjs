@@ -46,8 +46,8 @@ test("#2124 Phase 4 keeps empty Visual Story and Scene Workspace inspectable wit
   assert.match(visualStory, /data-visual-story="scene-beat-shot-frame"/u);
   assert.match(visualStory, /data-visual-story-view="story"/u);
   assert.match(visualStory, /data-visual-story-view="timeline"/u);
-  assert.match(visualStory, /data-scene-timeline="frames-shots-action-timing"/u);
-  assert.match(visualStory, /Scene Workspace does not manufacture timing material to fill the surface/u);
+  assert.match(visualStory, /data-scene-workspace="dialogue-action-shot-audio"/u);
+  assert.match(visualStory, /Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface/u);
   assert.match(visualStory, /only real screenplay, Shot, Previs or audio evidence can then occupy the workspace/u);
 });
 

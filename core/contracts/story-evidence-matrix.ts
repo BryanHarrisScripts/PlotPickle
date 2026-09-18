@@ -54,6 +54,7 @@ export type StoryBlockEvidenceCell = {
   readonly miniBlocksWithEvidence: number;
   readonly miniBlocks: readonly StoryMiniBlockEvidenceCell[];
   readonly sourceMappings: readonly StoryEvidenceSourceMapping[];
+  readonly characterEvidenceRefs: readonly string[];
   readonly structuralFinding: StoryStructuralFinding;
 };
 
@@ -212,6 +213,7 @@ function normalizeBlock(value: unknown, fallbackNumber: number): StoryBlockEvide
     miniBlocksWithEvidence: miniBlocks.filter((mini) => mini.hasObservedEvidence).length,
     miniBlocks,
     sourceMappings,
+    characterEvidenceRefs: uniqueStrings(source.characterEvidenceRefs, 256),
     structuralFinding: {
       state: findingState(finding.state),
       reason: clean(finding.reason, 2000),

@@ -60,23 +60,23 @@ test("#2125 Slice 2 delivers a monochrome visual screenplay and compact #2107 Sh
     "Visual Story must not duplicate the synchronized Scene Workspace production lanes.");
 });
 
-test("#2125 Slice 2 keeps Story Map Block/Mini selection and reads richer legacy Scene detail projection-only", async () => {
-  const [page, readiness] = await Promise.all([
+test("#2125/#2189 keeps Story Map Block/Mini selection without reading legacy Storyboard authority", async () => {
+  const [page, readiness, skinReview] = await Promise.all([
     read("app/storyboard/page.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+    read("app/skin-v1/preproduction-review-surfaces.tsx"),
   ]);
 
   assert.match(page, /boundedMini\(search\.get\("mini"\)\)/);
   assert.match(page, /search\.get\("scene"\)/);
-  assert.match(page, /localStorage\.getItem\(LEGACY_PROJECT_STORAGE_KEY\)/);
-  assert.match(page, /normalizePlotPickleProject/);
-  assert.doesNotMatch(page, /localStorage\.setItem/,
-    "The legacy project is a read-only Scene projection source in Slice 2.");
+  assert.doesNotMatch(page, /plotpickle\.project\.v1|localStorage|normalizePlotPickleProject|legacySceneProjectionSource/u);
+  assert.doesNotMatch(skinReview, /plotpickle\.project\.v1|localStorage|normalizePlotPickleProject|legacySceneProjectionSource/u);
 
   assert.match(readiness, /selectedMiniBlockNumber/);
   assert.match(readiness, /data-selected=\{selectedMiniBlockNumber === miniNumber/);
   assert.match(readiness, />Open Visual Story<\/button>/);
   assert.match(readiness, /<VisualStoryWorkspace/);
-  assert.match(readiness, /legacyProject=\{legacyProject\}/);
+  assert.match(page, /legacyProject=\{null\}/);
+  assert.match(skinReview, /legacyProject=\{null\}/);
   assert.match(readiness, /miniBlockNumber=\{selectedMiniBlockNumber\}/);
 });

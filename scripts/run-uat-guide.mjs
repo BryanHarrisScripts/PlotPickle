@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -21,7 +22,7 @@ const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1"]);
 const server = new URL(argument("--server", "http://127.0.0.1:4173"));
 if (server.protocol !== "http:" || !LOOPBACK.has(server.hostname)) throw new Error("UAT Guide accepts only a local PlotPickle server.");
 
-const runId = argument("--run-id") || crypto.randomUUID();
+const runId = argument("--run-id") || `uat-${randomUUID()}`;
 if (!/^[a-zA-Z0-9._-]{8,160}$/u.test(runId)) throw new Error("UAT Guide run id is invalid.");
 
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");

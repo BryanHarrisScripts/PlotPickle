@@ -19,7 +19,7 @@ import {
 import {
   WEBMCP_STANDARD_SURFACE_LABELS,
   WEBMCP_STANDARD_SURFACE_TARGETS,
-} from "../lib/verification/webmcp-surface-capture-registry.mjs";
+} from "../lib/verification/webmcp-canonical-surface-registry.mjs";
 import { runWebMcpStandardSurfaceCatalogue } from "../lib/verification/webmcp-standard-surface-catalogue.mjs";
 import {
   VISUAL_DIRECTOR_REPORT_PATH,

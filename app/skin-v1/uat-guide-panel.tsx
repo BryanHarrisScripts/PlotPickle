@@ -139,7 +139,18 @@ export default function UatGuidePanel() {
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    const existing = listLibraryProjects().find((item) => (
+      !item.archivedAt
+      && item.sourceKind === "example"
+      && item.sourceId === AFTERGLOW_UAT_SOURCE_ID
+    ));
+    if (existing) {
+      setWorkingCopy(existing.title);
+      setWorkingProjectId(existing.id);
+    }
+    void refresh();
+  }, [refresh]);
   useEffect(() => {
     if (payload?.status?.status !== "running" && !startPending) return;
     const timer = window.setInterval(() => void refresh(), 1200);

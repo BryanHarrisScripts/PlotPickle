@@ -429,7 +429,8 @@
         "modules/learn/ui/learn-workspace.tsx",
         "modules/write/ui/block-native-write-workspace.tsx",
         "app/_components/plotpickle-system/screen-registry.json",
-        "app/navigation/sitemap-route-context.ts"
+        "app/navigation/sitemap-route-context.ts",
+        "app/write/page.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

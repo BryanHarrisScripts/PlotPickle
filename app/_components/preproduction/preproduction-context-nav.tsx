@@ -11,8 +11,8 @@ export type PreproductionArea = "outline" | "storyboard" | "previs";
 const AREAS: Record<PreproductionArea, { label: string; href: string; depth: string }> = {
   outline: {
     label: "Outline",
-    href: "/structure",
-    depth: "Structure → Breakdown · Scenes + Assets",
+    href: "/?workspace=dashboard",
+    depth: "Story Cards → 24/96 Story Map · source evidence",
   },
   storyboard: {
     label: "Storyboard",
@@ -109,7 +109,7 @@ export default function PreproductionContextNav({
     [activeBlock, area, routeMini],
   );
   const outlineReturn = useMemo(
-    () => withAddress("/structure", activeBlock, routeMini),
+    () => withAddress("/?workspace=dashboard", activeBlock, routeMini),
     [activeBlock, routeMini],
   );
   const dashboardReturn = useMemo(

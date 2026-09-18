@@ -10,6 +10,10 @@ import {
   type LibraryPPFProject,
 } from "@/core/storage/project-library-browser";
 import {
+  markCreativeRevisionSourceProjectionStale,
+  planCreativeRevisionPropagation,
+} from "@/lib/preproduction/creative-revision-propagation";
+import {
   storyLearningContext,
   storyLearningHref,
   storyLearningReturnHref,
@@ -62,6 +66,27 @@ export default function BlockNativeWriteWorkspace() {
     [address, project],
   );
 
+  const revisionImpact = useMemo(() => {
+    if (!project || draftText === savedText) return null;
+    try {
+      return planCreativeRevisionPropagation({
+        project,
+        target: {
+          kind: "writing",
+          blockNumber: address.blockNumber,
+          miniBlockNumber: address.miniBlockNumber,
+        },
+        beforeValue: savedText,
+        afterValue: draftText,
+        changeSetId: `write-impact-${project.revision}-${address.blockNumber}-${address.miniBlockNumber}`,
+        summary: `Revise working screenplay text at Block ${String(address.blockNumber).padStart(2, "0")} · Mini-Block ${address.miniBlockNumber}.`,
+        occurredAt: project.updatedAt,
+      });
+    } catch {
+      return null;
+    }
+  }, [address.blockNumber, address.miniBlockNumber, draftText, project, savedText]);
+
   useEffect(() => {
     const next = entry?.text ?? "";
     setDraftText(next);
@@ -89,18 +114,25 @@ export default function BlockNativeWriteWorkspace() {
 
   function save() {
     const savedAt = new Date().toISOString();
+    const revision = project.revision + 1;
     const next: LibraryPPFProject = {
       ...project,
-      revision: project.revision + 1,
+      revision,
       updatedAt: savedAt,
       writing: updateBlockWritingEntry(project.writing, address, draftText, savedAt),
+      sourceEvidence: revisionImpact
+        ? markCreativeRevisionSourceProjectionStale(project.sourceEvidence, revisionImpact, revision)
+        : project.sourceEvidence,
     };
     const saved = saveActiveLibraryProject(next);
     setProject(saved);
     setSavedText(draftText);
-    setStatus(draftText.trim()
-      ? `Saved Block ${String(address.blockNumber).padStart(2, "0")} · Mini-Block ${address.miniBlockNumber} working text.`
-      : "Cleared this working-text position. Source evidence was not changed.");
+    const affectedVisuals = revisionImpact?.staleAcceptedVisualArtifactIds.length ?? 0;
+    const affectedShots = revisionImpact?.staleProductionShotIds.length ?? 0;
+    setStatus(
+      `Saved Block ${String(address.blockNumber).padStart(2, "0")} · Mini-Block ${address.miniBlockNumber} working text. `
+      + `${affectedVisuals} accepted visual${affectedVisuals === 1 ? "" : "s"} and ${affectedShots} Previs Shot${affectedShots === 1 ? "" : "s"} are dependency-affected and require review; unrelated accepted work remains intact. No regeneration was triggered.`,
+    );
   }
 
   function useSourceAsStartingPoint() {
@@ -199,6 +231,36 @@ export default function BlockNativeWriteWorkspace() {
           {status ? <p aria-live="polite" className={styles.status}>{status}</p> : null}
         </section>
       </div>
+
+      {revisionImpact ? (
+        <section className={styles.impactPanel} aria-label="Dependency impact preview">
+          <div className={styles.sectionHeading}>
+            <p>CHANGE CONSEQUENCE · #2035 CHANGE SET</p>
+            <h2>What this unsaved revision would invalidate</h2>
+          </div>
+          <div className={styles.impactSummary}>
+            <span>{revisionImpact.staleAcceptedVisualArtifactIds.length} accepted visuals need review</span>
+            <span>{revisionImpact.staleProductionShotIds.length} Previs Shots need review</span>
+            <span>{revisionImpact.unaffectedAcceptedVisualArtifactIds.length} accepted visuals remain current</span>
+            <span>{revisionImpact.unaffectedProductionShotIds.length} Previs Shots remain current</span>
+          </div>
+          {revisionImpact.affectedRefs.length ? (
+            <details>
+              <summary>Inspect {revisionImpact.affectedRefs.length} dependency-affected refs</summary>
+              <ol>
+                {revisionImpact.affectedRefs.slice(0, 24).map((affected) => (
+                  <li key={affected.id}>
+                    <strong>{affected.kind}</strong>
+                    <span>{affected.id}</span>
+                    <small>{affected.explanation}</small>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          ) : <p>No downstream creative dependency is attached to this story address yet.</p>}
+          <small>Invalidation is review evidence only. It does not delete accepted work, approve replacement work, call a provider, or spend generation credits.</small>
+        </section>
+      ) : null}
 
       <section className={styles.learningPanel} aria-label="Contextual learning for this story position">
         <div className={styles.sectionHeading}>

@@ -1,4 +1,8 @@
 import {
+  normalizeCharacterTruthEvidence,
+  type CharacterTruthEvidence,
+} from "../character-truth-evidence";
+import {
   normalizeStoryEvidenceMatrix,
   type StoryEvidenceMatrix,
 } from "../story-evidence-matrix";
@@ -73,10 +77,11 @@ export type ProjectSourceEvidence = {
   readonly screenplay: ImportedScreenplayEvidence | null;
   readonly referenceFixture: ReferenceFixtureEvidence | null;
   readonly storyMatrix?: StoryEvidenceMatrix | null;
+  readonly characterTruth?: CharacterTruthEvidence | null;
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
-  return { screenplay: null, referenceFixture: null, storyMatrix: null };
+  return { screenplay: null, referenceFixture: null, storyMatrix: null, characterTruth: null };
 }
 
 function cleanText(value: unknown, limit: number) {
@@ -211,11 +216,13 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     readonly screenplay?: unknown;
     readonly referenceFixture?: unknown;
     readonly storyMatrix?: unknown;
+    readonly characterTruth?: unknown;
   };
   const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
   const storyMatrix = normalizeStoryEvidenceMatrix(source.storyMatrix);
+  const characterTruth = normalizeCharacterTruthEvidence(source.characterTruth);
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return { screenplay: null, referenceFixture, storyMatrix };
+    return { screenplay: null, referenceFixture, storyMatrix, characterTruth };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -262,6 +269,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     },
     referenceFixture,
     storyMatrix,
+    characterTruth,
   };
 }
 

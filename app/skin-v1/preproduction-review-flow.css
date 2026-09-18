@@ -494,6 +494,77 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-source-map span {
   font-size: var(--pp-skin-font-meta);
 }
 
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-review {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-review > summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-rule,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-review > small {
+  margin: 0;
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid > article {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  background: var(--pp-skin-surface-0);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article > header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article > header span,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article > p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article small,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article details p {
+  margin: 0;
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-checkpoint-hint {
+  color: var(--pp-skin-ink-soft) !important;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article details {
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  padding-top: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-character-grid article details summary {
+  color: var(--pp-skin-ink-soft);
+  cursor: pointer;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card label {
   display: grid;
   gap: var(--pp-skin-space-1);

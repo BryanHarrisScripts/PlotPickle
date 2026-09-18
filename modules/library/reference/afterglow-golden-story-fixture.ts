@@ -131,6 +131,7 @@ function blockCell(
       baselineMapping(screenplay, blockNumber),
       ...comparisonMappings(blockNumber),
     ],
+    characterEvidenceRefs: [],
     structuralFinding: {
       state: "unresolved",
       reason: passages.length

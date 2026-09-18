@@ -1645,7 +1645,7 @@
   },
   "formatProfileContract": {
     "issue": 2226,
-    "phase": 3,
+    "phase": 2,
     "grammar": "config/skin-v1-surface-grammar.json",
     "requiredForCapturePolicy": "standard"
   }

@@ -65,7 +65,7 @@ const TESTED_SURFACES = [
   { label: "Storyboard", href: "/storyboard?block=17&mini=1" },
   { label: "Previs", href: "/previs?block=17&mini=1" },
   { label: "Scene Workspace", href: "/storyboard?block=17&mini=1&view=timeline" },
-  { label: "Production", href: "/storyboard?block=17&mini=1" },
+  { label: "Production inspection", href: "/storyboard?block=17&mini=1#production-inspection" },
 ] as const;
 
 async function json<T>(response: Response): Promise<T> {

@@ -61,12 +61,18 @@ test("#2125 Slice 4 keeps extra production layers optional and collapsible", asy
     "Layer visibility must remain a view-only interaction.");
 });
 
-test("#2125 Slice 4 shares Shot selection with the existing Visual Story / Scene Timeline", async () => {
-  const source = await read("app/_components/storyboard/visual-story-workspace.tsx");
+test("#2125/#2171 reuses Slice 4 sound ownership inside the single Scene Workspace projection", async () => {
+  const [visualStory, workspace] = await Promise.all([
+    read("app/_components/storyboard/visual-story-workspace.tsx"),
+    read("lib/preproduction/scene-workspace-projection.ts"),
+  ]);
 
-  assert.match(source, /import ProgressiveProductionLanes from "\.\/progressive-production-lanes"/);
-  assert.match(source, /view === "timeline" \? \([\s\S]*<ProgressiveProductionLanes/);
-  assert.match(source, /onSelectShot=\{setSelectedShotId\}/);
-  assert.match(source, /selectedShotId=\{selectedShot\?\.id \?\? ""\}/);
-  assert.match(source, /visualStory=\{projection\}/);
+  assert.doesNotMatch(visualStory, /import ProgressiveProductionLanes/u);
+  assert.match(visualStory, /<SceneTimelineWorkspace/u);
+  assert.match(visualStory, /legacyProject=\{legacyProject\}/);
+  assert.match(visualStory, /onSelectShot=\{setSelectedShotId\}/);
+  assert.match(workspace, /projectProgressiveProductionLanes/u);
+  assert.match(workspace, /const audio = audioCues/u);
+  assert.match(workspace, /owner: item\.source/u);
+  assert.match(workspace, /lane: "audio"/u);
 });

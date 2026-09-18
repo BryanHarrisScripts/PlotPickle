@@ -117,7 +117,7 @@ export default function MatrixStoryMapSurface({
             <button
               data-writer-story-action="write"
               type="button"
-              onClick={() => window.location.assign(`/?workspace=write&block=${address.blockNumber}&mini=${address.miniBlockNumber}`)}
+              onClick={() => window.location.assign(`/write?block=${address.blockNumber}&mini=${address.miniBlockNumber}`)}
             >
               WRITE
             </button>

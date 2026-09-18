@@ -2,6 +2,10 @@
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
 import { markImportedScreenplayProjectionStale, normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
+import {
+  reviewStoryEvidenceBlock,
+  type StoryStructuralFindingState,
+} from "@/core/contracts/story-evidence-matrix";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import {
@@ -38,7 +42,9 @@ export default function StoryCardFoundationBoard({
 }: StoryCardFoundationBoardProps) {
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
-  const screenplayEvidence = normalizeProjectSourceEvidence(project.sourceEvidence).screenplay;
+  const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
+  const screenplayEvidence = normalizedSourceEvidence.screenplay;
+  const storyMatrix = normalizedSourceEvidence.storyMatrix;
   const sourcePassages = screenplayEvidence?.passages ?? [];
   const sourceSectionMarkers = screenplayEvidence?.sectionMarkers ?? [];
 
@@ -119,6 +125,28 @@ export default function StoryCardFoundationBoard({
     );
   }
 
+  function saveStructuralFinding(
+    blockNumber: number,
+    state: StoryStructuralFindingState,
+    reason: string,
+  ) {
+    if (!storyMatrix) return;
+    const reviewedAt = new Date().toISOString();
+    const nextMatrix = reviewStoryEvidenceBlock(storyMatrix, blockNumber, state, reason, reviewedAt);
+    const next: LibraryPPFProject = {
+      ...project,
+      revision: project.revision + 1,
+      updatedAt: reviewedAt,
+      sourceEvidence: {
+        ...normalizedSourceEvidence,
+        storyMatrix: nextMatrix,
+      },
+    };
+    const saved = saveFoundationProject(next) as LibraryPPFProject;
+    onProjectChange(saved);
+    setMessage(`Saved Human structural review for Block ${String(blockNumber).padStart(2, "0")}. No screenplay text or comparison source was changed.`);
+  }
+
   return (
     <section className="pp-skin-v1-story-card-board" aria-labelledby="story-card-board-title" data-story-card-foundation-board="24x96">
       <header className="pp-skin-v1-story-card-board-heading">
@@ -148,6 +176,7 @@ export default function StoryCardFoundationBoard({
                 const authoredTitle = block.title === structuralBlockTitle(block.number) ? "" : block.title;
                 const coverage = storyCardSourceCoverage(sourcePassages, block.number);
                 const sectionMarkers = sourceSectionMarkers.filter((marker) => marker.blockNumber === block.number);
+                const matrixBlock = storyMatrix?.blocks.find((candidate) => candidate.blockNumber === block.number) ?? null;
                 return (
                   <article
                     className="pp-skin-v1-story-card"
@@ -189,6 +218,58 @@ export default function StoryCardFoundationBoard({
                         </span>
                       ) : null}
                     </div>
+
+                    {matrixBlock ? (
+                      <details className="pp-skin-v1-story-card-structural-review" data-structural-finding={matrixBlock.structuralFinding.state}>
+                        <summary>Structural responsibility · {matrixBlock.structuralFinding.state.replace("-", " / ")}</summary>
+                        <p>{matrixBlock.responsibility}</p>
+                        <div className="pp-skin-v1-story-card-source-map">
+                          {matrixBlock.sourceMappings.map((mapping) => (
+                            <span key={`${block.id}-${mapping.sourceId}`}>
+                              {mapping.sourceVersion.toUpperCase()} · {mapping.sourceRole.replace("-", " ")} · {mapping.mappingMethod.replaceAll("-", " ")}
+                              {mapping.candidateOnly ? " · comparison only" : ""}
+                            </span>
+                          ))}
+                        </div>
+                        <label>
+                          <span>Human structural finding</span>
+                          <select
+                            defaultValue={matrixBlock.structuralFinding.state}
+                            key={`finding-${block.id}-${project.revision}`}
+                            onChange={(event) => saveStructuralFinding(
+                              block.number,
+                              event.currentTarget.value as StoryStructuralFindingState,
+                              matrixBlock.structuralFinding.reason,
+                            )}
+                          >
+                            <option value="unresolved">Unresolved</option>
+                            <option value="covered">Covered</option>
+                            <option value="condensed-shared">Condensed / Shared</option>
+                            <option value="gap-underdeveloped">Gap / Underdeveloped</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>Evidence-backed review note</span>
+                          <textarea
+                            defaultValue={matrixBlock.structuralFinding.reason}
+                            key={`finding-note-${block.id}-${project.revision}`}
+                            maxLength={2000}
+                            onBlur={(event) => {
+                              const value = event.currentTarget.value.trim();
+                              if (value !== matrixBlock.structuralFinding.reason) {
+                                saveStructuralFinding(
+                                  block.number,
+                                  matrixBlock.structuralFinding.state,
+                                  value,
+                                );
+                              }
+                            }}
+                            rows={4}
+                          />
+                        </label>
+                        <small>Source density and curriculum guidance do not decide this finding. Human review owns the classification.</small>
+                      </details>
+                    ) : null}
 
                     <label>
                       <span>Card title</span>
@@ -264,7 +345,7 @@ export default function StoryCardFoundationBoard({
         ))}
       </div>
 
-      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
+      <p className="pp-skin-v1-story-card-board-footnote">Story Cards are a planning projection inside the existing PPF. Screenplay evidence metrics describe mapped source density, not authored Block boundaries. Structural findings are Human review states, not creative-quality scores. Empty cards stay empty; PlotPickle does not manufacture screenplay, Scene, Beat, Shot, Frame or visual content to fill the wall.</p>
     </section>
   );
 }

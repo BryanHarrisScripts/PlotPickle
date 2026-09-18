@@ -458,6 +458,42 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-coverage span {
   line-height: var(--pp-skin-leading-body);
 }
 
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-structural-review {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-structural-review summary {
+  color: var(--pp-skin-accent-bright);
+  cursor: pointer;
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-structural-review > p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-structural-review > small {
+  margin: 0;
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-source-map {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-source-map span {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card label {
   display: grid;
   gap: var(--pp-skin-space-1);
@@ -465,7 +501,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card label {
   font-size: var(--pp-skin-font-meta);
 }
 
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea) {
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea, select) {
   width: 100%;
   box-sizing: border-box;
   padding: var(--pp-skin-space-2);
@@ -477,7 +513,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea) 
   resize: vertical;
 }
 
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea):focus-visible {
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card :is(input, textarea, select):focus-visible {
   outline: var(--pp-skin-border-strong) solid var(--pp-skin-focus);
   outline-offset: 1px;
 }

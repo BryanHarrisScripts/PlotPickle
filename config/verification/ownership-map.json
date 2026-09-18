@@ -700,7 +700,17 @@
       "id": "repository-readme",
       "classification": "docs",
       "include": [
-        "README.md",
+        "README.md"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs"
+      ]
+    },
+    {
+      "id": "repository-sitemap",
+      "classification": "docs",
+      "include": [
         "PLOTPICKLE-SITEMAP.txt"
       ],
       "ownerLayer": "verification",

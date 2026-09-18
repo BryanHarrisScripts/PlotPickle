@@ -49,10 +49,10 @@ test("#2106 readiness and active mode are derived from current runtime truth", a
   assert.match(host, /fetch\("\/api\/ai-routing\/status"/u);
   assert.match(host, /fetch\("\/api\/local-ai\/runtime"/u);
   assert.match(host, /route\.locality === locality && route\.ready === true/u);
-  assert.match(host, /status\.activeRuntime\?\.reachable !== true/u);
-  assert.match(host, /role\.available === true/u);
   assert.match(host, /\.every\(\(capability\) =>[\s\S]*route\.locality === locality && route\.ready === true/u);
   assert.match(host, /const hybridReady = hybridSelectionReady\(routingStatus\)/u);
+  assert.match(host, /const ready = item\.mode === "local" \? localReady : item\.mode === "cloud" \? cloudReady : hybridReady/u);
+  assert.match(host, /active && ready \? " is-active" : ""/u);
   assert.match(host, /selected\.includes\("local"\) && selected\.includes\("cloud"\)/u);
   assert.match(host, /\{ label: "LOCAL", ready: localReady \}/u);
   assert.match(host, /\{ label: "CLOUD", ready: cloudReady \}/u);

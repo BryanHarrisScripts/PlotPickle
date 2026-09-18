@@ -446,7 +446,8 @@
       "classification": "production",
       "include": [
         "core/contracts/block-writing.ts",
-        "core/storage/project-library-browser.ts"
+        "core/storage/project-library-browser.ts",
+        "core/storage/library-project.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [
@@ -829,6 +830,21 @@
       "ownerLayer": "verification",
       "riskTokens": [
         "docs"
+      ]
+    },
+    {
+      "id": "profile-private-project-persistence",
+      "classification": "production",
+      "include": [
+        "app/api/auth/profile-private/route.ts",
+        "core/auth/profile-experience/profile-experience-runtime.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "api",
+        "security",
+        "storage",
+        "native"
       ]
     },
     {

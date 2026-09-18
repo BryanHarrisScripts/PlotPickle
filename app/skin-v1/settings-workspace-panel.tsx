@@ -107,7 +107,7 @@ export default function SettingsWorkspacePanel({ section }: { readonly section: 
         </label>
       </section>
 
-      <UatGuidePanel mode="settings" />
+      <UatGuidePanel />
       <SettingsReviewSystemPanel systemId="advanced" embedded />
     </div>
   );

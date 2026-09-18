@@ -15,7 +15,7 @@ import {
   type ServerSessionBoundary,
   type SessionRequest,
 } from "../server-session/server-session-boundary";
-import { normalizeFoundationProject } from "../../project/project";
+import { normalizeLibraryProject } from "../../storage/library-project";
 import {
   createProfilePrivateStorageService,
   type ProfilePrivateStorageService,
@@ -102,7 +102,7 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
   const privateStorage = createProfilePrivateStorageService({
     root: home,
     authService: auth,
-    normalizeProject: normalizeFoundationProject,
+    normalizeProject: normalizeLibraryProject,
   });
   const boundaries = new Map<string, ServerSessionBoundary>();
 

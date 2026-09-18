@@ -24,13 +24,16 @@ test("#1745 active projects enter the Story Map while LEARN stays explicit suppo
   assert.doesNotMatch(shell, /NAVIGATION_AREAS|WORKFLOW_SHORTCUTS|Storyboard.*Write.*Edit/s);
 });
 
-test("#1745 Block 01 is available and later Blocks unlock from accepted Mini-Block visuals, never LEARN", async () => {
+test("#1745/#2169 keeps all canonical story addresses available without turning accepted visuals into a quota", async () => {
   const projection = await read("modules/build/progressive-story-map.ts");
 
-  assert.match(projection, /const unlocked = number === 1 \|\| completedBlockIds\.has/);
   assert.match(projection, /acceptedMiniBlockCount === 4/);
   assert.match(projection, /storyboard-anchor:block:block-/);
-  assert.match(projection, /This Block stays visible for orientation/);
+  assert.match(projection, /coverage evidence, not a required Storyboard quota/);
+  assert.match(projection, /Visual candidates may remain zero, one or many at each anchor/);
+  assert.match(projection, /available without requiring visual acceptance in an earlier Block/);
+  assert.doesNotMatch(projection, /const unlocked = number === 1 \|\| completedBlockIds\.has/);
+  assert.doesNotMatch(projection, /unlocks after Block/);
   assert.doesNotMatch(projection, /completedLessonIds|project\.learning/);
 });
 

@@ -19,7 +19,7 @@ test("#2125 Slice 6 applies one Skin V1 Matrix bridge to all pre-production visu
   for (const selector of [
     'data-progressive-story-map="24x96"',
     'data-visual-story="scene-beat-shot-frame"',
-    'data-scene-timeline="frames-shots-action-timing"',
+    'data-scene-workspace="dialogue-action-shot-audio"',
     'data-progressive-production-lanes="dialogue-sound-camera-transitions"',
   ]) assert.ok(bridge.includes(selector), `${selector} should be governed by the Matrix bridge`);
 

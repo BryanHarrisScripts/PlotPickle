@@ -1,4 +1,7 @@
-import { normalizeProjectSourceEvidence } from "../../core/contracts/imported-screenplay-evidence";
+import {
+  normalizeProjectSourceEvidence,
+  type ImportedScreenplayPassage,
+} from "../../core/contracts/imported-screenplay-evidence";
 import type { LibraryPPFProject } from "../../core/storage/project-library-browser";
 import type { PlotPickleProject } from "../projects/project";
 import { projectProgressiveProductionLanes } from "./progressive-production-lanes";
@@ -58,9 +61,7 @@ function sourceSceneNumber(sceneId: string | null) {
 }
 
 function passageBelongsToScene(
-  passage: ReturnType<typeof normalizeProjectSourceEvidence>["screenplay"] extends infer T
-    ? T extends { passages: readonly (infer P)[] } ? P : never
-    : never,
+  passage: ImportedScreenplayPassage,
   sceneId: string | null,
 ) {
   if (!sceneId) return false;
@@ -170,9 +171,7 @@ function audioCues(
   const selected = visualStory.selectedScene;
   return lanes.sound.map((item) => {
     const anchor = visualStory.anchors.find((candidate) => (
-      item.startSecond !== null
-        ? true
-        : candidate.beats.some((beat) => beat.id === item.id)
+      candidate.beats.some((beat) => beat.id === item.id)
     )) ?? visualStory.anchors[0] ?? null;
     return {
       id: `scene-cue:audio:${item.id}`,

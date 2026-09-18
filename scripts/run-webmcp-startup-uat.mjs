@@ -75,7 +75,7 @@ export function visualBaselineApprovalLines(targets = WEBMCP_STANDARD_SURFACE_TA
   lines.push("That prevents PlotPickle from blessing its own regressions.");
   lines.push("After you run WebMCP locally and visually approve a surface, run the matching command above.");
   lines.push("Dashboard example: node scripts/lock-skin-visual-baseline.mjs dashboard");
-  lines.push("That copies the approved PNG into tests/visual-baselines/skin-v1/dashboard.png and marks Dashboard locked.");
+  lines.push("That copies the approved PNG into tests/visual-baselines/skin-v1/00-dashboard.png and marks Dashboard locked.");
   lines.push("Commit that PNG and tests/visual-baselines/skin-v1/manifest.json. From then on Dashboard is a permanent repo baseline.");
   return lines;
 }

@@ -108,12 +108,14 @@
 
 .current {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--pp-skin-space-2);
 }
 
 .current span {
   display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: var(--pp-skin-space-1);
   padding: var(--pp-skin-space-2);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);

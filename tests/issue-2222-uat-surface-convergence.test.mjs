@@ -40,25 +40,45 @@ test("#2222 UAT evidence stays in Semantic Review instead of opening Full Verifi
   assert.match(runner, /The in-page review retains the bounded result and linked evidence/u);
 });
 
-test("#2222 tested-surface pills use current canonical/current-context routes only", async () => {
-  const [panel, visualStory] = await Promise.all([
-    read("app/skin-v1/uat-guide-panel.tsx"),
-    read("app/_components/storyboard/visual-story-workspace.tsx"),
-  ]);
+test("#2224 Human UAT exposes only the current three pre-production buckets and the persistent project id", async () => {
+  const panel = await read("app/skin-v1/uat-guide-panel.tsx");
 
+  assert.match(panel, /const PREPRODUCTION_UAT_BUCKETS = \[/u);
   for (const route of [
     "/?workspace=dashboard&block=17&mini=1",
-    "/write?block=17&mini=1",
     "/storyboard?block=17&mini=1",
     "/previs?block=17&mini=1",
-    "/storyboard?block=17&mini=1&view=timeline",
-    "/storyboard?block=17&mini=1#production-inspection",
-  ]) assert.ok(panel.includes(route), `Missing current UAT handoff: ${route}`);
+  ]) assert.ok(panel.includes(route), `Missing current pre-production UAT bucket: ${route}`);
 
-  assert.doesNotMatch(panel, /href:\s*["']\/structure|href:\s*["']\/production/u);
-  assert.match(panel, /Production inspection/u);
-  assert.match(visualStory, /id="production-inspection"/u);
-  assert.match(visualStory, /data-provider-instruction-inspection="read-only"/u);
+  assert.match(panel, /setWorkingProjectId\(prepared\.project\.id\)/u);
+  assert.match(panel, /if \(existing\) \{[\s\S]*setWorkingCopy\(existing\.title\);[\s\S]*setWorkingProjectId\(existing\.id\);/u);
+  assert.match(panel, /<b>Project ID<\/b>\{workingProjectId/u);
+  assert.match(panel, /data-uat-project-id=\{workingProjectId \|\| undefined\}/u);
+  assert.match(panel, /data-uat-bucket=\{surface\.id\}/u);
+  assert.match(panel, /three pre-production buckets: Outline, Storyboard and Previs/u);
+  assert.match(panel, /planned five-bucket pre-production model/u);
+
+  const bucketBlock = panel.slice(
+    panel.indexOf("const PREPRODUCTION_UAT_BUCKETS"),
+    panel.indexOf("] as const;", panel.indexOf("const PREPRODUCTION_UAT_BUCKETS")) + "] as const;".length,
+  );
+  assert.doesNotMatch(bucketBlock, /Story Cards|Write|Scene Workspace|Production inspection/u);
+  assert.doesNotMatch(bucketBlock, /\/structure|\/production/u);
+
+  const [outline, storyboard, previs, runner] = await Promise.all([
+    read("app/skin-v1/matrix-story-map-surface.tsx"),
+    read("app/storyboard/page.tsx"),
+    read("app/previs/page.tsx"),
+    read("scripts/run-uat-guide.mjs"),
+  ]);
+  for (const source of [outline, storyboard, previs]) {
+    assert.match(source, /data-canonical-project-id=\{project\.id\}/u);
+    assert.match(source, /loadFoundationProject\(\)/u);
+  }
+  assert.match(runner, /Checking Afterglow pre-production continuity/u);
+  assert.match(runner, /Outline, Storyboard and Previs remain projections of the same canonical project/u);
+  assert.match(runner, /surface: "uat-semantic-review"/u);
+  assert.doesNotMatch(runner, /surface: "verification-inbox"/u);
 });
 
 test("#2222 pre-production context is a compact Matrix header, not a legacy full-page section", async () => {

@@ -155,9 +155,9 @@ async function main() {
   if (webmcp !== 0) throw new Error("The rendered WebMCP acceptance pass found an issue.");
 
   await emit({
-    label: "Checking Afterglow story-to-screen evidence",
-    detail: "Verifying Block 17.1 through the provider-neutral Production inspection. No provider will be called.",
-    surface: "production-inspection",
+    label: "Checking Afterglow pre-production continuity",
+    detail: "Verifying the loaded Afterglow fixture at Block 17 / Mini-Block 1 while Outline, Storyboard and Previs remain projections of the same canonical project. No provider will be called.",
+    surface: "pre-production",
   });
   await runNodeTest([
     "tests/issue-2174-afterglow-story-to-screen-acceptance.test.mjs",
@@ -168,8 +168,8 @@ async function main() {
   await emit({
     type: "result",
     label: "UAT Semantic Review complete",
-    detail: "Rendered workflow and deterministic Afterglow acceptance passed. No provider was called and no candidate was promoted to canon.",
-    surface: "verification-inbox",
+    detail: "Automated surface conformance and deterministic Afterglow continuity passed. Human review can now inspect the same persistent project in Outline, Storyboard and Previs.",
+    surface: "uat-semantic-review",
     state: "PASS",
   });
   state.status = "pass";

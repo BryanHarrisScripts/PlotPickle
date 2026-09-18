@@ -124,6 +124,20 @@
       ]
     },
     {
+      "id": "visual-qa-skill",
+      "classification": "production",
+      "include": [
+        ".agents/skills/visual-qa/SKILL.md"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "visual",
+        "surface",
+        "mcp"
+      ]
+    },
+    {
       "id": "sage-brinewick-skill",
       "classification": "production",
       "include": [

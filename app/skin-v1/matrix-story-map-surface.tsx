@@ -102,7 +102,7 @@ export default function MatrixStoryMapSurface({
 
   if (!project) return <p role="status">Opening Story Map…</p>;
   return (
-    <div data-skin-v1-story-map-review="true" onClickCapture={handleClickCapture}>
+    <div data-canonical-project-id={project.id} data-skin-v1-story-map-review="true" onClickCapture={handleClickCapture}>
       <StoryCardFoundationBoard project={project} onProjectChange={setProject} />
       <ProgressiveStoryMap project={project} />
 

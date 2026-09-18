@@ -1,5 +1,5 @@
 import { normalizeStoryMapContextRegistry } from "../../../../core/storage/story-map-context";
-import { normalizeFoundationProject } from "../../../../core/project/project";
+import { normalizeLibraryProject } from "../../../../core/storage/library-project";
 import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
 import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     const { runtimeState, authContext } = await authorized(request, true);
     const input = await request.json() as Record<string, unknown>;
     if (input.action === "save-project") {
-      const project = normalizeFoundationProject(input.project);
+      const project = normalizeLibraryProject(input.project);
       const saved = await runtimeState.privateStorage.saveProject(authContext, { project });
       return response({ projectId: saved.summary.projectId });
     }

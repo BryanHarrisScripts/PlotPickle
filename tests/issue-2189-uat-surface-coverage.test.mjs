@@ -149,3 +149,12 @@ test("#2189 maps the root startup proxy into existing Experience Contract owners
   assert.ok(startup?.include.includes("app/page.tsx"));
   assert.ok(startup?.include.includes("proxy.ts"));
 });
+
+
+test("#2189 local UI readiness treats the intentional Skin V1 startup redirect as server-alive evidence", async () => {
+  const audit = await read("lib/verification/ui-axe-audit.mjs");
+
+  assert.match(audit, /redirect: "manual"/u);
+  assert.match(audit, /if \(response\.status < 500\) return/u);
+  assert.match(audit, /AbortSignal\.timeout\(2_000\)/u);
+});

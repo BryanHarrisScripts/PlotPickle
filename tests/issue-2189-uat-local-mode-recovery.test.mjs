@@ -83,3 +83,10 @@ test("#2189 General Settings does not duplicate Story Mode authority", async () 
   assert.doesNotMatch(general, /persistStoryMode/u);
   assert.match(general, /<UatGuidePanel mode="settings" \/>/u);
 });
+
+
+test("#2189 WebMCP waits for the new Hybrid capability matrix", async () => {
+  const registry = await read("lib/verification/webmcp-surface-capture-registry.mjs");
+  assert.match(registry, /"hybrid-story-mode": Object\.freeze\(\{[\s\S]*?readySelector: "section\[aria-label='Hybrid Story Mode'\]\[data-story-mode-view='hybrid'\] \[data-hybrid-story-mode='capability-matrix'\]"/u);
+  assert.doesNotMatch(registry, /data-story-mode-hybrid='policy-only'/u);
+});

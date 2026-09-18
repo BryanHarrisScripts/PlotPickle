@@ -99,6 +99,18 @@ async function emit({ type = "status", label, detail = "", surface = "", state: 
   await persist();
 }
 
+async function forceLocalStoryMode() {
+  const response = await fetch(new URL("/api/story-mode/policy", server.origin), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "local" }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body?.ok !== true || body?.mode !== "local") {
+    throw new Error(body?.message || "UAT Guide could not switch Story Mode to LOCAL.");
+  }
+}
+
 function runNodeTest(files) {
   return new Promise((resolve, reject) => {
     const child = spawnCommand(process.execPath, ["--test", ...files], {
@@ -125,6 +137,12 @@ async function main() {
   await emit({
     label: "UAT Guide started",
     detail: "Checking the current Skin V1 Writer-to-Screen workflow with an isolated synthetic Human.",
+  });
+  await forceLocalStoryMode();
+  await emit({
+    label: "Story Mode switched to LOCAL",
+    detail: "UAT uses Local Story Mode automatically. Cloud providers are not eligible for the default acceptance run.",
+    surface: "story-mode",
   });
 
   await prepareVerificationSyntheticHome(syntheticHome);

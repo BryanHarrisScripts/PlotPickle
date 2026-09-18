@@ -58,14 +58,10 @@ type Payload = {
 const AFTERGLOW_UAT_SOURCE_ID = "afterglow-v9";
 const AFTERGLOW_UAT_TITLE = "Afterglow: Reflections of Sentience";
 
-const TESTED_SURFACES = [
-  { label: "Story Cards", href: "/?workspace=dashboard&block=17&mini=1" },
-  { label: "Write", href: "/write?block=17&mini=1" },
-  { label: "Outline", href: "/?workspace=dashboard&block=17&mini=1" },
-  { label: "Storyboard", href: "/storyboard?block=17&mini=1" },
-  { label: "Previs", href: "/previs?block=17&mini=1" },
-  { label: "Scene Workspace", href: "/storyboard?block=17&mini=1&view=timeline" },
-  { label: "Production inspection", href: "/storyboard?block=17&mini=1#production-inspection" },
+const PREPRODUCTION_UAT_BUCKETS = [
+  { id: "outline", label: "Outline", href: "/?workspace=dashboard&block=17&mini=1" },
+  { id: "storyboard", label: "Storyboard", href: "/storyboard?block=17&mini=1" },
+  { id: "previs", label: "Previs", href: "/previs?block=17&mini=1" },
 ] as const;
 
 async function json<T>(response: Response): Promise<T> {
@@ -130,6 +126,7 @@ export default function UatGuidePanel() {
   const [startPending, setStartPending] = useState(false);
   const [message, setMessage] = useState("");
   const [workingCopy, setWorkingCopy] = useState("");
+  const [workingProjectId, setWorkingProjectId] = useState("");
   const [comment, setComment] = useState("");
 
   const refresh = useCallback(async () => {
@@ -169,6 +166,7 @@ export default function UatGuidePanel() {
       setMessage("Preparing the persistent Afterglow working copy before semantic testing starts…");
       const prepared = await ensureAfterglowWorkingCopy(csrf);
       setWorkingCopy(prepared.project.title);
+      setWorkingProjectId(prepared.project.id);
       const response = await fetch("/api/auth/uat-guide", {
         method: "POST",
         credentials: "same-origin",
@@ -245,6 +243,7 @@ export default function UatGuidePanel() {
         <span><b>Reference</b>Afterglow v9</span>
         <span><b>Story address</b>{status?.current?.storyAddress || "Block 17 / Mini-Block 1"}</span>
         <span><b>Working copy</b>{workingCopy || AFTERGLOW_UAT_TITLE}</span>
+        <span><b>Project ID</b>{workingProjectId || "Prepared on start"}</span>
       </div>
 
       <p className={styles.boundary}>Semantic UAT only · persistent Human working copy · immutable Afterglow reference · synthetic verification isolation · no cloud spend · deterministic verification owns PASS/FAIL.</p>
@@ -295,12 +294,12 @@ export default function UatGuidePanel() {
 
       <section className={styles.surfaces} aria-labelledby="uat-tested-surfaces-title">
         <div>
-          <p>OPEN TESTED SURFACES</p>
-          <h3 id="uat-tested-surfaces-title">Inspect the loaded Afterglow working copy</h3>
-          <span>The working copy remains active after UAT. Open any stage to inspect what PlotPickle projected or populated and use that stage's normal visual actions where available.</span>
+          <p>PRE-PRODUCTION UAT BUCKETS</p>
+          <h3 id="uat-tested-surfaces-title">Confirm the same Afterglow project in each current bucket</h3>
+          <span>Human UAT currently checks three pre-production buckets: Outline, Storyboard and Previs. Confirm the story, Project ID and Block 17 / Mini-Block 1 remain the same in each. This explicit bucket list can expand as the planned five-bucket pre-production model becomes canonical.</span>
         </div>
-        <nav aria-label="Afterglow UAT tested surfaces">
-          {TESTED_SURFACES.map((surface) => <Link href={surface.href} key={surface.label}>{surface.label}</Link>)}
+        <nav aria-label="Afterglow pre-production UAT buckets" data-uat-project-id={workingProjectId || undefined}>
+          {PREPRODUCTION_UAT_BUCKETS.map((surface) => <Link data-uat-bucket={surface.id} href={surface.href} key={surface.id}>{surface.label}</Link>)}
         </nav>
       </section>
 

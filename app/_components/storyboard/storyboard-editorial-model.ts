@@ -299,10 +299,8 @@ export function storyboardArtifactStaleReasons(
   }
 
   const legacyPrefix = `${STORYBOARD_UPSTREAM_PREFIX}${anchorRef}:`;
-  const legacyRecorded = keys.find((key) => key.startsWith(legacyPrefix));
-  return legacyRecorded
-    ? []
-    : [];
+  if (keys.some((key) => key.startsWith(legacyPrefix))) return [];
+  return [];
 }
 
 function acceptedArtifactForSource(

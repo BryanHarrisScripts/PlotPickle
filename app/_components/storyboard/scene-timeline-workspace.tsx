@@ -163,7 +163,7 @@ export default function SceneTimelineWorkspace({
       return;
     }
     if (current.reviewState === "approved") {
-      setMessage("Approved Shot timing is protected. Consequential approved changes remain on the existing creative-transaction path.");
+      setMessage("Approved Shot timing is protected. Consequential approved changes remain on the existing #2035 creative-transaction path.");
       return;
     }
     if (current.reviewState === "omitted") {
@@ -374,8 +374,8 @@ export default function SceneTimelineWorkspace({
 
       <section className={styles.timelinePanel} aria-label="Synchronized Scene Workspace timeline">
         <div className={styles.ruler}>
-          {timeline.anchors.map((anchor) => (
-            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond, timeline.totalSeconds)}>
+          {timeline.anchors.filter((anchor) => anchor.startSecond !== null).map((anchor) => (
+            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond!, timeline.totalSeconds)}>
               {anchor.blockNumber}.{anchor.miniBlockNumber}
             </span>
           ))}
@@ -419,7 +419,7 @@ export default function SceneTimelineWorkspace({
             </div>
           </form>
           <p className={styles.authorityNote}>
-            Only the existing planned Previs ProductionShotIntent duration is editable here. Dialogue, Action and Audio remain source-owned and are never shifted into a Scene Workspace store.
+            Only the existing planned Previs ProductionShotIntent duration is editable here. Approved timing must stay on the #2035 creative-transaction path. Dialogue, Action and Audio remain source-owned and are never shifted into a Scene Workspace store.
           </p>
         </section>
       ) : null}

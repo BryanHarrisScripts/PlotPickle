@@ -30,7 +30,7 @@ test("#2167 restores Write as a current workspace rather than a PageFlow alias",
   ]);
 
   assert.match(navigation, /"plan" \| "write" \| "wyrmwood"/);
-  assert.match(navigation, /id: "write".*kind: "workspace".*workspace: "write"/s);
+  assert.match(navigation, /id: "write".*kind: "route".*href: "\/write"/s);
   assert.match(page, /requested === "write"/);
   assert.match(page, /<BlockNativeWriteWorkspace \/>/);
   assert.match(page, /case "drafting":[\s\S]*case "dialogue":[\s\S]*window\.location\.assign\("\/write"\)/);

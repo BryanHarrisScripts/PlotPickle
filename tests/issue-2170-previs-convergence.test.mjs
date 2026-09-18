@@ -161,3 +161,81 @@ test("#2170 Previs consumes the current Skin V1 screen contract instead of the o
   assert.match(css, /background:\s*var\(--pp-skin-selected-bg\)/u);
   assert.match(css, /outline:\s*var\(--pp-skin-border-thin\) solid var\(--pp-skin-focus\)/u);
 });
+
+
+test("#2170 convergence surfaces use one Skin V1 palette, typography and square geometry", async () => {
+  const surfaces = await Promise.all([
+    read("modules/write/ui/block-native-write-workspace.module.css"),
+    read("app/skin-v1/preproduction-review-flow.css"),
+    read("app/_components/storyboard/storyboard-editorial-workspace.module.css"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.module.css"),
+    read("app/_components/storyboard/visual-story-workspace.module.css"),
+    read("app/_components/previs/previs-readiness-workspace.module.css"),
+    read("app/_components/preproduction/preproduction-route-state.module.css"),
+    read("app/pageflow/pageflow.module.css"),
+    read("app/craftloop/craftloop.module.css"),
+  ]);
+
+  for (const [index, css] of surfaces.entries()) {
+    assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/iu, `Surface ${index} must not carry a local hex palette`);
+    assert.doesNotMatch(css, /rgba?\(/iu, `Surface ${index} must not carry local rgba presentation`);
+    assert.doesNotMatch(css, /border-radius:\s*(?!var\(--pp-skin-radius\))[^;]+;/iu, `Surface ${index} must use canonical square radius`);
+    assert.doesNotMatch(css, /ui-monospace|SFMono-Regular|Menlo|Arial|Helvetica|Consolas/u, `Surface ${index} must use the canonical Skin font token`);
+    assert.match(css, /var\(--pp-skin-/u, `Surface ${index} must consume Skin V1 tokens`);
+  }
+});
+
+test("#2170 keeps linked alternate screens intentional and preserves exact Block Mini context", async () => {
+  const [storyLearning, preproductionNav, returnNav, root, storyboardPage, previsPage] = await Promise.all([
+    read("modules/learn/model/story-learning-context.ts"),
+    read("app/_components/preproduction/preproduction-context-nav.tsx"),
+    read("app/_components/preproduction/preproduction-capability-return.tsx"),
+    read("app/page.tsx"),
+    read("app/storyboard/page.tsx"),
+    read("app/previs/page.tsx"),
+  ]);
+
+  assert.match(storyLearning, /workspace: "dashboard"/);
+  assert.match(storyLearning, /block: String\(context\.address\.blockNumber\)/);
+  assert.match(storyLearning, /mini: String\(context\.address\.miniBlockNumber\)/);
+  assert.match(root, /workspace === "dashboard"[\s\S]*<StoryMapWorkspace/u);
+  assert.match(root, /case "visual-storytelling":[\s\S]*window\.location\.assign\("\/storyboard"\)/u);
+  assert.match(root, /case "drafting":[\s\S]*navigateWorkspace\("write"\)/u);
+  assert.doesNotMatch(root, /case "drafting":[\s\S]*\/pageflow/u);
+
+  assert.match(preproductionNav, /outline:[\s\S]*href: "\/structure"/u);
+  assert.match(preproductionNav, /storyboard:[\s\S]*href: "\/storyboard"/u);
+  assert.match(preproductionNav, /previs:[\s\S]*href: "\/previs"/u);
+  assert.match(preproductionNav, /function withAddress/u);
+  assert.match(preproductionNav, /url\.searchParams\.set\("block", String\(blockNumber\)\)/u);
+  assert.match(preproductionNav, /url\.searchParams\.set\("mini", String\(miniBlockNumber\)\)/u);
+  assert.match(preproductionNav, /PageFlow · Diagnostic/u);
+  assert.match(preproductionNav, /\/pageflow\?from=preproduction&return=/u);
+
+  assert.match(returnNav, /dashboardReturnPath\(context\.returnPath\)/u);
+  assert.match(returnNav, /source\.searchParams\.get\("block"\)/u);
+  assert.match(returnNav, /source\.searchParams\.get\("mini"\)/u);
+
+  assert.match(storyboardPage, /workspace=build&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/u);
+  assert.match(previsPage, /\/storyboard\?block=\$\{anchor\.blockNumber\}&mini=\$\{anchor\.miniBlockNumber\}/u);
+  assert.match(previsPage, /workspace=build&block=\$\{anchor\.blockNumber\}&mini=\$\{anchor\.miniBlockNumber\}/u);
+});
+
+test("#2170 linked PageFlow and CraftLoop surfaces are visually current while PageFlow authority migration remains #2180", async () => {
+  const [pageFlowCss, craftLoopCss, pageFlowPage] = await Promise.all([
+    read("app/pageflow/pageflow.module.css"),
+    read("app/craftloop/craftloop.module.css"),
+    read("app/pageflow/page.tsx"),
+  ]);
+
+  for (const css of [pageFlowCss, craftLoopCss]) {
+    assert.match(css, /var\(--pp-skin-canvas\)/u);
+    assert.match(css, /var\(--pp-skin-font-ui\)/u);
+    assert.match(css, /var\(--pp-skin-fill-panel\)/u);
+    assert.match(css, /var\(--pp-skin-selected-bg\)/u);
+    assert.match(css, /var\(--pp-skin-focus\)/u);
+  }
+
+  assert.match(pageFlowPage, /const STORAGE_KEY = "plotpickle\.project\.v1"/u,
+    "PageFlow authority migration is intentionally not hidden inside #2170; #2180 still owns removal of legacy screenplay storage.");
+});

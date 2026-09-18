@@ -42,7 +42,7 @@ test("#1725 every LEARN apply row hands off to a current owner without adding in
   for (const owner of [
     'window.location.assign("/structure")',
     'window.location.assign("/storyboard")',
-    'window.location.assign("/pageflow")',
+    'navigateWorkspace("write")',
     'window.location.assign("/edit")',
     'window.location.assign("/production")',
     'navigateWorkspace("settings")',

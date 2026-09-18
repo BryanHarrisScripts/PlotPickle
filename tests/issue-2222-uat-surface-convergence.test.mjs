@@ -51,6 +51,7 @@ test("#2224 Human UAT exposes only the current three pre-production buckets and 
   ]) assert.ok(panel.includes(route), `Missing current pre-production UAT bucket: ${route}`);
 
   assert.match(panel, /setWorkingProjectId\(prepared\.project\.id\)/u);
+  assert.match(panel, /if \(existing\) \{[\s\S]*setWorkingCopy\(existing\.title\);[\s\S]*setWorkingProjectId\(existing\.id\);/u);
   assert.match(panel, /<b>Project ID<\/b>\{workingProjectId/u);
   assert.match(panel, /data-uat-project-id=\{workingProjectId \|\| undefined\}/u);
   assert.match(panel, /data-uat-bucket=\{surface\.id\}/u);

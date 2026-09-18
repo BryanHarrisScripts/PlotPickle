@@ -63,6 +63,21 @@ test("#2224 Human UAT exposes only the current three pre-production buckets and 
   );
   assert.doesNotMatch(bucketBlock, /Story Cards|Write|Scene Workspace|Production inspection/u);
   assert.doesNotMatch(bucketBlock, /\/structure|\/production/u);
+
+  const [outline, storyboard, previs, runner] = await Promise.all([
+    read("app/skin-v1/matrix-story-map-surface.tsx"),
+    read("app/storyboard/page.tsx"),
+    read("app/previs/page.tsx"),
+    read("scripts/run-uat-guide.mjs"),
+  ]);
+  for (const source of [outline, storyboard, previs]) {
+    assert.match(source, /data-canonical-project-id=\{project\.id\}/u);
+    assert.match(source, /loadFoundationProject\(\)/u);
+  }
+  assert.match(runner, /Checking Afterglow pre-production continuity/u);
+  assert.match(runner, /Outline, Storyboard and Previs remain projections of the same canonical project/u);
+  assert.match(runner, /surface: "uat-semantic-review"/u);
+  assert.doesNotMatch(runner, /surface: "verification-inbox"/u);
 });
 
 test("#2222 pre-production context is a compact Matrix header, not a legacy full-page section", async () => {

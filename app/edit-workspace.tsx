@@ -36,7 +36,7 @@ function workspaceHref(id: string) {
         : id === "pitch" ? "pitch"
           : id === "engines" ? "refine"
             : id;
-  return `/?workspace=${encodeURIComponent(workspace)}`;
+  return workspace === "write" ? "/write" : `/?workspace=${encodeURIComponent(workspace)}`;
 }
 
 function loadStoredProject() {
@@ -181,7 +181,7 @@ export default function EditWorkspace() {
     "Approved Storyboard visual decisions remain attached to the same Block/mini-block; Edit does not duplicate or replace them.",
   ];
 
-  const writeHref = `/?workspace=write&block=${blockNumber}&mini=${miniBlockNumber}`;
+  const writeHref = `/write?block=${blockNumber}&mini=${miniBlockNumber}`;
 
   if (!hydrated) return <main className={styles.loading}>Opening the canonical screenplay…</main>;
 

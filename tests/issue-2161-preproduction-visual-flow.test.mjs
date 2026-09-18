@@ -66,7 +66,7 @@ test("#2161 makes Visual Story navigation visible without inventing missing stor
   assert.match(surfaces, /BLOCK \{String\(normalized\.blockNumber\)/u);
   assert.match(surfaces, /MINI-BLOCK \{normalized\.miniBlockNumber\}/u);
   assert.match(visualStory, /Visual Story does not manufacture a Scene to fill the surface/u);
-  assert.match(visualStory, /Scene Timeline does not manufacture timing material to fill the surface/u);
+  assert.match(visualStory, /Scene Workspace does not manufacture timing material to fill the surface/u);
 });
 
 test("#2161 replaces the dead plus presentation with an honest empty visual label", async () => {

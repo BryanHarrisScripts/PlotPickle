@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "id": "afterglow-v8-v9-v10-24x96-evidence-matrix",
+    "projectTitle": "Afterglow: Reflections of Sentience",
+    "sourceVersion": "v9",
+    "blockNumber": 17,
+    "miniBlockNumber": 1,
+    "blockTitle": "Waves of Connections",
+    "anchorRef": "storyboard-anchor:block:block-17:mini-1",
+    "sourceEvidenceRef": "afterglow-v9-block-17",
+    "storyboardReferenceRef": "afterglow-block-17-mini-1",
+    "evidencePolicy": "real-source-plus-reviewed-test-copy-production-intent",
+    "cloudSpendAllowed": false
+  },
+  "fixtureProofs": [
+    {
+      "id": "canonical-24x96",
+      "file": "modules/library/reference/afterglow-golden-story-fixture.ts",
+      "requiredTerms": [
+        "AFTERGLOW_GOLDEN_STORY_FIXTURE_ID = \"afterglow-v8-v9-v10-24x96-evidence-matrix\"",
+        "project.blocks.length !== 24",
+        "sections.length !== 20",
+        "sourceId: \"v9\"",
+        "sourceRole: \"baseline\""
+      ]
+    },
+    {
+      "id": "block-17-real-story",
+      "file": "data/afterglow-complete.ts",
+      "requiredTerms": [
+        "\"Waves of Connections\"",
+        "Isobel discovers the truth in Ren's messenger bag"
+      ]
+    },
+    {
+      "id": "block-17-real-storyboard",
+      "file": "data/afterglow-storyboard.ts",
+      "requiredTerms": [
+        "const sourceStoryboardBlocks = 21",
+        "Original Afterglow storyboard frame",
+        "createAfterglowStoryboardFrames"
+      ]
+    }
+  ],
+  "ciStages": [
+    {
+      "id": "story-cards",
+      "label": "Story Cards",
+      "files": [
+        "app/skin-v1/story-card-foundation-board.tsx"
+      ],
+      "requiredTerms": [
+        "data-story-card-foundation-board=\"24x96\"",
+        "MAPPED SCREENPLAY EVIDENCE",
+        "sourceSectionMarkers",
+        "PlotPickle does not manufacture screenplay"
+      ]
+    },
+    {
+      "id": "write",
+      "label": "Write",
+      "files": [
+        "modules/write/ui/block-native-write-workspace.tsx"
+      ],
+      "requiredTerms": [
+        "data-block-native-write=\"24x96\"",
+        "IMMUTABLE SOURCE EVIDENCE",
+        "WORKING SCREENPLAY TEXT",
+        "planCreativeRevisionPropagation",
+        "No regeneration was triggered"
+      ]
+    },
+    {
+      "id": "outline",
+      "label": "Outline",
+      "files": [
+        "app/_components/preproduction/preproduction-context-nav.tsx",
+        "modules/learn/model/story-learning-context.ts"
+      ],
+      "requiredTerms": [
+        "href: \"/structure\"",
+        "block: String(context.address.blockNumber)",
+        "mini: String(context.address.miniBlockNumber)",
+        "workspace: \"dashboard\""
+      ]
+    },
+    {
+      "id": "storyboard",
+      "label": "Storyboard",
+      "files": [
+        "app/_components/storyboard/storyboard-editorial-model.ts"
+      ],
+      "requiredTerms": [
+        "createAfterglowStoryboardFrames",
+        "storyboardAnchorEvidence",
+        "sourceKind: \"historical-storyboard\"",
+        "provenanceRefs",
+        "acceptedArtifactId"
+      ]
+    },
+    {
+      "id": "previs",
+      "label": "Previs",
+      "files": [
+        "app/_components/previs/previs-projection-model.ts"
+      ],
+      "requiredTerms": [
+        "storyboardAnchorEvidence",
+        "storyboardDependencyKey",
+        "sourceMappings",
+        "characterEvidenceRefs",
+        "durationSeconds: null",
+        "timing remains explicitly Human-authored"
+      ]
+    },
+    {
+      "id": "scene-workspace",
+      "label": "Scene Workspace",
+      "files": [
+        "lib/preproduction/scene-workspace-projection.ts"
+      ],
+      "requiredTerms": [
+        "SceneWorkspaceLane = \"dialogue\" | \"action\" | \"shot\" | \"audio\"",
+        "owner: \"screenplay\"",
+        "owner: \"previs\"",
+        "projectionOnly: true",
+        "timedEnds"
+      ]
+    },
+    {
+      "id": "production",
+      "label": "Production",
+      "files": [
+        "lib/preproduction/production-convergence.ts"
+      ],
+      "requiredTerms": [
+        "assemblePreproductionProductionIntent",
+        "inspectPreproductionSceneDirectorSpecReadiness",
+        "compileDirectorSpecification",
+        "assessProviderCapabilities",
+        "compileProviderInstructions",
+        "providerNeutral: true",
+        "canonical: false"
+      ]
+    },
+    {
+      "id": "revision-propagation",
+      "label": "Revision propagation",
+      "files": [
+        "lib/preproduction/creative-revision-propagation.ts"
+      ],
+      "requiredTerms": [
+        "staleAcceptedVisualArtifactIds",
+        "staleProductionShotIds",
+        "unaffectedAcceptedVisualArtifactIds",
+        "unaffectedProductionShotIds",
+        "requiresRegeneration: false"
+      ]
+    }
+  ],
+  "humanUat": {
+    "prerequisite": "Load & Explore Afterglow, then Save & Switch to a profile-owned working copy before making changes.",
+    "addressRule": "Every stage must remain on Block 17 / Mini-Block 1 unless the Human intentionally changes the address.",
+    "stages": [
+      {
+        "id": "story-cards",
+        "route": "/?workspace=dashboard&block=17&mini=1",
+        "selector": "[data-story-card-foundation-board='24x96']",
+        "expectedTerms": [
+          "Waves of Connections",
+          "MAPPED SCREENPLAY EVIDENCE"
+        ]
+      },
+      {
+        "id": "write",
+        "route": "/?workspace=write&block=17&mini=1",
+        "selector": "[data-block-native-write='24x96']",
+        "expectedTerms": [
+          "WRITE",
+          "IMMUTABLE SOURCE EVIDENCE",
+          "WORKING SCREENPLAY TEXT"
+        ]
+      },
+      {
+        "id": "outline",
+        "route": "/structure?block=17&mini=1",
+        "selector": "section[aria-label='PRE-PRODUCTION context']",
+        "expectedTerms": [
+          "Outline",
+          "Block 17",
+          "Mini-Block 1"
+        ]
+      },
+      {
+        "id": "storyboard",
+        "route": "/storyboard?block=17&mini=1",
+        "selector": "main[aria-labelledby='storyboard-readiness-title']",
+        "expectedTerms": [
+          "Storyboard",
+          "Block 17"
+        ]
+      },
+      {
+        "id": "previs",
+        "route": "/previs?block=17&mini=1",
+        "selector": "#previs-block-panel",
+        "expectedTerms": [
+          "Previs",
+          "Block 17"
+        ]
+      },
+      {
+        "id": "scene-workspace",
+        "route": "/storyboard?block=17&mini=1&view=timeline",
+        "selector": "[data-scene-workspace='dialogue-action-shot-audio']",
+        "expectedTerms": [
+          "Scene Workspace",
+          "Dialogue",
+          "Action",
+          "Shot",
+          "Audio"
+        ]
+      },
+      {
+        "id": "production",
+        "route": "/storyboard?block=17&mini=1",
+        "selector": "[data-provider-instruction-inspection='read-only']",
+        "expectedTerms": [
+          "View generated director instructions",
+          "Disposable provider output"
+        ]
+      }
+    ],
+    "providerGeneration": {
+      "ordinaryCi": false,
+      "humanAuthorizationRequired": true,
+      "note": "The acceptance lane stops at provider-neutral compilation. Actual provider-backed generation belongs to an explicitly authorized UAT/Responsibility Run."
+    }
+  }
+}

@@ -1,5 +1,13 @@
 import { createEmptyProject, type PPFProject } from "../project/project";
 import {
+  createEmptyBlockWritingState,
+  normalizeBlockWritingState,
+} from "../contracts/block-writing";
+import {
+  createEmptyStoryStructureV2,
+  normalizeStoryStructureV2,
+} from "../project/story-structure-v2";
+import {
   normalizeLibraryProject,
   type LibraryPPFProject,
 } from "./library-project";

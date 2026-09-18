@@ -86,7 +86,9 @@ test("#2189 WebMCP catalogue and Visual Director both understand route-backed ca
   assert.match(catalogue, /expected\.pathname !== location\.pathname/u);
   assert.match(director, /if \(contract\.route\)/u);
   assert.match(director, /page\.goto\(new URL\(contract\.route, server\)/u);
-  assert.match(director, /analyzeVisualContinuity\(dashboard, await navigateAndCollect\(page, surface, server\)\)/u);
+  assert.match(director, /profiles\[surface\] = await navigateAndCollect\(page, surface, server\)/u);
+  assert.match(director, /const peerProfiles = Object\.values\(profiles\)/u);
+  assert.match(director, /analyzeVisualContinuity\(dashboard, profiles\[surface\], peerProfiles\)/u);
 });
 
 test("#2189 pins the visible Story Map handoffs used by Human UAT", async () => {

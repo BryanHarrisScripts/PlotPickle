@@ -11,6 +11,7 @@ import PlotPickleScorePanel from "./plotpickle-score-panel";
 import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
 import StoryModeHost from "./story-mode-host";
+import UatGuidePanel from "./uat-guide-panel";
 
 export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
@@ -368,6 +369,7 @@ export default function DashboardBbsPanel({
         </div>
 
         <PlotPickleScorePanel />
+        <UatGuidePanel mode="dashboard" />
 
         <div className="pp-skin-v1-dashboard-brand" aria-label="PlotPickle AI-Native Agentic Story Operating System">
           <h1 data-skin-reference-type="brand">PlotPickle</h1>

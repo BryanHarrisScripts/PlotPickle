@@ -87,3 +87,13 @@ test("#2180 character truth remains contextual evidence and never substitutes fo
   assert.match(page, /Profiles never substitute for audience-visible screenplay evidence/u);
   assert.doesNotMatch(page, /characterTruth.*scanPageFlowDraft/su);
 });
+
+
+test("#2180 maps the migrated PageFlow surface into existing pre-production experience ownership", async () => {
+  const ownership = JSON.parse(await read("config/verification/ownership-map.json"));
+  const experience = ownership.rules.find((rule) => rule.id === "preproduction-connected-experience");
+
+  assert.equal(experience?.ownerLayer, "experience-contract");
+  assert.ok(experience?.include.includes("app/pageflow/page.tsx"));
+  assert.ok(experience?.include.includes("app/pageflow/layout.tsx"));
+});

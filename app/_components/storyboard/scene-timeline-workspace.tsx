@@ -101,13 +101,13 @@ export default function SceneTimelineWorkspace({
   }, [active, playing]);
 
   useEffect(() => {
-    if (timeline.totalSeconds <= 0) {
+    if (workspace.totalSeconds <= 0) {
       setPlayheadSeconds(0);
       setPlaying(false);
       return;
     }
-    setPlayheadSeconds((current) => Math.min(current, timeline.totalSeconds));
-  }, [timeline.sceneId, timeline.totalSeconds]);
+    setPlayheadSeconds((current) => Math.min(current, workspace.totalSeconds));
+  }, [timeline.sceneId, workspace.totalSeconds]);
 
   useEffect(() => {
     if (!active || playing || !selectedCue || selectedCue.startSecond === null) return;
@@ -115,16 +115,16 @@ export default function SceneTimelineWorkspace({
   }, [active, playing, selectedCue?.id, selectedCue?.startSecond]);
 
   useEffect(() => {
-    if (!active || !playing || timeline.totalSeconds <= 0) return;
+    if (!active || !playing || workspace.totalSeconds <= 0) return;
     const interval = window.setInterval(() => {
       setPlayheadSeconds((current) => {
-        const next = Math.min(timeline.totalSeconds, current + 0.1);
-        if (next >= timeline.totalSeconds) window.setTimeout(() => setPlaying(false), 0);
+        const next = Math.min(workspace.totalSeconds, current + 0.1);
+        if (next >= workspace.totalSeconds) window.setTimeout(() => setPlaying(false), 0);
         return next;
       });
     }, 100);
     return () => window.clearInterval(interval);
-  }, [active, playing, timeline.totalSeconds]);
+  }, [active, playing, workspace.totalSeconds]);
 
   useEffect(() => {
     if (!active || !playing || !activeShot || activeShot.id === selectedShotId) return;
@@ -223,7 +223,7 @@ export default function SceneTimelineWorkspace({
                 data-owner={cue.owner}
                 key={cue.id}
                 onClick={() => selectCue(cue)}
-                style={spanStyle(cue.startSecond!, cue.endSecond!, timeline.totalSeconds)}
+                style={spanStyle(cue.startSecond!, cue.endSecond!, workspace.totalSeconds)}
                 title={cue.detail}
                 type="button"
               >
@@ -322,20 +322,20 @@ export default function SceneTimelineWorkspace({
           </div>
           <div className={styles.transport}>
             <div className={styles.transportButtons}>
-              <button disabled={timeline.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(0); }} type="button">|◀</button>
-              <button disabled={timeline.totalSeconds <= 0} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
-              <button disabled={timeline.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(timeline.totalSeconds); }} type="button">▶|</button>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(0); }} type="button">|◀</button>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Pause" : "Play"}</button>
+              <button disabled={workspace.totalSeconds <= 0} onClick={() => { setPlaying(false); setPlayheadSeconds(workspace.totalSeconds); }} type="button">▶|</button>
             </div>
             <strong>{clock(playheadSeconds)}</strong>
             <input
               aria-label="Scene Workspace playhead"
-              disabled={timeline.totalSeconds <= 0}
-              max={Math.max(0.1, timeline.totalSeconds)}
+              disabled={workspace.totalSeconds <= 0}
+              max={Math.max(0.1, workspace.totalSeconds)}
               min="0"
               onChange={(event) => { setPlaying(false); setPlayheadSeconds(Number(event.currentTarget.value)); }}
               step="0.1"
               type="range"
-              value={Math.min(playheadSeconds, Math.max(0.1, timeline.totalSeconds))}
+              value={Math.min(playheadSeconds, Math.max(0.1, workspace.totalSeconds))}
             />
             <small>Intent playback follows authored Shot timing only. It does not claim frame-accurate final-media playback.</small>
           </div>
@@ -375,7 +375,7 @@ export default function SceneTimelineWorkspace({
       <section className={styles.timelinePanel} aria-label="Synchronized Scene Workspace timeline">
         <div className={styles.ruler}>
           {timeline.anchors.filter((anchor) => anchor.startSecond !== null).map((anchor) => (
-            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond!, timeline.totalSeconds)}>
+            <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond!, workspace.totalSeconds)}>
               {anchor.blockNumber}.{anchor.miniBlockNumber}
             </span>
           ))}
@@ -384,8 +384,8 @@ export default function SceneTimelineWorkspace({
         {renderLane("Action", workspace.action)}
         {renderLane("Shot", workspace.shot)}
         {renderLane("Audio", workspace.audio)}
-        {timeline.totalSeconds > 0 ? (
-          <div aria-hidden="true" className={styles.playhead} style={markerStyle(playheadSeconds, timeline.totalSeconds)} />
+        {workspace.totalSeconds > 0 ? (
+          <div aria-hidden="true" className={styles.playhead} style={markerStyle(playheadSeconds, workspace.totalSeconds)} />
         ) : null}
       </section>
 

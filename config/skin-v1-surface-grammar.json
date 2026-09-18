@@ -423,5 +423,6 @@
     "matteFillToken": "--pp-skin-fill-panel",
     "selectedStateProfile": "canonical-dark-accent",
     "baselineReplacement": "requires-separate-human-acceptance-of-resulting-dashboard-candidate"
-  }
+  },
+  "compositionReference": "config/skin-v1-surface-composition-reference.json"
 }

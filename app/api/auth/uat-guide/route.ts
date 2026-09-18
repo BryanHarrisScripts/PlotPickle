@@ -11,14 +11,9 @@ import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/a
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PREFERENCE_OBJECT_ID = "uat-guide-preferences";
+const REVIEW_OBJECT_ID = "uat-semantic-review";
 const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1"]);
-
-type Preference = {
-  version: 1;
-  enabled: boolean;
-  updatedAt: string;
-};
+const REVIEW_DECISIONS = new Set(["acknowledge", "needs-review", "continue"]);
 
 type GuideStatus = {
   schemaVersion?: number;
@@ -33,6 +28,19 @@ type GuideStatus = {
   privacy?: Record<string, unknown>;
 };
 
+type HumanReview = {
+  runId: string;
+  eventKey: string;
+  decision: "acknowledge" | "needs-review" | "continue";
+  comment: string;
+  updatedAt: string;
+};
+
+type ReviewState = {
+  version: 1;
+  records: HumanReview[];
+};
+
 function response(value: unknown, status = 200) {
   return Response.json(value, {
     status,
@@ -45,28 +53,18 @@ function errorResponse(error: unknown) {
     ? toPublicServerSessionError(error)
     : error instanceof PlotPickleAuthError
       ? toPublicAuthError(error)
-      : { code: "UAT_GUIDE_REQUEST_REJECTED", message: error instanceof Error ? error.message : "The UAT Guide request could not be completed." };
+      : { code: "UAT_REVIEW_REQUEST_REJECTED", message: error instanceof Error ? error.message : "The UAT Semantic Review request could not be completed." };
   return response(detail, detail.code === "ACCESS_DENIED" ? 403 : 400);
 }
 
 async function authorized(request: Request, mutation = false) {
   const url = new URL(request.url);
-  if (url.protocol !== "http:" || !LOOPBACK.has(url.hostname)) throw new Error("UAT Guide is available only from the local PlotPickle Node.");
+  if (url.protocol !== "http:" || !LOOPBACK.has(url.hostname)) throw new Error("UAT Semantic Review is available only from the local PlotPickle Node.");
   const runtimeState = await getProfileExperienceRuntime();
   const boundary = runtimeState.boundaryFor(url.origin);
   const { authContext } = await boundary.authorizeRequest(requestBoundary(request), mutation ? { mutation: true } : undefined);
   const profile = runtimeState.auth.getAuthStatus(authContext).profile as ProfileSummary;
   return { runtimeState, authContext, profile, origin: url.origin };
-}
-
-function normalizePreference(value: unknown): Preference {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return { version: 1, enabled: false, updatedAt: "" };
-  const item = value as Partial<Preference>;
-  return {
-    version: 1,
-    enabled: item.version === 1 && item.enabled === true,
-    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
-  };
 }
 
 function guidePaths(profileId: string) {
@@ -77,7 +75,6 @@ function guidePaths(profileId: string) {
     root,
     statusFile: path.join(root, "profiles", profileScope, "latest.json"),
     guideScript: path.join(process.cwd(), "scripts", "run-uat-guide.mjs"),
-    windowScript: path.join(process.cwd(), "scripts", "start-uat-guide-window.ps1"),
   };
 }
 
@@ -91,6 +88,26 @@ async function readStatus(statusFile: string): Promise<GuideStatus | null> {
   }
 }
 
+function normalizeReviewState(value: unknown): ReviewState {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { version: 1, records: [] };
+  const source = value as { version?: unknown; records?: unknown };
+  const records = Array.isArray(source.records)
+    ? source.records.flatMap((candidate) => {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+      const item = candidate as Partial<HumanReview>;
+      if (typeof item.runId !== "string" || typeof item.eventKey !== "string" || !REVIEW_DECISIONS.has(String(item.decision))) return [];
+      return [{
+        runId: item.runId.slice(0, 180),
+        eventKey: item.eventKey.slice(0, 320),
+        decision: item.decision as HumanReview["decision"],
+        comment: typeof item.comment === "string" ? item.comment.slice(0, 1200) : "",
+        updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
+      }];
+    }).slice(-100)
+    : [];
+  return { version: 1, records };
+}
+
 function processAlive(pid: unknown) {
   if (!Number.isInteger(pid) || Number(pid) <= 0) return false;
   try {
@@ -101,44 +118,23 @@ function processAlive(pid: unknown) {
   }
 }
 
-function launchGuide({ origin, statusFile, mirrorWindows }: { origin: string; statusFile: string; mirrorWindows: boolean }) {
+function launchGuide({ origin, statusFile }: { origin: string; statusFile: string }) {
   const guideScript = path.join(process.cwd(), "scripts", "run-uat-guide.mjs");
-  const windowScript = path.join(process.cwd(), "scripts", "start-uat-guide-window.ps1");
-  if (!existsSync(guideScript)) throw new Error("The local UAT Guide runner is unavailable in this PlotPickle build.");
+  if (!existsSync(guideScript)) throw new Error("The local UAT Semantic Review runner is unavailable in this PlotPickle build.");
 
   const runId = `uat-${randomUUID()}`;
-  let child;
-  if (process.platform === "win32" && mirrorWindows && existsSync(windowScript)) {
-    child = spawn("powershell.exe", [
-      "-NoProfile",
-      "-ExecutionPolicy", "Bypass",
-      "-File", windowScript,
-      "-Node", process.execPath,
-      "-Script", guideScript,
-      "-Server", origin,
-      "-RunId", runId,
-      "-StatusFile", statusFile,
-    ], {
-      cwd: process.cwd(),
-      detached: true,
-      stdio: "ignore",
-      windowsHide: false,
-      shell: false,
-    });
-  } else {
-    child = spawn(process.execPath, [
-      guideScript,
-      "--server", origin,
-      "--run-id", runId,
-      "--status-file", statusFile,
-    ], {
-      cwd: process.cwd(),
-      detached: true,
-      stdio: "ignore",
-      windowsHide: true,
-      shell: false,
-    });
-  }
+  const child = spawn(process.execPath, [
+    guideScript,
+    "--server", origin,
+    "--run-id", runId,
+    "--status-file", statusFile,
+  ], {
+    cwd: process.cwd(),
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+    shell: false,
+  });
   child.unref();
   return runId;
 }
@@ -146,13 +142,15 @@ function launchGuide({ origin, statusFile, mirrorWindows }: { origin: string; st
 export async function GET(request: Request) {
   try {
     const { runtimeState, authContext, profile } = await authorized(request);
-    const preference = normalizePreference(await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "settings", objectId: PREFERENCE_OBJECT_ID }));
     const { statusFile } = guidePaths(profile.profileId);
-    const status = await readStatus(statusFile);
+    const [status, reviewState] = await Promise.all([
+      readStatus(statusFile),
+      runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID }),
+    ]);
     return response({
-      enabled: preference.enabled,
+      available: true,
       status,
-      canMirrorWindows: process.platform === "win32",
+      reviews: normalizeReviewState(reviewState).records,
       isolation: "synthetic-human",
       providerSpendAllowed: false,
       verificationInbox: "/verification-inbox",
@@ -166,35 +164,45 @@ export async function POST(request: Request) {
   try {
     const { runtimeState, authContext, profile, origin } = await authorized(request, true);
     const input = await request.json() as Record<string, unknown>;
+    const { statusFile } = guidePaths(profile.profileId);
 
-    if (input.action === "set-enabled") {
-      const preference: Preference = {
-        version: 1,
-        enabled: input.enabled === true,
+    if (input.action === "review-event") {
+      const current = await readStatus(statusFile);
+      const runId = typeof input.runId === "string" ? input.runId.trim() : "";
+      const eventKey = typeof input.eventKey === "string" ? input.eventKey.trim() : "";
+      const decision = typeof input.decision === "string" ? input.decision : "";
+      const comment = typeof input.comment === "string" ? input.comment.trim().slice(0, 1200) : "";
+      if (!current?.runId || current.runId !== runId) return response({ code: "UAT_REVIEW_RUN_MISMATCH", message: "That review item no longer belongs to the current UAT run." }, 409);
+      if (!eventKey || eventKey.length > 320 || !REVIEW_DECISIONS.has(decision)) return response({ code: "INVALID_UAT_REVIEW", message: "Choose a valid UAT review response." }, 400);
+
+      const existing = normalizeReviewState(await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID }));
+      const record: HumanReview = {
+        runId,
+        eventKey,
+        decision: decision as HumanReview["decision"],
+        comment,
         updatedAt: new Date().toISOString(),
       };
-      await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "settings", objectId: PREFERENCE_OBJECT_ID, value: preference });
-      return response({ enabled: preference.enabled, saved: true });
+      const next: ReviewState = {
+        version: 1,
+        records: [...existing.records.filter((item) => !(item.runId === runId && item.eventKey === eventKey)), record].slice(-100),
+      };
+      await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID, value: next });
+      return response({ saved: true, review: record, deterministicResultUnchanged: true });
     }
 
-    if (input.action !== "start") return response({ code: "UNSUPPORTED_UAT_GUIDE_ACTION", message: "That UAT Guide action is unavailable." }, 400);
+    if (input.action !== "start") return response({ code: "UNSUPPORTED_UAT_REVIEW_ACTION", message: "That UAT Semantic Review action is unavailable." }, 400);
 
-    const preference = normalizePreference(await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "settings", objectId: PREFERENCE_OBJECT_ID }));
-    if (!preference.enabled) return response({ code: "UAT_GUIDE_OPT_IN_REQUIRED", message: "Enable UAT tools in Settings before starting the UAT Guide." }, 403);
-
-    const { statusFile } = guidePaths(profile.profileId);
     const current = await readStatus(statusFile);
     if (current?.status === "running" && processAlive(current.pid)) {
-      return response({ started: false, runId: current.runId, status: current, message: "The UAT Guide is already running." }, 409);
+      return response({ started: false, runId: current.runId, status: current, message: "UAT Semantic Review is already running." }, 409);
     }
 
-    const runId = launchGuide({ origin, statusFile, mirrorWindows: input.mirrorWindows === true });
+    const runId = launchGuide({ origin, statusFile });
     return response({
       started: true,
       runId,
-      message: input.mirrorWindows === true && process.platform === "win32"
-        ? "UAT Guide started in an isolated synthetic session and mirrored to a Windows status window."
-        : "UAT Guide started in an isolated synthetic session.",
+      message: "UAT Semantic Review started in an isolated synthetic verification session. Live status remains on this page.",
     }, 202);
   } catch (error) {
     return errorResponse(error);

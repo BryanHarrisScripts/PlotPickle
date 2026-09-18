@@ -8,6 +8,11 @@ import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
 import { loadFoundationProject, saveFoundationProject } from "../../../core/storage/foundation-project-browser";
 import { buildLocalCurriculumSourceIndex, localCurriculumSourceKey } from "../model/local-curriculum-links";
+import {
+  storyLearningContext,
+  storyLearningReturnHref,
+  type StoryLearningContext,
+} from "../model/story-learning-context";
 import controlsStyles from "./learn-workspace-controls.module.css";
 import styles from "./learn-workspace.module.css";
 import { CurriculumMaterial } from "./curriculum-material";
@@ -162,20 +167,43 @@ export default function LearnWorkspace({
   const [guideError, setGuideError] = useState("");
   const [lessonSearch, setLessonSearch] = useState("");
   const [collapsedTopics, setCollapsedTopics] = useState<readonly string[]>([]);
+  const [storyContext, setStoryContext] = useState<StoryLearningContext | null>(null);
   const lessonArticleRef = useRef<HTMLElement>(null);
   const lessonHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     let current = loadProject();
+    let changed = false;
     if (!current.creativeRoom.threadId) {
       current = applyStoryCommand(current, {
         type: "creative-room.thread.attach",
         threadId: newId("thread"),
         occurredAt: new Date().toISOString(),
       });
-      saveFoundationProject(current);
+      changed = true;
     }
+
+    const query = new URLSearchParams(window.location.search);
+    const requestedLessonId = query.get("lesson");
+    if (requestedLessonId && curriculum.some((lesson) => lesson.id === requestedLessonId)) {
+      current = applyStoryCommand(current, {
+        type: "lesson.open",
+        lessonId: requestedLessonId,
+        occurredAt: new Date().toISOString(),
+      });
+      changed = true;
+    }
+
+    if (query.has("block") || query.has("mini")) {
+      setStoryContext(storyLearningContext({
+        blockNumber: Number(query.get("block") || 1),
+        miniBlockNumber: Number(query.get("mini") || 1),
+      }));
+    }
+    if (changed) saveFoundationProject(current);
     setProject(current);
+    // Route context is intentionally consumed once when LEARN opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeLesson = useMemo(() => {
@@ -471,6 +499,28 @@ export default function LearnWorkspace({
       </aside>
 
       <article className={styles.lesson} aria-label="Active lesson" ref={lessonArticleRef}>
+        {storyContext ? (
+          <section className={styles.lessonExercise} data-story-learning-context="true">
+            <h2>Learning for Block {String(storyContext.address.blockNumber).padStart(2, "0")} · Mini-Block {storyContext.address.miniBlockNumber} · {storyContext.miniRole}</h2>
+            <p>{storyContext.positionNote}</p>
+            <p><strong>Use this lesson as a craft reference, not a required story answer.</strong></p>
+            <div>
+              <button
+                onClick={() => window.location.assign(storyLearningReturnHref(storyContext.address))}
+                type="button"
+              >
+                Back to Outline · Block {String(storyContext.address.blockNumber).padStart(2, "0")}.{storyContext.address.miniBlockNumber}
+              </button>
+              {" "}
+              <button
+                onClick={() => window.location.assign(`/?workspace=write&block=${storyContext.address.blockNumber}&mini=${storyContext.address.miniBlockNumber}`)}
+                type="button"
+              >
+                Apply in Write at this position
+              </button>
+            </div>
+          </section>
+        ) : null}
         <button
           aria-label="Return to the top of this lesson"
           className={styles.lessonTopButton}

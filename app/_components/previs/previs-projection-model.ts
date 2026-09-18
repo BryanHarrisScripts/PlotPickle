@@ -205,7 +205,7 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         : staleBecause.length
           ? "The kept Storyboard visual changed upstream and needs Human review before timing continues."
           : timingAllowed
-            ? "Approved Storyboard visual is ready for Human-authored Previs. Complete 75 seconds of creative timing to unlock its fixed 25 × 3-second Render Plan."
+            ? "Approved Storyboard visual is ready for Human-authored Previs. Timing remains explicitly Human-authored; for the current 120-minute render preset only, a complete 75-second Mini-Block maps onto 25 × 3-second technical clips."
             : observed
               ? "Observed Storyboard reference is visible, but it must be kept in Storyboard before Previs timing begins."
               : "This canonical anchor has no approved Storyboard visual yet.";

@@ -89,10 +89,10 @@ function acceptedStoryboardAnchors(project: PPFProject) {
 
 /**
  * Experience V2 keeps the complete 24/96 topology visible while separating
- * imported screenplay evidence from actual creative progression. Block 01 is
- * available in a new project. A later Block becomes available only after all
- * four Mini-Block visual anchors in the previous Block have been explicitly
- * accepted. LEARN completion is deliberately absent from this projection.
+ * imported screenplay evidence from actual creative progression. Storyboard
+ * acceptance is descriptive evidence at a stable address, never a sequential
+ * navigation gate or a requirement to keep one image per Mini-Block. LEARN
+ * completion is deliberately absent from this projection.
  */
 export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStoryMap {
   const screenplay = normalizeProjectSourceEvidence(
@@ -106,11 +106,6 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
     (count, _label, miniIndex) => count + (acceptedAnchors.has(storyboardAnchorKey(blockId, miniIndex + 1)) ? 1 : 0),
     0,
   );
-  const completedBlockIds = new Set(
-    Array.from({ length: 24 }, (_, index) => `block-${String(index + 1).padStart(2, "0")}`)
-      .filter((blockId) => acceptedCountForBlock(blockId) === 4),
-  );
-
   const blocks = Array.from({ length: 24 }, (_, index): ProgressiveStoryBlock => {
     const number = index + 1;
     const blockId = `block-${String(number).padStart(2, "0")}`;
@@ -120,14 +115,11 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
     const projectionReview = projectionReviews.find((review) => review.blockNumber === number && review.state === "needs-review") ?? null;
     const acceptedMiniBlockCount = acceptedCountForBlock(blockId);
     const complete = acceptedMiniBlockCount === 4;
-    const unlocked = number === 1 || completedBlockIds.has(`block-${String(number - 1).padStart(2, "0")}`);
     const state: BuildStoryEvidenceState = complete
       ? "defined"
-      : !unlocked
-        ? "locked"
-        : blockPassages.length
-          ? reviewedMapping ? "observed" : "emerging"
-          : "missing";
+      : blockPassages.length
+        ? reviewedMapping ? "observed" : "emerging"
+        : "missing";
     const backgroundText: ProgressiveStoryTextProjection = {
       targetRef: blockId,
       state: blockPassages.length ? reviewedMapping ? "observed" : "emerging" : "missing",
@@ -156,11 +148,9 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
         label,
         state: accepted
           ? "defined"
-          : !unlocked
-            ? "locked"
-            : miniPassages.length
-              ? reviewedMapping ? "observed" : "emerging"
-              : "missing",
+          : miniPassages.length
+            ? reviewedMapping ? "observed" : "emerging"
+            : "missing",
         observedPassageCount: miniPassages.length,
       };
     });
@@ -175,14 +165,12 @@ export function deriveProgressiveStoryMap(project: PPFProject): ProgressiveStory
       observedPassageCount: blockPassages.length,
       acceptedMiniBlockCount,
       mappingNote: complete
-        ? "All four Mini-Block visual anchors are accepted for this Block."
-        : !unlocked
-          ? `This Block stays visible for orientation and unlocks after Block ${String(number - 1).padStart(2, "0")} has four accepted Storyboard anchors.`
-          : blockPassages.length
-            ? reviewedMapping
-              ? "Direct screenplay passages support this reviewed story position. Add and accept visual candidates without leaving the 24-Block context."
-              : "Direct screenplay passages are present, but placement remains importer-suggested and requires Human review."
-            : "This Block is available for creative work. Add PLAN context, BUILD visual candidates, and explicit STORYBOARD acceptance here.",
+        ? "All four Mini-Block visual anchors currently have accepted visuals; this is coverage evidence, not a required Storyboard quota."
+        : blockPassages.length
+          ? reviewedMapping
+            ? "Direct screenplay passages support this reviewed story position. Visual candidates may remain zero, one or many at each anchor."
+            : "Direct screenplay passages are present, but placement remains importer-suggested and requires Human review."
+          : "This canonical story address remains available without requiring visual acceptance in an earlier Block. Add only the visual coverage the story needs.",
       miniBlocks,
       backgroundText,
     };

@@ -7,12 +7,18 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+function Quote-ProcessArgument([string]$Value) {
+  return '"' + $Value.Replace('"', '\"') + '"'
+}
+
 $arguments = @(
-  $Script,
-  "--server", $Server,
-  "--run-id", $RunId,
-  "--status-file", $StatusFile,
+  (Quote-ProcessArgument $Script),
+  "--server", (Quote-ProcessArgument $Server),
+  "--run-id", (Quote-ProcessArgument $RunId),
+  "--status-file", (Quote-ProcessArgument $StatusFile),
   "--stay-open"
 )
 
-Start-Process -FilePath $Node -ArgumentList $arguments -WorkingDirectory (Split-Path -Parent (Split-Path -Parent $Script)) -WindowStyle Normal
+$workingDirectory = Split-Path -Parent (Split-Path -Parent $Script)
+Start-Process -FilePath $Node -ArgumentList $arguments -WorkingDirectory $workingDirectory -WindowStyle Normal

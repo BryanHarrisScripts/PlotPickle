@@ -1,0 +1,131 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("#2170 extends existing ProductionShotIntent instead of creating a second Previs store", async () => {
+  const contract = await read("core/contracts/previs/index.ts");
+
+  assert.match(contract, /interface ProductionShotIntent/u);
+  assert.match(contract, /readonly blockingIntent\?: string/u);
+  assert.match(contract, /readonly performanceEnergy\?: string/u);
+  assert.match(contract, /readonly pacingIntent\?: string/u);
+  assert.match(contract, /readonly roughMotionEvidenceRefs\?: readonly string\[\]/u);
+  assert.match(contract, /blockingIntent: cleanText\(item\.blockingIntent/u);
+  assert.match(contract, /performanceEnergy: cleanText\(item\.performanceEnergy/u);
+  assert.match(contract, /pacingIntent: cleanText\(item\.pacingIntent/u);
+  assert.match(contract, /roughMotionEvidenceRefs: Array\.isArray/u);
+  assert.match(contract, /\.slice\(0, 32\)/u);
+  assert.match(contract, /interface PrevisProductionState[\s\S]*readonly shots: readonly ProductionShotIntent\[\]/u);
+  assert.doesNotMatch(contract, /CharacterTruth|storyMatrix|screenplayText|new PrevisStore/u);
+});
+
+test("#2170 projects #2168/#2169 source and Storyboard provenance into every Previs anchor", async () => {
+  const model = await read("app/_components/previs/previs-projection-model.ts");
+
+  assert.match(model, /storyboardAnchorEvidence/u);
+  assert.match(model, /storyboardCoverage: "kept" \| "candidate" \| "none"/u);
+  assert.match(model, /sourcePassageCount: number/u);
+  assert.match(model, /sourceSceneCount: number/u);
+  assert.match(model, /structuralResponsibility: string/u);
+  assert.match(model, /structuralFinding: string/u);
+  assert.match(model, /sourceMappings: readonly/u);
+  assert.match(model, /characterEvidenceRefs: readonly string\[\]/u);
+  assert.match(model, /acceptedVisualRefs: readonly string\[\]/u);
+  assert.match(model, /storyboard-source-kind:/u);
+  assert.match(model, /storyboard-evidence:/u);
+  assert.match(model, /keptStoryboardEvidenceRefs/u);
+  assert.match(model, /storyEvidence\.passages\.length/u);
+  assert.match(model, /storyEvidence\.sourceMappings/u);
+});
+
+test("#2170 begins from four Mini-Block visual coverage states and keeps missing motion/timing truthful", async () => {
+  const [model, workspace] = await Promise.all([
+    read("app/_components/previs/previs-projection-model.ts"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(model, /const anchors = \[1, 2, 3, 4\]\.map/u);
+  assert.match(model, /storyboardCoverage = kept \? "kept"/u);
+  assert.match(model, /: observed \? "candidate"/u);
+  assert.match(model, /: "none"/u);
+  assert.match(workspace, /Visual coverage<\/dt>/u);
+  assert.match(workspace, /KEPT STORYBOARD/u);
+  assert.match(workspace, /CANDIDATE STORYBOARD/u);
+  assert.match(workspace, /NO STORYBOARD VISUAL/u);
+  assert.match(workspace, /timing missing/u);
+  assert.match(workspace, /Missing motion or timing stays missing/u);
+  assert.doesNotMatch(workspace, /infer.*timing.*24\/96/iu);
+});
+
+test("#2170 preserves exact Block/Mini coordinates through Previs, Storyboard and BUILD", async () => {
+  const [workspace, page] = await Promise.all([
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+    read("app/previs/page.tsx"),
+  ]);
+
+  assert.match(workspace, /function requestedAddress/u);
+  assert.match(workspace, /query\.get\("block"\)/u);
+  assert.match(workspace, /query\.get\("mini"\)/u);
+  assert.match(workspace, /function preservePrevisAddress/u);
+  assert.match(workspace, /url\.searchParams\.set\("block", String\(blockNumber\)\)/u);
+  assert.match(workspace, /url\.searchParams\.set\("mini", String\(miniBlockNumber\)\)/u);
+  assert.match(workspace, /preservePrevisAddress\(anchor\.blockNumber, anchor\.miniBlockNumber\)/u);
+  assert.match(page, /\/storyboard\?block=\$\{anchor\.blockNumber\}&mini=\$\{anchor\.miniBlockNumber\}/u);
+  assert.match(page, /workspace=build&block=\$\{anchor\.blockNumber\}&mini=\$\{anchor\.miniBlockNumber\}/u);
+});
+
+test("#2170 keeps creative shot density variable and render-grid timing separate", async () => {
+  const [contract, model, workspace] = await Promise.all([
+    read("core/contracts/previs/index.ts"),
+    read("app/_components/previs/previs-projection-model.ts"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(contract, /Zero\/one\/many creative shots may share an anchor/u);
+  assert.match(model, /project\.production\.shots[\s\S]*\.filter\(\(shot\) => shot\.anchorRef === anchorId\)/u);
+  assert.match(model, /durationSeconds: null/u);
+  assert.match(workspace, /creative shot density and timing remain variable/u);
+  assert.match(workspace, /technical preset/u);
+  assert.match(workspace, /clip grid is production plumbing, not a source of creative timing/u);
+  assert.match(workspace, /current two-hour preset only/u);
+  assert.match(model, /timing remains explicitly Human-authored/u);
+});
+
+test("#2170 records blocking, performance, pacing and rough motion as Human-authored shot intent", async () => {
+  const [model, workspace] = await Promise.all([
+    read("app/_components/previs/previs-projection-model.ts"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(model, /blockingIntent: ""/u);
+  assert.match(model, /performanceEnergy: ""/u);
+  assert.match(model, /pacingIntent: ""/u);
+  assert.match(model, /roughMotionEvidenceRefs: \[\]/u);
+  assert.match(model, /reviewState: "planned"/u);
+
+  assert.match(workspace, /Blocking intent/u);
+  assert.match(workspace, /Performance energy/u);
+  assert.match(workspace, /Pacing \/ rhythm intent/u);
+  assert.match(workspace, /Rough motion evidence refs/u);
+  assert.match(workspace, /These do not approve the shot/u);
+  assert.match(workspace, /rough previews and motion references are evidence only/i);
+  assert.match(workspace, /does not change a Production Shot from Planned to Approved/u);
+});
+
+test("#2170 keeps Storyboard dependency staleness and Human approval boundaries intact", async () => {
+  const [model, workspace] = await Promise.all([
+    read("app/_components/previs/previs-projection-model.ts"),
+    read("app/_components/previs/previs-readiness-workspace.tsx"),
+  ]);
+
+  assert.match(model, /shot\.storyboardArtifactId !== kept\?\.id/u);
+  assert.match(model, /shot\.storyboardDependencyKey !== dependencyKey/u);
+  assert.match(model, /if \(!anchor\.timingAllowed \|\| !anchor\.storyboardArtifactId \|\| !anchor\.storyboardDependencyKey\) return null/u);
+  assert.match(workspace, /Keep a current Storyboard visual before adding a creative Previs shot/u);
+  assert.match(workspace, /Saving below is an explicit Human confirmation/u);
+  assert.match(workspace, /option value="planned">Planned/u);
+  assert.match(workspace, /option value="approved">Approved/u);
+  assert.doesNotMatch(workspace, /auto.*approved|self-promot/iu);
+});

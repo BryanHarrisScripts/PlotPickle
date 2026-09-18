@@ -164,7 +164,7 @@
   gap: 0;
   max-height: 360px;
   overflow: auto;
-  font-family: var(--pp-skin-font-mono, ui-monospace, SFMono-Regular, Consolas, monospace);
+  font-family: var(--pp-skin-font-ui);
 }
 
 .consoleLine {

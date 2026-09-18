@@ -22,9 +22,24 @@
       "currentVisualAuthority": false
     }
   },
-  "surfaceClasses": ["reference", "directory", "workspace", "nested", "public-exception"],
-  "capturePolicies": ["standard", "census-only", "public-exception"],
-  "governanceStates": ["reference", "candidate", "census", "exception"],
+  "surfaceClasses": [
+    "reference",
+    "directory",
+    "workspace",
+    "nested",
+    "public-exception"
+  ],
+  "capturePolicies": [
+    "standard",
+    "census-only",
+    "public-exception"
+  ],
+  "governanceStates": [
+    "reference",
+    "candidate",
+    "census",
+    "exception"
+  ],
   "surfaces": [
     {
       "id": "dashboard",
@@ -35,7 +50,9 @@
       "capturePolicy": "standard",
       "governance": "reference",
       "webmcpId": "dashboard",
-      "continuityIds": ["dashboard"],
+      "continuityIds": [
+        "dashboard"
+      ],
       "route": "/?workspace=dashboard"
     },
     {
@@ -47,7 +64,9 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "community",
-      "continuityIds": ["community"],
+      "continuityIds": [
+        "community"
+      ],
       "route": "/?workspace=community"
     },
     {
@@ -59,7 +78,9 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "writers-craft",
-      "continuityIds": ["learn"],
+      "continuityIds": [
+        "learn"
+      ],
       "route": "/?workspace=learn"
     },
     {
@@ -71,7 +92,9 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "library",
-      "continuityIds": ["library"],
+      "continuityIds": [
+        "library"
+      ],
       "route": "/library"
     },
     {
@@ -204,7 +227,9 @@
       "capturePolicy": "standard",
       "governance": "candidate",
       "webmcpId": "settings",
-      "continuityIds": ["settings"],
+      "continuityIds": [
+        "settings"
+      ],
       "route": "/?workspace=settings"
     },
     {
@@ -317,7 +342,6 @@
       "webmcpId": "shutdown-node",
       "continuityIds": []
     },
-
     {
       "id": "plan",
       "label": "Plan",
@@ -326,7 +350,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["plan"],
+      "continuityIds": [
+        "plan"
+      ],
       "route": "/?workspace=plan"
     },
     {
@@ -337,7 +363,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["plan-world"],
+      "continuityIds": [
+        "plan-world"
+      ],
       "route": "/?workspace=plan&section=world"
     },
     {
@@ -348,7 +376,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["build"],
+      "continuityIds": [
+        "build"
+      ],
       "route": "/?workspace=build"
     },
     {
@@ -370,7 +400,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["story"],
+      "continuityIds": [
+        "story"
+      ],
       "route": "/story"
     },
     {
@@ -381,7 +413,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["core-curriculum"],
+      "continuityIds": [
+        "core-curriculum"
+      ],
       "route": "/core-curriculum"
     },
     {
@@ -392,7 +426,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["characters-in-motion"],
+      "continuityIds": [
+        "characters-in-motion"
+      ],
       "route": "/characters-in-motion"
     },
     {
@@ -403,7 +439,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["dialogue-in-motion"],
+      "continuityIds": [
+        "dialogue-in-motion"
+      ],
       "route": "/dialogue-in-motion"
     },
     {
@@ -414,7 +452,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["story-craft-essentials"],
+      "continuityIds": [
+        "story-craft-essentials"
+      ],
       "route": "/story-craft-essentials"
     },
     {
@@ -425,7 +465,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["worked-examples"],
+      "continuityIds": [
+        "worked-examples"
+      ],
       "route": "/worked-examples"
     },
     {
@@ -436,7 +478,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["working-together"],
+      "continuityIds": [
+        "working-together"
+      ],
       "route": "/working-together"
     },
     {
@@ -447,7 +491,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["structure"],
+      "continuityIds": [
+        "structure"
+      ],
       "route": "/structure"
     },
     {
@@ -458,7 +504,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["voiceprint"],
+      "continuityIds": [
+        "voiceprint"
+      ],
       "route": "/voiceprint"
     },
     {
@@ -469,7 +517,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["labs-plan"],
+      "continuityIds": [
+        "labs-plan"
+      ],
       "route": "/labs?scope=plan"
     },
     {
@@ -480,7 +530,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["storyboard"],
+      "continuityIds": [
+        "storyboard"
+      ],
       "route": "/storyboard"
     },
     {
@@ -491,18 +543,22 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["previs"],
+      "continuityIds": [
+        "previs"
+      ],
       "route": "/previs"
     },
     {
       "id": "pageflow",
       "label": "PageFlow Diagnostics",
-      "family": "production",
-      "parent": "dashboard",
+      "family": "review",
+      "parent": "refine",
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["pageflow"],
+      "continuityIds": [
+        "pageflow"
+      ],
       "route": "/pageflow"
     },
     {
@@ -513,7 +569,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["edit"],
+      "continuityIds": [
+        "edit"
+      ],
       "route": "/edit"
     },
     {
@@ -524,7 +582,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["labs-storyboard"],
+      "continuityIds": [
+        "labs-storyboard"
+      ],
       "route": "/labs?scope=storyboard"
     },
     {
@@ -535,7 +595,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["feedback"],
+      "continuityIds": [
+        "feedback"
+      ],
       "route": "/pitch-review"
     },
     {
@@ -546,7 +608,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["refine"],
+      "continuityIds": [
+        "refine"
+      ],
       "route": "/diagnostics"
     },
     {
@@ -557,7 +621,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["reports"],
+      "continuityIds": [
+        "reports"
+      ],
       "route": "/production"
     },
     {
@@ -568,7 +634,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["craftloop"],
+      "continuityIds": [
+        "craftloop"
+      ],
       "route": "/craftloop"
     },
     {
@@ -579,7 +647,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["draftlens"],
+      "continuityIds": [
+        "draftlens"
+      ],
       "route": "/draftlens"
     },
     {
@@ -590,7 +660,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["resonance"],
+      "continuityIds": [
+        "resonance"
+      ],
       "route": "/resonance"
     },
     {
@@ -601,7 +673,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["screenplay-readiness"],
+      "continuityIds": [
+        "screenplay-readiness"
+      ],
       "route": "/screenplay-readiness"
     },
     {
@@ -612,7 +686,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["labs-feedback"],
+      "continuityIds": [
+        "labs-feedback"
+      ],
       "route": "/labs?scope=feedback"
     },
     {
@@ -623,7 +699,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["labs-refine"],
+      "continuityIds": [
+        "labs-refine"
+      ],
       "route": "/labs?scope=refine"
     },
     {
@@ -634,7 +712,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["wyrmwood"],
+      "continuityIds": [
+        "wyrmwood"
+      ],
       "route": "/?workspace=wyrmwood"
     },
     {
@@ -645,7 +725,9 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["collab"],
+      "continuityIds": [
+        "collab"
+      ],
       "route": "/?workspace=collab"
     },
     {
@@ -656,7 +738,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["buzz"],
+      "continuityIds": [
+        "buzz"
+      ],
       "route": "/buzz"
     },
     {
@@ -667,7 +751,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["git"],
+      "continuityIds": [
+        "git"
+      ],
       "route": "/git"
     },
     {
@@ -678,7 +764,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["ai-routing"],
+      "continuityIds": [
+        "ai-routing"
+      ],
       "route": "/ai-routing"
     },
     {
@@ -689,7 +777,9 @@
       "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["buzz-settings"],
+      "continuityIds": [
+        "buzz-settings"
+      ],
       "route": "/settings/buzz"
     },
     {
@@ -700,10 +790,11 @@
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
-      "continuityIds": ["afterglow-reconciliation"],
+      "continuityIds": [
+        "afterglow-reconciliation"
+      ],
       "route": "/afterglow-reconciliation"
     },
-
     {
       "id": "community-great-hall",
       "label": "Community · Great Hall",
@@ -825,7 +916,6 @@
       "stateKey": "utility:agents",
       "evidence": "app/_components/community/community-agent-roster.tsx"
     },
-
     {
       "id": "welcome",
       "label": "Welcome",
@@ -834,7 +924,9 @@
       "surfaceClass": "public-exception",
       "capturePolicy": "public-exception",
       "governance": "exception",
-      "continuityIds": ["welcome"],
+      "continuityIds": [
+        "welcome"
+      ],
       "route": "/welcome"
     },
     {
@@ -845,7 +937,9 @@
       "surfaceClass": "public-exception",
       "capturePolicy": "public-exception",
       "governance": "exception",
-      "continuityIds": ["start-here"],
+      "continuityIds": [
+        "start-here"
+      ],
       "route": "/start-here"
     },
     {
@@ -856,7 +950,9 @@
       "surfaceClass": "public-exception",
       "capturePolicy": "public-exception",
       "governance": "exception",
-      "continuityIds": ["about"],
+      "continuityIds": [
+        "about"
+      ],
       "route": "/about"
     },
     {
@@ -867,7 +963,9 @@
       "surfaceClass": "public-exception",
       "capturePolicy": "public-exception",
       "governance": "exception",
-      "continuityIds": ["legal"],
+      "continuityIds": [
+        "legal"
+      ],
       "route": "/legal"
     },
     {
@@ -878,7 +976,9 @@
       "surfaceClass": "public-exception",
       "capturePolicy": "public-exception",
       "governance": "exception",
-      "continuityIds": ["suggest-report"],
+      "continuityIds": [
+        "suggest-report"
+      ],
       "route": "/suggest-report"
     }
   ]

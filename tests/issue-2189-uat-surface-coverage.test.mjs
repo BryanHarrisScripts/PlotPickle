@@ -218,3 +218,15 @@ test("#2189 route-aware scanners wait for Skin V1 runtime activation before visu
   assert.match(catalogue, /page\.locator\(SKIN_V1_RUNTIME_SELECTOR\)\.waitFor\(\{ state: "attached", timeout: contract\.timeout \}\)/u);
   assert.match(director, /page\.locator\(SKIN_V1_RUNTIME_SELECTOR\)\.waitFor\(\{ state: "attached", timeout: contract\.timeout \?\? 30_000 \}\)/u);
 });
+
+
+test("#2189 retires the legacy standalone visual guard from PageFlow", async () => {
+  const [page, legacyGuard] = await Promise.all([
+    read("app/pageflow/page.tsx"),
+    read("app/navigation/release-experience-boundary.module.css"),
+  ]);
+
+  assert.match(legacyGuard, /standalone-studio-surface/u);
+  assert.doesNotMatch(page, /standalone-studio-surface/u);
+  assert.match(page, /className=\{styles\.page\} data-pageflow-authority="ppf-block-writing-read-only"/u);
+});

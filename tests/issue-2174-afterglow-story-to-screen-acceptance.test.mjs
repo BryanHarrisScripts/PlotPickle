@@ -61,6 +61,10 @@ test("#2174 Human/WebMCP UAT manifest preserves Block 17.1 through every current
     assert.match(stage.route, /mini=1/u);
     assert.ok(stage.selector);
   }
+  const outline = report.humanUat.stages.find((stage) => stage.id === "outline");
+  assert.equal(outline?.route, "/?workspace=dashboard&block=17&mini=1");
+  assert.equal(outline?.selector, "[data-progressive-story-map='24x96']");
+  assert.doesNotMatch(outline?.route || "", /^\/structure/u);
 });
 
 test("#2174 full 24/96 fixture coverage remains reportable without claiming v9 was authored as 24 source Blocks", async () => {

@@ -79,7 +79,7 @@
         "modules/learn/model/story-learning-context.ts"
       ],
       "requiredTerms": [
-        "href: \"/structure\"",
+        "href: \"/?workspace=dashboard\"",
         "block: String(context.address.blockNumber)",
         "mini: String(context.address.miniBlockNumber)",
         "workspace: \"dashboard\""
@@ -184,12 +184,11 @@
       },
       {
         "id": "outline",
-        "route": "/structure?block=17&mini=1",
-        "selector": "section[aria-label='PRE-PRODUCTION context']",
+        "route": "/?workspace=dashboard&block=17&mini=1",
+        "selector": "[data-progressive-story-map='24x96']",
         "expectedTerms": [
-          "Outline",
-          "Block 17",
-          "Mini-Block 1"
+          "24 Blocks / 96 Mini-Blocks",
+          "Waves of Connections"
         ]
       },
       {

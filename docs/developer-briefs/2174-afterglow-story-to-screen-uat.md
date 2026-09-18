@@ -90,7 +90,7 @@ Write
 /?workspace=write&block=17&mini=1
 
 Outline
-/structure?block=17&mini=1
+/?workspace=dashboard&block=17&mini=1
 
 Storyboard
 /storyboard?block=17&mini=1
@@ -103,6 +103,8 @@ Scene Workspace
 
 Production inspection
 /storyboard?block=17&mini=1
+
+The Outline acceptance endpoint is the current profile-owned PPF Story Map inside the authenticated Dashboard surface. The legacy /structure page is not part of the canonical UAT chain.
 
 The Production inspection endpoint is the existing read-only generated-director-instruction inspection nested in Visual Story. #2174 does not invent another top-level Production application.
 

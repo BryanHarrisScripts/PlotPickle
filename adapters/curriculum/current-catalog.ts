@@ -5,7 +5,7 @@ import {
   plotPickleCurriculum as integratedPlotPickleCurriculum,
 } from "./current-catalog-integrated";
 
-const legacyStoryBeatPattern = [
+export const legacyStoryBeatPattern = [
   "Block 1 — Hook, introduction and catalyst: orient the audience, establish the protagonist and ordinary condition, then introduce a meaningful disruption.",
   "Block 2 — Problem, stakes and philosophical conflict: clarify the practical problem, what may be lost and the deeper question placed under pressure.",
   "Block 3 — Anti-theme, want and choice: surface a credible counter-position, the protagonist's conscious desire and a choice that changes their situation.",

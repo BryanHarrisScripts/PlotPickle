@@ -55,6 +55,7 @@
 .miniBlock header span { color: #7f9993; font-size: .63rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .miniBlock header strong { color: #e6f2ef; font: 900 .94rem/1 ui-monospace,SFMono-Regular,Menlo,monospace; }
 .miniBlock p { min-height: 4.2em; margin: 0; color: #91a8a2; font-size: .73rem; line-height: 1.45; }
+.anchorEvidence { color: #79a79f; font-size: .67rem; line-height: 1.4; }
 .miniBlock button { justify-self: stretch; padding: 9px 10px; border: 1px solid color-mix(in srgb,var(--story-state) 52%,transparent); border-radius: 9px; color: #e8f5f2; background: color-mix(in srgb,var(--story-state) 13%,rgba(8,20,18,.88)); font: inherit; font-size: .73rem; font-weight: 850; cursor: pointer; }
 .miniBlock button:disabled { cursor: not-allowed; opacity: .45; }
 .miniBlock[data-authorable="false"] { filter: saturate(.85); }

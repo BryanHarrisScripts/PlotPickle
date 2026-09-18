@@ -931,7 +931,7 @@ Create
 Produce
   /storyboard                   -> Storyboard
   /previs                       -> Previs / Graphic Novel
-  /?workspace=write             -> Write · Block-native screenplay workspace
+  /write                       -> Write · Block-native screenplay workspace
   /edit                         -> Edit
   /labs?scope=storyboard        -> Specialist Labs contextual child of Storyboard
 

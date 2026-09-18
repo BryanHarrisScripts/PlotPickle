@@ -169,3 +169,17 @@ test("#2189 local UI readiness treats the intentional Skin V1 startup redirect a
   assert.match(audit, /if \(response\.status < 500\) return/u);
   assert.match(audit, /AbortSignal\.timeout\(2_000\)/u);
 });
+
+
+test("#2189 maps the repaired Write handoffs and capture registries to existing architecture owners", async () => {
+  const ownership = await readJson("config/verification/ownership-map.json");
+  const experience = ownership.rules.find((rule) => rule.id === "block-native-learning-experience");
+  const verification = ownership.rules.find((rule) => rule.id === "verification-contract-files");
+
+  for (const path of ["app/write/page.tsx", "app/edit-workspace.tsx", "app/storyboard-write-handoff.tsx"]) {
+    assert.ok(experience?.include.includes(path), `${path} should remain under the existing Write experience owner`);
+  }
+  for (const path of ["config/visual-audit-captures.json", "config/visual-capture-registry.json"]) {
+    assert.ok(verification?.include.includes(path), `${path} should remain under verification ownership`);
+  }
+});

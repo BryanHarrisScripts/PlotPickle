@@ -98,7 +98,8 @@ test("#2087 detailed Radar report keeps internal evidence and appends a separate
   assert.match(rendered.body, /## X-ready public digest/u);
   assert.match(rendered.body, /```text\n🎬 Story-to-Screen OSS Radar/u);
   const publicSection = rendered.body.split("## X-ready public digest")[1] || "";
-  assert.doesNotMatch(publicSection.split("<!-- PLOTPICKLE-OSS-RADAR-STATE:")[0] || "", /Enriched PlotPickle Score|Related Issue fit|#1918|evidence-lane/u);
+  assert.doesNotMatch(publicSection, /Enriched PlotPickle Score|Related Issue fit|#1918|evidence-lane/u);
+  assert.doesNotMatch(rendered.body, /PLOTPICKLE-OSS-RADAR-STATE/u);
 });
 
 test("#2087 review email carries the copy block, links and internal report pointer", () => {
@@ -138,6 +139,10 @@ test("#2087 workflow uses GitHub-native summary delivery without custom SMTP", (
   assert.match(workflow, /tests\/issue-2087-oss-radar-\*\.test\.mjs/u);
   assert.match(workflow, /oss-radar-result\.json/u);
   assert.match(workflow, /github-summary\.mjs oss-radar-result\.json/u);
+  assert.match(workflow, /artifact-bundle\.mjs oss-radar-result\.json oss-radar-artifact/u);
+  assert.match(workflow, /actions\/upload-artifact@v4/u);
+  assert.match(workflow, /retention-days: 90/u);
+  assert.match(workflow, /contents: write/u);
   assert.doesNotMatch(workflow, /email_mode|OSS_RADAR_SMTP|OSS_RADAR_EMAIL_TO|curl --fail|--mail-from|--mail-rcpt/u);
 });
 

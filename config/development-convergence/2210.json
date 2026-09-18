@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "issue": 2210,
+  "phase": "oss-radar-state-separation",
+  "brief": "docs/developer-briefs/2210-oss-radar-state-separation.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    "config/development-convergence/2210.json",
+    "docs/developer-briefs/2210-oss-radar-state-separation.md",
+    "lib/verification/oss-radar/artifact-bundle.mjs",
+    "lib/verification/oss-radar/issue-lifecycle.mjs",
+    "lib/verification/oss-radar/report-renderer-core.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "lib/verification/oss-radar/run-radar.mjs",
+    "lib/verification/oss-radar/state-store.mjs",
+    "tests/issue-1977-oss-radar-phase-2.test.mjs",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+    "tests/issue-2087-oss-radar-public-digest-email.test.mjs",
+    "tests/issue-2210-oss-radar-state-store.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2210-1",
+      "criterion": "New daily issue comments remain Human-readable and contain no encoded Radar machine-state marker.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2087-oss-radar-public-digest-email.test.mjs",
+          "contains": "assert.doesNotMatch(rendered.body, /PLOTPICKLE-OSS-RADAR-STATE/u)"
+        }
+      ]
+    },
+    {
+      "id": "P2210-2",
+      "criterion": "Persistent Radar memory is stored on the dedicated oss-radar-state branch under .oss-radar/state.json.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "lib/verification/oss-radar/state-store.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2210-oss-radar-state-store.test.mjs",
+          "contains": "creates and round-trips the dedicated OSS Radar state branch"
+        }
+      ]
+    },
+    {
+      "id": "P2210-3",
+      "criterion": "Same-day reruns use a pre-run baseline while next-day runs consume the committed history.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2210-oss-radar-state-store.test.mjs",
+          "contains": "same-day state reads use the pre-run baseline and next-day reads use committed history"
+        }
+      ]
+    },
+    {
+      "id": "P2210-4",
+      "criterion": "Successful Radar runs upload complete evidence as a GitHub Actions artifact.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "actions/upload-artifact@v4"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2210-oss-radar-state-store.test.mjs",
+          "contains": "builds a complete Actions artifact bundle"
+        }
+      ]
+    },
+    {
+      "id": "P2210-5",
+      "criterion": "Workflow authority is limited to state-branch contents writes and monthly issue writes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "contents: write"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/oss-radar.yml",
+          "contains": "issues: write"
+        }
+      ]
+    }
+  ]
+}

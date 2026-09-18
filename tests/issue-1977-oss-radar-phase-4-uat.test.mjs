@@ -64,13 +64,21 @@ function fullRadarFixture() {
     }
     throw new Error(`Unexpected Phase 4 UAT request ${method} ${url.pathname}`);
   };
-  return { state, fetchImpl };
+  let storedState = null;
+  const stateAdapter = {
+    load: async () => storedState ? { state: structuredClone(storedState), branch: "oss-radar-state", path: ".oss-radar/state.json" } : null,
+    save: async ({ state: next }) => {
+      storedState = structuredClone(next);
+      return { branch: "oss-radar-state", path: ".oss-radar/state.json", commitSha: "fixture-state-commit" };
+    },
+  };
+  return { state, fetchImpl, stateAdapter };
 }
 
 test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege", () => {
   assert.match(workflow, /schedule:\n\s+- cron: '24 4 \* \* \*'\n\s+timezone: 'America\/Toronto'/u);
   assert.match(workflow, /workflow_dispatch:/u);
-  assert.match(workflow, /permissions:\n\s+contents: read\n\s+issues: write/u);
+  assert.match(workflow, /permissions:\n\s+contents: write\n\s+issues: write/u);
   assert.doesNotMatch(workflow, /^\s*push:/mu);
   assert.doesNotMatch(workflow, /^\s*pull_request:/mu);
   assert.match(workflow, /group: plotpickle-oss-radar/u);
@@ -83,7 +91,7 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
 
 test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architecture review queue", async () => {
   const api = fullRadarFixture();
-  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl };
+  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl, stateAdapter: api.stateAdapter };
 
   const first = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });
   assert.equal(first.action, "created");
@@ -102,6 +110,9 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architect
   assert.match(first.reportBody, /Discovery coverage/u);
   assert.match(first.reportBody, /Query effectiveness/u);
   assert.ok(first.state.candidates.length >= first.reviewCount);
+  assert.doesNotMatch(first.reportBody, /PLOTPICKLE-OSS-RADAR-STATE/u);
+  assert.equal(first.stateStorage.branch, "oss-radar-state");
+  assert.equal(first.stateStorage.migratedFromLegacyComments, true);
 
   const rerun = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });
   assert.equal(rerun.action, "updated");
@@ -109,6 +120,7 @@ test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architect
   assert.equal(api.state.issues.length, 1);
   assert.equal(api.state.comments.get(first.monthlyIssueNumber).length, 1);
   assert.deepEqual(rerun.state.candidates.map((entry) => entry.firstSeenDate), first.state.candidates.map((entry) => entry.firstSeenDate));
+  assert.equal(rerun.stateStorage.source, "state-branch");
 
   const nextDay = await runRadar({ ...base, now: new Date("2026-09-14T11:00:00Z") });
   assert.equal(nextDay.action, "created");

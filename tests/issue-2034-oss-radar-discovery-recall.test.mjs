@@ -405,6 +405,48 @@ test("#2034 enriched Top 5 reporting remains same-day idempotent and exposes cov
   assert.deepEqual(second.state.discoveryCoverage.lanesRepresented, discovery.discoveryCoverage.lanesRepresented);
 });
 
+test("#2208 retries explicit GitHub Search rate limits without real-time sleeping", async () => {
+  const rateContract = recallContract({ enrichment: false });
+  rateContract.discoveryBudget.searchMinIntervalMs = 0;
+  rateContract.discoveryBudget.searchRateLimitRetries = 1;
+  rateContract.discoveryBudget.searchRateLimitFallbackWaitMs = 1000;
+  rateContract.discoveryBudget.searchRateLimitMaxWaitMs = 1000;
+
+  let calls = 0;
+  const waits = [];
+  const fetchImpl = async () => {
+    calls += 1;
+    if (calls === 1) {
+      return {
+        ok: false,
+        status: 403,
+        headers: { get: (name) => String(name).toLowerCase() === "retry-after" ? "1" : null },
+        json: async () => ({ message: "API rate limit exceeded for installation" }),
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [repository()] }),
+    };
+  };
+
+  const result = await discoverGitHubRepositories({
+    contract: rateContract,
+    token: "fixture-token",
+    fetchImpl,
+    sleepImpl: async (ms) => { waits.push(ms); },
+    now: new Date(fixture.now),
+  });
+
+  assert.equal(result.executedQueryCount, 2);
+  assert.equal(result.rateLimitRetryCount, 1);
+  assert.equal(result.rateLimitWaitMs, 1000);
+  assert.equal(result.discoveryCoverage.rateLimitRetryCount, 1);
+  assert.deepEqual(waits, [1000]);
+  assert.equal(calls, 3);
+});
+
 test("#2034 keeps search/rate failures diagnosable and the daily workflow focused", async () => {
   await assert.rejects(
     discoverGitHubRepositories({

@@ -467,6 +467,21 @@
       ]
     },
     {
+      "id": "storyboard-convergence-projection",
+      "classification": "production",
+      "include": [
+        "modules/build/progressive-story-map.ts",
+        "app/_components/storyboard/storyboard-editorial-model.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "visual",
+        "surface"
+      ]
+    },
+    {
       "id": "preproduction-connected-experience",
       "classification": "production",
       "include": [

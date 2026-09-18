@@ -11,7 +11,11 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import VisualStoryWorkspace from "./visual-story-workspace";
-import { storyboardAnchorTargetRef, storyboardReferenceCandidates } from "./storyboard-editorial-model";
+import {
+  storyboardAnchorEvidence,
+  storyboardAnchorTargetRef,
+  storyboardReferenceCandidates,
+} from "./storyboard-editorial-model";
 import styles from "./storyboard-readiness-workspace.module.css";
 
 const STATE_LABELS = {
@@ -51,7 +55,7 @@ export default function StoryboardReadinessWorkspace({
   readonly legacyProject: PlotPickleProject | null;
   readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
-  readonly onOpenBuild: () => void;
+  readonly onOpenBuild: (blockNumber: number, miniBlockNumber: number) => void;
   readonly initialBlockNumber?: number;
   readonly initialMiniBlockNumber?: number;
   readonly initialSceneId?: string;
@@ -75,8 +79,16 @@ export default function StoryboardReadinessWorkspace({
     [project, selectedTarget],
   );
 
+  function preserveStoryboardAddress(block: number, mini: number) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("block", String(block));
+    url.searchParams.set("mini", String(mini));
+    window.history.replaceState(window.history.state, "", url);
+  }
+
   function openEditorial(candidateId: string, miniNumber: number) {
     setSelectedMiniBlockNumber(miniNumber);
+    preserveStoryboardAddress(selectedNumber, miniNumber);
     setRequestedCandidateId(candidateId);
     window.requestAnimationFrame(() => {
       document.getElementById("storyboard-editorial")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -103,8 +115,8 @@ export default function StoryboardReadinessWorkspace({
 
       <section className={styles.notice} aria-label="Storyboard authority boundary">
         <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "QA access is open; BUILD readiness remains unresolved."}</strong>
-        <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth. QA access opens implemented Storyboard inspection without promoting an unearned target or changing project progression.</span>
-        <button type="button" onClick={onOpenBuild}>Open BUILD evidence</button>
+        <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth. Storyboard acceptance reports visual evidence at a stable address; it does not gate later Blocks or require one kept image per Mini-Block. QA access never promotes an unearned target.</span>
+        <button type="button" onClick={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}>Open BUILD evidence</button>
       </section>
 
       <nav aria-label="Storyboard Block tabs" className={styles.tabRail} role="tablist">
@@ -123,6 +135,7 @@ export default function StoryboardReadinessWorkspace({
                 setSelectedBlockNumber(number);
                 setSelectedMiniBlockNumber(1);
                 setRequestedCandidateId(undefined);
+                preserveStoryboardAddress(number, 1);
               }}
               role="tab"
               type="button"
@@ -161,6 +174,7 @@ export default function StoryboardReadinessWorkspace({
           <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual anchors`}>
             {[1, 2, 3, 4].map((miniNumber) => {
               const reference = selectedReferences.find((candidate) => candidate.miniBlockNumber === miniNumber);
+              const anchorEvidence = storyboardAnchorEvidence(project, selectedTarget.id, miniNumber);
               const canReviewReference = Boolean(storyboardAccessible && reference);
               return (
                 <article
@@ -187,7 +201,19 @@ export default function StoryboardReadinessWorkspace({
                     : qaOnlyAccess
                       ? "QA access is open. A real visual candidate is still required before this anchor can be reviewed."
                       : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
-                  <button onClick={() => setSelectedMiniBlockNumber(miniNumber)} type="button">Open Visual Story</button>
+                  <small className={styles.anchorEvidence}>
+                    {anchorEvidence.passages.length} screenplay passage{anchorEvidence.passages.length === 1 ? "" : "s"} · {reference
+                      ? reference.acceptedArtifactId
+                        ? "kept visual"
+                        : reference.sourceKind === "historical-storyboard"
+                          ? "historical reference candidate"
+                          : "replacement concept candidate"
+                      : "no visual candidate"}
+                  </small>
+                  <button onClick={() => {
+                    setSelectedMiniBlockNumber(miniNumber);
+                    preserveStoryboardAddress(selectedNumber, miniNumber);
+                  }} type="button">Open Visual Story</button>
                   <button
                     disabled={!canReviewReference}
                     onClick={reference && canReviewReference ? () => openEditorial(reference.id, miniNumber) : undefined}
@@ -225,13 +251,13 @@ export default function StoryboardReadinessWorkspace({
             requestedCandidateId={requestedCandidateId}
             target={selectedTarget}
             onProjectChange={onProjectChange}
-            onOpenBuild={onOpenBuild}
+            onOpenBuild={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}
           />
         </div>
       ) : null}
 
       <footer className={styles.footer}>
-        Storyboard starts from 24 Block tabs and 96 canonical Mini-Block anchors so visual intent never loses its story address. The final image count is intentionally flexible: an anchor may have no visual yet, one preferred visual, or multiple candidates and later visual beats as the story develops.
+        Storyboard starts from 24 Block tabs and 96 canonical Mini-Block anchors so visual intent never loses its story address. The final image count is intentionally flexible: an anchor may have no visual yet, one preferred visual, or multiple candidates and later visual beats as the story develops. A missing visual remains truthful and never blocks navigation to another canonical story address.
       </footer>
     </main>
   );

@@ -11,6 +11,7 @@ import type { VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import {
   createStoryboardReferenceArtifact,
   currentStoryboardArtifactForFrame,
+  storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
   storyboardArtifactStaleReasons,
   storyboardReferenceCandidates,
@@ -66,6 +67,7 @@ export default function StoryboardEditorialWorkspace({
   if (!selected || !editorialAccessible) return null;
 
   const anchorTargetRef = storyboardAnchorTargetRef(target.id, selected.miniBlockNumber);
+  const sourceEvidence = storyboardAnchorEvidence(project, target.id, selected.miniBlockNumber);
   const selectedIsStale = staleReasons.length > 0;
   const selectedIsKept = Boolean(selected.acceptedArtifactId) && !selectedIsStale;
   const keptCount = candidates.filter((candidate) => candidate.acceptedArtifactId).length;
@@ -160,7 +162,7 @@ export default function StoryboardEditorialWorkspace({
         </div>
         <div className={styles.details}>
           <div>
-            <p className={styles.kicker}>{selectedIsStale ? "Kept · needs review" : selectedIsKept ? "Kept" : "Observed reference"}</p>
+            <p className={styles.kicker}>{selectedIsStale ? "Kept · needs review" : selectedIsKept ? "Kept" : selected.sourceKind === "historical-storyboard" ? "Historical reference candidate" : "Replacement concept candidate"}</p>
             <h3>{anchorTargetRef}</h3>
           </div>
           <p>{selected.caption}</p>
@@ -173,6 +175,51 @@ export default function StoryboardEditorialWorkspace({
           <p className={styles.message} role="status">{message}</p>
         </div>
       </div>
+
+      <section className={styles.sourceEvidence} aria-label="Written source and provenance for selected Storyboard anchor">
+        <header>
+          <div>
+            <p className={styles.kicker}>Written source · same canonical address</p>
+            <h3>{sourceEvidence.blockTitle || `Block ${String(sourceEvidence.blockNumber).padStart(2, "0")}`} · Mini-Block {sourceEvidence.miniBlockNumber}</h3>
+          </div>
+          <span data-visual-review-state={selectedIsKept ? "accepted" : "candidate"}>
+            {selectedIsKept ? "KEPT VISUAL" : "CANDIDATE / REFERENCE"} · {selected.sourceKind === "historical-storyboard" ? "historical Storyboard" : "PlotPickle replacement concept"}
+          </span>
+        </header>
+
+        <div className={styles.sourceColumns}>
+          <div className={styles.sourceText}>
+            <strong>SCREENPLAY EVIDENCE</strong>
+            {sourceEvidence.passages.length ? (
+              sourceEvidence.passages.map((passage) => (
+                <article key={passage.id}>
+                  <small>Scene {passage.sceneNumber} · {passage.type} · {passage.id}</small>
+                  <p>{passage.text}</p>
+                </article>
+              ))
+            ) : (
+              <p>No screenplay passage is mapped to this Mini-Block. PlotPickle does not manufacture written evidence to justify a visual.</p>
+            )}
+          </div>
+
+          <div className={styles.provenance}>
+            <strong>STRUCTURE & PROVENANCE</strong>
+            <p>{sourceEvidence.responsibility || "No structural responsibility is recorded for this Block."}</p>
+            <p>Human structural finding: <b>{sourceEvidence.structuralFinding.replaceAll("-", " / ")}</b></p>
+            {sourceEvidence.sourceMappings.map((mapping) => (
+              <small key={`${mapping.sourceVersion}:${mapping.sourceRef}`}>
+                {mapping.sourceVersion.toUpperCase()} · {mapping.sourceRole.replaceAll("-", " ")} · {mapping.mappingMethod.replaceAll("-", " ")}
+                {mapping.candidateOnly ? " · comparison only" : ""} · {mapping.sourceRef}
+              </small>
+            ))}
+            {sourceEvidence.sourceSections.map((section) => (
+              <small key={section.id}>Source section: {section.title} · p.{section.page} · {section.mappingMethod.replaceAll("-", " ")}</small>
+            ))}
+            <small>{sourceEvidence.characterEvidenceRefs.length} character-evidence refs · {sourceEvidence.acceptedVisualRefs.length} accepted target-scoped visual refs</small>
+          </div>
+        </div>
+        <p className={styles.evidenceBoundary}>The #2168 evidence matrix explains where source material came from; it does not make this image canon. Keep/accepted state remains the existing PPF visual-artifact authority, and shot/reveal intent remains owned by the existing Storyboard Shot contract.</p>
+      </section>
 
       {comparing ? (
         <div className={styles.compare} aria-label="Storyboard variations for this Mini-Block anchor">
@@ -187,14 +234,14 @@ export default function StoryboardEditorialWorkspace({
             >
               <img alt={candidate.caption} decoding="async" loading="lazy" src={candidate.assetUrl} />
               <strong>{candidate.label}</strong>
-              <span>{candidate.acceptedArtifactId ? "Kept in PPF" : "Observed reference"}</span>
+              <span>{candidate.acceptedArtifactId ? "Kept in PPF" : candidate.sourceKind === "historical-storyboard" ? "Historical reference candidate" : "Replacement concept candidate"}</span>
             </button>
           ))}
         </div>
       ) : null}
 
       <p className={styles.boundary}>
-        The 24/96 model supplies canonical addresses, not a fixed final image count. Candidates and later visual beats may expand beneath an anchor; viewing, changing or comparing them never promotes a reference or silently rewrites story canon.
+        The 24/96 model supplies canonical addresses, not a fixed final image count. Candidates and later visual beats may expand beneath an anchor; viewing, changing or comparing them never promotes a reference or silently rewrites story canon. SHOW_NOW / WITHHOLD_NOW reveal timing belongs only to real Storyboard Editorial Shots under the #2107 information boundary; selecting a visual never invents those directives.
       </p>
     </section>
   );

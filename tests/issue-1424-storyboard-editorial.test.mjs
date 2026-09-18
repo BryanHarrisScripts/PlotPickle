@@ -16,7 +16,11 @@ test("#1424 reuses bundled Afterglow references through the bounded local asset 
   assert.match(model, /createAfterglowStoryboardFrames/);
   assert.match(model, /\/api\/local-ai\/assets\/storyboard-reference\?block=/);
   assert.match(model, /AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
-  assert.match(model, /project\.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
+  assert.match(model, /AFTERGLOW_V9_REFERENCE_SOURCE_ID/);
+  assert.match(model, /function isAfterglowReferenceProject/);
+  assert.match(model, /referenceFixture\?\.fixtureId === AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
+  assert.doesNotMatch(model, /project\.id !== AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/,
+    "A user-owned working copy must retain access to its packaged Afterglow references through provenance rather than fixture project id.");
   assert.match(model, /STORYBOARD_REFERENCE_WORKFLOW = "storyboard-reference-adoption-v1"/);
 });
 
@@ -27,6 +31,8 @@ test("#1424 maps a kept reference to a canonical Mini-Block anchor with provenan
   assert.match(model, /storyboard-target:\$\{targetId\}/);
   assert.match(model, /storyboard-anchor:\$\{targetId\}:mini-\$\{miniBlockNumber\}/);
   assert.match(model, /observed-reference:\$\{sourceRef\}/);
+  assert.match(model, /storyboard-source-kind:\$\{input\.candidate\.sourceKind\}/);
+  assert.match(model, /storyboard-evidence:\$\{ref\}/);
   assert.match(model, /ppf-revision:\$\{input\.project\.revision\}/);
   assert.match(model, /parentArtifactId: current\?\.id \?\? null/);
   assert.match(model, /currentStoryboardArtifactForFrame/);
@@ -91,7 +97,7 @@ test("#1424 makes staleness depend on exact Mini-Block evidence rather than ever
 
   assert.match(model, /normalizeProjectSourceEvidence/);
   assert.match(model, /passage\.blockNumber === blockNumber && passage\.miniBlockNumber === miniBlockNumber/);
-  assert.match(model, /sourceEvidence: sourceEvidenceForAnchor\(project, targetId, miniBlockNumber\)/);
+  assert.match(model, /sourceEvidence: storyboardSourceEvidenceForAnchor\(project, targetId, miniBlockNumber\)/);
   assert.match(model, /storyboardArtifactStaleReasons/);
   assert.match(model, /recorded === current/);
   assert.doesNotMatch(dependencyBody, /project\.revision/);

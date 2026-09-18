@@ -87,7 +87,9 @@ export default function StoryboardPage() {
         legacyProject={legacyProject}
         project={project}
         onProjectChange={applyProjectChange}
-        onOpenBuild={() => window.location.assign(`/?workspace=build&block=${initialBlockNumber}`)}
+        onOpenBuild={(blockNumber, miniBlockNumber) => window.location.assign(
+          `/?workspace=build&block=${blockNumber}&mini=${miniBlockNumber}`,
+        )}
       />
     </div>
   );

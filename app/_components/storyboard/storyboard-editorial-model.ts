@@ -1,3 +1,4 @@
+import { normalizeBlockWritingState } from "@/core/contracts/block-writing";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { PPFProject } from "@/core/project/project";
@@ -225,12 +226,43 @@ export function storyboardFrameDependencySourceKey(
   miniBlockNumber: number,
 ) {
   const target = deriveVisualReadiness({ project }).targets.find((candidate) => candidate.id === targetId);
+  const blockNumber = targetBlockNumber(targetId);
+  const structure = (project as PPFProject & {
+    readonly structure?: {
+      readonly blocks?: readonly {
+        readonly number?: number;
+        readonly title?: string;
+        readonly note?: string;
+        readonly miniBlocks?: readonly {
+          readonly ordinal?: number;
+          readonly title?: string;
+          readonly note?: string;
+        }[];
+      }[];
+    };
+    readonly writing?: unknown;
+  }).structure;
+  const block = structure?.blocks?.find((candidate) => candidate.number === blockNumber) ?? null;
+  const mini = block?.miniBlocks?.find((candidate) => candidate.ordinal === miniBlockNumber) ?? null;
+  const writing = normalizeBlockWritingState(
+    (project as PPFProject & { readonly writing?: unknown }).writing,
+  );
+  const workingText = writing.entries.find((entry) => (
+    entry.blockNumber === blockNumber && entry.miniBlockNumber === miniBlockNumber
+  ))?.text ?? "";
   const snapshot = JSON.stringify({
     targetId,
     miniBlockNumber,
     state: target?.state ?? "missing",
     storyboardAllowed: target?.storyboardAllowed ?? false,
     provenance: (target?.provenance ?? []).map((item) => `${item.source}:${item.ref}`).sort(),
+    planningContent: {
+      blockTitle: block?.title ?? "",
+      blockNote: block?.note ?? "",
+      miniTitle: mini?.title ?? "",
+      miniNote: mini?.note ?? "",
+    },
+    workingText,
     sourceEvidence: storyboardSourceEvidenceForAnchor(project, targetId, miniBlockNumber),
     scopedAcceptedVisuals: acceptedTargetScopedVisualIds(project, targetId, miniBlockNumber),
   });

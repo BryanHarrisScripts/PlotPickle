@@ -33,11 +33,10 @@ function currentAddress() {
 
 function writeHref(blockNumber: number, miniBlockNumber: number) {
   const query = new URLSearchParams({
-    workspace: "write",
     block: String(blockNumber),
     mini: String(miniBlockNumber),
   });
-  return `/?${query.toString()}`;
+  return `/write?${query.toString()}`;
 }
 
 function pageFlowHref(blockNumber: number, miniBlockNumber: number) {

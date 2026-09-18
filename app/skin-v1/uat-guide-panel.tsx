@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { PLOTPICKLE_OPEN_PROFILE_EVENT } from "../navigation/global-shortcuts";
 import styles from "./uat-guide-panel.module.css";
 
 type GuideEvent = {
@@ -102,8 +101,8 @@ export default function UatGuidePanel({ mode }: { readonly mode: "settings" | "d
   const recentEvents = useMemo(() => (payload?.status?.events || []).slice(-8).reverse(), [payload?.status?.events]);
 
   function requestProfileUnlock() {
-    window.dispatchEvent(new Event(PLOTPICKLE_OPEN_PROFILE_EVENT));
-    setMessage("Story Mode is LOCAL. Unlock your Human profile, then select Show Start UAT Guide again.");
+    setMessage("Story Mode is LOCAL. Your Human session needs to be unlocked again. PlotPickle is reopening the profile boundary.");
+    window.setTimeout(() => window.location.reload(), 120);
   }
 
   async function setEnabled(enabled: boolean) {

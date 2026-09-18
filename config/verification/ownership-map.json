@@ -510,7 +510,8 @@
         "app/storyboard/page.tsx",
         "app/previs/layout.tsx",
         "app/craftloop/layout.tsx",
-        "app/pageflow/layout.tsx"
+        "app/pageflow/layout.tsx",
+        "app/pageflow/page.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

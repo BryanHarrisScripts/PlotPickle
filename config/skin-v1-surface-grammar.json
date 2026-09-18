@@ -136,7 +136,7 @@
     "phase": 2,
     "authority": "config/skin-v1-surface-grammar.json",
     "censusEvidence": "docs/architecture/skin-v1-surface-blueprint-phase-0-census.md",
-    "dashboardMeasureDecision": "deferred-to-phase-3-human-approval",
+    "dashboardMeasureDecision": "human-approved-phase-3",
     "shellLevelFourColumnArchetype": false
   },
   "layoutArchetypes": {
@@ -183,12 +183,24 @@
       "token": "--pp-skin-shell-max",
       "maxPx": 1180,
       "desktopViewportInsetPx": 40,
-      "expression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))"
+      "expression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))",
+      "humanApprovedPhase": 3,
+      "workspaceFullShellAllowed": true
+    },
+    "canonical-directory": {
+      "token": "--pp-skin-shell-max",
+      "maxPx": 1180,
+      "desktopViewportInsetPx": 40,
+      "expression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))",
+      "innerToken": "--pp-skin-menu-max",
+      "innerMaxPx": 1060,
+      "innerExpression": "min(var(--pp-skin-menu-max), calc(100% - 72px))",
+      "humanApprovedPhase": 3
     }
   },
   "headerProfiles": {
     "dashboard-reference": {
-      "policy": "preserve current locked Dashboard header until Phase 3 approval"
+      "policy": "Human-approved Phase 3 Dashboard composition retained inside the canonical shell"
     },
     "standard": {
       "sourceRule": "rules.standardHeader",
@@ -212,7 +224,7 @@
       "localDesignAuthorityAllowed": false
     },
     "dashboard-reference": {
-      "policy": "preserve current locked Dashboard footer/status treatment until Phase 3 approval"
+      "policy": "Human-approved Phase 3 Dashboard status/footer composition retained inside the canonical shell"
     }
   },
   "returnProfiles": {
@@ -254,7 +266,11 @@
       "sourceEvidence": "Profile",
       "outerBorderToken": "--pp-skin-border-strong",
       "insetBorderToken": "--pp-skin-border-thin",
-      "localRadiusAllowed": false
+      "localRadiusAllowed": false,
+      "insetLineToken": "--pp-skin-line",
+      "fillToken": "--pp-skin-fill-panel",
+      "insetHighlightToken": "--pp-skin-inset-highlight",
+      "humanApprovedPhase": 3
     }
   },
   "selectedStateProfiles": {
@@ -311,8 +327,8 @@
       "header": "dashboard-reference",
       "footer": "dashboard-reference",
       "return": "none-reference",
-      "bodyMeasure": "dashboard-reference-current",
-      "frame": "solid-standard"
+      "bodyMeasure": "canonical-directory",
+      "frame": "layered-inset"
     },
     "standard": {
       "header": "standard",
@@ -377,5 +393,35 @@
       "frame": "solid-standard",
       "centeredPrimaryAction": true
     }
+  },
+  "canonicalShellDecision": {
+    "issue": 2226,
+    "phase": 3,
+    "approval": "human-approved",
+    "approvalDate": "2026-09-18",
+    "outerShellMaxPx": 1180,
+    "desktopViewportInsetPx": 40,
+    "desktopGutterPerSidePx": 20,
+    "directoryBodyMaxPx": 1060,
+    "directoryBodyToken": "--pp-skin-menu-max",
+    "directoryFallbackExpression": "calc(100% - 72px)",
+    "workspaceFullShellAllowed": true,
+    "outerFrame": {
+      "widthToken": "--pp-skin-border-strong",
+      "widthPx": 2,
+      "style": "solid",
+      "lineToken": "--pp-skin-line-strong"
+    },
+    "insetFrame": {
+      "widthToken": "--pp-skin-border-thin",
+      "widthPx": 1,
+      "style": "solid",
+      "lineToken": "--pp-skin-line"
+    },
+    "radiusToken": "--pp-skin-radius",
+    "radiusPx": 0,
+    "matteFillToken": "--pp-skin-fill-panel",
+    "selectedStateProfile": "canonical-dark-accent",
+    "baselineReplacement": "requires-separate-human-acceptance-of-resulting-dashboard-candidate"
   }
 }

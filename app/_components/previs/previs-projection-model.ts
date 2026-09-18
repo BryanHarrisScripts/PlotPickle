@@ -10,6 +10,7 @@ import { deriveVisualReadiness, type VisualReadinessState } from "@/modules/buil
 import {
   STORYBOARD_REFERENCE_WORKFLOW,
   currentStoryboardArtifactForFrame,
+  storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
   storyboardArtifactStaleReasons,
   storyboardReferenceCandidates,
@@ -28,6 +29,23 @@ export type PrevisAnchorProjection = {
   readonly storyboardArtifactId: string | null;
   readonly storyboardDependencyKey: string;
   readonly observedReference: boolean;
+  readonly storyboardCoverage: "kept" | "candidate" | "none";
+  readonly storyboardSourceKind: "historical-storyboard" | "replacement-concept" | null;
+  readonly storyboardProvenanceRefs: readonly string[];
+  readonly sourcePassageCount: number;
+  readonly sourceSceneCount: number;
+  readonly sourceFileName: string;
+  readonly structuralResponsibility: string;
+  readonly structuralFinding: string;
+  readonly sourceMappings: readonly {
+    readonly sourceVersion: string;
+    readonly sourceRole: string;
+    readonly mappingMethod: string;
+    readonly sourceRef: string;
+    readonly candidateOnly: boolean;
+  }[];
+  readonly characterEvidenceRefs: readonly string[];
+  readonly acceptedVisualRefs: readonly string[];
   readonly staleBecause: readonly string[];
   readonly shots: readonly ProductionShotIntent[];
   readonly staleShotIds: readonly string[];
@@ -124,6 +142,10 @@ export function createProductionShotForAnchor(
     movement: "Locked",
     lens: "Natural perspective",
     visualIntent: "",
+    blockingIntent: "",
+    performanceEnergy: "",
+    pacingIntent: "",
+    roughMotionEvidenceRefs: [],
     durationSeconds: null,
     transitionIn: "",
     transitionOut: "",
@@ -146,6 +168,8 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
       const kept = currentStoryboardArtifactForFrame(project, target.id, miniBlockNumber);
       const draft = draftStoryboardArtifactForFrame(project, target.id, miniBlockNumber);
       const observed = references.find((candidate) => candidate.miniBlockNumber === miniBlockNumber) ?? null;
+      const storyEvidence = storyboardAnchorEvidence(project, target.id, miniBlockNumber);
+      const storyboardCoverage = kept ? "kept" as const : observed ? "candidate" as const : "none" as const;
       const staleBecause = kept
         ? storyboardArtifactStaleReasons(project, target.id, miniBlockNumber, kept)
         : [];
@@ -198,6 +222,17 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         storyboardArtifactId: kept?.id ?? null,
         storyboardDependencyKey: dependencyKey,
         observedReference: Boolean(observed && !kept),
+        storyboardCoverage,
+        storyboardSourceKind: observed?.sourceKind ?? null,
+        storyboardProvenanceRefs: observed?.provenanceRefs ?? [],
+        sourcePassageCount: storyEvidence.passages.length,
+        sourceSceneCount: new Set(storyEvidence.passages.map((passage) => passage.sceneNumber)).size,
+        sourceFileName: storyEvidence.sourceFileName,
+        structuralResponsibility: storyEvidence.responsibility,
+        structuralFinding: storyEvidence.structuralFinding,
+        sourceMappings: storyEvidence.sourceMappings,
+        characterEvidenceRefs: storyEvidence.characterEvidenceRefs,
+        acceptedVisualRefs: storyEvidence.acceptedVisualRefs,
         staleBecause,
         shots,
         staleShotIds,

@@ -54,8 +54,9 @@ test("#1425 allows zero, one or many creative shots beneath one stable Mini-Bloc
   assert.match(model, /durationSeconds: null/);
   assert.match(workspace, /Creative shots<\/dt><dd>\{anchor\.shots\.length\}/);
   assert.match(workspace, /Add creative shot/);
-  assert.match(workspace, /Mini-Block total must reach/);
-  assert.match(workspace, /Author the creative timing until this Mini-Block totals/);
+  assert.match(workspace, /Optional until Human-authored/);
+  assert.match(workspace, /leave unknown fields empty rather than inferring them from the story grid/);
+  assert.match(workspace, /current two-hour technical preset/);
   assert.doesNotMatch(`${model}\n${workspace}`, /defaultFrameSeconds|targetMinutes|estimatedSeconds/);
 });
 

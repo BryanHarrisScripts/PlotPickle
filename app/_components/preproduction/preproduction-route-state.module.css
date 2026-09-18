@@ -1,0 +1,25 @@
+.state {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--pp-skin-space-6);
+  background: var(--pp-skin-canvas);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+  text-align: center;
+}
+
+.state p {
+  margin: 0;
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-fill-panel);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+.state p[role="alert"] {
+  border-color: var(--pp-skin-danger-line);
+  background: var(--pp-skin-danger-surface);
+  color: var(--pp-skin-danger);
+}

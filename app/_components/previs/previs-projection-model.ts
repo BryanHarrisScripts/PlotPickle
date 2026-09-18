@@ -10,6 +10,7 @@ import { deriveVisualReadiness, type VisualReadinessState } from "@/modules/buil
 import {
   STORYBOARD_REFERENCE_WORKFLOW,
   currentStoryboardArtifactForFrame,
+  storyboardAnchorEvidence,
   storyboardAnchorTargetRef,
   storyboardArtifactStaleReasons,
   storyboardReferenceCandidates,
@@ -28,6 +29,23 @@ export type PrevisAnchorProjection = {
   readonly storyboardArtifactId: string | null;
   readonly storyboardDependencyKey: string;
   readonly observedReference: boolean;
+  readonly storyboardCoverage: "kept" | "candidate" | "none";
+  readonly storyboardSourceKind: "historical-storyboard" | "replacement-concept" | null;
+  readonly storyboardProvenanceRefs: readonly string[];
+  readonly sourcePassageCount: number;
+  readonly sourceSceneCount: number;
+  readonly sourceFileName: string;
+  readonly structuralResponsibility: string;
+  readonly structuralFinding: string;
+  readonly sourceMappings: readonly {
+    readonly sourceVersion: string;
+    readonly sourceRole: string;
+    readonly mappingMethod: string;
+    readonly sourceRef: string;
+    readonly candidateOnly: boolean;
+  }[];
+  readonly characterEvidenceRefs: readonly string[];
+  readonly acceptedVisualRefs: readonly string[];
   readonly staleBecause: readonly string[];
   readonly shots: readonly ProductionShotIntent[];
   readonly staleShotIds: readonly string[];
@@ -81,6 +99,20 @@ function storyboardDependencyKey(artifact: FoundationsVisualArtifact | null) {
   return (artifact?.sourceDecisionKeys ?? []).find((key) => key.startsWith("storyboard-upstream:")) ?? "";
 }
 
+function keptStoryboardSourceKind(artifact: FoundationsVisualArtifact | null) {
+  const value = (artifact?.sourceDecisionKeys ?? [])
+    .find((key) => key.startsWith("storyboard-source-kind:"))
+    ?.slice("storyboard-source-kind:".length);
+  return value === "historical-storyboard" || value === "replacement-concept" ? value : null;
+}
+
+function keptStoryboardEvidenceRefs(artifact: FoundationsVisualArtifact | null) {
+  return (artifact?.sourceDecisionKeys ?? [])
+    .filter((key) => key.startsWith("storyboard-evidence:"))
+    .map((key) => key.slice("storyboard-evidence:".length))
+    .filter(Boolean);
+}
+
 function anchorState(input: {
   readonly blockState: VisualReadinessState;
   readonly storyboardAllowed: boolean;
@@ -124,6 +156,10 @@ export function createProductionShotForAnchor(
     movement: "Locked",
     lens: "Natural perspective",
     visualIntent: "",
+    blockingIntent: "",
+    performanceEnergy: "",
+    pacingIntent: "",
+    roughMotionEvidenceRefs: [],
     durationSeconds: null,
     transitionIn: "",
     transitionOut: "",
@@ -146,6 +182,13 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
       const kept = currentStoryboardArtifactForFrame(project, target.id, miniBlockNumber);
       const draft = draftStoryboardArtifactForFrame(project, target.id, miniBlockNumber);
       const observed = references.find((candidate) => candidate.miniBlockNumber === miniBlockNumber) ?? null;
+      const storyEvidence = storyboardAnchorEvidence(project, target.id, miniBlockNumber);
+      const storyboardCoverage = kept ? "kept" as const : observed ? "candidate" as const : "none" as const;
+      const keptSourceKind = keptStoryboardSourceKind(kept);
+      const provenanceRefs = [...new Set([
+        ...(observed?.provenanceRefs ?? []),
+        ...keptStoryboardEvidenceRefs(kept),
+      ])];
       const staleBecause = kept
         ? storyboardArtifactStaleReasons(project, target.id, miniBlockNumber, kept)
         : [];
@@ -181,7 +224,7 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         : staleBecause.length
           ? "The kept Storyboard visual changed upstream and needs Human review before timing continues."
           : timingAllowed
-            ? "Approved Storyboard visual is ready for Human-authored Previs. Complete 75 seconds of creative timing to unlock its fixed 25 × 3-second Render Plan."
+            ? "Approved Storyboard visual is ready for Human-authored Previs. Timing remains explicitly Human-authored; for the current 120-minute render preset only, a complete 75-second Mini-Block maps onto 25 × 3-second technical clips."
             : observed
               ? "Observed Storyboard reference is visible, but it must be kept in Storyboard before Previs timing begins."
               : "This canonical anchor has no approved Storyboard visual yet.";
@@ -198,6 +241,17 @@ export function derivePrevisProjection(project: PPFProject): PrevisProjection {
         storyboardArtifactId: kept?.id ?? null,
         storyboardDependencyKey: dependencyKey,
         observedReference: Boolean(observed && !kept),
+        storyboardCoverage,
+        storyboardSourceKind: observed?.sourceKind ?? keptSourceKind,
+        storyboardProvenanceRefs: provenanceRefs,
+        sourcePassageCount: storyEvidence.passages.length,
+        sourceSceneCount: new Set(storyEvidence.passages.map((passage) => passage.sceneNumber)).size,
+        sourceFileName: storyEvidence.sourceFileName,
+        structuralResponsibility: storyEvidence.responsibility,
+        structuralFinding: storyEvidence.structuralFinding,
+        sourceMappings: storyEvidence.sourceMappings,
+        characterEvidenceRefs: storyEvidence.characterEvidenceRefs,
+        acceptedVisualRefs: storyEvidence.acceptedVisualRefs,
         staleBecause,
         shots,
         staleShotIds,

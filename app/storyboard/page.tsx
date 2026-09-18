@@ -7,7 +7,7 @@ import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { normalizePlotPickleProject, type PlotPickleProject } from "@/lib/projects/project";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
 import StoryMapContextRuntime from "../story-map-workspace/context-runtime";
-import styles from "./storyboard-page.module.css";
+import stateStyles from "../_components/preproduction/preproduction-route-state.module.css";
 
 const LEGACY_PROJECT_STORAGE_KEY = "plotpickle.project.v1";
 
@@ -59,11 +59,11 @@ export default function StoryboardPage() {
   }, []);
 
   if (error) {
-    return <main className={styles.state}><p role="alert">{error}</p></main>;
+    return <main className={stateStyles.state}><p role="alert">{error}</p></main>;
   }
 
   if (!project) {
-    return <main className={styles.state}>Opening canonical Storyboard readiness…</main>;
+    return <main className={stateStyles.state}>Opening canonical Storyboard readiness…</main>;
   }
 
   function applyProjectChange(next: PPFProject) {

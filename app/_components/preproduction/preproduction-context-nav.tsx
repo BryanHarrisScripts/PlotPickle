@@ -46,8 +46,16 @@ function boundedBlock(value: string | null) {
   return Number.isFinite(number) && number >= 1 && number <= 24 ? Math.trunc(number) : null;
 }
 
-function withBlock(href: string, blockNumber: number | null) {
-  return blockNumber ? `${href}?block=${blockNumber}` : href;
+function boundedMini(value: string | null) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) && number >= 1 && number <= 4 ? Math.trunc(number) : null;
+}
+
+function withAddress(href: string, blockNumber: number | null, miniBlockNumber: number | null) {
+  const url = new URL(href, "https://plotpickle.local");
+  if (blockNumber) url.searchParams.set("block", String(blockNumber));
+  if (miniBlockNumber) url.searchParams.set("mini", String(miniBlockNumber));
+  return `${url.pathname}${url.search}`;
 }
 
 function learnHref(lessonId: string, returnPath: string) {
@@ -85,16 +93,29 @@ export default function PreproductionContextNav({
   readonly blockNumber?: number;
 }) {
   const [routeBlock, setRouteBlock] = useState<number | null>(null);
+  const [routeMini, setRouteMini] = useState<number | null>(null);
 
   useEffect(() => {
-    setRouteBlock(boundedBlock(new URLSearchParams(window.location.search).get("block")));
+    const query = new URLSearchParams(window.location.search);
+    setRouteBlock(boundedBlock(query.get("block")));
+    setRouteMini(boundedMini(query.get("mini")));
   }, []);
 
   const activeBlock = Number.isFinite(blockNumber) && (blockNumber ?? 0) >= 1 && (blockNumber ?? 0) <= 24
     ? Math.trunc(blockNumber!)
     : routeBlock;
-  const currentReturn = useMemo(() => withBlock(AREAS[area].href, activeBlock), [activeBlock, area]);
-  const outlineReturn = useMemo(() => withBlock("/structure", activeBlock), [activeBlock]);
+  const currentReturn = useMemo(
+    () => withAddress(AREAS[area].href, activeBlock, routeMini),
+    [activeBlock, area, routeMini],
+  );
+  const outlineReturn = useMemo(
+    () => withAddress("/structure", activeBlock, routeMini),
+    [activeBlock, routeMini],
+  );
+  const dashboardReturn = useMemo(
+    () => withAddress("/?workspace=dashboard", activeBlock, routeMini),
+    [activeBlock, routeMini],
+  );
   const contextualReturn = encodeURIComponent(outlineReturn);
 
   return (
@@ -102,7 +123,11 @@ export default function PreproductionContextNav({
       <div className={styles.identity}>
         <span>PRE-PRODUCTION</span>
         <strong>{AREAS[area].label}</strong>
-        {activeBlock ? <small>Block {String(activeBlock).padStart(2, "0")}</small> : <small>Current project</small>}
+        {activeBlock ? (
+          <small>
+            Block {String(activeBlock).padStart(2, "0")}{routeMini ? ` · Mini-Block ${routeMini}` : ""}
+          </small>
+        ) : <small>Current project</small>}
       </div>
 
       <nav className={styles.stageNav} aria-label="PRE-PRODUCTION stages">
@@ -110,7 +135,7 @@ export default function PreproductionContextNav({
           <Link
             aria-current={stage === area ? "page" : undefined}
             data-active={stage === area ? "true" : "false"}
-            href={withBlock(AREAS[stage].href, activeBlock)}
+            href={withAddress(AREAS[stage].href, activeBlock, routeMini)}
             key={stage}
           >
             {AREAS[stage].label}
@@ -147,7 +172,7 @@ export default function PreproductionContextNav({
         </div>
       ) : null}
 
-      <Link className={styles.dashboardExit} href="/?workspace=dashboard">Dashboard</Link>
+      <Link className={styles.dashboardExit} href={dashboardReturn}>Dashboard</Link>
     </section>
   );
 }

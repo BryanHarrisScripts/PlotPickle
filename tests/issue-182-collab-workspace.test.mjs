@@ -52,7 +52,7 @@ test("issue #182 preserves the formal Collab capability while #1722 restores its
   assert.doesNotMatch(page, /<CollabWorkspace/);
   assert.match(entry, /profile-owned PPF/);
   assert.match(entry, /\/?workspace=community/);
-  assert.match(entry, /\/?workspace=feedback/);
+  assert.match(entry, /href="\/feedback"/);
   assert.match(entry, /href="\/git"/);
   assert.match(entry, /\/?workspace=settings/);
   assert.match(shortcuts, /RootWorkspace[^\n]+"collab"/);

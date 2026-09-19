@@ -71,9 +71,6 @@ function makeId(prefix: string) {
   return `${prefix}-${platformCrypto.randomUUID()}`;
 }
 
-function timestamp() {
-  return new Date().toISOString();
-}
 
 function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -161,7 +158,7 @@ function replaceMetadataComment(thread: ReviewThread, metadata: StoredFeedbackMe
 export function createFeedback(project: PlotPickleProject, input: CreateFeedbackInput): PlotPickleProject {
   if (!text(input.body)) return project;
   const next = cloneProject(project);
-  const now = timestamp();
+  const now = new Date().toISOString();
   const metadata: StoredFeedbackMetadata = {
     version: 1,
     target: input.target,
@@ -196,7 +193,7 @@ export function updateFeedback(project: PlotPickleProject, recordId: string, pat
   const baseRecord = createUnifiedFeedbackModel(project).records.find((record) => record.id === recordId || record.originId === recordId);
   if (!baseRecord || baseRecord.synthetic) return project;
   const next = cloneProject(project);
-  const now = timestamp();
+  const now = new Date().toISOString();
   let changed = false;
   next.review.threads = next.review.threads.map((thread) => {
     if (thread.id !== baseRecord.originId) return thread;
@@ -236,7 +233,7 @@ export function addFeedbackComment(project: PlotPickleProject, recordId: string,
   const baseRecord = createUnifiedFeedbackModel(project).records.find((record) => record.id === recordId || record.originId === recordId);
   if (!baseRecord || baseRecord.synthetic) return project;
   const next = cloneProject(project);
-  const now = timestamp();
+  const now = new Date().toISOString();
   next.review.threads = next.review.threads.map((thread) => thread.id === baseRecord.originId
     ? {
         ...thread,

@@ -50,3 +50,12 @@ Candidate PNGs are captured from the complete orchestrator frame rather than the
 The orchestrator is also the migration bridge for nested navigation. When an active feature owner exposes a more-specific local `Back to …` action than the registered surface parent, the orchestrator adopts that target into its single upper-right Return control and invokes the existing feature-owned handler. The original local control remains mounted for behavior/state ownership but is visually suppressed, preventing duplicate left/right Back actions.
 
 This is especially important for LEARN, where the canonical hierarchy remains lesson → Craft Module → Path → Writer's Craft even though the orchestrator owns visible chrome.
+
+
+## Route migration ledger
+
+Skin V1 route ownership is now derived from the canonical Surface Registry rather than duplicated in runtime constants. `app/skin-v1-route-contract.ts` is consumed by both `SkinV1Runtime` and `LegacySkinOnly`, so an orchestrated direct route cannot be classified as Skin V1 by one boundary and legacy by the other.
+
+`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 4 canonical direct orchestrated routes, 31 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
+
+The ledger is not a second route authority. Entries disappear only by migrating their canonical registry surface into the orchestrated runtime contract or by explicitly reclassifying a legitimate exception in the canonical registry.

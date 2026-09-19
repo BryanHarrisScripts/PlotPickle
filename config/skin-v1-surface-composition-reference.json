@@ -538,7 +538,8 @@
         "lineHeight": 1,
         "tracking": "-0.025em",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700
       },
       "h1": {
         "fontToken": "--pp-skin-font-ui",
@@ -548,7 +549,9 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25
       },
       "h2": {
         "fontToken": "--pp-skin-font-ui",
@@ -558,7 +561,9 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25
       },
       "h3": {
         "fontToken": "--pp-skin-font-ui",
@@ -568,7 +573,9 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 600,
+        "lineHeight": 1.25
       },
       "h4": {
         "fontToken": "--pp-skin-font-ui",
@@ -578,7 +585,9 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 600,
+        "lineHeight": 1.25
       },
       "h5": {
         "fontToken": "--pp-skin-font-ui",
@@ -588,7 +597,10 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "trackingToken": "--pp-skin-tracking-meta",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink-soft"
+        "textColorToken": "--pp-skin-ink-soft",
+        "weight": 600,
+        "lineHeight": 1.25,
+        "tracking": "0.06em"
       },
       "h6": {
         "fontToken": "--pp-skin-font-ui",
@@ -598,7 +610,10 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "trackingToken": "--pp-skin-tracking-label",
         "textTransform": "uppercase",
-        "textColorToken": "--pp-skin-accent-bright"
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 600,
+        "lineHeight": 1.25,
+        "tracking": "0.10em"
       },
       "body": {
         "fontToken": "--pp-skin-font-ui",
@@ -608,7 +623,9 @@
         "lineHeightToken": "--pp-skin-leading-body",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 400,
+        "lineHeight": 1.55
       },
       "menu": {
         "fontToken": "--pp-skin-font-ui",
@@ -618,7 +635,9 @@
         "lineHeightToken": "--pp-skin-leading-body",
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 400,
+        "lineHeight": 1.55
       },
       "control": {
         "fontToken": "--pp-skin-font-ui",
@@ -628,7 +647,10 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "trackingToken": "--pp-skin-tracking-meta",
         "textTransform": "uppercase",
-        "textColorToken": "--pp-skin-ink"
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25,
+        "tracking": "0.06em"
       },
       "detail": {
         "fontToken": "--pp-skin-font-ui",
@@ -638,7 +660,10 @@
         "lineHeightToken": "--pp-skin-leading-body",
         "trackingToken": "--pp-skin-tracking-meta",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink-soft"
+        "textColorToken": "--pp-skin-ink-soft",
+        "weight": 400,
+        "lineHeight": 1.55,
+        "tracking": "0.06em"
       },
       "note": {
         "fontToken": "--pp-skin-font-ui",
@@ -648,7 +673,8 @@
         "lineHeight": 1.35,
         "tracking": "0",
         "textTransform": "none",
-        "textColorToken": "--pp-skin-ink-muted"
+        "textColorToken": "--pp-skin-ink-muted",
+        "weight": 400
       },
       "status": {
         "fontToken": "--pp-skin-font-ui",
@@ -658,7 +684,9 @@
         "lineHeight": 1.35,
         "trackingToken": "--pp-skin-tracking-meta",
         "textTransform": "uppercase",
-        "textColorToken": "--pp-skin-accent-bright"
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 400,
+        "tracking": "0.06em"
       },
       "keycap": {
         "fontToken": "--pp-skin-font-ui",
@@ -668,7 +696,9 @@
         "lineHeightToken": "--pp-skin-leading-tight",
         "tracking": "0",
         "textTransform": "uppercase",
-        "textColorToken": "--pp-skin-accent-bright"
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 700,
+        "lineHeight": 1.25
       }
     }
   },

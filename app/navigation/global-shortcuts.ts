@@ -49,7 +49,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", area: "produce", action: { kind: "route", href: "/edit" } },
   { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", area: "review", action: { kind: "route", href: "/feedback" } },
   { id: "refine", key: "R", label: "Refine", detail: "Decide", relic: "/assets/workflow-relics/refine.webp", area: "review", action: { kind: "route", href: "/diagnostics" } },
-  { id: "reports", key: "D", label: "Reports", detail: "Deliver", relic: "/assets/workflow-relics/reports.webp", area: "review", action: { kind: "route", href: "/production" } },
+  { id: "reports", key: "D", label: "Reports", detail: "Deliver", relic: "/assets/workflow-relics/reports.webp", area: "review", action: { kind: "route", href: "/reports" } },
   { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", area: "connect", action: { kind: "workspace", workspace: "community" } },
   { id: "wyrmwood", key: "G", label: "Wyrmwood", detail: "Game", relic: "/assets/workflow-relics/game.webp", area: "connect", action: { kind: "workspace", workspace: "wyrmwood" } },
   { id: "settings", key: "T", label: "Settings", detail: "Config", relic: "/assets/workflow-relics/settings.svg", area: "settings", action: { kind: "workspace", workspace: "settings" } },

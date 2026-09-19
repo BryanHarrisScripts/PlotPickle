@@ -124,6 +124,16 @@ export default function SkinV1Client() {
     else if (view.state === "authenticated") dashboardMenuRefs.current[dashboardSelection]?.focus();
   }, [activeSurface, view.state, dashboardSelection, userProfileOpen]);
 
+  useEffect(() => {
+    const returnToDashboard = () => {
+      setUserProfileOpen(false);
+      setActiveSurface("DASHBOARD");
+      setDashboardSurfaceName("DASHBOARD");
+    };
+    window.addEventListener("plotpickle:return-dashboard", returnToDashboard);
+    return () => window.removeEventListener("plotpickle:return-dashboard", returnToDashboard);
+  }, []);
+
   function openSurface(surfaceId: ExperienceSurfaceId) {
     const result = executeOpenSurfaceIntent({
       type: "OpenSurface", intentId: nextIntentId(), surfaceId, baseRevision: null,

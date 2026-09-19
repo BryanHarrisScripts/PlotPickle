@@ -71,7 +71,10 @@
         "frame": "layered-inset",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "[data-skin-reference='dashboard-canonical']",
+      "runtimeReadySelector": "[data-skin-reference='dashboard-canonical']",
+      "orchestrated": true
     },
     {
       "id": "community",
@@ -103,7 +106,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='PlotPickle Community']",
+      "runtimeReadySelector": "section[aria-label='PlotPickle Community'] .pp-skin-v1-community",
+      "orchestrated": true
     },
     {
       "id": "writers-craft",
@@ -135,7 +141,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "runtimeReadySelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "orchestrated": true
     },
     {
       "id": "library",
@@ -167,7 +176,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "main[data-library-workspace='v2']",
+      "runtimeReadySelector": "section[aria-label='Library menu'][data-library-directory='keyboard-directory']",
+      "orchestrated": true
     },
     {
       "id": "library-new",
@@ -201,7 +213,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='new']",
+      "runtimeReadySelector": "section[data-library-destination='new'] [data-library-surface='new']",
+      "orchestrated": true
     },
     {
       "id": "library-import",
@@ -235,7 +250,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='import']",
+      "runtimeReadySelector": "section[data-library-destination='import'] [data-library-surface='import']",
+      "orchestrated": true
     },
     {
       "id": "library-load",
@@ -269,7 +287,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='load']",
+      "runtimeReadySelector": "section[data-library-destination='load'] [data-library-surface='load']",
+      "orchestrated": true
     },
     {
       "id": "library-examples",
@@ -303,7 +324,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='examples']",
+      "runtimeReadySelector": "section[data-library-destination='examples'] [data-library-surface='examples']",
+      "orchestrated": true
     },
     {
       "id": "library-presets",
@@ -337,7 +361,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='presets']",
+      "runtimeReadySelector": "section[data-library-destination='presets'] [data-library-surface='presets']",
+      "orchestrated": true
     },
     {
       "id": "library-avery",
@@ -371,7 +398,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='avery']",
+      "runtimeReadySelector": "section[data-library-destination='avery'] [data-library-surface='avery']",
+      "orchestrated": true
     },
     {
       "id": "library-archive",
@@ -405,7 +435,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[data-library-destination='archive']",
+      "runtimeReadySelector": "section[data-library-destination='archive'] [data-library-surface='archive']",
+      "orchestrated": true
     },
     {
       "id": "story-map",
@@ -439,7 +472,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "[data-progressive-story-map='24x96']",
+      "runtimeReadySelector": "[data-progressive-story-map='24x96']",
+      "orchestrated": true
     },
     {
       "id": "scene-timeline",
@@ -473,7 +509,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "runtimeReadySelector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "orchestrated": true
     },
     {
       "id": "visual-story",
@@ -507,7 +546,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "[data-visual-story='scene-beat-shot-frame']",
+      "runtimeReadySelector": "[data-visual-story='scene-beat-shot-frame']",
+      "orchestrated": true
     },
     {
       "id": "profile",
@@ -536,7 +578,10 @@
         "frame": "layered-inset",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
+      "runtimeReadySelector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
+      "orchestrated": true
     },
     {
       "id": "settings",
@@ -568,7 +613,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Settings menu']",
+      "runtimeReadySelector": "section[aria-label='Settings menu'][data-settings-menu='keyboard-directory']",
+      "orchestrated": true
     },
     {
       "id": "general",
@@ -602,7 +650,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='General settings']",
+      "runtimeReadySelector": "section[aria-label='General settings'] [data-settings-workspace-surface='general']",
+      "orchestrated": true
     },
     {
       "id": "story-mode",
@@ -636,7 +687,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "runtimeReadySelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "orchestrated": true
     },
     {
       "id": "local-ai",
@@ -675,7 +729,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Local Story Mode setup']",
+      "runtimeReadySelector": "section[aria-label='Local Story Mode setup'] [data-skin-v1-local-ai='true']",
+      "orchestrated": true
     },
     {
       "id": "cloud-story-mode",
@@ -714,7 +771,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Cloud Story Mode setup']",
+      "runtimeReadySelector": "section[aria-label='Cloud Story Mode setup'] [data-skin-v1-cloud-story-mode='true']",
+      "orchestrated": true
     },
     {
       "id": "hybrid-story-mode",
@@ -753,7 +813,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
+      "runtimeReadySelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid'] [data-hybrid-story-mode='capability-matrix']",
+      "orchestrated": true
     },
     {
       "id": "node",
@@ -787,7 +850,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Node information']",
+      "runtimeReadySelector": "section[aria-label='Node information'] [data-skin-v1-node='true'][data-node-readiness='ready']",
+      "orchestrated": true
     },
     {
       "id": "agents",
@@ -821,7 +887,10 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='PlotPickle Agents setup']",
+      "runtimeReadySelector": "section[aria-label='PlotPickle Agents setup'] [data-skin-v1-plotpickle-agents='true']",
+      "orchestrated": true
     },
     {
       "id": "issue-log",
@@ -850,7 +919,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
+      "runtimeReadySelector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help'] [data-issue-log-panel='ready']",
+      "orchestrated": true
     },
     {
       "id": "licensing",
@@ -879,7 +951,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
+      "runtimeReadySelector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source'] [data-open-source-skin-panel='ready']",
+      "orchestrated": true
     },
     {
       "id": "shutdown-node",
@@ -908,7 +983,10 @@
         "frame": "solid-standard",
         "selectedState": "not-applicable",
         "typography": "standard-ui"
-      }
+      },
+      "runtimeSelector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
+      "runtimeReadySelector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
+      "orchestrated": true
     },
     {
       "id": "plan",
@@ -979,7 +1057,11 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "[data-block-native-write='24x96']",
+      "runtimeReadySelector": "[data-block-native-write='24x96']",
+      "orchestrated": true,
+      "runtimeRoute": "/write?block=17&mini=1"
     },
     {
       "id": "story",
@@ -1141,7 +1223,11 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "main[aria-labelledby='storyboard-readiness-title']",
+      "runtimeReadySelector": "main[aria-labelledby='storyboard-readiness-title']",
+      "orchestrated": true,
+      "runtimeRoute": "/storyboard?block=17&mini=1"
     },
     {
       "id": "previs",
@@ -1173,7 +1259,11 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "main[aria-labelledby='previs-title']",
+      "runtimeReadySelector": "#previs-block-panel",
+      "orchestrated": true,
+      "runtimeRoute": "/previs?block=17&mini=1"
     },
     {
       "id": "pageflow",
@@ -1210,7 +1300,11 @@
         "frame": "solid-standard",
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
-      }
+      },
+      "runtimeSelector": "[data-pageflow-authority='ppf-block-writing-read-only']",
+      "runtimeReadySelector": "[data-pageflow-authority='ppf-block-writing-read-only']",
+      "orchestrated": true,
+      "runtimeRoute": "/pageflow?block=17&mini=1"
     },
     {
       "id": "edit",

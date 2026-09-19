@@ -29,6 +29,20 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.hostname === "www.plotpickle.com") {
+      const canonical = new URL(request.url);
+      canonical.hostname = "plotpickle.com";
+      canonical.protocol = "https:";
+      canonical.port = "";
+      return Response.redirect(canonical.toString(), 308);
+    }
+
+    if (url.hostname === "plotpickle.com" && url.pathname === "/") {
+      const publicUrl = new URL(request.url);
+      publicUrl.pathname = "/site";
+      return handler.fetch(new Request(publicUrl, request), env, ctx);
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {

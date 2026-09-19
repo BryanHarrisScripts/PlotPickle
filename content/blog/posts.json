@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "posts": [
+    {
+      "slug": "github-governs-plotpickle-com",
+      "title": "PlotPickle.com now follows the source",
+      "publishedAt": "2026-09-19",
+      "updatedAt": "2026-09-19",
+      "author": "Bryan Elgin Harris",
+      "summary": "PlotPickle.com is moving to a GitHub-governed publishing model: source first, verified build second, Human publish last.",
+      "series": "Building PlotPickle",
+      "tags": ["PlotPickle", "open source", "GitHub", "ChatGPT Sites"],
+      "status": "published",
+      "sections": [
+        {"heading": "One source of truth", "paragraphs": ["PlotPickle is built in the open. The public site should work the same way.", "The PlotPickle repository is now the governing source for public copy, public assets, Blog posts and discovery metadata. ChatGPT Sites remains the hosting and publication surface rather than a separate editorial source."]},
+        {"heading": "Why this matters", "paragraphs": ["A public page should be traceable to the code and content that produced it. That makes changes reviewable, reversible and easier to keep aligned with the product itself.", "The publication boundary remains Human-controlled: a reviewed GitHub change can produce a deployable Site version, but publication is still a deliberate decision."]}
+      ],
+      "sources": [{"label": "PlotPickle source", "url": "https://github.com/BryanHarrisScripts/PlotPickle"}]
+    },
+    {
+      "slug": "oss-radar-open-source-intelligence",
+      "title": "OSS Radar: learning from the open-source frontier",
+      "publishedAt": "2026-09-19",
+      "updatedAt": "2026-09-19",
+      "author": "Bryan Elgin Harris",
+      "summary": "PlotPickle's OSS Radar watches open-source story, agent, visual-production and local-AI work for transferable ideas rather than chasing trends.",
+      "series": "OSS Radar",
+      "tags": ["OSS Radar", "open source", "agents", "story technology"],
+      "status": "published",
+      "sections": [
+        {"heading": "What the Radar does", "paragraphs": ["OSS Radar scans open-source work for ideas that could save PlotPickle work, strengthen an existing system, reveal a missing capability or teach us something useful.", "The internal report is broader and more technical than the public Blog. Public Radar posts are a separate editorial projection: useful projects, factual links and the transferable lesson, without exposing internal implementation scoring or private roadmap reasoning."]},
+        {"heading": "Human review stays in the loop", "paragraphs": ["A repository appearing in OSS Radar does not authorize an installation, dependency change or product rewrite.", "The Radar may generate a public Blog draft, but a Human must review the article and merge the GitHub change before it can become part of PlotPickle.com."]}
+      ],
+      "sources": [{"label": "PlotPickle OSS Radar source", "url": "https://github.com/BryanHarrisScripts/PlotPickle/tree/main/lib/verification/oss-radar"}]
+    }
+  ]
+}

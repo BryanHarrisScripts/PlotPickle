@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import ProfileAccessBoundary from "./profile-access-boundary";
+import { isPublicWebPath } from "../public-web-route";
 
 function isSkinV1Path(pathname: string) {
   return pathname === "/skin-v1" || pathname.startsWith("/skin-v1/");
@@ -15,6 +16,6 @@ function isSkinV1Path(pathname: string) {
  */
 export default function ProfileAccessRouter({ children }: { readonly children: ReactNode }) {
   const pathname = usePathname();
-  if (isSkinV1Path(pathname)) return <>{children}</>;
+  if (isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;
   return <ProfileAccessBoundary>{children}</ProfileAccessBoundary>;
 }

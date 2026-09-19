@@ -34,9 +34,10 @@ test("#2249 global Dashboard return closes Licensing and Issue Log owner state",
 });
 
 test("#2249 Visual Story has an explicit Storyboard-owned open and return lifecycle", async () => {
-  const [storyboard, visual, capture] = await Promise.all([
+  const [storyboard, visual, scene, capture] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/visual-story-workspace.tsx"),
+    read("app/_components/storyboard/scene-timeline-workspace.tsx"),
     read("lib/verification/webmcp-surface-capture-registry.mjs"),
   ]);
 
@@ -48,7 +49,10 @@ test("#2249 Visual Story has an explicit Storyboard-owned open and return lifecy
   assert.match(visual, /data-skin-v1-return="storyboard"/u);
   assert.match(visual, />Back to Storyboard<\/button>/u);
   assert.match(visual, /onClick=\{onReturnToStoryboard\}/u);
-  assert.doesNotMatch(storyboard + visual, /history\.back\(/u);
+  assert.match(scene, /data-skin-v1-return="storyboard"/u);
+  assert.match(scene, /onClick=\{onReturnToStoryboard\}/u);
+  assert.match(visual, /onReturnToStoryboard=\{onReturnToStoryboard\}/u);
+  assert.doesNotMatch(storyboard + visual + scene, /history\.back\(/u);
 
   const visualStart = capture.indexOf('"visual-story": Object.freeze');
   const visualEnd = capture.indexOf("profile: Object.freeze", visualStart);

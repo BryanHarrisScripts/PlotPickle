@@ -587,6 +587,13 @@
   box-shadow: none !important;
 }
 
+.libraryDirectoryEyebrow {
+  margin: 0 !important;
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-3) var(--pp-skin-space-1) !important;
+  color: var(--pp-skin-accent-bright) !important;
+  text-align: left !important;
+}
+
 .libraryDirectoryMenu {
   width: 100% !important;
   max-width: none !important;

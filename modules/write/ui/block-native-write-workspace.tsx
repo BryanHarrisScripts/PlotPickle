@@ -179,6 +179,38 @@ export default function BlockNativeWriteWorkspace() {
     setStatus("Copied source evidence into the unsaved working editor. Review it before saving; the source evidence itself remains unchanged.");
   }
 
+  async function visualizeBlock() {
+    if (dirty) {
+      setStatus("Save or discard the current screenplay edit before starting a visual production pass so the Responsibility Run can bind to one exact project revision.");
+      return;
+    }
+    setVisualizing(true);
+    try {
+      const request = createAgenticStoryToScreenProjectionRequest({
+        project,
+        scope: { kind: "block", blockNumber: address.blockNumber },
+        createdAt: new Date().toISOString(),
+      });
+      await responsibilityRunRequest(responsibilityRunCreatePayload(request.parentRun));
+      for (const stage of request.stages) {
+        await responsibilityRunRequest(responsibilityRunCreatePayload(stage.run));
+        await responsibilityRunRequest({
+          action: "attach-child",
+          runId: request.parentRun.runId,
+          childRunId: stage.run.runId,
+        });
+      }
+      setStatus(
+        `Prepared ${request.stages.length} proposal-only Story-to-Screen stages for Block ${String(address.blockNumber).padStart(2, "0")} at project revision ${request.canonicalRevision}. `
+        + "They are visible in Responsibility Runs for bounded execution and Human review. No provider call, cloud spend, canon promotion, or story rewrite occurred from this action.",
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Story-to-Screen projection could not be prepared.");
+    } finally {
+      setVisualizing(false);
+    }
+  }
+
   return (
     <main className={styles.workspace} data-block-native-write="24x96">
       <header className={styles.header}>
@@ -188,6 +220,7 @@ export default function BlockNativeWriteWorkspace() {
           <span>Act {block?.actNumber ?? 1} · Sequence {String(block?.sequenceNumber ?? 1).padStart(2, "0")} · Block {String(address.blockNumber).padStart(2, "0")}</span>
         </div>
         <div className={styles.headerActions}>
+          <button type="button" disabled={visualizing} onClick={() => void visualizeBlock()}>{visualizing ? "Preparing visual pass…" : "Visualize this Block"}</button>
           <button type="button" onClick={() => window.location.assign(storyLearningReturnHref(address))}>Outline this position</button>
           <button type="button" onClick={() => window.location.assign(pageFlowHref(address.blockNumber, address.miniBlockNumber))}>PageFlow diagnostic</button>
           <button type="button" onClick={() => window.location.assign(storyLearningHref(learning.references[0], address))}>Learn this position</button>

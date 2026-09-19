@@ -29,10 +29,29 @@ type RoutingStatus = {
   message?: string;
 };
 
+type ImageJobClass = "image-fast-draft" | "image-precision-edit";
+type JobPreference = "auto" | "local-first" | "cloud-first";
+type JobRoutingStatus = {
+  ok?: boolean;
+  jobs?: Partial<Record<ImageJobClass, JobPreference>>;
+  message?: string;
+};
+
 const CAPABILITIES: readonly { id: Capability; label: string; detail: string }[] = [
   { id: "text", label: "WRITING", detail: "Writing, planning, Sage and text Agents" },
   { id: "image", label: "IMAGES", detail: "Storyboards, reference frames and image work" },
   { id: "video", label: "VIDEO", detail: "Previs, animatic and motion work" },
+] as const;
+
+const IMAGE_JOBS: readonly { id: ImageJobClass; label: string; detail: string }[] = [
+  { id: "image-fast-draft", label: "IMAGES — FAST / DRAFT", detail: "Exploration, thumbnails and ordinary low/medium-quality image work" },
+  { id: "image-precision-edit", label: "IMAGES — PRECISION / EDIT", detail: "High-quality, reference, identity and continuity-sensitive image work" },
+] as const;
+
+const JOB_PREFERENCES: readonly { id: JobPreference; label: string }[] = [
+  { id: "auto", label: "AUTO" },
+  { id: "local-first", label: "LOCAL FIRST" },
+  { id: "cloud-first", label: "CLOUD FIRST" },
 ] as const;
 
 function routeLabel(route: string) {
@@ -63,6 +82,10 @@ function stateLabel(option: RoutingOption, selected: boolean) {
 
 export default function HybridStoryModePanel({ onChanged }: { readonly onChanged?: () => void }) {
   const [routing, setRouting] = useState<RoutingStatus | null>(null);
+  const [jobRouting, setJobRouting] = useState<Record<ImageJobClass, JobPreference>>({
+    "image-fast-draft": "auto",
+    "image-precision-edit": "auto",
+  });
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("Loading Local and Cloud resources…");
   const [paidAcknowledged, setPaidAcknowledged] = useState(false);
@@ -70,14 +93,23 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch("/api/ai-routing/status", { cache: "no-store" });
-      const body = await response.json() as RoutingStatus;
-      if (!response.ok || body.ok === false) throw new Error(body.message || "AI routing status is unavailable.");
-      setRouting(body);
-      setNotice("Choose one active route per capability. A true Hybrid mix uses at least one Local route and at least one Cloud route.");
+      const [routingResponse, jobResponse] = await Promise.all([
+        fetch("/api/ai-routing/status", { cache: "no-store" }),
+        fetch("/api/story-mode/job-routing", { cache: "no-store" }),
+      ]);
+      const routingBody = await routingResponse.json() as RoutingStatus;
+      const jobBody = await jobResponse.json() as JobRoutingStatus;
+      if (!routingResponse.ok || routingBody.ok === false) throw new Error(routingBody.message || "AI routing status is unavailable.");
+      if (!jobResponse.ok || jobBody.ok === false || !jobBody.jobs) throw new Error(jobBody.message || "Story Mode Job Routing is unavailable.");
+      setRouting(routingBody);
+      setJobRouting({
+        "image-fast-draft": jobBody.jobs["image-fast-draft"] || "auto",
+        "image-precision-edit": jobBody.jobs["image-precision-edit"] || "auto",
+      });
+      setNotice("Choose ready Local and Cloud resources, then set per-job routing preferences. AUTO preserves the currently selected ready route.");
     } catch (error) {
       setRouting(null);
-      setNotice(error instanceof Error ? error.message : "AI routing status is unavailable.");
+      setNotice(error instanceof Error ? error.message : "Story Mode routing status is unavailable.");
     }
   }, []);
 
@@ -91,6 +123,31 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
   const hybridReady = mix.every((item) => item?.ready === true)
     && mix.some((item) => item?.locality === "local")
     && mix.some((item) => item?.locality === "cloud");
+
+  async function updateJobPreference(jobClass: ImageJobClass, preference: JobPreference) {
+    if (working) return;
+    setWorking(`job:${jobClass}`);
+    setNotice(`Updating ${IMAGE_JOBS.find((job) => job.id === jobClass)?.label || jobClass} routing…`);
+    try {
+      const response = await fetch("/api/story-mode/job-routing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobClass, preference }),
+      });
+      const body = await response.json() as JobRoutingStatus;
+      if (!response.ok || body.ok === false || !body.jobs) throw new Error(body.message || "Job Routing preference could not be saved.");
+      setJobRouting({
+        "image-fast-draft": body.jobs["image-fast-draft"] || "auto",
+        "image-precision-edit": body.jobs["image-precision-edit"] || "auto",
+      });
+      setNotice(`${IMAGE_JOBS.find((job) => job.id === jobClass)?.label || jobClass} now uses ${preference.toUpperCase().replace("-", " ")}. The live image request resolves only across tested routes allowed by Story Mode.`);
+      onChanged?.();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Job Routing preference could not be saved.");
+    } finally {
+      setWorking("");
+    }
+  }
 
   async function selectRoute(capability: Capability, route: string, locality: Locality) {
     if (working) return;
@@ -156,6 +213,36 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
           <span>I understand Cloud video may send prompts and selected reference media outside this computer.</span>
         </label>
       </div>
+
+      <section className={styles.jobRouting} data-story-mode-job-routing="image" aria-labelledby="hybrid-job-routing-title">
+        <header>
+          <p>JOB ROUTING</p>
+          <h3 id="hybrid-job-routing-title">Route each real image workload independently</h3>
+          <span>Preferences never change canon or provider setup. AUTO keeps the currently selected tested route; LOCAL FIRST and CLOUD FIRST resolve per request without changing the global provider selection.</span>
+        </header>
+        {IMAGE_JOBS.map((job) => (
+          <div className={styles.jobRow} key={job.id} data-job-class={job.id}>
+            <div>
+              <strong>{job.label}</strong>
+              <span>{job.detail}</span>
+            </div>
+            <div className={styles.jobChoices} role="group" aria-label={`${job.label} routing preference`}>
+              {JOB_PREFERENCES.map((preference) => (
+                <button
+                  key={preference.id}
+                  type="button"
+                  data-job-preference={preference.id}
+                  data-selected={jobRouting[job.id] === preference.id ? "true" : "false"}
+                  disabled={Boolean(working)}
+                  onClick={() => void updateJobPreference(job.id, preference.id)}
+                >
+                  {preference.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
 
       <div className={styles.matrix} role="table" aria-label="Hybrid Story Mode Local and Cloud resource matrix">
         <div className={styles.header} role="row">

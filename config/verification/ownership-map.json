@@ -264,9 +264,11 @@
       "id": "story-mode-image-job-routing",
       "classification": "production",
       "include": [
-        "build/media-provider-common.ts",
+        "build/ai-routing-gateway.ts",
+        "build/ai/comfyui-media-provider.ts",
         "build/cloud-media-provider.ts",
-        "build/ai/comfyui-media-provider.ts"
+        "build/media-provider-common.ts",
+        "build/media-routing-gateway.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

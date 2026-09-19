@@ -243,7 +243,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] button {
   width: auto !important;
   min-width: 0 !important;
-  min-height: 24px !important;
+  min-height: var(--pp-skin-control-height) !important;
   justify-content: flex-start !important;
   padding: 0 !important;
   border: 0 !important;

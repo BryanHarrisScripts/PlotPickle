@@ -199,6 +199,7 @@ test("#2272 distinguishes font-family drift from semantic typography hierarchy d
     items: [
       {
         typographyRole: "h1",
+        typographyRoleSource: "semantic-heading",
         identity: "profile-heading",
         presentation: {
           fontFamily: '"JetBrains Mono", monospace',
@@ -209,6 +210,7 @@ test("#2272 distinguishes font-family drift from semantic typography hierarchy d
       },
       {
         typographyRole: "body",
+        typographyRoleSource: "html-fallback",
         identity: "profile-body",
         presentation: {
           fontFamily: '"JetBrains Mono", monospace',
@@ -249,4 +251,145 @@ test("#2272 distinguishes font-family drift from semantic typography hierarchy d
   const family = wrongFamily.find((item) => item.category === "typography-contract");
   assert.ok(family);
   assert.equal(family.proposedSeverity, "blocker");
+});
+
+
+test("#2272 Phase 1B ignores fallback typography classifications but keeps governed semantic roles", async () => {
+  const { contracts } = await loadSkinV1SurfaceContracts();
+  const contract = contractById(contracts, "profile");
+  const findings = analyzeRenderedSurfaceContract(contract, {
+    surface: "PROFILE",
+    geometry: {
+      gutters: { left: 130, right: 130 },
+      edgeViolations: [],
+      overlaps: [],
+      grids: [],
+      primaryGrid: null,
+      menus: [],
+    },
+    items: [
+      {
+        typographyRole: "body",
+        typographyRoleSource: "html-fallback",
+        identity: "compact-metadata-paragraph",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "11px",
+          fontWeight: "700",
+          textTransform: "none",
+        },
+      },
+      {
+        typographyRole: "control",
+        typographyRoleSource: "html-fallback",
+        identity: "ordinary-button",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "13px",
+          fontWeight: "400",
+          textTransform: "none",
+        },
+      },
+      {
+        typographyRole: "body",
+        typographyRoleSource: "html-fallback",
+        identity: "screenplay-editor",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "15px",
+          fontWeight: "400",
+          textTransform: "none",
+        },
+      },
+      {
+        typographyRole: "h2",
+        typographyRoleSource: "semantic-heading",
+        identity: "real-h2",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "16px",
+          fontWeight: "400",
+          textTransform: "none",
+        },
+      },
+      {
+        typographyRole: "menu",
+        typographyRoleSource: "context",
+        identity: "governed-tab",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "11px",
+          fontWeight: "700",
+          textTransform: "none",
+        },
+      },
+      {
+        typographyRole: "note",
+        typographyRoleSource: "explicit",
+        identity: "explicit-helper-note",
+        presentation: {
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: "15px",
+          fontWeight: "400",
+          textTransform: "none",
+        },
+      },
+    ],
+  });
+
+  assert.equal(findings.some((item) => item.identity === "compact-metadata-paragraph" && item.category.startsWith("typography-role-")), false);
+  assert.equal(findings.some((item) => item.identity === "ordinary-button" && item.category.startsWith("typography-role-")), false);
+  assert.equal(findings.some((item) => item.identity === "screenplay-editor" && item.category.startsWith("typography-role-")), false);
+  assert.ok(findings.some((item) => item.identity === "real-h2" && item.category === "typography-role-size"));
+  assert.ok(findings.some((item) => item.identity === "governed-tab" && item.category === "typography-role-size"));
+  assert.ok(findings.some((item) => item.identity === "explicit-helper-note" && item.category === "typography-role-size"));
+});
+
+test("#2272 Phase 1B keeps font-family drift blocking regardless of typography role confidence", async () => {
+  const { contracts } = await loadSkinV1SurfaceContracts();
+  const contract = contractById(contracts, "profile");
+  const findings = analyzeRenderedSurfaceContract(contract, {
+    surface: "PROFILE",
+    geometry: {
+      gutters: { left: 130, right: 130 },
+      edgeViolations: [],
+      overlaps: [],
+      grids: [],
+      primaryGrid: null,
+      menus: [],
+    },
+    items: [{
+      typographyRole: "body",
+      typographyRoleSource: "html-fallback",
+      identity: "fallback-with-rogue-family",
+      presentation: {
+        fontFamily: "Arial, sans-serif",
+        fontSize: "11px",
+        fontWeight: "400",
+        textTransform: "none",
+      },
+    }],
+  });
+  const family = findings.find((item) => item.category === "typography-contract");
+  assert.ok(family);
+  assert.equal(family.proposedSeverity, "blocker");
+});
+
+test("#2272 Phase 1B leaves confirmed geometry findings untouched", async () => {
+  const { contracts } = await loadSkinV1SurfaceContracts();
+  const findings = analyzeRenderedSurfaceContract(contractById(contracts, "profile"), {
+    surface: "PROFILE",
+    geometry: {
+      gutters: { left: 113, right: 147 },
+      edgeViolations: [{ identity: "profile-body", edge: "right", pixels: 17 }],
+      overlaps: [{ first: "header", second: "body", width: 26, height: 44 }],
+      grids: [],
+      primaryGrid: null,
+      menus: [],
+    },
+    items: [],
+  });
+  assert.ok(findings.some((item) => item.category === "gutter-asymmetry"));
+  assert.ok(findings.some((item) => item.category === "frame-overlap" && item.actual === "17px outside root"));
+  assert.ok(findings.some((item) => item.category === "structural-overlap" && item.actual === "26px × 44px"));
 });

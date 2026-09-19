@@ -14,6 +14,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "PRE-PRODUCTION" },
   { id: "previs", shortcut: "P", label: "Previs", description: "Preview Shots, Timing and Camera Motion", group: "PRE-PRODUCTION" },
   { id: "write", shortcut: "W", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "PRODUCTION" },
+  { id: "story-bible", shortcut: "V", label: "Story Bible", description: "Visual Reference for the Loaded Story", group: "PRODUCTION" },
   { id: "edit", shortcut: "E", label: "Edit", description: "Review and Improve Screenplay Flow", group: "PRODUCTION" },
   { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "PRODUCTION" },
   { id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "PRODUCTION" },
@@ -41,6 +42,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "plan",
   "storyboard",
   "previs",
+  "story-bible",
 ]);
 
 export const DASHBOARD_STARTUP_CHOICES = [

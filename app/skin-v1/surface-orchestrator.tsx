@@ -131,9 +131,9 @@ type DelegatedReturn = Readonly<{
 function existingReturnControl(active: ActiveSurface | null) {
   if (!active) return null;
   const selectors = [
+    "[data-preproduction-return]",
     ".pp-skin-v1-return",
     "[data-skin-v1-return]",
-    "[data-preproduction-return]",
   ];
   for (const selector of selectors) {
     const control = active.root.querySelector<HTMLElement>(selector);
@@ -145,7 +145,7 @@ function existingReturnControl(active: ActiveSurface | null) {
 function delegatedReturn(active: ActiveSurface | null): DelegatedReturn | null {
   const control = existingReturnControl(active);
   const text = control?.textContent?.trim() ?? "";
-  const match = /^Back to\s+(.+)$/iu.exec(text);
+  const match = /^(?:Back|Return) to\s+(.+)$/iu.exec(text);
   const label = match?.[1]?.trim() ?? "";
   if (!control || !label) return null;
   if (label.toLocaleLowerCase() === parentLabel(active).toLocaleLowerCase()) return null;

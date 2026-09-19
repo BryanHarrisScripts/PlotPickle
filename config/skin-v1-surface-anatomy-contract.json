@@ -575,6 +575,9 @@
       "computed-typography-roles",
       "edge-violations-and-sibling-intersections",
       "major-scroll-section-coordinates"
-    ]
+    ],
+    "enforcementMode": "advisory-census",
+    "blockingActivation": "Human-calibrated contract approval",
+    "rolloutRule": "New geometry findings retain proposedSeverity but remain advisory until the Human validates the measurement contract; existing Visual Director blockers are unaffected."
   }
 }

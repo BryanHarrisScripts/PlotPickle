@@ -49,7 +49,7 @@ test("#536 applies the approved studio theme to unconverted top-level and rabbit
   assert.match(layout, /studio-surface-continuity\.css/);
   for (const workspace of ["engines", "reports", "settings", "collab", "community"]) assert.ok(theme.includes(`data-active-workspace="${workspace}"`), `Missing ${workspace} continuity surface`);
   for (const token of ["#090909", "#22bfae", "Courier New", "standalone-studio-surface"]) assert.ok(theme.includes(token));
-  for (const path of ["app/core-curriculum/page.tsx", "app/structure/page.tsx", "app/diagnostics/page.tsx", "app/labs/page.tsx", "app/production/page.tsx", "app/pitch-review/page.tsx", "app/craftloop/page.tsx", "app/resonance/page.tsx"]) assert.match(await read(path), /standalone-studio-surface/, `${path} must use the approved studio surface`);
+  for (const path of ["app/core-curriculum/page.tsx", "app/structure/page.tsx", "app/diagnostics/page.tsx", "app/labs/page.tsx", "app/production/page.tsx", "app/pitch-review/page.tsx", "app/feedback/page.tsx", "app/craftloop/page.tsx", "app/resonance/page.tsx"]) assert.match(await read(path), /standalone-studio-surface/, `${path} must use the approved studio surface`);
 });
 
 test("#536 expands rendered UAT through navigation, rabbit holes and named returns", async () => {

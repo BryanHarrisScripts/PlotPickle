@@ -1,0 +1,186 @@
+/*
+ * #2283 — Skin V1 Color Expert convergence projection.
+ *
+ * This is a removable late projection over legacy/local colour declarations.
+ * It consumes existing Skin V1 semantic tokens only. It does not define a
+ * second palette, introduce raw colour literals, or change geometry/type.
+ *
+ * Authority: Skin V1 tokens -> semantic role -> component usage.
+ * Color Expert is advisory; Dashboard remains the canonical visual reference.
+ */
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="PlotPickle Community"] button {
+  border-color: var(--pp-skin-line-strong) !important;
+  background-color: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="PlotPickle Community"] button:is(
+  [aria-selected="true"],
+  [aria-pressed="true"],
+  [data-selected="true"],
+  [data-active="true"]
+) {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background-color: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+/* Writer's Craft Explore controls: replace near-white local borders with the
+   governed frame role while preserving native search/select semantics. */
+html[data-plotpickle-skin="skin-v1"] section[aria-label="LEARN Explore All Curriculum"] :is(
+  input[aria-label="Search all curriculum"],
+  select[aria-label="Filter Explore by topic"],
+  select[aria-label="Filter Explore by Craft Module"]
+) {
+  border-color: var(--pp-skin-line-strong) !important;
+  background-color: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+/* The Human-approved Library directory is one continuous green field. */
+html[data-plotpickle-skin="skin-v1"] main[data-library-workspace="v2"] [data-library-nav] {
+  border-color: var(--pp-skin-accent-deep) !important;
+  background-color: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] main[data-library-workspace="v2"] [data-library-nav][aria-selected="true"] {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background-color: var(--pp-skin-accent-deep) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[data-library-destination="archive"] p {
+  color: var(--pp-skin-ink-soft) !important;
+}
+
+/* Story Map legacy explanatory copy and separators use semantic text/frame
+   roles instead of the older custom green-grey ramp. */
+html[data-plotpickle-skin="skin-v1"] [data-progressive-story-map="24x96"] :is(p, li, small, dd) {
+  color: var(--pp-skin-ink-soft) !important;
+  border-color: var(--pp-skin-line) !important;
+}
+
+/* Storyboard block controls keep selection structural: canonical neutral frame
+   at rest and canonical bright accent when selected/current. */
+html[data-plotpickle-skin="skin-v1"] main[aria-labelledby="storyboard-readiness-title"] button {
+  border-color: var(--pp-skin-line-strong) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] main[aria-labelledby="storyboard-readiness-title"] button:is(
+  [aria-selected="true"],
+  [aria-current="true"],
+  [data-selected="true"],
+  [data-active="true"]
+) {
+  border-color: var(--pp-skin-accent-bright) !important;
+}
+
+/* Previs selected blocks and action controls map to the same semantic roles. */
+html[data-plotpickle-skin="skin-v1"] main[aria-labelledby="previs-title"] button {
+  border-color: var(--pp-skin-line-strong) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] main[aria-labelledby="previs-title"] button:is(
+  [aria-selected="true"],
+  [aria-current="true"],
+  [data-selected="true"],
+  [data-active="true"]
+) {
+  border-color: var(--pp-skin-accent-bright) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] main[aria-labelledby="previs-title"] button:disabled {
+  color: var(--pp-skin-disabled) !important;
+}
+
+/* Write/PageFlow are legacy form-heavy surfaces. Normalize only palette roles;
+   layout, hierarchy and overflow remain owned by their later structural phase. */
+html[data-plotpickle-skin="skin-v1"] [data-block-native-write="24x96"] :is(
+  input,
+  select,
+  textarea,
+  button
+),
+html[data-plotpickle-skin="skin-v1"] [data-pageflow-authority="ppf-block-writing-read-only"] :is(
+  input,
+  select,
+  textarea,
+  button
+) {
+  border-color: var(--pp-skin-line-strong) !important;
+  background-color: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-block-native-write="24x96"] :is(input, select, textarea, button):focus-visible,
+html[data-plotpickle-skin="skin-v1"] [data-pageflow-authority="ppf-block-writing-read-only"] :is(input, select, textarea, button):focus-visible {
+  border-color: var(--pp-skin-focus) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-block-native-write="24x96"] :is(input, select, textarea, button):disabled,
+html[data-plotpickle-skin="skin-v1"] [data-pageflow-authority="ppf-block-writing-read-only"] :is(input, select, textarea, button):disabled {
+  color: var(--pp-skin-disabled) !important;
+  background-color: var(--pp-skin-surface-1) !important;
+}
+
+/* Disabled Profile actions use the canonical disabled role rather than local
+   mid-greys. */
+html[data-plotpickle-skin="skin-v1"] section[aria-label="User Profile"].pp-skin-v1-profile-surface :is(
+  button,
+  a,
+  input,
+  select,
+  textarea
+):disabled,
+html[data-plotpickle-skin="skin-v1"] section[aria-label="User Profile"].pp-skin-v1-profile-surface [aria-disabled="true"] {
+  border-color: var(--pp-skin-line) !important;
+  background-color: var(--pp-skin-surface-1) !important;
+  color: var(--pp-skin-disabled) !important;
+}
+
+/* Story Mode policy rows use opaque Skin V1 surfaces; selection remains the
+   canonical dark-green state with structural border evidence. */
+html[data-plotpickle-skin="skin-v1"] section[aria-label="Story Mode directory"] [data-story-mode-policy] {
+  background-color: var(--pp-skin-surface-3) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="Story Mode directory"] [data-story-mode-policy][aria-selected="true"] {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background-color: var(--pp-skin-accent-deep) !important;
+}
+
+/* Issue Log form controls map legacy near-Skin greys/greens back to canonical
+   control roles without changing form layout or behavior. */
+html[data-plotpickle-skin="skin-v1"] section[aria-label="Issue Log"][data-dashboard-review-surface="help"] :is(
+  input,
+  select,
+  textarea,
+  button
+) {
+  border-color: var(--pp-skin-line-strong) !important;
+  background-color: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="Issue Log"][data-dashboard-review-surface="help"] :is(
+  input,
+  select,
+  textarea,
+  button
+):focus-visible {
+  border-color: var(--pp-skin-focus) !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] section[aria-label="Issue Log"][data-dashboard-review-surface="help"] :is(
+  input,
+  select,
+  textarea,
+  button
+):disabled {
+  color: var(--pp-skin-disabled) !important;
+  background-color: var(--pp-skin-surface-1) !important;
+}

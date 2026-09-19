@@ -480,7 +480,7 @@ export default function LibraryWorkspace() {
             data-skin-menu="library"
           >
             <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
-              <div className="pp-skin-v1-dashboard-title">*** LIBRARY DIRECTORY ***</div>
+              <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** LIBRARY DIRECTORY ***</div>
               <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Library directory">
                 {DESTINATIONS.map((item, index) => {
                   const selected = index === directorySelectedIndex;

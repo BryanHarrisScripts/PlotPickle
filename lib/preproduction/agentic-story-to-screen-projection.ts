@@ -183,6 +183,7 @@ export function createAgenticStoryToScreenProjectionRequest(input: {
     taskId: `story-to-screen:${input.project.id}:${input.project.revision}:${input.scope.kind}`,
     sourceIds: resolved.sourceRefs,
     createdAt: input.createdAt,
+    maxParallelChildren: orderedStages.length,
   });
 
   const stages = orderedStages.map((id, index): AgenticStoryToScreenStage => {

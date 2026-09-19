@@ -220,12 +220,21 @@
     {
       "id": "feedback",
       "label": "Feedback",
-      "path": "/pitch-review",
+      "path": "/feedback",
       "kind": "workspace",
       "migrationClass": "canonical",
       "activeWorkspace": "build",
       "expectedArea": "review",
       "expectedDestination": "feedback"
+    },
+    {
+      "id": "pitch-package",
+      "label": "Pitch Package Studio",
+      "path": "/pitch-review",
+      "kind": "standalone",
+      "migrationClass": "contextual",
+      "expectedArea": "create",
+      "expectedDestination": "pitch-package"
     },
     {
       "id": "refine",

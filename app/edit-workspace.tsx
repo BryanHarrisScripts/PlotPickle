@@ -186,7 +186,7 @@ export default function EditWorkspace() {
   if (!hydrated) return <main className={styles.loading}>Opening the canonical screenplay…</main>;
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-edit-workspace="canonical">
       <ApplicationShellHeader
         activeTab="edit"
         onNavigate={(id) => window.location.assign(workspaceHref(id))}

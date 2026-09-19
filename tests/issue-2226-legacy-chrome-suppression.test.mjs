@@ -17,6 +17,11 @@ test("#2226 orchestrator visually replaces legacy shell and parent chrome", asyn
   assert.doesNotMatch(css, /\[data-library-back="directory"\]/u);
   assert.match(css, /\[data-skin-v1-local-chrome="decorative-title"\]/u);
   assert.match(css, /display: none !important/u);
+  const suppressionStart = css.indexOf('.pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"])');
+  const suppressionEnd = css.indexOf("/* Every active registered non-Dashboard surface", suppressionStart);
+  const suppression = css.slice(suppressionStart, suppressionEnd);
+  assert.match(suppression, /display:\s*none !important/u);
+  assert.doesNotMatch(suppression, /clip-path|clip:\s*rect|width:\s*1px|height:\s*1px/u);
 
   assert.match(orchestrator, /PREPRODUCTION_SURFACES/u);
   assert.match(orchestrator, /pp-skin-v1-orchestrator-workspace-header/u);

@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 14,
-    routedCompatibilityDebt: 21,
+    canonicalOrchestratedDirect: 18,
+    routedCompatibilityDebt: 17,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "ai-routing", "afterglow-reconciliation"],
+    ["write", "labs-plan", "storyboard", "previs", "pageflow", "edit", "labs-storyboard", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "ai-routing", "afterglow-reconciliation"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-plan", "labs-storyboard", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -267,6 +267,47 @@ test("#2226 orchestrates Afterglow Reconciliation without changing reconciliatio
   assert.doesNotMatch(page, /\?workspace=dashboard/u);
 });
 
+test("#2226 Specialist Labs share one canonical route family while preserving scoped parent returns", async () => {
+  const [registry, page, orchestrator] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/labs/page.tsx"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+  ]);
+  const byId = new Map(registry.surfaces.map((surface) => [surface.id, surface]));
+  const expected = [
+    ["labs-plan", "plan", "/labs?scope=plan", "production"],
+    ["labs-storyboard", "storyboard", "/labs?scope=storyboard", "production"],
+    ["labs-feedback", "feedback", "/labs?scope=feedback", "diagnostic"],
+    ["labs-refine", "refine", "/labs?scope=refine", "diagnostic"],
+  ];
+
+  for (const [id, parent, route, shell] of expected) {
+    const surface = byId.get(id);
+    const scope = id.replace("labs-", "");
+    assert.equal(surface?.parent, parent);
+    assert.equal(surface?.capturePolicy, "census-only");
+    assert.equal(surface?.orchestrated, true);
+    assert.equal(surface?.runtimeRoute, route);
+    assert.equal(surface?.runtimeSelector, `[data-specialist-labs-surface='${scope}']`);
+    assert.equal(surface?.runtimeReadySelector, `[data-specialist-labs-surface='${scope}']`);
+    assert.equal(surface?.formatProfile?.layout, "two-column");
+    assert.equal(surface?.formatProfile?.shell, shell);
+  }
+
+  assert.match(page, /data-specialist-labs-surface=\{scope\}/u);
+  assert.match(page, /storyboard: \{ href: "\/storyboard", label: "Storyboard" \}/u);
+  assert.match(page, /feedback: \{ href: "\/feedback", label: "Feedback" \}/u);
+  assert.match(page, /refine: \{ href: "\/diagnostics", label: "Refine" \}/u);
+  assert.match(page, /plan: \{ href: "\/\?workspace=plan", label: "Plan" \}/u);
+  assert.match(page, /data-skin-v1-local-return="true"/u);
+  assert.doesNotMatch(page, /RefineReturnNav/u);
+  assert.doesNotMatch(page, /href=\{\`\/\?workspace=\$\{returnWorkspace\}\`\}/u);
+
+  assert.match(orchestrator, /exactRouteMatches/u);
+  assert.match(orchestrator, /data-specialist-labs-surface/u);
+  assert.match(orchestrator, /"\[data-skin-v1-local-return\]"/u);
+});
+
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {
   const [layout, orchestrator, css] = await Promise.all([
     read("app/layout.tsx"),
@@ -421,8 +462,10 @@ test("#2226 direct routed surfaces outrank nested visible subregions", async () 
   });
   const source = await read("app/skin-v1/surface-orchestrator.tsx");
   assert.match(source, /directRouteMatches/u);
+  assert.match(source, /exactRouteMatches/u);
   assert.match(source, /surface\.runtimeRoute/u);
-  assert.match(source, /window\.location\.pathname/u);
+  assert.match(source, /currentUrl\.pathname/u);
+  assert.match(source, /currentUrl\.searchParams\.get\(key\) === value/u);
 });
 
 

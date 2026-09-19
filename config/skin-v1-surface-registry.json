@@ -1218,7 +1218,30 @@
       "continuityIds": [
         "labs-plan"
       ],
-      "route": "/labs?scope=plan"
+      "route": "/labs?scope=plan",
+      "navigationPath": [
+        {
+          "order": 4,
+          "slug": "outline",
+          "label": "Outline"
+        },
+        {
+          "order": 2,
+          "slug": "specialist-labs",
+          "label": "Specialist Labs"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-specialist-labs-surface='plan']",
+      "runtimeReadySelector": "[data-specialist-labs-surface='plan']",
+      "orchestrated": true,
+      "runtimeRoute": "/labs?scope=plan"
     },
     {
       "id": "storyboard",
@@ -1375,7 +1398,30 @@
       "continuityIds": [
         "labs-storyboard"
       ],
-      "route": "/labs?scope=storyboard"
+      "route": "/labs?scope=storyboard",
+      "navigationPath": [
+        {
+          "order": 5,
+          "slug": "storyboard",
+          "label": "Storyboard"
+        },
+        {
+          "order": 1,
+          "slug": "specialist-labs",
+          "label": "Specialist Labs"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-specialist-labs-surface='storyboard']",
+      "runtimeReadySelector": "[data-specialist-labs-surface='storyboard']",
+      "orchestrated": true,
+      "runtimeRoute": "/labs?scope=storyboard"
     },
     {
       "id": "feedback",
@@ -1625,7 +1671,30 @@
       "continuityIds": [
         "labs-feedback"
       ],
-      "route": "/labs?scope=feedback"
+      "route": "/labs?scope=feedback",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "feedback",
+          "label": "Feedback"
+        },
+        {
+          "order": 1,
+          "slug": "specialist-labs",
+          "label": "Specialist Labs"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-specialist-labs-surface='feedback']",
+      "runtimeReadySelector": "[data-specialist-labs-surface='feedback']",
+      "orchestrated": true,
+      "runtimeRoute": "/labs?scope=feedback"
     },
     {
       "id": "labs-refine",
@@ -1638,7 +1707,30 @@
       "continuityIds": [
         "labs-refine"
       ],
-      "route": "/labs?scope=refine"
+      "route": "/labs?scope=refine",
+      "navigationPath": [
+        {
+          "order": 11,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 6,
+          "slug": "specialist-labs",
+          "label": "Specialist Labs"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-specialist-labs-surface='refine']",
+      "runtimeReadySelector": "[data-specialist-labs-surface='refine']",
+      "orchestrated": true,
+      "runtimeRoute": "/labs?scope=refine"
     },
     {
       "id": "wyrmwood",

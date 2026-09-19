@@ -11,7 +11,7 @@
   min-height: calc(100vh - 180px);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(220px, 22%) minmax(0, 56%) minmax(240px, 22%);
+  grid-template-columns: minmax(240px, 19%) minmax(440px, 56%) minmax(300px, 25%);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-fill-panel);

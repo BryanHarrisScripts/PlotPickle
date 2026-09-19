@@ -12,7 +12,8 @@ test("#2093 makes Library a single-surface Matrix/BBS keyboard directory", async
   assert.match(workspace, /data-library-directory="keyboard-directory"/u);
   assert.match(workspace, /data-skin-menu="library"/u);
   assert.match(workspace, /role="listbox" aria-label="Library directory"/u);
-  assert.match(workspace, /data-library-back="directory"[\s\S]*Back to Library/u);
+  assert.doesNotMatch(workspace, /data-library-back="directory"|Back to Library/u);
+  assert.match(workspace, /data-library-directory="keyboard-directory"[\s\S]*destination !== null \? \([\s\S]*data-library-destination=\{destination\}/u);
   assert.match(workspace, /event\.key === "Escape"[\s\S]*returnToDirectory\(\)/u);
   assert.doesNotMatch(workspace, /<nav aria-label="Library navigation"/u);
   assert.doesNotMatch(workspace, /className=\{styles\.libraryNav\}/u);

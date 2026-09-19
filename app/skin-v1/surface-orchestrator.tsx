@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import surfaceRegistry from "@/config/skin-v1-surface-registry.json";
 import anatomyContract from "@/config/skin-v1-surface-anatomy-contract.json";
 import compositionReference from "@/config/skin-v1-surface-composition-reference.json";
+import standardDeclarations from "@/config/skin-v1-surface-declarations/standard-surfaces.json";
 import AfterglowRepresentativeFixture from "./afterglow-representative-fixture";
 
 type FormatProfile = {
@@ -85,6 +86,7 @@ function markSurface(surface: RuntimeSurface, root: HTMLElement, active: boolean
   root.dataset.skinV1Typography = profile?.typography ?? "unspecified";
   root.dataset.skinV1Composition = compositionReference.id;
   root.dataset.skinV1Anatomy = anatomyContract.id;
+  root.dataset.skinV1Declaration = standardDeclarations.surfaces[surface.id as keyof typeof standardDeclarations.surfaces]?.declarationSource ?? "missing";
 }
 
 function syncSurfaces() {
@@ -182,6 +184,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       data-skin-v1-active-layout={profile?.layout ?? "pending"}
       data-skin-v1-composition-contract={compositionReference.id}
       data-skin-v1-anatomy-contract={anatomyContract.id}
+      data-skin-v1-declarations={standardDeclarations.id}
     >
       <AfterglowRepresentativeFixture />
       {active ? (

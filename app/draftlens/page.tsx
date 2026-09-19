@@ -221,7 +221,7 @@ export default function DraftLensPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} data-skin-v1-local-return="true" href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.secondaryButton} data-skin-v1-local-return="true" href="/diagnostics">Back to Refine</Link>
             <Link className={styles.secondaryButton} href="/resonance?return=refine">Open Resonance</Link>
             <Link className={styles.secondaryButton} href="/pageflow?return=refine">Open PageFlow</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>

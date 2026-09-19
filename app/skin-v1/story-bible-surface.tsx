@@ -36,6 +36,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
       className={styles.surface}
       aria-labelledby="story-bible-title"
       data-story-bible-surface="canonical"
+      data-pre-production-surface="story-bible"
       data-story-bible-project-id={bible.projectId}
       data-story-bible-read-only="true"
     >
@@ -56,7 +57,7 @@ export default function StoryBibleSurface({ project }: { readonly project: Libra
         </div>
 
         <div className={styles.identity}>
-          <p className={styles.kicker}>STORY BIBLE · READ-ONLY REFERENCE</p>
+          <p className={styles.kicker}>PRE-PRODUCTION · STORY BIBLE · READ-ONLY REFERENCE</p>
           <h1 id="story-bible-title">{bible.title}</h1>
           <p className={styles.meta}>PPF REVISION {bible.revision} · UPDATED {bible.updatedAt || "UNKNOWN"}</p>
           <div className={styles.spotlight}>

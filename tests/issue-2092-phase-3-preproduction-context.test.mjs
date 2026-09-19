@@ -56,11 +56,15 @@ test("#2092/#2189 keeps legacy Outline peers contextual while returning to the c
   assert.match(returnNav, /Return to Outline/);
   assert.match(returnNav, /data-preproduction-return="true"/);
   assert.match(returnNav, /data-skin-v1-local-chrome="return-navigation"/);
-  assert.match(returnNav, /startsWith\("\/"\)/);
-  assert.match(returnNav, /startsWith\("\/\/"\)/);
+  assert.match(returnNav, /function safeReturnTarget/);
+  assert.match(returnNav, /source\.origin !== INTERNAL_ORIGIN/);
+  assert.match(returnNav, /source\.pathname === "\/" && source\.searchParams\.get\("workspace"\) === "dashboard"/);
+  assert.match(returnNav, /source\.pathname === "\/storyboard"/);
+  assert.match(returnNav, /source\.pathname === "\/previs"/);
+  assert.match(returnNav, /function boundedStoryAddress/);
   assert.match(returnNav, /function dashboardReturnPath/);
   assert.doesNotMatch(nav, /href: "\/structure"/);
-  assert.doesNotMatch(returnNav, /return "\/structure"|returnPath: "\/structure"/);
+  assert.doesNotMatch(returnNav, /startsWith\("\/"\)|source\.pathname === "\/structure"/);
   assert.match(returnNav, /source\.searchParams\.get\("block"\)/);
   assert.match(returnNav, /source\.searchParams\.get\("mini"\)/);
 });

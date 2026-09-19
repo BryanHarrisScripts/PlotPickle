@@ -149,6 +149,7 @@ function existingReturnControl(active: ActiveSurface | null) {
     "[data-preproduction-return]",
     ".pp-skin-v1-return",
     "[data-skin-v1-return]",
+    "[data-skin-v1-local-return]",
   ];
   for (const root of roots) {
     for (const selector of selectors) {

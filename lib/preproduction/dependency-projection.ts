@@ -216,6 +216,14 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
     }, "contains-beat");
   }
 
+  const productionByAnchorAndOrder = new Map(project.production.shots.map((shot) => [
+    `${shot.anchorRef}::${shot.order}`,
+    shot,
+  ] as const));
+  const frameByArtifact = new Map((input.frames ?? [])
+    .filter((frame) => frame.storyboardArtifactId)
+    .map((frame) => [frame.storyboardArtifactId, frame] as const));
+
   for (const shot of input.editorialShots ?? []) {
     addAnchorDependent(input, nodes, edges, shot.anchorRef, {
       id: shot.shotId,
@@ -245,6 +253,21 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
         mode: directive.mode,
       });
     }
+
+    const productionShot = productionByAnchorAndOrder.get(`${shot.anchorRef}::${shot.order}`);
+    if (productionShot) {
+      addEdge(edges, shot.shotId, productionShot.id, "constrains-production-shot", "explicit", {
+        anchorRef: shot.anchorRef,
+        order: shot.order,
+      });
+      const frame = frameByArtifact.get(productionShot.storyboardArtifactId);
+      if (frame) {
+        addEdge(edges, shot.shotId, frame.frameId, "protects-disclosure-in-frame", "explicit", {
+          anchorRef: shot.anchorRef,
+          order: shot.order,
+        });
+      }
+    }
   }
 
   for (const frame of input.frames ?? []) {
@@ -261,10 +284,6 @@ export function buildPreproductionDependencySnapshot(input: PreproductionDepende
       },
     }, "visualized-by-frame");
   }
-
-  const frameByArtifact = new Map((input.frames ?? [])
-    .filter((frame) => frame.storyboardArtifactId)
-    .map((frame) => [frame.storyboardArtifactId, frame] as const));
 
   for (const shot of project.production.shots) {
     addAnchorDependent(input, nodes, edges, shot.anchorRef, {

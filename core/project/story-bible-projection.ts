@@ -217,7 +217,7 @@ export function projectStoryBible(
       ? {
           id: "source-screenplay",
           label: "Screenplay source",
-          value: screenplay.sourceLabel || screenplay.sourceFormat || "Imported screenplay evidence",
+          value: screenplay.sourceFileName || screenplay.sourceFormat || "Imported screenplay evidence",
           state: "reference",
           source: "Imported Screenplay Evidence",
         }

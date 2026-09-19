@@ -114,7 +114,7 @@
     {
       "screenId": "feedback",
       "label": "Feedback",
-      "route": "/?workspace=feedback",
+      "route": "/feedback",
       "expectedText": "Collect, compare and resolve feedback around the current work",
       "isolated": true
     },

@@ -562,11 +562,12 @@ test("#2272 Phase 2 removes superseded legacy chrome from layout while keeping D
     read("app/skin-v1/surface-orchestrator.tsx"),
   ]);
 
-  const start = css.indexOf('.pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"])');
+  const start = css.indexOf('.pp-skin-v1-orchestrator[data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-active-surface="dashboard"])');
   const end = css.indexOf("/* Every active registered non-Dashboard surface", start);
   const suppression = css.slice(start, end);
 
   assert.match(suppression, /\.pp-skin-v1-bbs-banner/u);
+  assert.match(suppression, /data-skin-v1-orchestrator-active="true"/u);
   assert.match(suppression, /\.pp-skin-v1-profile-banner/u);
   assert.match(suppression, /display:\s*none !important/u);
   assert.doesNotMatch(suppression, /position:\s*absolute|clip-path|width:\s*1px|height:\s*1px/u);

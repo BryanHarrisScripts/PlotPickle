@@ -6,18 +6,18 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032/#2050/#2068/#2085/#2266 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
     ['community', 'C', 'Community', 'Share and Collaborate', 'DEVELOPMENT'],
     ['learn', '1', "Writer's Craft", 'Learn Story Craft', 'DEVELOPMENT'],
     ['library', 'L', 'Library', 'Load Your Stories', 'DEVELOPMENT'],
+    ['story-bible', 'V', 'Pre-Production', 'Story Bible, Logline, Theme and Visual Reference', 'PRE-PRODUCTION'],
     ['plan', 'O', 'Outline', 'Visualize Story Structure', 'PRE-PRODUCTION'],
     ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'PRE-PRODUCTION'],
     ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'PRE-PRODUCTION'],
     ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'PRODUCTION'],
-    ['story-bible', 'V', 'Story Bible', 'Visual Reference for the Loaded Story', 'PRODUCTION'],
     ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'PRODUCTION'],
     ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'PRODUCTION'],
     ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'PRODUCTION'],

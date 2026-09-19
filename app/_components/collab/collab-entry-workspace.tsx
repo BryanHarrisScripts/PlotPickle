@@ -36,7 +36,7 @@ export default function CollabEntryWorkspace({ projectTitle }: { readonly projec
             <small>Review and decisions</small>
             <h3>Feedback</h3>
             <p>Keep notes, proposals, review evidence and human approval decisions in the existing review owner.</p>
-            <Link className={styles.action} href="/pitch-review">Open Feedback</Link>
+            <Link className={styles.action} href="/feedback">Open Feedback</Link>
           </article>
 
           <article className={styles.card}>

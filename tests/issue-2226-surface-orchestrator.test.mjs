@@ -140,3 +140,16 @@ test("#2226 Visual Director returns through the orchestrator before legacy contr
   const legacyIndex = source.indexOf("pp-skin-v1-return:visible", orchestratorIndex);
   assert.ok(orchestratorIndex >= 0 && legacyIndex > orchestratorIndex);
 });
+
+
+test("#2226 orchestrator Dashboard return reaches the application surface owner", async () => {
+  const [orchestrator, client] = await Promise.all([
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/skin-v1/skin-v1-client.tsx"),
+  ]);
+  assert.match(orchestrator, /plotpickle:return-dashboard/u);
+  assert.match(orchestrator, /active\.parent === "dashboard"/u);
+  assert.match(client, /addEventListener\("plotpickle:return-dashboard"/u);
+  assert.match(client, /setActiveSurface\("DASHBOARD"\)/u);
+  assert.match(client, /setDashboardSurfaceName\("DASHBOARD"\)/u);
+});

@@ -645,3 +645,73 @@ form .actions button[type="submit"]:hover:not(:disabled),
     display: none;
   }
 }
+
+
+/* #2266 Skin V1 profile gate alignment */
+:global(html[data-plotpickle-skin="skin-v1"]) .boundary {
+  box-sizing: border-box;
+  padding: clamp(var(--pp-skin-space-3), 4vw, var(--pp-skin-space-7));
+  background:
+    url("/assets/plotpickle-system/login-chamber.svg") center / cover no-repeat,
+    linear-gradient(180deg, var(--pp-skin-surface-0), var(--pp-skin-canvas));
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .boundary::before {
+  inset: clamp(var(--pp-skin-space-2), 2vw, var(--pp-skin-space-5));
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
+  border-radius: var(--pp-skin-radius);
+  box-shadow: inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-line);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .card {
+  width: min(760px, 100%);
+  gap: var(--pp-skin-space-5);
+  padding: clamp(var(--pp-skin-space-5), 5vw, var(--pp-skin-space-8));
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-accent);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-fill-panel);
+  background-image: none;
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .card::before,
+:global(html[data-plotpickle-skin="skin-v1"]) .card::after {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-accent-bright);
+  font-family: var(--pp-skin-font-ui);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .brand {
+  border-color: var(--pp-skin-accent);
+  background: var(--pp-skin-surface-1);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .brand strong,
+:global(html[data-plotpickle-skin="skin-v1"]) .card h1 {
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) :is(.brand small, .brandTelemetry, .eyebrow, .field span) {
+  color: var(--pp-skin-accent-bright) !important;
+  font-family: var(--pp-skin-font-ui) !important;
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) :is(.field input, .field textarea, .passwordRow button, .actions button, .actions a, .card > button) {
+  border-color: var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  font-family: var(--pp-skin-font-ui);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) form .actions button[type="submit"],
+:global(html[data-plotpickle-skin="skin-v1"]) .card > button {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+}

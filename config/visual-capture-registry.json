@@ -82,7 +82,7 @@
     },
     {
       "id": "feedback",
-      "path": "/?workspace=feedback"
+      "path": "/feedback"
     },
     {
       "id": "refine",

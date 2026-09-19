@@ -111,7 +111,7 @@ test("#2270 Library and Dashboard contracts project registered child menus inclu
   const dashboard = contracts.find((contract) => contract.surfaceId === "dashboard");
 
   assert.equal(library.expected.menu.orientation, "horizontal");
-  assert.ok(library.expected.menu.expectedVisibleLabels.includes("Library · New"));
+  assert.ok(library.expected.menu.expectedVisibleLabels.includes("New"));
   assert.ok(dashboard.expected.menu.expectedVisibleLabels.includes("Shut Down Node"));
 });
 

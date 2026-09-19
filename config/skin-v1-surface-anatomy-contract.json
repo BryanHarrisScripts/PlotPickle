@@ -553,5 +553,28 @@
     "Fields belong to a form, inspector or content owner; they do not create a new surface region by themselves.",
     "Metadata describes state and never acts as navigation unless separately declared.",
     "Additional panels are content/context areas unless the declaration explicitly gives them navigation semantics."
-  ]
+  ],
+  "renderedMeasurementPolicy": {
+    "issue": 2270,
+    "authorityModel": "projection-of-existing-four-layer-stack",
+    "createsFifthSpecificationLayer": false,
+    "geometryMayDefineRegionMeaning": false,
+    "browserExecutionOwner": "Browser Verification Broker (#2246)",
+    "renderedVerdictOwner": "Visual Director",
+    "continuityVerdictOwner": "UI Continuity",
+    "defaultPixelTolerance": 1,
+    "structuralOverlapAllowedByDefault": false,
+    "pageLevelHorizontalOverflowAllowedByDefault": false,
+    "shellLevelFourColumnAllowed": false,
+    "requiredEvidence": [
+      "viewport-and-document-dimensions",
+      "root-and-frame-rectangles",
+      "left-and-right-gutters",
+      "rendered-grid-tracks-and-gaps",
+      "menu-orientation-and-visible-items",
+      "computed-typography-roles",
+      "edge-violations-and-sibling-intersections",
+      "major-scroll-section-coordinates"
+    ]
+  }
 }

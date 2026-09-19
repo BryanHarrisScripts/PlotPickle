@@ -65,7 +65,6 @@ type OpenAiVideoJob = {
 const API = "/api/ai-routing";
 const STATUS_PATH = `${API}/status`;
 const SELECT_PATH = `${API}/select`;
-const IMAGE_PATH = "/api/local-ai/generate/image";
 const VIDEO_PATH = "/api/local-ai/generate/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const ROUTING_FILE = "ai-routing.json";
@@ -132,7 +131,7 @@ function normalizeChoice(value: unknown): RoutingChoice | null {
   };
 }
 
-async function readRoutingChoice() {
+export async function readRoutingChoice() {
   const [stored, assistantResult, media, native] = await Promise.all([
     readCredentialJson<unknown>(ROUTING_FILE),
     readSynchronizedAssistantStore(),
@@ -387,21 +386,9 @@ async function selectRoute(body: Record<string, unknown>) {
   return statusBody();
 }
 
-function imageInput(body: Record<string, unknown>): ImageGenerationInput {
-  return {
-    prompt: typeof body.prompt === "string" ? body.prompt : "",
-    characterId: typeof body.characterId === "string" ? body.characterId : undefined,
-    assetId: typeof body.assetId === "string" ? body.assetId : undefined,
-    aspect: body.aspect === "portrait" ? "portrait" : "landscape",
-    quality: body.quality === "high" ? "high" : "low",
-    billingAcknowledged: false,
-    requestCount: 1,
-  };
-}
-
-async function createOllamaComfyImage(body: Record<string, unknown>) {
-  const input = imageInput(body);
-  if (!input.prompt.trim()) throw new Error("Enter an image prompt before generating.");
+export async function createOllamaComfyImage(input: ImageGenerationInput) {
+  const prompt = typeof input.prompt === "string" ? input.prompt.trim() : "";
+  if (!prompt) throw new Error("Enter an image prompt before generating.");
   const [assistantResult, media] = await Promise.all([
     readSynchronizedAssistantStore(),
     readMediaRoutingStore(),
@@ -415,7 +402,7 @@ async function createOllamaComfyImage(body: Record<string, unknown>) {
   const revisedPrompt = await generateAssistantText(
     ollama,
     "Rewrite the writer's request as one concise cinematic image-generation prompt. Preserve names, setting, action, emotion and continuity. Return only the improved prompt.",
-    input.prompt,
+    prompt,
   );
   if (!revisedPrompt) throw new Error("The selected Ollama model returned no image prompt.");
   try {
@@ -573,25 +560,6 @@ export function registerAiRoutingGateway(server: ViteDevServer) {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (pathname.startsWith(API)) {
       await handleRoutingApi(request, response, pathname);
-      return;
-    }
-    if (pathname === IMAGE_PATH && request.method === "POST") {
-      const choice = await readRoutingChoice();
-      if (choice.image !== "ollama-comfyui") {
-        next();
-        return;
-      }
-      if (!isLocalRequest(request)) {
-        sendJson(response, 403, { ok: false, message: "Image generation is available only from this local PlotPickle server." });
-        return;
-      }
-      try {
-        const body = await readBody(request);
-        const result = await createOllamaComfyImage(body);
-        sendJson(response, 200, { ok: true, route: "ollama-comfyui", ...result });
-      } catch (error) {
-        sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : "The Ollama + ComfyUI image route failed." });
-      }
       return;
     }
     if (pathname === VIDEO_PATH && request.method === "POST") {

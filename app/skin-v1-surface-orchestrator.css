@@ -65,6 +65,43 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-return:is(:hover, 
   outline-offset: var(--pp-skin-space-1);
 }
 
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-workspace-header {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  margin: 0 auto var(--pp-skin-space-3);
+  padding: var(--pp-skin-space-3) var(--pp-skin-space-4);
+  box-sizing: border-box;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-accent-bright);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  box-shadow: var(--pp-skin-inset-highlight);
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-workspace-header > * {
+  margin: 0;
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-eyebrow {
+  color: var(--pp-skin-accent-bright);
+  font: 700 var(--pp-skin-font-xs)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui);
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-workspace-header h1 {
+  color: var(--pp-skin-ink);
+  font: 700 var(--pp-skin-font-title)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui);
+  letter-spacing: var(--pp-skin-tracking-label);
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-workspace-header p {
+  color: var(--pp-skin-ink-muted);
+  font: var(--pp-skin-font-meta)/var(--pp-skin-leading-body) var(--pp-skin-font-ui);
+}
+
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-content {
   min-width: 0;
 }
@@ -203,4 +240,19 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-footer > :last-chi
     width: calc(100vw - 24px) !important;
     padding: var(--pp-skin-space-3) !important;
   }
+}
+
+
+/* #2226: once a registered surface is orchestrated, legacy application chrome
+   must not remain visible inside the new shell. State handlers stay mounted;
+   only their superseded presentation is removed. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"]) nav[data-plotpickle-global-nav="v4"],
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"]) header[data-matrix-preproduction-context="current"],
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"] > .pp-skin-v1-return,
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"] > [data-library-back="directory"] {
+  display: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-chrome="decorative-title"] {
+  display: none !important;
 }

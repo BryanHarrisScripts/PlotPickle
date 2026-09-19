@@ -22,7 +22,8 @@ test("#2124 expands WebMCP through reachable nested Matrix directories", () => {
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["shutdown-node"].navigation[0].selector, "[data-dashboard-menu-item='shutdown']");
 });
 
-test("#2124 coverage contract distinguishes real captures from actions and unwired placeholders", () => {
+test("#2124 coverage contract distinguishes real captures, wired census surfaces, actions and unwired placeholders", () => {
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly, ["story-bible"]);
   assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.nonVisualActions, ["logout"]);
   assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired, ["edit", "feedback", "refine", "reports", "wyrmwood", "story"]);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.library.includes("library-archive"));

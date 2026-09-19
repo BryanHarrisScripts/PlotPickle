@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { hasActiveLibraryProject, loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
+import type { LibraryPPFProject } from "../../core/storage/library-project";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import MatrixStoryMapSurface, { type StoryMapReviewStage } from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
+import StoryBibleSurface from "./story-bible-surface";
 import {
   SkinV1BuildReviewSurface,
   SkinV1PrevisReviewSurface,
@@ -34,6 +37,9 @@ export default function DashboardBbsReviewHost({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [storyBibleOpen, setStoryBibleOpen] = useState(false);
+  const [storyBibleProject, setStoryBibleProject] = useState<LibraryPPFProject | null>(null);
+  const [dashboardNotice, setDashboardNotice] = useState("");
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [buildOpen, setBuildOpen] = useState(false);
   const [storyboardOpen, setStoryboardOpen] = useState(false);
@@ -55,6 +61,8 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
+      setStoryBibleOpen(false);
+      setStoryBibleProject(null);
       closePreproductionSurfaces();
       setOpenSourceOpen(false);
       setHelpIssueLogOpen(false);
@@ -65,6 +73,22 @@ export default function DashboardBbsReviewHost({
     window.addEventListener("plotpickle:return-dashboard", returnToDashboard);
     return () => window.removeEventListener("plotpickle:return-dashboard", returnToDashboard);
   }, [onSurfaceNameChange]);
+
+  useEffect(() => {
+    const refreshStoryBible = () => {
+      if (!storyBibleOpen) return;
+      if (!hasActiveLibraryProject()) {
+        setStoryBibleOpen(false);
+        setStoryBibleProject(null);
+        setDashboardNotice("Please load a story.");
+        onSurfaceNameChange("DASHBOARD");
+        return;
+      }
+      setStoryBibleProject(loadActiveLibraryProject());
+    };
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible);
+    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible);
+  }, [onSurfaceNameChange, storyBibleOpen]);
 
   function restoreDashboardFocus(itemId: string) {
     window.requestAnimationFrame(() => {
@@ -183,6 +207,7 @@ export default function DashboardBbsReviewHost({
   function activateItem(index: number) {
     const item = items[index];
     if (!item) return;
+    setDashboardNotice("");
     if (item.id === "library") {
       onActivate(index);
       onSurfaceNameChange("LIBRARY");
@@ -204,6 +229,18 @@ export default function DashboardBbsReviewHost({
       openPrevis(reviewAddress);
       return;
     }
+    if (item.id === "story-bible") {
+      onActivate(index);
+      if (!hasActiveLibraryProject()) {
+        setDashboardNotice("Please load a story.");
+        onSurfaceNameChange("DASHBOARD");
+        return;
+      }
+      setStoryBibleProject(loadActiveLibraryProject());
+      setStoryBibleOpen(true);
+      onSurfaceNameChange("STORY BIBLE");
+      return;
+    }
     if (item.id === "open-source") {
       onActivate(index);
       onSurfaceNameChange("LICENSING");
@@ -223,6 +260,40 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (storyBibleOpen && storyBibleProject) {
+    return (
+      <section
+        aria-label="Story Bible"
+        data-dashboard-review-surface="story-bible"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setStoryBibleOpen(false);
+            setStoryBibleProject(null);
+            onSurfaceNameChange("DASHBOARD");
+            restoreDashboardFocus("story-bible");
+          }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>STORY BIBLE</h1>
+          <button
+            autoFocus
+            type="button"
+            className="pp-skin-v1-return"
+            onClick={() => {
+              setStoryBibleOpen(false);
+              setStoryBibleProject(null);
+              onSurfaceNameChange("DASHBOARD");
+              restoreDashboardFocus("story-bible");
+            }}
+          >Back to Dashboard</button>
+        </div>
+        <StoryBibleSurface project={storyBibleProject} />
+      </section>
+    );
   }
 
   if (libraryOpen) {
@@ -388,6 +459,7 @@ export default function DashboardBbsReviewHost({
         onKeyDown={onKeyDown}
         onSurfaceNameChange={onSurfaceNameChange}
         setItemRef={setItemRef}
+        notice={dashboardNotice}
       />
     </div>
   );

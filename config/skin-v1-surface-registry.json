@@ -1064,6 +1064,33 @@
       "runtimeRoute": "/write?block=17&mini=1"
     },
     {
+      "id": "story-bible",
+      "label": "Story Bible",
+      "family": "story",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 8,
+          "slug": "story-bible",
+          "label": "Story Bible"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-story-bible-surface='canonical']",
+      "runtimeReadySelector": "[data-story-bible-surface='canonical']",
+      "orchestrated": true
+    },
+    {
       "id": "story",
       "label": "STORY — THE UNWRITTEN",
       "family": "story",
@@ -1320,7 +1347,7 @@
       "route": "/edit",
       "navigationPath": [
         {
-          "order": 8,
+          "order": 9,
           "slug": "edit",
           "label": "Edit"
         }
@@ -1364,7 +1391,7 @@
       "route": "/feedback",
       "navigationPath": [
         {
-          "order": 9,
+          "order": 10,
           "slug": "feedback",
           "label": "Feedback"
         }
@@ -1395,7 +1422,7 @@
       "route": "/diagnostics",
       "navigationPath": [
         {
-          "order": 10,
+          "order": 11,
           "slug": "refine",
           "label": "Refine"
         }
@@ -1426,7 +1453,7 @@
       "route": "/reports",
       "navigationPath": [
         {
-          "order": 11,
+          "order": 12,
           "slug": "reports",
           "label": "Reports"
         }

@@ -420,7 +420,8 @@
         "modules/plan/story-card-board.ts",
         "data/afterglow-screenplay.ts",
         "data/afterglow-reconciliation.ts",
-        "core/contracts/imported-screenplay-evidence/index.ts"
+        "core/contracts/imported-screenplay-evidence/index.ts",
+        "core/project/story-bible-projection.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

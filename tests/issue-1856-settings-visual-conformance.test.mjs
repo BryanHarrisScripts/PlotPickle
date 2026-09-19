@@ -100,14 +100,18 @@ test("#2124 registers the complete currently reachable Matrix capture tree", () 
 test("#2124 classifies every Dashboard destination as captured, non-visual, or currently unwired", () => {
   const dashboardIds = [...dashboardMenu.matchAll(/\{ id: "([^"]+)", shortcut: "[^"]+", label:/gu)].map((match) => match[1]);
   const captured = Object.keys(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured);
+  const censusOnly = [...WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly];
   const nonVisual = [...WEBMCP_DASHBOARD_DESTINATION_COVERAGE.nonVisualActions];
   const unwired = [...WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired];
-  const classified = [...captured, ...nonVisual, ...unwired];
+  const classified = [...captured, ...censusOnly, ...nonVisual, ...unwired];
 
   assert.deepEqual([...new Set(classified)].sort(), [...new Set(dashboardIds)].sort());
   assert.equal(classified.length, new Set(classified).size, "Dashboard destinations must have exactly one coverage classification");
   for (const surfaceIds of Object.values(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured)) {
     for (const surface of surfaceIds) assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes(surface), `${surface} must resolve to a registered capture`);
+  }
+  for (const dashboardId of censusOnly) {
+    assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes(dashboardId), false, `${dashboardId} must remain census-only`);
   }
 });
 

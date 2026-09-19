@@ -344,7 +344,8 @@
         "app/profile-access/profile-access-boundary.tsx",
         "app/profile-access/profile-identity-panel.tsx",
         "public/manifest.webmanifest",
-        "public/brand/favicon/plotpickle-green-square.svg"
+        "public/brand/favicon/plotpickle-green-square.svg",
+        "app/profile-access/profile-access-router.tsx"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [
@@ -1033,6 +1034,21 @@
         "release",
         "docs",
         "security"
+      ]
+    },
+    {
+      "id": "public-site-hosting-runtime-2262",
+      "classification": "production",
+      "include": [
+        "worker/index.ts",
+        "scripts/build-verified.mjs"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "release",
+        "surface",
+        "security",
+        "native"
       ]
     }
   ]

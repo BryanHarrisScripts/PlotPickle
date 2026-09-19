@@ -38,6 +38,7 @@ test("#2270 resolves one Surface Contract per standard WebMCP surface without ad
     assert.ok(contract.expected.frame.profile, contract.surfaceId);
     assert.equal(contract.expected.measurement.geometryMayDefineSemantics, false, contract.surfaceId);
     assert.equal(contract.expected.measurement.pageLevelHorizontalOverflowAllowed, false, contract.surfaceId);
+    assert.equal(contract.expected.measurement.enforcementMode, "advisory-census", contract.surfaceId);
   }
 });
 
@@ -101,8 +102,14 @@ test("#2270 measurement analysis detects frame, overflow, column, menu and typog
     "typography-contract",
   ]) assert.ok(findings.some((finding) => finding.category === category), category);
 
-  assert.ok(findings.some((finding) => finding.severity === "blocker" && finding.category === "frame-overlap"));
-  assert.ok(findings.some((finding) => finding.severity === "blocker" && finding.category === "column-contract"));
+  assert.ok(findings.some((finding) => finding.severity === "advisory" && finding.proposedSeverity === "blocker" && finding.category === "frame-overlap"));
+  assert.ok(findings.some((finding) => finding.severity === "advisory" && finding.proposedSeverity === "blocker" && finding.category === "column-contract"));
+
+  const blockingContract = structuredClone(profileContract);
+  blockingContract.expected.measurement.enforcementMode = "blocking";
+  const blockingFindings = analyzeRenderedSurfaceContract(blockingContract, profile);
+  assert.ok(blockingFindings.some((finding) => finding.severity === "blocker" && finding.category === "frame-overlap"));
+  assert.ok(blockingFindings.some((finding) => finding.severity === "blocker" && finding.category === "column-contract"));
 });
 
 test("#2270 Library and Dashboard contracts project registered child menus including Shutdown Node", async () => {

@@ -25,6 +25,8 @@ export const PUBLIC_SHELL_EXCEPTIONS: readonly PublicShellException[] = [
   { path: "/about", label: "About", reason: "public" },
   { path: "/legal", label: "Legal", reason: "public" },
   { path: "/suggest-report", label: "Suggest / Report", reason: "public" },
+  { path: "/site", label: "PlotPickle.com", reason: "public" },
+  { path: "/blog", label: "Blog", reason: "public" },
 ] as const;
 
 export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellTarget>> = {
@@ -300,5 +302,6 @@ export function sitemapShellTarget(pathname: string, search: string | URLSearchP
 }
 
 export function publicShellException(pathname: string) {
+  if (pathname.startsWith("/blog/")) return { path: pathname, label: "Blog article", reason: "public" } as const;
   return PUBLIC_SHELL_EXCEPTIONS.find((entry) => entry.path === pathname) ?? null;
 }

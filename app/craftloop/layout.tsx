@@ -13,7 +13,7 @@ export default function CraftLoopLayout({ children }: { readonly children: React
   }, []);
 
   return (
-    <div className={styles.boundary} data-preproduction-context={fromPreproduction ? "true" : "false"}>
+    <div className={styles.boundary} data-craftloop-boundary="canonical" data-preproduction-context={fromPreproduction ? "true" : "false"}>
       <PreproductionCapabilityReturn />
       {children}
     </div>

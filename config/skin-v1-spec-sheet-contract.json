@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "issue": 2226,
+  "id": "skin-v1-spec-sheet-contract-v1",
+  "purpose": "Define how any LLM or Human turns the Skin V1 token, composition, anatomy and surface declaration layers into a comparable UI specification sheet.",
+  "inputs": [
+    "app/skin-v1-definition.css",
+    "config/skin-v1-surface-composition-reference.json",
+    "config/skin-v1-surface-anatomy-contract.json",
+    "config/skin-v1-surface-registry.json",
+    "one config/skin-v1-surface-declarations/<surface>.json"
+  ],
+  "requiredOutputs": {
+    "boardIdentity": [
+      "surface-id",
+      "surface-label",
+      "layout-archetype",
+      "shell-profile"
+    ],
+    "literalRegions": true,
+    "regionLabelsRequired": true,
+    "regionRoleLabelsRequired": true,
+    "navigationSemanticsRequired": true,
+    "workspaceColumnCountRequired": true,
+    "titleStackRequired": true,
+    "outerAndInsetFrameCalloutRequired": true,
+    "selectedStateExampleRequired": true,
+    "footerCalloutRequired": true,
+    "engineeringSummaryRequired": true
+  },
+  "interpretationRules": [
+    "Do not invent a navigation region because a column or list exists.",
+    "Do not invent extra menus, toolbars, tabs, fields, cards or panels not permitted by the surface declaration.",
+    "Illustrative content may fill a declared content region only when the declaration marks exampleContentPolicy=illustrative.",
+    "Literal labels and region names must be copied exactly when marked literal.",
+    "Use token names and measurements from the authorities; do not substitute a local palette, radius, font or border system.",
+    "Show the semantic role of each region in annotations: navigation, content, inspector, timeline, control, context, evidence or reference.",
+    "Show title/eyebrow/subtitle placement exactly as declared.",
+    "Show return placement exactly as declared.",
+    "A spec sheet is explanatory evidence, not a new visual authority."
+  ],
+  "annotationFamilies": {
+    "structure": "red-orange",
+    "headersAndTitles": "magenta-violet",
+    "selectionAndNavigation": "green-teal",
+    "contentAndInspector": "yellow",
+    "timelineAndFooter": "blue-cyan"
+  },
+  "contentPolicies": {
+    "literal": "Must match declaration exactly.",
+    "controlledVocabulary": "May choose only from declaration-provided values.",
+    "illustrative": "May invent neutral example content that does not change structure, navigation or semantics.",
+    "prohibited": "Must not be generated."
+  },
+  "validationQuestions": [
+    "Can a reviewer identify which regions are destination navigation versus content selection?",
+    "Can a reviewer identify the single primary work region?",
+    "Are title, subtitle, eyebrow and context metadata in their declared zones?",
+    "Does the board preserve declared column counting rather than visual guesswork?",
+    "Do nested regions remain subordinate instead of becoming new surfaces?",
+    "Would another LLM receiving the same inputs produce the same region map even if example text differs?"
+  ]
+}

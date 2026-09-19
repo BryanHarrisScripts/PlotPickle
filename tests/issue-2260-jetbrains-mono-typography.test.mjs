@@ -76,3 +76,13 @@ test("#2260 retains OFL notice and registers the bundled font without a remote r
   assert.doesNotMatch(css, /fonts\.googleapis\.com|fonts\.gstatic\.com|use\.typekit\.net/i);
   assert.match(css, /url\("\/fonts\/jetbrains-mono\//);
 });
+
+test("#2260 keeps the prior Dashboard baseline as Human-controlled evidence", async () => {
+  const baselines = await json("tests/visual-baselines/skin-v1/manifest.json");
+  assert.equal(baselines.surfaces.dashboard.status, "candidate");
+  assert.equal(
+    baselines.surfaces.dashboard.baseline,
+    "tests/visual-baselines/skin-v1/00-dashboard.png",
+    "the previously approved Dashboard PNG stays in place until a Human locks a replacement",
+  );
+});

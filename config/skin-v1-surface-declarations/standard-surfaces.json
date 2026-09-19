@@ -1143,7 +1143,8 @@
       },
       "contentOwnership": "existing-feature-owner",
       "exampleContentPolicy": "preserve-live-content",
-      "declarationSource": "registry-projection"
+      "declarationSource": "registry-projection",
+      "runtimeRoute": "/write?block=17&mini=1"
     },
     "storyboard": {
       "surfaceId": "storyboard",
@@ -1184,7 +1185,8 @@
       },
       "contentOwnership": "existing-feature-owner",
       "exampleContentPolicy": "preserve-live-content",
-      "declarationSource": "registry-projection"
+      "declarationSource": "registry-projection",
+      "runtimeRoute": "/storyboard?block=17&mini=1"
     },
     "previs": {
       "surfaceId": "previs",
@@ -1225,7 +1227,8 @@
       },
       "contentOwnership": "existing-feature-owner",
       "exampleContentPolicy": "preserve-live-content",
-      "declarationSource": "registry-projection"
+      "declarationSource": "registry-projection",
+      "runtimeRoute": "/previs?block=17&mini=1"
     },
     "pageflow": {
       "surfaceId": "pageflow",
@@ -1271,7 +1274,8 @@
       },
       "contentOwnership": "existing-feature-owner",
       "exampleContentPolicy": "preserve-live-content",
-      "declarationSource": "registry-projection"
+      "declarationSource": "registry-projection",
+      "runtimeRoute": "/pageflow?block=17&mini=1"
     }
   }
 }

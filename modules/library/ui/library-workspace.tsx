@@ -489,6 +489,7 @@ export default function LibraryWorkspace() {
                   const command = `[${item.shortcut}] ${item.label}`.padEnd(22, " ");
                   return (
                     <button
+                      key={item.id}
                       ref={(node) => { directoryItemRefs.current[index] = node; }}
                       type="button"
                       role="option"

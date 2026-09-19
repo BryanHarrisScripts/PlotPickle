@@ -127,7 +127,12 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
     let frame = 0;
     const refresh = () => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => setActive(syncSurfaces()));
+      frame = window.requestAnimationFrame(() => {
+        const next = syncSurfaces();
+        setActive((current) => (
+          current?.id === next?.id && current?.root === next?.root ? current : next
+        ));
+      });
     };
     refresh();
     const observer = new MutationObserver(refresh);

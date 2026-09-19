@@ -99,7 +99,7 @@ const movedCapabilities = [
   ["Storyboard", "Visual Bible, Shot Designer and Animatic", "/?workspace=storyboard"],
   ["Pitch", "Loglines, pitch packages, comic deck and exports", "/?workspace=pitch"],
   ["Build", "Sonic Bible, breakdowns, schedule and distribution planning", "/?workspace=build"],
-  ["Feedback", "Anchored review, revision compare and saved-pass approval", "/?workspace=feedback"],
+  ["Feedback", "Anchored review, revision compare and saved-pass approval", "/feedback"],
   ["Reports", "Read-only production and provenance summaries", "/?workspace=reports"],
 ] as const;
 

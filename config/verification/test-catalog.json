@@ -918,7 +918,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2246-browser-verification-broker.test.mjs"
+          "tests/issue-2246-browser-verification-broker.test.mjs",
+          "tests/issue-2270-rendered-geometry-inspector.test.mjs"
         ]
       },
       "cost": "fast",
@@ -943,7 +944,7 @@
           ".artifacts/browser-diagnostics"
         ]
       },
-      "notes": "#2246 protects the swappable Browser Verification Broker, always-attached sanitized F12 observer, adapter capability contract, deep diagnostic evidence boundary and removal of direct Chromium launch from canonical rendered verifiers."
+      "notes": "#2246/#2270 protect the swappable Browser Verification Broker, always-attached sanitized F12 observer, existing Visual Director path, generated Surface Contract Matrix and bounded rendered frame/column/menu/type/overlap/scroll evidence without a parallel geometry authority."
     },
     {
       "id": "experience.public-site-authority-2262",

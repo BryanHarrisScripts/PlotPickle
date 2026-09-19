@@ -867,7 +867,10 @@
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",
         "scripts/run-uat-guide.mjs",
-        "scripts/start-uat-guide-window.ps1"
+        "scripts/start-uat-guide-window.ps1",
+        "scripts/write-skin-v1-surface-contract-matrix.mjs",
+        "lib/verification/skin-v1/surface-contracts.mjs",
+        "lib/verification/skin-v1/rendered-surface-profile.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

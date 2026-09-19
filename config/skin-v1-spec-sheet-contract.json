@@ -26,7 +26,14 @@
     "outerAndInsetFrameCalloutRequired": true,
     "selectedStateExampleRequired": true,
     "footerCalloutRequired": true,
-    "engineeringSummaryRequired": true
+    "engineeringSummaryRequired": true,
+    "shellAndGutterMeasurementsRequired": true,
+    "menuContractRequired": true,
+    "typographyRoleContractRequired": true,
+    "renderedColumnContractRequired": true,
+    "overlapPolicyRequired": true,
+    "scrollStructureRequired": true,
+    "measurementToleranceRequired": true
   },
   "interpretationRules": [
     "Do not invent a navigation region because a column or list exists.",
@@ -37,7 +44,9 @@
     "Show the semantic role of each region in annotations: navigation, content, inspector, timeline, control, context, evidence or reference.",
     "Show title/eyebrow/subtitle placement exactly as declared.",
     "Show return placement exactly as declared.",
-    "A spec sheet is explanatory evidence, not a new visual authority."
+    "A spec sheet is explanatory evidence, not a new visual authority.",
+    "Rendered geometry is evidence against this four-layer specification stack; it never becomes a fifth design authority.",
+    "Menu orientation, keyboard cues, frame thickness, gutters, columns and typography roles must resolve from existing profiles/declarations before a rendered comparison is made."
   ],
   "annotationFamilies": {
     "structure": "red-orange",
@@ -58,6 +67,8 @@
     "Are title, subtitle, eyebrow and context metadata in their declared zones?",
     "Does the board preserve declared column counting rather than visual guesswork?",
     "Do nested regions remain subordinate instead of becoming new surfaces?",
-    "Would another LLM receiving the same inputs produce the same region map even if example text differs?"
+    "Would another LLM receiving the same inputs produce the same region map even if example text differs?",
+    "Can a reviewer compare expected versus rendered frame, gutter, column, menu and typography measurements without inspecting CSS manually?",
+    "Are structural overlap and scroll/panel findings expressed as evidence rather than inferred navigation semantics?"
   ]
 }

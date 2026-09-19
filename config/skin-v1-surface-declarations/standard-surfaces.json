@@ -9,7 +9,14 @@
     "composition": "config/skin-v1-surface-composition-reference.json",
     "individualOverrides": [
       "config/skin-v1-surface-declarations/scene-workspace.json"
-    ]
+    ],
+    "renderedConformance": {
+      "issue": 2270,
+      "contract": "resolved-from-existing-four-layer-stack",
+      "matrixProjection": "docs/architecture/skin-v1-surface-contract-matrix.md",
+      "runtimeEvidence": ".artifacts/browser-diagnostics/skin-v1-visual-director/geometry/",
+      "independentAuthority": false
+    }
   },
   "surfaces": {
     "dashboard": {

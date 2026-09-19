@@ -7,6 +7,15 @@ import path from "node:path";
 import { PlotPickleAuthError, toPublicAuthError, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
 import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import { getProfileExperienceRuntime, requestBoundary } from "../../../../core/auth/profile-experience/profile-experience-runtime";
+import {
+  REVIEW_STAGE_FEEDBACK_STATES,
+  createReviewStageFeedback,
+  deliverReviewStageFeedback,
+  projectDeveloperReviewStage,
+  queueReviewStageFeedback,
+  reviewStageFeedbackInbox,
+  type ReviewStageFeedback,
+} from "../../../../lib/review-stage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +32,7 @@ type GuideStatus = {
   startedAt?: string;
   completedAt?: string;
   current?: Record<string, unknown>;
-  events?: unknown[];
+  events?: Array<Record<string, unknown>>;
   evidence?: Record<string, unknown>;
   privacy?: Record<string, unknown>;
 };
@@ -39,6 +48,7 @@ type HumanReview = {
 type ReviewState = {
   version: 1;
   records: HumanReview[];
+  feedback: ReviewStageFeedback[];
 };
 
 function response(value: unknown, status = 200) {
@@ -89,8 +99,8 @@ async function readStatus(statusFile: string): Promise<GuideStatus | null> {
 }
 
 function normalizeReviewState(value: unknown): ReviewState {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return { version: 1, records: [] };
-  const source = value as { version?: unknown; records?: unknown };
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { version: 1, records: [], feedback: [] };
+  const source = value as { version?: unknown; records?: unknown; feedback?: unknown };
   const records = Array.isArray(source.records)
     ? source.records.flatMap((candidate) => {
       if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
@@ -105,7 +115,79 @@ function normalizeReviewState(value: unknown): ReviewState {
       }];
     }).slice(-100)
     : [];
-  return { version: 1, records };
+  const feedbackStates = new Set<string>(REVIEW_STAGE_FEEDBACK_STATES);
+  const feedback = Array.isArray(source.feedback)
+    ? source.feedback.flatMap((candidate) => {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+      const item = candidate as Partial<ReviewStageFeedback>;
+      if (
+        item.version !== 1
+        || typeof item.feedbackId !== "string"
+        || typeof item.sessionId !== "string"
+        || typeof item.itemId !== "string"
+        || typeof item.targetAgentId !== "string"
+        || typeof item.actorId !== "string"
+        || !feedbackStates.has(String(item.state))
+      ) return [];
+      return [{
+        version: 1 as const,
+        feedbackId: item.feedbackId.slice(0, 220),
+        sessionId: item.sessionId.slice(0, 180),
+        itemId: item.itemId.slice(0, 320),
+        targetAgentId: item.targetAgentId.slice(0, 180),
+        actorId: item.actorId.slice(0, 180),
+        decision: typeof item.decision === "string" ? item.decision.slice(0, 120) : "",
+        body: typeof item.body === "string" ? item.body.slice(0, 2400) : "",
+        state: item.state as ReviewStageFeedback["state"],
+        createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+        deliveredAt: typeof item.deliveredAt === "string" ? item.deliveredAt : "",
+        acknowledgedAt: typeof item.acknowledgedAt === "string" ? item.acknowledgedAt : "",
+        actedOnAt: typeof item.actedOnAt === "string" ? item.actedOnAt : "",
+        answeredAt: typeof item.answeredAt === "string" ? item.answeredAt : "",
+        resolvedAt: typeof item.resolvedAt === "string" ? item.resolvedAt : "",
+        agentReply: typeof item.agentReply === "string" ? item.agentReply.slice(0, 2400) : "",
+      }];
+    }).slice(-500)
+    : [];
+  return { version: 1, records, feedback };
+}
+
+function guideEventKey(runId: string, event: Record<string, unknown>) {
+  const value = [
+    runId || "run",
+    typeof event.at === "string" ? event.at : "time",
+    typeof event.surface === "string" ? event.surface : "surface",
+    typeof event.label === "string" ? event.label : "event",
+  ].join("|");
+  return value.slice(0, 320);
+}
+
+function developerReviewStage(status: GuideStatus | null, reviewState: ReviewState) {
+  if (!status?.runId) return null;
+  const events = (status.events ?? []).map((event) => ({
+    key: guideEventKey(status.runId as string, event),
+    label: typeof event.label === "string" ? event.label : "UAT event",
+    result: typeof event.state === "string" ? event.state : "RUNNING",
+    summary: typeof event.detail === "string" ? event.detail : "",
+    evidenceRef: typeof event.surface === "string" ? event.surface : "uat",
+    sourceRevision: status.runId as string,
+    capturedAt: typeof event.at === "string" ? event.at : status.startedAt,
+  }));
+  return projectDeveloperReviewStage({
+    sessionId: status.runId,
+    title: "UAT Semantic Review",
+    buildRef: status.runId,
+    sourceRevision: status.runId,
+    targetAgentId: "bram-gatewick",
+    events,
+    reviews: reviewState.records.map((review) => ({
+      eventKey: review.eventKey,
+      decision: review.decision,
+      comment: review.comment,
+      updatedAt: review.updatedAt,
+    })),
+    createdAt: status.startedAt,
+  });
 }
 
 function processAlive(pid: unknown) {
@@ -147,10 +229,14 @@ export async function GET(request: Request) {
       readStatus(statusFile),
       runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID }),
     ]);
+    const normalizedReviewState = normalizeReviewState(reviewState);
     return response({
       available: true,
       status,
-      reviews: normalizeReviewState(reviewState).records,
+      reviews: normalizedReviewState.records,
+      reviewStage: developerReviewStage(status, normalizedReviewState),
+      reviewStageFeedback: normalizedReviewState.feedback,
+      agentFeedbackInbox: reviewStageFeedbackInbox(normalizedReviewState.feedback, "bram-gatewick"),
       isolation: "synthetic-human",
       providerSpendAllowed: false,
     });
@@ -175,19 +261,37 @@ export async function POST(request: Request) {
       if (!eventKey || eventKey.length > 320 || !REVIEW_DECISIONS.has(decision)) return response({ code: "INVALID_UAT_REVIEW", message: "Choose a valid UAT review response." }, 400);
 
       const existing = normalizeReviewState(await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID }));
+      const updatedAt = new Date().toISOString();
       const record: HumanReview = {
         runId,
         eventKey,
         decision: decision as HumanReview["decision"],
         comment,
-        updatedAt: new Date().toISOString(),
+        updatedAt,
       };
+      const feedbackId = `uat-review:${createHash("sha256").update(`${runId}\n${eventKey}\n${decision}\n${comment}`).digest("hex").slice(0, 24)}`;
+      const existingFeedback = existing.feedback.find((item) => item.feedbackId === feedbackId);
+      const reviewStageFeedback = existingFeedback ?? deliverReviewStageFeedback(
+        queueReviewStageFeedback(createReviewStageFeedback({
+          feedbackId,
+          sessionId: runId,
+          itemId: eventKey,
+          targetAgentId: "bram-gatewick",
+          actorId: profile.profileId,
+          decision,
+          body: comment,
+          createdAt: updatedAt,
+        })),
+        "bram-gatewick",
+        updatedAt,
+      );
       const next: ReviewState = {
         version: 1,
         records: [...existing.records.filter((item) => !(item.runId === runId && item.eventKey === eventKey)), record].slice(-100),
+        feedback: [...existing.feedback.filter((item) => item.feedbackId !== feedbackId), reviewStageFeedback].slice(-500),
       };
       await runtimeState.privateStorage.writePrivateJson(authContext, { domain: "cache", objectId: REVIEW_OBJECT_ID, value: next });
-      return response({ saved: true, review: record, deterministicResultUnchanged: true });
+      return response({ saved: true, review: record, reviewStageFeedback, deterministicResultUnchanged: true });
     }
 
     if (input.action !== "start") return response({ code: "UNSUPPORTED_UAT_REVIEW_ACTION", message: "That UAT Semantic Review action is unavailable." }, 400);

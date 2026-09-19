@@ -479,7 +479,7 @@ export default function LibraryWorkspace() {
           data-skin-menu="library"
           data-skin-menu-indicators="hidden"
         >
-          <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+          <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard" data-skin-visual-treatment="flat-approved">
             <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** LIBRARY DIRECTORY ***</div>
             <p className={`${styles.eyebrow} ${styles.libraryDirectoryEyebrow}`}>Library directory</p>
             <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.libraryDirectoryMenu}`} role="listbox" aria-label="Library directory">

@@ -171,9 +171,9 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([dat
 
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h1, [role="heading"][aria-level="1"]) {
   color: var(--pp-skin-ink) !important;
-  font: 700 var(--pp-skin-font-title)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui) !important;
-  letter-spacing: var(--pp-skin-tracking-label) !important;
-  text-transform: uppercase;
+  font: var(--pp-skin-weight-bold) var(--pp-skin-font-h1)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui) !important;
+  letter-spacing: 0 !important;
+  text-transform: none;
 }
 
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h2, h3, h4) {

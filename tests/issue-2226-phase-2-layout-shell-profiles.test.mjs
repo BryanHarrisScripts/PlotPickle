@@ -72,9 +72,9 @@ test("#2226 Phase 2 preserves current reference authority while making standard 
   }
 });
 
-test("#2226 Phase 2 codifies solid 1px/2px frames and only evidence-backed non-solid semantics", async () => {
+test("#2226 Phase 2 codifies a 1px standard frame with 2px reserved for semantic emphasis", async () => {
   const grammar = await readJson("config/skin-v1-surface-grammar.json");
-  assert.equal(grammar.frameProfiles["solid-standard"].outerBorderToken, "--pp-skin-border-strong");
+  assert.equal(grammar.frameProfiles["solid-standard"].outerBorderToken, "--pp-skin-border-thin");
   assert.equal(grammar.frameProfiles["solid-standard"].innerBorderToken, "--pp-skin-border-thin");
   assert.equal(grammar.frameProfiles["layered-inset"].sourceEvidence, "Profile");
   assert.deepEqual(grammar.borderPolicy.structuralStyles, ["solid"]);

@@ -24,6 +24,7 @@ import {
   updateFeedback,
 } from "@/lib/unified-feedback-store";
 import type { PlotPickleProject, ReviewPriority } from "@/lib/projects/project";
+import { projectCreatorReviewStage } from "@/lib/review-stage";
 
 const SECTION_LABELS: Record<FeedbackSection, string> = {
   overview: "Overview",
@@ -150,6 +151,12 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
   }), [query, status, source, priority, category, targetFilter, includeResolved]);
 
   const model = useMemo(() => createStoredFeedbackModel(project, filters), [project, filters]);
+  const creatorReviewStage = useMemo(() => projectCreatorReviewStage(model.records, {
+    sessionId: `creator-review:${project.id}`,
+    title: `${project.metadata.title} · Review Stage`,
+    projectId: project.id,
+    currentRevision: project.revisions.at(-1)?.id || project.metadata.updatedAt,
+  }), [model.records, project.id, project.metadata.title, project.metadata.updatedAt, project.revisions]);
   const targets = useMemo(() => feedbackTargetOptions(project), [project]);
   const sectionRecords = model.visibleRecords.filter((record) => recordBelongsToSection(record, section));
   const selectedRecord = sectionRecords.find((record) => record.id === selectedId)
@@ -226,7 +233,13 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
   }
 
   return (
-    <div className={styles.workspace}>
+    <div
+      className={styles.workspace}
+      data-review-stage-domain={creatorReviewStage.domain}
+      data-review-stage-session={creatorReviewStage.sessionId}
+      data-review-stage-projection={String(creatorReviewStage.projectionOnly)}
+      data-review-stage-stale={creatorReviewStage.items.filter((item) => item.stale).length}
+    >
       <aside className={styles.submenu} aria-label="Feedback sections">
         <div>
           <p>Feedback</p>

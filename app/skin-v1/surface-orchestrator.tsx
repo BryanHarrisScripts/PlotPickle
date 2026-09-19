@@ -24,6 +24,7 @@ type RuntimeSurface = {
   orchestrated?: boolean;
   runtimeSelector?: string;
   runtimeReadySelector?: string;
+  runtimeRoute?: string;
   navigationPath?: Array<{ order: number; slug: string; label: string }>;
   formatProfile?: FormatProfile;
 };
@@ -66,11 +67,17 @@ function findActiveSurface(): ActiveSurface | null {
       matches.push({ ...surface, root: element as HTMLElement });
     }
   }
-  matches.sort((a, b) =>
+  const pathname = window.location.pathname;
+  const directRouteMatches = matches.filter((surface) => {
+    if (!surface.runtimeRoute) return false;
+    return new URL(surface.runtimeRoute, window.location.origin).pathname === pathname;
+  });
+  const candidates = directRouteMatches.length ? directRouteMatches : matches;
+  candidates.sort((a, b) =>
     surfaceDepth(b) - surfaceDepth(a)
     || domDepth(b.root) - domDepth(a.root)
   );
-  return matches[0] ?? null;
+  return candidates[0] ?? null;
 }
 
 function markSurface(surface: RuntimeSurface, root: HTMLElement, active: boolean) {

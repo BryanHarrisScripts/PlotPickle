@@ -25,10 +25,7 @@ import {
   VISUAL_DIRECTOR_REPORT_PATH,
   runSkinV1VisualDirector,
 } from "../lib/verification/skin-v1-visual-director.mjs";
-import {
-  SURFACE_CONTRACT_MATRIX_ARTIFACT,
-  writeSkinV1SurfaceContractMatrix,
-} from "../lib/verification/skin-v1-surface-contracts.mjs";
+import { writeSkinV1SurfaceContractMatrix } from "../lib/verification/skin-v1-surface-contracts.mjs";
 import { RENDERED_GEOMETRY_ARTIFACT_ROOT } from "../lib/verification/skin-v1-rendered-surface-profile.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {

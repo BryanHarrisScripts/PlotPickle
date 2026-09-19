@@ -252,14 +252,15 @@
   "frameProfiles": {
     "solid-standard": {
       "borderStyle": "solid",
-      "outerBorderToken": "--pp-skin-border-strong",
+      "outerBorderToken": "--pp-skin-border-thin",
       "innerBorderToken": "--pp-skin-border-thin",
       "lineTokens": [
         "--pp-skin-line",
         "--pp-skin-line-soft",
         "--pp-skin-line-strong",
         "--pp-skin-accent"
-      ]
+      ],
+      "humanAmendment": "2026-09-18 standard neutral perimeter reduced to 1px; 2px retained for semantic emphasis"
     },
     "layered-inset": {
       "borderStyle": "solid",

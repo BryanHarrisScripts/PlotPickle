@@ -25,7 +25,8 @@
         "app/draftlens/page.tsx",
         "app/resonance/page.tsx",
         "app/screenplay-readiness/page.tsx",
-        "app/afterglow-reconciliation/page.tsx"
+        "app/afterglow-reconciliation/page.tsx",
+        "app/ai-routing/page.tsx"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

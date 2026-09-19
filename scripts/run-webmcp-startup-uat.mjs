@@ -25,6 +25,11 @@ import {
   VISUAL_DIRECTOR_REPORT_PATH,
   runSkinV1VisualDirector,
 } from "../lib/verification/skin-v1-visual-director.mjs";
+import {
+  SURFACE_CONTRACT_MATRIX_ARTIFACT,
+  writeSkinV1SurfaceContractMatrix,
+} from "../lib/verification/skin-v1-surface-contracts.mjs";
+import { RENDERED_GEOMETRY_ARTIFACT_ROOT } from "../lib/verification/skin-v1-rendered-surface-profile.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {
   buildWebMcpRuntimeFinding,
@@ -353,7 +358,9 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
         surface: surface.id,
       }),
     });
-    await onEvent?.({ type: "stage", label: "Comparing visual continuity", detail: "Dashboard remains the canonical Skin V1 reference." });
+    await onEvent?.({ type: "stage", label: "Resolving Surface Contracts", detail: "Generating the Human-readable contract matrix from the existing four-layer Skin V1 specification stack." });
+    const surfaceContractMatrix = await writeSkinV1SurfaceContractMatrix({ root: repoRoot });
+    await onEvent?.({ type: "stage", label: "Comparing visual continuity", detail: "Dashboard remains the canonical Skin V1 reference; rendered geometry is measured through the existing browser-verification path." });
     const visualDirector = await runSkinV1VisualDirector({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
@@ -370,6 +377,8 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
       findingsReport,
       findingCount: 0,
       standardSurfaceCatalogue: standardCatalogue,
+      surfaceContractMatrix: surfaceContractMatrix.path,
+      renderedGeometry: path.resolve(RENDERED_GEOMETRY_ARTIFACT_ROOT),
       visualDirector: {
         report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
         surfaces: visualDirector.totals.surfaces,
@@ -383,6 +392,8 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
     console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
     console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
+    console.log(`${pass} Surface Contract Matrix: ${surfaceContractMatrix.path}`);
+    console.log(`${pass} Rendered geometry JSON + viewport screenshots: ${path.resolve(RENDERED_GEOMETRY_ARTIFACT_ROOT)}`);
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
 

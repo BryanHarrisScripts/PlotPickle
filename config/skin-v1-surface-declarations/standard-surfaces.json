@@ -1,0 +1,1277 @@
+{
+  "schemaVersion": 1,
+  "issue": 2226,
+  "id": "skin-v1-standard-surface-declarations-v1",
+  "status": "runtime-projection",
+  "authority": {
+    "registry": "config/skin-v1-surface-registry.json",
+    "anatomy": "config/skin-v1-surface-anatomy-contract.json",
+    "composition": "config/skin-v1-surface-composition-reference.json",
+    "individualOverrides": [
+      "config/skin-v1-surface-declarations/scene-workspace.json"
+    ]
+  },
+  "surfaces": {
+    "dashboard": {
+      "surfaceId": "dashboard",
+      "label": "Dashboard",
+      "parent": null,
+      "runtimeSelector": "[data-skin-reference='dashboard-canonical']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "dashboard-reference",
+        "frame": "layered-inset",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Dashboard",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": null,
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "community": {
+      "surfaceId": "community",
+      "label": "Community",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='PlotPickle Community']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Community",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "writers-craft": {
+      "surfaceId": "writers-craft",
+      "label": "Writer's Craft",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Writer's Craft",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library": {
+      "surfaceId": "library",
+      "label": "Library",
+      "parent": "dashboard",
+      "runtimeSelector": "main[data-library-workspace='v2']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-new": {
+      "surfaceId": "library-new",
+      "label": "Library · New",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='new']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · New",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-import": {
+      "surfaceId": "library-import",
+      "label": "Library · Import",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='import']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Import",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-load": {
+      "surfaceId": "library-load",
+      "label": "Library · Load",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='load']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Load",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-examples": {
+      "surfaceId": "library-examples",
+      "label": "Library · Examples",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='examples']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Examples",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-presets": {
+      "surfaceId": "library-presets",
+      "label": "Library · Presets",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='presets']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Presets",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-avery": {
+      "surfaceId": "library-avery",
+      "label": "Library · Avery",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='avery']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Avery",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "library-archive": {
+      "surfaceId": "library-archive",
+      "label": "Library · Archive",
+      "parent": "library",
+      "runtimeSelector": "section[data-library-destination='archive']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "library-family",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Library · Archive",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "library"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "story-map": {
+      "surfaceId": "story-map",
+      "label": "Story Map",
+      "parent": "dashboard",
+      "runtimeSelector": "[data-progressive-story-map='24x96']",
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Story Map",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "workspace",
+          "role": "canvas",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "scene-timeline": {
+      "surfaceId": "scene-timeline",
+      "label": "Scene Workspace",
+      "parent": "storyboard",
+      "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
+      "formatProfile": {
+        "layout": "timeline-workspace",
+        "shell": "production-nested",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Scene Workspace",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "storyboard"
+      },
+      "regions": [
+        {
+          "id": "scene-workspace",
+          "role": "individual-override",
+          "placement": "see-scene-workspace.json"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "individual-override"
+    },
+    "visual-story": {
+      "surfaceId": "visual-story",
+      "label": "Visual Story",
+      "parent": "storyboard",
+      "runtimeSelector": "[data-visual-story='scene-beat-shot-frame']",
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production-nested",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Visual Story",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "storyboard"
+      },
+      "regions": [
+        {
+          "id": "workspace",
+          "role": "canvas",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "profile": {
+      "surfaceId": "profile",
+      "label": "Identity",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='User Profile'].pp-skin-v1-profile-surface",
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "standard",
+        "frame": "layered-inset",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Identity",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "primary",
+          "role": "primary-content",
+          "placement": "primary-work"
+        },
+        {
+          "id": "secondary",
+          "role": "secondary-content",
+          "placement": "right-context"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "settings": {
+      "surfaceId": "settings",
+      "label": "Manage",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='Settings menu']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Manage",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "general": {
+      "surfaceId": "general",
+      "label": "General",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='General settings']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "General",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "story-mode": {
+      "surfaceId": "story-mode",
+      "label": "Story Mode",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "formatProfile": {
+        "layout": "directory-grid",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Story Mode",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "directory",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "local-ai": {
+      "surfaceId": "local-ai",
+      "label": "Local Story Mode",
+      "parent": "story-mode",
+      "runtimeSelector": "section[aria-label='Local Story Mode setup']",
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Local Story Mode",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "story-mode"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "destination-navigation",
+          "placement": "left-rail"
+        },
+        {
+          "id": "settings-content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "cloud-story-mode": {
+      "surfaceId": "cloud-story-mode",
+      "label": "Cloud Story Mode",
+      "parent": "story-mode",
+      "runtimeSelector": "section[aria-label='Cloud Story Mode setup']",
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Cloud Story Mode",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "story-mode"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "destination-navigation",
+          "placement": "left-rail"
+        },
+        {
+          "id": "settings-content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "hybrid-story-mode": {
+      "surfaceId": "hybrid-story-mode",
+      "label": "Hybrid Story Mode",
+      "parent": "story-mode",
+      "runtimeSelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Hybrid Story Mode",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "story-mode"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "destination-navigation",
+          "placement": "left-rail"
+        },
+        {
+          "id": "settings-content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "node": {
+      "surfaceId": "node",
+      "label": "Node Info",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='Node information']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Node Info",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "agents": {
+      "surfaceId": "agents",
+      "label": "Agents",
+      "parent": "settings",
+      "runtimeSelector": "section[aria-label='PlotPickle Agents setup']",
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Agents",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "settings"
+      },
+      "regions": [
+        {
+          "id": "directory",
+          "role": "destination-navigation",
+          "placement": "left-rail"
+        },
+        {
+          "id": "settings-content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "issue-log": {
+      "surfaceId": "issue-log",
+      "label": "Bug Report",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard-restrained",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Bug Report",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "licensing": {
+      "surfaceId": "licensing",
+      "label": "Notices",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Notices",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "shutdown-node": {
+      "surfaceId": "shutdown-node",
+      "label": "Shut Down Node",
+      "parent": "dashboard",
+      "runtimeSelector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "action",
+        "frame": "solid-standard",
+        "selectedState": "not-applicable",
+        "typography": "standard-ui"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Shut Down Node",
+        "workspaceTitlePolicy": "rendered-surface-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "content",
+          "role": "primary-content",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "write": {
+      "surfaceId": "write",
+      "label": "Write",
+      "parent": "dashboard",
+      "runtimeSelector": "[data-block-native-write='24x96']",
+      "formatProfile": {
+        "layout": "editor-inspector",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Write",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "editor",
+          "role": "editor",
+          "placement": "primary-work"
+        },
+        {
+          "id": "inspector",
+          "role": "inspector",
+          "placement": "right-context"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "storyboard": {
+      "surfaceId": "storyboard",
+      "label": "Storyboard",
+      "parent": "dashboard",
+      "runtimeSelector": "main[aria-labelledby='storyboard-readiness-title']",
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Storyboard",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "workspace",
+          "role": "canvas",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "previs": {
+      "surfaceId": "previs",
+      "label": "Previs / Graphic Novel",
+      "parent": "dashboard",
+      "runtimeSelector": "main[aria-labelledby='previs-title']",
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "Previs / Graphic Novel",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "dashboard"
+      },
+      "regions": [
+        {
+          "id": "workspace",
+          "role": "canvas",
+          "placement": "primary-work"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    },
+    "pageflow": {
+      "surfaceId": "pageflow",
+      "label": "PageFlow Diagnostics",
+      "parent": "refine",
+      "runtimeSelector": "[data-pageflow-authority='ppf-block-writing-read-only']",
+      "formatProfile": {
+        "layout": "editor-inspector",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "titleStack": {
+        "globalSurfaceLabel": "PageFlow Diagnostics",
+        "workspaceTitlePolicy": "rendered-project-aware-content",
+        "alignment": "left"
+      },
+      "returnAction": {
+        "placement": "surface-action-row",
+        "alignment": "right",
+        "parent": "refine"
+      },
+      "regions": [
+        {
+          "id": "editor",
+          "role": "editor",
+          "placement": "primary-work"
+        },
+        {
+          "id": "inspector",
+          "role": "inspector",
+          "placement": "right-context"
+        }
+      ],
+      "footer": {
+        "required": true,
+        "roles": [
+          "status",
+          "context",
+          "keyboard-help"
+        ]
+      },
+      "contentOwnership": "existing-feature-owner",
+      "exampleContentPolicy": "preserve-live-content",
+      "declarationSource": "registry-projection"
+    }
+  }
+}

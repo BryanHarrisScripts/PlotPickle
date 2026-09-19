@@ -7,6 +7,8 @@ const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
 const url = "http://127.0.0.1:4173/";
 const navigationProbeUrl = new URL("/library", url).href;
 const communityProbeUrl = new URL("/?workspace=community", url).href;
+const storyboardWebpProbeUrl = new URL("/afterglow/storyboard/block-01-mini-1.webp", url).href;
+const storyboardSvgProbeUrl = new URL("/afterglow/storyboard/block-22-mini-1.svg", url).href;
 const logFile = path.join(root, "windows-server-smoke.log");
 const timeoutMs = 120_000;
 
@@ -54,6 +56,8 @@ function saveLog(summary) {
       `URL: ${url}`,
       `Navigation probe: ${navigationProbeUrl}`,
       `Community probe: ${communityProbeUrl}`,
+      `Storyboard WebP probe: ${storyboardWebpProbeUrl}`,
+      `Storyboard SVG probe: ${storyboardSvgProbeUrl}`,
       `Result: ${summary}`,
       `Exit code: ${exitCode ?? "running"}`,
       `Exit signal: ${exitSignal ?? "none"}`,
@@ -138,6 +142,25 @@ try {
     throw new Error(`PlotPickle Community probe failed: ${lastResponse}`);
   }
 
+  // Storyboard and Previs use Vite's public asset transport as the one browser hop.
+  const storyboardWebpResponse = await probe(storyboardWebpProbeUrl);
+  if (!storyboardWebpResponse.ok || !storyboardWebpResponse.headers.get("content-type")?.includes("image/webp")) {
+    throw new Error(`PlotPickle Storyboard WebP probe failed: ${lastResponse} · ${storyboardWebpResponse.headers.get("content-type") || "missing content type"}`);
+  }
+  const storyboardWebpBytes = new Uint8Array(await storyboardWebpResponse.arrayBuffer());
+  if (
+    String.fromCharCode(...storyboardWebpBytes.slice(0, 4)) !== "RIFF"
+    || String.fromCharCode(...storyboardWebpBytes.slice(8, 12)) !== "WEBP"
+  ) {
+    throw new Error("PlotPickle Storyboard WebP probe returned invalid WebP bytes.");
+  }
+
+  const storyboardSvgResponse = await probe(storyboardSvgProbeUrl);
+  const storyboardSvg = await storyboardSvgResponse.text();
+  if (!storyboardSvgResponse.ok || !storyboardSvgResponse.headers.get("content-type")?.includes("image/svg+xml") || !storyboardSvg.includes("<svg")) {
+    throw new Error(`PlotPickle Storyboard SVG probe failed: ${lastResponse} · ${storyboardSvgResponse.headers.get("content-type") || "missing content type"}`);
+  }
+
   // Let Vite/Vinext flush request diagnostics before evaluating the startup log.
   await new Promise((resolve) => setTimeout(resolve, 750));
   const findings = startupOutputFindings(output);
@@ -146,7 +169,7 @@ try {
   }
 
   saveLog(lastResponse);
-  console.log(`PlotPickle root, navigation and Community probes passed with clean startup diagnostics.`);
+  console.log(`PlotPickle root, navigation, Community and bundled Storyboard media probes passed with clean startup diagnostics.`);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   saveLog(message);

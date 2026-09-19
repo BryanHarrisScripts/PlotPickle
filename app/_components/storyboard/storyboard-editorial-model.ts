@@ -335,7 +335,7 @@ export function storyboardReferenceCandidates(project: PPFProject, targetId: str
       miniBlockNumber: frame.miniBlockNumber,
       label: `Mini-block ${blockNumber}.${frame.miniBlockNumber}`,
       caption: frame.caption || frame.alt,
-      assetUrl: `/api/local-ai/assets/storyboard-reference?block=${blockNumber}&mini=${frame.miniBlockNumber}`,
+      assetUrl: frame.src,
       sourceRef: frame.id,
       sourceKind,
       provenanceRefs: [

@@ -4,6 +4,8 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
+const read = (path) => readFile(new URL(path, root), "utf8");
+
 test("#2226 bundles the four Afterglow Block 17 WebP references consumed by Storyboard and Previs", async () => {
   for (const mini of [1, 2, 3, 4]) {
     const url = new URL(`public/afterglow/storyboard/block-17-mini-${mini}.webp`, root);
@@ -12,6 +14,23 @@ test("#2226 bundles the four Afterglow Block 17 WebP references consumed by Stor
     assert.equal(bytes.subarray(0, 4).toString("ascii"), "RIFF");
     assert.equal(bytes.subarray(8, 12).toString("ascii"), "WEBP");
   }
+});
+
+test("#2226 Storyboard and Previs use the bundled public asset as one browser request", async () => {
+  const [model, windowsSmoke, packageSmoke] = await Promise.all([
+    read("app/_components/storyboard/storyboard-editorial-model.ts"),
+    read("scripts/windows-server-smoke.mjs"),
+    read("scripts/package-smoke.mjs"),
+  ]);
+
+  assert.match(model, /assetUrl: frame\.src/u);
+  assert.doesNotMatch(model, /assetUrl: `\/api\/local-ai\/assets\/storyboard-reference/u);
+  assert.match(windowsSmoke, /\/afterglow\/storyboard\/block-01-mini-1\.webp/u);
+  assert.match(windowsSmoke, /\/afterglow\/storyboard\/block-22-mini-1\.svg/u);
+  assert.match(windowsSmoke, /image\/webp/u);
+  assert.match(windowsSmoke, /image\/svg\+xml/u);
+  assert.match(packageSmoke, /public\/afterglow\/storyboard\/block-01-mini-1\.webp/u);
+  assert.match(packageSmoke, /public\/afterglow\/storyboard\/block-22-mini-1\.svg/u);
 });
 
 test("#2226 storyboard-reference route serves bytes itself instead of redirecting through a second static request", async () => {

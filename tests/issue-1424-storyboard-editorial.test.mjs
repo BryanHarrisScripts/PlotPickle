@@ -16,7 +16,8 @@ test("#1424 reuses bundled Afterglow references through the bounded local asset 
   assert.doesNotMatch(route, /Response\.redirect|fetch\(|writeFile|POST|DELETE|PUT/);
 
   assert.match(model, /createAfterglowStoryboardFrames/);
-  assert.match(model, /\/api\/local-ai\/assets\/storyboard-reference\?block=/);
+  assert.match(model, /assetUrl: frame\.src/);
+  assert.doesNotMatch(model, /assetUrl: `\/api\/local-ai\/assets\/storyboard-reference/);
   assert.match(model, /AFTERGLOW_V9_FOUNDATIONS_FIXTURE_ID/);
   assert.match(model, /AFTERGLOW_V9_REFERENCE_SOURCE_ID/);
   assert.match(model, /function isAfterglowReferenceProject/);

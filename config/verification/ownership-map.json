@@ -826,6 +826,7 @@
         "scripts/verification-core.mjs",
         "scripts/verification-shadow.mjs",
         "scripts/package-smoke.mjs",
+        "scripts/windows-server-smoke.mjs",
         "config/uat-autopilot-registry.json",
         "config/ui-continuity-agent-registry.json",
         "config/visual-audit-captures.json",

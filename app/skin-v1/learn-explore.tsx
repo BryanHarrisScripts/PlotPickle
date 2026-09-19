@@ -224,8 +224,10 @@ export default function LearnExplore({
     return (
       <section
         className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`}
-        aria-label="LEARN Explore lesson"
+        aria-label="LEARN Explore All Curriculum"
         data-learn-explore-phase="6"
+        data-learn-explore-access="unrestricted"
+        data-learn-explore-view="lesson"
         data-learn-progress-owner="PPFProject.learning.completedLessonIds"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -264,6 +266,7 @@ export default function LearnExplore({
       aria-label="LEARN Explore All Curriculum"
       data-learn-explore-phase="6"
       data-learn-explore-access="unrestricted"
+      data-learn-explore-view="directory"
       data-learn-progress-owner="PPFProject.learning.completedLessonIds"
       onKeyDown={(event) => {
         if (event.key === "Escape") {

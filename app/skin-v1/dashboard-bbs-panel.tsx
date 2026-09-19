@@ -65,6 +65,7 @@ export default function DashboardBbsPanel({
   onKeyDown,
   onSurfaceNameChange,
   setItemRef,
+  notice,
 }: {
   readonly items: readonly DashboardBbsItem[];
   readonly selectedIndex: number;
@@ -72,6 +73,7 @@ export default function DashboardBbsPanel({
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => void;
   readonly onSurfaceNameChange: (name: string) => void;
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
+  readonly notice?: string;
 }) {
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
@@ -432,6 +434,8 @@ export default function DashboardBbsPanel({
             );
           })}
         </div>
+
+        {notice ? <p className="pp-skin-v1-dashboard-reminder" role="status" data-dashboard-notice="true">{notice}</p> : null}
 
         <div className="pp-skin-v1-dashboard-rule" aria-hidden="true" />
         <p className="pp-skin-v1-dashboard-reminder" data-skin-reference-type="emphasis">Remember: Write dirty, edit clean. 1 page = 1 minute.</p>

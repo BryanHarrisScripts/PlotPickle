@@ -995,6 +995,45 @@
         "security",
         "native"
       ]
+    },
+    {
+      "id": "public-web-projection-2262",
+      "classification": "production",
+      "include": [
+        "app/site/**",
+        "app/blog/**",
+        "app/llms.txt/**",
+        "app/public-web-route.ts",
+        "app/sitemap.ts",
+        "app/robots.ts",
+        "content/blog/**",
+        "lib/public-site/**"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "surface",
+        "visual",
+        "navigation",
+        "docs",
+        "canon"
+      ]
+    },
+    {
+      "id": "public-web-publishing-verification-2262",
+      "classification": "verification",
+      "include": [
+        "scripts/write-public-source-provenance.mjs",
+        "scripts/verify-public-site-drift.mjs",
+        "tests/issue-2262-public-site-authority.test.mjs",
+        "docs/developer-briefs/2262-public-site-authority.md"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "test-harness",
+        "release",
+        "docs",
+        "security"
+      ]
     }
   ]
 }

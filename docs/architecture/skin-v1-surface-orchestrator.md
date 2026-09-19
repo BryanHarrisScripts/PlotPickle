@@ -56,11 +56,11 @@ This is especially important for LEARN, where the canonical hierarchy remains le
 
 Skin V1 route ownership is now derived from the canonical Surface Registry rather than duplicated in runtime constants. `app/skin-v1-route-contract.ts` is consumed by both `SkinV1Runtime` and `LegacySkinOnly`, so an orchestrated direct route cannot be classified as Skin V1 by one boundary and legacy by the other.
 
-`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 6 canonical direct orchestrated routes, 29 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
+`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 7 canonical direct orchestrated routes, 28 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
 
 The ledger is not a second route authority. Entries disappear only by migrating their canonical registry surface into the orchestrated runtime contract or by explicitly reclassifying a legitimate exception in the canonical registry.
 
 
 Edit and Refine are the first census-only routes promoted into runtime orchestration without expanding the 30-surface WebMCP standard capture set. Edit keeps its three-column editorial owner; Refine keeps its diagnostic owner while the old local return chrome is suppressed under the canonical shell.
 
-Feedback remains deliberately un-orchestrated. The registry records an identity-conflict migration hold because `/pitch-review` renders Pitch Package Studio by default while the current Feedback review owner is mounted by `FeedbackStudioHost` at `/?workspace=feedback`. Styling that mismatch would hide routing debt rather than resolve it.
+Feedback now owns `/feedback` as a canonical orchestrated census route backed by the existing `FeedbackWorkspace`. `/pitch-review` remains a separate contextual Pitch/Plan workspace, so the former identity conflict is resolved without collapsing Pitch into Feedback. The 30-surface WebMCP standard capture set remains unchanged.

@@ -238,7 +238,7 @@ export default function DashboardBbsReviewHost({
       }
       setStoryBibleProject(loadActiveLibraryProject());
       setStoryBibleOpen(true);
-      onSurfaceNameChange("STORY BIBLE");
+      onSurfaceNameChange("PRE-PRODUCTION");
       return;
     }
     if (item.id === "open-source") {
@@ -265,7 +265,7 @@ export default function DashboardBbsReviewHost({
   if (storyBibleOpen && storyBibleProject) {
     return (
       <section
-        aria-label="Story Bible"
+        aria-label="Pre-Production Story Bible"
         data-dashboard-review-surface="story-bible"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -278,7 +278,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>STORY BIBLE</h1>
+          <h1>PRE-PRODUCTION / STORY BIBLE</h1>
           <button
             autoFocus
             type="button"

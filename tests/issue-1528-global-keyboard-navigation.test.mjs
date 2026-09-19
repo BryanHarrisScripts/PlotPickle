@@ -39,7 +39,7 @@ test("#1528 keeps one canonical registry for all 17 approved single-letter desti
   assert.match(registry, /href: "\/previs"/);
   assert.match(registry, /id: "write"[^\n]+kind: "route"[^\n]+href: "/write"/);
   assert.match(registry, /href: "\/edit"/);
-  assert.match(registry, /href: "\/pitch-review"/);
+  assert.match(registry, /href: "\/feedback"/);
   assert.match(registry, /href: "\/diagnostics"/);
   assert.match(registry, /href: "\/production"/);
 });

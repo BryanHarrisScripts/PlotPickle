@@ -701,7 +701,8 @@
       "classification": "production",
       "include": [
         "build/agent-runtime-contract.ts",
-        "build/openai-agents-runtime-adapter.ts"
+        "build/openai-agents-runtime-adapter.ts",
+        "build/responsibility-run-gateway.ts"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

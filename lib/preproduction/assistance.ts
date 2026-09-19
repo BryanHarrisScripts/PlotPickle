@@ -84,6 +84,7 @@ export function createPreproductionAssistanceRun(input: {
   readonly taskId: string;
   readonly sourceIds: readonly string[];
   readonly createdAt?: string;
+  readonly maxParallelChildren?: number;
 }): PreproductionAssistanceEnvelope {
   const goal = boundedText(input.goal, 2_000);
   const taskId = boundedText(input.taskId, 180);
@@ -110,7 +111,7 @@ export function createPreproductionAssistanceRun(input: {
     limits: {
       maxAttempts: 3,
       timeoutMs: 15 * 60_000,
-      maxParallelChildren: 2,
+      maxParallelChildren: Math.max(0, Math.min(8, Math.floor(input.maxParallelChildren ?? 2))),
       maxContextCharacters: 48_000,
       maxTokens: profile.requestedCapabilityRole === "deep" ? 32_000 : 16_000,
       maxToolCalls: 24,

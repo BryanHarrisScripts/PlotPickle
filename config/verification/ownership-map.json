@@ -178,6 +178,21 @@
       ]
     },
     {
+      "id": "color-expert-skill",
+      "classification": "production",
+      "include": [
+        ".agents/skills/color-expert/**",
+        "config/agent-skills.json",
+        "config/agent-skill-trust.json"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "visual",
+        "security"
+      ]
+    },
+    {
       "id": "visual-qa-skill",
       "classification": "production",
       "include": [

@@ -133,13 +133,6 @@ test("#2226 direct routed surfaces outrank nested visible subregions", async () 
 });
 
 
-test("#2226 Visual Director returns through the orchestrator before legacy controls", async () => {
-  const source = await read("lib/verification/skin-v1-visual-director.mjs");
-  assert.match(source, /pp-skin-v1-orchestrator-return:visible/u);
-  const orchestratorIndex = source.indexOf("pp-skin-v1-orchestrator-return:visible");
-  const legacyIndex = source.indexOf("pp-skin-v1-return:visible", orchestratorIndex);
-  assert.ok(orchestratorIndex >= 0 && legacyIndex > orchestratorIndex);
-});
 
 
 test("#2226 orchestrator Dashboard return reaches the application surface owner", async () => {
@@ -155,21 +148,17 @@ test("#2226 orchestrator Dashboard return reaches the application surface owner"
 });
 
 
-test("#2226 Visual Director follows the orchestrated parent chain before legacy Dashboard shortcuts", async () => {
-  const source = await read("lib/verification/skin-v1-visual-director.mjs");
-  const directOrchestrator = source.indexOf('pp-skin-v1-orchestrator-return:visible").filter({ hasText: "Dashboard"');
-  const parentOrchestrator = source.indexOf('pp-skin-v1-orchestrator-return:visible").first()', directOrchestrator);
-  const legacyDashboard = source.indexOf('pp-skin-v1-return:visible").filter({ hasText: "Dashboard"');
-  assert.ok(directOrchestrator >= 0);
-  assert.ok(parentOrchestrator > directOrchestrator);
-  assert.ok(legacyDashboard > parentOrchestrator);
-});
 
 
-test("#2226 Visual Director resets through PlotPickle's canonical Dashboard event before control fallbacks", async () => {
+
+
+test("#2226 Visual Director resets deterministically to the canonical Dashboard route", async () => {
   const source = await read("lib/verification/skin-v1-visual-director.mjs");
-  const eventIndex = source.indexOf('plotpickle:return-dashboard');
-  const loopIndex = source.indexOf('for (let depth = 0; depth < 8; depth += 1)');
-  assert.ok(eventIndex >= 0);
-  assert.ok(loopIndex > eventIndex);
+  const functionStart = source.indexOf("async function goDashboard(page, server)");
+  const functionEnd = source.indexOf("async function collectProfile", functionStart);
+  const body = source.slice(functionStart, functionEnd);
+  assert.match(body, /page\.goto\(new URL\("\/skin-v1", server\)/u);
+  assert.match(body, /dashboard\.readySelector/u);
+  assert.doesNotMatch(body, /pp-skin-v1-return/u);
+  assert.doesNotMatch(body, /pp-skin-v1-orchestrator-return/u);
 });

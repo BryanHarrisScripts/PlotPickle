@@ -60,5 +60,5 @@ test("pitch packaging and human review open from separate owning workspaces", as
   assert.match(shelf, /Anchored reviews & revision compare/);
   assert.match(shelf, /\/pitch-review\?scope=pitch&return=pitch/);
   assert.match(route, /requestedScope === "feedback"/);
-  assert.match(route, /window\.location\.replace\("\/\?workspace=feedback"\)/);
+  assert.match(route, /window\.location\.replace\("\/feedback"\)/);
 });

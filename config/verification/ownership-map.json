@@ -873,6 +873,19 @@
       ]
     },
     {
+      "id": "third-party-oss-registry",
+      "classification": "verification",
+      "include": [
+        "config/third-party-oss.json"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs",
+        "security",
+        "test-harness"
+      ]
+    },
+    {
       "id": "oss-radar-operations-contract",
       "classification": "verification",
       "include": [

@@ -141,7 +141,7 @@
     {
       "id": "feedback",
       "label": "Feedback",
-      "entry": "/pitch-review",
+      "entry": "/feedback",
       "area": "review",
       "maturity": "experimental",
       "contractVersion": 1,

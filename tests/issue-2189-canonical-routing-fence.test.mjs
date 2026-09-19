@@ -18,9 +18,12 @@ test("#2189 canonical PRE-PRODUCTION Outline handoff stays on the profile-owned 
   assert.doesNotMatch(nav, /href: "\/structure"/u);
   assert.doesNotMatch(nav, /withAddress\("\/structure"/u);
 
-  assert.match(returns, /return "\/\?workspace=dashboard"/u);
-  assert.match(returns, /returnPath: "\/\?workspace=dashboard"/u);
-  assert.doesNotMatch(returns, /return "\/structure"|returnPath: "\/structure"/u);
+  assert.match(returns, /const DEFAULT_RETURN_TARGET: ReturnTarget = \{ area: "outline", block: null, mini: null \}/u);
+  assert.match(returns, /source\.origin !== INTERNAL_ORIGIN/u);
+  assert.match(returns, /source\.pathname === "\/" && source\.searchParams\.get\("workspace"\) === "dashboard"/u);
+  assert.match(returns, /source\.pathname === "\/storyboard"/u);
+  assert.match(returns, /source\.pathname === "\/previs"/u);
+  assert.doesNotMatch(returns, /source\.pathname === "\/structure"|startsWith\("\/"\)/u);
 
   assert.equal(outline.route, "/?workspace=dashboard&block=17&mini=1");
   assert.equal(outline.selector, "[data-progressive-story-map='24x96']");

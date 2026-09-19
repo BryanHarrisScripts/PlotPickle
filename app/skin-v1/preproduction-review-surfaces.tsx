@@ -241,10 +241,14 @@ export function SkinV1BuildReviewSurface({
   address,
   onOpenDashboard,
   onOpenOutline,
+  onReturn,
+  returnLabel,
 }: {
   readonly address: PreproductionReviewAddress;
   readonly onOpenDashboard: () => void;
   readonly onOpenOutline: () => void;
+  readonly onReturn: () => void;
+  readonly returnLabel: "Outline" | "Storyboard" | "Previs";
 }) {
   const normalized = normalizedAddress(address);
   return (
@@ -252,6 +256,7 @@ export function SkinV1BuildReviewSurface({
       <div className="pp-skin-v1-preproduction-context" role="status">
         <strong>BUILD EVIDENCE · BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
         <span>This is the existing canonical Build authority projected inside the Skin V1 review flow.</span>
+        <button type="button" data-preproduction-return onClick={onReturn}>Back to {returnLabel}</button>
       </div>
       <FoundationsBuildWorkspace
         curriculum={plotPickleCurriculum}

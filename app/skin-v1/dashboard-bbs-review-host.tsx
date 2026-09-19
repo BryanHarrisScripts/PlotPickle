@@ -16,6 +16,7 @@ import {
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
 
 const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, miniBlockNumber: 1 };
+type BuildReturnTarget = "outline" | "storyboard" | "previs";
 
 export default function DashboardBbsReviewHost({
   items,
@@ -38,6 +39,7 @@ export default function DashboardBbsReviewHost({
   const [storyboardOpen, setStoryboardOpen] = useState(false);
   const [previsOpen, setPrevisOpen] = useState(false);
   const [reviewAddress, setReviewAddress] = useState<PreproductionReviewAddress>(DEFAULT_REVIEW_ADDRESS);
+  const [buildReturnTarget, setBuildReturnTarget] = useState<BuildReturnTarget>("outline");
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
@@ -54,6 +56,8 @@ export default function DashboardBbsReviewHost({
     const returnToDashboard = () => {
       setLibraryOpen(false);
       closePreproductionSurfaces();
+      setOpenSourceOpen(false);
+      setHelpIssueLogOpen(false);
       setShutdownOpen(false);
       onSurfaceNameChange("DASHBOARD");
       setDashboardGeneration((generation) => generation + 1);
@@ -90,8 +94,7 @@ export default function DashboardBbsReviewHost({
       return;
     }
     if (stage === "build") {
-      setBuildOpen(true);
-      onSurfaceNameChange("BUILD EVIDENCE");
+      openBuild(address, "outline");
       return;
     }
     setStoryboardOpen(true);
@@ -112,12 +115,34 @@ export default function DashboardBbsReviewHost({
     onSurfaceNameChange("PREVIS");
   }
 
-  function openBuild(address: PreproductionReviewAddress = reviewAddress) {
+  function openBuild(
+    address: PreproductionReviewAddress = reviewAddress,
+    returnTarget: BuildReturnTarget = "outline",
+  ) {
     setReviewAddress(address);
+    setBuildReturnTarget(returnTarget);
     closePreproductionSurfaces();
     setBuildOpen(true);
     onSurfaceNameChange("BUILD EVIDENCE");
   }
+
+  function returnFromBuild() {
+    if (buildReturnTarget === "storyboard") {
+      openStoryboard(reviewAddress);
+      return;
+    }
+    if (buildReturnTarget === "previs") {
+      openPrevis(reviewAddress);
+      return;
+    }
+    openOutline(reviewAddress);
+  }
+
+  const buildReturnLabel = buildReturnTarget === "storyboard"
+    ? "Storyboard"
+    : buildReturnTarget === "previs"
+      ? "Previs"
+      : "Outline";
 
   function openOutline(address: PreproductionReviewAddress = reviewAddress) {
     setReviewAddress(address);
@@ -245,17 +270,19 @@ export default function DashboardBbsReviewHost({
         aria-label="Build evidence"
         data-dashboard-review-surface="build"
         onKeyDown={(event) => {
-          if (event.key === "Escape") { event.preventDefault(); openOutline(reviewAddress); }
+          if (event.key === "Escape") { event.preventDefault(); returnFromBuild(); }
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
           <h1>BUILD EVIDENCE</h1>
-          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => openOutline(reviewAddress)}>Back to Outline</button>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={returnFromBuild}>Back to {buildReturnLabel}</button>
         </div>
         <SkinV1BuildReviewSurface
           address={reviewAddress}
-          onOpenDashboard={() => returnDashboard("plan")}
+          onOpenDashboard={() => returnDashboard(buildReturnTarget === "storyboard" ? "storyboard" : buildReturnTarget === "previs" ? "previs" : "plan")}
           onOpenOutline={() => openOutline(reviewAddress)}
+          onReturn={returnFromBuild}
+          returnLabel={buildReturnLabel}
         />
       </section>
     );
@@ -279,7 +306,7 @@ export default function DashboardBbsReviewHost({
         <SkinV1StoryboardReviewSurface
           address={reviewAddress}
           onAddressChange={setReviewAddress}
-          onOpenBuild={() => openBuild(reviewAddress)}
+          onOpenBuild={() => openBuild(reviewAddress, "storyboard")}
         />
         <div className="pp-skin-v1-preproduction-handoff">
           <button type="button" onClick={() => openPrevis(reviewAddress)}>Continue to Previs</button>
@@ -307,7 +334,7 @@ export default function DashboardBbsReviewHost({
           address={reviewAddress}
           onAddressChange={setReviewAddress}
           onOpenStoryboard={openStoryboard}
-          onOpenBuild={() => openBuild(reviewAddress)}
+          onOpenBuild={() => openBuild(reviewAddress, "previs")}
         />
       </section>
     );

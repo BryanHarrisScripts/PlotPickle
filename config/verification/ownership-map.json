@@ -607,6 +607,7 @@
         "app/storyboard/*.module.css",
         "app/craftloop/preproduction-context.module.css",
         "app/pageflow/preproduction-context.module.css",
+        "modules/build/ui/foundations-build-workspace.module.css",
         "modules/build/ui/progressive-story-map.module.css",
         "app/_components/previs/previs-readiness-workspace.module.css",
         "app/pageflow/pageflow.module.css",

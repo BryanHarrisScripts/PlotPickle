@@ -426,6 +426,29 @@
       "notes": "Phase 7 baseline that locks the sole ordinary PR workflow, enforced seven-check merge authority, legacy manual-diagnostic retirement, and living Layer 7 architecture projection."
     },
     {
+      "id": "experience.navigation-continuity-2249",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual", "canon"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2249-navigation-continuity.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/experience-skins.json", ".artifacts/verification-shadow/experience-skins.comparison.json"]
+      },
+      "notes": "#2249 Human UAT regression coverage for Dashboard nested returns, Storyboard-owned Visual Story lifecycle, contextual BUILD Evidence return, stable Writer's Craft lesson identity and Skin V1 BUILD presentation."
+    },
+    {
       "id": "verification.oss-radar-discovery-recall",
       "ownerLayer": "verification",
       "architectureComponents": ["verification-core"],

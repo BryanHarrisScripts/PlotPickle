@@ -213,6 +213,9 @@ export function productionReadyShotInformationErrors(shot: StoryboardEditorialSh
     if (directive.release.state === "pending") {
       errors.push(`${directive.id}: withheld information still has a pending release responsibility`);
     }
+    if (directive.release.state === "intentionally-unresolved" && !directive.rationale.trim()) {
+      errors.push(`${directive.id}: intentionally unresolved release requires a Human-readable rationale`);
+    }
   }
   return errors;
 }

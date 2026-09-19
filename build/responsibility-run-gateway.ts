@@ -6,6 +6,7 @@ import { persistentHome } from "./local-credentials";
 import { CONNECTOR_POLICY_SCOPES, type ConnectorPolicyScope } from "../lib/agents/responsibility/connector-trust-policy";
 import {
   addResponsibilityArtifact,
+  attachResponsibilityChild,
   beginResponsibilityAttempt,
   cancelResponsibilityRun,
   createCreativeResponsibilityRun,
@@ -171,6 +172,13 @@ async function mutate(input: Record<string, unknown>) {
     const withArtifact = addResponsibilityArtifact(current, { id: resultId, kind: "proposal", ref, producedAt });
     return saveRun(requestWriterApproval(withArtifact, producedAt));
   }
+  if (action === "attach-child") {
+    const childRunId = typeof input.childRunId === "string" ? input.childRunId : "";
+    const child = await readRun(childRunId);
+    if (!child) throw new Error("Responsibility child Run was not found.");
+    if (child.parentRunId !== current.runId) throw new Error("Responsibility child Run does not belong to this parent.");
+    return saveRun(attachResponsibilityChild(current, child.runId));
+  }
   if (action === "pause") return saveRun(pauseResponsibilityRun(current));
   if (action === "resume") return saveRun(resumeResponsibilityRun(current));
   if (action === "cancel") return saveRun(cancelResponsibilityRun(current, typeof input.reason === "string" ? input.reason : "Cancelled by the user."));
@@ -190,7 +198,7 @@ async function mutate(input: Record<string, unknown>) {
     };
     return saveRun(restartResponsibilityRunContext(current, handoff));
   }
-  throw new Error("Choose create, start, proposal-ready, pause, resume, cancel, redirect or fresh-context.");
+  throw new Error("Choose create, start, proposal-ready, attach-child, pause, resume, cancel, redirect or fresh-context.");
 }
 
 export function responsibilityRunGateway(): Plugin {

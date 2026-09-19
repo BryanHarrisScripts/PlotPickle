@@ -37,7 +37,7 @@ test("#672/#1719 one shared shortcut registry owns every canonical destination a
   assert.match(registry, /id: "build"[\s\S]*area: "create"[\s\S]*workspace: "build"/);
   assert.match(registry, /id: "storyboard"[\s\S]*area: "produce"[\s\S]*href: "\/storyboard"/);
   assert.match(registry, /id: "graphic-novel"[\s\S]*area: "produce"[\s\S]*href: "\/previs"/);
-  assert.match(registry, /id: "feedback"[\s\S]*area: "review"[\s\S]*href: "\/pitch-review"/);
+  assert.match(registry, /id: "feedback"[\s\S]*area: "review"[\s\S]*href: "\/feedback"/);
   assert.match(registry, /id: "community"[\s\S]*area: "connect"[\s\S]*workspace: "community"/);
   assert.match(registry, /id: "wyrmwood"[\s\S]*area: "connect"[\s\S]*workspace: "wyrmwood"/);
   assert.match(registry, /id: "settings"[\s\S]*area: "settings"[\s\S]*workspace: "settings"/);

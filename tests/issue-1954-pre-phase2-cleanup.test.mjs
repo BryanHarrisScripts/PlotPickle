@@ -86,7 +86,7 @@ test("#1965/#2046 Settings consolidates preferences and restores operational des
   assert.match(dashboard, /<MenuFeedbackFooter[\s\S]*id="settings-menu-status"[\s\S]*available=\{selectedSettingsConnected\}/u);
 });
 
-test("#1965/#2071 Profile readiness matches the Dashboard six-label status vocabulary", async () => {
+test("#1965/#2071/#2266 Profile readiness matches the Dashboard six-label status vocabulary with compact geometry", async () => {
   const [directoryCss, identityPanel] = await Promise.all([
     read("app/skin-v1-settings-directory.css"),
     read("app/profile-access/profile-identity-panel.tsx"),
@@ -98,11 +98,11 @@ test("#1965/#2071 Profile readiness matches the Dashboard six-label status vocab
   );
   assert.match(
     directoryCss,
-    /\[aria-label="Profile readiness"\]\s*\{[\s\S]{0,220}grid-column: 1 \/ -1 !important;[\s\S]{0,180}grid-template-columns: repeat\(6, minmax\(0, 1fr\)\) !important;/u,
+    /\[aria-label="Profile readiness"\]\s*\{[\s\S]{0,220}grid-column: 1 \/ -1 !important;[\s\S]{0,160}display: flex !important;[\s\S]{0,160}flex-wrap: wrap !important;/u,
   );
   assert.match(
     directoryCss,
-    /\[aria-label="Profile readiness"\] button\s*\{[\s\S]{0,260}min-height: var\(--pp-skin-control-height\) !important;[\s\S]{0,180}border: 0 !important;[\s\S]{0,120}border-radius: 0 !important;[\s\S]{0,120}background: transparent !important;/u,
+    /\[aria-label="Profile readiness"\] button\s*\{[\s\S]{0,260}min-height: 24px !important;[\s\S]{0,180}border: 0 !important;[\s\S]{0,120}border-radius: 0 !important;[\s\S]{0,120}background: transparent !important;/u,
   );
   assert.match(directoryCss, /\[aria-label="Profile readiness"\] button\s*\{[\s\S]*font-size: var\(--pp-skin-font-xs\) !important;/u);
 

@@ -25,7 +25,19 @@ import {
   type MediaRoutingStore,
   type VideoRoute,
 } from "./media-routing-store";
-import type { ImageGenerationInput, VideoGenerationInput } from "./media-provider-common";
+import {
+  resolveImageStoryJobClass,
+  type ImageGenerationInput,
+  type VideoGenerationInput,
+} from "./media-provider-common";
+import { createOllamaComfyImage, readRoutingChoice } from "./ai-routing-gateway";
+import {
+  readStoryModeJobRouting,
+  readStoryModePolicy,
+  resolveStoryModeJobRoute,
+  type StoryModeJobRouteCandidate,
+} from "./story-mode-policy-gateway";
+import { readSynchronizedAssistantStore } from "./writing-assistant-store";
 
 const API = "/api/media-routing";
 const STATUS_PATH = `${API}/status`;
@@ -145,9 +157,48 @@ async function mediaStatus(store: MediaRoutingStore) {
   };
 }
 
-async function saveImageSuccess(store: MediaRoutingStore, route: ImageRoute) {
+type StoryImageExecutionRoute = ImageRoute | "ollama-comfyui";
+
+async function storyImageRouteCandidates(store: MediaRoutingStore): Promise<StoryModeJobRouteCandidate[]> {
+  const [choice, assistantResult, comfy] = await Promise.all([
+    readRoutingChoice(),
+    readSynchronizedAssistantStore(),
+    probeComfyUI(store.comfyui.baseUrl, store.comfyui.h3Workflow),
+  ]);
+  const checkpoint = store.comfyui.checkpoint || comfy.checkpoints[0] || "";
+  const comfyReady = Boolean(comfy.reachable && comfy.imageNodesReady && checkpoint && store.comfyui.imageVerifiedAt);
+  const ollamaReady = Boolean(comfyReady && assistantResult.store.profiles.ollama?.assistantVerifiedAt);
+  const cloudReady = (route: "openai" | "minimax") => {
+    const profile = store.profiles[route];
+    return Boolean(profile?.apiKey && profile.imageModel && profile.imageVerifiedAt);
+  };
+  return [
+    { routeId: "comfyui", locality: "local", ready: comfyReady, selected: choice.image === "comfyui" },
+    { routeId: "ollama-comfyui", locality: "local", ready: ollamaReady, selected: choice.image === "ollama-comfyui" },
+    { routeId: "openai", locality: "cloud", ready: cloudReady("openai"), selected: choice.image === "openai" },
+    { routeId: "minimax", locality: "cloud", ready: cloudReady("minimax"), selected: choice.image === "minimax" },
+  ];
+}
+
+async function resolveImageExecutionRoute(store: MediaRoutingStore, input: ImageGenerationInput) {
+  const jobClass = resolveImageStoryJobClass(input);
+  const [policy, jobRouting, candidates] = await Promise.all([
+    readStoryModePolicy(),
+    readStoryModeJobRouting(),
+    storyImageRouteCandidates(store),
+  ]);
+  const resolution = resolveStoryModeJobRoute(policy.mode, jobRouting.jobs[jobClass], candidates);
+  return {
+    route: resolution.routeId as StoryImageExecutionRoute,
+    locality: resolution.locality,
+    preference: resolution.preference,
+    jobClass,
+  };
+}
+
+async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecutionRoute) {
   const now = new Date().toISOString();
-  if (route === "comfyui") {
+  if (route === "comfyui" || route === "ollama-comfyui") {
     store.comfyui.imageVerifiedAt = now;
     store.comfyui.lastError = "";
   } else {
@@ -160,8 +211,8 @@ async function saveImageSuccess(store: MediaRoutingStore, route: ImageRoute) {
   await writeMediaRoutingStore(store);
 }
 
-async function saveImageError(store: MediaRoutingStore, route: ImageRoute, message: string) {
-  if (route === "comfyui") store.comfyui.lastError = message;
+async function saveImageError(store: MediaRoutingStore, route: StoryImageExecutionRoute, message: string) {
+  if (route === "comfyui" || route === "ollama-comfyui") store.comfyui.lastError = message;
   else {
     const provider = providerForImageRoute(route);
     if (provider && store.profiles[provider]) store.profiles[provider]!.lastError = message;
@@ -169,8 +220,9 @@ async function saveImageError(store: MediaRoutingStore, route: ImageRoute, messa
   await writeMediaRoutingStore(store);
 }
 
-async function generateImage(store: MediaRoutingStore, route: ImageRoute, input: ImageGenerationInput) {
+async function generateImage(store: MediaRoutingStore, route: StoryImageExecutionRoute, input: ImageGenerationInput) {
   if (route === "manual") throw new Error("Image routing is set to Manual Import. Import an image or select a tested generator.");
+  if (route === "ollama-comfyui") return createOllamaComfyImage(input);
   if (route === "comfyui") {
     const probe = await probeComfyUI(store.comfyui.baseUrl, store.comfyui.h3Workflow);
     if (!probe.reachable || !probe.imageNodesReady) throw new Error(probe.error || `ComfyUI is missing: ${probe.missingImageNodes.join(", ")}`);
@@ -342,9 +394,25 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
     }
     if (pathname === IMAGE_PATH && request.method === "POST") {
       const input = await readBody(request, 256 * 1024) as ImageGenerationInput;
-      const result = await generateImage(store, store.imageRoute, input);
-      await saveImageSuccess(store, store.imageRoute);
-      sendJson(response, 200, { ok: true, route: store.imageRoute, ...result });
+      const execution = await resolveImageExecutionRoute(store, input);
+      const routedInput: ImageGenerationInput = { ...input, jobClass: execution.jobClass };
+      try {
+        const result = await generateImage(store, execution.route, routedInput);
+        await saveImageSuccess(store, execution.route);
+        sendJson(response, 200, {
+          ok: true,
+          route: execution.route,
+          jobRouting: {
+            jobClass: execution.jobClass,
+            preference: execution.preference,
+            locality: execution.locality,
+          },
+          ...result,
+        });
+      } catch (error) {
+        await saveImageError(store, execution.route, error instanceof Error ? error.message : "Image generation failed.");
+        throw error;
+      }
       return;
     }
     if (pathname === VIDEO_PATH && request.method === "POST") {

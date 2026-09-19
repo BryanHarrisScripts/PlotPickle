@@ -157,6 +157,22 @@
         "unaffectedProductionShotIds",
         "requiresRegeneration: false"
       ]
+    },
+    {
+      "id": "agentic-projection",
+      "label": "Agentic Story-to-Screen Projection",
+      "files": [
+        "lib/preproduction/agentic-story-to-screen-projection.ts"
+      ],
+      "requiredTerms": [
+        "createAgenticStoryToScreenProjectionRequest",
+        "AGENTIC_STORY_TO_SCREEN_STAGES",
+        "candidateOnly: true",
+        "canonical: false",
+        "cloudSpendAuthorized: false",
+        "autoPromoteCandidates: false",
+        "story-mode-capability-resolution"
+      ]
     }
   ],
   "humanUat": {

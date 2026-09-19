@@ -25,6 +25,11 @@ import {
   VISUAL_DIRECTOR_REPORT_PATH,
   runSkinV1VisualDirector,
 } from "../lib/verification/skin-v1-visual-director.mjs";
+import {
+  SKIN_V1_GEOMETRY_ARTIFACT_ROOT,
+  SKIN_V1_GEOMETRY_REPORT_PATH,
+  SKIN_V1_GEOMETRY_REPORT_MARKDOWN_PATH,
+} from "../lib/verification/skin-v1-rendered-surface-profile.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
 import {
   buildWebMcpRuntimeFinding,
@@ -375,6 +380,11 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
         surfaces: visualDirector.totals.surfaces,
         blockers: visualDirector.totals.blockers,
         advisories: visualDirector.totals.advisories,
+        geometryBlockers: visualDirector.totals.geometryBlockers,
+        geometryAdvisories: visualDirector.totals.geometryAdvisories,
+        geometryRoot: path.resolve(SKIN_V1_GEOMETRY_ARTIFACT_ROOT),
+        geometryReport: path.resolve(SKIN_V1_GEOMETRY_REPORT_PATH),
+        geometryMarkdown: path.resolve(SKIN_V1_GEOMETRY_REPORT_MARKDOWN_PATH),
       },
     });
     const pass = formatPassTag();
@@ -383,6 +393,9 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
     console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
     console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
+    console.log(`${pass} F12 geometry diagnostics: ${path.resolve(SKIN_V1_GEOMETRY_ARTIFACT_ROOT)}`);
+    console.log(`${pass} F12 geometry summary: ${path.resolve(SKIN_V1_GEOMETRY_REPORT_MARKDOWN_PATH)}`);
+    console.log(`${pass} Geometry observations: ${visualDirector.totals.geometryBlockers} blocker candidate(s), ${visualDirector.totals.geometryAdvisories} advisory finding(s) [observe-before-enforce].`);
     console.log(`${pass} UAT findings report: ${findingsReport}`);
     console.log(`${pass} Evidence report: ${evidence}`);
 

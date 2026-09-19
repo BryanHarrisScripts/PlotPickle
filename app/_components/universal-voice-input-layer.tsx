@@ -62,8 +62,16 @@ export default function UniversalVoiceInputLayer() {
         return;
       }
       const rect = field.getBoundingClientRect();
+      const fieldVisible = rect.bottom > 0
+        && rect.top < window.innerHeight
+        && rect.right > 0
+        && rect.left < window.innerWidth;
+      if (!fieldVisible) {
+        setPosition(null);
+        return;
+      }
       setPosition({
-        top: Math.max(6, Math.min(window.innerHeight - 44, rect.top + 6)),
+        top: rect.top + 6,
         left: Math.max(6, Math.min(window.innerWidth - 44, rect.right - 42)),
       });
     };

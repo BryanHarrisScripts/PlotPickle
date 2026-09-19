@@ -1,0 +1,557 @@
+{
+  "schemaVersion": 1,
+  "issue": 2226,
+  "id": "skin-v1-surface-anatomy-contract-v1",
+  "status": "human-approved-direction",
+  "purpose": "Define what regions mean, where they belong, how they nest, and which regions are navigation versus content so geometry alone never determines semantics.",
+  "authority": {
+    "tokenLayer": "app/skin-v1-definition.css",
+    "componentCompositionLayer": "config/skin-v1-surface-composition-reference.json",
+    "surfaceRegistry": "config/skin-v1-surface-registry.json",
+    "surfaceGrammar": "config/skin-v1-surface-grammar.json",
+    "declarationDirectory": "config/skin-v1-surface-declarations/",
+    "mayInferRegionMeaningFromGeometry": false,
+    "mayTreatEveryColumnAsNavigation": false,
+    "mayTreatEveryListAsNavigation": false
+  },
+  "fourLayerModel": [
+    {
+      "layer": 1,
+      "id": "tokens",
+      "authority": "app/skin-v1-definition.css",
+      "answers": "What visual primitives exist?",
+      "owns": [
+        "palette",
+        "type scale",
+        "spacing",
+        "border widths",
+        "control sizing",
+        "square geometry",
+        "motion"
+      ]
+    },
+    {
+      "layer": 2,
+      "id": "components-and-composition",
+      "authority": "config/skin-v1-surface-composition-reference.json",
+      "answers": "How do reusable visual objects look and combine?",
+      "owns": [
+        "headers",
+        "frames",
+        "menus",
+        "submenu rows",
+        "pills",
+        "selected states",
+        "panel hierarchy",
+        "layout recipes"
+      ]
+    },
+    {
+      "layer": 3,
+      "id": "surface-anatomy",
+      "authority": "config/skin-v1-surface-anatomy-contract.json",
+      "answers": "What does each region mean and where does it belong?",
+      "owns": [
+        "region roles",
+        "placement zones",
+        "title stack",
+        "navigation semantics",
+        "column counting",
+        "nesting rules",
+        "dominance"
+      ]
+    },
+    {
+      "layer": 4,
+      "id": "surface-declaration",
+      "authority": "config/skin-v1-surface-declarations/*.json",
+      "answers": "What does this specific surface contain?",
+      "owns": [
+        "surface regions",
+        "region order",
+        "content types",
+        "literal labels",
+        "relationships",
+        "surface-specific source evidence"
+      ]
+    }
+  ],
+  "placementZones": {
+    "global-header": {
+      "order": 1,
+      "position": "top",
+      "spans": "full-shell",
+      "countsAsWorkspaceColumn": false,
+      "allowedRoles": [
+        "product-identity",
+        "surface-identity",
+        "skin-identity"
+      ]
+    },
+    "surface-action-row": {
+      "order": 2,
+      "position": "below-global-header",
+      "spans": "full-shell",
+      "countsAsWorkspaceColumn": false,
+      "defaultAlignment": "right",
+      "allowedRoles": [
+        "return-action",
+        "surface-action"
+      ]
+    },
+    "workspace-header": {
+      "order": 3,
+      "position": "above-content-layout",
+      "spans": "workspace-content",
+      "countsAsWorkspaceColumn": false,
+      "defaultAlignment": "left",
+      "allowedRoles": [
+        "eyebrow",
+        "workspace-title",
+        "workspace-subtitle",
+        "context",
+        "metadata",
+        "workspace-actions"
+      ]
+    },
+    "left-rail": {
+      "order": 4,
+      "position": "left-of-primary-work",
+      "countsAsWorkspaceColumn": "depends-on-region-role",
+      "preferredRoles": [
+        "destination-navigation",
+        "submenu",
+        "content-selector",
+        "script-preview",
+        "list"
+      ]
+    },
+    "primary-work": {
+      "order": 5,
+      "position": "center-or-dominant-region",
+      "countsAsWorkspaceColumn": true,
+      "preferredRoles": [
+        "primary-content",
+        "editor",
+        "canvas",
+        "media-preview",
+        "form",
+        "grid"
+      ]
+    },
+    "right-context": {
+      "order": 6,
+      "position": "right-of-primary-work",
+      "countsAsWorkspaceColumn": true,
+      "preferredRoles": [
+        "inspector",
+        "evidence",
+        "reference",
+        "history",
+        "secondary-content",
+        "fields"
+      ]
+    },
+    "bottom-work": {
+      "order": 7,
+      "position": "below-controlled-work-region",
+      "countsAsWorkspaceColumn": false,
+      "preferredRoles": [
+        "timeline",
+        "status",
+        "help",
+        "context"
+      ]
+    },
+    "status-footer": {
+      "order": 8,
+      "position": "bottom",
+      "spans": "full-shell",
+      "countsAsWorkspaceColumn": false,
+      "allowedRoles": [
+        "status",
+        "help",
+        "context",
+        "keyboard-help"
+      ]
+    }
+  },
+  "titleStack": {
+    "globalHeader": {
+      "left": "product-identity",
+      "center": "surface-identity",
+      "right": "skin-identity",
+      "pattern": [
+        "PLOTPICKLE",
+        "<CURRENT SURFACE>",
+        "SKIN V1"
+      ],
+      "titleAlignment": "center",
+      "productAlignment": "left",
+      "skinAlignment": "right"
+    },
+    "workspaceHeader": {
+      "alignment": "left",
+      "verticalOrder": [
+        "eyebrow",
+        "title",
+        "subtitle",
+        "context-metadata"
+      ],
+      "eyebrowRequired": false,
+      "titleRequired": true,
+      "subtitleRequired": false,
+      "contextMetadataRequired": false,
+      "actionsPlacement": "right-of-title-stack-when-local-to-workspace",
+      "returnActionAllowedHere": false,
+      "rules": [
+        "One dominant workspace title.",
+        "Eyebrow labels the workflow/domain and never replaces the title.",
+        "Subtitle explains purpose/state and never behaves as navigation.",
+        "Context metadata may show project, Scene, Block, Mini-Block, revision, mode or status.",
+        "Project-aware surfaces derive the title from current project/scene state rather than hard-coded project names."
+      ]
+    }
+  },
+  "navigationSemantics": {
+    "destinationNavigation": {
+      "definition": "Changes canonical product destination, workspace, route or directory destination.",
+      "preferredPlacement": [
+        "left-rail",
+        "global-header"
+      ],
+      "countsAsWorkspaceColumn": false,
+      "examples": [
+        "Dashboard directory",
+        "Settings directory",
+        "Story Mode directory"
+      ],
+      "mustUseNavigationSemantics": true
+    },
+    "submenu": {
+      "definition": "Destination navigation scoped under a selected parent destination.",
+      "preferredPlacement": [
+        "left-rail"
+      ],
+      "countsAsWorkspaceColumn": false,
+      "mustInheritParentNavigationGeometry": true
+    },
+    "contentSelector": {
+      "definition": "Selects an object within the current surface without changing product destination.",
+      "preferredPlacement": [
+        "left-rail",
+        "inside-primary-work"
+      ],
+      "countsAsWorkspaceColumn": true,
+      "examples": [
+        "Scene list",
+        "Shot list",
+        "Library item list"
+      ],
+      "navigation": false
+    },
+    "localViewTabs": {
+      "definition": "Switches local representation of the same surface/object.",
+      "preferredPlacement": [
+        "top-of-controlled-region"
+      ],
+      "countsAsWorkspaceColumn": false,
+      "navigation": false,
+      "examples": [
+        "Review / Edit",
+        "Inspector / References / History"
+      ]
+    },
+    "toolbar": {
+      "definition": "Actions or modes that operate on the controlled content region.",
+      "preferredPlacement": [
+        "top-of-controlled-region"
+      ],
+      "countsAsWorkspaceColumn": false,
+      "navigation": false
+    },
+    "filters": {
+      "definition": "Changes visibility/query projection without changing destination or creative authority.",
+      "preferredPlacement": [
+        "toolbar",
+        "right-context",
+        "inside-controlled-region"
+      ],
+      "countsAsWorkspaceColumn": false,
+      "navigation": false
+    },
+    "returnAction": {
+      "definition": "Leaves the current surface for its canonical parent or origin.",
+      "preferredPlacement": [
+        "surface-action-row"
+      ],
+      "alignment": "right",
+      "countsAsWorkspaceColumn": false,
+      "navigation": true
+    }
+  },
+  "regionRoles": {
+    "destination-navigation": {
+      "category": "navigation",
+      "navigation": true,
+      "defaultPlacement": "left-rail",
+      "countsAsWorkspaceColumn": false,
+      "description": "Canonical destination choices."
+    },
+    "submenu": {
+      "category": "navigation",
+      "navigation": true,
+      "defaultPlacement": "left-rail",
+      "countsAsWorkspaceColumn": false,
+      "description": "Destination choices beneath a selected parent."
+    },
+    "content-selector": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "left-rail",
+      "countsAsWorkspaceColumn": true,
+      "description": "Selects an object in the current surface without leaving it."
+    },
+    "primary-content": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "primary-work",
+      "countsAsWorkspaceColumn": true,
+      "description": "Dominant task/content region."
+    },
+    "secondary-content": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "right-context",
+      "countsAsWorkspaceColumn": true,
+      "description": "Supporting content that is not an inspector."
+    },
+    "editor": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "primary-work",
+      "countsAsWorkspaceColumn": true,
+      "description": "Editable creative content surface."
+    },
+    "canvas": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "primary-work",
+      "countsAsWorkspaceColumn": true,
+      "description": "Spatial or visual planning surface."
+    },
+    "media-preview": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "primary-work",
+      "countsAsWorkspaceColumn": true,
+      "description": "Playback or media review surface."
+    },
+    "script-preview": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "left-rail",
+      "countsAsWorkspaceColumn": true,
+      "description": "Source text/passage view synchronized to current creative object."
+    },
+    "timeline": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "bottom-work",
+      "countsAsWorkspaceColumn": false,
+      "description": "Time-oriented projection controlled by a media/playback or production clock."
+    },
+    "inspector": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "right-context",
+      "countsAsWorkspaceColumn": true,
+      "description": "Selected-object properties, evidence, fields and actions."
+    },
+    "form": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "primary-work",
+      "countsAsWorkspaceColumn": true,
+      "description": "Task-focused editable form."
+    },
+    "fields": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "inside-parent-region",
+      "countsAsWorkspaceColumn": false,
+      "description": "Individual inputs owned by a form or inspector."
+    },
+    "metadata": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "workspace-header-or-panel-header",
+      "countsAsWorkspaceColumn": false,
+      "description": "Descriptive state such as project, Scene, Block, revision or timing."
+    },
+    "toolbar": {
+      "category": "control",
+      "navigation": false,
+      "defaultPlacement": "top-of-controlled-region",
+      "countsAsWorkspaceColumn": false,
+      "description": "Actions/modes for one content region."
+    },
+    "tabs": {
+      "category": "control",
+      "navigation": false,
+      "defaultPlacement": "top-of-controlled-region",
+      "countsAsWorkspaceColumn": false,
+      "description": "Local view controls; only destination tabs may declare navigation=true."
+    },
+    "filters": {
+      "category": "control",
+      "navigation": false,
+      "defaultPlacement": "toolbar-or-right-context",
+      "countsAsWorkspaceColumn": false,
+      "description": "Projection controls that do not change destination."
+    },
+    "list": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "inside-parent-region",
+      "countsAsWorkspaceColumn": false,
+      "description": "Ordered/repeated content; semantics come from parent role, not list geometry."
+    },
+    "grid": {
+      "category": "content",
+      "navigation": false,
+      "defaultPlacement": "inside-parent-region",
+      "countsAsWorkspaceColumn": false,
+      "description": "Repeated content grid; does not imply directory navigation."
+    },
+    "directory": {
+      "category": "navigation",
+      "navigation": true,
+      "defaultPlacement": "primary-work-or-left-rail",
+      "countsAsWorkspaceColumn": false,
+      "description": "Destination-oriented browsing surface."
+    },
+    "status": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "status-footer",
+      "countsAsWorkspaceColumn": false,
+      "description": "Current system/workspace state."
+    },
+    "help": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "status-footer-or-local-help",
+      "countsAsWorkspaceColumn": false,
+      "description": "Keyboard/interaction guidance."
+    },
+    "context": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "workspace-header-or-status-footer",
+      "countsAsWorkspaceColumn": false,
+      "description": "Current project, story address, mode or origin."
+    },
+    "evidence": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "right-context",
+      "countsAsWorkspaceColumn": true,
+      "description": "Evidence/provenance supporting current work."
+    },
+    "reference": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "right-context",
+      "countsAsWorkspaceColumn": true,
+      "description": "Reference material supporting current work."
+    },
+    "history": {
+      "category": "context",
+      "navigation": false,
+      "defaultPlacement": "right-context",
+      "countsAsWorkspaceColumn": true,
+      "description": "Revision/event history supporting current work."
+    }
+  },
+  "contentKinds": [
+    "plain-text",
+    "rich-text",
+    "screenplay-text",
+    "media",
+    "image",
+    "canvas",
+    "form-fields",
+    "metadata",
+    "cards",
+    "rows",
+    "list",
+    "grid",
+    "timeline-lanes",
+    "cue-lanes",
+    "controls",
+    "references",
+    "evidence",
+    "history",
+    "status"
+  ],
+  "columnCounting": {
+    "rule": "Count only sibling workspace regions inside the content layout whose declared role countsAsWorkspaceColumn=true.",
+    "neverCount": [
+      "global-header",
+      "surface-action-row",
+      "workspace-header",
+      "status-footer",
+      "toolbar",
+      "tabs",
+      "filters",
+      "destination-navigation",
+      "submenu",
+      "timeline"
+    ],
+    "importantConsequences": [
+      "A left destination menu plus editor plus inspector is still a two-column workspace.",
+      "A Scene list may count as a workspace column when declared content-selector because it selects content rather than destinations.",
+      "A right inspector is a workspace column, not navigation.",
+      "A timeline below a preview is a nested region, not another column."
+    ]
+  },
+  "nestingRules": {
+    "allowed": [
+      "regions may contain fields, metadata, toolbar, tabs, filters, list, grid, evidence, reference, history",
+      "a workspace column may contain a vertical one-column stack",
+      "a media-preview may own a timeline below it",
+      "an inspector may contain local tabs and stacked panels",
+      "a content-selector may contain a list or grid"
+    ],
+    "prohibited": [
+      "nested decorative outer-shell frames",
+      "a second global header inside a region",
+      "using visual columns as proof of navigation semantics",
+      "using a list as proof of navigation semantics",
+      "adding a shell-level four-column archetype without census evidence"
+    ]
+  },
+  "dominance": {
+    "levels": [
+      "primary",
+      "supporting",
+      "tertiary"
+    ],
+    "rules": [
+      "Exactly one region should normally be visually primary on a task-bearing workspace.",
+      "Inspectors, evidence and reference regions are supporting unless the surface declaration explicitly makes them primary.",
+      "Navigation must not visually compete with the primary work region.",
+      "Local view controls must not look like a second global navigation system."
+    ]
+  },
+  "antiAmbiguityRules": [
+    "Region role is declared, never inferred from position alone.",
+    "Navigation is a semantic property, never inferred from a list, rail, tabs or column geometry.",
+    "Title placement is declared by titleStack and cannot migrate between left, center and right ad hoc.",
+    "Return remains in the upper-right surface-action row and is not duplicated inside content.",
+    "Fields belong to a form, inspector or content owner; they do not create a new surface region by themselves.",
+    "Metadata describes state and never acts as navigation unless separately declared.",
+    "Additional panels are content/context areas unless the declaration explicitly gives them navigation semantics."
+  ]
+}

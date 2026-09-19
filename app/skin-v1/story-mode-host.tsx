@@ -276,7 +276,7 @@ export default function StoryModeHost() {
       data-skin-menu="story-mode"
     >
       <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-dashboard-title">*** STORY MODE ***</div>
+        <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** STORY MODE ***</div>
         <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Story Mode policies" aria-describedby="story-mode-status-message">

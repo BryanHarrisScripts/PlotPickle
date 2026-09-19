@@ -21,7 +21,7 @@ The live application renders one common environment around the active surface:
 - PLOTPICKLE | CURRENT SURFACE | SKIN V1 global header;
 - upper-right Return action beneath the header;
 - 1180px governed active shell;
-- 2px strong outer frame + 1px inset frame;
+- 1px standard outer frame + 1px inset treatment on orchestrated non-Dashboard surfaces; the locked Dashboard layered reference keeps its separately governed stronger perimeter until explicitly replaced;
 - square matte Skin V1 controls and selected states;
 - title hierarchy normalized to the Skin V1 type scale;
 - footer/status/context strip.
@@ -43,3 +43,10 @@ WebMCP now requires the live captured surface root to expose:
 - the expected `data-skin-v1-surface-id`.
 
 Candidate PNGs are captured from the complete orchestrator frame rather than the legacy surface root, so Human review sees the same environment the application renders.
+
+
+## Nested return brokerage
+
+The orchestrator is also the migration bridge for nested navigation. When an active feature owner exposes a more-specific local `Back to …` action than the registered surface parent, the orchestrator adopts that target into its single upper-right Return control and invokes the existing feature-owned handler. The original local control remains mounted for behavior/state ownership but is visually suppressed, preventing duplicate left/right Back actions.
+
+This is especially important for LEARN, where the canonical hierarchy remains lesson → Craft Module → Path → Writer's Craft even though the orchestrator owns visible chrome.

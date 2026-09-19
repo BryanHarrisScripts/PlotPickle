@@ -581,8 +581,9 @@
   },
   "panelHierarchy": {
     "shell": {
-      "frame": "2px outer + 1px inset",
-      "backgroundToken": "--pp-skin-fill-panel"
+      "frame": "1px standard outer + 1px inset",
+      "backgroundToken": "--pp-skin-fill-panel",
+      "note": "Dashboard locked layered reference remains separately governed; strong 2px borders are semantic emphasis, not the default standard perimeter."
     },
     "primaryPanel": {
       "frame": "1px solid",

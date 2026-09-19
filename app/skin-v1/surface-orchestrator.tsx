@@ -121,8 +121,13 @@ function parentLabel(surface: RuntimeSurface | null) {
   return SURFACE_BY_ID.get(surface.parent)?.label ?? "Dashboard";
 }
 
-function activateExistingReturn(active: ActiveSurface | null) {
-  if (!active) return false;
+type DelegatedReturn = Readonly<{
+  control: HTMLElement;
+  label: string;
+}>;
+
+function existingReturnControl(active: ActiveSurface | null) {
+  if (!active) return null;
   const selectors = [
     ".pp-skin-v1-return",
     "[data-skin-v1-return]",
@@ -130,16 +135,31 @@ function activateExistingReturn(active: ActiveSurface | null) {
   ];
   for (const selector of selectors) {
     const control = active.root.querySelector<HTMLElement>(selector);
-    if (control && control !== document.activeElement) {
-      control.click();
-      return true;
-    }
+    if (control) return control;
   }
-  return false;
+  return null;
+}
+
+function delegatedReturn(active: ActiveSurface | null): DelegatedReturn | null {
+  const control = existingReturnControl(active);
+  const text = control?.textContent?.trim() ?? "";
+  const match = /^Back to\s+(.+)$/iu.exec(text);
+  const label = match?.[1]?.trim() ?? "";
+  if (!control || !label) return null;
+  if (label.toLocaleLowerCase() === parentLabel(active).toLocaleLowerCase()) return null;
+  return { control, label };
+}
+
+function activateExistingReturn(active: ActiveSurface | null) {
+  const control = existingReturnControl(active);
+  if (!control || control === document.activeElement) return false;
+  control.click();
+  return true;
 }
 
 export default function SkinV1SurfaceOrchestrator({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<ActiveSurface | null>(null);
+  const [delegatedReturnLabel, setDelegatedReturnLabel] = useState<string | null>(null);
 
   useEffect(() => {
     let frame = 0;
@@ -147,6 +167,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         const next = syncSurfaces();
+        setDelegatedReturnLabel(delegatedReturn(next)?.label ?? null);
         setActive((current) => (
           current?.id === next?.id && current?.root === next?.root ? current : next
         ));
@@ -179,7 +200,8 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
     };
   }, []);
 
-  const returnLabel = useMemo(() => parentLabel(active), [active]);
+  const registeredReturnLabel = useMemo(() => parentLabel(active), [active]);
+  const returnLabel = delegatedReturnLabel ?? registeredReturnLabel;
   const profile = active?.formatProfile;
   const preproductionContext = useMemo(() => {
     if (!active || !PREPRODUCTION_SURFACES.has(active.id) || typeof window === "undefined") return null;
@@ -196,6 +218,11 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
     if (!active) return;
     if (window.location.pathname !== "/skin-v1") {
       window.location.assign("/skin-v1");
+      return;
+    }
+    const delegated = delegatedReturn(active);
+    if (delegated) {
+      delegated.control.click();
       return;
     }
     if (!active.parent || active.parent === "dashboard") {
@@ -234,7 +261,13 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
             <span>SKIN V1</span>
           </header>
           <div className="pp-skin-v1-orchestrator-actions" data-skin-v1-region-role="surface-action-row">
-            <button type="button" className="pp-skin-v1-orchestrator-return" onClick={returnToParent}>
+            <button
+              type="button"
+              className="pp-skin-v1-orchestrator-return"
+              data-skin-v1-return-contract="single-owner"
+              data-skin-v1-return-source={delegatedReturnLabel ? "content-delegated" : "registry-parent"}
+              onClick={returnToParent}
+            >
               Back to {returnLabel}
             </button>
           </div>

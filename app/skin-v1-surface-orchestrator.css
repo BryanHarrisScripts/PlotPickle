@@ -126,8 +126,9 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-
   white-space: nowrap !important;
 }
 
-/* Every active registered surface receives the same Human-approved 1180 shell,
-   2px outer + 1px inset frame, matte fill, square geometry and typography. */
+/* Every active registered non-Dashboard surface receives the same Human-approved
+   1180 shell with a thin 1px structural perimeter plus 1px inset treatment.
+   Strong 2px borders remain available for focus, selection and approved emphasis. */
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) {
   width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
   max-width: var(--pp-skin-shell-max) !important;
@@ -135,7 +136,7 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][d
   margin: 0 auto !important;
   padding: var(--pp-skin-space-4) !important;
   box-sizing: border-box !important;
-  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong) !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong) !important;
   border-radius: var(--pp-skin-radius) !important;
   background: var(--pp-skin-fill-panel) !important;
   color: var(--pp-skin-ink) !important;

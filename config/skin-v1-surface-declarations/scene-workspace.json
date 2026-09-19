@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "issue": 2226,
+  "surfaceId": "scene-timeline",
+  "surfaceLabel": "Scene Workspace",
+  "registryParent": "storyboard",
+  "family": "storyboard",
+  "declarationVersion": 1,
+  "sourceEvidence": [
+    "PlotPickle Scene Workspace Design — SceneFlow methods and interactive rehearsal — 2026-09-16",
+    "Human-supplied Scene Workspace mockup — 2026-09-18",
+    "config/skin-v1-surface-registry.json",
+    "config/skin-v1-surface-grammar.json"
+  ],
+  "formatProfile": {
+    "layout": "timeline-workspace",
+    "shell": "production-nested",
+    "frame": "solid-standard",
+    "selectedState": "canonical-dark-accent",
+    "typography": "project-workspace"
+  },
+  "shell": {
+    "usesCanonicalWrapper": true,
+    "destinationNavigationInsideWorkspace": false,
+    "return": {
+      "role": "return-action",
+      "placementZone": "surface-action-row",
+      "alignment": "right",
+      "destination": "storyboard",
+      "literalLabel": "Back to Storyboard"
+    }
+  },
+  "workspaceHeader": {
+    "placementZone": "workspace-header",
+    "alignment": "left",
+    "eyebrow": {
+      "role": "eyebrow",
+      "literal": "PRE-PRODUCTION"
+    },
+    "title": {
+      "role": "workspace-title",
+      "source": "selected-scene",
+      "pattern": "Scene <ordinal>: <scene-title>",
+      "literalExample": "Scene 3: The Alley Encounter"
+    },
+    "subtitle": {
+      "role": "workspace-subtitle",
+      "source": "selected-scene-purpose",
+      "optional": true
+    },
+    "contextMetadata": {
+      "role": "context",
+      "values": [
+        "project",
+        "Block",
+        "Mini-Block",
+        "scene",
+        "revision",
+        "mode"
+      ],
+      "rule": "Show only values available from current admitted project state; do not invent missing coordinates."
+    }
+  },
+  "contentLayout": {
+    "workspaceColumnCount": 3,
+    "layoutMeaning": "three synchronized work regions plus a nested bottom timeline",
+    "primaryRegionId": "playback",
+    "regions": [
+      {
+        "id": "script",
+        "label": "Script Preview",
+        "role": "script-preview",
+        "category": "content",
+        "placementZone": "left-rail",
+        "countsAsWorkspaceColumn": true,
+        "navigation": false,
+        "dominance": "supporting",
+        "contentKind": "screenplay-text",
+        "localControls": [
+          "Review",
+          "Edit",
+          "Resume follow"
+        ],
+        "exampleContentPolicy": "illustrative",
+        "semantics": [
+          "Selecting a source passage locates its cues.",
+          "Selecting a cue locates and highlights its source passage.",
+          "Manual scrolling suspends follow until Resume follow."
+        ]
+      },
+      {
+        "id": "playback",
+        "label": "Primary Playback Preview",
+        "role": "media-preview",
+        "category": "content",
+        "placementZone": "primary-work",
+        "countsAsWorkspaceColumn": true,
+        "navigation": false,
+        "dominance": "primary",
+        "contentKind": "media",
+        "exampleContentPolicy": "illustrative",
+        "semantics": [
+          "The active media/rehearsal adapter supplies the authoritative playhead.",
+          "Replay may target the selected cue or a bounded surrounding interval.",
+          "Hiding preview preserves playback/audio state when supported."
+        ]
+      },
+      {
+        "id": "inspector",
+        "label": "Inspector",
+        "role": "inspector",
+        "category": "context",
+        "placementZone": "right-context",
+        "countsAsWorkspaceColumn": true,
+        "navigation": false,
+        "dominance": "supporting",
+        "contentKind": "form-fields",
+        "exampleContentPolicy": "controlledVocabulary",
+        "localViewTabs": [
+          "Inspector",
+          "References",
+          "History"
+        ],
+        "fields": [
+          "category",
+          "text-reference",
+          "start",
+          "end",
+          "source-owner"
+        ],
+        "actions": [
+          "Replay moment",
+          "Save Change"
+        ],
+        "semantics": [
+          "Edit one selected thing.",
+          "Timing edits remain draft until saved through the existing change path.",
+          "Planned direction and observed take timing remain distinct states."
+        ]
+      },
+      {
+        "id": "timeline",
+        "label": "Cue Timeline",
+        "role": "timeline",
+        "category": "content",
+        "placementZone": "bottom-work",
+        "countsAsWorkspaceColumn": false,
+        "navigation": false,
+        "dominance": "supporting",
+        "contentKind": "cue-lanes",
+        "spansRegions": [
+          "playback",
+          "inspector"
+        ],
+        "exampleContentPolicy": "controlledVocabulary",
+        "lanes": [
+          {
+            "id": "dialogue",
+            "literalLabel": "Dialogue"
+          },
+          {
+            "id": "action",
+            "literalLabel": "Action"
+          },
+          {
+            "id": "shot",
+            "literalLabel": "Shot"
+          },
+          {
+            "id": "audio",
+            "literalLabel": "Audio"
+          }
+        ],
+        "semantics": [
+          "Cue ranges are time projections, not canon ownership.",
+          "Filters and zoom change the view only.",
+          "Overlapping cues remain selectable.",
+          "Timeline selection synchronizes with script passage and playhead."
+        ]
+      }
+    ]
+  },
+  "navigationDeclaration": {
+    "destinationNavigationRegions": [],
+    "contentSelectionRegions": [
+      "script",
+      "timeline"
+    ],
+    "localViewControlRegions": [
+      "script",
+      "inspector"
+    ],
+    "explicitRule": "Script passages, cue lanes, inspector tabs and filters are not product navigation."
+  },
+  "visualRules": {
+    "avoidNestedDecorativeFrames": true,
+    "onePrimaryWorkArea": "playback",
+    "categoryColorMayAssistButNotCarryMeaningAlone": true,
+    "keyboardOperationRequired": true,
+    "blackAndWhiteThemeMustRemainUsable": true
+  },
+  "architectureBoundaries": [
+    "PPF remains admitted versioned creative state.",
+    "The timeline is a disposable projection and not a competing story store.",
+    "Cue activity does not prove footage fidelity.",
+    "Creative timing changes use the existing review/admission path.",
+    "The first delivery requires no new game engine and must work with local media without a cloud model."
+  ]
+}

@@ -13,6 +13,7 @@ import styles from "./profile-identity-panel.module.css";
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
 type Presentation = { displayName: string; avatarUrl: string; publicBio: string };
 type ImageResponse = { assetUrl?: string; revisedPrompt?: string; message?: string };
+type AssistantTextResponse = { text?: string; provider?: string; model?: string; message?: string };
 type BuzzIdentity = {
   ready: boolean;
   identityVerified: boolean;
@@ -140,6 +141,9 @@ export default function ProfileIdentityPanel({
   const [readinessLoaded, setReadinessLoaded] = useState(false);
   const [setupMode, setSetupMode] = useState<SetupMode>(null);
   const [privateKey, setPrivateKey] = useState("");
+  const [displayDescriptionPromptEnabled, setDisplayDescriptionPromptEnabled] = useState(false);
+  const [characterDescription, setCharacterDescription] = useState("");
+  const displayDescriptionPromptRef = useRef<HTMLTextAreaElement>(null);
   const [avatarPromptEnabled, setAvatarPromptEnabled] = useState(false);
   const [avatarDescription, setAvatarDescription] = useState("");
   const avatarPromptRef = useRef<HTMLTextAreaElement>(null);
@@ -166,6 +170,8 @@ export default function ProfileIdentityPanel({
 
   useEffect(() => {
     setReadinessLoaded(false);
+    setDisplayDescriptionPromptEnabled(false);
+    setCharacterDescription("");
     setAvatarPromptEnabled(false);
     setAvatarDescription("");
     void refresh().catch((cause) => {
@@ -219,6 +225,48 @@ export default function ProfileIdentityPanel({
       await refresh();
     } catch (cause) {
       setNotice(cause instanceof Error ? cause.message : "Profile could not be saved.");
+    } finally { setBusy(""); }
+  }
+
+  function beginOrGenerateDisplayDescription() {
+    if (busy) return;
+    if (!displayDescriptionPromptEnabled) {
+      setDisplayDescriptionPromptEnabled(true);
+      setNotice("Describe your character, then select Generate Display Description again.");
+      window.requestAnimationFrame(() => displayDescriptionPromptRef.current?.focus());
+      return;
+    }
+    void generateDisplayDescription();
+  }
+
+  async function generateDisplayDescription() {
+    const description = characterDescription.trim();
+    if (!description || busy) return;
+    setBusy("display-description"); setNotice("");
+    try {
+      const response = await fetch("/api/writing-assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: [
+            "Create a concise PlotPickle Human profile Display Description from the character description below.",
+            "Write one polished paragraph in third person, maximum 500 characters.",
+            "Return only the description with no heading, quotation marks, bullets, or commentary.",
+            "",
+            description,
+          ].join("\n"),
+          history: [],
+        }),
+      });
+      const generated = await response.json() as AssistantTextResponse;
+      const publicBio = generated.text?.trim().replace(/\s+/gu, " ").slice(0, 500) || "";
+      if (!response.ok || !publicBio) throw new Error(generated.message || "The selected text route returned no Display Description.");
+      setPresentation((current) => ({ ...current, publicBio }));
+      setCharacterDescription("");
+      setDisplayDescriptionPromptEnabled(false);
+      setNotice("Display Description generated for review. Generate the Lore Avatar if needed, then select Save Profile when the character is finalized.");
+    } catch (cause) {
+      setNotice(cause instanceof Error ? cause.message : "Display Description generation failed.");
     } finally { setBusy(""); }
   }
 
@@ -321,6 +369,7 @@ export default function ProfileIdentityPanel({
 
   const identityConfigured = Boolean(buzzStatus?.connection?.identityConfigured);
   const connected = Boolean(buzz?.humanCommunityAllowed && buzz.identityVerified && buzz.kind === "human");
+  const buzzConnected = connected || identityConfigured;
   const identityLabel = connected ? "Connected" : identityConfigured ? "Connected · Community access pending" : "Not configured";
   const localGeneratedAvatar = isPlotPickleGeneratedAvatarRef(presentation.avatarUrl);
   const activeProvider = assistantStatus?.activeProvider;
@@ -362,7 +411,7 @@ export default function ProfileIdentityPanel({
             <blockquote className={styles.motto}>The agents are the workshop. Stories—and better storytellers—are the product.</blockquote>
           </div>
           <div className={styles.statusRail} aria-label="Profile readiness">
-            <ReadinessIndicator label="BUZZ" name="BUZZ Identity" ready={connected} detail={identityLabel} settingsTarget="buzz" />
+            <ReadinessIndicator label="BUZZ" name="BUZZ Identity" ready={readinessLoaded ? buzzConnected : null} detail={identityLabel} settingsTarget="buzz" />
             <ReadinessIndicator label="COMMUNITY" name="BUZZ Community" ready={communityReady} detail={guildhallStatus?.message} settingsTarget="buzz" />
             <ReadinessIndicator label="MODELS" name="Models" ready={modelsReady} detail={activeProfile?.model} settingsTarget={modelSettingsTarget} />
             <ReadinessIndicator label="COMFY" name="ComfyUI" ready={comfyReady} detail={comfyDetail} settingsTarget="comfyui" />
@@ -372,7 +421,7 @@ export default function ProfileIdentityPanel({
         </section>
 
         <section className={styles.buzzCard} aria-labelledby="profile-buzz-heading">
-          <div className={styles.buzzHeading}><span><b id="profile-buzz-heading">BUZZ Identity</b><small>{identityLabel}</small></span><i data-connected={connected ? "true" : "false"} aria-hidden="true" /></div>
+          <div className={styles.buzzHeading}><span><b id="profile-buzz-heading">BUZZ Identity</b><small>{identityLabel}</small></span><i data-connected={buzzConnected ? "true" : "false"} aria-hidden="true" /></div>
 
           {connected ? <>
             <p>{buzz?.displayName ? `Signed Community identity verified as ${buzz.displayName}.` : "Your Human BUZZ identity is verified."}</p>
@@ -422,7 +471,9 @@ export default function ProfileIdentityPanel({
 
           <form className={styles.identityForm} onSubmit={savePresentation}>
             <label><span>Display name (agent name)</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
-            <label><span>Display Description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500</small></label>
+            <button type="button" aria-controls="display-description-prompt" aria-expanded={displayDescriptionPromptEnabled} disabled={Boolean(busy) || (displayDescriptionPromptEnabled && !characterDescription.trim())} onClick={beginOrGenerateDisplayDescription}>{busy === "display-description" ? "Generating Display Description…" : "Generate Display Description"}</button>
+            <label data-display-description-prompt-state={displayDescriptionPromptEnabled ? "active" : "inactive"}><span>Describe your character</span><textarea id="display-description-prompt" ref={displayDescriptionPromptRef} rows={3} maxLength={1200} disabled={!displayDescriptionPromptEnabled || Boolean(busy)} value={characterDescription} placeholder="Describe the character, personality, role, tone and defining traits…" onChange={(event) => setCharacterDescription(event.target.value)} /></label>
+            <label><span>Display Description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} readOnly aria-readonly="true" data-generated-display-description="true" /><small>{presentation.publicBio.length}/500 · generated field</small></label>
             <button type="button" aria-controls="lore-avatar-prompt" aria-expanded={avatarPromptEnabled} disabled={Boolean(busy) || (avatarPromptEnabled && !avatarDescription.trim())} onClick={beginOrGenerateLoreAvatar}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
             <label data-lore-avatar-prompt-state={avatarPromptEnabled ? "active" : "inactive"}><span>Lore Avatar prompt</span><textarea id="lore-avatar-prompt" ref={avatarPromptRef} rows={3} maxLength={1000} disabled={!avatarPromptEnabled || Boolean(busy)} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /></label>
             <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>

@@ -72,4 +72,7 @@ test("#2251 registers Story Bible without expanding the frozen standard capture 
   assert.equal(bible.navigationPath[0].order, 8);
   assert.equal(edit.navigationPath[0].order, 9);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
+
+  const webmcp = await read("lib/verification/webmcp-surface-capture-registry.mjs");
+  assert.match(webmcp, /censusOnly: Object\.freeze\(\["story-bible"\]\)/u);
 });

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   SURFACE_CONTRACT_MATRIX_DOC,
   writeSkinV1SurfaceContractMatrix,
-} from "../lib/verification/skin-v1-surface-contracts.mjs";
+} from "../lib/verification/skin-v1/surface-contracts.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

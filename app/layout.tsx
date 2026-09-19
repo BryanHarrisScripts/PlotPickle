@@ -5,6 +5,7 @@ import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import ReleaseExperienceBoundary from "./navigation/release-experience-boundary";
 import AppearanceRuntime from "./appearance-runtime";
 import SkinV1Runtime from "./skin-v1-runtime";
+import SkinV1SurfaceOrchestrator from "./skin-v1/surface-orchestrator";
 import { LegacyDemoBoundary, LegacySkinOnly } from "./legacy-skin-only";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
@@ -85,6 +86,7 @@ import "./skin-v1-dashboard-reference.css";
 import "./skin-v1-dashboard-menu-reset.css";
 import "./skin-v1-settings-directory.css";
 import "./skin-v1-standard-surface-shell.css";
+import "./skin-v1-surface-orchestrator.css";
 import "./issue-2061.css";
 
 export const metadata: Metadata = {
@@ -129,7 +131,9 @@ export default function RootLayout({
         <LegacyDemoBoundary>
           <ProfileAccessRouter>
             <PreproductionLearnReturnHost />
-            <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
+            <SkinV1SurfaceOrchestrator>
+              <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
+            </SkinV1SurfaceOrchestrator>
             <GlobalSageOverlay />
           </ProfileAccessRouter>
           <LegacySkinOnly>

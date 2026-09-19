@@ -163,6 +163,7 @@ test("#1938 docs-only and verification-only changes remain cheap and mapped", as
     "verification.oss-radar-discovery-recall",
     "verification.phase2-core",
     "verification.phase7-merge-authority",
+    "verification.public-site-publishing-2262",
   ]);
   assert.equal(layer7.skippedTests.length, 0);
 });

@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 11,
-    routedCompatibilityDebt: 24,
+    canonicalOrchestratedDirect: 12,
+    routedCompatibilityDebt: 23,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -184,6 +184,37 @@ test("#2226 Refine diagnostic routes use canonical parent routing and one visibl
   assert.match(refineReturn, /href="\/diagnostics"/u);
   assert.match(refineReturn, /href="\/skin-v1"/u);
   assert.doesNotMatch(refineReturn, /\?workspace=refine|\?workspace=dashboard/u);
+});
+
+test("#2226 orchestrates canonical Screenplay Readiness beneath Refine without changing its PPF authority", async () => {
+  const [registry, page, model, orchestrator] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/screenplay-readiness/page.tsx"),
+    read("app/screenplay-readiness/canonical-readiness.ts"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+  ]);
+  const surface = registry.surfaces.find((candidate) => candidate.id === "screenplay-readiness");
+
+  assert.equal(surface?.parent, "refine");
+  assert.equal(surface?.surfaceClass, "nested");
+  assert.equal(surface?.capturePolicy, "census-only");
+  assert.equal(surface?.orchestrated, true);
+  assert.equal(surface?.runtimeRoute, "/screenplay-readiness");
+  assert.equal(surface?.runtimeSelector, "[data-screenplay-readiness-workspace='canonical']");
+  assert.equal(surface?.runtimeReadySelector, "[data-canonical-project-id]");
+  assert.equal(surface?.formatProfile?.layout, "one-column");
+  assert.equal(surface?.formatProfile?.shell, "diagnostic");
+  assert.equal(surface?.navigationPath?.[0]?.slug, "refine");
+  assert.equal(surface?.navigationPath?.[1]?.order, 5);
+
+  assert.match(page, /data-screenplay-readiness-workspace="canonical"/u);
+  assert.match(page, /data-canonical-project-id=\{project\.id\}/u);
+  assert.match(page, /loadFoundationProject/u);
+  assert.match(page, /deriveCanonicalScreenplayReadiness/u);
+  assert.doesNotMatch(page, /plotpickle\.project\.v1|localStorage|normalizePlotPickleProject/u);
+  assert.match(model, /deriveProgressiveStoryMap\(project\)/u);
+
+  assert.match(orchestrator, /SURFACE_BY_ID\.get\(active\.parent\)\?\.runtimeRoute/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

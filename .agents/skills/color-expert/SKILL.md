@@ -136,8 +136,8 @@ This Skill cannot:
 - change Visual Director or Visual QA verdict ownership;
 - write PPF/canon;
 - select providers;
-- read credentials;
-- grant network access;
+- request or consume secret material;
+- initiate network activity;
 - edit code or GitHub state.
 
 The host owns all capabilities and side effects. Human approval remains final.

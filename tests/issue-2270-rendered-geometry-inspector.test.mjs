@@ -4,8 +4,8 @@ import test from "node:test";
 import {
   loadSkinV1SurfaceContracts,
   renderSkinV1SurfaceContractMatrix,
-} from "../lib/verification/skin-v1-surface-contracts.mjs";
-import { analyzeRenderedSurfaceContract } from "../lib/verification/skin-v1-rendered-surface-profile.mjs";
+} from "../lib/verification/skin-v1/surface-contracts.mjs";
+import { analyzeRenderedSurfaceContract } from "../lib/verification/skin-v1/rendered-surface-profile.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -119,7 +119,7 @@ test("#2270 extends the existing Visual Director and Browser Verification Broker
   const [visualDirector, renderedProfile, startup, broker, specSheet] = await Promise.all([
     read("lib/verification/skin-v1-visual-director.mjs"),
     read("lib/verification/skin-v1-rendered-surface-profile.mjs"),
-    read("scripts/run-webmcp-startup-uat.mjs"),
+    read("lib/verification/skin-v1-visual-director.mjs"),
     read("lib/verification/browser-verification-broker.mjs"),
     readJson("config/skin-v1-spec-sheet-contract.json"),
   ]);

@@ -1447,40 +1447,109 @@
       "id": "craftloop",
       "label": "CraftLoop",
       "family": "review",
-      "parent": "dashboard",
+      "parent": "refine",
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
       "continuityIds": [
         "craftloop"
       ],
-      "route": "/craftloop"
+      "route": "/craftloop",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 1,
+          "slug": "craftloop",
+          "label": "CraftLoop"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-craftloop-workspace='canonical']",
+      "runtimeReadySelector": "[data-craftloop-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/craftloop"
     },
     {
       "id": "draftlens",
       "label": "DraftLens",
       "family": "review",
-      "parent": "dashboard",
+      "parent": "refine",
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
       "continuityIds": [
         "draftlens"
       ],
-      "route": "/draftlens"
+      "route": "/draftlens",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 2,
+          "slug": "draftlens",
+          "label": "DraftLens"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-draftlens-workspace='canonical']",
+      "runtimeReadySelector": "[data-draftlens-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/draftlens"
     },
     {
       "id": "resonance",
       "label": "Resonance",
       "family": "review",
-      "parent": "dashboard",
+      "parent": "refine",
       "surfaceClass": "workspace",
       "capturePolicy": "census-only",
       "governance": "census",
       "continuityIds": [
         "resonance"
       ],
-      "route": "/resonance"
+      "route": "/resonance",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 4,
+          "slug": "resonance",
+          "label": "Resonance"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-resonance-workspace='canonical']",
+      "runtimeReadySelector": "[data-resonance-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/resonance"
     },
     {
       "id": "screenplay-readiness",

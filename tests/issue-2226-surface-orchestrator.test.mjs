@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 13,
-    routedCompatibilityDebt: 22,
+    canonicalOrchestratedDirect: 14,
+    routedCompatibilityDebt: 21,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "afterglow-reconciliation"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "ai-routing", "afterglow-reconciliation"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "afterglow-reconciliation"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "ai-routing", "afterglow-reconciliation"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -215,6 +215,34 @@ test("#2226 orchestrates canonical Screenplay Readiness beneath Refine without c
   assert.match(model, /deriveProgressiveStoryMap\(project\)/u);
 
   assert.match(orchestrator, /SURFACE_BY_ID\.get\(active\.parent\)\?\.runtimeRoute/u);
+});
+
+test("#2226 orchestrates AI Routing beneath Settings without duplicating routing authority", async () => {
+  const [registry, page, orchestrator, sitemap] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/ai-routing/page.tsx"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/navigation/sitemap-route-context.ts"),
+  ]);
+  const surface = registry.surfaces.find((candidate) => candidate.id === "ai-routing");
+
+  assert.equal(surface?.parent, "settings");
+  assert.equal(surface?.surfaceClass, "nested");
+  assert.equal(surface?.capturePolicy, "census-only");
+  assert.equal(surface?.orchestrated, true);
+  assert.equal(surface?.runtimeRoute, "/ai-routing");
+  assert.equal(surface?.runtimeSelector, "[data-ai-routing-workspace='canonical']");
+  assert.equal(surface?.runtimeReadySelector, "[data-ai-routing-workspace='canonical']");
+  assert.equal(surface?.formatProfile?.layout, "settings-directory");
+  assert.equal(surface?.formatProfile?.shell, "settings");
+  assert.equal(surface?.navigationPath?.[0]?.slug, "manage");
+  assert.equal(surface?.navigationPath?.[1]?.slug, "ai-routing");
+
+  assert.match(page, /data-ai-routing-workspace="canonical"/u);
+  assert.match(page, /<SageSettingsWorkspace \/>/u);
+  assert.doesNotMatch(page, /AiRoutingPanel/u);
+  assert.match(sitemap, /"\\/ai-routing": \\{[\\s\\S]*?rootContext: "settings"/u);
+  assert.match(orchestrator, /parentSurface\\?\\.runtimeRoute \\?\\? parentSurface\\?\\.route/u);
 });
 
 test("#2226 orchestrates Afterglow Reconciliation without changing reconciliation ownership", async () => {

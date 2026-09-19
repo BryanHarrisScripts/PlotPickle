@@ -40,6 +40,14 @@ test("#2272 Library compact directory uses two frame levels, not a third bright 
   );
   assert.match(
     css,
-    /\.libraryDirectoryMenu[\s\S]*border:\s*0 !important;[\s\S]*box-shadow:\s*none !important;/u,
+    /\.libraryDirectoryMenu[\s\S]*border:\s*0 !important;[\s\S]*background:\s*var\(--pp-skin-accent-deep\) !important;[\s\S]*box-shadow:\s*none !important;/u,
+  );
+  assert.match(
+    css,
+    /\.libraryDirectoryItem[\s\S]*background:\s*var\(--pp-skin-accent-deep\) !important;/u,
+  );
+  assert.match(
+    css,
+    /\.libraryDirectoryItem\[aria-selected="true"\][\s\S]*border-color:\s*var\(--pp-skin-accent-bright\) !important;[\s\S]*background:\s*var\(--pp-skin-accent-deep\) !important;/u,
   );
 });

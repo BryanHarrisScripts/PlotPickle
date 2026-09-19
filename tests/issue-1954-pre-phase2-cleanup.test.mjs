@@ -102,7 +102,7 @@ test("#1965/#2071/#2266 Profile readiness matches the Dashboard six-label status
   );
   assert.match(
     directoryCss,
-    /\[aria-label="Profile readiness"\] button\s*\{[\s\S]{0,260}min-height: 24px !important;[\s\S]{0,180}border: 0 !important;[\s\S]{0,120}border-radius: 0 !important;[\s\S]{0,120}background: transparent !important;/u,
+    /\[aria-label="Profile readiness"\] button\s*\{[\s\S]{0,260}min-height: var\(--pp-skin-control-height\) !important;[\s\S]{0,180}border: 0 !important;[\s\S]{0,120}border-radius: 0 !important;[\s\S]{0,120}background: transparent !important;/u,
   );
   assert.match(directoryCss, /\[aria-label="Profile readiness"\] button\s*\{[\s\S]*font-size: var\(--pp-skin-font-xs\) !important;/u);
 

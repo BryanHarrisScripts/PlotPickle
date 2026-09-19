@@ -116,9 +116,9 @@ test("#2270 Library and Dashboard contracts project registered child menus inclu
 });
 
 test("#2270 extends the existing Visual Director and Browser Verification Broker path", async () => {
-  const [visualDirector, renderedProfile, startup, broker, specSheet] = await Promise.all([
+  const [visualDirector, renderedProfile, visualOutput, broker, specSheet] = await Promise.all([
     read("lib/verification/skin-v1-visual-director.mjs"),
-    read("lib/verification/skin-v1-rendered-surface-profile.mjs"),
+    read("lib/verification/skin-v1/rendered-surface-profile.mjs"),
     read("lib/verification/skin-v1-visual-director.mjs"),
     read("lib/verification/browser-verification-broker.mjs"),
     readJson("config/skin-v1-spec-sheet-contract.json"),
@@ -130,7 +130,7 @@ test("#2270 extends the existing Visual Director and Browser Verification Broker
   assert.doesNotMatch(visualDirector, /chromium\.launch\(/u);
   assert.match(renderedProfile, /getBoundingClientRect/u);
   assert.match(renderedProfile, /RENDERED_GEOMETRY_ARTIFACT_ROOT/u);
-  assert.match(startup, /Surface Contract Matrix/u);
+  assert.match(visualOutput, /Surface Contract Matrix/u);
   assert.match(startup, /Rendered geometry JSON \+ viewport screenshots/u);
   assert.match(broker, /bounded-evaluate/u);
   assert.equal(specSheet.requiredOutputs.shellAndGutterMeasurementsRequired, true);

@@ -11,7 +11,7 @@ test("#2266 keeps Library destinations in one persistent shell", async () => {
   ]);
 
   for (const destination of ["new", "import", "examples", "presets", "avery", "archive"]) {
-    assert.match(source, new RegExp(`data-library-(?:nav|surface)=["'{\\`]*${destination}`, "u"));
+    assert.match(source, new RegExp(`id: "${destination}"`, "u"));
   }
   assert.match(source, /data-library-directory="keyboard-directory"/u);
   assert.match(source, /destination !== null \? \(/u);

@@ -495,7 +495,10 @@
         "app/navigation/sitemap-route-context.ts",
         "app/write/page.tsx",
         "app/edit-workspace.tsx",
-        "app/storyboard-write-handoff.tsx"
+        "app/storyboard-write-handoff.tsx",
+        "app/feedback/page.tsx",
+        "app/pitch-review/page.tsx",
+        "app/_components/collab/collab-entry-workspace.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

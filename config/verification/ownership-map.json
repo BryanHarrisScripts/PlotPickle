@@ -404,6 +404,7 @@
       "classification": "production",
       "include": [
         "lib/review-stage.ts",
+        "lib/unified-feedback-store.ts",
         "app/feedback-workspace.tsx"
       ],
       "ownerLayer": "experience-contract",
@@ -411,7 +412,8 @@
         "surface",
         "canon",
         "agent",
-        "graph"
+        "graph",
+        "security"
       ]
     },
     {

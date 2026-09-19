@@ -35,6 +35,15 @@ const STANDARD_SURFACES = (surfaceRegistry.surfaces as RuntimeSurface[])
   .filter((surface) => surface.capturePolicy === "standard" && surface.orchestrated && surface.runtimeSelector);
 
 const SURFACE_BY_ID = new Map(STANDARD_SURFACES.map((surface) => [surface.id, surface]));
+const PREPRODUCTION_SURFACES = new Set([
+  "story-map",
+  "storyboard",
+  "visual-story",
+  "scene-timeline",
+  "previs",
+  "write",
+  "pageflow",
+]);
 
 function visible(element: Element) {
   if (!(element instanceof HTMLElement)) return false;
@@ -172,6 +181,16 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
 
   const returnLabel = useMemo(() => parentLabel(active), [active]);
   const profile = active?.formatProfile;
+  const preproductionContext = useMemo(() => {
+    if (!active || !PREPRODUCTION_SURFACES.has(active.id) || typeof window === "undefined") return null;
+    const query = new URLSearchParams(window.location.search);
+    const block = Number(query.get("block"));
+    const mini = Number(query.get("mini"));
+    const parts: string[] = [];
+    if (Number.isInteger(block) && block >= 1 && block <= 24) parts.push(`Block ${String(block).padStart(2, "0")}`);
+    if (Number.isInteger(mini) && mini >= 1 && mini <= 4) parts.push(`Mini-Block ${mini}`);
+    return parts.length ? parts.join(" · ") : "Current project";
+  }, [active]);
 
   function returnToParent() {
     if (!active) return;
@@ -219,6 +238,13 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
               Back to {returnLabel}
             </button>
           </div>
+          {preproductionContext ? (
+            <section className="pp-skin-v1-orchestrator-workspace-header" data-skin-v1-region-role="workspace-header">
+              <span className="pp-skin-v1-orchestrator-eyebrow">PRE-PRODUCTION</span>
+              <h1>{active.label}</h1>
+              <p>{preproductionContext}</p>
+            </section>
+          ) : null}
         </>
       ) : null}
 

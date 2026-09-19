@@ -123,20 +123,20 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([dat
   text-shadow: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h1, [role="heading"][aria-level="1"]) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h1, [role="heading"][aria-level="1"]) {
   color: var(--pp-skin-ink) !important;
   font: 700 var(--pp-skin-font-title)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui) !important;
   letter-spacing: var(--pp-skin-tracking-label) !important;
   text-transform: uppercase;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h2, h3, h4) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h2, h3, h4) {
   color: var(--pp-skin-accent-bright) !important;
   font-family: var(--pp-skin-font-ui) !important;
   line-height: var(--pp-skin-leading-tight) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(p, li, dd, label, small) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(p, li, dd, label, small) {
   font-family: var(--pp-skin-font-ui) !important;
 }
 

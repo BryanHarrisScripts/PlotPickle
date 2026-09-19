@@ -220,7 +220,7 @@
     {
       "id": "feedback",
       "label": "Feedback",
-      "path": "/pitch-review",
+      "path": "/feedback",
       "kind": "workspace",
       "migrationClass": "canonical",
       "activeWorkspace": "build",

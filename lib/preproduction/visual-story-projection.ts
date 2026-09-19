@@ -20,6 +20,8 @@ export type VisualStoryFrameProjection = {
   readonly reviewState: string;
   readonly accepted: boolean;
   readonly source: "foundations" | "world";
+  /** Shot-scoped reveal/withhold constraints inherited only when this Frame is linked to that Shot. */
+  readonly informationDirectives: readonly ShotInformationDirective[];
 };
 
 export type VisualStoryShotProjection = {
@@ -86,6 +88,7 @@ function projectFrames(project: LibraryPPFProject, anchorRef: string): readonly 
       reviewState: artifact.reviewState ?? "draft",
       accepted: artifact.reviewState === "accepted" && foundationAccepted.has(artifact.id),
       source: "foundations" as const,
+      informationDirectives: [],
     }));
   const worldFrames = project.build.world.visualArtifacts
     .filter((artifact) => artifactTargetsAnchor(artifact, anchorRef))
@@ -97,6 +100,7 @@ function projectFrames(project: LibraryPPFProject, anchorRef: string): readonly 
       reviewState: artifact.reviewState,
       accepted: artifact.reviewState === "accepted" && worldAccepted.has(artifact.id),
       source: "world" as const,
+      informationDirectives: [],
     }));
   return [...foundationFrames, ...worldFrames].sort((left, right) => {
     if (left.accepted !== right.accepted) return left.accepted ? -1 : 1;
@@ -120,7 +124,12 @@ function pairedShot(
   const anchorRef = production?.anchorRef ?? editorial?.anchorRef ?? "";
   const order = production?.order ?? editorial?.order ?? 1;
   const seededFrameId = production?.storyboardArtifactId ?? "";
-  const linkedFrames = seededFrameId ? frames.filter((frame) => frame.id === seededFrameId) : [];
+  const informationDirectives = editorial?.informationDirectives ?? [];
+  const linkedFrames = seededFrameId
+    ? frames
+      .filter((frame) => frame.id === seededFrameId)
+      .map((frame) => ({ ...frame, informationDirectives }))
+    : [];
   return {
     id: editorial?.shotId ?? production?.id ?? `${anchorRef}:shot-${order}`,
     anchorRef,
@@ -139,7 +148,7 @@ function pairedShot(
     transitionIn: production?.transitionIn ?? "",
     transitionOut: production?.transitionOut ?? "",
     reviewState: production?.reviewState ?? "editorial",
-    informationDirectives: editorial?.informationDirectives ?? [],
+    informationDirectives,
     frames: linkedFrames,
   };
 }

@@ -369,6 +369,21 @@
       ]
     },
     {
+      "id": "review-stage-experience-contract",
+      "classification": "production",
+      "include": [
+        "lib/review-stage.ts",
+        "app/feedback-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "canon",
+        "agent",
+        "graph"
+      ]
+    },
+    {
       "id": "community-human-ux-contract",
       "classification": "production",
       "include": [

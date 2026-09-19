@@ -14,6 +14,7 @@ test("#1420 retires the reachable screenplay-readiness parallel story store", as
   assert.match(page, /loadFoundationProject/);
   assert.match(page, /PPFProject/);
   assert.match(page, /deriveCanonicalScreenplayReadiness/);
+  assert.match(page, /data-screenplay-readiness-workspace="canonical"/);
   assert.match(page, /data-canonical-project-id=\{project\.id\}/);
   assert.doesNotMatch(`${page}\n${model}`, /plotpickle\.project\.v1|PlotPickleProject|normalizePlotPickleProject|assessScreenplayReadiness|readinessDestinations/);
   assert.doesNotMatch(page, /localStorage/);

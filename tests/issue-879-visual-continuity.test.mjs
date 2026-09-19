@@ -120,7 +120,7 @@ test("Dashboard, BUILD and approved production shortcuts expose real destination
     ["edit", "/edit"],
     ["feedback", "/feedback"],
     ["refine", "/diagnostics"],
-    ["reports", "/production"],
+    ["reports", "/reports"],
   ]) {
     assert.match(navigation, new RegExp(`id: "${id}"[^\\n]+kind: "route"[^\\n]+href: "${href.replaceAll("/", "\\/")}"`));
   }

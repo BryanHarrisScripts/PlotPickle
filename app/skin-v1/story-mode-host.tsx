@@ -152,6 +152,15 @@ export default function StoryModeHost() {
 
   useEffect(() => { void refresh(); }, []);
 
+  useEffect(() => {
+    const returnToSurface = (event: Event) => {
+      const detail = (event as CustomEvent<{ parentSurface?: string }>).detail;
+      if (detail?.parentSurface === "story-mode") setView("landing");
+    };
+    window.addEventListener("plotpickle:return-surface", returnToSurface);
+    return () => window.removeEventListener("plotpickle:return-surface", returnToSurface);
+  }, []);
+
   function selectIndex(index: number) {
     const normalized = (index + STORY_MODE_ROWS.length) % STORY_MODE_ROWS.length;
     setSelectedIndex(normalized);

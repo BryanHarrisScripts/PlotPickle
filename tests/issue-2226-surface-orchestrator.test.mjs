@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 12,
-    routedCompatibilityDebt: 23,
+    canonicalOrchestratedDirect: 13,
+    routedCompatibilityDebt: 22,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "afterglow-reconciliation"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "afterglow-reconciliation"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -215,6 +215,28 @@ test("#2226 orchestrates canonical Screenplay Readiness beneath Refine without c
   assert.match(model, /deriveProgressiveStoryMap\(project\)/u);
 
   assert.match(orchestrator, /SURFACE_BY_ID\.get\(active\.parent\)\?\.runtimeRoute/u);
+});
+
+test("#2226 orchestrates Afterglow Reconciliation without changing reconciliation ownership", async () => {
+  const [registry, page] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/afterglow-reconciliation/page.tsx"),
+  ]);
+  const surface = registry.surfaces.find((candidate) => candidate.id === "afterglow-reconciliation");
+
+  assert.equal(surface?.parent, "dashboard");
+  assert.equal(surface?.capturePolicy, "census-only");
+  assert.equal(surface?.orchestrated, true);
+  assert.equal(surface?.runtimeRoute, "/afterglow-reconciliation");
+  assert.equal(surface?.runtimeSelector, "[data-afterglow-reconciliation-workspace='canonical']");
+  assert.equal(surface?.formatProfile?.layout, "one-column");
+  assert.equal(surface?.formatProfile?.shell, "standard-restrained");
+
+  assert.match(page, /data-afterglow-reconciliation-workspace="canonical"/u);
+  assert.match(page, /data-skin-v1-local-return="true"[\s\S]*href="\/skin-v1"[\s\S]*Back to Dashboard/u);
+  assert.match(page, /afterglowSourceClaims/u);
+  assert.match(page, /afterglowVersionBlockMap/u);
+  assert.doesNotMatch(page, /\?workspace=dashboard/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

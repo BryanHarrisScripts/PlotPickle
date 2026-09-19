@@ -20,7 +20,8 @@
         "app/legacy-skin-only.tsx",
         "app/skin-v1-route-contract.ts",
         "app/diagnostics/page.tsx",
-        "app/refine-return-nav.tsx"
+        "app/refine-return-nav.tsx",
+        "app/feedback-studio-host.tsx"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

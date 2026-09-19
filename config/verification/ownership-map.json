@@ -16,7 +16,9 @@
         "app/skin-v1-definition.css",
         "app/skin-v1-runtime.tsx",
         "app/skin-v2-definition.css",
-        "app/issue-2061.css"
+        "app/issue-2061.css",
+        "app/legacy-skin-only.tsx",
+        "app/skin-v1-route-contract.ts"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [
@@ -815,7 +817,8 @@
         "config/uat-autopilot-registry.json",
         "config/ui-continuity-agent-registry.json",
         "config/visual-audit-captures.json",
-        "config/visual-capture-registry.json"
+        "config/visual-capture-registry.json",
+        "scripts/write-skin-v1-route-migration-ledger.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

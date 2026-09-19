@@ -861,10 +861,11 @@ export const beatTemplates = [
 ] as const;
 
 function makeId(prefix: string) {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
+  const platformCrypto = globalThis.crypto;
+  if (!platformCrypto?.randomUUID) {
+    throw new Error("Secure randomness is unavailable for canonical project IDs.");
   }
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}-${platformCrypto.randomUUID()}`;
 }
 
 export function createBlankVoiceprint(): CharacterVoiceprint {

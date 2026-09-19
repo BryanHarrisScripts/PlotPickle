@@ -30,6 +30,7 @@ export default function VisualStoryWorkspace({
   editorialShots = [],
   providerInstructions = null,
   onProjectChange,
+  onReturnToStoryboard,
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
@@ -42,6 +43,7 @@ export default function VisualStoryWorkspace({
   readonly editorialShots?: readonly StoryboardEditorialShot[];
   readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
+  readonly onReturnToStoryboard: () => void;
 }) {
   const [selectedSceneId, setSelectedSceneId] = useState(initialSceneId ?? "");
   const [selectedShotId, setSelectedShotId] = useState(initialShotId ?? "");
@@ -100,6 +102,12 @@ export default function VisualStoryWorkspace({
   if (!projection.selectedScene) {
     return (
       <section className={styles.workspace} data-projection-only="true" data-visual-story="scene-beat-shot-frame">
+        <button
+          type="button"
+          className="pp-skin-v1-return"
+          data-skin-v1-return="storyboard"
+          onClick={onReturnToStoryboard}
+        >Back to Storyboard</button>
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>
@@ -253,6 +261,12 @@ export default function VisualStoryWorkspace({
       data-scene-id={projection.selectedScene.id}
       data-visual-story="scene-beat-shot-frame"
     >
+      <button
+        type="button"
+        className="pp-skin-v1-return"
+        data-skin-v1-return="storyboard"
+        onClick={onReturnToStoryboard}
+      >Back to Storyboard</button>
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>

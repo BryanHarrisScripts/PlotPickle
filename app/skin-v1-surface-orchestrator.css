@@ -109,7 +109,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-content {
 /* The orchestrator is the one global chrome owner. Existing controls retain their
    event handlers so the orchestrator Return can delegate to them, but their old
    competing presentation is hidden. */
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"]) .pp-skin-v1-orchestrator-content :is(
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-active-surface="dashboard"]) .pp-skin-v1-orchestrator-content :is(
   .pp-skin-v1-bar,
   .pp-skin-v1-title[data-skin-v1-standard-header="true"],
   .pp-skin-v1-status,

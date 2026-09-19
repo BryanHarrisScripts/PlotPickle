@@ -516,6 +516,29 @@
         "artifactPaths": [".artifacts/verification-shadow/experience-skins.json", ".artifacts/verification-shadow/experience-skins.comparison.json"]
       },
       "notes": "#2251 protects Dashboard adjacency, active-story gating, the canonical read-only Story Bible surface and the frozen 30-surface standard capture set."
+    },
+    {
+      "id": "verification.browser-verification-broker-2246",
+      "ownerLayer": "verification",
+      "architectureComponents": ["verification-core"],
+      "triggerTokens": ["test-harness", "mcp", "visual", "navigation", "security"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2246-browser-verification-broker.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/browser-diagnostics"]
+      },
+      "notes": "#2246 protects the swappable Browser Verification Broker, always-attached sanitized F12 observer, adapter capability contract, deep diagnostic evidence boundary and removal of direct Chromium launch from canonical rendered verifiers."
     }
   ]
 }

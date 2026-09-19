@@ -53,6 +53,19 @@
       ]
     },
     {
+      "id": "skin-v1-bundled-font-assets",
+      "classification": "production",
+      "include": [
+        "public/fonts/jetbrains-mono/**"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual"
+      ]
+    },
+    {
       "id": "skin-v1-surface-composition-reference",
       "classification": "production",
       "include": [

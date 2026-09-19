@@ -470,6 +470,52 @@
         "artifactPaths": [".artifacts/verification/verification.json"]
       },
       "notes": "#2034 deterministic OSS Radar recall regression. Proves atomic query families, configuration-owned bounds, hard rejection before read-only enrichment, two-stage scoring, InkOS sentinel relevance, coverage, query-effectiveness history, and preserved Top-5/idempotence/security contracts without live-network authority."
+    },
+    {
+      "id": "story-canon.story-bible-projection-2251",
+      "ownerLayer": "story-canon",
+      "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],
+      "triggerTokens": ["canon", "graph", "surface", "test-harness"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2251-story-bible-projection.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/story-canon.json", ".artifacts/verification-shadow/story-canon.comparison.json"]
+      },
+      "notes": "#2251 protects the read-only Story Bible projection over existing PPF, curriculum, structure, Character Truth and Marketing Reference authorities."
+    },
+    {
+      "id": "experience.story-bible-surface-2251",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
+      "triggerTokens": ["skin", "surface", "visual", "navigation", "canon"],
+      "runner": {
+        "kind": "node-test",
+        "targets": ["tests/issue-2251-story-bible-surface.test.mjs"]
+      },
+      "cost": "fast",
+      "modes": ["baseline", "impact"],
+      "platforms": ["any"],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": ["test-result", "report"],
+        "artifactPaths": [".artifacts/verification-shadow/experience-skins.json", ".artifacts/verification-shadow/experience-skins.comparison.json"]
+      },
+      "notes": "#2251 protects Dashboard adjacency, active-story gating, the canonical read-only Story Bible surface and the frozen 30-surface standard capture set."
     }
   ]
 }

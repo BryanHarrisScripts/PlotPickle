@@ -25,7 +25,8 @@ test("#2080 Library consumes the canonical Matrix / Skin V1 presentation tokens"
   assert.match(css, /\.activeCard\s*\{[\s\S]*?border:\s*var\(--pp-skin-border-strong\) solid var\(--pp-skin-accent-bright\)/);
   assert.match(workspace, /pp-skin-v1-menu pp-skin-v1-dashboard-menu/);
   assert.match(workspace, /pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item/);
-  assert.match(workspace, /pp-skin-v1-dashboard-status-box is-active/);
+  assert.match(workspace, /data-skin-menu-indicators="hidden"/);
+  assert.doesNotMatch(workspace, /pp-skin-v1-dashboard-status-box is-active/);
 });
 
 test("#2080 removes the modern editorial/gallery visual drift", async () => {

@@ -218,13 +218,14 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
 
   function returnToParent() {
     if (!active) return;
-    if (window.location.pathname !== "/skin-v1") {
-      window.location.assign("/skin-v1");
-      return;
-    }
     const delegated = delegatedReturn(active);
     if (delegated) {
       delegated.control.click();
+      return;
+    }
+    if (activateExistingReturn(active)) return;
+    if (window.location.pathname !== "/skin-v1") {
+      window.location.assign("/skin-v1");
       return;
     }
     if (!active.parent || active.parent === "dashboard") {
@@ -239,7 +240,6 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       }));
       return;
     }
-    if (activateExistingReturn(active)) return;
     if (window.history.length > 1) window.history.back();
   }
 

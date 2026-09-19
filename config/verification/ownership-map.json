@@ -193,6 +193,19 @@
       ]
     },
     {
+      "id": "developer-workbench-agent-skill-selection",
+      "classification": "production",
+      "include": [
+        "Utilities/DeveloperWorkbench/pi-review-instructions.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "visual",
+        "developer-tool"
+      ]
+    },
+    {
       "id": "visual-qa-skill",
       "classification": "production",
       "include": [
@@ -204,6 +217,20 @@
         "visual",
         "surface",
         "mcp"
+      ]
+    },
+    {
+      "id": "visual-contract-skill",
+      "classification": "production",
+      "include": [
+        ".agents/skills/visual-contract/SKILL.md"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "visual",
+        "provider",
+        "surface"
       ]
     },
     {

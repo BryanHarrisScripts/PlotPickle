@@ -111,3 +111,23 @@ test("#2226 Scene Workspace keeps its explicit anatomy override inside the 30-su
     "timeline",
   ]);
 });
+
+
+test("#2226 direct routed surfaces outrank nested visible subregions", async () => {
+  const registry = await readJson("config/skin-v1-surface-registry.json");
+  const routed = Object.fromEntries(
+    registry.surfaces
+      .filter((surface) => surface.capturePolicy === "standard" && surface.runtimeRoute)
+      .map((surface) => [surface.id, surface.runtimeRoute]),
+  );
+  assert.deepEqual(routed, {
+    write: "/write?block=17&mini=1",
+    storyboard: "/storyboard?block=17&mini=1",
+    previs: "/previs?block=17&mini=1",
+    pageflow: "/pageflow?block=17&mini=1",
+  });
+  const source = await read("app/skin-v1/surface-orchestrator.tsx");
+  assert.match(source, /directRouteMatches/u);
+  assert.match(source, /surface\.runtimeRoute/u);
+  assert.match(source, /window\.location\.pathname/u);
+});

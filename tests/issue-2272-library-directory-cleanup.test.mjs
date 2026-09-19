@@ -12,6 +12,7 @@ test("#2272 Library compact directory shows destination names without status dot
   ]);
 
   assert.match(workspace, /data-skin-menu-indicators="hidden"/u);
+  assert.match(workspace, /className=\{\`\$\{styles\.eyebrow\} \$\{styles\.libraryDirectoryEyebrow\}\`\}>Library directory<\/p>/u);
   assert.match(workspace, /aria-keyshortcuts=\{item\.shortcut\}/u);
   assert.match(workspace, /<span className=\{styles\.libraryDirectoryLabel\}>\{item\.label\}<\/span>/u);
   assert.doesNotMatch(workspace, /pp-skin-v1-dashboard-status-box/u);
@@ -24,6 +25,7 @@ test("#2272 Library compact directory shows destination names without status dot
   assert.match(css, /\.libraryDirectoryMenu[\s\S]*grid-template-columns:\s*repeat\(7, minmax\(0, 1fr\)\) !important/u);
   assert.match(css, /\.libraryDirectoryItem[\s\S]*justify-content:\s*center !important/u);
   assert.match(css, /\.libraryDirectoryLabel[\s\S]*white-space:\s*nowrap/u);
+  assert.match(css, /\.libraryDirectoryEyebrow[\s\S]*color:\s*var\(--pp-skin-accent-bright\) !important/u);
 
   assert.match(audit, /indicatorsHidden:\s*scope\.getAttribute\("data-skin-menu-indicators"\) === "hidden"/u);
   assert.match(audit, /if \(!result\.indicatorsHidden\)/u);

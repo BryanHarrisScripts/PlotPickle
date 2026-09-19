@@ -14,6 +14,12 @@ test("#2251 places Story Bible immediately beside Write with a unique connected 
   assert.ok(write >= 0 && bible > write && edit > bible);
   assert.match(menu, /id: "story-bible", shortcut: "V", label: "Story Bible"/u);
   assert.match(menu, /"story-bible"/u);
+  const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
+  const dashboardCss = await read("app/skin-v1-dashboard-menu-reset.css");
+  assert.match(dashboard, /data-dashboard-pair="write-story-bible"/u);
+  assert.match(dashboard, /if \(item\.id === "story-bible"\) return null/u);
+  assert.match(dashboard, /data-dashboard-menu-item=\{storyBibleItem\.id\}/u);
+  assert.match(dashboardCss, /grid-template-columns: minmax\(0, 1fr\) 180px/u);
 
   const shortcuts = [...menu.matchAll(/shortcut: "([^"]+)"/gu)].map((match) => match[1]);
   assert.equal(shortcuts.length, new Set(shortcuts).size);

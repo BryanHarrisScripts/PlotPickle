@@ -228,6 +228,56 @@ test("#2092/#2107 editorial Shot contract preserves independent SHOW_NOW and WIT
       : directive),
   }, { anchorRef, order: 1 });
   assert.deepEqual(productionReadyShotInformationErrors(productionReady), []);
+
+  const unresolvedWithoutRationale = normalizeStoryboardEditorialShot({
+    ...shot,
+    informationDirectives: shot.informationDirectives.map((directive) => directive.id === "info-brother"
+      ? { ...directive, release: { state: "intentionally-unresolved" }, rationale: "" }
+      : directive),
+  }, { anchorRef, order: 1 });
+  assert.match(
+    productionReadyShotInformationErrors(unresolvedWithoutRationale).join("\n"),
+    /intentionally unresolved release requires a Human-readable rationale/,
+  );
+
+  const unresolvedWithRationale = normalizeStoryboardEditorialShot({
+    ...unresolvedWithoutRationale,
+    informationDirectives: unresolvedWithoutRationale.informationDirectives.map((directive) => directive.id === "info-brother"
+      ? { ...directive, rationale: "The writer intentionally leaves the identity unrevealed in this production pass." }
+      : directive),
+  }, { anchorRef, order: 1 });
+  assert.deepEqual(productionReadyShotInformationErrors(unresolvedWithRationale), []);
+});
+
+test("#2107 Previs preserves explicit Editorial Shot provenance without inventing it", async () => {
+  const { normalizeProductionShotIntent } = await importTypeScript("core/contracts/previs/index.ts");
+  const base = {
+    id: "previs-shot-provenance",
+    anchorRef: "storyboard-anchor:block:block-01:mini-1",
+    storyboardArtifactId: "storyboard-frame-1",
+    storyboardDependencyKey: "storyboard-upstream:test",
+    order: 1,
+    shotSize: "Medium",
+    angle: "Eye level",
+    movement: "Locked",
+    lens: "Natural",
+    visualIntent: "",
+    durationSeconds: 4.5,
+    transitionIn: "cut",
+    transitionOut: "cut",
+    reviewState: "approved",
+    createdAt: "2026-09-19T00:00:00.000Z",
+    updatedAt: "2026-09-19T00:00:00.000Z",
+  };
+
+  const explicit = normalizeProductionShotIntent({
+    ...base,
+    editorialShotId: "storyboard-shot:storyboard-anchor:block:block-01:mini-1:shot-1",
+  });
+  assert.equal(explicit?.editorialShotId, "storyboard-shot:storyboard-anchor:block:block-01:mini-1:shot-1");
+
+  const legacy = normalizeProductionShotIntent(base);
+  assert.equal(legacy?.editorialShotId, undefined, "legacy shots stay unlinked rather than receiving fabricated provenance");
 });
 
 test("#2092 Phase 1 remains projection-only and reuses existing authorities", async () => {

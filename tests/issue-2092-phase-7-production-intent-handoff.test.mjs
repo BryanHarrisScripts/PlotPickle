@@ -56,6 +56,7 @@ function project() {
           anchorRef: "storyboard-anchor:block:block-01:mini-1",
           storyboardArtifactId: "storyboard-artifact-1",
           storyboardDependencyKey: "storyboard-upstream:phase-7",
+          editorialShotId: "storyboard-shot:storyboard-anchor:block:block-01:mini-1:shot-1",
           order: 1,
           shotSize: "Medium",
           angle: "Eye level",
@@ -227,6 +228,7 @@ test("#2092 Phase 7 assembles approved structured pre-production state into prov
 
   const shot = intent.shots[0];
   assert.equal(shot.editorialShotId, "storyboard-shot:storyboard-anchor:block:block-01:mini-1:shot-1");
+  assert.equal(project().production.shots[0].editorialShotId, shot.editorialShotId);
   assert.equal(shot.execution.productionShotId, "previs-shot-1");
   assert.equal(shot.execution.durationSeconds, 5.5);
   assert.equal(shot.camera.movement, "Slow drift");
@@ -262,7 +264,28 @@ test("#2092 Phase 7 fails closed on unresolved reveal timing or missing Storyboa
     approvedEditorialShots: [],
     beats: beats(),
     frames: frames(),
-  }), /has no approved Storyboard Shot/);
+  }), /Editorial Shot provenance.*has no approved Storyboard Shot/);
+
+  const wrongProvenance = project();
+  wrongProvenance.production.shots[0].editorialShotId = "storyboard-shot:missing";
+  assert.throws(() => handoff.assemblePreproductionProductionIntent({
+    project: wrongProvenance,
+    semantics: semantics(),
+    approvedEditorialShots: [editorialShot(editorial)],
+    beats: beats(),
+    frames: frames(),
+  }), /Editorial Shot provenance storyboard-shot:missing has no approved Storyboard Shot/);
+
+  const legacyCompatible = project();
+  delete legacyCompatible.production.shots[0].editorialShotId;
+  const legacyIntent = handoff.assemblePreproductionProductionIntent({
+    project: legacyCompatible,
+    semantics: semantics(),
+    approvedEditorialShots: [editorialShot(editorial)],
+    beats: beats(),
+    frames: frames(),
+  });
+  assert.equal(legacyIntent.shots[0].editorialShotId, "storyboard-shot:storyboard-anchor:block:block-01:mini-1:shot-1");
 });
 
 test("#2092 Phase 7 remains a projection boundary and does not pre-implement #2064 provider compilation", async () => {

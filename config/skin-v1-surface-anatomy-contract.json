@@ -553,5 +553,51 @@
     "Fields belong to a form, inspector or content owner; they do not create a new surface region by themselves.",
     "Metadata describes state and never acts as navigation unless separately declared.",
     "Additional panels are content/context areas unless the declaration explicitly gives them navigation semantics."
-  ]
+  ],
+  "renderedMeasurementSemantics": {
+    "issue": 2270,
+    "purpose": "Define bounded browser measurements used to verify the existing four-layer Skin V1 specification stack.",
+    "authorityBoundary": {
+      "expectedState": [
+        "app/skin-v1-definition.css",
+        "config/skin-v1-surface-composition-reference.json",
+        "config/skin-v1-surface-anatomy-contract.json",
+        "config/skin-v1-surface-declarations/*.json",
+        "config/skin-v1-surface-registry.json",
+        "config/skin-v1-surface-grammar.json"
+      ],
+      "renderedState": "existing Visual Director rendered-profile collection through the Browser Verification Broker",
+      "verdictOwner": "Visual Director",
+      "mayCreateFifthSpecificationLayer": false,
+      "mayCreateIndependentGeometryGate": false
+    },
+    "measurements": [
+      "viewport-and-document-size",
+      "root-and-frame-rectangles",
+      "outer-gutters",
+      "border-widths",
+      "padding-and-margins",
+      "workspace-columns",
+      "column-widths-and-gaps",
+      "menu-orientation-and-item-geometry",
+      "typography-computed-style",
+      "structural-overlap",
+      "root-overflow",
+      "header-and-footer-geometry",
+      "major-scroll-sections"
+    ],
+    "overlapPolicy": {
+      "default": "governed sibling structural regions must not overlap unless a surface declaration explicitly permits the overlap",
+      "frameRule": "primary content must not paint through the governed root/outer frame",
+      "footerRule": "content must terminate before or inside the declared footer boundary",
+      "tolerancePx": 1.5
+    },
+    "evidence": {
+      "root": ".artifacts/browser-diagnostics/skin-v1-visual-director/geometry",
+      "screenshots": "diagnostic viewport screenshots accompany each surface geometry JSON",
+      "report": "surface-contract-report.json",
+      "markdown": "surface-contract-report.md",
+      "sensitiveTextPolicy": "record stable identities and geometry only; do not persist arbitrary page text, cookies, credentials or request bodies"
+    }
+  }
 }

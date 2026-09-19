@@ -174,11 +174,18 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
   const profile = active?.formatProfile;
 
   function returnToParent() {
-    if (activateExistingReturn(active)) return;
+    if (!active) return;
     if (window.location.pathname !== "/skin-v1") {
       window.location.assign("/skin-v1");
       return;
     }
+    if (!active.parent || active.parent === "dashboard") {
+      window.dispatchEvent(new CustomEvent("plotpickle:return-dashboard", {
+        detail: { sourceSurface: active.id },
+      }));
+      return;
+    }
+    if (activateExistingReturn(active)) return;
     if (window.history.length > 1) window.history.back();
   }
 

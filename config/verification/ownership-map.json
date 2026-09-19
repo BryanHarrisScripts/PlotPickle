@@ -369,6 +369,21 @@
       ]
     },
     {
+      "id": "review-stage-experience-contract",
+      "classification": "production",
+      "include": [
+        "lib/review-stage.ts",
+        "app/feedback-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "canon",
+        "agent",
+        "graph"
+      ]
+    },
+    {
       "id": "community-human-ux-contract",
       "classification": "production",
       "include": [
@@ -855,6 +870,19 @@
       "riskTokens": [
         "test-harness",
         "cli"
+      ]
+    },
+    {
+      "id": "third-party-oss-registry",
+      "classification": "verification",
+      "include": [
+        "config/third-party-oss.json"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs",
+        "security",
+        "test-harness"
       ]
     },
     {

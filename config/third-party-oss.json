@@ -341,6 +341,20 @@
       ],
       "plotpickleUse": "PlotPickle's reviewed LTX default workflow uses the published Comfy-Org LTXV text-to-video template as an adaptation/reference source, with provenance recorded in the architecture note.",
       "readme": true
+    },
+    {
+      "id": "sideshow",
+      "name": "Sideshow",
+      "category": "architecture-reference",
+      "usage": "reference-only",
+      "source": "https://github.com/modem-dev/sideshow",
+      "license": "MIT",
+      "licenseSource": "https://github.com/modem-dev/sideshow/blob/main/LICENSE",
+      "evidencePaths": [
+        "docs/architecture/REVIEW-STAGE.md"
+      ],
+      "plotpickleUse": "Design inspiration for PlotPickle's visual Review Stage pattern: inspect bounded agent work, keep Human feedback attached to the reviewed item, and preserve an explicit feedback lifecycle. PlotPickle does not embed Sideshow, depend on its runtime, copy its UI identity, or claim affiliation.",
+      "readme": true
     }
   ],
   "thirdPartyAssets": [

@@ -8,6 +8,7 @@ import {
   switchActiveLibraryProject,
 } from "../../core/storage/project-library-browser";
 import { persistActiveProfileProject } from "../../core/storage/profile-private-browser";
+import type { ReviewStageSession } from "../../lib/review-stage";
 import styles from "./uat-guide-panel.module.css";
 
 type GuideEvent = {
@@ -50,6 +51,7 @@ type Payload = {
   available: boolean;
   status: GuideStatus | null;
   reviews: HumanReview[];
+  reviewStage?: ReviewStageSession | null;
   isolation: string;
   providerSpendAllowed: boolean;
   message?: string;
@@ -233,7 +235,14 @@ export default function UatGuidePanel() {
   const resultLabel = status?.status === "pass" ? "PASS" : status?.status === "fail" ? "NEEDS ATTENTION" : running ? "RUNNING" : "READY";
 
   return (
-    <section className={styles.panel} aria-labelledby="uat-review-title" data-uat-semantic-review="built-in">
+    <section
+      className={styles.panel}
+      aria-labelledby="uat-review-title"
+      data-uat-semantic-review="built-in"
+      data-review-stage-domain={payload?.reviewStage?.domain || "developer"}
+      data-review-stage-session={payload?.reviewStage?.sessionId || status?.runId || ""}
+      data-review-stage-projection={String(payload?.reviewStage?.projectionOnly ?? true)}
+    >
       <header className={styles.heading}>
         <div>
           <p>QUALITY / UAT SEMANTIC TESTING</p>

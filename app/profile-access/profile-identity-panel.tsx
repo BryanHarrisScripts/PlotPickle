@@ -396,7 +396,7 @@ export default function ProfileIdentityPanel({
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v2">
       <section className={styles.identityColumn} aria-labelledby="profile-identity-heading">
-        <header><span>Human Profile</span><h2 id="profile-identity-heading">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
+        <header><span>Human Profile</span><h2 id="profile-identity-heading" data-skin-typography="h4">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
 
         <section className={styles.identitySummary} aria-label="Identity summary">
           <div className={styles.tokenSummary}>
@@ -462,7 +462,7 @@ export default function ProfileIdentityPanel({
 
       <aside className={styles.rightRail} aria-label="Profile editing and access">
         <section className={styles.editorCard} aria-labelledby="profile-editor-heading">
-          <header><span>Profile editor</span><h2 id="profile-editor-heading">Presentation</h2></header>
+          <header><span>Profile editor</span><h2 id="profile-editor-heading" data-skin-typography="h4">Presentation</h2></header>
 
           <div className={styles.editorAvatar}>
             <ProfilePortrait presentation={presentation} alt="Current profile avatar preview" compact />
@@ -481,13 +481,13 @@ export default function ProfileIdentityPanel({
         </section>
 
         <section className={styles.actionColumn} aria-labelledby="profile-access-heading">
-          <header><span>Access</span><h2 id="profile-access-heading">Security</h2><p>These controls affect only the authenticated PlotPickle Human profile.</p></header>
+          <header><span>Access</span><h2 id="profile-access-heading" data-skin-typography="h4">Security</h2><p>These controls affect only the authenticated PlotPickle Human profile.</p></header>
           <button type="button" disabled={Boolean(busy)} onClick={onLock}>Lock</button>
           <button type="button" disabled={Boolean(busy)} onClick={onSwitchProfile}>Switch profile</button>
         </section>
 
         <section className={styles.actionColumn} aria-labelledby="profile-actions-heading">
-          <header><span>Profile actions</span><h2 id="profile-actions-heading">Profile</h2><p>Create another Human or leave this authenticated session.</p></header>
+          <header><span>Profile actions</span><h2 id="profile-actions-heading" data-skin-typography="h4">Profile</h2><p>Create another Human or leave this authenticated session.</p></header>
           <button type="button" disabled={Boolean(busy)} onClick={onAddProfile}>Add profile</button>
           <button type="button" disabled={Boolean(busy)} onClick={onLogout}>Log out</button>
         </section>

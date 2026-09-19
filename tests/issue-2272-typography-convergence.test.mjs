@@ -40,8 +40,11 @@ test("#2272 Phase 4 projects the existing semantic typography authority after le
   assert.match(css, /body h2[\s\S]*font-size:\s*var\(--pp-skin-font-h2\) !important/u);
   assert.match(css, /body h3[\s\S]*font-weight:\s*var\(--pp-skin-weight-semibold\) !important/u);
   assert.match(css, /data-settings-menu/u);
-  assert.match(css, /data-library-shortcut/u);
+  assert.match(css, /data-keycap/u);
+  assert.doesNotMatch(css, /data-library-shortcut/u, "shortcut metadata on a menu row must not turn the whole row into keycap typography");
+  assert.doesNotMatch(css, /data-settings-shortcut/u, "shortcut metadata on a menu row must not turn the whole row into keycap typography");
   assert.match(css, /data-skin-typography="status"/u);
+  assert.match(css, /\[data-plotpickle-theme\]\[data-plotpickle-startup\]/u, "semantic roles must outrank legacy/module important rules without per-screen selectors");
 
   assert.doesNotMatch(css, /body\s+p\s*\{/u, "generic paragraph fallback must remain ungoverned");
   assert.doesNotMatch(css, /body\s+button\s*\{/u, "generic button fallback must remain ungoverned");
@@ -53,4 +56,27 @@ test("#2272 Phase 4 keeps colour out of the typography convergence layer", async
   assert.doesNotMatch(css, /\bcolor\s*:/u);
   assert.doesNotMatch(css, /background(?:-color)?\s*:/u);
   assert.doesNotMatch(css, /border(?:-[a-z]+)?\s*:/u);
+});
+
+
+test("#2272 Phase 4B keeps menu-row shortcut metadata as menu typography and ignores zero-font containers", async () => {
+  const [profileSource, identityPanel] = await Promise.all([
+    read("lib/verification/skin-v1/rendered-surface-profile.mjs"),
+    read("app/profile-access/profile-identity-panel.tsx"),
+  ]);
+
+  const menuIndex = profileSource.indexOf("const governedMenuNode");
+  const shortcutIndex = profileSource.indexOf('node.matches("[data-dashboard-shortcut],[data-settings-shortcut],[data-library-shortcut]")');
+  assert.ok(menuIndex >= 0 && shortcutIndex > menuIndex, "governed menu context must win before shortcut metadata classification");
+  assert.match(profileSource, /fontSize === 0 && node\.children\.length > 0/u);
+  assert.match(profileSource, /return \{ role: null, source: "container" \}/u);
+
+  for (const id of [
+    "profile-identity-heading",
+    "profile-editor-heading",
+    "profile-access-heading",
+    "profile-actions-heading",
+  ]) {
+    assert.match(identityPanel, new RegExp(`id="${id}" data-skin-typography="h4"`, "u"));
+  }
 });

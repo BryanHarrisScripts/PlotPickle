@@ -9,12 +9,14 @@
  * only unless a role is explicit or governed by context.
  *
  * Dashboard's product display treatment remains canonical and wins through
- * its existing more-specific Dashboard selector. This file does not create a
+ * its existing more-specific Dashboard selector. The root contract attributes
+ * deliberately raise semantic-role specificity above legacy/module !important
+ * rules without adding per-screen selectors. This file does not create a
  * second typography system or introduce local font/size values.
  */
 
-html[data-plotpickle-skin="skin-v1"] body h1,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h1"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h1,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h1"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h1) !important;
   font-weight: var(--pp-skin-weight-bold) !important;
@@ -23,8 +25,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h1"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body h2,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h2"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h2,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h2"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h2) !important;
   font-weight: var(--pp-skin-weight-bold) !important;
@@ -33,8 +35,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h2"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body h3,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h3"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h3,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h3"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h3) !important;
   font-weight: var(--pp-skin-weight-semibold) !important;
@@ -43,8 +45,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h3"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body h4,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h4"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h4,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h4"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h4) !important;
   font-weight: var(--pp-skin-weight-semibold) !important;
@@ -53,8 +55,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h4"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body h5,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h5"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h5,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h5"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h5) !important;
   font-weight: var(--pp-skin-weight-semibold) !important;
@@ -63,8 +65,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h5"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body h6,
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h6"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body h6,
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="h6"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-h6) !important;
   font-weight: var(--pp-skin-weight-semibold) !important;
@@ -73,8 +75,8 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h6"] {
   text-transform: uppercase !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="body"],
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="menu"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="body"],
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="menu"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-body) !important;
   font-weight: var(--pp-skin-weight-regular) !important;
@@ -83,7 +85,7 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="menu"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="control"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="control"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-meta) !important;
   font-weight: var(--pp-skin-weight-bold) !important;
@@ -92,7 +94,7 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="control"] {
   text-transform: uppercase !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="detail"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="detail"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-detail) !important;
   font-weight: var(--pp-skin-weight-regular) !important;
@@ -101,7 +103,7 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="detail"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="note"] {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body [data-skin-typography="note"] {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-note) !important;
   font-weight: var(--pp-skin-weight-regular) !important;
@@ -110,7 +112,7 @@ html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="note"] {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body :is(
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body :is(
   nav,
   [role="menu"],
   [role="tablist"],
@@ -127,7 +129,7 @@ html[data-plotpickle-skin="skin-v1"] body :is(
   [data-settings-secondary-item],
   [data-library-nav]
 ),
-html[data-plotpickle-skin="skin-v1"] body .pp-skin-v1-menu-item {
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body .pp-skin-v1-menu-item {
   font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-body) !important;
   font-weight: var(--pp-skin-weight-regular) !important;
@@ -136,11 +138,8 @@ html[data-plotpickle-skin="skin-v1"] body .pp-skin-v1-menu-item {
   text-transform: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body :is(
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body :is(
   [data-keycap],
-  [data-dashboard-shortcut],
-  [data-settings-shortcut],
-  [data-library-shortcut],
   [data-skin-typography="keycap"]
 ) {
   font-family: var(--pp-skin-font-ui) !important;
@@ -151,7 +150,7 @@ html[data-plotpickle-skin="skin-v1"] body :is(
   text-transform: uppercase !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] body :is(
+html[data-plotpickle-skin="skin-v1"][data-plotpickle-theme][data-plotpickle-startup] body :is(
   [role="status"],
   [role="alert"],
   [aria-live]:not([aria-live="off"]),

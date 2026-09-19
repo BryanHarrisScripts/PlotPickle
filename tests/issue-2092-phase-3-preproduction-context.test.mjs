@@ -77,7 +77,7 @@ test("#2092 phase 3 prevents contextual CraftLoop and PageFlow from replacing PR
     assert.match(layout, /data-preproduction-context/);
   }
 
-  for (const href of ["/?workspace=refine", "/resonance", "/voiceprint", "/pageflow", "/draftlens"]) {
+  for (const href of ["/diagnostics", "/resonance", "/voiceprint", "/pageflow", "/draftlens"]) {
     assert.ok(craftCss.includes(`href="${href}"`), `CraftLoop contextual shell should hide ${href}`);
   }
   assert.match(pageFlowCss, /nav\[aria-label="Refine navigation"\]/);

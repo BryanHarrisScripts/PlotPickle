@@ -246,6 +246,28 @@ test("#2226 canonical Return delegates more-specific nested navigation without r
   assert.match(css, /width: 1px !important;/u);
 });
 
+test("#2226 direct routed context tools prefer a more-specific PRE-PRODUCTION return before their registered parent route", async () => {
+  const [orchestrator, returnNav] = await Promise.all([
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/_components/preproduction/preproduction-capability-return.tsx"),
+  ]);
+
+  assert.match(orchestrator, /closest<HTMLElement>\('\[data-preproduction-context="true"\]'\)/u);
+  assert.match(orchestrator, /"\[data-preproduction-return\]"[\s\S]*"\.pp-skin-v1-return"[\s\S]*"\[data-skin-v1-return\]"/u);
+  assert.match(orchestrator, /\^\(\?:Back\|Return\) to/u);
+
+  const returnStart = orchestrator.indexOf("function returnToParent()");
+  const returnEnd = orchestrator.indexOf("\n  return (", returnStart);
+  const returnBody = orchestrator.slice(returnStart, returnEnd);
+  assert.ok(returnBody.indexOf("const delegated = delegatedReturn(active)") < returnBody.indexOf('window.location.pathname !== "/skin-v1"'));
+  assert.match(returnBody, /delegated\.control\.click\(\)/u);
+  assert.match(returnBody, /SURFACE_BY_ID\.get\(active\.parent\)\?\.runtimeRoute/u);
+
+  assert.match(returnNav, /data-preproduction-return="true"/u);
+  assert.match(returnNav, /data-skin-v1-local-chrome="return-navigation"/u);
+  assert.match(returnNav, /Return to Storyboard|Return to Previs|Return to Outline/u);
+});
+
 test("#2226 standard orchestrated surfaces use a thin structural perimeter while Dashboard keeps its separately governed layered reference", async () => {
   const [css, grammar] = await Promise.all([
     read("app/skin-v1-surface-orchestrator.css"),

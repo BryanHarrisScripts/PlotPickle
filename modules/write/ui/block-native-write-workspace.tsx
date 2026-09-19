@@ -13,6 +13,8 @@ import {
   markCreativeRevisionDependentsStale,
   planCreativeRevisionPropagation,
 } from "@/lib/preproduction/creative-revision-propagation";
+import { createAgenticStoryToScreenProjectionRequest } from "@/lib/preproduction/agentic-story-to-screen-projection";
+import type { ResponsibilityRun } from "@/lib/agents/responsibility/responsibility-runs";
 import {
   storyLearningContext,
   storyLearningHref,
@@ -50,12 +52,41 @@ function pageFlowHref(blockNumber: number, miniBlockNumber: number) {
   return `/pageflow?${query.toString()}`;
 }
 
+function responsibilityRunCreatePayload(run: ResponsibilityRun) {
+  return {
+    action: "create",
+    runId: run.runId,
+    kind: run.kind,
+    goal: run.goal,
+    profileId: run.profileId,
+    skillUris: run.skillUris,
+    allowedScopes: run.allowedScopes,
+    allowedConnectorIds: run.allowedConnectorIds,
+    context: run.context,
+    verificationMode: run.verificationMode,
+    limits: run.limits,
+    parentRunId: run.parentRunId,
+  };
+}
+
+async function responsibilityRunRequest(payload: Record<string, unknown>) {
+  const response = await fetch("/api/responsibility-runs", {
+    method: "POST",
+    cache: "no-store",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const value = await response.json() as { ok?: boolean; message?: string };
+  if (!response.ok) throw new Error(value.message || `Responsibility Runs returned ${response.status}.`);
+}
+
 export default function BlockNativeWriteWorkspace() {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState(() => currentAddress());
   const [draftText, setDraftText] = useState("");
   const [savedText, setSavedText] = useState("");
   const [status, setStatus] = useState("");
+  const [visualizing, setVisualizing] = useState(false);
 
   useEffect(() => {
     const sync = () => setProject(loadActiveLibraryProject());

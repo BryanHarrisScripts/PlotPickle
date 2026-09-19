@@ -362,7 +362,7 @@
       "category": "ui-font",
       "usage": "bundled",
       "version": "2.304",
-      "revision": "cd5227b",
+      "revision": "cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9",
       "source": "https://github.com/JetBrains/JetBrainsMono/tree/v2.304",
       "license": "OFL-1.1",
       "licenseSource": "public/fonts/jetbrains-mono/OFL.txt",

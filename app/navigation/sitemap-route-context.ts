@@ -158,11 +158,20 @@ export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellT
     rootContext: "build",
     area: "produce",
   },
-  "/pitch-review": {
+  "/feedback": {
     migrationClass: "canonical",
     activeShortcutId: "feedback",
     rootContext: "build",
     area: "review",
+  },
+  "/pitch-review": {
+    migrationClass: "contextual",
+    rootContext: "plan",
+    area: "create",
+    contextId: "pitch-package",
+    contextLabel: "Pitch Package Studio",
+    contextDetail: "Logline, theme dialectic and pitch-package development",
+    contextScope: "Plan · Pitch",
   },
   "/diagnostics": {
     migrationClass: "canonical",

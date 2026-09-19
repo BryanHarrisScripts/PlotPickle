@@ -273,6 +273,9 @@ async function enforceGenerationPolicy(pathname: string, response: ServerRespons
   const capability = GENERATION_CAPABILITIES.get(pathname);
   if (!capability) { next(); return; }
   const policy = await readStoryModePolicy();
+  // Image requests are policy-checked by the per-job resolver in Media Routing,
+  // which can choose a different ready route without mutating global provider selection.
+  if (capability === "image") { next(); return; }
   if (policy.mode === "hybrid") { next(); return; }
   const route = await selectedRoute(capability);
   const locality = storyModeRouteLocality(capability, route);

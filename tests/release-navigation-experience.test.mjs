@@ -15,7 +15,7 @@ test("release navigation keeps one PlotPickle shell owner on standalone workspac
     source("app/navigation/sitemap-route-context.ts"),
   ]);
   assert.match(layout, /<ReleaseExperienceBoundary>\{children\}<\/ReleaseExperienceBoundary>/);
-  for (const route of ["/library", "/storyboard", "/previs", "/pageflow", "/edit", "/feedback", "/pitch-review", "/diagnostics", "/production"]) {
+  for (const route of ["/library", "/storyboard", "/previs", "/pageflow", "/edit", "/feedback", "/pitch-review", "/diagnostics", "/reports", "/production"]) {
     assert.ok(sitemap.includes(`"${route}"`), `Standalone release route is missing the global shell classification: ${route}`);
   }
   assert.doesNotMatch(boundary, /"\/story":/);

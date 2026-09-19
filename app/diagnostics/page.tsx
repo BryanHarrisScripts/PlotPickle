@@ -35,11 +35,11 @@ export default function DiagnosticCraftPage() {
   }, []);
 
   return (
-    <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
+    <main className="standalone-studio-surface" data-refine-workspace="canonical" style={{ minHeight: "100vh", padding: "24px" }}>
       <RefineReturnNav />
       <div style={{ maxWidth: 1500, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <Link href="/?workspace=refine" style={{ color: "#163331", fontWeight: 800 }}>Back to Refine</Link>
+          <Link data-skin-v1-local-return="true" href="/?workspace=refine" style={{ color: "#163331", fontWeight: 800 }}>Back to Refine</Link>
           <div style={{ display: "flex", gap: 12 }}><Link href="/structure">Structure</Link><Link href="/draftlens">DraftLens</Link></div>
         </nav>
         <CraftDiagnosticsWorkspace project={project} />

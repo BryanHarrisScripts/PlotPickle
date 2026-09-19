@@ -113,7 +113,7 @@
 
 .fact[data-story-bible-fact-state="not-established"],
 .block[data-story-bible-established="false"] {
-  border-style: dashed;
+  border-color: var(--pp-skin-line);
   color: var(--pp-skin-ink-muted);
 }
 
@@ -216,7 +216,7 @@
 .empty {
   margin: 0;
   padding: var(--pp-skin-space-4);
-  border: var(--pp-skin-border-thin) dashed var(--pp-skin-line);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   color: var(--pp-skin-ink-muted);
 }
 

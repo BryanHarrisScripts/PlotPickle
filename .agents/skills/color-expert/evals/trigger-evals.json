@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "skillId": "color-expert",
+  "shouldTrigger": [
+    "Does this green ramp have perceptually even steps?",
+    "Which Skin V1 token should replace this off-palette green?",
+    "Are selected and hover states distinguishable?",
+    "Check contrast between this text and panel.",
+    "Why do these two hex colors look almost identical?",
+    "Will this OKLCH accent clip in sRGB?"
+  ],
+  "shouldNotTrigger": [
+    "This panel overlaps the outer frame by 17 pixels.",
+    "The Story Map has too many columns.",
+    "Review this screenplay beat structure.",
+    "Which local LLM provider should this Agent use?",
+    "This heading is the wrong font size."
+  ]
+}

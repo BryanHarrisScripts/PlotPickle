@@ -268,11 +268,16 @@ test("#2226 orchestrates Afterglow Reconciliation without changing reconciliatio
 });
 
 test("#2226 Specialist Labs share one canonical route family while preserving scoped parent returns", async () => {
-  const [registry, page, orchestrator] = await Promise.all([
+  const [registry, page, orchestrator, ownership] = await Promise.all([
     readJson("config/skin-v1-surface-registry.json"),
     read("app/labs/page.tsx"),
     read("app/skin-v1/surface-orchestrator.tsx"),
+    readJson("config/verification/ownership-map.json"),
   ]);
+  const labsOwnership = ownership.rules.find((rule) => rule.id === "specialist-labs-route-experience");
+  assert.equal(labsOwnership?.classification, "production");
+  assert.equal(labsOwnership?.ownerLayer, "experience-contract");
+  assert.deepEqual(labsOwnership?.include, ["app/labs/page.tsx"]);
   const byId = new Map(registry.surfaces.map((surface) => [surface.id, surface]));
   const expected = [
     ["labs-plan", "plan", "/labs?scope=plan", "production"],

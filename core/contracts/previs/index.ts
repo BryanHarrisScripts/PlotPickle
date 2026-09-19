@@ -70,6 +70,8 @@ export interface ProductionShotIntent {
   readonly storyboardArtifactId: string;
   /** Snapshot of the owning Storyboard dependency key when this shot was last reviewed. */
   readonly storyboardDependencyKey: string;
+  /** Stable Editorial Shot provenance when this timed shot derives from a known #2107 Storyboard Shot. */
+  readonly editorialShotId?: string;
   /** Variable creative shot order inside the owning anchor. Zero/one/many creative shots may share an anchor. */
   readonly order: number;
   readonly shotSize: string;
@@ -132,6 +134,7 @@ export function normalizeProductionShotIntent(value: unknown): ProductionShotInt
     anchorRef,
     storyboardArtifactId,
     storyboardDependencyKey,
+    editorialShotId: cleanText(item.editorialShotId, 320) || undefined,
     order,
     shotSize: cleanText(item.shotSize, 80),
     angle: cleanText(item.angle, 80),

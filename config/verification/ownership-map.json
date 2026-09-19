@@ -43,6 +43,36 @@
       ]
     },
     {
+      "id": "skin-v1-surface-composition-reference",
+      "classification": "production",
+      "include": [
+        "config/skin-v1-surface-composition-reference.json"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "mcp"
+      ]
+    },
+    {
+      "id": "skin-v1-surface-anatomy-and-declarations",
+      "classification": "production",
+      "include": [
+        "config/skin-v1-surface-anatomy-contract.json",
+        "config/skin-v1-spec-sheet-contract.json",
+        "config/skin-v1-surface-declarations/**"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "visual",
+        "mcp"
+      ]
+    },
+    {
       "id": "skin-v1-surface-registry",
       "classification": "production",
       "include": [

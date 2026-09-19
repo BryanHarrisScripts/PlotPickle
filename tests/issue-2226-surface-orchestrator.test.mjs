@@ -41,24 +41,21 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 6,
-    routedCompatibilityDebt: 29,
+    canonicalOrchestratedDirect: 7,
+    routedCompatibilityDebt: 28,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "refine"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine"],
   );
-  for (const id of ["feedback", "reports", "core-curriculum", "buzz-settings"]) {
+  for (const id of ["reports", "core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "refine"]) {
+  for (const id of ["edit", "feedback", "refine"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
-  const feedbackDebt = ledger.routedCompatibilityDebt.find((entry) => entry.id === "feedback");
-  assert.equal(feedbackDebt?.migrationHold?.status, "identity-conflict");
-  assert.equal(feedbackDebt?.migrationHold?.policy, "do-not-orchestrate-until-route-and-owner-identity-agree");
 
   assert.match(routeContract, /surface\.orchestrated && surface\.runtimeRoute/u);
   assert.match(routeContract, /ORCHESTRATED_DIRECT_PATHS/u);
@@ -70,11 +67,13 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.match(writer, /skin-v1-route-migration-ledger\.json/u);
 });
 
-test("#2226 orchestrates Edit and Refine without expanding the 30-surface standard capture set", async () => {
-  const [registry, orchestrator, editWorkspace, diagnostics, refineReturn, css] = await Promise.all([
+test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surface standard capture set", async () => {
+  const [registry, orchestrator, editWorkspace, feedbackPage, pitchPage, diagnostics, refineReturn, css] = await Promise.all([
     readJson("config/skin-v1-surface-registry.json"),
     read("app/skin-v1/surface-orchestrator.tsx"),
     read("app/edit-workspace.tsx"),
+    read("app/feedback/page.tsx"),
+    read("app/pitch-review/page.tsx"),
     read("app/diagnostics/page.tsx"),
     read("app/refine-return-nav.tsx"),
     read("app/skin-v1-surface-orchestrator.css"),
@@ -99,10 +98,17 @@ test("#2226 orchestrates Edit and Refine without expanding the 30-surface standa
   assert.equal(refine?.formatProfile?.layout, "one-column");
   assert.equal(refine?.formatProfile?.shell, "diagnostic");
 
-  assert.notEqual(feedback?.orchestrated, true);
-  assert.equal(feedback?.migrationHold?.status, "identity-conflict");
-  assert.match(feedback?.migrationHold?.reason ?? "", /Pitch Package Studio/u);
-  assert.match(feedback?.migrationHold?.reason ?? "", /FeedbackStudioHost/u);
+  assert.equal(feedback?.capturePolicy, "census-only");
+  assert.equal(feedback?.route, "/feedback");
+  assert.equal(feedback?.orchestrated, true);
+  assert.equal(feedback?.runtimeSelector, "[data-feedback-workspace='canonical']");
+  assert.equal(feedback?.formatProfile?.layout, "two-column");
+  assert.equal(feedback?.formatProfile?.shell, "diagnostic");
+  assert.equal(Object.prototype.hasOwnProperty.call(feedback ?? {}, "migrationHold"), false);
+  assert.match(feedbackPage, /data-feedback-workspace="canonical"/u);
+  assert.match(feedbackPage, /<FeedbackWorkspace/u);
+  assert.match(pitchPage, /window\.location\.replace\("\/feedback"\)/u);
+  assert.match(pitchPage, /PitchReviewWorkspace/u);
 
   assert.match(orchestrator, /ORCHESTRATED_SURFACES/u);
   assert.match(orchestrator, /surface\.orchestrated && surface\.runtimeSelector/u);

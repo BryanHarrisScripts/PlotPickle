@@ -69,6 +69,9 @@ export default function StoryboardReadinessWorkspace({
   const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedMiniBlockNumber(initialMiniBlockNumber));
+  const [visualStoryOpen, setVisualStoryOpen] = useState(() => Boolean(
+    initialSceneId || initialShotId || initialVisualView === "timeline",
+  ));
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
@@ -210,10 +213,15 @@ export default function StoryboardReadinessWorkspace({
                           : "replacement concept candidate"
                       : "no visual candidate"}
                   </small>
-                  <button onClick={() => {
-                    setSelectedMiniBlockNumber(miniNumber);
-                    preserveStoryboardAddress(selectedNumber, miniNumber);
-                  }} type="button">Open Visual Story</button>
+                  <button
+                    data-storyboard-open-visual-story="true"
+                    onClick={() => {
+                      setSelectedMiniBlockNumber(miniNumber);
+                      preserveStoryboardAddress(selectedNumber, miniNumber);
+                      setVisualStoryOpen(true);
+                    }}
+                    type="button"
+                  >Open Visual Story</button>
                   <button
                     disabled={!canReviewReference}
                     onClick={reference && canReviewReference ? () => openEditorial(reference.id, miniNumber) : undefined}
@@ -230,7 +238,7 @@ export default function StoryboardReadinessWorkspace({
         </section>
       ) : null}
 
-      {selectedTarget ? (
+      {visualStoryOpen && selectedTarget ? (
         <VisualStoryWorkspace
           blockNumber={selectedNumber}
           initialSceneId={initialSceneId}
@@ -239,6 +247,7 @@ export default function StoryboardReadinessWorkspace({
           legacyProject={legacyProject}
           miniBlockNumber={selectedMiniBlockNumber}
           onProjectChange={onProjectChange}
+          onReturnToStoryboard={() => setVisualStoryOpen(false)}
           project={project}
           providerInstructions={providerInstructions}
         />

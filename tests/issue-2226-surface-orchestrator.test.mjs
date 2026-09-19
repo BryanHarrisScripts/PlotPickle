@@ -131,3 +131,12 @@ test("#2226 direct routed surfaces outrank nested visible subregions", async () 
   assert.match(source, /surface\.runtimeRoute/u);
   assert.match(source, /window\.location\.pathname/u);
 });
+
+
+test("#2226 Visual Director returns through the orchestrator before legacy controls", async () => {
+  const source = await read("lib/verification/skin-v1-visual-director.mjs");
+  assert.match(source, /pp-skin-v1-orchestrator-return:visible/u);
+  const orchestratorIndex = source.indexOf("pp-skin-v1-orchestrator-return:visible");
+  const legacyIndex = source.indexOf("pp-skin-v1-return:visible", orchestratorIndex);
+  assert.ok(orchestratorIndex >= 0 && legacyIndex > orchestratorIndex);
+});

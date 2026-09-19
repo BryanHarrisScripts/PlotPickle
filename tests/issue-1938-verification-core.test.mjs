@@ -159,6 +159,7 @@ test("#1938 docs-only and verification-only changes remain cheap and mapped", as
   assert.deepEqual(plan.impactedLayers, ["verification"]);
   const layer7 = plan.layers.find((layer) => layer.layerId === "verification");
   assert.deepEqual(layer7.selectedTests.map((item) => item.id), [
+    "verification.browser-verification-broker-2246",
     "verification.oss-radar-discovery-recall",
     "verification.phase2-core",
     "verification.phase7-merge-authority",

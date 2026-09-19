@@ -152,7 +152,7 @@ test("#1754 Skin V1 owns fresh setup, LOGON and the approved keyboard-selectable
 
   assert.match(router, /isSkinV1Path/u);
   assert.match(router, /return <>\{children\}<\/>/u);
-  assert.match(legacyOnly, /if \(skinV1\(pathname\)\) return null/u);
+  assert.match(legacyOnly, /if \(isCanonicalSkinV1Path\(pathname\)\) return null/u);
 });
 
 test("#1754 headless authentication returns the registered surface and keeps credentials ephemeral", async () => {

@@ -168,7 +168,7 @@ export default function ResonancePage() {
     .join(" → ");
 
   return (
-    <main className={`${styles.page} standalone-studio-surface`}>
+    <main className={`${styles.page} standalone-studio-surface`} data-resonance-workspace="canonical">
       <RefineReturnNav />
       <div className={styles.shell}>
         <header className={styles.header}>
@@ -181,7 +181,7 @@ export default function ResonancePage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.secondaryButton} data-skin-v1-local-return="true" href="/?workspace=refine">Back to Refine</Link>
             <Link className={styles.secondaryButton} href="/pageflow?return=refine">Open PageFlow</Link>
             <Link className={styles.secondaryButton} href="/voiceprint?return=plan">Open Plan voice definitions</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>

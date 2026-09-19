@@ -13,7 +13,12 @@
     "mayCreateSecondDesignSystem": false,
     "mayOverrideTokensLocally": false,
     "mayInventNewShellArchetypes": false,
-    "shellLevelFourColumnAllowed": false
+    "shellLevelFourColumnAllowed": false,
+    "anatomySource": "config/skin-v1-surface-anatomy-contract.json",
+    "specSheetContract": "config/skin-v1-spec-sheet-contract.json",
+    "surfaceDeclarationDirectory": "config/skin-v1-surface-declarations/",
+    "regionSemanticsOwnedBy": "surface-anatomy",
+    "surfaceSpecificContentOwnedBy": "surface-declaration"
   },
   "canonicalWrapperOrder": [
     "global-header",

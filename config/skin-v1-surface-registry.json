@@ -1555,14 +1555,37 @@
       "id": "screenplay-readiness",
       "label": "Screenplay Readiness",
       "family": "review",
-      "parent": "dashboard",
-      "surfaceClass": "workspace",
+      "parent": "refine",
+      "surfaceClass": "nested",
       "capturePolicy": "census-only",
       "governance": "census",
       "continuityIds": [
         "screenplay-readiness"
       ],
-      "route": "/screenplay-readiness"
+      "route": "/screenplay-readiness",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        },
+        {
+          "order": 5,
+          "slug": "screenplay-readiness",
+          "label": "Screenplay Readiness"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-screenplay-readiness-workspace='canonical']",
+      "runtimeReadySelector": "[data-canonical-project-id]",
+      "orchestrated": true,
+      "runtimeRoute": "/screenplay-readiness"
     },
     {
       "id": "labs-feedback",

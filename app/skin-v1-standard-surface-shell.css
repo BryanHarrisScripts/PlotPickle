@@ -64,16 +64,19 @@ html[data-plotpickle-skin="skin-v1"] :is(
   section[aria-label="Issue Log"][data-dashboard-review-surface="help"],
   section[aria-label="Open Source"][data-dashboard-review-surface="open-source"]
 ) > :not(.pp-skin-v1-surface-actions):not(.pp-skin-v1-bbs-banner) {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
-  max-width: var(--pp-skin-shell-max) !important;
+  /* #2272: the registered section owns the outer shell. Ordinary content is
+     sized to that section's content box; it must not re-claim 1180px after
+     the orchestrator has already applied frame padding. */
+  width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-profile-surface > :not(.pp-skin-v1-profile-banner) {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
-  max-width: var(--pp-skin-shell-max) !important;
+  width: 100% !important;
+  max-width: 100% !important;
   min-width: 0 !important;
   margin-left: auto !important;
   margin-right: auto !important;

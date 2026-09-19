@@ -38,3 +38,22 @@ test("#2030 keeps General content but removes its alternate stepped header treat
   assert.match(shell, /section\[aria-label="General settings"\][\s\S]*\[data-settings-workspace-surface="general"\] > section:first-child/u);
   assert.match(shell, /min-height:\s*0 !important;/u);
 });
+
+
+test("#2272 standard subordinate content resolves inside the registered outer shell", () => {
+  const ordinaryStart = shell.indexOf(') > :not(.pp-skin-v1-surface-actions):not(.pp-skin-v1-bbs-banner) {');
+  const ordinaryEnd = shell.indexOf('\n}', ordinaryStart);
+  const ordinary = shell.slice(ordinaryStart, ordinaryEnd);
+
+  assert.match(ordinary, /width:\s*100% !important;/u);
+  assert.match(ordinary, /max-width:\s*100% !important;/u);
+  assert.doesNotMatch(ordinary, /calc\(100vw - 40px\)|var\(--pp-skin-shell-max\)/u);
+
+  const profileStart = shell.indexOf('.pp-skin-v1-profile-surface > :not(.pp-skin-v1-profile-banner) {');
+  const profileEnd = shell.indexOf('\n}', profileStart);
+  const profile = shell.slice(profileStart, profileEnd);
+
+  assert.match(profile, /width:\s*100% !important;/u);
+  assert.match(profile, /max-width:\s*100% !important;/u);
+  assert.doesNotMatch(profile, /calc\(100vw - 40px\)|var\(--pp-skin-shell-max\)/u);
+});

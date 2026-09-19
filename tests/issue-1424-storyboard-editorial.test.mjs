@@ -9,9 +9,11 @@ test("#1424 reuses bundled Afterglow references through the bounded local asset 
   const model = await read("app/_components/storyboard/storyboard-editorial-model.ts");
 
   assert.match(route, /block \(1-24\).*mini-block \(1-4\)/s);
-  assert.match(route, /\/afterglow\/storyboard\/block-/);
-  assert.match(route, /Response\.redirect\(target, 307\)/);
-  assert.doesNotMatch(route, /fetch\(|writeFile|POST|DELETE|PUT/);
+  assert.match(route, /path\.join\(process\.cwd\(\), "public", "afterglow", "storyboard", filename\)/);
+  assert.match(route, /await readFile\(asset\.absolutePath\)/);
+  assert.match(route, /"Content-Type": asset\.extension === "svg" \? "image\/svg\+xml; charset=utf-8" : "image\/webp"/);
+  assert.match(route, /"X-Content-Type-Options": "nosniff"/);
+  assert.doesNotMatch(route, /Response\.redirect|fetch\(|writeFile|POST|DELETE|PUT/);
 
   assert.match(model, /createAfterglowStoryboardFrames/);
   assert.match(model, /\/api\/local-ai\/assets\/storyboard-reference\?block=/);

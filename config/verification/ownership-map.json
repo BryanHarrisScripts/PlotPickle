@@ -237,6 +237,20 @@
       ]
     },
     {
+      "id": "storyboard-reference-asset-serving",
+      "classification": "production",
+      "include": [
+        "app/api/local-ai/assets/storyboard-reference/route.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "provider",
+        "api",
+        "surface",
+        "visual"
+      ]
+    },
+    {
       "id": "story-mode-image-job-routing",
       "classification": "production",
       "include": [

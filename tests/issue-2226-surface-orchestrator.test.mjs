@@ -153,3 +153,14 @@ test("#2226 orchestrator Dashboard return reaches the application surface owner"
   assert.match(client, /setActiveSurface\("DASHBOARD"\)/u);
   assert.match(client, /setDashboardSurfaceName\("DASHBOARD"\)/u);
 });
+
+
+test("#2226 Visual Director follows the orchestrated parent chain before legacy Dashboard shortcuts", async () => {
+  const source = await read("lib/verification/skin-v1-visual-director.mjs");
+  const directOrchestrator = source.indexOf('pp-skin-v1-orchestrator-return:visible").filter({ hasText: "Dashboard"');
+  const parentOrchestrator = source.indexOf('pp-skin-v1-orchestrator-return:visible").first()', directOrchestrator);
+  const legacyDashboard = source.indexOf('pp-skin-v1-return:visible").filter({ hasText: "Dashboard"');
+  assert.ok(directOrchestrator >= 0);
+  assert.ok(parentOrchestrator > directOrchestrator);
+  assert.ok(legacyDashboard > parentOrchestrator);
+});

@@ -919,7 +919,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2246-browser-verification-broker.test.mjs",
-          "tests/issue-2270-rendered-geometry-inspector.test.mjs"
+          "tests/issue-2270-rendered-geometry-inspector.test.mjs",
+          "tests/issue-2272-geometry-calibration.test.mjs"
         ]
       },
       "cost": "fast",
@@ -944,7 +945,7 @@
           ".artifacts/browser-diagnostics"
         ]
       },
-      "notes": "#2246/#2270 protect the swappable Browser Verification Broker, always-attached sanitized F12 observer, existing Visual Director path, generated Surface Contract Matrix and bounded rendered frame/column/menu/type/overlap/scroll evidence without a parallel geometry authority."
+      "notes": "#2246/#2270/#2272 protect the swappable Browser Verification Broker, always-attached sanitized F12 observer, existing Visual Director path, generated Surface Contract Matrix, bounded rendered frame/column/menu/type/overlap/scroll evidence, and Human-calibrated menu/workspace-grid detection without a parallel geometry authority."
     },
     {
       "id": "experience.public-site-authority-2262",

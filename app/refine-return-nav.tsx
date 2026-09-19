@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function RefineReturnNav() {
   function goBack() {
     if (window.history.length > 1) window.history.back();
-    else window.location.assign("/?workspace=refine");
+    else window.location.assign("/diagnostics");
   }
 
   return (
@@ -30,8 +30,8 @@ export default function RefineReturnNav() {
       }}
     >
       <button type="button" onClick={goBack} style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#fff", padding: "8px 12px", fontWeight: 800, color: "#214b44", cursor: "pointer" }}>Back one screen</button>
-      <Link href="/?workspace=refine" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#eef8f5", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Refine menu</Link>
-      <Link href="/?workspace=dashboard" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#fff", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Main menu</Link>
+      <Link href="/diagnostics" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#eef8f5", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Refine menu</Link>
+      <Link href="/skin-v1" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#fff", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Main menu</Link>
     </nav>
   );
 }

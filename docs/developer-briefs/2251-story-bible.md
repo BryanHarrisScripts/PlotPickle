@@ -63,6 +63,7 @@ Do not write/mutate:
 ## Surface boundary
 
 - Dashboard Production order: Previs → Write → Story Bible → Edit → Feedback → Refine → Analytics.
+- The Production group intentionally expands from five to six rows for this Human-approved adjacent reference surface; other Dashboard group row budgets remain unchanged.
 - Story Bible is a Skin V1 state-owned surface under Dashboard.
 - It is census-only in v1 so the frozen standard WebMCP set remains 30 surfaces.
 - Surface Orchestrator owns global Return when active.

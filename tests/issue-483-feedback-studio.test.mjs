@@ -5,68 +5,68 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("#483 mounts Feedback as a Studio continuity layer without replacing the working review engine", async () => {
-  const [layout, host, workspace] = await Promise.all([
+test("#483 keeps the retired workspace alias as a route bridge instead of a second Feedback presentation", async () => {
+  const [layout, host, page, workspace] = await Promise.all([
     source("app/layout.tsx"),
     source("app/feedback-studio-host.tsx"),
+    source("app/feedback/page.tsx"),
     source("app/feedback-workspace.tsx"),
   ]);
 
   assert.match(layout, /import FeedbackStudioHost/);
   assert.match(layout, /<FeedbackStudioHost \/>/);
-  assert.match(layout, /feedback-studio\.css/);
-  assert.match(host, /aside\[aria-label="Feedback sections"\]/);
+  assert.match(host, /parameters\.get\("workspace"\) !== "feedback"/);
+  assert.match(host, /parameters\.delete\("workspace"\)/);
+  assert.match(host, /window\.location\.replace\(\`\/feedback/);
+  assert.doesNotMatch(host, /querySelector|prepend|classList|createElement/);
+
+  assert.match(page, /data-feedback-workspace="canonical"/);
+  assert.match(page, /<FeedbackWorkspace/);
   assert.match(workspace, /createStoredFeedbackModel/);
   assert.match(workspace, /ReviewWorkflowsPanel/);
   assert.match(workspace, /WritersRoomPanel/);
 });
 
-test("#483 carries canonical Act Block mini-block and owning scene identity into Feedback", async () => {
-  const host = await source("app/feedback-studio-host.tsx");
+test("#483 canonical Feedback keeps reviewed-target identity and project persistence in the existing owner", async () => {
+  const [page, workspace] = await Promise.all([
+    source("app/feedback/page.tsx"),
+    source("app/feedback-workspace.tsx"),
+  ]);
 
-  assert.match(host, /const STORAGE_KEY = "plotpickle\.project\.v1"/);
-  assert.match(host, /normalizePlotPickleProject\(JSON\.parse\(stored\)\)/);
-  assert.match(host, /requestedNumber\("block", 1, 1, 24\)/);
-  assert.match(host, /requestedNumber\("mini", 1, 1, 4\)/);
-  assert.match(host, /buildGlobalSceneIndex\(project\.blocks\)/);
-  assert.match(host, /Act \$\{block\?\.act/);
-  assert.match(host, /Block \$\{blockNumber\}/);
-  assert.match(host, /Mini \$\{blockNumber\}\.\$\{miniBlockNumber\}/);
-  assert.match(host, /Scene \$\{sceneEntry\?\.globalNumber/);
+  assert.match(page, /const STORAGE_KEY = "plotpickle\.project\.v1"/);
+  assert.match(page, /normalizePlotPickleProject\(JSON\.parse\(stored\)\)/);
+  assert.match(page, /parameters\.get\("target"\)/);
+  assert.match(page, /onProjectChange=\{save\}/);
+  assert.match(page, /onOpenTarget=\{openTarget\}/);
+  assert.match(workspace, /initialTargetId/);
+  assert.match(workspace, /FeedbackTargetReference/);
+  assert.match(workspace, /project\.review\.threads\.length/);
 });
 
-test("#483 shows storyteller intent and approved upstream context without shadow story state", async () => {
-  const host = await source("app/feedback-studio-host.tsx");
+test("#483 canonical Feedback exposes the approved review categories without shadow canon state", async () => {
+  const [workspace, model] = await Promise.all([
+    source("app/feedback-workspace.tsx"),
+    source("lib/unified-feedback.ts"),
+  ]);
 
-  assert.match(host, /Storyteller intent/);
-  assert.match(host, /Approved source context/);
-  assert.match(host, /screenplay\.draftElements\.filter/);
-  assert.match(host, /approvedImageVersionId/);
-  assert.match(host, /approvedVariationId/);
-  assert.match(host, /buildSequenceApprovals/);
-  assert.doesNotMatch(host, /setProject|onProjectChange|createRevisionSnapshot|fetch\(|apiKey|Ollama|ComfyUI|MiniMax/i);
-});
-
-test("#483 exposes the approved Feedback categories and exact-position workflow paths", async () => {
-  const host = await source("app/feedback-studio-host.tsx");
-
-  for (const label of ["Story", "Structure", "Character", "Dialogue", "Visual direction", "Continuity", "Production / Build"]) {
-    assert.ok(host.includes(label), `Missing Feedback category: ${label}`);
+  for (const label of ["story", "structure", "character", "dialogue", "visual", "continuity", "production"]) {
+    assert.ok(model.includes(`"${label}"`), `Missing Feedback category: ${label}`);
   }
-  assert.match(host, /Back to Build \$\{blockNumber\}\.\$\{miniBlockNumber\}/);
-  assert.match(host, /workspace=build&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
-  assert.match(host, /Continue to Refine/);
-  assert.match(host, /workspace=refine&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
+  assert.match(workspace, /Suggestions do not overwrite the screenplay automatically/);
+  assert.match(workspace, /Canon changes require a separate explicit action/);
+  assert.doesNotMatch(workspace, /localStorage|sessionStorage|indexedDB/);
 });
 
-test("#483 follows the reviewed matte-black teal-orange PlotPickle visual contract", async () => {
-  const styles = await source("app/feedback-studio.css");
+test("#483 canonical Feedback remains responsive inside the shared standalone Skin V1 continuity layer", async () => {
+  const [styles, continuity] = await Promise.all([
+    source("app/feedback-workspace.module.css"),
+    source("app/studio-surface-continuity.css"),
+  ]);
 
-  assert.match(styles, /#090909/i);
-  assert.match(styles, /#22bfae/i);
-  assert.match(styles, /Georgia/);
-  assert.match(styles, /feedback-studio-context/);
-  assert.match(styles, /feedback-category-rail/);
-  assert.match(styles, /@media\(max-width:820px\)/);
-  assert.doesNotMatch(styles, /purple|violet|#7c3aed|#8b5cf6/i);
+  assert.match(styles, /grid-template-columns:minmax\(205px,245px\) minmax\(0,1fr\)/);
+  assert.match(styles, /@media\(max-width:940px\)/);
+  assert.match(styles, /@media\(max-width:620px\)/);
+  assert.match(continuity, /\.standalone-studio-surface/);
+  assert.match(continuity, /#090909/i);
+  assert.match(continuity, /#22bfae/i);
 });

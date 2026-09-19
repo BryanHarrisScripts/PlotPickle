@@ -56,7 +56,7 @@ This is especially important for LEARN, where the canonical hierarchy remains le
 
 Skin V1 route ownership is now derived from the canonical Surface Registry rather than duplicated in runtime constants. `app/skin-v1-route-contract.ts` is consumed by both `SkinV1Runtime` and `LegacySkinOnly`, so an orchestrated direct route cannot be classified as Skin V1 by one boundary and legacy by the other.
 
-`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 8 canonical direct orchestrated routes, 27 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
+`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 11 canonical direct orchestrated routes, 24 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
 
 The ledger is not a second route authority. Entries disappear only by migrating their canonical registry surface into the orchestrated runtime contract or by explicitly reclassifying a legitimate exception in the canonical registry.
 
@@ -67,3 +67,6 @@ Feedback now owns `/feedback` as a canonical orchestrated census route backed by
 
 
 Reports now owns `/reports` as a canonical orchestrated census route backed by the existing read-only `ReportsWorkspace`. The mutable `/production` route remains a separate legacy Build/Production surface. This removes the previous Reports/Production identity collision without changing production planning behavior or expanding the 30-surface WebMCP standard capture set.
+
+
+CraftLoop, DraftLens and Resonance now sit beneath Refine in the canonical registry and are orchestrated census routes. Direct routed children use the registered parent surface's canonical `runtimeRoute`, so their single upper-right Return goes to `/diagnostics` instead of falling back to Dashboard. Their existing feature content remains mounted, while local compatibility return chrome is suppressed by the orchestrator.

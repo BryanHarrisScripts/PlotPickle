@@ -18,7 +18,7 @@ export default function PitchReviewPage() {
       const parameters = new URLSearchParams(window.location.search);
       const requestedScope = parameters.get("scope");
       if (requestedScope === "feedback") {
-        window.location.replace("/?workspace=feedback");
+        window.location.replace("/feedback");
         return;
       }
       if (requestedScope === "plan") setScope("plan");

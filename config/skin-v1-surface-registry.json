@@ -1676,7 +1676,30 @@
       "continuityIds": [
         "ai-routing"
       ],
-      "route": "/ai-routing"
+      "route": "/ai-routing",
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Manage"
+        },
+        {
+          "order": 5,
+          "slug": "ai-routing",
+          "label": "AI Routing"
+        }
+      ],
+      "formatProfile": {
+        "layout": "settings-directory",
+        "shell": "settings",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "standard-ui"
+      },
+      "runtimeSelector": "[data-ai-routing-workspace='canonical']",
+      "runtimeReadySelector": "[data-ai-routing-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/ai-routing"
     },
     {
       "id": "buzz-settings",

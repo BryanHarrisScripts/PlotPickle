@@ -181,6 +181,7 @@ export function assemblePreproductionProductionIntent(
     throw new Error("PRE-PRODUCTION production intent requires at least one approved Previs Production Shot.");
   }
 
+  const editorialById = new Map(editorialShots.map((shot) => [shot.shotId, shot] as const));
   const editorialByKey = new Map(editorialShots.map((shot) => [stableKey(shot.anchorRef, shot.order), shot] as const));
   const beats = input.beats ?? [];
   const frames = input.frames ?? [];
@@ -188,9 +189,16 @@ export function assemblePreproductionProductionIntent(
   const shots = approvedProductionShots
     .map((execution): PreproductionProductionIntentShot => {
       const key = stableKey(execution.anchorRef, execution.order);
-      const editorial = editorialByKey.get(key);
+      const requestedEditorialId = execution.editorialShotId?.trim() ?? "";
+      const editorial = requestedEditorialId
+        ? editorialById.get(requestedEditorialId)
+        : editorialByKey.get(key);
       if (!editorial) {
-        throw new Error(`Approved Previs Production Shot ${execution.id} has no approved Storyboard Shot at ${key}.`);
+        const provenance = requestedEditorialId ? ` with Editorial Shot provenance ${requestedEditorialId}` : "";
+        throw new Error(`Approved Previs Production Shot ${execution.id}${provenance} has no approved Storyboard Shot at ${key}.`);
+      }
+      if (stableKey(editorial.anchorRef, editorial.order) !== key) {
+        throw new Error(`Approved Previs Production Shot ${execution.id} Editorial Shot provenance ${editorial.shotId} points to a different Storyboard address.`);
       }
       const informationErrors = productionReadyShotInformationErrors(editorial);
       if (informationErrors.length) {

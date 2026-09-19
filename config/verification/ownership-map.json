@@ -23,7 +23,8 @@
         "app/refine-return-nav.tsx",
         "app/craftloop/page.tsx",
         "app/draftlens/page.tsx",
-        "app/resonance/page.tsx"
+        "app/resonance/page.tsx",
+        "app/screenplay-readiness/page.tsx"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

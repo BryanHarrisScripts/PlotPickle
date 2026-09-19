@@ -28,6 +28,12 @@ Use this skill when PlotPickle is preparing a visual-generation request from app
 7. Produce validation checks from the hard constraints, derived constraints and failure controls so an independent observer can evaluate the generated result.
 8. Hand the contract back to the host. Provider adapters may translate the contract into provider syntax, but may not weaken or reorder its authority.
 
+## Color-specialist support
+
+When a generation contract materially depends on palette constraints, contrast, perceptual separation, gamut, or semantic color relationships, the host may progressively load `skill://plotpickle/color-expert`.
+
+Color Expert may provide bounded color-science guidance only. It does not change reference authority, provider selection, locked identity, Human requirements, or acceptance authority.
+
 ## Priority
 
 Resolve conflicts in this order:

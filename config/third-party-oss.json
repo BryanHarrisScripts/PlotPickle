@@ -372,6 +372,22 @@
       "plotpickleUse": "Self-hosted canonical monospace UI typeface for PlotPickle Skin surfaces and compatibility typography aliases. PlotPickle bundles only reviewed upstream WOFF2 files and does not require an operating-system font installation.",
       "distribution": "Bundled WOFF2 files and the upstream SIL Open Font License 1.1 notice ship with the PlotPickle public application assets.",
       "readme": false
+    },
+    {
+      "id": "color-expert-skill",
+      "name": "Color Expert Agent Skill",
+      "category": "methodology-reference",
+      "usage": "reference-only",
+      "revision": "28e49f7457d7aa92010688e69975c16d2ffe4b01",
+      "source": "https://github.com/meodai/skill.color-expert",
+      "license": "CC BY 4.0 for upstream original project materials; third-party/source-derived references retain original rights/licenses",
+      "licenseSource": "https://github.com/meodai/skill.color-expert/blob/28e49f7457d7aa92010688e69975c16d2ffe4b01/LICENSE",
+      "evidencePaths": [
+        ".agents/skills/color-expert/SKILL.md",
+        ".agents/skills/color-expert/NOTICE.md"
+      ],
+      "plotpickleUse": "Reviewed knowledge/methodology source for PlotPickle's independently authored Color Expert adapter Skill. PlotPickle does not vendor the upstream reference corpus and does not create a second palette or visual authority.",
+      "readme": false
     }
   ],
   "thirdPartyAssets": [

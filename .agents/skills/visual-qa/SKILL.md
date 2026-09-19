@@ -30,6 +30,12 @@ For Skin V1 interface work, Dashboard is the canonical visual authority. A targe
 10. Never approve a Skin V1 target solely because it matches its own previous baseline. Regression stability and cross-surface visual continuity are separate questions, and both must pass.
 11. When the evidence is insufficient, request another viewport/state rather than inventing a visual defect.
 
+## Color-specific analysis
+
+When a rendered finding materially depends on palette choice, perceptual separation, contrast, gamut, color naming, or semantic color-role mapping, the host may progressively load `skill://plotpickle/color-expert`.
+
+Color Expert is advisory only. It may explain or recommend color relationships, but Visual QA still owns rendered visual interpretation and Visual Director remains the deterministic rendered verdict owner. Do not invoke Color Expert for geometry-only, typography-only, story, or provider-routing work.
+
 ## Completion rule
 
 Visual work is complete only when the target is functionally sound, serious Visual Director findings are cleared, and the rendered target can be explained as belonging to the same Skin V1 system as Dashboard. The report should tell the developer what to change, not merely whether a screenshot changed.

@@ -327,7 +327,7 @@
   padding: var(--pp-skin-space-3);
   white-space: pre-wrap;
   color: var(--pp-skin-ink-soft);
-  font: var(--pp-skin-font-sm)/var(--pp-skin-leading-body) var(--pp-skin-font-mono);
+  font: var(--pp-skin-font-sm)/var(--pp-skin-leading-body) var(--pp-skin-font-ui);
 }
 
 .locked {

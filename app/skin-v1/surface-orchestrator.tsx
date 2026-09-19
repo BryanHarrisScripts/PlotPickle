@@ -31,10 +31,10 @@ type RuntimeSurface = {
 
 type ActiveSurface = RuntimeSurface & { root: HTMLElement };
 
-const STANDARD_SURFACES = (surfaceRegistry.surfaces as RuntimeSurface[])
-  .filter((surface) => surface.capturePolicy === "standard" && surface.orchestrated && surface.runtimeSelector);
+const ORCHESTRATED_SURFACES = (surfaceRegistry.surfaces as RuntimeSurface[])
+  .filter((surface) => surface.orchestrated && surface.runtimeSelector);
 
-const SURFACE_BY_ID = new Map(STANDARD_SURFACES.map((surface) => [surface.id, surface]));
+const SURFACE_BY_ID = new Map(ORCHESTRATED_SURFACES.map((surface) => [surface.id, surface]));
 const PREPRODUCTION_SURFACES = new Set([
   "story-map",
   "storyboard",
@@ -70,7 +70,7 @@ function surfaceDepth(surface: RuntimeSurface) {
 
 function findActiveSurface(): ActiveSurface | null {
   const matches: ActiveSurface[] = [];
-  for (const surface of STANDARD_SURFACES) {
+  for (const surface of ORCHESTRATED_SURFACES) {
     for (const element of document.querySelectorAll(surface.runtimeSelector!)) {
       if (!visible(element)) continue;
       matches.push({ ...surface, root: element as HTMLElement });
@@ -102,12 +102,14 @@ function markSurface(surface: RuntimeSurface, root: HTMLElement, active: boolean
   root.dataset.skinV1Typography = profile?.typography ?? "unspecified";
   root.dataset.skinV1Composition = compositionReference.id;
   root.dataset.skinV1Anatomy = anatomyContract.id;
-  root.dataset.skinV1Declaration = standardDeclarations.surfaces[surface.id as keyof typeof standardDeclarations.surfaces]?.declarationSource ?? "missing";
+  const declarations = standardDeclarations.surfaces as Record<string, { declarationSource?: string }>;
+  root.dataset.skinV1Declaration = declarations[surface.id]?.declarationSource
+    ?? (surface.capturePolicy === "standard" ? "missing" : "registry-migration-projection");
 }
 
 function syncSurfaces() {
   const active = findActiveSurface();
-  for (const surface of STANDARD_SURFACES) {
+  for (const surface of ORCHESTRATED_SURFACES) {
     document.querySelectorAll(surface.runtimeSelector!).forEach((element) => {
       if (!(element instanceof HTMLElement)) return;
       markSurface(surface, element, active?.root === element && active.id === surface.id);

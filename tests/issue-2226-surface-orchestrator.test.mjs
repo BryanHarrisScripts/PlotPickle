@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { skinV1RouteMigrationLedger } from "../lib/verification/skin-v1-route-migration-ledger.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -25,6 +26,42 @@ test("#2226 wires every standard surface into the runtime orchestrator", async (
     assert.equal(declarations.surfaces[surface.id].contentOwnership, "existing-feature-owner");
     assert.equal(declarations.surfaces[surface.id].exampleContentPolicy, "preserve-live-content");
   }
+});
+
+test("#2226 derives one canonical direct-route contract and a measurable compatibility burn-down ledger", async () => {
+  const [routeContract, legacyBoundary, runtime, writer] = await Promise.all([
+    read("app/skin-v1-route-contract.ts"),
+    read("app/legacy-skin-only.tsx"),
+    read("app/skin-v1-runtime.tsx"),
+    read("scripts/write-skin-v1-route-migration-ledger.mjs"),
+  ]);
+  const ledger = skinV1RouteMigrationLedger();
+
+  assert.equal(ledger.contractId, "skin-v1-route-migration-ledger-v1");
+  assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
+  assert.equal(ledger.policy, "derived-only-no-second-route-authority");
+  assert.deepEqual(ledger.counts, {
+    canonicalOrchestratedDirect: 4,
+    routedCompatibilityDebt: 31,
+    stateCompatibilityDebt: 10,
+    publicExceptions: 5,
+  });
+  assert.deepEqual(
+    ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
+    ["write", "storyboard", "previs", "pageflow"],
+  );
+  for (const id of ["edit", "feedback", "refine", "reports", "core-curriculum", "buzz-settings"]) {
+    assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
+  }
+
+  assert.match(routeContract, /surface\.orchestrated && surface\.runtimeRoute/u);
+  assert.match(routeContract, /ORCHESTRATED_DIRECT_PATHS/u);
+  assert.match(routeContract, /isCanonicalSkinV1Path/u);
+  assert.match(legacyBoundary, /isCanonicalSkinV1Path\(pathname\)/u);
+  assert.doesNotMatch(legacyBoundary, /function skinV1/u);
+  assert.match(runtime, /isCanonicalSkinV1Path\(url\.pathname\)/u);
+  assert.doesNotMatch(runtime, /CANONICAL_SKIN_V1_ROUTES/u);
+  assert.match(writer, /skin-v1-route-migration-ledger\.json/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

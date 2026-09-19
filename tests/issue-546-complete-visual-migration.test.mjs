@@ -80,7 +80,7 @@ test("#546 preserves palette-regex escapes inside the serialized browser audit",
 test("#546 audits every standalone route as well as the canonical workspaces", async () => {
   const registry = JSON.parse(await read("config/ui-continuity-agent-registry.json"));
   const registered = new Set(registry.screens.map((screen) => screen.path.split("?")[0]));
-  for (const route of ["/about", "/afterglow-reconciliation", "/ai-routing", "/buzz", "/characters-in-motion", "/core-curriculum", "/craftloop", "/diagnostics", "/dialogue-in-motion", "/draftlens", "/edit", "/git", "/labs", "/legal", "/pageflow", "/pitch-review", "/production", "/resonance", "/screenplay-readiness", "/settings/buzz", "/start-here", "/story-craft-essentials", "/structure", "/suggest-report", "/voiceprint", "/welcome", "/worked-examples", "/working-together"]) {
+  for (const route of ["/about", "/afterglow-reconciliation", "/ai-routing", "/buzz", "/characters-in-motion", "/core-curriculum", "/craftloop", "/diagnostics", "/dialogue-in-motion", "/draftlens", "/edit", "/feedback", "/git", "/labs", "/legal", "/pageflow", "/pitch-review", "/production", "/resonance", "/screenplay-readiness", "/settings/buzz", "/start-here", "/story-craft-essentials", "/structure", "/suggest-report", "/voiceprint", "/welcome", "/worked-examples", "/working-together"]) {
     assert.ok(registered.has(route), `standalone route missing from migration audit: ${route}`);
   }
 });

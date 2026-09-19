@@ -25,6 +25,7 @@ type RuntimeSurface = {
   runtimeSelector?: string;
   runtimeReadySelector?: string;
   runtimeRoute?: string;
+  route?: string;
   navigationPath?: Array<{ order: number; slug: string; label: string }>;
   formatProfile?: FormatProfile;
 };
@@ -230,7 +231,8 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       return;
     }
     if (window.location.pathname !== "/skin-v1") {
-      const parentRoute = active.parent ? SURFACE_BY_ID.get(active.parent)?.runtimeRoute : null;
+      const parentSurface = active.parent ? SURFACE_BY_ID.get(active.parent) : null;
+      const parentRoute = parentSurface?.runtimeRoute ?? parentSurface?.route;
       window.location.assign(parentRoute ?? "/skin-v1");
       return;
     }

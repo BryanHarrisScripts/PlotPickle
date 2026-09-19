@@ -584,6 +584,7 @@
   max-width: none !important;
   margin: 0 !important;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  background: var(--pp-skin-accent-deep) !important;
   box-shadow: none !important;
 }
 
@@ -602,6 +603,7 @@
   gap: var(--pp-skin-space-2) !important;
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3) var(--pp-skin-space-3) !important;
   border: 0 !important;
+  background: var(--pp-skin-accent-deep) !important;
   box-shadow: none !important;
 }
 
@@ -611,7 +613,15 @@
   align-items: center !important;
   justify-content: center !important;
   padding: var(--pp-skin-space-2) !important;
+  border: var(--pp-skin-border-thin) solid transparent !important;
+  background: var(--pp-skin-accent-deep) !important;
+  box-shadow: none !important;
   text-align: center !important;
+}
+
+.libraryDirectoryItem[aria-selected="true"] {
+  border-color: var(--pp-skin-accent-bright) !important;
+  background: var(--pp-skin-accent-deep) !important;
 }
 
 .libraryDirectoryLabel {

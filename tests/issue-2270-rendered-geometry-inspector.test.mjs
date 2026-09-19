@@ -131,7 +131,7 @@ test("#2270 extends the existing Visual Director and Browser Verification Broker
   assert.match(renderedProfile, /getBoundingClientRect/u);
   assert.match(renderedProfile, /RENDERED_GEOMETRY_ARTIFACT_ROOT/u);
   assert.match(visualOutput, /Surface Contract Matrix/u);
-  assert.match(startup, /Rendered geometry JSON \+ viewport screenshots/u);
+  assert.match(visualOutput, /Rendered geometry JSON \+ viewport screenshots/u);
   assert.match(broker, /bounded-evaluate/u);
   assert.equal(specSheet.requiredOutputs.shellAndGutterMeasurementsRequired, true);
   assert.equal(specSheet.requiredOutputs.menuContractRequired, true);

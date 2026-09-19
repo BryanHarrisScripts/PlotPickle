@@ -91,7 +91,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-content :is(
 
 /* Every active registered surface receives the same Human-approved 1180 shell,
    2px outer + 1px inset frame, matte fill, square geometry and typography. */
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"] {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) {
   width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
   max-width: var(--pp-skin-shell-max) !important;
   min-width: 0 !important;
@@ -116,31 +116,31 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-ski
   font-family: var(--pp-skin-font-ui) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] *,
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] *::before,
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] *::after {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) *,
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) *::before,
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) *::after {
   border-radius: var(--pp-skin-radius) !important;
   text-shadow: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] :is(h1, [role="heading"][aria-level="1"]) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h1, [role="heading"][aria-level="1"]) {
   color: var(--pp-skin-ink) !important;
   font: 700 var(--pp-skin-font-title)/var(--pp-skin-leading-tight) var(--pp-skin-font-ui) !important;
   letter-spacing: var(--pp-skin-tracking-label) !important;
   text-transform: uppercase;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] :is(h2, h3, h4) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(h2, h3, h4) {
   color: var(--pp-skin-accent-bright) !important;
   font-family: var(--pp-skin-font-ui) !important;
   line-height: var(--pp-skin-leading-tight) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] :is(p, li, dd, label, small) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(p, li, dd, label, small) {
   font-family: var(--pp-skin-font-ui) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] :is(button, input, select, textarea) {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(button, input, select, textarea) {
   border-radius: var(--pp-skin-radius) !important;
   border-color: var(--pp-skin-line-strong) !important;
   background: var(--pp-skin-surface-0) !important;
@@ -149,12 +149,12 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] :is(butt
   box-shadow: var(--pp-skin-shadow-control) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] :is(button, input, select, textarea):focus-visible {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(button, input, select, textarea):focus-visible {
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus) !important;
   outline-offset: var(--pp-skin-space-1) !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"] :is(
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) :is(
   [aria-selected="true"],
   [aria-current="page"],
   [data-selected="true"],
@@ -199,7 +199,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-footer > :last-chi
     justify-self: start !important;
   }
 
-  html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"] {
+  html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) {
     width: calc(100vw - 24px) !important;
     padding: var(--pp-skin-space-3) !important;
   }

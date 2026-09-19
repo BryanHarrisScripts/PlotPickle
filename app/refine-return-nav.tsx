@@ -30,7 +30,7 @@ export default function RefineReturnNav() {
       }}
     >
       <button type="button" onClick={goBack} style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#fff", padding: "8px 12px", fontWeight: 800, color: "#214b44", cursor: "pointer" }}>Back one screen</button>
-      <Link href="/?workspace=refine" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#eef8f5", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Refine menu</Link>
+      <Link data-skin-v1-return="refine" href="/?workspace=refine" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#eef8f5", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Refine menu</Link>
       <Link href="/?workspace=dashboard" style={{ border: "1px solid #9fbdb7", borderRadius: 999, background: "#fff", padding: "8px 12px", fontWeight: 800, color: "#214b44", textDecoration: "none" }}>Main menu</Link>
     </nav>
   );

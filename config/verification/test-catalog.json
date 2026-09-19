@@ -7,22 +7,42 @@
     {
       "id": "experience.webmcp-live-observer",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["webmcp-live-observer", "skin-surface-readiness", "experience-navigation"],
-      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual"],
+      "architectureComponents": [
+        "webmcp-live-observer",
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "skin",
+        "surface",
+        "visual"
+      ],
       "runner": {
         "kind": "browser-uat",
-        "targets": ["scripts/verification-webmcp-live.mjs"]
+        "targets": [
+          "scripts/verification-webmcp-live.mjs"
+        ]
       },
       "cost": "medium",
-      "modes": ["impact"],
-      "platforms": ["linux"],
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "linux"
+      ],
       "requirements": {
         "network": true,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["artifact", "screenshot", "report"],
+        "types": [
+          "artifact",
+          "screenshot",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-live/webmcp-live.json",
           ".artifacts/webmcp-startup/summary.json",
@@ -36,8 +56,17 @@
     {
       "id": "experience.webmcp-baseline-approval-2151",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["webmcp-live-observer", "skin-surface-readiness"],
-      "triggerTokens": ["mcp", "skin", "surface", "visual", "test-harness"],
+      "architectureComponents": [
+        "webmcp-live-observer",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "skin",
+        "surface",
+        "visual",
+        "test-harness"
+      ],
       "runner": {
         "kind": "node-test",
         "targets": [
@@ -46,15 +75,23 @@
         ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -65,8 +102,16 @@
     {
       "id": "experience.manual-uat-follow-up-2153",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
-      "triggerTokens": ["skin", "surface", "visual", "navigation"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "navigation"
+      ],
       "runner": {
         "kind": "node-test",
         "targets": [
@@ -76,15 +121,23 @@
         ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -95,22 +148,41 @@
     {
       "id": "experience.pre-phase2-1954",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
-      "triggerTokens": ["mcp", "skin", "surface", "visual", "windows"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "skin",
+        "surface",
+        "visual",
+        "windows"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1954-pre-phase2-cleanup.test.mjs"]
+        "targets": [
+          "tests/issue-1954-pre-phase2-cleanup.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -121,22 +193,39 @@
     {
       "id": "experience.home-launcher-1960",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
-      "triggerTokens": ["windows", "native", "surface"],
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "windows",
+        "native",
+        "surface"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1960-home-launcher-bootstrap.test.mjs"]
+        "targets": [
+          "tests/issue-1960-home-launcher-bootstrap.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -147,22 +236,40 @@
     {
       "id": "experience.community-conversation-1963",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
-      "triggerTokens": ["mcp", "navigation", "surface", "visual"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "surface",
+        "visual"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1963-great-hall-conversation-hygiene.test.mjs"]
+        "targets": [
+          "tests/issue-1963-great-hall-conversation-hygiene.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -173,22 +280,40 @@
     {
       "id": "experience.product-identity-1971",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation"],
-      "triggerTokens": ["mcp", "navigation", "surface", "visual"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "surface",
+        "visual"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1971-product-identity-favicon.test.mjs"]
+        "targets": [
+          "tests/issue-1971-product-identity-favicon.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -199,22 +324,39 @@
     {
       "id": "experience.explicit-story-startup-1969",
       "ownerLayer": "experience-contract",
-      "architectureComponents": ["experience-navigation", "skin-surface-readiness"],
-      "triggerTokens": ["mcp", "navigation", "surface"],
+      "architectureComponents": [
+        "experience-navigation",
+        "skin-surface-readiness"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "surface"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1969-explicit-story-startup.test.mjs"]
+        "targets": [
+          "tests/issue-1969-explicit-story-startup.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-contract.json",
           ".artifacts/verification-shadow/experience-contract.comparison.json"
@@ -225,22 +367,43 @@
     {
       "id": "experience.learn-journey-shell",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map"],
-      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual", "canon"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation",
+        "durable-curriculum-map"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "skin",
+        "surface",
+        "visual",
+        "canon"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1918-learn-journey-shell.test.mjs"]
+        "targets": [
+          "tests/issue-1918-learn-journey-shell.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -251,22 +414,45 @@
     {
       "id": "experience.learn-semester-one",
       "ownerLayer": "experience-skins",
-      "architectureComponents": ["skin-surface-readiness", "experience-navigation", "durable-curriculum-map", "curriculum-integrity"],
-      "triggerTokens": ["mcp", "navigation", "skin", "surface", "visual", "canon", "graph"],
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation",
+        "durable-curriculum-map",
+        "curriculum-integrity"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "skin",
+        "surface",
+        "visual",
+        "canon",
+        "graph"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1918-learn-semester-one.test.mjs"]
+        "targets": [
+          "tests/issue-1918-learn-semester-one.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
+        "types": [
+          "test-result",
+          "report"
+        ],
         "artifactPaths": [
           ".artifacts/verification-shadow/experience-skins.json",
           ".artifacts/verification-shadow/experience-skins.comparison.json"
@@ -277,31 +463,57 @@
     {
       "id": "story-canon.learn-program-map",
       "ownerLayer": "story-canon",
-      "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],
-      "triggerTokens": ["canon", "graph"],
+      "architectureComponents": [
+        "curriculum-integrity",
+        "durable-curriculum-map"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1918-learn-program-map.test.mjs"]
+        "targets": [
+          "tests/issue-1918-learn-program-map.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification-shadow/story-canon.json", ".artifacts/verification-shadow/story-canon.comparison.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
       },
       "notes": "#1918 Phase 1 deterministic LEARN journey map. Proves 24 stable courses, complete canonical archive resolution, advisory-only prerequisites and late Industry placement before any Journey UI work."
     },
     {
       "id": "story-canon.learn-curriculum-integrity",
       "ownerLayer": "story-canon",
-      "architectureComponents": ["curriculum-integrity", "durable-curriculum-map"],
-      "triggerTokens": ["canon", "graph", "test-harness"],
+      "architectureComponents": [
+        "curriculum-integrity",
+        "durable-curriculum-map"
+      ],
+      "triggerTokens": [
+        "canon",
+        "graph",
+        "test-harness"
+      ],
       "runner": {
         "kind": "node-test",
         "targets": [
@@ -313,93 +525,171 @@
         ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification-shadow/story-canon.json", ".artifacts/verification-shadow/story-canon.comparison.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/story-canon.json",
+          ".artifacts/verification-shadow/story-canon.comparison.json"
+        ]
       },
       "notes": "#1918 Phase 2 fail-closed curriculum integrity harness. Recomputes canonical content hashes and proves 81 archive lessons, 95 bundled sources, 88 presentation lessons, 24-course ownership, reference coverage and advisory prerequisite integrity before Journey UI work begins."
     },
     {
       "id": "provider.local-ai-plugin-registry",
       "ownerLayer": "provider-runtime",
-      "architectureComponents": ["local-ai-plugin-registry", "provider-runtime"],
-      "triggerTokens": ["plugin", "provider", "video"],
+      "architectureComponents": [
+        "local-ai-plugin-registry",
+        "provider-runtime"
+      ],
+      "triggerTokens": [
+        "plugin",
+        "provider",
+        "video"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/local-ai-plugin-registry.test.mjs"]
+        "targets": [
+          "tests/local-ai-plugin-registry.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification-shadow/provider-runtime.json", ".artifacts/verification-shadow/provider-runtime.comparison.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json",
+          ".artifacts/verification-shadow/provider-runtime.comparison.json"
+        ]
       },
       "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification."
     },
     {
       "id": "production.creative-transaction-provider",
       "ownerLayer": "production-harness",
-      "architectureComponents": ["lifecycle-capability-routing", "revision-provenance", "governed-recovery"],
-      "triggerTokens": ["provider", "canon", "security", "native"],
+      "architectureComponents": [
+        "lifecycle-capability-routing",
+        "revision-provenance",
+        "governed-recovery"
+      ],
+      "triggerTokens": [
+        "provider",
+        "canon",
+        "security",
+        "native"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-2035-creative-transaction-provider.test.mjs"]
+        "targets": [
+          "tests/issue-2035-creative-transaction-provider.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification-shadow/production-harness.json", ".artifacts/verification-shadow/production-harness.comparison.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/production-harness.json",
+          ".artifacts/verification-shadow/production-harness.comparison.json"
+        ]
       },
       "notes": "#2035 provider-neutral Creative Transaction foundation. Proves Local offline capability resolution, fail-closed provider selection, Change Set/diff semantics, staged verification and Human review, durable reconciliation without guessing success, and strict Responsibility Run/PPF authority separation."
     },
     {
       "id": "verification.phase2-core",
       "ownerLayer": "verification",
-      "architectureComponents": ["verification-core"],
-      "triggerTokens": ["test-harness", "cli"],
+      "architectureComponents": [
+        "verification-core"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "cli"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-1938-verification-core.test.mjs"]
+        "targets": [
+          "tests/issue-1938-verification-core.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification/verification.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification/verification.json"
+        ]
       },
       "notes": "Shared verification planning/execution/evidence core baseline."
     },
     {
       "id": "verification.phase7-merge-authority",
       "ownerLayer": "verification",
-      "architectureComponents": ["merge-authority", "ci-topology", "living-architecture"],
-      "triggerTokens": ["test-harness", "docs", "release"],
+      "architectureComponents": [
+        "merge-authority",
+        "ci-topology",
+        "living-architecture"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "docs",
+        "release"
+      ],
       "runner": {
         "kind": "node-test",
         "targets": [
@@ -412,41 +702,115 @@
         ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification/verification.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification/verification.json"
+        ]
       },
       "notes": "Phase 7 baseline that locks the sole ordinary PR workflow, enforced seven-check merge authority, legacy manual-diagnostic retirement, and living Layer 7 architecture projection."
     },
     {
       "id": "verification.oss-radar-discovery-recall",
       "ownerLayer": "verification",
-      "architectureComponents": ["verification-core"],
-      "triggerTokens": ["test-harness", "cli", "docs"],
+      "architectureComponents": [
+        "verification-core"
+      ],
+      "triggerTokens": [
+        "test-harness",
+        "cli",
+        "docs"
+      ],
       "runner": {
         "kind": "node-test",
-        "targets": ["tests/issue-2034-oss-radar-discovery-recall.test.mjs"]
+        "targets": [
+          "tests/issue-2034-oss-radar-discovery-recall.test.mjs"
+        ]
       },
       "cost": "fast",
-      "modes": ["baseline", "impact"],
-      "platforms": ["any"],
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
       "requirements": {
         "network": false,
         "native": false,
         "secrets": false
       },
       "evidence": {
-        "types": ["test-result", "report"],
-        "artifactPaths": [".artifacts/verification/verification.json"]
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification/verification.json"
+        ]
       },
       "notes": "#2034 deterministic OSS Radar recall regression. Proves atomic query families, configuration-owned bounds, hard rejection before read-only enrichment, two-stage scoring, InkOS sentinel relevance, coverage, query-effectiveness history, and preserved Top-5/idempotence/security contracts without live-network authority."
+    },
+    {
+      "id": "experience.navigation-continuity-2249",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "skin",
+        "surface",
+        "visual",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2249-navigation-continuity.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2249 Human UAT regression coverage for Dashboard nested returns, Storyboard-owned Visual Story lifecycle, contextual BUILD Evidence return, stable Writer's Craft lesson identity and Skin V1 BUILD presentation."
     }
   ]
 }

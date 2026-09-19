@@ -140,7 +140,7 @@ export default function PrevisReadinessWorkspace({
       <header className={styles.hero}>
         <div>
           <span className={styles.eyebrow}>Previs · 24 Blocks / 96 Mini-Blocks / {RENDER_CLIPS_PER_FEATURE.toLocaleString()} render clips</span>
-          <h1 id="previs-title">See how the visual story plays before PlotPickle renders it.</h1>
+          <h1 id="previs-title">Previs · {project.title || "Untitled Story"}</h1>
           <p>
             Storyboard and Visualize establish what the film looks like. Previs authors camera, blocking, performance energy, motion and timing only where the Human has evidence or intent to record. For the current two-hour technical preset, Render Plan can project a completed 75-second Mini-Block onto 25 × 3-second generation clips. A creative shot may span one clip or several; the clip grid is production plumbing, not a source of creative timing.
           </p>

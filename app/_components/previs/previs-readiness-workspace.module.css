@@ -12,7 +12,7 @@
 .timelinePreview,
 .shotEditor,
 .evidencePanel {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin-inline: auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -153,14 +153,14 @@
 
 .workspace button:hover:not(:disabled),
 .workspace button:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }
 
 .tabRail {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(24, minmax(34px, 1fr));
@@ -179,8 +179,8 @@
 
 .blockTab[aria-selected="true"] {
   border-color: var(--pp-skin-accent);
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
 }
 
 .stateLight {
@@ -246,7 +246,7 @@
 
 .anchorCard[data-selected="true"] {
   border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-surface-2);
+  background: var(--pp-skin-accent-deep);
 }
 
 .videoFrame {
@@ -469,7 +469,7 @@
 }
 
 .message {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   min-height: 1.4em;
   margin: var(--pp-skin-space-4) auto 0;
   color: var(--pp-skin-accent-bright);
@@ -477,7 +477,7 @@
 }
 
 .footer {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
   padding: var(--pp-skin-space-5) var(--pp-skin-space-1) var(--pp-skin-space-1);
   font-size: var(--pp-skin-font-meta);

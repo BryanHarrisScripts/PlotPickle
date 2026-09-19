@@ -1,13 +1,13 @@
 .workspace {
   display: grid;
   gap: var(--pp-skin-space-4);
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: var(--pp-skin-space-5) auto 0;
   padding: var(--pp-skin-space-4);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-fill-panel);
-  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+  box-shadow: var(--pp-skin-shadow-panel), inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-line), var(--pp-skin-inset-highlight);
   color: var(--pp-skin-ink);
   font-family: var(--pp-skin-font-ui);
 }
@@ -98,7 +98,7 @@
 .sceneRail button,
 .shot {
   min-height: var(--pp-skin-control-height);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-surface-0);
   box-shadow: var(--pp-skin-shadow-control);
@@ -115,8 +115,8 @@
 .sceneRail button[aria-pressed="true"],
 .shot[aria-pressed="true"] {
   border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
 }
 
 .sceneRail button:hover,
@@ -311,7 +311,7 @@
   display: grid;
   aspect-ratio: 16 / 9;
   place-items: center;
-  border: var(--pp-skin-border-thin) dashed var(--pp-skin-line);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   color: var(--pp-skin-ink-muted);
   background: var(--pp-skin-surface-0);
   font-size: var(--pp-skin-font-sm);
@@ -352,7 +352,7 @@
 .relationshipNote {
   margin-left: 66px;
   padding-top: var(--pp-skin-space-2);
-  border-top: var(--pp-skin-border-thin) dashed var(--pp-skin-line);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
 }
 
 .inspector {
@@ -413,7 +413,7 @@
 
 .empty {
   padding: var(--pp-skin-space-4);
-  border-style: dashed;
+  border-style: solid;
   color: var(--pp-skin-ink-soft);
 }
 

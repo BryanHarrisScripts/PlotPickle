@@ -113,8 +113,8 @@ html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button[aria-pressed="true"], button[data-selected="true"], li[data-selected="true"] button) {
   border-color: var(--pp-skin-line-strong) !important;
-  background: var(--pp-skin-selected-bg) !important;
-  color: var(--pp-skin-selected-ink) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
   box-shadow: var(--pp-skin-shadow-control) !important;
 }
 
@@ -124,7 +124,7 @@ html[data-plotpickle-skin^="skin-"] :is(
   [data-scene-workspace="dialogue-action-shot-audio"],
   [data-progressive-production-lanes="dialogue-sound-camera-transitions"]
 ) :is(button[aria-pressed="true"], button[data-selected="true"], li[data-selected="true"] button) :is(span, strong, small) {
-  color: var(--pp-skin-selected-ink) !important;
+  color: var(--pp-skin-ink) !important;
 }
 
 html[data-plotpickle-skin^="skin-"] :is(
@@ -226,8 +226,8 @@ html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] [aria-l
 html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] [aria-label$="local workflow"] a:hover,
 html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] [aria-label$="local workflow"] a:focus-visible {
   border-color: var(--pp-skin-focus) !important;
-  background: var(--pp-skin-selected-bg) !important;
-  color: var(--pp-skin-selected-ink) !important;
+  background: var(--pp-skin-accent-deep) !important;
+  color: var(--pp-skin-ink) !important;
 }
 
 html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] article[data-accepted="true"],

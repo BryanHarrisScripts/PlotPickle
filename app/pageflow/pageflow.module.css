@@ -1,13 +1,13 @@
 .page {
   min-height: 100dvh;
-  padding: var(--pp-skin-space-6) var(--pp-skin-space-3) 112px;
+  padding: var(--pp-skin-space-5) var(--pp-skin-space-5) var(--pp-skin-space-7);
   background: var(--pp-skin-canvas);
   color: var(--pp-skin-ink);
   font-family: var(--pp-skin-font-ui);
 }
 
 .shell {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
 }
 
@@ -97,8 +97,8 @@
 .secondaryButton:focus-visible,
 .actions button:hover:not(:disabled),
 .actions button:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }

@@ -100,7 +100,7 @@ export default function StoryboardReadinessWorkspace({
       <header className={styles.hero}>
         <div>
           <span className={styles.eyebrow}>Storyboard · 24 Blocks / 96 Mini-Block anchors</span>
-          <h1 id="storyboard-readiness-title">Build the story one visual beat at a time.</h1>
+          <h1 id="storyboard-readiness-title">Storyboard · {project.title || "Untitled Story"}</h1>
           <p>
             Each tab is one canonical Block. Its four Mini-Blocks are stable visual addresses, not a fixed final-frame quota. The 24/96 scaffold keeps every visual traceable while candidates and later visual beats can expand where the story needs more coverage.
           </p>

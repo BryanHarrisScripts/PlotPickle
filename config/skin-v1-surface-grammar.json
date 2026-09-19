@@ -423,5 +423,9 @@
     "matteFillToken": "--pp-skin-fill-panel",
     "selectedStateProfile": "canonical-dark-accent",
     "baselineReplacement": "requires-separate-human-acceptance-of-resulting-dashboard-candidate"
-  }
+  },
+  "compositionReference": "config/skin-v1-surface-composition-reference.json",
+  "anatomyContract": "config/skin-v1-surface-anatomy-contract.json",
+  "specSheetContract": "config/skin-v1-spec-sheet-contract.json",
+  "surfaceDeclarations": "config/skin-v1-surface-declarations/*.json"
 }

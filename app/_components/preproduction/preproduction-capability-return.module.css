@@ -1,9 +1,9 @@
 .returnNav {
-  width: min(1500px, calc(100% - (2 * var(--pp-skin-space-3))));
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: var(--pp-skin-space-3) auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   border-radius: var(--pp-skin-radius);
-  background: var(--pp-skin-fill-accent-header);
+  background: var(--pp-skin-fill-panel);
   box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
   color: var(--pp-skin-ink);
   display: flex;
@@ -53,8 +53,8 @@
 
 .returnNav a:hover,
 .returnNav a:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }

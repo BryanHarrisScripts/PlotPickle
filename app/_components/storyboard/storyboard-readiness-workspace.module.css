@@ -15,7 +15,7 @@
 .hero,
 .notice,
 .blockWorkspace {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin-inline: auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -148,8 +148,8 @@
 .blockTab:focus-visible,
 .miniBlock button:hover:not(:disabled),
 .miniBlock button:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }
@@ -158,7 +158,7 @@
   display: grid;
   grid-template-columns: repeat(24, minmax(38px, 1fr));
   gap: var(--pp-skin-space-1);
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: 0 auto;
   padding: var(--pp-skin-space-1) 0;
   overflow-x: auto;
@@ -179,8 +179,8 @@
 
 .blockTab[aria-selected="true"] {
   border-color: var(--story-state);
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
 }
 
 .stateLight {
@@ -255,7 +255,7 @@
 
 .miniBlock[data-selected="true"] {
   border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-surface-2);
+  background: var(--pp-skin-accent-deep);
 }
 
 .miniPreview {
@@ -336,7 +336,7 @@
 }
 
 .footer {
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: var(--pp-skin-space-3) auto 0;
   padding: var(--pp-skin-space-3) var(--pp-skin-space-1);
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);

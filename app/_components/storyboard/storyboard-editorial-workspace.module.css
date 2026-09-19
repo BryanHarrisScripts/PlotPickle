@@ -1,7 +1,7 @@
 .editorial {
   display: grid;
   gap: var(--pp-skin-space-4);
-  width: min(1500px, 100%);
+  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
   margin: var(--pp-skin-space-7) auto 0;
   padding: var(--pp-skin-space-5);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -197,8 +197,8 @@
 .actions button:focus-visible,
 .secondary:hover,
 .secondary:focus-visible {
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
   outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
   outline-offset: var(--pp-skin-space-1);
 }
@@ -283,8 +283,8 @@
 
 .candidate[data-selected="true"] {
   border-color: var(--pp-skin-accent-bright);
-  background: var(--pp-skin-selected-bg);
-  color: var(--pp-skin-selected-ink);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
 }
 
 .candidate:focus-visible {

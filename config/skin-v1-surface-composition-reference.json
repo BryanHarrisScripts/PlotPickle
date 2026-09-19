@@ -1,0 +1,708 @@
+{
+  "schemaVersion": 1,
+  "issue": 2226,
+  "id": "skin-v1-surface-composition-reference-v1",
+  "status": "human-review-reference",
+  "purpose": "One machine-readable wrapper reference for visibly composing every governed Skin V1 surface from the existing token, grammar and registry authorities.",
+  "authority": {
+    "parentProductStandard": "docs/UI-UX-DESIGN-STANDARD.md",
+    "tokenSource": "app/skin-v1-definition.css",
+    "grammarSource": "config/skin-v1-surface-grammar.json",
+    "registrySource": "config/skin-v1-surface-registry.json",
+    "canonicalVisualReference": "dashboard",
+    "mayCreateSecondDesignSystem": false,
+    "mayOverrideTokensLocally": false,
+    "mayInventNewShellArchetypes": false,
+    "shellLevelFourColumnAllowed": false,
+    "anatomySource": "config/skin-v1-surface-anatomy-contract.json",
+    "specSheetContract": "config/skin-v1-spec-sheet-contract.json",
+    "surfaceDeclarationDirectory": "config/skin-v1-surface-declarations/",
+    "regionSemanticsOwnedBy": "surface-anatomy",
+    "surfaceSpecificContentOwnedBy": "surface-declaration"
+  },
+  "canonicalWrapperOrder": [
+    "global-header",
+    "surface-action-row",
+    "outer-shell-frame",
+    "workspace-header",
+    "eyebrow-or-subheader",
+    "content-layout",
+    "status-or-context-footer"
+  ],
+  "shell": {
+    "maxWidthToken": "--pp-skin-shell-max",
+    "maxWidthPx": 1180,
+    "desktopViewportInsetPx": 40,
+    "minimumDesktopGutterPerSidePx": 20,
+    "expression": "min(var(--pp-skin-shell-max), calc(100vw - 40px))",
+    "directoryBodyToken": "--pp-skin-menu-max",
+    "directoryBodyMaxPx": 1060,
+    "directoryBodyExpression": "min(var(--pp-skin-menu-max), calc(100% - 72px))",
+    "workspaceMayUseFull1180": true,
+    "radiusToken": "--pp-skin-radius",
+    "radiusPx": 0
+  },
+  "spacing": {
+    "baseUnitPx": 4,
+    "tokens": {
+      "4": "--pp-skin-space-1",
+      "8": "--pp-skin-space-2",
+      "12": "--pp-skin-space-3",
+      "16": "--pp-skin-space-4",
+      "20": "--pp-skin-space-5",
+      "24": "--pp-skin-space-6",
+      "28": "--pp-skin-space-7",
+      "32": "--pp-skin-space-8",
+      "36": "--pp-skin-space-9"
+    },
+    "rule": "All structural gap, padding and margin values use the four-pixel Skin V1 spacing grid."
+  },
+  "bordersAndFrames": {
+    "onePixel": {
+      "token": "--pp-skin-border-thin",
+      "px": 1,
+      "roles": [
+        "inset-frame",
+        "panel-border",
+        "menu-row-border",
+        "control-border",
+        "divider",
+        "focus-outline",
+        "eyebrow-accent-edge"
+      ]
+    },
+    "twoPixel": {
+      "token": "--pp-skin-border-strong",
+      "px": 2,
+      "roles": [
+        "outer-shell-frame",
+        "dominant-structural-separator",
+        "global-header-bottom-rule",
+        "strong-selected-or-status-emphasis-when-profile-declares-it"
+      ]
+    },
+    "outerFrame": {
+      "widthToken": "--pp-skin-border-strong",
+      "lineToken": "--pp-skin-line-strong",
+      "style": "solid",
+      "colorHex": "#efefef",
+      "radiusPx": 0
+    },
+    "insetFrame": {
+      "widthToken": "--pp-skin-border-thin",
+      "lineToken": "--pp-skin-line",
+      "style": "solid",
+      "colorHex": "#333333",
+      "insetHighlightToken": "--pp-skin-inset-highlight",
+      "radiusPx": 0
+    },
+    "panelFrame": {
+      "widthToken": "--pp-skin-border-thin",
+      "lineToken": "--pp-skin-line",
+      "style": "solid",
+      "radiusPx": 0
+    },
+    "structuralBorderStylesAllowed": [
+      "solid"
+    ],
+    "dottedStructuralBordersAllowed": false,
+    "dashedStructuralBordersAllowed": false,
+    "semanticExceptions": [
+      {
+        "id": "disabled-or-unavailable",
+        "style": "dashed",
+        "structural": false,
+        "meaningRequired": true
+      }
+    ]
+  },
+  "palette": {
+    "canvas": {
+      "token": "--pp-skin-canvas",
+      "value": "#000000"
+    },
+    "surfaces": {
+      "zero": {
+        "token": "--pp-skin-surface-0",
+        "value": "#030303"
+      },
+      "one": {
+        "token": "--pp-skin-surface-1",
+        "value": "#090909"
+      },
+      "two": {
+        "token": "--pp-skin-surface-2",
+        "value": "#121212"
+      },
+      "three": {
+        "token": "--pp-skin-surface-3",
+        "value": "#181818"
+      },
+      "four": {
+        "token": "--pp-skin-surface-4",
+        "value": "#242424"
+      },
+      "highlight": {
+        "token": "--pp-skin-surface-highlight",
+        "value": "#303030"
+      }
+    },
+    "text": {
+      "primary": {
+        "token": "--pp-skin-ink",
+        "value": "#f4f4f4"
+      },
+      "soft": {
+        "token": "--pp-skin-ink-soft",
+        "value": "#d0d0d0"
+      },
+      "muted": {
+        "token": "--pp-skin-ink-muted",
+        "value": "#888888"
+      },
+      "disabled": {
+        "token": "--pp-skin-disabled",
+        "value": "#666666"
+      }
+    },
+    "lines": {
+      "standard": {
+        "token": "--pp-skin-line",
+        "value": "#333333"
+      },
+      "soft": {
+        "token": "--pp-skin-line-soft",
+        "value": "#242424"
+      },
+      "strong": {
+        "token": "--pp-skin-line-strong",
+        "value": "#efefef"
+      }
+    },
+    "matrixGreen": {
+      "deep": {
+        "token": "--pp-skin-accent-deep",
+        "value": "#123524"
+      },
+      "standard": {
+        "token": "--pp-skin-accent",
+        "value": "#287a4b"
+      },
+      "bright": {
+        "token": "--pp-skin-accent-bright",
+        "value": "#79bd92"
+      },
+      "focus": {
+        "token": "--pp-skin-focus",
+        "value": "#79bd92"
+      }
+    },
+    "stateExceptions": {
+      "warning": {
+        "surface": "--pp-skin-warning-surface",
+        "line": "--pp-skin-warning-line",
+        "ink": "--pp-skin-warning-ink"
+      },
+      "danger": {
+        "surface": "--pp-skin-danger-surface",
+        "line": "--pp-skin-danger-line",
+        "ink": "--pp-skin-danger"
+      }
+    },
+    "localStructuralColorsAllowed": false
+  },
+  "matteTreatment": {
+    "shellFillToken": "--pp-skin-fill-panel",
+    "headerFillToken": "--pp-skin-accent-deep",
+    "ordinaryPanelFillToken": "--pp-skin-surface-1",
+    "workingSurfaceFillToken": "--pp-skin-surface-0",
+    "hoverFillToken": "--pp-skin-fill-row-hover",
+    "panelShadowToken": "--pp-skin-shadow-panel",
+    "controlShadowToken": "--pp-skin-shadow-control",
+    "insetHighlightToken": "--pp-skin-inset-highlight",
+    "glassAllowed": false,
+    "blurAllowed": false,
+    "softRoundedElevationAllowed": false,
+    "squareGeometryRequired": true
+  },
+  "typography": {
+    "uiFont": {
+      "token": "--pp-skin-font-ui",
+      "stack": "\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace"
+    },
+    "brandFont": {
+      "token": "--pp-skin-font-brand",
+      "stack": "Arial, Helvetica, sans-serif",
+      "usage": "product-brand moments only; never a local workspace font"
+    },
+    "scale": {
+      "xs": {
+        "token": "--pp-skin-font-xs",
+        "px": 9,
+        "roles": [
+          "dense-status",
+          "readiness"
+        ]
+      },
+      "sm": {
+        "token": "--pp-skin-font-sm",
+        "px": 10,
+        "roles": [
+          "footer",
+          "secondary-meta",
+          "compact-helper"
+        ]
+      },
+      "meta": {
+        "token": "--pp-skin-font-meta",
+        "px": 11,
+        "roles": [
+          "eyebrow",
+          "subheader",
+          "control-label",
+          "metadata"
+        ]
+      },
+      "body": {
+        "token": "--pp-skin-font-body",
+        "px": 15,
+        "roles": [
+          "body",
+          "menu-row",
+          "normal-control"
+        ]
+      },
+      "title": {
+        "token": "--pp-skin-font-title",
+        "px": 16,
+        "roles": [
+          "workspace-title",
+          "surface-title"
+        ]
+      },
+      "brand": {
+        "token": "--pp-skin-font-brand-size",
+        "value": "clamp(46px, 6vw, 64px)",
+        "roles": [
+          "dashboard-brand-only"
+        ]
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "token": "--pp-skin-leading-tight",
+        "value": 1.25
+      },
+      "body": {
+        "token": "--pp-skin-leading-body",
+        "value": 1.55
+      }
+    },
+    "tracking": {
+      "meta": {
+        "token": "--pp-skin-tracking-meta",
+        "value": "0.06em"
+      },
+      "label": {
+        "token": "--pp-skin-tracking-label",
+        "value": "0.10em"
+      }
+    },
+    "rules": {
+      "oneDominantWorkspaceTitle": true,
+      "localFontFamiliesAllowed": false,
+      "localTitleScaleAllowed": false,
+      "projectAwareWorkspaceTitles": true,
+      "hardCodedProjectNamesAllowed": false
+    }
+  },
+  "headers": {
+    "global": {
+      "textPattern": [
+        "PLOTPICKLE",
+        "<CURRENT SURFACE>",
+        "SKIN V1"
+      ],
+      "columns": "minmax(0, 1fr) auto minmax(0, 1fr)",
+      "minHeightPx": 42,
+      "horizontalPaddingToken": "--pp-skin-space-4",
+      "verticalPaddingToken": "--pp-skin-space-2",
+      "backgroundToken": "--pp-skin-accent-deep",
+      "textToken": "--pp-skin-ink",
+      "fontToken": "--pp-skin-font-ui",
+      "fontSizeToken": "--pp-skin-font-body",
+      "bottomBorderWidthToken": "--pp-skin-border-strong",
+      "bottomBorderColorToken": "--pp-skin-accent",
+      "duplicateHeadersAllowed": false
+    },
+    "workspace": {
+      "titleFontToken": "--pp-skin-font-title",
+      "bodyFontToken": "--pp-skin-font-body",
+      "projectAware": true,
+      "mayReplaceGlobalHeader": false
+    },
+    "subordinate": {
+      "mayReplaceGlobalHeader": false,
+      "preferredAccent": "restrained-green",
+      "oversizedBrightBandAllowed": false
+    }
+  },
+  "eyebrowHighlights": {
+    "standard": {
+      "textToken": "--pp-skin-accent-bright",
+      "fontToken": "--pp-skin-font-ui",
+      "fontSizeToken": "--pp-skin-font-meta",
+      "fontWeight": 700,
+      "trackingToken": "--pp-skin-tracking-label",
+      "textTransform": "uppercase"
+    },
+    "restrainedLeftEdge": {
+      "sourceEvidence": "Issue Log",
+      "leftBorderWidthToken": "--pp-skin-border-strong",
+      "leftBorderColorToken": "--pp-skin-accent",
+      "backgroundToken": "--pp-skin-surface-1",
+      "textToken": "--pp-skin-accent-bright"
+    }
+  },
+  "surfaceActions": {
+    "position": "below-global-header",
+    "horizontalAlignment": "right",
+    "control": "upper-right-return",
+    "returnSelector": ".pp-skin-v1-return",
+    "returnTextTransform": "none",
+    "destinationRule": "canonical-parent-or-origin",
+    "duplicateBackControlsAllowed": false
+  },
+  "menus": {
+    "directory": {
+      "bodyWidthToken": "--pp-skin-menu-max",
+      "bodyWidthPx": 1060,
+      "columns": 1,
+      "rowMinHeightToken": "--pp-skin-control-height",
+      "rowFontToken": "--pp-skin-font-body",
+      "rowBorderWidthToken": "--pp-skin-border-thin",
+      "rowDefaultBorder": "transparent",
+      "rowHoverBackgroundToken": "--pp-skin-fill-row-hover",
+      "selectedProfile": "canonical-dark-accent"
+    },
+    "submenu": {
+      "inheritsDirectoryGeometry": true,
+      "ownGlobalHeaderAllowed": false,
+      "returnPlacement": "upper-right-below-global-header",
+      "selectedProfile": "canonical-dark-accent",
+      "localMenuPaletteAllowed": false
+    },
+    "selected": {
+      "backgroundToken": "--pp-skin-accent-deep",
+      "borderWidthToken": "--pp-skin-border-thin",
+      "borderColorToken": "--pp-skin-accent-bright",
+      "textToken": "--pp-skin-ink",
+      "starkWhiteFillAllowed": false,
+      "shadow": "none"
+    },
+    "focus": {
+      "outlineWidthToken": "--pp-skin-border-thin",
+      "outlineColorToken": "--pp-skin-focus",
+      "outlineOffsetPx": -1
+    }
+  },
+  "controls": {
+    "visibleControlHeightToken": "--pp-skin-control-height",
+    "visibleControlHeightPx": 34,
+    "targetHeightToken": "--pp-skin-touch-target",
+    "targetHeightPx": 44,
+    "radiusPx": 0,
+    "normalBackgroundToken": "--pp-skin-surface-0",
+    "normalBorderToken": "--pp-skin-line-strong",
+    "hoverBackgroundToken": "--pp-skin-fill-row-hover",
+    "selectedBackgroundToken": "--pp-skin-accent-deep",
+    "selectedBorderToken": "--pp-skin-accent-bright",
+    "selectedTextToken": "--pp-skin-ink"
+  },
+  "pillPatterns": {
+    "note": "Pill means compact repeated control/status item. Skin V1 pills remain square; no capsule radius is introduced.",
+    "oneColumnStack": {
+      "columns": 1,
+      "display": "grid",
+      "template": "minmax(0, 1fr)",
+      "gapToken": "--pp-skin-space-2"
+    },
+    "oneRowWrap": {
+      "columns": "auto-wrap",
+      "display": "flex",
+      "flexWrap": "wrap",
+      "gapToken": "--pp-skin-space-2"
+    },
+    "twoColumnGrid": {
+      "columns": 2,
+      "display": "grid",
+      "template": "repeat(2, minmax(0, 1fr))",
+      "gapToken": "--pp-skin-space-2",
+      "collapseTo": "oneColumnStack"
+    },
+    "threeColumnGrid": {
+      "columns": 3,
+      "display": "grid",
+      "template": "repeat(3, minmax(0, 1fr))",
+      "gapToken": "--pp-skin-space-2",
+      "collapseSequence": [
+        "twoColumnGrid",
+        "oneColumnStack"
+      ]
+    },
+    "styling": {
+      "borderWidthToken": "--pp-skin-border-thin",
+      "borderColorToken": "--pp-skin-line",
+      "backgroundToken": "--pp-skin-surface-1",
+      "textToken": "--pp-skin-ink-soft",
+      "selectedBackgroundToken": "--pp-skin-accent-deep",
+      "selectedBorderColorToken": "--pp-skin-accent-bright",
+      "selectedTextToken": "--pp-skin-ink",
+      "radiusPx": 0
+    }
+  },
+  "layoutPatterns": {
+    "oneColumn": {
+      "columns": 1,
+      "template": "minmax(0, 1fr)",
+      "roles": [
+        "content",
+        "action",
+        "configuration",
+        "history",
+        "single-workspace"
+      ]
+    },
+    "oneColumnWithPillRow": {
+      "outer": "oneColumn",
+      "nested": "pillPatterns.oneRowWrap"
+    },
+    "oneColumnWithOneColumnPills": {
+      "outer": "oneColumn",
+      "nested": "pillPatterns.oneColumnStack"
+    },
+    "oneColumnWithTwoColumnPills": {
+      "outer": "oneColumn",
+      "nested": "pillPatterns.twoColumnGrid"
+    },
+    "oneColumnWithThreeColumnPills": {
+      "outer": "oneColumn",
+      "nested": "pillPatterns.threeColumnGrid"
+    },
+    "twoColumn": {
+      "columns": 2,
+      "defaultTemplate": "minmax(0, 1fr) minmax(280px, 0.52fr)",
+      "roles": [
+        "primary-content",
+        "secondary-context"
+      ],
+      "sourceEvidence": [
+        "Profile",
+        "current two-column surfaces"
+      ],
+      "collapseTo": "oneColumn"
+    },
+    "twoColumnEditorInspector": {
+      "columns": 2,
+      "defaultTemplate": "minmax(0, 1.7fr) minmax(280px, 0.72fr)",
+      "roles": [
+        "editor-or-work",
+        "inspector-or-evidence"
+      ],
+      "sourceEvidence": [
+        "Write",
+        "PageFlow"
+      ],
+      "collapseTo": "oneColumn"
+    },
+    "threeColumn": {
+      "columns": 3,
+      "defaultTemplate": "repeat(3, minmax(0, 1fr))",
+      "roles": [
+        "primary",
+        "secondary",
+        "tertiary"
+      ],
+      "sourceEvidence": "existing three-column workspaces",
+      "collapseSequence": [
+        "twoColumn",
+        "oneColumn"
+      ]
+    },
+    "threeColumnWithNestedOneColumn": {
+      "columns": 3,
+      "outerTemplate": "repeat(3, minmax(0, 1fr))",
+      "nestedColumnDisplay": "grid",
+      "nestedColumnTemplate": "minmax(0, 1fr)",
+      "nestedColumnFlow": "row",
+      "purpose": "Allow one of the three established workspace columns to contain a vertical one-column stack without creating a new shell archetype.",
+      "collapseSequence": [
+        "twoColumn",
+        "oneColumn"
+      ]
+    },
+    "directoryGrid": {
+      "columns": "adaptive",
+      "bodyWidthToken": "--pp-skin-menu-max",
+      "sourceEvidence": [
+        "Dashboard",
+        "Library",
+        "Writer's Craft"
+      ]
+    },
+    "canvasVisualWorkspace": {
+      "columns": "content-defined",
+      "fullShellAllowed": true,
+      "sourceEvidence": [
+        "Story Map",
+        "Storyboard",
+        "Visual Story",
+        "Previs"
+      ]
+    },
+    "timelineWorkspace": {
+      "columns": "nested-workspace",
+      "fullShellAllowed": true,
+      "sourceEvidence": "Scene Workspace inside Storyboard / Visual Story"
+    },
+    "settingsDirectory": {
+      "columns": "directory-plus-capability-detail",
+      "sourceEvidence": [
+        "Local Story Mode",
+        "Cloud Story Mode",
+        "Hybrid Story Mode",
+        "Agents"
+      ]
+    },
+    "fourColumnShell": {
+      "allowed": false,
+      "reason": "Do not invent beyond the current product census. Existing four-across metrics/readiness rows are subordinate content grids, not a shell-level four-column archetype."
+    }
+  },
+  "panelHierarchy": {
+    "shell": {
+      "frame": "2px outer + 1px inset",
+      "backgroundToken": "--pp-skin-fill-panel"
+    },
+    "primaryPanel": {
+      "frame": "1px solid",
+      "lineToken": "--pp-skin-line-strong",
+      "backgroundToken": "--pp-skin-surface-1"
+    },
+    "secondaryPanel": {
+      "frame": "1px solid",
+      "lineToken": "--pp-skin-line",
+      "backgroundToken": "--pp-skin-surface-1"
+    },
+    "workingSurface": {
+      "frame": "1px solid",
+      "lineToken": "--pp-skin-line",
+      "backgroundToken": "--pp-skin-surface-0"
+    }
+  },
+  "footer": {
+    "requiredForGovernedSurfaces": true,
+    "roles": [
+      "status",
+      "context",
+      "keyboard-help",
+      "workspace-state"
+    ],
+    "backgroundToken": "--pp-skin-accent-deep",
+    "borderWidthToken": "--pp-skin-border-thin",
+    "borderColorToken": "--pp-skin-accent",
+    "fontSizeToken": "--pp-skin-font-sm",
+    "textToken": "--pp-skin-ink-muted",
+    "accentTextToken": "--pp-skin-accent-bright",
+    "localFooterDesignAllowed": false
+  },
+  "interactionStates": {
+    "default": {
+      "backgroundToken": "--pp-skin-surface-0",
+      "textToken": "--pp-skin-ink",
+      "borderToken": "--pp-skin-line-strong"
+    },
+    "hover": {
+      "backgroundToken": "--pp-skin-fill-row-hover",
+      "textToken": "--pp-skin-ink"
+    },
+    "focus": {
+      "outlineWidthToken": "--pp-skin-border-thin",
+      "outlineColorToken": "--pp-skin-focus",
+      "square": true
+    },
+    "selected": {
+      "backgroundToken": "--pp-skin-accent-deep",
+      "textToken": "--pp-skin-ink",
+      "borderWidthToken": "--pp-skin-border-thin",
+      "borderColorToken": "--pp-skin-accent-bright",
+      "starkWhiteFillAllowed": false
+    },
+    "disabled": {
+      "textToken": "--pp-skin-disabled",
+      "semanticDashedBorderAllowed": true,
+      "opacityMayChange": true
+    }
+  },
+  "responsiveComposition": {
+    "principle": "Preserve hierarchy before preserving column count.",
+    "wideToNarrow": [
+      "three-column -> two-column -> one-column",
+      "two-column -> one-column",
+      "three-column-pills -> two-column-pills -> one-column-pills"
+    ],
+    "minimumDesktopGutterPerSidePx": 20,
+    "touchTargetPx": 44
+  },
+  "exemplarEvidence": {
+    "Dashboard": [
+      "canonical shell",
+      "menu measure",
+      "selected row",
+      "global visual language"
+    ],
+    "Profile": [
+      "layered outer/inset frame",
+      "two-column composition"
+    ],
+    "Agents": [
+      "matte panel hierarchy",
+      "restrained green hierarchy"
+    ],
+    "Issue Log": [
+      "restrained green left-edge eyebrow/subheader"
+    ],
+    "Local Story Mode": [
+      "preferred dark-green selected capability treatment",
+      "upper-right return"
+    ],
+    "Settings": [
+      "directory geometry",
+      "menu/submenu inheritance"
+    ],
+    "Story Map": [
+      "three-across subordinate story sequence grid evidence"
+    ],
+    "Write": [
+      "editor plus inspector/evidence two-column evidence"
+    ],
+    "Scene Workspace": [
+      "nested timeline/workspace evidence"
+    ]
+  },
+  "antiDriftRules": [
+    "No local font family.",
+    "No local structural palette.",
+    "No rounded/capsule pill geometry.",
+    "No glass or blur.",
+    "No dotted structural frames.",
+    "No dashed structural frames except declared semantic unavailable/disabled states.",
+    "No stark-white selected state.",
+    "No duplicate global headers.",
+    "No left-side Back control when the standard upper-right return applies.",
+    "No 1500px local production shell.",
+    "No invented four-column shell.",
+    "No hard-coded project title in project-aware workspaces.",
+    "No screen-specific header/footer design when a governed wrapper applies."
+  ]
+}

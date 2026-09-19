@@ -240,6 +240,12 @@ export default function VisualStoryWorkspace({
             data-scene-workspace="dialogue-action-shot-audio"
             role="status"
           >
+            <button
+              type="button"
+              className="pp-skin-v1-return"
+              data-skin-v1-return="storyboard"
+              onClick={onReturnToStoryboard}
+            >Back to Storyboard</button>
             <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
             <p>Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
           </section>
@@ -470,6 +476,7 @@ export default function VisualStoryWorkspace({
       <SceneTimelineWorkspace
         active={view === "timeline"}
         onProjectChange={onProjectChange}
+        onReturnToStoryboard={onReturnToStoryboard}
         onSelectShot={setSelectedShotId}
         project={project}
         selectedShotId={selectedShot?.id ?? ""}

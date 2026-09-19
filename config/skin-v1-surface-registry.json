@@ -1060,7 +1060,8 @@
       },
       "runtimeSelector": "[data-block-native-write='24x96']",
       "runtimeReadySelector": "[data-block-native-write='24x96']",
-      "orchestrated": true
+      "orchestrated": true,
+      "runtimeRoute": "/write?block=17&mini=1"
     },
     {
       "id": "story",
@@ -1225,7 +1226,8 @@
       },
       "runtimeSelector": "main[aria-labelledby='storyboard-readiness-title']",
       "runtimeReadySelector": "main[aria-labelledby='storyboard-readiness-title']",
-      "orchestrated": true
+      "orchestrated": true,
+      "runtimeRoute": "/storyboard?block=17&mini=1"
     },
     {
       "id": "previs",
@@ -1260,7 +1262,8 @@
       },
       "runtimeSelector": "main[aria-labelledby='previs-title']",
       "runtimeReadySelector": "#previs-block-panel",
-      "orchestrated": true
+      "orchestrated": true,
+      "runtimeRoute": "/previs?block=17&mini=1"
     },
     {
       "id": "pageflow",
@@ -1300,7 +1303,8 @@
       },
       "runtimeSelector": "[data-pageflow-authority='ppf-block-writing-read-only']",
       "runtimeReadySelector": "[data-pageflow-authority='ppf-block-writing-read-only']",
-      "orchestrated": true
+      "orchestrated": true,
+      "runtimeRoute": "/pageflow?block=17&mini=1"
     },
     {
       "id": "edit",

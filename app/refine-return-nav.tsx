@@ -10,6 +10,7 @@ export default function RefineReturnNav() {
 
   return (
     <nav
+      data-skin-v1-local-chrome="return-navigation"
       aria-label="Refine navigation"
       style={{
         position: "sticky",

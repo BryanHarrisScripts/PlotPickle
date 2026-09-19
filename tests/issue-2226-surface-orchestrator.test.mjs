@@ -162,3 +162,13 @@ test("#2226 Visual Director resets deterministically to the canonical Dashboard 
   assert.doesNotMatch(body, /pp-skin-v1-return/u);
   assert.doesNotMatch(body, /pp-skin-v1-orchestrator-return/u);
 });
+
+
+test("#2226 menu contract audit uses the orchestrator Return before legacy controls", async () => {
+  const source = await read("lib/verification/skin-v1-menu-contract-audit.mjs");
+  assert.match(source, /async function clickSurfaceReturn/u);
+  assert.match(source, /pp-skin-v1-orchestrator-return:visible/u);
+  assert.match(source, /await clickSurfaceReturn\(page, "Back to Settings"\)/u);
+  assert.match(source, /await clickSurfaceReturn\(page, "Back to Story Mode"\)/u);
+  assert.match(source, /await clickSurfaceReturn\(page, "Back to Dashboard"\)/u);
+});

@@ -44,6 +44,8 @@ for (const file of [
   "package.json",
   "package-lock.json",
   "plugins/plotpickle-playhouse/index.ts",
+  "public/afterglow/storyboard/block-01-mini-1.webp",
+  "public/afterglow/storyboard/block-22-mini-1.svg",
   "public/visual-references/manifest.json",
   "README.md",
   "schema/plotpickle-github-app-public-config.schema.json",
@@ -60,6 +62,12 @@ for (const file of [
 ]) {
   assert.ok(existsSync(path.join(folder, file)), `Missing packaged file: ${file}`);
 }
+const storyboardWebp = readFileSync(path.join(folder, "public", "afterglow", "storyboard", "block-01-mini-1.webp"));
+assert.equal(storyboardWebp.subarray(0, 4).toString("ascii"), "RIFF", "Packaged Block 1.1 Storyboard media is not a WebP.");
+assert.equal(storyboardWebp.subarray(8, 12).toString("ascii"), "WEBP", "Packaged Block 1.1 Storyboard media is not a WebP.");
+const storyboardSvg = readFileSync(path.join(folder, "public", "afterglow", "storyboard", "block-22-mini-1.svg"), "utf8");
+assert.match(storyboardSvg, /<svg\b/u, "Packaged Block 22.1 Storyboard replacement is not an SVG.");
+
 for (const excluded of [
   "tests",
   "CONTRIBUTING.md",

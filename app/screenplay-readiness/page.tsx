@@ -43,10 +43,10 @@ export default function ScreenplayReadinessPage() {
     URL.revokeObjectURL(url);
   }
 
-  if (error) return <main className={styles.page}><h1>Story readiness</h1><p role="alert">{error}</p><Link href="/start-here">Open Start Here</Link></main>;
-  if (!project || !readiness) return <main className={styles.page}><h1>Story readiness</h1><p>Opening the active canonical PPF…</p></main>;
+  if (error) return <main className={styles.page} data-screenplay-readiness-workspace="canonical"><h1>Story readiness</h1><p role="alert">{error}</p><Link href="/start-here">Open Start Here</Link></main>;
+  if (!project || !readiness) return <main className={styles.page} data-screenplay-readiness-workspace="canonical"><h1>Story readiness</h1><p>Opening the active canonical PPF…</p></main>;
 
-  return <main className={styles.page} data-canonical-project-id={project.id}>
+  return <main className={styles.page} data-screenplay-readiness-workspace="canonical" data-canonical-project-id={project.id}>
     <header className={styles.header}>
       <div><Link href="/start-here">Start Here</Link> / Finish and share</div>
       <h1>Story readiness</h1>

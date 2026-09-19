@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 8,
-    routedCompatibilityDebt: 27,
+    canonicalOrchestratedDirect: 11,
+    routedCompatibilityDebt: 24,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -141,6 +141,49 @@ test("#2226 canonical Reports uses the read-only Reports owner while legacy Prod
   assert.match(productionPage, /<PreproductionWorkspace/u);
   assert.match(sitemap, /"\/reports": \{[\s\S]*?migrationClass: "canonical"/u);
   assert.match(sitemap, /"\/production": \{[\s\S]*?migrationClass: "legacy"/u);
+});
+
+test("#2226 Refine diagnostic routes use canonical parent routing and one visible Return owner", async () => {
+  const [registry, orchestrator, craftloop, draftlens, resonance, refineReturn] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/craftloop/page.tsx"),
+    read("app/draftlens/page.tsx"),
+    read("app/resonance/page.tsx"),
+    read("app/refine-return-nav.tsx"),
+  ]);
+  const byId = new Map(registry.surfaces.map((surface) => [surface.id, surface]));
+
+  for (const [id, selector, route] of [
+    ["craftloop", "[data-craftloop-workspace='canonical']", "/craftloop"],
+    ["draftlens", "[data-draftlens-workspace='canonical']", "/draftlens"],
+    ["resonance", "[data-resonance-workspace='canonical']", "/resonance"],
+  ]) {
+    const surface = byId.get(id);
+    assert.equal(surface?.parent, "refine", id + " must return through Refine");
+    assert.equal(surface?.surfaceClass, "nested");
+    assert.equal(surface?.capturePolicy, "census-only");
+    assert.equal(surface?.orchestrated, true);
+    assert.equal(surface?.runtimeSelector, selector);
+    assert.equal(surface?.runtimeRoute, route);
+    assert.equal(surface?.formatProfile?.layout, "one-column");
+    assert.equal(surface?.formatProfile?.shell, "diagnostic");
+  }
+
+  assert.match(orchestrator, /SURFACE_BY_ID\.get\(active\.parent\)\?\.runtimeRoute/u);
+  assert.match(orchestrator, /window\.location\.assign\(parentRoute \?\? "\/skin-v1"\)/u);
+
+  assert.match(craftloop, /data-craftloop-workspace="canonical"/u);
+  assert.match(craftloop, /data-skin-v1-local-return="true"[\s\S]*href="\/diagnostics"[\s\S]*Back to Refine/u);
+  assert.match(draftlens, /data-draftlens-workspace="canonical"/u);
+  assert.match(draftlens, /data-skin-v1-local-return="true"[\s\S]*href="\/diagnostics"[\s\S]*Back to Refine/u);
+  assert.match(resonance, /data-resonance-workspace="canonical"/u);
+  assert.match(resonance, /data-skin-v1-local-return="true"[\s\S]*href="\/diagnostics"[\s\S]*Back to Refine/u);
+
+  assert.match(refineReturn, /window\.location\.assign\("\/diagnostics"\)/u);
+  assert.match(refineReturn, /href="\/diagnostics"/u);
+  assert.match(refineReturn, /href="\/skin-v1"/u);
+  assert.doesNotMatch(refineReturn, /\?workspace=refine|\?workspace=dashboard/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

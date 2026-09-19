@@ -118,7 +118,7 @@ test("Dashboard, BUILD and approved production shortcuts expose real destination
     ["storyboard", "/storyboard"],
     ["graphic-novel", "/previs"],
     ["edit", "/edit"],
-    ["feedback", "/pitch-review"],
+    ["feedback", "/feedback"],
     ["refine", "/diagnostics"],
     ["reports", "/production"],
   ]) {

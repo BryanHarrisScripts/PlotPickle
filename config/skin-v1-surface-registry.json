@@ -1361,14 +1361,25 @@
       "continuityIds": [
         "feedback"
       ],
-      "route": "/pitch-review",
-      "migrationHold": {
-        "status": "identity-conflict",
-        "reason": "The registered /pitch-review route renders Pitch Package Studio by default while the current Feedback review owner is mounted by FeedbackStudioHost at /?workspace=feedback.",
-        "ownerEvidence": "app/feedback-studio-host.tsx",
-        "routeEvidence": "app/pitch-review/page.tsx",
-        "policy": "do-not-orchestrate-until-route-and-owner-identity-agree"
-      }
+      "route": "/feedback",
+      "navigationPath": [
+        {
+          "order": 9,
+          "slug": "feedback",
+          "label": "Feedback"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-feedback-workspace='canonical']",
+      "runtimeReadySelector": "[data-feedback-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/feedback"
     },
     {
       "id": "refine",

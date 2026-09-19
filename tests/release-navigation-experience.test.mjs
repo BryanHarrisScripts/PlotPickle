@@ -6,16 +6,17 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("release navigation keeps one PlotPickle shell owner on standalone workspaces and contextual STORY", async () => {
-  const [layout, boundary, shell, shortcuts, storyPage] = await Promise.all([
+  const [layout, boundary, shell, shortcuts, storyPage, sitemap] = await Promise.all([
     source("app/layout.tsx"),
     source("app/navigation/release-experience-boundary.tsx"),
     source("app/plotpickle-workspace-shell.tsx"),
     source("app/navigation/global-shortcuts.ts"),
     source("app/story/page.tsx"),
+    source("app/navigation/sitemap-route-context.ts"),
   ]);
   assert.match(layout, /<ReleaseExperienceBoundary>\{children\}<\/ReleaseExperienceBoundary>/);
-  for (const route of ["/library", "/storyboard", "/previs", "/pageflow", "/edit", "/pitch-review", "/diagnostics", "/production"]) {
-    assert.ok(boundary.includes(`"${route}"`), `Standalone release route is missing the global shell: ${route}`);
+  for (const route of ["/library", "/storyboard", "/previs", "/pageflow", "/edit", "/feedback", "/pitch-review", "/diagnostics", "/production"]) {
+    assert.ok(sitemap.includes(`"${route}"`), `Standalone release route is missing the global shell classification: ${route}`);
   }
   assert.doesNotMatch(boundary, /"\/story":/);
   assert.match(storyPage, /<PlotPickleWorkspaceShell activeWorkspace="story" activeShortcutId="story"/);

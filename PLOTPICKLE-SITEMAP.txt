@@ -936,7 +936,8 @@ Produce
   /labs?scope=storyboard        -> Specialist Labs contextual child of Storyboard
 
 Review
-  /pitch-review                 -> Feedback
+  /feedback                     -> Feedback
+  /pitch-review                 -> Pitch Package Studio contextual child of Plan
   /diagnostics                  -> Refine
   /production                   -> Reports
   /craftloop                    -> CraftLoop contextual child of Refine

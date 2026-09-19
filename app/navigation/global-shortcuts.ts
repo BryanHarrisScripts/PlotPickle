@@ -47,7 +47,7 @@ export const GLOBAL_SHORTCUTS: readonly GlobalShortcut[] = [
   { id: "graphic-novel", key: "V", label: "Previs", detail: "Visualize", relic: "/assets/workflow-relics/graphic-novel.webp", area: "produce", action: { kind: "route", href: "/previs" } },
   { id: "write", key: "W", label: "Write", detail: "Draft", relic: "/assets/workflow-relics/write.webp", area: "produce", action: { kind: "route", href: "/write" } },
   { id: "edit", key: "E", label: "Edit", detail: "Polish", relic: "/assets/workflow-relics/edit.webp", area: "produce", action: { kind: "route", href: "/edit" } },
-  { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", area: "review", action: { kind: "route", href: "/pitch-review" } },
+  { id: "feedback", key: "F", label: "Feedback", detail: "Review", relic: "/assets/workflow-relics/feedback.webp", area: "review", action: { kind: "route", href: "/feedback" } },
   { id: "refine", key: "R", label: "Refine", detail: "Decide", relic: "/assets/workflow-relics/refine.webp", area: "review", action: { kind: "route", href: "/diagnostics" } },
   { id: "reports", key: "D", label: "Reports", detail: "Deliver", relic: "/assets/workflow-relics/reports.webp", area: "review", action: { kind: "route", href: "/production" } },
   { id: "community", key: "C", label: "Community", detail: "Guildhall", relic: "/assets/workflow-relics/community.svg", area: "connect", action: { kind: "workspace", workspace: "community" } },

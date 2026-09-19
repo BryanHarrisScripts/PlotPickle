@@ -17,7 +17,7 @@ test("#1719 preserves canonical shortcut keys, actions and deep-link destination
   for (const [id, key] of preservedShortcuts) {
     assert.match(shortcuts, new RegExp(`id: "${id}", key: "${key}"`), `Shortcut ${id} changed key`);
   }
-  for (const route of ["/storyboard", "/previs", "/edit", "/pitch-review", "/diagnostics", "/production"]) {
+  for (const route of ["/storyboard", "/previs", "/edit", "/feedback", "/diagnostics", "/production"]) {
     assert.ok(shortcuts.includes(`href: "${route}"`), `Canonical route changed: ${route}`);
   }
   assert.match(shortcuts, /id: "write"[^\n]+kind: "route"[^\n]+href: "/write"/);

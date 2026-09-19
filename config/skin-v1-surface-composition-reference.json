@@ -114,7 +114,44 @@
         "structural": false,
         "meaningRequired": true
       }
-    ]
+    ],
+    "threePixelEmphasis": {
+      "token": "--pp-skin-border-emphasis",
+      "px": 3,
+      "roles": [
+        "premium-emphasis-edge",
+        "high-priority-semantic-edge"
+      ],
+      "structuralShellAllowed": false,
+      "fullFrameAllowed": false
+    },
+    "roleMap": {
+      "standard-perimeter": {
+        "widthToken": "--pp-skin-border-thin",
+        "lineToken": "--pp-skin-line-strong"
+      },
+      "inset-frame": {
+        "widthToken": "--pp-skin-border-thin",
+        "lineToken": "--pp-skin-line"
+      },
+      "panel-frame": {
+        "widthToken": "--pp-skin-border-thin",
+        "lineToken": "--pp-skin-line"
+      },
+      "outer-shell-frame": {
+        "widthToken": "--pp-skin-border-strong",
+        "lineToken": "--pp-skin-line-strong"
+      },
+      "dominant-separator": {
+        "widthToken": "--pp-skin-border-strong",
+        "lineToken": "--pp-skin-accent"
+      },
+      "premium-emphasis-edge": {
+        "widthToken": "--pp-skin-border-emphasis",
+        "lineToken": "--pp-skin-premium-line",
+        "edgeOnly": true
+      }
+    }
   },
   "palette": {
     "canvas": {
@@ -209,7 +246,89 @@
         "ink": "--pp-skin-danger"
       }
     },
-    "localStructuralColorsAllowed": false
+    "localStructuralColorsAllowed": false,
+    "semanticRoles": {
+      "canvas": {
+        "backgroundToken": "--pp-skin-canvas"
+      },
+      "outerFrame": {
+        "lineToken": "--pp-skin-line-strong"
+      },
+      "insetFrame": {
+        "lineToken": "--pp-skin-line"
+      },
+      "primaryPanel": {
+        "backgroundToken": "--pp-skin-surface-1",
+        "lineToken": "--pp-skin-line-strong"
+      },
+      "secondaryPanel": {
+        "backgroundToken": "--pp-skin-surface-1",
+        "lineToken": "--pp-skin-line"
+      },
+      "workingSurface": {
+        "backgroundToken": "--pp-skin-surface-0",
+        "lineToken": "--pp-skin-line"
+      },
+      "text": {
+        "textToken": "--pp-skin-ink"
+      },
+      "softText": {
+        "textToken": "--pp-skin-ink-soft"
+      },
+      "mutedDetail": {
+        "textToken": "--pp-skin-ink-muted"
+      },
+      "menuDefault": {
+        "backgroundToken": "--pp-skin-surface-0",
+        "textToken": "--pp-skin-ink"
+      },
+      "menuHover": {
+        "backgroundToken": "--pp-skin-fill-row-hover",
+        "textToken": "--pp-skin-ink"
+      },
+      "selected": {
+        "backgroundToken": "--pp-skin-accent-deep",
+        "lineToken": "--pp-skin-accent-bright",
+        "textToken": "--pp-skin-ink"
+      },
+      "focus": {
+        "lineToken": "--pp-skin-focus"
+      },
+      "pillDefault": {
+        "backgroundToken": "--pp-skin-surface-1",
+        "lineToken": "--pp-skin-line",
+        "textToken": "--pp-skin-ink-soft"
+      },
+      "pillSelected": {
+        "backgroundToken": "--pp-skin-accent-deep",
+        "lineToken": "--pp-skin-accent-bright",
+        "textToken": "--pp-skin-ink"
+      },
+      "highlight": {
+        "backgroundToken": "--pp-skin-highlight-surface",
+        "lineToken": "--pp-skin-highlight-line",
+        "textToken": "--pp-skin-highlight-ink"
+      },
+      "warning": {
+        "backgroundToken": "--pp-skin-warning-surface",
+        "lineToken": "--pp-skin-warning-line",
+        "textToken": "--pp-skin-warning-ink"
+      },
+      "danger": {
+        "backgroundToken": "--pp-skin-danger-surface",
+        "lineToken": "--pp-skin-danger-line",
+        "textToken": "--pp-skin-danger"
+      },
+      "disabled": {
+        "textToken": "--pp-skin-disabled"
+      },
+      "premium": {
+        "backgroundToken": "--pp-skin-premium-surface",
+        "lineToken": "--pp-skin-premium-line",
+        "textToken": "--pp-skin-premium-ink",
+        "emphasisWidthToken": "--pp-skin-border-emphasis"
+      }
+    }
   },
   "matteTreatment": {
     "shellFillToken": "--pp-skin-fill-panel",
@@ -228,14 +347,109 @@
   "typography": {
     "uiFont": {
       "token": "--pp-skin-font-ui",
-      "stack": "\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace"
+      "stack": "\"JetBrains Mono\", \"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace"
     },
     "brandFont": {
       "token": "--pp-skin-font-brand",
-      "stack": "Arial, Helvetica, sans-serif",
-      "usage": "product-brand moments only; never a local workspace font"
+      "stack": "\"JetBrains Mono\", \"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace",
+      "usage": "compatibility/semantic alias only; product brand uses the same JetBrains Mono family"
     },
     "scale": {
+      "display": {
+        "token": "--pp-skin-font-brand-size",
+        "value": "clamp(46px, 6vw, 64px)",
+        "roles": [
+          "product-title"
+        ]
+      },
+      "h1": {
+        "token": "--pp-skin-font-h1",
+        "px": 28,
+        "roles": [
+          "primary-page-heading"
+        ]
+      },
+      "h2": {
+        "token": "--pp-skin-font-h2",
+        "px": 24,
+        "roles": [
+          "major-section-heading"
+        ]
+      },
+      "h3": {
+        "token": "--pp-skin-font-h3",
+        "px": 18,
+        "roles": [
+          "section-heading"
+        ]
+      },
+      "h4": {
+        "token": "--pp-skin-font-h4",
+        "px": 16,
+        "roles": [
+          "subsection-heading",
+          "workspace-title"
+        ]
+      },
+      "h5": {
+        "token": "--pp-skin-font-h5",
+        "px": 13,
+        "roles": [
+          "minor-heading"
+        ]
+      },
+      "h6": {
+        "token": "--pp-skin-font-h6",
+        "px": 11,
+        "roles": [
+          "micro-heading",
+          "eyebrow-heading"
+        ]
+      },
+      "body": {
+        "token": "--pp-skin-font-body",
+        "px": 15,
+        "roles": [
+          "body",
+          "menu-row",
+          "normal-control"
+        ]
+      },
+      "detail": {
+        "token": "--pp-skin-font-detail",
+        "px": 11,
+        "roles": [
+          "metadata",
+          "control-label",
+          "detail"
+        ]
+      },
+      "note": {
+        "token": "--pp-skin-font-note",
+        "px": 10,
+        "roles": [
+          "helper",
+          "note",
+          "footer",
+          "secondary-meta"
+        ]
+      },
+      "status": {
+        "token": "--pp-skin-font-sm",
+        "px": 10,
+        "roles": [
+          "status",
+          "footer"
+        ]
+      },
+      "keycap": {
+        "token": "--pp-skin-font-meta",
+        "px": 11,
+        "roles": [
+          "keyboard-cue",
+          "shortcut"
+        ]
+      },
       "xs": {
         "token": "--pp-skin-font-xs",
         "px": 9,
@@ -263,28 +477,12 @@
           "metadata"
         ]
       },
-      "body": {
-        "token": "--pp-skin-font-body",
-        "px": 15,
-        "roles": [
-          "body",
-          "menu-row",
-          "normal-control"
-        ]
-      },
       "title": {
         "token": "--pp-skin-font-title",
         "px": 16,
         "roles": [
           "workspace-title",
           "surface-title"
-        ]
-      },
-      "brand": {
-        "token": "--pp-skin-font-brand-size",
-        "value": "clamp(46px, 6vw, 64px)",
-        "roles": [
-          "dashboard-brand-only"
         ]
       }
     },
@@ -313,7 +511,195 @@
       "localFontFamiliesAllowed": false,
       "localTitleScaleAllowed": false,
       "projectAwareWorkspaceTitles": true,
-      "hardCodedProjectNamesAllowed": false
+      "hardCodedProjectNamesAllowed": false,
+      "singleFontFamily": true,
+      "productBrandUsesUiFamily": true,
+      "semanticRoleAuthority": "typography.semanticRoles"
+    },
+    "weights": {
+      "regular": {
+        "token": "--pp-skin-weight-regular",
+        "value": 400
+      },
+      "semibold": {
+        "token": "--pp-skin-weight-semibold",
+        "value": 600
+      },
+      "bold": {
+        "token": "--pp-skin-weight-bold",
+        "value": 700
+      }
+    },
+    "semanticRoles": {
+      "display": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-brand-size",
+        "weightToken": "--pp-skin-weight-bold",
+        "lineHeight": 1,
+        "tracking": "-0.025em",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700
+      },
+      "h1": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h1",
+        "sizePx": 28,
+        "weightToken": "--pp-skin-weight-bold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25
+      },
+      "h2": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h2",
+        "sizePx": 24,
+        "weightToken": "--pp-skin-weight-bold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25
+      },
+      "h3": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h3",
+        "sizePx": 18,
+        "weightToken": "--pp-skin-weight-semibold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 600,
+        "lineHeight": 1.25
+      },
+      "h4": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h4",
+        "sizePx": 16,
+        "weightToken": "--pp-skin-weight-semibold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 600,
+        "lineHeight": 1.25
+      },
+      "h5": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h5",
+        "sizePx": 13,
+        "weightToken": "--pp-skin-weight-semibold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "trackingToken": "--pp-skin-tracking-meta",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink-soft",
+        "weight": 600,
+        "lineHeight": 1.25,
+        "tracking": "0.06em"
+      },
+      "h6": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-h6",
+        "sizePx": 11,
+        "weightToken": "--pp-skin-weight-semibold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "trackingToken": "--pp-skin-tracking-label",
+        "textTransform": "uppercase",
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 600,
+        "lineHeight": 1.25,
+        "tracking": "0.10em"
+      },
+      "body": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-body",
+        "sizePx": 15,
+        "weightToken": "--pp-skin-weight-regular",
+        "lineHeightToken": "--pp-skin-leading-body",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 400,
+        "lineHeight": 1.55
+      },
+      "menu": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-body",
+        "sizePx": 15,
+        "weightToken": "--pp-skin-weight-regular",
+        "lineHeightToken": "--pp-skin-leading-body",
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 400,
+        "lineHeight": 1.55
+      },
+      "control": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-meta",
+        "sizePx": 11,
+        "weightToken": "--pp-skin-weight-bold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "trackingToken": "--pp-skin-tracking-meta",
+        "textTransform": "uppercase",
+        "textColorToken": "--pp-skin-ink",
+        "weight": 700,
+        "lineHeight": 1.25,
+        "tracking": "0.06em"
+      },
+      "detail": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-detail",
+        "sizePx": 11,
+        "weightToken": "--pp-skin-weight-regular",
+        "lineHeightToken": "--pp-skin-leading-body",
+        "trackingToken": "--pp-skin-tracking-meta",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink-soft",
+        "weight": 400,
+        "lineHeight": 1.55,
+        "tracking": "0.06em"
+      },
+      "note": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-note",
+        "sizePx": 10,
+        "weightToken": "--pp-skin-weight-regular",
+        "lineHeight": 1.35,
+        "tracking": "0",
+        "textTransform": "none",
+        "textColorToken": "--pp-skin-ink-muted",
+        "weight": 400
+      },
+      "status": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-sm",
+        "sizePx": 10,
+        "weightToken": "--pp-skin-weight-regular",
+        "lineHeight": 1.35,
+        "trackingToken": "--pp-skin-tracking-meta",
+        "textTransform": "uppercase",
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 400,
+        "tracking": "0.06em"
+      },
+      "keycap": {
+        "fontToken": "--pp-skin-font-ui",
+        "sizeToken": "--pp-skin-font-meta",
+        "sizePx": 11,
+        "weightToken": "--pp-skin-weight-bold",
+        "lineHeightToken": "--pp-skin-leading-tight",
+        "tracking": "0",
+        "textTransform": "uppercase",
+        "textColorToken": "--pp-skin-accent-bright",
+        "weight": 700,
+        "lineHeight": 1.25
+      }
     }
   },
   "headers": {
@@ -458,7 +844,14 @@
       "selectedBackgroundToken": "--pp-skin-accent-deep",
       "selectedBorderColorToken": "--pp-skin-accent-bright",
       "selectedTextToken": "--pp-skin-ink",
-      "radiusPx": 0
+      "radiusPx": 0,
+      "premium": {
+        "backgroundToken": "--pp-skin-premium-surface",
+        "borderWidthToken": "--pp-skin-border-emphasis",
+        "borderPlacement": "edge-only",
+        "borderColorToken": "--pp-skin-premium-line",
+        "textToken": "--pp-skin-premium-ink"
+      }
     }
   },
   "layoutPatterns": {
@@ -581,9 +974,9 @@
   },
   "panelHierarchy": {
     "shell": {
-      "frame": "1px standard outer + 1px inset",
+      "frame": "profile-resolved perimeter; layered reference uses 2px outer + 1px inset",
       "backgroundToken": "--pp-skin-fill-panel",
-      "note": "Dashboard locked layered reference remains separately governed; strong 2px borders are semantic emphasis, not the default standard perimeter."
+      "note": "Frame thickness resolves from the declared frame profile. 3px is reserved for semantic emphasis edges and is never a shell frame."
     },
     "primaryPanel": {
       "frame": "1px solid",
@@ -643,6 +1036,32 @@
       "textToken": "--pp-skin-disabled",
       "semanticDashedBorderAllowed": true,
       "opacityMayChange": true
+    },
+    "highlight": {
+      "semanticReasonRequired": true,
+      "backgroundToken": "--pp-skin-highlight-surface",
+      "borderColorToken": "--pp-skin-highlight-line",
+      "textToken": "--pp-skin-highlight-ink",
+      "permittedRoles": [
+        "active-menu",
+        "current-story-location",
+        "focus-context",
+        "important-status",
+        "contextual-callout"
+      ]
+    },
+    "premium": {
+      "semanticReasonRequired": true,
+      "backgroundToken": "--pp-skin-premium-surface",
+      "borderColorToken": "--pp-skin-premium-line",
+      "textToken": "--pp-skin-premium-ink",
+      "emphasisWidthToken": "--pp-skin-border-emphasis",
+      "emphasisPlacement": "edge-only",
+      "fontToken": "--pp-skin-font-ui",
+      "radiusToken": "--pp-skin-radius",
+      "mayReplaceOuterShell": false,
+      "mayIntroduceNewFont": false,
+      "mayIntroduceGlowOrGlass": false
     }
   },
   "responsiveComposition": {

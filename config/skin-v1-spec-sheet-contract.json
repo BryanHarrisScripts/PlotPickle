@@ -33,7 +33,14 @@
     "renderedColumnContractRequired": true,
     "overlapPolicyRequired": true,
     "scrollStructureRequired": true,
-    "measurementToleranceRequired": true
+    "measurementToleranceRequired": true,
+    "semanticTypographyScaleRequired": true,
+    "semanticColourRoleContractRequired": true,
+    "frameRoleContractRequired": true,
+    "pillAndCompactStatusContractRequired": true,
+    "highlightContractRequired": true,
+    "premiumTreatmentContractRequired": true,
+    "roleCoordinatesRequired": true
   },
   "interpretationRules": [
     "Do not invent a navigation region because a column or list exists.",
@@ -46,7 +53,11 @@
     "Show return placement exactly as declared.",
     "A spec sheet is explanatory evidence, not a new visual authority.",
     "Rendered geometry is evidence against this four-layer specification stack; it never becomes a fifth design authority.",
-    "Menu orientation, keyboard cues, frame thickness, gutters, columns and typography roles must resolve from existing profiles/declarations before a rendered comparison is made."
+    "Menu orientation, keyboard cues, frame thickness, gutters, columns and typography roles must resolve from existing profiles/declarations before a rendered comparison is made.",
+    "All governed typography, including the PlotPickle product title, resolves to JetBrains Mono; hierarchy comes from semantic role, not font-family switching.",
+    "One-pixel, two-pixel and semantic three-pixel emphasis roles must be annotated by role rather than inferred from appearance.",
+    "Colour annotations must name semantic colour roles for frames, panels, pills, highlights, selected states and premium treatment.",
+    "Three-pixel treatment is an edge-only semantic emphasis and must never become an undeclared shell frame."
   ],
   "annotationFamilies": {
     "structure": "red-orange",
@@ -69,6 +80,9 @@
     "Do nested regions remain subordinate instead of becoming new surfaces?",
     "Would another LLM receiving the same inputs produce the same region map even if example text differs?",
     "Can a reviewer compare expected versus rendered frame, gutter, column, menu and typography measurements without inspecting CSS manually?",
-    "Are structural overlap and scroll/panel findings expressed as evidence rather than inferred navigation semantics?"
+    "Are structural overlap and scroll/panel findings expressed as evidence rather than inferred navigation semantics?",
+    "Can a reviewer identify the semantic typography role for every heading, body, detail, note, status and keycap?",
+    "Can a reviewer identify which colour role applies to every frame, panel, pill, highlight and premium treatment?",
+    "Can a reviewer distinguish structural 1px/2px frames from the semantic 3px emphasis edge?"
   ]
 }

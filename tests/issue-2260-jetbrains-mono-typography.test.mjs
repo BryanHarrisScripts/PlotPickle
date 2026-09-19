@@ -22,11 +22,14 @@ test("#2260 self-hosts pinned JetBrains Mono behind canonical typography tokens"
     css,
     /--pp-skin-font-ui:\s*"JetBrains Mono",\s*"Courier New",\s*"Lucida Console",\s*"Liberation Mono",\s*Consolas,\s*monospace;/,
   );
+  assert.match(css, /--pp-skin-font-brand:\s*var\(--pp-skin-font-ui\);/);
   assert.match(css, /font-variant-ligatures:\s*none/);
   assert.match(css, /font-feature-settings:\s*"liga" 0,\s*"calt" 0/);
   assert.match(layout, /JetBrains Mono/);
 
   assert.equal(grammar.typographyProfiles["standard-ui"].canonicalFamily, "JetBrains Mono");
+  assert.equal(grammar.typographyProfiles["standard-ui"].singleFontFamily, true);
+  assert.equal(grammar.typographyProfiles["standard-ui"].brandFamilyExceptionAllowed, false);
   assert.equal(grammar.typographyProfiles["standard-ui"].ligatures, "none");
   assert.equal(
     grammar.typographyProfiles["standard-ui"].selfHostedAssetManifest,

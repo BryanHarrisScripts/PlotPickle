@@ -97,9 +97,9 @@
 .pp-skin-v1-dashboard-brand h1 {
   margin: 0 !important;
   color: var(--pp-skin-ink) !important;
-  font-family: var(--pp-skin-font-brand) !important;
+  font-family: var(--pp-skin-font-ui) !important;
   font-size: var(--pp-skin-font-brand-size) !important;
-  font-weight: 900 !important;
+  font-weight: var(--pp-skin-weight-bold) !important;
   line-height: 1 !important;
   letter-spacing: -1.5px !important;
 }

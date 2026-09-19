@@ -7,7 +7,7 @@ PlotPickle self-hosts the official JetBrains Mono v2.304 webfont as its canonica
 ## Boundaries
 
 - `--pp-skin-font-ui` owns governed Skin typography.
-- `--pp-skin-font-brand` remains unchanged pending a separate Human visual decision.
+- `--pp-skin-font-brand` now resolves to the same JetBrains Mono family by Human decision in #2272; product-brand hierarchy is expressed through size/weight/tracking rather than a second font family.
 - compatibility `--font-geist-*` aliases resolve to the same JetBrains-first fallback stack so legacy governed CSS cannot reintroduce Courier as the rendered primary face.
 - creative/export document typography is unchanged.
 - UI ligatures are disabled by default for literal shortcuts, story addresses, logs and diagnostic text.

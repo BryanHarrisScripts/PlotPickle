@@ -70,16 +70,34 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-danger-surface: #1a0b0b;
   --pp-skin-danger-line: #743737;
   --pp-skin-danger: #d98c8c;
+  --pp-skin-highlight-surface: var(--pp-skin-accent-deep);
+  --pp-skin-highlight-line: var(--pp-skin-accent-bright);
+  --pp-skin-highlight-ink: var(--pp-skin-ink);
+  --pp-skin-premium-surface: var(--pp-skin-surface-2);
+  --pp-skin-premium-line: var(--pp-skin-accent-bright);
+  --pp-skin-premium-ink: var(--pp-skin-ink);
 
   /* TYPOGRAPHY — old-school terminal discipline with modern readability. */
   --pp-skin-font-ui: "JetBrains Mono", "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace;
-  --pp-skin-font-brand: Arial, Helvetica, sans-serif;
+  --pp-skin-font-brand: var(--pp-skin-font-ui);
+  --pp-skin-font-display: 34px;
+  --pp-skin-font-h1: 28px;
+  --pp-skin-font-h2: 24px;
+  --pp-skin-font-h3: 18px;
+  --pp-skin-font-h4: 16px;
+  --pp-skin-font-h5: 13px;
+  --pp-skin-font-h6: 11px;
   --pp-skin-font-xs: 9px;
   --pp-skin-font-sm: 10px;
   --pp-skin-font-meta: 11px;
   --pp-skin-font-body: 15px;
   --pp-skin-font-title: 16px;
+  --pp-skin-font-detail: 11px;
+  --pp-skin-font-note: 10px;
   --pp-skin-font-brand-size: clamp(46px, 6vw, 64px);
+  --pp-skin-weight-regular: 400;
+  --pp-skin-weight-semibold: 600;
+  --pp-skin-weight-bold: 700;
   --pp-skin-leading-tight: 1.25;
   --pp-skin-leading-body: 1.55;
   --pp-skin-tracking-meta: 0.06em;
@@ -100,6 +118,7 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-radius: 0px;
   --pp-skin-border-thin: 1px;
   --pp-skin-border-strong: 2px;
+  --pp-skin-border-emphasis: 3px;
   --pp-skin-control-height: 34px;
   --pp-skin-touch-target: 44px;
   --pp-skin-status-dot: 7px;

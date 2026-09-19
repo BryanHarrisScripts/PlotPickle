@@ -93,7 +93,9 @@
       "currentBorderThinPx": 1,
       "borderStrongToken": "--pp-skin-border-strong",
       "currentBorderStrongPx": 2,
-      "squareStandard": true
+      "squareStandard": true,
+      "borderEmphasisToken": "--pp-skin-border-emphasis",
+      "currentBorderEmphasisPx": 3
     },
     "controls": {
       "heightToken": "--pp-skin-control-height",
@@ -298,7 +300,10 @@
       "localFontFamilyAllowed": false,
       "canonicalFamily": "JetBrains Mono",
       "ligatures": "none",
-      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json"
+      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json",
+      "singleFontFamily": true,
+      "brandFamilyExceptionAllowed": false,
+      "semanticRoleAuthority": "config/skin-v1-surface-composition-reference.json#typography.semanticRoles"
     },
     "project-workspace": {
       "fontToken": "--pp-skin-font-ui",
@@ -308,7 +313,10 @@
       "hardCodedProjectNameAllowed": false,
       "canonicalFamily": "JetBrains Mono",
       "ligatures": "none",
-      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json"
+      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json",
+      "singleFontFamily": true,
+      "brandFamilyExceptionAllowed": false,
+      "semanticRoleAuthority": "config/skin-v1-surface-composition-reference.json#typography.semanticRoles"
     }
   },
   "semanticBorderExceptions": [
@@ -319,6 +327,16 @@
       "semanticState": "disabled/unavailable",
       "source": "app/skin-v1.css",
       "structuralFrameException": false
+    },
+    {
+      "id": "premium-emphasis-edge",
+      "selector": "[data-skin-emphasis='premium']",
+      "borderStyle": "solid",
+      "widthToken": "--pp-skin-border-emphasis",
+      "placement": "edge-only",
+      "semanticState": "premium/high-priority",
+      "structuralFrameException": false,
+      "source": "config/skin-v1-surface-composition-reference.json"
     }
   ],
   "borderPolicy": {
@@ -327,7 +345,9 @@
     ],
     "dottedStructuralBordersAllowed": false,
     "dashedStructuralBordersAllowed": false,
-    "exceptionRegistry": "semanticBorderExceptions"
+    "exceptionRegistry": "semanticBorderExceptions",
+    "semanticEmphasisMaxPx": 3,
+    "threePixelStructuralFramesAllowed": false
   },
   "shellProfiles": {
     "dashboard-reference": {

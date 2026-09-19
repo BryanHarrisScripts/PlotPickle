@@ -35,6 +35,15 @@ Generated projection of the existing Skin V1 four-layer specification stack. Thi
 | Previs / Graphic Novel | production | solid-standard (1px) | canvas-visual-workspace | — | inherited | inherited | required when menu profile exposes shortcuts | project-workspace / JetBrains Mono | required | right → dashboard |
 | PageFlow Diagnostics | diagnostic | solid-standard (1px) | editor-inspector | 2 | inherited | inherited | required when menu profile exposes shortcuts | project-workspace / JetBrains Mono | required | right → refine |
 
+## Shared presentation contract
+
+- Font family: JetBrains Mono for UI and product title; no screen-level family switching.
+- Typography roles: display, h1, h2, h3, h4, h5, h6, body, menu, control, detail, note, status, keycap.
+- Frame roles: 1px thin/inset/panel/control, 2px strong/outer/dominant, 3px semantic premium/high-priority edge only.
+- Colour roles: canvas, outer/inset frame, primary/secondary/working panels, text/soft/muted, menu states, pills, highlight, warning, danger, disabled, premium.
+- Pills remain square compact controls/status items; no capsule radius is introduced.
+- Premium is a semantic emphasis profile using the same JetBrains Mono family and Skin V1 palette vocabulary. It cannot replace the outer shell.
+
 ## Shared measurement variables
 
 - Shell: max width, left/right gutters, document/viewport dimensions, horizontal overflow.

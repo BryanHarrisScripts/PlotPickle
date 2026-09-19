@@ -1702,7 +1702,25 @@
       "continuityIds": [
         "afterglow-reconciliation"
       ],
-      "route": "/afterglow-reconciliation"
+      "route": "/afterglow-reconciliation",
+      "navigationPath": [
+        {
+          "order": 13,
+          "slug": "afterglow-reconciliation",
+          "label": "Afterglow Reconciliation"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "standard-restrained",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-afterglow-reconciliation-workspace='canonical']",
+      "runtimeReadySelector": "[data-afterglow-reconciliation-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/afterglow-reconciliation"
     },
     {
       "id": "community-great-hall",

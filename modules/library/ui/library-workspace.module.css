@@ -583,6 +583,8 @@
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
+  box-shadow: none !important;
 }
 
 .libraryDirectoryMenu {
@@ -592,18 +594,27 @@
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   gap: var(--pp-skin-space-2) !important;
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3) var(--pp-skin-space-3) !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .libraryDirectoryItem {
   min-width: 0 !important;
-  padding: var(--pp-skin-space-2) calc(var(--pp-skin-space-5) + var(--pp-skin-status-dot)) var(--pp-skin-space-2) var(--pp-skin-space-2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: var(--pp-skin-space-2) !important;
   text-align: center !important;
 }
 
-.libraryDirectoryItem :global(.pp-skin-v1-dashboard-command-line) {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
+.libraryDirectoryLabel {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .libraryColumn {

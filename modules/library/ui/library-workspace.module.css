@@ -570,3 +570,55 @@
   .primaryButton,
   .libraryNav button { scroll-behavior: auto; }
 }
+
+
+.libraryDirectory {
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 var(--pp-skin-space-5);
+  padding: 0 !important;
+}
+
+.libraryDirectory > :global(.pp-skin-v1-bbs) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.libraryDirectoryMenu {
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: var(--pp-skin-space-2) !important;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3) var(--pp-skin-space-3) !important;
+}
+
+.libraryDirectoryItem {
+  min-width: 0 !important;
+  padding: var(--pp-skin-space-2) calc(var(--pp-skin-space-5) + var(--pp-skin-status-dot)) var(--pp-skin-space-2) var(--pp-skin-space-2) !important;
+  text-align: center !important;
+}
+
+.libraryDirectoryItem :global(.pp-skin-v1-dashboard-command-line) {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.libraryColumn {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .libraryDirectoryMenu {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .libraryDirectoryMenu {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

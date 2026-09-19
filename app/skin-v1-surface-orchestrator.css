@@ -254,6 +254,8 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-ski
   display: none !important;
 }
 
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-chrome="decorative-title"] {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-chrome="decorative-title"],
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-chrome="return-navigation"],
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-return="true"] {
   display: none !important;
 }

@@ -41,18 +41,24 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 4,
-    routedCompatibilityDebt: 31,
+    canonicalOrchestratedDirect: 6,
+    routedCompatibilityDebt: 29,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "refine"],
   );
-  for (const id of ["edit", "feedback", "refine", "reports", "core-curriculum", "buzz-settings"]) {
+  for (const id of ["feedback", "reports", "core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
+  for (const id of ["edit", "refine"]) {
+    assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
+  }
+  const feedbackDebt = ledger.routedCompatibilityDebt.find((entry) => entry.id === "feedback");
+  assert.equal(feedbackDebt?.migrationHold?.status, "identity-conflict");
+  assert.equal(feedbackDebt?.migrationHold?.policy, "do-not-orchestrate-until-route-and-owner-identity-agree");
 
   assert.match(routeContract, /surface\.orchestrated && surface\.runtimeRoute/u);
   assert.match(routeContract, /ORCHESTRATED_DIRECT_PATHS/u);
@@ -62,6 +68,51 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.match(runtime, /isCanonicalSkinV1Path\(url\.pathname\)/u);
   assert.doesNotMatch(runtime, /CANONICAL_SKIN_V1_ROUTES/u);
   assert.match(writer, /skin-v1-route-migration-ledger\.json/u);
+});
+
+test("#2226 orchestrates Edit and Refine without expanding the 30-surface standard capture set", async () => {
+  const [registry, orchestrator, editWorkspace, diagnostics, refineReturn, css] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/edit-workspace.tsx"),
+    read("app/diagnostics/page.tsx"),
+    read("app/refine-return-nav.tsx"),
+    read("app/skin-v1-surface-orchestrator.css"),
+  ]);
+  const byId = new Map(registry.surfaces.map((surface) => [surface.id, surface]));
+  const edit = byId.get("edit");
+  const refine = byId.get("refine");
+  const feedback = byId.get("feedback");
+
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 41);
+
+  assert.equal(edit?.capturePolicy, "census-only");
+  assert.equal(edit?.orchestrated, true);
+  assert.equal(edit?.runtimeSelector, "[data-edit-workspace='canonical']");
+  assert.equal(edit?.formatProfile?.layout, "three-column");
+  assert.equal(edit?.formatProfile?.shell, "production");
+
+  assert.equal(refine?.capturePolicy, "census-only");
+  assert.equal(refine?.orchestrated, true);
+  assert.equal(refine?.runtimeSelector, "[data-refine-workspace='canonical']");
+  assert.equal(refine?.formatProfile?.layout, "one-column");
+  assert.equal(refine?.formatProfile?.shell, "diagnostic");
+
+  assert.notEqual(feedback?.orchestrated, true);
+  assert.equal(feedback?.migrationHold?.status, "identity-conflict");
+  assert.match(feedback?.migrationHold?.reason ?? "", /Pitch Package Studio/u);
+  assert.match(feedback?.migrationHold?.reason ?? "", /FeedbackStudioHost/u);
+
+  assert.match(orchestrator, /ORCHESTRATED_SURFACES/u);
+  assert.match(orchestrator, /surface\.orchestrated && surface\.runtimeSelector/u);
+  assert.match(orchestrator, /registry-migration-projection/u);
+  assert.match(editWorkspace, /data-edit-workspace="canonical"/u);
+  assert.match(diagnostics, /data-refine-workspace="canonical"/u);
+  assert.match(diagnostics, /data-skin-v1-local-return="true"/u);
+  assert.match(refineReturn, /data-skin-v1-local-chrome="return-navigation"/u);
+  assert.match(css, /data-skin-v1-local-chrome="return-navigation"/u);
+  assert.match(css, /data-skin-v1-local-return="true"/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

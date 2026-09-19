@@ -1317,7 +1317,25 @@
       "continuityIds": [
         "edit"
       ],
-      "route": "/edit"
+      "route": "/edit",
+      "navigationPath": [
+        {
+          "order": 8,
+          "slug": "edit",
+          "label": "Edit"
+        }
+      ],
+      "formatProfile": {
+        "layout": "three-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-edit-workspace='canonical']",
+      "runtimeReadySelector": "[data-edit-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/edit?block=17&mini=1"
     },
     {
       "id": "labs-storyboard",
@@ -1343,7 +1361,14 @@
       "continuityIds": [
         "feedback"
       ],
-      "route": "/pitch-review"
+      "route": "/pitch-review",
+      "migrationHold": {
+        "status": "identity-conflict",
+        "reason": "The registered /pitch-review route renders Pitch Package Studio by default while the current Feedback review owner is mounted by FeedbackStudioHost at /?workspace=feedback.",
+        "ownerEvidence": "app/feedback-studio-host.tsx",
+        "routeEvidence": "app/pitch-review/page.tsx",
+        "policy": "do-not-orchestrate-until-route-and-owner-identity-agree"
+      }
     },
     {
       "id": "refine",
@@ -1356,7 +1381,25 @@
       "continuityIds": [
         "refine"
       ],
-      "route": "/diagnostics"
+      "route": "/diagnostics",
+      "navigationPath": [
+        {
+          "order": 10,
+          "slug": "refine",
+          "label": "Refine"
+        }
+      ],
+      "formatProfile": {
+        "layout": "one-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-refine-workspace='canonical']",
+      "runtimeReadySelector": "[data-refine-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/diagnostics"
     },
     {
       "id": "reports",

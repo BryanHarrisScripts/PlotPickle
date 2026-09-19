@@ -199,6 +199,7 @@ test("#2272 distinguishes font-family drift from semantic typography hierarchy d
     items: [
       {
         typographyRole: "h1",
+        typographyRoleSource: "semantic-heading",
         identity: "profile-heading",
         presentation: {
           fontFamily: '"JetBrains Mono", monospace',
@@ -209,6 +210,7 @@ test("#2272 distinguishes font-family drift from semantic typography hierarchy d
       },
       {
         typographyRole: "body",
+        typographyRoleSource: "html-fallback",
         identity: "profile-body",
         presentation: {
           fontFamily: '"JetBrains Mono", monospace',

@@ -900,7 +900,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2251 protects Dashboard adjacency, active-story gating, the canonical read-only Story Bible surface and the frozen 30-surface standard capture set."
+      "notes": "#2251 protects Story Bible connectivity, active-story gating, the canonical read-only projection surface and the frozen 30-surface standard capture set. #2266 supersedes the former Write-adjacent companion layout with the Pre-Production boundary."
     },
     {
       "id": "verification.browser-verification-broker-2246",
@@ -989,6 +989,52 @@
         ]
       },
       "notes": "#2262 protects the GitHub-owned PlotPickle.com projection, public Blog routes and separation from the local application shell."
+    },
+    {
+      "id": "experience.skin-v1-uat-corrections-2266",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "navigation",
+        "profile",
+        "voice"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2266-skin-v1-uat-corrections.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2266 protects the UAT correction contract for persistent Library navigation, Pre-Production Story Bible placement, field-attached dictation, generated Profile description flow, BUZZ readiness geometry and bounded Skin V1 layout fixes."
     },
     {
       "id": "verification.public-site-publishing-2262",

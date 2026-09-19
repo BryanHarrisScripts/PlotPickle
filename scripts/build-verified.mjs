@@ -119,6 +119,7 @@ async function main() {
     throw new Error("The cross-platform build timeout runner is unavailable.");
   }
 
+  await run(process.execPath, [join(ROOT, "scripts", "write-public-source-provenance.mjs")], env);
   console.log(`Running bounded vinext build on ${process.platform}...`);
   await run(
     process.execPath,

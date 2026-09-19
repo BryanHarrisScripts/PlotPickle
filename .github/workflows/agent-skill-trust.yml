@@ -41,5 +41,8 @@ jobs:
       - name: Validate Skill supply-chain contract and research intake
         run: node --test tests/issue-976-agent-skill-trust.test.mjs
 
+      - name: Validate Color Expert modularity and authority boundaries
+        run: node --test tests/issue-2277-color-expert-skill.test.mjs
+
       - name: Recheck connector and portability boundaries
         run: node --test tests/issue-965-connector-trust-policy.test.mjs tests/issue-968-run-telemetry-evals.test.mjs

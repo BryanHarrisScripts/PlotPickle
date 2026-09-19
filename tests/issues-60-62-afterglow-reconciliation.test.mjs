@@ -74,6 +74,16 @@ test("user projects keep All rights reserved defaults", async () => {
   assert.match(project, /defaultCreativeLicence: "All rights reserved"/);
 });
 
+test("reconciliation workspace uses canonical Skin V1 shell without changing source-of-truth logic", async () => {
+  const page = await source("app/afterglow-reconciliation/page.tsx");
+  assert.match(page, /data-afterglow-reconciliation-workspace="canonical"/);
+  assert.match(page, /href="\/skin-v1">Back to Dashboard/);
+  assert.match(page, /afterglowSourceClaims/);
+  assert.match(page, /afterglowVersionBlockMap/);
+  assert.match(page, /afterglowModificationClasses/);
+  assert.doesNotMatch(page, /\?workspace=dashboard/);
+});
+
 test("overview and permanent suite expose the reconciliation workspace", async () => {
   const overview = await source("app/project-overview.tsx");
   const pkg = await source("package.json");

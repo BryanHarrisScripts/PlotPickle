@@ -56,7 +56,7 @@ This is especially important for LEARN, where the canonical hierarchy remains le
 
 Skin V1 route ownership is now derived from the canonical Surface Registry rather than duplicated in runtime constants. `app/skin-v1-route-contract.ts` is consumed by both `SkinV1Runtime` and `LegacySkinOnly`, so an orchestrated direct route cannot be classified as Skin V1 by one boundary and legacy by the other.
 
-`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 12 canonical direct orchestrated routes, 23 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
+`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 13 canonical direct orchestrated routes, 22 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
 
 The ledger is not a second route authority. Entries disappear only by migrating their canonical registry surface into the orchestrated runtime contract or by explicitly reclassifying a legitimate exception in the canonical registry.
 
@@ -73,3 +73,6 @@ CraftLoop, DraftLens and Resonance now sit beneath Refine in the canonical regis
 
 
 Screenplay Readiness now sits beneath Refine as a canonical orchestrated census route at `/screenplay-readiness`. It keeps its existing canonical PPF authority through `loadFoundationProject` and `deriveCanonicalScreenplayReadiness`; the migration adds only Skin V1 identity, parentage and shell ownership. Its registered parent route returns through canonical Refine at `/diagnostics`, and the 30-surface WebMCP standard capture set remains unchanged.
+
+
+Afterglow Reconciliation now runs as a canonical orchestrated census route at `/afterglow-reconciliation`. The migration changes only outer Skin V1 shell ownership and the Dashboard return path; the existing reconciliation claims, version bridge, attribution data and Human-controlled decision boundaries remain owned by the original feature implementation.

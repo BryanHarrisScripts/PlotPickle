@@ -70,6 +70,97 @@
   font-size: var(--pp-skin-font-meta);
 }
 
+.jobRouting {
+  display: grid;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-1);
+}
+
+.jobRouting header {
+  padding: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.jobRouting header p,
+.jobRouting header h3,
+.jobRouting header span {
+  margin: 0;
+}
+
+.jobRouting header p {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+
+.jobRouting header h3 {
+  margin-top: var(--pp-skin-space-1);
+  font-size: var(--pp-skin-font-title);
+}
+
+.jobRouting header span {
+  display: block;
+  margin-top: var(--pp-skin-space-1);
+  color: var(--pp-skin-ink-soft);
+  font-size: var(--pp-skin-font-meta);
+  line-height: var(--pp-skin-leading-body);
+}
+
+.jobRow {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto;
+  gap: var(--pp-skin-space-3);
+  align-items: center;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+.jobRow > div:first-child {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+.jobRow strong {
+  color: var(--pp-skin-ink);
+}
+
+.jobRow span {
+  color: var(--pp-skin-ink-muted);
+  font-size: var(--pp-skin-font-meta);
+}
+
+.jobChoices {
+  display: flex;
+  gap: var(--pp-skin-space-1);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.jobChoices button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-control);
+  font: inherit;
+  font-size: var(--pp-skin-font-meta);
+}
+
+.jobChoices button[data-selected="true"] {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+}
+
+.jobChoices button:hover:not(:disabled),
+.jobChoices button:focus-visible {
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: var(--pp-skin-space-1);
+}
+
 .matrix {
   display: grid;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
@@ -224,6 +315,14 @@
 
   .active {
     grid-template-columns: 1fr;
+  }
+
+  .jobRow {
+    grid-template-columns: 1fr;
+  }
+
+  .jobChoices {
+    justify-content: flex-start;
   }
 
   .summary {

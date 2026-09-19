@@ -219,15 +219,21 @@ export const STATIC_SITEMAP_SHELL_TARGETS: Readonly<Record<string, SitemapShellT
     contextDetail: "Canonical screenplay readiness evidence",
     contextScope: "Refine",
   },
-  "/production": {
-    migrationClass: "legacy",
+  "/reports": {
+    migrationClass: "canonical",
     activeShortcutId: "reports",
     rootContext: "build",
     area: "review",
-    contextId: "reports-legacy",
-    contextLabel: "Reports · Legacy",
-    contextDetail: "Legacy project authority; excluded from the canonical Writer-to-Screen UAT path",
-    contextScope: "Legacy review",
+  },
+  "/production": {
+    migrationClass: "legacy",
+    activeShortcutId: "build",
+    rootContext: "build",
+    area: "create",
+    contextId: "production-legacy",
+    contextLabel: "Production Studio · Legacy",
+    contextDetail: "Mutable pre-production planning kept separate from read-only Reports",
+    contextScope: "Build · Production",
   },
   "/git": {
     migrationClass: "contextual",

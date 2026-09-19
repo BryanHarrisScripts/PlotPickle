@@ -32,7 +32,7 @@ test("Pitch owns package work while Feedback owns review and approval", async ()
   assert.match(workspace, /type PitchReviewScope = "pitch" \| "plan"/);
   assert.match(workspace, /\["logline", "Logline Lab", "pitch"\]/);
   assert.doesNotMatch(workspace, /scope: "feedback"/);
-  assert.match(route, /window\.location\.replace\("\/\?workspace=feedback"\)/);
+  assert.match(route, /window\.location\.replace\("\/feedback"\)/);
   assert.match(shelf, /Logline, package & exports/);
   assert.match(shelf, /Anchored reviews & revision compare/);
   assert.match(shelf, /Saved-pass approval/);

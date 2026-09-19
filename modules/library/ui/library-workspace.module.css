@@ -1,5 +1,5 @@
 .workspace {
-  min-height: calc(100dvh - 82px);
+  min-height: 0;
   padding: var(--pp-skin-space-6) var(--pp-skin-space-4) var(--pp-skin-space-8);
   color: var(--pp-skin-ink);
   background: var(--pp-skin-canvas);

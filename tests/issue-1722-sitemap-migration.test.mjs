@@ -30,7 +30,7 @@ test("#1722 routes the definitive sitemap through one forgiving-shell context ma
     "/dialogue-in-motion", "/story-craft-essentials", "/worked-examples", "/working-together",
     "/structure", "/voiceprint", "/storyboard", "/previs", "/pageflow", "/edit",
     "/feedback", "/pitch-review", "/diagnostics", "/craftloop", "/draftlens", "/resonance",
-    "/screenplay-readiness", "/production", "/git", "/buzz", "/ai-routing", "/settings/buzz",
+    "/screenplay-readiness", "/reports", "/production", "/git", "/buzz", "/ai-routing", "/settings/buzz",
   ]) {
     assert.ok(context.includes(`"${route}"`), `Missing sitemap shell classification for ${route}`);
   }
@@ -57,7 +57,7 @@ test("#1722 removes stale audit aliases and verifies all six areas plus Public\/
   for (const stale of ["/?workspace=storyboard", "/?workspace=pitch", "/?workspace=feedback", "/?workspace=refine", "/?workspace=reports"]) {
     assert.equal(paths.has(stale), false, `Stale audit alias remains: ${stale}`);
   }
-  for (const current of ["/storyboard", "/previs", "/write", "/pageflow", "/edit", "/feedback", "/pitch-review", "/diagnostics", "/production", "/story", "/?workspace=collab"]) {
+  for (const current of ["/storyboard", "/previs", "/write", "/pageflow", "/edit", "/feedback", "/pitch-review", "/diagnostics", "/reports", "/production", "/story", "/?workspace=collab"]) {
     assert.equal(paths.has(current), true, `Current sitemap route missing from audit registry: ${current}`);
   }
 

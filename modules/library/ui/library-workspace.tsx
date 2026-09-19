@@ -477,6 +477,7 @@ export default function LibraryWorkspace() {
           aria-label="Library menu"
           data-library-directory="keyboard-directory"
           data-skin-menu="library"
+          data-skin-menu-indicators="hidden"
         >
           <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
             <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** LIBRARY DIRECTORY ***</div>
@@ -485,7 +486,7 @@ export default function LibraryWorkspace() {
                 const selected = index === directorySelectedIndex;
                 const count = item.id === "load" ? stories.length : item.id === "archive" ? archivedCount : null;
                 const description = count === null ? item.description : `${item.description} (${count})`;
-                const command = `[${item.shortcut}] ${item.label}${count === null ? "" : ` (${count})`}`;
+                const accessibleLabel = count === null ? item.label : `${item.label} (${count})`;
                 return (
                   <button
                     key={item.id}
@@ -501,17 +502,13 @@ export default function LibraryWorkspace() {
                     data-skin-menu-row={item.id}
                     data-skin-menu-shortcut={item.shortcut}
                     data-skin-menu-connected="true"
-                    title={description}
+                    aria-keyshortcuts={item.shortcut}
+                    aria-label={accessibleLabel}
+                    title={`${description} · Shortcut ${item.shortcut}`}
                     onClick={() => activateDestination(index)}
                     onKeyDown={(event) => handleDirectoryKeyDown(event, index)}
                   >
-                    <span className="pp-skin-v1-dashboard-command-line">{command}</span>
-                    <span
-                      className="pp-skin-v1-dashboard-status-box is-active"
-                      aria-label={`${item.label}: available`}
-                      data-dashboard-status="active"
-                      data-skin-menu-indicator="connected"
-                    />
+                    <span className={styles.libraryDirectoryLabel}>{item.label}</span>
                   </button>
                 );
               })}

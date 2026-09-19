@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import surfaceRegistry from "@/config/skin-v1-surface-registry.json";
 import anatomyContract from "@/config/skin-v1-surface-anatomy-contract.json";
 import compositionReference from "@/config/skin-v1-surface-composition-reference.json";
+import AfterglowRepresentativeFixture from "./afterglow-representative-fixture";
 
 type FormatProfile = {
   layout: string;
@@ -177,6 +178,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       data-skin-v1-composition-contract={compositionReference.id}
       data-skin-v1-anatomy-contract={anatomyContract.id}
     >
+      <AfterglowRepresentativeFixture />
       {active ? (
         <>
           <header className="pp-skin-v1-orchestrator-header" data-skin-v1-region-role="global-header">

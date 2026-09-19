@@ -44,13 +44,14 @@ test("#1837 source contracts use literal membership checks instead of constructi
 });
 
 test("#1837 preserves the already-landed workflow, Casebook, randomness and process boundaries", async () => {
-  const [targeted, story, casebook, table, writers, feedbackStore, releaseSmoke, issueSmoke, spawnCommand] = await Promise.all([
+  const [targeted, story, casebook, table, writers, feedbackStore, projectModel, releaseSmoke, issueSmoke, spawnCommand] = await Promise.all([
     read(".github/workflows/autonomous-qa-targeted-fix.yml"),
     read(".github/workflows/autonomous-story-reference.yml"),
     read("scripts/casebook-evidence.mjs"),
     read("lib/table-read.ts"),
     read("modules/creative-room/writers-room.ts"),
     read("lib/unified-feedback-store.ts"),
+    read("lib/projects/project.ts"),
     read("scripts/windows-release-smoke.mjs"),
     read("scripts/windows-issue-208-smoke.mjs"),
     read("scripts/spawn-command.mjs"),
@@ -61,7 +62,7 @@ test("#1837 preserves the already-landed workflow, Casebook, randomness and proc
   assert.doesNotMatch(story, /exact_head/u);
   assert.match(casebook, /SCROLL_(?:DOWN|UP)_SOURCE/u);
   assert.doesNotMatch(casebook, /window\.scrollBy\(0, \$\{/u);
-  for (const source of [table, writers, feedbackStore]) {
+  for (const source of [table, writers, feedbackStore, projectModel]) {
     assert.match(source, /globalThis\.crypto/u);
     assert.match(source, /\.randomUUID\(\)/u);
     assert.doesNotMatch(source, /Math\.random\s*\(/u);

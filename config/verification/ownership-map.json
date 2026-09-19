@@ -201,8 +201,8 @@
       "ownerLayer": "agent-runtime",
       "riskTokens": [
         "agent",
-        "visual",
-        "developer-tool"
+        "skill",
+        "visual"
       ]
     },
     {

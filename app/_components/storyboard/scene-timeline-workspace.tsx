@@ -57,6 +57,7 @@ export default function SceneTimelineWorkspace({
   active,
   onSelectShot,
   onProjectChange,
+  onReturnToStoryboard,
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
@@ -65,6 +66,7 @@ export default function SceneTimelineWorkspace({
   readonly active: boolean;
   readonly onSelectShot: (shotId: string) => void;
   readonly onProjectChange: (project: PPFProject) => void;
+  readonly onReturnToStoryboard: () => void;
 }) {
   const workspace = useMemo(
     () => projectSceneWorkspace({ project, visualStory, legacyProject }),
@@ -263,6 +265,12 @@ export default function SceneTimelineWorkspace({
       data-scene-workspace="dialogue-action-shot-audio"
       hidden={!active}
     >
+      <button
+        type="button"
+        className="pp-skin-v1-return"
+        data-skin-v1-return="storyboard"
+        onClick={onReturnToStoryboard}
+      >Back to Storyboard</button>
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Scene Workspace · Dialogue / Action / Shot / Audio</p>

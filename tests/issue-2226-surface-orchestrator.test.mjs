@@ -70,6 +70,37 @@ test("#2226 orchestrator exposes declared profile identity on the live root", as
   }
 });
 
+test("#2226 canonical Return delegates more-specific nested navigation without rendering a duplicate control", async () => {
+  const [orchestrator, css] = await Promise.all([
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/skin-v1-surface-orchestrator.css"),
+  ]);
+
+  assert.match(orchestrator, /function delegatedReturn/u);
+  assert.match(orchestrator, /existingReturnControl/u);
+  assert.match(orchestrator, /setDelegatedReturnLabel\(delegatedReturn\(next\)\?\.label \?\? null\)/u);
+  assert.match(orchestrator, /const delegated = delegatedReturn\(active\)/u);
+  assert.match(orchestrator, /delegated\.control\.click\(\)/u);
+  assert.match(orchestrator, /data-skin-v1-return-contract="single-owner"/u);
+  assert.match(orchestrator, /data-skin-v1-return-source=\{delegatedReturnLabel \? "content-delegated" : "registry-parent"\}/u);
+  assert.match(css, /\.pp-skin-v1-bbs-banner/u);
+  assert.match(css, /width: 1px !important;/u);
+});
+
+test("#2226 standard orchestrated surfaces use a thin structural perimeter while Dashboard keeps its separately governed layered reference", async () => {
+  const [css, grammar] = await Promise.all([
+    read("app/skin-v1-surface-orchestrator.css"),
+    readJson("config/skin-v1-surface-grammar.json"),
+  ]);
+
+  assert.equal(grammar.frameProfiles["solid-standard"].outerBorderToken, "--pp-skin-border-thin");
+  assert.equal(grammar.frameProfiles["layered-inset"].outerBorderToken, "--pp-skin-border-strong");
+  assert.match(
+    css,
+    /border: var\(--pp-skin-border-thin\) solid var\(--pp-skin-line-strong\) !important;/
+  );
+});
+
 test("#2226 representative WebMCP state uses Afterglow without replacing live feature owners", async () => {
   const [fixture, catalogue] = await Promise.all([
     read("app/skin-v1/afterglow-representative-fixture.tsx"),

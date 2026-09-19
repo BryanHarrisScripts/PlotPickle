@@ -187,26 +187,24 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       data-skin-v1-declarations={standardDeclarations.id}
     >
       <AfterglowRepresentativeFixture />
-      {active ? (
+      {active && active.id !== "dashboard" ? (
         <>
           <header className="pp-skin-v1-orchestrator-header" data-skin-v1-region-role="global-header">
             <strong>PLOTPICKLE</strong>
             <span>{active.label}</span>
             <span>SKIN V1</span>
           </header>
-          {active.id !== "dashboard" ? (
-            <div className="pp-skin-v1-orchestrator-actions" data-skin-v1-region-role="surface-action-row">
-              <button type="button" className="pp-skin-v1-orchestrator-return" onClick={returnToParent}>
-                Back to {returnLabel}
-              </button>
-            </div>
-          ) : null}
+          <div className="pp-skin-v1-orchestrator-actions" data-skin-v1-region-role="surface-action-row">
+            <button type="button" className="pp-skin-v1-orchestrator-return" onClick={returnToParent}>
+              Back to {returnLabel}
+            </button>
+          </div>
         </>
       ) : null}
 
       <div className="pp-skin-v1-orchestrator-content">{children}</div>
 
-      {active ? (
+      {active && active.id !== "dashboard" ? (
         <footer className="pp-skin-v1-orchestrator-footer" data-skin-v1-region-role="status-footer">
           <span>Surface: {active.label}</span>
           <span>Layout: {profile?.layout ?? "standard"}</span>

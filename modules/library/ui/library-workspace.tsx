@@ -473,7 +473,7 @@ export default function LibraryWorkspace() {
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
 
         <section
-          className={styles.libraryDirectory}
+          className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.libraryDirectory}`}
           aria-label="Library menu"
           data-library-directory="keyboard-directory"
           data-skin-menu="library"

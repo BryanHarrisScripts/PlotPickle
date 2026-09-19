@@ -41,7 +41,7 @@ test("#1528 keeps one canonical registry for all 17 approved single-letter desti
   assert.match(registry, /href: "\/edit"/);
   assert.match(registry, /href: "\/feedback"/);
   assert.match(registry, /href: "\/diagnostics"/);
-  assert.match(registry, /href: "\/production"/);
+  assert.match(registry, /href: "\/reports"/);
 });
 
 test("#1528 installs one shell-owned keydown listener and uses the normal navigation mechanisms", async () => {

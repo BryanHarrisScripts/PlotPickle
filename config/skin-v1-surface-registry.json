@@ -1423,7 +1423,25 @@
       "continuityIds": [
         "reports"
       ],
-      "route": "/production"
+      "route": "/reports",
+      "navigationPath": [
+        {
+          "order": 11,
+          "slug": "reports",
+          "label": "Reports"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "diagnostic",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-reports-workspace='canonical']",
+      "runtimeReadySelector": "[data-reports-workspace='canonical']",
+      "orchestrated": true,
+      "runtimeRoute": "/reports"
     },
     {
       "id": "craftloop",

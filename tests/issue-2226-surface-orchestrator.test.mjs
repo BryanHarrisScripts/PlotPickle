@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 7,
-    routedCompatibilityDebt: 28,
+    canonicalOrchestratedDirect: 8,
+    routedCompatibilityDebt: 27,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports"],
   );
-  for (const id of ["reports", "core-curriculum", "buzz-settings"]) {
+  for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine"]) {
+  for (const id of ["edit", "feedback", "refine", "reports"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -119,6 +119,28 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   assert.match(refineReturn, /data-skin-v1-local-chrome="return-navigation"/u);
   assert.match(css, /data-skin-v1-local-chrome="return-navigation"/u);
   assert.match(css, /data-skin-v1-local-return="true"/u);
+});
+
+test("#2226 canonical Reports uses the read-only Reports owner while legacy Production stays separate", async () => {
+  const [registry, reportsPage, productionPage, sitemap] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/reports/page.tsx"),
+    read("app/production/page.tsx"),
+    read("app/navigation/sitemap-route-context.ts"),
+  ]);
+  const reports = registry.surfaces.find((surface) => surface.id === "reports");
+
+  assert.equal(reports?.capturePolicy, "census-only");
+  assert.equal(reports?.route, "/reports");
+  assert.equal(reports?.orchestrated, true);
+  assert.equal(reports?.runtimeSelector, "[data-reports-workspace='canonical']");
+  assert.equal(reports?.formatProfile?.layout, "two-column");
+  assert.match(reportsPage, /data-reports-workspace="canonical"/u);
+  assert.match(reportsPage, /<ReportsWorkspace/u);
+  assert.doesNotMatch(reportsPage, /PreproductionWorkspace/u);
+  assert.match(productionPage, /<PreproductionWorkspace/u);
+  assert.match(sitemap, /"\/reports": \{[\s\S]*?migrationClass: "canonical"/u);
+  assert.match(sitemap, /"\/production": \{[\s\S]*?migrationClass: "legacy"/u);
 });
 
 test("#2226 runtime consumes tokens, composition, anatomy and declarations rather than inventing a parallel skin", async () => {

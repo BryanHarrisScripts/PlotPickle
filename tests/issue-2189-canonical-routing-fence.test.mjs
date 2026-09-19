@@ -36,12 +36,15 @@ test("#2189 canonical story-to-screen manifest does not present legacy Structure
   assert.equal(manifest.humanUat.stages.find((stage) => stage.id === "production")?.route, "/storyboard?block=17&mini=1");
 });
 
-test("#2189 legacy Structure and Reports pages remain detectable until their own authorities are migrated", async () => {
-  const [structure, production] = await Promise.all([
+test("#2189 legacy Structure and Production pages remain detectable while Reports uses its own canonical route", async () => {
+  const [structure, production, reports] = await Promise.all([
     read("app/structure/page.tsx"),
     read("app/production/page.tsx"),
+    read("app/reports/page.tsx"),
   ]);
 
   assert.match(structure, /plotpickle\.project\.v1/u);
   assert.match(production, /plotpickle\.project\.v1/u);
+  assert.match(reports, /data-reports-workspace="canonical"/u);
+  assert.match(reports, /<ReportsWorkspace/u);
 });

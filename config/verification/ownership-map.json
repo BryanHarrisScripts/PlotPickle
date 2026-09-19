@@ -498,7 +498,8 @@
         "app/storyboard-write-handoff.tsx",
         "app/feedback/page.tsx",
         "app/pitch-review/page.tsx",
-        "app/_components/collab/collab-entry-workspace.tsx"
+        "app/_components/collab/collab-entry-workspace.tsx",
+        "app/reports/page.tsx"
       ],
       "ownerLayer": "experience-contract",
       "riskTokens": [

@@ -161,7 +161,7 @@
     {
       "id": "reports",
       "label": "Reports",
-      "entry": "/production",
+      "entry": "/reports",
       "area": "review",
       "maturity": "experimental",
       "contractVersion": 1,

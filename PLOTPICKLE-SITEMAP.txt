@@ -939,7 +939,8 @@ Review
   /feedback                     -> Feedback
   /pitch-review                 -> Pitch Package Studio contextual child of Plan
   /diagnostics                  -> Refine
-  /production                   -> Reports
+  /reports                      -> Reports
+  /production                   -> Production Studio legacy mutable planning surface
   /craftloop                    -> CraftLoop contextual child of Refine
   /draftlens                    -> DraftLens contextual child of Refine
   /resonance                    -> Resonance contextual child of Refine

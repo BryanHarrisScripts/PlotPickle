@@ -220,6 +220,16 @@ test("issue #119 mounts read-only Production reports and routes canonical writes
   assert.match(consolidated, /createProductionReportsModel\(project\)/);
 });
 
+test("issue #119 exposes consolidated Reports through the canonical read-only /reports route", async () => {
+  const route = await source("app/reports/page.tsx");
+  assert.match(route, /<ReportsWorkspace/u);
+  assert.match(route, /data-reports-workspace="canonical"/u);
+  assert.match(route, /normalizePlotPickleProject/u);
+  assert.doesNotMatch(route, /onProjectChange=|<PreproductionWorkspace/u);
+  assert.match(route, /target\.workspace === "feedback"/u);
+  assert.match(route, /return "\/reports"/u);
+});
+
 test("issue #119 production planning state is backward-compatible and normalized", async () => {
   const project = await source("lib/projects/project.ts");
   assert.match(project, /reporting\?: ProductionReporting/);

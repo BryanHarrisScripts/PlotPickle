@@ -249,12 +249,22 @@
     {
       "id": "reports",
       "label": "Reports",
-      "path": "/production",
+      "path": "/reports",
       "kind": "workspace",
-      "migrationClass": "legacy",
+      "migrationClass": "canonical",
       "activeWorkspace": "build",
       "expectedArea": "review",
       "expectedDestination": "reports"
+    },
+    {
+      "id": "production-legacy",
+      "label": "Production Studio · Legacy",
+      "path": "/production",
+      "kind": "standalone",
+      "migrationClass": "legacy",
+      "activeWorkspace": "build",
+      "expectedArea": "create",
+      "expectedDestination": "production-legacy"
     },
     {
       "id": "craftloop",

@@ -31,18 +31,21 @@ test("#2189 restores Write to canonical UI Continuity ownership", async () => {
   assert.deepEqual(projectUiContinuityScreens(continuity).map((screen) => screen.id), [...canonicalContinuityIds()]);
 });
 
-test("#2189 keeps legacy Reports /production visible to audits but out of the canonical UAT capture chain", async () => {
+test("#2189 keeps canonical Reports distinct from legacy Production while leaving Reports outside the frozen standard capture set", async () => {
   const [continuity, sitemap] = await Promise.all([
     readJson("config/ui-continuity-agent-registry.json"),
     read("app/navigation/sitemap-route-context.ts"),
   ]);
   const reports = continuity.screens.find((screen) => screen.id === "reports");
+  const production = continuity.screens.find((screen) => screen.id === "production-legacy");
 
-  assert.equal(reports?.path, "/production");
-  assert.equal(reports?.migrationClass, "legacy");
-  assert.match(sitemap, /export type SitemapMigrationClass = "canonical" \| "contextual" \| "legacy" \| "public-exception"/u);
+  assert.equal(reports?.path, "/reports");
+  assert.equal(reports?.migrationClass, "canonical");
+  assert.equal(production?.path, "/production");
+  assert.equal(production?.migrationClass, "legacy");
+  assert.match(sitemap, /"\/reports": \{[\s\S]*?migrationClass: "canonical"/u);
   assert.match(sitemap, /"\/production": \{[\s\S]*?migrationClass: "legacy"/u);
-  assert.match(sitemap, /Legacy project authority; excluded from the canonical Writer-to-Screen UAT path/u);
+  assert.match(sitemap, /Mutable pre-production planning kept separate from read-only Reports/u);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.includes("reports"), false);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired.includes("reports"));
 });

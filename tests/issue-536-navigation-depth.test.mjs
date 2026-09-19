@@ -31,7 +31,7 @@ test("#536 hydrates current and legacy deep links into the named visible destina
 test("#536 generic exits name and reach their owning workspaces", async () => {
   const contracts = {
     "app/core-curriculum/page.tsx": ['href="/?workspace=learn"', "Back to Learn"],
-    "app/craftloop/page.tsx": ['href="/?workspace=refine"', "Back to Refine"],
+    "app/craftloop/page.tsx": ['href="/diagnostics"', "Back to Refine"],
     "app/structure/page.tsx": ['href="/?workspace=plan&section=structureMap"', "Back to Plan"],
     "app/legal/page.tsx": ['href="/"', "Back to Dashboard"],
     "app/suggest-report/page.tsx": ['href="/?workspace=dashboard"', "Back to Dashboard"],

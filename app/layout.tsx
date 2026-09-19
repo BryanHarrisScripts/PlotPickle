@@ -89,6 +89,7 @@ import "./skin-v1-standard-surface-shell.css";
 import "./skin-v1-surface-orchestrator.css";
 import "./issue-2061.css";
 import "./skin-v1-semantic-typography.css";
+import "./skin-v1-color-convergence.css";
 
 export const metadata: Metadata = {
   title: `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`,

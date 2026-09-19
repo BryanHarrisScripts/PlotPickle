@@ -370,7 +370,8 @@ test("#2226 canonical Return delegates more-specific nested navigation without r
   assert.match(orchestrator, /data-skin-v1-return-contract="single-owner"/u);
   assert.match(orchestrator, /data-skin-v1-return-source=\{delegatedReturnLabel \? "content-delegated" : "registry-parent"\}/u);
   assert.match(css, /\.pp-skin-v1-bbs-banner/u);
-  assert.match(css, /width: 1px !important;/u);
+  assert.match(css, /display: none !important;/u);
+  assert.doesNotMatch(css, /width: 1px !important;/u);
 });
 
 test("#2226 direct routed context tools prefer a more-specific PRE-PRODUCTION return before their registered parent route", async () => {
@@ -537,4 +538,39 @@ test("#2226 declared parent returns terminate at the real Settings and Story Mod
   assert.match(storyMode, /addEventListener\("plotpickle:return-surface"/u);
   assert.match(storyMode, /parentSurface === "story-mode"/u);
   assert.match(storyMode, /setView\("landing"\)/u);
+});
+
+
+test("#2272 Phase 2 contains active roots and their direct children inside the shared shell", async () => {
+  const css = await read("app/skin-v1-surface-orchestrator.css");
+
+  assert.match(
+    css,
+    /width:\s*min\(100%,\s*var\(--pp-skin-shell-max\),\s*calc\(100vw - 40px\)\) !important;/u,
+  );
+  assert.match(
+    css,
+    /\[data-skin-v1-orchestrator-active="true"\]\[data-skin-v1-orchestrated="true"\]:not\(\[data-skin-v1-surface-id="dashboard"\]\) > \* \{[\s\S]*?max-width:\s*100% !important;/u,
+  );
+  assert.doesNotMatch(css, /margin-(?:left|right):\s*-17px/u);
+  assert.doesNotMatch(css, /margin-(?:left|right):\s*-34px/u);
+});
+
+test("#2272 Phase 2 removes superseded legacy chrome from layout while keeping DOM ownership", async () => {
+  const [css, orchestrator] = await Promise.all([
+    read("app/skin-v1-surface-orchestrator.css"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+  ]);
+
+  const start = css.indexOf('.pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"])');
+  const end = css.indexOf("/* Every active registered non-Dashboard surface", start);
+  const suppression = css.slice(start, end);
+
+  assert.match(suppression, /\.pp-skin-v1-bbs-banner/u);
+  assert.match(suppression, /\.pp-skin-v1-profile-banner/u);
+  assert.match(suppression, /display:\s*none !important/u);
+  assert.doesNotMatch(suppression, /position:\s*absolute|clip-path|width:\s*1px|height:\s*1px/u);
+
+  assert.match(orchestrator, /existingReturnControl/u);
+  assert.match(orchestrator, /delegated\.control\.click\(\)/u);
 });

@@ -462,6 +462,20 @@
       ]
     },
     {
+      "id": "canonical-project-model",
+      "classification": "production",
+      "include": [
+        "lib/projects/project.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "security"
+      ]
+    },
+    {
       "id": "story-card-foundation-model",
       "classification": "production",
       "include": [

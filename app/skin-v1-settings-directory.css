@@ -41,7 +41,7 @@ html[data-plotpickle-skin="skin-v1"] :is(
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Story Mode directory"] > .pp-skin-v1-bbs,
 .pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="Writer's Craft menu"] > .pp-skin-v1-bbs,
 .pp-skin-v1-dashboard[aria-label="Profile menu"] > .pp-skin-v1-bbs {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  width: min(var(--pp-skin-shell-max), 100%) !important;
   max-width: var(--pp-skin-shell-max) !important;
   min-width: 0 !important;
   margin: 0 auto !important;
@@ -222,24 +222,28 @@ html[data-plotpickle-skin="skin-v1"] :is(
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] {
   grid-column: 1 / -1 !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: var(--pp-skin-space-2) var(--pp-skin-space-3) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: var(--pp-skin-space-1) var(--pp-skin-space-3) !important;
   padding: var(--pp-skin-space-3) 0 0 !important;
   border-left: 0 !important;
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] > div {
+  flex: 0 1 auto !important;
   min-width: 0 !important;
-  grid-template-columns: minmax(0, 1fr) 11px !important;
-  gap: var(--pp-skin-space-2) !important;
+  grid-template-columns: auto 8px !important;
+  gap: var(--pp-skin-space-1) !important;
+  padding: 1px var(--pp-skin-space-1) !important;
   font-size: var(--pp-skin-font-xs) !important;
 }
 
 .pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [aria-label="Profile readiness"] button {
-  width: 100% !important;
+  width: auto !important;
   min-width: 0 !important;
-  min-height: var(--pp-skin-control-height) !important;
+  min-height: 24px !important;
   justify-content: flex-start !important;
   padding: 0 !important;
   border: 0 !important;
@@ -250,8 +254,18 @@ html[data-plotpickle-skin="skin-v1"] :is(
   text-align: left !important;
 }
 
-.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [data-lore-avatar-prompt-state="inactive"] {
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] :is(
+  [data-lore-avatar-prompt-state="inactive"],
+  [data-display-description-prompt-state="inactive"]
+) {
   opacity: 0.52 !important;
+}
+
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] [data-generated-display-description="true"] {
+  border-color: var(--pp-skin-line) !important;
+  background: var(--pp-skin-surface-0) !important;
+  color: var(--pp-skin-ink-muted) !important;
+  cursor: default !important;
 }
 
 @media (max-width: 720px) {

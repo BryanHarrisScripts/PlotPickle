@@ -130,7 +130,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-
    1180 shell with a thin 1px structural perimeter plus 1px inset treatment.
    Strong 2px borders remain available for focus, selection and approved emphasis. */
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
+  width: min(100%, var(--pp-skin-shell-max), calc(100vw - 40px)) !important;
   max-width: var(--pp-skin-shell-max) !important;
   min-width: 0 !important;
   margin: 0 auto !important;
@@ -145,6 +145,14 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][d
     inset 0 0 0 var(--pp-skin-border-thin) var(--pp-skin-line),
     var(--pp-skin-inset-highlight) !important;
   font-family: var(--pp-skin-font-ui) !important;
+}
+
+/* #2272 Phase 2: the active root owns the outer 1180px shell. Its children
+   resolve inside the root content box and may not re-claim the outer-shell
+   width. This removes the repeated 17px right-edge escape without adding
+   screen-specific negative margins. */
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][data-skin-v1-orchestrated="true"]:not([data-skin-v1-surface-id="dashboard"]) > * {
+  max-width: 100% !important;
 }
 
 /* Nested registered roots remain semantic subregions until they become the active

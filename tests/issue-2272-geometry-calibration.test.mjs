@@ -393,3 +393,12 @@ test("#2272 Phase 1B leaves confirmed geometry findings untouched", async () => 
   assert.ok(findings.some((item) => item.category === "frame-overlap" && item.actual === "17px outside root"));
   assert.ok(findings.some((item) => item.category === "structural-overlap" && item.actual === "26px × 44px"));
 });
+
+
+test("#2272 Phase 2 geometry collection ignores intentionally clipped mounted chrome", async () => {
+  const source = await read("lib/verification/skin-v1/rendered-surface-profile.mjs");
+  assert.match(source, /const intentionallyClipped = clipPath === "inset\(50%\)"/u);
+  assert.match(source, /clip === "rect\(0px,0px,0px,0px\)"/u);
+  assert.match(source, /&& !intentionallyClipped/u);
+  assert.match(source, /node\.getClientRects\(\)\.length > 0/u);
+});

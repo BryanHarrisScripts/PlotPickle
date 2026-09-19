@@ -89,6 +89,20 @@ export default function DashboardBbsPanel({
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
 
   useEffect(() => {
+    const returnToSurface = (event: Event) => {
+      const detail = (event as CustomEvent<{ parentSurface?: string }>).detail;
+      if (detail?.parentSurface !== "settings") return;
+      setSettingsWorkspace(null);
+      setStoryModeOpen(false);
+      setNodeInfoOpen(false);
+      setPlotPickleAgentsOpen(false);
+      setSettingsMenuOpen(true);
+    };
+    window.addEventListener("plotpickle:return-surface", returnToSurface);
+    return () => window.removeEventListener("plotpickle:return-surface", returnToSurface);
+  }, []);
+
+  useEffect(() => {
     if (writerCraftMenuOpen) {
       onSurfaceNameChange("WRITER'S CRAFT");
       return;

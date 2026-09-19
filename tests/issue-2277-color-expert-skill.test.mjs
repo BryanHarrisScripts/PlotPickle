@@ -41,7 +41,8 @@ test("#2277 registers Color Expert as a bounded removable Agent Skill", async ()
   assert.match(skill, /cannot:[\s\S]*create or replace the Skin V1 palette authority/u);
   assert.match(skill, /cannot:[\s\S]*mutate CSS or token files/u);
   assert.match(skill, /cannot:[\s\S]*select providers/u);
-  assert.match(skill, /cannot:[\s\S]*read credentials/u);
+  assert.match(skill, /cannot:[\s\S]*request or consume secret material/u);
+  assert.match(skill, /cannot:[\s\S]*initiate network activity/u);
 
   assert.match(notice, /meodai\/skill\.color-expert/u);
   assert.match(notice, /28e49f7457d7aa92010688e69975c16d2ffe4b01/u);

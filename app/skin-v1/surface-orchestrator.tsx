@@ -185,6 +185,12 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
       }));
       return;
     }
+    if (active.parent === "settings" || active.parent === "story-mode") {
+      window.dispatchEvent(new CustomEvent("plotpickle:return-surface", {
+        detail: { sourceSurface: active.id, parentSurface: active.parent },
+      }));
+      return;
+    }
     if (activateExistingReturn(active)) return;
     if (window.history.length > 1) window.history.back();
   }

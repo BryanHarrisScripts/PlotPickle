@@ -25,3 +25,14 @@ test("#2226 storyboard-reference route serves bytes itself instead of redirectin
   assert.doesNotMatch(route, /Response\.redirect/u);
   assert.doesNotMatch(route, /fetch\(/u);
 });
+
+
+test("#2226 maps storyboard reference serving to the provider runtime while preserving surface/visual verification", async () => {
+  const ownership = JSON.parse(await readFile(new URL("config/verification/ownership-map.json", root), "utf8"));
+  const rule = ownership.rules.find((entry) => entry.id === "storyboard-reference-asset-serving");
+  assert.ok(rule);
+  assert.equal(rule.ownerLayer, "provider-runtime");
+  assert.ok(rule.include.includes("app/api/local-ai/assets/storyboard-reference/route.ts"));
+  assert.ok(rule.riskTokens.includes("surface"));
+  assert.ok(rule.riskTokens.includes("visual"));
+});

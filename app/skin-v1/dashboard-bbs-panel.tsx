@@ -87,6 +87,10 @@ export default function DashboardBbsPanel({
 
   const selectedDashboardItem = items[selectedIndex];
   const selectedDashboardConnected = Boolean(selectedDashboardItem && CONNECTED_DASHBOARD_ITEM_IDS.has(selectedDashboardItem.id));
+  const storyBibleIndex = items.findIndex((item) => item.id === "story-bible");
+  const storyBibleItem = storyBibleIndex >= 0 ? items[storyBibleIndex] : null;
+  const storyBibleSelected = storyBibleIndex === selectedIndex;
+  const storyBibleConnected = Boolean(storyBibleItem && CONNECTED_DASHBOARD_ITEM_IDS.has(storyBibleItem.id));
   const selectedSettingsItem = SETTINGS_MENU[settingsSelectedIndex];
   const selectedSettingsConnected = Boolean(selectedSettingsItem && CONNECTED_SETTINGS_ITEMS.has(selectedSettingsItem.id));
 
@@ -395,41 +399,81 @@ export default function DashboardBbsPanel({
 
         <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Dashboard menu" aria-describedby="dashboard-menu-status">
           {items.map((item, index) => {
+            if (item.id === "story-bible") return null;
             const selected = index === selectedIndex;
             const connected = CONNECTED_DASHBOARD_ITEM_IDS.has(item.id);
             const inReview = item.id === "storyboard" || item.id === "previs";
             const showGroup = Boolean(item.group && (index === 0 || items[index - 1]?.group !== item.group));
-            const command = `[${item.shortcut}] ${item.label}`.padEnd(24, " ");
+            const pairedWithStoryBible = item.id === "write" && Boolean(storyBibleItem);
+            const command = pairedWithStoryBible
+              ? `[${item.shortcut}] ${item.label} - Scenes, Dialogue and Action Blocks`
+              : `[${item.shortcut}] ${item.label}`.padEnd(24, " ") + ` - ${item.description}`;
+            const primary = (
+              <button
+                ref={(node) => setItemRef(index, node)}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                tabIndex={selected ? 0 : -1}
+                className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row${selected ? " is-selected" : ""}`}
+                data-dashboard-menu-item={item.id}
+                data-dashboard-shortcut={item.shortcut}
+                data-dashboard-connected={connected ? "true" : "false"}
+                data-dashboard-review={inReview ? "in-review" : undefined}
+                data-skin-menu-row={item.id}
+                data-skin-menu-shortcut={item.shortcut}
+                data-skin-menu-connected={connected ? "true" : "false"}
+                data-skin-reference-state={selected ? "selected" : "unselected"}
+                onClick={() => activateItem(index)}
+                onKeyDown={(event) => handleRowKeyDown(event, index)}
+              >
+                <span className="pp-skin-v1-dashboard-command-line">{command}</span>
+                <span
+                  className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}${inReview ? " is-review" : ""}`}
+                  aria-label={`${item.label}: ${inReview ? "in review" : connected ? "available" : "unavailable"}`}
+                  data-skin-reference-state="status"
+                  data-dashboard-status={connected ? "active" : "inactive"}
+                  data-skin-menu-indicator={connected ? "connected" : "unwired"}
+                />
+              </button>
+            );
+
             return (
               <Fragment key={item.id}>
                 {showGroup ? <div className="pp-skin-v1-dashboard-group" aria-hidden="true">-- {item.group} --</div> : null}
-                <button
-                  ref={(node) => setItemRef(index, node)}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  tabIndex={selected ? 0 : -1}
-                  className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row${selected ? " is-selected" : ""}`}
-                  data-dashboard-menu-item={item.id}
-                  data-dashboard-shortcut={item.shortcut}
-                  data-dashboard-connected={connected ? "true" : "false"}
-                  data-dashboard-review={inReview ? "in-review" : undefined}
-                  data-skin-menu-row={item.id}
-                  data-skin-menu-shortcut={item.shortcut}
-                  data-skin-menu-connected={connected ? "true" : "false"}
-                  data-skin-reference-state={selected ? "selected" : "unselected"}
-                  onClick={() => activateItem(index)}
-                  onKeyDown={(event) => handleRowKeyDown(event, index)}
-                >
-                  <span className="pp-skin-v1-dashboard-command-line">{command} - {item.description}</span>
-                  <span
-                    className={`pp-skin-v1-dashboard-status-box${connected ? " is-active" : ""}${inReview ? " is-review" : ""}`}
-                    aria-label={`${item.label}: ${inReview ? "in review" : connected ? "available" : "unavailable"}`}
-                    data-skin-reference-state="status"
-                    data-dashboard-status={connected ? "active" : "inactive"}
-                    data-skin-menu-indicator={connected ? "connected" : "unwired"}
-                  />
-                </button>
+                {pairedWithStoryBible && storyBibleItem ? (
+                  <div className="pp-skin-v1-dashboard-paired-row" role="presentation" data-dashboard-pair="write-story-bible">
+                    {primary}
+                    <button
+                      ref={(node) => setItemRef(storyBibleIndex, node)}
+                      type="button"
+                      role="option"
+                      aria-selected={storyBibleSelected}
+                      aria-label="Story Bible - Visual Reference for the Loaded Story"
+                      title="Visual Reference for the Loaded Story"
+                      tabIndex={storyBibleSelected ? 0 : -1}
+                      className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-story-bible-companion${storyBibleSelected ? " is-selected" : ""}`}
+                      data-dashboard-menu-item={storyBibleItem.id}
+                      data-dashboard-shortcut={storyBibleItem.shortcut}
+                      data-dashboard-connected={storyBibleConnected ? "true" : "false"}
+                      data-skin-menu-row={storyBibleItem.id}
+                      data-skin-menu-shortcut={storyBibleItem.shortcut}
+                      data-skin-menu-connected={storyBibleConnected ? "true" : "false"}
+                      data-skin-reference-state={storyBibleSelected ? "selected" : "unselected"}
+                      onClick={() => activateItem(storyBibleIndex)}
+                      onKeyDown={(event) => handleRowKeyDown(event, storyBibleIndex)}
+                    >
+                      <span className="pp-skin-v1-dashboard-command-line">[{storyBibleItem.shortcut}] Story Bible</span>
+                      <span
+                        className={`pp-skin-v1-dashboard-status-box${storyBibleConnected ? " is-active" : ""}`}
+                        aria-label={`Story Bible: ${storyBibleConnected ? "available" : "unavailable"}`}
+                        data-skin-reference-state="status"
+                        data-dashboard-status={storyBibleConnected ? "active" : "inactive"}
+                        data-skin-menu-indicator={storyBibleConnected ? "connected" : "unwired"}
+                      />
+                    </button>
+                  </div>
+                ) : primary}
               </Fragment>
             );
           })}

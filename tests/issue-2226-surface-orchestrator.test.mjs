@@ -164,3 +164,12 @@ test("#2226 Visual Director follows the orchestrated parent chain before legacy 
   assert.ok(parentOrchestrator > directOrchestrator);
   assert.ok(legacyDashboard > parentOrchestrator);
 });
+
+
+test("#2226 Visual Director resets through PlotPickle's canonical Dashboard event before control fallbacks", async () => {
+  const source = await read("lib/verification/skin-v1-visual-director.mjs");
+  const eventIndex = source.indexOf('plotpickle:return-dashboard');
+  const loopIndex = source.indexOf('for (let depth = 0; depth < 8; depth += 1)');
+  assert.ok(eventIndex >= 0);
+  assert.ok(loopIndex > eventIndex);
+});

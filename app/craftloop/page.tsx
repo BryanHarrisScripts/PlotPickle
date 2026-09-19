@@ -298,7 +298,7 @@ export default function CraftLoopPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} data-skin-v1-local-return="true" data-skin-v1-return="refine" href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.secondaryButton} data-skin-v1-local-return="true" data-skin-v1-return="refine" href="/diagnostics">Back to Refine</Link>
             <Link className={styles.secondaryButton} href="/resonance">Resonance</Link>
             <Link className={styles.secondaryButton} href="/voiceprint">Voiceprint</Link>
             <Link className={styles.secondaryButton} href="/pageflow">PageFlow</Link>

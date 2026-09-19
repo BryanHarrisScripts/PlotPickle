@@ -228,6 +228,15 @@
       "expectedDestination": "feedback"
     },
     {
+      "id": "pitch-package",
+      "label": "Pitch Package Studio",
+      "path": "/pitch-review",
+      "kind": "standalone",
+      "migrationClass": "contextual",
+      "expectedArea": "create",
+      "expectedDestination": "pitch-package"
+    },
+    {
       "id": "refine",
       "label": "Refine",
       "path": "/diagnostics",

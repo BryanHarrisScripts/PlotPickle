@@ -228,6 +228,25 @@ test("#2092/#2107 editorial Shot contract preserves independent SHOW_NOW and WIT
       : directive),
   }, { anchorRef, order: 1 });
   assert.deepEqual(productionReadyShotInformationErrors(productionReady), []);
+
+  const unresolvedWithoutRationale = normalizeStoryboardEditorialShot({
+    ...shot,
+    informationDirectives: shot.informationDirectives.map((directive) => directive.id === "info-brother"
+      ? { ...directive, release: { state: "intentionally-unresolved" }, rationale: "" }
+      : directive),
+  }, { anchorRef, order: 1 });
+  assert.match(
+    productionReadyShotInformationErrors(unresolvedWithoutRationale).join("\n"),
+    /intentionally unresolved release requires a Human-readable rationale/,
+  );
+
+  const unresolvedWithRationale = normalizeStoryboardEditorialShot({
+    ...unresolvedWithoutRationale,
+    informationDirectives: unresolvedWithoutRationale.informationDirectives.map((directive) => directive.id === "info-brother"
+      ? { ...directive, rationale: "The writer intentionally leaves the identity unrevealed in this production pass." }
+      : directive),
+  }, { anchorRef, order: 1 });
+  assert.deepEqual(productionReadyShotInformationErrors(unresolvedWithRationale), []);
 });
 
 test("#2092 Phase 1 remains projection-only and reuses existing authorities", async () => {

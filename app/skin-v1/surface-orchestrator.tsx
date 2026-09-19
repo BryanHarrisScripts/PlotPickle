@@ -77,12 +77,22 @@ function findActiveSurface(): ActiveSurface | null {
       matches.push({ ...surface, root: element as HTMLElement });
     }
   }
-  const pathname = window.location.pathname;
+  const currentUrl = new URL(window.location.href);
   const directRouteMatches = matches.filter((surface) => {
     if (!surface.runtimeRoute) return false;
-    return new URL(surface.runtimeRoute, window.location.origin).pathname === pathname;
+    return new URL(surface.runtimeRoute, window.location.origin).pathname === currentUrl.pathname;
   });
-  const candidates = directRouteMatches.length ? directRouteMatches : matches;
+  const exactRouteMatches = directRouteMatches.filter((surface) => {
+    const expected = new URL(surface.runtimeRoute!, window.location.origin);
+    return [...expected.searchParams.entries()].every(
+      ([key, value]) => currentUrl.searchParams.get(key) === value,
+    );
+  });
+  const candidates = exactRouteMatches.length
+    ? exactRouteMatches
+    : directRouteMatches.length
+      ? directRouteMatches
+      : matches;
   candidates.sort((a, b) =>
     surfaceDepth(b) - surfaceDepth(a)
     || domDepth(b.root) - domDepth(a.root)
@@ -139,6 +149,7 @@ function existingReturnControl(active: ActiveSurface | null) {
     "[data-preproduction-return]",
     ".pp-skin-v1-return",
     "[data-skin-v1-return]",
+    "[data-skin-v1-local-return]",
   ];
   for (const root of roots) {
     for (const selector of selectors) {
@@ -197,6 +208,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
         "data-library-destination",
         "data-visual-story-view",
         "data-story-mode-view",
+        "data-specialist-labs-surface",
       ],
     });
     window.addEventListener("popstate", refresh);

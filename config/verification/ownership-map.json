@@ -491,6 +491,19 @@
       ]
     },
     {
+      "id": "specialist-labs-route-experience",
+      "classification": "production",
+      "include": [
+        "app/labs/page.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "canon"
+      ]
+    },
+    {
       "id": "block-native-learning-experience",
       "classification": "production",
       "include": [

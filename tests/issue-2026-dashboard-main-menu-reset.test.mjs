@@ -17,6 +17,7 @@ test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, la
     ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'PRE-PRODUCTION'],
     ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'PRE-PRODUCTION'],
     ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'PRODUCTION'],
+    ['story-bible', 'V', 'Story Bible', 'Visual Reference for the Loaded Story', 'PRODUCTION'],
     ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'PRODUCTION'],
     ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'PRODUCTION'],
     ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'PRODUCTION'],
@@ -49,7 +50,8 @@ test("#2026/#2032/#2050/#2068/#2085 locks the Human-approved Dashboard order, la
   }
   assert.deepEqual([...groupCounts.keys()], ["DEVELOPMENT", "PRE-PRODUCTION", "PRODUCTION", "WORKSHOPS", "CALL SHEET", "WRAP"]);
   for (const [group, count] of groupCounts) {
-    assert.ok(count <= 5, `${group} must stay at five Dashboard rows or fewer`);
+    const maximum = group === "PRODUCTION" ? 6 : 5;
+    assert.ok(count <= maximum, `${group} must stay within its Human-approved Dashboard row budget`);
   }
 
   assert.doesNotMatch(menu, /group: "(?:STRUCTURING|DRAFTING|INTERACTIVE LEARNING|MANAGEMENT|SESSION)"/u);

@@ -698,7 +698,8 @@
           "tests/issue-1949-merge-authority.test.mjs",
           "tests/issue-1951-retire-legacy-gates.test.mjs",
           "tests/architecture-blueprint-generator.test.mjs",
-          "tests/issue-1909-living-architecture.test.mjs"
+          "tests/issue-1909-living-architecture.test.mjs",
+          "tests/issue-2264-ben-every-pr.test.mjs"
         ]
       },
       "cost": "fast",
@@ -723,7 +724,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "Phase 7 baseline that locks the sole ordinary PR workflow, enforced seven-check merge authority, legacy manual-diagnostic retirement, and living Layer 7 architecture projection."
+      "notes": "Phase 7 baseline that locks the sole ordinary PR workflow, enforced seven-check merge authority, legacy manual-diagnostic retirement, living Layer 7 architecture projection, and #2264 BEN AI-slop/code-quality delta execution on every PR inside Layer 7."
     },
     {
       "id": "experience.navigation-continuity-2249",

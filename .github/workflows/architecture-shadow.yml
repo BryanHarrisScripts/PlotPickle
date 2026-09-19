@@ -55,6 +55,12 @@ jobs:
         with:
           node-version: '22.13.0'
 
+      - name: Run BEN deterministic AI-slop/code-quality delta
+        if: matrix.id == 'verification'
+        run: >-
+          node scripts/run-ben-code-quality.mjs
+          --base-ref "${{ github.event.pull_request.base.sha || 'main' }}"
+
       - name: Run architecture verification
         run: >-
           node scripts/verification-shadow.mjs "${{ matrix.id }}"
@@ -72,6 +78,7 @@ jobs:
             .artifacts/verification-shadow/${{ matrix.id }}.json
             .artifacts/verification-shadow/${{ matrix.id }}.summary.json
             .artifacts/verification-shadow/${{ matrix.id }}.comparison.json
+            .artifacts/ben-code-quality/
             .artifacts/verification-live/webmcp-live.json
             .artifacts/verification-live/webmcp-app-server.log
             .artifacts/webmcp-startup/summary.json

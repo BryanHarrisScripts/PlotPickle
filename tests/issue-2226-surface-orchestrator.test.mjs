@@ -172,3 +172,28 @@ test("#2226 menu contract audit uses the orchestrator Return before legacy contr
   assert.match(source, /await clickSurfaceReturn\(page, "Back to Story Mode"\)/u);
   assert.match(source, /await clickSurfaceReturn\(page, "Back to Dashboard"\)/u);
 });
+
+
+test("#2226 declared parent returns terminate at the real Settings and Story Mode owners", async () => {
+  const [orchestrator, dashboard, storyMode] = await Promise.all([
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/skin-v1/dashboard-bbs-panel.tsx"),
+    read("app/skin-v1/story-mode-host.tsx"),
+  ]);
+
+  assert.match(orchestrator, /plotpickle:return-surface/u);
+  assert.match(orchestrator, /parentSurface: active\.parent/u);
+  assert.match(orchestrator, /active\.parent === "settings" \|\| active\.parent === "story-mode"/u);
+
+  assert.match(dashboard, /addEventListener\("plotpickle:return-surface"/u);
+  assert.match(dashboard, /parentSurface !== "settings"/u);
+  assert.match(dashboard, /setSettingsWorkspace\(null\)/u);
+  assert.match(dashboard, /setStoryModeOpen\(false\)/u);
+  assert.match(dashboard, /setNodeInfoOpen\(false\)/u);
+  assert.match(dashboard, /setPlotPickleAgentsOpen\(false\)/u);
+  assert.match(dashboard, /setSettingsMenuOpen\(true\)/u);
+
+  assert.match(storyMode, /addEventListener\("plotpickle:return-surface"/u);
+  assert.match(storyMode, /parentSurface === "story-mode"/u);
+  assert.match(storyMode, /setView\("landing"\)/u);
+});

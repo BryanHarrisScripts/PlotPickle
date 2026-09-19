@@ -29,7 +29,7 @@ test("#2107 linked Frames inherit the owning Shot disclosure directives without 
 
   assert.match(projection, /readonly informationDirectives: readonly ShotInformationDirective\[\]/u);
   assert.match(projection, /map\(\(frame\) => \(\{ \.\.\.frame, informationDirectives \}\)\)/u);
-  assert.match(projection, /informationDirectives: editorial\?\.informationDirectives \?\? \[\]/u);
+  assert.match(projection, /const informationDirectives = editorial\\?\\.informationDirectives \\?\\? \\[\\]/u);
   assert.doesNotMatch(projection, /saveInformationDirective|persistInformationDirective|informationDirectiveStore/u);
 });
 

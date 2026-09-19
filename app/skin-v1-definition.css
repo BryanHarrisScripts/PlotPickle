@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 /*
  * PlotPickle presentation contract — Skin V1 is the base skin.
  *
@@ -14,6 +38,8 @@
 
 html[data-plotpickle-skin^="skin-"] {
   color-scheme: dark;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
 
   /* PALETTE — the only block later skins should override. */
   --pp-skin-canvas: #000000;
@@ -46,7 +72,7 @@ html[data-plotpickle-skin^="skin-"] {
   --pp-skin-danger: #d98c8c;
 
   /* TYPOGRAPHY — old-school terminal discipline with modern readability. */
-  --pp-skin-font-ui: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace;
+  --pp-skin-font-ui: "JetBrains Mono", "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace;
   --pp-skin-font-brand: Arial, Helvetica, sans-serif;
   --pp-skin-font-xs: 9px;
   --pp-skin-font-sm: 10px;

@@ -355,6 +355,23 @@
       ],
       "plotpickleUse": "Design inspiration for PlotPickle's visual Review Stage pattern: inspect bounded agent work, keep Human feedback attached to the reviewed item, and preserve an explicit feedback lifecycle. PlotPickle does not embed Sideshow, depend on its runtime, copy its UI identity, or claim affiliation.",
       "readme": true
+    },
+    {
+      "id": "jetbrains-mono",
+      "name": "JetBrains Mono",
+      "category": "ui-font",
+      "usage": "bundled",
+      "version": "2.304",
+      "revision": "cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9",
+      "source": "https://github.com/JetBrains/JetBrainsMono/tree/v2.304",
+      "license": "OFL-1.1",
+      "licenseSource": "public/fonts/jetbrains-mono/OFL.txt",
+      "noticePath": "public/fonts/jetbrains-mono/OFL.txt",
+      "manifestPath": "public/fonts/jetbrains-mono/manifest.json",
+      "evidencePath": "app/skin-v1-definition.css",
+      "plotpickleUse": "Self-hosted canonical monospace UI typeface for PlotPickle Skin surfaces and compatibility typography aliases. PlotPickle bundles only reviewed upstream WOFF2 files and does not require an operating-system font installation.",
+      "distribution": "Bundled WOFF2 files and the upstream SIL Open Font License 1.1 notice ship with the PlotPickle public application assets.",
+      "readme": false
     }
   ],
   "thirdPartyAssets": [

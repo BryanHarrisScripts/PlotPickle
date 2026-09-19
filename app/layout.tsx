@@ -120,9 +120,9 @@ export default function RootLayout({
         className="antialiased"
         style={{
           "--font-geist-sans":
-            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
+            '\"JetBrains Mono\", \"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
           "--font-geist-mono":
-            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
+            '\"JetBrains Mono\", \"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
         } as React.CSSProperties}
       >
         <AppearanceRuntime />

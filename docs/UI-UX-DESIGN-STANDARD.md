@@ -278,6 +278,9 @@ The values are mirrored here so human engineers and AI agents have an enforceabl
   --pp-font-display: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-body: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
   --pp-font-code: var(--font-geist-mono), "Courier New", Consolas, monospace;
+
+  /* Runtime note: --font-geist-mono resolves first to the self-hosted
+     JetBrains Mono v2.304 family; system monospace faces remain fallbacks. */
   --pp-text-xs: 0.6875rem;
   --pp-text-sm: 0.8125rem;
   --pp-text-md: 0.9375rem;

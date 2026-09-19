@@ -295,14 +295,20 @@
     "standard-ui": {
       "fontToken": "--pp-skin-font-ui",
       "brandFontToken": "--pp-skin-font-brand",
-      "localFontFamilyAllowed": false
+      "localFontFamilyAllowed": false,
+      "canonicalFamily": "JetBrains Mono",
+      "ligatures": "none",
+      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json"
     },
     "project-workspace": {
       "fontToken": "--pp-skin-font-ui",
       "brandFontToken": "--pp-skin-font-brand",
       "localFontFamilyAllowed": false,
       "projectAwareTitleAllowed": true,
-      "hardCodedProjectNameAllowed": false
+      "hardCodedProjectNameAllowed": false,
+      "canonicalFamily": "JetBrains Mono",
+      "ligatures": "none",
+      "selfHostedAssetManifest": "public/fonts/jetbrains-mono/manifest.json"
     }
   },
   "semanticBorderExceptions": [

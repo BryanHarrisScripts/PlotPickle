@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "family": "JetBrains Mono",
+  "version": "2.304",
+  "sourceRepository": "https://github.com/JetBrains/JetBrainsMono",
+  "sourceTag": "v2.304",
+  "sourceRevision": "cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9",
+  "license": "OFL-1.1",
+  "licensePath": "public/fonts/jetbrains-mono/OFL.txt",
+  "distribution": "self-hosted-bundled-webfont",
+  "ligatures": "disabled-by-default-in-PlotPickle-UI",
+  "files": [
+    {
+      "path": "public/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2",
+      "weight": 400,
+      "style": "normal",
+      "bytes": 92164,
+      "sha256": "a9cb1cd82332b23a47e3a1239d25d13c86d16c4220695e34b243effa999f45f2",
+      "upstreamGitBlob": "40da427651937ac3b65ea6842f9448a810f719c6"
+    },
+    {
+      "path": "public/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2",
+      "weight": 600,
+      "style": "normal",
+      "bytes": 94472,
+      "sha256": "918edad542a1da608fd2ba8daebaff9ac802309103fe760eed465b8b4e47faf1",
+      "upstreamGitBlob": "5ead7b0d6fc3c2e270fddf05f27d02d72250c566"
+    },
+    {
+      "path": "public/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2",
+      "weight": 700,
+      "style": "normal",
+      "bytes": 94588,
+      "sha256": "c503cc5ec5f8b2c7666b7ecda1adf44bd45f2e6579b2eba0fc292150416588a2",
+      "upstreamGitBlob": "4917f43410757b48e4ad1eca81b868dfe405d25b"
+    }
+  ]
+}

@@ -41,19 +41,19 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 8,
-    routedCompatibilityDebt: 27,
+    canonicalOrchestratedDirect: 11,
+    routedCompatibilityDebt: 24,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports"],
+    ["write", "storyboard", "previs", "pageflow", "edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
   }
-  for (const id of ["edit", "feedback", "refine", "reports"]) {
+  for (const id of ["edit", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance"]) {
     assert.ok(!ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must leave route debt once orchestrated");
   }
 
@@ -119,6 +119,52 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   assert.match(refineReturn, /data-skin-v1-local-chrome="return-navigation"/u);
   assert.match(css, /data-skin-v1-local-chrome="return-navigation"/u);
   assert.match(css, /data-skin-v1-local-return="true"/u);
+});
+
+test("#2226 orchestrates Refine child diagnostics while preserving feature-owned parent returns", async () => {
+  const [registry, orchestrator, craftLayout, craftPage, draftPage, resonancePage, refineReturn, preproductionReturn] = await Promise.all([
+    readJson("config/skin-v1-surface-registry.json"),
+    read("app/skin-v1/surface-orchestrator.tsx"),
+    read("app/craftloop/layout.tsx"),
+    read("app/craftloop/page.tsx"),
+    read("app/draftlens/page.tsx"),
+    read("app/resonance/page.tsx"),
+    read("app/refine-return-nav.tsx"),
+    read("app/_components/preproduction/preproduction-capability-return.tsx"),
+  ]);
+  const byId = new Map(registry.surfaces.map((surface) => [surface.id, surface]));
+
+  for (const [id, selector, order] of [
+    ["craftloop", "[data-craftloop-boundary='canonical']", 1],
+    ["draftlens", "[data-draftlens-workspace='canonical']", 2],
+    ["resonance", "[data-resonance-workspace='canonical']", 4],
+  ]) {
+    const surface = byId.get(id);
+    assert.equal(surface?.capturePolicy, "census-only");
+    assert.equal(surface?.parent, "refine");
+    assert.equal(surface?.orchestrated, true);
+    assert.equal(surface?.runtimeSelector, selector);
+    assert.equal(surface?.formatProfile?.layout, "two-column");
+    assert.equal(surface?.formatProfile?.shell, "diagnostic");
+    assert.equal(surface?.navigationPath?.[0]?.slug, "refine");
+    assert.equal(surface?.navigationPath?.[1]?.order, order);
+  }
+
+  assert.match(craftLayout, /data-craftloop-boundary="canonical"/u);
+  assert.match(craftPage, /data-craftloop-workspace="canonical"/u);
+  assert.match(draftPage, /data-draftlens-workspace="canonical"/u);
+  assert.match(resonancePage, /data-resonance-workspace="canonical"/u);
+
+  for (const source of [craftPage, draftPage, resonancePage, refineReturn]) {
+    assert.match(source, /\/diagnostics/u);
+    assert.doesNotMatch(source, /\?workspace=refine/u);
+  }
+
+  assert.match(preproductionReturn, /data-preproduction-return="true"/u);
+  assert.match(preproductionReturn, /data-skin-v1-local-chrome="return-navigation"/u);
+  assert.match(orchestrator, /\[data-preproduction-return\]/u);
+  assert.match(orchestrator, /\^\(\?:Back\|Return\) to/u);
+  assert.match(orchestrator, /if \(activateExistingReturn\(active\)\) return;[\s\S]*window\.location\.pathname !== "\/skin-v1"/u);
 });
 
 test("#2226 canonical Reports uses the read-only Reports owner while legacy Production stays separate", async () => {

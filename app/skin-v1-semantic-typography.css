@@ -1,0 +1,167 @@
+/*
+ * #2272 Phase 4 — semantic typography convergence.
+ *
+ * The semantic scale is already owned by skin-v1-definition.css and
+ * config/skin-v1-surface-composition-reference.json. This late projection
+ * makes governed rendered roles consume that existing authority after legacy
+ * surface CSS has loaded. It intentionally does not classify generic body
+ * copy or ordinary controls: Phase 1B keeps those HTML fallbacks diagnostic
+ * only unless a role is explicit or governed by context.
+ *
+ * Dashboard's product display treatment remains canonical and wins through
+ * its existing more-specific Dashboard selector. This file does not create a
+ * second typography system or introduce local font/size values.
+ */
+
+html[data-plotpickle-skin="skin-v1"] body h1,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h1"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h1) !important;
+  font-weight: var(--pp-skin-weight-bold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body h2,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h2"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h2) !important;
+  font-weight: var(--pp-skin-weight-bold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body h3,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h3"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h3) !important;
+  font-weight: var(--pp-skin-weight-semibold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body h4,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h4"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h4) !important;
+  font-weight: var(--pp-skin-weight-semibold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body h5,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h5"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h5) !important;
+  font-weight: var(--pp-skin-weight-semibold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body h6,
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="h6"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-h6) !important;
+  font-weight: var(--pp-skin-weight-semibold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: var(--pp-skin-tracking-label) !important;
+  text-transform: uppercase !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="body"],
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="menu"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-body) !important;
+  font-weight: var(--pp-skin-weight-regular) !important;
+  line-height: var(--pp-skin-leading-body) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="control"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-meta) !important;
+  font-weight: var(--pp-skin-weight-bold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
+  text-transform: uppercase !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="detail"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-detail) !important;
+  font-weight: var(--pp-skin-weight-regular) !important;
+  line-height: var(--pp-skin-leading-body) !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body [data-skin-typography="note"] {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-note) !important;
+  font-weight: var(--pp-skin-weight-regular) !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body :is(
+  nav,
+  [role="menu"],
+  [role="tablist"],
+  [data-skin-menu],
+  [data-library-directory],
+  [data-settings-menu]
+) :is(
+  button,
+  a,
+  [role="menuitem"],
+  [role="tab"],
+  .pp-skin-v1-menu-item,
+  [data-dashboard-menu-item],
+  [data-settings-secondary-item],
+  [data-library-nav]
+),
+html[data-plotpickle-skin="skin-v1"] body .pp-skin-v1-menu-item {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-body) !important;
+  font-weight: var(--pp-skin-weight-regular) !important;
+  line-height: var(--pp-skin-leading-body) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body :is(
+  [data-keycap],
+  [data-dashboard-shortcut],
+  [data-settings-shortcut],
+  [data-library-shortcut],
+  [data-skin-typography="keycap"]
+) {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-meta) !important;
+  font-weight: var(--pp-skin-weight-bold) !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+  letter-spacing: 0 !important;
+  text-transform: uppercase !important;
+}
+
+html[data-plotpickle-skin="skin-v1"] body :is(
+  [role="status"],
+  [role="alert"],
+  [aria-live]:not([aria-live="off"]),
+  .pp-skin-v1-status,
+  [data-skin-typography="status"]
+) {
+  font-family: var(--pp-skin-font-ui) !important;
+  font-size: var(--pp-skin-font-sm) !important;
+  font-weight: var(--pp-skin-weight-regular) !important;
+  line-height: 1.35 !important;
+  letter-spacing: var(--pp-skin-tracking-meta) !important;
+  text-transform: uppercase !important;
+}

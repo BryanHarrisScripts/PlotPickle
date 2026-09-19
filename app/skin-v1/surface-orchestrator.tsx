@@ -130,14 +130,20 @@ type DelegatedReturn = Readonly<{
 
 function existingReturnControl(active: ActiveSurface | null) {
   if (!active) return null;
+  const contextualRoot = active.root.closest<HTMLElement>('[data-preproduction-context="true"]');
+  const roots = contextualRoot && contextualRoot !== active.root
+    ? [contextualRoot, active.root]
+    : [active.root];
   const selectors = [
+    "[data-preproduction-return]",
     ".pp-skin-v1-return",
     "[data-skin-v1-return]",
-    "[data-preproduction-return]",
   ];
-  for (const selector of selectors) {
-    const control = active.root.querySelector<HTMLElement>(selector);
-    if (control) return control;
+  for (const root of roots) {
+    for (const selector of selectors) {
+      const control = root.querySelector<HTMLElement>(selector);
+      if (control) return control;
+    }
   }
   return null;
 }
@@ -145,7 +151,7 @@ function existingReturnControl(active: ActiveSurface | null) {
 function delegatedReturn(active: ActiveSurface | null): DelegatedReturn | null {
   const control = existingReturnControl(active);
   const text = control?.textContent?.trim() ?? "";
-  const match = /^Back to\s+(.+)$/iu.exec(text);
+  const match = /^(?:Back|Return) to\s+(.+)$/iu.exec(text);
   const label = match?.[1]?.trim() ?? "";
   if (!control || !label) return null;
   if (label.toLocaleLowerCase() === parentLabel(active).toLocaleLowerCase()) return null;
@@ -218,14 +224,14 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
 
   function returnToParent() {
     if (!active) return;
-    if (window.location.pathname !== "/skin-v1") {
-      const parentRoute = active.parent ? SURFACE_BY_ID.get(active.parent)?.runtimeRoute : null;
-      window.location.assign(parentRoute ?? "/skin-v1");
-      return;
-    }
     const delegated = delegatedReturn(active);
     if (delegated) {
       delegated.control.click();
+      return;
+    }
+    if (window.location.pathname !== "/skin-v1") {
+      const parentRoute = active.parent ? SURFACE_BY_ID.get(active.parent)?.runtimeRoute : null;
+      window.location.assign(parentRoute ?? "/skin-v1");
       return;
     }
     if (!active.parent || active.parent === "dashboard") {

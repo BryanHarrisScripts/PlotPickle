@@ -42,12 +42,12 @@ export default function PreproductionCapabilityReturn() {
   if (!context.active) return null;
 
   return (
-    <nav className={styles.returnNav} aria-label="PRE-PRODUCTION return">
+    <nav className={styles.returnNav} data-skin-v1-local-chrome="return-navigation" aria-label="PRE-PRODUCTION return">
       <div>
         <span>CONTEXT TOOL</span>
         <strong>PRE-PRODUCTION remains your parent workspace.</strong>
       </div>
-      <Link href={context.returnPath}>{returnLabel(context.returnPath)}</Link>
+      <Link data-preproduction-return="true" href={context.returnPath}>{returnLabel(context.returnPath)}</Link>
       <Link href={dashboardReturnPath(context.returnPath)}>Dashboard</Link>
     </nav>
   );

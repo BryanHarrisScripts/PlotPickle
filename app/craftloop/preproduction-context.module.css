@@ -1,4 +1,4 @@
-.boundary[data-preproduction-context="true"] :global(a[href="/?workspace=refine"]),
+.boundary[data-preproduction-context="true"] :global(a[href="/diagnostics"]),
 .boundary[data-preproduction-context="true"] :global(a[href="/resonance"]),
 .boundary[data-preproduction-context="true"] :global(a[href="/voiceprint"]),
 .boundary[data-preproduction-context="true"] :global(a[href="/pageflow"]),

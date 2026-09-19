@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: semantic-execution-${{ github.event.pull_request.number || github.ref }}-${{ matrix.os }}
+  group: semantic-execution-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -56,7 +56,7 @@ This is especially important for LEARN, where the canonical hierarchy remains le
 
 Skin V1 route ownership is now derived from the canonical Surface Registry rather than duplicated in runtime constants. `app/skin-v1-route-contract.ts` is consumed by both `SkinV1Runtime` and `LegacySkinOnly`, so an orchestrated direct route cannot be classified as Skin V1 by one boundary and legacy by the other.
 
-`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 13 canonical direct orchestrated routes, 22 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
+`lib/verification/skin-v1-route-migration-ledger.mjs` projects the remaining migration debt from the same registry. The current burn-down snapshot is 14 canonical direct orchestrated routes, 21 routed census-only compatibility entries, 10 state-only census compatibility entries, and 5 declared public exceptions. `scripts/write-skin-v1-route-migration-ledger.mjs` materializes that projection at `.artifacts/visual-readiness/skin-v1-route-migration-ledger.json` for review and CI evidence.
 
 The ledger is not a second route authority. Entries disappear only by migrating their canonical registry surface into the orchestrated runtime contract or by explicitly reclassifying a legitimate exception in the canonical registry.
 
@@ -76,3 +76,5 @@ Screenplay Readiness now sits beneath Refine as a canonical orchestrated census 
 
 
 Afterglow Reconciliation now runs as a canonical orchestrated census route at `/afterglow-reconciliation`. The migration changes only outer Skin V1 shell ownership and the Dashboard return path; the existing reconciliation claims, version bridge, attribution data and Human-controlled decision boundaries remain owned by the original feature implementation.
+
+AI Routing now runs as a canonical orchestrated census route at `/ai-routing` beneath Settings. The route still delegates all configuration behavior to the existing `SageSettingsWorkspace`; Skin V1 only adds routed surface identity and shell ownership. Because Settings is an orchestrated state-owned parent at `/?workspace=settings`, the Return broker now falls back from a parent `runtimeRoute` to the parent registry `route`, preserving the canonical Settings return without misclassifying the root pathname as a new direct route.

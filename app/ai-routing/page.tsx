@@ -16,5 +16,9 @@ export default function AiRoutingPage() {
   }, []);
 
   if (!ready) return <main className="workspace-main"><p role="status">Opening AI Routing…</p></main>;
-  return <SageSettingsWorkspace />;
+  return (
+    <div data-ai-routing-workspace="canonical">
+      <SageSettingsWorkspace />
+    </div>
+  );
 }

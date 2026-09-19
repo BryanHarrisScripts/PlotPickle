@@ -232,21 +232,21 @@
 }
 
 .statusItem i {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #65747a;
-  box-shadow: 0 0 0 3px rgba(101, 116, 122, 0.12);
+  box-shadow: 0 0 0 2px rgba(101, 116, 122, 0.12);
 }
 
 .statusItem i[data-ready="true"] {
   background: #4ee8d7;
-  box-shadow: 0 0 0 3px rgba(78, 232, 215, 0.12), 0 0 10px rgba(78, 232, 215, 0.25);
+  box-shadow: 0 0 0 2px rgba(78, 232, 215, 0.12), 0 0 8px rgba(78, 232, 215, 0.22);
 }
 
 .statusItem i[data-ready="false"] {
   background: #ff5f68;
-  box-shadow: 0 0 0 3px rgba(255, 95, 104, 0.12), 0 0 8px rgba(255, 95, 104, 0.18);
+  box-shadow: 0 0 0 2px rgba(255, 95, 104, 0.12), 0 0 7px rgba(255, 95, 104, 0.16);
 }
 
 .artifactGrid {
@@ -388,6 +388,17 @@
 .identityForm textarea {
   min-height: 88px;
   resize: vertical;
+}
+
+.identityForm [data-generated-display-description="true"] {
+  border-color: #2b4050;
+  background: #10171c;
+  color: #8fa8ae;
+  cursor: default;
+}
+
+.identityForm [data-display-description-prompt-state="inactive"] {
+  opacity: 0.52;
 }
 
 .identityForm input:focus,

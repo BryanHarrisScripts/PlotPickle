@@ -17,7 +17,7 @@
   margin: 0 auto !important;
   padding: 0 !important;
   overflow: hidden !important;
-  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong) !important;
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-accent) !important;
   border-radius: var(--pp-skin-radius) !important;
   background: var(--pp-skin-fill-panel) !important;
   color: var(--pp-skin-ink) !important;
@@ -97,7 +97,7 @@
 .applicationPanel > header {
   margin-bottom: var(--pp-skin-space-5);
   padding-bottom: var(--pp-skin-space-4);
-  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
 }
 
 .lesson h2,
@@ -147,7 +147,7 @@
 .source {
   margin: var(--pp-skin-space-3) 0;
   padding: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-canvas);
 }
@@ -215,7 +215,7 @@
 .applicationPanel > section {
   margin-top: var(--pp-skin-space-5);
   padding-top: var(--pp-skin-space-4);
-  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
 }
 
 .applicationHint,
@@ -228,7 +228,7 @@
 .eaPanel,
 .continuePanel {
   padding: var(--pp-skin-space-4);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-canvas);
 }
@@ -253,7 +253,7 @@
   grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
   gap: var(--pp-skin-space-3);
   padding: var(--pp-skin-space-2) 0;
-  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
 }
 
 .projectFacts {
@@ -263,7 +263,7 @@
 
 .projectFacts article {
   padding: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   border-radius: var(--pp-skin-radius);
 }
 
@@ -287,14 +287,14 @@
 .error {
   margin-top: var(--pp-skin-space-3);
   padding: var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
 }
 
 .exploreEntry {
   width: min(var(--pp-skin-menu-max), calc(100% - 72px));
   margin: 0 auto;
   padding: var(--pp-skin-space-3) 0 var(--pp-skin-space-2);
-  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
 }
 
 .exploreControls {
@@ -319,7 +319,7 @@
   width: 100%;
   min-height: var(--pp-skin-control-height);
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-canvas);
   color: var(--pp-skin-ink);
@@ -350,7 +350,7 @@
 .emptyResults {
   margin: var(--pp-skin-space-4) 0;
   padding: var(--pp-skin-space-4);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   color: var(--pp-skin-ink-muted);
   text-align: center;
 }

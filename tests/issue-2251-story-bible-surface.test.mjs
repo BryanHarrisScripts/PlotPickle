@@ -5,21 +5,23 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
-test("#2251 places Story Bible immediately beside Write with a unique connected shortcut", async () => {
+test("#2251 Story Bible remains connected after the #2266 Pre-Production consolidation", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
-  const write = menu.indexOf('id: "write"');
   const bible = menu.indexOf('id: "story-bible"');
-  const edit = menu.indexOf('id: "edit"');
+  const plan = menu.indexOf('id: "plan"');
+  const storyboard = menu.indexOf('id: "storyboard"');
+  const previs = menu.indexOf('id: "previs"');
+  const write = menu.indexOf('id: "write"');
 
-  assert.ok(write >= 0 && bible > write && edit > bible);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Story Bible"/u);
+  assert.ok(bible >= 0 && plan > bible && storyboard > plan && previs > storyboard && write > previs);
+  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Pre-Production", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION"/u);
   assert.match(menu, /"story-bible"/u);
+
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
   const dashboardCss = await read("app/skin-v1-dashboard-menu-reset.css");
-  assert.match(dashboard, /data-dashboard-pair="write-story-bible"/u);
-  assert.match(dashboard, /if \(item\.id === "story-bible"\) return null/u);
-  assert.match(dashboard, /data-dashboard-menu-item=\{storyBibleItem\.id\}/u);
-  assert.match(dashboardCss, /grid-template-columns: minmax\(0, 1fr\) 180px/u);
+  assert.doesNotMatch(dashboard, /data-dashboard-pair="write-story-bible"/u);
+  assert.doesNotMatch(dashboard, /if \(item\.id === "story-bible"\) return null/u);
+  assert.doesNotMatch(dashboardCss, /pp-skin-v1-dashboard-paired-row/u);
 
   const shortcuts = [...menu.matchAll(/shortcut: "([^"]+)"/gu)].map((match) => match[1]);
   assert.equal(shortcuts.length, new Set(shortcuts).size);

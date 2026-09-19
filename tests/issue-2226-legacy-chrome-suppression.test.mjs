@@ -14,7 +14,7 @@ test("#2226 orchestrator visually replaces legacy shell and parent chrome", asyn
   assert.match(css, /nav\[data-plotpickle-global-nav="v4"\]/u);
   assert.match(css, /header\[data-matrix-preproduction-context="current"\]/u);
   assert.match(css, /> \.pp-skin-v1-return/u);
-  assert.match(css, /\[data-library-back="directory"\]/u);
+  assert.doesNotMatch(css, /\[data-library-back="directory"\]/u);
   assert.match(css, /\[data-skin-v1-local-chrome="decorative-title"\]/u);
   assert.match(css, /display: none !important/u);
 
@@ -44,7 +44,7 @@ test("#2226 keeps legacy state handlers mounted while removing only their supers
   ]);
 
   assert.match(library, /function returnToDirectory\(\)/u);
-  assert.match(library, /data-library-back="directory"/u);
+  assert.doesNotMatch(library, /data-library-back="directory"/u);
   assert.match(storyMode, /setView\("landing"\)/u);
   assert.doesNotMatch(css, /visibility:\s*hidden[^}]*data-library-back/u);
 });

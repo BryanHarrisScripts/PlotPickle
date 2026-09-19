@@ -249,8 +249,7 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator-footer > :last-chi
    only their superseded presentation is removed. */
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"]) nav[data-plotpickle-global-nav="v4"],
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:not([data-skin-v1-active-surface="dashboard"]) header[data-matrix-preproduction-context="current"],
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"] > .pp-skin-v1-return,
-html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"] > [data-library-back="directory"] {
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"] > .pp-skin-v1-return {
   display: none !important;
 }
 

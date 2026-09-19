@@ -472,72 +472,55 @@ export default function LibraryWorkspace() {
       <div className={styles.libraryLayout} data-library-layout="single-surface" style={{ display: "block" }}>
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
 
-        {destination === null ? (
-          <section
-            className="pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs"
-            aria-label="Library menu"
-            data-library-directory="keyboard-directory"
-            data-skin-menu="library"
-          >
-            <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
-              <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** LIBRARY DIRECTORY ***</div>
-              <div className="pp-skin-v1-menu pp-skin-v1-dashboard-menu" role="listbox" aria-label="Library directory">
-                {DESTINATIONS.map((item, index) => {
-                  const selected = index === directorySelectedIndex;
-                  const count = item.id === "load" ? stories.length : item.id === "archive" ? archivedCount : null;
-                  const description = count === null ? item.description : `${item.description} (${count})`;
-                  const command = `[${item.shortcut}] ${item.label}`.padEnd(22, " ");
-                  return (
-                    <button
-                      key={item.id}
-                      ref={(node) => { directoryItemRefs.current[index] = node; }}
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      tabIndex={selected ? 0 : -1}
-                      autoFocus={selected}
-                      className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}
-                      data-library-nav={item.id}
-                      data-library-shortcut={item.shortcut}
-                      data-skin-menu-row={item.id}
-                      data-skin-menu-shortcut={item.shortcut}
-                      data-skin-menu-connected="true"
-                      style={{
-                        position: "relative",
-                        display: "block",
-                        width: "100%",
-                        minHeight: "var(--pp-skin-control-height)",
-                        margin: 0,
-                        padding: "var(--pp-skin-space-1) var(--pp-skin-space-9) var(--pp-skin-space-1) var(--pp-skin-space-2)",
-                        border: `var(--pp-skin-border-thin) solid ${selected ? "var(--pp-skin-accent-bright)" : "transparent"}`,
-                        background: selected ? "var(--pp-skin-accent-deep)" : "transparent",
-                        color: "var(--pp-skin-ink)",
-                        boxShadow: "none",
-                        fontFamily: "var(--pp-skin-font-ui)",
-                        fontSize: "var(--pp-skin-font-body)",
-                        fontWeight: 400,
-                        lineHeight: "var(--pp-skin-leading-body)",
-                        textAlign: "left",
-                        whiteSpace: "pre-wrap",
-                      }}
-                      onClick={() => activateDestination(index)}
-                      onKeyDown={(event) => handleDirectoryKeyDown(event, index)}
-                    >
-                      <span className="pp-skin-v1-dashboard-command-line">{command} - {description}</span>
-                      <span
-                        className="pp-skin-v1-dashboard-status-box is-active"
-                        aria-label={`${item.label}: available`}
-                        data-dashboard-status="active"
-                        data-skin-menu-indicator="connected"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="pp-skin-v1-dashboard-reminder" aria-live="polite">Selected: {selectedDirectoryItem?.label || "NEW"}</p>
+        <section
+          className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.libraryDirectory}`}
+          aria-label="Library menu"
+          data-library-directory="keyboard-directory"
+          data-skin-menu="library"
+        >
+          <div className="pp-skin-v1-bbs" data-skin-reference-panel="standard">
+            <div className="pp-skin-v1-dashboard-title" data-skin-v1-local-chrome="decorative-title">*** LIBRARY DIRECTORY ***</div>
+            <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.libraryDirectoryMenu}`} role="listbox" aria-label="Library directory">
+              {DESTINATIONS.map((item, index) => {
+                const selected = index === directorySelectedIndex;
+                const count = item.id === "load" ? stories.length : item.id === "archive" ? archivedCount : null;
+                const description = count === null ? item.description : `${item.description} (${count})`;
+                const command = `[${item.shortcut}] ${item.label}${count === null ? "" : ` (${count})`}`;
+                return (
+                  <button
+                    key={item.id}
+                    ref={(node) => { directoryItemRefs.current[index] = node; }}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    tabIndex={selected ? 0 : -1}
+                    autoFocus={destination === null && selected}
+                    className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.libraryDirectoryItem}${selected ? " is-selected" : ""}`}
+                    data-library-nav={item.id}
+                    data-library-shortcut={item.shortcut}
+                    data-skin-menu-row={item.id}
+                    data-skin-menu-shortcut={item.shortcut}
+                    data-skin-menu-connected="true"
+                    title={description}
+                    onClick={() => activateDestination(index)}
+                    onKeyDown={(event) => handleDirectoryKeyDown(event, index)}
+                  >
+                    <span className="pp-skin-v1-dashboard-command-line">{command}</span>
+                    <span
+                      className="pp-skin-v1-dashboard-status-box is-active"
+                      aria-label={`${item.label}: available`}
+                      data-dashboard-status="active"
+                      data-skin-menu-indicator="connected"
+                    />
+                  </button>
+                );
+              })}
             </div>
-          </section>
-        ) : (
+            <p className="pp-skin-v1-dashboard-reminder" aria-live="polite">Selected: {selectedDirectoryItem?.label || "NEW"}</p>
+          </div>
+        </section>
+
+        {destination !== null ? (
           <section
             className={styles.libraryColumn}
             aria-label={`${selectedDirectoryItem?.label || destination} Library destination`}
@@ -549,10 +532,9 @@ export default function LibraryWorkspace() {
               }
             }}
           >
-            <button className="pp-skin-v1-return" data-library-back="directory" onClick={returnToDirectory} type="button">Back to Library</button>
             {renderSurface()}
           </section>
-        )}
+        ) : null}
       </div>
 
       {pending ? (

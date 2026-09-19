@@ -19,6 +19,7 @@
         "app/issue-2061.css",
         "app/legacy-skin-only.tsx",
         "app/skin-v1-route-contract.ts",
+        "app/workspace-continuity.css",
         "app/diagnostics/page.tsx",
         "app/refine-return-nav.tsx",
         "app/craftloop/page.tsx",
@@ -332,6 +333,20 @@
       ]
     },
     {
+      "id": "universal-voice-input-experience",
+      "classification": "production",
+      "include": [
+        "app/_components/universal-voice-input-layer.tsx"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "surface",
+        "voice",
+        "navigation",
+        "visual"
+      ]
+    },
+    {
       "id": "product-identity-surfaces",
       "classification": "production",
       "include": [
@@ -342,7 +357,9 @@
         "app/welcome/**",
         "app/marketing-splash-base.tsx",
         "app/profile-access/profile-access-boundary.tsx",
+        "app/profile-access/profile-access-boundary.module.css",
         "app/profile-access/profile-identity-panel.tsx",
+        "app/profile-access/profile-identity-panel.module.css",
         "public/manifest.webmanifest",
         "public/brand/favicon/plotpickle-green-square.svg",
         "app/profile-access/profile-access-router.tsx"

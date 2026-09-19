@@ -63,36 +63,6 @@
   max-width: calc(100% - 12px) !important;
 }
 
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-paired-row {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 180px !important;
-  gap: var(--pp-skin-space-2) !important;
-  min-height: 34px !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-paired-row .pp-skin-v1-dashboard-row {
-  min-width: 0 !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  overflow: hidden !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-dashboard-paired-row .pp-skin-v1-dashboard-command-line {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-story-bible-companion {
-  padding-right: 32px !important;
-  font-size: var(--pp-skin-font-sm) !important;
-}
-
-.pp-skin-v1-dashboard.pp-skin-v1-dashboard-bbs[aria-label="PlotPickle Dashboard"] .pp-skin-v1-story-bible-companion .pp-skin-v1-dashboard-status-box {
-  right: var(--pp-skin-space-2) !important;
-}
-
-
 /* One stable far-right status column. Colour still comes from live state:
  * green connected, yellow review, gray unavailable/unwired.
  */

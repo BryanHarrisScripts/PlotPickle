@@ -54,7 +54,7 @@ test("#2285 Timeline reuses the existing synchronized scene authority at one rea
   assert.match(surfaces, /<VisualStoryWorkspace[\s\S]*initialView="timeline"/u);
   assert.match(surfaces, /legacyProject=\{null\}/u);
   assert.match(visual, /data-scene-workspace="dialogue-action-shot-audio"/u);
-  assert.match(visual, />Timeline<\/button>/u);
+  assert.match(visual, />\s*Timeline\s*<\/button>/u);
   assert.match(timeline, /Timeline · Dialogue \/ Action \/ Shot \/ Audio/u);
   assert.doesNotMatch(visual + timeline, />Scene Workspace<\/|>Scene Timeline<\//u);
 });
@@ -71,7 +71,7 @@ test("#2285 Production projects real Previs evidence and stays provider-neutral"
   assert.match(surfaces, /staleShotIds/u);
   assert.match(surfaces, /reviewState === "approved"/u);
   assert.match(surfaces, /data-production-stage="provider-neutral-handoff"/u);
-  assert.match(surfaces, /does not manufacture one to make Production look complete/u);
+  assert.match(surfaces, /leaves the slot empty rather than creating a placeholder Production Shot/u);
   assert.doesNotMatch(surfaces, /plotpickle\.project\.v1|localStorage|getItem\(/u);
 
   const legacy = continuity.screens.find((screen) => screen.id === "production-legacy");

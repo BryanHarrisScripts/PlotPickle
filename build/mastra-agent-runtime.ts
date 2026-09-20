@@ -7,7 +7,6 @@ import { isStoryCouncilRuntimeMessage } from "../core/story-workflow/story-counc
 import type { ProviderProfile } from "./writing-assistant-store";
 
 const SAGE_BRINEWICK_SKILL_PATH = resolve(process.cwd(), ".agents/skills/sage-brinewick/SKILL.md");
-const DISCOVERY_MAPPER_SKILL_PATH = resolve(process.cwd(), ".agents/skills/discovery-mapper/SKILL.md");
 const SAGE_BRINEWICK_FALLBACK = "Be Sage Brinewick: answer the writer directly, use PlotPickle curriculum as the source of truth for craft teaching, answer ordinary conversational questions naturally, allow light dry wit when appropriate, never invent a personal biography, never echo the question as the answer, and keep internal machinery invisible.";
 const MASTER_OAKEN_VAGUE_PLAYBOOK_PATH = resolve(process.cwd(), "agents/master-oaken-vague.md");
 const MASTER_OAKEN_VAGUE_FALLBACK = "Be Master Oaken-Vague, Wyrmwood's impartial Rival Director. In one structured response create one playable curriculum-bound Pickle and distinct actions for all five trope rivals. The deterministic game engine owns Spotlight, rewards, progress and persistence. Never judge the player's answer in Phase 2.";
@@ -23,15 +22,6 @@ export function loadSageBrinewickPlaybook() {
     return skill || SAGE_BRINEWICK_FALLBACK;
   } catch {
     return SAGE_BRINEWICK_FALLBACK;
-  }
-}
-
-export function loadDiscoveryMapperPlaybook() {
-  try {
-    const skill = stripSkillFrontmatter(readFileSync(DISCOVERY_MAPPER_SKILL_PATH, "utf8"));
-    return skill || "Classify one Human-authored Discovery item into one Act and one governed Discovery lane without changing canon.";
-  } catch {
-    return "Classify one Human-authored Discovery item into one Act and one governed Discovery lane without changing canon.";
   }
 }
 
@@ -54,7 +44,6 @@ export function loadWyrmwoodEvaluatorPlaybook() {
 }
 
 const SAGE_BRINEWICK_PLAYBOOK = loadSageBrinewickPlaybook();
-const DISCOVERY_MAPPER_PLAYBOOK = loadDiscoveryMapperPlaybook();
 const MASTER_OAKEN_VAGUE_PLAYBOOK = loadMasterOakenVaguePlaybook();
 const WYRMWOOD_EVALUATOR_PLAYBOOK = loadWyrmwoodEvaluatorPlaybook();
 
@@ -301,7 +290,7 @@ export function createPlotPickleMastra(profile: ProviderProfile) {
         BASE_INSTRUCTIONS,
         `Specialist responsibility: ${role}`,
         id === "curriculum-guide" ? `Sage Brinewick skill:\n${SAGE_BRINEWICK_PLAYBOOK}` : "",
-        id === "discovery-mapper" ? `Discovery Mapper skill:\n${DISCOVERY_MAPPER_PLAYBOOK}` : "",
+        id === "discovery-mapper" ? `Discovery Mapper skill:\n${stripSkillFrontmatter(readFileSync(resolve(process.cwd(), ".agents/skills/discovery-mapper/SKILL.md"), "utf8"))}` : "",
         id === "wyrmwood-rival-director" ? `Master Oaken-Vague playbook:\n${MASTER_OAKEN_VAGUE_PLAYBOOK}` : "",
         id === "wyrmwood-curriculum-evaluator" ? `Wyrmwood Curriculum Evaluator playbook:\n${WYRMWOOD_EVALUATOR_PLAYBOOK}` : "",
       ].filter(Boolean).join("\n\n"),

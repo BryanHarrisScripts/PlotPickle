@@ -48,6 +48,8 @@ test("#2294 preserves Standard and routes selectable QA through a dedicated wrap
   assert.match(qaCli, /runWebMcpStartupUat/u);
   assert.match(qaCli, /allowBaselinePrompt: selected\.id === "1"/u);
   assert.match(qaCli, /argument\("--profile", process\.env\.PLOTPICKLE_WEBMCP_QA_PROFILE \|\| "1"\)/u);
+  assert.match(qaCli, /verification-browser/u);
+  assert.match(qaCli, /storageStatePromise = Promise\.resolve/u);
 
   assert.match(qaRunner, /WEBMCP_FULL_QA_ORDER/u);
   assert.match(qaRunner, /if \(profile\.id === "1"\)[\s\S]*runStandard/u);

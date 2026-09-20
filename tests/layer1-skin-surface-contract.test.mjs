@@ -55,3 +55,18 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
   assert.match(auth, /action: "create-first-profile"/u);
   assert.match(auth, /action: "login"/u);
 });
+
+test("Layer 1 ordinary selection stays consolidated to three current-product owners", async () => {
+  const catalog = JSON.parse(await read("config/verification/test-catalog.json"));
+  const ordinary = catalog.entries
+    .filter((entry) => entry.ownerLayer === "experience-skins" && entry.modes.some((mode) => mode === "baseline" || mode === "impact"))
+    .map((entry) => entry.id)
+    .sort();
+  assert.deepEqual(ordinary, [
+    "experience.navigation-continuity",
+    "experience.skin-surface-contract",
+    "experience.webmcp-live-observer",
+  ]);
+  const historical = catalog.entries.filter((entry) => entry.ownerLayer === "experience-skins" && entry.modes.length === 1 && entry.modes[0] === "manual");
+  assert.equal(historical.length, 12);
+});

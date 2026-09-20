@@ -8,8 +8,8 @@ import {
   WEBMCP_QA_PROFILE_CONFIG,
   resolveWebMcpQaProfile,
   webMcpQaProfileMenuLines,
-} from "../lib/verification/webmcp-qa-profiles.mjs";
-import { writeStoreZip } from "../lib/verification/webmcp-full-qa-artifacts.mjs";
+} from "../lib/verification/webmcp-qa/profiles.mjs";
+import { writeStoreZip } from "../lib/verification/webmcp-qa/artifacts.mjs";
 import { WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-canonical-surface-registry.mjs";
 
 const read = (target) => readFile(new URL("../" + target, import.meta.url), "utf8");
@@ -30,7 +30,7 @@ test("#2294 exposes exactly six governed QA profiles and keeps Full QA ordered 1
 test("#2294 preserves Standard as the existing WebMCP implementation and routes selection through one runner", async () => {
   const [startup, qaRunner, launcher] = await Promise.all([
     read("scripts/run-webmcp-startup-uat.mjs"),
-    read("lib/verification/webmcp-qa-runner.mjs"),
+    read("lib/verification/webmcp-qa/runner.mjs"),
     read("Start-PlotPickle.bat"),
   ]);
 
@@ -126,7 +126,7 @@ test("#2294 portable evidence writer creates one ZIP bundle without adding a pac
 });
 
 test("#2294 Full QA evidence contract records commit, ordered profiles, sanitization and Standard evidence", async () => {
-  const artifacts = await read("lib/verification/webmcp-full-qa-artifacts.mjs");
+  const artifacts = await read("lib/verification/webmcp-qa/artifacts.mjs");
   for (const evidence of [
     "webmcp-startup/summary.json",
     "webmcp-startup/uat-findings.json",

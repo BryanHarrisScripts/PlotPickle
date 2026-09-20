@@ -745,7 +745,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2249-navigation-continuity.test.mjs",
-          "tests/issue-2285-five-stage-preproduction.test.mjs"
+          "tests/issue-2285-five-stage-preproduction.test.mjs",
+          "tests/issue-2287-discovery-living-board.test.mjs"
         ]
       },
       "cost": "fast",

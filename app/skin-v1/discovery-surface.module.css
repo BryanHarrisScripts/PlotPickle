@@ -1,0 +1,157 @@
+.surface {
+  display: grid;
+  gap: var(--pp-skin-space-4);
+  width: min(100%, var(--pp-skin-shell-max));
+  margin: 0 auto;
+  padding: var(--pp-skin-space-4);
+  color: var(--pp-skin-ink);
+}
+
+.summary,
+.composer,
+.inbox,
+.board {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface);
+  padding: var(--pp-skin-space-4);
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-4);
+  align-items: end;
+}
+
+.summary p,
+.card p,
+.empty,
+.notice {
+  margin: 0;
+}
+
+.summary small,
+.card small {
+  color: var(--pp-skin-ink-muted);
+}
+
+.composer {
+  display: grid;
+  gap: var(--pp-skin-space-3);
+  grid-template-columns: minmax(150px, .25fr) minmax(0, 1fr);
+}
+
+.composer label {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+
+.composer label:last-of-type {
+  grid-column: 1 / -1;
+}
+
+.composer textarea,
+.composer input,
+.composer select {
+  width: 100%;
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-raised);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--pp-skin-space-2);
+  grid-column: 1 / -1;
+}
+
+.actions button,
+.card button {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+}
+
+.inboxList {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin-top: var(--pp-skin-space-3);
+}
+
+.boardGrid {
+  display: grid;
+  grid-template-columns: minmax(130px, .65fr) repeat(4, minmax(180px, 1fr));
+  gap: var(--pp-skin-border-thin);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  background: var(--pp-skin-line);
+  overflow: auto;
+  margin-top: var(--pp-skin-space-3);
+}
+
+.corner,
+.actHeader,
+.laneLabel,
+.cell {
+  background: var(--pp-skin-surface);
+  padding: var(--pp-skin-space-3);
+}
+
+.actHeader,
+.laneLabel {
+  font-weight: 700;
+  color: var(--pp-skin-accent-bright);
+}
+
+.cell {
+  min-height: 118px;
+  display: grid;
+  align-content: start;
+  gap: var(--pp-skin-space-2);
+}
+
+.card {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  background: var(--pp-skin-surface-raised);
+  padding: var(--pp-skin-space-3);
+}
+
+.card[data-source-state="new-local"] {
+  border-color: var(--pp-skin-accent-bright);
+  box-shadow: inset var(--pp-skin-border-strong) 0 var(--pp-skin-accent);
+}
+
+.card header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-2);
+}
+
+.status {
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
+  background: var(--pp-skin-accent-deep);
+  padding: 2px var(--pp-skin-space-2);
+  white-space: nowrap;
+}
+
+.visualRef {
+  overflow-wrap: anywhere;
+  color: var(--pp-skin-accent-bright);
+}
+
+.notice {
+  border-left: var(--pp-skin-border-strong) solid var(--pp-skin-accent-bright);
+  padding-left: var(--pp-skin-space-3);
+}
+
+@media (max-width: 900px) {
+  .composer { grid-template-columns: 1fr; }
+  .composer label:last-of-type,
+  .actions { grid-column: 1; }
+  .boardGrid { grid-template-columns: minmax(120px, .6fr) repeat(4, minmax(160px, 1fr)); }
+}

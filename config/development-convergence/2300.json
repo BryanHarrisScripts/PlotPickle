@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "issue": 2300,
+  "phase": "full-qa-advisory-convergence",
+  "brief": "docs/developer-briefs/2300-full-qa-advisory-convergence.md",
+  "allowedChanges": [
+    "lib/verification/browser-probes/interaction.mjs",
+    "lib/verification/browser-probes/runtime.mjs",
+    "app/skin-v1-surface-orchestrator.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/previs/previs-readiness-workspace.module.css",
+    "app/skin-v1/node-skin-panel.tsx",
+    "app/skin-v1/dashboard-review-surface.module.css",
+    "app/skin-v1/settings-review-system-panel.module.css",
+    "app/skin-v1-settings-directory.css",
+    "tests/issue-2300-full-qa-advisory-convergence.test.mjs",
+    "docs/developer-briefs/2300-full-qa-advisory-convergence.md",
+    "config/development-convergence/2300.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2300-1",
+      "criterion": "Interaction first-Tab entry begins from neutral focus rather than an auto-focused selected control.",
+      "evidence": [
+        {"type": "file-contains", "path": "lib/verification/browser-probes/interaction.mjs", "contains": "active.blur()"}
+      ]
+    },
+    {
+      "id": "P2300-2",
+      "criterion": "Runtime clipped-control evidence identifies the control and its relationship to the governed root.",
+      "evidence": [
+        {"type": "file-contains", "path": "lib/verification/browser-probes/runtime.mjs", "contains": "clippedRightPx"},
+        {"type": "file-contains", "path": "lib/verification/browser-probes/runtime.mjs", "contains": "accessibleName"}
+      ]
+    },
+    {
+      "id": "P2300-3",
+      "criterion": "Write containment, Node dead space, and Storyboard/Previs horizontal width ownership are corrected at their root.",
+      "evidence": [
+        {"type": "file-contains", "path": "app/skin-v1-surface-orchestrator.css", "contains": "data-skin-v1-surface-id=\"write\""},
+        {"type": "file-contains", "path": "app/skin-v1/node-skin-panel.tsx", "contains": "minHeight: \"0\""},
+        {"type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.module.css", "contains": "box-sizing: border-box"},
+        {"type": "file-contains", "path": "app/_components/previs/previs-readiness-workspace.module.css", "contains": "box-sizing: border-box"}
+      ]
+    },
+    {
+      "id": "P2300-4",
+      "criterion": "Profile, General, and Issue Log converge to the declared Skin V1 hierarchy and spacing authority.",
+      "evidence": [
+        {"type": "file-contains", "path": "app/skin-v1-settings-directory.css", "contains": "#profile-identity-heading"},
+        {"type": "file-contains", "path": "app/skin-v1/dashboard-review-surface.module.css", "contains": "var(--pp-skin-space-3)"},
+        {"type": "file-contains", "path": "app/skin-v1/settings-review-system-panel.module.css", "contains": "var(--pp-skin-space-3)"}
+      ]
+    }
+  ]
+}

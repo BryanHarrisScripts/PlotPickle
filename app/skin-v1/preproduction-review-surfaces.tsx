@@ -390,7 +390,7 @@ export function SkinV1ProductionReviewSurface({
               <article>
                 <span>Previs timing</span>
                 <strong>{selectedAnchor.timingAllowed ? "ELIGIBLE" : "NOT READY"}</strong>
-                <p>{selectedAnchor.authoredDurationSeconds > 0 ? \`\${selectedAnchor.authoredDurationSeconds}s authored\` : "No authored duration."}</p>
+                <p>{selectedAnchor.authoredDurationSeconds > 0 ? `${selectedAnchor.authoredDurationSeconds}s authored` : "No authored duration."}</p>
               </article>
               <article>
                 <span>Written evidence</span>
@@ -415,7 +415,7 @@ export function SkinV1ProductionReviewSurface({
                     <li key={shot.id}>
                       <strong>Shot {shot.order}</strong>
                       <span>{shot.reviewState}</span>
-                      <span>{shot.durationSeconds ? \`\${shot.durationSeconds}s\` : "Timing open"}</span>
+                      <span>{shot.durationSeconds ? `${shot.durationSeconds}s` : "Timing open"}</span>
                       <small>{shot.visualIntent || shot.blockingIntent || shot.id}</small>
                     </li>
                   ))}

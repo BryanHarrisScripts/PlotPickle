@@ -23,7 +23,8 @@
     "tests/issue-2226-phase-0-surface-census.test.mjs",
     "tests/issue-2226-surface-orchestrator.test.mjs",
     "config/verification/test-catalog.json",
-    "config/development-convergence/2285.json"
+    "config/development-convergence/2285.json",
+    "tests/issue-2251-story-bible-surface.test.mjs"
   ],
   "acceptance": [
     {

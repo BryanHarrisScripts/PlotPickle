@@ -15,7 +15,8 @@
 .hero,
 .notice,
 .blockWorkspace {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   margin-inline: auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -156,9 +157,10 @@
 
 .tabRail {
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: repeat(24, minmax(38px, 1fr));
   gap: var(--pp-skin-space-1);
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
   margin: 0 auto;
   padding: var(--pp-skin-space-1) 0;
   overflow-x: auto;
@@ -336,7 +338,8 @@
 }
 
 .footer {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   margin: var(--pp-skin-space-3) auto 0;
   padding: var(--pp-skin-space-3) var(--pp-skin-space-1);
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);

@@ -12,7 +12,8 @@
 .timelinePreview,
 .shotEditor,
 .evidencePanel {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   margin-inline: auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
   border-radius: var(--pp-skin-radius);
@@ -160,7 +161,8 @@
 }
 
 .tabRail {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(24, minmax(34px, 1fr));
@@ -469,7 +471,8 @@
 }
 
 .message {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   min-height: 1.4em;
   margin: var(--pp-skin-space-4) auto 0;
   color: var(--pp-skin-accent-bright);
@@ -477,7 +480,8 @@
 }
 
 .footer {
-  width: min(var(--pp-skin-shell-max), calc(100vw - 40px));
+  width: min(var(--pp-skin-shell-max), 100%);
+  box-sizing: border-box;
   margin: 0 auto;
   padding: var(--pp-skin-space-5) var(--pp-skin-space-1) var(--pp-skin-space-1);
   font-size: var(--pp-skin-font-meta);

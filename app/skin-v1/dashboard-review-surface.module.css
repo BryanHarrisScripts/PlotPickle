@@ -87,7 +87,7 @@
   margin-bottom: 8px;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   background: var(--pp-skin-accent-deep);
-  padding: 3px 6px;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
 }
 
 .boundary {
@@ -125,7 +125,7 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
   background: var(--pp-skin-surface-0);
   color: var(--pp-skin-ink);
-  padding: 9px 10px;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   font: inherit;
 }
 
@@ -172,7 +172,7 @@
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-accent-bright);
-  padding: 8px 10px;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -192,7 +192,7 @@
 .notice {
   margin: 0;
   border-left: 3px solid var(--pp-skin-accent);
-  padding-left: 10px;
+  padding-left: var(--pp-skin-space-3);
   color: var(--pp-skin-ink-soft);
   line-height: 1.45;
 }

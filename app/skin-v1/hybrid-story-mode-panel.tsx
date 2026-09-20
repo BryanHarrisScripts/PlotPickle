@@ -271,6 +271,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                       type="button"
                       data-route={route}
                       data-locality="local"
+                      data-skin-control-density="content-card"
                       data-selected={selected ? "true" : "false"}
                       data-ready={option.ready ? "true" : "false"}
                       disabled={Boolean(working)}
@@ -292,6 +293,7 @@ export default function HybridStoryModePanel({ onChanged }: { readonly onChanged
                       type="button"
                       data-route={route}
                       data-locality="cloud"
+                      data-skin-control-density="content-card"
                       data-selected={selected ? "true" : "false"}
                       data-ready={option.ready ? "true" : "false"}
                       disabled={Boolean(working)}

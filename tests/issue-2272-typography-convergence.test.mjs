@@ -71,8 +71,8 @@ test("#2272 Phase 4B keeps menu-row shortcut metadata as menu typography and ign
   assert.match(profileSource, /fontSize === 0 && node\.children\.length > 0/u);
   assert.match(profileSource, /return \{ role: null, source: "container" \}/u);
 
+  assert.match(identityPanel, /id="profile-identity-heading" data-skin-typography="h3"/u);
   for (const id of [
-    "profile-identity-heading",
     "profile-editor-heading",
     "profile-access-heading",
     "profile-actions-heading",

@@ -155,6 +155,15 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"][d
   max-width: 100% !important;
 }
 
+/* #2300: Write is a content-height editor/inspector. Its governed frame must grow
+   with the screenplay and contextual-learning content instead of stopping at the
+   viewport boundary and leaving later sections outside the measured root. */
+html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"][data-skin-v1-surface-id="write"] {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: start !important;
+}
+
 /* Nested registered roots remain semantic subregions until they become the active
    WebMCP/application surface. This avoids decorative frame stacking. */
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="false"] {

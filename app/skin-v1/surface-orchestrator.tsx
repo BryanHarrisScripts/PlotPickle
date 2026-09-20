@@ -42,6 +42,7 @@ const PREPRODUCTION_SURFACES = new Set([
   "visual-story",
   "scene-timeline",
   "previs",
+  "production",
   "write",
   "pageflow",
 ]);

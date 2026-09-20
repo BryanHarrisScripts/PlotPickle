@@ -26,6 +26,158 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context span {
   line-height: var(--pp-skin-leading-body);
 }
 
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
+  padding: var(--pp-skin-space-2);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  box-shadow: var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail button,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+  color: var(--pp-skin-ink);
+  font: inherit;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button[aria-current="step"],
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail button[aria-current="step"],
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button[aria-current="step"] {
+  border-color: var(--pp-skin-focus);
+  background: var(--pp-skin-selected-bg);
+  color: var(--pp-skin-selected-ink);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-3) var(--pp-skin-space-5);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage {
+  display: grid;
+  gap: var(--pp-skin-space-4);
+  margin: var(--pp-skin-space-4) var(--pp-skin-space-5) var(--pp-skin-space-6);
+  padding: var(--pp-skin-space-4);
+  border: var(--pp-skin-border-strong) solid var(--pp-skin-line-strong);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-0);
+  color: var(--pp-skin-ink);
+  box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
+  font-family: var(--pp-skin-font-ui);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage > header,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pp-skin-space-3);
+  padding-bottom: var(--pp-skin-space-3);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage > header p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence article > span,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots > header span {
+  margin: 0;
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage h2,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage h3 {
+  margin: 0;
+  color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+  text-align: left;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button span,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence article p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-handoff-state small {
+  color: var(--pp-skin-ink-soft);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence article,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-handoff-state {
+  padding: var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-surface-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence article {
+  display: grid;
+  gap: var(--pp-skin-space-1);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence article p {
+  margin: 0;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots ol {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin: var(--pp-skin-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots li {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  gap: var(--pp-skin-space-3);
+  align-items: center;
+  padding: var(--pp-skin-space-2);
+  border-bottom: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots li small {
+  overflow-wrap: anywhere;
+  color: var(--pp-skin-ink-soft);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-handoff-state {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-handoff-state > strong,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-stage [data-production-readiness] {
+  color: var(--pp-skin-accent-bright);
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context button,
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-handoff button,
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-writer-flow button {
@@ -224,7 +376,7 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
 }
 
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"] button[data-visual-story-view="timeline"]::after {
-  content: "SCENE WORKSPACE";
+  content: "TIMELINE";
   font-size: var(--pp-skin-font-body);
 }
 
@@ -250,6 +402,17 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
 }
 
 @media (max-width: 760px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail,
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail,
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses,
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-evidence {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-shots li {
+    grid-template-columns: 1fr;
+  }
+
   html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-context {
     grid-template-columns: 1fr;
   }

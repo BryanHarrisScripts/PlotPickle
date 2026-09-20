@@ -12,9 +12,9 @@ test("#2226 Phase 0 freezes the current canonical census without replacing visua
     readJson("tests/visual-baselines/skin-v1/manifest.json"),
   ]);
 
-  assert.equal(registry.surfaces.length, 76);
+  assert.equal(registry.surfaces.length, 77);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 41);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 42);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "public-exception").length, 5);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.equal(Object.keys(manifest.surfaces).length, 30);
@@ -33,7 +33,7 @@ test("#2226 Phase 0 records current navigation order from existing product evide
   ]);
 
   const rootOrder = [
-    "community", "learn", "library", "plan", "storyboard", "previs", "write", "edit", "feedback",
+    "community", "learn", "library", "plan", "storyboard", "previs", "timeline", "production", "write", "edit", "feedback",
     "refine", "reports", "wyrmwood", "story", "profile", "settings", "help", "open-source", "logout", "shutdown",
   ];
   let cursor = -1;
@@ -60,7 +60,7 @@ test("#2226 Phase 0 records current navigation order from existing product evide
   }
 });
 
-test("#2226 Phase 0 resolves Scene Workspace as nested Storyboard timeline evidence", async () => {
+test("#2226/#2285 keeps the timeline authority nested while exposing Timeline directly from Dashboard", async () => {
   const [registry, captureRegistry, visualWorkspace] = await Promise.all([
     readJson("config/skin-v1-surface-registry.json"),
     read("lib/verification/webmcp-surface-capture-registry.mjs"),
@@ -70,7 +70,8 @@ test("#2226 Phase 0 resolves Scene Workspace as nested Storyboard timeline evide
 
   assert.equal(scene?.parent, "storyboard");
   assert.equal(scene?.surfaceClass, "nested");
-  assert.match(captureRegistry, /"scene-timeline"[\s\S]*data-dashboard-menu-item=\'storyboard\'[\s\S]*data-visual-story-view=\'timeline\'/u);
+  assert.equal(scene?.label, "Timeline");
+  assert.match(captureRegistry, /"scene-timeline"[\s\S]*data-dashboard-menu-item=\'timeline\'/u);
   assert.match(visualWorkspace, /SceneTimelineWorkspace/u);
 });
 

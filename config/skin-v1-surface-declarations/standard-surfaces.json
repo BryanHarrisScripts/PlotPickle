@@ -509,7 +509,7 @@
     },
     "scene-timeline": {
       "surfaceId": "scene-timeline",
-      "label": "Scene Workspace",
+      "label": "Timeline",
       "parent": "storyboard",
       "runtimeSelector": "[data-scene-workspace='dialogue-action-shot-audio']",
       "formatProfile": {
@@ -520,7 +520,7 @@
         "typography": "project-workspace"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Scene Workspace",
+        "globalSurfaceLabel": "Timeline",
         "workspaceTitlePolicy": "rendered-project-aware-content",
         "alignment": "left"
       },

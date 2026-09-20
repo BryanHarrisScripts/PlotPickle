@@ -19,48 +19,93 @@
     "lib/verification/webmcp-surface-capture-registry.mjs",
     "tests/issue-2287-discovery-living-board.test.mjs",
     "config/verification/test-catalog.json",
-    "config/development-convergence/2287.json"
+    "config/development-convergence/2287.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {
       "id": "P2287-1",
       "criterion": "Dashboard exposes Community, Writer's Craft, Discovery, Library and restores Story Bible ahead of the five production stages.",
       "evidence": [
-        {"type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "id: \"discovery\", shortcut: \"G\", label: \"Discovery\""},
-        {"type": "file-contains", "path": "app/skin-v1/dashboard-menu-registry.ts", "contains": "id: \"story-bible\", shortcut: \"V\", label: \"Story Bible\""}
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-menu-registry.ts",
+          "contains": "id: \"discovery\", shortcut: \"G\", label: \"Discovery\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-menu-registry.ts",
+          "contains": "id: \"story-bible\", shortcut: \"V\", label: \"Story Bible\""
+        }
       ]
     },
     {
       "id": "P2287-2",
       "criterion": "Discovery uses one typed non-canon domain inside the existing Library project envelope and does not introduce a second project store.",
       "evidence": [
-        {"type": "file-contains", "path": "core/storage/library-project.ts", "contains": "readonly discovery: DiscoveryState"},
-        {"type": "file-contains", "path": "core/contracts/discovery.ts", "contains": "export const DISCOVERY_LANES"}
+        {
+          "type": "file-contains",
+          "path": "core/storage/library-project.ts",
+          "contains": "readonly discovery: DiscoveryState"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/contracts/discovery.ts",
+          "contains": "export const DISCOVERY_LANES"
+        }
       ]
     },
     {
       "id": "P2287-3",
       "criterion": "Existing addressed project evidence is placed deterministically while unplaced local material uses the bounded Discovery Mapper skill.",
       "evidence": [
-        {"type": "file-contains", "path": "core/project/discovery-projection.ts", "contains": "classifierId: \"deterministic-ppf-address\""},
-        {"type": "file-contains", "path": "app/skin-v1/discovery-surface.tsx", "contains": "agentId: \"discovery-mapper\""},
-        {"type": "file-contains", "path": ".agents/skills/discovery-mapper/SKILL.md", "contains": "This skill classifies; it does not write."}
+        {
+          "type": "file-contains",
+          "path": "core/project/discovery-projection.ts",
+          "contains": "classifierId: \"deterministic-ppf-address\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "agentId: \"discovery-mapper\""
+        },
+        {
+          "type": "file-contains",
+          "path": ".agents/skills/discovery-mapper/SKILL.md",
+          "contains": "This skill classifies; it does not write."
+        }
       ]
     },
     {
       "id": "P2287-4",
       "criterion": "Pinned cards are read-only in v1 and clearly distinguish existing PROJECT evidence from NEW LOCAL Human-authored material.",
       "evidence": [
-        {"type": "file-contains", "path": "app/skin-v1/discovery-surface.tsx", "contains": "Placement is read-only in v1."},
-        {"type": "file-contains", "path": "app/skin-v1/discovery-surface.tsx", "contains": "NEW LOCAL"}
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "Placement is read-only in v1."
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/discovery-surface.tsx",
+          "contains": "NEW LOCAL"
+        }
       ]
     },
     {
       "id": "P2287-5",
       "criterion": "Discovery is governed by Skin V1 and WebMCP census coverage without expanding the frozen standard catalogue.",
       "evidence": [
-        {"type": "file-contains", "path": "config/skin-v1-surface-registry.json", "contains": "\"id\": \"discovery\""},
-        {"type": "file-contains", "path": "tests/issue-2287-discovery-living-board.test.mjs", "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"}
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"id\": \"discovery\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2287-discovery-living-board.test.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        }
       ]
     }
   ]

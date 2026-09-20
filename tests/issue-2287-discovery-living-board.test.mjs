@@ -71,8 +71,8 @@ test("#2287 Pin routes only genuinely unplaced local cards through the Discovery
 test("#2287 pinned placement is read-only and distinguishes PROJECT from NEW LOCAL without color alone", async () => {
   const surface = await read("app/skin-v1/discovery-surface.tsx");
   const css = await read("app/skin-v1/discovery-surface.module.css");
-  assert.match(surface, />PROJECT</u);
-  assert.match(surface, />NEW LOCAL</u);
+  assert.match(surface, /"PROJECT"/u);
+  assert.match(surface, /"NEW LOCAL"/u);
   assert.match(surface, /Placement is read-only in v1/u);
   assert.doesNotMatch(surface, /draggable=|onDragStart|onDrop|Move earlier|Move later/u);
   assert.match(css, /data-source-state="new-local"/u);

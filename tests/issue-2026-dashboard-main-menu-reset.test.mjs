@@ -6,38 +6,40 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
-    ['community', 'C', 'Community', 'Share and Collaborate', 'DEVELOPMENT'],
-    ['learn', '1', "Writer's Craft", 'Learn Story Craft', 'DEVELOPMENT'],
-    ['discovery', 'G', 'Discovery', 'Capture and Map New Story Material', 'DEVELOPMENT'],
-    ['library', 'L', 'Library', 'Load Your Stories', 'DEVELOPMENT'],
-    ['story-bible', 'V', 'Story Bible', 'Story Bible, Logline, Theme and Visual Reference', 'PRE-PRODUCTION'],
-    ['plan', 'O', 'Outline', 'Visualize Story Structure', 'PRE-PRODUCTION'],
-    ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'PRE-PRODUCTION'],
-    ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'PRE-PRODUCTION'],
-    ['timeline', 'T', 'Timeline', 'Synchronize Script, Shots, Timing and Audio', 'PRE-PRODUCTION'],
-    ['production', 'D', 'Production', 'Review Production Intent and Handoff Readiness', 'PRE-PRODUCTION'],
-    ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'PRODUCTION'],
-    ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'PRODUCTION'],
-    ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'PRODUCTION'],
-    ['refine', 'R', 'Refine', 'Polish Dialogue and Story Choices', 'PRODUCTION'],
-    ['reports', 'A', 'Analytics', 'Review Story Health and Coverage Reports', 'PRODUCTION'],
-    ['wyrmwood', '2', 'Wyrmwood Game', 'Practice Narrative Craft', 'WORKSHOPS'],
-    ['story', '3', 'The Unwritten', 'Story Game Engine', 'WORKSHOPS'],
-    ['profile', 'I', 'Identity', 'Manage User Profile', 'CALL SHEET'],
-    ['settings', 'M', 'Manage', 'Configure PlotPickle', 'CALL SHEET'],
-    ['help', 'B', 'Bug Report', 'Prepare a PlotPickle Issue', 'CALL SHEET'],
-    ['open-source', 'N', 'Notices', 'Open Source Licensing and Attribution', 'CALL SHEET'],
-    ['logout', 'X', 'Log Off', 'End This Session', 'WRAP'],
-    ['shutdown', 'Q', 'Shut Down Node', 'Safely Close PlotPickle and Local Services', 'WRAP'],
+    ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
+    ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
+    ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
+    ["discovery", "G", "Discover", "Capture and Map New Story Material", "DEVELOP"],
+    ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
+    ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
+    ["story-bible", "V", "Story", "Story, Logline, Theme and Visual Reference", "VISUALIZE"],
+    ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
+    ["storyboard", "S", "Storyboard", "Visualize Scenes Before You Write", "VISUALIZE"],
+    ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
+    ["timeline", "T", "Timeline", "Synchronize Script, Shots, Timing and Audio", "VISUALIZE"],
+    ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
+    ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "REVIEW"],
+    ["refine", "R", "Refine", "Polish Dialogue and Story Choices", "REVIEW"],
+    ["reports", "A", "Analytics", "Review Story Health and Coverage Reports", "REVIEW"],
+    ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
+    ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
+    ["profile", "I", "Identity", "Manage User Profile", "PLAY"],
+    ["wyrmwood", "2", "Wyrmwood", "Practice Narrative Craft", "PLAY"],
+    ["story", "3", "Written", "Story Game Engine", "PLAY"],
+    ["settings", "M", "Settings", "Configure PlotPickle", "SYSTEM"],
+    ["help", "B", "Service", "Prepare a PlotPickle Issue", "SYSTEM"],
+    ["open-source", "N", "Legal", "Open Source Licensing and Attribution", "SYSTEM"],
+    ["logout", "X", "Log Off", "End This Session", "SYSTEM"],
+    ["shutdown", "Q", "Shut Down", "Safely Close PlotPickle and Local Services", "SYSTEM"],
   ];
 
   let cursor = -1;
   for (const [id, shortcut, label, description, group] of ordered) {
-    const token = `{ id: "${id}", shortcut: "${shortcut}", label: "${label}", description: "${description}"${group ? `, group: "${group}"` : ""} }`;
+    const token = `{ id: "${id}", shortcut: "${shortcut}", label: "${label}", description: "${description}", group: "${group}" }`;
     const index = menu.indexOf(token);
     assert.ok(index > cursor, `${label} must appear in the canonical Dashboard order`);
     cursor = index;
@@ -47,21 +49,24 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287 locks the Human-approved D
   assert.equal(new Set(shortcuts).size, shortcuts.length, "Dashboard keyboard shortcuts must be unique");
 
   const groupCounts = new Map();
-  for (const [, , , , group] of ordered) {
-    if (!group) continue;
-    groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
-  }
-  assert.deepEqual([...groupCounts.keys()], ["DEVELOPMENT", "PRE-PRODUCTION", "PRODUCTION", "WORKSHOPS", "CALL SHEET", "WRAP"]);
-  for (const [group, count] of groupCounts) {
-    const maximum = group === "PRODUCTION" || group === "PRE-PRODUCTION" ? 6 : 5;
-    assert.ok(count <= maximum, `${group} must stay within its Human-approved Dashboard row budget`);
-  }
+  for (const [, , , , group] of ordered) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
+  assert.deepEqual([...groupCounts.entries()], [
+    ["EXPLORE", 3],
+    ["DEVELOP", 3],
+    ["VISUALIZE", 6],
+    ["REVIEW", 3],
+    ["PITCH", 2],
+    ["PLAY", 3],
+    ["SYSTEM", 5],
+  ]);
 
-  assert.doesNotMatch(menu, /group: "(?:STRUCTURING|DRAFTING|INTERACTIVE LEARNING|MANAGEMENT|SESSION)"/u);
   for (const [, , , description] of ordered) {
     assert.doesNotMatch(description, /&/u, "Human-facing Dashboard menu copy must use 'and' rather than ampersands");
   }
   assert.match(menu, /\.filter\(\(item\) => !\["logout", "shutdown"\]\.includes\(item\.id\)/u);
+  const connected = menu.slice(menu.indexOf("export const CONNECTED_DASHBOARD_ITEM_IDS"), menu.indexOf("export const DASHBOARD_STARTUP_CHOICES"));
+  assert.match(connected, /"pitch-package"/u);
+  assert.doesNotMatch(connected, /"pitch-deck"/u);
 });
 
 test("#2026/#2068/#2124 keeps the compact main-menu composition, visible score and one aligned live-status column", async () => {

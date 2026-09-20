@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "issue": 2289,
+  "phase": "library-return-continuity",
+  "brief": "docs/developer-briefs/2289-library-return-continuity.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2289-library-return-continuity.md",
+    "modules/library/ui/library-workspace.tsx",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/issue-2289-library-return-continuity.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2289.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2289-1",
+      "criterion": "Every active nested Library destination exposes one feature-owned local return hook that reuses returnToDirectory.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": "data-skin-v1-local-return=\"true\""
+        },
+        {
+          "type": "file-contains",
+          "path": "modules/library/ui/library-workspace.tsx",
+          "contains": "onClick={returnToDirectory}"
+        }
+      ]
+    },
+    {
+      "id": "P2289-2",
+      "criterion": "The live Skin V1 menu UAT exercises Library child to Library to Dashboard return continuity.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "clickSurfaceReturn(page, \"Back to Library\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1-menu-contract-audit.mjs",
+          "contains": "library-nested-return"
+        }
+      ]
+    },
+    {
+      "id": "P2289-3",
+      "criterion": "The repair stays inside the existing single-owner Surface Orchestrator contract and does not restore legacy Library back authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2289-library-return-continuity.test.mjs",
+          "contains": "data-library-back=\"directory\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2289-library-return-continuity.test.mjs",
+          "contains": "data-skin-v1-local-return=\"true\""
+        }
+      ]
+    }
+  ]
+}

@@ -46,13 +46,16 @@ test("#2287 derives existing project pins from canonical Block addresses instead
 });
 
 test("#2287 Pin routes only genuinely unplaced local cards through the Discovery Mapper", async () => {
-  const [surface, runtime, registry, skill] = await Promise.all([
+  const [surface, runtime, registry, skill, trust] = await Promise.all([
     read("app/skin-v1/discovery-surface.tsx"),
     read("build/mastra-agent-runtime.ts"),
     readJson("config/agent-skills.json"),
     read(".agents/skills/discovery-mapper/SKILL.md"),
+    readJson("config/agent-skill-trust.json"),
   ]);
 
+  assert.match(surface, /globalThis\.crypto\.randomUUID\(\)/u);
+  assert.doesNotMatch(surface, /Math\.random/u);
   assert.match(surface, /agentId: "discovery-mapper"/u);
   assert.match(surface, /modelRole: "quality"/u);
   assert.doesNotMatch(surface, /provider:\s*"(?:local|ollama|openai|minimax|gemini)"/u);
@@ -61,6 +64,7 @@ test("#2287 Pin routes only genuinely unplaced local cards through the Discovery
   assert.match(runtime, /"discovery-mapper": "Classify one unplaced Human-authored Discovery item/u);
   assert.match(runtime, /schema: discoveryMapperSchema\(\)/u);
   assert.ok(registry.skills.some((item) => item.id === "discovery-mapper" && item.primaryWorker === "mastra"));
+  assert.ok(trust.records.some((item) => item.uri === "skill://plotpickle/discovery-mapper" && item.evalStatus === "covered"));
   assert.match(skill, /This skill classifies; it does not write/u);
 });
 

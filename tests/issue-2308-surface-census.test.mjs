@@ -36,6 +36,10 @@ test("#2308 makes Surface Census profile 6 and Full QA profile 7", async () => {
   assert.ok(launcher.includes("choice /C 1234567"));
   assert.ok(artifacts.includes('selectedProfile: "7"'));
   assert.ok(artifacts.includes('orderedProfiles: ["1", "2", "3", "4", "5", "6"]'));
+  const cli = await read("lib/verification/webmcp-qa/cli.mjs");
+  assert.ok(cli.includes("[WEBMCP] Surface Census"));
+  assert.ok(cli.includes("Reconciliation coverage"));
+  assert.ok(cli.includes("Governance coverage"));
 });
 
 test("#2308 reconciles live Dashboard destinations instead of assuming the governed catalogue is complete", () => {

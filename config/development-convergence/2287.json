@@ -5,8 +5,8 @@
   "brief": "docs/developer-briefs/2287-discovery-living-board.md",
   "allowedChanges": [
     "docs/developer-briefs/2287-discovery-living-board.md",
-    "core/contracts/discovery.ts",
-    "core/project/discovery-projection.ts",
+    "core/contracts/discovery/index.ts",
+    "core/project/discovery/index.ts",
     "core/storage/library-project.ts",
     ".agents/skills/discovery-mapper/SKILL.md",
     "config/agent-skills.json",
@@ -51,7 +51,7 @@
         },
         {
           "type": "file-contains",
-          "path": "core/contracts/discovery.ts",
+          "path": "core/contracts/discovery/index.ts",
           "contains": "export const DISCOVERY_LANES"
         }
       ]
@@ -62,7 +62,7 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "core/project/discovery-projection.ts",
+          "path": "core/project/discovery/index.ts",
           "contains": "classifierId: \"deterministic-ppf-address\""
         },
         {

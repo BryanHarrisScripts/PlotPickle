@@ -7,7 +7,6 @@
     "app/profile-access/profile-access-boundary.tsx",
     "app/profile-access/profile-access-boundary.module.css",
     "scripts/full-verification-auth.mjs",
-    "lib/verification/webmcp-profile-gate-capture.mjs",
     "scripts/run-webmcp-startup-uat.mjs",
     "tests/layer1-skin-surface-contract.test.mjs",
     "tests/layer1-navigation-continuity.test.mjs",
@@ -16,7 +15,8 @@
     "docs/developer-briefs/2291-unified-startup-profile-gate-layer1.md",
     "docs/verification/2291-layer1-migration-map.md",
     "config/development-convergence/2291.json",
-    "config/verification/ownership-map.json"
+    "config/verification/ownership-map.json",
+    "lib/verification/skin-v1/profile-gate-capture.mjs"
   ],
   "acceptance": [
     {
@@ -62,17 +62,17 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-profile-gate-capture.mjs",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
           "contains": "startup-initializing-candidate.png"
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-profile-gate-capture.mjs",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
           "contains": "profile-locked-candidate.png"
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-profile-gate-capture.mjs",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
           "contains": "credentialAutomation: false"
         }
       ]

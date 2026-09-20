@@ -479,7 +479,7 @@
     },
     {
       "id": "scene-timeline",
-      "label": "Scene Workspace",
+      "label": "Timeline",
       "family": "storyboard",
       "parent": "storyboard",
       "surfaceClass": "nested",
@@ -496,7 +496,7 @@
         {
           "order": 2,
           "slug": "scene-workspace",
-          "label": "Scene Workspace"
+          "label": "Timeline"
         }
       ],
       "legacyEvidence": {
@@ -549,6 +549,33 @@
       },
       "runtimeSelector": "[data-visual-story='scene-beat-shot-frame']",
       "runtimeReadySelector": "[data-visual-story='scene-beat-shot-frame']",
+      "orchestrated": true
+    },
+    {
+      "id": "production",
+      "label": "Production",
+      "family": "production",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 8,
+          "slug": "production",
+          "label": "Production"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-skin-v1-preproduction-review='production']",
+      "runtimeReadySelector": "[data-skin-v1-preproduction-review='production'] [data-production-stage='provider-neutral-handoff']",
       "orchestrated": true
     },
     {

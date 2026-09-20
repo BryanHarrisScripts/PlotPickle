@@ -27,31 +27,40 @@ test("#2294 exposes exactly six governed QA profiles and keeps Full QA ordered 1
   }
 });
 
-test("#2294 preserves Standard as the existing WebMCP implementation and routes selection through one runner", async () => {
-  const [startup, qaRunner, launcher] = await Promise.all([
+test("#2294 preserves Standard and routes selectable QA through a dedicated wrapper", async () => {
+  const [standardRunner, qaCli, qaRunner, launcher] = await Promise.all([
     read("scripts/run-webmcp-startup-uat.mjs"),
+    read("lib/verification/webmcp-qa/cli.mjs"),
     read("lib/verification/webmcp-qa/runner.mjs"),
     read("Start-PlotPickle.bat"),
   ]);
 
-  assert.match(startup, /profile = "1"/u);
-  assert.match(startup, /runWebMcpQaProfile/u);
-  assert.match(startup, /runStandard: async \(\) =>/u);
-  assert.match(startup, /runWebMcpSurfaceVisualAudit/u);
-  assert.match(startup, /runWebMcpStandardSurfaceCatalogue/u);
-  assert.match(startup, /runSkinV1VisualDirector/u);
-  assert.match(startup, /runSkinV1MenuContractAudit/u);
-  assert.match(startup, /argument\("--profile", process\.env\.PLOTPICKLE_WEBMCP_QA_PROFILE \|\| "1"\)/u);
-  assert.match(startup, /selectedProfile\.id === "1" && allowBaselinePrompt/u);
+  assert.match(standardRunner, /export async function ensureVerificationTools/u);
+  assert.match(standardRunner, /runWebMcpSurfaceVisualAudit/u);
+  assert.match(standardRunner, /runWebMcpStandardSurfaceCatalogue/u);
+  assert.match(standardRunner, /runSkinV1VisualDirector/u);
+  assert.match(standardRunner, /runSkinV1MenuContractAudit/u);
+  assert.doesNotMatch(standardRunner, /runWebMcpQaProfile/u);
+  assert.doesNotMatch(standardRunner, /--profile/u);
+
+  assert.match(qaCli, /runWebMcpQaProfile/u);
+  assert.match(qaCli, /runStandard: async \(\) =>/u);
+  assert.match(qaCli, /runWebMcpStartupUat/u);
+  assert.match(qaCli, /allowBaselinePrompt: selected\.id === "1"/u);
+  assert.match(qaCli, /argument\("--profile", process\.env\.PLOTPICKLE_WEBMCP_QA_PROFILE \|\| "1"\)/u);
 
   assert.match(qaRunner, /WEBMCP_FULL_QA_ORDER/u);
   assert.match(qaRunner, /if \(profile\.id === "1"\)[\s\S]*runStandard/u);
   assert.match(qaRunner, /Profile 1 Standard did not establish a trustworthy governed application baseline/u);
   assert.match(qaRunner, /finalizeWebMcpFullQaArtifacts/u);
+  assert.match(qaRunner, /getStorageStatePath/u);
 
+  assert.match(launcher, /WEBMCP_QA_RUNNER=lib\\verification\\webmcp-qa\\cli\.mjs/u);
   assert.match(launcher, /choice \/C 123456 \/N \/M "Choose WebMCP QA profile \[1-6\]:"/u);
   assert.match(launcher, /PLOTPICKLE_WEBMCP_QA_PROFILE=!ERRORLEVEL!/u);
+  assert.match(launcher, /\$env:WEBMCP_QA_RUNNER/u);
   assert.match(launcher, /--profile "' \+ \$env:PLOTPICKLE_WEBMCP_QA_PROFILE/u);
+  assert.match(launcher, /node "%WEBMCP_STARTUP_RUNNER%" cleanup/u);
 });
 
 test("#2294 profiles reuse the Browser Verification Broker and keep interaction/fault boundaries explicit", async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Scene Workspace previews existing local Storyboard/Previs artifacts. */
+/* eslint-disable @next/next/no-img-element -- Timeline previews existing local Storyboard/Previs artifacts. */
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { applyStoryCommand } from "@/core/project/apply-command";
@@ -156,7 +156,7 @@ export default function SceneTimelineWorkspace({
 
   function saveDuration(durationSeconds: number | null) {
     if (!selectedShot?.productionShotId) {
-      setMessage("This cue has no persisted Previs ProductionShotIntent, so Scene Workspace has no timing authority to update.");
+      setMessage("This cue has no persisted Previs ProductionShotIntent, so Timeline has no timing authority to update.");
       return;
     }
     const current = project.production.shots.find((shot) => shot.id === selectedShot.productionShotId);
@@ -169,7 +169,7 @@ export default function SceneTimelineWorkspace({
       return;
     }
     if (current.reviewState === "omitted") {
-      setMessage("Omitted Shots are not timing-editable from Scene Workspace.");
+      setMessage("Omitted Shots are not timing-editable from Timeline.");
       return;
     }
 
@@ -259,7 +259,7 @@ export default function SceneTimelineWorkspace({
 
   return (
     <section
-      aria-label={`Scene Workspace for ${visualStory.selectedScene.title}`}
+      aria-label={`Timeline for ${visualStory.selectedScene.title}`}
       className={styles.workspace}
       data-projection-only="true"
       data-scene-workspace="dialogue-action-shot-audio"
@@ -273,7 +273,7 @@ export default function SceneTimelineWorkspace({
       >Back to Storyboard</button>
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>Scene Workspace · Dialogue / Action / Shot / Audio</p>
+          <p className={styles.kicker}>Timeline · Dialogue / Action / Shot / Audio</p>
           <h3>{workspace.sceneTitle}</h3>
           <p>One synchronized projection over the screenplay, Storyboard, Previs and audio authorities. Cue placement never creates a parallel timeline canon.</p>
         </div>
@@ -284,7 +284,7 @@ export default function SceneTimelineWorkspace({
         </div>
       </header>
 
-      <div className={styles.contextStrip} aria-label="Scene Workspace story address">
+      <div className={styles.contextStrip} aria-label="Timeline story address">
         <span>Scene · {workspace.sceneId}</span>
         {selectedCue ? <span>Block {String(selectedCue.blockNumber).padStart(2, "0")} · Mini-Block {selectedCue.miniBlockNumber}</span> : null}
         <span>{workspace.sourceFileName || "No screenplay source file"}</span>
@@ -312,7 +312,7 @@ export default function SceneTimelineWorkspace({
                 <span>{passage.text}</span>
               </button>
             )) : (
-              <p className={styles.empty}>No imported screenplay passage is mapped to this Scene. Scene Workspace does not fabricate dialogue or action to fill the source panel.</p>
+              <p className={styles.empty}>No imported screenplay passage is mapped to this Scene. Timeline does not fabricate dialogue or action to fill the source panel.</p>
             )}
           </div>
         </section>
@@ -324,7 +324,7 @@ export default function SceneTimelineWorkspace({
           </div>
           <div className={styles.previewImage}>
             {previewFrame
-              ? <img alt={previewFrame.narrativePurpose || "Selected Scene Workspace frame"} src={previewFrame.assetUrl} />
+              ? <img alt={previewFrame.narrativePurpose || "Selected Timeline frame"} src={previewFrame.assetUrl} />
               : <span>NO LINKED PLAYBACK FRAME</span>}
             <i>INTENT PREVIEW</i>
           </div>
@@ -336,7 +336,7 @@ export default function SceneTimelineWorkspace({
             </div>
             <strong>{clock(playheadSeconds)}</strong>
             <input
-              aria-label="Scene Workspace playhead"
+              aria-label="Timeline playhead"
               disabled={workspace.totalSeconds <= 0}
               max={Math.max(0.1, workspace.totalSeconds)}
               min="0"
@@ -349,7 +349,7 @@ export default function SceneTimelineWorkspace({
           </div>
         </section>
 
-        <aside className={styles.inspector} aria-label="Selected Scene Workspace cue inspector">
+        <aside className={styles.inspector} aria-label="Selected Timeline cue inspector">
           <p className={styles.kicker}>Cue inspector</p>
           {selectedCue ? (
             <>
@@ -380,7 +380,7 @@ export default function SceneTimelineWorkspace({
         </aside>
       </div>
 
-      <section className={styles.timelinePanel} aria-label="Synchronized Scene Workspace timeline">
+      <section className={styles.timelinePanel} aria-label="Synchronized Timeline timeline">
         <div className={styles.ruler}>
           {timeline.anchors.filter((anchor) => anchor.startSecond !== null).map((anchor) => (
             <span key={anchor.anchorRef} style={markerStyle(anchor.startSecond!, workspace.totalSeconds)}>
@@ -427,14 +427,14 @@ export default function SceneTimelineWorkspace({
             </div>
           </form>
           <p className={styles.authorityNote}>
-            Only the existing planned Previs ProductionShotIntent duration is editable here. Approved timing must stay on the #2035 creative-transaction path. Dialogue, Action and Audio remain source-owned and are never shifted into a Scene Workspace store.
+            Only the existing planned Previs ProductionShotIntent duration is editable here. Approved timing must stay on the #2035 creative-transaction path. Dialogue, Action and Audio remain source-owned and are never shifted into a Timeline store.
           </p>
         </section>
       ) : null}
 
       <p className={styles.message} aria-live="polite">{message}</p>
       <footer className={styles.boundary}>
-        Projection only. Dialogue stays screenplay-owned; Action stays screenplay/Beat-owned; Shot timing stays Previs-owned; Audio stays Sequence Director / Sonic Cue-owned. Missing cues remain missing and no Scene Workspace canon store is created.
+        Projection only. Dialogue stays screenplay-owned; Action stays screenplay/Beat-owned; Shot timing stays Previs-owned; Audio stays Sequence Director / Sonic Cue-owned. Missing cues remain missing and no Timeline canon store is created.
       </footer>
     </section>
   );

@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard authority", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
-  const rows = [...menu.matchAll(/\\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \\}/gu)]
+  const rows = [...menu.matchAll(/\{ id: "([^"]+)", shortcut: "([^"]+)", label: "([^"]+)", description: "([^"]+)", group: "([^"]+)" \}/gu)]
     .map((match) => match.slice(1));
 
   assert.deepEqual(rows, [

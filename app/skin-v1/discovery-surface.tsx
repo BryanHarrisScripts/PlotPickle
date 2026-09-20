@@ -19,9 +19,6 @@ type AgentResponse = {
   readonly message?: string;
 };
 
-function newId() {
-  return globalThis.crypto.randomUUID();
-}
 
 function compactProjectContext(project: LibraryPPFProject) {
   return {
@@ -80,7 +77,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       return;
     }
     const card: DiscoveryCard = {
-      id: newId(),
+      id: globalThis.crypto.randomUUID(),
       kind,
       content: cleaned.slice(0, 12_000),
       assetRef: kind === "visual" ? assetRef.trim().slice(0, 2_000) : "",

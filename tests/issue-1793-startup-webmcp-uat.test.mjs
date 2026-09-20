@@ -70,7 +70,7 @@ test("startup WebMCP runner keeps verification tools isolated, pinned, and valid
   assert.match(runner, /@playwright\/test@1\.63\.0/);
   assert.match(runner, /@mcp-b\/webmcp-polyfill@5\.1\.0/);
   assert.match(runner, /prepareVerificationSyntheticHome/);
-  assert.match(runner, /establishVerificationSyntheticHuman/);
+  assert.match(runner, /captureWebMcpProfileGateState/);\n  assert.match(runner, /createVerificationSyntheticProfile/);\n  assert.match(runner, /authenticateVerificationSyntheticProfile/);\n  assert.match(runner, /profileGateCaptureReport/);
   assert.match(runner, /runWebMcpSurfaceVisualAudit/);
   assert.match(runner, /runSkinV1MenuContractAudit/);
   assert.match(runner, /WEBMCP_STARTUP_EVIDENCE/);

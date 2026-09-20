@@ -530,6 +530,11 @@ export default function LibraryWorkspace() {
               }
             }}
           >
+            <button
+              type="button"
+              data-skin-v1-local-return="true"
+              onClick={returnToDirectory}
+            >Back to Library</button>
             {renderSurface()}
           </section>
         ) : null}

@@ -396,7 +396,7 @@ export default function ProfileIdentityPanel({
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v2">
       <section className={styles.identityColumn} aria-labelledby="profile-identity-heading">
-        <header><span>Human Profile</span><h2 id="profile-identity-heading" data-skin-typography="h4">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
+        <header><span>Human Profile</span><h2 id="profile-identity-heading" data-skin-typography="h3">Your identity</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
 
         <section className={styles.identitySummary} aria-label="Identity summary">
           <div className={styles.tokenSummary}>

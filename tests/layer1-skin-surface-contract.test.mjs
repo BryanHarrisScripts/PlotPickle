@@ -23,7 +23,7 @@ test("Layer 1 canonical Skin contract keeps one continuous secure Profile Gate",
   assert.match(boundary, /if \(webMcpProfileGateCaptureRequested\(\)\) return;/u);
   assert.match(css, /\.gateState[\s\S]*min-height:/u);
   assert.match(css, /html\[data-plotpickle-skin="skin-v1"\][\s\S]*\.gateState/u);
-  assert.match(router, /if \(isSkinV1Path\(pathname\) \|\| isPublicWebPath\(pathname\)\) return <>{children}<\/>;/u);
+  assert.ok(router.includes('if (isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;'));
   assert.match(voice, /password\|passphrase\|secret/u);
 });
 

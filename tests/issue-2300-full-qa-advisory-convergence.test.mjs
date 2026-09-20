@@ -69,14 +69,28 @@ test("#2300 Issue Log and General controls use the canonical four-pixel spacing 
   assert.match(general, /padding:\s*var\(--pp-skin-space-2\) var\(--pp-skin-space-3\)/u);
 });
 
-test("#2300 Profile exposes one content-level heading above supporting section labels", async () => {
-  const css = await read("app/skin-v1-settings-directory.css");
-  assert.match(
-    css,
-    /\[data-profile-identity-surface="v2"\] #profile-identity-heading\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-body\) !important/u,
-  );
-  assert.match(
-    css,
-    /\[data-profile-identity-surface="v2"\] :is\(header h2, header h3\)\s*\{[\s\S]*font-size:\s*var\(--pp-skin-font-meta\) !important/u,
-  );
+test("#2300 Profile uses semantic heading roles instead of a local type override", async () => {
+  const [identity, css] = await Promise.all([
+    read("app/profile-access/profile-identity-panel.tsx"),
+    read("app/skin-v1-settings-directory.css"),
+  ]);
+  assert.match(identity, /id="profile-identity-heading" data-skin-typography="h3"/u);
+  for (const id of ["profile-editor-heading", "profile-access-heading", "profile-actions-heading"]) {
+    assert.match(identity, new RegExp(`id="${id}" data-skin-typography="h4"`, "u"));
+  }
+  assert.doesNotMatch(css, /#profile-identity-heading\s*\{/u);
+});
+
+test("#2300 structural and control-density calibration uses rendered semantics rather than screen patches", async () => {
+  const [profile, director, hybrid] = await Promise.all([
+    read("lib/verification/skin-v1/rendered-surface-profile.mjs"),
+    read("lib/verification/skin-v1-visual-director.mjs"),
+    read("app/skin-v1/hybrid-story-mode-panel.tsx"),
+  ]);
+  assert.match(profile, /verticalCoverageNodes/u);
+  assert.match(profile, /root\.querySelectorAll\("span,strong"\)/u);
+  assert.match(profile, /controlDensityRole/u);
+  assert.match(director, /candidateRootHeight > heightLimit \+ 16/u);
+  assert.match(director, /item\.controlDensityRole !== "content-card"/u);
+  assert.equal((hybrid.match(/data-skin-control-density="content-card"/gu) || []).length, 2);
 });

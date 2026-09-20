@@ -44,9 +44,9 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
 
   assert.match(runner, /prepareWebMcpProfileGateSession/u);
   const initializing = capture.indexOf('state: "initializing"');
-  const createProfile = capture.indexOf("createVerificationSyntheticProfile");
-  const locked = capture.indexOf('state: "locked"');
-  const authenticate = capture.indexOf("authenticateVerificationSyntheticProfile");
+  const createProfile = capture.indexOf("const prepared = await createVerificationSyntheticProfile");
+  const locked = capture.indexOf('state: "locked"', initializing + 1);
+  const authenticate = capture.indexOf("const auth = await authenticateVerificationSyntheticProfile");
   assert.ok(initializing >= 0 && createProfile > initializing && locked > createProfile && authenticate > locked);
   assert.match(capture, /writeProfileGateCaptureReport/u);
   assert.match(capture, /Startup\/profile gate captured safely/u);

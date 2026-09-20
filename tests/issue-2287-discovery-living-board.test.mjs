@@ -26,7 +26,7 @@ test("#2287 exposes the approved Development and Pre-Production hierarchy", asyn
 
 test("#2287 stores Discovery metadata in the existing Library project envelope", async () => {
   const library = await read("core/storage/library-project.ts");
-  const contract = await read("core/contracts/discovery.ts");
+  const contract = await read("core/contracts/discovery/index.ts");
   assert.match(library, /readonly discovery: DiscoveryState/u);
   assert.match(library, /normalizeDiscoveryState\(source\.discovery\)/u);
   assert.match(library, /createEmptyDiscoveryState\(\)/u);
@@ -37,7 +37,7 @@ test("#2287 stores Discovery metadata in the existing Library project envelope",
 });
 
 test("#2287 derives existing project pins from canonical Block addresses instead of model guesses", async () => {
-  const projection = await read("core/project/discovery-projection.ts");
+  const projection = await read("core/project/discovery/index.ts");
   assert.match(projection, /placement:[\s\S]*act: block\.actNumber/u);
   assert.match(projection, /lane: "story-plot"/u);
   assert.match(projection, /classifierId: "deterministic-ppf-address"/u);

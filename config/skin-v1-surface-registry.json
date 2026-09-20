@@ -147,6 +147,33 @@
       "orchestrated": true
     },
     {
+      "id": "discovery",
+      "label": "Discovery",
+      "family": "story",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "navigationPath": [
+        {
+          "order": 3,
+          "slug": "discovery",
+          "label": "Discovery"
+        }
+      ],
+      "formatProfile": {
+        "layout": "canvas-visual-workspace",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "[data-discovery-surface='living-board']",
+      "runtimeReadySelector": "[data-discovery-surface='living-board']",
+      "orchestrated": true
+    },
+    {
       "id": "library",
       "label": "Library",
       "family": "library",

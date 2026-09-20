@@ -14,7 +14,7 @@ test("#2251 Story Bible remains connected after the #2266 Pre-Production consoli
   const write = menu.indexOf('id: "write"');
 
   assert.ok(bible >= 0 && plan > bible && storyboard > plan && previs > storyboard && write > previs);
-  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Pre-Production", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION"/u);
+  assert.match(menu, /id: "story-bible", shortcut: "V", label: "Story Bible", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION"/u);
   assert.match(menu, /"story-bible"/u);
 
   const dashboard = await read("app/skin-v1/dashboard-bbs-panel.tsx");
@@ -82,5 +82,5 @@ test("#2251 registers Story Bible without expanding the frozen standard capture 
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
 
   const webmcp = await read("lib/verification/webmcp-surface-capture-registry.mjs");
-  assert.match(webmcp, /censusOnly: Object\.freeze\(\["story-bible", "production"\]\)/u);
+  assert.match(webmcp, /censusOnly: Object\.freeze\(\["discovery", "story-bible", "production"\]\)/u);
 });

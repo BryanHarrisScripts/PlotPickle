@@ -4,6 +4,7 @@ import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "r
 import { hasActiveLibraryProject, loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
+import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
 import MatrixStoryMapSurface, { type StoryMapReviewStage } from "./matrix-story-map-surface";
@@ -76,6 +77,8 @@ export default function DashboardBbsReviewHost({
   readonly setItemRef: (index: number, node: HTMLButtonElement | null) => void;
 }) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [discoveryOpen, setDiscoveryOpen] = useState(false);
+  const [discoveryProject, setDiscoveryProject] = useState<LibraryPPFProject | null>(null);
   const [storyBibleOpen, setStoryBibleOpen] = useState(false);
   const [storyBibleProject, setStoryBibleProject] = useState<LibraryPPFProject | null>(null);
   const [dashboardNotice, setDashboardNotice] = useState("");
@@ -104,6 +107,8 @@ export default function DashboardBbsReviewHost({
   useEffect(() => {
     const returnToDashboard = () => {
       setLibraryOpen(false);
+      setDiscoveryOpen(false);
+      setDiscoveryProject(null);
       setStoryBibleOpen(false);
       setStoryBibleProject(null);
       closePreproductionSurfaces();
@@ -133,6 +138,15 @@ export default function DashboardBbsReviewHost({
     return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshStoryBible);
   }, [onSurfaceNameChange, storyBibleOpen]);
 
+  useEffect(() => {
+    const refreshDiscovery = () => {
+      if (!discoveryOpen) return;
+      setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
+    };
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
+    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, refreshDiscovery);
+  }, [discoveryOpen]);
+
   function restoreDashboardFocus(itemId: string) {
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-dashboard-menu-item="${itemId}"]`)?.focus();
@@ -140,6 +154,8 @@ export default function DashboardBbsReviewHost({
   }
 
   function returnDashboard(itemId?: string) {
+    setDiscoveryOpen(false);
+    setDiscoveryProject(null);
     closePreproductionSurfaces();
     onSurfaceNameChange("DASHBOARD");
     if (itemId) restoreDashboardFocus(itemId);
@@ -276,6 +292,13 @@ export default function DashboardBbsReviewHost({
     const item = items[index];
     if (!item) return;
     setDashboardNotice("");
+    if (item.id === "discovery") {
+      onActivate(index);
+      setDiscoveryProject(hasActiveLibraryProject() ? loadActiveLibraryProject() : null);
+      setDiscoveryOpen(true);
+      onSurfaceNameChange("DISCOVERY");
+      return;
+    }
     if (item.id === "library") {
       onActivate(index);
       onSurfaceNameChange("LIBRARY");
@@ -338,6 +361,27 @@ export default function DashboardBbsReviewHost({
       return;
     }
     onActivate(index);
+  }
+
+  if (discoveryOpen) {
+    return (
+      <section
+        aria-label="Discovery"
+        data-dashboard-review-surface="discovery"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            returnDashboard("discovery");
+          }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>DISCOVERY</h1>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("discovery")}>Back to Dashboard</button>
+        </div>
+        <DiscoverySurface project={discoveryProject} />
+      </section>
+    );
   }
 
   if (storyBibleOpen && storyBibleProject) {

@@ -30,7 +30,7 @@ test("#2266 puts Pre-Production Story Bible directly before Outline", async () =
   const storyBible = menu.indexOf('id: "story-bible"');
   const outline = menu.indexOf('id: "plan"');
   assert.ok(storyBible >= 0 && outline > storyBible);
-  assert.match(menu, /label: "Pre-Production"[\s\S]*description: "Story Bible, Logline, Theme and Visual Reference"/u);
+  assert.match(menu, /label: "Story Bible"[\s\S]*description: "Story Bible, Logline, Theme and Visual Reference"/u);
   assert.doesNotMatch(panel, /write-story-bible|story-bible-companion/u);
   assert.match(host, /PRE-PRODUCTION \/ STORY BIBLE/u);
   assert.match(bible, /data-pre-production-surface="story-bible"/u);

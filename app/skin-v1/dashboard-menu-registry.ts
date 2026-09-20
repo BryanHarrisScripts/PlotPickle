@@ -9,8 +9,9 @@ export type DashboardBbsItem = Readonly<{
 export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "C", label: "Community", description: "Share and Collaborate", group: "DEVELOPMENT" },
   { id: "learn", shortcut: "1", label: "Writer's Craft", description: "Learn Story Craft", group: "DEVELOPMENT" },
+  { id: "discovery", shortcut: "G", label: "Discovery", description: "Capture and Map New Story Material", group: "DEVELOPMENT" },
   { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "DEVELOPMENT" },
-  { id: "story-bible", shortcut: "V", label: "Pre-Production", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION" },
+  { id: "story-bible", shortcut: "V", label: "Story Bible", description: "Story Bible, Logline, Theme and Visual Reference", group: "PRE-PRODUCTION" },
   { id: "plan", shortcut: "O", label: "Outline", description: "Visualize Story Structure", group: "PRE-PRODUCTION" },
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "PRE-PRODUCTION" },
   { id: "previs", shortcut: "P", label: "Previs", description: "Preview Shots, Timing and Camera Motion", group: "PRE-PRODUCTION" },
@@ -40,6 +41,7 @@ export const CONNECTED_DASHBOARD_ITEM_IDS = new Set([
   "logout",
   "shutdown",
   "learn",
+  "discovery",
   "library",
   "plan",
   "storyboard",

@@ -6,17 +6,20 @@ import test from "node:test";
 const root = process.cwd();
 const read = (relative) => readFile(path.join(root, relative), "utf8");
 
-test("#2026/#2032/#2050/#2068/#2085/#2266 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
+test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287 locks the Human-approved Dashboard order, labels, descriptions and groups", async () => {
   const menu = await read("app/skin-v1/dashboard-menu-registry.ts");
 
   const ordered = [
     ['community', 'C', 'Community', 'Share and Collaborate', 'DEVELOPMENT'],
     ['learn', '1', "Writer's Craft", 'Learn Story Craft', 'DEVELOPMENT'],
+    ['discovery', 'G', 'Discovery', 'Capture and Map New Story Material', 'DEVELOPMENT'],
     ['library', 'L', 'Library', 'Load Your Stories', 'DEVELOPMENT'],
-    ['story-bible', 'V', 'Pre-Production', 'Story Bible, Logline, Theme and Visual Reference', 'PRE-PRODUCTION'],
+    ['story-bible', 'V', 'Story Bible', 'Story Bible, Logline, Theme and Visual Reference', 'PRE-PRODUCTION'],
     ['plan', 'O', 'Outline', 'Visualize Story Structure', 'PRE-PRODUCTION'],
     ['storyboard', 'S', 'Storyboard', 'Visualize Scenes Before You Write', 'PRE-PRODUCTION'],
     ['previs', 'P', 'Previs', 'Preview Shots, Timing and Camera Motion', 'PRE-PRODUCTION'],
+    ['timeline', 'T', 'Timeline', 'Synchronize Script, Shots, Timing and Audio', 'PRE-PRODUCTION'],
+    ['production', 'D', 'Production', 'Review Production Intent and Handoff Readiness', 'PRE-PRODUCTION'],
     ['write', 'W', 'Write', 'Write Scenes, Dialogue and Action Blocks', 'PRODUCTION'],
     ['edit', 'E', 'Edit', 'Review and Improve Screenplay Flow', 'PRODUCTION'],
     ['feedback', 'F', 'Feedback', 'Gather Reader Notes and Reactions', 'PRODUCTION'],
@@ -50,7 +53,7 @@ test("#2026/#2032/#2050/#2068/#2085/#2266 locks the Human-approved Dashboard ord
   }
   assert.deepEqual([...groupCounts.keys()], ["DEVELOPMENT", "PRE-PRODUCTION", "PRODUCTION", "WORKSHOPS", "CALL SHEET", "WRAP"]);
   for (const [group, count] of groupCounts) {
-    const maximum = group === "PRODUCTION" ? 6 : 5;
+    const maximum = group === "PRODUCTION" || group === "PRE-PRODUCTION" ? 6 : 5;
     assert.ok(count <= maximum, `${group} must stay within its Human-approved Dashboard row budget`);
   }
 

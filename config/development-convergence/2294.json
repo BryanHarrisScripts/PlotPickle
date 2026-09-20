@@ -9,6 +9,7 @@
     "config/verification/webmcp-qa-profiles.json",
     "lib/verification/webmcp-qa/profiles.mjs",
     "lib/verification/webmcp-qa/runner.mjs",
+    "lib/verification/webmcp-qa/cli.mjs",
     "lib/verification/webmcp-qa/artifacts.mjs",
     "lib/verification/browser-probes/webmcp-governed-surface.mjs",
     "lib/verification/browser-probes/interaction.mjs",
@@ -38,6 +39,11 @@
           "type": "file-contains",
           "path": "Start-PlotPickle.bat",
           "contains": "choice /C 123456"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "runWebMcpQaProfile"
         }
       ]
     },
@@ -54,6 +60,11 @@
           "type": "file-contains",
           "path": "tests/issue-2294-webmcp-full-qa.test.mjs",
           "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "runWebMcpStartupUat"
         }
       ]
     },

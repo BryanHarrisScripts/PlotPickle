@@ -39,11 +39,11 @@ import {
   readVisualBaselineManifest,
   toggleVisualBaselines,
 } from "./lock-skin-visual-baseline.mjs";
-import { runWebMcpQaProfile } from "../lib/verification/webmcp-qa-runner.mjs";
+import { runWebMcpQaProfile } from "../lib/verification/webmcp-qa/runner.mjs";
 import {
   resolveWebMcpQaProfile,
   webMcpQaProfileMenuLines,
-} from "../lib/verification/webmcp-qa-profiles.mjs";
+} from "../lib/verification/webmcp-qa/profiles.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

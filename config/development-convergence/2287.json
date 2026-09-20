@@ -22,7 +22,10 @@
     "config/development-convergence/2287.json",
     "config/verification/ownership-map.json",
     "tests/issue-2026-dashboard-main-menu-reset.test.mjs",
-    "config/agent-skill-trust.json"
+    "config/agent-skill-trust.json",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
+    "tests/issue-2251-story-bible-surface.test.mjs",
+    "tests/issue-2266-skin-v1-uat-corrections.test.mjs"
   ],
   "acceptance": [
     {

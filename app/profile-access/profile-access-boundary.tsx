@@ -77,21 +77,12 @@ function saveGuestDraft(profileId: string, draft: string) {
   saveFoundationProject({ ...project, foundations: { ...project.foundations, brief: { content, savedAt: now } } });
 }
 
-function lockedDestination(next: Status, forceChooser = false): { readonly screen: Screen; readonly selected: Profile | null } {
+function lockedScreen(next: Status): Screen {
   if (next.accessMode === "server-network") {
-    if (!next.serverReady) return { screen: "server-unavailable", selected: null };
-    return { screen: next.configured ? "login" : "create", selected: null };
+    if (!next.serverReady) return "server-unavailable";
+    return next.configured ? "login" : "create";
   }
-  if (!next.configured) return { screen: "create", selected: null };
-  const activeProfiles = next.profiles.filter((profile) => profile.status === "active");
-  if (!forceChooser && activeProfiles.length === 1) return { screen: "login", selected: activeProfiles[0] };
-  return { screen: "chooser", selected: null };
-}
-
-function webMcpProfileGateCaptureRequested() {
-  if (typeof window === "undefined") return false;
-  return (window as typeof window & { __PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__?: string })
-    .__PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__ === "initializing";
+  return next.configured ? "chooser" : "create";
 }
 
 function PasswordField({ value, onChange, purpose = "current", confirm = false }: { readonly value: string; readonly onChange: (value: string) => void; readonly purpose?: "current" | "new"; readonly confirm?: boolean }) {
@@ -126,27 +117,6 @@ function AccessBrand() {
   );
 }
 
-function ProfileGateShell({
-  state,
-  busy = false,
-  children,
-}: {
-  readonly state: "initializing" | "chooser" | "locked";
-  readonly busy?: boolean;
-  readonly children: ReactNode;
-}) {
-  return (
-    <main className={styles.boundary} data-profile-access-boundary="locked" data-profile-gate-state={state}>
-      <section className={styles.card} aria-busy={busy}>
-        <AccessBrand />
-        <p className={styles.eyebrow}>Profile Gate</p>
-        <h1>PlotPickle Profile Gate</h1>
-        <div className={styles.gateState}>{children}</div>
-      </section>
-    </main>
-  );
-}
-
 export default function ProfileAccessBoundary({ children }: { readonly children: ReactNode }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [screen, setScreen] = useState<Screen>("loading");
@@ -163,7 +133,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
   const [guestDraft, setGuestDraft] = useState("");
   const [addingProfile, setAddingProfile] = useState(false);
 
-  const refresh = useCallback(async ({ forceChooser = false }: { readonly forceChooser?: boolean } = {}) => {
+  const refresh = useCallback(async () => {
     const result = await fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" });
     const next = await result.json() as Status;
     if (!result.ok) throw new Error("The local profile service is unavailable.");
@@ -181,17 +151,13 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (next.authenticated && next.profile) {
       await hydrateProfilePrivateBrowser(next.profile.profileId, next.csrfToken || "");
       document.title = `PlotPickle — ${PLOTPICKLE_PRODUCT_CATEGORY}`;
-      setSelected(null);
       setScreen("ready");
     } else {
-      const destination = lockedDestination(next, forceChooser);
-      setSelected(destination.selected);
-      setScreen(destination.screen);
+      setScreen(lockedScreen(next));
     }
   }, []);
 
   useEffect(() => {
-    if (webMcpProfileGateCaptureRequested()) return;
     const start = window.setTimeout(() => void refresh().catch((cause) => { setError(String(cause)); setScreen("server-unavailable"); }), 0);
     return () => window.clearTimeout(start);
   }, [refresh]);
@@ -222,16 +188,12 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
             clearAutonomousGuestBrowser();
             setAutonomousGuest(null);
             setStatus(next);
-            const destination = lockedDestination(next);
-            setSelected(destination.selected);
-            setScreen(destination.screen);
+            setScreen(lockedScreen(next));
             return;
           }
           if (next.authenticated) { setStatus(next); return; }
-          clearPrivateScreen(); setStatus(next); setBootstrapProof("");
-          const destination = lockedDestination(next);
-          setSelected(destination.selected);
-          setScreen(destination.screen);
+          clearPrivateScreen(); setStatus(next); setSelected(null); setBootstrapProof("");
+          setScreen(lockedScreen(next));
         })
         .catch(() => undefined);
     }, 30_000);
@@ -312,7 +274,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       await flushProfilePrivateWrites();
       await profileRequest(action, {}, status.csrfToken);
       clearPrivateScreen(); setStatus(null); setSelected(null); setBootstrapProof(""); setScreen("loading");
-      await refresh({ forceChooser: action === "switch-profile" });
+      await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
   }
@@ -339,43 +301,12 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
   }
 
   if (screen === "login" && (selected || status?.accessMode === "server-network")) {
-    return (
-      <ProfileGateShell state="locked">
-        <p className={styles.gateStatus}>{selected ? selected.displayName : "LOCAL PROFILE"}</p>
-        <p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p>
-        <form onSubmit={signIn}>
-          {!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}
-          <PasswordField value={password} onChange={setPassword} />
-          {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-          <div className={styles.actions}>
-            <button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button>
-            <button type="button" onClick={() => { setPassword(""); setBootstrapProof(""); setError(""); setSelected(null); setScreen("chooser"); }}>Choose another profile</button>
-          </div>
-        </form>
-      </ProfileGateShell>
-    );
+    return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setBootstrapProof(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form></section></main>;
   }
 
   if (screen === "server-unavailable") {
     return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card}><AccessBrand /><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed operator bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}</section></main>;
   }
 
-  if (screen === "loading") {
-    return (
-      <ProfileGateShell state="initializing" busy>
-        <p className={styles.gateStatus} role="status">INITIALIZING LOCAL NODE…</p>
-        <p>Opening the secure local profile boundary. Private story data remains locked until Human authentication completes.</p>
-      </ProfileGateShell>
-    );
-  }
-
-  return (
-    <ProfileGateShell state="chooser">
-      <p className={styles.gateStatus}>SELECT A LOCAL PROFILE</p>
-      <p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p>
-      <div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setBootstrapProof(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div>
-      <div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>
-      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
-    </ProfileGateShell>
-  );
+  return <main className={styles.boundary} data-profile-access-boundary="locked"><section className={styles.card} aria-busy={screen === "loading"}><AccessBrand /><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setBootstrapProof(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}</section></main>;
 }

@@ -20,7 +20,8 @@
     "tests/issue-2287-discovery-living-board.test.mjs",
     "config/verification/test-catalog.json",
     "config/development-convergence/2287.json",
-    "config/verification/ownership-map.json"
+    "config/verification/ownership-map.json",
+    "tests/issue-2026-dashboard-main-menu-reset.test.mjs"
   ],
   "acceptance": [
     {

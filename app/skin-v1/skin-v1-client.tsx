@@ -50,6 +50,11 @@ const LOADING_VIEW: LogonViewModel = {
   message: null,
 };
 
+function webMcpProfileGateCaptureRequested() {
+  return (window as Window & { __PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__?: string })
+    .__PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__ === "initializing";
+}
+
 function nextIntentId() {
   return globalThis.crypto?.randomUUID?.() ?? `intent-${Date.now()}`;
 }
@@ -85,6 +90,7 @@ export default function SkinV1Client() {
   const startupAppliedRef = useRef(false);
 
   useEffect(() => {
+    if (webMcpProfileGateCaptureRequested()) return;
     void readLogonViewModel(browserProfileAuthGateway)
       .then((next) => {
         setView(next);
@@ -365,8 +371,14 @@ export default function SkinV1Client() {
   PROFILE / LOCAL STORY MODE / NODE CONNECTED
   */
 
+  const logonState = view.state === "loading" ? "initializing" : view.state;
+
   return (
-    <main className="pp-skin-v1-logon" data-experience-surface="LOGON">
+    <main
+      className="pp-skin-v1-logon"
+      data-experience-surface="LOGON"
+      data-skin-v1-logon-state={logonState}
+    >
       <section className="pp-skin-v1-panel">
         <header className="pp-skin-v1-title" data-skin-v1-standard-header="true">
           <strong>PLOTPICKLE</strong>
@@ -422,7 +434,12 @@ export default function SkinV1Client() {
 
         {!recovery && view.state === "locked" ? (
           <form onSubmit={authenticate}>
-            {view.profiles.length ? (
+            {view.profiles.length === 1 ? (
+              <div className="pp-skin-v1-known-profile" data-skin-v1-known-profile="true">
+                <span>PROFILE</span>
+                <strong>{view.profiles[0].displayName}</strong>
+              </div>
+            ) : view.profiles.length > 1 ? (
               <label>
                 <span>PROFILE</span>
                 <select value={locator} onChange={(event) => setLocator(event.target.value)} required autoFocus>
@@ -440,7 +457,14 @@ export default function SkinV1Client() {
             )}
             <label>
               <span>PASSPHRASE</span>
-              <input type="password" value={credential} onChange={(event) => setCredential(event.target.value)} autoComplete="current-password" required />
+              <input
+                type="password"
+                value={credential}
+                onChange={(event) => setCredential(event.target.value)}
+                autoComplete="current-password"
+                required
+                autoFocus={view.profiles.length === 1}
+              />
             </label>
             {error ? <p role="alert">{error}</p> : null}
             <button type="submit" disabled={busy}>{busy ? "ENTERING..." : "ENTER"}</button>

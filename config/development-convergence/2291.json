@@ -15,7 +15,8 @@
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2291-unified-startup-profile-gate-layer1.md",
     "docs/verification/2291-layer1-migration-map.md",
-    "config/development-convergence/2291.json"
+    "config/development-convergence/2291.json",
+    "config/verification/ownership-map.json"
   ],
   "acceptance": [
     {

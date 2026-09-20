@@ -291,6 +291,19 @@
       ]
     },
     {
+      "id": "root-vite-runtime-config",
+      "classification": "production",
+      "include": [
+        "vite.config.ts"
+      ],
+      "ownerLayer": "production-harness",
+      "riskTokens": [
+        "surface",
+        "native",
+        "test-harness"
+      ]
+    },
+    {
       "id": "ai-runtime-settings-contract",
       "classification": "production",
       "include": [

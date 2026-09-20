@@ -198,6 +198,14 @@ html[data-plotpickle-skin="skin-v1"] :is(
   letter-spacing: var(--pp-skin-tracking-meta) !important;
 }
 
+/* #2300: keep one clear content-level Profile heading beneath the global
+   orchestrator title; all sibling section headings remain supporting labels. */
+.pp-skin-v1-profile-surface [data-profile-identity-surface="v2"] #profile-identity-heading {
+  font-size: var(--pp-skin-font-body) !important;
+  font-weight: 700 !important;
+  line-height: var(--pp-skin-leading-tight) !important;
+}
+
 /* The Profile module predates Skin V1 and uses 9/11px action padding. Snap the
    rendered Skin V1 controls to the canonical 4px spacing rhythm without
    changing the underlying Profile module for other appearances. */

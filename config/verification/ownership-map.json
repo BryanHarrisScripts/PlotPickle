@@ -178,6 +178,19 @@
       ]
     },
     {
+      "id": "mastra-agent-runtime",
+      "classification": "production",
+      "include": [
+        "build/mastra-agent-runtime.ts"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "provider",
+        "security"
+      ]
+    },
+    {
       "id": "color-expert-skill",
       "classification": "production",
       "include": [
@@ -816,6 +829,19 @@
       ]
     },
     {
+      "id": "discovery-mapper-skill",
+      "classification": "production",
+      "include": [
+        ".agents/skills/discovery-mapper/SKILL.md"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "canon",
+        "provider"
+      ]
+    },
+    {
       "id": "learn-curriculum-content",
       "classification": "production",
       "include": [
@@ -856,6 +882,21 @@
       "riskTokens": [
         "canon",
         "graph"
+      ]
+    },
+    {
+      "id": "discovery-story-projection",
+      "classification": "production",
+      "include": [
+        "core/contracts/discovery.ts",
+        "core/project/discovery-projection.ts"
+      ],
+      "ownerLayer": "story-canon",
+      "riskTokens": [
+        "canon",
+        "graph",
+        "storage",
+        "surface"
       ]
     },
     {

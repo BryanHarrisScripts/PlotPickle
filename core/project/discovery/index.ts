@@ -1,5 +1,5 @@
-import type { LibraryPPFProject } from "../storage/library-project";
-import type { DiscoveryCard } from "../contracts/discovery";
+import type { LibraryPPFProject } from "../../storage/library-project";
+import type { DiscoveryCard } from "../../contracts/discovery";
 
 function defaultBlockTitle(number: number) {
   return `Block ${String(number).padStart(2, "0")}`;

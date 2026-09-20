@@ -42,7 +42,10 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
   assert.match(capture, /assertProfileGateContinuity/u);
   assert.match(capture, /data-skin-v1-logon-state/u);
   assert.match(capture, /new URL\("\/skin-v1", server\.origin\)/u);
-  assert.match(capture, /headerCells\.join\("\|"\) !== "PLOTPICKLE\|LOGON\|SKIN V1"/u);
+  assert.match(capture, /shellGeometry\(rootLocator\)/u);
+  assert.match(capture, /canonicalHeader/u);
+  assert.match(capture, /initializingHeader !== lockedHeader/u);
+  assert.match(capture, /headerDeltas/u);
 
   assert.match(runner, /prepareWebMcpProfileGateSession/u);
   const initializing = capture.indexOf('state: "initializing"');

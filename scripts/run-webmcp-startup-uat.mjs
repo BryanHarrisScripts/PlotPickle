@@ -415,26 +415,28 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, profile =
       if (qaResult.manifestPath) console.log(`${pass} Full QA manifest: ${qaResult.manifestPath}`);
     }
 
-    const { manifest } = await readVisualBaselineManifest({ root: repoRoot });
-    console.log("");
-    for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
-    console.log("");
-    try {
-      const approval = selectedProfile.id === "1" && allowBaselinePrompt
-        ? await promptVisualBaselineChanges({ manifest })
-        : { prompted: false, approved: false, surfaces: [] };
-      if (approval.approved) {
-        const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
-        console.log("");
-        for (const line of visualBaselineResultLines(result)) console.log(line);
-        console.log(`Updated manifest: ${result.manifestPath}`);
-        console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
-      } else if (approval.prompted) {
+    if (selectedProfile.id === "1" || selectedProfile.id === "6") {
+      const { manifest } = await readVisualBaselineManifest({ root: repoRoot });
+      console.log("");
+      for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
+      console.log("");
+      try {
+        const approval = selectedProfile.id === "1" && allowBaselinePrompt
+          ? await promptVisualBaselineChanges({ manifest })
+          : { prompted: false, approved: false, surfaces: [] };
+        if (approval.approved) {
+          const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
+          console.log("");
+          for (const line of visualBaselineResultLines(result)) console.log(line);
+          console.log(`Updated manifest: ${result.manifestPath}`);
+          console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
+        } else if (approval.prompted) {
+          console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
+        }
+      } catch (approvalError) {
+        console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
         console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
       }
-    } catch (approvalError) {
-      console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
-      console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
     }
     await onEvent?.({
       type: "result",

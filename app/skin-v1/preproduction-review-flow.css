@@ -57,7 +57,8 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button[aria
   border-color: var(--pp-skin-focus);
   background: var(--pp-skin-selected-bg);
   color: var(--pp-skin-selected-ink);
-  box-shadow: var(--pp-skin-selected-ring);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: var(--pp-skin-space-1);
 }
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail {

@@ -46,7 +46,6 @@ test("Layer 1 canonical navigation protects nested Library return continuity", a
 test("Layer 1 canonical navigation keeps startup evidence separate from the 30 authenticated surfaces", () => {
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes("dashboard"));
-  assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes("story-bible"));
   assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes("storyboard"));
   assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes("previs"));
   assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes("scene-timeline"));

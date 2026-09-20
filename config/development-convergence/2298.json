@@ -9,6 +9,7 @@
     "lib/verification/webmcp-qa/runner.mjs",
     "lib/verification/webmcp-qa/cli.mjs",
     "vite.config.ts",
+    "config/verification/ownership-map.json",
     "tests/issue-2298-webmcp-full-qa-hardening.test.mjs",
     "docs/developer-briefs/2298-webmcp-full-qa-hardening.md",
     "config/development-convergence/2298.json"

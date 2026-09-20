@@ -44,10 +44,18 @@
     },
     {
       "id": "6",
+      "key": "surface-census",
+      "label": "SURFACE CENSUS",
+      "description": "Reconcile live user-visible surfaces against the canonical Surface Registry and governed WebMCP catalogue.",
+      "components": ["surface-census"],
+      "capabilities": ["surface-discovery", "coverage-reconciliation", "safe-navigation", "registry-drift"]
+    },
+    {
+      "id": "7",
       "key": "full",
       "label": "FULL QA",
-      "description": "Run Profiles 1 through 5 in governed order and produce one aggregate evidence bundle.",
-      "components": ["1", "2", "3", "4", "5"],
+      "description": "Run Profiles 1 through 6 in governed order and produce one aggregate evidence bundle.",
+      "components": ["1", "2", "3", "4", "5", "6"],
       "capabilities": ["orchestration", "aggregate-report", "zip-evidence"]
     }
   ]

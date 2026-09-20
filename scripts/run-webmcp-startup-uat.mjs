@@ -205,7 +205,7 @@ async function installedVersion(toolRoot, packageName) {
   }
 }
 
-async function ensureVerificationTools(toolRoot) {
+export async function ensureVerificationTools(toolRoot) {
   if (!toolRoot || !path.isAbsolute(toolRoot)) throw new Error("WebMCP startup testing requires an absolute isolated tool root.");
   await mkdir(toolRoot, { recursive: true });
   const packageFile = path.join(toolRoot, "package.json");

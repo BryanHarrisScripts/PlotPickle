@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "1",
+  "profiles": [
+    {
+      "id": "1",
+      "key": "standard",
+      "label": "STANDARD",
+      "description": "Current WebMCP interface, surface, navigation and Skin V1 visual UAT.",
+      "components": ["standard"],
+      "capabilities": ["navigation", "webmcp-tools", "screenshot", "visual-director", "geometry"]
+    },
+    {
+      "id": "2",
+      "key": "interaction",
+      "label": "INTERACTION",
+      "description": "Real browser keyboard, focus, control-state and safe activation checks.",
+      "components": ["interaction"],
+      "capabilities": ["visible-interaction", "keyboard", "focus", "validation"]
+    },
+    {
+      "id": "3",
+      "key": "resilience",
+      "label": "RESILIENCE",
+      "description": "Controlled verification-only latency, failure, empty, malformed and cancellation scenarios.",
+      "components": ["resilience"],
+      "capabilities": ["network-events", "network-interception", "bounded-fault-injection"]
+    },
+    {
+      "id": "4",
+      "key": "continuity",
+      "label": "CONTINUITY",
+      "description": "Navigation, focus, same-context propagation and isolated-context continuity checks.",
+      "components": ["continuity"],
+      "capabilities": ["navigate", "keyboard", "multi-page", "multi-context"]
+    },
+    {
+      "id": "5",
+      "key": "runtime",
+      "label": "RUNTIME",
+      "description": "Browser, DOM, accessibility-boundary and runtime invariant sweep.",
+      "components": ["runtime"],
+      "capabilities": ["console-events", "runtime-errors", "network-events", "bounded-evaluate", "screenshot", "trace"]
+    },
+    {
+      "id": "6",
+      "key": "full",
+      "label": "FULL QA",
+      "description": "Run Profiles 1 through 5 in governed order and produce one aggregate evidence bundle.",
+      "components": ["1", "2", "3", "4", "5"],
+      "capabilities": ["orchestration", "aggregate-report", "zip-evidence"]
+    }
+  ]
+}

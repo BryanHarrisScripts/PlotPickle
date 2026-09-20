@@ -7,9 +7,9 @@
     "Start-PlotPickle.bat",
     "scripts/run-webmcp-startup-uat.mjs",
     "config/verification/webmcp-qa-profiles.json",
-    "lib/verification/webmcp-qa-profiles.mjs",
-    "lib/verification/webmcp-qa-runner.mjs",
-    "lib/verification/webmcp-full-qa-artifacts.mjs",
+    "lib/verification/webmcp-qa/profiles.mjs",
+    "lib/verification/webmcp-qa/runner.mjs",
+    "lib/verification/webmcp-qa/artifacts.mjs",
     "lib/verification/browser-probes/webmcp-governed-surface.mjs",
     "lib/verification/browser-probes/interaction.mjs",
     "lib/verification/browser-probes/resilience.mjs",
@@ -31,7 +31,7 @@
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-qa-profiles.mjs",
+          "path": "lib/verification/webmcp-qa/profiles.mjs",
           "contains": "WEBMCP_FULL_QA_ORDER"
         },
         {
@@ -89,17 +89,17 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "path": "lib/verification/webmcp-qa/artifacts.mjs",
           "contains": "webmcp-full-qa-${runId}.zip"
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "path": "lib/verification/webmcp-qa/artifacts.mjs",
           "contains": "commitSha"
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "path": "lib/verification/webmcp-qa/artifacts.mjs",
           "contains": "humanPassphrases: \"excluded\""
         }
       ]
@@ -110,12 +110,12 @@
       "evidence": [
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-qa-runner.mjs",
+          "path": "lib/verification/webmcp-qa/runner.mjs",
           "contains": "Profile 1 Standard did not establish a trustworthy governed application baseline."
         },
         {
           "type": "file-contains",
-          "path": "lib/verification/webmcp-qa-runner.mjs",
+          "path": "lib/verification/webmcp-qa/runner.mjs",
           "contains": "finalizeWebMcpFullQaArtifacts"
         }
       ]

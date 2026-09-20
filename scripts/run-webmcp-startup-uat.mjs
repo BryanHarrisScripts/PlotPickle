@@ -8,9 +8,9 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
   cleanupVerificationSyntheticHome,
-  establishVerificationSyntheticHuman,
   prepareVerificationSyntheticHome,
 } from "./full-verification-auth.mjs";
+import { prepareWebMcpProfileGateSession } from "../lib/verification/skin-v1/profile-gate-capture.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
 import {
   DASHBOARD_SCREENSHOT_PATH,
@@ -334,7 +334,7 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     await onEvent?.({ type: "stage", label: "Preparing isolated UAT", detail: "Using a synthetic Human profile separated from the signed-in Human." });
     await ensureVerificationTools(resolvedToolRoot);
     await waitForUiServer(server);
-    const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: resolvedHome });
+    const auth = await prepareWebMcpProfileGateSession({ baseUrl: server.origin, home: resolvedHome, toolRoot: resolvedToolRoot });
     await onEvent?.({ type: "stage", label: "Synthetic Human ready", detail: "Private Human cookies, credentials and story data are not inherited." });
     await onEvent?.({ type: "stage", label: "Checking Skin V1 entry", detail: "Verifying the rendered authenticated experience." });
     await runWebMcpSurfaceVisualAudit({

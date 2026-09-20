@@ -142,11 +142,16 @@ function sessionCookie(setCookie) {
   return Object.freeze({ name: match[1], value: match[2], header: `${match[1]}=${match[2]}` });
 }
 
-export async function establishVerificationSyntheticHuman({ baseUrl, home, fetchImpl = fetch, now = Date.now } = {}) {
+function normalizedVerificationBaseUrl(baseUrl) {
   const normalizedBaseUrl = String(baseUrl || "").replace(/\/$/, "");
   if (!/^http:\/\/(?:127\.0\.0\.1|localhost|\[::1\]):\d+$/u.test(normalizedBaseUrl)) {
     throw new Error("Full Verification synthetic Human authentication requires an explicit loopback HTTP endpoint.");
   }
+  return normalizedBaseUrl;
+}
+
+export async function createVerificationSyntheticProfile({ baseUrl, home, fetchImpl = fetch } = {}) {
+  const normalizedBaseUrl = normalizedVerificationBaseUrl(baseUrl);
   if (!home) throw new Error("Full Verification synthetic Human authentication requires its isolated home.");
 
   let initial = await profileGet(normalizedBaseUrl, {}, fetchImpl);
@@ -169,6 +174,22 @@ export async function establishVerificationSyntheticHuman({ baseUrl, home, fetch
   const profileId = String(created.body?.profile?.profileId || "");
   if (!profileId) throw new Error("Full Verification synthetic Human creation returned no profile identity.");
   await prepareSyntheticProfileStorage(home, profileId);
+
+  return Object.freeze({ profileId, password, home });
+}
+
+export async function authenticateVerificationSyntheticProfile({
+  baseUrl,
+  home,
+  profileId,
+  password,
+  fetchImpl = fetch,
+  now = Date.now,
+} = {}) {
+  const normalizedBaseUrl = normalizedVerificationBaseUrl(baseUrl);
+  if (!home || !profileId || !password) {
+    throw new Error("Full Verification synthetic Human login requires its isolated home, profile identity and generated verification credential.");
+  }
 
   const signedIn = await profilePost(normalizedBaseUrl, {
     action: "login",
@@ -214,6 +235,18 @@ export async function establishVerificationSyntheticHuman({ baseUrl, home, fetch
       PLOTPICKLE_VERIFICATION_AUTH_CSRF: csrfToken,
       PLOTPICKLE_VERIFICATION_STORAGE_STATE: storageStatePath,
     }),
+  });
+}
+
+export async function establishVerificationSyntheticHuman({ baseUrl, home, fetchImpl = fetch, now = Date.now } = {}) {
+  const prepared = await createVerificationSyntheticProfile({ baseUrl, home, fetchImpl });
+  return authenticateVerificationSyntheticProfile({
+    baseUrl,
+    home,
+    profileId: prepared.profileId,
+    password: prepared.password,
+    fetchImpl,
+    now,
   });
 }
 

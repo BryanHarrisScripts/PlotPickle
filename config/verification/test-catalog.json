@@ -5,6 +5,97 @@
   "migrationSource": "config/verification/phase-0-inventory.json",
   "entries": [
     {
+      "id": "experience.skin-surface-contract",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "skin",
+        "surface",
+        "visual",
+        "auth",
+        "voice"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/layer1-skin-surface-contract.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2291 canonical current-product Skin/Profile Gate contract. Replaces permanent issue-by-issue Skin regressions while retaining them as manual evidence."
+    },
+    {
+      "id": "experience.navigation-continuity",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "mcp",
+        "navigation",
+        "skin",
+        "surface",
+        "visual",
+        "canon"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/layer1-navigation-continuity.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "baseline",
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-skins.json",
+          ".artifacts/verification-shadow/experience-skins.comparison.json"
+        ]
+      },
+      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology."
+    },
+    {
       "id": "experience.webmcp-live-observer",
       "ownerLayer": "experience-skins",
       "architectureComponents": [
@@ -76,8 +167,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -97,7 +187,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2151 protects the explicit Y/N plus numbered per-surface visual-baseline toggle flow, including no-change, validation, mixed lock/unlock and single-source catalogue/manifest behavior."
+      "notes": "#2151 protects the explicit Y/N plus numbered per-surface visual-baseline toggle flow, including no-change, validation, mixed lock/unlock and single-source catalogue/manifest behavior. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.manual-uat-follow-up-2153",
@@ -122,8 +212,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -143,7 +232,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2153 protects the Notices copy, compact Story Mode directory, existing readiness projection, and yellow Storyboard/Previs in-review state without creating new routing or readiness authority."
+      "notes": "#2153 protects the Notices copy, compact Story Mode directory, existing readiness projection, and yellow Storyboard/Previs in-review state without creating new routing or readiness authority. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.pre-phase2-1954",
@@ -167,8 +256,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -188,7 +276,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1954 pre-Phase 2 cleanup. Protects the PowerShell testing-mode choice, Writer's Craft Dashboard directory geometry, Profile spacing rhythm and single-dominant-heading contract before #1918 Phase 2 begins."
+      "notes": "#1954 pre-Phase 2 cleanup. Protects the PowerShell testing-mode choice, Writer's Craft Dashboard directory geometry, Profile spacing rhythm and single-dominant-heading contract before #1918 Phase 2 begins. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.home-launcher-1960",
@@ -210,8 +298,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -231,7 +318,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1960 Windows home-folder bootstrap. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, leaves the Y/N prompt owned by the freshly pulled PlotPickle.ps1, and preserves explicit WebMCP/Human mode pass-through."
+      "notes": "#1960 Windows home-folder bootstrap. Proves the launcher changes into $HOME\\PlotPickle, fast-forward pulls before delegation, leaves the Y/N prompt owned by the freshly pulled PlotPickle.ps1, and preserves explicit WebMCP/Human mode pass-through. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.community-conversation-1963",
@@ -254,8 +341,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -275,7 +361,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1963 pre-Phase 5 Great Hall cleanup. Proves BUZZ transport/test probes stay out of Human-facing conversation while Human/Agent replies continue to use one signed BUZZ room history with automatic refresh."
+      "notes": "#1963 pre-Phase 5 Great Hall cleanup. Proves BUZZ transport/test probes stay out of Human-facing conversation while Human/Agent replies continue to use one signed BUZZ room history with automatic refresh. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.product-identity-1971",
@@ -298,8 +384,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -319,7 +404,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1971 pre-Phase 5 product identity cleanup. Proves active PlotPickle surfaces use the AI-native agentic story operating system category, browser titles stay aligned, and current browser/app favicon metadata uses the green-square mark while historical visual-writing programme evidence remains intact."
+      "notes": "#1971 pre-Phase 5 product identity cleanup. Proves active PlotPickle surfaces use the AI-native agentic story operating system category, browser titles stay aligned, and current browser/app favicon metadata uses the green-square mark while historical visual-writing programme evidence remains intact. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.explicit-story-startup-1969",
@@ -388,8 +473,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -409,7 +493,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 3 visible Skin V1 Journey shell. The regression remains a compatibility baseline while later phases selectively wire content without removing the six-semester shell or guided-not-gated navigation."
+      "notes": "#1918 Phase 3 visible Skin V1 Journey shell. The regression remains a compatibility baseline while later phases selectively wire content without removing the six-semester shell or guided-not-gated navigation. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.learn-semester-one",
@@ -437,8 +521,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -458,7 +541,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#1918 Phase 4 Semester 1 vertical slice. Proves Courses 01-04 expose their canonical archive lessons, reuse PPF lesson completion as progress truth, remain usable out of order, and leave Semesters 2-6 preview-only until Phase 5."
+      "notes": "#1918 Phase 4 Semester 1 vertical slice. Proves Courses 01-04 expose their canonical archive lessons, reuse PPF lesson completion as progress truth, remain usable out of order, and leave Semesters 2-6 preview-only until Phase 5. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "story-canon.learn-program-map",
@@ -752,8 +835,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -773,7 +855,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2249 Human UAT regression coverage for Dashboard nested returns, Storyboard-owned Visual Story lifecycle, contextual BUILD Evidence return, stable Writer's Craft lesson identity and Skin V1 BUILD presentation."
+      "notes": "#2249 Human UAT regression coverage for Dashboard nested returns, Storyboard-owned Visual Story lifecycle, contextual BUILD Evidence return, stable Writer's Craft lesson identity and Skin V1 BUILD presentation. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "verification.oss-radar-discovery-recall",
@@ -882,8 +964,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -903,7 +984,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2251 protects Story Bible connectivity, active-story gating, the canonical read-only projection surface and the frozen 30-surface standard capture set. #2266 supersedes the former Write-adjacent companion layout with the Pre-Production boundary."
+      "notes": "#2251 protects Story Bible connectivity, active-story gating, the canonical read-only projection surface and the frozen 30-surface standard capture set. #2266 supersedes the former Write-adjacent companion layout with the Pre-Production boundary. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "verification.browser-verification-broker-2246",
@@ -972,8 +1053,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -993,7 +1073,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2262 protects the GitHub-owned PlotPickle.com projection, public Blog routes and separation from the local application shell."
+      "notes": "#2262 protects the GitHub-owned PlotPickle.com projection, public Blog routes and separation from the local application shell. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "experience.skin-v1-uat-corrections-2266",
@@ -1018,8 +1098,7 @@
       },
       "cost": "fast",
       "modes": [
-        "baseline",
-        "impact"
+        "manual"
       ],
       "platforms": [
         "any"
@@ -1039,7 +1118,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2266 protects the UAT correction contract for persistent Library navigation, Pre-Production Story Bible placement, field-attached dictation, generated Profile description flow, BUZZ readiness geometry and bounded Skin V1 layout fixes."
+      "notes": "#2266 protects the UAT correction contract for persistent Library navigation, Pre-Production Story Bible placement, field-attached dictation, generated Profile description flow, BUZZ readiness geometry and bounded Skin V1 layout fixes. #2291 retains this issue-specific regression as historical/manual evidence; ordinary Layer 1 selection is owned by the canonical current-product suites."
     },
     {
       "id": "verification.public-site-publishing-2262",

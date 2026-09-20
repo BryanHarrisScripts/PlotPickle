@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "issue": 2291,
+  "phase": "startup-profile-gate-layer1-convergence",
+  "brief": "docs/developer-briefs/2291-unified-startup-profile-gate-layer1.md",
+  "allowedChanges": [
+    "app/profile-access/profile-access-boundary.tsx",
+    "app/profile-access/profile-access-boundary.module.css",
+    "scripts/full-verification-auth.mjs",
+    "scripts/run-webmcp-startup-uat.mjs",
+    "tests/layer1-skin-surface-contract.test.mjs",
+    "tests/layer1-navigation-continuity.test.mjs",
+    "tests/issue-1793-startup-webmcp-uat.test.mjs",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2291-unified-startup-profile-gate-layer1.md",
+    "docs/verification/2291-layer1-migration-map.md",
+    "config/development-convergence/2291.json",
+    "config/verification/ownership-map.json",
+    "lib/verification/skin-v1/profile-gate-capture.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2291-1",
+      "criterion": "Initialization and locked/passphrase states share one persistent Profile Gate shell.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-access-boundary.tsx",
+          "contains": "function ProfileGateShell"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-access-boundary.tsx",
+          "contains": "data-profile-gate-state={state}"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-access-boundary.tsx",
+          "contains": "PlotPickle Profile Gate"
+        }
+      ]
+    },
+    {
+      "id": "P2291-2",
+      "criterion": "Ordinary one-profile desktop startup resolves directly to the locked selected profile while explicit Switch Profile retains chooser behavior.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-access-boundary.tsx",
+          "contains": "activeProfiles.length === 1"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/profile-access/profile-access-boundary.tsx",
+          "contains": "forceChooser: action === \"switch-profile\""
+        }
+      ]
+    },
+    {
+      "id": "P2291-3",
+      "criterion": "WebMCP captures deterministic initialization and locked profile states without browser credential entry.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
+          "contains": "startup-initializing-candidate.png"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
+          "contains": "profile-locked-candidate.png"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/skin-v1/profile-gate-capture.mjs",
+          "contains": "credentialAutomation: false"
+        }
+      ]
+    },
+    {
+      "id": "P2291-4",
+      "criterion": "Startup/auth evidence remains separate from the 30 authenticated standard surfaces.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/layer1-navigation-continuity.test.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/layer1-navigation-continuity.test.mjs",
+          "contains": "startup-initializing"
+        }
+      ]
+    },
+    {
+      "id": "P2291-5",
+      "criterion": "Ordinary Layer 1 selection is consolidated to three current-product owners and historical issue tests remain manual evidence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/layer1-skin-surface-contract.test.mjs",
+          "contains": "experience.skin-surface-contract"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/layer1-skin-surface-contract.test.mjs",
+          "contains": "experience.navigation-continuity"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/layer1-skin-surface-contract.test.mjs",
+          "contains": "experience.webmcp-live-observer"
+        },
+        {
+          "type": "file-contains",
+          "path": "docs/verification/2291-layer1-migration-map.md",
+          "contains": "historical/manual"
+        }
+      ]
+    }
+  ]
+}

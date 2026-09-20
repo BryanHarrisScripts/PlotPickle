@@ -29,6 +29,7 @@ function resolveSkinTheme(explicit: string | null, stored: string | null): SkinT
 function syncSkinAliases(theme: SkinTheme) {
   const alias = theme === SKIN_V2 ? "BLACK AND WHITE" : "MATRIX";
   document.querySelectorAll<HTMLElement>("[data-skin-v1-standard-header=\"true\"]").forEach((header) => {
+    if (header.closest("[data-experience-surface=\"LOGON\"]")) return;
     const spans = header.querySelectorAll<HTMLSpanElement>("span");
     const target = spans.item(spans.length - 1);
     if (target && target.textContent !== alias) target.textContent = alias;

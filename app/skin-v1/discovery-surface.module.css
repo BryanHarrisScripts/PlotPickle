@@ -12,7 +12,7 @@
 .inbox,
 .board {
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-  background: var(--pp-skin-surface);
+  background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-4);
 }
 
@@ -55,7 +55,7 @@
 .composer select {
   width: 100%;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
-  background: var(--pp-skin-surface-raised);
+  background: var(--pp-skin-surface-2);
   color: var(--pp-skin-ink);
   font: inherit;
   padding: var(--pp-skin-space-2);
@@ -96,7 +96,7 @@
 .actHeader,
 .laneLabel,
 .cell {
-  background: var(--pp-skin-surface);
+  background: var(--pp-skin-surface-1);
   padding: var(--pp-skin-space-3);
 }
 
@@ -117,7 +117,7 @@
   display: grid;
   gap: var(--pp-skin-space-2);
   border: var(--pp-skin-border-thin) solid var(--pp-skin-line-strong);
-  background: var(--pp-skin-surface-raised);
+  background: var(--pp-skin-surface-2);
   padding: var(--pp-skin-space-3);
 }
 

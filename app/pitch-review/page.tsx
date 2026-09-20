@@ -23,7 +23,7 @@ export default function PitchReviewPage() {
       }
       if (requestedScope === "plan") setScope("plan");
       const requestedReturn = parameters.get("return");
-      if (requestedReturn === "plan" || requestedReturn === "pitch") setReturnWorkspace(requestedReturn);
+      if (requestedReturn === "plan" || requestedReturn === "pitch" || requestedReturn === "dashboard") setReturnWorkspace(requestedReturn);
       try {
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (!stored) {
@@ -54,7 +54,7 @@ export default function PitchReviewPage() {
     <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
       <div style={{ maxWidth: 1620, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "plan" ? "Plan" : "Pitch"}</Link>
+          <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "plan" ? "Plan" : returnWorkspace === "dashboard" ? "Dashboard" : "Pitch"}</Link>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/working-together">Working Together</Link><Link href="/labs">Specialist Labs</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/draftlens">DraftLens</Link><Link href="/structure">Structure</Link></div>
         </nav>
         <PitchReviewWorkspace project={project} onProjectChange={save} scope={scope} />

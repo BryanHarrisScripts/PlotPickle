@@ -43,6 +43,16 @@ html[data-plotpickle-skin="skin-v1"] *::after {
   box-shadow: var(--pp-skin-shadow-panel), var(--pp-skin-inset-highlight);
 }
 
+.pp-skin-v1-logon > .pp-skin-v1-panel > :is(p, form, .pp-skin-v1-message) {
+  min-height: 260px;
+}
+
+.pp-skin-v1-known-profile {
+  display: grid;
+  gap: var(--pp-skin-space-2);
+  margin: 0;
+}
+
 .pp-skin-v1-title,
 .pp-skin-v1-bar,
 .pp-skin-v1-status {

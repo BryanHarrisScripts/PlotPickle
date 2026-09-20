@@ -20,7 +20,7 @@ type AgentResponse = {
 };
 
 function newId() {
-  return globalThis.crypto?.randomUUID?.() ?? `discovery-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return globalThis.crypto.randomUUID();
 }
 
 function compactProjectContext(project: LibraryPPFProject) {

@@ -305,6 +305,11 @@ export default function DashboardBbsReviewHost({
       setLibraryOpen(true);
       return;
     }
+    if (item.id === "pitch-package") {
+      onActivate(index);
+      window.location.assign("/pitch-review?scope=pitch&return=dashboard");
+      return;
+    }
     if (item.id === "plan") {
       onActivate(index);
       openOutline(reviewAddress);
@@ -339,7 +344,7 @@ export default function DashboardBbsReviewHost({
       }
       setStoryBibleProject(loadActiveLibraryProject());
       setStoryBibleOpen(true);
-      onSurfaceNameChange("PRE-PRODUCTION");
+      onSurfaceNameChange("STORY");
       return;
     }
     if (item.id === "open-source") {
@@ -387,7 +392,7 @@ export default function DashboardBbsReviewHost({
   if (storyBibleOpen && storyBibleProject) {
     return (
       <section
-        aria-label="Pre-Production Story Bible"
+        aria-label="Story"
         data-dashboard-review-surface="story-bible"
         onKeyDown={(event) => {
           if (event.key === "Escape") {
@@ -400,7 +405,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>PRE-PRODUCTION / STORY BIBLE</h1>
+          <h1>STORY</h1>
           <button
             autoFocus
             type="button"

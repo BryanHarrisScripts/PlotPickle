@@ -106,7 +106,7 @@
         {
           "type": "file-contains",
           "path": "app/skin-v1/preproduction-review-surfaces.tsx",
-          "contains": "does not manufacture one to make Production look complete"
+          "contains": "leaves the slot empty rather than creating a placeholder Production Shot"
         }
       ]
     },

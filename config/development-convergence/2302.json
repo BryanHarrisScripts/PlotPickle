@@ -10,6 +10,7 @@
     "app/skin-v1/dashboard-bbs-panel.tsx",
     "app/skin-v1/learn-journey-preview.tsx",
     "app/pitch-review/page.tsx",
+    "lib/verification/skin-v1-menu-contract-audit.mjs",
     "lib/verification/webmcp-surface-capture-registry.mjs",
     "config/skin-v1-surface-registry.json",
     "tests/layer1-navigation-continuity.test.mjs",

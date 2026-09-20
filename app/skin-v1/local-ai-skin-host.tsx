@@ -65,7 +65,6 @@ const LTX_PLUGIN_ID = "video.ltx-video-2b-0.9.8-distilled";
 const H3_PLUGIN_ID = "video.minimax-h3";
 
 const shell: React.CSSProperties = {
-  minHeight: "100vh",
   padding: "var(--pp-skin-space-4) clamp(10px, 2vw, var(--pp-skin-space-6)) var(--pp-skin-space-7)",
   background: "var(--pp-skin-fill-panel)",
   color: "var(--pp-skin-ink)",

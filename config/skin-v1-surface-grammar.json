@@ -95,7 +95,9 @@
       "currentBorderStrongPx": 2,
       "squareStandard": true,
       "borderEmphasisToken": "--pp-skin-border-emphasis",
-      "currentBorderEmphasisPx": 3
+      "currentBorderEmphasisPx": 3,
+      "relativeToleranceRatio": 0.02,
+      "relativeTolerancePercent": 2
     },
     "controls": {
       "heightToken": "--pp-skin-control-height",

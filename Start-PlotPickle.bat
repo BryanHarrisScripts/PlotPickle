@@ -32,6 +32,7 @@ set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
 set "WEBMCP_STARTUP_RUNNER=scripts\run-webmcp-startup-uat.mjs"
+set "WEBMCP_QA_RUNNER=lib\verification\webmcp-qa\cli.mjs"
 set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
@@ -122,8 +123,8 @@ if not defined PLOTPICKLE_STARTUP_TESTING_MODE (
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
   if not defined PLOTPICKLE_WEBMCP_QA_PROFILE (
     echo.
-    if exist "%WEBMCP_STARTUP_RUNNER%" (
-      node "%WEBMCP_STARTUP_RUNNER%" profiles
+    if exist "%WEBMCP_QA_RUNNER%" (
+      node "%WEBMCP_QA_RUNNER%" profiles
     ) else (
       echo WEBMCP QA
       echo.
@@ -320,6 +321,13 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
     pause
     exit /b 1
   )
+  if not exist "%WEBMCP_QA_RUNNER%" (
+    echo.
+    echo !ERROR_TAG! The WebMCP QA profile runner is missing from this PlotPickle build.
+    echo Update PlotPickle or choose Human Testing.
+    pause
+    exit /b 1
+  )
   if defined LOCALAPPDATA (
     set "PLOTPICKLE_HOME=!LOCALAPPDATA!\PlotPickle\full-verification\synthetic-humans\webmcp-startup-!RANDOM!-!RANDOM!"
     set "PLOTPICKLE_WEBMCP_TOOL_ROOT=!LOCALAPPDATA!\PlotPickle\verification-tools\webmcp-surface-uat"
@@ -437,9 +445,13 @@ if not exist "%WEBMCP_STARTUP_RUNNER%" (
   echo !ERROR_TAG! The WebMCP startup UAT runner is missing. The test was not started.
   exit /b 1
 )
+if not exist "%WEBMCP_QA_RUNNER%" (
+  echo !ERROR_TAG! The WebMCP QA profile runner is missing. The test was not started.
+  exit /b 1
+)
 echo !INFO! Waiting for the completed PlotPickle startup contract before launching the bounded WebMCP UAT.
 echo !INFO! The UAT window will open only after readiness and will remain open with its PASS/FAIL report.
-start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_STARTUP_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '" --profile "' + $env:PLOTPICKLE_WEBMCP_QA_PROFILE + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_QA_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '" --profile "' + $env:PLOTPICKLE_WEBMCP_QA_PROFILE + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
 exit /b 0
 
 :cleanup_webmcp_testing

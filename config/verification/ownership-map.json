@@ -888,8 +888,8 @@
       "id": "discovery-story-projection",
       "classification": "production",
       "include": [
-        "core/contracts/discovery.ts",
-        "core/project/discovery-projection.ts"
+        "core/contracts/discovery/index.ts",
+        "core/project/discovery/index.ts"
       ],
       "ownerLayer": "story-canon",
       "riskTokens": [

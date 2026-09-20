@@ -26,28 +26,28 @@ test("#2124 Phase 4 routes Matrix Outline and Storyboard to existing pre-product
   assert.match(storyMapSurface, /<ProgressiveStoryMap project=\{project\} \/>/u);
 });
 
-test("#2124 Phase 4 registers Story Map, Visual Story and Scene Workspace in the existing WebMCP standard catalogue", () => {
+test("#2124/#2285 keeps Story Map, Visual Story and Timeline in the existing WebMCP standard catalogue", () => {
   for (const surface of ["story-map", "visual-story", "scene-timeline"]) {
     assert.ok(WEBMCP_STANDARD_SURFACE_TARGETS.includes(surface), `${surface} should be a standard WebMCP surface`);
-    assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY[surface].approval, "#2124/#2125");
+    assert.ok(WEBMCP_STANDARD_SURFACE_REGISTRY[surface].approval.startsWith("#2124/#2125"));
   }
 
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["story-map"].navigation[0].selector, "[data-dashboard-menu-item='plan']");
   assert.equal(WEBMCP_STANDARD_SURFACE_REGISTRY["visual-story"].navigation[0].selector, "[data-dashboard-menu-item='storyboard']");
   assert.deepEqual(
     WEBMCP_STANDARD_SURFACE_REGISTRY["scene-timeline"].navigation.map((step) => step.selector),
-    ["[data-dashboard-menu-item='storyboard']", "[data-visual-story-view='timeline']"],
+    ["[data-dashboard-menu-item='timeline']"],
   );
 });
 
-test("#2124 Phase 4 keeps empty Visual Story and Scene Workspace inspectable without manufacturing production data", async () => {
+test("#2124/#2285 keeps empty Visual Story and Timeline inspectable without manufacturing production data", async () => {
   const visualStory = await read("app/_components/storyboard/visual-story-workspace.tsx");
 
   assert.match(visualStory, /data-visual-story="scene-beat-shot-frame"/u);
   assert.match(visualStory, /data-visual-story-view="story"/u);
   assert.match(visualStory, /data-visual-story-view="timeline"/u);
   assert.match(visualStory, /data-scene-workspace="dialogue-action-shot-audio"/u);
-  assert.match(visualStory, /Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface/u);
+  assert.match(visualStory, /Timeline does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface/u);
   assert.match(visualStory, /only real screenplay, Shot, Previs or audio evidence can then occupy the workspace/u);
 });
 

@@ -120,7 +120,25 @@ if not defined PLOTPICKLE_STARTUP_TESTING_MODE (
   )
 )
 if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
-  echo !READY! WebMCP Testing selected. PlotPickle will use an isolated test profile and run the bounded visual UAT after readiness.
+  if not defined PLOTPICKLE_WEBMCP_QA_PROFILE (
+    echo.
+    if exist "%WEBMCP_STARTUP_RUNNER%" (
+      node "%WEBMCP_STARTUP_RUNNER%" profiles
+    ) else (
+      echo WEBMCP QA
+      echo.
+      echo [1] STANDARD
+      echo [2] INTERACTION
+      echo [3] RESILIENCE
+      echo [4] CONTINUITY
+      echo [5] RUNTIME
+      echo [6] FULL QA
+      echo.
+    )
+    choice /C 123456 /N /M "Choose WebMCP QA profile [1-6]: "
+    set "PLOTPICKLE_WEBMCP_QA_PROFILE=!ERRORLEVEL!"
+  )
+  echo !READY! WebMCP Testing selected. QA profile !PLOTPICKLE_WEBMCP_QA_PROFILE! will run in the isolated test session after readiness.
 ) else (
   echo !READY! Human Testing selected. PlotPickle will open its owned app window after readiness.
 )
@@ -421,7 +439,7 @@ if not exist "%WEBMCP_STARTUP_RUNNER%" (
 )
 echo !INFO! Waiting for the completed PlotPickle startup contract before launching the bounded WebMCP UAT.
 echo !INFO! The UAT window will open only after readiness and will remain open with its PASS/FAIL report.
-start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_STARTUP_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $base=$env:PLOTPICKLE_URL; $marker=$env:PLOTPICKLE_STARTUP_CONTRACT; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); $ready=$false; while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri $base -TimeoutSec %READY_REQUEST_TIMEOUT_SECONDS%; if ($response.StatusCode -ge 200 -and $response.Content -match [regex]::Escape($marker)) { $ready=$true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $ready) { Write-Host '[FAIL] WebMCP UAT was not started because PlotPickle did not satisfy the completed startup contract within %READY_TIMEOUT_SECONDS% seconds.' -ForegroundColor Red; exit 1 }; $command='node "' + $env:WEBMCP_STARTUP_RUNNER + '" run --server "' + $base + '" --home "' + $env:PLOTPICKLE_HOME + '" --tool-root "' + $env:PLOTPICKLE_WEBMCP_TOOL_ROOT + '" --profile "' + $env:PLOTPICKLE_WEBMCP_QA_PROFILE + '"'; Start-Process -FilePath $env:ComSpec -ArgumentList '/k', $command"
 exit /b 0
 
 :cleanup_webmcp_testing

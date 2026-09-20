@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "issue": 2285,
+  "phase": "five-stage-preproduction-flow",
+  "brief": "docs/developer-briefs/2285-five-stage-preproduction-flow.md",
+  "allowedChanges": [
+    "docs/developer-briefs/2285-five-stage-preproduction-flow.md",
+    "app/skin-v1/dashboard-menu-registry.ts",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/preproduction-review-surfaces.tsx",
+    "app/skin-v1/preproduction-review-flow.css",
+    "app/skin-v1/surface-orchestrator.tsx",
+    "app/_components/storyboard/visual-story-workspace.tsx",
+    "app/_components/storyboard/scene-timeline-workspace.tsx",
+    "config/skin-v1-surface-registry.json",
+    "config/skin-v1-surface-declarations/scene-workspace.json",
+    "config/skin-v1-surface-declarations/standard-surfaces.json",
+    "lib/verification/webmcp-surface-capture-registry.mjs",
+    "tests/visual-baselines/skin-v1/manifest.json",
+    "tests/issue-2285-five-stage-preproduction.test.mjs",
+    "tests/issue-2124-surface-coverage-expansion.test.mjs",
+    "tests/issue-2124-phase-4-webmcp-preproduction.test.mjs",
+    "tests/issue-2226-phase-0-surface-census.test.mjs",
+    "tests/issue-2226-surface-orchestrator.test.mjs",
+    "config/verification/test-catalog.json",
+    "config/development-convergence/2285.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2285-1",
+      "criterion": "Dashboard exposes the Human-approved five pre-production stages in order and connects Timeline and Production.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-menu-registry.ts",
+          "contains": "id: \"timeline\", shortcut: \"T\", label: \"Timeline\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-menu-registry.ts",
+          "contains": "id: \"production\", shortcut: \"D\", label: \"Production\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2285-five-stage-preproduction.test.mjs",
+          "contains": "#2285 exposes the Human-approved five-stage pre-production flow vertically"
+        }
+      ]
+    },
+    {
+      "id": "P2285-2",
+      "criterion": "All five stages share one horizontal navigation rail while preserving the selected story address.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "data-preproduction-stage-rail=\"five-stage\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "type PreproductionStage = \"outline\" | \"storyboard\" | \"previs\" | \"timeline\" | \"production\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2285-five-stage-preproduction.test.mjs",
+          "contains": "#2285 exposes the same five stages horizontally and preserves one shared address"
+        }
+      ]
+    },
+    {
+      "id": "P2285-3",
+      "criterion": "Timeline reuses the existing synchronized scene authority and visible naming converges from Scene Workspace to Timeline.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/preproduction-review-surfaces.tsx",
+          "contains": "initialView=\"timeline\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"label\": \"Timeline\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-surface-capture-registry.mjs",
+          "contains": "label: \"Timeline\""
+        }
+      ]
+    },
+    {
+      "id": "P2285-4",
+      "criterion": "Production projects truthful current Storyboard/Previs evidence and provider-neutral readiness without reviving legacy Production authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/preproduction-review-surfaces.tsx",
+          "contains": "derivePrevisProjection(project)"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/preproduction-review-surfaces.tsx",
+          "contains": "data-production-stage=\"provider-neutral-handoff\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/preproduction-review-surfaces.tsx",
+          "contains": "does not manufacture one to make Production look complete"
+        }
+      ]
+    },
+    {
+      "id": "P2285-5",
+      "criterion": "The frozen WebMCP standard catalogue remains at 30 while Timeline is directly capturable from its Dashboard row.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-surface-capture-registry.mjs",
+          "contains": "[data-dashboard-menu-item='timeline']"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2285-five-stage-preproduction.test.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        }
+      ]
+    }
+  ]
+}

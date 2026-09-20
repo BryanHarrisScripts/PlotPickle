@@ -130,7 +130,7 @@ export default function VisualStoryWorkspace({
             onClick={() => setView("timeline")}
             type="button"
           >
-            Scene Workspace
+            Timeline
           </button>
         </nav>
 
@@ -234,7 +234,7 @@ export default function VisualStoryWorkspace({
           </>
         ) : (
           <section
-            aria-label="Scene Workspace empty state"
+            aria-label="Timeline empty state"
             className={styles.empty}
             data-projection-only="true"
             data-scene-workspace="dialogue-action-shot-audio"
@@ -247,12 +247,12 @@ export default function VisualStoryWorkspace({
               onClick={onReturnToStoryboard}
             >Back to Storyboard</button>
             <strong>No related Scene is authored for Block {String(blockNumber).padStart(2, "0")} · Mini-Block {miniBlockNumber}.</strong>
-            <p>Scene Workspace does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
+            <p>Timeline does not manufacture Dialogue, Action, Shot or Audio cues to fill the surface. Add or relate a real Scene through the existing story authority; only real screenplay, Shot, Previs or audio evidence can then occupy the workspace.</p>
           </section>
         )}
 
         <footer className={styles.boundary}>
-          Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Workspace share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
+          Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
         </footer>
       </section>
     );
@@ -327,7 +327,7 @@ export default function VisualStoryWorkspace({
           onClick={() => setView("timeline")}
           type="button"
         >
-          Scene Timeline
+          Timeline
         </button>
       </nav>
 
@@ -485,7 +485,7 @@ export default function VisualStoryWorkspace({
       />
 
       <footer className={styles.boundary}>
-        Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Scene Workspace share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
+        Projection only. Scene, Beat, Shot and Frame identities remain owned by their existing PlotPickle authorities. Visual Story and Timeline share those identities; neither creates canon, approves candidates or converts technical RenderClips into creative Shots.
       </footer>
     </section>
   );

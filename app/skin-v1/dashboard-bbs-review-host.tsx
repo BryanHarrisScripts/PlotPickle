@@ -13,13 +13,52 @@ import StoryBibleSurface from "./story-bible-surface";
 import {
   SkinV1BuildReviewSurface,
   SkinV1PrevisReviewSurface,
+  SkinV1ProductionReviewSurface,
   SkinV1StoryboardReviewSurface,
+  SkinV1TimelineReviewSurface,
   type PreproductionReviewAddress,
 } from "./preproduction-review-surfaces";
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
 
 const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, miniBlockNumber: 1 };
 type BuildReturnTarget = "outline" | "storyboard" | "previs";
+type PreproductionStage = "outline" | "storyboard" | "previs" | "timeline" | "production";
+
+const PREPRODUCTION_STAGES: readonly Readonly<{ id: PreproductionStage; label: string }>[] = [
+  { id: "outline", label: "Outline" },
+  { id: "storyboard", label: "Storyboard" },
+  { id: "previs", label: "Previs" },
+  { id: "timeline", label: "Timeline" },
+  { id: "production", label: "Production" },
+];
+
+function PreproductionStageRail({
+  active,
+  onOpen,
+}: {
+  readonly active: PreproductionStage;
+  readonly onOpen: (stage: PreproductionStage) => void;
+}) {
+  return (
+    <nav
+      aria-label="Pre-production stages"
+      className="pp-skin-v1-preproduction-stage-rail"
+      data-preproduction-stage-rail="five-stage"
+    >
+      {PREPRODUCTION_STAGES.map((stage) => (
+        <button
+          aria-current={stage.id === active ? "step" : undefined}
+          data-preproduction-stage={stage.id}
+          key={stage.id}
+          onClick={() => onOpen(stage.id)}
+          type="button"
+        >
+          {stage.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
 
 export default function DashboardBbsReviewHost({
   items,
@@ -44,6 +83,8 @@ export default function DashboardBbsReviewHost({
   const [buildOpen, setBuildOpen] = useState(false);
   const [storyboardOpen, setStoryboardOpen] = useState(false);
   const [previsOpen, setPrevisOpen] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [productionOpen, setProductionOpen] = useState(false);
   const [reviewAddress, setReviewAddress] = useState<PreproductionReviewAddress>(DEFAULT_REVIEW_ADDRESS);
   const [buildReturnTarget, setBuildReturnTarget] = useState<BuildReturnTarget>("outline");
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
@@ -56,6 +97,8 @@ export default function DashboardBbsReviewHost({
     setBuildOpen(false);
     setStoryboardOpen(false);
     setPrevisOpen(false);
+    setTimelineOpen(false);
+    setProductionOpen(false);
   }
 
   useEffect(() => {
@@ -137,6 +180,31 @@ export default function DashboardBbsReviewHost({
     closePreproductionSurfaces();
     setPrevisOpen(true);
     onSurfaceNameChange("PREVIS");
+  }
+
+  function openTimeline(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setTimelineOpen(true);
+    onSurfaceNameChange("TIMELINE");
+  }
+
+  function openProduction(address: PreproductionReviewAddress = reviewAddress) {
+    setReviewAddress(address);
+    closePreproductionSurfaces();
+    setProductionOpen(true);
+    onSurfaceNameChange("PRODUCTION");
+  }
+
+  function openPreproductionStage(
+    stage: PreproductionStage,
+    address: PreproductionReviewAddress = reviewAddress,
+  ) {
+    if (stage === "outline") return openOutline(address);
+    if (stage === "storyboard") return openStoryboard(address);
+    if (stage === "previs") return openPrevis(address);
+    if (stage === "timeline") return openTimeline(address);
+    return openProduction(address);
   }
 
   function openBuild(
@@ -227,6 +295,16 @@ export default function DashboardBbsReviewHost({
     if (item.id === "previs") {
       onActivate(index);
       openPrevis(reviewAddress);
+      return;
+    }
+    if (item.id === "timeline") {
+      onActivate(index);
+      openTimeline(reviewAddress);
+      return;
+    }
+    if (item.id === "production") {
+      onActivate(index);
+      openProduction(reviewAddress);
       return;
     }
     if (item.id === "story-bible") {
@@ -330,6 +408,7 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
+        <PreproductionStageRail active="outline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
         <MatrixStoryMapSurface onOpenStage={openStoryMapStage} onOpenPrevis={openPrevis} onOpenStoryModeSettings={openStoryModeSettings} />
       </section>
     );
@@ -374,14 +453,12 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("storyboard")}>Back to Dashboard</button>
         </div>
+        <PreproductionStageRail active="storyboard" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
         <SkinV1StoryboardReviewSurface
           address={reviewAddress}
           onAddressChange={setReviewAddress}
           onOpenBuild={() => openBuild(reviewAddress, "storyboard")}
         />
-        <div className="pp-skin-v1-preproduction-handoff">
-          <button type="button" onClick={() => openPrevis(reviewAddress)}>Continue to Previs</button>
-        </div>
       </section>
     );
   }
@@ -401,11 +478,61 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>
+        <PreproductionStageRail active="previs" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
         <SkinV1PrevisReviewSurface
           address={reviewAddress}
           onAddressChange={setReviewAddress}
           onOpenStoryboard={openStoryboard}
           onOpenBuild={() => openBuild(reviewAddress, "previs")}
+        />
+      </section>
+    );
+  }
+
+  if (timelineOpen) {
+    return (
+      <section
+        aria-label="Timeline pre-production"
+        data-dashboard-review-surface="timeline"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard("timeline"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>TIMELINE</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("timeline")}>Back to Dashboard</button>
+        </div>
+        <PreproductionStageRail active="timeline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <SkinV1TimelineReviewSurface
+          address={reviewAddress}
+          onAddressChange={setReviewAddress}
+          onOpenStoryboard={openStoryboard}
+        />
+      </section>
+    );
+  }
+
+  if (productionOpen) {
+    return (
+      <section
+        aria-label="Production pre-production"
+        data-dashboard-review-surface="production"
+        data-review-state="in-review"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); returnDashboard("production"); }
+        }}
+      >
+        <div className="pp-skin-v1-bbs-banner">
+          <h1>PRODUCTION</h1>
+          <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
+          <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("production")}>Back to Dashboard</button>
+        </div>
+        <PreproductionStageRail active="production" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <SkinV1ProductionReviewSurface
+          address={reviewAddress}
+          onAddressChange={setReviewAddress}
         />
       </section>
     );

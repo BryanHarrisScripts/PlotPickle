@@ -12,6 +12,7 @@
       "classification": "production",
       "include": [
         "app/skin-v1/**",
+        "app/skin-v1.css",
         "app/skin-v1-*.css",
         "app/skin-v1-definition.css",
         "app/skin-v1-runtime.tsx",

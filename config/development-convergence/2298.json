@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "issue": 2298,
+  "phase": "webmcp-full-qa-hardening",
+  "brief": "docs/developer-briefs/2298-webmcp-full-qa-hardening.md",
+  "allowedChanges": [
+    "lib/verification/browser-probes/runtime.mjs",
+    "lib/verification/webmcp-qa/artifacts.mjs",
+    "lib/verification/webmcp-qa/runner.mjs",
+    "lib/verification/webmcp-qa/cli.mjs",
+    "vite.config.ts",
+    "config/verification/ownership-map.json",
+    "tests/issue-2298-webmcp-full-qa-hardening.test.mjs",
+    "docs/developer-briefs/2298-webmcp-full-qa-hardening.md",
+    "config/development-convergence/2298.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2298-1",
+      "criterion": "Profile 5 hidden-focus inspection uses the existing rendered-state helper and cannot throw the observed undefined visible reference.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/runtime.mjs",
+          "contains": "!isRendered(active)"
+        }
+      ]
+    },
+    {
+      "id": "P2298-2",
+      "criterion": "Full QA creates and verifies both the run-specific evidence ZIP and predictable latest ZIP alias.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/artifacts.mjs",
+          "contains": "webmcp-full-qa-latest.zip"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/artifacts.mjs",
+          "contains": "verifyWebMcpZip"
+        }
+      ]
+    },
+    {
+      "id": "P2298-3",
+      "criterion": "The CLI explicitly identifies the verified shareable ZIP and preserves the unique run archive path.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "Share this ZIP"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "Run archive ZIP"
+        }
+      ]
+    },
+    {
+      "id": "P2298-4",
+      "criterion": "Vite ignores generated verification artifacts so Windows evidence handling cannot reproduce the observed watcher EBUSY failure.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "vite.config.ts",
+          "contains": "**/.artifacts/**"
+        }
+      ]
+    }
+  ]
+}

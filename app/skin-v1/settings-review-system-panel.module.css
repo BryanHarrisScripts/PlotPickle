@@ -89,7 +89,7 @@
   flex: 0 0 auto;
   border: var(--pp-skin-border-thin) solid var(--pp-skin-accent);
   background: var(--pp-skin-accent-deep);
-  padding: 3px 6px;
+  padding: var(--pp-skin-space-1) var(--pp-skin-space-2);
 }
 
 .card p {
@@ -103,7 +103,7 @@
   border-radius: 0;
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-accent-bright);
-  padding: 8px 10px;
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
   font: inherit;
   font-weight: 700;
   text-decoration: none;
@@ -179,7 +179,7 @@ button.action:disabled {
   display: grid;
   gap: 2px;
   border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line-soft);
-  padding-top: 6px;
+  padding-top: var(--pp-skin-space-2);
 }
 
 .dataList strong {

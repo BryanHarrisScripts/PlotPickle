@@ -997,7 +997,8 @@
         "config/ui-continuity-agent-registry.json",
         "config/visual-audit-captures.json",
         "config/visual-capture-registry.json",
-        "scripts/write-skin-v1-route-migration-ledger.mjs"
+        "scripts/write-skin-v1-route-migration-ledger.mjs",
+        "scripts/full-verification-auth.mjs"
       ],
       "ownerLayer": "verification",
       "riskTokens": [

@@ -7,7 +7,7 @@ import {
   type DiscoveryCard,
   type DiscoveryCardKind,
 } from "../../core/contracts/discovery";
-import { projectDiscoveryPins } from "../../core/project/discovery-projection";
+import { projectDiscoveryPins } from "../../core/project/discovery";
 import {
   saveActiveLibraryProject,
   type LibraryPPFProject,
@@ -124,12 +124,7 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       });
       const payload = await response.json() as AgentResponse;
       if (!response.ok) throw new Error(payload.message || "Discovery classification failed.");
-      let raw: unknown;
-      try {
-        raw = JSON.parse(payload.text || "");
-      } catch {
-        throw new Error("Discovery Mapper returned an invalid placement envelope.");
-      }
+      const raw: unknown = JSON.parse(payload.text || "");
       const mapped = normalizeDiscoveryMapperResult(raw);
       if (!mapped) throw new Error("Discovery Mapper did not return a valid Act and lane.");
       const updated = localCards.map((candidate): DiscoveryCard => candidate.id === card.id ? {
@@ -144,7 +139,12 @@ export default function DiscoverySurface({ project }: { readonly project: Librar
       persist(updated);
       setNotice(`Pinned to Act ${mapped.act} · ${DISCOVERY_LANES.find((lane) => lane.id === mapped.lane)?.label ?? mapped.lane}. Placement is read-only in v1.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Discovery classification failed. The card remains unpinned.");
+      const message = error instanceof SyntaxError
+        ? "Discovery Mapper returned an invalid placement envelope. The card remains unpinned."
+        : error instanceof Error
+          ? error.message
+          : "Discovery classification failed. The card remains unpinned.";
+      setNotice(message);
     } finally {
       setPinningId(null);
     }

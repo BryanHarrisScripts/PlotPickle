@@ -133,10 +133,11 @@ if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" (
       echo [3] RESILIENCE
       echo [4] CONTINUITY
       echo [5] RUNTIME
-      echo [6] FULL QA
+      echo [6] SURFACE CENSUS
+      echo [7] FULL QA
       echo.
     )
-    choice /C 123456 /N /M "Choose WebMCP QA profile [1-6]: "
+    choice /C 1234567 /N /M "Choose WebMCP QA profile [1-7]: "
     set "PLOTPICKLE_WEBMCP_QA_PROFILE=!ERRORLEVEL!"
   )
   echo !READY! WebMCP Testing selected. QA profile !PLOTPICKLE_WEBMCP_QA_PROFILE! will run in the isolated test session after readiness.

@@ -98,3 +98,13 @@ test("#2287 Discovery is connected from Dashboard and does not manufacture a pro
   assert.match(surface, /Load or create a story in Library before persistent project pinning/u);
   assert.doesNotMatch(surface, /createLibraryUserProject|createEmptyProject|Untitled Story/u);
 });
+
+
+test("#2287 live Dashboard keyboard audit includes Discovery between Writer's Craft and Library", async () => {
+  const audit = await read("lib/verification/skin-v1-menu-contract-audit.mjs");
+  const learn = audit.indexOf("[data-dashboard-menu-item='learn']");
+  const discovery = audit.indexOf("[data-dashboard-menu-item='discovery']");
+  const library = audit.indexOf("[data-dashboard-menu-item='library']");
+  assert.ok(learn >= 0 && discovery > learn && library > discovery);
+  assert.match(audit, /dashboard-discovery/u);
+});

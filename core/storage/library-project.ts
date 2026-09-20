@@ -14,11 +14,13 @@ import {
   type StoryStructureV2,
 } from "../project/story-structure-v2";
 import { normalizeFoundationProject, type PPFProject } from "../project/project";
+import { createEmptyDiscoveryState, normalizeDiscoveryState, type DiscoveryState } from "../contracts/discovery";
 
 export type LibraryPPFProject = PPFProject & {
   readonly structure: StoryStructureV2;
   readonly sourceEvidence: ProjectSourceEvidence;
   readonly writing: BlockWritingState;
+  readonly discovery: DiscoveryState;
 };
 
 function objectRecord(value: unknown): Readonly<Record<string, unknown>> {
@@ -46,5 +48,8 @@ export function normalizeLibraryProject(value: unknown): LibraryPPFProject {
   const writing = source.writing === undefined
     ? createEmptyBlockWritingState()
     : normalizeBlockWritingState(source.writing);
-  return { ...project, structure, sourceEvidence, writing };
+  const discovery = source.discovery === undefined
+    ? createEmptyDiscoveryState()
+    : normalizeDiscoveryState(source.discovery);
+  return { ...project, structure, sourceEvidence, writing, discovery };
 }

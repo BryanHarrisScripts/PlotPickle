@@ -39,11 +39,6 @@ import {
   readVisualBaselineManifest,
   toggleVisualBaselines,
 } from "./lock-skin-visual-baseline.mjs";
-import { runWebMcpQaProfile } from "../lib/verification/webmcp-qa/runner.mjs";
-import {
-  resolveWebMcpQaProfile,
-  webMcpQaProfileMenuLines,
-} from "../lib/verification/webmcp-qa/profiles.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -210,7 +205,7 @@ async function installedVersion(toolRoot, packageName) {
   }
 }
 
-async function ensureVerificationTools(toolRoot) {
+export async function ensureVerificationTools(toolRoot) {
   if (!toolRoot || !path.isAbsolute(toolRoot)) throw new Error("WebMCP startup testing requires an absolute isolated tool root.");
   await mkdir(toolRoot, { recursive: true });
   const packageFile = path.join(toolRoot, "package.json");
@@ -324,7 +319,7 @@ async function cleanup(home) {
   await cleanupVerificationSyntheticHome(path.resolve(home));
 }
 
-export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, profile = "1", githubReport = false, repair = false, repairWorker = "pi", allowBaselinePrompt = true, onEvent = null }) {
+export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubReport = false, repair = false, repairWorker = "pi", allowBaselinePrompt = true, onEvent = null }) {
   if (!home) throw new Error("Pass --home for the isolated WebMCP synthetic test home.");
   if (!toolRoot) throw new Error("Pass --tool-root pointing to the isolated WebMCP verification install.");
   const resolvedHome = path.resolve(home);
@@ -341,111 +336,78 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, profile =
     await waitForUiServer(server);
     const auth = await prepareWebMcpProfileGateSession({ baseUrl: server.origin, home: resolvedHome, toolRoot: resolvedToolRoot });
     await onEvent?.({ type: "stage", label: "Synthetic Human ready", detail: "Private Human cookies, credentials and story data are not inherited." });
-    const selectedProfile = resolveWebMcpQaProfile(profile);
-    const qaResult = await runWebMcpQaProfile({
-      profile: selectedProfile.id,
+    await onEvent?.({ type: "stage", label: "Checking Skin V1 entry", detail: "Verifying the rendered authenticated experience." });
+    await runWebMcpSurfaceVisualAudit({
       serverUrl: server.origin,
       toolRoot: resolvedToolRoot,
       storageStatePath: auth.storageStatePath,
-      onEvent,
-      runStandard: async () => {
-        await onEvent?.({ type: "stage", label: "Checking Skin V1 entry", detail: "Verifying the rendered authenticated experience." });
-        await runWebMcpSurfaceVisualAudit({
-          serverUrl: server.origin,
-          toolRoot: resolvedToolRoot,
-          storageStatePath: auth.storageStatePath,
-        });
-        const standardCatalogue = await runWebMcpStandardSurfaceCatalogue({
-          serverUrl: server.origin,
-          toolRoot: resolvedToolRoot,
-          storageStatePath: auth.storageStatePath,
-          onSurface: async (surface) => onEvent?.({
-            type: "surface",
-            label: `Checking ${surface.label}`,
-            detail: "Verifying route, visible boundary and current Skin V1 presentation.",
-            surface: surface.id,
-          }),
-        });
-        await onEvent?.({ type: "stage", label: "Comparing visual continuity", detail: "Dashboard remains the canonical Skin V1 reference." });
-        const visualDirector = await runSkinV1VisualDirector({
-          serverUrl: server.origin,
-          toolRoot: resolvedToolRoot,
-          storageStatePath: auth.storageStatePath,
-        });
-        await onEvent?.({ type: "stage", label: "Checking navigation contract", detail: "Verifying menu reachability and safe return paths." });
-        await runSkinV1MenuContractAudit({
-          serverUrl: server.origin,
-          toolRoot: resolvedToolRoot,
-          storageStatePath: auth.storageStatePath,
-        });
-        const findingsReport = await writeWebMcpFindingsReport({ status: "pass", target: server.origin, findings: [] });
-        const evidence = await writeEvidence("pass", {
-          findingsReport,
-          findingCount: 0,
-          standardSurfaceCatalogue: standardCatalogue,
-          visualDirector: {
-            report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
-            surfaces: visualDirector.totals.surfaces,
-            blockers: visualDirector.totals.blockers,
-            advisories: visualDirector.totals.advisories,
-          },
-        });
-        const pass = formatPassTag();
-        console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
-        console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
-        console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
-        console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
-        console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
-        console.log(`${pass} UAT findings report: ${findingsReport}`);
-        console.log(`${pass} Evidence report: ${evidence}`);
-
-        return { standardCatalogue, visualDirector, findingsReport, evidence };
+    });
+    const standardCatalogue = await runWebMcpStandardSurfaceCatalogue({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+      onSurface: async (surface) => onEvent?.({
+        type: "surface",
+        label: `Checking ${surface.label}`,
+        detail: "Verifying route, visible boundary and current Skin V1 presentation.",
+        surface: surface.id,
+      }),
+    });
+    await onEvent?.({ type: "stage", label: "Comparing visual continuity", detail: "Dashboard remains the canonical Skin V1 reference." });
+    const visualDirector = await runSkinV1VisualDirector({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
+    await onEvent?.({ type: "stage", label: "Checking navigation contract", detail: "Verifying menu reachability and safe return paths." });
+    await runSkinV1MenuContractAudit({
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+      storageStatePath: auth.storageStatePath,
+    });
+    const findingsReport = await writeWebMcpFindingsReport({ status: "pass", target: server.origin, findings: [] });
+    const evidence = await writeEvidence("pass", {
+      findingsReport,
+      findingCount: 0,
+      standardSurfaceCatalogue: standardCatalogue,
+      visualDirector: {
+        report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
+        surfaces: visualDirector.totals.surfaces,
+        blockers: visualDirector.totals.blockers,
+        advisories: visualDirector.totals.advisories,
       },
     });
-    if (qaResult.overall !== "PASS") {
-      const failed = qaResult.profiles.filter((entry) => entry.status === "FAIL" || Number(entry.blockers) > 0);
-      throw new Error(`WebMCP ${selectedProfile.label} failed: ${failed.map((entry) => `${entry.label} (${entry.blockers} blocker(s))`).join(", ") || "unknown profile failure"}.`);
-    }
-    if (selectedProfile.id !== "1") {
-      const pass = formatPassTag();
-      for (const entry of qaResult.profiles) {
-        console.log(`${pass} ${entry.label}: ${entry.status} — ${entry.blockers} blocker(s), ${entry.advisories} advisory finding(s).`);
-      }
-      if (qaResult.zipPath) console.log(`${pass} Full QA ZIP: ${qaResult.zipPath}`);
-      if (qaResult.manifestPath) console.log(`${pass} Full QA manifest: ${qaResult.manifestPath}`);
-    }
+    const pass = formatPassTag();
+    console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
+    console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
+    console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
+    console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);
+    console.log(`${pass} Visual Director report: ${path.resolve(VISUAL_DIRECTOR_REPORT_PATH)}`);
+    console.log(`${pass} UAT findings report: ${findingsReport}`);
+    console.log(`${pass} Evidence report: ${evidence}`);
 
-    if (selectedProfile.id === "1" || selectedProfile.id === "6") {
-      const { manifest } = await readVisualBaselineManifest({ root: repoRoot });
-      console.log("");
-      for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
-      console.log("");
-      try {
-        const approval = selectedProfile.id === "1" && allowBaselinePrompt
-          ? await promptVisualBaselineChanges({ manifest })
-          : { prompted: false, approved: false, surfaces: [] };
-        if (approval.approved) {
-          const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
-          console.log("");
-          for (const line of visualBaselineResultLines(result)) console.log(line);
-          console.log(`Updated manifest: ${result.manifestPath}`);
-          console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
-        } else if (approval.prompted) {
-          console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
-        }
-      } catch (approvalError) {
-        console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
+    const { manifest } = await readVisualBaselineManifest({ root: repoRoot });
+    console.log("");
+    for (const line of visualBaselineReviewLines({ manifest })) console.log(line);
+    console.log("");
+    try {
+      const approval = allowBaselinePrompt
+        ? await promptVisualBaselineChanges({ manifest })
+        : { prompted: false, approved: false, surfaces: [] };
+      if (approval.approved) {
+        const result = await toggleVisualBaselines(approval.surfaces, { root: repoRoot });
+        console.log("");
+        for (const line of visualBaselineResultLines(result)) console.log(line);
+        console.log(`Updated manifest: ${result.manifestPath}`);
+        console.log("No GitHub commit or push was performed. Review these local changes and use the normal pull-request workflow.");
+      } else if (approval.prompted) {
         console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
       }
+    } catch (approvalError) {
+      console.error(`[WEBMCP] Visual baseline approval did not complete: ${approvalError instanceof Error ? approvalError.message : String(approvalError)}`);
+      console.log("[WEBMCP] Existing Skin V1 visual baselines were left unchanged.");
     }
-    await onEvent?.({
-      type: "result",
-      label: `WebMCP ${selectedProfile.label} passed`,
-      detail: selectedProfile.id === "6"
-        ? `Profiles 1 through 5 passed; aggregate evidence: ${qaResult.zipPath}`
-        : `${selectedProfile.description}`,
-      state: "PASS",
-    });
+    await onEvent?.({ type: "result", label: "WebMCP acceptance passed", detail: `${standardCatalogue.surfaces} registered surfaces checked; no visual baseline was auto-approved.`, state: "PASS" });
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -486,9 +448,7 @@ const directExecution = process.argv[1] && path.resolve(process.argv[1]) === pat
 if (directExecution) {
   const command = process.argv[2] || "run";
   const home = argument("--home");
-  if (command === "profiles") {
-    for (const line of webMcpQaProfileMenuLines()) console.log(line);
-  } else if (command === "prepare") {
+  if (command === "prepare") {
     prepare(home).catch((error) => {
       console.error(error.message);
       process.exitCode = 1;
@@ -503,7 +463,6 @@ if (directExecution) {
       serverUrl: argument("--server", "http://127.0.0.1:4173"),
       home,
       toolRoot: argument("--tool-root"),
-      profile: argument("--profile", process.env.PLOTPICKLE_WEBMCP_QA_PROFILE || "1"),
       githubReport: process.argv.includes("--github-report"),
       repair: process.argv.includes("--repair"),
       repairWorker: argument("--repair-worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi"),

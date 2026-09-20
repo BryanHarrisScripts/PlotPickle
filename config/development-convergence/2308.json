@@ -1,0 +1,103 @@
+{
+  "issue": 2308,
+  "title": "F12 Surface Census for complete user-visible coverage",
+  "allowedChanges": [
+    "config/verification/webmcp-qa-profiles.json",
+    "lib/verification/webmcp-qa/profiles.mjs",
+    "lib/verification/webmcp-qa/runner.mjs",
+    "lib/verification/webmcp-qa/artifacts.mjs",
+    "lib/verification/webmcp-qa/cli.mjs",
+    "lib/verification/browser-probes/surface-census.mjs",
+    "Start-PlotPickle.bat",
+    "tests/issue-2294-webmcp-full-qa.test.mjs",
+    "tests/issue-2308-surface-census.test.mjs",
+    "docs/developer-briefs/2308-surface-census.md",
+    "config/development-convergence/2308.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2308-1",
+      "criterion": "Surface Census is Profile 6 and Full QA is Profile 7 running 1 through 6.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/webmcp-qa-profiles.json",
+          "contains": "\"key\": \"surface-census\""
+        },
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "[6] SURFACE CENSUS"
+        },
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "[7] FULL QA"
+        }
+      ]
+    },
+    {
+      "id": "P2308-2",
+      "criterion": "Surface Census reconciles canonical, live Dashboard and governed WebMCP inventories.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "SKIN_V1_SURFACES"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "DASHBOARD_ROW_SELECTOR"
+        }
+      ]
+    },
+    {
+      "id": "P2308-3",
+      "criterion": "The census separates reconciliation from governance and preserves safe diagnostic-only discovery.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "reconciliationCoveragePct"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "governanceCoveragePct"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "paidGenerationActions: false"
+        }
+      ]
+    },
+    {
+      "id": "P2308-4",
+      "criterion": "F12 prints Surface Census reconciliation and governance totals directly in the console.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "[WEBMCP] Surface Census"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "Reconciliation coverage"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "Governance coverage"
+        }
+      ]
+    }
+  ]
+}

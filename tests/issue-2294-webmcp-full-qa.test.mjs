@@ -14,15 +14,16 @@ import { WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-cano
 
 const read = (target) => readFile(new URL("../" + target, import.meta.url), "utf8");
 
-test("#2294 exposes exactly six governed QA profiles and keeps Full QA ordered 1 through 5", () => {
-  assert.deepEqual(WEBMCP_QA_PROFILE_CONFIG.profiles.map((profile) => profile.id), ["1", "2", "3", "4", "5", "6"]);
-  assert.deepEqual(WEBMCP_FULL_QA_ORDER, ["1", "2", "3", "4", "5"]);
+test("#2294 Full QA profile contract remains ordered after the #2308 census extension", () => {
+  assert.deepEqual(WEBMCP_QA_PROFILE_CONFIG.profiles.map((profile) => profile.id), ["1", "2", "3", "4", "5", "6", "7"]);
+  assert.deepEqual(WEBMCP_FULL_QA_ORDER, ["1", "2", "3", "4", "5", "6"]);
   assert.equal(WEBMCP_QA_PROFILE_CONFIG.defaultProfile, "1");
   assert.equal(resolveWebMcpQaProfile("standard").id, "1");
-  assert.equal(resolveWebMcpQaProfile("FULL QA").id, "6");
-  assert.equal(resolveWebMcpQaProfile("6").key, "full");
+  assert.equal(resolveWebMcpQaProfile("SURFACE CENSUS").id, "6");
+  assert.equal(resolveWebMcpQaProfile("FULL QA").id, "7");
+  assert.equal(resolveWebMcpQaProfile("7").key, "full");
   const menu = webMcpQaProfileMenuLines().join("\n");
-  for (const label of ["STANDARD", "INTERACTION", "RESILIENCE", "CONTINUITY", "RUNTIME", "FULL QA"]) {
+  for (const label of ["STANDARD", "INTERACTION", "RESILIENCE", "CONTINUITY", "RUNTIME", "SURFACE CENSUS", "FULL QA"]) {
     assert.match(menu, new RegExp(label, "u"));
   }
 });
@@ -58,7 +59,7 @@ test("#2294 preserves Standard and routes selectable QA through a dedicated wrap
   assert.match(qaRunner, /getStorageStatePath/u);
 
   assert.match(launcher, /WEBMCP_QA_RUNNER=lib\\verification\\webmcp-qa\\cli\.mjs/u);
-  assert.match(launcher, /choice \/C 123456 \/N \/M "Choose WebMCP QA profile \[1-6\]:"/u);
+  assert.match(launcher, /choice \/C 1234567 \/N \/M "Choose WebMCP QA profile \[1-7\]:"/u);
   assert.match(launcher, /PLOTPICKLE_WEBMCP_QA_PROFILE=!ERRORLEVEL!/u);
   assert.match(launcher, /\$env:WEBMCP_QA_RUNNER/u);
   assert.match(launcher, /--profile "' \+ \$env:PLOTPICKLE_WEBMCP_QA_PROFILE/u);
@@ -151,7 +152,7 @@ test("#2294 Full QA evidence contract records commit, ordered profiles, sanitiza
     assert.ok(artifacts.includes(evidence), "Missing expected evidence path: " + evidence);
   }
   assert.match(artifacts, /commitSha/u);
-  assert.match(artifacts, /orderedProfiles: \["1", "2", "3", "4", "5"\]/u);
+  assert.match(artifacts, /orderedProfiles: \["1", "2", "3", "4", "5", "6"\]/u);
   assert.match(artifacts, /credentials: "excluded"/u);
   assert.match(artifacts, /humanPassphrases: "excluded"/u);
   assert.match(artifacts, /surfaceCatalogue: 30/u);

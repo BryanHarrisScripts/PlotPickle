@@ -4,25 +4,24 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Layer 1 canonical Skin contract keeps one continuous secure Profile Gate", async () => {
-  const [boundary, css, router, voice] = await Promise.all([
-    read("app/profile-access/profile-access-boundary.tsx"),
-    read("app/profile-access/profile-access-boundary.module.css"),
+test("Layer 1 canonical Skin contract keeps one continuous secure Skin V1 LOGON shell", async () => {
+  const [client, css, router, voice] = await Promise.all([
+    read("app/skin-v1/skin-v1-client.tsx"),
+    read("app/skin-v1.css"),
     read("app/profile-access/profile-access-router.tsx"),
     read("lib/voice-input.ts"),
   ]);
 
-  assert.match(boundary, /function ProfileGateShell/u);
-  assert.match(boundary, /data-profile-gate-state=\{state\}/u);
-  assert.match(boundary, /<h1>PlotPickle Profile Gate<\/h1>/u);
-  assert.match(boundary, /state="initializing"[\s\S]*INITIALIZING LOCAL NODE/u);
-  assert.match(boundary, /state="locked"/u);
-  assert.match(boundary, /activeProfiles\.length === 1[\s\S]*screen: "login"/u);
-  assert.match(boundary, /forceChooser: action === "switch-profile"/u);
-  assert.match(boundary, /__PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__/u);
-  assert.match(boundary, /if \(webMcpProfileGateCaptureRequested\(\)\) return;/u);
-  assert.match(css, /\.gateState[\s\S]*min-height:/u);
-  assert.match(css, /html\[data-plotpickle-skin="skin-v1"\][\s\S]*\.gateState/u);
+  assert.match(client, /function webMcpProfileGateCaptureRequested/u);
+  assert.match(client, /__PLOTPICKLE_WEBMCP_PROFILE_GATE_CAPTURE__/u);
+  assert.match(client, /if \(webMcpProfileGateCaptureRequested\(\)\) return;/u);
+  assert.match(client, /view\.state === "loading" \? "initializing" : view\.state/u);
+  assert.match(client, /data-skin-v1-logon-state=\{logonState\}/u);
+  assert.match(client, /PLOTPICKLE[\s\S]*LOGON[\s\S]*SKIN V1/u);
+  assert.match(client, /view\.profiles\.length === 1[\s\S]*data-skin-v1-known-profile="true"/u);
+  assert.match(client, /view\.profiles\.length > 1[\s\S]*<select/u);
+  assert.match(client, /autoFocus=\{view\.profiles\.length === 1\}/u);
+  assert.match(css, /\.pp-skin-v1-logon > \.pp-skin-v1-panel > :is\(p, form, \.pp-skin-v1-message\)[\s\S]*min-height: 260px/u);
   assert.ok(router.includes('if (isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;'));
   assert.match(voice, /password\|passphrase\|secret/u);
 });
@@ -41,6 +40,9 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
   assert.doesNotMatch(capture, /page\.fill\(|keyboard\.type\(|locator\([^\n]*password[^\n]*\)\.fill/u);
   assert.match(capture, /credentialAutomation: false/u);
   assert.match(capture, /assertProfileGateContinuity/u);
+  assert.match(capture, /data-skin-v1-logon-state/u);
+  assert.match(capture, /new URL\("\/skin-v1", server\.origin\)/u);
+  assert.match(capture, /headerCells\.join\("\|"\) !== "PLOTPICKLE\|LOGON\|SKIN V1"/u);
 
   assert.match(runner, /prepareWebMcpProfileGateSession/u);
   const initializing = capture.indexOf('state: "initializing"');

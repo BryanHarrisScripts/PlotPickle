@@ -23,9 +23,9 @@ test("#2124 expands WebMCP through reachable nested Matrix directories", () => {
 });
 
 test("#2124 coverage contract distinguishes real captures, wired census surfaces, actions and unwired placeholders", () => {
-  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly, ["story-bible", "production"]);
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly, ["discovery", "story-bible", "production", "pitch-package"]);
   assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.nonVisualActions, ["logout"]);
-  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired, ["edit", "feedback", "refine", "reports", "wyrmwood", "story"]);
+  assert.deepEqual(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.currentlyUnwired, ["edit", "feedback", "refine", "reports", "pitch-deck", "wyrmwood", "story"]);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.library.includes("library-archive"));
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.settings.includes("story-mode"));
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.captured.settings.includes("hybrid-story-mode"));

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "issue": 2226,
   "surfaceId": "scene-timeline",
-  "surfaceLabel": "Scene Workspace",
+  "surfaceLabel": "Timeline",
   "registryParent": "storyboard",
   "family": "storyboard",
   "declarationVersion": 1,

@@ -332,7 +332,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     return (
       <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey loading">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Learn</button></div>
           <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
           <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `JOURNEY UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL JOURNEY MAP…"}</p>
         </div>
@@ -446,7 +446,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       }}
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Writer&apos;s Craft</button></div>
+        <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Learn</button></div>
         <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
         <div className={styles.exploreEntry}>
           <button type="button" className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}`} data-learn-explore-open="true" data-skin-menu-connected="true" onClick={() => setExploreOpen(true)}>

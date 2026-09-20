@@ -26,7 +26,7 @@
       "baseline": "tests/visual-baselines/skin-v1/01-community.png"
     },
     "writers-craft": {
-      "label": "Writer's Craft",
+      "label": "Learn",
       "status": "candidate",
       "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
       "candidate": ".artifacts/visual-readiness/02-writers-craft__candidate.png",
@@ -117,7 +117,7 @@
       "baseline": "tests/visual-baselines/skin-v1/14-identity.png"
     },
     "settings": {
-      "label": "Manage",
+      "label": "Settings",
       "status": "candidate",
       "selector": "section[aria-label='Settings menu']",
       "candidate": ".artifacts/visual-readiness/15-manage__candidate.png",
@@ -173,21 +173,21 @@
       "baseline": "tests/visual-baselines/skin-v1/15-manage__04-agents.png"
     },
     "issue-log": {
-      "label": "Bug Report",
+      "label": "Service",
       "status": "candidate",
       "selector": "section[aria-label='Issue Log'][data-dashboard-review-surface='help']",
       "candidate": ".artifacts/visual-readiness/16-bug-report__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/16-bug-report.png"
     },
     "licensing": {
-      "label": "Notices",
+      "label": "Legal",
       "status": "candidate",
       "selector": "section[aria-label='Open Source'][data-dashboard-review-surface='open-source']",
       "candidate": ".artifacts/visual-readiness/17-notices__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/17-notices.png"
     },
     "shutdown-node": {
-      "label": "Shut Down Node",
+      "label": "Shut Down",
       "status": "candidate",
       "selector": "section[aria-label='Shut Down Node'][data-dashboard-review-surface='shutdown-node']",
       "candidate": ".artifacts/visual-readiness/19-shutdown-node__candidate.png",

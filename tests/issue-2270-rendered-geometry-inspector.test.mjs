@@ -50,7 +50,7 @@ test("#2270 generated Surface Contract Matrix is a projection of existing profil
   assert.match(matrix, /Generated projection of the existing Skin V1 four-layer specification stack/u);
   assert.match(matrix, /\| Dashboard \| dashboard-reference \| layered-inset \(2px \+ 1px inset\)/u);
   assert.match(matrix, /\| Library \| library-family .* horizontal/u);
-  assert.match(matrix, /Shut Down Node/u);
+  assert.match(matrix, /Shut Down/u);
   assert.match(matrix, /Four-column subordinate card\/metric groups remain valid/u);
   assert.match(checkedIn, /Skin V1 Surface Contract Matrix/u);
   assert.match(checkedIn, /not a fifth design authority/u);
@@ -112,14 +112,14 @@ test("#2270 measurement analysis detects frame, overflow, column, menu and typog
   assert.ok(blockingFindings.some((finding) => finding.severity === "blocker" && finding.category === "column-contract"));
 });
 
-test("#2270 Library and Dashboard contracts project registered child menus including Shutdown Node", async () => {
+test("#2270 Library and Dashboard contracts project registered child menus including Shut Down", async () => {
   const { contracts } = await loadSkinV1SurfaceContracts();
   const library = contracts.find((contract) => contract.surfaceId === "library");
   const dashboard = contracts.find((contract) => contract.surfaceId === "dashboard");
 
   assert.equal(library.expected.menu.orientation, "horizontal");
   assert.ok(library.expected.menu.expectedVisibleLabels.includes("New"));
-  assert.ok(dashboard.expected.menu.expectedVisibleLabels.includes("Shut Down Node"));
+  assert.ok(dashboard.expected.menu.expectedVisibleLabels.includes("Shut Down"));
 });
 
 test("#2270 extends the existing Visual Director and Browser Verification Broker path", async () => {

@@ -106,7 +106,7 @@ export default function DashboardBbsPanel({
 
   useEffect(() => {
     if (writerCraftMenuOpen) {
-      onSurfaceNameChange("WRITER'S CRAFT");
+      onSurfaceNameChange("LEARN");
       return;
     }
     if (settingsMenuOpen && settingsWorkspace) {

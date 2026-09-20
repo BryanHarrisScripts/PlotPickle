@@ -124,7 +124,11 @@ test("#2124 startup output exposes all complete-tree captures without automatic 
   assert.match(output, /library-new \(Library · New\)/u);
   assert.match(output, /story-mode \(Story Mode\)/u);
   assert.match(output, /hybrid-story-mode \(Hybrid Story Mode\)/u);
-  assert.match(output, /shutdown-node \(Shut Down Node\)/u);
+  assert.match(output, /writers-craft \(Learn\)/u);
+  assert.match(output, /settings \(Settings\)/u);
+  assert.match(output, /issue-log \(Service\)/u);
+  assert.match(output, /licensing \(Legal\)/u);
+  assert.match(output, /shutdown-node \(Shut Down\)/u);
   assert.match(output, /write \(Write\)/u);
   assert.match(output, /storyboard \(Storyboard\)/u);
   assert.match(output, /previs \(Previs\)/u);

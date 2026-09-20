@@ -135,6 +135,23 @@
       "localOnly": true
     },
     {
+      "id": "discovery-mapper",
+      "name": "Discovery Mapper",
+      "description": "Classify one unplaced Human-authored Discovery item into the most defensible current Act and semantic lane without rewriting canon.",
+      "entry": ".agents/skills/discovery-mapper/SKILL.md",
+      "path": ".agents/skills/discovery-mapper",
+      "uri": "skill://plotpickle/discovery-mapper",
+      "roles": [
+        "discovery-mapper"
+      ],
+      "primaryWorker": "mastra",
+      "consumers": [
+        "discovery-mapper"
+      ],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
       "id": "writer-in-residence",
       "name": "Writer-in-Residence",
       "description": "Exercise PlotPickle as a visible writer and report reproduced UX or product findings without hidden browser or repository authority.",

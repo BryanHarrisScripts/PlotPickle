@@ -152,6 +152,27 @@
   color: var(--pp-profile-status);
 }
 
+.gateState {
+  min-height: calc(var(--pp-control-height-lg) * 4);
+  display: grid;
+  align-content: start;
+  gap: var(--pp-space-3);
+}
+
+.gateState form {
+  display: grid;
+  gap: var(--pp-space-2);
+}
+
+.gateStatus {
+  color: var(--pp-profile-status) !important;
+  font-family: var(--pp-font-code) !important;
+  font-size: var(--pp-text-sm) !important;
+  font-weight: 800;
+  letter-spacing: var(--pp-tracking-label);
+  text-transform: uppercase;
+}
+
 .field {
   display: grid;
   gap: var(--pp-space-2);
@@ -714,4 +735,14 @@ form .actions button[type="submit"]:hover:not(:disabled),
   border-color: var(--pp-skin-accent-bright);
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-ink);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .gateState {
+  min-height: calc(var(--pp-skin-control-height) * 6);
+  gap: var(--pp-skin-space-3);
+}
+
+:global(html[data-plotpickle-skin="skin-v1"]) .gateStatus {
+  color: var(--pp-skin-accent-bright) !important;
+  font-family: var(--pp-skin-font-ui) !important;
 }

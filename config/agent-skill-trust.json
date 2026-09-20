@@ -104,6 +104,16 @@
       "lastEvaluatedRevision": "issue-968"
     },
     {
+      "uri": "skill://plotpickle/discovery-mapper",
+      "displayName": "Discovery Mapper",
+      "requestedCapabilityClasses": [
+        "curriculum-read",
+        "bounded-project-context"
+      ],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-2287"
+    },
+    {
       "uri": "skill://plotpickle/writer-in-residence",
       "displayName": "Writer in Residence",
       "requestedCapabilityClasses": [

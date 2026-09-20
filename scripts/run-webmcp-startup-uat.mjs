@@ -7,8 +7,9 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
+  authenticateVerificationSyntheticProfile,
   cleanupVerificationSyntheticHome,
-  establishVerificationSyntheticHuman,
+  createVerificationSyntheticProfile,
   prepareVerificationSyntheticHome,
 } from "./full-verification-auth.mjs";
 import { spawnCommand } from "./spawn-command.mjs";
@@ -26,6 +27,11 @@ import {
   runSkinV1VisualDirector,
 } from "../lib/verification/skin-v1-visual-director.mjs";
 import { runSkinV1MenuContractAudit } from "../lib/verification/skin-v1-menu-contract-audit.mjs";
+import {
+  PROFILE_GATE_CAPTURE_PATHS,
+  captureWebMcpProfileGateState,
+  writeProfileGateCaptureReport,
+} from "../lib/verification/webmcp-profile-gate-capture.mjs";
 import {
   buildWebMcpRuntimeFinding,
   findingsFromWebMcpError,
@@ -334,8 +340,29 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     await onEvent?.({ type: "stage", label: "Preparing isolated UAT", detail: "Using a synthetic Human profile separated from the signed-in Human." });
     await ensureVerificationTools(resolvedToolRoot);
     await waitForUiServer(server);
-    const auth = await establishVerificationSyntheticHuman({ baseUrl: server.origin, home: resolvedHome });
-    await onEvent?.({ type: "stage", label: "Synthetic Human ready", detail: "Private Human cookies, credentials and story data are not inherited." });
+    await onEvent?.({ type: "stage", label: "Capturing startup profile gate", detail: "Observing initialization and locked states without entering a Human credential." });
+    const initializingGate = await captureWebMcpProfileGateState({
+      state: "initializing",
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+    });
+    const preparedProfile = await createVerificationSyntheticProfile({ baseUrl: server.origin, home: resolvedHome });
+    const lockedGate = await captureWebMcpProfileGateState({
+      state: "locked",
+      serverUrl: server.origin,
+      toolRoot: resolvedToolRoot,
+    });
+    const profileGateCaptureReport = await writeProfileGateCaptureReport({
+      initializing: initializingGate,
+      locked: lockedGate,
+    });
+    const auth = await authenticateVerificationSyntheticProfile({
+      baseUrl: server.origin,
+      home: resolvedHome,
+      profileId: preparedProfile.profileId,
+      password: preparedProfile.password,
+    });
+    await onEvent?.({ type: "stage", label: "Synthetic Human ready", detail: "Private Human cookies, credentials and story data are not inherited; browser UAT never enters the generated verification credential." });
     await onEvent?.({ type: "stage", label: "Checking Skin V1 entry", detail: "Verifying the rendered authenticated experience." });
     await runWebMcpSurfaceVisualAudit({
       serverUrl: server.origin,
@@ -369,6 +396,8 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     const evidence = await writeEvidence("pass", {
       findingsReport,
       findingCount: 0,
+      profileGateCaptureReport,
+      profileGateCaptures: PROFILE_GATE_CAPTURE_PATHS,
       standardSurfaceCatalogue: standardCatalogue,
       visualDirector: {
         report: path.resolve(VISUAL_DIRECTOR_REPORT_PATH),
@@ -379,6 +408,7 @@ export async function runWebMcpStartupUat({ serverUrl, home, toolRoot, githubRep
     });
     const pass = formatPassTag();
     console.log(`${pass} WebMCP interface, surface, navigation and Skin V1 checks passed.`);
+    console.log(`${pass} Startup/profile gate captured safely: ${PROFILE_GATE_CAPTURE_PATHS.initializing}, ${PROFILE_GATE_CAPTURE_PATHS.locked}`);
     console.log(`${pass} Standard surface catalogue captured ${standardCatalogue.surfaces} surfaces; ${standardCatalogue.locked} locked baselines enforced.`);
     console.log(`${pass} Visual Director compared ${visualDirector.totals.surfaces} submenus against Dashboard: ${visualDirector.totals.blockers} blockers, ${visualDirector.totals.advisories} advisories.`);
     console.log(`${pass} Dashboard remains the sole canonical design reference: ${DASHBOARD_SCREENSHOT_PATH}`);

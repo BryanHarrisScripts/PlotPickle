@@ -29,7 +29,7 @@ test("Layer 1 canonical Skin contract keeps one continuous secure Profile Gate",
 
 test("Layer 1 canonical Skin contract captures startup states without browser credential entry", async () => {
   const [capture, runner, auth] = await Promise.all([
-    read("lib/verification/webmcp-profile-gate-capture.mjs"),
+    read("lib/verification/skin-v1/profile-gate-capture.mjs"),
     read("scripts/run-webmcp-startup-uat.mjs"),
     read("scripts/full-verification-auth.mjs"),
   ]);
@@ -42,13 +42,14 @@ test("Layer 1 canonical Skin contract captures startup states without browser cr
   assert.match(capture, /credentialAutomation: false/u);
   assert.match(capture, /assertProfileGateContinuity/u);
 
-  const initializing = runner.indexOf('state: "initializing"');
-  const createProfile = runner.indexOf("createVerificationSyntheticProfile");
-  const locked = runner.indexOf('state: "locked"');
-  const authenticate = runner.indexOf("authenticateVerificationSyntheticProfile");
+  assert.match(runner, /prepareWebMcpProfileGateSession/u);
+  const initializing = capture.indexOf('state: "initializing"');
+  const createProfile = capture.indexOf("createVerificationSyntheticProfile");
+  const locked = capture.indexOf('state: "locked"');
+  const authenticate = capture.indexOf("authenticateVerificationSyntheticProfile");
   assert.ok(initializing >= 0 && createProfile > initializing && locked > createProfile && authenticate > locked);
-  assert.match(runner, /profileGateCaptureReport/u);
-  assert.match(runner, /Startup\/profile gate captured safely/u);
+  assert.match(capture, /writeProfileGateCaptureReport/u);
+  assert.match(capture, /Startup\/profile gate captured safely/u);
 
   assert.match(auth, /export async function createVerificationSyntheticProfile/u);
   assert.match(auth, /export async function authenticateVerificationSyntheticProfile/u);

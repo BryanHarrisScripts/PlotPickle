@@ -13,6 +13,11 @@
     "app/skin-v1/dashboard-review-surface.module.css",
     "app/skin-v1/settings-review-system-panel.module.css",
     "app/skin-v1-settings-directory.css",
+    "app/profile-access/profile-identity-panel.tsx",
+    "app/skin-v1/hybrid-story-mode-panel.tsx",
+    "lib/verification/skin-v1/rendered-surface-profile.mjs",
+    "lib/verification/skin-v1-visual-director.mjs",
+    "tests/issue-2272-typography-convergence.test.mjs",
     "tests/issue-2300-full-qa-advisory-convergence.test.mjs",
     "docs/developer-briefs/2300-full-qa-advisory-convergence.md",
     "config/development-convergence/2300.json"

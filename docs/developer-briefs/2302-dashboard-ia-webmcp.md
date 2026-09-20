@@ -146,6 +146,12 @@ The existing detailed regression that hard-codes the old six groups is:
 
 That historical test must be updated for the new frozen IA, but it is not sufficient by itself because it is currently catalogued as manual-only.
 
+## Implementation routing decision
+
+- **Package** is connected in #2302 and routes to the existing `/pitch-review?scope=pitch` authority with `return=dashboard`; it does not create a new pitch-package model.
+- **Deck** remains visible but truthfully unwired in #2302. The existing Graphic Novel/pitch-deck implementation is retained as the content authority, but the historical `?workspace=pitch` path is not currently owned by the active root-workspace parser. Rebuilding or duplicating that runtime is outside this IA change.
+- WebMCP therefore classifies Package as connected/non-standard-capture evidence and Deck as currently unwired while retaining the 30-surface Standard catalogue.
+
 ## WebMCP requirements
 
 WebMCP must learn the same new Dashboard authority in the same change.

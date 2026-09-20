@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "issue": 2294,
+  "phase": "selectable-webmcp-full-qa",
+  "brief": "docs/developer-briefs/2294-webmcp-full-qa.md",
+  "allowedChanges": [
+    "Start-PlotPickle.bat",
+    "scripts/run-webmcp-startup-uat.mjs",
+    "config/verification/webmcp-qa-profiles.json",
+    "lib/verification/webmcp-qa-profiles.mjs",
+    "lib/verification/webmcp-qa-runner.mjs",
+    "lib/verification/webmcp-full-qa-artifacts.mjs",
+    "lib/verification/browser-probes/webmcp-governed-surface.mjs",
+    "lib/verification/browser-probes/interaction.mjs",
+    "lib/verification/browser-probes/resilience.mjs",
+    "lib/verification/browser-probes/continuity.mjs",
+    "lib/verification/browser-probes/runtime.mjs",
+    "tests/issue-2294-webmcp-full-qa.test.mjs",
+    "docs/developer-briefs/2294-webmcp-full-qa.md",
+    "config/development-convergence/2294.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2294-1",
+      "criterion": "WebMCP exposes exactly six selectable QA profiles and Full QA runs Profiles 1 through 5 in order.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/webmcp-qa-profiles.json",
+          "contains": "\"label\": \"FULL QA\""
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa-profiles.mjs",
+          "contains": "WEBMCP_FULL_QA_ORDER"
+        },
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "choice /C 123456"
+        }
+      ]
+    },
+    {
+      "id": "P2294-2",
+      "criterion": "Profile 1 remains the existing Standard WebMCP implementation and the 30-surface authority is unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/run-webmcp-startup-uat.mjs",
+          "contains": "runWebMcpStandardSurfaceCatalogue"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2294-webmcp-full-qa.test.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        }
+      ]
+    },
+    {
+      "id": "P2294-3",
+      "criterion": "Profiles 2 through 5 reuse the existing Browser Verification Broker and keep synthetic fault injection explicit and bounded.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/interaction.mjs",
+          "contains": "createBrowserVerificationSession"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/resilience.mjs",
+          "contains": "__plotpickle_webmcp_qa_probe__"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/continuity.mjs",
+          "contains": "session.browser.newContext"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/runtime.mjs",
+          "contains": "browser-verification-broker"
+        }
+      ]
+    },
+    {
+      "id": "P2294-4",
+      "criterion": "Full QA produces one sanitized ZIP bundle tied to the exact commit SHA.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "contains": "webmcp-full-qa-${runId}.zip"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "contains": "commitSha"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-full-qa-artifacts.mjs",
+          "contains": "humanPassphrases: \"excluded\""
+        }
+      ]
+    },
+    {
+      "id": "P2294-5",
+      "criterion": "Full QA continues independent profiles after later-profile failures, but skips dependent work when Standard cannot establish a trustworthy baseline.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa-runner.mjs",
+          "contains": "Profile 1 Standard did not establish a trustworthy governed application baseline."
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa-runner.mjs",
+          "contains": "finalizeWebMcpFullQaArtifacts"
+        }
+      ]
+    }
+  ]
+}

@@ -420,7 +420,7 @@ export function SkinV1ProductionReviewSurface({
                     </li>
                   ))}
                 </ol>
-              ) : <p>No Production Shot exists at this address. PlotPickle does not manufacture one to make Production look complete.</p>}
+              ) : <p>No Production Shot exists at this address. PlotPickle leaves the slot empty rather than creating a placeholder Production Shot.</p>}
             </section>
 
             <section className="pp-skin-v1-production-handoff-state" aria-label="Provider-neutral production handoff state">

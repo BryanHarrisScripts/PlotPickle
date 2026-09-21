@@ -45,6 +45,10 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-managed-upgrade.mjs
 
+      - name: Evaluate Pi 0.87 DSDD session compatibility
+        shell: pwsh
+        run: node scripts/evaluate-pi-087-dsdd-session.mjs
+
       - name: Validate bundled local video setup
         run: node --test tests/ltx-bundled-default.test.mjs
 

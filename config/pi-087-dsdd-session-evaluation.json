@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "issue": 2338,
+  "package": "@earendil-works/pi-coding-agent",
+  "releaseTag": "v0.87.0",
+  "releaseUrl": "https://github.com/earendil-works/pi/releases/tag/v0.87.0",
+  "currentManagedVersion": "0.84.4",
+  "candidateVersion": "0.87.0",
+  "decision": "candidate-probe",
+  "requiredExtensions": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
+  ],
+  "requiredCapabilities": {
+    "canonicalSessionContext": true,
+    "contextEditEntry": true,
+    "contextWithSystemExtensionEvent": true,
+    "stdioRpc": true
+  },
+  "forbiddenPlotPickleImports": [
+    "@earendil-works/pi-coding-agent/client",
+    "@earendil-works/pi-coding-agent/experimental/plugin"
+  ],
+  "promotionPolicy": "Promote the managed Pi pin only after the isolated Windows 0.87.0 candidate probe proves the exact pinned extension stack, supported package-root SDK, append-only context-edit semantics, and stdio RPC boundary."
+}

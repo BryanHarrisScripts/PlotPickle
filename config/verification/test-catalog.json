@@ -1137,7 +1137,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2262-public-site-authority.test.mjs"
+          "tests/issue-2262-public-site-authority.test.mjs",
+          "tests/issue-2327-public-host-blog.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1162,7 +1163,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "#2262 protects exact-commit Sites provenance, drift detection and Human-only OSS Radar public draft publication."
+      "notes": "#2262 protects exact-commit Sites provenance, drift detection and Human-only OSS Radar public draft publication. #2327 extends the same gate to both public production hostnames and complete in-site daily Radar reading."
     }
   ]
 }

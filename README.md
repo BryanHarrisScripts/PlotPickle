@@ -14,50 +14,29 @@ It combines writing education, story planning, visual development, screenplay wo
 
 **The Human remains the author.** AI can explain, suggest, draft, visualize and test ideas, but generated material does not silently become story canon.
 
-## Get PlotPickle
+## Current availability
 
-### Windows — recommended for testers
+PlotPickle is in active pre-release development. A public Windows installer is not currently available; release and download instructions will be added when there is a real build for users to install.
 
-1. Open the repository **Releases** page.
-2. Download the newest **`PlotPickleSetup.exe`**.
-3. Double-click the installer.
-4. Launch **PlotPickle** from the Start Menu or the optional Desktop shortcut.
-
-The Windows installer includes the PlotPickle runtime. Testers do **not** need to install Git, Node.js, npm, Rust or open a command window.
-
-PlotPickle installs the application under your Windows user profile and keeps your projects, profile, settings and local runtime data separately so normal upgrades or uninstall/reinstall do not erase your stories.
-
-> During pre-release testing, `PlotPickleSetup.exe` may also be supplied as a verified GitHub Actions artifact before it is attached to a public Release.
-
-### First launch
-
-On first launch:
-
-- create or unlock your local Human profile;
-- open the bundled Afterglow example or create/import a story;
-- visit **Settings** to connect only the AI services you actually want;
-- use PlotPickle without optional BUZZ, Ollama or ComfyUI if you prefer;
-- open **Settings → Help** for keyboard shortcuts and the Helper directory.
-
-There is no required paid AI provider and no silent local-to-paid-cloud fallback.
+Developers can run the repository from source using the instructions below. There is no required paid AI provider and no silent local-to-paid-cloud fallback.
 
 ## What PlotPickle does
+
+The current user-facing shell is **Matrix**. Its Dashboard groups work under **Explore, Develop, Visualize, Review, Pitch, Play and System**, while the underlying story, canon and evidence contracts remain shared across those surfaces.
 
 ### Learn
 
 PlotPickle includes an 81-lesson writing curriculum. LEARN teaches the craft in the same application where you apply it, with Sage Brinewick available as a curriculum-grounded guide.
 
-### Plan
+### Outline and planning
 
-PLAN turns learning and story ideas into explicit, reviewable decisions. Answers stay provisional until the writer accepts them.
+Planning turns learning and story ideas into explicit, reviewable decisions. Answers stay provisional until the writer accepts them.
 
-### Build
+### Visualize and production
 
-BUILD shows what the current story actually supports and turns approved decisions into visual development work.
+Matrix connects approved story decisions to the current visual-development and production surfaces:
 
-The BUILD studio now keeps the production path discoverable in one place:
-
-**Story Coverage → Story Workflow → Wireframe → Storyboard → Previs → Render Plan**
+**Story → Outline → Storyboard → Previs → Timeline → Production**
 
 ### Storyboard, Previs and Render Plan
 
@@ -235,6 +214,7 @@ PlotPickle can connect to optional services, including:
 
 - **BUZZ** for Community, signed rooms and presence;
 - **Ollama / LM Studio / llama.cpp** for local writing models;
+- **whisper.cpp** for optional local speech-to-text and dictation;
 - **ComfyUI** for local image/video workflows;
 - configured cloud/BYOK providers for capabilities the user explicitly chooses.
 
@@ -249,17 +229,20 @@ The canonical machine-readable inventory is [`config/third-party-oss.json`](conf
 
 | Open-source system | How it contributes to PlotPickle | Licence |
 |---|---|---|
-| Node.js | Bundled Windows application runtime | MIT, plus upstream third-party notices |
+| Node.js | Pinned runtime used by PlotPickle and Windows packaging work | MIT, plus upstream third-party notices |
 | React | Primary UI runtime | MIT |
 | Vite | Build/local application runtime | MIT |
 | Vinext | Next-compatible application runtime | MIT |
+| Tailwind CSS | CSS/tooling dependency in the application stack | MIT |
 | Mastra | Bounded agent/orchestration runtime | Apache-2.0 |
 | Vercel AI SDK | Provider-neutral AI runtime primitives | Apache-2.0 |
 | Drizzle ORM | Data/database tooling | Apache-2.0 |
 | libsodium / libsodium-wrappers-sumo | Authentication/profile cryptography | ISC |
+| JetBrains Mono | Self-hosted canonical monospace UI typeface | OFL-1.1 |
 | BUZZ | Optional Community, signed rooms and presence | Apache-2.0 |
 | Ollama | Optional user-managed local model runtime | MIT |
 | llama.cpp | Optional user-managed local model runtime | MIT |
+| whisper.cpp | Optional reviewed local speech-to-text runtime | MIT |
 | ComfyUI | Optional user-managed local image/video workflow runtime | GPL-3.0 |
 | FFmpeg / ffprobe | Optional user-managed local media measurement for Sequence Evidence; not bundled | LGPL-2.1-or-later by default; some builds are GPL-2.0-or-later |
 | Lazy Frames | Optional reviewed local animatic tool | MIT |
@@ -279,17 +262,18 @@ These projects are not presented as PlotPickle runtime dependencies. They are ac
 | Lightricks ComfyUI-LTXVideo pinned workflow | Source/reference for the reviewed single-stage LTX proof graph at the recorded upstream revision | Apache-2.0 at the pinned source revision |
 | ComfyUI LTX-Video workflow template | Reference for the reviewed text-to-video LTX graph adaptation | MIT |
 | Sideshow | Inspired the shared visual Review Stage pattern for inspecting bounded agent work and attaching Human feedback to exact review items | MIT |
+| Color Expert Agent Skill | Reviewed knowledge/methodology source for PlotPickle's independently authored Color Expert adapter Skill | CC BY 4.0 for upstream original project materials; source-derived references retain their original terms |
 
 Evaluation-only or future candidates are deliberately **not** presented as contributors merely because they appear in an issue or architecture discussion. They enter this acknowledgement only when their work materially influences current PlotPickle and the same change adds an auditable `PLOTPICKLE:OSS-INFLUENCE:<registry-id>` declaration.
 
-PlotPickle also supports reviewed third-party model/assets under their own terms. For example, the optional SDXL Base 1.0 starter is pinned and verified under its OpenRAIL++ terms. A connection being supported does **not** mean it is open source: LM Studio and configured proprietary/cloud/BYOK providers are deliberately excluded from the OSS tables rather than being mislabelled.
+PlotPickle also supports reviewed third-party model/assets under their own terms. For example, the optional SDXL Base 1.0 starter is pinned and verified under its OpenRAIL++ terms, and the optional whisper.cpp `base.en` speech model is pinned to an immutable reviewed revision under its recorded MIT terms. A connection being supported does **not** mean it is open source: LM Studio and configured proprietary/cloud/BYOK providers are deliberately excluded from the OSS tables rather than being mislabelled.
 
 For licence scope and retained notices, see [`LICENSES.md`](LICENSES.md), [`NOTICE.md`](NOTICE.md), the full npm lockfile and the paths recorded in the canonical registry. Third-party names and trademarks belong to their respective owners; acknowledgement does not imply endorsement or sponsorship.
 <!-- PLOTPICKLE:OSS:END -->
 
 ## Run from source
 
-The installer is the normal path for testers. Developers can run the repository directly.
+Until a public Windows installer is released, the repository is the developer-facing way to run PlotPickle.
 
 ### Requirements
 
@@ -321,13 +305,13 @@ npm test
 npm run build
 ```
 
-### Build the Windows package
+### Windows packaging development
 
 ```bash
 npm run package:windows
 ```
 
-The release workflow additionally builds and exercises the native Windows launcher and `PlotPickleSetup.exe` on a Windows GitHub runner.
+Windows packaging remains development/release-engineering work. This command and its CI coverage do not represent a currently available public installer.
 
 ## Repository map
 
@@ -355,9 +339,9 @@ Useful starting points:
 
 ## Project status
 
-PlotPickle is actively developed and is entering real-user testing. STORY: The Unwritten now has its deterministic rules kernel and sparse persistence/canon foundation in place; creator controls, validation, bounded character agents and the dedicated playable workspace remain active development work.
+PlotPickle is actively developed and remains pre-release. The current Matrix experience is being converged and validated across its governed surfaces while Windows distribution packaging is still being completed. STORY: The Unwritten has its deterministic rules kernel and sparse persistence/canon foundation in place; creator controls, validation, bounded character agents and the dedicated playable workspace remain active development work.
 
-The current product priority remains getting the Windows application into testers' hands, observing real workflows and using that evidence to drive the next architecture and performance decisions.
+The current product priority is to keep the Matrix experience, story authority and validation evidence aligned, then move the Windows application into external testing when a real installable release is ready.
 
 Issues and pull requests are tracked in this repository. If you find a confusing workflow, visual inconsistency, failed install, lost navigation path or reproducible bug, please capture the steps and environment so it can become a deterministic product fix.
 

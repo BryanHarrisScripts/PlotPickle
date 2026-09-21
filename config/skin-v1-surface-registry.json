@@ -1053,7 +1053,6 @@
       "continuityIds": [
         "plan"
       ],
-      "route": "/?workspace=plan",
       "navigationPath": [
         {
           "order": 4,
@@ -1068,8 +1067,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "project-workspace"
       },
-      "runtimeSelector": "[data-plan-surface='foundations']",
-      "runtimeReadySelector": "[data-plan-surface='foundations']"
+      "runtimeSelector": "[data-dashboard-review-surface='outline']",
+      "runtimeReadySelector": "[data-dashboard-review-surface='outline']"
     },
     {
       "id": "plan-world",

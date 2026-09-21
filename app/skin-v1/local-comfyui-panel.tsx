@@ -6,6 +6,8 @@ const MEDIA_API = "/api/media-routing";
 const DIAGNOSTICS_API = "/api/provider-diagnostics/comfyui";
 const COMFY_START_API = `${MEDIA_API}/comfyui/start`;
 const SDXL_STARTER_API = `${MEDIA_API}/comfyui/sdxl-starter`;
+const QWEN_WORKFLOW_API = `${MEDIA_API}/comfyui/qwen-image-2.1-workflow`;
+const QWEN_PROFILE_API = `${MEDIA_API}/comfyui/qwen-image-2.1-profile`;
 const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
 const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
 
@@ -17,10 +19,23 @@ type ComfyStatus = {
   imageNodesReady: boolean;
   missingImageNodes: string[];
   checkpoint: string;
+  imageProfile: "sdxl-1.0" | "qwen-image-2.1-experimental";
   imageVerifiedAt: string;
   latencyMs?: number;
   error: string;
   capabilityError?: string;
+  qwenImage21: {
+    experimental: true;
+    licenseAcknowledged: boolean;
+    licenseAcknowledgedAt: string;
+    workflowConfigured: boolean;
+    workflowNodesReady: boolean;
+    missingWorkflowNodes: string[];
+    nodeClasses: string[];
+    configuredAt: string;
+    lastVerifiedAt: string;
+    lastError: string;
+  };
 };
 
 type MediaStatus = {
@@ -185,14 +200,26 @@ export default function LocalComfyUiPanel() {
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("Checking PlotPickle's fixed local image stack...");
   const [imageResult, setImageResult] = useState<ImageTestResult | null>(null);
+  const [qwenWorkflowText, setQwenWorkflowText] = useState("");
+  const [qwenLicenseAcknowledged, setQwenLicenseAcknowledged] = useState(false);
 
   function statusMessage(next: MediaStatus, install: InstallationStatus | null, attempt: StartAttempt | null) {
     const modelReady = exactSdxlAvailable(next.comfyui.checkpoints);
+    const qwenActive = next.comfyui.imageProfile === "qwen-image-2.1-experimental";
     if (!next.comfyui.reachable) {
       if (attempt && !attempt.ready) return startFailureLabel(attempt);
       return install?.installed === false
         ? "ComfyUI is not installed."
         : "The managed ComfyUI engine is installed, but its local service is not running on 127.0.0.1:8188.";
+    }
+    if (qwenActive) {
+      if (!next.comfyui.qwenImage21.licenseAcknowledged) return "Qwen-Image-2.1 is selected but its Research License has not been acknowledged.";
+      if (!next.comfyui.qwenImage21.workflowConfigured) return "Qwen-Image-2.1 is selected but no reviewed ComfyUI API workflow is configured.";
+      if (!next.comfyui.qwenImage21.workflowNodesReady) return next.comfyui.qwenImage21.missingWorkflowNodes.length
+        ? `ComfyUI is missing Qwen workflow nodes: ${next.comfyui.qwenImage21.missingWorkflowNodes.join(", ")}.`
+        : "The Qwen-Image-2.1 workflow is not ready in ComfyUI.";
+      if (next.imageRoute !== "comfyui") return "Qwen-Image-2.1 is configured, but a different image route is active.";
+      return "IMAGES ACTIVE — Experimental Qwen-Image-2.1 is selected through local ComfyUI.";
     }
     if (!next.comfyui.imageNodesReady) {
       return next.comfyui.missingImageNodes.length
@@ -315,15 +342,65 @@ export default function LocalComfyUiPanel() {
 
   async function testImage() {
     setWorking("test");
-    setNotice("Generating one local SDXL verification image...");
+    const qwenActive = status?.comfyui.imageProfile === "qwen-image-2.1-experimental";
+    setNotice(qwenActive ? "Generating one Experimental Qwen-Image-2.1 verification image..." : "Generating one local SDXL verification image...");
     setImageResult(null);
     try {
       const result = await request<ImageTestResult>(`${MEDIA_API}/test/image`, "POST", { route: "comfyui" });
       setImageResult(result);
       await refresh();
-      setNotice("Verification passed — PlotPickle received a real image from local ComfyUI + SDXL 1.0.");
+      setNotice(qwenActive ? "Verification passed — PlotPickle received one real image from Experimental Qwen-Image-2.1 through local ComfyUI." : "Verification passed — PlotPickle received a real image from local ComfyUI + SDXL 1.0.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The local SDXL image test failed.");
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function importQwenWorkflow() {
+    setWorking("qwen-workflow");
+    setNotice("");
+    try {
+      const workflow = JSON.parse(qwenWorkflowText) as unknown;
+      if (!workflow || typeof workflow !== "object" || Array.isArray(workflow)) throw new Error("Paste a ComfyUI API-format workflow JSON object.");
+      const next = await request<MediaStatus>(QWEN_WORKFLOW_API, "POST", { workflow });
+      setStatus(next);
+      setNotice("Qwen-Image-2.1 workflow imported. SDXL remains active until you explicitly activate the Experimental profile.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The Qwen-Image-2.1 workflow could not be imported.");
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function activateQwenProfile() {
+    setWorking("qwen-activate");
+    setNotice("");
+    try {
+      const next = await request<MediaStatus>(QWEN_PROFILE_API, "POST", {
+        profile: "qwen-image-2.1-experimental",
+        licenseAcknowledged: qwenLicenseAcknowledged,
+      });
+      setStatus(next);
+      setNotice("Experimental Qwen-Image-2.1 is active for local ComfyUI images. Run one test image before relying on it for story work.");
+      announceReadyChange();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Experimental Qwen-Image-2.1 could not be activated.");
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function activateSdxlProfile() {
+    setWorking("sdxl-profile");
+    setNotice("");
+    try {
+      const next = await request<MediaStatus>(QWEN_PROFILE_API, "POST", { profile: "sdxl-1.0" });
+      setStatus(next);
+      setNotice("SDXL 1.0 is restored as the active local image profile.");
+      announceReadyChange();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "SDXL 1.0 could not be restored.");
     } finally {
       setWorking("");
     }
@@ -336,6 +413,9 @@ export default function LocalComfyUiPanel() {
     setImageResult(null);
     try {
       let next = await request<MediaStatus>(`${MEDIA_API}/status`);
+      if (next.comfyui.imageProfile !== "sdxl-1.0") {
+        next = await request<MediaStatus>(QWEN_PROFILE_API, "POST", { profile: "sdxl-1.0" });
+      }
       const installResponse = await request<InstallResponse>(COMFY_START_API).catch(() => null);
       const install = installResponse?.installation ?? null;
       const attempt = installResponse?.lastStart ?? null;
@@ -388,7 +468,9 @@ export default function LocalComfyUiPanel() {
   const serverReady = Boolean(status?.comfyui.reachable);
   const nodesReady = Boolean(status?.comfyui.imageNodesReady);
   const modelReady = exactSdxlAvailable(status?.comfyui.checkpoints || []);
-  const activeReady = Boolean(serverReady && nodesReady && modelReady && status?.imageRoute === "comfyui");
+  const qwenActive = status?.comfyui.imageProfile === "qwen-image-2.1-experimental";
+  const qwenReady = Boolean(serverReady && status?.comfyui.qwenImage21.licenseAcknowledged && status?.comfyui.qwenImage21.workflowConfigured && status?.comfyui.qwenImage21.workflowNodesReady && status?.imageRoute === "comfyui");
+  const activeReady = qwenActive ? qwenReady : Boolean(serverReady && nodesReady && modelReady && status?.imageRoute === "comfyui");
   const verified = Boolean(status?.comfyui.imageVerifiedAt);
   const serviceLabel = status === null ? "CHECKING..." : serverReady ? "RUNNING" : lastStart && !lastStart.ready ? "FAILED TO START" : "STOPPED";
   const modelLabel = status === null ? "CHECKING..." : !serverReady ? "WAITING FOR SERVICE" : modelReady ? "FOUND" : "NOT FOUND";
@@ -481,7 +563,69 @@ export default function LocalComfyUiPanel() {
         </div>
       </details>
 
-      {imageResult ? <figure style={{ ...card, margin: "12px 0 0" }}><img src={imageResult.assetUrl} alt="Local ComfyUI SDXL verification result" style={{ maxWidth: "100%", filter: "var(--pp-skin-media-filter)" }} /><figcaption>Optional local verification asset{imageResult.assetLocation ? ` · ${imageResult.assetLocation}` : ""}</figcaption></figure> : null}
+
+      <details style={{ ...card, marginTop: 12 }}>
+        <summary style={{ cursor: "pointer", color: "var(--pp-skin-warning)" }}>EXPERIMENTAL — QWEN-IMAGE-2.1 / GGUF</summary>
+        <div style={{ marginTop: 12 }}>
+          <p style={{ margin: "0 0 8px", lineHeight: 1.5 }}>
+            Optional user-supplied local profile for ComfyUI. PlotPickle does not download or bundle Qwen-Image-2.1 weights. SDXL 1.0 remains the default and fallback.
+          </p>
+          <p style={{ margin: "0 0 10px", color: "var(--pp-skin-warning)", lineHeight: 1.5 }}>
+            License: Qwen Research License. The standard grant is non-commercial; commercial use requires separate licensing from the model licensor.
+          </p>
+          <div style={{ ...card, background: "var(--pp-skin-surface-1)" }}>
+            <strong>EXPECTED LOCAL STACK</strong>
+            <p style={{ margin: "8px 0 0" }}>Qwen-Image-2.1 Q4 GGUF in ComfyUI diffusion_models, a Qwen3-VL 8B text encoder, the Qwen Image 2.1 VAE, and ComfyUI-GGUF.</p>
+            <p style={{ margin: "8px 0 0", color: "var(--pp-skin-ink-soft)" }}>GTX 1080 note: encoder/offload behavior is deliberately not hard-coded. Pascal qualification decides the working low-VRAM path.</p>
+          </div>
+          <label style={{ display: "block", marginTop: 12 }}>
+            <strong>ComfyUI API workflow JSON</strong>
+            <textarea
+              value={qwenWorkflowText}
+              onChange={(event) => setQwenWorkflowText(event.target.value)}
+              rows={8}
+              spellCheck={false}
+              placeholder={'Export the Qwen API workflow from ComfyUI and replace its positive prompt with {{PLOTPICKLE_PROMPT}}. Optional tokens: {{PLOTPICKLE_NEGATIVE}}, {{PLOTPICKLE_WIDTH}}, {{PLOTPICKLE_HEIGHT}}, {{PLOTPICKLE_REFERENCE_1}} ... {{PLOTPICKLE_REFERENCE_10}}.'}
+              style={{ width: "100%", marginTop: 8, background: "var(--pp-skin-surface-0)", color: "var(--pp-skin-ink)", border: "var(--pp-skin-border-thin) solid var(--pp-skin-line)", padding: 10, font: "inherit" }}
+            />
+          </label>
+          <div style={{ ...row, marginTop: 10 }}>
+            <button type="button" onClick={() => void importQwenWorkflow()} disabled={Boolean(working) || !qwenWorkflowText.trim()}>
+              {working === "qwen-workflow" ? "IMPORTING..." : "IMPORT REVIEWED WORKFLOW"}
+            </button>
+            <span>{status?.comfyui.qwenImage21.workflowConfigured ? "WORKFLOW CONFIGURED" : "NO WORKFLOW"}</span>
+            <span>{status?.comfyui.qwenImage21.workflowNodesReady ? "NODES READY" : "NODES NOT READY"}</span>
+          </div>
+          {status?.comfyui.qwenImage21.missingWorkflowNodes?.length ? (
+            <p style={{ color: "var(--pp-skin-warning)" }}>Missing nodes: {status.comfyui.qwenImage21.missingWorkflowNodes.join(", ")}</p>
+          ) : null}
+          <label style={{ display: "flex", gap: 8, alignItems: "start", marginTop: 14, lineHeight: 1.45 }}>
+            <input
+              type="checkbox"
+              checked={qwenLicenseAcknowledged || Boolean(status?.comfyui.qwenImage21.licenseAcknowledged)}
+              onChange={(event) => setQwenLicenseAcknowledged(event.target.checked)}
+              disabled={Boolean(status?.comfyui.qwenImage21.licenseAcknowledged)}
+            />
+            <span>I acknowledge that Qwen-Image-2.1 is governed by the Qwen Research License and that activating this Experimental profile does not grant commercial-use rights.</span>
+          </label>
+          <div style={{ ...row, marginTop: 12 }}>
+            <button type="button" style={warningButton} onClick={() => void activateQwenProfile()} disabled={Boolean(working) || !status?.comfyui.qwenImage21.workflowConfigured || (!qwenLicenseAcknowledged && !status?.comfyui.qwenImage21.licenseAcknowledged)}>
+              {working === "qwen-activate" ? "ACTIVATING..." : "ACTIVATE EXPERIMENTAL PROFILE"}
+            </button>
+            <button type="button" onClick={() => void activateSdxlProfile()} disabled={Boolean(working) || !qwenActive}>
+              {working === "sdxl-profile" ? "SWITCHING..." : "SWITCH BACK TO SDXL"}
+            </button>
+            <button type="button" onClick={() => void testImage()} disabled={Boolean(working) || !qwenActive || !qwenReady}>
+              {working === "test" ? "GENERATING..." : "TEST ONE QWEN IMAGE"}
+            </button>
+          </div>
+          <p style={{ margin: "10px 0 0", color: "var(--pp-skin-ink-soft)" }}>
+            Profile: {qwenActive ? "QWEN-IMAGE-2.1 EXPERIMENTAL ACTIVE" : "SDXL 1.0 ACTIVE"} · Last Qwen verification: {timeLabel(status?.comfyui.qwenImage21.lastVerifiedAt || "")}
+          </p>
+        </div>
+      </details>
+
+      {imageResult ? <figure style={{ ...card, margin: "12px 0 0" }}><img src={imageResult.assetUrl} alt={qwenActive ? "Local ComfyUI Qwen Image 2.1 verification result" : "Local ComfyUI SDXL verification result"} style={{ maxWidth: "100%", filter: "var(--pp-skin-media-filter)" }} /><figcaption>Optional local verification asset{imageResult.assetLocation ? ` · ${imageResult.assetLocation}` : ""}</figcaption></figure> : null}
       {notice ? <p role="status" aria-live="polite" style={{ margin: "12px 0 0", color: "var(--pp-skin-accent-bright)" }}>{notice}</p> : null}
     </section>
   );

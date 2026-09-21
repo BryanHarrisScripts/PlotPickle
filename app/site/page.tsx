@@ -49,10 +49,6 @@ export default function PublicSitePage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <a href="#top" className={styles.brand}>
-          <img src="/brand/favicon/plotpickle-ouroboros-v2-128.png" alt="" />
-          <span><strong>PlotPickle</strong><small>Shape the Story</small></span>
-        </a>
         <nav aria-label="PlotPickle.com">
           <a href="#matrix">Matrix</a>
           <a href="#story-math">24 / 96</a>

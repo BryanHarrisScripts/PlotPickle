@@ -43,6 +43,7 @@ test("#2262 checks the current live PlotPickle.com narrative into repository sou
     "There is no public PlotPickleSetup.exe",
   ]) assert.ok(site.includes(phrase), "public site is missing: " + phrase);
   assert.doesNotMatch(site, /CURRENT PRODUCT SPINE/);
+  assert.doesNotMatch(site, /plotpickle-ouroboros-v2-128\.png/);
   assert.match(site, /LM Studio may be used as a compatible connection; it is not described as open source/);
 });
 

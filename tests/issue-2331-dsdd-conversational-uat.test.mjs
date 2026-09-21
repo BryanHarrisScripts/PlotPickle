@@ -47,8 +47,9 @@ test("#2331 reuses the existing text and voice boundaries without granting code 
   const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/text"/u);
+  assert.match(panel, /"X-PlotPickle-DSDD-Scope": "intent"/u);
   assert.match(panel, /data-purpose="natural-language developer uat narration"/u);
-  assert.match(panel, /Microphone is available through PlotPickle voice input/u);
+  assert.match(panel, /Microphone is ready from this DSDD field/u);
   assert.match(panel, /Do not claim that code was changed, fixed, tested, committed, or merged/u);
   assert.match(panel, /This first slice records and interprets intent; it does not edit code/u);
   assert.doesNotMatch(panel, /\/api\/github/u);
@@ -66,4 +67,13 @@ test("#2331 preserves the live conversation across navigation in the persistent 
   assert.match(panel, /MutationObserver/u);
   assert.match(panel, /usePathname/u);
   assert.doesNotMatch(panel, /sessionStorage|localStorage/u);
+});
+
+
+test("#2331 DSDD local intent generation is isolated from Story Mode locality policy", async () => {
+  const gateway = await read("build/story-mode-policy-gateway.ts");
+
+  assert.match(gateway, /pathname === "\/api\/local-ai\/generate\/text"/u);
+  assert.match(gateway, /request\.headers\["x-plotpickle-dsdd-scope"\] === "intent"/u);
+  assert.match(gateway, /next\(\);\s*return;\s*}\s*const policy = await readStoryModePolicy\(\)/u);
 });

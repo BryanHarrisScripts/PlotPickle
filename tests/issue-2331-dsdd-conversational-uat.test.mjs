@@ -49,9 +49,9 @@ test("#2331 keeps conversation non-mutating until explicit Build this confirmati
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/text"/u);
   assert.match(panel, /"X-PlotPickle-DSDD-Scope": "intent"/u);
   assert.match(panel, /data-purpose="natural-language developer uat narration"/u);
-  assert.match(panel, /Microphone is ready from this DSDD field/u);
+  assert.match(panel, /Microphone is ready here/u);
   assert.match(panel, /Do not claim that code was changed, fixed, tested, committed, or merged/u);
-  assert.match(panel, /Repository mutation remains blocked until Build this/u);
+  assert.match(panel, /Nothing enters BUILD until you choose Build this/u);
   assert.match(panel, />Build this</u);
   assert.doesNotMatch(panel, /\/api\/github/u);
   assert.doesNotMatch(panel, /merge_pull_request|create_pull_request|update_file/u);

@@ -269,9 +269,13 @@ async function selectedRoute(capability: "text" | "image" | "video") {
   return media.videoRoute === "none" ? "off" : "minimax";
 }
 
-async function enforceGenerationPolicy(pathname: string, response: ServerResponse, next: () => void) {
+async function enforceGenerationPolicy(request: IncomingMessage, pathname: string, response: ServerResponse, next: () => void) {
   const capability = GENERATION_CAPABILITIES.get(pathname);
   if (!capability) { next(); return; }
+  if (pathname === "/api/local-ai/generate/text" && request.headers["x-plotpickle-dsdd-scope"] === "intent") {
+    next();
+    return;
+  }
   const policy = await readStoryModePolicy();
   // Image requests are policy-checked by the per-job resolver in Media Routing,
   // which can choose a different ready route without mutating global provider selection.
@@ -355,7 +359,7 @@ export function registerStoryModePolicyGateway(server: ViteDevServer) {
       return;
     }
     if (request.method !== "POST") { next(); return; }
-    void enforceGenerationPolicy(pathname, response, next).catch((error) => sendJson(response, 500, {
+    void enforceGenerationPolicy(request, pathname, response, next).catch((error) => sendJson(response, 500, {
       ok: false,
       message: error instanceof Error ? error.message : "Story Mode policy check failed.",
     }));

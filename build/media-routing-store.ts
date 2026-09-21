@@ -4,6 +4,7 @@ import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 export type CloudMediaProvider = "openai" | "minimax";
 export type ImageRoute = "comfyui" | "openai" | "minimax" | "manual";
 export type VideoRoute = "minimax-direct" | "minimax-comfyui" | "none";
+export type LocalImageProfile = "sdxl-1.0" | "qwen-image-2.1-experimental";
 
 export const LOCAL_COMFYUI_URL = "http://127.0.0.1:8188";
 export const LOCAL_SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors";
@@ -38,9 +39,16 @@ export type MediaRoutingStore = {
   comfyui: {
     baseUrl: string;
     checkpoint: string;
+    imageProfile: LocalImageProfile;
     imageVerifiedAt: string;
     lastError: string;
     h3Workflow: ComfyWorkflow | null;
+    qwenImage21: {
+      workflow: ComfyWorkflow | null;
+      licenseAcknowledgedAt: string;
+      lastVerifiedAt: string;
+      lastError: string;
+    };
   };
 };
 
@@ -68,9 +76,16 @@ function emptyStore(): MediaRoutingStore {
     comfyui: {
       baseUrl: LOCAL_COMFYUI_URL,
       checkpoint: LOCAL_SDXL_CHECKPOINT,
+      imageProfile: "sdxl-1.0",
       imageVerifiedAt: "",
       lastError: "",
       h3Workflow: null,
+      qwenImage21: {
+        workflow: null,
+        licenseAcknowledgedAt: "",
+        lastVerifiedAt: "",
+        lastError: "",
+      },
     },
   };
 }
@@ -105,9 +120,16 @@ function normalizeStore(value: unknown): MediaRoutingStore {
     comfyui: {
       baseUrl: LOCAL_COMFYUI_URL,
       checkpoint: LOCAL_SDXL_CHECKPOINT,
+      imageProfile: comfy.imageProfile === "qwen-image-2.1-experimental" ? "qwen-image-2.1-experimental" : "sdxl-1.0",
       imageVerifiedAt: typeof comfy.imageVerifiedAt === "string" ? comfy.imageVerifiedAt : "",
       lastError: typeof comfy.lastError === "string" ? comfy.lastError : "",
       h3Workflow: comfy.h3Workflow && typeof comfy.h3Workflow === "object" ? comfy.h3Workflow : null,
+      qwenImage21: comfy.qwenImage21 && typeof comfy.qwenImage21 === "object" ? {
+        workflow: comfy.qwenImage21.workflow && typeof comfy.qwenImage21.workflow === "object" ? comfy.qwenImage21.workflow : null,
+        licenseAcknowledgedAt: typeof comfy.qwenImage21.licenseAcknowledgedAt === "string" ? comfy.qwenImage21.licenseAcknowledgedAt : "",
+        lastVerifiedAt: typeof comfy.qwenImage21.lastVerifiedAt === "string" ? comfy.qwenImage21.lastVerifiedAt : "",
+        lastError: typeof comfy.qwenImage21.lastError === "string" ? comfy.qwenImage21.lastError : "",
+      } : fallback.comfyui.qwenImage21,
     },
   };
 }
@@ -144,7 +166,9 @@ export async function readMediaRoutingStore() {
     : null;
   let changed = !stored
     || storedComfy?.baseUrl !== LOCAL_COMFYUI_URL
-    || storedComfy?.checkpoint !== LOCAL_SDXL_CHECKPOINT;
+    || storedComfy?.checkpoint !== LOCAL_SDXL_CHECKPOINT
+    || storedComfy?.imageProfile === undefined
+    || storedComfy?.qwenImage21 === undefined;
 
   // Legacy ai-connection.json is migration input only. Once a provider has a
   // modern media profile, the old file must never overwrite Story Mode setup.

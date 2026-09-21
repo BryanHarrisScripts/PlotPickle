@@ -73,8 +73,8 @@ jobs:
       - name: Validate Pi 0.85.1 / GPT-6 Astra evaluation contract
         run: node --test tests/issue-1709-pi-0851-astra-evaluation.test.mjs
 
-      - name: Validate Pi 0.87 DSDD session contract
-        run: node --test tests/issue-2338-pi-087-dsdd-session.test.mjs
+      - name: Validate DSDD intent-to-evidence and Pi 0.87 session contracts
+        run: node --test tests/issue-2331-dsdd-conversational-uat.test.mjs tests/issue-2338-pi-087-dsdd-session.test.mjs
 
       - name: Validate Sequence Evidence
         run: node --test tests/issue-1889-sequence-evidence.test.mjs tests/sequence-director-24-96-2400.test.mjs

@@ -2,6 +2,18 @@ name: Product Gate
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/pi-managed-install.mjs"
+      - "scripts/evaluate-pi-087-dsdd-session.mjs"
+      - "config/pi-087-dsdd-session-evaluation.json"
+      - "config/developer-agent-stack.json"
+      - "config/third-party-oss.json"
+      - ".pi/npm/package-lock.json"
+      - "tests/issue-1185-pi-managed-install.test.mjs"
+      - "tests/issue-2338-pi-087-dsdd-session.test.mjs"
+      - "build/dsdd/**"
+      - "app/skin-v1/global-dsdd-conversation.tsx"
 
 permissions:
   contents: read
@@ -21,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4

@@ -719,9 +719,9 @@
     },
     "story-mode": {
       "surfaceId": "story-mode",
-      "label": "Story Mode",
+      "label": "Story Mode compatibility",
       "parent": "settings",
-      "runtimeSelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "runtimeSelector": "section[aria-label='Settings menu']",
       "formatProfile": {
         "layout": "directory-grid",
         "shell": "settings",
@@ -730,14 +730,14 @@
         "typography": "standard-ui"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Story Mode",
+        "globalSurfaceLabel": "Settings",
         "workspaceTitlePolicy": "rendered-surface-content",
         "alignment": "left"
       },
       "returnAction": {
         "placement": "surface-action-row",
         "alignment": "right",
-        "parent": "settings"
+        "parent": "dashboard"
       },
       "regions": [
         {
@@ -760,8 +760,8 @@
     },
     "local-ai": {
       "surfaceId": "local-ai",
-      "label": "Local Story Mode",
-      "parent": "story-mode",
+      "label": "Local",
+      "parent": "settings",
       "runtimeSelector": "section[aria-label='Local Story Mode setup']",
       "formatProfile": {
         "layout": "settings-directory",
@@ -771,14 +771,14 @@
         "typography": "standard-ui"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Local Story Mode",
+        "globalSurfaceLabel": "Local",
         "workspaceTitlePolicy": "rendered-surface-content",
         "alignment": "left"
       },
       "returnAction": {
         "placement": "surface-action-row",
         "alignment": "right",
-        "parent": "story-mode"
+        "parent": "settings"
       },
       "regions": [
         {
@@ -806,8 +806,8 @@
     },
     "cloud-story-mode": {
       "surfaceId": "cloud-story-mode",
-      "label": "Cloud Story Mode",
-      "parent": "story-mode",
+      "label": "Cloud",
+      "parent": "settings",
       "runtimeSelector": "section[aria-label='Cloud Story Mode setup']",
       "formatProfile": {
         "layout": "settings-directory",
@@ -817,14 +817,14 @@
         "typography": "standard-ui"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Cloud Story Mode",
+        "globalSurfaceLabel": "Cloud",
         "workspaceTitlePolicy": "rendered-surface-content",
         "alignment": "left"
       },
       "returnAction": {
         "placement": "surface-action-row",
         "alignment": "right",
-        "parent": "story-mode"
+        "parent": "settings"
       },
       "regions": [
         {
@@ -852,8 +852,8 @@
     },
     "hybrid-story-mode": {
       "surfaceId": "hybrid-story-mode",
-      "label": "Hybrid Story Mode",
-      "parent": "story-mode",
+      "label": "Hybrid",
+      "parent": "settings",
       "runtimeSelector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
       "formatProfile": {
         "layout": "settings-directory",
@@ -863,14 +863,14 @@
         "typography": "standard-ui"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Hybrid Story Mode",
+        "globalSurfaceLabel": "Hybrid",
         "workspaceTitlePolicy": "rendered-surface-content",
         "alignment": "left"
       },
       "returnAction": {
         "placement": "surface-action-row",
         "alignment": "right",
-        "parent": "story-mode"
+        "parent": "settings"
       },
       "regions": [
         {

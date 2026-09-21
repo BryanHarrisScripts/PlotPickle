@@ -48,7 +48,7 @@ test("#2032 gives approved curriculum green availability, canonical family gaps 
   assert.match(css, /border-top-color: var\(--pp-skin-accent\) !important/u);
 });
 
-test("#2032 uses one PLOTPICKLE SURFACE SKIN V1 header and demotes old surface banners to action rows", async () => {
+test("#2032 uses one PLOTPICKLE SURFACE MATRIX header and demotes old surface banners to action rows", async () => {
   const [skin, host, dashboard, css, audit] = await Promise.all([
     read("app/skin-v1/skin-v1-client.tsx"),
     read("app/skin-v1/dashboard-bbs-review-host.tsx"),
@@ -57,7 +57,7 @@ test("#2032 uses one PLOTPICKLE SURFACE SKIN V1 header and demotes old surface b
     read("lib/verification/skin-v1-menu-contract-audit.mjs"),
   ]);
 
-  assert.match(skin, /<header className="pp-skin-v1-bar" data-skin-v1-standard-header="true">[\s\S]*<strong>PLOTPICKLE<\/strong>[\s\S]*<span>\{businessUseCase\}<\/span>[\s\S]*<span>SKIN V1<\/span>[\s\S]*<\/header>/u);
+  assert.match(skin, /<header className="pp-skin-v1-bar" data-skin-v1-standard-header="true">[\s\S]*<strong>PLOTPICKLE<\/strong>[\s\S]*<span>\{businessUseCase\}<\/span>[\s\S]*<span>MATRIX<\/span>[\s\S]*<\/header>/u);
   assert.match(skin, /const businessUseCase = userProfileOpen \? "PROFILE" : activeSurface === "DASHBOARD" \? dashboardSurfaceName : activeSurface/u);
   assert.match(skin, /onSurfaceNameChange=\{setDashboardSurfaceName\}/u);
   assert.match(host, /onSurfaceNameChange\("LICENSING"\)/u);

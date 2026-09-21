@@ -10,6 +10,7 @@ import {
 } from "react";
 import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { isPublicWebPath } from "../public-web-route";
+import VoiceInputControl from "../_components/voice-input-control";
 import styles from "./global-dsdd-conversation.module.css";
 
 type DsddContext = {
@@ -145,6 +146,7 @@ export default function GlobalDsddConversation() {
   const [locking, setLocking] = useState(false);
   const [buildState, setBuildState] = useState<DsddLockedIntent["build"] | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -423,6 +425,8 @@ export default function GlobalDsddConversation() {
           <form className={styles.composer} onSubmit={submit}>
             <label htmlFor="plotpickle-dsdd-narration">Narrate the workflow or problem</label>
             <textarea
+              ref={narrationRef}
+              data-voice-input="false"
               id="plotpickle-dsdd-narration"
               aria-label="DSDD narration"
               data-purpose="natural-language developer uat narration"
@@ -435,6 +439,14 @@ export default function GlobalDsddConversation() {
             <div className={styles.composerFooter}>
               <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Build this locks the approved meaning, then hands only that locked packet to the existing isolated local Pi developer worker. GitHub exact-head CI remains the merge authority.</span>
               <div>
+                <VoiceInputControl
+                  value={draft}
+                  onValueChange={setDraft}
+                  inputRef={narrationRef}
+                  disabled={working || locking}
+                  inputType="textarea"
+                  purpose="natural-language developer uat narration"
+                />
                 <button type="button" className={styles.secondary} disabled={working || locking || !draft} onClick={clearDraft}>Clear draft</button>
                 <button type="button" className={styles.secondary} disabled={working || locking || Boolean(lockedIntent) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void lockCurrentIntent(); }}>{locking ? "Locking…" : "Build this"}</button>
                 <button type="submit" disabled={working || locking || !draft.trim()}>Send</button>

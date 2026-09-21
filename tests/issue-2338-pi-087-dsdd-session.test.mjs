@@ -113,7 +113,11 @@ test("#2338 injects the immutable locked intent into the same Pi history and exi
 
 test("#2338 Windows Product Gate runs automatically for Pi DSDD promotion heads", async () => {
   const productGate = await read(".github/workflows/product-gate.yml");
-  assert.match(productGate, /pull_request:/u);
-  assert.match(productGate, /config\/pi-087-dsdd-session-evaluation\.json/u);
+  assert.doesNotMatch(productGate, /^  pull_request:/mu);
+  assert.match(productGate, /^  workflow_call:/mu);
+  const architecture = await read(".github/workflows/architecture-shadow.yml");
+  assert.match(architecture, /uses: \.\/\.github\/workflows\/product-gate\.yml/u);
+  assert.match(architecture, /needs\.dsdd-windows-scope\.outputs\.required == 'true'/u);
+  assert.match(architecture, /pi-087-dsdd-session-evaluation/u);
   assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
 });

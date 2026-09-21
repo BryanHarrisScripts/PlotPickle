@@ -2,22 +2,7 @@ name: Product Gate
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "scripts/pi-managed-install.mjs"
-      - "scripts/evaluate-pi-087-dsdd-session.mjs"
-      - "config/pi-087-dsdd-session-evaluation.json"
-      - "config/developer-agent-stack.json"
-      - "config/third-party-oss.json"
-      - ".pi/npm/package-lock.json"
-      - "tests/issue-1185-pi-managed-install.test.mjs"
-      - "tests/issue-2338-pi-087-dsdd-session.test.mjs"
-      - "build/dsdd/**"
-      - "app/skin-v1/global-dsdd-conversation.tsx"
-      - "app/_components/voice-input-control.tsx"
-      - "Start-PlotPickle.bat"
-      - "tests/issue-341-windows-startup-ui-ux.test.mjs"
-      - "tests/issue-2341-dsdd-zero-config.test.mjs"
+  workflow_call:
 
 permissions:
   contents: read
@@ -49,7 +34,7 @@ jobs:
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate DSDD owned Edge startup boundary
+      - name: Validate current Skin V1 startup boundary and DSDD owned Edge
         shell: pwsh
         run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-2331-dsdd-conversational-uat.test.mjs tests/issue-2338-pi-087-dsdd-session.test.mjs
 

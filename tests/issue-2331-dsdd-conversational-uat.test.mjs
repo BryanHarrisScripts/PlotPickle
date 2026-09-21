@@ -52,7 +52,7 @@ test("#2331 keeps conversation non-mutating until explicit Build this confirmati
   assert.match(panel, /Microphone is ready here/u);
   assert.match(panel, /Do not claim that code was changed, fixed, tested, committed, or merged/u);
   assert.match(panel, /Nothing enters BUILD until you choose Build this/u);
-  assert.match(panel, /"Build this"/u);
+  assert.match(panel, /onClick=\{\(\) => \{ void lockCurrentIntent\(\); \}\}[^>]*>\{locking \? "Locking…" : "Build this"\}/u);
   assert.doesNotMatch(panel, /\/api\/github/u);
   assert.doesNotMatch(panel, /merge_pull_request|create_pull_request|update_file/u);
 });
@@ -120,4 +120,13 @@ test("#2331 dogfood record preserves the full intent-to-evidence chain without o
   assert.equal(record.correctionClassification, "implementation-mismatch");
   assert.equal(record.hiddenReasoningStored, false);
   assert.equal(record.fullPrivateTranscriptStored, false);
+});
+
+
+test("#2331 keeps a shared microphone control visible without requiring narration focus", async () => {
+  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
+  assert.match(panel, /import VoiceInputControl from "\.\.\/_components\/voice-input-control"/u);
+  assert.match(panel, /<VoiceInputControl\s+value=\{draft\}\s+onValueChange=\{setDraft\}\s+inputRef=\{narrationRef\}/u);
+  assert.match(panel, /ref=\{narrationRef\}\s+data-voice-input="false"/u);
+  assert.match(panel, /inputType="textarea"\s+purpose="natural-language developer uat narration"/u);
 });

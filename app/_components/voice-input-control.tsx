@@ -31,6 +31,7 @@ let activeVoiceSession: { id: string; cancel: () => void } | null = null;
 
 const statusText: Record<VoiceInputState, string> = {
   IDLE: "Local dictation ready.",
+  PROVISIONING_LOCAL: "Preparing the reviewed local speech runtime for DSDD. No Settings step is required.",
   REQUESTING_PERMISSION: "Requesting microphone permission.",
   LISTENING: "Listening. Activate Stop dictation when you are finished.",
   FINALIZING_AUDIO: "Finalizing local audio.",
@@ -38,8 +39,8 @@ const statusText: Record<VoiceInputState, string> = {
   INSERTED: "Dictated text inserted. Review or edit it before sending.",
   PERMISSION_DENIED: "Microphone permission was denied. Existing text was preserved.",
   MIC_UNAVAILABLE: "No usable microphone is available. Existing text was preserved.",
-  MODEL_UNAVAILABLE: "The reviewed local speech model is unavailable. Open Settings → Local → Local Dictation.",
-  RUNTIME_UNAVAILABLE: "The reviewed local speech runtime is unavailable. Open Settings → Local → Local Dictation.",
+  MODEL_UNAVAILABLE: "The reviewed local speech model is unavailable. DSDD could not prepare it automatically.",
+  RUNTIME_UNAVAILABLE: "The reviewed local speech runtime is unavailable. DSDD could not prepare it automatically.",
   TRANSCRIPTION_FAILED: "Local transcription failed. Existing text was preserved.",
   CANCELLED: "Dictation cancelled. Existing text was preserved.",
   TIMEOUT: "Dictation stopped at the two-minute safety limit. Existing text was preserved.",
@@ -95,6 +96,38 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
     view.setInt16(44 + index * 2, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
   }
   return new Blob([buffer], { type: "audio/wav" });
+}
+
+async function ensureDsddLocalVoiceReady() {
+  const setup = await fetch("/api/local-voice/setup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ approved: true }),
+  });
+  const first = await setup.json() as {
+    ready?: boolean;
+    installing?: boolean;
+    setupTask?: { state?: string; message?: string };
+    message?: string;
+  };
+  if (first.ready) return;
+  if (!setup.ok && !first.installing) throw new Error(first.message || first.setupTask?.message || "Local dictation setup failed.");
+
+  const deadline = Date.now() + 5 * 60_000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+    const response = await fetch("/api/local-voice/status", { cache: "no-store" });
+    const body = await response.json() as {
+      ready?: boolean;
+      reason?: string;
+      setupTask?: { state?: string; message?: string };
+    };
+    if (body.ready) return;
+    if (body.setupTask?.state === "failed") {
+      throw new Error(body.setupTask.message || body.reason || "Local dictation setup failed.");
+    }
+  }
+  throw new Error("Local dictation preparation timed out.");
 }
 
 function stateFromFailure(error: unknown): VoiceInputState {
@@ -180,9 +213,15 @@ export default function VoiceInputControl({
       start: field?.selectionStart ?? valueRef.current.length,
       end: field?.selectionEnd ?? field?.selectionStart ?? valueRef.current.length,
     };
-    setState("REQUESTING_PERMISSION");
+    const dsddAutoProvision = purpose.trim().toLowerCase() === "natural-language developer uat narration";
+    setState(dsddAutoProvision ? "PROVISIONING_LOCAL" : "REQUESTING_PERMISSION");
 
     try {
+      if (dsddAutoProvision) {
+        await ensureDsddLocalVoiceReady();
+        if (activeVoiceSession?.id !== id) return;
+        setState("REQUESTING_PERMISSION");
+      }
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("Microphone capture is unavailable.", "NotFoundError");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -259,7 +298,7 @@ export default function VoiceInputControl({
   }
 
   const listening = state === "LISTENING";
-  const busy = ["REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
+  const busy = ["PROVISIONING_LOCAL", "REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
   const label = listening ? "Stop dictation" : "Dictate text";
 
   return (

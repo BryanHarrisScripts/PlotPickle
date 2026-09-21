@@ -25,7 +25,7 @@ test("Layer 1 canonical navigation keeps the frozen seven-group Dashboard author
     ["production", "D", "Production", "Review Production Intent and Handoff Readiness", "VISUALIZE"],
     ["feedback", "F", "Feedback", "Gather Reader Notes and Reactions", "REVIEW"],
     ["refine", "R", "Refine", "Polish Dialogue and Story Choices", "REVIEW"],
-    ["reports", "A", "Analytics", "Review Story Health and Coverage Reports", "REVIEW"],
+    ["reports", "A", "Reports", "Review Story Health and Coverage Reports", "REVIEW"],
     ["pitch-package", "4", "Package", "Develop the Pitch Package and Presentation Materials", "PITCH"],
     ["pitch-deck", "5", "Deck", "Generate and Review the Visual Pitch Deck", "PITCH"],
     ["profile", "I", "Identity", "Manage User Profile", "PLAY"],

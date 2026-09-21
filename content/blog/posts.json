@@ -9,13 +9,35 @@
       "author": "Bryan Elgin Harris",
       "summary": "PlotPickle.com is moving to a GitHub-governed publishing model: source first, verified build second, Human publish last.",
       "series": "Building PlotPickle",
-      "tags": ["PlotPickle", "open source", "GitHub", "ChatGPT Sites"],
+      "tags": [
+        "PlotPickle",
+        "open source",
+        "GitHub",
+        "ChatGPT Sites"
+      ],
       "status": "published",
       "sections": [
-        {"heading": "One source of truth", "paragraphs": ["PlotPickle is built in the open. The public site should work the same way.", "The PlotPickle repository is now the governing source for public copy, public assets, Blog posts and discovery metadata. ChatGPT Sites remains the hosting and publication surface rather than a separate editorial source."]},
-        {"heading": "Why this matters", "paragraphs": ["A public page should be traceable to the code and content that produced it. That makes changes reviewable, reversible and easier to keep aligned with the product itself.", "The publication boundary remains Human-controlled: a reviewed GitHub change can produce a deployable Site version, but publication is still a deliberate decision."]}
+        {
+          "heading": "One source of truth",
+          "paragraphs": [
+            "PlotPickle is built in the open. The public site should work the same way.",
+            "The PlotPickle repository is now the governing source for public copy, public assets, Blog posts and discovery metadata. ChatGPT Sites remains the hosting and publication surface rather than a separate editorial source."
+          ]
+        },
+        {
+          "heading": "Why this matters",
+          "paragraphs": [
+            "A public page should be traceable to the code and content that produced it. That makes changes reviewable, reversible and easier to keep aligned with the product itself.",
+            "The publication boundary remains Human-controlled: a reviewed GitHub change can produce a deployable Site version, but publication is still a deliberate decision."
+          ]
+        }
       ],
-      "sources": [{"label": "PlotPickle source", "url": "https://github.com/BryanHarrisScripts/PlotPickle"}]
+      "sources": [
+        {
+          "label": "PlotPickle source",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle"
+        }
+      ]
     },
     {
       "slug": "oss-radar-open-source-intelligence",
@@ -25,23 +47,50 @@
       "author": "Bryan Elgin Harris",
       "summary": "PlotPickle's OSS Radar watches open-source story, agent, visual-production and local-AI work for transferable ideas rather than chasing trends.",
       "series": "OSS Radar",
-      "tags": ["OSS Radar", "open source", "agents", "story technology"],
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "agents",
+        "story technology"
+      ],
       "status": "published",
       "sections": [
-        {"heading": "What the Radar does", "paragraphs": ["OSS Radar scans open-source work for ideas that could save PlotPickle work, strengthen an existing system, reveal a missing capability or teach us something useful.", "The internal report is broader and more technical than the public Blog. Public Radar posts are a separate editorial projection: useful projects, factual links and the transferable lesson, without exposing internal implementation scoring or private roadmap reasoning."]},
-        {"heading": "Human review stays in the loop", "paragraphs": ["A repository appearing in OSS Radar does not authorize an installation, dependency change or product rewrite.", "The Radar may generate a public Blog draft, but a Human must review the article and merge the GitHub change before it can become part of PlotPickle.com."]}
+        {
+          "heading": "What the Radar does",
+          "paragraphs": [
+            "OSS Radar scans open-source work for ideas that could save PlotPickle work, strengthen an existing system, reveal a missing capability or teach us something useful.",
+            "The internal report is broader and more technical than the public Blog. Public Radar posts are a separate editorial projection: useful projects, factual links and the transferable lesson, without exposing internal implementation scoring or private roadmap reasoning."
+          ]
+        },
+        {
+          "heading": "Human review stays in the loop",
+          "paragraphs": [
+            "A repository appearing in OSS Radar does not authorize an installation, dependency change or product rewrite.",
+            "The Radar may generate a public Blog draft, but a Human must review the article and merge the GitHub change before it can become part of PlotPickle.com."
+          ]
+        }
       ],
-      "sources": [{"label": "PlotPickle OSS Radar source", "url": "https://github.com/BryanHarrisScripts/PlotPickle/tree/main/lib/verification/oss-radar"}]
+      "sources": [
+        {
+          "label": "PlotPickle OSS Radar source",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/tree/main/lib/verification/oss-radar"
+        }
+      ]
     },
     {
       "slug": "oss-radar-september-2026-by-date",
       "title": "OSS Radar: September 2026, by date",
       "publishedAt": "2026-09-20",
-      "updatedAt": "2026-09-20",
+      "updatedAt": "2026-09-21",
       "author": "Bryan Elgin Harris",
-      "summary": "A dated public index of PlotPickle's September OSS Radar reports, preserving Human review between discovery and adoption.",
+      "summary": "A dated public index of PlotPickle's September OSS Radar reports, with every date opening a complete article inside the PlotPickle Blog.",
       "series": "OSS Radar",
-      "tags": ["OSS Radar", "open source", "daily digest", "story technology"],
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
       "status": "published",
       "sections": [
         {
@@ -116,15 +165,378 @@
         }
       ],
       "sources": [
-        {"label": "September 2026 OSS Radar thread", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"},
-        {"label": "September 20 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5751264686"},
-        {"label": "September 19 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5741656066"},
-        {"label": "September 18 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5728272894"},
-        {"label": "September 17 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5711465074"},
-        {"label": "September 16 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5695459022"},
-        {"label": "September 15 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5679337171"},
-        {"label": "September 14 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5665732652"},
-        {"label": "September 13 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5653831092"}
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        },
+        {
+          "label": "September 20 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5751264686"
+        },
+        {
+          "label": "September 19 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5741656066"
+        },
+        {
+          "label": "September 18 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5728272894"
+        },
+        {
+          "label": "September 17 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5711465074"
+        },
+        {
+          "label": "September 16 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5695459022"
+        },
+        {
+          "label": "September 15 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5679337171"
+        },
+        {
+          "label": "September 14 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5665732652"
+        },
+        {
+          "label": "September 13 report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5653831092"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-20",
+      "title": "OSS Radar: September 20, 2026",
+      "publishedAt": "2026-09-20",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The public digest highlighted awesome-ai-storyboarding, viforge, moshu, Mana, anamnesis, LocalLLMServerManager and agmi across interface, orchestration, local-AI, memory, provider-runtime and validation concerns.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The public digest highlighted awesome-ai-storyboarding, viforge, moshu, Mana, anamnesis, LocalLLMServerManager and agmi across interface, orchestration, local-AI, memory, provider-runtime and validation concerns.",
+            "The strongest shared question was how a local-first story system can connect creative surfaces, bounded agents, durable context and operational evidence without locking itself to one provider."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 20, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5751264686"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-19",
+      "title": "OSS Radar: September 19, 2026",
+      "publishedAt": "2026-09-19",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The public digest highlighted CopilotKit, WeKnora, cycgraph, OpenViking, saga, sekai-chisei and NyxID.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The public digest highlighted CopilotKit, WeKnora, cycgraph, OpenViking, saga, sekai-chisei and NyxID.",
+            "Together they offered review material around generative interfaces, knowledge retrieval, context compression, agent memory, story graphs, governed local control and secure API access."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 19, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5741656066"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-18",
+      "title": "OSS Radar: September 18, 2026",
+      "publishedAt": "2026-09-18",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The public digest highlighted OpenUI, story-skills, wind-comic, design-os-3d-blender, ideagraph-live, mnemos and agentguard.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The public digest highlighted OpenUI, story-skills, wind-comic, design-os-3d-blender, ideagraph-live, mnemos and agentguard.",
+            "The day connected generative UI, story-writing skills, multi-agent visual production, tool execution, persistent idea graphs, interoperable memory and agent safeguards."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 18, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5728272894"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-17",
+      "title": "OSS Radar: September 17, 2026",
+      "publishedAt": "2026-09-17",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+            "The recurring themes were storyboard-to-production flow, safer execution, scalable agent orchestration, centralized tool gateways and story systems built around persistent knowledge."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 17, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5711465074"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-16",
+      "title": "OSS Radar: September 16, 2026",
+      "publishedAt": "2026-09-16",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+            "These were retained as research candidates for visual production, sandboxed execution, orchestration, MCP interoperability and knowledge-graph-supported writing."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 16, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5695459022"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-15",
+      "title": "OSS Radar: September 15, 2026",
+      "publishedAt": "2026-09-15",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The review queue highlighted drama-skills, agent-kernel, cinedrama-os, awesome-ai-storyboarding and SST.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The review queue highlighted drama-skills, agent-kernel, cinedrama-os, awesome-ai-storyboarding and SST.",
+            "The useful comparison points ranged from reusable dramatic-writing skills and agent infrastructure to cinematic production systems and script-to-visual workflows."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 15, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5679337171"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-14",
+      "title": "OSS Radar: September 14, 2026",
+      "publishedAt": "2026-09-14",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The review queue highlighted openamer, Nexus-Hub, agent-kernel, clawdius and cinedrama-os.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The review queue highlighted openamer, Nexus-Hub, agent-kernel, clawdius and cinedrama-os.",
+            "The report kept the focus on inspectable approaches to agent workbenches, coordination, governed execution and visual-production pipelines."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 14, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5665732652"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
+      ]
+    },
+    {
+      "slug": "oss-radar-2026-09-13",
+      "title": "OSS Radar: September 13, 2026",
+      "publishedAt": "2026-09-13",
+      "updatedAt": "2026-09-21",
+      "author": "Bryan Elgin Harris",
+      "summary": "The first September report highlighted narrative-soundstage, visual-ui-debug-agent-mcp, VAIXLNS, testzeus-hercules and Orkas.",
+      "series": "OSS Radar",
+      "tags": [
+        "OSS Radar",
+        "open source",
+        "daily digest",
+        "story technology"
+      ],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "Public digest",
+          "paragraphs": [
+            "The first September report highlighted narrative-soundstage, visual-ui-debug-agent-mcp, VAIXLNS, testzeus-hercules and Orkas.",
+            "The initial review set covered script performance, visual interface debugging, architecture ideas, agent testing and orchestration."
+          ]
+        },
+        {
+          "heading": "Human review remains the boundary",
+          "paragraphs": [
+            "This daily Radar article records research candidates and transferable ideas for public reading inside PlotPickle. Inclusion is not an installation, endorsement, dependency decision or product commitment.",
+            "GitHub remains the evidence source for the underlying report. The in-site article is the public reading surface, and Human review remains required before Radar discoveries affect PlotPickle."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "label": "September 13, 2026 OSS Radar report",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5653831092"
+        },
+        {
+          "label": "September 2026 OSS Radar thread",
+          "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"
+        }
       ]
     }
   ]

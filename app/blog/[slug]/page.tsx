@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { publicBlogPost, publishedBlogPosts } from "@/lib/public-site/blog";
+import {
+  publicBlogPost,
+  publicBlogPostForDateHeading,
+  publishedBlogPosts,
+} from "@/lib/public-site/blog";
 import styles from "../blog.module.css";
 
 export function generateStaticParams() {
@@ -31,7 +35,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <div className={styles.meta}><span>{post.author}</span><span>{post.publishedAt}</span></div>
       <p>{post.summary}</p>
       <div className={styles.tags}>{post.tags.map((tag)=><span key={tag}>{tag}</span>)}</div>
-      {post.sections.map((section)=><section key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph)=><p key={paragraph}>{paragraph}</p>)}</section>)}
+      {post.sections.map((section) => {
+        const linkedPost = post.slug === "oss-radar-september-2026-by-date"
+          ? publicBlogPostForDateHeading(section.heading)
+          : null;
+        return <section key={section.heading}>
+          <h2>{linkedPost
+            ? <Link className={styles.dateLink} href={"/blog/" + linkedPost.slug}>{section.heading}<span aria-hidden="true"> →</span></Link>
+            : section.heading}</h2>
+          {section.paragraphs.map((paragraph)=><p key={paragraph}>{paragraph}</p>)}
+        </section>;
+      })}
       <footer className={styles.sources}><h2>Sources</h2><ul>{post.sources.map((source)=><li key={source.url}><a href={source.url}>{source.label}</a></li>)}</ul></footer>
     </article>
   </div>;

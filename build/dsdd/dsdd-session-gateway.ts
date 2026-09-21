@@ -1,4 +1,6 @@
+import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
@@ -52,6 +54,14 @@ type DsddIntent = {
     mutationAuthority: "existing-local-developer-worker";
     mergeAuthority: "github-exact-head-green-only";
     repairMayMutateIntent: false;
+  };
+  build?: {
+    state: "queued" | "running" | "passed-pre-pr" | "failed";
+    startedAt: string;
+    completedAt?: string;
+    reportPath: string;
+    packetPath: string;
+    summary: string;
   };
 };
 
@@ -322,6 +332,126 @@ async function lockIntent() {
   return { session, intent };
 }
 
+async function startBuild() {
+  const { context, session } = await load();
+  const intent = session.intents.at(-1);
+  if (!intent?.locked) throw new Error("Choose Build this to lock a DSDD intent before implementation starts.");
+  if (!session.piSessionFile) throw new Error("The persistent Pi engineering session is not available.");
+  if (intent.build?.state === "queued" || intent.build?.state === "running") {
+    return { session, intent };
+  }
+
+  const root = path.join(persistentHome(), "developer-agent", "dsdd-builds", session.sessionId);
+  await mkdir(root, { recursive: true, mode: 0o700 });
+  const safeVersion = `intent-v${intent.version}`;
+  const packetPath = path.join(root, `${safeVersion}-packet.json`);
+  const reportPath = path.join(root, `${safeVersion}-uat.json`);
+  const fingerprint = `dsdd-${session.sessionId.slice(0, 12)}-v${intent.version}`;
+  const packet = {
+    schemaVersion: 1,
+    locked: true,
+    intentVersion: intent.version,
+    intentDigest: intent.buildPacket.intentDigest,
+    humanStatement: intent.humanStatement,
+    understoodMeaning: intent.understoodMeaning,
+    context: intent.context,
+    requirements: intent.requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
+    repairMayMutateIntent: false,
+    isolation: intent.buildPacket.isolation,
+    mergeAuthority: intent.buildPacket.mergeAuthority,
+  };
+  const report = {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    findings: [{
+      fingerprint,
+      title: `DSDD locked intent v${intent.version}`,
+      area: "dsdd-locked-intent",
+      severity: "blocker",
+      message: [
+        `Implement the Human-approved DSDD locked intent v${intent.version}.`,
+        `Approved meaning: ${intent.understoodMeaning}`,
+        "Do not modify the locked meaning. Add or strengthen focused deterministic proof before changing product behavior.",
+      ].join("\n"),
+      evidence: {
+        intentVersion: intent.version,
+        intentDigest: intent.buildPacket.intentDigest,
+        requirementIds: intent.requirements.map((requirement) => requirement.id),
+      },
+    }],
+  };
+  await Promise.all([
+    writeFile(packetPath, `${JSON.stringify(packet, null, 2)}\n`, { encoding: "utf8", mode: 0o600 }),
+    writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { encoding: "utf8", mode: 0o600 }),
+  ]);
+
+  intent.build = {
+    state: "running",
+    startedAt: new Date().toISOString(),
+    reportPath,
+    packetPath,
+    summary: "Existing local Pi developer worker is implementing the locked intent in an isolated git worktree.",
+  };
+  await save(context, session);
+
+  const child = spawn(process.execPath, [
+    path.resolve(process.cwd(), "scripts", "run-uat-repair-agent.mjs"),
+    "--worker", "pi",
+    "--report", reportPath,
+    "--fingerprint", fingerprint,
+    "--dsdd-session", session.piSessionFile,
+    "--dsdd-packet", packetPath,
+  ], {
+    cwd: process.cwd(),
+    env: process.env,
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  child.once("error", async (error) => {
+    intent.build = {
+      ...intent.build!,
+      state: "failed",
+      completedAt: new Date().toISOString(),
+      summary: error.message,
+    };
+    await save(context, session).catch(() => {});
+  });
+  child.once("exit", async (code) => {
+    intent.build = {
+      ...intent.build!,
+      state: code === 0 ? "passed-pre-pr" : "failed",
+      completedAt: new Date().toISOString(),
+      summary: code === 0
+        ? "The isolated developer worker passed its pre-PR deterministic gates and produced its normal draft-PR handoff. Requirement proof remains PASS/FAIL/UNPROVEN evidence, not worker self-report."
+        : `The isolated developer worker exited ${code}; locked intent remains unchanged.`,
+    };
+    const evidenceStatus = code === 0 ? "UNPROVEN" : "FAIL";
+    for (const requirement of intent.requirements) {
+      if (requirement.status !== "UNPROVEN") continue;
+      requirement.status = evidenceStatus;
+      requirement.evidence = [{
+        ref: reportPath,
+        summary: code === 0
+          ? "Pre-PR build/validation completed, but this requirement still needs direct behavior evidence."
+          : "The bounded implementation worker failed before requirement proof completed.",
+      }];
+    }
+    await runDsddPiAction({
+      action: "record-evidence",
+      cwd: process.cwd(),
+      sessionDir: piSessionDir(context.profileId),
+      sessionId: session.piSessionId || session.sessionId,
+      sessionFile: session.piSessionFile || undefined,
+      intentVersion: intent.version,
+      requirements: intent.requirements,
+    }).catch(() => {});
+    await save(context, session).catch(() => {});
+  });
+
+  return { session, intent };
+}
+
 async function recordEvidence(body: Record<string, unknown>) {
   const { context, session } = await load();
   const version = Number(body.intentVersion);
@@ -380,6 +510,10 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
   }
   if (action === "lock-intent") {
     send(response, 200, { ok: true, ...(await lockIntent()) });
+    return;
+  }
+  if (action === "build") {
+    send(response, 202, { ok: true, ...(await startBuild()) });
     return;
   }
   if (action === "record-evidence") {

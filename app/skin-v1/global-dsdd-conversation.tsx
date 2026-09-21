@@ -116,8 +116,18 @@ function loadMessages() {
 function persistMessages(messages: DsddMessage[]) {
   try {
     window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES)));
+    return true;
   } catch {
-    // A private browser mode may reject session storage. The live conversation still remains in memory.
+    return false;
+  }
+}
+
+function clearPersistedMessages() {
+  try {
+    window.sessionStorage.removeItem(SESSION_KEY);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -266,11 +276,7 @@ export default function GlobalDsddConversation() {
     setMessages([]);
     setDraft("");
     setError("");
-    try {
-      window.sessionStorage.removeItem(SESSION_KEY);
-    } catch {
-      // Memory state is already cleared.
-    }
+    clearPersistedMessages();
   }
 
   if (!eligible) return null;

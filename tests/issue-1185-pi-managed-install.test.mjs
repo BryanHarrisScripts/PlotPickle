@@ -126,7 +126,7 @@ test("#1185 wrong managed Pi version fails closed when installation is disabled"
     allowInstall: false,
     existsSync: (candidate) => candidate === command,
     runPortableCommand: async () => ({ stdout: "0.83.0", stderr: "" }),
-  }), /Expected 0\.84\.4; found 0\.83\.0/u);
+  }), /Expected 0\.87\.0; found 0\.83\.0/u);
 });
 
 test("#1185 startup health provisions managed Pi when worker preflight says unavailable and exports the absolute command", async () => {
@@ -145,7 +145,7 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   const batch = await read("scripts/windows-batch-command.mjs");
   const combined = `${managed}\n${ensure}\n${runtime}`;
   assert.match(ensure, /ensureManagedPiInstalled/);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.84\.4"/u);
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.0"/u);
   assert.match(managed, /resolveActiveNpmCommand/);
   assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
   assert.match(runtime, /windowsBatchInvocation/);

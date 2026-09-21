@@ -25,12 +25,12 @@ const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, min
 type BuildReturnTarget = "outline" | "storyboard" | "previs";
 type PreproductionStage = "outline" | "storyboard" | "previs" | "timeline" | "production";
 
-const PREPRODUCTION_STAGES: readonly Readonly<{ id: PreproductionStage; label: string }>[] = [
-  { id: "outline", label: "Outline" },
-  { id: "storyboard", label: "Storyboard" },
-  { id: "previs", label: "Previs" },
-  { id: "timeline", label: "Timeline" },
-  { id: "production", label: "Production" },
+const PREPRODUCTION_STAGES: readonly Readonly<{ id: PreproductionStage; label: string; shortcut: string }>[] = [
+  { id: "outline", label: "Outline", shortcut: "O" },
+  { id: "storyboard", label: "Storyboard", shortcut: "S" },
+  { id: "previs", label: "Previs", shortcut: "P" },
+  { id: "timeline", label: "Timeline", shortcut: "T" },
+  { id: "production", label: "Production", shortcut: "D" },
 ];
 
 function PreproductionStageRail({
@@ -45,16 +45,27 @@ function PreproductionStageRail({
       aria-label="Pre-production stages"
       className="pp-skin-v1-preproduction-stage-rail"
       data-preproduction-stage-rail="five-stage"
+      data-horizontal-directory-reference="library"
+      onKeyDown={(event) => {
+        if (event.key.length !== 1) return;
+        const shortcut = event.key.toUpperCase();
+        const stage = PREPRODUCTION_STAGES.find((candidate) => candidate.shortcut === shortcut);
+        if (!stage) return;
+        event.preventDefault();
+        onOpen(stage.id);
+      }}
     >
       {PREPRODUCTION_STAGES.map((stage) => (
         <button
           aria-current={stage.id === active ? "step" : undefined}
+          aria-keyshortcuts={stage.shortcut}
           data-preproduction-stage={stage.id}
+          data-preproduction-shortcut={stage.shortcut}
           key={stage.id}
           onClick={() => onOpen(stage.id)}
           type="button"
         >
-          {stage.label}
+          <span aria-hidden="true">[{stage.shortcut}] </span>{stage.label}
         </button>
       ))}
     </nav>

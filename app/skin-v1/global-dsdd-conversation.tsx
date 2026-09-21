@@ -116,18 +116,16 @@ function loadMessages() {
 function persistMessages(messages: DsddMessage[]) {
   try {
     window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES)));
-    return true;
-  } catch {
-    return false;
+  } catch (error) {
+    console.warn("DSDD session persistence is unavailable; continuing with in-memory conversation state.", error);
   }
 }
 
 function clearPersistedMessages() {
   try {
     window.sessionStorage.removeItem(SESSION_KEY);
-    return true;
-  } catch {
-    return false;
+  } catch (error) {
+    console.warn("DSDD persisted session could not be cleared; in-memory conversation state is cleared.", error);
   }
 }
 

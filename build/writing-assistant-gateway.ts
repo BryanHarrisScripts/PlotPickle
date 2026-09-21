@@ -412,15 +412,17 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
 }
 
 async function handleTextOverride(request: IncomingMessage, response: ServerResponse) {
+  const body = await readBody(request, 96 * 1024);
   const { store, available } = await readSynchronizedAssistantStore();
-  if (!available && store.activeProvider !== "local") return false;
-  if (!isTextProvider(store.activeProvider)) {
+  const explicitLocal = body.provider === "local";
+  const requestedProvider = explicitLocal ? "local" : store.activeProvider;
+  if (!available && requestedProvider !== "local") return false;
+  if (!isTextProvider(requestedProvider)) {
     sendJson(response, 409, { ok: false, message: "The Writing Assistant is off. Select a text engine on the Configuration Dashboard." });
     return true;
   }
-  const body = await readBody(request, 96 * 1024);
   const role: LocalTextRole = body.modelRole === "deep" ? "deep" : body.modelRole === "quality" ? "quality" : "fast";
-  const profile = await profileForProvider(store, store.activeProvider, role);
+  const profile = await profileForProvider(store, requestedProvider, role);
   const instructions = typeof body.instructions === "string" ? body.instructions : ASSISTANT_INSTRUCTIONS;
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
   const text = await generateAssistantText(profile, instructions, prompt);

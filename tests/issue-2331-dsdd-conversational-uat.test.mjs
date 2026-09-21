@@ -55,12 +55,15 @@ test("#2331 reuses the existing text and voice boundaries without granting code 
   assert.doesNotMatch(panel, /merge_pull_request|create_pull_request|update_file/u);
 });
 
-test("#2331 preserves the live conversation across navigation in browser-session scope", async () => {
-  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
+test("#2331 preserves the live conversation across navigation in the persistent authenticated shell", async () => {
+  const [layout, panel] = await Promise.all([
+    read("app/layout.tsx"),
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
+  ]);
 
-  assert.match(panel, /plotpickle\.dsdd\.conversational-uat\.v1/u);
-  assert.match(panel, /window\.sessionStorage\.getItem/u);
-  assert.match(panel, /window\.sessionStorage\.setItem/u);
+  assert.match(layout, /<GlobalDsddConversation \/>/u);
+  assert.match(panel, /const \[messages, setMessages\] = useState<DsddMessage\[\]>\(\[\]\)/u);
   assert.match(panel, /MutationObserver/u);
   assert.match(panel, /usePathname/u);
+  assert.doesNotMatch(panel, /sessionStorage|localStorage/u);
 });

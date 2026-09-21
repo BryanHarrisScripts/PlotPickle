@@ -32,6 +32,100 @@
         {"heading": "Human review stays in the loop", "paragraphs": ["A repository appearing in OSS Radar does not authorize an installation, dependency change or product rewrite.", "The Radar may generate a public Blog draft, but a Human must review the article and merge the GitHub change before it can become part of PlotPickle.com."]}
       ],
       "sources": [{"label": "PlotPickle OSS Radar source", "url": "https://github.com/BryanHarrisScripts/PlotPickle/tree/main/lib/verification/oss-radar"}]
+    },
+    {
+      "slug": "oss-radar-september-2026-by-date",
+      "title": "OSS Radar: September 2026, by date",
+      "publishedAt": "2026-09-20",
+      "updatedAt": "2026-09-20",
+      "author": "Bryan Elgin Harris",
+      "summary": "A dated public index of PlotPickle's September OSS Radar reports, preserving Human review between discovery and adoption.",
+      "series": "OSS Radar",
+      "tags": ["OSS Radar", "open source", "daily digest", "story technology"],
+      "status": "published",
+      "sections": [
+        {
+          "heading": "How to read the Radar",
+          "paragraphs": [
+            "Each date below records projects surfaced for Human review. Inclusion is a research signal, not an installation, endorsement, dependency decision or promise that a capability will enter PlotPickle.",
+            "The full GitHub reports contain the deterministic discovery evidence. This Blog entry is the public, date-ordered index."
+          ]
+        },
+        {
+          "heading": "September 20, 2026",
+          "paragraphs": [
+            "The public digest highlighted awesome-ai-storyboarding, viforge, moshu, Mana, anamnesis, LocalLLMServerManager and agmi across interface, orchestration, local-AI, memory, provider-runtime and validation concerns.",
+            "The strongest shared question was how a local-first story system can connect creative surfaces, bounded agents, durable context and operational evidence without locking itself to one provider."
+          ]
+        },
+        {
+          "heading": "September 19, 2026",
+          "paragraphs": [
+            "The public digest highlighted CopilotKit, WeKnora, cycgraph, OpenViking, saga, sekai-chisei and NyxID.",
+            "Together they offered review material around generative interfaces, knowledge retrieval, context compression, agent memory, story graphs, governed local control and secure API access."
+          ]
+        },
+        {
+          "heading": "September 18, 2026",
+          "paragraphs": [
+            "The public digest highlighted OpenUI, story-skills, wind-comic, design-os-3d-blender, ideagraph-live, mnemos and agentguard.",
+            "The day connected generative UI, story-writing skills, multi-agent visual production, tool execution, persistent idea graphs, interoperable memory and agent safeguards."
+          ]
+        },
+        {
+          "heading": "September 17, 2026",
+          "paragraphs": [
+            "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+            "The recurring themes were storyboard-to-production flow, safer execution, scalable agent orchestration, centralized tool gateways and story systems built around persistent knowledge."
+          ]
+        },
+        {
+          "heading": "September 16, 2026",
+          "paragraphs": [
+            "The review queue highlighted cinedrama-os, clawdius, agent-kernel, mcp-context-forge and saga.",
+            "These were retained as research candidates for visual production, sandboxed execution, orchestration, MCP interoperability and knowledge-graph-supported writing."
+          ]
+        },
+        {
+          "heading": "September 15, 2026",
+          "paragraphs": [
+            "The review queue highlighted drama-skills, agent-kernel, cinedrama-os, awesome-ai-storyboarding and SST.",
+            "The useful comparison points ranged from reusable dramatic-writing skills and agent infrastructure to cinematic production systems and script-to-visual workflows."
+          ]
+        },
+        {
+          "heading": "September 14, 2026",
+          "paragraphs": [
+            "The review queue highlighted openamer, Nexus-Hub, agent-kernel, clawdius and cinedrama-os.",
+            "The report kept the focus on inspectable approaches to agent workbenches, coordination, governed execution and visual-production pipelines."
+          ]
+        },
+        {
+          "heading": "September 13, 2026",
+          "paragraphs": [
+            "The first September report highlighted narrative-soundstage, visual-ui-debug-agent-mcp, VAIXLNS, testzeus-hercules and Orkas.",
+            "The initial review set covered script performance, visual interface debugging, architecture ideas, agent testing and orchestration."
+          ]
+        },
+        {
+          "heading": "Human review remains the publication boundary",
+          "paragraphs": [
+            "OSS Radar may prepare discovery evidence and a public draft. A Human still decides what is accurate, useful and appropriate to publish.",
+            "No Radar entry can install software, change PlotPickle architecture, alter curriculum or authorize product work on its own."
+          ]
+        }
+      ],
+      "sources": [
+        {"label": "September 2026 OSS Radar thread", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"},
+        {"label": "September 20 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5751264686"},
+        {"label": "September 19 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5741656066"},
+        {"label": "September 18 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5728272894"},
+        {"label": "September 17 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5711465074"},
+        {"label": "September 16 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5695459022"},
+        {"label": "September 15 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5679337171"},
+        {"label": "September 14 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5665732652"},
+        {"label": "September 13 report", "url": "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014#issuecomment-5653831092"}
+      ]
     }
   ]
 }

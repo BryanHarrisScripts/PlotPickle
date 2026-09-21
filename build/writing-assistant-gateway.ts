@@ -40,6 +40,7 @@ const CHAT_PATH = `${API_ROOT}/chat`;
 const OLLAMA_PATH = `${API_ROOT}/ollama`;
 const OLLAMA_CONNECTION_PATH = `${OLLAMA_PATH}/connection`;
 const TEXT_PATH = "/api/local-ai/generate/text";
+const DSDD_TEXT_PATH = "/api/dsdd/generate/text";
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -411,6 +412,41 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   });
 }
 
+async function handleDsddText(request: IncomingMessage, response: ServerResponse) {
+  const body = await readBody(request, 96 * 1024);
+  const instructions = typeof body.instructions === "string" ? body.instructions : ASSISTANT_INSTRUCTIONS;
+  const prompt = typeof body.prompt === "string" ? body.prompt : "";
+  if (!prompt.trim()) throw new Error("Enter DSDD narration before requesting interpretation.");
+
+  const { store } = await readSynchronizedAssistantStore();
+  let role: LocalTextRole = "quality";
+  let profile: ProviderProfile;
+  try {
+    profile = await refreshLocalProfile(store, "quality");
+  } catch (qualityError) {
+    role = "fast";
+    try {
+      profile = await refreshLocalProfile(store, "fast");
+    } catch (fastError) {
+      const qualityMessage = qualityError instanceof Error ? qualityError.message : "Quality local model unavailable.";
+      const fastMessage = fastError instanceof Error ? fastError.message : "Fast local model unavailable.";
+      throw new Error(`DSDD could not start its approved local intent engine automatically. Quality: ${qualityMessage} Fast: ${fastMessage}`);
+    }
+  }
+
+  const text = await generateAssistantText(profile, instructions, prompt);
+  if (!text) throw new Error("The DSDD local intent engine returned no text.");
+  sendJson(response, 200, {
+    ok: true,
+    text,
+    provider: "local",
+    runtimeProvider: profile.runtime || profile.provider,
+    model: profile.textModel,
+    modelRole: role,
+    route: "dsdd-local-default",
+  });
+}
+
 async function handleTextOverride(request: IncomingMessage, response: ServerResponse) {
   const { store, available } = await readSynchronizedAssistantStore();
   if (!available && store.activeProvider !== "local") return false;
@@ -461,6 +497,19 @@ async function routeAssistant(request: IncomingMessage, response: ServerResponse
 export function registerWritingAssistantGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
+    if (pathname === DSDD_TEXT_PATH && request.method === "POST") {
+      if (!isLocalRequest(request)) {
+        sendJson(response, 403, { ok: false, message: "DSDD local intent interpretation accepts requests only from this PlotPickle server." });
+        return;
+      }
+      void handleDsddText(request, response).catch((error) => {
+        const message = error instanceof Error
+          ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]")
+          : "The DSDD local intent engine failed.";
+        sendJson(response, 400, { ok: false, message });
+      });
+      return;
+    }
     if (pathname === TEXT_PATH && request.method === "POST") {
       if (!isLocalRequest(request)) {
         sendJson(response, 403, { ok: false, message: "The local text gateway accepts requests only from this PlotPickle server." });

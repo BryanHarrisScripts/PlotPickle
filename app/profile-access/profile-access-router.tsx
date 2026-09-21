@@ -14,8 +14,8 @@ function isSkinV1Path(pathname: string) {
  * Legacy routes keep the existing ProfileAccessBoundary. Skin V1 renders LOGON
  * through the headless Experience use case instead.
  */
-export default function ProfileAccessRouter({ children }: { readonly children: ReactNode }) {
+export default function ProfileAccessRouter({ children, publicWebRoot = false }: { readonly children: ReactNode; readonly publicWebRoot?: boolean }) {
   const pathname = usePathname();
-  if (isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;
+  if (publicWebRoot || isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;
   return <ProfileAccessBoundary>{children}</ProfileAccessBoundary>;
 }

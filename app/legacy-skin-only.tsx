@@ -6,14 +6,16 @@ import DemoOnboardingBoundary from "./profile-access/demo/demo-onboarding-bounda
 import { isCanonicalSkinV1Path } from "./skin-v1-route-contract";
 import { isPublicWebPath } from "./public-web-route";
 
-export function LegacyDemoBoundary({ children }: { readonly children: ReactNode }) {
+type PublicWebBoundaryProps = { readonly children: ReactNode; readonly publicWebRoot?: boolean };
+
+export function LegacyDemoBoundary({ children, publicWebRoot = false }: PublicWebBoundaryProps) {
   const pathname = usePathname();
-  if (isCanonicalSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;
+  if (publicWebRoot || isCanonicalSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;
   return <DemoOnboardingBoundary>{children}</DemoOnboardingBoundary>;
 }
 
-export function LegacySkinOnly({ children }: { readonly children: ReactNode }) {
+export function LegacySkinOnly({ children, publicWebRoot = false }: PublicWebBoundaryProps) {
   const pathname = usePathname();
-  if (isCanonicalSkinV1Path(pathname) || isPublicWebPath(pathname)) return null;
+  if (publicWebRoot || isCanonicalSkinV1Path(pathname) || isPublicWebPath(pathname)) return null;
   return <>{children}</>;
 }

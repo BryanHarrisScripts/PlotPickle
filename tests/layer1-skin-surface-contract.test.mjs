@@ -22,7 +22,7 @@ test("Layer 1 canonical Skin contract keeps one continuous secure Skin V1 LOGON 
   assert.match(client, /view\.profiles\.length > 1[\s\S]*<select/u);
   assert.match(client, /autoFocus=\{view\.profiles\.length === 1\}/u);
   assert.match(css, /\.pp-skin-v1-logon > \.pp-skin-v1-panel > :is\(p, form, \.pp-skin-v1-message\)[\s\S]*min-height: 260px/u);
-  assert.ok(router.includes('if (isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;'));
+  assert.ok(router.includes('if (publicWebRoot || isSkinV1Path(pathname) || isPublicWebPath(pathname)) return <>{children}</>;'));
   assert.match(voice, /password\|passphrase\|secret/u);
 });
 

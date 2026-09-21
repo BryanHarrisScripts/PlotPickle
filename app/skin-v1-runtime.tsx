@@ -36,11 +36,17 @@ function syncSkinAliases(theme: SkinTheme) {
   });
 }
 
-function applySkin() {
+function applySkin(publicWebRoot: boolean) {
   const url = new URL(window.location.href);
   const explicit = url.searchParams.get("skin");
   const stored = window.localStorage.getItem(SKIN_STORAGE_KEY);
   const skinV1Route = isCanonicalSkinV1Path(url.pathname);
+
+  if (publicWebRoot) {
+    delete document.documentElement.dataset.plotpickleSkin;
+    delete document.documentElement.dataset.plotpickleSkinTheme;
+    return;
+  }
 
   if (explicit === LEGACY_SKIN) {
     window.localStorage.setItem(SKIN_STORAGE_KEY, LEGACY_SKIN);
@@ -93,9 +99,10 @@ async function bootstrapManagedLocalImages(signal: AbortSignal) {
   }
 }
 
-export default function SkinV1Runtime() {
+export default function SkinV1Runtime({ publicWebRoot = false }: { readonly publicWebRoot?: boolean }) {
   useEffect(() => {
-    applySkin();
+    const applyCurrentSkin = () => applySkin(publicWebRoot);
+    applyCurrentSkin();
     const controller = new AbortController();
     const timer = window.setTimeout(() => { void bootstrapManagedLocalImages(controller.signal); }, 900);
     const observer = new MutationObserver(() => {
@@ -103,16 +110,16 @@ export default function SkinV1Runtime() {
       if (theme === SKIN_V1 || theme === SKIN_V2) syncSkinAliases(theme);
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener("popstate", applySkin);
-    window.addEventListener("plotpickle:skin-change", applySkin);
+    window.addEventListener("popstate", applyCurrentSkin);
+    window.addEventListener("plotpickle:skin-change", applyCurrentSkin);
     return () => {
       controller.abort();
       observer.disconnect();
       window.clearTimeout(timer);
-      window.removeEventListener("popstate", applySkin);
-      window.removeEventListener("plotpickle:skin-change", applySkin);
+      window.removeEventListener("popstate", applyCurrentSkin);
+      window.removeEventListener("plotpickle:skin-change", applyCurrentSkin);
     };
-  }, []);
+  }, [publicWebRoot]);
 
   return null;
 }

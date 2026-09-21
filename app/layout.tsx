@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { PLOTPICKLE_PRODUCT_CATEGORY } from "@/lib/product-direction";
 import ProfileAccessRouter from "./profile-access/profile-access-router";
 import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
@@ -106,11 +107,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publicWebRoot = (await headers()).get("x-plotpickle-public-web") === "1";
+
   return (
     <html
       lang="en"
@@ -128,17 +131,17 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
-        <SkinV1Runtime />
+        <SkinV1Runtime publicWebRoot={publicWebRoot} />
         <UniversalVoiceInputLayer />
-        <LegacyDemoBoundary>
-          <ProfileAccessRouter>
+        <LegacyDemoBoundary publicWebRoot={publicWebRoot}>
+          <ProfileAccessRouter publicWebRoot={publicWebRoot}>
             <PreproductionLearnReturnHost />
             <SkinV1SurfaceOrchestrator>
               <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
             </SkinV1SurfaceOrchestrator>
             <GlobalSageOverlay />
           </ProfileAccessRouter>
-          <LegacySkinOnly>
+          <LegacySkinOnly publicWebRoot={publicWebRoot}>
             <ProfileIdentityOverlay />
             <UiContinuityAnchor />
             <LearnEntryRouter />

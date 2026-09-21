@@ -89,8 +89,9 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
   assert.ok(timeoutMatch, "startup readiness timeout is missing");
   assert.ok(Number(timeoutMatch[1]) >= 180, "resource-constrained startup must tolerate at least 180 seconds");
 
-  const openWhenReadyLabel = launcher.indexOf(":open_when_ready");
-  const deferredLabel = launcher.indexOf(":start_deferred_companion_maintenance", openWhenReadyLabel);
+  const openWhenReadyLabel = launcher.search(/^:open_when_ready\r?$/mu);
+  const deferredRelative = launcher.slice(openWhenReadyLabel + 1).search(/^:start_deferred_companion_maintenance\r?$/mu);
+  const deferredLabel = deferredRelative >= 0 ? openWhenReadyLabel + 1 + deferredRelative : -1;
   assert.ok(openWhenReadyLabel >= 0 && deferredLabel > openWhenReadyLabel, "Owned-browser startup labels must remain ordered and discoverable");
   const openWhenReady = launcher.slice(openWhenReadyLabel, deferredLabel);
   assert.match(openWhenReady, /\) \| Where-Object/);

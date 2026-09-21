@@ -5,10 +5,12 @@ import { randomUUID } from "node:crypto";
 import { persistentHome } from "../local-credentials";
 import type { ComfyWorkflow, MediaProfile } from "../media-routing-store";
 import {
+  referenceImages,
   resolveImageStoryJobClass,
   safeAssetStem,
   saveGeneratedAsset,
   videoSourceReference,
+  visualContinuityEnvelope,
   type ImageGenerationInput,
   type VideoGenerationInput,
 } from "../media-provider-common";
@@ -16,6 +18,9 @@ import {
 const DEFAULT_BASE_URL = "http://127.0.0.1:8188";
 const REQUEST_TIMEOUT_MS = 5_000;
 const IMAGE_TIMEOUT_MS = 240_000;
+const QWEN_IMAGE_TIMEOUT_MS = 360_000;
+const MAX_QWEN_REFERENCES = 10;
+const QWEN_REQUIRED_GGUF_NODE = "UnetLoaderGGUF";
 const REQUIRED_IMAGE_NODES = [
   "CheckpointLoaderSimple",
   "CLIPTextEncode",
@@ -254,6 +259,107 @@ function visitStrings(value: unknown, visitor: (value: string, key: string) => s
   if (Array.isArray(value)) return value.map((item) => visitStrings(item, visitor, key));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value).map(([childKey, child]) => [childKey, visitStrings(child, visitor, childKey)]));
+}
+
+
+export function validateQwenImage21Workflow(source: Record<string, unknown>) {
+  const serialized = JSON.stringify(source);
+  if (!serialized.includes("{{PLOTPICKLE_PROMPT}}")) {
+    throw new Error("The Qwen-Image-2.1 ComfyUI workflow must contain {{PLOTPICKLE_PROMPT}}.");
+  }
+  if (/https?:\/\//i.test(serialized)) {
+    throw new Error("The experimental Qwen workflow must not contain remote URLs. Keep model assets local to ComfyUI.");
+  }
+  const nodeClasses = workflowNodeClasses(source);
+  if (!nodeClasses.includes(QWEN_REQUIRED_GGUF_NODE)) {
+    throw new Error(`The experimental Qwen workflow must use ${QWEN_REQUIRED_GGUF_NODE} from ComfyUI-GGUF.`);
+  }
+  return nodeClasses;
+}
+
+export async function generateQwenImage21(
+  baseUrl: string,
+  workflow: ComfyWorkflow,
+  input: ImageGenerationInput,
+) {
+  if (typeof input.requestCount === "number" && input.requestCount !== 1) {
+    throw new Error("Experimental Qwen-Image-2.1 is limited to one image per request.");
+  }
+  const envelope = visualContinuityEnvelope(input);
+  if (!envelope.prompt) throw new Error("Enter an image prompt before generating.");
+  validateQwenImage21Workflow(workflow.source);
+
+  const approvedReferences = (await referenceImages(input)).slice(0, MAX_QWEN_REFERENCES);
+  const uploadedReferences: string[] = [];
+  for (let index = 0; index < approvedReferences.length; index += 1) {
+    const reference = approvedReferences[index];
+    const form = new FormData();
+    const safeName = `plotpickle-qwen-reference-${index + 1}-${reference.fileName.replace(/[^A-Za-z0-9._-]+/g, "-")}`;
+    form.set("image", new Blob([new Uint8Array(reference.bytes)], { type: reference.mimeType }), safeName);
+    form.set("overwrite", "true");
+    const response = await fetch(`${normalizeBaseUrl(baseUrl)}/upload/image`, {
+      method: "POST",
+      body: form,
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) throw new Error("ComfyUI could not accept an approved Qwen reference image.");
+    const uploaded = await response.json() as { name?: unknown; subfolder?: unknown };
+    const name = typeof uploaded.name === "string" ? uploaded.name.trim() : "";
+    const subfolder = typeof uploaded.subfolder === "string" ? uploaded.subfolder.trim() : "";
+    if (!name) throw new Error("ComfyUI uploaded a Qwen reference but returned no file name.");
+    uploadedReferences.push(subfolder ? `${subfolder}/${name}` : name);
+  }
+
+  const size = input.aspect === "portrait"
+    ? { width: 768, height: 1024 }
+    : input.aspect === "square"
+      ? { width: input.quality === "low" ? 768 : 1024, height: input.quality === "low" ? 768 : 1024 }
+      : { width: 1024, height: 768 };
+  const hydrated = visitStrings(workflow.source, (value) => {
+    let next = value
+      .replaceAll("{{PLOTPICKLE_PROMPT}}", envelope.prompt)
+      .replaceAll("{{PLOTPICKLE_NEGATIVE}}", envelope.negativePrompt)
+      .replaceAll("{{PLOTPICKLE_WIDTH}}", String(size.width))
+      .replaceAll("{{PLOTPICKLE_HEIGHT}}", String(size.height));
+    for (let index = 0; index < MAX_QWEN_REFERENCES; index += 1) {
+      next = next.replaceAll(`{{PLOTPICKLE_REFERENCE_${index + 1}}}`, uploadedReferences[index] || "");
+    }
+    return next;
+  }) as Record<string, unknown>;
+
+  const started = Date.now();
+  const promptId = await submitWorkflow(baseUrl, hydrated);
+  while (Date.now() - started < QWEN_IMAGE_TIMEOUT_MS) {
+    const entry = await historyEntry(baseUrl, promptId);
+    const error = executionError(entry);
+    if (error) throw new Error(error);
+    const output = firstOutput(entry);
+    if (output) {
+      const assetUrl = await saveGeneratedAsset(
+        await downloadOutput(baseUrl, output),
+        input.assetId || input.characterId || "qwen-image-21",
+        ".png",
+      );
+      return {
+        assetUrl,
+        revisedPrompt: envelope.prompt,
+        referenceImagesUsed: uploadedReferences.length,
+        referenceImagesAvailable: approvedReferences.length,
+        providerRequestId: promptId,
+        localProfile: "Qwen-Image-2.1 Experimental",
+        renderDurationMs: Date.now() - started,
+        continuity: {
+          identityLocks: envelope.identityLockCount,
+          wardrobeLookIds: envelope.wardrobeLookIds,
+          compositionApplied: Boolean(envelope.composition),
+          continuityRules: envelope.continuity.length,
+          negativeConstraintsApplied: Boolean(envelope.negativePrompt),
+        },
+      };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+  throw new Error("ComfyUI did not finish the experimental Qwen-Image-2.1 workflow before the six-minute timeout.");
 }
 
 export function validateH3Workflow(source: Record<string, unknown>) {

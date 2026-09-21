@@ -348,7 +348,8 @@
       "classification": "production",
       "include": [
         "build/local-ai-gateway.ts",
-        "build/story-mode-policy-gateway.ts"
+        "build/story-mode-policy-gateway.ts",
+        "build/writing-assistant-gateway.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [
@@ -438,7 +439,8 @@
       "include": [
         "app/_components/universal-voice-input-layer.tsx",
         "app/_components/voice-input-control.tsx",
-        "app/_components/voice-input-control.module.css"
+        "app/_components/voice-input-control.module.css",
+        "lib/voice-input.ts"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

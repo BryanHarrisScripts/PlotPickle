@@ -83,11 +83,14 @@ function acceptsDsddLoopbackRequest(request: IncomingMessage, expectedApi = API)
   if ((request.url?.split("?", 1)[0] || "") !== expectedApi) return false;
   const host = request.headers.host;
   if (!host) return false;
-  let hostUrl: URL;
-  try { hostUrl = new URL(`http://${host}`); } catch { return false; }
+  const hostValue = `http://${host}`;
+  if (!URL.canParse(hostValue)) return false;
+  const hostUrl = new URL(hostValue);
   if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-  if (!request.headers.origin) return true;
-  try { return new URL(request.headers.origin).host === hostUrl.host; } catch { return false; }
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  if (!URL.canParse(origin)) return false;
+  return new URL(origin).host === hostUrl.host;
 }
 
 function replyDsdd(response: ServerResponse, payload: { status: number; body: Record<string, unknown> }) {

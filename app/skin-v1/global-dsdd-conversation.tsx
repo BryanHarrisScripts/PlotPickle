@@ -202,7 +202,7 @@ export default function GlobalDsddConversation() {
     try {
       const response = await fetch("/api/local-ai/generate/text", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-plotpickle-dsdd-scope": "intent" },
         body: JSON.stringify({
           provider: "local",
           modelRole: "quality",

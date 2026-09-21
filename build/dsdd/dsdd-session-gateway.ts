@@ -77,43 +77,41 @@ type DsddSession = {
   intents: DsddIntent[];
 };
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
+function acceptsDsddLoopbackRequest(request: IncomingMessage, expectedApi = API) {
+  const remote = request.socket.remoteAddress;
+  if (remote !== "127.0.0.1" && remote !== "::1" && remote !== "::ffff:127.0.0.1") return false;
+  if ((request.url?.split("?", 1)[0] || "") !== expectedApi) return false;
   const host = request.headers.host;
   if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
+  let hostUrl: URL;
+  try { hostUrl = new URL(`http://${host}`); } catch { return false; }
+  if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
+  if (!request.headers.origin) return true;
+  try { return new URL(request.headers.origin).host === hostUrl.host; } catch { return false; }
 }
 
-function send(response: ServerResponse, status: number, body: Record<string, unknown>) {
-  response.statusCode = status;
+function replyDsdd(response: ServerResponse, payload: { status: number; body: Record<string, unknown> }) {
+  response.statusCode = payload.status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(payload.body));
 }
 
-async function readBody(request: IncomingMessage) {
+async function readDsddRequestBody(request: IncomingMessage, maximum = MAX_BODY) {
   const chunks: Buffer[] = [];
   let bytes = 0;
-  for await (const chunk of request) {
-    const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += value.length;
-    if (bytes > MAX_BODY) throw new Error("The DSDD session request is too large.");
-    chunks.push(value);
+  for await (const rawChunk of request) {
+    const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
+    bytes += chunk.length;
+    if (bytes > maximum) throw new Error("The DSDD session request is too large.");
+    chunks.push(chunk);
   }
-  const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Enter a valid DSDD session request.");
+  const source = Buffer.concat(chunks).toString("utf8");
+  const parsed: unknown = JSON.parse(source || "{}");
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Enter a valid DSDD session request.");
+  }
   return parsed as Record<string, unknown>;
 }
 
@@ -164,14 +162,11 @@ function normalizeSession(value: unknown): DsddSession {
   };
 }
 
-function profile() {
-  const context = currentProfileRequestContext();
-  if (!context) throw new Error("Unlock a PlotPickle Human profile before using DSDD.");
-  return context;
-}
+type DsddProfileContext = NonNullable<ReturnType<typeof currentProfileRequestContext>>;
 
 async function load() {
-  const context = profile();
+  const context = currentProfileRequestContext();
+  if (!context) throw new Error("Unlock a PlotPickle Human profile before using DSDD.");
   const stored = await context.privateStorage.readPrivateJson(context.authContext, {
     domain: "memory",
     objectId: OBJECT_ID,
@@ -179,7 +174,7 @@ async function load() {
   return { context, session: normalizeSession(stored) };
 }
 
-async function save(context: ReturnType<typeof profile>, session: DsddSession) {
+async function save(context: DsddProfileContext, session: DsddSession) {
   session.updatedAt = new Date().toISOString();
   await context.privateStorage.writePrivateJson(context.authContext, {
     domain: "memory",
@@ -491,33 +486,33 @@ async function recordEvidence(body: Record<string, unknown>) {
 async function handle(request: IncomingMessage, response: ServerResponse) {
   if (request.method === "GET") {
     const { session } = await load();
-    send(response, 200, { ok: true, session });
+    replyDsdd(response, { status: 200, body: { ok: true, session });
     return;
   }
   if (request.method !== "POST") {
-    send(response, 405, { ok: false, message: "Method not allowed." });
+    replyDsdd(response, { status: 405, body: { ok: false, message: "Method not allowed." } });
     return;
   }
-  const body = await readBody(request);
+  const body = await readDsddRequestBody(request);
   const action = text(body.action, 80);
   if (action === "append-human") {
-    send(response, 200, { ok: true, ...(await appendHuman(body)) });
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await appendHuman(body)) } });
     return;
   }
   if (action === "append-interpretation") {
-    send(response, 200, { ok: true, ...(await appendInterpretation(body)) });
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await appendInterpretation(body)) } });
     return;
   }
   if (action === "lock-intent") {
-    send(response, 200, { ok: true, ...(await lockIntent()) });
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await lockIntent()) } });
     return;
   }
   if (action === "build") {
-    send(response, 202, { ok: true, ...(await startBuild()) });
+    replyDsdd(response, { status: 202, body: { ok: true, ...(await startBuild()) } });
     return;
   }
   if (action === "record-evidence") {
-    send(response, 200, { ok: true, ...(await recordEvidence(body)) });
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await recordEvidence(body)) } });
     return;
   }
   throw new Error("Unknown DSDD session action.");
@@ -527,13 +522,19 @@ export function registerDsddSessionGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (pathname !== API) { next(); return; }
-    if (!isLocalRequest(request)) {
-      send(response, 403, { ok: false, message: "DSDD engineering sessions are available only from this local PlotPickle application." });
+    if (!acceptsDsddLoopbackRequest(request)) {
+      replyDsdd(response, {
+        status: 403,
+        body: { ok: false, message: "DSDD engineering sessions are available only from this local PlotPickle application." },
+      });
       return;
     }
-    void handle(request, response).catch((error) => send(response, 400, {
-      ok: false,
-      message: error instanceof Error ? error.message : "The DSDD engineering session request failed.",
+    void handle(request, response).catch((error) => replyDsdd(response, {
+      status: 400,
+      body: {
+        ok: false,
+        message: error instanceof Error ? error.message : "The DSDD engineering session request failed.",
+      },
     }));
   });
 }

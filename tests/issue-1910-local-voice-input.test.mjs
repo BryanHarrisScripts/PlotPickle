@@ -59,13 +59,19 @@ test("#1910 centralized eligibility excludes secrets and specialized controls", 
 });
 
 test("#1910 one app-shell voice layer uses explicit microphone action and the existing input/onChange path without auto-submit", async () => {
-  const [control, layer, layout] = await Promise.all([
+  const [control, layer, layout, launcher] = await Promise.all([
     text("app/_components/voice-input-control.tsx"),
     text("app/_components/universal-voice-input-layer.tsx"),
     text("app/layout.tsx"),
+    text("Start-PlotPickle.bat"),
   ]);
   assert.match(layout, /<UniversalVoiceInputLayer \/>/u);
   assert.equal((layout.match(/<UniversalVoiceInputLayer \/>/gu) ?? []).length, 1);
+  assert.match(control, /PREPARING_RUNTIME/u);
+  assert.match(control, /ensureLocalVoiceReady/u);
+  assert.match(control, /fetch\("\/api\/local-voice\/status"/u);
+  assert.match(control, /fetch\("\/api\/local-voice\/setup"/u);
+  assert.match(control, /approved: true/u);
   assert.match(control, /navigator\.mediaDevices\.getUserMedia/u);
   assert.match(control, /onClick=\{\(\) => \{ if \(listening\) void stopAndTranscribe\(\); else void startListening\(\); \}\}/u);
   assert.match(control, /getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/u);
@@ -81,6 +87,8 @@ test("#1910 one app-shell voice layer uses explicit microphone action and the ex
   assert.match(layer, /Object\.getOwnPropertyDescriptor\(prototype, "value"\)/u);
   assert.match(layer, /dispatchEvent\(new Event\("input", \{ bubbles: true \}\)\)/u);
   assert.match(layer, /const field = fieldRef\.current;\s*if \(!field\) return;\s*setNativeFieldValue\(field, next\)/u);
+  assert.match(launcher, /--use-fake-ui-for-media-stream/u);
+  assert.match(launcher, /--user-data-dir=\x27\+\$env:PLOTPICKLE_BROWSER_PROFILE/u);
 });
 
 test("#1910 native execution is fixed-path, bounded, non-shell, ephemeral and fail-closed", async () => {

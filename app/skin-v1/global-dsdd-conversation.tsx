@@ -35,7 +35,16 @@ type TextResponse = {
   model?: string;
 };
 
+type LocalVoiceStatusResponse = {
+  ok?: boolean;
+  ready?: boolean;
+  reason?: string;
+  installing?: boolean;
+  setupTask?: { state?: string; message?: string };
+};
+
 const MAX_MESSAGES = 40;
+const DSDD_TEXT_PATH = "/api/dsdd/generate/text";
 
 const DSDD_INSTRUCTIONS = [
   "You are PlotPickle's DSDD Conversational UAT interpreter.",
@@ -112,6 +121,47 @@ function conversationPrompt(messages: DsddMessage[], context: DsddContext, submi
   ].filter(Boolean).join("\n");
 }
 
+async function prepareDsddVoice(signal: AbortSignal, onStatus: (message: string) => void) {
+  try {
+    const setupResponse = await fetch("/api/local-voice/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ approved: true, source: "dsdd-open" }),
+      signal,
+    });
+    let setup = await setupResponse.json() as LocalVoiceStatusResponse;
+    if (setup.ready) {
+      onStatus("VOICE READY — local whisper.cpp dictation is available.");
+      return;
+    }
+    if (!setupResponse.ok && !setup.installing) {
+      onStatus(`VOICE NOT READY — ${setup.setupTask?.message || setup.reason || "PlotPickle could not prepare local dictation."}`);
+      return;
+    }
+
+    onStatus("PREPARING VOICE — PlotPickle is installing and verifying its reviewed local dictation runtime.");
+    const deadline = Date.now() + 5 * 60_000;
+    while (!signal.aborted && Date.now() < deadline) {
+      await new Promise((resolve) => window.setTimeout(resolve, 750));
+      const statusResponse = await fetch("/api/local-voice/status", { cache: "no-store", signal });
+      setup = await statusResponse.json() as LocalVoiceStatusResponse;
+      if (setup.ready) {
+        onStatus("VOICE READY — local whisper.cpp dictation is available.");
+        return;
+      }
+      if (setup.setupTask?.state === "failed") {
+        onStatus(`VOICE NOT READY — ${setup.setupTask.message || setup.reason || "Local dictation setup failed."}`);
+        return;
+      }
+      if (setup.setupTask?.message) onStatus(`PREPARING VOICE — ${setup.setupTask.message}`);
+    }
+    if (!signal.aborted) onStatus("VOICE NOT READY — automatic local dictation setup timed out.");
+  } catch (error) {
+    if (signal.aborted) return;
+    onStatus(`VOICE NOT READY — ${error instanceof Error ? error.message : "PlotPickle could not prepare local dictation."}`);
+  }
+}
+
 export default function GlobalDsddConversation() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -121,6 +171,7 @@ export default function GlobalDsddConversation() {
   const [draft, setDraft] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
+  const [voiceStatus, setVoiceStatus] = useState("");
   const threadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -174,6 +225,16 @@ export default function GlobalDsddConversation() {
     if (!eligible) setOpen(false);
   }, [eligible]);
 
+  useEffect(() => {
+    if (!eligible || !open) {
+      setVoiceStatus("");
+      return;
+    }
+    const controller = new AbortController();
+    void prepareDsddVoice(controller.signal, setVoiceStatus);
+    return () => controller.abort();
+  }, [eligible, open]);
+
   const currentLabel = useMemo(
     () => context ? `${context.surfaceLabel} · ${context.route}` : "Detecting current surface…",
     [context],
@@ -200,7 +261,7 @@ export default function GlobalDsddConversation() {
     setContext(snapshot);
 
     try {
-      const response = await fetch("/api/local-ai/generate/text", {
+      const response = await fetch(DSDD_TEXT_PATH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -310,7 +371,8 @@ export default function GlobalDsddConversation() {
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Microphone is available through PlotPickle voice input. This first slice records and interprets intent; it does not edit code.</span>
+              <span>DSDD prepares its local voice and intent engine automatically. No Local/Cloud provider setup is required and there is no cloud fallback.</span>
+              {voiceStatus ? <span role="status" aria-live="polite">{voiceStatus}</span> : null}
               <div>
                 <button type="button" className={styles.secondary} disabled={working || messages.length === 0} onClick={clearSession}>Clear</button>
                 <button type="submit" disabled={working || !draft.trim()}>Send</button>

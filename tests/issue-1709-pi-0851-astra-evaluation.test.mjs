@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 
-test("#1709 evaluates Pi 0.85.1 without moving the authoritative 0.84.4 pin before Windows proof", async () => {
+test("#1709 preserves the historical Pi 0.85.1 candidate proof after the later #2338 Pi 0.87 promotion", async () => {
   const [evaluation, managed, stack] = await Promise.all([
     readJson("config/pi-managed-upgrade-evaluation.json"),
     read("scripts/pi-managed-install.mjs"),
@@ -15,8 +15,8 @@ test("#1709 evaluates Pi 0.85.1 without moving the authoritative 0.84.4 pin befo
   assert.equal(evaluation.currentManagedVersion, "0.84.4");
   assert.equal(evaluation.candidateVersion, "0.85.1");
   assert.equal(evaluation.decision, "candidate-probe");
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.84\.4"/u);
-  assert.equal(stack.piRuntime.managedVersion, "0.84.4");
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.0"/u);
+  assert.equal(stack.piRuntime.managedVersion, "0.87.0");
   assert.deepEqual(evaluation.requiredExtensions, stack.piPackages);
   assert.match(evaluation.promotionPolicy, /only after the isolated Windows candidate probe/u);
 });

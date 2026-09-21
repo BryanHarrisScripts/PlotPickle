@@ -101,7 +101,7 @@
       "surfaceId": "writers-craft",
       "label": "Writer's Craft",
       "parent": "dashboard",
-      "runtimeSelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
+      "runtimeSelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey'], section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
       "formatProfile": {
         "layout": "directory-grid",
         "shell": "standard",

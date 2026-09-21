@@ -42,6 +42,7 @@ type DsddLockedIntent = {
   understoodMeaning: string;
   requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "UNPROVEN" }>;
   buildPacket: { id: string; intentDigest: string };
+  build?: { state: "queued" | "running" | "passed-pre-pr" | "failed"; summary: string };
 };
 
 type DsddSessionPayload = {
@@ -142,6 +143,7 @@ export default function GlobalDsddConversation() {
   const [error, setError] = useState("");
   const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
   const [locking, setLocking] = useState(false);
+  const [buildState, setBuildState] = useState<DsddLockedIntent["build"] | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const threadRef = useRef<HTMLDivElement | null>(null);
 
@@ -210,7 +212,9 @@ export default function GlobalDsddConversation() {
           model: entry.model,
         })));
         const intents = Array.isArray(body.session?.intents) ? body.session!.intents! : [];
-        setLockedIntent(intents.at(-1) || null);
+        const latest = intents.at(-1) || null;
+        setLockedIntent(latest);
+        setBuildState(latest?.build || null);
         setHydrated(true);
       })
       .catch((cause) => {
@@ -315,6 +319,17 @@ export default function GlobalDsddConversation() {
       const body = await response.json() as DsddSessionPayload;
       if (!response.ok || !body.ok || !body.intent) throw new Error(body.message || "DSDD could not lock the approved intent.");
       setLockedIntent(body.intent);
+      const buildResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "build" }),
+      });
+      const buildBody = await buildResponse.json() as DsddSessionPayload;
+      if (!buildResponse.ok || !buildBody.ok || !buildBody.intent) {
+        throw new Error(buildBody.message || "The locked intent could not enter the bounded build loop.");
+      }
+      setLockedIntent(buildBody.intent);
+      setBuildState(buildBody.intent.build || null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "DSDD could not lock the approved intent.");
     } finally {
@@ -369,6 +384,7 @@ export default function GlobalDsddConversation() {
               <strong>Locked intent v{lockedIntent.version}</strong>
               <span>{lockedIntent.understoodMeaning}</span>
               <small>{lockedIntent.requirements.map((requirement) => `${requirement.id} ${requirement.status}`).join(" · ")}</small>
+              {buildState ? <small>BUILD: {buildState.state.toUpperCase()} · {buildState.summary}</small> : null}
             </div>
           ) : messages.some((message) => message.role === "dsdd") ? (
             <div className={styles.context} data-dsdd-candidate-intent="true">
@@ -417,7 +433,7 @@ export default function GlobalDsddConversation() {
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Repository mutation remains blocked until Build this.</span>
+              <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Build this locks the approved meaning, then hands only that locked packet to the existing isolated local Pi developer worker. GitHub exact-head CI remains the merge authority.</span>
               <div>
                 <button type="button" className={styles.secondary} disabled={working || locking || !draft} onClick={clearDraft}>Clear draft</button>
                 <button type="button" className={styles.secondary} disabled={working || locking || Boolean(lockedIntent) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void lockCurrentIntent(); }}>{locking ? "Locking…" : "Build this"}</button>

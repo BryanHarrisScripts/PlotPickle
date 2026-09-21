@@ -7,10 +7,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("#2331 mounts one persistent DSDD conversation inside the authenticated PlotPickle shell", async () => {
   const [layout, panel] = await Promise.all([
     read("app/layout.tsx"),
-    read("app/dsdd/global-dsdd-conversation.tsx"),
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
   ]);
 
-  assert.match(layout, /import GlobalDsddConversation from "\.\/dsdd\/global-dsdd-conversation"/u);
+  assert.match(layout, /import GlobalDsddConversation from "\.\/skin-v1\/global-dsdd-conversation"/u);
   assert.equal((layout.match(/<GlobalDsddConversation \/>/gu) ?? []).length, 1);
   assert.match(
     layout,
@@ -21,7 +21,7 @@ test("#2331 mounts one persistent DSDD conversation inside the authenticated Plo
 });
 
 test("#2331 keeps DSDD local/private and hidden from LOGON/public surfaces", async () => {
-  const panel = await read("app/dsdd/global-dsdd-conversation.tsx");
+  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /function loopbackHost\(\)/u);
   assert.match(panel, /isPublicWebPath\(pathname\)/u);
@@ -31,7 +31,7 @@ test("#2331 keeps DSDD local/private and hidden from LOGON/public surfaces", asy
 });
 
 test("#2331 grounds each narration in current route and governed surface context", async () => {
-  const panel = await read("app/dsdd/global-dsdd-conversation.tsx");
+  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /data-skin-v1-orchestrator-active="true"/u);
   assert.match(panel, /data-skin-v1-surface-id/u);
@@ -44,7 +44,7 @@ test("#2331 grounds each narration in current route and governed surface context
 });
 
 test("#2331 reuses the existing text and voice boundaries without granting code mutation authority", async () => {
-  const panel = await read("app/dsdd/global-dsdd-conversation.tsx");
+  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/text"/u);
   assert.match(panel, /data-purpose="natural-language developer uat narration"/u);
@@ -56,7 +56,7 @@ test("#2331 reuses the existing text and voice boundaries without granting code 
 });
 
 test("#2331 preserves the live conversation across navigation in browser-session scope", async () => {
-  const panel = await read("app/dsdd/global-dsdd-conversation.tsx");
+  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /plotpickle\.dsdd\.conversational-uat\.v1/u);
   assert.match(panel, /window\.sessionStorage\.getItem/u);

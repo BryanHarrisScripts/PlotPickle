@@ -12,9 +12,9 @@ test("#2226 Phase 0 freezes the current canonical census without replacing visua
     readJson("tests/visual-baselines/skin-v1/manifest.json"),
   ]);
 
-  assert.equal(registry.surfaces.length, 78);
+  assert.equal(registry.surfaces.length, 80);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 43);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 45);
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "public-exception").length, 5);
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
   assert.equal(Object.keys(manifest.surfaces).length, 30);

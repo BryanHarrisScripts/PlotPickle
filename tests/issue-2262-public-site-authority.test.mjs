@@ -13,7 +13,7 @@ test("#2262 keeps the existing ChatGPT Sites project binding and makes GitHub au
     read("package.json"),
   ]);
   assert.equal(hosting.project_id, "appgprj_6a5e2646a06081918b0f4809b6af5cc6");
-  assert.match(worker, /url\.hostname === "plotpickle\.com"/);
+  assert.match(worker, /PUBLIC_WEB_HOSTS[\s\S]*"plotpickle\.com"/u);
   assert.match(worker, /publicUrl\.pathname = "\/site"/);
   assert.match(worker, /www\.plotpickle\.com/);
   assert.match(build, /write-public-source-provenance\.mjs/);
@@ -138,7 +138,7 @@ test("#2262 does not add Blog to the application navigation", async () => {
 
 test("#2316 redirects production Skin V1 to the public homepage without changing local application routing", async () => {
   const worker = await read("worker/index.ts");
-  assert.match(worker, /url\.hostname === "plotpickle\.com"[\s\S]*url\.pathname === "\/skin-v1"[\s\S]*url\.pathname\.startsWith\("\/skin-v1\/"\)/u);
+  assert.match(worker, /isPublicWebHost\(url\.hostname\)[\s\S]*url\.pathname === "\/skin-v1"[\s\S]*url\.pathname\.startsWith\("\/skin-v1\/"\)/u);
   assert.match(worker, /publicHome\.pathname = "\/"/u);
   assert.match(worker, /publicHome\.search = ""/u);
   assert.match(worker, /Response\.redirect\(publicHome\.toString\(\), 307\)/u);

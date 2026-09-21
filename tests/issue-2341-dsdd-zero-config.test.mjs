@@ -11,7 +11,7 @@ test("#2341 DSDD bypasses global provider selection and requests local Quality d
     text("build/writing-assistant-gateway.ts"),
   ]);
 
-  assert.match(dsdd, /provider: "local"[\s\S]*modelRole: "quality"/u);
+  assert.match(dsdd, /"x-plotpickle-dsdd-scope": "intent"/u);\n  assert.match(dsdd, /provider: "local"[\s\S]*modelRole: "quality"/u);
   assert.match(gateway, /const explicitLocal = body\.provider === "local"/u);
   assert.match(gateway, /const requestedProvider = explicitLocal \? "local" : store\.activeProvider/u);
   assert.match(gateway, /profileForProvider\(store, requestedProvider, role\)/u);

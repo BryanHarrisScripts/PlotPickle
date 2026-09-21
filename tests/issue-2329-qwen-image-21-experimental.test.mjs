@@ -12,6 +12,7 @@ test("#2329 keeps SDXL production-default while registering Qwen-Image-2.1 as Ex
 
   assert.match(catalog, /Default ComfyUI image workflow for 8 GB VRAM/);
   assert.match(catalog, /Qwen-Image-2\.1 Q4 GGUF/);
+  assert.match(catalog, /cudaPolicy: "cu126-pascal"/);
   assert.match(catalog, /opt-in user-supplied Experimental profile/);
   assert.match(store, /imageProfile: "sdxl-1\.0"/);
   assert.match(store, /"sdxl-1\.0" \| "qwen-image-2\.1-experimental"/);
@@ -21,11 +22,11 @@ test("#2329 keeps SDXL production-default while registering Qwen-Image-2.1 as Ex
 });
 
 test("#2329 Qwen provider is local-only, GGUF-gated and bounded for GTX 1080 qualification", async () => {
-  const provider = await read("build/ai/comfyui-qwen-image-21-provider.ts");
+  const provider = await read("build/ai/comfyui-media-provider.ts");
 
   assert.match(provider, /127\.0\.0\.1:8188/);
   assert.match(provider, /UnetLoaderGGUF/);
-  assert.match(provider, /MAX_REFERENCES = 10/);
+  assert.match(provider, /MAX_QWEN_REFERENCES = 10/);
   assert.match(provider, /requestCount.*!== 1/s);
   assert.match(provider, /width: 768, height: 1024/);
   assert.match(provider, /width: 1024, height: 768/);
@@ -35,6 +36,7 @@ test("#2329 Qwen provider is local-only, GGUF-gated and bounded for GTX 1080 qua
   assert.match(provider, /\{\{PLOTPICKLE_REFERENCE_/);
   assert.match(provider, /remote URLs/);
   assert.match(provider, /renderDurationMs/);
+  assert.doesNotMatch(provider, /CUDA 13|cu13/i);
 });
 
 test("#2329 Qwen activation requires explicit license acknowledgement and a reviewed ready workflow", async () => {

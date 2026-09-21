@@ -142,8 +142,8 @@
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
       },
-      "runtimeSelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
-      "runtimeReadySelector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "runtimeSelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
+      "runtimeReadySelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
       "orchestrated": true
     },
     {
@@ -744,7 +744,7 @@
       },
       "runtimeSelector": "section[aria-label='Settings menu']",
       "runtimeReadySelector": "section[aria-label='Settings menu'][data-settings-menu='keyboard-directory']",
-      "orchestrated": true
+      "orchestrated": false
     },
     {
       "id": "local-ai",

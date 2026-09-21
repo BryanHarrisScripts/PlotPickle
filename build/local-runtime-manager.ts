@@ -391,6 +391,30 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
   };
 }
 
+function automaticDetectedTextModel(role: LocalTextRole, snapshot: LocalRuntimeSnapshot) {
+  const hardware = recommendationHardware(snapshot.hardware);
+  const ranked = snapshot.activeRuntime.modelCapabilities
+    .map((model) => scoreModelForRole(role, model, hardware))
+    .filter((candidate) => candidate.eligible)
+    .sort((a, b) => b.score - a.score || a.model.id.localeCompare(b.model.id));
+  if (ranked[0]?.model.id) return ranked[0].model.id;
+  return snapshot.activeRuntime.models.find((model) => !/(?:embed|embedding|rerank|reranker)/iu.test(model)) || "";
+}
+
+export async function ensureAutomaticLocalTextRole(role: LocalTextRole) {
+  let snapshot = await localRuntimeSnapshot();
+  const status = snapshot.roles[role];
+  if (status.available || snapshot.settings.modelOverrides[role] || !snapshot.activeRuntime.reachable) return snapshot;
+  const fallback = automaticDetectedTextModel(role, snapshot);
+  if (!fallback) return snapshot;
+  await writeLocalRuntimeSettings({
+    ...snapshot.settings,
+    modelOverrides: { ...snapshot.settings.modelOverrides, [role]: fallback },
+  });
+  snapshot = await localRuntimeSnapshot();
+  return snapshot;
+}
+
 export async function localTextExecutionProfile(role: LocalTextRole) {
   const settings = await readLocalRuntimeSettings();
   const managedPath = settings.managedLlama.modelPaths[role];
@@ -399,7 +423,7 @@ export async function localTextExecutionProfile(role: LocalTextRole) {
       && managedPath) {
     await startManagedLlama(role);
   }
-  const snapshot = await localRuntimeSnapshot();
+  const snapshot = await ensureAutomaticLocalTextRole(role);
   if (!snapshot.activeRuntime.reachable) {
     throw new Error("No local OpenAI-compatible runtime is reachable. Start llama.cpp, LM Studio, Ollama, or another compatible server.");
   }

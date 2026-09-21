@@ -16,6 +16,7 @@ import CurrentDownloadLinks from "./current-download-links";
 import FeedbackStudioHost from "./feedback-studio-host";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GlobalSageOverlay from "./global-sage-overlay";
+import GlobalDsddConversation from "./dsdd/global-dsdd-conversation";
 import GraphicNovelBuildHandoff from "./graphic-novel-build-handoff";
 import GraphicNovelStudioHost from "./graphic-novel-studio-host";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
@@ -140,6 +141,7 @@ export default async function RootLayout({
               <ReleaseExperienceBoundary>{children}</ReleaseExperienceBoundary>
             </SkinV1SurfaceOrchestrator>
             <GlobalSageOverlay />
+            <GlobalDsddConversation />
           </ProfileAccessRouter>
           <LegacySkinOnly publicWebRoot={publicWebRoot}>
             <ProfileIdentityOverlay />

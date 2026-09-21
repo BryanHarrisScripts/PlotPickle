@@ -233,6 +233,21 @@
       ]
     },
     {
+      "id": "dsdd-pi-managed-runtime",
+      "classification": "production",
+      "include": [
+        "config/pi-087-dsdd-session-evaluation.json",
+        "scripts/evaluate-pi-087-dsdd-session.mjs"
+      ],
+      "ownerLayer": "agent-runtime",
+      "riskTokens": [
+        "agent",
+        "provider",
+        "security",
+        "windows"
+      ]
+    },
+    {
       "id": "visual-qa-skill",
       "classification": "production",
       "include": [

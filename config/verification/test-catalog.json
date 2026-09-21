@@ -67,7 +67,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/layer1-navigation-continuity.test.mjs"
+          "tests/layer1-navigation-continuity.test.mjs",
+          "tests/issue-2310-surface-coverage-convergence.test.mjs"
         ]
       },
       "cost": "fast",
@@ -93,7 +94,7 @@
           ".artifacts/verification-shadow/experience-skins.comparison.json"
         ]
       },
-      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology."
+      "notes": "#2291 canonical current-product navigation continuity contract. Protects the active Dashboard hierarchy, nested Library returns and the 30 authenticated-surface boundary without replaying historical issue chronology. #2310 adds lifecycle-aware Surface Census coverage so in-transit inventory remains visible without becoming a current Matrix governance obligation until navigation reconnects it."
     },
     {
       "id": "experience.webmcp-live-observer",

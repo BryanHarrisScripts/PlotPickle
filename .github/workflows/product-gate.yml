@@ -14,9 +14,13 @@ on:
       - "tests/issue-2338-pi-087-dsdd-session.test.mjs"
       - "build/dsdd/**"
       - "app/skin-v1/global-dsdd-conversation.tsx"
+      - "app/_components/voice-input-control.tsx"
+      - "Start-PlotPickle.bat"
+      - "tests/issue-341-windows-startup-ui-ux.test.mjs"
+      - "tests/issue-2341-dsdd-zero-config.test.mjs"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: product-gate-${{ github.ref }}
@@ -45,24 +49,9 @@ jobs:
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Regenerate Pi 0.87 extension lock for promotion branch
-        if: github.event_name == 'pull_request' && github.head_ref == 'issue-2338-dsdd-persistent-session'
-        shell: pwsh
-        run: |
-          npm install --prefix .pi/npm --package-lock-only --ignore-scripts --no-audit --no-fund --save-dev --save-exact @earendil-works/pi-coding-agent@0.87.0
-          git add .pi/npm/package.json .pi/npm/package-lock.json
-          if (git diff --cached --quiet) {
-            Write-Host "Pi extension lock is already current."
-            exit 0
-          }
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "#2338 regenerate Pi 0.87 extension lock"
-          git push origin "HEAD:${{ github.head_ref }}"
-
       - name: Validate current Skin V1 startup boundary
         shell: pwsh
-        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1858-webmcp-repair-handoff.test.mjs tests/issue-1881-visual-compute-harness.test.mjs
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1858-webmcp-repair-handoff.test.mjs tests/issue-1881-visual-compute-harness.test.mjs
 
       - name: Validate current security closeout
         shell: pwsh

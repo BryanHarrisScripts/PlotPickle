@@ -243,7 +243,9 @@
         "scripts/run-uat-repair-agent.mjs",
         "config/dsdd/**",
         "config/developer-agent-stack.json",
-        "scripts/pi-managed-install.mjs"
+        "scripts/pi-managed-install.mjs",
+        ".pi/npm/package.json",
+        ".pi/npm/package-lock.json"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

@@ -58,6 +58,13 @@ async function main() {
       context: input.context || null,
       recordedAt: new Date().toISOString(),
     });
+    const persistenceCheckpointId = session.appendMessage(assistantMessage("DSDD interpretation pending."));
+    session.appendContextEdit(persistenceCheckpointId, null);
+    session.appendCustomEntry("plotpickle-dsdd-persistence-checkpoint", {
+      humanMessageEntryId: entryId,
+      hiddenAssistantEntryId: persistenceCheckpointId,
+      recordedAt: new Date().toISOString(),
+    });
   } else if (input.action === "append-interpretation") {
     const text = clean(input.text);
     if (!text) throw new Error("DSDD interpretation is required.");

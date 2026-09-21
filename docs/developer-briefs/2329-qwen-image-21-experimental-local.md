@@ -33,11 +33,14 @@ The model is governed by the Qwen Research License. The standard grant is non-co
 - Qwen workflow import is API-format JSON and must contain {{PLOTPICKLE_PROMPT}}.
 - Qwen workflow import must use ComfyUI-GGUF UnetLoaderGGUF.
 - Remote URLs in the imported Experimental workflow are rejected.
+- Qwen reuses the existing ComfyUI media-provider transport/execution helpers rather than creating a parallel provider transport.
 - Changing the Qwen workflow automatically returns the active image profile to SDXL until the writer explicitly reactivates Qwen.
 
 ## GTX 1080 policy
 
 Do not assume an INT8 ConvRot encoder or newer-GPU acceleration path is safe on Pascal.
+
+The GTX 1080 remains on PlotPickle's reviewed CUDA 12.6 / cu126 Pascal policy. Qwen-Image-2.1 Experimental must not upgrade, override or auto-migrate this machine to CUDA 13.x merely because a newer CUDA toolkit is installed or detected.
 
 The working encoder/offload combination is deliberately not hard-coded. PlotPickle exposes the Experimental workflow boundary and requires real GTX 1080 qualification before any promotion decision.
 

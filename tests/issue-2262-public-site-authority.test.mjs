@@ -64,8 +64,24 @@ test("#2262 keeps public web pages outside profile and legacy application gates"
 test("#2262 publishes Blog and machine-readable discovery from one versioned corpus", async () => {
   const corpus = JSON.parse(await read("content/blog/posts.json"));
   assert.equal(corpus.schemaVersion, 1);
-  assert.ok(corpus.posts.length >= 2);
+  assert.ok(corpus.posts.length >= 3);
   assert.ok(corpus.posts.every((post) => post.status === "published"));
+  const datedRadar = corpus.posts.find((post) => post.slug === "oss-radar-september-2026-by-date");
+  assert.ok(datedRadar, "dated OSS Radar Blog index should exist");
+  assert.deepEqual(
+    datedRadar.sections.filter((section) => /^September \d{1,2}, 2026$/.test(section.heading)).map((section) => section.heading),
+    [
+      "September 20, 2026",
+      "September 19, 2026",
+      "September 18, 2026",
+      "September 17, 2026",
+      "September 16, 2026",
+      "September 15, 2026",
+      "September 14, 2026",
+      "September 13, 2026",
+    ],
+  );
+  assert.ok(datedRadar.sources.some((source) => source.url === "https://github.com/BryanHarrisScripts/PlotPickle/issues/2014"));
   for (const path of [
     "app/blog/page.tsx",
     "app/blog/[slug]/page.tsx",

@@ -421,7 +421,9 @@
       "id": "universal-voice-input-experience",
       "classification": "production",
       "include": [
-        "app/_components/universal-voice-input-layer.tsx"
+        "app/_components/universal-voice-input-layer.tsx",
+        "app/_components/voice-input-control.tsx",
+        "app/_components/voice-input-control.module.css"
       ],
       "ownerLayer": "experience-skins",
       "riskTokens": [

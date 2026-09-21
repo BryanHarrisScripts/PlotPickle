@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "contractId": "current-matrix-surface-lifecycle-v1",
-  "issue": 2310,
+  "issue": 2314,
   "standardGovernancePolicy": "all-standard-surfaces-are-active-governed",
   "censusOnlyDefaultLifecycle": "in-transit",
   "activeGovernedAdditional": [
     "discovery",
     "story-bible",
+    "plan",
     "production",
     "pitch-package"
   ],

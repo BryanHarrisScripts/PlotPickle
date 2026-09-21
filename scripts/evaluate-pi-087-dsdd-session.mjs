@@ -234,8 +234,9 @@ async function runRpcProbe(candidateRoot) {
             else finish(null, { ready: true, command: message.command || "get_state" });
             return;
           }
-        } catch {
-          // A partial JSONL line will be retried when the next chunk arrives.
+        } catch (error) {
+          if (error instanceof SyntaxError) continue;
+          throw error;
         }
       }
     });

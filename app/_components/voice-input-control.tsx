@@ -16,6 +16,13 @@ type CaptureResources = {
   timer: number;
 };
 
+type LocalVoiceStatusResponse = {
+  readonly ready?: boolean;
+  readonly reason?: string;
+  readonly modelInstalled?: boolean;
+  readonly setupTask?: { readonly state?: string; readonly message?: string };
+};
+
 type VoiceInputControlProps = {
   readonly value: string;
   readonly onValueChange: (next: string) => void;
@@ -31,6 +38,7 @@ let activeVoiceSession: { id: string; cancel: () => void } | null = null;
 
 const statusText: Record<VoiceInputState, string> = {
   IDLE: "Local dictation ready.",
+  PREPARING_RUNTIME: "Preparing PlotPickle local dictation. The reviewed whisper.cpp runtime and speech model will be installed automatically if needed.",
   REQUESTING_PERMISSION: "Requesting microphone permission.",
   LISTENING: "Listening. Activate Stop dictation when you are finished.",
   FINALIZING_AUDIO: "Finalizing local audio.",
@@ -38,8 +46,8 @@ const statusText: Record<VoiceInputState, string> = {
   INSERTED: "Dictated text inserted. Review or edit it before sending.",
   PERMISSION_DENIED: "Microphone permission was denied. Existing text was preserved.",
   MIC_UNAVAILABLE: "No usable microphone is available. Existing text was preserved.",
-  MODEL_UNAVAILABLE: "The reviewed local speech model is unavailable. Open Settings → Local → Local Dictation.",
-  RUNTIME_UNAVAILABLE: "The reviewed local speech runtime is unavailable. Open Settings → Local → Local Dictation.",
+  MODEL_UNAVAILABLE: "PlotPickle could not prepare the reviewed local speech model automatically. Existing text was preserved.",
+  RUNTIME_UNAVAILABLE: "PlotPickle could not prepare the reviewed local speech runtime automatically. Existing text was preserved.",
   TRANSCRIPTION_FAILED: "Local transcription failed. Existing text was preserved.",
   CANCELLED: "Dictation cancelled. Existing text was preserved.",
   TIMEOUT: "Dictation stopped at the two-minute safety limit. Existing text was preserved.",
@@ -95,6 +103,51 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
     view.setInt16(44 + index * 2, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
   }
   return new Blob([buffer], { type: "audio/wav" });
+}
+
+function voiceSetupError(message: string, code: "VOICE_MODEL_UNAVAILABLE" | "VOICE_RUNTIME_UNAVAILABLE" | "VOICE_TIMEOUT" = "VOICE_RUNTIME_UNAVAILABLE") {
+  const error = new Error(message) as Error & { code?: string };
+  error.code = code;
+  return error;
+}
+
+async function readLocalVoiceStatus() {
+  const response = await fetch("/api/local-voice/status", { cache: "no-store" });
+  const body = await response.json() as LocalVoiceStatusResponse;
+  if (!response.ok) throw voiceSetupError(body.reason || "PlotPickle could not inspect local dictation readiness.");
+  return body;
+}
+
+async function ensureLocalVoiceReady() {
+  let status = await readLocalVoiceStatus();
+  if (status.ready) return;
+
+  const response = await fetch("/api/local-voice/setup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ approved: true, source: "microphone-activation" }),
+  });
+  const setup = await response.json() as LocalVoiceStatusResponse & { installing?: boolean };
+  if (!response.ok && !setup.installing && !setup.ready) {
+    throw voiceSetupError(
+      setup.reason || setup.setupTask?.message || "PlotPickle could not prepare local dictation.",
+      setup.modelInstalled === false ? "VOICE_MODEL_UNAVAILABLE" : "VOICE_RUNTIME_UNAVAILABLE",
+    );
+  }
+
+  const deadline = Date.now() + 5 * 60_000;
+  while (Date.now() < deadline) {
+    status = await readLocalVoiceStatus();
+    if (status.ready) return;
+    if (status.setupTask?.state === "failed") {
+      throw voiceSetupError(
+        status.setupTask.message || status.reason || "PlotPickle local dictation setup failed.",
+        status.modelInstalled === false ? "VOICE_MODEL_UNAVAILABLE" : "VOICE_RUNTIME_UNAVAILABLE",
+      );
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 750));
+  }
+  throw voiceSetupError("PlotPickle local dictation setup did not become ready within five minutes.", "VOICE_TIMEOUT");
 }
 
 function stateFromFailure(error: unknown): VoiceInputState {
@@ -180,9 +233,11 @@ export default function VoiceInputControl({
       start: field?.selectionStart ?? valueRef.current.length,
       end: field?.selectionEnd ?? field?.selectionStart ?? valueRef.current.length,
     };
-    setState("REQUESTING_PERMISSION");
+    setState("PREPARING_RUNTIME");
 
     try {
+      await ensureLocalVoiceReady();
+      setState("REQUESTING_PERMISSION");
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("Microphone capture is unavailable.", "NotFoundError");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -259,7 +314,7 @@ export default function VoiceInputControl({
   }
 
   const listening = state === "LISTENING";
-  const busy = ["REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
+  const busy = ["PREPARING_RUNTIME", "REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
   const label = listening ? "Stop dictation" : "Dictate text";
 
   return (

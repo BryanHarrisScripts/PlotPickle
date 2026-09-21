@@ -36,6 +36,7 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 28%, transparent);
 }
 
+.control[data-voice-state="PROVISIONING_LOCAL"] .button,
 .control[data-voice-state="REQUESTING_PERMISSION"] .button,
 .control[data-voice-state="FINALIZING_AUDIO"] .button,
 .control[data-voice-state="TRANSCRIBING"] .button {
@@ -43,10 +44,10 @@
 }
 
 .status {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  right: 0;
-  z-index: 2;
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483647;
   width: max-content;
   max-width: min(22rem, calc(100vw - 2rem));
   padding: 0.4rem 0.55rem;

@@ -54,7 +54,7 @@ function messageId(prefix: string) {
 }
 
 function loopbackHost() {
-  return ["127.0.0.1", "localhost", "::1"].includes(window.location.hostname);
+  return ["127.0.0.1", "localhost", "::1", "[::1]"].includes(window.location.hostname);
 }
 
 function visible(element: HTMLElement | null) {
@@ -182,6 +182,7 @@ export default function GlobalDsddConversation() {
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      characterData: true,
       attributes: true,
       attributeFilter: [
         "data-experience-surface",

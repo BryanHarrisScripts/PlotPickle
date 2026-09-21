@@ -17,6 +17,7 @@ function githubStateFixture() {
     branchExists: false,
     file: null,
     fileSha: null,
+    largeFileMode: false,
     calls: [],
   };
   const fetchImpl = async (input, options = {}) => {
@@ -27,6 +28,22 @@ function githubStateFixture() {
 
     if (url.pathname === "/repos/BryanHarrisScripts/PlotPickle/contents/.oss-radar/state.json" && method === "GET") {
       if (!state.branchExists || !state.file) return { ok: false, status: 404, json: async () => ({ message: "Not Found" }) };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => state.largeFileMode ? ({
+          encoding: "none",
+          content: "",
+          sha: state.fileSha,
+          git_url: `https://api.github.com/repos/BryanHarrisScripts/PlotPickle/git/blobs/${state.fileSha}`,
+        }) : ({
+          encoding: "base64",
+          content: Buffer.from(state.file, "utf8").toString("base64"),
+          sha: state.fileSha,
+        }),
+      };
+    }
+    if (url.pathname === `/repos/BryanHarrisScripts/PlotPickle/git/blobs/${state.fileSha}` && method === "GET") {
       return {
         ok: true,
         status: 200,
@@ -146,6 +163,27 @@ test("#2210 creates and round-trips the dedicated OSS Radar state branch", async
   });
   assert.equal(loaded.state.lastReportDate, "2026-09-18");
   assert.equal(loaded.state.reviewHistory.length, 2);
+});
+
+test("#2334 loads persisted Radar state through Git blob fallback when GitHub omits inline contents", async () => {
+  const api = githubStateFixture();
+  api.state.branchExists = true;
+  api.state.file = `${JSON.stringify(stateSnapshot())}\n`;
+  api.state.fileSha = "large-state-file-sha";
+  api.state.largeFileMode = true;
+
+  const loaded = await loadRadarState({
+    repository: "BryanHarrisScripts/PlotPickle",
+    auth: "fixture-token",
+    fetchImpl: api.fetchImpl,
+  });
+
+  assert.equal(loaded.state.lastReportDate, "2026-09-18");
+  assert.equal(loaded.sha, "large-state-file-sha");
+  assert.equal(
+    api.state.calls.some((call) => call.pathname === "/repos/BryanHarrisScripts/PlotPickle/git/blobs/large-state-file-sha"),
+    true,
+  );
 });
 
 test("#2210 same-day state reads use the pre-run baseline and next-day reads use committed history", () => {

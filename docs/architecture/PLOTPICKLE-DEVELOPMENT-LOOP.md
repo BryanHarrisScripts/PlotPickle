@@ -2,6 +2,10 @@
 
 <!-- PLOTPICKLE:OSS-INFLUENCE:github-spec-kit -->
 
+PlotPickle's foundational development methodology is **Deterministic Specification-Driven Development (DSDD)**, defined in `docs/architecture/DETERMINISTIC-SPECIFICATION-DRIVEN-DEVELOPMENT.md`.
+
+For interpretive work, this development loop begins only after the Human's language has been preserved through the DSDD semantic chain: what the Human said -> what DSDD understood -> what the Human approved -> what BUILD was instructed to implement -> what the software actually did -> what evidence proves or disproves the approved intent. The structured brief is derived from that Human intent; it must not silently replace it.
+
 PlotPickle uses a small, repository-native specification discipline for non-trivial product and architecture work:
 
 ```text

@@ -20,6 +20,7 @@ test("#2310 separates migration inventory from current Matrix governance", () =>
   assert.deepEqual(CURRENT_MATRIX_SURFACE_LIFECYCLE.activeGovernedAdditional, [
     "discovery",
     "story-bible",
+    "plan",
     "production",
     "pitch-package",
   ]);

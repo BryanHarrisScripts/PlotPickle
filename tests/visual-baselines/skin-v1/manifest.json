@@ -28,7 +28,7 @@
     "writers-craft": {
       "label": "Learn",
       "status": "candidate",
-      "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "selector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
       "candidate": ".artifacts/visual-readiness/02-writers-craft__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/02-writers-craft.png"
     },

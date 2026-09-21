@@ -38,18 +38,19 @@ test("#2308 makes Surface Census profile 6 and Full QA profile 7", async () => {
   assert.ok(artifacts.includes('orderedProfiles: ["1", "2", "3", "4", "5", "6"]'));
   const cli = await read("lib/verification/webmcp-qa/cli.mjs");
   assert.ok(cli.includes("[WEBMCP] Surface Census"));
-  assert.ok(cli.includes("Reconciliation coverage"));
+  assert.ok(cli.includes("Inventory reconciliation"));
+  assert.ok(cli.includes("Current-navigation reconciliation"));
   assert.ok(cli.includes("Governance coverage"));
 });
 
 test("#2308 reconciles live Dashboard destinations instead of assuming the governed catalogue is complete", () => {
   assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
-  assert.equal(SKIN_V1_SURFACES.length, 77);
+  assert.equal(SKIN_V1_SURFACES.length, 80);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 42);
+  assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "census-only").length, 45);
   assert.equal(SKIN_V1_SURFACES.filter((surface) => surface.capturePolicy === "public-exception").length, 5);
 
-  assert.equal(SKIN_V1_SURFACES.some((surface) => surface.id === "pitch-package"), false);
+  assert.equal(SKIN_V1_SURFACES.some((surface) => surface.id === "pitch-package"), true);
   assert.ok(WEBMCP_DASHBOARD_DESTINATION_COVERAGE.censusOnly.includes("pitch-package"));
   assert.equal(classifyLiveDashboardDestination("pitch-package"), "census-only");
   assert.equal(classifyLiveDashboardDestination("pitch-deck"), "currently-unwired");
@@ -60,10 +61,10 @@ test("#2308 reconciles live Dashboard destinations instead of assuming the gover
 
 test("#2308 separates reconciliation coverage from WebMCP governance coverage", () => {
   const records = [
-    { id: "dashboard", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "standard", webmcpGoverned: true, classification: "governed", reachable: true, status: "governed-reachable" },
-    { id: "pitch-package", source: "live-dashboard", canonicalRegistry: false, capturePolicy: "census-only", webmcpGoverned: false, classification: "legacy-unclassified", reachable: true, status: "live-unregistered-reachable" },
-    { id: "about", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "public-exception", webmcpGoverned: false, classification: "public-exception", reachable: true, status: "public-exception-reachable" },
-    { id: "state-only", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "census-only", webmcpGoverned: false, classification: "census-only", reachable: null, status: "declared-state-only" },
+    { id: "dashboard", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "standard", webmcpGoverned: true, currentNavigationExpected: true, currentMatrixGoverned: true, lifecycle: "active-governed", classification: "governed", reachable: true, status: "governed-reachable" },
+    { id: "pitch-package", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "census-only", webmcpGoverned: false, currentNavigationExpected: true, currentMatrixGoverned: true, lifecycle: "active-governed", classification: "governed", reachable: true, status: "census-only-reachable" },
+    { id: "about", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "public-exception", webmcpGoverned: false, currentNavigationExpected: false, currentMatrixGoverned: false, lifecycle: "public-exception", classification: "public-exception", reachable: true, status: "public-exception-reachable" },
+    { id: "state-only", source: "canonical-registry", canonicalRegistry: true, capturePolicy: "census-only", webmcpGoverned: false, currentNavigationExpected: false, currentMatrixGoverned: false, lifecycle: "in-transit", classification: "in-transit", reachable: null, status: "declared-state-only" },
   ];
   const dashboard = [
     { id: "pitch-deck", classification: "currently-unwired" },
@@ -73,14 +74,15 @@ test("#2308 separates reconciliation coverage from WebMCP governance coverage", 
   const summary = buildSurfaceCensusSummary(records, dashboard);
   assert.equal(summary.discoveredUserVisibleSurfaces, 4);
   assert.equal(summary.safelyReachableSurfaces, 3);
-  assert.deepEqual(summary.missingFromWebMcp, ["pitch-package"]);
-  assert.deepEqual(summary.legacyUnclassifiedReachable, ["pitch-package"]);
+  assert.deepEqual(summary.missingFromWebMcp, []);
+  assert.deepEqual(summary.legacyUnclassifiedReachable, []);
   assert.deepEqual(summary.skippedUnsafe, ["state-only"]);
   assert.deepEqual(summary.publicExceptions, ["about"]);
   assert.deepEqual(summary.visibleUnwiredDashboardDestinations, ["pitch-deck"]);
   assert.deepEqual(summary.visibleNonVisualDashboardActions, ["logout"]);
   assert.equal(summary.reconciliationCoveragePct, 100);
-  assert.equal(summary.governanceCoveragePct, 50);
+  assert.equal(summary.currentNavigationReconciliationCoveragePct, 100);
+  assert.equal(summary.governanceCoveragePct, 100);
   assert.equal(summary.coverageComplete, true);
 });
 

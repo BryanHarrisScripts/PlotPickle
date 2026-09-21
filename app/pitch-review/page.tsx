@@ -51,9 +51,9 @@ export default function PitchReviewPage() {
   }
 
   return (
-    <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
+    <main className="standalone-studio-surface" data-pitch-package-workspace="canonical" style={{ minHeight: "100vh", padding: "24px" }}>
       <div style={{ maxWidth: 1620, margin: "0 auto", display: "grid", gap: 18 }}>
-        <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <nav data-skin-v1-local-chrome="return-navigation" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "plan" ? "Plan" : returnWorkspace === "dashboard" ? "Dashboard" : "Pitch"}</Link>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/working-together">Working Together</Link><Link href="/labs">Specialist Labs</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/draftlens">DraftLens</Link><Link href="/structure">Structure</Link></div>
         </nav>

@@ -321,7 +321,7 @@ export default function SkinV1Client() {
         <header className="pp-skin-v1-bar" data-skin-v1-standard-header="true">
           <strong>PLOTPICKLE</strong>
           <span>{businessUseCase}</span>
-          <span>SKIN V1</span>
+          <span>MATRIX</span>
         </header>
 
         {userProfileOpen ? (
@@ -383,7 +383,7 @@ export default function SkinV1Client() {
         <header className="pp-skin-v1-title" data-skin-v1-standard-header="true">
           <strong>PLOTPICKLE</strong>
           <span>LOGON</span>
-          <span>SKIN V1</span>
+          <span>MATRIX</span>
         </header>
 
         {view.state === "loading" ? <p>INITIALIZING LOGON...</p> : null}

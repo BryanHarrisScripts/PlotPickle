@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "issue": 2310,
+  "brief": "docs/developer-briefs/2310-surface-coverage-convergence.md",
+  "allowedChanges": [
+    "app/pitch-review/page.tsx",
+    "app/skin-v1/skin-v1-client.tsx",
+    "app/skin-v1/surface-orchestrator.tsx",
+    "config/development-convergence/2310.json",
+    "config/skin-v1-surface-registry.json",
+    "config/verification/current-matrix-surface-lifecycle.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2310-surface-coverage-convergence.md",
+    "lib/verification/browser-probes/current-matrix-surface-lifecycle.mjs",
+    "lib/verification/browser-probes/surface-census.mjs",
+    "lib/verification/webmcp-qa/cli.mjs",
+    "tests/issue-2032-skin-v1-continuity-polish.test.mjs",
+    "tests/issue-2226-phase-0-surface-census.test.mjs",
+    "tests/issue-2226-surface-orchestrator.test.mjs",
+    "tests/issue-2308-surface-census.test.mjs",
+    "tests/issue-2310-surface-coverage-convergence.test.mjs",
+    "tests/layer1-skin-surface-contract.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2310-1",
+      "criterion": "Migration inventory is separate from current Matrix navigation governance.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/current-matrix-surface-lifecycle.json",
+          "contains": "in-transit"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "currentNavigationExpected"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "inTransitSurfaces"
+        }
+      ]
+    },
+    {
+      "id": "P2310-2",
+      "criterion": "Package is canonical Matrix inventory without expanding the frozen 30 Standard surfaces.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/skin-v1-surface-registry.json",
+          "contains": "\"id\": \"pitch-package\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/pitch-review/page.tsx",
+          "contains": "data-pitch-package-workspace=\"canonical\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2310-surface-coverage-convergence.test.mjs",
+          "contains": "WEBMCP_STANDARD_SURFACE_TARGETS.length, 30"
+        }
+      ]
+    },
+    {
+      "id": "P2310-3",
+      "criterion": "Current product chrome uses Matrix while internal skin-v1 identifiers remain implementation details.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/skin-v1-client.tsx",
+          "contains": "<span>MATRIX</span>"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/surface-orchestrator.tsx",
+          "contains": "<span>MATRIX</span>"
+        }
+      ]
+    },
+    {
+      "id": "P2310-4",
+      "criterion": "Surface Census isolates inventory navigation and exposes current-navigation and inventory metrics separately.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "const probePage = await context.newPage()"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/browser-probes/surface-census.mjs",
+          "contains": "currentNavigationReconciliationCoveragePct"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/verification/webmcp-qa/cli.mjs",
+          "contains": "Inventory probe failures"
+        }
+      ]
+    }
+  ]
+}

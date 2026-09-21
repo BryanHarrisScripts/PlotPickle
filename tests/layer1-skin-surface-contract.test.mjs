@@ -17,7 +17,7 @@ test("Layer 1 canonical Skin contract keeps one continuous secure Skin V1 LOGON 
   assert.match(client, /if \(webMcpProfileGateCaptureRequested\(\)\) return;/u);
   assert.match(client, /view\.state === "loading" \? "initializing" : view\.state/u);
   assert.match(client, /data-skin-v1-logon-state=\{logonState\}/u);
-  assert.match(client, /PLOTPICKLE[\s\S]*LOGON[\s\S]*SKIN V1/u);
+  assert.match(client, /PLOTPICKLE[\s\S]*LOGON[\s\S]*MATRIX/u);
   assert.match(client, /view\.profiles\.length === 1[\s\S]*data-skin-v1-known-profile="true"/u);
   assert.match(client, /view\.profiles\.length > 1[\s\S]*<select/u);
   assert.match(client, /autoFocus=\{view\.profiles\.length === 1\}/u);

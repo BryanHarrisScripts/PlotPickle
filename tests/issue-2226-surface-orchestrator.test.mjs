@@ -41,14 +41,14 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   assert.equal(ledger.sourceRegistry, "skin-v1-surface-registry-v1");
   assert.equal(ledger.policy, "derived-only-no-second-route-authority");
   assert.deepEqual(ledger.counts, {
-    canonicalOrchestratedDirect: 18,
+    canonicalOrchestratedDirect: 19,
     routedCompatibilityDebt: 17,
     stateCompatibilityDebt: 10,
     publicExceptions: 5,
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["write", "labs-plan", "storyboard", "previs", "pageflow", "edit", "labs-storyboard", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"],
+    ["write", "pitch-package", "labs-plan", "storyboard", "previs", "pageflow", "edit", "labs-storyboard", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");
@@ -84,7 +84,7 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   const feedback = byId.get("feedback");
 
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 42);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 45);
 
   assert.equal(edit?.capturePolicy, "census-only");
   assert.equal(edit?.orchestrated, true);

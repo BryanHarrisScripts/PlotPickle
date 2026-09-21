@@ -26,6 +26,12 @@ test("#2336 exposes visible local dictation state while preserving the shared vo
   assert.equal((layer.match(/<VoiceInputControl/gu) ?? []).length, 1);
 });
 
+test("#2336 keeps the shared voice control under the canonical experience-skins owner", async () => {
+  const ownership = await text("config/verification/ownership-map.json");
+
+  assert.match(ownership, /"id": "universal-voice-input-experience"[\s\S]*"app\/_components\/universal-voice-input-layer\.tsx"[\s\S]*"app\/_components\/voice-input-control\.tsx"[\s\S]*"app\/_components\/voice-input-control\.module\.css"[\s\S]*"ownerLayer": "experience-skins"/u);
+});
+
 test("#2336 uses the Quality role for DSDD intent interpretation and surfaces actual model metadata", async () => {
   const dsdd = await text("app/skin-v1/global-dsdd-conversation.tsx");
 

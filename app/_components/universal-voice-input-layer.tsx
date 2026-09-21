@@ -134,7 +134,7 @@ export default function UniversalVoiceInputLayer() {
         inputRef={fieldRef}
         disabled={target.disabled || target.readOnly}
         inputType={target instanceof HTMLTextAreaElement ? "textarea" : target.type}
-        purpose="natural-language"
+        purpose={target.getAttribute("data-purpose") || "natural-language"}
       />
     </div>
   );

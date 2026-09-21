@@ -204,6 +204,7 @@ export default function GlobalDsddConversation() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          provider: "local",
           modelRole: "quality",
           instructions: DSDD_INSTRUCTIONS,
           prompt: conversationPrompt(prior, snapshot, submitted),
@@ -310,7 +311,7 @@ export default function GlobalDsddConversation() {
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Microphone is available through PlotPickle voice input. This first slice records and interprets intent; it does not edit code.</span>
+              <span>Microphone is ready from this DSDD field. PlotPickle prepares the reviewed local speech runtime automatically after your microphone click. This first slice records and interprets intent; it does not edit code.</span>
               <div>
                 <button type="button" className={styles.secondary} disabled={working || messages.length === 0} onClick={clearSession}>Clear</button>
                 <button type="submit" disabled={working || !draft.trim()}>Send</button>

@@ -89,7 +89,7 @@ jobs:
         run: node --test tests/architecture-blueprint-generator.test.mjs tests/issue-1909-living-architecture.test.mjs
 
       - name: Validate universal local voice input
-        run: node --test tests/issue-1910-local-voice-input.test.mjs
+        run: node --test tests/issue-1910-local-voice-input.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs
 
       - name: Validate core auth and storage contracts
         run: |

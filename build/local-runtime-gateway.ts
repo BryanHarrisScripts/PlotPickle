@@ -4,6 +4,7 @@ import type { LocalTextRole } from "../lib/runtime/ai/local-runtime";
 import { localAiReadinessSnapshot } from "./ai/local-ai-readiness";
 import { localGpuSchedulerState } from "./local-gpu-resource-manager";
 import {
+  ensureAutomaticLocalTextRole,
   localRuntimeSnapshot,
   managedLlamaInstallPlan,
   readLocalRuntimeSettings,
@@ -142,8 +143,12 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
           && (settings.preferredRuntime === "auto" || settings.preferredRuntime === "llama.cpp")
           && Boolean(configuredManagedPath);
         const managedStarted = shouldStartManaged ? await startManagedLlama(roleToLoad) : false;
-        const snapshot = await localRuntimeSnapshot();
-        const roleStatus = snapshot.roles[roleToLoad];
+        let snapshot = await localRuntimeSnapshot();
+        let roleStatus = snapshot.roles[roleToLoad];
+        if (!roleStatus.available && !snapshot.settings.modelOverrides[roleToLoad] && snapshot.activeRuntime.models.length) {
+          snapshot = await ensureAutomaticLocalTextRole(roleToLoad);
+          roleStatus = snapshot.roles[roleToLoad];
+        }
         const common = {
           role: roleToLoad,
           managedStarted,

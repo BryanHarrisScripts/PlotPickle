@@ -486,7 +486,7 @@ async function recordEvidence(body: Record<string, unknown>) {
 async function handle(request: IncomingMessage, response: ServerResponse) {
   if (request.method === "GET") {
     const { session } = await load();
-    replyDsdd(response, { status: 200, body: { ok: true, session });
+    replyDsdd(response, { status: 200, body: { ok: true, session } });
     return;
   }
   if (request.method !== "POST") {

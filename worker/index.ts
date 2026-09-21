@@ -37,6 +37,17 @@ const worker = {
       return Response.redirect(canonical.toString(), 308);
     }
 
+    if (
+      url.hostname === "plotpickle.com"
+      && (url.pathname === "/skin-v1" || url.pathname.startsWith("/skin-v1/"))
+    ) {
+      const publicHome = new URL(request.url);
+      publicHome.pathname = "/";
+      publicHome.search = "";
+      publicHome.hash = "";
+      return Response.redirect(publicHome.toString(), 307);
+    }
+
     if (url.hostname === "plotpickle.com" && url.pathname === "/") {
       const publicUrl = new URL(request.url);
       publicUrl.pathname = "/site";

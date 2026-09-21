@@ -67,7 +67,7 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
     }
     void (async () => {
       const store = await readMediaRoutingStore();
-      if (store.imageRoute !== "comfyui") {
+      if (store.imageRoute !== "comfyui" || store.comfyui.imageProfile !== "sdxl-1.0") {
         next();
         return;
       }

@@ -362,9 +362,12 @@
       "include": [
         "build/ai-routing-gateway.ts",
         "build/ai/comfyui-media-provider.ts",
+        "build/ai/comfyui-sdxl-local-gateway.ts",
         "build/cloud-media-provider.ts",
         "build/media-provider-common.ts",
-        "build/media-routing-gateway.ts"
+        "build/media-routing-gateway.ts",
+        "build/media-routing-store.ts",
+        "lib/runtime/ai/local-runtime.ts"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

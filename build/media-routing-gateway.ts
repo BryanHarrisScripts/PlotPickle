@@ -10,10 +10,12 @@ import {
 import {
   createComfyVideo,
   generateComfyImage,
+  generateQwenImage21,
   probeComfyUI,
   publicComfyVideoJob,
   queryComfyVideo,
   validateH3Workflow,
+  validateQwenImage21Workflow,
   workflowNodeClasses,
 } from "./ai/comfyui-media-provider";
 import {
@@ -45,6 +47,8 @@ const ROUTES_PATH = `${API}/routes`;
 const COMFYUI_CONNECTION_PATH = `${API}/comfyui/connection`;
 const CHECKPOINT_PATH = `${API}/comfyui/checkpoint`;
 const WORKFLOW_PATH = `${API}/comfyui/h3-workflow`;
+const QWEN_WORKFLOW_PATH = `${API}/comfyui/qwen-image-2.1-workflow`;
+const QWEN_PROFILE_PATH = `${API}/comfyui/qwen-image-2.1-profile`;
 const TEST_IMAGE_PATH = `${API}/test/image`;
 const TEST_VIDEO_PATH = `${API}/test/video`;
 const IMAGE_PATH = "/api/local-ai/generate/image";
@@ -109,7 +113,11 @@ function providerForImageRoute(route: ImageRoute) {
 
 async function mediaStatus(store: MediaRoutingStore) {
   const workflow = store.comfyui.h3Workflow;
-  const comfy = await probeComfyUI(store.comfyui.baseUrl, workflow);
+  const qwenWorkflow = store.comfyui.qwenImage21.workflow;
+  const [comfy, qwenProbe] = await Promise.all([
+    probeComfyUI(store.comfyui.baseUrl, workflow),
+    qwenWorkflow ? probeComfyUI(store.comfyui.baseUrl, qwenWorkflow) : Promise.resolve(null),
+  ]);
   const checkpoint = store.comfyui.checkpoint || comfy.checkpoints[0] || "";
   const minimaxConfigured = Boolean(store.profiles.minimax?.apiKey && store.profiles.minimax?.videoModel);
   const workflowConfigured = Boolean(workflow);
@@ -132,8 +140,21 @@ async function mediaStatus(store: MediaRoutingStore) {
       baseUrl: store.comfyui.baseUrl,
       checkpoint,
       selectedCheckpoint: store.comfyui.checkpoint,
+      imageProfile: store.comfyui.imageProfile,
       imageVerifiedAt: store.comfyui.imageVerifiedAt,
       lastError: store.comfyui.lastError,
+      qwenImage21: {
+        experimental: true,
+        licenseAcknowledged: Boolean(store.comfyui.qwenImage21.licenseAcknowledgedAt),
+        licenseAcknowledgedAt: store.comfyui.qwenImage21.licenseAcknowledgedAt,
+        workflowConfigured: Boolean(qwenWorkflow),
+        workflowNodesReady: Boolean(qwenWorkflow && qwenProbe?.reachable && qwenProbe.workflowNodesReady),
+        missingWorkflowNodes: qwenProbe?.missingWorkflowNodes || [],
+        nodeClasses: qwenWorkflow?.nodeClasses || [],
+        configuredAt: qwenWorkflow?.configuredAt || "",
+        lastVerifiedAt: store.comfyui.qwenImage21.lastVerifiedAt,
+        lastError: store.comfyui.qwenImage21.lastError,
+      },
       h3Workflow: workflow ? {
         configured: true,
         hash: workflow.hash,
@@ -160,13 +181,24 @@ async function mediaStatus(store: MediaRoutingStore) {
 type StoryImageExecutionRoute = ImageRoute | "ollama-comfyui";
 
 async function storyImageRouteCandidates(store: MediaRoutingStore): Promise<StoryModeJobRouteCandidate[]> {
+  const qwenWorkflow = store.comfyui.qwenImage21.workflow;
+  const activeWorkflow = store.comfyui.imageProfile === "qwen-image-2.1-experimental" ? qwenWorkflow : null;
   const [choice, assistantResult, comfy] = await Promise.all([
     readRoutingChoice(),
     readSynchronizedAssistantStore(),
-    probeComfyUI(store.comfyui.baseUrl, store.comfyui.h3Workflow),
+    probeComfyUI(store.comfyui.baseUrl, activeWorkflow),
   ]);
   const checkpoint = store.comfyui.checkpoint || comfy.checkpoints[0] || "";
-  const comfyReady = Boolean(comfy.reachable && comfy.imageNodesReady && checkpoint && store.comfyui.imageVerifiedAt);
+  const qwenReady = Boolean(
+    store.comfyui.imageProfile === "qwen-image-2.1-experimental"
+    && qwenWorkflow
+    && store.comfyui.qwenImage21.licenseAcknowledgedAt
+    && comfy.reachable
+    && comfy.workflowNodesReady
+    && store.comfyui.imageVerifiedAt,
+  );
+  const sdxlReady = Boolean(comfy.reachable && comfy.imageNodesReady && checkpoint && store.comfyui.imageVerifiedAt);
+  const comfyReady = store.comfyui.imageProfile === "qwen-image-2.1-experimental" ? qwenReady : sdxlReady;
   const ollamaReady = Boolean(comfyReady && assistantResult.store.profiles.ollama?.assistantVerifiedAt);
   const cloudReady = (route: "openai" | "minimax") => {
     const profile = store.profiles[route];
@@ -201,6 +233,10 @@ async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecu
   if (route === "comfyui" || route === "ollama-comfyui") {
     store.comfyui.imageVerifiedAt = now;
     store.comfyui.lastError = "";
+    if (store.comfyui.imageProfile === "qwen-image-2.1-experimental") {
+      store.comfyui.qwenImage21.lastVerifiedAt = now;
+      store.comfyui.qwenImage21.lastError = "";
+    }
   } else {
     const provider = providerForImageRoute(route);
     if (provider && store.profiles[provider]) {
@@ -212,8 +248,10 @@ async function saveImageSuccess(store: MediaRoutingStore, route: StoryImageExecu
 }
 
 async function saveImageError(store: MediaRoutingStore, route: StoryImageExecutionRoute, message: string) {
-  if (route === "comfyui" || route === "ollama-comfyui") store.comfyui.lastError = message;
-  else {
+  if (route === "comfyui" || route === "ollama-comfyui") {
+    store.comfyui.lastError = message;
+    if (store.comfyui.imageProfile === "qwen-image-2.1-experimental") store.comfyui.qwenImage21.lastError = message;
+  } else {
     const provider = providerForImageRoute(route);
     if (provider && store.profiles[provider]) store.profiles[provider]!.lastError = message;
   }
@@ -224,6 +262,14 @@ async function generateImage(store: MediaRoutingStore, route: StoryImageExecutio
   if (route === "manual") throw new Error("Image routing is set to Manual Import. Import an image or select a tested generator.");
   if (route === "ollama-comfyui") return createOllamaComfyImage(input);
   if (route === "comfyui") {
+    if (store.comfyui.imageProfile === "qwen-image-2.1-experimental") {
+      const workflow = store.comfyui.qwenImage21.workflow;
+      if (!store.comfyui.qwenImage21.licenseAcknowledgedAt) throw new Error("Acknowledge the Qwen Research License before using the Experimental Qwen-Image-2.1 profile.");
+      if (!workflow) throw new Error("Import a reviewed Qwen-Image-2.1 ComfyUI API workflow before activating the Experimental profile.");
+      const probe = await probeComfyUI(store.comfyui.baseUrl, workflow);
+      if (!probe.reachable || !probe.workflowNodesReady) throw new Error(probe.error || `ComfyUI is missing Qwen workflow nodes: ${probe.missingWorkflowNodes.join(", ")}`);
+      return generateQwenImage21(store.comfyui.baseUrl, workflow, input);
+    }
     const probe = await probeComfyUI(store.comfyui.baseUrl, store.comfyui.h3Workflow);
     if (!probe.reachable || !probe.imageNodesReady) throw new Error(probe.error || `ComfyUI is missing: ${probe.missingImageNodes.join(", ")}`);
     const checkpoint = store.comfyui.checkpoint || probe.checkpoints[0] || "";
@@ -330,6 +376,59 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
       const probe = await probeComfyUI(store.comfyui.baseUrl, store.comfyui.h3Workflow);
       if (!probe.checkpoints.includes(checkpoint)) throw new Error("Select a checkpoint currently reported by ComfyUI.");
       store.comfyui.checkpoint = checkpoint;
+      store.comfyui.imageVerifiedAt = "";
+      await writeMediaRoutingStore(store);
+      sendJson(response, 200, await mediaStatus(store));
+      return;
+    }
+    if (pathname === QWEN_WORKFLOW_PATH && request.method === "POST") {
+      const body = await readBody(request);
+      const source = body.workflow;
+      if (!source || typeof source !== "object" || Array.isArray(source)) throw new Error("Paste a ComfyUI API-format Qwen-Image-2.1 workflow JSON object.");
+      const workflowSource = source as Record<string, unknown>;
+      const nodeClasses = validateQwenImage21Workflow(workflowSource);
+      const hash = workflowHash(workflowSource);
+      store.comfyui.qwenImage21.workflow = {
+        source: workflowSource,
+        hash,
+        nodeClasses,
+        configuredAt: new Date().toISOString(),
+        verifiedAt: "",
+        verifiedHash: "",
+        lastError: "",
+      };
+      store.comfyui.qwenImage21.lastVerifiedAt = "";
+      store.comfyui.qwenImage21.lastError = "";
+      store.comfyui.imageProfile = "sdxl-1.0";
+      store.comfyui.imageVerifiedAt = "";
+      await writeMediaRoutingStore(store);
+      sendJson(response, 200, { ok: true, nodeClasses, ...(await mediaStatus(store)) });
+      return;
+    }
+    if (pathname === QWEN_PROFILE_PATH && request.method === "POST") {
+      const body = await readBody(request);
+      const profile = body.profile;
+      if (profile === "sdxl-1.0") {
+        store.comfyui.imageProfile = "sdxl-1.0";
+        store.comfyui.imageVerifiedAt = "";
+        await writeMediaRoutingStore(store);
+        sendJson(response, 200, await mediaStatus(store));
+        return;
+      }
+      if (profile !== "qwen-image-2.1-experimental") throw new Error("Choose SDXL 1.0 or Qwen-Image-2.1 Experimental.");
+      if (body.licenseAcknowledged === true && !store.comfyui.qwenImage21.licenseAcknowledgedAt) {
+        store.comfyui.qwenImage21.licenseAcknowledgedAt = new Date().toISOString();
+      }
+      if (!store.comfyui.qwenImage21.licenseAcknowledgedAt) {
+        throw new Error("Explicitly acknowledge the Qwen Research License before activating Qwen-Image-2.1.");
+      }
+      const workflow = store.comfyui.qwenImage21.workflow;
+      if (!workflow) throw new Error("Import a reviewed Qwen-Image-2.1 ComfyUI API workflow before activating the Experimental profile.");
+      const probe = await probeComfyUI(store.comfyui.baseUrl, workflow);
+      if (!probe.reachable || !probe.workflowNodesReady) {
+        throw new Error(probe.error || `ComfyUI is missing Qwen workflow nodes: ${probe.missingWorkflowNodes.join(", ")}`);
+      }
+      store.comfyui.imageProfile = "qwen-image-2.1-experimental";
       store.comfyui.imageVerifiedAt = "";
       await writeMediaRoutingStore(store);
       sendJson(response, 200, await mediaStatus(store));

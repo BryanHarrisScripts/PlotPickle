@@ -677,6 +677,48 @@
       "notes": "Phase 4 primary execution owner for the pure local-AI plug-in registry contract. Replaces duplicate execution of this target in PR Gate and Product Gate; the heavier LTX contract remains available through explicit manual diagnostics and broader verification."
     },
     {
+      "id": "provider.qwen-image-21-experimental",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": [
+        "provider-runtime"
+      ],
+      "triggerTokens": [
+        "provider",
+        "security",
+        "api",
+        "visual"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2329-qwen-image-21-experimental.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json",
+          ".artifacts/verification-shadow/provider-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2329 opt-in Experimental Qwen-Image-2.1 local ComfyUI profile. Proves SDXL remains default/fallback, Qwen weights stay user-supplied, license acknowledgement is explicit, GGUF/local-only constraints remain fail-closed, and GTX 1080 qualification does not assume unsupported acceleration."
+    },
+    {
       "id": "production.creative-transaction-provider",
       "ownerLayer": "production-harness",
       "architectureComponents": [

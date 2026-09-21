@@ -80,7 +80,7 @@ export const LOCAL_MODEL_CATALOG: Readonly<Record<LocalModelRole, LocalModelDefi
     source: "stabilityai/stable-diffusion-xl-base-1.0",
     expectedNameFragments: ["sdxl", "stable-diffusion-xl"],
     production: true,
-    notes: "Default ComfyUI image workflow for 8 GB VRAM. SD3.5 Medium is an advanced experimental override.",
+    notes: "Default ComfyUI image workflow for 8 GB VRAM. Qwen-Image-2.1 Q4 GGUF is an opt-in user-supplied Experimental profile; SD3.5 Medium remains an advanced override.",
   },
   video: {
     id: "ltx-video-2b-0.9.8-distilled",
@@ -140,7 +140,7 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     allowVulkanFallback: true,
     cpuGpuSplit: true,
     defaultRoles,
-    experimental: ["SD3.5 Medium", "32K context"],
+    experimental: ["Qwen-Image-2.1 Q4 GGUF", "SD3.5 Medium", "32K context"],
   },
   {
     id: "nvidia-8gb-modern",
@@ -153,7 +153,7 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     allowVulkanFallback: true,
     cpuGpuSplit: true,
     defaultRoles,
-    experimental: ["SD3.5 Medium", "32K context"],
+    experimental: ["Qwen-Image-2.1 Q4 GGUF", "SD3.5 Medium", "32K context"],
   },
   {
     id: "nvidia-16gb",

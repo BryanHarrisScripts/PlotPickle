@@ -724,6 +724,11 @@
           "order": 15,
           "slug": "manage",
           "label": "Settings"
+        },
+        {
+          "order": 99,
+          "slug": "story-mode-compat",
+          "label": "Story Mode compatibility"
         }
       ],
       "legacyEvidence": {

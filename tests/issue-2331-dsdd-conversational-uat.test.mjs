@@ -76,7 +76,7 @@ test("#2331 DSDD local intent generation is isolated from Story Mode locality po
 
   assert.match(gateway, /pathname === "\/api\/local-ai\/generate\/text"/u);
   assert.match(gateway, /request\.headers\["x-plotpickle-dsdd-scope"\] === "intent"/u);
-  assert.match(gateway, /next\(\);\s*return;\s*}\s*const policy = await readStoryModePolicy\(\)/u);
+  assert.match(gateway, /next\(\);\s*return;\s*\}\s*const policy = await readStoryModePolicy\(\)/u);
 });
 
 

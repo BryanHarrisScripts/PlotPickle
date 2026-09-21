@@ -139,13 +139,15 @@ test("#2314 governs active Outline / Plan without expanding the frozen Standard 
   assert.deepEqual(plan.navigationPath, [
     { order: 4, slug: "outline", label: "Outline" },
   ]);
-  assert.equal(plan.runtimeSelector, "[data-plan-surface='foundations']");
-  assert.equal(plan.runtimeReadySelector, "[data-plan-surface='foundations']");
+  assert.equal(plan.route, undefined);
+  assert.equal(plan.runtimeSelector, "[data-dashboard-review-surface='outline']");
+  assert.equal(plan.runtimeReadySelector, "[data-dashboard-review-surface='outline']");
   assert.equal(isCurrentMatrixSupplementalGoverned("plan"), true);
   assert.equal(isCurrentMatrixSupplementalGoverned("plan-world"), false);
 
-  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
-  assert.ok(workspace.includes('data-plan-surface="foundations"'));
+  const dashboardHost = await read("app/skin-v1/dashboard-bbs-review-host.tsx");
+  assert.ok(dashboardHost.includes('if (item.id === "plan")'));
+  assert.ok(dashboardHost.includes('data-dashboard-review-surface="outline"'));
 });
 
 test("#2314 supports 35 of 35 current Matrix surfaces governed at 100 percent coverage", () => {
@@ -169,4 +171,19 @@ test("#2314 supports 35 of 35 current Matrix surfaces governed at 100 percent co
   assert.equal(summary.currentNavigationReconciliationCoveragePct, 100);
   assert.equal(summary.governanceCoveragePct, 100);
   assert.equal(summary.coverageComplete, true);
+});
+
+test("#2318 probes Plan through current Skin V1 Dashboard activation instead of the obsolete root route", async () => {
+  const plan = SKIN_V1_SURFACES.find((surface) => surface.id === "plan");
+  assert.ok(plan);
+  assert.equal(plan.route, undefined);
+  assert.equal(plan.runtimeRoute, undefined);
+  assert.deepEqual(plan.navigationPath, [
+    { order: 4, slug: "outline", label: "Outline" },
+  ]);
+  assert.equal(plan.runtimeReadySelector, "[data-dashboard-review-surface='outline']");
+
+  const census = await read("lib/verification/browser-probes/surface-census.mjs");
+  assert.ok(census.includes("if (surface.runtimeReadySelector || surface.runtimeSelector)"));
+  assert.ok(census.includes("data-dashboard-menu-item"));
 });

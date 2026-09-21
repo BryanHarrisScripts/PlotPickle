@@ -125,3 +125,49 @@ test("#2310 census isolates route probes and catches newly connected ungoverned 
   assert.equal(summary.governanceCoveragePct, 0);
   assert.equal(summary.coverageComplete, false);
 });
+
+
+test("#2314 governs active Outline / Plan without expanding the frozen Standard catalogue", async () => {
+  const plan = SKIN_V1_SURFACES.find((surface) => surface.id === "plan");
+  const planWorld = SKIN_V1_SURFACES.find((surface) => surface.id === "plan-world");
+
+  assert.ok(plan);
+  assert.ok(planWorld);
+  assert.equal(WEBMCP_STANDARD_SURFACE_TARGETS.length, 30);
+  assert.equal(plan.capturePolicy, "census-only");
+  assert.equal(plan.governance, "census");
+  assert.deepEqual(plan.navigationPath, [
+    { order: 4, slug: "outline", label: "Outline" },
+  ]);
+  assert.equal(plan.runtimeSelector, "[data-plan-surface='foundations']");
+  assert.equal(plan.runtimeReadySelector, "[data-plan-surface='foundations']");
+  assert.equal(plan.orchestrated, true);
+  assert.equal(isCurrentMatrixSupplementalGoverned("plan"), true);
+  assert.equal(isCurrentMatrixSupplementalGoverned("plan-world"), false);
+
+  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
+  assert.ok(workspace.includes('data-plan-surface="foundations"'));
+});
+
+test("#2314 supports 35 of 35 current Matrix surfaces governed at 100 percent coverage", () => {
+  const records = Array.from({ length: 35 }, (_, index) => ({
+    id: index === 34 ? "plan" : `surface-${index + 1}`,
+    canonicalRegistry: true,
+    source: "canonical-registry",
+    capturePolicy: index < 30 ? "standard" : "census-only",
+    webmcpGoverned: index < 30,
+    currentNavigationExpected: true,
+    currentMatrixGoverned: true,
+    lifecycle: "active-governed",
+    classification: "governed",
+    reachable: true,
+    status: index < 30 ? "governed-reachable" : "census-only-reachable",
+  }));
+  const summary = buildSurfaceCensusSummary(records, []);
+  assert.equal(summary.currentNavigationSurfaces, 35);
+  assert.equal(summary.activeGovernedSurfaces, 35);
+  assert.deepEqual(summary.activeMissingGovernance, []);
+  assert.equal(summary.currentNavigationReconciliationCoveragePct, 100);
+  assert.equal(summary.governanceCoveragePct, 100);
+  assert.equal(summary.coverageComplete, true);
+});

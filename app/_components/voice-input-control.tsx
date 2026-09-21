@@ -153,6 +153,7 @@ export default function VoiceInputControl({
   className = "",
 }: VoiceInputControlProps) {
   const [state, setState] = useState<VoiceInputState>("IDLE");
+  const [detail, setDetail] = useState("");
   const resourcesRef = useRef<CaptureResources | null>(null);
   const sessionIdRef = useRef("");
   const valueRef = useRef(value);
@@ -214,6 +215,7 @@ export default function VoiceInputControl({
       end: field?.selectionEnd ?? field?.selectionStart ?? valueRef.current.length,
     };
     const dsddAutoProvision = purpose.trim().toLowerCase() === "natural-language developer uat narration";
+    setDetail("");
     setState(dsddAutoProvision ? "PROVISIONING_LOCAL" : "REQUESTING_PERMISSION");
 
     try {
@@ -253,7 +255,10 @@ export default function VoiceInputControl({
       setState("LISTENING");
     } catch (error) {
       clearActiveOwner();
-      if (mountedRef.current) setState(stateFromFailure(error));
+      if (mountedRef.current) {
+        setDetail(error instanceof DOMException ? "" : error instanceof Error ? error.message : "");
+        setState(stateFromFailure(error));
+      }
     }
   }
 
@@ -316,7 +321,7 @@ export default function VoiceInputControl({
           <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75v-4a3.75 3.75 0 0 0-7.5 0v4A3.75 3.75 0 0 0 12 15.25Zm-6-4a6 6 0 0 0 12 0M12 17.25V21m-3 0h6" />
         </svg>
       </button>
-      <span className={styles.status} role="status" aria-live="polite">{statusText[state]}</span>
+      <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}</span>
     </span>
   );
 }

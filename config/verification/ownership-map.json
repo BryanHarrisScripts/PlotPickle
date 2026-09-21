@@ -240,7 +240,8 @@
         "scripts/evaluate-pi-087-dsdd-session.mjs",
         "scripts/dsdd-pi-session.mjs",
         "scripts/pi/dsdd-locked-intent-extension.mjs",
-        "scripts/run-uat-repair-agent.mjs"
+        "scripts/run-uat-repair-agent.mjs",
+        "config/dsdd/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

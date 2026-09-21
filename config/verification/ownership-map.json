@@ -166,6 +166,19 @@
       ]
     },
     {
+      "id": "outline-plan-workspace-surface",
+      "classification": "production",
+      "include": [
+        "modules/plan/ui/foundations-plan-workspace.tsx"
+      ],
+      "ownerLayer": "experience-contract",
+      "riskTokens": [
+        "surface",
+        "navigation",
+        "mcp"
+      ]
+    },
+    {
       "id": "library-ui-surface",
       "classification": "production",
       "include": [

@@ -84,7 +84,7 @@ test("#2226 orchestrates Edit Feedback and Refine without expanding the 30-surfa
   const feedback = byId.get("feedback");
 
   assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "standard").length, 30);
-  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 43);
+  assert.equal(registry.surfaces.filter((surface) => surface.capturePolicy === "census-only").length, 45);
 
   assert.equal(edit?.capturePolicy, "census-only");
   assert.equal(edit?.orchestrated, true);

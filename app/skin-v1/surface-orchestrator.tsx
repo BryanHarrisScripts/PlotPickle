@@ -282,7 +282,7 @@ export default function SkinV1SurfaceOrchestrator({ children }: { children: Reac
           <header className="pp-skin-v1-orchestrator-header" data-skin-v1-region-role="global-header">
             <strong>PLOTPICKLE</strong>
             <span>{active.label}</span>
-            <span>SKIN V1</span>
+            <span>MATRIX</span>
           </header>
           <div className="pp-skin-v1-orchestrator-actions" data-skin-v1-region-role="surface-action-row">
             <button

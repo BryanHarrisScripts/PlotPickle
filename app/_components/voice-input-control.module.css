@@ -36,6 +36,7 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 28%, transparent);
 }
 
+.control[data-voice-state="PREPARING_RUNTIME"] .button,
 .control[data-voice-state="REQUESTING_PERMISSION"] .button,
 .control[data-voice-state="FINALIZING_AUDIO"] .button,
 .control[data-voice-state="TRANSCRIBING"] .button {
@@ -48,15 +49,16 @@
   right: 0;
   z-index: 2;
   width: max-content;
-  max-width: min(22rem, calc(100vw - 2rem));
-  padding: 0.4rem 0.55rem;
+  max-width: min(26rem, calc(100vw - 2rem));
+  min-width: min(18rem, calc(100vw - 2rem));
+  padding: 0.55rem 0.7rem;
   border: 1px solid currentColor;
   border-radius: 0.3rem;
   background: #050505;
   color: #f2f2f2;
   box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
-  font-size: 0.72rem;
-  line-height: 1.35;
+  font-size: 0.8rem;
+  line-height: 1.5;
   white-space: normal;
   pointer-events: none;
 }

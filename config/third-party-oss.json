@@ -250,7 +250,7 @@
       "name": "Pi coding agent",
       "category": "developer-tool",
       "usage": "developer-tool",
-      "version": "0.84.4",
+      "version": "0.87.0",
       "source": "https://www.npmjs.com/package/@earendil-works/pi-coding-agent",
       "license": "MIT",
       "licenseSource": ".pi/npm/package-lock.json",

@@ -241,7 +241,9 @@
         "scripts/dsdd-pi-session.mjs",
         "scripts/pi/dsdd-locked-intent-extension.mjs",
         "scripts/run-uat-repair-agent.mjs",
-        "config/dsdd/**"
+        "config/dsdd/**",
+        "config/developer-agent-stack.json",
+        "scripts/pi-managed-install.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -1147,7 +1149,8 @@
       "include": [
         "app/api/auth/profile-private/route.ts",
         "core/auth/profile-experience/profile-experience-runtime.ts",
-        "core/storage/profile-private-browser.ts"
+        "core/storage/profile-private-browser.ts",
+        "build/auth/profile-request-context.ts"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

@@ -38,7 +38,8 @@ test("#2308 makes Surface Census profile 6 and Full QA profile 7", async () => {
   assert.ok(artifacts.includes('orderedProfiles: ["1", "2", "3", "4", "5", "6"]'));
   const cli = await read("lib/verification/webmcp-qa/cli.mjs");
   assert.ok(cli.includes("[WEBMCP] Surface Census"));
-  assert.ok(cli.includes("Reconciliation coverage"));
+  assert.ok(cli.includes("Inventory reconciliation"));
+  assert.ok(cli.includes("Current-navigation reconciliation"));
   assert.ok(cli.includes("Governance coverage"));
 });
 

@@ -134,3 +134,13 @@ test("#2262 does not add Blog to the application navigation", async () => {
   assert.doesNotMatch(page, /href=["']\/blog/);
   assert.doesNotMatch(shortcuts, /label:\s*["']Blog["']/);
 });
+
+
+test("#2316 redirects production Skin V1 to the public homepage without changing local application routing", async () => {
+  const worker = await read("worker/index.ts");
+  assert.match(worker, /url\.hostname === "plotpickle\.com"[\s\S]*url\.pathname === "\/skin-v1"[\s\S]*url\.pathname\.startsWith\("\/skin-v1\/"\)/u);
+  assert.match(worker, /publicHome\.pathname = "\/"/u);
+  assert.match(worker, /publicHome\.search = ""/u);
+  assert.match(worker, /Response\.redirect\(publicHome\.toString\(\), 307\)/u);
+  assert.doesNotMatch(worker, /hostname === "localhost"[\s\S]*skin-v1|hostname === "127\.0\.0\.1"[\s\S]*skin-v1/u);
+});

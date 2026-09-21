@@ -65,7 +65,7 @@ test("#2338 requires Windows Product Gate proof before Pi 0.87 promotion", async
   ]);
   assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
   assert.match(productGate, /node scripts\/evaluate-pi-087-dsdd-session\.mjs/u);
-  assert.match(prGate, /Validate Pi 0\.87 DSDD session contract/u);
+  assert.match(prGate, /Validate DSDD intent-to-evidence and Pi 0\.87 session contracts/u);
   assert.match(prGate, /tests\/issue-2338-pi-087-dsdd-session\.test\.mjs/u);
 });
 

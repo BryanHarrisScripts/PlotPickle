@@ -230,18 +230,8 @@ export default function DashboardBbsPanel({
     );
   }
 
-  if (settingsMenuOpen && storyModeOpen) {
-    return (
-      <section aria-label="Story Mode settings" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setStoryModeView(null); }
-      }}>
-        <div className="pp-skin-v1-bbs-banner">
-          <h1>STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setStoryModeOpen(false)}>Back to Settings</button>
-        </div>
-        <StoryModeHost />
-      </section>
-    );
+  if (settingsMenuOpen && storyModeView) {
+    return <StoryModeHost initialView={storyModeView} onReturnToSettings={() => setStoryModeView(null)} />;
   }
 
   if (settingsMenuOpen && nodeInfoOpen) {

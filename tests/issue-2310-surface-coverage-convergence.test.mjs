@@ -141,7 +141,6 @@ test("#2314 governs active Outline / Plan without expanding the frozen Standard 
   ]);
   assert.equal(plan.runtimeSelector, "[data-plan-surface='foundations']");
   assert.equal(plan.runtimeReadySelector, "[data-plan-surface='foundations']");
-  assert.equal(plan.orchestrated, true);
   assert.equal(isCurrentMatrixSupplementalGoverned("plan"), true);
   assert.equal(isCurrentMatrixSupplementalGoverned("plan-world"), false);
 

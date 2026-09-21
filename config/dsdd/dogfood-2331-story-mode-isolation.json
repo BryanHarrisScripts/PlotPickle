@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "issue": 2331,
+  "title": "DSDD dogfood proof: Story Mode must not block local DSDD intent",
+  "intentVersion": 1,
+  "humanStatement": "DSDD should work with no local/cloud configuration. After PlotPickle starts, the Human should be able to open DSDD, talk or type, and continue immediately.",
+  "observedBefore": "A DSDD TEST narration was rejected because Story Mode was CLOUD while the explicit DSDD text route was local Ollama.",
+  "understoodMeaning": "The authenticated developer DSDD intent interpreter is a local engineering capability and must not inherit creative Story Mode locality policy. Ordinary Story Mode routing remains unchanged.",
+  "approvedMeaning": "Continue fixing DSDD until green, preserving local-only behavior and the existing deterministic merge boundary.",
+  "buildInstruction": {
+    "change": "Mark only the DSDD local text request with a PlotPickle-owned intent scope and let that request bypass Story Mode locality enforcement.",
+    "doNotChange": [
+      "ordinary Story Mode policy",
+      "cloud provider configuration",
+      "GitHub merge authority"
+    ],
+    "implementationPr": 2343,
+    "mergedCommit": "376fe131d193712d69d5cc756f06172e9f737504"
+  },
+  "verification": {
+    "exactHead": "0d10e345614fb81dc627a54230b42b47da934c0d",
+    "architectureRun": 35656938173,
+    "layersPassed": 7,
+    "layersTotal": 7,
+    "requirements": [
+      {
+        "id": "R1",
+        "text": "DSDD local intent generation is not rejected by Story Mode locality policy.",
+        "status": "PASS",
+        "evidence": [
+          "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "#2343 Architecture Verification run 35656938173"
+        ]
+      },
+      {
+        "id": "R2",
+        "text": "Ordinary Story Mode locality policy remains in force outside explicitly scoped DSDD intent requests.",
+        "status": "PASS",
+        "evidence": [
+          "build/story-mode-policy-gateway.ts",
+          "#2343 Architecture Verification run 35656938173"
+        ]
+      },
+      {
+        "id": "R3",
+        "text": "Human live dogfood confirms the post-fix DSDD reply in the owned Edge window.",
+        "status": "UNPROVEN",
+        "evidence": [
+          "Requires Human re-test on merged main; no automated gate may substitute for this live observation."
+        ]
+      }
+    ]
+  },
+  "correctionClassification": "implementation-mismatch",
+  "hiddenReasoningStored": false,
+  "fullPrivateTranscriptStored": false
+}

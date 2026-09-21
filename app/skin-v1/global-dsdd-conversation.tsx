@@ -23,6 +23,8 @@ type DsddMessage = {
   role: "human" | "dsdd";
   text: string;
   context?: DsddContext;
+  provider?: string;
+  model?: string;
 };
 
 type TextResponse = {
@@ -202,7 +204,7 @@ export default function GlobalDsddConversation() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          modelRole: "fast",
+          modelRole: "quality",
           instructions: DSDD_INSTRUCTIONS,
           prompt: conversationPrompt(prior, snapshot, submitted),
         }),
@@ -216,6 +218,8 @@ export default function GlobalDsddConversation() {
         role: "dsdd",
         text: body.text!.trim(),
         context: snapshot,
+        provider: body.provider,
+        model: body.model,
       }].slice(-MAX_MESSAGES));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The DSDD interpreter is unavailable.");
@@ -279,6 +283,9 @@ export default function GlobalDsddConversation() {
                 <strong>{message.role === "human" ? "You" : "DSDD"}</strong>
                 <p>{message.text}</p>
                 {message.context ? <small>{message.context.surfaceLabel} · {message.context.route}</small> : null}
+                {message.role === "dsdd" && message.model ? (
+                  <small>Intent model: {message.provider ? `${message.provider} · ` : ""}{message.model}</small>
+                ) : null}
               </div>
             ))}
             {working ? <p className={styles.working} role="status">DSDD is interpreting the narration…</p> : null}

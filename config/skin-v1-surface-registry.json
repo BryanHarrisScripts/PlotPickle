@@ -1145,6 +1145,35 @@
       "orchestrated": true
     },
     {
+      "id": "pitch-package",
+      "label": "Package",
+      "family": "pitch",
+      "parent": "dashboard",
+      "surfaceClass": "workspace",
+      "capturePolicy": "census-only",
+      "governance": "census",
+      "continuityIds": [],
+      "route": "/pitch-review?scope=pitch&return=dashboard",
+      "runtimeRoute": "/pitch-review?scope=pitch&return=dashboard",
+      "navigationPath": [
+        {
+          "order": 12,
+          "slug": "package",
+          "label": "Package"
+        }
+      ],
+      "formatProfile": {
+        "layout": "two-column",
+        "shell": "production",
+        "frame": "solid-standard",
+        "selectedState": "canonical-dark-accent",
+        "typography": "project-workspace"
+      },
+      "runtimeSelector": "main[data-pitch-package-workspace='canonical']",
+      "runtimeReadySelector": "main[data-pitch-package-workspace='canonical']",
+      "orchestrated": true
+    },
+    {
       "id": "story",
       "label": "STORY — THE UNWRITTEN",
       "family": "story",

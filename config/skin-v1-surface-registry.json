@@ -711,7 +711,7 @@
     },
     {
       "id": "story-mode",
-      "label": "Story Mode",
+      "label": "Story Mode compatibility",
       "family": "settings",
       "parent": "settings",
       "surfaceClass": "directory",
@@ -724,11 +724,6 @@
           "order": 15,
           "slug": "manage",
           "label": "Settings"
-        },
-        {
-          "order": 2,
-          "slug": "story-mode",
-          "label": "Story Mode"
         }
       ],
       "legacyEvidence": {
@@ -742,15 +737,15 @@
         "selectedState": "canonical-dark-accent",
         "typography": "standard-ui"
       },
-      "runtimeSelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
-      "runtimeReadySelector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
+      "runtimeSelector": "section[aria-label='Settings menu']",
+      "runtimeReadySelector": "section[aria-label='Settings menu'][data-settings-menu='keyboard-directory']",
       "orchestrated": true
     },
     {
       "id": "local-ai",
-      "label": "Local Story Mode",
+      "label": "Local",
       "family": "settings",
-      "parent": "story-mode",
+      "parent": "settings",
       "surfaceClass": "nested",
       "capturePolicy": "standard",
       "governance": "candidate",
@@ -764,11 +759,6 @@
         },
         {
           "order": 2,
-          "slug": "story-mode",
-          "label": "Story Mode"
-        },
-        {
-          "order": 1,
           "slug": "local",
           "label": "Local"
         }
@@ -790,9 +780,9 @@
     },
     {
       "id": "cloud-story-mode",
-      "label": "Cloud Story Mode",
+      "label": "Cloud",
       "family": "settings",
-      "parent": "story-mode",
+      "parent": "settings",
       "surfaceClass": "nested",
       "capturePolicy": "standard",
       "governance": "candidate",
@@ -805,12 +795,7 @@
           "label": "Settings"
         },
         {
-          "order": 2,
-          "slug": "story-mode",
-          "label": "Story Mode"
-        },
-        {
-          "order": 2,
+          "order": 3,
           "slug": "cloud",
           "label": "Cloud"
         }
@@ -832,9 +817,9 @@
     },
     {
       "id": "hybrid-story-mode",
-      "label": "Hybrid Story Mode",
+      "label": "Hybrid",
       "family": "settings",
-      "parent": "story-mode",
+      "parent": "settings",
       "surfaceClass": "nested",
       "capturePolicy": "standard",
       "governance": "candidate",
@@ -847,12 +832,7 @@
           "label": "Settings"
         },
         {
-          "order": 2,
-          "slug": "story-mode",
-          "label": "Story Mode"
-        },
-        {
-          "order": 3,
+          "order": 4,
           "slug": "hybrid",
           "label": "Hybrid"
         }
@@ -889,7 +869,7 @@
           "label": "Settings"
         },
         {
-          "order": 3,
+          "order": 5,
           "slug": "node-info",
           "label": "Node Info"
         }
@@ -926,7 +906,7 @@
           "label": "Settings"
         },
         {
-          "order": 4,
+          "order": 6,
           "slug": "agents",
           "label": "Agents"
         }
@@ -1901,7 +1881,7 @@
           "label": "Settings"
         },
         {
-          "order": 5,
+          "order": 7,
           "slug": "ai-routing",
           "label": "AI Routing"
         }
@@ -1929,7 +1909,19 @@
       "continuityIds": [
         "buzz-settings"
       ],
-      "route": "/settings/buzz"
+      "route": "/settings/buzz",
+      "navigationPath": [
+        {
+          "order": 15,
+          "slug": "manage",
+          "label": "Settings"
+        },
+        {
+          "order": 8,
+          "slug": "buzz-settings",
+          "label": "BUZZ Settings"
+        }
+      ]
     },
     {
       "id": "afterglow-reconciliation",

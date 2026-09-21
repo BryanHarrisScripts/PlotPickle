@@ -5,7 +5,7 @@ import {
   CURRENT_MATRIX_SURFACE_LIFECYCLE,
   isCurrentMatrixSupplementalGoverned,
   lifecycleForSurface,
-} from "../lib/verification/current-matrix-surface-lifecycle.mjs";
+} from "../lib/verification/browser-probes/current-matrix-surface-lifecycle.mjs";
 import { SKIN_V1_SURFACES } from "../lib/verification/skin-v1-surface-registry.mjs";
 import { WEBMCP_STANDARD_SURFACE_TARGETS } from "../lib/verification/webmcp-canonical-surface-registry.mjs";
 import { buildSurfaceCensusSummary } from "../lib/verification/browser-probes/surface-census.mjs";

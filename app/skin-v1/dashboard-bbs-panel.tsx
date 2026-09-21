@@ -10,46 +10,30 @@ import PlotPickleAgentsHost from "./plotpickle-agents-host";
 import PlotPickleScorePanel from "./plotpickle-score-panel";
 import SettingsWorkspacePanel, { isWorkspaceSettingsId, type WorkspaceSettingsId } from "./settings-workspace-panel";
 import { SKIN_V1_ASSETS } from "./skin-v1-assets";
-import StoryModeHost from "./story-mode-host";
+import StoryModeHost, { type StoryModePolicy } from "./story-mode-host";
 
 export type { DashboardBbsItem } from "./dashboard-menu-registry";
 
 const SETTINGS_SHORTCUTS: Readonly<Record<string, string>> = {
   general: "G",
-  "story-mode": "S",
+  local: "L",
+  cloud: "C",
+  hybrid: "H",
   "node-info": "I",
-  agents: "N",
+  agents: "A",
+  "ai-routing": "R",
+  "buzz-settings": "B",
 };
 
 const SETTINGS_MENU = [
-  {
-    id: "general",
-    shortcut: SETTINGS_SHORTCUTS.general,
-    label: "General",
-    description: "Language, startup, interface reference and project data.",
-    group: "SETTINGS",
-  },
-  {
-    id: "story-mode",
-    shortcut: SETTINGS_SHORTCUTS["story-mode"],
-    label: "Story Mode",
-    description: "Choose Local, Cloud or Hybrid Story compute and generation.",
-    group: "SYSTEMS",
-  },
-  {
-    id: "node-info",
-    shortcut: SETTINGS_SHORTCUTS["node-info"],
-    label: "Node Info",
-    description: "PlotPickle Node identity, lifecycle, readiness and current project.",
-    group: "SYSTEMS",
-  },
-  {
-    id: "agents",
-    shortcut: SETTINGS_SHORTCUTS.agents,
-    label: "Agents",
-    description: "Assign Local or Cloud Story Mode compute to PlotPickle Agents.",
-    group: "SYSTEMS",
-  },
+  { id: "general", shortcut: SETTINGS_SHORTCUTS.general, label: "General", description: "Language, startup, interface reference and project data.", group: "SETTINGS" },
+  { id: "local", shortcut: SETTINGS_SHORTCUTS.local, label: "Local", description: "Local writing, images, video and Agent compute.", group: "SETTINGS" },
+  { id: "cloud", shortcut: SETTINGS_SHORTCUTS.cloud, label: "Cloud", description: "Explicit cloud providers and paid capability routes.", group: "SETTINGS" },
+  { id: "hybrid", shortcut: SETTINGS_SHORTCUTS.hybrid, label: "Hybrid", description: "Route capabilities across Local and Cloud.", group: "SETTINGS" },
+  { id: "node-info", shortcut: SETTINGS_SHORTCUTS["node-info"], label: "Node Info", description: "PlotPickle Node identity, lifecycle, readiness and current project.", group: "SETTINGS" },
+  { id: "agents", shortcut: SETTINGS_SHORTCUTS.agents, label: "Agents", description: "Assign compute to PlotPickle Agents.", group: "SETTINGS" },
+  { id: "ai-routing", shortcut: SETTINGS_SHORTCUTS["ai-routing"], label: "AI Routing", description: "Review capability routes and provider selection.", group: "SETTINGS" },
+  { id: "buzz-settings", shortcut: SETTINGS_SHORTCUTS["buzz-settings"], label: "BUZZ Settings", description: "Configure BUZZ identity, presence and runtime settings.", group: "SETTINGS" },
 ] as const;
 
 const CONNECTED_SETTINGS_ITEMS = new Set(SETTINGS_MENU.map((item) => item.id));
@@ -78,7 +62,7 @@ export default function DashboardBbsPanel({
   const [dashboardArt, setDashboardArt] = useState(SKIN_V1_ASSETS.dashboard.hero);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [settingsWorkspace, setSettingsWorkspace] = useState<WorkspaceSettingsId | null>(null);
-  const [storyModeOpen, setStoryModeOpen] = useState(false);
+  const [storyModeView, setStoryModeView] = useState<StoryModePolicy | null>(null);
   const [nodeInfoOpen, setNodeInfoOpen] = useState(false);
   const [plotPickleAgentsOpen, setPlotPickleAgentsOpen] = useState(false);
   const [writerCraftMenuOpen, setWriterCraftMenuOpen] = useState(false);
@@ -95,7 +79,7 @@ export default function DashboardBbsPanel({
       const detail = (event as CustomEvent<{ parentSurface?: string }>).detail;
       if (detail?.parentSurface !== "settings") return;
       setSettingsWorkspace(null);
-      setStoryModeOpen(false);
+      setStoryModeView(null);
       setNodeInfoOpen(false);
       setPlotPickleAgentsOpen(false);
       setSettingsMenuOpen(true);
@@ -113,8 +97,8 @@ export default function DashboardBbsPanel({
       onSurfaceNameChange("GENERAL");
       return;
     }
-    if (settingsMenuOpen && storyModeOpen) {
-      onSurfaceNameChange("STORY MODE");
+    if (settingsMenuOpen && storyModeView) {
+      onSurfaceNameChange(storyModeView.toUpperCase());
       return;
     }
     if (settingsMenuOpen && nodeInfoOpen) {
@@ -132,7 +116,7 @@ export default function DashboardBbsPanel({
     plotPickleAgentsOpen,
     settingsMenuOpen,
     settingsWorkspace,
-    storyModeOpen,
+    storyModeView,
     writerCraftMenuOpen,
   ]);
 
@@ -176,15 +160,23 @@ export default function DashboardBbsPanel({
       setSettingsWorkspace(item.id);
       return;
     }
-    if (item.id === "story-mode") {
-      setStoryModeOpen(true);
+    if (item.id === "local" || item.id === "cloud" || item.id === "hybrid") {
+      setStoryModeView(item.id);
       return;
     }
     if (item.id === "node-info") {
       setNodeInfoOpen(true);
       return;
     }
-    if (item.id === "agents") setPlotPickleAgentsOpen(true);
+    if (item.id === "agents") {
+      setPlotPickleAgentsOpen(true);
+      return;
+    }
+    if (item.id === "ai-routing") {
+      window.location.assign("/ai-routing");
+      return;
+    }
+    if (item.id === "buzz-settings") window.location.assign("/settings/buzz");
   }
 
   function handleSettingsKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -241,7 +233,7 @@ export default function DashboardBbsPanel({
   if (settingsMenuOpen && storyModeOpen) {
     return (
       <section aria-label="Story Mode settings" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); setStoryModeOpen(false); }
+        if (event.key === "Escape") { event.preventDefault(); setStoryModeView(null); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
           <h1>STORY MODE</h1>
@@ -312,6 +304,7 @@ export default function DashboardBbsPanel({
                     role="option"
                     aria-selected={selected}
                     aria-disabled={!connected}
+                    aria-keyshortcuts={item.shortcut}
                     tabIndex={selected ? 0 : -1}
                     autoFocus={index === 0}
                     className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item${selected ? " is-selected" : ""}`}

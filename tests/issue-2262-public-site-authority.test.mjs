@@ -24,20 +24,26 @@ test("#2262 keeps the existing ChatGPT Sites project binding and makes GitHub au
 test("#2262 checks the current live PlotPickle.com narrative into repository source", async () => {
   const site = await read("app/site/page.tsx");
   for (const phrase of [
-    "A visual writer for the stories in your head",
-    "Storywriting has changed.",
-    "Now shape it.",
-    "HUMAN-ONLY",
-    "AI-OPTIONAL",
-    "LOCAL-FIRST",
-    "WRITER-CONTROLLED",
-    "81 lessons",
-    "24 story Blocks",
-    "96 mini-Blocks",
-    "Human, Node and Agent boundaries",
-    "A writers&apos; hall connected by BUZZ.",
-    "So what is a Plot Pickle?",
+    "The Human remains the author.",
+    "PLOTPICKLE / MATRIX",
+    "Explore",
+    "Develop",
+    "Visualize",
+    "Review",
+    "Pitch",
+    "Play",
+    "System",
+    "24 Story Blocks",
+    "96 Mini-Blocks",
+    "2,400 technical three-second render slots",
+    "Stable structural addresses, not creative handcuffs.",
+    "NR / Not Rated",
+    "Experience Skins",
+    "Validation & Operations",
+    "There is no public PlotPickleSetup.exe",
   ]) assert.ok(site.includes(phrase), "public site is missing: " + phrase);
+  assert.doesNotMatch(site, /CURRENT PRODUCT SPINE/);
+  assert.match(site, /LM Studio may be used as a compatible connection; it is not described as open source/);
 });
 
 test("#2262 keeps public web pages outside profile and legacy application gates", async () => {

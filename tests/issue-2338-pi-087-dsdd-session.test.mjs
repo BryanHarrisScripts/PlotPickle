@@ -84,8 +84,10 @@ test("#2338 owns one recoverable profile-private Pi 0.87 session from narration 
   assert.match(bridge, /SessionManager\.create/u);
   assert.match(bridge, /SessionManager\.open/u);
   assert.match(bridge, /appendMessage/u);
+  assert.match(bridge, /plotpickle-dsdd-persistence-checkpoint/u);
+  assert.match(bridge, /DSDD interpretation pending\./u);
   assert.match(bridge, /appendCustomEntry/u);
-  assert.match(bridge, /appendContextEdit/u);
+  assert.match(bridge, /appendContextEdit\(persistenceCheckpointId, null\)/u);
   assert.match(bridge, /appendCustomMessageEntry/u);
   assert.match(panel, /authenticatedProfileFetch/u);
 });

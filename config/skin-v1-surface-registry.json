@@ -1069,8 +1069,7 @@
         "typography": "project-workspace"
       },
       "runtimeSelector": "[data-plan-surface='foundations']",
-      "runtimeReadySelector": "[data-plan-surface='foundations']",
-      "orchestrated": true
+      "runtimeReadySelector": "[data-plan-surface='foundations']"
     },
     {
       "id": "plan-world",

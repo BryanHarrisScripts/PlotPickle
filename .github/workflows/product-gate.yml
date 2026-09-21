@@ -16,7 +16,7 @@ on:
       - "app/skin-v1/global-dsdd-conversation.tsx"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: product-gate-${{ github.ref }}
@@ -44,6 +44,21 @@ jobs:
       - name: Install PlotPickle dependencies once
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Regenerate Pi 0.87 extension lock for promotion branch
+        if: github.event_name == 'pull_request' && github.head_ref == 'issue-2338-dsdd-persistent-session'
+        shell: pwsh
+        run: |
+          npm install --prefix .pi/npm --package-lock-only --ignore-scripts --no-audit --no-fund --no-save @earendil-works/pi-coding-agent@0.87.0
+          git add .pi/npm/package-lock.json
+          if (git diff --cached --quiet) {
+            Write-Host "Pi extension lock is already current."
+            exit 0
+          }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "#2338 regenerate Pi 0.87 extension lock"
+          git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Validate current Skin V1 startup boundary
         shell: pwsh

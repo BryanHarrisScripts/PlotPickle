@@ -237,7 +237,10 @@
       "classification": "production",
       "include": [
         "config/pi-087-dsdd-session-evaluation.json",
-        "scripts/evaluate-pi-087-dsdd-session.mjs"
+        "scripts/evaluate-pi-087-dsdd-session.mjs",
+        "scripts/dsdd-pi-session.mjs",
+        "scripts/pi/dsdd-locked-intent-extension.mjs",
+        "scripts/run-uat-repair-agent.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -868,7 +871,8 @@
       "include": [
         "build/agent-runtime-contract.ts",
         "build/openai-agents-runtime-adapter.ts",
-        "build/responsibility-run-gateway.ts"
+        "build/responsibility-run-gateway.ts",
+        "build/dsdd/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

@@ -33,7 +33,6 @@ type TextResponse = {
   model?: string;
 };
 
-const SESSION_KEY = "plotpickle.dsdd.conversational-uat.v1";
 const MAX_MESSAGES = 40;
 
 const DSDD_INSTRUCTIONS = [
@@ -85,50 +84,6 @@ function currentSurfaceContext(pathname: string): DsddContext {
   };
 }
 
-function loadMessages() {
-  if (typeof window === "undefined") return [] as DsddMessage[];
-  try {
-    const parsed = JSON.parse(window.sessionStorage.getItem(SESSION_KEY) || "[]") as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.flatMap((candidate): DsddMessage[] => {
-      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
-      const item = candidate as Partial<DsddMessage>;
-      if ((item.role !== "human" && item.role !== "dsdd") || typeof item.text !== "string") return [];
-      const context = item.context && typeof item.context === "object"
-        && typeof item.context.route === "string"
-        && typeof item.context.surfaceId === "string"
-        && typeof item.context.surfaceLabel === "string"
-        && typeof item.context.capturedAt === "string"
-        ? item.context
-        : undefined;
-      return [{
-        id: typeof item.id === "string" ? item.id : messageId("dsdd"),
-        role: item.role,
-        text: item.text.slice(0, 12_000),
-        ...(context ? { context } : {}),
-      }];
-    }).slice(-MAX_MESSAGES);
-  } catch {
-    return [];
-  }
-}
-
-function persistMessages(messages: DsddMessage[]) {
-  try {
-    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES)));
-  } catch (error) {
-    console.warn("DSDD session persistence is unavailable; continuing with in-memory conversation state.", error);
-  }
-}
-
-function clearPersistedMessages() {
-  try {
-    window.sessionStorage.removeItem(SESSION_KEY);
-  } catch (error) {
-    console.warn("DSDD persisted session could not be cleared; in-memory conversation state is cleared.", error);
-  }
-}
-
 function contextPrompt(context: DsddContext) {
   return [
     "CURRENT PLOTPICKLE CONTEXT",
@@ -160,7 +115,7 @@ export default function GlobalDsddConversation() {
   const [open, setOpen] = useState(false);
   const [eligible, setEligible] = useState(false);
   const [context, setContext] = useState<DsddContext | null>(null);
-  const [messages, setMessages] = useState<DsddMessage[]>(loadMessages);
+  const [messages, setMessages] = useState<DsddMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
@@ -209,7 +164,6 @@ export default function GlobalDsddConversation() {
   }, [pathname]);
 
   useEffect(() => {
-    persistMessages(messages);
     const thread = threadRef.current;
     if (thread) thread.scrollTop = thread.scrollHeight;
   }, [messages, open]);
@@ -274,7 +228,6 @@ export default function GlobalDsddConversation() {
     setMessages([]);
     setDraft("");
     setError("");
-    clearPersistedMessages();
   }
 
   if (!eligible) return null;

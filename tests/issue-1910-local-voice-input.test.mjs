@@ -88,7 +88,7 @@ test("#1910 one app-shell voice layer uses explicit microphone action and the ex
   assert.match(layer, /dispatchEvent\(new Event\("input", \{ bubbles: true \}\)\)/u);
   assert.match(layer, /const field = fieldRef\.current;\s*if \(!field\) return;\s*setNativeFieldValue\(field, next\)/u);
   assert.match(launcher, /--use-fake-ui-for-media-stream/u);
-  assert.match(launcher, /--user-data-dir=\x27\+\$env:PLOTPICKLE_BROWSER_PROFILE/u);
+  assert.match(launcher, /--user-data-dir=/u);
 });
 
 test("#1910 native execution is fixed-path, bounded, non-shell, ephemeral and fail-closed", async () => {

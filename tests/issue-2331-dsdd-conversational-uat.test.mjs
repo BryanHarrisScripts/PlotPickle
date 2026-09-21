@@ -104,3 +104,20 @@ test("#2331 maps requirement evidence to PASS FAIL or UNPROVEN without rewriting
   assert.match(gateway, /The referenced locked DSDD intent version does not exist/u);
   assert.doesNotMatch(gateway, /intent\.understoodMeaning\s*=/u);
 });
+
+
+test("#2331 dogfood record preserves the full intent-to-evidence chain without overstating live proof", async () => {
+  const record = JSON.parse(await read("config/dsdd/dogfood-2331-story-mode-isolation.json"));
+  assert.equal(record.issue, 2331);
+  assert.match(record.humanStatement, /no local\/cloud configuration/u);
+  assert.match(record.understoodMeaning, /must not inherit creative Story Mode locality policy/u);
+  assert.equal(record.buildInstruction.implementationPr, 2343);
+  assert.equal(record.buildInstruction.mergedCommit, "376fe131d193712d69d5cc756f06172e9f737504");
+  assert.equal(record.verification.layersPassed, 7);
+  assert.equal(record.verification.layersTotal, 7);
+  const statuses = Object.fromEntries(record.verification.requirements.map((item) => [item.id, item.status]));
+  assert.deepEqual(statuses, { R1: "PASS", R2: "PASS", R3: "UNPROVEN" });
+  assert.equal(record.correctionClassification, "implementation-mismatch");
+  assert.equal(record.hiddenReasoningStored, false);
+  assert.equal(record.fullPrivateTranscriptStored, false);
+});

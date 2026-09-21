@@ -322,7 +322,7 @@ export default function FoundationsPlanWorkspace({
   }
 
   return (
-    <div className={styles.screen} data-hide-agent-settings-anchor="true">
+    <div className={styles.screen} data-hide-agent-settings-anchor="true" data-plan-surface="foundations">
       <nav className={styles.workflowNav} aria-label="PlotPickle workflow">
         <ol style={{ minWidth: 920 }}>
           {WORKFLOW_STAGES.map((stage) => (

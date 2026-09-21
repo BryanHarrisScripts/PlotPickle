@@ -23,7 +23,7 @@ Surface Census alone reports one blocker:
 
 ## Root cause
 
-The Dashboard now exposes internal surface id `plan` as the Human-facing **Outline** row. The canonical registry still described Plan as a census-only migration record with only a route. It lacked the current Outline navigation identity, runtime selector/readiness contract, format profile, orchestration marker, and #2310 supplemental active-governance declaration.
+The Dashboard now exposes internal surface id `plan` as the Human-facing **Outline** row. The canonical registry still described Plan as a census-only migration record with only a route. It lacked the current Outline navigation identity, runtime selector/readiness contract, format profile, and #2310 supplemental active-governance declaration.
 
 This is governance drift, not a navigation, visual, interaction, resilience, continuity, or runtime defect.
 
@@ -45,7 +45,6 @@ Canonical Plan / Outline:
 - navigation: `04-outline`
 - runtime selector: `[data-plan-surface='foundations']`
 - runtime ready selector: `[data-plan-surface='foundations']`
-- orchestrated: true
 - capture policy: census-only
 - current Matrix lifecycle: active-governed
 

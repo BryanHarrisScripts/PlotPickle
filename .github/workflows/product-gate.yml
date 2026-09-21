@@ -49,8 +49,8 @@ jobs:
         if: github.event_name == 'pull_request' && github.head_ref == 'issue-2338-dsdd-persistent-session'
         shell: pwsh
         run: |
-          npm install --prefix .pi/npm --package-lock-only --ignore-scripts --no-audit --no-fund --no-save @earendil-works/pi-coding-agent@0.87.0
-          git add .pi/npm/package-lock.json
+          npm install --prefix .pi/npm --package-lock-only --ignore-scripts --no-audit --no-fund --save-dev --save-exact @earendil-works/pi-coding-agent@0.87.0
+          git add .pi/npm/package.json .pi/npm/package-lock.json
           if (git diff --cached --quiet) {
             Write-Host "Pi extension lock is already current."
             exit 0

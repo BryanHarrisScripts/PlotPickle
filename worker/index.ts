@@ -19,6 +19,22 @@ interface ExecutionContext {
   passThroughOnException(): void;
 }
 
+const PUBLIC_WEB_REQUEST_HEADER = "x-plotpickle-public-web";
+
+function withPublicWebRequest(request: Request, url: URL): Request {
+  const rewritten = new Request(url, request);
+  const headers = new Headers(rewritten.headers);
+  headers.set(PUBLIC_WEB_REQUEST_HEADER, "1");
+  return new Request(rewritten, { headers });
+}
+
+function withoutPublicWebRequest(request: Request): Request {
+  if (!request.headers.has(PUBLIC_WEB_REQUEST_HEADER)) return request;
+  const headers = new Headers(request.headers);
+  headers.delete(PUBLIC_WEB_REQUEST_HEADER);
+  return new Request(request, { headers });
+}
+
 // Image security config. SVG sources with .svg extension auto-skip the
 // optimization endpoint on the client side (served directly, no proxy).
 // To route SVGs through the optimizer (with security headers), set
@@ -51,7 +67,7 @@ const worker = {
     if (url.hostname === "plotpickle.com" && url.pathname === "/") {
       const publicUrl = new URL(request.url);
       publicUrl.pathname = "/site";
-      return handler.fetch(new Request(publicUrl, request), env, ctx);
+      return handler.fetch(withPublicWebRequest(request, publicUrl), env, ctx);
     }
 
     if (url.pathname === "/_vinext/image") {
@@ -65,7 +81,7 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    return handler.fetch(withoutPublicWebRequest(request), env, ctx);
   },
 };
 

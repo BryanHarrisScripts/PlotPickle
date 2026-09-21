@@ -144,3 +144,25 @@ test("#2316 redirects production Skin V1 to the public homepage without changing
   assert.match(worker, /Response\.redirect\(publicHome\.toString\(\), 307\)/u);
   assert.doesNotMatch(worker, /hostname === "localhost"[\s\S]*skin-v1|hostname === "127\.0\.0\.1"[\s\S]*skin-v1/u);
 });
+
+test("#2325 keeps the public homepage outside client Skin V1 and profile gates", async () => {
+  const [worker, layout, runtime, profile, legacy] = await Promise.all([
+    read("worker/index.ts"),
+    read("app/layout.tsx"),
+    read("app/skin-v1-runtime.tsx"),
+    read("app/profile-access/profile-access-router.tsx"),
+    read("app/legacy-skin-only.tsx"),
+  ]);
+  assert.match(worker, /PUBLIC_WEB_REQUEST_HEADER = "x-plotpickle-public-web"/u);
+  assert.match(worker, /withPublicWebRequest\(request, publicUrl\)/u);
+  assert.match(worker, /withoutPublicWebRequest\(request\)/u);
+  assert.match(layout, /headers\(\)[\s\S]*x-plotpickle-public-web[\s\S]*publicWebRoot/u);
+  assert.match(layout, /<SkinV1Runtime publicWebRoot=\{publicWebRoot\} \/>/u);
+  assert.match(layout, /<ProfileAccessRouter publicWebRoot=\{publicWebRoot\}>/u);
+  assert.match(layout, /<LegacyDemoBoundary publicWebRoot=\{publicWebRoot\}>/u);
+  assert.match(layout, /<LegacySkinOnly publicWebRoot=\{publicWebRoot\}>/u);
+  assert.match(runtime, /if \(publicWebRoot\)[\s\S]*return;/u);
+  assert.match(runtime, /applySkin\(publicWebRoot\)/u);
+  assert.match(profile, /publicWebRoot \|\| isSkinV1Path\(pathname\)/u);
+  assert.match(legacy, /publicWebRoot \|\| isCanonicalSkinV1Path\(pathname\)/u);
+});

@@ -6,7 +6,7 @@ import LocalAiSkinHost from "./local-ai-skin-host";
 import HybridStoryModePanel from "./hybrid-story-mode-panel";
 import MenuFeedbackFooter from "./menu-feedback-footer";
 
-type StoryModePolicy = "local" | "cloud" | "hybrid";
+export type StoryModePolicy = "local" | "cloud" | "hybrid";
 type StoryModeView = "landing" | StoryModePolicy;
 
 type RouteStatus = {
@@ -115,8 +115,14 @@ function StoryModeReadiness({
   );
 }
 
-export default function StoryModeHost() {
-  const [view, setView] = useState<StoryModeView>("landing");
+export default function StoryModeHost({
+  initialView = "landing",
+  onReturnToSettings,
+}: {
+  readonly initialView?: StoryModeView;
+  readonly onReturnToSettings?: () => void;
+} = {}) {
+  const [view, setView] = useState<StoryModeView>(initialView);
   const [mode, setMode] = useState<StoryModePolicy>("hybrid");
   const [routingStatus, setRoutingStatus] = useState<AiRoutingStatus | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -153,6 +159,12 @@ export default function StoryModeHost() {
   useEffect(() => { void refresh(); }, []);
 
   useEffect(() => {
+    if (initialView === "landing") return;
+    setView(initialView);
+    void activate(initialView);
+  }, [initialView]);
+
+  useEffect(() => {
     const returnToSurface = (event: Event) => {
       const detail = (event as CustomEvent<{ parentSurface?: string }>).detail;
       if (detail?.parentSurface === "story-mode") setView("landing");
@@ -160,6 +172,14 @@ export default function StoryModeHost() {
     window.addEventListener("plotpickle:return-surface", returnToSurface);
     return () => window.removeEventListener("plotpickle:return-surface", returnToSurface);
   }, []);
+
+  function returnFromMode() {
+    if (onReturnToSettings) {
+      onReturnToSettings();
+      return;
+    }
+    setView("landing");
+  }
 
   function selectIndex(index: number) {
     const normalized = (index + STORY_MODE_ROWS.length) % STORY_MODE_ROWS.length;
@@ -228,11 +248,11 @@ export default function StoryModeHost() {
   if (view === "local") {
     return (
       <section aria-label="Local Story Mode setup" data-story-mode-view="local" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
+        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); returnFromMode(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>LOCAL STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
+          <h1>LOCAL</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={returnFromMode}>{onReturnToSettings ? "Back to Settings" : "Back to Story Mode"}</button>
         </div>
         <LocalAiSkinHost />
       </section>
@@ -242,11 +262,11 @@ export default function StoryModeHost() {
   if (view === "cloud") {
     return (
       <section aria-label="Cloud Story Mode setup" data-story-mode-view="cloud" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
+        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); returnFromMode(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>CLOUD STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
+          <h1>CLOUD</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={returnFromMode}>{onReturnToSettings ? "Back to Settings" : "Back to Story Mode"}</button>
         </div>
         <CloudStoryModeHost />
       </section>
@@ -256,11 +276,11 @@ export default function StoryModeHost() {
   if (view === "hybrid") {
     return (
       <section aria-label="Hybrid Story Mode" data-story-mode-view="hybrid" onKeyDown={(event) => {
-        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setView("landing"); }
+        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); returnFromMode(); }
       }}>
         <div className="pp-skin-v1-bbs-banner">
-          <h1>HYBRID STORY MODE</h1>
-          <button type="button" className="pp-skin-v1-return" onClick={() => setView("landing")}>Back to Story Mode</button>
+          <h1>HYBRID</h1>
+          <button type="button" className="pp-skin-v1-return" onClick={returnFromMode}>{onReturnToSettings ? "Back to Settings" : "Back to Story Mode"}</button>
         </div>
         <StoryModeReadiness localReady={localReady} cloudReady={cloudReady} hybridReady={hybridReady} loaded={loaded} mode={mode} />
         <HybridStoryModePanel onChanged={() => void refresh()} />

@@ -136,7 +136,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   const [project, setProject] = useState<PPFProject | null>(null);
   const [loadError, setLoadError] = useState("");
   const [contentError, setContentError] = useState("");
-  const [exploreOpen, setExploreOpen] = useState(true);
+  const [exploreOpen, setExploreOpen] = useState(false);
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [semesterOpen, setSemesterOpen] = useState(false);
   const [selectedSemesterIndex, setSelectedSemesterIndex] = useState(0);
@@ -192,7 +192,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown Journey content error";
       setContentError(message);
-      setNotice(`JOURNEY CONTENT UNAVAILABLE — ${message}`);
+      setNotice(`LEARN CONTENT UNAVAILABLE — ${message}`);
       return null;
     }
   }
@@ -330,11 +330,11 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
 
   if (!preview) {
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey loading">
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN loading">
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Learn</button></div>
-          <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
-          <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `JOURNEY UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL JOURNEY MAP…"}</p>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
+          <div className="pp-skin-v1-dashboard-title">6 PATHS / 24 CRAFT MODULES</div>
+          <p className={`pp-skin-v1-bbs-help ${styles.help}`} role={loadError ? "alert" : "status"}>{loadError ? `JOURNEY UNAVAILABLE — ${loadError}` : "LOADING THE CANONICAL LEARN MAP…"}</p>
         </div>
       </section>
     );
@@ -359,9 +359,9 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   if (openLesson && openCourseContent) {
     const isCompleted = completedLessonIds.has(openLesson.id);
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey lesson" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setLessonOpenId(null); } }}>
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN lesson" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setLessonOpenId(null); } }}>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={() => setLessonOpenId(null)}>Back to {openCourseContent.title}</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN</h1><button type="button" className="pp-skin-v1-return" onClick={() => setLessonOpenId(null)}>Back to {openCourseContent.title}</button></div>
           <article className={styles.lesson} data-learn-canonical-lesson={openLesson.id}>
             <header><span>CRAFT MODULE {craftModuleNumber(openCourseContent.id)} · LESSON {selectedLessonIndex + 1} OF {openCourseContent.lessons.length}</span><h2>{openLesson.title}</h2><p>{openLesson.overview}</p></header>
             <section><h3>Objectives</h3><ul>{openLesson.objectives.map((item) => <li key={item}>{item}</li>)}</ul></section>
@@ -383,7 +383,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   if (openCourseContent) {
     const completedCount = openCourseContent.lessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey Craft Module" data-skin-menu="learn-journey-lessons" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setCourseOpenId(null); } }}>
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Craft Module" data-skin-menu="learn-journey-lessons" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setCourseOpenId(null); } }}>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
           <div className="pp-skin-v1-bbs-banner"><h1>{openCourseContent.title.toUpperCase()}</h1><button type="button" className="pp-skin-v1-return" onClick={() => setCourseOpenId(null)}>Back to {visiblePathLabel(openCourseContent.semester)}</button></div>
           <div className="pp-skin-v1-dashboard-title">CRAFT MODULE {craftModuleNumber(openCourseContent.id)} · {completedCount}/{openCourseContent.lessons.length} LESSONS COMPLETE · ORDER IS ADVISORY ONLY</div>
@@ -405,9 +405,9 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   if (semesterOpen && semester) {
     const pathLabel = visiblePathLabel(semester.semester);
     return (
-      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Journey Path" data-skin-menu="learn-journey-courses" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setSemesterOpen(false); setNotice("CHOOSE ANY PATH. MOVE AT YOUR OWN PACE. THE ORDER IS A GUIDE, NOT A GATE."); } }}>
+      <section className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`} aria-label="LEARN Path" data-skin-menu="learn-journey-courses" data-learn-journey-phase="5" data-learn-lesson-content="available" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); setSemesterOpen(false); setNotice("CHOOSE ANY PATH. MOVE AT YOUR OWN PACE. THE ORDER IS A GUIDE, NOT A GATE."); } }}>
         <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-          <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={() => setSemesterOpen(false)}>Back to Paths</button></div>
+          <div className="pp-skin-v1-bbs-banner"><h1>LEARN</h1><button type="button" className="pp-skin-v1-return" onClick={() => setSemesterOpen(false)}>Back to Learn</button></div>
           <div className="pp-skin-v1-dashboard-title">{pathLabel} — FOUR CRAFT MODULES</div>
           <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label={`${pathLabel} Craft Modules`} aria-describedby="learn-journey-course-status">
             {semester.courses.map((course, index) => {
@@ -429,7 +429,7 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
   return (
     <section
       className={`pp-skin-v1-dashboard pp-skin-v1-dashboard-bbs ${styles.directory}`}
-      aria-label="LEARN Journey menu"
+      aria-label="LEARN menu"
       data-skin-menu="learn-journey"
       data-learn-journey-phase="5"
       data-learn-all-path-content="available"
@@ -446,15 +446,15 @@ export default function LearnJourneyPreview({ onBack }: { readonly onBack: () =>
       }}
     >
       <div className={`pp-skin-v1-bbs ${styles.panel}`} data-skin-reference-panel="standard">
-        <div className="pp-skin-v1-bbs-banner"><h1>LEARN JOURNEY</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Learn</button></div>
-        <div className="pp-skin-v1-dashboard-title">OPEN JOURNEY / 6 PATHS / 24 CRAFT MODULES</div>
+        <div className="pp-skin-v1-bbs-banner"><h1>LEARN</h1><button type="button" className="pp-skin-v1-return" onClick={onBack}>Back to Dashboard</button></div>
+        <div className="pp-skin-v1-dashboard-title">6 PATHS / 24 CRAFT MODULES</div>
         <div className={styles.exploreEntry}>
           <button type="button" className={`pp-skin-v1-menu-item pp-skin-v1-dashboard-row pp-skin-v1-submenu-item ${styles.row}`} data-learn-explore-open="true" data-skin-menu-connected="true" onClick={() => setExploreOpen(true)}>
             <span className="pp-skin-v1-dashboard-command-line">[E] EXPLORE / ALL CURRICULUM - SEARCH · TOPIC · CRAFT MODULE</span>
             <span className="pp-skin-v1-dashboard-status-box is-active" aria-label="Explore all curriculum" data-dashboard-status="active" data-skin-menu-indicator="connected" />
           </button>
         </div>
-        <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Journey Paths" aria-describedby="learn-journey-status">
+        <div className={`pp-skin-v1-menu pp-skin-v1-dashboard-menu ${styles.menu}`} role="listbox" aria-label="LEARN Paths" aria-describedby="learn-journey-status">
           {preview.semesters.map((item, index) => {
             const selected = index === selectedSemesterIndex;
             const shortcut = String(index + 1);

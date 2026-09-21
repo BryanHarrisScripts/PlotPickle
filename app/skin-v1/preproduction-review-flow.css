@@ -32,14 +32,32 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
   gap: var(--pp-skin-space-2);
   margin: var(--pp-skin-space-4) var(--pp-skin-space-5);
   padding: var(--pp-skin-space-2);
-  border: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+  border: var(--pp-skin-border-thin) solid var(--pp-skin-accent-deep);
   border-radius: var(--pp-skin-radius);
-  background: var(--pp-skin-surface-0);
-  box-shadow: var(--pp-skin-inset-highlight);
+  background: var(--pp-skin-accent-deep);
+  box-shadow: none;
   font-family: var(--pp-skin-font-ui);
 }
 
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button {
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid transparent;
+  border-radius: var(--pp-skin-radius);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  font: inherit;
+  letter-spacing: var(--pp-skin-tracking-label);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button:hover,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button:focus-visible {
+  border-color: var(--pp-skin-line-strong);
+  background: var(--pp-skin-accent-deep);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-focus);
+  outline-offset: 1px;
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail button,
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button {
   min-height: var(--pp-skin-control-height);
@@ -51,7 +69,14 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button {
   font: inherit;
 }
 
-html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button[aria-current="step"],
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button[aria-current="step"] {
+  border-color: var(--pp-skin-accent-bright);
+  background: var(--pp-skin-accent-deep);
+  color: var(--pp-skin-ink);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-accent-bright);
+  outline-offset: var(--pp-skin-space-1);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-address-rail button[aria-current="step"],
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-production-addresses button[aria-current="step"] {
   border-color: var(--pp-skin-focus);

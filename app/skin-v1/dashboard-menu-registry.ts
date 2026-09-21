@@ -24,7 +24,7 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
 
   { id: "feedback", shortcut: "F", label: "Feedback", description: "Gather Reader Notes and Reactions", group: "REVIEW" },
   { id: "refine", shortcut: "R", label: "Refine", description: "Polish Dialogue and Story Choices", group: "REVIEW" },
-  { id: "reports", shortcut: "A", label: "Analytics", description: "Review Story Health and Coverage Reports", group: "REVIEW" },
+  { id: "reports", shortcut: "A", label: "Reports", description: "Review Story Health and Coverage Reports", group: "REVIEW" },
 
   { id: "pitch-package", shortcut: "4", label: "Package", description: "Develop the Pitch Package and Presentation Materials", group: "PITCH" },
   { id: "pitch-deck", shortcut: "5", label: "Deck", description: "Generate and Review the Visual Pitch Deck", group: "PITCH" },

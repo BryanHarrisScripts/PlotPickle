@@ -28,7 +28,7 @@
     "writers-craft": {
       "label": "Learn",
       "status": "candidate",
-      "selector": "section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
+      "selector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
       "candidate": ".artifacts/visual-readiness/02-writers-craft__candidate.png",
       "baseline": "tests/visual-baselines/skin-v1/02-writers-craft.png"
     },
@@ -131,46 +131,46 @@
       "baseline": "tests/visual-baselines/skin-v1/15-manage__01-general.png"
     },
     "story-mode": {
-      "label": "Story Mode",
+      "label": "Story Mode compatibility",
       "status": "candidate",
-      "selector": "section[aria-label='Story Mode directory'][data-story-mode-parent='true']",
-      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode.png"
+      "selector": "section[aria-label='Settings menu']",
+      "candidate": ".artifacts/visual-readiness/15-manage__99-story-mode-compat__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__99-story-mode-compat.png"
     },
     "local-ai": {
-      "label": "Local Story Mode",
+      "label": "Local",
       "status": "candidate",
       "selector": "section[aria-label='Local Story Mode setup']",
-      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__01-local__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__01-local.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__02-local__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-local.png"
     },
     "cloud-story-mode": {
-      "label": "Cloud Story Mode",
+      "label": "Cloud",
       "status": "candidate",
       "selector": "section[aria-label='Cloud Story Mode setup']",
-      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__02-cloud__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__02-cloud.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__03-cloud__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__03-cloud.png"
     },
     "hybrid-story-mode": {
-      "label": "Hybrid Story Mode",
+      "label": "Hybrid",
       "status": "candidate",
       "selector": "section[aria-label='Hybrid Story Mode'][data-story-mode-view='hybrid']",
-      "candidate": ".artifacts/visual-readiness/15-manage__02-story-mode__03-hybrid__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__02-story-mode__03-hybrid.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__04-hybrid__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__04-hybrid.png"
     },
     "node": {
       "label": "Node Info",
       "status": "candidate",
       "selector": "section[aria-label='Node information']",
-      "candidate": ".artifacts/visual-readiness/15-manage__03-node-info__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__03-node-info.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__05-node-info__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__05-node-info.png"
     },
     "agents": {
       "label": "Agents",
       "status": "candidate",
       "selector": "section[aria-label='PlotPickle Agents setup']",
-      "candidate": ".artifacts/visual-readiness/15-manage__04-agents__candidate.png",
-      "baseline": "tests/visual-baselines/skin-v1/15-manage__04-agents.png"
+      "candidate": ".artifacts/visual-readiness/15-manage__06-agents__candidate.png",
+      "baseline": "tests/visual-baselines/skin-v1/15-manage__06-agents.png"
     },
     "issue-log": {
       "label": "Service",

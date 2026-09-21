@@ -48,7 +48,7 @@ test("#2226 derives one canonical direct-route contract and a measurable compati
   });
   assert.deepEqual(
     ledger.canonicalOrchestratedDirect.map((entry) => entry.id),
-    ["pitch-package", "write", "labs-plan", "storyboard", "previs", "pageflow", "edit", "labs-storyboard", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"],
+    ["write", "pitch-package", "labs-plan", "storyboard", "previs", "pageflow", "edit", "labs-storyboard", "feedback", "refine", "reports", "craftloop", "draftlens", "resonance", "screenplay-readiness", "labs-feedback", "labs-refine", "ai-routing", "afterglow-reconciliation"],
   );
   for (const id of ["core-curriculum", "buzz-settings"]) {
     assert.ok(ledger.routedCompatibilityDebt.some((entry) => entry.id === id), id + " must remain visible in the compatibility ledger until migrated");

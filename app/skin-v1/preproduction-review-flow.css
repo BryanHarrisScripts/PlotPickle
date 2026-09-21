@@ -40,9 +40,13 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
 }
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button {
-  border-color: transparent;
+  min-height: var(--pp-skin-control-height);
+  padding: var(--pp-skin-space-2) var(--pp-skin-space-3);
+  border: var(--pp-skin-border-thin) solid transparent;
+  border-radius: var(--pp-skin-radius);
   background: var(--pp-skin-accent-deep);
   color: var(--pp-skin-ink);
+  font: inherit;
   letter-spacing: var(--pp-skin-tracking-label);
 }
 

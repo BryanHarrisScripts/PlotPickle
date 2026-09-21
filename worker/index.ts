@@ -20,6 +20,14 @@ interface ExecutionContext {
 }
 
 const PUBLIC_WEB_REQUEST_HEADER = "x-plotpickle-public-web";
+const PUBLIC_WEB_HOSTS = new Set([
+  "plotpickle.com",
+  "plotpickle.avairis.chatgpt.site",
+]);
+
+function isPublicWebHost(hostname: string): boolean {
+  return PUBLIC_WEB_HOSTS.has(hostname.toLowerCase());
+}
 
 function withPublicWebRequest(request: Request, url: URL): Request {
   const rewritten = new Request(url, request);
@@ -54,7 +62,7 @@ const worker = {
     }
 
     if (
-      url.hostname === "plotpickle.com"
+      isPublicWebHost(url.hostname)
       && (url.pathname === "/skin-v1" || url.pathname.startsWith("/skin-v1/"))
     ) {
       const publicHome = new URL(request.url);
@@ -64,7 +72,7 @@ const worker = {
       return Response.redirect(publicHome.toString(), 307);
     }
 
-    if (url.hostname === "plotpickle.com" && url.pathname === "/") {
+    if (isPublicWebHost(url.hostname) && url.pathname === "/") {
       const publicUrl = new URL(request.url);
       publicUrl.pathname = "/site";
       return handler.fetch(withPublicWebRequest(request, publicUrl), env, ctx);

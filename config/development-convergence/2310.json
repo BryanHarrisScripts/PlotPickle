@@ -18,7 +18,8 @@
     "tests/issue-2226-phase-0-surface-census.test.mjs",
     "tests/issue-2226-surface-orchestrator.test.mjs",
     "tests/issue-2308-surface-census.test.mjs",
-    "tests/issue-2310-surface-coverage-convergence.test.mjs"
+    "tests/issue-2310-surface-coverage-convergence.test.mjs",
+    "tests/layer1-skin-surface-contract.test.mjs"
   ],
   "acceptance": [
     {

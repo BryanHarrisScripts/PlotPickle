@@ -10,13 +10,14 @@ import {
 import {
   createComfyVideo,
   generateComfyImage,
+  generateQwenImage21,
   probeComfyUI,
   publicComfyVideoJob,
   queryComfyVideo,
   validateH3Workflow,
+  validateQwenImage21Workflow,
   workflowNodeClasses,
 } from "./ai/comfyui-media-provider";
-import { generateQwenImage21, validateQwenImage21Workflow } from "./ai/comfyui-qwen-image-21-provider";
 import {
   publicMediaProfile,
   readMediaRoutingStore,

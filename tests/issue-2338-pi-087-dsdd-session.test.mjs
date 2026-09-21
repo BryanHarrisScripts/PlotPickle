@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 
-test("#2338 defines Pi 0.87 as a candidate without moving the authoritative managed pin before Windows proof", async () => {
+test("#2338 records Pi 0.87 promotion after the Windows candidate proof and keeps metadata aligned", async () => {
   const [contract, managed, stack, brief] = await Promise.all([
     readJson("config/pi-087-dsdd-session-evaluation.json"),
     read("scripts/pi-managed-install.mjs"),
@@ -14,14 +14,19 @@ test("#2338 defines Pi 0.87 as a candidate without moving the authoritative mana
   ]);
 
   assert.equal(contract.issue, 2338);
-  assert.equal(contract.currentManagedVersion, "0.84.4");
+  assert.equal(contract.previousManagedVersion, "0.84.4");
+  assert.equal(contract.currentManagedVersion, "0.87.0");
   assert.equal(contract.candidateVersion, "0.87.0");
-  assert.equal(contract.decision, "candidate-probe");
+  assert.equal(contract.decision, "promoted-after-windows-proof");
   assert.equal(contract.requiredCapabilities.contextEditEntry, true);
   assert.equal(contract.requiredCapabilities.contextWithSystemExtensionEvent, true);
   assert.deepEqual(contract.requiredExtensions, stack.piPackages);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.84\.4"/u);
-  assert.equal(stack.piRuntime.managedVersion, "0.84.4");
+  const lock = await readJson(".pi/npm/package-lock.json");
+  const oss = await readJson("config/third-party-oss.json");
+  assert.equal(lock.packages["node_modules/@earendil-works/pi-coding-agent"].version, "0.87.0");
+  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.87.0");
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.0"/u);
+  assert.equal(stack.piRuntime.managedVersion, "0.87.0");
   assert.match(brief, /TALK[\s\S]*CONFIRM[\s\S]*BUILD[\s\S]*PROVE/u);
   assert.match(brief, /Original Human language remains immutable provenance/u);
 });

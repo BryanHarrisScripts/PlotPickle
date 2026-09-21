@@ -80,6 +80,7 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     "Start-Process -FilePath $edge -ArgumentList $arguments -PassThru",
     "'--app='+$base",
     "'--user-data-dir='+$env:PLOTPICKLE_BROWSER_PROFILE",
+    "'--auto-accept-camera-and-microphone-capture'",
     "did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
@@ -97,6 +98,8 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
   assert.doesNotMatch(openWhenReady, /\^\|/);
   assert.doesNotMatch(launcher, /Start-Sleep -Seconds 4/);
   assert.doesNotMatch(launcher, /--host 0\.0\.0\.0/);
+  assert.doesNotMatch(openWhenReady, /--use-fake-device-for-media-stream/);
+  assert.match(openWhenReady, /mediaCapture='auto-accept-default-device'/);
   assert.doesNotMatch(executableLines(launcher), /Start-Process\s+'%PLOTPICKLE_URL%'/i);
 });
 

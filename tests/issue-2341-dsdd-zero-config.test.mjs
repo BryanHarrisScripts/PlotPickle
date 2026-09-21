@@ -56,3 +56,18 @@ test("#2341 keeps zero-configuration behavior scoped to the DSDD narration field
   assert.match(settings, /approved: true/u);
   assert.match(control, /No Settings step is required/u);
 });
+
+
+test("#2331/#2338 DSDD automatically binds an already-detected local model instead of sending the Human to Settings", async () => {
+  const [manager, gateway] = await Promise.all([
+    text("build/local-runtime-manager.ts"),
+    text("build/local-runtime-gateway.ts"),
+  ]);
+
+  assert.match(manager, /export async function ensureAutomaticLocalTextRole/u);
+  assert.match(manager, /!snapshot\.settings\.modelOverrides\[role\]/u);
+  assert.match(manager, /scoreModelForRole\(role, model, hardware\)/u);
+  assert.match(manager, /modelOverrides: \{ \.\.\.snapshot\.settings\.modelOverrides, \[role\]: fallback \}/u);
+  assert.match(gateway, /!roleStatus\.available && !snapshot\.settings\.modelOverrides\[roleToLoad\] && snapshot\.activeRuntime\.models\.length/u);
+  assert.match(gateway, /ensureAutomaticLocalTextRole\(roleToLoad\)/u);
+});

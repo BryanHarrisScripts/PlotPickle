@@ -950,7 +950,8 @@
         "build/agent-runtime-contract.ts",
         "build/openai-agents-runtime-adapter.ts",
         "build/responsibility-run-gateway.ts",
-        "build/dsdd/**"
+        "build/dsdd/**",
+        "lib/dsdd/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

@@ -897,6 +897,94 @@
       "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6 with dependency-free source contracts. #2352 adds Windows PowerShell UTF-8 BOM compatibility for installed.json while preserving exact provenance/hash verification. The broader #1910 regression remains available in legacy/manual gates, while exact Windows fixture transcription remains a separate impact-selected native proof."
     },
     {
+      "id": "experience.dsdd-brief-handoff-2354",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "experience-navigation",
+        "dsdd-human-review"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2354 protects the Human-visible DSDD action semantics: Clear Draft only clears the textarea, Interpret reflects bounded intent, Pi Draft is reviewable, and Publish Brief is the explicit GitHub handoff."
+    },
+    {
+      "id": "agent.dsdd-brief-handoff-2354",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill",
+        "docs"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics."
+    },
+    {
       "id": "verification.phase2-core",
       "ownerLayer": "verification",
       "architectureComponents": [

@@ -5,6 +5,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
+import { assertPiDraftGrounding } from "./dsdd-pi-grounding.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_INPUT_BYTES = 96 * 1024;
@@ -44,6 +45,8 @@ export function promptFor(input) {
     "Inspect the repository only as much as needed to turn the locked Human intent into implementation-grade technical guidance.",
     "Treat AGENTS.md, the architecture maps, existing governed primitives, current source and focused tests as authoritative repository evidence.",
     "Do not invent files, symbols, architecture owners, tests, or behavior you did not verify.",
+    "When you name a concrete repository file or test, put the repo-relative path in backticks only after you found it with read, grep, find or ls.",
+    "If a likely location or symbol was not verified, write Unknown / requires inspection instead of guessing.",
     "Prefer reuse of existing contracts/primitives and the smallest implementation path.",
     "Do not provide hidden reasoning. Return only the concise developer brief.",
     "Keep the entire response under 10,000 characters.",
@@ -92,6 +95,7 @@ async function main() {
   });
   const text = String(result.stdout || "").trim().slice(0, MAX_BRIEF_CHARS);
   if (!text) throw new Error("Pi Draft completed without producing a technical developer brief.");
+  const grounding = assertPiDraftGrounding(text, repoRoot);
   process.stdout.write(JSON.stringify({
     ok: true,
     reviewer: "pi",
@@ -100,6 +104,7 @@ async function main() {
     runtime: runtime.label,
     tools: ["read", "grep", "find", "ls"],
     repositoryMutation: false,
+    grounding,
     text,
   }));
 }

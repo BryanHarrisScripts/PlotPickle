@@ -536,3 +536,121 @@ export async function runPiReadOnly({ command, runtime, prompt, cwd, purpose = "
     maxBuffer: 64 * 1024 * 1024,
   });
 }
+
+
+function assistantText(message) {
+  if (!message || message.role !== "assistant" || !Array.isArray(message.content)) return "";
+  return message.content
+    .filter((item) => item?.type === "text" && typeof item.text === "string")
+    .map((item) => item.text)
+    .join("")
+    .trim();
+}
+
+function observedRepositoryPath(value, cwd, fileExists = existsSync) {
+  const raw = String(value || "").trim().replace(/^[`"'(]+|[`"'),.;]+$/gu, "");
+  if (!raw || raw === "." || raw === "./" || raw === ".\\") return "";
+  if (/^[a-z]+:\/\//iu.test(raw)) return "";
+  const resolved = path.isAbsolute(raw) ? path.normalize(raw) : path.resolve(cwd, raw);
+  const relative = path.relative(cwd, resolved);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return "";
+  if (!fileExists(resolved)) return "";
+  return relative.split(path.sep).join("/");
+}
+
+function resultText(result) {
+  if (!result || !Array.isArray(result.content)) return "";
+  return result.content
+    .filter((item) => item?.type === "text" && typeof item.text === "string")
+    .map((item) => item.text)
+    .join("\n");
+}
+
+function repositoryPathsFromToolResult(value, cwd, fileExists = existsSync) {
+  const found = new Set();
+  for (const line of String(value || "").split(/\r?\n/u)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const firstField = trimmed.split(/:(?=\d+(?::|\s)|\s)/u, 1)[0];
+    for (const candidate of [trimmed, firstField]) {
+      const normalized = observedRepositoryPath(candidate, cwd, fileExists);
+      if (normalized) found.add(normalized);
+    }
+    const pattern = /(?:^|[\s`"'(])((?:\.?\.?[\\/])?[a-z0-9_.@-]+(?:[\\/][a-z0-9_.@-]+)+(?:\.[a-z0-9_-]+)?)/giu;
+    for (const match of trimmed.matchAll(pattern)) {
+      const normalized = observedRepositoryPath(match[1], cwd, fileExists);
+      if (normalized) found.add(normalized);
+    }
+  }
+  return [...found];
+}
+
+export function parsePiJsonReadOnlyEvents(output, options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const fileExists = options.existsSync || existsSync;
+  const allowedTools = new Set(["read", "grep", "find", "ls"]);
+  const observedPaths = new Set();
+  const calls = new Map();
+  let finalText = "";
+
+  for (const rawLine of String(output || "").split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    let event;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (event?.type === "message_end") {
+      const text = assistantText(event.message);
+      if (text) finalText = text;
+    }
+    if (event?.type === "tool_execution_start" && allowedTools.has(event.toolName)) {
+      const args = event.args && typeof event.args === "object" ? event.args : {};
+      calls.set(event.toolCallId, { toolName: event.toolName, args });
+      const normalized = observedRepositoryPath(args.path || args.file_path, cwd, fileExists);
+      if (normalized) observedPaths.add(normalized);
+    }
+    if (event?.type === "tool_execution_end" && allowedTools.has(event.toolName)) {
+      const call = calls.get(event.toolCallId) || { toolName: event.toolName, args: {} };
+      calls.set(event.toolCallId, call);
+      for (const observed of repositoryPathsFromToolResult(resultText(event.result), cwd, fileExists)) {
+        observedPaths.add(observed);
+      }
+    }
+  }
+
+  return {
+    text: finalText,
+    observedPaths: [...observedPaths].sort(),
+    toolCalls: [...calls.values()].map((call) => ({
+      toolName: call.toolName,
+      path: String(call.args.path || call.args.file_path || "."),
+    })),
+  };
+}
+
+export async function runPiReadOnlyObserved({ command, runtime, prompt, cwd, purpose = "code-review", timeout = 10 * 60_000 }) {
+  const configured = await configurePiLocalRuntime(runtime, { purpose });
+  const result = await runPortableCommand(command, [
+    "-p",
+    "--mode", "json",
+    "--no-session",
+    "--tools", "read,grep,find,ls",
+    ...QUIET_RESOURCE_FLAGS,
+    "--provider", "plotpickle-local",
+    "--model", runtime.model,
+  ], {
+    input: prompt,
+    cwd,
+    timeout,
+    env: piLocalEnvironment(configured.agentDir),
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const parsed = parsePiJsonReadOnlyEvents(result.stdout, { cwd });
+  if (!parsed.text) {
+    throw new Error(`Pi read-only JSON run completed without a final assistant message. ${result.stderr || "No stderr detail."}`);
+  }
+  return { ...result, ...parsed };
+}

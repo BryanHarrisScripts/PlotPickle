@@ -7,6 +7,12 @@ import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
+import {
+  dsddNoActionInterpretation,
+  evaluateDsddInterpretationIntegrity,
+  requirementTextsFromInterpretation,
+  validateDsddRequirements,
+} from "./dsdd-intent-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";
@@ -20,6 +26,13 @@ type DsddContext = {
   capturedAt: string;
 };
 
+type DsddIntentIntegrity = {
+  state: "valid" | "invalid";
+  reasons: string[];
+  metrics: Record<string, unknown>;
+  checkedAt: string;
+};
+
 type DsddConversationEntry = {
   id: string;
   role: "human" | "dsdd";
@@ -27,6 +40,7 @@ type DsddConversationEntry = {
   context: DsddContext | null;
   recordedAt: string;
   piEntryId: string;
+  integrity?: DsddIntentIntegrity;
 };
 
 type DsddEvidence = {
@@ -57,6 +71,14 @@ type DsddDeveloperBrief = {
   runtime: string;
   tools: ["read", "grep", "find", "ls"];
   repositoryMutation: false;
+  intentVersion: number;
+  intentDigest: string;
+  grounding: {
+    state: "valid";
+    observedPaths: string[];
+    claimedPaths: string[];
+    toolCallCount: number;
+  };
   text: string;
 };
 
@@ -78,6 +100,7 @@ type DsddIntent = {
   understoodMeaning: string;
   context: DsddContext | null;
   requirements: DsddRequirement[];
+  integrity?: DsddIntentIntegrity;
   handoffPacket?: {
     id: string;
     intentVersion: number;
@@ -219,16 +242,6 @@ function piSessionDir(profileId: string) {
   return path.join(persistentHome(), "developer-agent", "dsdd-sessions", opaque);
 }
 
-function requirementTexts(interpretation: string) {
-  const bullets = interpretation.split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter((line) => /^[-*]\s+\S/u.test(line))
-    .map((line) => line.replace(/^[-*]\s+/u, "").trim())
-    .filter(Boolean)
-    .slice(0, 12);
-  return bullets.length ? bullets : [interpretation.slice(0, 4000)];
-}
-
 function ensureHandoffPacket(intent: DsddIntent) {
   if (intent.handoffPacket) return intent.handoffPacket;
   const legacy = intent as DsddIntent & { buildPacket?: { intentDigest?: string } };
@@ -311,6 +324,11 @@ async function appendInterpretation(body: Record<string, unknown>) {
   });
   session.piSessionId = pi.sessionId;
   session.piSessionFile = pi.sessionFile;
+  const latestHuman = [...session.conversation].reverse().find((entry) => entry.role === "human");
+  const evaluated = evaluateDsddInterpretationIntegrity({
+    humanStatement: latestHuman?.text || "",
+    interpretation,
+  });
   const entry: DsddConversationEntry = {
     id: randomUUID(),
     role: "dsdd",
@@ -318,6 +336,10 @@ async function appendInterpretation(body: Record<string, unknown>) {
     context: captured,
     recordedAt: new Date().toISOString(),
     piEntryId: pi.entryId,
+    integrity: {
+      ...evaluated,
+      checkedAt: new Date().toISOString(),
+    },
   };
   session.conversation.push(entry);
   await save(context, session);
@@ -332,8 +354,34 @@ async function lockIntent() {
   if (session.conversation.indexOf(interpretation) < session.conversation.indexOf(human)) {
     throw new Error("DSDD must reflect the latest Human narration before Pi Draft.");
   }
+  const evaluated = evaluateDsddInterpretationIntegrity({
+    humanStatement: human.text,
+    interpretation: interpretation.text,
+  });
+  interpretation.integrity = {
+    ...evaluated,
+    checkedAt: new Date().toISOString(),
+  };
+  if (evaluated.state !== "valid") {
+    await save(context, session);
+    throw new Error(`DSDD interpretation is not safe to lock yet: ${evaluated.reasons.join(", ")}. Retry Interpret or clarify the Human narration.`);
+  }
+  if (dsddNoActionInterpretation(interpretation.text)) {
+    await save(context, session);
+    throw new Error("This DSDD interpretation is a no-development-action observation; Pi Draft and Publish Brief are not required.");
+  }
+
   const version = (session.intents.at(-1)?.version || 0) + 1;
-  const requirements: DsddRequirement[] = requirementTexts(interpretation.text).map((value, index) => ({
+  const requirementValues = requirementTextsFromInterpretation(interpretation.text);
+  const requirementValidation = validateDsddRequirements({
+    humanStatement: human.text,
+    requirements: requirementValues,
+  });
+  if (requirementValidation.state !== "valid") {
+    await save(context, session);
+    throw new Error(`DSDD requirements are not safe to lock yet: ${requirementValidation.reasons.join(", ")}. Retry Interpret with a concise product outcome.`);
+  }
+  const requirements: DsddRequirement[] = requirementValues.map((value, index) => ({
     id: `R${index + 1}`,
     text: value,
     status: "UNPROVEN",
@@ -356,6 +404,10 @@ async function lockIntent() {
     understoodMeaning: interpretation.text,
     context: human.context,
     requirements,
+    integrity: {
+      ...evaluated,
+      checkedAt: new Date().toISOString(),
+    },
     handoffPacket: {
       id: `dsdd-handoff-${randomUUID()}`,
       intentVersion: version,
@@ -389,8 +441,25 @@ async function draftDeveloperBrief() {
   const { context, session } = await load();
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Choose Pi Draft after reviewing the latest DSDD interpretation.");
-  ensureHandoffPacket(intent);
-  if (intent.developerBrief?.state === "ready") return { session, intent };
+  const packet = ensureHandoffPacket(intent);
+  const integrity = evaluateDsddInterpretationIntegrity({
+    humanStatement: intent.humanStatement,
+    interpretation: intent.understoodMeaning,
+  });
+  const requirementValidation = validateDsddRequirements({
+    humanStatement: intent.humanStatement,
+    requirements: intent.requirements.map((requirement) => requirement.text),
+  });
+  if (integrity.state !== "valid" || requirementValidation.state !== "valid") {
+    throw new Error("Pi Draft is blocked because the locked DSDD intent does not pass the deterministic semantic-integrity gate.");
+  }
+  intent.integrity = { ...integrity, checkedAt: new Date().toISOString() };
+  if (
+    intent.developerBrief?.state === "ready"
+    && intent.developerBrief.intentVersion === intent.version
+    && intent.developerBrief.intentDigest === packet.intentDigest
+    && intent.developerBrief.grounding?.state === "valid"
+  ) return { session, intent };
 
   const draft = await runDsddPiBrief({
     humanStatement: intent.humanStatement,
@@ -407,6 +476,9 @@ async function draftDeveloperBrief() {
     runtime: draft.runtime,
     tools: draft.tools,
     repositoryMutation: false,
+    intentVersion: intent.version,
+    intentDigest: packet.intentDigest,
+    grounding: draft.grounding,
     text: draft.text,
   };
   await runDsddPiAction({
@@ -464,6 +536,7 @@ function issueBody(intent: DsddIntent) {
     `- Intent version: ${intent.version}`,
     `- Intent digest: ${packet.intentDigest}`,
     "- Pi tools: read, grep, find, ls",
+    `- Pi grounding: verified · ${intent.developerBrief.grounding.observedPaths.length} observed repository paths`,
     "- Pi repository mutation: false",
     "- DSDD mutation authority: none",
     "- Implementation authority: downstream developer workflow against this Issue",
@@ -476,7 +549,25 @@ async function publishBriefIssue() {
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
-  ensureHandoffPacket(intent);
+  const packet = ensureHandoffPacket(intent);
+  const integrity = evaluateDsddInterpretationIntegrity({
+    humanStatement: intent.humanStatement,
+    interpretation: intent.understoodMeaning,
+  });
+  const requirementValidation = validateDsddRequirements({
+    humanStatement: intent.humanStatement,
+    requirements: intent.requirements.map((requirement) => requirement.text),
+  });
+  if (integrity.state !== "valid" || requirementValidation.state !== "valid") {
+    throw new Error("Publish Brief is blocked because the locked DSDD intent no longer passes the semantic-integrity gate.");
+  }
+  if (
+    intent.developerBrief.intentVersion !== intent.version
+    || intent.developerBrief.intentDigest !== packet.intentDigest
+    || intent.developerBrief.grounding?.state !== "valid"
+  ) {
+    throw new Error("Publish Brief is blocked because the Pi Draft is stale or lacks verified read-only repository grounding.");
+  }
   if (intent.publishedIssue) return { session, intent };
 
   const published = await publishDsddBrief({

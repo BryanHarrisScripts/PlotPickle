@@ -7,7 +7,7 @@ import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
-import { assertDsddInterpretationIntegrity } from "./dsdd-intent-integrity.mjs";
+import { assertDsddInterpretationIntegrity } from "../../scripts/dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";

@@ -914,7 +914,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
+          "tests/issue-2368-dsdd-integrity-gate.test.mjs"
         ]
       },
       "cost": "fast",
@@ -939,7 +940,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
+      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience. #2368 adds deterministic semantic-integrity rejection and observed Pi read-only grounding before draft/publication."
     },
     {
       "id": "agent.dsdd-brief-handoff-2354",
@@ -959,7 +960,8 @@
         "targets": [
           "tests/issue-2338-pi-087-dsdd-session.test.mjs",
           "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
-          "tests/issue-2359-pi-draft-stdin.test.mjs"
+          "tests/issue-2359-pi-draft-stdin.test.mjs",
+          "tests/issue-2368-dsdd-integrity-gate.test.mjs"
         ]
       },
       "cost": "fast",
@@ -984,7 +986,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics."
+      "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics. #2368 adds deterministic semantic-integrity rejection and observed Pi read-only grounding before draft/publication."
     },
     {
       "id": "experience.dsdd-guided-flow-2357",

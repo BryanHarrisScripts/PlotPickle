@@ -32,15 +32,18 @@ export function runDsddPiBrief(input: DsddPiBriefInput): Promise<DsddPiBriefResu
     let stdout = "";
     let stderr = "";
     let settled = false;
-    const finish = (action: () => void) => {
+    let timer: ReturnType<typeof setTimeout>;
+    const settle = (error?: Error, value?: DsddPiBriefResult) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      action();
+      if (error) reject(error);
+      else if (value) resolve(value);
+      else reject(new Error("Pi Draft bridge completed without a result."));
     };
-    const timer = setTimeout(() => {
+    timer = setTimeout(() => {
       child.kill();
-      finish(() => reject(new Error("Pi Draft exceeded PlotPickle's bounded read-only review window.")));
+      settle(new Error("Pi Draft exceeded PlotPickle's bounded read-only review window."));
     }, 13 * 60_000);
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
@@ -48,17 +51,18 @@ export function runDsddPiBrief(input: DsddPiBriefInput): Promise<DsddPiBriefResu
       stdout += chunk;
       if (stdout.length > 64 * 1024) {
         child.kill();
-        finish(() => reject(new Error("Pi Draft returned more output than the bounded developer-brief contract allows.")));
+        settle(new Error("Pi Draft returned more output than the bounded developer-brief contract allows."));
       }
     });
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
       if (stderr.length > 64 * 1024) stderr = stderr.slice(-64 * 1024);
     });
-    child.once("error", (error) => finish(() => reject(error)));
-    child.once("close", (code) => finish(() => {
+    child.once("error", (error) => settle(error));
+    child.once("close", (code) => {
+      if (settled) return;
       if (code !== 0) {
-        reject(new Error(stderr.trim() || `Pi Draft bridge exited ${code}.`));
+        settle(new Error(stderr.trim() || `Pi Draft bridge exited ${code}.`));
         return;
       }
       try {
@@ -66,11 +70,11 @@ export function runDsddPiBrief(input: DsddPiBriefInput): Promise<DsddPiBriefResu
         if (!parsed.ok || parsed.reviewer !== "pi" || parsed.repositoryMutation !== false || !parsed.text?.trim()) {
           throw new Error("Pi Draft bridge returned an invalid read-only developer brief.");
         }
-        resolve(parsed);
+        settle(undefined, parsed);
       } catch (error) {
-        reject(error instanceof Error ? error : new Error("Pi Draft bridge returned invalid JSON."));
+        settle(error instanceof Error ? error : new Error("Pi Draft bridge returned invalid JSON."));
       }
-    }));
+    });
     child.stdin.end(JSON.stringify(input), "utf8");
   });
 }

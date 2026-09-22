@@ -346,6 +346,7 @@ export default function GlobalDsddConversation() {
         model: body.model,
       }].slice(-MAX_MESSAGES));
     } catch (cause) {
+      setDraft(submitted);
       setError(cause instanceof Error ? cause.message : "The DSDD interpreter is unavailable.");
     } finally {
       setWorking(false);

@@ -959,7 +959,8 @@
         "targets": [
           "tests/issue-2338-pi-087-dsdd-session.test.mjs",
           "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
-          "tests/issue-2359-pi-draft-stdin.test.mjs"
+          "tests/issue-2359-pi-draft-stdin.test.mjs",
+          "tests/issue-2371-dsdd-integrity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -984,7 +985,7 @@
           ".artifacts/verification-shadow/agent-runtime.comparison.json"
         ]
       },
-      "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics."
+      "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367."
     },
     {
       "id": "experience.dsdd-guided-flow-2357",
@@ -1004,7 +1005,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs",
-          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
+          "tests/issue-2371-dsdd-integrity.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1029,7 +1031,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state."
+      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state. #2371 adds fail-closed interpretation integrity/correspondence and Pi repository-path grounding from Human dogfood regressions #2366/#2367."
     },
     {
       "id": "provider.dsdd-production-interpretation-2357",

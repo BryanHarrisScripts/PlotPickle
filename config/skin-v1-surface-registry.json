@@ -74,7 +74,12 @@
       },
       "runtimeSelector": "[data-skin-reference='dashboard-canonical']",
       "runtimeReadySelector": "[data-skin-reference='dashboard-canonical']",
-      "orchestrated": true
+      "orchestrated": true,
+      "primitiveContract": {
+        "familyProfile": "dashboard",
+        "requires": [],
+        "excludes": []
+      }
     },
     {
       "id": "community",
@@ -144,7 +149,12 @@
       },
       "runtimeSelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey'], section[aria-label='LEARN Explore All Curriculum'][data-learn-explore-access='unrestricted']",
       "runtimeReadySelector": "section[aria-label='LEARN menu'][data-skin-menu='learn-journey']",
-      "orchestrated": true
+      "orchestrated": true,
+      "primitiveContract": {
+        "familyProfile": "writers-craft",
+        "requires": [],
+        "excludes": []
+      }
     },
     {
       "id": "discovery",
@@ -171,7 +181,12 @@
       },
       "runtimeSelector": "[data-discovery-surface='living-board']",
       "runtimeReadySelector": "[data-discovery-surface='living-board']",
-      "orchestrated": true
+      "orchestrated": true,
+      "primitiveContract": {
+        "familyProfile": "story",
+        "requires": [],
+        "excludes": []
+      }
     },
     {
       "id": "library",
@@ -670,7 +685,12 @@
       },
       "runtimeSelector": "section[aria-label='Settings menu']",
       "runtimeReadySelector": "section[aria-label='Settings menu'][data-settings-menu='keyboard-directory']",
-      "orchestrated": true
+      "orchestrated": true,
+      "primitiveContract": {
+        "familyProfile": "settings",
+        "requires": [],
+        "excludes": []
+      }
     },
     {
       "id": "general",
@@ -1360,7 +1380,16 @@
       "runtimeSelector": "main[aria-labelledby='storyboard-readiness-title']",
       "runtimeReadySelector": "main[aria-labelledby='storyboard-readiness-title']",
       "orchestrated": true,
-      "runtimeRoute": "/storyboard?block=17&mini=1"
+      "runtimeRoute": "/storyboard?block=17&mini=1",
+      "primitiveContract": {
+        "familyProfile": "storyboard",
+        "requires": [],
+        "excludes": []
+      },
+      "blastRadiusDependents": [
+        "scene-timeline",
+        "visual-story"
+      ]
     },
     {
       "id": "previs",

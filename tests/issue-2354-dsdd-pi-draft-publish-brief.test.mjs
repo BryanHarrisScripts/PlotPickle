@@ -5,22 +5,12 @@ import test from "node:test";
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const json = async (file) => JSON.parse(await read(file));
 
-test("#2354 exposes explicit Clear Draft, Interpret, Pi Draft and Publish Brief actions", async () => {
+test("#2354 handoff semantics remain explicit after #2357 replaces Clear Draft with the guided three-step flow", async () => {
   const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
-  assert.match(panel, />Clear draft<\/button>/u);
-  assert.match(panel, /"Interpret"/u);
-  assert.match(panel, /"Pi draft"/u);
-  assert.match(panel, /"Publish brief"/u);
-  assert.doesNotMatch(panel, /Build this|action: "build"/u);
-});
-
-test("#2354 Clear Draft only clears the current narration textbox", async () => {
-  const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
-  const start = panel.indexOf("function clearDraft()");
-  const end = panel.indexOf("\n  if (!eligible)", start);
-  const block = panel.slice(start, end);
-  assert.match(block, /setDraft\(""\)/u);
-  assert.doesNotMatch(block, /setMessages|setLockedIntent|setHydrated|authenticatedProfileFetch/u);
+  assert.match(panel, />INTERPRET</u);
+  assert.match(panel, /PI DRAFT/u);
+  assert.match(panel, /PUBLISH BRIEF/u);
+  assert.doesNotMatch(panel, /Build this|action: "build"|Clear draft|function clearDraft/u);
 });
 
 test("#2354 bounds DSDD interpretation before the 128 KiB session request boundary", async () => {
@@ -29,7 +19,7 @@ test("#2354 bounds DSDD interpretation before the 128 KiB session request bounda
     read("build/dsdd/dsdd-session-gateway.ts"),
   ]);
   assert.match(panel, /MAX_INTERPRETATION_CHARS = 6000/u);
-  assert.match(panel, /under 3500 characters/u);
+  assert.match(panel, /under 1200 characters/u);
   assert.match(panel, /boundedInterpretation\(body\.text!\)/u);
   assert.match(gateway, /MAX_BODY = 128 \* 1024/u);
   assert.match(gateway, /const interpretation = text\(body\.text, 6000\)/u);

@@ -1045,8 +1045,7 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs",
-          "tests/hardware-aware-local-ai-runtime.test.mjs"
+          "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1071,7 +1070,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "#2357 protects production text-role exclusion of the SmolLM2 health-check bootstrap model and DSDD-only bounded 384-token interpretation generation with repetition compaction."
+      "notes": "#2357 protects production text-role exclusion of the SmolLM2 health-check bootstrap model and DSDD-only bounded 384-token interpretation generation with repetition compaction. Broader hardware/media regressions remain under their existing owners rather than this focused DSDD contract."
     },
     {
       "id": "verification.phase2-core",

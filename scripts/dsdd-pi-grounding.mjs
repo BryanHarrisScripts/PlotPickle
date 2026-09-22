@@ -10,6 +10,7 @@ function candidatePath(value) {
   if (!normalized || normalized.includes("\n") || normalized.startsWith("http://") || normalized.startsWith("https://")) return "";
   if (PATH_PREFIXES.some((prefix) => normalized.startsWith(prefix))) return normalized;
   if (/^[A-Za-z0-9_.-]+\.(?:md|json|mjs|js|ts|tsx|css|yml|yaml)$/u.test(normalized)) return normalized;
+  if (/^[A-Za-z0-9_.@/-]+\.(?:md|json|mjs|js|ts|tsx|css|yml|yaml)$/u.test(normalized) && normalized.includes("/")) return normalized;
   return "";
 }
 

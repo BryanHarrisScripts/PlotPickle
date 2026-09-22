@@ -120,6 +120,18 @@
   white-space: nowrap;
 }
 
+.context small,
+.context a {
+  color: var(--pp-skin-ink-muted, #888);
+  font-size: var(--pp-skin-font-xs, 9px);
+  line-height: var(--pp-skin-leading-body, 1.55);
+}
+
+.context a {
+  color: var(--pp-skin-accent-bright, #79bd92);
+  text-transform: uppercase;
+}
+
 .thread {
   min-height: 0;
   overflow-y: auto;

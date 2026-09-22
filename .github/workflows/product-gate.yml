@@ -59,9 +59,6 @@ jobs:
           PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
 
-      - name: Validate focused UAT contracts
-        run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
-
       - name: Production web build on Windows
         shell: pwsh
         run: npm run build

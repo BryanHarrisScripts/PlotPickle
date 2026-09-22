@@ -107,9 +107,7 @@ function boundedInterpretation(value: string) {
   return normalized.slice(0, MAX_INTERPRETATION_CHARS - marker.length).trimEnd() + marker;
 }
 
-function noDevelopmentAction(value: string) {
-  return /no (?:development )?(?:action|change) (?:is )?required|no development action is required/iu.test(value);
-}
+const NO_DEVELOPMENT_ACTION_PATTERN = /no (?:development )?(?:action|change) (?:is )?required|no development action is required/iu;
 
 function loopbackHost() {
   return ["127.0.0.1", "localhost", "::1", "[::1]"].includes(window.location.hostname);
@@ -190,7 +188,7 @@ export default function GlobalDsddConversation() {
     [messages],
   );
   const hasInterpretation = Boolean(latestInterpretation);
-  const noActionRequired = noDevelopmentAction(latestInterpretation);
+  const noActionRequired = NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
   const piDraftReady = Boolean(lockedIntent?.developerBrief);
   const briefPublished = Boolean(lockedIntent?.publishedIssue);
   const interpretStep = working ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";

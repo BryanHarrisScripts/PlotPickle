@@ -65,7 +65,7 @@ type DsddIntent = {
   understoodMeaning: string;
   context: DsddContext | null;
   requirements: DsddRequirement[];
-  handoffPacket: {
+  handoffPacket?: {
     id: string;
     intentVersion: number;
     intentDigest: string;
@@ -216,6 +216,30 @@ function requirementTexts(interpretation: string) {
   return bullets.length ? bullets : [interpretation.slice(0, 4000)];
 }
 
+function ensureHandoffPacket(intent: DsddIntent) {
+  if (intent.handoffPacket) return intent.handoffPacket;
+  const legacy = intent as DsddIntent & { buildPacket?: { intentDigest?: string } };
+  const digest = text(legacy.buildPacket?.intentDigest, 128) || createHash("sha256").update(JSON.stringify({
+    version: intent.version,
+    human: intent.humanStatement,
+    interpretation: intent.understoodMeaning,
+    context: intent.context,
+    requirements: intent.requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
+  })).digest("hex");
+  intent.handoffPacket = {
+    id: `dsdd-handoff-${randomUUID()}`,
+    intentVersion: intent.version,
+    intentDigest: digest,
+    createdAt: new Date().toISOString(),
+    mutationAuthority: "none-dsdd",
+    publicationAuthority: "human-publish-brief",
+    implementationAuthority: "github-issue-downstream",
+    mergeAuthority: "github-exact-head-green-only",
+    repairMayMutateIntent: false,
+  };
+  return intent.handoffPacket;
+}
+
 function lockedText(intent: DsddIntent) {
   return [
     `LOCKED DSDD INTENT v${intent.version}`,
@@ -352,6 +376,7 @@ async function draftDeveloperBrief() {
   const { context, session } = await load();
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Choose Pi Draft after reviewing the latest DSDD interpretation.");
+  ensureHandoffPacket(intent);
   if (intent.developerBrief?.state === "ready") return { session, intent };
 
   const draft = await runDsddPiBrief({
@@ -397,8 +422,9 @@ function issueTitle(intent: DsddIntent) {
 
 function issueBody(intent: DsddIntent) {
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
+  const packet = ensureHandoffPacket(intent);
   return [
-    `<!-- plotpickle-dsdd-intent:${intent.handoffPacket.intentDigest} -->`,
+    `<!-- plotpickle-dsdd-intent:${packet.intentDigest} -->`,
     "# DSDD Developer Brief",
     "",
     "This Issue was published explicitly from PlotPickle Conversational UAT after Human review.",
@@ -423,7 +449,7 @@ function issueBody(intent: DsddIntent) {
     "",
     "## DSDD provenance",
     `- Intent version: ${intent.version}`,
-    `- Intent digest: ${intent.handoffPacket.intentDigest}`,
+    `- Intent digest: ${packet.intentDigest}`,
     "- Pi tools: read, grep, find, ls",
     "- Pi repository mutation: false",
     "- DSDD mutation authority: none",
@@ -437,6 +463,7 @@ async function publishBriefIssue() {
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
+  ensureHandoffPacket(intent);
   if (intent.publishedIssue) return { session, intent };
 
   const published = await publishDsddBrief({

@@ -69,13 +69,32 @@ function installerPath() {
   return path.resolve(process.cwd(), "scripts", INSTALL_SCRIPT);
 }
 
+function mebibytes(bytes: number) {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
+}
+
+function installerProgress(chunk: Buffer | string) {
+  const value = String(chunk);
+  if (value.includes("Downloading reviewed whisper.cpp CPU runtime")) {
+    return `Downloading reviewed whisper.cpp runtime (${mebibytes(voiceManifest.runtime.sizeBytes)}).`;
+  }
+  if (value.includes(`Downloading reviewed whisper.cpp ${voiceManifest.model.id} model`)) {
+    return `Downloading reviewed ${voiceManifest.model.id} speech model (${mebibytes(voiceManifest.model.sizeBytes)}).`;
+  }
+  if (value.includes("PLOTPICKLE_VOICE_INSTALL_STATUS=ready")) {
+    return "Reviewed local speech-to-text runtime and model are installed and verified.";
+  }
+  return "";
+}
+
 function startInstaller() {
   setupTask = {
     state: "installing",
-    message: "Downloading and verifying the reviewed whisper.cpp CPU runtime and base.en model locally.",
+    message: "Starting the reviewed local speech-to-text setup.",
     startedAt: new Date().toISOString(),
     finishedAt: "",
   };
+  console.info("[VOICE] STT setup ....................... STARTED");
   const child = spawn("powershell.exe", [
     "-NoProfile",
     "-ExecutionPolicy", "Bypass",
@@ -89,11 +108,19 @@ function startInstaller() {
     stdio: ["ignore", "pipe", "pipe"],
   });
   let output = "";
-  const append = (chunk: Buffer | string) => { output = `${output}${String(chunk)}`.slice(-512 * 1024); };
+  const append = (chunk: Buffer | string) => {
+    output = `${output}${String(chunk)}`.slice(-512 * 1024);
+    const progress = installerProgress(chunk);
+    if (progress) {
+      setupTask = { ...setupTask, message: progress };
+      console.info(`[VOICE] STT setup ....................... ${progress}`);
+    }
+  };
   child.stdout?.on("data", append);
   child.stderr?.on("data", append);
   child.once("error", (error) => {
     setupTask = { ...setupTask, state: "failed", message: error.message, finishedAt: new Date().toISOString() };
+    console.warn(`[VOICE] STT setup ....................... FAILED ${error.message}`);
   });
   child.once("close", (code) => {
     const success = code === 0;
@@ -101,10 +128,11 @@ function startInstaller() {
       ...setupTask,
       state: success ? "installed" : "failed",
       message: success
-        ? "The reviewed local dictation runtime and model were installed. PlotPickle will verify integrity before use."
+        ? "The reviewed local dictation runtime and model were installed and verified."
         : (output.trim().split(/\r?\n/u).at(-1) || `Local dictation setup exited with code ${code ?? "unknown"}.`),
       finishedAt: new Date().toISOString(),
     };
+    console.info(`[VOICE] STT setup ....................... ${success ? "READY" : "FAILED"}`);
   });
 }
 
@@ -174,9 +202,12 @@ export function registerLocalVoiceGateway(server: ViteDevServer) {
           return;
         }
         transcriptionActive = true;
+        const startedAt = Date.now();
+        console.info("[VOICE] Transcription request ........... RECEIVED");
         try {
           const bytes = await readBytes(request, voiceManifest.capture.maxWavBytes);
           const result = await transcribeLocalVoiceWav(bytes);
+          console.info(`[VOICE] Transcription request ........... PASS ${Date.now() - startedAt}ms`);
           sendJson(response, 200, { ok: true, ...result });
         } finally {
           transcriptionActive = false;
@@ -187,6 +218,7 @@ export function registerLocalVoiceGateway(server: ViteDevServer) {
       sendJson(response, 405, { ok: false, message: "Method not allowed." });
     })().catch((error) => {
       const message = error instanceof Error ? error.message : "Local dictation failed.";
+      console.warn(`[VOICE] Local dictation .................. FAILED ${message}`);
       const code = message.startsWith("VOICE_") ? message.split(":", 1)[0] : "VOICE_TRANSCRIPTION_FAILED";
       const status = code === "VOICE_TIMEOUT" ? 504 : code === "VOICE_MODEL_UNAVAILABLE" || code === "VOICE_RUNTIME_UNAVAILABLE" ? 409 : 400;
       sendJson(response, status, { ok: false, code, message: message.replace(/^VOICE_[A-Z_]+:\s*/u, "") });

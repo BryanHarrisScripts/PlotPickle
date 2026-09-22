@@ -245,7 +245,9 @@
         "config/developer-agent-stack.json",
         "scripts/pi-managed-install.mjs",
         ".pi/npm/package.json",
-        ".pi/npm/package-lock.json"
+        ".pi/npm/package-lock.json",
+        "scripts/dsdd-pi-draft.mjs",
+        "scripts/dsdd-publish-brief.mjs"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [

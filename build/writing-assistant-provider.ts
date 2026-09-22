@@ -118,8 +118,9 @@ export async function generateAssistantText(
   prompt: string,
   options: { maxOutputTokens?: number } = {},
 ) {
-  const maxOutputTokens = Number.isFinite(options.maxOutputTokens)
-    ? Math.max(32, Math.min(4096, Math.round(options.maxOutputTokens!)))
+  const requestedMaxOutputTokens = options.maxOutputTokens;
+  const maxOutputTokens = typeof requestedMaxOutputTokens === "number" && Number.isFinite(requestedMaxOutputTokens)
+    ? Math.max(32, Math.min(4096, Math.round(requestedMaxOutputTokens)))
     : undefined;
   const baseUrl = normalizedProviderUrl(profile.baseUrl);
   if (!prompt.trim()) throw new Error("Enter a question before sending it to the Writing Assistant.");

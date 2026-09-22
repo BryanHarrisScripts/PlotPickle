@@ -442,6 +442,21 @@
       ]
     },
     {
+      "id": "local-voice-provider-runtime",
+      "classification": "production",
+      "include": [
+        "build/voice/**"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "provider",
+        "api",
+        "security",
+        "native",
+        "voice"
+      ]
+    },
+    {
       "id": "universal-voice-input-experience",
       "classification": "production",
       "include": [

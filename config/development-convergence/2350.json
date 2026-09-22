@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "issue": 2350,
+  "phase": "startup-voice-dsdd-routing",
+  "brief": "docs/developer-briefs/2350-startup-voice-dsdd-routing.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/pr-gate.yml",
+    ".github/workflows/product-gate.yml",
+    "Start-PlotPickle.bat",
+    "app/_components/voice-input-control.module.css",
+    "app/_components/voice-input-control.tsx",
+    "app/local-voice-settings.tsx",
+    "app/sage-settings-workspace.tsx",
+    "build/voice/local-voice-runtime.ts",
+    "config/development-convergence/2350.json",
+    "config/local-voice-input.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/1910-local-voice-input.md",
+    "docs/developer-briefs/2350-startup-voice-dsdd-routing.md",
+    "runtime/whisper/MODEL-PROVENANCE.md",
+    "tests/issue-1910-local-voice-input.test.mjs",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+    "tests/issue-2341-dsdd-zero-config.test.mjs",
+    "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2350-A1",
+      "criterion": "Normal Human startup owns reviewed whisper.cpp/base.en readiness before app readiness.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "call :prepare_local_dictation"
+        },
+        {
+          "type": "file-contains",
+          "path": "Start-PlotPickle.bat",
+          "contains": "-Mode Install -Approved"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/local-voice-input.json",
+          "contains": "\"automaticRuntimeDownload\": true"
+        }
+      ]
+    },
+    {
+      "id": "P2350-A2",
+      "criterion": "Microphone controls require local readiness and never install speech dependencies.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.tsx",
+          "contains": "await requireLocalVoiceReady()"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
+          "contains": "microphone never downloads speech dependencies"
+        }
+      ]
+    },
+    {
+      "id": "P2350-A3",
+      "criterion": "The microphone is red/slashed off and green only while actively listening.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.module.css",
+          "contains": "color: #ff5f68"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.module.css",
+          "contains": "color: #52ff88"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.tsx",
+          "contains": "className={styles.offSlash}"
+        }
+      ]
+    },
+    {
+      "id": "P2350-A4",
+      "criterion": "Settings remains the explicit verification/repair surface rather than mandatory first-use setup.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/local-voice-settings.tsx",
+          "contains": "Repair local dictation"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/sage-settings-workspace.tsx",
+          "contains": "Verify or repair startup-managed whisper.cpp speech-to-text"
+        }
+      ]
+    },
+    {
+      "id": "P2350-A5",
+      "criterion": "DSDD and voice verification are routed through Layers 2, 4 and 6 rather than a new permanent Layer 1 or Layer 7 lane.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "\"id\": \"experience.voice-input-contract-2350\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "\"id\": \"agent.dsdd-intent-pi-contract-2350\""
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "\"id\": \"provider.local-voice-runtime-2350\""
+        }
+      ]
+    },
+    {
+      "id": "P2350-A6",
+      "criterion": "The expensive Windows proof is split so Pi and local voice are impact-selected independently.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "pi-windows-scope:"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "voice-windows-scope:"
+        },
+        {
+          "type": "file-contains",
+          "path": ".github/workflows/architecture-shadow.yml",
+          "contains": "name: Local voice Windows proof"
+        }
+      ]
+    },
+    {
+      "id": "P2350-A7",
+      "criterion": "Focused regression locks startup, microphone truthfulness and verification routing.",
+      "evidence": [
+        {
+          "type": "path-exists",
+          "path": "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2350-startup-voice-dsdd-routing.test.mjs",
+          "contains": "architecture catalog routes DSDD and voice proof"
+        }
+      ]
+    }
+  ]
+}

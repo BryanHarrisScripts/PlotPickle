@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { piDraftGrounding } from "../build/dsdd/dsdd-integrity.mjs";
+import { piDraftGrounding } from "../lib/dsdd/dsdd-integrity.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");

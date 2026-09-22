@@ -7,6 +7,7 @@ import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
+import { assertDsddInterpretationIntegrity } from "./dsdd-intent-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";
@@ -299,6 +300,9 @@ async function appendInterpretation(body: Record<string, unknown>) {
   const { context, session } = await load();
   const interpretation = text(body.text, 6000);
   if (!interpretation) throw new Error("DSDD interpretation is required.");
+  const latestHuman = [...session.conversation].reverse().find((entry) => entry.role === "human");
+  if (!latestHuman) throw new Error("DSDD needs Human narration before it can preserve an interpretation.");
+  assertDsddInterpretationIntegrity({ humanStatement: latestHuman.text, interpretation });
   const captured = normalizeContext(body.context);
   const pi = await runDsddPiAction({
     action: "append-interpretation",
@@ -332,6 +336,7 @@ async function lockIntent() {
   if (session.conversation.indexOf(interpretation) < session.conversation.indexOf(human)) {
     throw new Error("DSDD must reflect the latest Human narration before Pi Draft.");
   }
+  assertDsddInterpretationIntegrity({ humanStatement: human.text, interpretation: interpretation.text });
   const version = (session.intents.at(-1)?.version || 0) + 1;
   const requirements: DsddRequirement[] = requirementTexts(interpretation.text).map((value, index) => ({
     id: `R${index + 1}`,
@@ -475,6 +480,7 @@ async function publishBriefIssue() {
   const { context, session } = await load();
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
+  assertDsddInterpretationIntegrity({ humanStatement: intent.humanStatement, interpretation: intent.understoodMeaning });
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
   ensureHandoffPacket(intent);
   if (intent.publishedIssue) return { session, intent };

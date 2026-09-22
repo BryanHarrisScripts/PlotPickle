@@ -8,7 +8,9 @@ import {
   useState,
   type FormEvent,
 } from "react";
+import { authenticatedProfileFetch } from "../../core/auth/profile-request-browser";
 import { isPublicWebPath } from "../public-web-route";
+import VoiceInputControl from "../_components/voice-input-control";
 import styles from "./global-dsdd-conversation.module.css";
 
 type DsddContext = {
@@ -33,6 +35,25 @@ type TextResponse = {
   message?: string;
   provider?: string;
   model?: string;
+};
+
+type DsddLockedIntent = {
+  version: number;
+  locked: true;
+  understoodMeaning: string;
+  requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "UNPROVEN" }>;
+  buildPacket: { id: string; intentDigest: string };
+  build?: { state: "queued" | "running" | "passed-pre-pr" | "failed"; summary: string };
+};
+
+type DsddSessionPayload = {
+  ok?: boolean;
+  message?: string;
+  session?: {
+    conversation?: Array<DsddMessage & { recordedAt?: string }>;
+    intents?: DsddLockedIntent[];
+  };
+  intent?: DsddLockedIntent;
 };
 
 const MAX_MESSAGES = 40;
@@ -121,6 +142,11 @@ export default function GlobalDsddConversation() {
   const [draft, setDraft] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
+  const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
+  const [locking, setLocking] = useState(false);
+  const [buildState, setBuildState] = useState<DsddLockedIntent["build"] | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -171,6 +197,38 @@ export default function GlobalDsddConversation() {
   }, [messages, open]);
 
   useEffect(() => {
+    if (!eligible || hydrated) return;
+    let cancelled = false;
+    void authenticatedProfileFetch("/api/dsdd/session", { cache: "no-store" })
+      .then(async (response) => {
+        const body = await response.json() as DsddSessionPayload;
+        if (!response.ok || !body.ok) throw new Error(body.message || "DSDD session could not be restored.");
+        if (cancelled) return;
+        const conversation = Array.isArray(body.session?.conversation) ? body.session!.conversation! : [];
+        setMessages(conversation.slice(-MAX_MESSAGES).map((entry) => ({
+          id: entry.id,
+          role: entry.role,
+          text: entry.text,
+          context: entry.context,
+          provider: entry.provider,
+          model: entry.model,
+        })));
+        const intents = Array.isArray(body.session?.intents) ? body.session!.intents! : [];
+        const latest = intents.at(-1) || null;
+        setLockedIntent(latest);
+        setBuildState(latest?.build || null);
+        setHydrated(true);
+      })
+      .catch((cause) => {
+        if (!cancelled) {
+          setError(cause instanceof Error ? cause.message : "DSDD session could not be restored.");
+          setHydrated(true);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [eligible, hydrated]);
+
+  useEffect(() => {
     if (!eligible) setOpen(false);
   }, [eligible]);
 
@@ -200,6 +258,16 @@ export default function GlobalDsddConversation() {
     setContext(snapshot);
 
     try {
+      const persistHuman = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "append-human", text: submitted, context: snapshot }),
+      });
+      const persistedHuman = await persistHuman.json() as DsddSessionPayload;
+      if (!persistHuman.ok || !persistedHuman.ok) {
+        throw new Error(persistedHuman.message || "DSDD could not preserve the Human narration.");
+      }
+
       const response = await fetch("/api/local-ai/generate/text", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-PlotPickle-DSDD-Scope": "intent" },
@@ -214,10 +282,21 @@ export default function GlobalDsddConversation() {
       if (!response.ok || !body.text?.trim()) {
         throw new Error(body.message || "The DSDD interpreter did not return a response.");
       }
+      const interpreted = body.text!.trim();
+      const persistInterpretation = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "append-interpretation", text: interpreted, context: snapshot }),
+      });
+      const persistedInterpretation = await persistInterpretation.json() as DsddSessionPayload;
+      if (!persistInterpretation.ok || !persistedInterpretation.ok) {
+        throw new Error(persistedInterpretation.message || "DSDD could not preserve its interpretation.");
+      }
+      setLockedIntent(null);
       setMessages((current) => [...current, {
         id: messageId("dsdd-interpreter"),
         role: "dsdd",
-        text: body.text!.trim(),
+        text: interpreted,
         context: snapshot,
         provider: body.provider,
         model: body.model,
@@ -229,8 +308,38 @@ export default function GlobalDsddConversation() {
     }
   }
 
-  function clearSession() {
-    setMessages([]);
+  async function lockCurrentIntent() {
+    if (working || locking || !messages.some((message) => message.role === "dsdd")) return;
+    setLocking(true);
+    setError("");
+    try {
+      const response = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "lock-intent" }),
+      });
+      const body = await response.json() as DsddSessionPayload;
+      if (!response.ok || !body.ok || !body.intent) throw new Error(body.message || "DSDD could not lock the approved intent.");
+      setLockedIntent(body.intent);
+      const buildResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "build" }),
+      });
+      const buildBody = await buildResponse.json() as DsddSessionPayload;
+      if (!buildResponse.ok || !buildBody.ok || !buildBody.intent) {
+        throw new Error(buildBody.message || "The locked intent could not enter the bounded build loop.");
+      }
+      setLockedIntent(buildBody.intent);
+      setBuildState(buildBody.intent.build || null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "DSDD could not lock the approved intent.");
+    } finally {
+      setLocking(false);
+    }
+  }
+
+  function clearDraft() {
     setDraft("");
     setError("");
   }
@@ -272,6 +381,21 @@ export default function GlobalDsddConversation() {
             <span>{currentLabel}</span>
           </div>
 
+          {lockedIntent ? (
+            <div className={styles.context} data-dsdd-locked-intent="true" aria-live="polite">
+              <strong>Locked intent v{lockedIntent.version}</strong>
+              <span>{lockedIntent.understoodMeaning}</span>
+              <small>{lockedIntent.requirements.map((requirement) => `${requirement.id} ${requirement.status}`).join(" · ")}</small>
+              {buildState ? <small>BUILD: {buildState.state.toUpperCase()} · {buildState.summary}</small> : null}
+            </div>
+          ) : messages.some((message) => message.role === "dsdd") ? (
+            <div className={styles.context} data-dsdd-candidate-intent="true">
+              <strong>What DSDD understood</strong>
+              <span>{[...messages].reverse().find((message) => message.role === "dsdd")?.text}</span>
+              <small>Review this meaning. Nothing enters BUILD until you choose Build this.</small>
+            </div>
+          ) : null}
+
           <div className={styles.thread} ref={threadRef} role="log" aria-live="polite" aria-relevant="additions text">
             {messages.length === 0 ? (
               <div className={styles.dsddMessage}>
@@ -301,6 +425,8 @@ export default function GlobalDsddConversation() {
           <form className={styles.composer} onSubmit={submit}>
             <label htmlFor="plotpickle-dsdd-narration">Narrate the workflow or problem</label>
             <textarea
+              ref={narrationRef}
+              data-voice-input="false"
               id="plotpickle-dsdd-narration"
               aria-label="DSDD narration"
               data-purpose="natural-language developer uat narration"
@@ -311,10 +437,19 @@ export default function GlobalDsddConversation() {
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Microphone is ready from this DSDD field. PlotPickle prepares the reviewed local speech runtime automatically after your microphone click. This first slice records and interprets intent; it does not edit code.</span>
+              <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Build this locks the approved meaning, then hands only that locked packet to the existing isolated local Pi developer worker. GitHub exact-head CI remains the merge authority.</span>
               <div>
-                <button type="button" className={styles.secondary} disabled={working || messages.length === 0} onClick={clearSession}>Clear</button>
-                <button type="submit" disabled={working || !draft.trim()}>Send</button>
+                <VoiceInputControl
+                  value={draft}
+                  onValueChange={setDraft}
+                  inputRef={narrationRef}
+                  disabled={working || locking}
+                  inputType="textarea"
+                  purpose="natural-language developer uat narration"
+                />
+                <button type="button" className={styles.secondary} disabled={working || locking || !draft} onClick={clearDraft}>Clear draft</button>
+                <button type="button" className={styles.secondary} disabled={working || locking || Boolean(lockedIntent) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void lockCurrentIntent(); }}>{locking ? "Locking…" : "Build this"}</button>
+                <button type="submit" disabled={working || locking || !draft.trim()}>Send</button>
               </div>
             </div>
           </form>

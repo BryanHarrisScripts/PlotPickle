@@ -142,10 +142,13 @@ test("#1874 retains Cloud and Local Story Mode component contracts without treat
 
   assert.match(menuAudit, /selectedBackground/u);
   assert.match(menuAudit, /selectedBorder/u);
-  assert.match(menuAudit, /general,appearance,accessibility,defaults,advanced/u);
-  assert.match(menuAudit, /section\[aria-label='accessibility settings'\]/u);
-  assert.match(menuAudit, /section\[aria-label='defaults settings'\]/u);
-  assert.match(menuAudit, /section\[aria-label='advanced settings review'\]/u);
+  assert.match(menuAudit, /general,local,cloud,hybrid,node-info,agents,ai-routing,buzz-settings/u);
+  assert.match(menuAudit, /section\[aria-label='General settings'\]/u);
+  assert.match(menuAudit, /section\[aria-label='Local Story Mode setup'\]/u);
+  assert.match(menuAudit, /section\[aria-label='Cloud Story Mode setup'\]/u);
+  assert.match(menuAudit, /section\[aria-label='Hybrid Story Mode'\]/u);
+  assert.match(menuAudit, /section\[aria-label='Node information'\]/u);
+  assert.match(menuAudit, /section\[aria-label='PlotPickle Agents setup'\]/u);
   assert.match(menuAudit, /return \{ menus: \["dashboard", "settings"\], status: "pass" \}/u);
 });
 
@@ -170,17 +173,17 @@ test("WebMCP CMD output lists every currently reachable lockable surface and nev
   const lines = visualBaselineApprovalLines();
   const output = lines.join("\n");
 
-  assert.equal(lines[0], "Captured 4 surfaces:");
-  assert.match(output, /\[1\] dashboard \(Dashboard\)/u);
-  assert.match(output, /\[2\] community \(Community\)/u);
-  assert.match(output, /\[3\] settings \(Settings\)/u);
-  assert.match(output, /\[4\] profile \(Profile\)/u);
+  assert.equal(lines[0], "Captured 30 surfaces:");
+  assert.match(output, /dashboard \(Dashboard\)/u);
+  assert.match(output, /community \(Community\)/u);
+  assert.match(output, /settings \(Settings\)/u);
+  assert.match(output, /profile \(Profile\)/u);
   for (const surface of ["dashboard", "community", "settings", "profile"]) {
     assert.match(output, new RegExp(`node scripts/lock-skin-visual-baseline\\.mjs ${surface}`, "u"));
   }
   assert.match(output, /none of the screenshots are automatically declared "locked\."/u);
   assert.match(output, /prevents PlotPickle from blessing its own regressions/u);
-  assert.match(output, /tests\/visual-baselines\/skin-v1\/dashboard\.png/u);
+  assert.match(output, /tests\/visual-baselines\/skin-v1\/00-dashboard\.png/u);
   assert.match(output, /tests\/visual-baselines\/skin-v1\/manifest\.json/u);
   assert.equal(formatPassTag({ color: false }), "[PASS]");
   assert.equal(formatPassTag({ color: true }), "\u001b[32m[PASS]\u001b[0m");

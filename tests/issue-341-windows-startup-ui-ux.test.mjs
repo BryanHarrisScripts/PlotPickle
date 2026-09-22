@@ -80,6 +80,7 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     "Start-Process -FilePath $edge -ArgumentList $arguments -PassThru",
     "'--app='+$base",
     "'--user-data-dir='+$env:PLOTPICKLE_BROWSER_PROFILE",
+    "'--auto-accept-camera-and-microphone-capture'",
     "did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
@@ -88,8 +89,9 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
   assert.ok(timeoutMatch, "startup readiness timeout is missing");
   assert.ok(Number(timeoutMatch[1]) >= 180, "resource-constrained startup must tolerate at least 180 seconds");
 
-  const openWhenReadyLabel = launcher.indexOf("\n:open_when_ready\n");
-  const deferredLabel = launcher.indexOf("\n:start_deferred_companion_maintenance\n", openWhenReadyLabel);
+  const openWhenReadyLabel = launcher.search(/^:open_when_ready\r?$/mu);
+  const deferredRelative = launcher.slice(openWhenReadyLabel + 1).search(/^:start_deferred_companion_maintenance\r?$/mu);
+  const deferredLabel = deferredRelative >= 0 ? openWhenReadyLabel + 1 + deferredRelative : -1;
   assert.ok(openWhenReadyLabel >= 0 && deferredLabel > openWhenReadyLabel, "Owned-browser startup labels must remain ordered and discoverable");
   const openWhenReady = launcher.slice(openWhenReadyLabel, deferredLabel);
   assert.match(openWhenReady, /\) \| Where-Object/);
@@ -97,6 +99,8 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
   assert.doesNotMatch(openWhenReady, /\^\|/);
   assert.doesNotMatch(launcher, /Start-Sleep -Seconds 4/);
   assert.doesNotMatch(launcher, /--host 0\.0\.0\.0/);
+  assert.doesNotMatch(openWhenReady, /--use-fake-device-for-media-stream/);
+  assert.match(openWhenReady, /mediaCapture='auto-accept-default-device'/);
   assert.doesNotMatch(executableLines(launcher), /Start-Process\s+'%PLOTPICKLE_URL%'/i);
 });
 

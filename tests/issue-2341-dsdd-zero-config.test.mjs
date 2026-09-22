@@ -18,6 +18,15 @@ test("#2341 DSDD bypasses global provider selection and requests local Quality d
   assert.doesNotMatch(dsdd, /Select a text engine|Configuration Dashboard|OpenAI|Gemini|MiniMax/u);
 });
 
+test("#2341 owned Edge app grants the real default microphone without a settings detour", async () => {
+  const launcher = await text("Start-PlotPickle.bat");
+
+  assert.match(launcher, /--auto-accept-camera-and-microphone-capture/u);
+  assert.match(launcher, /--user-data-dir='?\+\$env:PLOTPICKLE_BROWSER_PROFILE|--user-data-dir/u);
+  assert.match(launcher, /mediaCapture='auto-accept-default-device'/u);
+  assert.doesNotMatch(launcher, /--use-fake-device-for-media-stream/u);
+});
+
 test("#2341 DSDD microphone activation automatically prepares reviewed local dictation", async () => {
   const [layer, control, voiceContract] = await Promise.all([
     text("app/_components/universal-voice-input-layer.tsx"),

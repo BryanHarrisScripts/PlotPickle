@@ -237,7 +237,15 @@
       "classification": "production",
       "include": [
         "config/pi-087-dsdd-session-evaluation.json",
-        "scripts/evaluate-pi-087-dsdd-session.mjs"
+        "scripts/evaluate-pi-087-dsdd-session.mjs",
+        "scripts/dsdd-pi-session.mjs",
+        "scripts/pi/dsdd-locked-intent-extension.mjs",
+        "scripts/run-uat-repair-agent.mjs",
+        "config/dsdd/**",
+        "config/developer-agent-stack.json",
+        "scripts/pi-managed-install.mjs",
+        ".pi/npm/package.json",
+        ".pi/npm/package-lock.json"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -868,7 +876,8 @@
       "include": [
         "build/agent-runtime-contract.ts",
         "build/openai-agents-runtime-adapter.ts",
-        "build/responsibility-run-gateway.ts"
+        "build/responsibility-run-gateway.ts",
+        "build/dsdd/**"
       ],
       "ownerLayer": "agent-runtime",
       "riskTokens": [
@@ -1142,7 +1151,8 @@
       "include": [
         "app/api/auth/profile-private/route.ts",
         "core/auth/profile-experience/profile-experience-runtime.ts",
-        "core/storage/profile-private-browser.ts"
+        "core/storage/profile-private-browser.ts",
+        "build/auth/profile-request-context.ts"
       ],
       "ownerLayer": "production-harness",
       "riskTokens": [

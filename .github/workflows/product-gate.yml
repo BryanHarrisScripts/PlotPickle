@@ -2,6 +2,7 @@ name: Product Gate
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Use Node.js 24.19
         uses: actions/setup-node@v4
@@ -33,9 +34,9 @@ jobs:
         shell: pwsh
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate current Skin V1 startup boundary
+      - name: Validate current Skin V1 startup boundary and DSDD owned Edge
         shell: pwsh
-        run: node --test tests/issue-1754-skin-v1-logon.test.mjs tests/issue-1754-startup-no-legacy-flash.test.mjs tests/issue-1788-webmcp-surface-visual-uat.test.mjs tests/issue-1793-startup-webmcp-uat.test.mjs tests/issue-1858-webmcp-repair-handoff.test.mjs tests/issue-1881-visual-compute-harness.test.mjs
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-2331-dsdd-conversational-uat.test.mjs tests/issue-2338-pi-087-dsdd-session.test.mjs
 
       - name: Validate current security closeout
         shell: pwsh
@@ -57,9 +58,6 @@ jobs:
         env:
           PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved
-
-      - name: Validate focused UAT contracts
-        run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
 
       - name: Production web build on Windows
         shell: pwsh

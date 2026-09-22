@@ -29,6 +29,8 @@ const requestedIssue = argument("--issue");
 const explicitEndpoint = argument("--endpoint", process.env.PLOTPICKLE_REPAIR_ENDPOINT || "");
 const explicitModel = argument("--model", process.env.PLOTPICKLE_REPAIR_MODEL || "");
 const requestedWorker = argument("--worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi").toLowerCase();
+const dsddSessionFile = argument("--dsdd-session", "");
+const dsddBuildPacket = argument("--dsdd-packet", "");
 const keepWorktree = has("--keep-worktree");
 const dryRun = has("--dry-run");
 const preflightOnly = has("--preflight");
@@ -429,10 +431,16 @@ async function runPiAgent({ finding, runtime, worktreeRoot }) {
   }
   piResolution = resolution;
   try {
+    const sessionArgs = dsddSessionFile
+      ? [
+          "--fork", path.resolve(dsddSessionFile),
+          "--extension", path.join(repoRoot, "scripts", "pi", "dsdd-locked-intent-extension.mjs"),
+        ]
+      : ["--no-session"];
     const result = await runPortableCommand(resolution.executable, [
       "--mode", "json",
       "-p",
-      "--no-session",
+      ...sessionArgs,
       "--provider", "plotpickle-local",
       "--model", runtime.model,
       "Read .plotpickle-uat-repair.md and execute every repair instruction in that file.",
@@ -444,6 +452,7 @@ async function runPiAgent({ finding, runtime, worktreeRoot }) {
         PI_OFFLINE: "1",
         PI_SKIP_VERSION_CHECK: "1",
         PI_TELEMETRY: "0",
+        ...(dsddBuildPacket ? { PLOTPICKLE_DSDD_BUILD_PACKET: path.resolve(dsddBuildPacket) } : {}),
       },
     });
     return result.stdout;

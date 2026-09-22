@@ -10,6 +10,7 @@ const PROFILE_SCOPED_API_PREFIXES = [
   "/api/local-buzz",
   "/api/story-workflow/buzz-bridge",
   "/api/story-decisions",
+  "/api/dsdd",
 ] as const;
 const AUTONOMOUS_GUEST_SCOPED_API_PREFIXES = ["/api/story-decisions"] as const;
 

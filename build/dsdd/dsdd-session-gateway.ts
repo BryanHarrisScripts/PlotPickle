@@ -6,6 +6,7 @@ import { currentProfileRequestContext } from "../auth/profile-request-context";
 import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
+import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";
@@ -28,11 +29,23 @@ type DsddConversationEntry = {
   piEntryId: string;
 };
 
+type DsddEvidence = {
+  ref: string;
+  summary: string;
+  proofType: "test" | "ci" | "runtime" | "artifact";
+  finding: "supports" | "contradicts" | "insufficient";
+  intentVersion: number;
+  intentDigest: string;
+  testedSource: string;
+  testedCommit: string;
+  observedResult: string;
+};
+
 type DsddRequirement = {
   id: string;
   text: string;
   status: "PASS" | "FAIL" | "UNPROVEN";
-  evidence: Array<{ ref: string; summary: string }>;
+  evidence: DsddEvidence[];
 };
 
 type DsddDeveloperBrief = {
@@ -495,6 +508,7 @@ async function recordEvidence(body: Record<string, unknown>) {
   const version = Number(body.intentVersion);
   const intent = session.intents.find((candidate) => candidate.version === version);
   if (!intent) throw new Error("The referenced locked DSDD intent version does not exist.");
+  const packet = ensureHandoffPacket(intent);
   const updates = Array.isArray(body.requirements) ? body.requirements : [];
   for (const update of updates) {
     if (!update || typeof update !== "object") continue;
@@ -502,16 +516,14 @@ async function recordEvidence(body: Record<string, unknown>) {
     const requirement = intent.requirements.find((candidate) => candidate.id === text(item.id, 40));
     const status = item.status;
     if (!requirement || (status !== "PASS" && status !== "FAIL" && status !== "UNPROVEN")) continue;
-    requirement.status = status;
-    requirement.evidence = Array.isArray(item.evidence)
-      ? item.evidence.flatMap((evidence) => {
-          if (!evidence || typeof evidence !== "object") return [];
-          const entry = evidence as Record<string, unknown>;
-          const ref = text(entry.ref, 1000);
-          const summary = text(entry.summary, 2000);
-          return ref && summary ? [{ ref, summary }] : [];
-        }).slice(0, 12)
-      : [];
+    const evaluated = evaluateEvidenceUpdate({
+      intentVersion: intent.version,
+      intentDigest: packet.intentDigest,
+      status,
+      evidence: item.evidence,
+    });
+    requirement.status = evaluated.status as DsddRequirement["status"];
+    requirement.evidence = evaluated.evidence as DsddEvidence[];
   }
   await runDsddPiAction({
     action: "record-evidence",

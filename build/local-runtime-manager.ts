@@ -275,6 +275,11 @@ function catalogFallback(role: LocalCapabilityRole, models: readonly string[]) {
   return models.find((model) => catalog.expectedNameFragments.some((fragment) => modelKey(model).includes(modelKey(fragment)))) || "";
 }
 
+function healthCheckModel(value: string) {
+  const catalog = LOCAL_MODEL_CATALOG["health-check"];
+  return catalog.expectedNameFragments.some((fragment) => modelKey(value).includes(modelKey(fragment)));
+}
+
 function capabilityNames(model: LocalModelDescriptor | undefined) {
   if (!model) return [];
   return Object.entries(model.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []);
@@ -298,22 +303,25 @@ function roleStatus(
   hardware: Awaited<ReturnType<typeof detectLocalHardware>>,
   benchmarks: LocalBenchmarkEvidence,
 ): LocalRoleStatus {
+  const productionTextRole = TEXT_ROLES.includes(role as LocalTextRole);
+  const eligibleModels = productionTextRole ? models.filter((model) => !healthCheckModel(model)) : [...models];
+  const eligibleDescriptors = productionTextRole ? descriptors.filter((model) => !healthCheckModel(model.id)) : [...descriptors];
   const override = settings.modelOverrides[role] || "";
   const friendlyOverride = override ? friendlyCatalogName(role, override) : false;
-  const overridden = override && !friendlyOverride ? exactModel(models, override) : "";
+  const overridden = override && !friendlyOverride ? exactModel(eligibleModels, override) : "";
   const hardwareForRecommendation = recommendationHardware(hardware);
   const recommendation = chooseModelForPreference(
     role,
-    [...descriptors],
+    eligibleDescriptors,
     hardwareForRecommendation,
     settings.modelPreference,
     benchmarks,
     overridden,
   );
-  const selected = overridden || recommendation?.model.id || catalogFallback(role, models);
-  const descriptor = descriptors.find((item) => modelKey(item.id) === modelKey(selected));
+  const selected = overridden || recommendation?.model.id || catalogFallback(role, eligibleModels);
+  const descriptor = eligibleDescriptors.find((item) => modelKey(item.id) === modelKey(selected));
   const selectedScore = descriptor ? scoreModelForRole(role, descriptor, hardwareForRecommendation) : null;
-  const catalog = buildLocalModelCatalog(descriptors, hardwareForRecommendation, benchmarks);
+  const catalog = buildLocalModelCatalog(eligibleDescriptors, hardwareForRecommendation, benchmarks);
   const selectedCatalog = catalog.find((item: { id?: string }) => modelKey(item.id || "") === modelKey(selected));
   const fallbackRecommendation = TEXT_ROLES.includes(role as LocalTextRole)
     ? LOCAL_MODEL_CATALOG[role as LocalTextRole].label
@@ -323,8 +331,8 @@ function roleStatus(
   return {
     recommended: recommendation?.model.id || fallbackRecommendation,
     selected,
-    available: Boolean(selected && models.includes(selected)),
-    production: role !== "repair",
+    available: Boolean(selected && eligibleModels.includes(selected)),
+    production: role !== "repair" && (!productionTextRole || Boolean(selected && eligibleModels.includes(selected))),
     automatic: !override || friendlyOverride,
     metadataSource: descriptor?.metadataSource || "",
     fit: selectedCatalog?.fit?.label || selectedScore?.fit.label || "",

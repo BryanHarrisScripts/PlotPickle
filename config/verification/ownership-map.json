@@ -369,6 +369,20 @@
       ]
     },
     {
+      "id": "local-text-runtime-routing",
+      "classification": "production",
+      "include": [
+        "build/local-runtime-manager.ts",
+        "build/writing-assistant-provider.ts"
+      ],
+      "ownerLayer": "provider-runtime",
+      "riskTokens": [
+        "provider",
+        "api",
+        "security"
+      ]
+    },
+    {
       "id": "storyboard-reference-asset-serving",
       "classification": "production",
       "include": [

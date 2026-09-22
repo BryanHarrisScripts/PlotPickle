@@ -86,8 +86,10 @@ const DSDD_INSTRUCTIONS = [
   "Do not claim that code was changed, fixed, tested, committed, or merged.",
   "Do not redesign the product unless the Human explicitly asks for a different outcome.",
   "Interpret the Human's language as business/user intent first, not as an implementation command.",
-  "Return a concise product interpretation under 3500 characters.",
-  "Use at most eight short bullets across expected outcome, observed behavior, constraints, and testable requirements.",
+  "Return a concise product interpretation under 1200 characters.",
+  "Use at most five short bullets across expected outcome, observed behavior, constraints, and testable requirements.",
+  "If the Human clearly says there is no problem and no development change is required, reply exactly: Understood. This is not a problem and no development action is required. I’ll retain it as a UAT observation.",
+  "Do not invite Pi Draft when no development action is required.",
   "If one material ambiguity prevents a deterministic requirement, ask at most one focused question.",
   "Otherwise state that the intent is ready for Human review before Pi Draft.",
   "Treat route and surface metadata as context only. Never invent private screen content that is not in the prompt.",
@@ -104,6 +106,8 @@ function boundedInterpretation(value: string) {
   const marker = "\n\n[DSDD interpretation bounded for session persistence.]";
   return normalized.slice(0, MAX_INTERPRETATION_CHARS - marker.length).trimEnd() + marker;
 }
+
+const NO_DEVELOPMENT_ACTION_PATTERN = /no (?:development )?(?:action|change) (?:is )?required|no development action is required/iu;
 
 function loopbackHost() {
   return ["127.0.0.1", "localhost", "::1", "[::1]"].includes(window.location.hostname);
@@ -179,6 +183,17 @@ export default function GlobalDsddConversation() {
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const busy = working || piDrafting || publishing;
+  const latestInterpretation = useMemo(
+    () => [...messages].reverse().find((message) => message.role === "dsdd")?.text || "",
+    [messages],
+  );
+  const hasInterpretation = Boolean(latestInterpretation);
+  const noActionRequired = NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
+  const piDraftReady = Boolean(lockedIntent?.developerBrief);
+  const briefPublished = Boolean(lockedIntent?.publishedIssue);
+  const interpretStep = working ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";
+  const piDraftStep = piDrafting ? "active" : piDraftReady ? "complete" : hasInterpretation && !noActionRequired ? "active" : "locked";
+  const publishStep = publishing ? "active" : briefPublished ? "complete" : piDraftReady ? "active" : "locked";
 
   useEffect(() => {
     const refresh = () => {
@@ -338,7 +353,7 @@ export default function GlobalDsddConversation() {
   }
 
   async function createPiDraft() {
-    if (busy || !messages.some((message) => message.role === "dsdd")) return;
+    if (busy || !hasInterpretation || noActionRequired) return;
     setPiDrafting(true);
     setError("");
     try {
@@ -396,10 +411,6 @@ export default function GlobalDsddConversation() {
     }
   }
 
-  function clearDraft() {
-    setDraft("");
-  }
-
   if (!eligible) return null;
 
   return (
@@ -449,11 +460,13 @@ export default function GlobalDsddConversation() {
                 </a>
               ) : null}
             </div>
-          ) : messages.some((message) => message.role === "dsdd") ? (
+          ) : hasInterpretation ? (
             <div className={styles.context} data-dsdd-candidate-intent="true">
               <strong>What DSDD understood</strong>
-              <span>{[...messages].reverse().find((message) => message.role === "dsdd")?.text}</span>
-              <small>Review this meaning. Choose Pi Draft to lock it and add repository-aware technical guidance without changing code.</small>
+              <span>{latestInterpretation}</span>
+              <small>{noActionRequired
+                ? "No development handoff is required for this observation. Add new narration when you have another UAT finding."
+                : "Review this meaning. Step 02 Pi Draft locks it and adds repository-aware technical guidance without changing code."}</small>
             </div>
           ) : null}
 
@@ -507,7 +520,7 @@ export default function GlobalDsddConversation() {
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Interpret reflects your meaning. Pi Draft locks the approved intent and adds read-only repository guidance. Publish Brief creates the durable GitHub Issue handoff. DSDD does not edit code, create a branch or PR, or merge.</span>
+              <span>1 Interpret your intent. 2 Pi prepares the technical developer draft. 3 Publish the approved brief.</span>
               <VoiceInputControl
                 value={draft}
                 onValueChange={setDraft}
@@ -518,12 +531,46 @@ export default function GlobalDsddConversation() {
                 className={styles.voiceControl}
                 statusPlacement="inline"
               />
-              <div>
-                <button type="button" className={styles.secondary} disabled={busy || !draft} onClick={clearDraft}>Clear draft</button>
-                <button type="button" className={styles.secondary} disabled={busy || Boolean(lockedIntent?.developerBrief) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void createPiDraft(); }}>{piDrafting ? "Pi drafting…" : "Pi draft"}</button>
-                <button type="button" className={styles.secondary} disabled={busy || !lockedIntent?.developerBrief || Boolean(lockedIntent.publishedIssue)} onClick={() => { void publishBrief(); }}>{publishing ? "Publishing…" : "Publish brief"}</button>
-                <button type="submit" disabled={busy || !draft.trim()}>{working ? "Interpreting…" : "Interpret"}</button>
+              <div className={styles.process} role="group" aria-label="DSDD three-step development handoff">
+                <button
+                  type="submit"
+                  className={styles.processStep}
+                  data-step-state={interpretStep}
+                  aria-current={interpretStep === "active" ? "step" : undefined}
+                  disabled={busy || !draft.trim()}
+                >
+                  <small>01</small>
+                  <strong>{working ? "INTERPRETING…" : "INTERPRET"}</strong>
+                  <span>{interpretStep === "complete" ? "COMPLETE" : "UNDERSTAND INTENT"}</span>
+                </button>
+                <span className={styles.processArrow} aria-hidden="true">→</span>
+                <button
+                  type="button"
+                  className={styles.processStep}
+                  data-step-state={piDraftStep}
+                  aria-current={piDraftStep === "active" ? "step" : undefined}
+                  disabled={busy || noActionRequired || piDraftReady || !hasInterpretation}
+                  onClick={() => { void createPiDraft(); }}
+                >
+                  <small>02</small>
+                  <strong>{piDrafting ? "PI DRAFTING…" : "PI DRAFT"}</strong>
+                  <span>{noActionRequired ? "NOT REQUIRED" : piDraftStep === "complete" ? "COMPLETE" : "TECHNICAL BRIEF"}</span>
+                </button>
+                <span className={styles.processArrow} aria-hidden="true">→</span>
+                <button
+                  type="button"
+                  className={styles.processStep}
+                  data-step-state={publishStep}
+                  aria-current={publishStep === "active" ? "step" : undefined}
+                  disabled={busy || noActionRequired || !piDraftReady || briefPublished}
+                  onClick={() => { void publishBrief(); }}
+                >
+                  <small>03</small>
+                  <strong>{publishing ? "PUBLISHING…" : "PUBLISH BRIEF"}</strong>
+                  <span>{noActionRequired ? "NOT REQUIRED" : publishStep === "complete" ? "COMPLETE" : "DELIVERY HANDOFF"}</span>
+                </button>
               </div>
+              {noActionRequired ? <span className={styles.noAction}>No development action required. Steps 02 and 03 are not needed for this UAT observation.</span> : null}
             </div>
           </form>
         </aside>

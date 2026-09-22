@@ -938,7 +938,7 @@
           ".artifacts/verification-shadow/experience-contract.comparison.json"
         ]
       },
-      "notes": "#2354 protects the Human-visible DSDD action semantics: Clear Draft only clears the textarea, Interpret reflects bounded intent, Pi Draft is reviewable, and Publish Brief is the explicit GitHub handoff."
+      "notes": "#2354 protects the DSDD Interpret → Pi Draft → Publish Brief handoff and Issue-only publication boundary. #2357 supersedes the former Clear Draft control with the guided numbered three-step experience."
     },
     {
       "id": "agent.dsdd-brief-handoff-2354",
@@ -983,6 +983,94 @@
         ]
       },
       "notes": "#2354 protects read-only Pi Draft, persistent DSDD/Pi provenance, removal of automatic coding-worker invocation, and explicit Issue-only Publish Brief semantics."
+    },
+    {
+      "id": "experience.dsdd-guided-flow-2357",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "experience-navigation",
+        "dsdd-human-review"
+      ],
+      "triggerTokens": [
+        "surface",
+        "navigation",
+        "agent",
+        "voice"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs",
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2357 protects the numbered 01 Interpret → 02 Pi Draft → 03 Publish Brief checkpoint flow, prerequisite gating, visible complete/active/locked states, removal of Clear Draft, and the no-action stop state."
+    },
+    {
+      "id": "provider.dsdd-production-interpretation-2357",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": [
+        "provider-runtime",
+        "hardware-aware-local-ai",
+        "dsdd-intent-generation"
+      ],
+      "triggerTokens": [
+        "provider",
+        "agent",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json",
+          ".artifacts/verification-shadow/provider-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2357 protects production text-role exclusion of the SmolLM2 health-check bootstrap model and DSDD-only bounded 384-token interpretation generation with repetition compaction. Broader hardware/media regressions remain under their existing owners rather than this focused DSDD contract."
     },
     {
       "id": "verification.phase2-core",

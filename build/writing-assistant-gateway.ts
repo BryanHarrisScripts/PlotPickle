@@ -323,6 +323,33 @@ function safeHistory(value: unknown): ConversationMessage[] {
   }));
 }
 
+const DSDD_INTENT_MAX_OUTPUT_TOKENS = 384;
+const DSDD_INTENT_MAX_CHARS = 3500;
+
+function compactDsddIntentText(value: string) {
+  const normalized = value.replace(/\r\n?/gu, "\n").trim();
+  if (!normalized) return "";
+  const parts = normalized
+    .split(/(?<=[.!?])(?:\s+|\n+)|\n{2,}/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const seen = new Set<string>();
+  const kept: string[] = [];
+  let repeated = 0;
+  for (const part of parts) {
+    const key = part.toLowerCase().replace(/[^a-z0-9]+/gu, " ").trim();
+    if (key.length >= 24 && seen.has(key)) {
+      repeated += 1;
+      continue;
+    }
+    if (key.length >= 24) seen.add(key);
+    kept.push(part);
+    if (kept.join("\n").length >= DSDD_INTENT_MAX_CHARS) break;
+  }
+  const compacted = repeated >= 2 ? kept.join("\n") : normalized;
+  return compacted.slice(0, DSDD_INTENT_MAX_CHARS).trim();
+}
+
 function requestedModelRole(body: Record<string, unknown>, agentId: PlotPickleAgentId): LocalTextRole {
   if (body.modelRole === "deep") return "deep";
   if (body.modelRole === "quality") return "quality";
@@ -425,7 +452,14 @@ async function handleTextOverride(request: IncomingMessage, response: ServerResp
   const profile = await profileForProvider(store, requestedProvider, role);
   const instructions = typeof body.instructions === "string" ? body.instructions : ASSISTANT_INSTRUCTIONS;
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
-  const text = await generateAssistantText(profile, instructions, prompt);
+  const dsddIntent = request.headers["x-plotpickle-dsdd-scope"] === "intent";
+  const generated = await generateAssistantText(
+    profile,
+    instructions,
+    prompt,
+    dsddIntent ? { maxOutputTokens: DSDD_INTENT_MAX_OUTPUT_TOKENS } : {},
+  );
+  const text = dsddIntent ? compactDsddIntentText(generated) : generated;
   if (!text) throw new Error("The selected text provider returned no text.");
   sendJson(response, 200, {
     ok: true,

@@ -8,6 +8,12 @@ Related development loop: `docs/architecture/PLOTPICKLE-DEVELOPMENT-LOOP.md`
 
 DSDD uses conversation to establish an authoritative, traceable definition of what software is supposed to do, and then uses deterministic engineering machinery to prove whether the software does it.
 
+Architectural shorthand:
+
+> **Deterministic connective tissue around autonomous agents.**
+
+DSDD connects Human intent, agents, artifacts, checkpoints, evidence, testing and software-delivery systems into a controlled development chain without micromanaging every agent step. GitHub is one current software-delivery implementation beneath that architecture-level category, not part of the definition itself.
+
 The Human is allowed to speak naturally.
 
 The system is responsible for turning that natural language into progressively more explicit, constrained and testable software behavior without losing the meaning of the original Human intent.

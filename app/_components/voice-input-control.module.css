@@ -12,8 +12,8 @@
   place-items: center;
   border: 1px solid currentColor;
   border-radius: 0.35rem;
-  background: transparent;
-  color: inherit;
+  background: color-mix(in srgb, #ff5f68 10%, transparent);
+  color: #ff5f68;
   cursor: pointer;
 }
 
@@ -33,7 +33,17 @@
 }
 
 .control[data-voice-state="LISTENING"] .button {
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 28%, transparent);
+  color: #52ff88;
+  background: color-mix(in srgb, #52ff88 16%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #52ff88 28%, transparent);
+}
+
+.offSlash {
+  opacity: 1;
+}
+
+.control[data-voice-state="LISTENING"] .offSlash {
+  opacity: 0;
 }
 
 .control[data-voice-state="PROVISIONING_LOCAL"] .button,
@@ -71,10 +81,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-.control[data-voice-state="LISTENING"] .button {
-  background: color-mix(in srgb, currentColor 16%, transparent);
 }
 
 .meter {

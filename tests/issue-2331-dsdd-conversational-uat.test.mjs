@@ -132,7 +132,7 @@ test("#2331 keeps a shared microphone control visible without requiring narratio
 });
 
 
-test("#2331 keeps DSDD dictation progress inside the panel and shows elapsed local work", async () => {
+test("#2331 keeps DSDD dictation status inline without installing speech dependencies in the panel", async () => {
   const [control, css, dsdd, dsddCss] = await Promise.all([
     read("app/_components/voice-input-control.tsx"),
     read("app/_components/voice-input-control.module.css"),
@@ -142,10 +142,9 @@ test("#2331 keeps DSDD dictation progress inside the panel and shows elapsed loc
 
   assert.match(control, /statusPlacement\?: "overlay" \| "inline"/u);
   assert.match(control, /data-voice-placement=\{statusPlacement\}/u);
-  assert.match(control, /const \[elapsedSeconds, setElapsedSeconds\]/u);
-  assert.match(control, /preflightDsddLocalVoiceReady/u);
-  assert.match(control, /provisionDsddLocalVoiceReady\(\(message\)/u);
-  assert.match(control, /ensureDsddLocalVoiceReady\(\)\.catch/u);
+  assert.match(control, /requireLocalVoiceReady/u);
+  assert.doesNotMatch(control, /provisionDsddLocalVoiceReady|\/api\/local-voice\/setup/u);
+  assert.doesNotMatch(control, /elapsedSeconds/u);
   assert.match(css, /\.control\[data-voice-placement="inline"\] \.status \{[\s\S]*position: static/u);
   assert.match(css, /\.control\[data-voice-placement="inline"\] \.meter \{[\s\S]*position: static/u);
   assert.match(dsdd, /statusPlacement="inline"/u);

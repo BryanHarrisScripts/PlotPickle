@@ -11,6 +11,7 @@
     "build/voice/local-voice-gateway.ts",
     "build/voice/local-voice-runtime.ts",
     "config/development-convergence/2331.json",
+    "config/verification/ownership-map.json",
     "docs/developer-briefs/2331-dsdd-stt-handoff-progress.md",
     "tests/issue-2331-dsdd-conversational-uat.test.mjs"
   ],
@@ -108,6 +109,17 @@
           "type": "file-contains",
           "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
           "contains": "caches verified runtime integrity"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-7",
+      "criterion": "The existing local voice host runtime is explicitly owned by the provider-runtime architecture layer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"local-voice-provider-runtime\""
         }
       ]
     }

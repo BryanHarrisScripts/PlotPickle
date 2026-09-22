@@ -14,7 +14,7 @@ test("#2350 normal Human startup owns reviewed whisper.cpp/base.en readiness", a
   ]);
 
   assert.match(launcher, /if \/I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" \([\s\S]*call :prepare_local_dictation/u);
-  assert.ok(launcher.includes('set "LOCAL_VOICE_INSTALLER=scripts\\\\install-whisper-cpp.ps1"'));
+  assert.match(launcher, /LOCAL_VOICE_INSTALLER=scripts\\install-whisper-cpp\.ps1/u);
   assert.match(launcher, /powershell\.exe .*"%LOCAL_VOICE_INSTALLER%" -Mode Verify/u);
   assert.match(launcher, /powershell\.exe .*"%LOCAL_VOICE_INSTALLER%" -Mode Install -Approved/u);
   assert.ok(launcher.indexOf("call :prepare_local_dictation") < launcher.indexOf("Startup checks complete. PlotPickle can now start."));

@@ -102,12 +102,12 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
 async function preflightDsddLocalVoiceReady() {
   try {
     await fetch("/api/local-voice/status", { cache: "no-store" });
-  } catch {
-    // Best-effort warm-up only. The explicit microphone action owns any setup/error messaging.
+  } catch (error) {
+    console.debug("[VOICE] Local STT preflight deferred.", error instanceof Error ? error.name : "unavailable");
   }
 }
 
-async function ensureDsddLocalVoiceReady(onProgress?: (message: string) => void) {
+async function provisionDsddLocalVoiceReady(onProgress?: (message: string) => void) {
   const setup = await fetch("/api/local-voice/setup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -220,6 +220,12 @@ export default function VoiceInputControl({
     if (activeVoiceSession?.id === sessionIdRef.current) activeVoiceSession = null;
   }
 
+  function ensureDsddLocalVoiceReady() {
+    return provisionDsddLocalVoiceReady((message) => {
+      if (mountedRef.current) setDetail(message);
+    });
+  }
+
   async function releaseCapture() {
     const resources = resourcesRef.current;
     resourcesRef.current = null;
@@ -256,9 +262,7 @@ export default function VoiceInputControl({
     const dsddAutoProvision = purpose.trim().toLowerCase() === "natural-language developer uat narration";
     provisioningErrorRef.current = null;
     provisioningRef.current = dsddAutoProvision
-      ? ensureDsddLocalVoiceReady((message) => {
-        if (mountedRef.current) setDetail(message);
-      }).catch((error) => { provisioningErrorRef.current = error; })
+      ? ensureDsddLocalVoiceReady().catch((error) => { provisioningErrorRef.current = error; })
       : null;
     setInputLevel(0);
     setDetail("");

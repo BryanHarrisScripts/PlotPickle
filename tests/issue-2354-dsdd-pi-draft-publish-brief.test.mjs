@@ -7,7 +7,7 @@ const json = async (file) => JSON.parse(await read(file));
 
 test("#2354 handoff semantics remain explicit after #2357 replaces Clear Draft with the guided three-step flow", async () => {
   const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
-  assert.match(panel, />INTERPRET</u);
+  assert.match(panel, /"INTERPRET"/u);
   assert.match(panel, /PI DRAFT/u);
   assert.match(panel, /PUBLISH BRIEF/u);
   assert.doesNotMatch(panel, /Build this|action: "build"|Clear draft|function clearDraft/u);

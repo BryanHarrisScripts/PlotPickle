@@ -144,6 +144,12 @@ export default function BlockVisualJourneyWorkspace({
   const [playing, setPlaying] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
   const promptPassageRef = useRef("");
+  const activeSelectionRef = useRef({
+    projectId: "",
+    blockNumber: address.blockNumber,
+    miniBlockNumber: address.miniBlockNumber,
+    passageId: "",
+  });
 
   useEffect(() => {
     const sync = () => {
@@ -191,6 +197,13 @@ export default function BlockVisualJourneyWorkspace({
   const manualRoute = selectedOption?.locality === "manual" || selectedRoute === "manual";
   const routeReady = selectedOption?.ready !== false;
   const currentPreview = artifacts[previewIndex] ?? artifacts[0] ?? null;
+
+  activeSelectionRef.current = {
+    projectId: project?.id ?? "",
+    blockNumber: address.blockNumber,
+    miniBlockNumber: address.miniBlockNumber,
+    passageId: selectedPassage?.id ?? "",
+  };
 
   useEffect(() => {
     if (!project || !passages.length) {
@@ -284,12 +297,13 @@ export default function BlockVisualJourneyWorkspace({
     }
 
     const current = loadFoundationProject();
-    if (current.id !== requestProjectId) {
+    const activeSelection = activeSelectionRef.current;
+    if (current.id !== requestProjectId || activeSelection.projectId !== requestProjectId) {
       throw new Error("The active project changed while this image was generating. PlotPickle did not attach the late result to the new project.");
     }
-    if (address.blockNumber !== requestAddress.blockNumber
-      || address.miniBlockNumber !== requestAddress.miniBlockNumber
-      || selectedPassage.id !== requestPassageId) {
+    if (activeSelection.blockNumber !== requestAddress.blockNumber
+      || activeSelection.miniBlockNumber !== requestAddress.miniBlockNumber
+      || activeSelection.passageId !== requestPassageId) {
       throw new Error("The selected story position changed while this image was generating. PlotPickle did not attach the late result to the new selection.");
     }
 

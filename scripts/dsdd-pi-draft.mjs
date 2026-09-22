@@ -3,8 +3,9 @@
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { validateDsddPiGrounding } from "./dsdd-pi-grounding.mjs";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
-import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
+import { resolvePiLocalRuntime, runPiReadOnlyObserved } from "./pi-worker-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_INPUT_BYTES = 96 * 1024;
@@ -44,6 +45,7 @@ export function promptFor(input) {
     "Inspect the repository only as much as needed to turn the locked Human intent into implementation-grade technical guidance.",
     "Treat AGENTS.md, the architecture maps, existing governed primitives, current source and focused tests as authoritative repository evidence.",
     "Do not invent files, symbols, architecture owners, tests, or behavior you did not verify.",
+    "Only name a concrete repository path or code symbol after a read, grep, find or ls observation supports it; the host will validate those claims from Pi's actual tool-event stream.",
     "Prefer reuse of existing contracts/primitives and the smallest implementation path.",
     "Do not provide hidden reasoning. Return only the concise developer brief.",
     "Keep the entire response under 10,000 characters.",
@@ -82,7 +84,7 @@ async function main() {
   const pi = await ensureManagedPiInstalled({ allowInstall: false });
   process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
-  const result = await runPiReadOnly({
+  const result = await runPiReadOnlyObserved({
     command: pi.command,
     runtime,
     prompt: promptFor(input),
@@ -90,8 +92,20 @@ async function main() {
     purpose: "dsdd-brief",
     timeout: 12 * 60_000,
   });
-  const text = String(result.stdout || "").trim().slice(0, MAX_BRIEF_CHARS);
+  const text = String(result.text || "").trim().slice(0, MAX_BRIEF_CHARS);
   if (!text) throw new Error("Pi Draft completed without producing a technical developer brief.");
+  const grounding = validateDsddPiGrounding({
+    text,
+    observedPaths: result.observedPaths,
+    cwd: repoRoot,
+  });
+  if (grounding.state !== "valid") {
+    const details = [
+      grounding.ungroundedPaths.length ? `unobserved paths: ${grounding.ungroundedPaths.join(", ")}` : "",
+      grounding.ungroundedSymbols.length ? `unobserved symbols: ${grounding.ungroundedSymbols.join(", ")}` : "",
+    ].filter(Boolean).join("; ");
+    throw new Error(`Pi Draft grounding failed closed${details ? `: ${details}` : "."}`);
+  }
   process.stdout.write(JSON.stringify({
     ok: true,
     reviewer: "pi",
@@ -100,6 +114,12 @@ async function main() {
     runtime: runtime.label,
     tools: ["read", "grep", "find", "ls"],
     repositoryMutation: false,
+    grounding: {
+      state: "valid",
+      observedPaths: grounding.observedPaths,
+      claimedPaths: grounding.claimedPaths,
+      toolCallCount: result.toolCalls.length,
+    },
     text,
   }));
 }

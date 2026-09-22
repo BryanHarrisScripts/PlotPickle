@@ -75,7 +75,8 @@ function observedTextFiles(observedPaths, cwd) {
 
 function symbolObserved(symbol, files) {
   const leaf = symbol.split(".").at(-1) || symbol;
-  const pattern = new RegExp(`\\b${leaf.replace(/[.*+?^$()|[\\]{}\\]/gu, "\\$&")}\\b`, "u");
+  const escaped = [...leaf].map((character) => "\\^$.*+?()[]{}|".includes(character) ? `\\\\${character}` : character).join("");
+  const pattern = new RegExp(`\\b${escaped}\\b`, "u");
   return files.some((file) => pattern.test(file.text));
 }
 

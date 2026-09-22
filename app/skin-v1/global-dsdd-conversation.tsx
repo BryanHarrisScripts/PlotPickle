@@ -37,13 +37,34 @@ type TextResponse = {
   model?: string;
 };
 
+type DsddDeveloperBrief = {
+  state: "ready";
+  generatedAt: string;
+  reviewer: "pi";
+  piVersion: string;
+  model: string;
+  runtime: string;
+  tools: ["read", "grep", "find", "ls"];
+  repositoryMutation: false;
+  text: string;
+};
+
+type DsddPublishedIssue = {
+  repository: "BryanHarrisScripts/PlotPickle";
+  number: number;
+  title: string;
+  url: string;
+  publishedAt: string;
+};
+
 type DsddLockedIntent = {
   version: number;
   locked: true;
   understoodMeaning: string;
   requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "UNPROVEN" }>;
-  buildPacket: { id: string; intentDigest: string };
-  build?: { state: "queued" | "running" | "passed-pre-pr" | "failed"; summary: string };
+  handoffPacket?: { id: string; intentDigest: string };
+  developerBrief?: DsddDeveloperBrief;
+  publishedIssue?: DsddPublishedIssue;
 };
 
 type DsddSessionPayload = {
@@ -57,6 +78,7 @@ type DsddSessionPayload = {
 };
 
 const MAX_MESSAGES = 40;
+const MAX_INTERPRETATION_CHARS = 6000;
 
 const DSDD_INSTRUCTIONS = [
   "You are PlotPickle's DSDD Conversational UAT interpreter.",
@@ -64,15 +86,23 @@ const DSDD_INSTRUCTIONS = [
   "Do not claim that code was changed, fixed, tested, committed, or merged.",
   "Do not redesign the product unless the Human explicitly asks for a different outcome.",
   "Interpret the Human's language as business/user intent first, not as an implementation command.",
-  "In a concise conversational response, restate what you understand the Human expects, distinguish observed behavior from expected behavior, and preserve stated constraints.",
+  "Return a concise product interpretation under 3500 characters.",
+  "Use at most eight short bullets across expected outcome, observed behavior, constraints, and testable requirements.",
   "If one material ambiguity prevents a deterministic requirement, ask at most one focused question.",
-  "Otherwise say that the intent is captured as a candidate and invite the Human to keep narrating.",
+  "Otherwise state that the intent is ready for Human review before Pi Draft.",
   "Treat route and surface metadata as context only. Never invent private screen content that is not in the prompt.",
   "Do not reveal hidden reasoning or chain-of-thought.",
 ].join(" ");
 
 function messageId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}`;
+}
+
+function boundedInterpretation(value: string) {
+  const normalized = value.trim();
+  if (normalized.length <= MAX_INTERPRETATION_CHARS) return normalized;
+  const marker = "\n\n[DSDD interpretation bounded for session persistence.]";
+  return normalized.slice(0, MAX_INTERPRETATION_CHARS - marker.length).trimEnd() + marker;
 }
 
 function loopbackHost() {
@@ -143,11 +173,12 @@ export default function GlobalDsddConversation() {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
   const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
-  const [locking, setLocking] = useState(false);
-  const [buildState, setBuildState] = useState<DsddLockedIntent["build"] | null>(null);
+  const [piDrafting, setPiDrafting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
+  const busy = working || piDrafting || publishing;
 
   useEffect(() => {
     const refresh = () => {
@@ -194,7 +225,7 @@ export default function GlobalDsddConversation() {
   useEffect(() => {
     const thread = threadRef.current;
     if (thread) thread.scrollTop = thread.scrollHeight;
-  }, [messages, open]);
+  }, [messages, lockedIntent?.developerBrief?.text, open]);
 
   useEffect(() => {
     if (!eligible || hydrated) return;
@@ -214,9 +245,7 @@ export default function GlobalDsddConversation() {
           model: entry.model,
         })));
         const intents = Array.isArray(body.session?.intents) ? body.session!.intents! : [];
-        const latest = intents.at(-1) || null;
-        setLockedIntent(latest);
-        setBuildState(latest?.build || null);
+        setLockedIntent(intents.at(-1) || null);
         setHydrated(true);
       })
       .catch((cause) => {
@@ -240,7 +269,7 @@ export default function GlobalDsddConversation() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const submitted = draft.trim();
-    if (!submitted || working) return;
+    if (!submitted || busy) return;
 
     const snapshot = currentSurfaceContext(pathname);
     const humanMessage: DsddMessage = {
@@ -282,7 +311,7 @@ export default function GlobalDsddConversation() {
       if (!response.ok || !body.text?.trim()) {
         throw new Error(body.message || "The DSDD interpreter did not return a response.");
       }
-      const interpreted = body.text!.trim();
+      const interpreted = boundedInterpretation(body.text!);
       const persistInterpretation = await authenticatedProfileFetch("/api/dsdd/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -308,40 +337,67 @@ export default function GlobalDsddConversation() {
     }
   }
 
-  async function lockCurrentIntent() {
-    if (working || locking || !messages.some((message) => message.role === "dsdd")) return;
-    setLocking(true);
+  async function createPiDraft() {
+    if (busy || !messages.some((message) => message.role === "dsdd")) return;
+    setPiDrafting(true);
+    setError("");
+    try {
+      let intent = lockedIntent;
+      if (!intent) {
+        const lockResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "lock-intent" }),
+        });
+        const lockBody = await lockResponse.json() as DsddSessionPayload;
+        if (!lockResponse.ok || !lockBody.ok || !lockBody.intent) {
+          throw new Error(lockBody.message || "DSDD could not lock the approved intent for Pi Draft.");
+        }
+        intent = lockBody.intent;
+        setLockedIntent(intent);
+      }
+      if (intent.developerBrief?.state === "ready") return;
+      const draftResponse = await authenticatedProfileFetch("/api/dsdd/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "draft-brief" }),
+      });
+      const draftBody = await draftResponse.json() as DsddSessionPayload;
+      if (!draftResponse.ok || !draftBody.ok || !draftBody.intent?.developerBrief) {
+        throw new Error(draftBody.message || "Pi Draft did not return a technical developer brief.");
+      }
+      setLockedIntent(draftBody.intent);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Pi Draft is unavailable.");
+    } finally {
+      setPiDrafting(false);
+    }
+  }
+
+  async function publishBrief() {
+    if (busy || !lockedIntent?.developerBrief || lockedIntent.publishedIssue) return;
+    setPublishing(true);
     setError("");
     try {
       const response = await authenticatedProfileFetch("/api/dsdd/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "lock-intent" }),
+        body: JSON.stringify({ action: "publish-brief" }),
       });
       const body = await response.json() as DsddSessionPayload;
-      if (!response.ok || !body.ok || !body.intent) throw new Error(body.message || "DSDD could not lock the approved intent.");
-      setLockedIntent(body.intent);
-      const buildResponse = await authenticatedProfileFetch("/api/dsdd/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "build" }),
-      });
-      const buildBody = await buildResponse.json() as DsddSessionPayload;
-      if (!buildResponse.ok || !buildBody.ok || !buildBody.intent) {
-        throw new Error(buildBody.message || "The locked intent could not enter the bounded build loop.");
+      if (!response.ok || !body.ok || !body.intent?.publishedIssue) {
+        throw new Error(body.message || "DSDD could not publish the developer brief to GitHub.");
       }
-      setLockedIntent(buildBody.intent);
-      setBuildState(buildBody.intent.build || null);
+      setLockedIntent(body.intent);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "DSDD could not lock the approved intent.");
+      setError(cause instanceof Error ? cause.message : "Publish Brief is unavailable.");
     } finally {
-      setLocking(false);
+      setPublishing(false);
     }
   }
 
   function clearDraft() {
     setDraft("");
-    setError("");
   }
 
   if (!eligible) return null;
@@ -386,13 +442,18 @@ export default function GlobalDsddConversation() {
               <strong>Locked intent v{lockedIntent.version}</strong>
               <span>{lockedIntent.understoodMeaning}</span>
               <small>{lockedIntent.requirements.map((requirement) => `${requirement.id} ${requirement.status}`).join(" · ")}</small>
-              {buildState ? <small>BUILD: {buildState.state.toUpperCase()} · {buildState.summary}</small> : null}
+              {lockedIntent.developerBrief ? <small>PI DRAFT: READY · READ-ONLY REPOSITORY REVIEW</small> : <small>PI DRAFT: NOT YET GENERATED</small>}
+              {lockedIntent.publishedIssue ? (
+                <a href={lockedIntent.publishedIssue.url} target="_blank" rel="noreferrer">
+                  GITHUB ISSUE #{lockedIntent.publishedIssue.number}
+                </a>
+              ) : null}
             </div>
           ) : messages.some((message) => message.role === "dsdd") ? (
             <div className={styles.context} data-dsdd-candidate-intent="true">
               <strong>What DSDD understood</strong>
               <span>{[...messages].reverse().find((message) => message.role === "dsdd")?.text}</span>
-              <small>Review this meaning. Nothing enters BUILD until you choose Build this.</small>
+              <small>Review this meaning. Choose Pi Draft to lock it and add repository-aware technical guidance without changing code.</small>
             </div>
           ) : null}
 
@@ -413,12 +474,21 @@ export default function GlobalDsddConversation() {
                 ) : null}
               </div>
             ))}
-            {working ? <p className={styles.working} role="status">DSDD is interpreting the narration…</p> : null}
+            {lockedIntent?.developerBrief ? (
+              <div className={styles.dsddMessage} data-dsdd-pi-draft="ready">
+                <strong>Pi technical developer draft</strong>
+                <p>{lockedIntent.developerBrief.text}</p>
+                <small>Read-only Pi {lockedIntent.developerBrief.piVersion} · tools: read, grep, find, ls · repository mutation: none</small>
+              </div>
+            ) : null}
+            {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
+            {piDrafting ? <p className={styles.working} role="status">Pi is inspecting the repository read-only and drafting developer guidance…</p> : null}
+            {publishing ? <p className={styles.working} role="status">Publishing the approved developer brief as a GitHub Issue…</p> : null}
           </div>
 
           {error ? (
             <p className={styles.error} role="alert">
-              {error} Your narration remains in this browser session; no code change was attempted.
+              {error} No source code change was attempted by DSDD.
             </p>
           ) : null}
 
@@ -430,28 +500,29 @@ export default function GlobalDsddConversation() {
               id="plotpickle-dsdd-narration"
               aria-label="DSDD narration"
               data-purpose="natural-language developer uat narration"
-              disabled={working}
+              disabled={busy}
               onChange={(event) => setDraft(event.currentTarget.value)}
               placeholder="Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."
               rows={4}
               value={draft}
             />
             <div className={styles.composerFooter}>
-              <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Build this locks the approved meaning, then hands only that locked packet to the existing isolated local Pi developer worker. GitHub exact-head CI remains the merge authority.</span>
+              <span>Interpret reflects your meaning. Pi Draft locks the approved intent and adds read-only repository guidance. Publish Brief creates the durable GitHub Issue handoff. DSDD does not edit code, create a branch or PR, or merge.</span>
               <VoiceInputControl
                 value={draft}
                 onValueChange={setDraft}
                 inputRef={narrationRef}
-                disabled={working || locking}
+                disabled={busy}
                 inputType="textarea"
                 purpose="natural-language developer uat narration"
                 className={styles.voiceControl}
                 statusPlacement="inline"
               />
               <div>
-                <button type="button" className={styles.secondary} disabled={working || locking || !draft} onClick={clearDraft}>Clear draft</button>
-                <button type="button" className={styles.secondary} disabled={working || locking || Boolean(lockedIntent) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void lockCurrentIntent(); }}>{locking ? "Locking…" : "Build this"}</button>
-                <button type="submit" disabled={working || locking || !draft.trim()}>Send</button>
+                <button type="button" className={styles.secondary} disabled={busy || !draft} onClick={clearDraft}>Clear draft</button>
+                <button type="button" className={styles.secondary} disabled={busy || Boolean(lockedIntent?.developerBrief) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void createPiDraft(); }}>{piDrafting ? "Pi drafting…" : "Pi draft"}</button>
+                <button type="button" className={styles.secondary} disabled={busy || !lockedIntent?.developerBrief || Boolean(lockedIntent.publishedIssue)} onClick={() => { void publishBrief(); }}>{publishing ? "Publishing…" : "Publish brief"}</button>
+                <button type="submit" disabled={busy || !draft.trim()}>{working ? "Interpreting…" : "Interpret"}</button>
               </div>
             </div>
           </form>

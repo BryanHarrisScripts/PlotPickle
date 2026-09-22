@@ -35,43 +35,6 @@ export type LocalVoiceRuntimeStatus = {
 const MAX_STDOUT_BYTES = voiceManifest.execution.maxOutputBytes;
 const MAX_STDERR_BYTES = voiceManifest.execution.maxOutputBytes;
 
-type RuntimeFingerprint = {
-  executableSize: number;
-  executableMtimeMs: number;
-  modelSize: number;
-  modelMtimeMs: number;
-  manifestSize: number;
-  manifestMtimeMs: number;
-};
-
-let verifiedRuntimeFingerprint: RuntimeFingerprint | null = null;
-
-async function runtimeFingerprint(paths: ReturnType<typeof localVoicePaths>): Promise<RuntimeFingerprint> {
-  const [executable, model, manifest] = await Promise.all([
-    stat(paths.executable),
-    stat(paths.model),
-    stat(paths.installedManifest),
-  ]);
-  return {
-    executableSize: executable.size,
-    executableMtimeMs: executable.mtimeMs,
-    modelSize: model.size,
-    modelMtimeMs: model.mtimeMs,
-    manifestSize: manifest.size,
-    manifestMtimeMs: manifest.mtimeMs,
-  };
-}
-
-function sameFingerprint(left: RuntimeFingerprint | null, right: RuntimeFingerprint) {
-  if (!left) return false;
-  return left.executableSize === right.executableSize
-    && left.executableMtimeMs === right.executableMtimeMs
-    && left.modelSize === right.modelSize
-    && left.modelMtimeMs === right.modelMtimeMs
-    && left.manifestSize === right.manifestSize
-    && left.manifestMtimeMs === right.manifestMtimeMs;
-}
-
 function runtimeRoot() {
   return path.join(persistentHome(), "runtime", "voice", `whisper-${voiceManifest.runtime.releaseTag}`);
 }
@@ -109,6 +72,43 @@ async function installedManifest(filePath: string) {
   } catch {
     return null;
   }
+}
+
+type RuntimeFingerprint = {
+  executableSize: number;
+  executableMtimeMs: number;
+  modelSize: number;
+  modelMtimeMs: number;
+  manifestSize: number;
+  manifestMtimeMs: number;
+};
+
+let verifiedRuntimeFingerprint: RuntimeFingerprint | null = null;
+
+async function runtimeFingerprint(paths: ReturnType<typeof localVoicePaths>): Promise<RuntimeFingerprint> {
+  const [executable, model, manifest] = await Promise.all([
+    stat(paths.executable),
+    stat(paths.model),
+    stat(paths.installedManifest),
+  ]);
+  return {
+    executableSize: executable.size,
+    executableMtimeMs: executable.mtimeMs,
+    modelSize: model.size,
+    modelMtimeMs: model.mtimeMs,
+    manifestSize: manifest.size,
+    manifestMtimeMs: manifest.mtimeMs,
+  };
+}
+
+function sameFingerprint(left: RuntimeFingerprint | null, right: RuntimeFingerprint) {
+  if (!left) return false;
+  return left.executableSize === right.executableSize
+    && left.executableMtimeMs === right.executableMtimeMs
+    && left.modelSize === right.modelSize
+    && left.modelMtimeMs === right.modelMtimeMs
+    && left.manifestSize === right.manifestSize
+    && left.manifestMtimeMs === right.manifestMtimeMs;
 }
 
 export async function localVoiceRuntimeStatus(): Promise<LocalVoiceRuntimeStatus> {

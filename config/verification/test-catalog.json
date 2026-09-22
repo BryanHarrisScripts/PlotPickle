@@ -868,7 +868,6 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-1910-local-voice-input.test.mjs",
           "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
         ]
       },
@@ -894,7 +893,7 @@
           ".artifacts/verification-shadow/provider-runtime.comparison.json"
         ]
       },
-      "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6. Exact Windows fixture transcription remains a separate impact-selected native proof."
+      "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6 with a dependency-free source contract. The broader #1910 regression remains available in legacy/manual gates, while exact Windows fixture transcription remains a separate impact-selected native proof."
     },
     {
       "id": "verification.phase2-core",

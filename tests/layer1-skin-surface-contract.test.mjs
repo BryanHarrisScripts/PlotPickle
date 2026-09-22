@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  loadSkinV1SurfaceContractSources,
+  resolveSkinV1BlastRadius,
+  resolveSkinV1GovernedCompositions,
+} from "../lib/verification/skin-v1/surface-contracts.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -75,4 +80,45 @@ test("Layer 1 ordinary selection stays consolidated to three current-product own
   ]);
   const historical = catalog.entries.filter((entry) => entry.ownerLayer === "experience-skins" && entry.modes.length === 1 && entry.modes[0] === "manual");
   assert.equal(historical.length, 12);
+});
+
+
+test("Layer 1 #2364 governed primitives inherit through families and resolve deterministic blast radius", async () => {
+  const sources = await loadSkinV1SurfaceContractSources();
+  const compositions = resolveSkinV1GovernedCompositions(sources);
+  const byId = new Map(compositions.map((composition) => [composition.surfaceId, composition]));
+
+  for (const id of ["dashboard", "writers-craft", "discovery", "storyboard", "settings"]) {
+    assert.ok(byId.has(id), `Missing governed primitive composition for ${id}`);
+  }
+
+  assert.ok(byId.get("dashboard").effectivePrimitives.includes("application-header"));
+  assert.ok(!byId.get("dashboard").effectivePrimitives.includes("return-control"));
+  assert.ok(byId.get("writers-craft").effectivePrimitives.includes("horizontal-menu"));
+  assert.ok(byId.get("settings").effectivePrimitives.includes("horizontal-menu"));
+  assert.ok(byId.get("storyboard").effectivePrimitives.includes("content-frame"));
+  assert.ok(byId.get("discovery").effectivePrimitives.includes("application-shell"));
+
+  assert.equal(sources.registry.surfaces.some((surface) => surface.id === "dsdd-live-uat"), false);
+  assert.equal(sources.grammar.overlayProfiles["dsdd-live-uat"].isPageSurface, false);
+  assert.deepEqual(
+    sources.grammar.overlayProfiles["dsdd-live-uat"].primitives,
+    ["overlay-shell", "input-console", "status-bar", "action-control"],
+  );
+
+  const horizontalMenu = resolveSkinV1BlastRadius(sources, { type: "primitive", id: "horizontal-menu" });
+  assert.deepEqual(horizontalMenu.affectedSurfaces, ["settings", "writers-craft"]);
+  assert.deepEqual(horizontalMenu.affectedFamilies, ["settings", "writers-craft"]);
+  assert.deepEqual(horizontalMenu.affectedOverlays, []);
+
+  const inputConsole = resolveSkinV1BlastRadius(sources, { type: "primitive", id: "input-console" });
+  assert.deepEqual(inputConsole.affectedSurfaces, []);
+  assert.deepEqual(inputConsole.affectedOverlays, ["dsdd-live-uat"]);
+
+  const storyFamily = resolveSkinV1BlastRadius(sources, { type: "family", id: "story" });
+  assert.deepEqual(storyFamily.affectedSurfaces, ["discovery"]);
+
+  const storyboard = resolveSkinV1BlastRadius(sources, { type: "surface", id: "storyboard" });
+  assert.deepEqual(storyboard.affectedSurfaces, ["scene-timeline", "storyboard", "visual-story"]);
+  assert.deepEqual(storyboard.affectedFamilies, ["storyboard"]);
 });

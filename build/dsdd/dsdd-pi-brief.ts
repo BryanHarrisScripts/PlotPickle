@@ -16,6 +16,12 @@ export type DsddPiBriefResult = {
   runtime: string;
   tools: ["read", "grep", "find", "ls"];
   repositoryMutation: false;
+  grounding: {
+    state: "valid";
+    observedPaths: string[];
+    claimedPaths: string[];
+    toolCallCount: number;
+  };
   text: string;
 };
 
@@ -67,7 +73,15 @@ export function runDsddPiBrief(input: DsddPiBriefInput): Promise<DsddPiBriefResu
       }
       try {
         const parsed = JSON.parse(stdout) as DsddPiBriefResult;
-        if (!parsed.ok || parsed.reviewer !== "pi" || parsed.repositoryMutation !== false || !parsed.text?.trim()) {
+        if (
+          !parsed.ok
+          || parsed.reviewer !== "pi"
+          || parsed.repositoryMutation !== false
+          || parsed.grounding?.state !== "valid"
+          || !Array.isArray(parsed.grounding?.observedPaths)
+          || !Array.isArray(parsed.grounding?.claimedPaths)
+          || !parsed.text?.trim()
+        ) {
           throw new Error("Pi Draft bridge returned an invalid read-only developer brief.");
         }
         settle(undefined, parsed);

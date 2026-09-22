@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "issue": 2331,
+  "phase": "dsdd-stt-handoff-progress",
+  "brief": "docs/developer-briefs/2331-dsdd-stt-handoff-progress.md",
+  "allowedChanges": [
+    "app/_components/voice-input-control.module.css",
+    "app/_components/voice-input-control.tsx",
+    "app/skin-v1/global-dsdd-conversation.module.css",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/voice/local-voice-gateway.ts",
+    "build/voice/local-voice-runtime.ts",
+    "config/development-convergence/2331.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2331-dsdd-stt-handoff-progress.md",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2331-STT-1",
+      "criterion": "DSDD voice status and live input meter render inside the composer flow instead of covering interface controls.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "statusPlacement=\"inline\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.module.css",
+          "contains": ".control[data-voice-placement=\"inline\"] .status"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-2",
+      "criterion": "Local setup and transcription expose visible progress and elapsed work while preserving the shared microphone control.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.tsx",
+          "contains": "elapsedSeconds"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.tsx",
+          "contains": "ensureDsddLocalVoiceReady((message)"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-3",
+      "criterion": "The local server exposes searchable STT handoff stages without narration content.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-gateway.ts",
+          "contains": "[VOICE] Transcription request"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "[VOICE] Transcription"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-4",
+      "criterion": "A successfully verified local runtime/model fingerprint is reused during the same app process when unchanged.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "verifiedRuntimeFingerprint"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "sameFingerprint"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-5",
+      "criterion": "Successful local transcription still inserts editable text into the same DSDD narration field and does not auto-submit.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/_components/voice-input-control.tsx",
+          "contains": "insertDictationText"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "type=\"submit\""
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-6",
+      "criterion": "The focused DSDD regression covers inline progress and the local STT handoff diagnostics.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "contains": "shows elapsed local work"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "contains": "caches verified runtime integrity"
+        }
+      ]
+    },
+    {
+      "id": "P2331-STT-7",
+      "criterion": "The existing local voice host runtime is explicitly owned by the provider-runtime architecture layer.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "\"id\": \"local-voice-provider-runtime\""
+        }
+      ]
+    }
+  ]
+}

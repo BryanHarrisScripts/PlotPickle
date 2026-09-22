@@ -25,6 +25,7 @@ type VoiceInputControlProps = {
   readonly purpose?: string;
   readonly voiceInput?: boolean;
   readonly className?: string;
+  readonly statusPlacement?: "overlay" | "inline";
 };
 
 let activeVoiceSession: { id: string; cancel: () => void } | null = null;
@@ -98,7 +99,12 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
-async function ensureDsddLocalVoiceReady() {
+async function preflightDsddLocalVoiceReady() {
+  const response = await fetch("/api/local-voice/status", { cache: "no-store" });
+  if (!response.ok) throw new Error(`Local STT preflight returned HTTP ${response.status}.`);
+}
+
+async function provisionDsddLocalVoiceReady(onProgress?: (message: string) => void) {
   const setup = await fetch("/api/local-voice/setup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -110,7 +116,11 @@ async function ensureDsddLocalVoiceReady() {
     setupTask?: { state?: string; message?: string };
     message?: string;
   };
-  if (first.ready) return;
+  if (first.ready) {
+    onProgress?.("Local speech-to-text runtime is ready.");
+    return;
+  }
+  onProgress?.(first.setupTask?.message || first.message || "Preparing the local speech-to-text runtime.");
   if (!setup.ok && !first.installing) throw new Error(first.message || first.setupTask?.message || "Local dictation setup failed.");
 
   const deadline = Date.now() + 5 * 60_000;
@@ -122,7 +132,11 @@ async function ensureDsddLocalVoiceReady() {
       reason?: string;
       setupTask?: { state?: string; message?: string };
     };
-    if (body.ready) return;
+    if (body.ready) {
+      onProgress?.("Local speech-to-text runtime is ready.");
+      return;
+    }
+    onProgress?.(body.setupTask?.message || body.reason || "Preparing the local speech-to-text runtime.");
     if (body.setupTask?.state === "failed") {
       throw new Error(body.setupTask.message || body.reason || "Local dictation setup failed.");
     }
@@ -151,10 +165,12 @@ export default function VoiceInputControl({
   purpose = "natural-language",
   voiceInput = true,
   className = "",
+  statusPlacement = "overlay",
 }: VoiceInputControlProps) {
   const [state, setState] = useState<VoiceInputState>("IDLE");
   const [detail, setDetail] = useState("");
   const [inputLevel, setInputLevel] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const resourcesRef = useRef<CaptureResources | null>(null);
   const provisioningRef = useRef<Promise<void> | null>(null);
   const provisioningErrorRef = useRef<unknown>(null);
@@ -164,6 +180,29 @@ export default function VoiceInputControl({
   const mountedRef = useRef(true);
 
   useEffect(() => { valueRef.current = value; }, [value]);
+  useEffect(() => {
+    if (purpose.trim().toLowerCase() !== "natural-language developer uat narration") return;
+    void preflightDsddLocalVoiceReady().then(
+      () => undefined,
+      (error) => {
+        if (mountedRef.current) {
+          setDetail(error instanceof Error ? error.message : "Local STT preflight will retry when dictation starts.");
+        }
+      },
+    );
+  }, [purpose]);
+  useEffect(() => {
+    if (!["PROVISIONING_LOCAL", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state)) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    setElapsedSeconds(0);
+    const timer = window.setInterval(() => {
+      if (mountedRef.current) setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [state]);
   useEffect(() => () => {
     mountedRef.current = false;
     const resources = resourcesRef.current;
@@ -183,6 +222,12 @@ export default function VoiceInputControl({
 
   function clearActiveOwner() {
     if (activeVoiceSession?.id === sessionIdRef.current) activeVoiceSession = null;
+  }
+
+  function ensureDsddLocalVoiceReady() {
+    return provisionDsddLocalVoiceReady((message) => {
+      if (mountedRef.current) setDetail(message);
+    });
   }
 
   async function releaseCapture() {
@@ -333,9 +378,14 @@ export default function VoiceInputControl({
   const listening = state === "LISTENING";
   const busy = ["PROVISIONING_LOCAL", "REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
   const label = listening ? "Stop dictation" : "Dictate text";
+  const elapsedSuffix = elapsedSeconds > 0 ? ` · ${elapsedSeconds}s` : "";
 
   return (
-    <span className={`${styles.control} ${className}`.trim()} data-voice-state={state}>
+    <span
+      className={`${styles.control} ${className}`.trim()}
+      data-voice-state={state}
+      data-voice-placement={statusPlacement}
+    >
       <button
         type="button"
         className={styles.button}
@@ -365,7 +415,7 @@ export default function VoiceInputControl({
           <span className={styles.meterValue}>{inputLevel >= 0.03 ? "SIGNAL" : "QUIET"}</span>
         </span>
       ) : null}
-      <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}</span>
+      <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}{elapsedSuffix}</span>
     </span>
   );
 }

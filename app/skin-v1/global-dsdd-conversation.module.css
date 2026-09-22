@@ -216,8 +216,14 @@
   line-height: var(--pp-skin-leading-body, 1.55);
 }
 
+.voiceControl {
+  width: 100%;
+  min-width: 0;
+}
+
 .composerFooter > div {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--pp-skin-space-2, 8px);
   justify-content: flex-end;
 }

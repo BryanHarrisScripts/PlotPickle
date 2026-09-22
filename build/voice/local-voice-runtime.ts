@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import voiceManifest from "../../config/local-voice-input.json";
 import { persistentHome } from "../local-credentials";
@@ -74,6 +74,43 @@ async function installedManifest(filePath: string) {
   }
 }
 
+type RuntimeFingerprint = {
+  executableSize: number;
+  executableMtimeMs: number;
+  modelSize: number;
+  modelMtimeMs: number;
+  manifestSize: number;
+  manifestMtimeMs: number;
+};
+
+let verifiedRuntimeFingerprint: RuntimeFingerprint | null = null;
+
+async function runtimeFingerprint(paths: ReturnType<typeof localVoicePaths>): Promise<RuntimeFingerprint> {
+  const [executable, model, manifest] = await Promise.all([
+    stat(paths.executable),
+    stat(paths.model),
+    stat(paths.installedManifest),
+  ]);
+  return {
+    executableSize: executable.size,
+    executableMtimeMs: executable.mtimeMs,
+    modelSize: model.size,
+    modelMtimeMs: model.mtimeMs,
+    manifestSize: manifest.size,
+    manifestMtimeMs: manifest.mtimeMs,
+  };
+}
+
+function sameFingerprint(left: RuntimeFingerprint | null, right: RuntimeFingerprint) {
+  if (!left) return false;
+  return left.executableSize === right.executableSize
+    && left.executableMtimeMs === right.executableMtimeMs
+    && left.modelSize === right.modelSize
+    && left.modelMtimeMs === right.modelMtimeMs
+    && left.manifestSize === right.manifestSize
+    && left.manifestMtimeMs === right.manifestMtimeMs;
+}
+
 export async function localVoiceRuntimeStatus(): Promise<LocalVoiceRuntimeStatus> {
   const paths = localVoicePaths();
   const runtimeInstalled = await exists(paths.executable);
@@ -94,6 +131,7 @@ export async function localVoiceRuntimeStatus(): Promise<LocalVoiceRuntimeStatus
     };
   }
   if (!runtimeInstalled || !modelInstalled) {
+    verifiedRuntimeFingerprint = null;
     return {
       ready: false,
       platform: process.platform,
@@ -151,8 +189,29 @@ export async function localVoiceRuntimeStatus(): Promise<LocalVoiceRuntimeStatus
     };
   }
 
+  const fingerprint = await runtimeFingerprint(paths);
+  if (sameFingerprint(verifiedRuntimeFingerprint, fingerprint)) {
+    return {
+      ready: true,
+      platform: process.platform,
+      provider: voiceManifest.provider,
+      model: voiceManifest.model.id,
+      runtimeInstalled,
+      modelInstalled,
+      integrityVerified: true,
+      releaseTag: voiceManifest.runtime.releaseTag,
+      sourceCommit: voiceManifest.runtime.sourceCommit,
+      modelRevision: voiceManifest.model.revision,
+      reason: "Local dictation runtime and model are installed and integrity-verified.",
+    };
+  }
+
+  const verificationStartedAt = Date.now();
+  console.info("[VOICE] STT integrity ................... VERIFYING");
   const [executableHash, modelHash] = await Promise.all([sha256(paths.executable), sha256(paths.model)]);
   const integrityVerified = executableHash === installed.executableSha256 && modelHash === voiceManifest.model.sha256;
+  verifiedRuntimeFingerprint = integrityVerified ? fingerprint : null;
+  console.info(`[VOICE] STT integrity ................... ${integrityVerified ? "PASS" : "FAIL"} ${Date.now() - verificationStartedAt}ms`);
   return {
     ready: integrityVerified,
     platform: process.platform,
@@ -183,6 +242,8 @@ function validatePcmWav(bytes: Buffer) {
 
 function runWhisper(command: string, args: string[]) {
   return new Promise<void>((resolve, reject) => {
+    const startedAt = Date.now();
+    console.info("[VOICE] Transcription ................... STARTED whisper.cpp");
     const child = spawn(command, args, {
       cwd: path.dirname(command),
       shell: false,
@@ -201,6 +262,7 @@ function runWhisper(command: string, args: string[]) {
     };
     const timer = setTimeout(() => {
       child.kill();
+      console.warn(`[VOICE] Transcription ................... TIMEOUT ${Date.now() - startedAt}ms`);
       finish(() => reject(new Error("VOICE_TIMEOUT: Local transcription exceeded PlotPickle's bounded runtime window.")));
     }, voiceManifest.execution.timeoutMilliseconds);
     child.stdout.on("data", (chunk: Buffer) => {
@@ -218,21 +280,35 @@ function runWhisper(command: string, args: string[]) {
         finish(() => reject(new Error("VOICE_TRANSCRIPTION_FAILED: whisper.cpp exceeded its bounded diagnostic output size.")));
       }
     });
-    child.once("error", (error) => finish(() => reject(new Error(`VOICE_RUNTIME_UNAVAILABLE: ${error.message}`))));
+    child.once("error", (error) => finish(() => {
+      console.warn(`[VOICE] Transcription ................... FAILED ${Date.now() - startedAt}ms ${error.message}`);
+      reject(new Error(`VOICE_RUNTIME_UNAVAILABLE: ${error.message}`));
+    }));
     child.once("close", (code) => finish(() => {
-      if (code === 0) resolve();
-      else reject(new Error(`VOICE_TRANSCRIPTION_FAILED: ${Buffer.concat(stderr).toString("utf8").trim() || `whisper.cpp exited with code ${code ?? "unknown"}.`}`));
+      if (code === 0) {
+        console.info(`[VOICE] Transcription ................... COMPLETE ${Date.now() - startedAt}ms`);
+        resolve();
+      } else {
+        const diagnostic = Buffer.concat(stderr).toString("utf8").trim() || `whisper.cpp exited with code ${code ?? "unknown"}.`;
+        console.warn(`[VOICE] Transcription ................... FAILED ${Date.now() - startedAt}ms`);
+        reject(new Error(`VOICE_TRANSCRIPTION_FAILED: ${diagnostic}`));
+      }
     }));
   });
 }
 
 export async function transcribeLocalVoiceWav(bytes: Buffer) {
   validatePcmWav(bytes);
+  const durationSeconds = Math.max(0, bytes.length - 44)
+    / (voiceManifest.capture.sampleRate * voiceManifest.capture.channels * (voiceManifest.capture.bitsPerSample / 8));
+  console.info(`[VOICE] Audio captured .................. READY ${durationSeconds.toFixed(1)}s ${bytes.length} bytes`);
   const status = await localVoiceRuntimeStatus();
   if (!status.ready) {
+    console.warn(`[VOICE] STT runtime ..................... NOT READY ${status.reason}`);
     const code = status.modelInstalled ? "VOICE_RUNTIME_UNAVAILABLE" : "VOICE_MODEL_UNAVAILABLE";
     throw new Error(`${code}: ${status.reason}`);
   }
+  console.info(`[VOICE] STT runtime ..................... READY ${status.provider} ${status.model}`);
 
   const paths = localVoicePaths();
   const runDirectory = path.join(paths.temporaryRoot, `dictation-${randomUUID()}`);
@@ -252,6 +328,7 @@ export async function transcribeLocalVoiceWav(bytes: Buffer) {
     ]);
     const transcript = (await readFile(transcriptPath, "utf8")).replace(/\u0000/gu, "").replace(/\s+/gu, " ").trim();
     if (!transcript) throw new Error("VOICE_TRANSCRIPTION_FAILED: whisper.cpp returned no text for this recording.");
+    console.info(`[VOICE] Text produced ................... PASS ${transcript.length} chars`);
     return Object.freeze({ text: transcript.slice(0, 20_000), provider: voiceManifest.provider, model: voiceManifest.model.id });
   } finally {
     await rm(runDirectory, { recursive: true, force: true });

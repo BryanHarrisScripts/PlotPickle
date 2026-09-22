@@ -132,6 +132,51 @@
   color: #b9ffd0;
 }
 
+
+
+.control[data-voice-placement="inline"] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem 0.55rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.control[data-voice-placement="inline"] .status {
+  position: static;
+  grid-column: 1 / -1;
+  width: auto;
+  max-width: none;
+  padding: 0.4rem 0.55rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  border: 1px solid currentColor;
+  background: #050505;
+  box-shadow: none;
+  white-space: normal;
+  pointer-events: auto;
+}
+
+.control[data-voice-placement="inline"][data-voice-state="IDLE"] .status {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.control[data-voice-placement="inline"] .meter {
+  position: static;
+  grid-column: 2;
+  width: 100%;
+  max-width: none;
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .button,
   .meterFill {

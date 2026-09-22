@@ -438,15 +438,17 @@ export default function GlobalDsddConversation() {
             />
             <div className={styles.composerFooter}>
               <span>Microphone is ready here. Human narration and DSDD interpretation are preserved in the authenticated local engineering session. Build this locks the approved meaning, then hands only that locked packet to the existing isolated local Pi developer worker. GitHub exact-head CI remains the merge authority.</span>
+              <VoiceInputControl
+                value={draft}
+                onValueChange={setDraft}
+                inputRef={narrationRef}
+                disabled={working || locking}
+                inputType="textarea"
+                purpose="natural-language developer uat narration"
+                className={styles.voiceControl}
+                statusPlacement="inline"
+              />
               <div>
-                <VoiceInputControl
-                  value={draft}
-                  onValueChange={setDraft}
-                  inputRef={narrationRef}
-                  disabled={working || locking}
-                  inputType="textarea"
-                  purpose="natural-language developer uat narration"
-                />
                 <button type="button" className={styles.secondary} disabled={working || locking || !draft} onClick={clearDraft}>Clear draft</button>
                 <button type="button" className={styles.secondary} disabled={working || locking || Boolean(lockedIntent) || !messages.some((message) => message.role === "dsdd")} onClick={() => { void lockCurrentIntent(); }}>{locking ? "Locking…" : "Build this"}</button>
                 <button type="submit" disabled={working || locking || !draft.trim()}>Send</button>

@@ -456,5 +456,125 @@
   "compositionReference": "config/skin-v1-surface-composition-reference.json",
   "anatomyContract": "config/skin-v1-surface-anatomy-contract.json",
   "specSheetContract": "config/skin-v1-spec-sheet-contract.json",
-  "surfaceDeclarations": "config/skin-v1-surface-declarations/*.json"
+  "surfaceDeclarations": "config/skin-v1-surface-declarations/*.json",
+  "governedPrimitives": {
+    "application-shell": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-grammar.json#shellProfiles",
+      "purpose": "Canonical Skin V1 shell measure, body measure and outer surface composition."
+    },
+    "application-header": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-grammar.json#rules.standardHeader",
+      "purpose": "Canonical PlotPickle / surface-name / Skin V1 header contract."
+    },
+    "return-control": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-grammar.json#rules.returnAction",
+      "purpose": "Canonical upper-right return relationship and placement."
+    },
+    "horizontal-menu": {
+      "scope": "surface",
+      "source": "lib/verification/skin-v1-menu-contract-audit.mjs",
+      "purpose": "Governed horizontal destination/section menu behavior, active state and keyboard contract."
+    },
+    "content-frame": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-composition-reference.json",
+      "purpose": "Primary governed content frame and spacing/token composition."
+    },
+    "status-bar": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-grammar.json#footerProfiles",
+      "purpose": "Canonical surface status/context/footer presentation."
+    },
+    "action-control": {
+      "scope": "surface",
+      "source": "config/skin-v1-surface-composition-reference.json",
+      "purpose": "Shared governed action-control geometry and interaction-state presentation."
+    },
+    "overlay-shell": {
+      "scope": "overlay",
+      "source": "app/skin-v1/global-dsdd-conversation.tsx",
+      "purpose": "Governed contextual overlay shell that does not create a second page-level surface authority."
+    },
+    "input-console": {
+      "scope": "overlay",
+      "source": "app/skin-v1/global-dsdd-conversation.tsx",
+      "purpose": "Governed Human text/voice input-console composition and status relationship."
+    }
+  },
+  "surfaceFamilyProfiles": {
+    "dashboard": {
+      "primitives": [
+        "application-shell",
+        "application-header",
+        "content-frame",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "Dashboard/hub reference composition."
+    },
+    "writers-craft": {
+      "primitives": [
+        "application-shell",
+        "application-header",
+        "return-control",
+        "horizontal-menu",
+        "content-frame",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "LEARN horizontal-journey directory composition."
+    },
+    "story": {
+      "primitives": [
+        "application-shell",
+        "application-header",
+        "return-control",
+        "content-frame",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "Story development workspace composition."
+    },
+    "storyboard": {
+      "primitives": [
+        "application-shell",
+        "application-header",
+        "return-control",
+        "content-frame",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "Visual/storyboard workspace composition."
+    },
+    "settings": {
+      "primitives": [
+        "application-shell",
+        "application-header",
+        "return-control",
+        "horizontal-menu",
+        "content-frame",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "Settings/management directory composition."
+    }
+  },
+  "overlayProfiles": {
+    "dsdd-live-uat": {
+      "kind": "global-contextual-overlay",
+      "isPageSurface": false,
+      "hostScope": "authenticated-skin-v1",
+      "source": "app/skin-v1/global-dsdd-conversation.tsx",
+      "primitives": [
+        "overlay-shell",
+        "input-console",
+        "status-bar",
+        "action-control"
+      ],
+      "description": "DSDD LIVE UAT remains attached to the governed application context and does not become an invented route or second Surface Registry entry."
+    }
+  }
 }

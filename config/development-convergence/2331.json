@@ -1,125 +1,84 @@
 {
   "schemaVersion": 1,
   "issue": 2331,
-  "phase": "dsdd-stt-handoff-progress",
-  "brief": "docs/developer-briefs/2331-dsdd-stt-handoff-progress.md",
+  "phase": "dsdd-evidence-enforcement",
+  "brief": "docs/developer-briefs/2331-dsdd-evidence-enforcement.md",
   "allowedChanges": [
-    "app/_components/voice-input-control.module.css",
-    "app/_components/voice-input-control.tsx",
-    "app/skin-v1/global-dsdd-conversation.module.css",
-    "app/skin-v1/global-dsdd-conversation.tsx",
-    "build/voice/local-voice-gateway.ts",
-    "build/voice/local-voice-runtime.ts",
+    "build/dsdd/dsdd-evidence-contract.mjs",
+    "build/dsdd/dsdd-session-gateway.ts",
     "config/development-convergence/2331.json",
-    "config/verification/ownership-map.json",
-    "docs/developer-briefs/2331-dsdd-stt-handoff-progress.md",
-    "tests/issue-2331-dsdd-conversational-uat.test.mjs"
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2331-dsdd-evidence-enforcement.md",
+    "tests/issue-2331-dsdd-evidence-enforcement.test.mjs"
   ],
   "acceptance": [
     {
-      "id": "P2331-STT-1",
-      "criterion": "DSDD voice status and live input meter render inside the composer flow instead of covering interface controls.",
+      "id": "P2331-E1",
+      "criterion": "A caller cannot record PASS without validated supporting evidence bound to the same locked intent and an exact tested commit.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/skin-v1/global-dsdd-conversation.tsx",
-          "contains": "statusPlacement=\"inline\""
+          "path": "build/dsdd/dsdd-evidence-contract.mjs",
+          "contains": "status === \"PASS\" && hasSupportingEvidence && !hasContradictingEvidence"
         },
         {
           "type": "file-contains",
-          "path": "app/_components/voice-input-control.module.css",
-          "contains": ".control[data-voice-placement=\"inline\"] .status"
+          "path": "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+          "contains": "empty, mismatched, or stale proof cannot become PASS"
         }
       ]
     },
     {
-      "id": "P2331-STT-2",
-      "criterion": "Local setup and transcription expose visible progress and elapsed work while preserving the shared microphone control.",
+      "id": "P2331-E2",
+      "criterion": "FAIL requires validated contradictory evidence; unsupported or mismatched claims remain UNPROVEN.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/_components/voice-input-control.tsx",
-          "contains": "elapsedSeconds"
+          "path": "build/dsdd/dsdd-evidence-contract.mjs",
+          "contains": "status === \"FAIL\" && hasContradictingEvidence"
         },
         {
           "type": "file-contains",
-          "path": "app/_components/voice-input-control.tsx",
-          "contains": "ensureDsddLocalVoiceReady((message)"
+          "path": "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+          "contains": "contradictory evidence prevents PASS and is required for FAIL"
         }
       ]
     },
     {
-      "id": "P2331-STT-3",
-      "criterion": "The local server exposes searchable STT handoff stages without narration content.",
+      "id": "P2331-E3",
+      "criterion": "Evidence records carry intent identity, proof type, finding, exact tested source/commit, observed result and artifact reference.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "build/voice/local-voice-gateway.ts",
-          "contains": "[VOICE] Transcription request"
+          "path": "build/dsdd/dsdd-evidence-contract.mjs",
+          "contains": "testedCommit"
         },
         {
           "type": "file-contains",
-          "path": "build/voice/local-voice-runtime.ts",
-          "contains": "[VOICE] Transcription"
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "intentDigest: packet.intentDigest"
         }
       ]
     },
     {
-      "id": "P2331-STT-4",
-      "criterion": "A successfully verified local runtime/model fingerprint is reused during the same app process when unchanged.",
+      "id": "P2331-E4",
+      "criterion": "Evidence resolution does not mutate the locked Human meaning.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "build/voice/local-voice-runtime.ts",
-          "contains": "verifiedRuntimeFingerprint"
-        },
-        {
-          "type": "file-contains",
-          "path": "build/voice/local-voice-runtime.ts",
-          "contains": "sameFingerprint"
+          "path": "tests/issue-2331-dsdd-evidence-enforcement.test.mjs",
+          "contains": "intent.understoodMeaning"
         }
       ]
     },
     {
-      "id": "P2331-STT-5",
-      "criterion": "Successful local transcription still inserts editable text into the same DSDD narration field and does not auto-submit.",
+      "id": "P2331-E5",
+      "criterion": "The focused executable regression runs through the existing DSDD agent-runtime verification group.",
       "evidence": [
         {
           "type": "file-contains",
-          "path": "app/_components/voice-input-control.tsx",
-          "contains": "insertDictationText"
-        },
-        {
-          "type": "file-contains",
-          "path": "app/skin-v1/global-dsdd-conversation.tsx",
-          "contains": "type=\"submit\""
-        }
-      ]
-    },
-    {
-      "id": "P2331-STT-6",
-      "criterion": "The focused DSDD regression covers inline progress and the local STT handoff diagnostics.",
-      "evidence": [
-        {
-          "type": "file-contains",
-          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
-          "contains": "shows elapsed local work"
-        },
-        {
-          "type": "file-contains",
-          "path": "tests/issue-2331-dsdd-conversational-uat.test.mjs",
-          "contains": "caches verified runtime integrity"
-        }
-      ]
-    },
-    {
-      "id": "P2331-STT-7",
-      "criterion": "The existing local voice host runtime is explicitly owned by the provider-runtime architecture layer.",
-      "evidence": [
-        {
-          "type": "file-contains",
-          "path": "config/verification/ownership-map.json",
-          "contains": "\"id\": \"local-voice-provider-runtime\""
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2331-dsdd-evidence-enforcement.test.mjs"
         }
       ]
     }

@@ -26,6 +26,18 @@ function Assert-Hash([string]$Path, [string]$Expected, [string]$Label) {
   }
 }
 
+function Write-Utf8NoBom([string]$Path, [string]$Content) {
+  $encoding = New-Object System.Text.UTF8Encoding($false)
+  [IO.File]::WriteAllText($Path, $Content, $encoding)
+}
+
+function Assert-Utf8NoBom([string]$Path) {
+  $bytes = [IO.File]::ReadAllBytes($Path)
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    throw "Local dictation install manifest must be UTF-8 without a BOM."
+  }
+}
+
 $PlotPickleHome = Get-PlotPickleHome
 $RuntimeRoot = Join-Path $PlotPickleHome ("runtime\voice\whisper-" + $Config.runtime.releaseTag)
 $BinRoot = Join-Path $RuntimeRoot "bin"
@@ -93,7 +105,9 @@ function Install-ReviewedRuntime {
     modelSha256 = [string]$Config.model.sha256
     installedAt = [DateTime]::UtcNow.ToString("o")
   }
-  $installed | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $InstalledPath -Encoding UTF8
+  $installedJson = $installed | ConvertTo-Json -Depth 5
+  Write-Utf8NoBom $InstalledPath $installedJson
+  Assert-Utf8NoBom $InstalledPath
   Test-ReviewedInstall
 }
 

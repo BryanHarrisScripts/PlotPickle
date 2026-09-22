@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { loadFoundationProject } from "../../core/storage/foundation-project-browser";
+import { hydratedStoryMapContext, persistStoryMapContext } from "../../core/storage/profile-private-browser";
 import { hasActiveLibraryProject, loadActiveLibraryProject, PROJECT_LIBRARY_CHANGED_EVENT } from "../../core/storage/project-library-browser";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 import LibraryWorkspace from "../../modules/library/ui/library-workspace";
+import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
@@ -22,6 +25,22 @@ import {
 import reviewStyles from "./dashboard-bbs-review-host.module.css";
 
 const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, miniBlockNumber: 1 };
+
+function boundedReviewValue(value: string | null, maximum: number) {
+  const parsed = Number(value || 1);
+  const integer = Math.trunc(parsed);
+  return Number.isFinite(parsed) ? Math.min(maximum, Math.max(1, integer)) : 1;
+}
+
+function initialReviewAddress(): PreproductionReviewAddress {
+  if (typeof window === "undefined") return DEFAULT_REVIEW_ADDRESS;
+  const query = new URLSearchParams(window.location.search);
+  return {
+    blockNumber: boundedReviewValue(query.get("block"), 24),
+    miniBlockNumber: boundedReviewValue(query.get("mini"), 4),
+  };
+}
+
 type BuildReturnTarget = "outline" | "storyboard" | "previs";
 type PreproductionStage = "outline" | "storyboard" | "previs" | "timeline" | "production";
 
@@ -99,7 +118,7 @@ export default function DashboardBbsReviewHost({
   const [previsOpen, setPrevisOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [productionOpen, setProductionOpen] = useState(false);
-  const [reviewAddress, setReviewAddress] = useState<PreproductionReviewAddress>(DEFAULT_REVIEW_ADDRESS);
+  const [reviewAddress, setReviewAddress] = useState<PreproductionReviewAddress>(() => initialReviewAddress());
   const [buildReturnTarget, setBuildReturnTarget] = useState<BuildReturnTarget>("outline");
   const [openSourceOpen, setOpenSourceOpen] = useState(false);
   const [helpIssueLogOpen, setHelpIssueLogOpen] = useState(false);
@@ -113,6 +132,29 @@ export default function DashboardBbsReviewHost({
     setPrevisOpen(false);
     setTimelineOpen(false);
     setProductionOpen(false);
+  }
+
+  function rememberPreproductionContext(
+    stage: PreproductionStage | "build",
+    address: PreproductionReviewAddress,
+  ) {
+    try {
+      const project = loadFoundationProject();
+      const previous = hydratedStoryMapContext(project.id);
+      void persistStoryMapContext(project.id, {
+        blockNumber: address.blockNumber,
+        miniBlockNumber: address.miniBlockNumber,
+        stage,
+        ...(previous?.passageId ? { passageId: previous.passageId } : {}),
+      }).catch(() => undefined);
+    } catch {
+      // The stage can still open without a loaded project; the canonical surface will report that state.
+    }
+  }
+
+  function updateReviewAddress(stage: PreproductionStage, address: PreproductionReviewAddress) {
+    setReviewAddress(address);
+    rememberPreproductionContext(stage, address);
   }
 
   useEffect(() => {
@@ -180,44 +222,40 @@ export default function DashboardBbsReviewHost({
   }
 
   function openStoryMapStage(stage: StoryMapReviewStage, address: PreproductionReviewAddress) {
-    setReviewAddress(address);
-    closePreproductionSurfaces();
     if (stage === "outline") {
-      setOutlineOpen(true);
-      onSurfaceNameChange("STORY MAP");
+      openOutline(address);
       return;
     }
     if (stage === "build") {
       openBuild(address, "outline");
       return;
     }
-    setStoryboardOpen(true);
-    onSurfaceNameChange("STORYBOARD");
+    openStoryboard(address);
   }
 
   function openStoryboard(address: PreproductionReviewAddress = reviewAddress) {
-    setReviewAddress(address);
+    updateReviewAddress("storyboard", address);
     closePreproductionSurfaces();
     setStoryboardOpen(true);
     onSurfaceNameChange("STORYBOARD");
   }
 
   function openPrevis(address: PreproductionReviewAddress = reviewAddress) {
-    setReviewAddress(address);
+    updateReviewAddress("previs", address);
     closePreproductionSurfaces();
     setPrevisOpen(true);
     onSurfaceNameChange("PREVIS");
   }
 
   function openTimeline(address: PreproductionReviewAddress = reviewAddress) {
-    setReviewAddress(address);
+    updateReviewAddress("timeline", address);
     closePreproductionSurfaces();
     setTimelineOpen(true);
     onSurfaceNameChange("TIMELINE");
   }
 
   function openProduction(address: PreproductionReviewAddress = reviewAddress) {
-    setReviewAddress(address);
+    updateReviewAddress("production", address);
     closePreproductionSurfaces();
     setProductionOpen(true);
     onSurfaceNameChange("PRODUCTION");
@@ -239,6 +277,7 @@ export default function DashboardBbsReviewHost({
     returnTarget: BuildReturnTarget = "outline",
   ) {
     setReviewAddress(address);
+    rememberPreproductionContext("build", address);
     setBuildReturnTarget(returnTarget);
     closePreproductionSurfaces();
     setBuildOpen(true);
@@ -264,7 +303,7 @@ export default function DashboardBbsReviewHost({
       : "Outline";
 
   function openOutline(address: PreproductionReviewAddress = reviewAddress) {
-    setReviewAddress(address);
+    updateReviewAddress("outline", address);
     closePreproductionSurfaces();
     setOutlineOpen(true);
     onSurfaceNameChange("STORY MAP");
@@ -469,7 +508,17 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
         <PreproductionStageRail active="outline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
-        <MatrixStoryMapSurface onOpenStage={openStoryMapStage} onOpenPrevis={openPrevis} onOpenStoryModeSettings={openStoryModeSettings} />
+        <BlockVisualJourneyWorkspace
+          address={reviewAddress}
+          stage="outline"
+          onAddressChange={(address) => updateReviewAddress("outline", address)}
+        />
+        <MatrixStoryMapSurface
+          onAddressChange={(address) => updateReviewAddress("outline", address)}
+          onOpenStage={openStoryMapStage}
+          onOpenPrevis={openPrevis}
+          onOpenStoryModeSettings={openStoryModeSettings}
+        />
       </section>
     );
   }
@@ -514,9 +563,14 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("storyboard")}>Back to Dashboard</button>
         </div>
         <PreproductionStageRail active="storyboard" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <BlockVisualJourneyWorkspace
+          address={reviewAddress}
+          stage="storyboard"
+          onAddressChange={(address) => updateReviewAddress("storyboard", address)}
+        />
         <SkinV1StoryboardReviewSurface
           address={reviewAddress}
-          onAddressChange={setReviewAddress}
+          onAddressChange={(address) => updateReviewAddress("storyboard", address)}
           onOpenBuild={() => openBuild(reviewAddress, "storyboard")}
         />
       </section>
@@ -539,9 +593,14 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("previs")}>Back to Dashboard</button>
         </div>
         <PreproductionStageRail active="previs" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <BlockVisualJourneyWorkspace
+          address={reviewAddress}
+          stage="previs"
+          onAddressChange={(address) => updateReviewAddress("previs", address)}
+        />
         <SkinV1PrevisReviewSurface
           address={reviewAddress}
-          onAddressChange={setReviewAddress}
+          onAddressChange={(address) => updateReviewAddress("previs", address)}
           onOpenStoryboard={openStoryboard}
           onOpenBuild={() => openBuild(reviewAddress, "previs")}
         />
@@ -565,9 +624,14 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("timeline")}>Back to Dashboard</button>
         </div>
         <PreproductionStageRail active="timeline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <BlockVisualJourneyWorkspace
+          address={reviewAddress}
+          stage="timeline"
+          onAddressChange={(address) => updateReviewAddress("timeline", address)}
+        />
         <SkinV1TimelineReviewSurface
           address={reviewAddress}
-          onAddressChange={setReviewAddress}
+          onAddressChange={(address) => updateReviewAddress("timeline", address)}
           onOpenStoryboard={openStoryboard}
         />
       </section>
@@ -590,9 +654,14 @@ export default function DashboardBbsReviewHost({
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("production")}>Back to Dashboard</button>
         </div>
         <PreproductionStageRail active="production" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
+        <BlockVisualJourneyWorkspace
+          address={reviewAddress}
+          stage="production"
+          onAddressChange={(address) => updateReviewAddress("production", address)}
+        />
         <SkinV1ProductionReviewSurface
           address={reviewAddress}
-          onAddressChange={setReviewAddress}
+          onAddressChange={(address) => updateReviewAddress("production", address)}
         />
       </section>
     );

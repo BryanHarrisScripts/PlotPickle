@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "issue": 2360,
+  "phase": "block-visual-real-media-first-slice",
+  "brief": "docs/developer-briefs/2360-block-visual-slice.md",
+  "allowedChanges": [
+    "app/skin-v1/block-visual-journey-workspace.tsx",
+    "app/skin-v1/block-visual-journey-workspace.module.css",
+    "app/skin-v1/dashboard-bbs-review-host.tsx",
+    "app/skin-v1/matrix-story-map-surface.tsx",
+    "core/storage/story-map-context.ts",
+    "core/storage/profile-private-browser.ts",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2360-block-visual-slice.md",
+    "tests/issue-2360-block-visual-journey.test.mjs",
+    "config/development-convergence/2360.json"
+  ],
+  "acceptance": [
+    {
+      "id": "P2360-S1",
+      "criterion": "A real selected screenplay passage can submit one real image request through the existing image route, and the canonical visual artifact retains the exact submitted prompt, source identity, source revision, provider/model and generation settings.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "fetch(\"/api/local-ai/generate/image\""
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "prompt: submittedPrompt"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "stores the submitted prompt with source identity"
+        }
+      ]
+    },
+    {
+      "id": "P2360-S2",
+      "criterion": "The Human explicitly accepts the first image before sequence generation; generation itself does not auto-promote a visual.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "function useFirstImage()"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "type: \"foundations.visual.accept\""
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "requires Human acceptance before sequence generation"
+        }
+      ]
+    },
+    {
+      "id": "P2360-S3",
+      "criterion": "The first accepted image can expand to a three-image sequence in the same canonical media store, preserving completed images and retrying only missing frames after a partial stop.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "const neededFrames = [2, 3].filter"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "Retry creates only the missing frame"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "preserves partial completed media"
+        }
+      ]
+    },
+    {
+      "id": "P2360-S4",
+      "criterion": "The same generated assets can play as an in-place still-image preview; preview holds remain proposed review data rather than approved production timing.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "Playing still-image animatic in place"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "Proposed holds are preview data, not approved timing"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "in-place still-image animatic"
+        }
+      ]
+    },
+    {
+      "id": "P2360-S5",
+      "criterion": "Outline, Storyboard, Previs, Timeline and Production share one Block visual workspace and preserve Block, Mini-Block and passage identity in the existing private Story Map context.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/dashboard-bbs-review-host.tsx",
+          "contains": "BlockVisualJourneyWorkspace"
+        },
+        {
+          "type": "file-contains",
+          "path": "core/storage/story-map-context.ts",
+          "contains": "passageId?: string"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "one Block visual workspace across Outline, Storyboard, Previs, Timeline, and Production"
+        }
+      ]
+    },
+    {
+      "id": "P2360-S6",
+      "criterion": "A late image result cannot attach to a newly selected project, Block, Mini-Block or passage.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/block-visual-journey-workspace.tsx",
+          "contains": "activeSelectionRef.current"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2360-block-visual-journey.test.mjs",
+          "contains": "rejects late media against a changed selection"
+        }
+      ]
+    }
+  ]
+}

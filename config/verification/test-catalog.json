@@ -1184,7 +1184,8 @@
           "tests/issue-2249-navigation-continuity.test.mjs",
           "tests/issue-2285-five-stage-preproduction.test.mjs",
           "tests/issue-2287-discovery-living-board.test.mjs",
-          "tests/issue-2289-library-return-continuity.test.mjs"
+          "tests/issue-2289-library-return-continuity.test.mjs",
+          "tests/issue-2360-block-visual-journey.test.mjs"
         ]
       },
       "cost": "fast",

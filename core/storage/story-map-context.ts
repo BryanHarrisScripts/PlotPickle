@@ -1,9 +1,10 @@
-export type StoryMapStage = "map" | "plan" | "build" | "storyboard";
+export type StoryMapStage = "map" | "plan" | "build" | "outline" | "storyboard" | "previs" | "timeline" | "production";
 
 export type StoryMapContext = Readonly<{
   blockNumber: number;
   miniBlockNumber: number;
   stage: StoryMapStage;
+  passageId?: string;
 }>;
 
 export type StoryMapContextRegistry = Readonly<Record<string, StoryMapContext>>;
@@ -17,7 +18,21 @@ function boundedInteger(value: unknown, minimum: number, maximum: number, fallba
 }
 
 function normalizeStage(value: unknown): StoryMapStage {
-  return value === "plan" || value === "build" || value === "storyboard" ? value : "map";
+  return value === "plan"
+    || value === "build"
+    || value === "outline"
+    || value === "storyboard"
+    || value === "previs"
+    || value === "timeline"
+    || value === "production"
+    ? value
+    : "map";
+}
+
+function normalizePassageId(value: unknown) {
+  return typeof value === "string" && value.trim()
+    ? value.trim().slice(0, 320)
+    : undefined;
 }
 
 export function normalizeStoryMapContext(value: unknown): StoryMapContext {
@@ -28,6 +43,7 @@ export function normalizeStoryMapContext(value: unknown): StoryMapContext {
     blockNumber: boundedInteger(source.blockNumber, 1, 24, 1),
     miniBlockNumber: boundedInteger(source.miniBlockNumber, 1, 4, 1),
     stage: normalizeStage(source.stage),
+    ...(normalizePassageId(source.passageId) ? { passageId: normalizePassageId(source.passageId) } : {}),
   };
 }
 

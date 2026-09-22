@@ -159,7 +159,8 @@ export function persistStoryMapContext(projectId: string, value: StoryMapContext
   if (previous
     && previous.blockNumber === context.blockNumber
     && previous.miniBlockNumber === context.miniBlockNumber
-    && previous.stage === context.stage) return Promise.resolve();
+    && previous.stage === context.stage
+    && previous.passageId === context.passageId) return Promise.resolve();
   const storyMapContexts = normalizeStoryMapContextRegistry({ ...current, [id]: context });
   hydrated = { ...hydrated, storyMapContexts };
   return queueCacheWrite("save-story-map-contexts", { value: storyMapContexts });

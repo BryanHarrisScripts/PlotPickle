@@ -7,6 +7,11 @@ import { persistentHome } from "../local-credentials";
 import { publishDsddBrief } from "./dsdd-github-brief";
 import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { evaluateEvidenceUpdate } from "./dsdd-evidence-contract.mjs";
+import {
+  assertInterpretationIntegrity,
+  assertPiDraftGrounding,
+  requirementTextsFromInterpretation,
+} from "./dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";
@@ -219,16 +224,6 @@ function piSessionDir(profileId: string) {
   return path.join(persistentHome(), "developer-agent", "dsdd-sessions", opaque);
 }
 
-function requirementTexts(interpretation: string) {
-  const bullets = interpretation.split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter((line) => /^[-*]\s+\S/u.test(line))
-    .map((line) => line.replace(/^[-*]\s+/u, "").trim())
-    .filter(Boolean)
-    .slice(0, 12);
-  return bullets.length ? bullets : [interpretation.slice(0, 4000)];
-}
-
 function ensureHandoffPacket(intent: DsddIntent) {
   if (intent.handoffPacket) return intent.handoffPacket;
   const legacy = intent as DsddIntent & { buildPacket?: { intentDigest?: string } };
@@ -299,6 +294,9 @@ async function appendInterpretation(body: Record<string, unknown>) {
   const { context, session } = await load();
   const interpretation = text(body.text, 6000);
   if (!interpretation) throw new Error("DSDD interpretation is required.");
+  const latestHuman = [...session.conversation].reverse().find((entry) => entry.role === "human");
+  if (!latestHuman) throw new Error("DSDD cannot preserve an interpretation without Human narration.");
+  assertInterpretationIntegrity(latestHuman.text, interpretation);
   const captured = normalizeContext(body.context);
   const pi = await runDsddPiAction({
     action: "append-interpretation",
@@ -332,8 +330,9 @@ async function lockIntent() {
   if (session.conversation.indexOf(interpretation) < session.conversation.indexOf(human)) {
     throw new Error("DSDD must reflect the latest Human narration before Pi Draft.");
   }
+  assertInterpretationIntegrity(human.text, interpretation.text);
   const version = (session.intents.at(-1)?.version || 0) + 1;
-  const requirements: DsddRequirement[] = requirementTexts(interpretation.text).map((value, index) => ({
+  const requirements: DsddRequirement[] = requirementTextsFromInterpretation(interpretation.text).map((value, index) => ({
     id: `R${index + 1}`,
     text: value,
     status: "UNPROVEN",
@@ -392,12 +391,14 @@ async function draftDeveloperBrief() {
   ensureHandoffPacket(intent);
   if (intent.developerBrief?.state === "ready") return { session, intent };
 
+  assertInterpretationIntegrity(intent.humanStatement, intent.understoodMeaning);
   const draft = await runDsddPiBrief({
     humanStatement: intent.humanStatement,
     understoodMeaning: intent.understoodMeaning,
     context: intent.context,
     requirements: intent.requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
   });
+  await assertPiDraftGrounding(draft.text, process.cwd());
   intent.developerBrief = {
     state: "ready",
     generatedAt: new Date().toISOString(),
@@ -476,6 +477,8 @@ async function publishBriefIssue() {
   const intent = session.intents.at(-1);
   if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
+  assertInterpretationIntegrity(intent.humanStatement, intent.understoodMeaning);
+  await assertPiDraftGrounding(intent.developerBrief.text, process.cwd());
   ensureHandoffPacket(intent);
   if (intent.publishedIssue) return { session, intent };
 

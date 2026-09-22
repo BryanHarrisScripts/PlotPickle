@@ -144,7 +144,8 @@ test("#2331 keeps DSDD dictation progress inside the panel and shows elapsed loc
   assert.match(control, /data-voice-placement=\{statusPlacement\}/u);
   assert.match(control, /const \[elapsedSeconds, setElapsedSeconds\]/u);
   assert.match(control, /preflightDsddLocalVoiceReady/u);
-  assert.match(control, /ensureDsddLocalVoiceReady\(\(message\)/u);
+  assert.match(control, /provisionDsddLocalVoiceReady\(\(message\)/u);
+  assert.match(control, /ensureDsddLocalVoiceReady\(\)\.catch/u);
   assert.match(css, /\.control\[data-voice-placement="inline"\] \.status \{[\s\S]*position: static/u);
   assert.match(css, /\.control\[data-voice-placement="inline"\] \.meter \{[\s\S]*position: static/u);
   assert.match(dsdd, /statusPlacement="inline"/u);

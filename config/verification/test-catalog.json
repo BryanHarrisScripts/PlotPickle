@@ -1040,8 +1040,7 @@
       "triggerTokens": [
         "provider",
         "agent",
-        "api",
-        "hardware"
+        "api"
       ],
       "runner": {
         "kind": "node-test",

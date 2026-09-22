@@ -129,7 +129,7 @@
   width: 100%;
   max-height: min(52vh, 36rem);
   object-fit: contain;
-  background: #000;
+  background: var(--pp-skin-canvas);
 }
 
 .preview figcaption {

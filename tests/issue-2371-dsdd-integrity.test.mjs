@@ -6,11 +6,11 @@ import test from "node:test";
 import {
   assessDsddInterpretation,
   assertDsddInterpretationIntegrity,
-} from "../build/dsdd/dsdd-intent-integrity.mjs";
+} from "../scripts/dsdd-integrity.mjs";
 import {
   assessPiDraftGrounding,
   extractPiRepositoryPathClaims,
-} from "../scripts/dsdd-pi-grounding.mjs";
+} from "../scripts/dsdd-integrity.mjs";
 
 const LEARN_HUMAN = "The first thing that I talked about earlier was when you go into learn. And so from explore to number one, learn the first screen should be just the explore all and the actual screen. should be the all curriculum topics, 96 presentation lessons. That's the first thing. The other menus aren't required. Yeah, everything else is here.";
 

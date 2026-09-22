@@ -120,4 +120,8 @@ test("#2338 Windows Product Gate runs automatically for Pi DSDD promotion heads"
   assert.match(architecture, /needs\.dsdd-windows-scope\.outputs\.required == 'true'/u);
   assert.match(architecture, /pi-087-dsdd-session-evaluation/u);
   assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
+  assert.match(productGate, /Validate current Skin V1 startup boundary and DSDD owned Edge/u);
+  assert.match(productGate, /tests\/issue-2341-dsdd-zero-config\.test\.mjs/u);
+  assert.match(productGate, /tests\/issue-2331-dsdd-conversational-uat\.test\.mjs/u);
+  assert.doesNotMatch(productGate, /run-uat-autopilot\.mjs --contracts-only/u);
 });

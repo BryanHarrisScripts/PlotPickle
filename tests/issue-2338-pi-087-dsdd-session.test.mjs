@@ -58,15 +58,16 @@ test("#2338 keeps unsupported Pi source-only subpaths outside PlotPickle", async
   ]);
 });
 
-test("#2338 requires Windows Product Gate proof before Pi 0.87 promotion", async () => {
-  const [productGate, prGate] = await Promise.all([
+test("#2338 keeps Windows Pi proof while deterministic DSDD contracts are catalogued in Layer 4", async () => {
+  const [productGate, catalog] = await Promise.all([
     read(".github/workflows/product-gate.yml"),
-    read(".github/workflows/pr-gate.yml"),
+    readJson("config/verification/test-catalog.json"),
   ]);
   assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
   assert.match(productGate, /node scripts\/evaluate-pi-087-dsdd-session\.mjs/u);
-  assert.match(prGate, /Validate DSDD intent-to-evidence and Pi 0\.87 session contracts/u);
-  assert.match(prGate, /tests\/issue-2338-pi-087-dsdd-session\.test\.mjs/u);
+  const dsdd = catalog.entries.find((entry) => entry.id === "agent.dsdd-intent-pi-contract-2350");
+  assert.equal(dsdd?.ownerLayer, "agent-runtime");
+  assert.ok(dsdd?.runner.targets.includes("tests/issue-2338-pi-087-dsdd-session.test.mjs"));
 });
 
 
@@ -116,10 +117,13 @@ test("#2338 Windows Product Gate runs automatically only for Pi/session integrat
   assert.doesNotMatch(productGate, /^  pull_request:/mu);
   assert.match(productGate, /^  workflow_call:/mu);
   const architecture = await read(".github/workflows/architecture-shadow.yml");
+  const piScopeStart = architecture.indexOf("  pi-windows-scope:");
+  const piProofStart = architecture.indexOf("  pi-windows-proof:", piScopeStart);
+  const piScope = architecture.slice(piScopeStart, piProofStart);
   assert.match(architecture, /uses: \.\/\.github\/workflows\/product-gate\.yml/u);
   assert.match(architecture, /needs\.pi-windows-scope\.outputs\.required == 'true'/u);
-  assert.match(architecture, /pi-087-dsdd-session-evaluation/u);
-  assert.doesNotMatch(architecture, /pi-windows-scope[\s\S]*voice-input-control/u);
+  assert.match(piScope, /pi-087-dsdd-session-evaluation/u);
+  assert.doesNotMatch(piScope, /voice-input-control|local-voice|install-whisper/u);
   assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
   assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
   assert.doesNotMatch(productGate, /run-uat-autopilot\.mjs --contracts-only/u);

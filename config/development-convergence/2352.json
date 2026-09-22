@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "issue": 2352,
+  "phase": "local-voice-manifest-bom",
+  "brief": "docs/developer-briefs/2352-local-voice-manifest-bom.md",
+  "allowedChanges": [
+    "build/voice/local-voice-runtime.ts",
+    "config/development-convergence/2352.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2352-local-voice-manifest-bom.md",
+    "scripts/install-whisper-cpp.ps1",
+    "tests/issue-2352-local-voice-manifest-bom.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2352-A1",
+      "criterion": "Existing BOM-prefixed installed.json is accepted by the Node runtime before provenance and hash verification.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "source.replace(/^\\uFEFF/u, \"\")"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2352-local-voice-manifest-bom.test.mjs",
+          "contains": "legacy BOM-prefixed installed.json"
+        }
+      ]
+    },
+    {
+      "id": "P2352-A2",
+      "criterion": "New installed.json files are written as UTF-8 without BOM.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/install-whisper-cpp.ps1",
+          "contains": "System.Text.UTF8Encoding($false)"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/install-whisper-cpp.ps1",
+          "contains": "Write-Utf8NoBom $InstalledPath $installedJson"
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/install-whisper-cpp.ps1",
+          "contains": "Assert-Utf8NoBom $InstalledPath"
+        }
+      ]
+    },
+    {
+      "id": "P2352-A3",
+      "criterion": "Exact provenance and SHA-256 validation remains intact.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "installed.sourceArchiveSha256 === voiceManifest.runtime.sha256"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "executableHash === installed.executableSha256"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/voice/local-voice-runtime.ts",
+          "contains": "modelHash === voiceManifest.model.sha256"
+        }
+      ]
+    },
+    {
+      "id": "P2352-A4",
+      "criterion": "The installer and BOM regression are owned by Layer 6 Provider Runtime.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/ownership-map.json",
+          "contains": "scripts/install-whisper-cpp.ps1"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "tests/issue-2352-local-voice-manifest-bom.test.mjs"
+        }
+      ]
+    }
+  ]
+}

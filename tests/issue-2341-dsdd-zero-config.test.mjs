@@ -27,21 +27,23 @@ test("#2341 owned Edge app grants the real default microphone without a settings
   assert.doesNotMatch(launcher, /--use-fake-device-for-media-stream/u);
 });
 
-test("#2341 DSDD microphone activation automatically prepares reviewed local dictation", async () => {
-  const [layer, control, voiceContract] = await Promise.all([
+test("#2341 normal Human startup prepares reviewed local dictation before the app is declared ready", async () => {
+  const [layer, control, voiceContract, launcher] = await Promise.all([
     text("app/_components/universal-voice-input-layer.tsx"),
     text("app/_components/voice-input-control.tsx"),
     text("lib/voice-input.ts"),
+    text("Start-PlotPickle.bat"),
   ]);
 
   assert.match(layer, /purpose=\{target\.getAttribute\("data-purpose"\) \|\| "natural-language"\}/u);
-  assert.match(control, /natural-language developer uat narration/u);
-  assert.match(control, /fetch\("\/api\/local-voice\/setup"/u);
-  assert.match(control, /JSON\.stringify\(\{ approved: true \}\)/u);
   assert.match(control, /fetch\("\/api\/local-voice\/status"/u);
+  assert.doesNotMatch(control, /fetch\("\/api\/local-voice\/setup"/u);
   assert.match(control, /PROVISIONING_LOCAL/u);
   assert.match(voiceContract, /"PROVISIONING_LOCAL"/u);
-  assert.match(control, /navigator\.mediaDevices\.getUserMedia/u);
+  assert.match(launcher, /call :prepare_local_dictation/u);
+  assert.match(launcher, /-Mode Verify/u);
+  assert.match(launcher, /-Mode Install -Approved/u);
+  assert.ok(launcher.indexOf("call :prepare_local_dictation") < launcher.indexOf("Startup checks complete. PlotPickle can now start."));
 });
 
 test("#2341 voice status remains visibly readable inside the self-contained Edge window", async () => {
@@ -52,16 +54,16 @@ test("#2341 voice status remains visibly readable inside the self-contained Edge
   assert.match(css, /max-width: min\(22rem, calc\(100vw - 2rem\)\)/u);
 });
 
-test("#2341 DSDD starts microphone capture before local speech provisioning completes", async () => {
+test("#2341 microphone capture cannot turn listening green before local speech readiness succeeds", async () => {
   const control = await text("app/_components/voice-input-control.tsx");
   const start = control.indexOf("async function startListening()");
   const stop = control.indexOf("async function stopAndTranscribe()");
   const slice = control.slice(start, stop);
 
-  assert.ok(slice.indexOf("ensureDsddLocalVoiceReady().catch") >= 0);
-  assert.ok(slice.indexOf("navigator.mediaDevices.getUserMedia") >= 0);
-  assert.doesNotMatch(slice, /await ensureDsddLocalVoiceReady\(\)/u);
-  assert.match(control, /setState\("PROVISIONING_LOCAL"\)[\s\S]*await provisioningRef\.current/u);
+  assert.ok(slice.indexOf("await requireLocalVoiceReady()") >= 0);
+  assert.ok(slice.indexOf("navigator.mediaDevices.getUserMedia") > slice.indexOf("await requireLocalVoiceReady()"));
+  assert.ok(slice.indexOf('setState("LISTENING")') > slice.indexOf("navigator.mediaDevices.getUserMedia"));
+  assert.doesNotMatch(slice, /\/api\/local-voice\/setup|provisionDsddLocalVoiceReady/u);
 });
 
 test("#2341 DSDD renders a live green microphone signal meter from captured samples", async () => {
@@ -78,7 +80,7 @@ test("#2341 DSDD renders a live green microphone signal meter from captured samp
   assert.match(css, /\.meterFill \{[\s\S]*background: #52ff88;/u);
 });
 
-test("#2341 keeps zero-configuration behavior scoped to the DSDD narration field", async () => {
+test("#2341 DSDD needs no Settings or runtime-install detour before dictation", async () => {
   const [dsdd, control, settings] = await Promise.all([
     text("app/skin-v1/global-dsdd-conversation.tsx"),
     text("app/_components/voice-input-control.tsx"),
@@ -86,8 +88,8 @@ test("#2341 keeps zero-configuration behavior scoped to the DSDD narration field
   ]);
 
   assert.match(dsdd, /data-purpose="natural-language developer uat narration"/u);
-  assert.match(control, /purpose\.trim\(\)\.toLowerCase\(\) === "natural-language developer uat narration"/u);
-  assert.match(settings, /Install local dictation/u);
+  assert.match(settings, /Repair local dictation/u);
   assert.match(settings, /approved: true/u);
-  assert.match(control, /No Settings step is required/u);
+  assert.doesNotMatch(control, /\/api\/local-voice\/setup/u);
+  assert.match(control, /Checking local speech-to-text readiness/u);
 });

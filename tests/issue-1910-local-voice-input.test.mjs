@@ -33,7 +33,7 @@ test("#1910 pins one reviewed whisper.cpp Windows CPU runtime and immutable base
   assert.equal(manifest.capture.bitsPerSample, 16);
   assert.equal(manifest.capture.maxDurationSeconds, 120);
   assert.equal(manifest.execution.cloudFallback, false);
-  assert.equal(manifest.execution.automaticRuntimeDownload, false);
+  assert.equal(manifest.execution.automaticRuntimeDownload, true);
 });
 
 test("#1910 dictated text preserves existing content, selection and ordinary field semantics", async () => {
@@ -106,16 +106,19 @@ test("#1910 native execution is fixed-path, bounded, non-shell, ephemeral and fa
   assert.match(gateway, /Content-Type.*audio\/wav/su);
 });
 
-test("#1910 setup is explicit in Settings and no model/provider selector is introduced", async () => {
-  const [settingsWorkspace, settings] = await Promise.all([
+test("#1910 Human startup owns first provisioning while Settings remains the explicit repair surface", async () => {
+  const [settingsWorkspace, settings, launcher] = await Promise.all([
     text("app/sage-settings-workspace.tsx"),
     text("app/local-voice-settings.tsx"),
+    text("Start-PlotPickle.bat"),
   ]);
   assert.match(settingsWorkspace, /id: "voice", label: "Local Dictation"/u);
   assert.match(settingsWorkspace, /<LocalVoiceSettings \/>/u);
-  assert.match(settings, /Install local dictation/u);
+  assert.match(settings, /Repair local dictation/u);
   assert.match(settings, /approved: true/u);
   assert.match(settings, /Fallback<\/dt><dd>None/u);
+  assert.match(launcher, /call :prepare_local_dictation/u);
+  assert.match(launcher, /-Mode Install -Approved/u);
   assert.doesNotMatch(settings, /<select/u);
 });
 

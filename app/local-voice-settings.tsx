@@ -75,17 +75,17 @@ export default function LocalVoiceSettings() {
     return () => window.clearInterval(timer);
   }, [status?.setupTask?.state]);
 
-  async function install() {
+  async function repair() {
     if (working || status?.setupTask?.state === "installing") return;
     setWorking(true);
-    setNotice("Installing the reviewed CPU-only whisper.cpp runtime and base.en speech model. Downloads are integrity-checked before activation.");
+    setNotice("Repairing the reviewed CPU-only whisper.cpp runtime and base.en speech model. Downloads are integrity-checked before activation.");
     try {
       const next = await voiceRequest(SETUP_PATH, "POST", { approved: true });
       setStatus(next);
       if (next.setupTask?.state === "installing") setNotice(next.setupTask.message);
       else if (next.ready) setNotice(next.reason);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Local dictation setup could not start.");
+      setNotice(error instanceof Error ? error.message : "Local dictation repair could not start.");
     } finally {
       setWorking(false);
     }
@@ -102,7 +102,7 @@ export default function LocalVoiceSettings() {
           <h3 id="local-dictation-title">Local Dictation</h3>
           <span>Speak into ordinary PlotPickle text fields. PlotPickle records a bounded temporary WAV, transcribes it locally with whisper.cpp, inserts plain text, then deletes the audio.</span>
         </div>
-        <strong data-ready={status?.ready || undefined}>{status?.ready ? "Ready" : installing ? "Installing" : "Setup"}</strong>
+        <strong data-ready={status?.ready || undefined}>{status?.ready ? "Ready" : installing ? "Repairing" : "Repair"}</strong>
       </header>
 
       <div className={styles.boundary}>
@@ -121,8 +121,8 @@ export default function LocalVoiceSettings() {
 
       {!status?.ready ? (
         <div className={styles.actions}>
-          <button type="button" onClick={() => void install()} disabled={working || installing}>
-            {installing ? "Installing local dictation…" : status?.runtimeInstalled || status?.modelInstalled ? "Repair local dictation" : "Install local dictation"}
+          <button type="button" onClick={() => void repair()} disabled={working || installing}>
+            {installing ? "Repairing local dictation…" : "Repair local dictation"}
           </button>
           <button type="button" onClick={() => void refresh()} disabled={working || installing}>Check again</button>
         </div>
@@ -131,7 +131,7 @@ export default function LocalVoiceSettings() {
       )}
 
       <p className={styles.notice} role="status" aria-live="polite">{notice || status?.reason || "Checking the reviewed local dictation runtime…"}</p>
-      <small>Setup is explicit: PlotPickle does not download whisper.cpp or its model merely because a microphone button is visible.</small>
+      <small>Normal Human startup provisions and verifies local dictation once. Use this panel to verify or repair the reviewed runtime and model; microphone buttons never start downloads.</small>
     </section>
   );
 }

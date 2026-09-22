@@ -764,6 +764,138 @@
       "notes": "#2035 provider-neutral Creative Transaction foundation. Proves Local offline capability resolution, fail-closed provider selection, Change Set/diff semantics, staged verification and Human review, durable reconciliation without guessing success, and strict Responsibility Run/PPF authority separation."
     },
     {
+      "id": "experience.voice-input-contract-2350",
+      "ownerLayer": "experience-contract",
+      "architectureComponents": [
+        "semantic-intents",
+        "typed-events",
+        "voice-input-state-contract"
+      ],
+      "triggerTokens": [
+        "voice",
+        "surface",
+        "navigation"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2341-dsdd-zero-config.test.mjs",
+          "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/experience-contract.json",
+          ".artifacts/verification-shadow/experience-contract.comparison.json"
+        ]
+      },
+      "notes": "#2350 owns the shared truthful microphone interaction contract in Layer 2. It proves startup-ready STT is required before LISTENING, OFF is red/slashed, LISTENING is green with live meter feedback, and microphone controls never install speech dependencies."
+    },
+    {
+      "id": "agent.dsdd-intent-pi-contract-2350",
+      "ownerLayer": "agent-runtime",
+      "architectureComponents": [
+        "agent-runtime",
+        "dsdd-intent-to-evidence",
+        "persistent-pi-session"
+      ],
+      "triggerTokens": [
+        "agent",
+        "skill"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+          "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+          "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/agent-runtime.json",
+          ".artifacts/verification-shadow/agent-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2350 moves deterministic DSDD/Pi source contracts into Layer 4 instead of a permanent long-running PR lane. The real Windows Pi compatibility proof remains separately impact-selected for Pi/session/native integration changes."
+    },
+    {
+      "id": "provider.local-voice-runtime-2350",
+      "ownerLayer": "provider-runtime",
+      "architectureComponents": [
+        "provider-runtime",
+        "local-speech-runtime",
+        "whisper-cpp"
+      ],
+      "triggerTokens": [
+        "provider",
+        "native",
+        "voice",
+        "api"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2350-startup-voice-dsdd-routing.test.mjs"
+        ]
+      },
+      "cost": "fast",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "any"
+      ],
+      "requirements": {
+        "network": false,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/verification-shadow/provider-runtime.json",
+          ".artifacts/verification-shadow/provider-runtime.comparison.json"
+        ]
+      },
+      "notes": "#2350 owns the local whisper.cpp/base.en runtime contract in Layer 6 with a dependency-free source contract. The broader #1910 regression remains available in legacy/manual gates, while exact Windows fixture transcription remains a separate impact-selected native proof."
+    },
+    {
       "id": "verification.phase2-core",
       "ownerLayer": "verification",
       "architectureComponents": [

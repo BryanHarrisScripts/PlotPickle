@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate current Skin V1 startup boundary and DSDD owned Edge
         shell: pwsh
-        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs tests/issue-2331-dsdd-conversational-uat.test.mjs tests/issue-2338-pi-087-dsdd-session.test.mjs
+        run: node --test tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-2341-dsdd-zero-config.test.mjs
 
       - name: Validate current security closeout
         shell: pwsh

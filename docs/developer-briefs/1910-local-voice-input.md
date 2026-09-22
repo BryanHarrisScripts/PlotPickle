@@ -49,9 +49,9 @@ The gateway is registered by the existing `build/local-ai-gateway.ts` compositio
 
 ### Settings owner
 
-`app/sage-settings-workspace.tsx` exposes `Local Dictation` as a focused Settings section. `app/local-voice-settings.tsx` provides the explicit one-time install/repair action and public readiness information.
+`app/sage-settings-workspace.tsx` exposes `Local Dictation` as a focused Settings section. `app/local-voice-settings.tsx` provides explicit verification/repair controls and public readiness information.
 
-No automatic download occurs because a microphone control is visible or clicked.
+The original #1910 implementation required a one-time Settings install. #2350 supersedes that first-use ownership for normal Human startup: the launcher now provisions the exact reviewed whisper.cpp/base.en bytes when missing before the app is declared ready. Microphone controls still never trigger downloads, and Settings remains the explicit verify/repair surface.
 
 ## Pre-build reuse/exit-gate answers
 

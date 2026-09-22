@@ -28,6 +28,7 @@ set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
 set "COMPANION_AFTER_READY=scripts\windows-companion-maintenance-after-ready.ps1"
 set "AGENT_SKILLS_CLI=scripts\agent-skills.mjs"
+set "LOCAL_VOICE_INSTALLER=scripts\install-whisper-cpp.ps1"
 set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
@@ -292,6 +293,19 @@ if errorlevel 1 goto :setup_failed
 for /f %%V in ('node -p "require('./node_modules/@mastra/core/package.json').version"') do set "MASTRA_VERSION=%%V"
 echo !OK! Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents.
 
+if /I "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="human" (
+  echo.
+  echo !CYAN![LOCAL DICTATION CHECK]!RESET! Verifying the reviewed local speech runtime...
+  call :prepare_local_dictation
+  if errorlevel 1 (
+    echo.
+    echo !ERROR_TAG! PlotPickle could not prepare required local dictation.
+    echo Retry startup with an internet connection, or use Settings ^> Local Dictation to repair the reviewed runtime.
+    pause
+    exit /b 1
+  )
+)
+
 if not exist "%AGENT_SKILLS_CLI%" (
   echo.
   echo !ERROR_TAG! The PlotPickle Agent Skills verifier is missing.
@@ -460,6 +474,22 @@ if /I not "!PLOTPICKLE_STARTUP_TESTING_MODE!"=="webmcp" exit /b 0
 if not exist "%WEBMCP_STARTUP_RUNNER%" exit /b 0
 if not defined PLOTPICKLE_HOME exit /b 0
 node "%WEBMCP_STARTUP_RUNNER%" cleanup --home "!PLOTPICKLE_HOME!" >nul 2>&1
+exit /b 0
+
+:prepare_local_dictation
+if not exist "%LOCAL_VOICE_INSTALLER%" (
+  echo !ERROR_TAG! The reviewed local dictation installer is missing from this PlotPickle build.
+  exit /b 1
+)
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_VOICE_INSTALLER%" -Mode Verify >nul 2>&1
+if not errorlevel 1 (
+  echo !READY! Reviewed whisper.cpp runtime and base.en model are installed and verified.
+  exit /b 0
+)
+echo !INFO! Local dictation is missing or needs repair. Preparing the reviewed runtime and base.en model once...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_VOICE_INSTALLER%" -Mode Install -Approved
+if errorlevel 1 exit /b 1
+echo !READY! Reviewed whisper.cpp runtime and base.en model are installed and verified.
 exit /b 0
 
 :start_deferred_companion_maintenance

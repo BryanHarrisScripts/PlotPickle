@@ -144,8 +144,8 @@ export async function localVoiceRuntimeStatus(): Promise<LocalVoiceRuntimeStatus
       sourceCommit: voiceManifest.runtime.sourceCommit,
       modelRevision: voiceManifest.model.revision,
       reason: !runtimeInstalled
-        ? "The reviewed whisper.cpp runtime is not installed. Open Settings → Local → Local Dictation to install it."
-        : "The reviewed base.en speech model is not installed. Open Settings → Local → Local Dictation to repair it.",
+        ? "The reviewed whisper.cpp runtime is not installed. Restart PlotPickle or use Settings → Local → Local Dictation to repair it."
+        : "The reviewed base.en speech model is not installed. Restart PlotPickle or use Settings → Local → Local Dictation to repair it.",
     };
   }
 

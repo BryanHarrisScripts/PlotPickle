@@ -32,7 +32,7 @@ let activeVoiceSession: { id: string; cancel: () => void } | null = null;
 
 const statusText: Record<VoiceInputState, string> = {
   IDLE: "Local dictation ready.",
-  PROVISIONING_LOCAL: "Preparing the reviewed local speech runtime for DSDD. No Settings step is required.",
+  PROVISIONING_LOCAL: "Checking local speech-to-text readiness.",
   REQUESTING_PERMISSION: "Requesting microphone permission.",
   LISTENING: "Listening. The green MIC INPUT meter moves only when PlotPickle is receiving microphone audio.",
   FINALIZING_AUDIO: "Finalizing local audio.",
@@ -40,8 +40,8 @@ const statusText: Record<VoiceInputState, string> = {
   INSERTED: "Dictated text inserted. Review or edit it before sending.",
   PERMISSION_DENIED: "Microphone permission was denied. Existing text was preserved.",
   MIC_UNAVAILABLE: "No usable microphone is available. Existing text was preserved.",
-  MODEL_UNAVAILABLE: "The reviewed local speech model is unavailable. DSDD could not prepare it automatically.",
-  RUNTIME_UNAVAILABLE: "The reviewed local speech runtime is unavailable. DSDD could not prepare it automatically.",
+  MODEL_UNAVAILABLE: "The reviewed local speech model is unavailable. Restart PlotPickle or repair Local Dictation in Settings.",
+  RUNTIME_UNAVAILABLE: "The reviewed local speech runtime is unavailable. Restart PlotPickle or repair Local Dictation in Settings.",
   TRANSCRIPTION_FAILED: "Local transcription failed. Existing text was preserved.",
   CANCELLED: "Dictation cancelled. Existing text was preserved.",
   TIMEOUT: "Dictation stopped at the two-minute safety limit. Existing text was preserved.",
@@ -99,49 +99,23 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
-async function preflightDsddLocalVoiceReady() {
+async function requireLocalVoiceReady() {
   const response = await fetch("/api/local-voice/status", { cache: "no-store" });
-  if (!response.ok) throw new Error(`Local STT preflight returned HTTP ${response.status}.`);
-}
-
-async function provisionDsddLocalVoiceReady(onProgress?: (message: string) => void) {
-  const setup = await fetch("/api/local-voice/setup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ approved: true }),
-  });
-  const first = await setup.json() as {
+  const body = await response.json() as {
     ready?: boolean;
-    installing?: boolean;
-    setupTask?: { state?: string; message?: string };
-    message?: string;
+    reason?: string;
+    runtimeInstalled?: boolean;
+    modelInstalled?: boolean;
   };
-  if (first.ready) {
-    onProgress?.("Local speech-to-text runtime is ready.");
-    return;
-  }
-  onProgress?.(first.setupTask?.message || first.message || "Preparing the local speech-to-text runtime.");
-  if (!setup.ok && !first.installing) throw new Error(first.message || first.setupTask?.message || "Local dictation setup failed.");
+  if (response.ok && body.ready) return;
 
-  const deadline = Date.now() + 5 * 60_000;
-  while (Date.now() < deadline) {
-    await new Promise((resolve) => window.setTimeout(resolve, 1000));
-    const response = await fetch("/api/local-voice/status", { cache: "no-store" });
-    const body = await response.json() as {
-      ready?: boolean;
-      reason?: string;
-      setupTask?: { state?: string; message?: string };
-    };
-    if (body.ready) {
-      onProgress?.("Local speech-to-text runtime is ready.");
-      return;
-    }
-    onProgress?.(body.setupTask?.message || body.reason || "Preparing the local speech-to-text runtime.");
-    if (body.setupTask?.state === "failed") {
-      throw new Error(body.setupTask.message || body.reason || "Local dictation setup failed.");
-    }
-  }
-  throw new Error("Local dictation preparation timed out.");
+  const error = new Error(body.reason || `Local speech-to-text readiness returned HTTP ${response.status}.`) as Error & { code?: string };
+  error.code = body.runtimeInstalled === false
+    ? "VOICE_RUNTIME_UNAVAILABLE"
+    : body.modelInstalled === false
+      ? "VOICE_MODEL_UNAVAILABLE"
+      : "VOICE_RUNTIME_UNAVAILABLE";
+  throw error;
 }
 
 function stateFromFailure(error: unknown): VoiceInputState {
@@ -170,10 +144,7 @@ export default function VoiceInputControl({
   const [state, setState] = useState<VoiceInputState>("IDLE");
   const [detail, setDetail] = useState("");
   const [inputLevel, setInputLevel] = useState(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const resourcesRef = useRef<CaptureResources | null>(null);
-  const provisioningRef = useRef<Promise<void> | null>(null);
-  const provisioningErrorRef = useRef<unknown>(null);
   const sessionIdRef = useRef("");
   const valueRef = useRef(value);
   const selectionRef = useRef({ start: value.length, end: value.length });
@@ -182,27 +153,15 @@ export default function VoiceInputControl({
   useEffect(() => { valueRef.current = value; }, [value]);
   useEffect(() => {
     if (purpose.trim().toLowerCase() !== "natural-language developer uat narration") return;
-    void preflightDsddLocalVoiceReady().then(
+    void requireLocalVoiceReady().then(
       () => undefined,
       (error) => {
         if (mountedRef.current) {
-          setDetail(error instanceof Error ? error.message : "Local STT preflight will retry when dictation starts.");
+          setDetail(error instanceof Error ? error.message : "Local speech-to-text is unavailable. Restart PlotPickle or repair Local Dictation.");
         }
       },
     );
   }, [purpose]);
-  useEffect(() => {
-    if (!["PROVISIONING_LOCAL", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state)) {
-      setElapsedSeconds(0);
-      return;
-    }
-    const startedAt = Date.now();
-    setElapsedSeconds(0);
-    const timer = window.setInterval(() => {
-      if (mountedRef.current) setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [state]);
   useEffect(() => () => {
     mountedRef.current = false;
     const resources = resourcesRef.current;
@@ -222,12 +181,6 @@ export default function VoiceInputControl({
 
   function clearActiveOwner() {
     if (activeVoiceSession?.id === sessionIdRef.current) activeVoiceSession = null;
-  }
-
-  function ensureDsddLocalVoiceReady() {
-    return provisionDsddLocalVoiceReady((message) => {
-      if (mountedRef.current) setDetail(message);
-    });
   }
 
   async function releaseCapture() {
@@ -263,16 +216,14 @@ export default function VoiceInputControl({
       start: field?.selectionStart ?? valueRef.current.length,
       end: field?.selectionEnd ?? field?.selectionStart ?? valueRef.current.length,
     };
-    const dsddAutoProvision = purpose.trim().toLowerCase() === "natural-language developer uat narration";
-    provisioningErrorRef.current = null;
-    provisioningRef.current = dsddAutoProvision
-      ? ensureDsddLocalVoiceReady().catch((error) => { provisioningErrorRef.current = error; })
-      : null;
     setInputLevel(0);
     setDetail("");
-    setState("REQUESTING_PERMISSION");
+    setState("PROVISIONING_LOCAL");
 
     try {
+      await requireLocalVoiceReady();
+      if (activeVoiceSession?.id !== id) return;
+      setState("REQUESTING_PERMISSION");
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("Microphone capture is unavailable.", "NotFoundError");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -334,15 +285,6 @@ export default function VoiceInputControl({
       const samples = resample(concatenate(resources.chunks), resources.sampleRate, 16000);
       const wav = pcm16Wav(samples, 16000);
       if (wav.size <= 44) throw new Error("No microphone audio was captured.");
-      if (provisioningRef.current) {
-        setState("PROVISIONING_LOCAL");
-        setDetail("Microphone audio captured. Preparing the local speech-to-text runtime before transcription.");
-        await provisioningRef.current;
-        provisioningRef.current = null;
-        const provisioningError = provisioningErrorRef.current;
-        provisioningErrorRef.current = null;
-        if (provisioningError) throw provisioningError;
-      }
       setDetail("");
       setState("TRANSCRIBING");
       const response = await fetch("/api/local-voice/transcribe", {
@@ -378,7 +320,6 @@ export default function VoiceInputControl({
   const listening = state === "LISTENING";
   const busy = ["PROVISIONING_LOCAL", "REQUESTING_PERMISSION", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state);
   const label = listening ? "Stop dictation" : "Dictate text";
-  const elapsedSuffix = elapsedSeconds > 0 ? ` · ${elapsedSeconds}s` : "";
 
   return (
     <span
@@ -397,6 +338,7 @@ export default function VoiceInputControl({
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
           <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75v-4a3.75 3.75 0 0 0-7.5 0v4A3.75 3.75 0 0 0 12 15.25Zm-6-4a6 6 0 0 0 12 0M12 17.25V21m-3 0h6" />
+          <path className={styles.offSlash} d="M5 5 19 19" />
         </svg>
       </button>
       {listening ? (
@@ -415,7 +357,7 @@ export default function VoiceInputControl({
           <span className={styles.meterValue}>{inputLevel >= 0.03 ? "SIGNAL" : "QUIET"}</span>
         </span>
       ) : null}
-      <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}{elapsedSuffix}</span>
+      <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}</span>
     </span>
   );
 }

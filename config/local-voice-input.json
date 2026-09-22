@@ -36,6 +36,6 @@
     "timeoutMilliseconds": 180000,
     "maxOutputBytes": 1048576,
     "cloudFallback": false,
-    "automaticRuntimeDownload": false
+    "automaticRuntimeDownload": true
   }
 }

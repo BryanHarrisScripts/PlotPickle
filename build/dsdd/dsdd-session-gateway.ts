@@ -1,11 +1,11 @@
-import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { ViteDevServer } from "vite";
 import { currentProfileRequestContext } from "../auth/profile-request-context";
 import { persistentHome } from "../local-credentials";
+import { publishDsddBrief } from "./dsdd-github-brief";
+import { runDsddPiBrief } from "./dsdd-pi-brief";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";
@@ -35,6 +35,26 @@ type DsddRequirement = {
   evidence: Array<{ ref: string; summary: string }>;
 };
 
+type DsddDeveloperBrief = {
+  state: "ready";
+  generatedAt: string;
+  reviewer: "pi";
+  piVersion: string;
+  model: string;
+  runtime: string;
+  tools: ["read", "grep", "find", "ls"];
+  repositoryMutation: false;
+  text: string;
+};
+
+type DsddPublishedIssue = {
+  repository: "BryanHarrisScripts/PlotPickle";
+  number: number;
+  title: string;
+  url: string;
+  publishedAt: string;
+};
+
 type DsddIntent = {
   version: number;
   locked: true;
@@ -45,24 +65,19 @@ type DsddIntent = {
   understoodMeaning: string;
   context: DsddContext | null;
   requirements: DsddRequirement[];
-  buildPacket: {
+  handoffPacket: {
     id: string;
     intentVersion: number;
     intentDigest: string;
     createdAt: string;
-    isolation: "git-worktree";
-    mutationAuthority: "existing-local-developer-worker";
+    mutationAuthority: "none-dsdd";
+    publicationAuthority: "human-publish-brief";
+    implementationAuthority: "github-issue-downstream";
     mergeAuthority: "github-exact-head-green-only";
     repairMayMutateIntent: false;
   };
-  build?: {
-    state: "queued" | "running" | "passed-pre-pr" | "failed";
-    startedAt: string;
-    completedAt?: string;
-    reportPath: string;
-    packetPath: string;
-    summary: string;
-  };
+  developerBrief?: DsddDeveloperBrief;
+  publishedIssue?: DsddPublishedIssue;
 };
 
 type DsddSession = {
@@ -161,7 +176,7 @@ function normalizeSession(value: unknown): DsddSession {
     createdAt: typeof source.createdAt === "string" ? source.createdAt : new Date().toISOString(),
     updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : new Date().toISOString(),
     conversation: Array.isArray(source.conversation) ? source.conversation.slice(-80) : [],
-    intents: Array.isArray(source.intents) ? source.intents.slice(-20) : [],
+    intents: Array.isArray(source.intents) ? source.intents.slice(-20) as DsddIntent[] : [],
   };
 }
 
@@ -208,7 +223,9 @@ function lockedText(intent: DsddIntent) {
     `Approved meaning: ${intent.understoodMeaning}`,
     "Requirements:",
     ...intent.requirements.map((requirement) => `${requirement.id} ${requirement.text}`),
-    "The locked meaning and requirements may not be changed by coding or repair workers. A material meaning change requires a new Human-approved intent version.",
+    "This lock authorizes read-only Pi Draft analysis and later explicit Publish Brief only.",
+    "DSDD itself has no source mutation, branch, commit, pull-request, or merge authority.",
+    "A material meaning change requires a new Human-approved intent version.",
   ].join("\n");
 }
 
@@ -243,7 +260,7 @@ async function appendHuman(body: Record<string, unknown>) {
 
 async function appendInterpretation(body: Record<string, unknown>) {
   const { context, session } = await load();
-  const interpretation = text(body.text);
+  const interpretation = text(body.text, 6000);
   if (!interpretation) throw new Error("DSDD interpretation is required.");
   const captured = normalizeContext(body.context);
   const pi = await runDsddPiAction({
@@ -274,9 +291,9 @@ async function lockIntent() {
   const { context, session } = await load();
   const human = [...session.conversation].reverse().find((entry) => entry.role === "human");
   const interpretation = [...session.conversation].reverse().find((entry) => entry.role === "dsdd");
-  if (!human || !interpretation) throw new Error("DSDD needs both Human narration and a reflected interpretation before Build this can lock intent.");
+  if (!human || !interpretation) throw new Error("DSDD needs both Human narration and a reflected interpretation before Pi Draft can lock intent.");
   if (session.conversation.indexOf(interpretation) < session.conversation.indexOf(human)) {
-    throw new Error("DSDD must reflect the latest Human narration before Build this.");
+    throw new Error("DSDD must reflect the latest Human narration before Pi Draft.");
   }
   const version = (session.intents.at(-1)?.version || 0) + 1;
   const requirements: DsddRequirement[] = requirementTexts(interpretation.text).map((value, index) => ({
@@ -302,13 +319,14 @@ async function lockIntent() {
     understoodMeaning: interpretation.text,
     context: human.context,
     requirements,
-    buildPacket: {
-      id: `dsdd-build-${randomUUID()}`,
+    handoffPacket: {
+      id: `dsdd-handoff-${randomUUID()}`,
       intentVersion: version,
       intentDigest: createHash("sha256").update(digestSource).digest("hex"),
       createdAt: new Date().toISOString(),
-      isolation: "git-worktree",
-      mutationAuthority: "existing-local-developer-worker",
+      mutationAuthority: "none-dsdd",
+      publicationAuthority: "human-publish-brief",
+      implementationAuthority: "github-issue-downstream",
       mergeAuthority: "github-exact-head-green-only",
       repairMayMutateIntent: false,
     },
@@ -330,123 +348,118 @@ async function lockIntent() {
   return { session, intent };
 }
 
-async function startBuild() {
+async function draftDeveloperBrief() {
   const { context, session } = await load();
   const intent = session.intents.at(-1);
-  if (!intent?.locked) throw new Error("Choose Build this to lock a DSDD intent before implementation starts.");
-  if (!session.piSessionFile) throw new Error("The persistent Pi engineering session is not available.");
-  if (intent.build?.state === "queued" || intent.build?.state === "running") {
-    return { session, intent };
-  }
+  if (!intent?.locked) throw new Error("Choose Pi Draft after reviewing the latest DSDD interpretation.");
+  if (intent.developerBrief?.state === "ready") return { session, intent };
 
-  const root = path.join(persistentHome(), "developer-agent", "dsdd-builds", session.sessionId);
-  await mkdir(root, { recursive: true, mode: 0o700 });
-  const safeVersion = `intent-v${intent.version}`;
-  const packetPath = path.join(root, `${safeVersion}-packet.json`);
-  const reportPath = path.join(root, `${safeVersion}-uat.json`);
-  const fingerprint = `dsdd-${session.sessionId.slice(0, 12)}-v${intent.version}`;
-  const packet = {
-    schemaVersion: 1,
-    locked: true,
-    intentVersion: intent.version,
-    intentDigest: intent.buildPacket.intentDigest,
+  const draft = await runDsddPiBrief({
     humanStatement: intent.humanStatement,
     understoodMeaning: intent.understoodMeaning,
     context: intent.context,
     requirements: intent.requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
-    repairMayMutateIntent: false,
-    isolation: intent.buildPacket.isolation,
-    mergeAuthority: intent.buildPacket.mergeAuthority,
-  };
-  const report = {
-    schemaVersion: 1,
+  });
+  intent.developerBrief = {
+    state: "ready",
     generatedAt: new Date().toISOString(),
-    findings: [{
-      fingerprint,
-      title: `DSDD locked intent v${intent.version}`,
-      area: "dsdd-locked-intent",
-      severity: "blocker",
-      message: [
-        `Implement the Human-approved DSDD locked intent v${intent.version}.`,
-        `Approved meaning: ${intent.understoodMeaning}`,
-        "Do not modify the locked meaning. Add or strengthen focused deterministic proof before changing product behavior.",
-      ].join("\n"),
-      evidence: {
-        intentVersion: intent.version,
-        intentDigest: intent.buildPacket.intentDigest,
-        requirementIds: intent.requirements.map((requirement) => requirement.id),
-      },
-    }],
+    reviewer: "pi",
+    piVersion: draft.piVersion,
+    model: draft.model,
+    runtime: draft.runtime,
+    tools: draft.tools,
+    repositoryMutation: false,
+    text: draft.text,
   };
-  await Promise.all([
-    writeFile(packetPath, `${JSON.stringify(packet, null, 2)}\n`, { encoding: "utf8", mode: 0o600 }),
-    writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, { encoding: "utf8", mode: 0o600 }),
-  ]);
+  await runDsddPiAction({
+    action: "append-developer-brief",
+    cwd: process.cwd(),
+    sessionDir: piSessionDir(context.profileId),
+    sessionId: session.piSessionId || session.sessionId,
+    sessionFile: session.piSessionFile || undefined,
+    text: draft.text,
+    intentVersion: intent.version,
+  });
+  await save(context, session);
+  return { session, intent };
+}
 
-  intent.build = {
-    state: "running",
-    startedAt: new Date().toISOString(),
-    reportPath,
-    packetPath,
-    summary: "Existing local Pi developer worker is implementing the locked intent in an isolated git worktree.",
+function issueTitle(intent: DsddIntent) {
+  const surface = text(intent.context?.surfaceLabel || "PlotPickle", 48).replace(/[^a-z0-9 _./-]+/gi, "").trim() || "PlotPickle";
+  const summary = intent.understoodMeaning
+    .split(/\r?\n/u)
+    .map((line) => line.replace(/^#+\s*|^[-*]\s+/u, "").trim())
+    .find(Boolean)
+    ?.replace(/\s+/gu, " ")
+    .slice(0, 110) || `Locked intent v${intent.version}`;
+  return text(`[DSDD] ${surface} — ${summary}`, 180);
+}
+
+function issueBody(intent: DsddIntent) {
+  if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
+  return [
+    `<!-- plotpickle-dsdd-intent:${intent.handoffPacket.intentDigest} -->`,
+    "# DSDD Developer Brief",
+    "",
+    "This Issue was published explicitly from PlotPickle Conversational UAT after Human review.",
+    "DSDD has not edited source, created a branch, committed, pushed, opened a PR, or merged code.",
+    "",
+    "## Human intent",
+    intent.humanStatement,
+    "",
+    "## DSDD interpretation",
+    intent.understoodMeaning,
+    "",
+    "## Surface context",
+    intent.context
+      ? `- Surface: ${intent.context.surfaceLabel}\n- Surface ID: ${intent.context.surfaceId}\n- Route: ${intent.context.route}\n- Captured: ${intent.context.capturedAt}`
+      : "- No governed surface context was captured.",
+    "",
+    "## Locked requirements",
+    ...intent.requirements.map((requirement) => `- ${requirement.id}: ${requirement.text} [${requirement.status}]`),
+    "",
+    "## Pi technical developer draft",
+    intent.developerBrief.text,
+    "",
+    "## DSDD provenance",
+    `- Intent version: ${intent.version}`,
+    `- Intent digest: ${intent.handoffPacket.intentDigest}`,
+    "- Pi tools: read, grep, find, ls",
+    "- Pi repository mutation: false",
+    "- DSDD mutation authority: none",
+    "- Implementation authority: downstream developer workflow against this Issue",
+    "- Merge authority: GitHub exact-head green-only",
+  ].join("\n").slice(0, 50_000);
+}
+
+async function publishBriefIssue() {
+  const { context, session } = await load();
+  const intent = session.intents.at(-1);
+  if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
+  if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
+  if (intent.publishedIssue) return { session, intent };
+
+  const published = await publishDsddBrief({
+    title: issueTitle(intent),
+    body: issueBody(intent),
+  });
+  intent.publishedIssue = {
+    repository: "BryanHarrisScripts/PlotPickle",
+    number: published.number,
+    title: published.title,
+    url: published.url,
+    publishedAt: new Date().toISOString(),
   };
   await save(context, session);
-
-  const child = spawn(process.execPath, [
-    path.resolve(process.cwd(), "scripts", "run-uat-repair-agent.mjs"),
-    "--worker", "pi",
-    "--report", reportPath,
-    "--fingerprint", fingerprint,
-    "--dsdd-session", session.piSessionFile,
-    "--dsdd-packet", packetPath,
-  ], {
+  await runDsddPiAction({
+    action: "record-publication",
     cwd: process.cwd(),
-    env: process.env,
-    windowsHide: true,
-    stdio: "ignore",
-  });
-  child.unref();
-  child.once("error", async (error) => {
-    intent.build = {
-      ...intent.build!,
-      state: "failed",
-      completedAt: new Date().toISOString(),
-      summary: error.message,
-    };
-    await save(context, session).catch(() => {});
-  });
-  child.once("exit", async (code) => {
-    intent.build = {
-      ...intent.build!,
-      state: code === 0 ? "passed-pre-pr" : "failed",
-      completedAt: new Date().toISOString(),
-      summary: code === 0
-        ? "The isolated developer worker passed its pre-PR deterministic gates and produced its normal draft-PR handoff. Requirement proof remains PASS/FAIL/UNPROVEN evidence, not worker self-report."
-        : `The isolated developer worker exited ${code}; locked intent remains unchanged.`,
-    };
-    const evidenceStatus = code === 0 ? "UNPROVEN" : "FAIL";
-    for (const requirement of intent.requirements) {
-      if (requirement.status !== "UNPROVEN") continue;
-      requirement.status = evidenceStatus;
-      requirement.evidence = [{
-        ref: reportPath,
-        summary: code === 0
-          ? "Pre-PR build/validation completed, but this requirement still needs direct behavior evidence."
-          : "The bounded implementation worker failed before requirement proof completed.",
-      }];
-    }
-    await runDsddPiAction({
-      action: "record-evidence",
-      cwd: process.cwd(),
-      sessionDir: piSessionDir(context.profileId),
-      sessionId: session.piSessionId || session.sessionId,
-      sessionFile: session.piSessionFile || undefined,
-      intentVersion: intent.version,
-      requirements: intent.requirements,
-    }).catch(() => {});
-    await save(context, session).catch(() => {});
-  });
-
+    sessionDir: piSessionDir(context.profileId),
+    sessionId: session.piSessionId || session.sessionId,
+    sessionFile: session.piSessionFile || undefined,
+    intentVersion: intent.version,
+    publication: intent.publishedIssue,
+  }).catch(() => {});
   return { session, intent };
 }
 
@@ -510,8 +523,12 @@ async function handle(request: IncomingMessage, response: ServerResponse) {
     replyDsdd(response, { status: 200, body: { ok: true, ...(await lockIntent()) } });
     return;
   }
-  if (action === "build") {
-    replyDsdd(response, { status: 202, body: { ok: true, ...(await startBuild()) } });
+  if (action === "draft-brief") {
+    replyDsdd(response, { status: 200, body: { ok: true, ...(await draftDeveloperBrief()) } });
+    return;
+  }
+  if (action === "publish-brief") {
+    replyDsdd(response, { status: 201, body: { ok: true, ...(await publishBriefIssue()) } });
     return;
   }
   if (action === "record-evidence") {

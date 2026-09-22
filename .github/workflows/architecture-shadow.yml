@@ -88,8 +88,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  dsdd-windows-scope:
-    name: Detect DSDD Windows proof scope
+  pi-windows-scope:
+    name: Detect Pi Windows proof scope
     runs-on: ubuntu-latest
     outputs:
       required: ${{ steps.scope.outputs.required }}
@@ -102,14 +102,51 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(Start-PlotPickle.bat|build/dsdd/|scripts/(pi-managed-install|evaluate-pi-087-dsdd-session|dsdd-pi-session)|scripts/pi/|config/(pi-087-dsdd-session-evaluation|developer-agent-stack)|\.pi/npm/|app/skin-v1/global-dsdd-conversation|app/_components/(voice-input-control|universal-voice-input-layer)|tests/issue-(2331|2338|2341|341)-|\.github/workflows/product-gate\.yml)'; then
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/(pi-managed-install|evaluate-pi-087-dsdd-session|dsdd-pi-session|run-uat-repair-agent)\.mjs|scripts/pi/|config/(pi-087-dsdd-session-evaluation|developer-agent-stack)\.json|\.pi/npm/)'; then
             echo 'required=true' >> "$GITHUB_OUTPUT"
           else
             echo 'required=false' >> "$GITHUB_OUTPUT"
           fi
 
-  dsdd-windows-proof:
-    name: DSDD Windows proof
-    needs: dsdd-windows-scope
-    if: needs.dsdd-windows-scope.outputs.required == 'true'
+  pi-windows-proof:
+    name: Pi Windows proof
+    needs: pi-windows-scope
+    if: needs.pi-windows-scope.outputs.required == 'true'
     uses: ./.github/workflows/product-gate.yml
+
+  voice-windows-scope:
+    name: Detect local voice Windows proof scope
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.scope.outputs.required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'HEAD^' }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(Start-PlotPickle\.bat|scripts/install-whisper-cpp\.ps1|config/local-voice-input\.json|build/voice/|runtime/whisper/|tests/issue-(1910|2341|2350)-)'; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'required=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  voice-windows-proof:
+    name: Local voice Windows proof
+    needs: voice-windows-scope
+    if: needs.voice-windows-scope.outputs.required == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Smoke reviewed whisper.cpp and base.en
+        shell: pwsh
+        env:
+          PLOTPICKLE_HOME: ${{ runner.temp }}\plotpickle-voice
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-whisper-cpp.ps1 -Mode Smoke -Approved

@@ -445,7 +445,8 @@
       "id": "local-voice-provider-runtime",
       "classification": "production",
       "include": [
-        "build/voice/**"
+        "build/voice/**",
+        "scripts/install-whisper-cpp.ps1"
       ],
       "ownerLayer": "provider-runtime",
       "riskTokens": [

@@ -67,7 +67,8 @@ async function sha256(filePath: string) {
 
 async function installedManifest(filePath: string) {
   try {
-    const value = JSON.parse(await readFile(filePath, "utf8")) as Partial<InstalledVoiceRuntime>;
+    const source = await readFile(filePath, "utf8");
+    const value = JSON.parse(source.replace(/^\uFEFF/u, "")) as Partial<InstalledVoiceRuntime>;
     return value;
   } catch {
     return null;

@@ -248,6 +248,7 @@
         ".pi/npm/package.json",
         ".pi/npm/package-lock.json",
         "scripts/dsdd-pi-draft.mjs",
+        "scripts/dsdd-pi-grounding.mjs",
         "scripts/dsdd-publish-brief.mjs"
       ],
       "ownerLayer": "agent-runtime",

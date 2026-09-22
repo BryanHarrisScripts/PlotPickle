@@ -63,13 +63,13 @@ async function runtimeFingerprint(paths: ReturnType<typeof localVoicePaths>): Pr
 }
 
 function sameFingerprint(left: RuntimeFingerprint | null, right: RuntimeFingerprint) {
-  return Boolean(left)
-    && left!.executableSize === right.executableSize
-    && left!.executableMtimeMs === right.executableMtimeMs
-    && left!.modelSize === right.modelSize
-    && left!.modelMtimeMs === right.modelMtimeMs
-    && left!.manifestSize === right.manifestSize
-    && left!.manifestMtimeMs === right.manifestMtimeMs;
+  if (!left) return false;
+  return left.executableSize === right.executableSize
+    && left.executableMtimeMs === right.executableMtimeMs
+    && left.modelSize === right.modelSize
+    && left.modelMtimeMs === right.modelMtimeMs
+    && left.manifestSize === right.manifestSize
+    && left.manifestMtimeMs === right.manifestMtimeMs;
 }
 
 function runtimeRoot() {

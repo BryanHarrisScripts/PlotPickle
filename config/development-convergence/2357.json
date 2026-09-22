@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "issue": 2357,
+  "phase": "dsdd-guided-flow-fast-interpret",
+  "brief": "docs/developer-briefs/2357-dsdd-guided-flow-fast-interpret.md",
+  "allowedChanges": [
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "app/skin-v1/global-dsdd-conversation.module.css",
+    "build/local-runtime-manager.ts",
+    "build/writing-assistant-gateway.ts",
+    "build/writing-assistant-provider.ts",
+    "config/development-convergence/2357.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/architecture/DETERMINISTIC-SPECIFICATION-DRIVEN-DEVELOPMENT.md",
+    "docs/developer-briefs/2357-dsdd-guided-flow-fast-interpret.md",
+    "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
+    "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2357-A1",
+      "criterion": "Conversational UAT presents 01 Interpret, 02 Pi Draft, 03 Publish Brief in order and no Clear Draft control.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "<small>01</small>"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "<small>02</small>"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "<small>03</small>"
+        }
+      ]
+    },
+    {
+      "id": "P2357-A2",
+      "criterion": "No-action interpretations stop the handoff before Pi Draft and Publish Brief.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "No development action required. Steps 02 and 03 are not needed for this UAT observation."
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Do not invite Pi Draft when no development action is required."
+        }
+      ]
+    },
+    {
+      "id": "P2357-A3",
+      "criterion": "DSDD intent generation is bounded at 384 output tokens and repeated text is compacted.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/writing-assistant-gateway.ts",
+          "contains": "DSDD_INTENT_MAX_OUTPUT_TOKENS = 384"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/writing-assistant-gateway.ts",
+          "contains": "compactDsddIntentText(generated)"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/writing-assistant-provider.ts",
+          "contains": "maxOutputTokens?: number"
+        }
+      ]
+    },
+    {
+      "id": "P2357-A4",
+      "criterion": "The non-production SmolLM2 health-check model cannot satisfy production text roles.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "build/local-runtime-manager.ts",
+          "contains": "models.filter((model) => !healthCheckModel(model))"
+        },
+        {
+          "type": "file-contains",
+          "path": "lib/runtime/ai/local-runtime.ts",
+          "contains": "production: false"
+        }
+      ]
+    },
+    {
+      "id": "P2357-A5",
+      "criterion": "Existing Pi Draft read-only and Publish Brief Issue-only authority remain intact.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2357-dsdd-guided-flow-fast-interpret.test.mjs",
+          "contains": "preserves Pi Draft read-only and Publish Brief Issue-only authority boundaries"
+        }
+      ]
+    },
+    {
+      "id": "P2357-A6",
+      "criterion": "Focused Layer 2 and Layer 6 impact tests cover the guided DSDD and provider runtime changes.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "experience.dsdd-guided-flow-2357"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "provider.dsdd-production-interpretation-2357"
+        }
+      ]
+    }
+  ]
+}

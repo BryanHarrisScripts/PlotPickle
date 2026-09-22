@@ -19,7 +19,7 @@ test("#2354 Clear Draft only clears the current narration textbox", async () => 
   const start = panel.indexOf("function clearDraft()");
   const end = panel.indexOf("\n  if (!eligible)", start);
   const block = panel.slice(start, end);
-  assert.match(block, /setDraft\("")/u);
+  assert.match(block, /setDraft\(""\)/u);
   assert.doesNotMatch(block, /setMessages|setLockedIntent|setHydrated|authenticatedProfileFetch/u);
 });
 

@@ -112,7 +112,15 @@ function compatibleChatEndpoint(profile: ProviderProfile) {
   return `${baseUrl}/chat/completions`;
 }
 
-export async function generateAssistantText(profile: ProviderProfile, instructions: string, prompt: string) {
+export async function generateAssistantText(
+  profile: ProviderProfile,
+  instructions: string,
+  prompt: string,
+  options: { maxOutputTokens?: number } = {},
+) {
+  const maxOutputTokens = Number.isFinite(options.maxOutputTokens)
+    ? Math.max(32, Math.min(4096, Math.round(options.maxOutputTokens!)))
+    : undefined;
   const baseUrl = normalizedProviderUrl(profile.baseUrl);
   if (!prompt.trim()) throw new Error("Enter a question before sending it to the Writing Assistant.");
   if (!profile.textModel.trim()) throw new Error("Choose a text model for this provider.");
@@ -122,6 +130,7 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
       model: profile.textModel,
       instructions: instructions.slice(0, 6_000),
       input: prompt.slice(0, 64_000),
+      ...(maxOutputTokens ? { max_output_tokens: maxOutputTokens } : {}),
     });
     return openAiText(value);
   }
@@ -133,6 +142,7 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
         { role: "system", content: instructions.slice(0, 6_000) },
         { role: "user", content: prompt.slice(0, 64_000) },
       ],
+      ...(maxOutputTokens ? { max_tokens: maxOutputTokens } : {}),
     });
     return chatCompletionText(value);
   }
@@ -144,6 +154,7 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
         { role: "system", content: instructions.slice(0, 6_000) },
         { role: "user", content: prompt.slice(0, 64_000) },
       ],
+      ...(maxOutputTokens ? { max_tokens: maxOutputTokens } : {}),
     });
     return chatCompletionText(value);
   }
@@ -159,6 +170,7 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
     ],
     stream: false,
     temperature: CURRICULUM_GUIDE_TEMPERATURE,
+    ...(maxOutputTokens ? { max_tokens: maxOutputTokens } : {}),
   });
   return chatCompletionText(value);
 }

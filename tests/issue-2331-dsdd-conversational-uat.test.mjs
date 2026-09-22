@@ -43,18 +43,20 @@ test("#2331 grounds each narration in current route and governed surface context
   assert.match(panel, /CURRENT PLOTPICKLE CONTEXT/u);
 });
 
-test("#2331 keeps conversation non-mutating until explicit Build this confirmation", async () => {
+test("#2331 keeps interpretation non-mutating and makes the Human handoff actions explicit", async () => {
   const panel = await read("app/skin-v1/global-dsdd-conversation.tsx");
 
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/text"/u);
   assert.match(panel, /"X-PlotPickle-DSDD-Scope": "intent"/u);
   assert.match(panel, /data-purpose="natural-language developer uat narration"/u);
-  assert.match(panel, /Microphone is ready here/u);
-  assert.match(panel, /Do not claim that code was changed, fixed, tested, committed, or merged/u);
-  assert.match(panel, /Nothing enters BUILD until you choose Build this/u);
-  assert.match(panel, /onClick=\{\(\) => \{ void lockCurrentIntent\(\); \}\}[^>]*>\{locking \? "Locking…" : "Build this"\}/u);
-  assert.doesNotMatch(panel, /\/api\/github/u);
-  assert.doesNotMatch(panel, /merge_pull_request|create_pull_request|update_file/u);
+  assert.match(panel, /Interpret reflects your meaning/u);
+  assert.match(panel, /Pi Draft locks the approved intent and adds read-only repository guidance/u);
+  assert.match(panel, /Publish Brief creates the durable GitHub Issue handoff/u);
+  assert.match(panel, />Clear draft<\/button>/u);
+  assert.match(panel, /"Pi draft"/u);
+  assert.match(panel, /"Publish brief"/u);
+  assert.match(panel, /"Interpret"/u);
+  assert.doesNotMatch(panel, /Build this|action: "build"/u);
 });
 
 test("#2331 preserves the live conversation across navigation in the persistent authenticated shell", async () => {
@@ -80,7 +82,7 @@ test("#2331 DSDD local intent generation is isolated from Story Mode locality po
 });
 
 
-test("#2331 persists semantic provenance and locks a versioned build packet before build", async () => {
+test("#2331 persists semantic provenance and locks a versioned handoff packet before Pi Draft", async () => {
   const [panel, gateway] = await Promise.all([
     read("app/skin-v1/global-dsdd-conversation.tsx"),
     read("build/dsdd/dsdd-session-gateway.ts"),
@@ -89,11 +91,13 @@ test("#2331 persists semantic provenance and locks a versioned build packet befo
   assert.match(panel, /action: "append-human"/u);
   assert.match(panel, /action: "append-interpretation"/u);
   assert.match(panel, /action: "lock-intent"/u);
-  assert.match(panel, /action: "build"/u);
+  assert.match(panel, /action: "draft-brief"/u);
+  assert.match(panel, /action: "publish-brief"/u);
   assert.match(gateway, /domain: "memory"/u);
   assert.match(gateway, /version = \(session\.intents\.at\(-1\)\?\.version \|\| 0\) \+ 1/u);
   assert.match(gateway, /status: "UNPROVEN"/u);
-  assert.match(gateway, /repairMayMutateIntent: false/u);
+  assert.match(gateway, /mutationAuthority: "none-dsdd"/u);
+  assert.match(gateway, /publicationAuthority: "human-publish-brief"/u);
   assert.match(gateway, /mergeAuthority: "github-exact-head-green-only"/u);
 });
 

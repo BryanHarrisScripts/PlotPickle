@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "issue": 2354,
+  "phase": "dsdd-pi-draft-publish-brief",
+  "brief": "docs/developer-briefs/2354-dsdd-pi-draft-publish-brief.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    "app/skin-v1/global-dsdd-conversation.module.css",
+    "app/skin-v1/global-dsdd-conversation.tsx",
+    "build/dsdd/dsdd-github-brief.ts",
+    "build/dsdd/dsdd-pi-brief.ts",
+    "build/dsdd/dsdd-pi-session.ts",
+    "build/dsdd/dsdd-session-gateway.ts",
+    "config/development-convergence/2354.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/architecture/DETERMINISTIC-SPECIFICATION-DRIVEN-DEVELOPMENT.md",
+    "docs/developer-briefs/2354-dsdd-pi-draft-publish-brief.md",
+    "scripts/dsdd-pi-draft.mjs",
+    "scripts/dsdd-pi-session.mjs",
+    "scripts/dsdd-publish-brief.mjs",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2338-pi-087-dsdd-session.test.mjs",
+    "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2354-A1",
+      "criterion": "Human-visible actions are Clear Draft, Interpret, Pi Draft and Publish Brief.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Pi draft"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Publish brief"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "Interpret"
+        }
+      ]
+    },
+    {
+      "id": "P2354-A2",
+      "criterion": "Clear Draft only clears the narration textarea and interpretation output is bounded before persistence.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "function clearDraft()"
+        },
+        {
+          "type": "file-contains",
+          "path": "app/skin-v1/global-dsdd-conversation.tsx",
+          "contains": "MAX_INTERPRETATION_CHARS = 6000"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "MAX_BODY = 128 * 1024"
+        }
+      ]
+    },
+    {
+      "id": "P2354-A3",
+      "criterion": "Pi Draft uses read-only repository tools and DSDD has no source mutation authority.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/dsdd-pi-draft.mjs",
+          "contains": "runPiReadOnly"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "mutationAuthority: \"none-dsdd\""
+        },
+        {
+          "type": "file-contains",
+          "path": "scripts/dsdd-pi-session.mjs",
+          "contains": "repositoryMutation: false"
+        }
+      ]
+    },
+    {
+      "id": "P2354-A4",
+      "criterion": "Publish Brief creates an Issue-only durable handoff and persists publication metadata to prevent repeated publication.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "scripts/dsdd-publish-brief.mjs",
+          "contains": "\"issue\", \"create\""
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "if (intent.publishedIssue) return { session, intent };"
+        },
+        {
+          "type": "file-contains",
+          "path": "build/dsdd/dsdd-session-gateway.ts",
+          "contains": "action === \"publish-brief\""
+        }
+      ]
+    },
+    {
+      "id": "P2354-A5",
+      "criterion": "Conversational DSDD no longer launches the coding/repair worker or exposes an automatic build action.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "docs/developer-briefs/2354-dsdd-pi-draft-publish-brief.md",
+          "contains": "no longer exposes the old `build` action"
+        },
+        {
+          "type": "file-contains",
+          "path": "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
+          "contains": "cannot mutate the repository"
+        }
+      ]
+    },
+    {
+      "id": "P2354-A6",
+      "criterion": "Focused Layer 2 and Layer 4 tests lock the new DSDD handoff semantics.",
+      "evidence": [
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "experience.dsdd-brief-handoff-2354"
+        },
+        {
+          "type": "file-contains",
+          "path": "config/verification/test-catalog.json",
+          "contains": "agent.dsdd-brief-handoff-2354"
+        }
+      ]
+    }
+  ]
+}

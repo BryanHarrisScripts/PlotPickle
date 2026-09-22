@@ -92,6 +92,28 @@ async function main() {
       lockedMessageEntryId: entryId,
       recordedAt: new Date().toISOString(),
     });
+  } else if (input.action === "append-developer-brief") {
+    const text = clean(input.text, 12000);
+    if (!text) throw new Error("DSDD Pi developer brief is required.");
+    entryId = session.appendCustomMessageEntry(
+      "plotpickle-dsdd-developer-brief",
+      text,
+      false,
+      { intentVersion: input.intentVersion, readOnly: true },
+    );
+    session.appendCustomEntry("plotpickle-dsdd-developer-brief-provenance", {
+      briefEntryId: entryId,
+      intentVersion: input.intentVersion,
+      tools: ["read", "grep", "find", "ls"],
+      repositoryMutation: false,
+      recordedAt: new Date().toISOString(),
+    });
+  } else if (input.action === "record-publication") {
+    entryId = session.appendCustomEntry("plotpickle-dsdd-github-issue-publication", {
+      intentVersion: input.intentVersion,
+      publication: input.publication || null,
+      recordedAt: new Date().toISOString(),
+    });
   } else if (input.action === "record-evidence") {
     entryId = session.appendCustomEntry("plotpickle-dsdd-evidence", {
       intentVersion: input.intentVersion,

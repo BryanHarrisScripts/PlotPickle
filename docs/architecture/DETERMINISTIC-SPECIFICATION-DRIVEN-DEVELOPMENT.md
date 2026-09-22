@@ -195,14 +195,15 @@ The Human experience should resemble a capable developer or UAT team listening t
 
 The Human can correct that interpretation.
 
-When the Human explicitly accepts it, for example with "Build this", DSDD creates a versioned locked interpretation.
+When the Human explicitly accepts the interpretation with **Pi Draft**, DSDD creates a versioned locked interpretation.
 
 After lock:
 
-- implementation workers may decide how to implement the requirement;
-- verification workers may determine whether it is satisfied;
-- repair workers may fix implementation;
-- no worker may silently change what success means.
+- Pi may inspect the repository only through the bounded read-only brief tools;
+- Pi converts the approved meaning into implementation-grade developer guidance;
+- the Human may explicitly choose **Publish Brief** to create the durable GitHub Issue handoff;
+- DSDD itself does not edit source, create a branch, commit, open a pull request or merge;
+- downstream implementation and verification workers may later act against the published Issue, but no worker may silently change what success means.
 
 A changed meaning requires a new specification revision and a new Human confirmation.
 
@@ -392,10 +393,10 @@ The Human:
 4. points out where actual behavior differs;
 5. sees a concise confirmation of what DSDD understood;
 6. corrects that understanding if required;
-7. says "Build this";
-8. receives the implemented result;
-9. exercises the workflow again;
-10. receives evidence tied back to the approved intent.
+7. chooses "Pi Draft" and reviews repository-aware technical guidance;
+8. chooses "Publish Brief" to create the GitHub Issue handoff;
+9. later receives the implemented result through the normal development loop;
+10. exercises the workflow again and receives evidence tied back to the approved intent.
 
 The Human should not need to author JSON, YAML, test code or architecture schemas to obtain deterministic behavior.
 
@@ -429,7 +430,8 @@ IDEA / HUMAN LANGUAGE
 -> CHALLENGE AMBIGUITY
 -> HUMAN CONFIRMATION
 -> LOCKED SEMANTIC CONTRACT
--> DEVELOPER BRIEF / BUILD INPUTS
+-> PI READ-ONLY TECHNICAL DRAFT
+-> PUBLISH BRIEF / GITHUB ISSUE
 -> PLAN
 -> BUILD
 -> VERIFY
@@ -488,7 +490,9 @@ Human conversational instruction
 -> interpreted intent
 -> ambiguity challenge
 -> Human confirmation
--> locked build contract
+-> locked semantic contract
+-> read-only Pi technical brief
+-> explicit GitHub Issue publication
 -> existing coding loop
 -> existing verification
 -> requirement/evidence mapping

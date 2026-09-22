@@ -93,23 +93,19 @@ test("#2338 owns one recoverable profile-private Pi 0.87 session from narration 
   assert.match(panel, /authenticatedProfileFetch/u);
 });
 
-test("#2338 injects the immutable locked intent into the same Pi history and existing isolated repair boundary", async () => {
-  const [extension, repair, gateway] = await Promise.all([
-    read("scripts/pi/dsdd-locked-intent-extension.mjs"),
-    read("scripts/run-uat-repair-agent.mjs"),
+test("#2338 preserves immutable Pi history while DSDD Pi Draft is read-only", async () => {
+  const [bridge, draft, gateway] = await Promise.all([
+    read("scripts/dsdd-pi-session.mjs"),
+    read("scripts/dsdd-pi-draft.mjs"),
     read("build/dsdd/dsdd-session-gateway.ts"),
   ]);
-  assert.match(extension, /context_with_system/u);
-  assert.match(extension, /PLOTPICKLE_DSDD_BUILD_PACKET/u);
-  assert.match(extension, /event\.messages\[0\]/u);
-  assert.match(extension, /Do not alter, weaken, reinterpret, or delete an acceptance obligation/u);
-  assert.match(repair, /"--fork", path\.resolve\(dsddSessionFile\)/u);
-  assert.match(repair, /dsdd-locked-intent-extension\.mjs/u);
-  assert.match(repair, /PLOTPICKLE_DSDD_BUILD_PACKET/u);
-  assert.match(repair, /prepareWorktree/u);
-  assert.match(gateway, /run-uat-repair-agent\.mjs/u);
-  assert.match(gateway, /"git-worktree"/u);
-  assert.match(gateway, /"github-exact-head-green-only"/u);
+  assert.match(bridge, /plotpickle-dsdd-developer-brief/u);
+  assert.match(bridge, /repositoryMutation: false/u);
+  assert.match(draft, /runPiReadOnly/u);
+  assert.match(draft, /tools to read, grep, find and ls|read, grep, find and ls/u);
+  assert.match(gateway, /mutationAuthority: "none-dsdd"/u);
+  assert.match(gateway, /implementationAuthority: "github-issue-downstream"/u);
+  assert.doesNotMatch(gateway, /run-uat-repair-agent\.mjs|prepareWorktree|"git-worktree"/u);
 });
 
 test("#2338 Windows Product Gate runs automatically only for Pi/session integration heads", async () => {

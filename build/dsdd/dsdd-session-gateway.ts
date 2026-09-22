@@ -11,7 +11,7 @@ import {
   assertInterpretationIntegrity,
   assertPiDraftGrounding,
   requirementTextsFromInterpretation,
-} from "./dsdd-integrity.mjs";
+} from "../../lib/dsdd/dsdd-integrity.mjs";
 import { runDsddPiAction } from "./dsdd-pi-session";
 
 const API = "/api/dsdd/session";

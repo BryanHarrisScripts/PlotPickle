@@ -5,7 +5,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import { resolvePiLocalRuntime, runPiReadOnly } from "./pi-worker-runtime.mjs";
-import { assertPiDraftGrounding } from "./dsdd-pi-grounding.mjs";
+import { assertPiDraftGrounding } from "./dsdd-integrity.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_INPUT_BYTES = 96 * 1024;

@@ -130,3 +130,40 @@ test("#2331 keeps a shared microphone control visible without requiring narratio
   assert.match(panel, /ref=\{narrationRef\}\s+data-voice-input="false"/u);
   assert.match(panel, /inputType="textarea"\s+purpose="natural-language developer uat narration"/u);
 });
+
+
+test("#2331 keeps DSDD dictation progress inside the panel and shows elapsed local work", async () => {
+  const [control, css, dsdd, dsddCss] = await Promise.all([
+    read("app/_components/voice-input-control.tsx"),
+    read("app/_components/voice-input-control.module.css"),
+    read("app/skin-v1/global-dsdd-conversation.tsx"),
+    read("app/skin-v1/global-dsdd-conversation.module.css"),
+  ]);
+
+  assert.match(control, /statusPlacement\?: "overlay" \| "inline"/u);
+  assert.match(control, /data-voice-placement=\{statusPlacement\}/u);
+  assert.match(control, /const \[elapsedSeconds, setElapsedSeconds\]/u);
+  assert.match(control, /preflightDsddLocalVoiceReady/u);
+  assert.match(control, /ensureDsddLocalVoiceReady\(\(message\)/u);
+  assert.match(css, /\.control\[data-voice-placement="inline"\] \.status \{[\s\S]*position: static/u);
+  assert.match(css, /\.control\[data-voice-placement="inline"\] \.meter \{[\s\S]*position: static/u);
+  assert.match(dsdd, /statusPlacement="inline"/u);
+  assert.match(dsdd, /className=\{styles\.voiceControl\}/u);
+  assert.match(dsddCss, /\.voiceControl \{[\s\S]*width: 100%/u);
+});
+
+test("#2331 exposes the local STT handoff and caches verified runtime integrity within the app session", async () => {
+  const [gateway, runtime] = await Promise.all([
+    read("build/voice/local-voice-gateway.ts"),
+    read("build/voice/local-voice-runtime.ts"),
+  ]);
+
+  assert.match(gateway, /\[VOICE\] STT setup [ .]+STARTED/u);
+  assert.match(gateway, /Downloading reviewed .* speech model/u);
+  assert.match(gateway, /\[VOICE\] Transcription request [ .]+RECEIVED/u);
+  assert.match(runtime, /verifiedRuntimeFingerprint/u);
+  assert.match(runtime, /sameFingerprint/u);
+  assert.match(runtime, /\[VOICE\] STT integrity [ .]+VERIFYING/u);
+  assert.match(runtime, /\[VOICE\] Transcription [ .]+STARTED whisper\.cpp/u);
+  assert.match(runtime, /\[VOICE\] Text produced [ .]+PASS/u);
+});

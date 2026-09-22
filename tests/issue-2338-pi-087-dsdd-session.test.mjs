@@ -111,17 +111,16 @@ test("#2338 injects the immutable locked intent into the same Pi history and exi
   assert.match(gateway, /"github-exact-head-green-only"/u);
 });
 
-test("#2338 Windows Product Gate runs automatically for Pi DSDD promotion heads", async () => {
+test("#2338 Windows Product Gate runs automatically only for Pi/session integration heads", async () => {
   const productGate = await read(".github/workflows/product-gate.yml");
   assert.doesNotMatch(productGate, /^  pull_request:/mu);
   assert.match(productGate, /^  workflow_call:/mu);
   const architecture = await read(".github/workflows/architecture-shadow.yml");
   assert.match(architecture, /uses: \.\/\.github\/workflows\/product-gate\.yml/u);
-  assert.match(architecture, /needs\.dsdd-windows-scope\.outputs\.required == 'true'/u);
+  assert.match(architecture, /needs\.pi-windows-scope\.outputs\.required == 'true'/u);
   assert.match(architecture, /pi-087-dsdd-session-evaluation/u);
+  assert.doesNotMatch(architecture, /pi-windows-scope[\s\S]*voice-input-control/u);
   assert.match(productGate, /github\.event\.pull_request\.head\.sha \|\| github\.sha/u);
-  assert.match(productGate, /Validate current Skin V1 startup boundary and DSDD owned Edge/u);
-  assert.match(productGate, /tests\/issue-2341-dsdd-zero-config\.test\.mjs/u);
-  assert.match(productGate, /tests\/issue-2331-dsdd-conversational-uat\.test\.mjs/u);
+  assert.match(productGate, /Evaluate Pi 0\.87 DSDD session compatibility/u);
   assert.doesNotMatch(productGate, /run-uat-autopilot\.mjs --contracts-only/u);
 });

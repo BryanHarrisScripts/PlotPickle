@@ -33,7 +33,7 @@ const statusText: Record<VoiceInputState, string> = {
   IDLE: "Local dictation ready.",
   PROVISIONING_LOCAL: "Preparing the reviewed local speech runtime for DSDD. No Settings step is required.",
   REQUESTING_PERMISSION: "Requesting microphone permission.",
-  LISTENING: "Listening. Activate Stop dictation when you are finished.",
+  LISTENING: "Listening. The green MIC INPUT meter moves only when PlotPickle is receiving microphone audio.",
   FINALIZING_AUDIO: "Finalizing local audio.",
   TRANSCRIBING: "Transcribing locally with whisper.cpp.",
   INSERTED: "Dictated text inserted. Review or edit it before sending.",
@@ -154,7 +154,10 @@ export default function VoiceInputControl({
 }: VoiceInputControlProps) {
   const [state, setState] = useState<VoiceInputState>("IDLE");
   const [detail, setDetail] = useState("");
+  const [inputLevel, setInputLevel] = useState(0);
   const resourcesRef = useRef<CaptureResources | null>(null);
+  const provisioningRef = useRef<Promise<void> | null>(null);
+  const provisioningErrorRef = useRef<unknown>(null);
   const sessionIdRef = useRef("");
   const valueRef = useRef(value);
   const selectionRef = useRef({ start: value.length, end: value.length });
@@ -185,6 +188,7 @@ export default function VoiceInputControl({
   async function releaseCapture() {
     const resources = resourcesRef.current;
     resourcesRef.current = null;
+    setInputLevel(0);
     if (!resources) return null;
     window.clearTimeout(resources.timer);
     resources.stream.getTracks().forEach((track) => track.stop());
@@ -204,7 +208,7 @@ export default function VoiceInputControl({
   }
 
   async function startListening() {
-    if (disabled || state === "REQUESTING_PERMISSION" || state === "TRANSCRIBING" || state === "FINALIZING_AUDIO") return;
+    if (disabled || state === "PROVISIONING_LOCAL" || state === "REQUESTING_PERMISSION" || state === "TRANSCRIBING" || state === "FINALIZING_AUDIO") return;
     activeVoiceSession?.cancel();
     const id = globalThis.crypto?.randomUUID?.() ?? `voice-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     sessionIdRef.current = id;
@@ -215,15 +219,15 @@ export default function VoiceInputControl({
       end: field?.selectionEnd ?? field?.selectionStart ?? valueRef.current.length,
     };
     const dsddAutoProvision = purpose.trim().toLowerCase() === "natural-language developer uat narration";
+    provisioningErrorRef.current = null;
+    provisioningRef.current = dsddAutoProvision
+      ? ensureDsddLocalVoiceReady().catch((error) => { provisioningErrorRef.current = error; })
+      : null;
+    setInputLevel(0);
     setDetail("");
-    setState(dsddAutoProvision ? "PROVISIONING_LOCAL" : "REQUESTING_PERMISSION");
+    setState("REQUESTING_PERMISSION");
 
     try {
-      if (dsddAutoProvision) {
-        await ensureDsddLocalVoiceReady();
-        if (activeVoiceSession?.id !== id) return;
-        setState("REQUESTING_PERMISSION");
-      }
       if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("Microphone capture is unavailable.", "NotFoundError");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -239,9 +243,19 @@ export default function VoiceInputControl({
       const sink = context.createGain();
       sink.gain.value = 0;
       const chunks: Float32Array[] = [];
+      let lastMeterUpdate = 0;
       processor.onaudioprocess = (event) => {
-        if (chunks.reduce((sum, chunk) => sum + chunk.length, 0) >= context.sampleRate * 120) return;
-        chunks.push(Float32Array.from(event.inputBuffer.getChannelData(0)));
+        const channel = event.inputBuffer.getChannelData(0);
+        if (chunks.reduce((sum, chunk) => sum + chunk.length, 0) < context.sampleRate * 120) {
+          chunks.push(Float32Array.from(channel));
+        }
+        const now = Date.now();
+        if (now - lastMeterUpdate >= 80) {
+          let peak = 0;
+          for (let index = 0; index < channel.length; index += 1) peak = Math.max(peak, Math.abs(channel[index]));
+          setInputLevel(Math.min(1, peak * 4));
+          lastMeterUpdate = now;
+        }
       };
       source.connect(processor);
       processor.connect(sink);
@@ -255,6 +269,7 @@ export default function VoiceInputControl({
       setState("LISTENING");
     } catch (error) {
       clearActiveOwner();
+      setInputLevel(0);
       if (mountedRef.current) {
         setDetail(error instanceof DOMException ? "" : error instanceof Error ? error.message : "");
         setState(stateFromFailure(error));
@@ -274,6 +289,16 @@ export default function VoiceInputControl({
       const samples = resample(concatenate(resources.chunks), resources.sampleRate, 16000);
       const wav = pcm16Wav(samples, 16000);
       if (wav.size <= 44) throw new Error("No microphone audio was captured.");
+      if (provisioningRef.current) {
+        setState("PROVISIONING_LOCAL");
+        setDetail("Microphone audio captured. Preparing the local speech-to-text runtime before transcription.");
+        await provisioningRef.current;
+        provisioningRef.current = null;
+        const provisioningError = provisioningErrorRef.current;
+        provisioningErrorRef.current = null;
+        if (provisioningError) throw provisioningError;
+      }
+      setDetail("");
       setState("TRANSCRIBING");
       const response = await fetch("/api/local-voice/transcribe", {
         method: "POST",
@@ -298,7 +323,10 @@ export default function VoiceInputControl({
       });
       window.setTimeout(() => { if (mountedRef.current) setState("IDLE"); }, 1200);
     } catch (error) {
-      if (mountedRef.current) setState(stateFromFailure(error));
+      if (mountedRef.current) {
+        setDetail(error instanceof Error ? error.message : "");
+        setState(stateFromFailure(error));
+      }
     }
   }
 
@@ -321,6 +349,22 @@ export default function VoiceInputControl({
           <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75v-4a3.75 3.75 0 0 0-7.5 0v4A3.75 3.75 0 0 0 12 15.25Zm-6-4a6 6 0 0 0 12 0M12 17.25V21m-3 0h6" />
         </svg>
       </button>
+      {listening ? (
+        <span
+          className={styles.meter}
+          role="meter"
+          aria-label="Live microphone input level"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(inputLevel * 100)}
+        >
+          <span className={styles.meterLabel}>MIC INPUT</span>
+          <span className={styles.meterTrack} aria-hidden="true">
+            <span className={styles.meterFill} style={{ width: `${Math.max(2, Math.round(inputLevel * 100))}%` }} />
+          </span>
+          <span className={styles.meterValue}>{inputLevel >= 0.03 ? "SIGNAL" : "QUIET"}</span>
+        </span>
+      ) : null}
       <span className={styles.status} role="status" aria-live="polite">{detail || statusText[state]}</span>
     </span>
   );

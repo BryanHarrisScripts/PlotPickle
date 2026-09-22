@@ -52,6 +52,32 @@ test("#2341 voice status remains visibly readable inside the self-contained Edge
   assert.match(css, /max-width: min\(22rem, calc\(100vw - 2rem\)\)/u);
 });
 
+test("#2341 DSDD starts microphone capture before local speech provisioning completes", async () => {
+  const control = await text("app/_components/voice-input-control.tsx");
+  const start = control.indexOf("async function startListening()");
+  const stop = control.indexOf("async function stopAndTranscribe()");
+  const slice = control.slice(start, stop);
+
+  assert.ok(slice.indexOf("ensureDsddLocalVoiceReady().catch") >= 0);
+  assert.ok(slice.indexOf("navigator.mediaDevices.getUserMedia") >= 0);
+  assert.doesNotMatch(slice, /await ensureDsddLocalVoiceReady\(\)/u);
+  assert.match(control, /setState\("PROVISIONING_LOCAL"\)[\s\S]*await provisioningRef\.current/u);
+});
+
+test("#2341 DSDD renders a live green microphone signal meter from captured samples", async () => {
+  const [control, css] = await Promise.all([
+    text("app/_components/voice-input-control.tsx"),
+    text("app/_components/voice-input-control.module.css"),
+  ]);
+
+  assert.match(control, /role="meter"/u);
+  assert.match(control, /aria-label="Live microphone input level"/u);
+  assert.match(control, /event\.inputBuffer\.getChannelData\(0\)/u);
+  assert.match(control, /setInputLevel\(Math\.min\(1, peak \* 4\)\)/u);
+  assert.match(control, /MIC INPUT/u);
+  assert.match(css, /\.meterFill \{[\s\S]*background: #52ff88;/u);
+});
+
 test("#2341 keeps zero-configuration behavior scoped to the DSDD narration field", async () => {
   const [dsdd, control, settings] = await Promise.all([
     text("app/skin-v1/global-dsdd-conversation.tsx"),

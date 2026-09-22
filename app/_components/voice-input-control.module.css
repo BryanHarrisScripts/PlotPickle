@@ -77,8 +77,64 @@
   background: color-mix(in srgb, currentColor 16%, transparent);
 }
 
+.meter {
+  position: fixed;
+  right: 16px;
+  bottom: 58px;
+  z-index: 2147483647;
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 16rem) auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #52ff88;
+  border-radius: 0.3rem;
+  background: #050505;
+  color: #f2f2f2;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+  font-size: 0.68rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.meterLabel,
+.meterValue {
+  white-space: nowrap;
+}
+
+.meterLabel {
+  color: #52ff88;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.meterTrack {
+  display: block;
+  height: 0.55rem;
+  overflow: hidden;
+  border: 1px solid rgb(82 255 136 / 65%);
+  background: rgb(82 255 136 / 8%);
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  min-width: 2%;
+  background: #52ff88;
+  box-shadow: 0 0 0.55rem rgb(82 255 136 / 60%);
+  transition: width 80ms linear;
+}
+
+.meterValue {
+  min-width: 3.25rem;
+  text-align: right;
+  color: #b9ffd0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .button {
+  .button,
+  .meterFill {
     transition: none;
   }
 }

@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   interpretationIntegrity,
   requirementTextsFromInterpretation,
-} from "../build/dsdd/dsdd-integrity.mjs";
+} from "../lib/dsdd/dsdd-integrity.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 

@@ -457,19 +457,30 @@
       ]
     },
     {
-      "id": "universal-voice-input-experience",
+      "id": "universal-voice-input-contract",
       "classification": "production",
       "include": [
         "app/_components/universal-voice-input-layer.tsx",
         "app/_components/voice-input-control.tsx",
-        "app/_components/voice-input-control.module.css",
         "lib/voice-input.ts"
       ],
-      "ownerLayer": "experience-skins",
+      "ownerLayer": "experience-contract",
       "riskTokens": [
         "surface",
         "voice",
-        "navigation",
+        "navigation"
+      ]
+    },
+    {
+      "id": "universal-voice-input-skin",
+      "classification": "production",
+      "include": [
+        "app/_components/voice-input-control.module.css"
+      ],
+      "ownerLayer": "experience-skins",
+      "riskTokens": [
+        "skin",
+        "voice",
         "visual"
       ]
     },

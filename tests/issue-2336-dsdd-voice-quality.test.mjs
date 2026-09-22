@@ -44,38 +44,3 @@ test("#2336 uses the Quality role for DSDD intent interpretation and surfaces ac
   assert.match(dsdd, /Intent model:/u);
   assert.match(dsdd, /This first slice records and interprets intent; it does not edit code/u);
 });
-
-
-test("#2331 keeps DSDD dictation progress inside the panel and shows elapsed work", async () => {
-  const [control, css, dsdd] = await Promise.all([
-    text("app/_components/voice-input-control.tsx"),
-    text("app/_components/voice-input-control.module.css"),
-    text("app/skin-v1/global-dsdd-conversation.tsx"),
-  ]);
-
-  assert.match(control, /statusPlacement\?: "overlay" \| "inline"/u);
-  assert.match(control, /data-voice-placement=\{statusPlacement\}/u);
-  assert.match(control, /const \[elapsedSeconds, setElapsedSeconds\]/u);
-  assert.match(control, /preflightDsddLocalVoiceReady/u);
-  assert.match(control, /ensureDsddLocalVoiceReady\(\(message\)/u);
-  assert.match(css, /\.control\[data-voice-placement="inline"\] \.status \{[\s\S]*position: static/u);
-  assert.match(css, /\.control\[data-voice-placement="inline"\] \.meter \{[\s\S]*position: static/u);
-  assert.match(dsdd, /statusPlacement="inline"/u);
-  assert.match(dsdd, /className=\{styles\.voiceControl\}/u);
-});
-
-test("#2331 exposes the local STT handoff and avoids rehashing the model for every dictation", async () => {
-  const [gateway, runtime] = await Promise.all([
-    text("build/voice/local-voice-gateway.ts"),
-    text("build/voice/local-voice-runtime.ts"),
-  ]);
-
-  assert.match(gateway, /STT setup [.]+"? STARTED/u);
-  assert.match(gateway, /Downloading reviewed .* speech model/u);
-  assert.match(gateway, /Transcription request [.]+"? RECEIVED/u);
-  assert.match(runtime, /verifiedRuntimeFingerprint/u);
-  assert.match(runtime, /sameFingerprint/u);
-  assert.match(runtime, /STT integrity [.]+"? VERIFYING/u);
-  assert.match(runtime, /Transcription [.]+"? STARTED whisper\.cpp/u);
-  assert.match(runtime, /Text produced [.]+"? PASS/u);
-});

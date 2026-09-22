@@ -50,6 +50,10 @@ jobs:
         shell: pwsh
         run: node scripts/evaluate-pi-087-dsdd-session.mjs
 
+      - name: Verify Pi Draft prompt transport through a Windows batch shim
+        shell: pwsh
+        run: node --test tests/issue-2359-pi-draft-stdin.test.mjs
+
       - name: Validate bundled local video setup
         run: node --test tests/ltx-bundled-default.test.mjs
 

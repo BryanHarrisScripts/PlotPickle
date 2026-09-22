@@ -49,14 +49,14 @@ test("#2331 keeps interpretation non-mutating and makes the Human handoff action
   assert.match(panel, /fetch\("\/api\/local-ai\/generate\/text"/u);
   assert.match(panel, /"X-PlotPickle-DSDD-Scope": "intent"/u);
   assert.match(panel, /data-purpose="natural-language developer uat narration"/u);
-  assert.match(panel, /Interpret reflects your meaning/u);
-  assert.match(panel, /Pi Draft locks the approved intent and adds read-only repository guidance/u);
-  assert.match(panel, /Publish Brief creates the durable GitHub Issue handoff/u);
-  assert.match(panel, />Clear draft<\/button>/u);
-  assert.match(panel, /"Pi draft"/u);
-  assert.match(panel, /"Publish brief"/u);
-  assert.match(panel, /"Interpret"/u);
-  assert.doesNotMatch(panel, /Build this|action: "build"/u);
+  // #2357 replaced the prose toolbar and Clear Draft with numbered steps.
+  assert.match(panel, /"UNDERSTAND INTENT"/u);
+  assert.match(panel, /Step 02 Pi Draft locks it and adds repository-aware technical guidance without changing code/u);
+  assert.match(panel, /Publishing the approved developer brief as a GitHub Issue/u);
+  assert.match(panel, /"PI DRAFT"/u);
+  assert.match(panel, /"PUBLISH BRIEF"/u);
+  assert.match(panel, /"INTERPRET"/u);
+  assert.doesNotMatch(panel, /Build this|action: "build"|Clear draft|function clearDraft/u);
 });
 
 test("#2331 preserves the live conversation across navigation in the persistent authenticated shell", async () => {

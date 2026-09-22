@@ -244,6 +244,7 @@
         "config/dsdd/**",
         "config/developer-agent-stack.json",
         "scripts/pi-managed-install.mjs",
+        "scripts/pi-worker-runtime.mjs",
         ".pi/npm/package.json",
         ".pi/npm/package-lock.json",
         "scripts/dsdd-pi-draft.mjs",

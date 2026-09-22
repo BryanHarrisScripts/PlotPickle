@@ -50,13 +50,20 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
     maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
     encoding: "utf8",
   };
-  let result;
+  let execution;
   if (windowsBatchWrapper(command)) {
     const invocation = windowsBatchInvocation(command, commandArgs, common.env);
-    result = await exec(invocation.executable, invocation.args, { ...common, env: invocation.env });
+    execution = exec(invocation.executable, invocation.args, { ...common, env: invocation.env });
   } else {
-    result = await exec(command, commandArgs, common);
+    execution = exec(command, commandArgs, common);
   }
+  // Pi print mode waits for piped stdin before interpreting a request. Keep
+  // Human text out of argv/cmd.exe environment expansion and always send EOF.
+  const input = new Promise((resolve, reject) => {
+    execution.child.stdin.once("error", reject);
+    execution.child.stdin.end(options.input ?? "", (error) => error ? reject(error) : resolve());
+  });
+  const [result] = await Promise.all([execution, input]);
   return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
 }
 
@@ -521,8 +528,8 @@ export async function runPiReadOnly({ command, runtime, prompt, cwd, purpose = "
     ...QUIET_RESOURCE_FLAGS,
     "--provider", "plotpickle-local",
     "--model", runtime.model,
-    prompt,
   ], {
+    input: prompt,
     cwd,
     timeout,
     env: piLocalEnvironment(configured.agentDir),

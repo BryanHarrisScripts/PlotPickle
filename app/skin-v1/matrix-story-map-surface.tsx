@@ -29,10 +29,12 @@ function currentAddress(): PreproductionReviewAddress {
 }
 
 export default function MatrixStoryMapSurface({
+  onAddressChange,
   onOpenStage,
   onOpenPrevis,
   onOpenStoryModeSettings,
 }: {
+  readonly onAddressChange?: (address: PreproductionReviewAddress) => void;
   readonly onOpenStage?: (stage: StoryMapReviewStage, address: PreproductionReviewAddress) => void;
   readonly onOpenPrevis?: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryModeSettings?: () => void;
@@ -70,7 +72,11 @@ export default function MatrixStoryMapSurface({
 
   function syncAddressAfterSelection() {
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => setAddress(currentAddress()));
+      window.requestAnimationFrame(() => {
+        const next = currentAddress();
+        setAddress(next);
+        onAddressChange?.(next);
+      });
     });
   }
 
@@ -97,6 +103,7 @@ export default function MatrixStoryMapSurface({
       miniBlockNumber: bounded(destination.searchParams.get("mini"), 4),
     };
     setAddress(nextAddress);
+    onAddressChange?.(nextAddress);
     onOpenStage(stage, nextAddress);
   }
 

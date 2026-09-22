@@ -27,8 +27,9 @@ import reviewStyles from "./dashboard-bbs-review-host.module.css";
 const DEFAULT_REVIEW_ADDRESS: PreproductionReviewAddress = { blockNumber: 1, miniBlockNumber: 1 };
 
 function boundedReviewValue(value: string | null, maximum: number) {
-  const number = Number(value || 1);
-  return Number.isFinite(number) ? Math.min(maximum, Math.max(1, Math.trunc(number))) : 1;
+  const parsed = Number(value || 1);
+  const integer = Math.trunc(parsed);
+  return Number.isFinite(parsed) ? Math.min(maximum, Math.max(1, integer)) : 1;
 }
 
 function initialReviewAddress(): PreproductionReviewAddress {

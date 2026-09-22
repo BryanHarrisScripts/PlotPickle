@@ -100,11 +100,8 @@ function pcm16Wav(samples: Float32Array, sampleRate = 16000) {
 }
 
 async function preflightDsddLocalVoiceReady() {
-  try {
-    await fetch("/api/local-voice/status", { cache: "no-store" });
-  } catch (error) {
-    console.debug("[VOICE] Local STT preflight deferred.", error instanceof Error ? error.name : "unavailable");
-  }
+  const response = await fetch("/api/local-voice/status", { cache: "no-store" });
+  if (!response.ok) throw new Error(`Local STT preflight returned HTTP ${response.status}.`);
 }
 
 async function provisionDsddLocalVoiceReady(onProgress?: (message: string) => void) {
@@ -185,7 +182,14 @@ export default function VoiceInputControl({
   useEffect(() => { valueRef.current = value; }, [value]);
   useEffect(() => {
     if (purpose.trim().toLowerCase() !== "natural-language developer uat narration") return;
-    void preflightDsddLocalVoiceReady();
+    void preflightDsddLocalVoiceReady().then(
+      () => undefined,
+      (error) => {
+        if (mountedRef.current) {
+          setDetail(error instanceof Error ? error.message : "Local STT preflight will retry when dictation starts.");
+        }
+      },
+    );
   }, [purpose]);
   useEffect(() => {
     if (!["PROVISIONING_LOCAL", "FINALIZING_AUDIO", "TRANSCRIBING"].includes(state)) {

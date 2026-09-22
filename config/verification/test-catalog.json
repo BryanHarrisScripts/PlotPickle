@@ -957,7 +957,8 @@
         "kind": "node-test",
         "targets": [
           "tests/issue-2338-pi-087-dsdd-session.test.mjs",
-          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs"
+          "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs",
+          "tests/issue-2359-pi-draft-stdin.test.mjs"
         ]
       },
       "cost": "fast",

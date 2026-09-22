@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "issue": 2359,
+  "phase": "pi-draft-windows-stdin",
+  "brief": "docs/developer-briefs/2359-pi-draft-windows-stdin.md",
+  "allowedChanges": [
+    ".github/workflows/architecture-shadow.yml",
+    ".github/workflows/product-gate.yml",
+    "config/development-convergence/2359.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2359-pi-draft-windows-stdin.md",
+    "scripts/dsdd-pi-draft.mjs",
+    "scripts/pi-worker-runtime.mjs",
+    "tests/issue-2331-dsdd-conversational-uat.test.mjs",
+    "tests/issue-2359-pi-draft-stdin.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2359-A1",
+      "criterion": "Read-only prompts use stdin and preserve the restricted Pi tool set.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/pi-worker-runtime.mjs", "contains": "input: prompt" },
+        { "type": "file-contains", "path": "tests/issue-2359-pi-draft-stdin.test.mjs", "contains": "assert.deepEqual(received.args" },
+        { "type": "file-contains", "path": "tests/issue-2354-dsdd-pi-draft-publish-brief.test.mjs", "contains": "cannot mutate the repository" }
+      ]
+    },
+    {
+      "id": "P2359-A2",
+      "criterion": "Executable fixtures cover exact input, EOF, batch arguments and failure propagation.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2359-pi-draft-stdin.test.mjs", "contains": "assert.equal(received.input, prompt)" },
+        { "type": "file-contains", "path": "tests/issue-2359-pi-draft-stdin.test.mjs", "contains": "failed launch and early exit reject without exposing input" },
+        { "type": "file-contains", "path": "tests/issue-2359-pi-draft-stdin.test.mjs", "contains": "a timed-out reader retains process failure" }
+      ]
+    },
+    {
+      "id": "P2359-A3",
+      "criterion": "The actual formatter is covered for repeated intent fields and conversation history.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2359-pi-draft-stdin.test.mjs", "contains": "the draft includes each bounded intent field once and does not replay history" }
+      ]
+    },
+    {
+      "id": "P2359-A4",
+      "criterion": "Linux Layer 4 and the existing Windows gate both run the regression.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-2359-pi-draft-stdin.test.mjs" },
+        { "type": "file-contains", "path": "config/verification/ownership-map.json", "contains": "scripts/pi-worker-runtime.mjs" },
+        { "type": "file-contains", "path": ".github/workflows/architecture-shadow.yml", "contains": "pi-managed-install|pi-worker-runtime|" },
+        { "type": "file-contains", "path": ".github/workflows/product-gate.yml", "contains": "node --test tests/issue-2359-pi-draft-stdin.test.mjs" }
+      ]
+    }
+  ]
+}

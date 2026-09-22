@@ -26,7 +26,7 @@ function clean(value, maximum) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
 }
 
-function promptFor(input) {
+export function promptFor(input) {
   const human = clean(input.humanStatement, 12_000);
   const meaning = clean(input.understoodMeaning, 6_000);
   const context = input.context && typeof input.context === "object" ? input.context : null;
@@ -104,7 +104,9 @@ async function main() {
   }));
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.stack || error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.stack || error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

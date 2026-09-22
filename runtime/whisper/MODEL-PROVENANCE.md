@@ -1,6 +1,6 @@
 # PlotPickle reviewed local dictation model
 
-PlotPickle local dictation uses one reviewed English speech-to-text model by default. The model is downloaded only after explicit Human approval in Settings; it is not silently fetched at runtime and is not stored in a PPF.
+PlotPickle local dictation uses one reviewed English speech-to-text model by default. Normal Human startup provisions the pinned model and whisper.cpp runtime when they are missing, verifies their exact reviewed bytes before the app is declared ready, and reuses the verified install on later starts. Settings → Local Dictation remains the explicit verify/repair surface. The model is never fetched by a microphone control and is not stored in a PPF.
 
 - Model: `base.en`
 - Format: whisper.cpp GGML

@@ -96,10 +96,17 @@ test("#2350 expensive Windows proof is split between Pi integration and local vo
     read(".github/workflows/pr-gate.yml"),
   ]);
 
-  assert.match(architecture, /pi-windows-scope:[\s\S]*pi-087-dsdd-session-evaluation/u);
-  assert.doesNotMatch(architecture, /pi-windows-scope:[\s\S]*voice-input-control/u);
-  assert.match(architecture, /voice-windows-scope:[\s\S]*install-whisper-cpp/u);
-  assert.match(architecture, /voice-windows-proof:[\s\S]*-Mode Smoke -Approved/u);
+  const piScopeStart = architecture.indexOf("  pi-windows-scope:");
+  const piProofStart = architecture.indexOf("  pi-windows-proof:", piScopeStart);
+  const voiceScopeStart = architecture.indexOf("  voice-windows-scope:");
+  const voiceProofStart = architecture.indexOf("  voice-windows-proof:", voiceScopeStart);
+  const piScope = architecture.slice(piScopeStart, piProofStart);
+  const voiceScope = architecture.slice(voiceScopeStart, voiceProofStart);
+  const voiceProof = architecture.slice(voiceProofStart);
+  assert.match(piScope, /pi-087-dsdd-session-evaluation/u);
+  assert.doesNotMatch(piScope, /voice-input-control|local-voice|install-whisper/u);
+  assert.match(voiceScope, /install-whisper-cpp/u);
+  assert.match(voiceProof, /-Mode Smoke -Approved/u);
   assert.doesNotMatch(productGate, /tests\/issue-2338-pi-087-dsdd-session\.test\.mjs/u);
   assert.doesNotMatch(prGate, /Validate DSDD intent-to-evidence and Pi 0\.87 session contracts/u);
 });

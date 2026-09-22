@@ -379,7 +379,6 @@
       "riskTokens": [
         "provider",
         "api",
-        "hardware",
         "security"
       ]
     },

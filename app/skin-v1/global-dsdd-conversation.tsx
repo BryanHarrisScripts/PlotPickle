@@ -20,6 +20,13 @@ type DsddContext = {
   capturedAt: string;
 };
 
+type DsddInterpretationIntegrity = {
+  state: "valid" | "invalid";
+  reasons: string[];
+  metrics: Record<string, unknown>;
+  checkedAt: string;
+};
+
 type DsddMessage = {
   id: string;
   role: "human" | "dsdd";
@@ -27,6 +34,7 @@ type DsddMessage = {
   context?: DsddContext;
   provider?: string;
   model?: string;
+  integrity?: DsddInterpretationIntegrity;
 };
 
 type TextResponse = {
@@ -46,6 +54,14 @@ type DsddDeveloperBrief = {
   runtime: string;
   tools: ["read", "grep", "find", "ls"];
   repositoryMutation: false;
+  intentVersion: number;
+  intentDigest: string;
+  grounding: {
+    state: "valid";
+    observedPaths: string[];
+    claimedPaths: string[];
+    toolCallCount: number;
+  };
   text: string;
 };
 
@@ -75,6 +91,7 @@ type DsddSessionPayload = {
     intents?: DsddLockedIntent[];
   };
   intent?: DsddLockedIntent;
+  entry?: DsddMessage & { recordedAt?: string };
 };
 
 const MAX_MESSAGES = 40;
@@ -183,16 +200,18 @@ export default function GlobalDsddConversation() {
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const busy = working || piDrafting || publishing;
-  const latestInterpretation = useMemo(
-    () => [...messages].reverse().find((message) => message.role === "dsdd")?.text || "",
+  const latestInterpretationMessage = useMemo(
+    () => [...messages].reverse().find((message) => message.role === "dsdd") || null,
     [messages],
   );
+  const latestInterpretation = latestInterpretationMessage?.text || "";
   const hasInterpretation = Boolean(latestInterpretation);
-  const noActionRequired = NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
+  const interpretationBlocked = latestInterpretationMessage?.integrity?.state === "invalid";
+  const noActionRequired = !interpretationBlocked && NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
   const piDraftReady = Boolean(lockedIntent?.developerBrief);
   const briefPublished = Boolean(lockedIntent?.publishedIssue);
-  const interpretStep = working ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";
-  const piDraftStep = piDrafting ? "active" : piDraftReady ? "complete" : hasInterpretation && !noActionRequired ? "active" : "locked";
+  const interpretStep = working ? "active" : interpretationBlocked ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";
+  const piDraftStep = piDrafting ? "active" : piDraftReady ? "complete" : hasInterpretation && !noActionRequired && !interpretationBlocked ? "active" : "locked";
   const publishStep = publishing ? "active" : briefPublished ? "complete" : piDraftReady ? "active" : "locked";
 
   useEffect(() => {
@@ -258,6 +277,7 @@ export default function GlobalDsddConversation() {
           context: entry.context,
           provider: entry.provider,
           model: entry.model,
+          integrity: entry.integrity,
         })));
         const intents = Array.isArray(body.session?.intents) ? body.session!.intents! : [];
         setLockedIntent(intents.at(-1) || null);
@@ -338,12 +358,13 @@ export default function GlobalDsddConversation() {
       }
       setLockedIntent(null);
       setMessages((current) => [...current, {
-        id: messageId("dsdd-interpreter"),
+        id: persistedInterpretation.entry?.id || messageId("dsdd-interpreter"),
         role: "dsdd",
         text: interpreted,
         context: snapshot,
         provider: body.provider,
         model: body.model,
+        integrity: persistedInterpretation.entry?.integrity,
       }].slice(-MAX_MESSAGES));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The DSDD interpreter is unavailable.");
@@ -353,7 +374,7 @@ export default function GlobalDsddConversation() {
   }
 
   async function createPiDraft() {
-    if (busy || !hasInterpretation || noActionRequired) return;
+    if (busy || !hasInterpretation || noActionRequired || interpretationBlocked) return;
     setPiDrafting(true);
     setError("");
     try {
@@ -464,9 +485,11 @@ export default function GlobalDsddConversation() {
             <div className={styles.context} data-dsdd-candidate-intent="true">
               <strong>What DSDD understood</strong>
               <span>{latestInterpretation}</span>
-              <small>{noActionRequired
-                ? "No development handoff is required for this observation. Add new narration when you have another UAT finding."
-                : "Review this meaning. Step 02 Pi Draft locks it and adds repository-aware technical guidance without changing code."}</small>
+              <small>{interpretationBlocked
+                ? `Interpretation needs another pass before Pi Draft: ${latestInterpretationMessage?.integrity?.reasons.join(", ") || "semantic integrity check failed"}. Add or clarify the narration, then run Interpret again.`
+                : noActionRequired
+                  ? "No development handoff is required for this observation. Add new narration when you have another UAT finding."
+                  : "Review this meaning. Step 02 Pi Draft locks it and adds repository-aware technical guidance without changing code."}</small>
             </div>
           ) : null}
 
@@ -491,7 +514,7 @@ export default function GlobalDsddConversation() {
               <div className={styles.dsddMessage} data-dsdd-pi-draft="ready">
                 <strong>Pi technical developer draft</strong>
                 <p>{lockedIntent.developerBrief.text}</p>
-                <small>Read-only Pi {lockedIntent.developerBrief.piVersion} · tools: read, grep, find, ls · repository mutation: none</small>
+                <small>Read-only Pi {lockedIntent.developerBrief.piVersion} · tools: read, grep, find, ls · grounded paths: {lockedIntent.developerBrief.grounding?.observedPaths.length ?? 0} · repository mutation: none</small>
               </div>
             ) : null}
             {working ? <p className={styles.working} role="status">Interpreting your UAT narration with local AI…</p> : null}
@@ -549,12 +572,12 @@ export default function GlobalDsddConversation() {
                   className={styles.processStep}
                   data-step-state={piDraftStep}
                   aria-current={piDraftStep === "active" ? "step" : undefined}
-                  disabled={busy || noActionRequired || piDraftReady || !hasInterpretation}
+                  disabled={busy || noActionRequired || interpretationBlocked || piDraftReady || !hasInterpretation}
                   onClick={() => { void createPiDraft(); }}
                 >
                   <small>02</small>
                   <strong>{piDrafting ? "PI DRAFTING…" : "PI DRAFT"}</strong>
-                  <span>{noActionRequired ? "NOT REQUIRED" : piDraftStep === "complete" ? "COMPLETE" : "TECHNICAL BRIEF"}</span>
+                  <span>{interpretationBlocked ? "RETRY INTERPRET" : noActionRequired ? "NOT REQUIRED" : piDraftStep === "complete" ? "COMPLETE" : "TECHNICAL BRIEF"}</span>
                 </button>
                 <span className={styles.processArrow} aria-hidden="true">→</span>
                 <button
@@ -562,15 +585,16 @@ export default function GlobalDsddConversation() {
                   className={styles.processStep}
                   data-step-state={publishStep}
                   aria-current={publishStep === "active" ? "step" : undefined}
-                  disabled={busy || noActionRequired || !piDraftReady || briefPublished}
+                  disabled={busy || noActionRequired || interpretationBlocked || !piDraftReady || briefPublished}
                   onClick={() => { void publishBrief(); }}
                 >
                   <small>03</small>
                   <strong>{publishing ? "PUBLISHING…" : "PUBLISH BRIEF"}</strong>
-                  <span>{noActionRequired ? "NOT REQUIRED" : publishStep === "complete" ? "COMPLETE" : "DELIVERY HANDOFF"}</span>
+                  <span>{interpretationBlocked ? "BLOCKED" : noActionRequired ? "NOT REQUIRED" : publishStep === "complete" ? "COMPLETE" : "DELIVERY HANDOFF"}</span>
                 </button>
               </div>
-              {noActionRequired ? <span className={styles.noAction}>No development action required. Steps 02 and 03 are not needed for this UAT observation.</span> : null}
+              {interpretationBlocked ? <span className={styles.noAction}>DSDD preserved this interpretation as evidence but will not lock or publish it. Clarify the narration and run Interpret again.</span> : null}
+              {!interpretationBlocked && noActionRequired ? <span className={styles.noAction}>No development action required. Steps 02 and 03 are not needed for this UAT observation.</span> : null}
             </div>
           </form>
         </aside>

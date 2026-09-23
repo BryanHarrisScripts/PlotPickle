@@ -91,6 +91,21 @@ function PreproductionStageRail({
   );
 }
 
+function StoryActRail({ activeAct, onOpen }: { readonly activeAct: number; readonly onOpen: (act: number) => void }) {
+  return (
+    <nav aria-label="Story Map acts" className="pp-skin-v1-preproduction-stage-rail" data-story-act-rail="four-acts" onKeyDown={(event) => {
+      const act = Number(event.key);
+      if (act >= 1 && act <= 4) { event.preventDefault(); onOpen(act); }
+    }}>
+      {[1, 2, 3, 4].map((act) => (
+        <button key={act} type="button" aria-current={act === activeAct ? "page" : undefined} aria-keyshortcuts={String(act)} data-story-act={act} onClick={() => onOpen(act)}>
+          <span aria-hidden="true">[{act}] </span>Act {act}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 export default function DashboardBbsReviewHost({
   items,
   selectedIndex,
@@ -507,13 +522,9 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>
-        <PreproductionStageRail active="outline" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
-        <BlockVisualJourneyWorkspace
-          address={reviewAddress}
-          stage="outline"
-          onAddressChange={(address) => updateReviewAddress("outline", address)}
-        />
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("outline", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />
         <MatrixStoryMapSurface
+          address={reviewAddress}
           onAddressChange={(address) => updateReviewAddress("outline", address)}
           onOpenStage={openStoryMapStage}
           onOpenPrevis={openPrevis}

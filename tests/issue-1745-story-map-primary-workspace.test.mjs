@@ -89,8 +89,8 @@ test("#1745 close and reopen restores Block Mini-Block and local stage without c
   assert.match(privateBrowser, /await pendingCacheWrite\.catch\(\(\) => undefined\)/);
 
   assert.match(map, /rememberedContext = hydratedStoryMapContext\(project\.id\)/);
-  assert.match(map, /boundedLocation\("block", 24, rememberedContext\?\.blockNumber \?\? 1\)/);
-  assert.match(map, /boundedLocation\("mini", 4, rememberedContext\?\.miniBlockNumber \?\? 1\)/);
+  assert.match(map, /initialBlockNumber \?\? boundedLocation\("block", 24, rememberedContext\?\.blockNumber \?\? 1\)/);
+  assert.match(map, /initialMiniBlockNumber \?\? boundedLocation\("mini", 4, rememberedContext\?\.miniBlockNumber \?\? 1\)/);
   assert.match(map, /persistStoryMapContext\(project\.id, \{ blockNumber, miniBlockNumber, stage: "map" \}\)/);
 
   assert.match(runtime, /location\.pathname === "\/storyboard"/);

@@ -31,6 +31,7 @@ import {
 type StoryCardFoundationBoardProps = {
   readonly project: LibraryPPFProject;
   readonly onProjectChange: (project: LibraryPPFProject) => void;
+  readonly act?: number;
 };
 
 function structuralBlockTitle(number: number) {
@@ -71,6 +72,7 @@ function characterEvidenceLabel(state: CharacterArcEvidenceState) {
 export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
+  act,
 }: StoryCardFoundationBoardProps) {
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
@@ -132,9 +134,8 @@ export default function StoryCardFoundationBoard({
     structure: LibraryPPFProject["structure"],
     occurredAt: string,
   ): readonly CreativeRevisionPropagationPlan[] {
-    return structureRevisionTargets(structure).flatMap((revision, index) => {
-      try {
-        return [planCreativeRevisionPropagation({
+    return structureRevisionTargets(structure).map((revision, index) =>
+        planCreativeRevisionPropagation({
           project,
           target: revision.target,
           beforeValue: revision.beforeValue,
@@ -142,11 +143,8 @@ export default function StoryCardFoundationBoard({
           changeSetId: `story-card-impact-${project.revision}-${index + 1}`,
           summary: "Story Card planning revision",
           occurredAt,
-        })];
-      } catch {
-        return [];
-      }
-    });
+        }),
+    );
   }
 
   function commitStructure(
@@ -184,6 +182,10 @@ export default function StoryCardFoundationBoard({
   }
 
   function moveCard(sourceBlockNumber: number, targetBlockNumber: number) {
+    if (act && (Math.ceil(sourceBlockNumber / 6) !== act || Math.ceil(targetBlockNumber / 6) !== act)) {
+      setMessage(`Act ${act} shows Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select the other Act before moving its cards.`);
+      return;
+    }
     const next = moveStoryCardContent(project.structure, sourceBlockNumber, targetBlockNumber);
     if (next === project.structure) {
       setMessage("That move is unavailable. Unlock every Story Card crossed by the move before rearranging it.");
@@ -287,7 +289,7 @@ export default function StoryCardFoundationBoard({
       <header className="pp-skin-v1-story-card-board-heading">
         <div>
           <p>STORY CARDS · FOUNDATION BOARD</p>
-          <h2 id="story-card-board-title">Plan the whole story like a wall of Post-it notes.</h2>
+          <h2 id="story-card-board-title">{act ? `Plan Act ${act} with six Story Cards.` : "Plan the whole story like a wall of Post-it notes."}</h2>
           <span>Four Acts, six Blocks per Act. Drag with a pointer, or use Move earlier / Move later (Alt+Left / Alt+Right). The stable PPF Block 01–24 and Mini-Block addresses never move; only your planning content does. Screenplay coverage shows how much observed source material is mapped into each card; it does not claim the source was authored as 24 equal Blocks.</span>
         </div>
         <div className="pp-skin-v1-story-card-board-key">
@@ -299,7 +301,7 @@ export default function StoryCardFoundationBoard({
       <p className="pp-skin-v1-story-card-board-status" role="status">{message}</p>
 
       <div className="pp-skin-v1-story-card-act-stack">
-        {storyCardActRows(project.structure).map((row) => (
+        {storyCardActRows(project.structure).filter((row) => !act || row.actNumber === act).map((row) => (
           <section className="pp-skin-v1-story-card-act" key={row.actNumber} aria-labelledby={`story-card-act-${row.actNumber}`}>
             <header>
               <strong id={`story-card-act-${row.actNumber}`}>ACT {row.actNumber}</strong>

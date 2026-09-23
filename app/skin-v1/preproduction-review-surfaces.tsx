@@ -33,12 +33,6 @@ function normalizedAddress(address: PreproductionReviewAddress): PreproductionRe
   };
 }
 
-function addressFromStoryboardTarget(target: string | null) {
-  const match = String(target || "").match(/block:block-(\d{2}):mini-(\d+)/u);
-  if (!match) return null;
-  return normalizedAddress({ blockNumber: Number(match[1]), miniBlockNumber: Number(match[2]) });
-}
-
 function visualCoverageForBlock(project: PPFProject, blockNumber: number): readonly MiniBlockVisualCoverage[] {
   const blockId = `block-${String(blockNumber).padStart(2, "0")}`;
   const artifacts = [
@@ -100,16 +94,7 @@ export function SkinV1StoryboardReviewSurface({
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
     if (!button) return;
 
-    const blockMatch = (button.getAttribute("aria-label") || "").match(/^Block (\d{2}),/u);
-    if (blockMatch) {
-      onAddressChange(normalizedAddress({ blockNumber: Number(blockMatch[1]), miniBlockNumber: 1 }));
-      return;
-    }
-
     if ((button.textContent || "").trim() !== "Open Visual Story") return;
-    const card = button.closest<HTMLElement>("[data-story-decision-target]");
-    const next = addressFromStoryboardTarget(card?.getAttribute("data-story-decision-target") || null) || normalized;
-    onAddressChange(next);
     window.requestAnimationFrame(() => {
       const visualStory = document.querySelector<HTMLElement>("[data-visual-story='scene-beat-shot-frame']");
       visualStory?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -125,16 +110,13 @@ export function SkinV1StoryboardReviewSurface({
 
   return (
     <div data-skin-v1-preproduction-review="storyboard" onClickCapture={handleClickCapture}>
-      <div className="pp-skin-v1-preproduction-context" role="status">
-        <strong>BLOCK {String(normalized.blockNumber).padStart(2, "0")} · MINI-BLOCK {normalized.miniBlockNumber}</strong>
-        <span>Block / Mini-Block is the structural address. Scene & Shots shows the real Scene / Beat / Shot / Frame material related to that address; Timeline shows the same material over time.</span>
-      </div>
       <StoryboardReadinessWorkspace
         initialBlockNumber={normalized.blockNumber}
         initialMiniBlockNumber={normalized.miniBlockNumber}
         legacyProject={null}
         project={project}
         onProjectChange={applyProjectChange}
+        onAddressChange={onAddressChange}
         onOpenBuild={onOpenBuild}
       />
     </div>

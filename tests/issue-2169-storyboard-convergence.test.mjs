@@ -48,14 +48,15 @@ test("#2169 keeps accepted visual state in existing PPF artifacts and carries ex
   assert.doesNotMatch(model, /interface .*VisualStore|type .*VisualStore/u);
 });
 
-test("#2169 presents real written evidence beside candidate or kept visual state", async () => {
+test("#2169 keeps real written evidence available under a collapsed source inspection", async () => {
   const [editorial, readiness, css] = await Promise.all([
     read("app/_components/storyboard/storyboard-editorial-workspace.tsx"),
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/storyboard-editorial-workspace.module.css"),
   ]);
 
-  assert.match(editorial, /Written source · same canonical address/u);
+  assert.match(editorial, /<details className=\{styles\.sourceEvidence\}/u);
+  assert.match(editorial, /Source inspection · same canonical address/u);
   assert.match(editorial, /SCREENPLAY EVIDENCE/u);
   assert.match(editorial, /STRUCTURE & PROVENANCE/u);
   assert.match(editorial, /sourceEvidence\.passages/u);

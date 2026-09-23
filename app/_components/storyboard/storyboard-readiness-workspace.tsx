@@ -6,11 +6,14 @@ import { useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
+import { sequenceDirectorAnchorRef } from "@/core/contracts/sequence-director";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
 import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
 import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
+import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
+import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
@@ -47,6 +50,7 @@ export default function StoryboardReadinessWorkspace({
   providerInstructions = null,
   onProjectChange,
   onOpenBuild,
+  onAddressChange,
   initialBlockNumber,
   initialMiniBlockNumber,
   initialSceneId,
@@ -58,6 +62,7 @@ export default function StoryboardReadinessWorkspace({
   readonly providerInstructions?: ProviderInstructionBundle | null;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenBuild: (blockNumber: number, miniBlockNumber: number) => void;
+  readonly onAddressChange?: (address: { blockNumber: number; miniBlockNumber: number }) => void;
   readonly initialBlockNumber?: number;
   readonly initialMiniBlockNumber?: number;
   readonly initialSceneId?: string;
@@ -68,7 +73,6 @@ export default function StoryboardReadinessWorkspace({
   const blocks = readiness.targets
     .filter((target) => target.kind === "block")
     .sort((left, right) => blockNumber(left) - blockNumber(right));
-  const readyCount = blocks.filter((target) => target.storyboardAllowed).length;
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedMiniBlockNumber(initialMiniBlockNumber));
   const [visualStoryOpen, setVisualStoryOpen] = useState(() => Boolean(
@@ -77,6 +81,8 @@ export default function StoryboardReadinessWorkspace({
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
+  const selectedAct = Math.ceil(selectedNumber / 6);
+  const actBlocks = blocks.filter((target) => Math.ceil(blockNumber(target) / 6) === selectedAct);
   const outline = deriveOutlineReadiness(project).find((item) => item.blockNumber === selectedNumber);
   const outlineAssessment = currentOutlineAssessment(project, selectedNumber);
   const storyboardAccessible = selectedTarget ? hasQaWorkspaceAccess(selectedTarget.storyboardAllowed) : false;
@@ -85,12 +91,28 @@ export default function StoryboardReadinessWorkspace({
     () => selectedTarget ? storyboardReferenceCandidates(project, selectedTarget.id) : [],
     [project, selectedTarget],
   );
+  const semantics = useMemo(() => projectPreproductionSemantics(project, legacyProject), [project, legacyProject]);
+  const selectedMiniId = project.structure.blocks.find((block) => block.number === selectedNumber)?.miniBlocks.find((mini) => mini.ordinal === selectedMiniBlockNumber)?.id;
+  const sceneIds = semantics.miniBlockSceneRelations.find((relation) => relation.miniBlockId === selectedMiniId)?.sceneIds ?? [];
+  const selectedScenes = semantics.scenes.filter((scene) => sceneIds.includes(scene.id));
+  const visualStory = projectVisualStory({ project, legacyProject, blockNumber: selectedNumber, miniBlockNumber: selectedMiniBlockNumber });
+  const selectedVisualAnchor = visualStory.anchors.find((anchor) => anchor.anchorRef === sequenceDirectorAnchorRef(selectedNumber, selectedMiniBlockNumber));
+  const miniReferences = selectedReferences.filter((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber);
 
   function preserveStoryboardAddress(block: number, mini: number) {
     const url = new URL(window.location.href);
     url.searchParams.set("block", String(block));
     url.searchParams.set("mini", String(mini));
     window.history.replaceState(window.history.state, "", url);
+  }
+
+  function selectStoryboardAddress(block: number, mini: number) {
+    setSelectedBlockNumber(block);
+    setSelectedMiniBlockNumber(mini);
+    setRequestedCandidateId(undefined);
+    setVisualStoryOpen(false);
+    preserveStoryboardAddress(block, mini);
+    onAddressChange?.({ blockNumber: block, miniBlockNumber: mini });
   }
 
   function openEditorial(candidateId: string, miniNumber: number) {
@@ -106,53 +128,44 @@ export default function StoryboardReadinessWorkspace({
     <main className={styles.workspace} aria-labelledby="storyboard-readiness-title">
       <header className={styles.hero}>
         <div>
-          <span className={styles.eyebrow}>Storyboard · 24 Blocks / 96 Mini-Block anchors</span>
+          <span className={styles.eyebrow}>Storyboard · 4 Acts / 24 Blocks / 96 Mini-Block anchors</span>
           <h1 id="storyboard-readiness-title">Storyboard · {project.title || "Untitled Story"}</h1>
           <p>
-            Each tab is one canonical Block. Its four Mini-Blocks are stable visual addresses, not a fixed final-frame quota. The 24/96 scaffold keeps every visual traceable while candidates and later visual beats can expand where the story needs more coverage.
+            Choose an Act, then a Block and Mini-Block. Scenes and Beats shape a sequence of storyboard images at each address. The 24/96 scaffold keeps visuals traceable; it is not a fixed final-frame quota.
           </p>
         </div>
         <dl className={styles.summary}>
-          <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{project.revision}</dd></div>
           <div><dt>Visual anchors</dt><dd>96</dd></div>
-          <div><dt>Blocks with mapped text</dt><dd>{readyCount} / {blocks.length}</dd></div>
+          <div><dt>Act {selectedAct} Blocks with mapped text</dt><dd>{actBlocks.filter((target) => target.storyboardAllowed).length} / 6</dd></div>
         </dl>
       </header>
+
+      <nav aria-label="Storyboard Acts" className={styles.actRail} role="tablist">
+        {[1, 2, 3, 4].map((act) => (
+          <button aria-controls="storyboard-act-panel" aria-selected={selectedAct === act} className={styles.actTab} key={act} onClick={() => {
+            const firstBlock = (act - 1) * 6 + 1;
+            selectStoryboardAddress(firstBlock, 1);
+          }} role="tab" type="button">Act {act}</button>
+        ))}
+      </nav>
+
+      <section id="storyboard-act-panel" aria-label={`Act ${selectedAct} Storyboard`} role="tabpanel">
+        <nav aria-label="Storyboard Block tabs" className={styles.tabRail}>
+          {actBlocks.map((target) => {
+            const number = blockNumber(target);
+            return <button aria-current={number === selectedNumber ? "true" : undefined} aria-label={`Act ${selectedAct} Block ${number - (selectedAct - 1) * 6}, ${STATE_LABELS[target.state]}`} className={styles.blockTab} data-state={target.state} key={target.id} onClick={() => {
+              selectStoryboardAddress(number, 1);
+            }} type="button"><i aria-hidden="true" className={styles.stateLight} /><span>Block {number - (selectedAct - 1) * 6}</span></button>;
+          })}
+        </nav>
+      </section>
 
       <section className={styles.notice} aria-label="Storyboard authority boundary">
         <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "QA access is open; BUILD readiness remains unresolved."}</strong>
         <span>DEFINED, OBSERVED, EMERGING, MISSING and LOCKED remain canonical BUILD truth. Storyboard acceptance reports visual evidence at a stable address; it does not gate later Blocks or require one kept image per Mini-Block. QA access never promotes an unearned target.</span>
         <button type="button" onClick={() => onOpenBuild(selectedNumber, selectedMiniBlockNumber)}>Open BUILD evidence</button>
       </section>
-
-      <nav aria-label="Storyboard Block tabs" className={styles.tabRail} role="tablist">
-        {blocks.map((target) => {
-          const number = blockNumber(target);
-          const selected = number === selectedNumber;
-          return (
-            <button
-              aria-controls="storyboard-block-panel"
-              aria-label={`Block ${String(number).padStart(2, "0")}, ${STATE_LABELS[target.state]}`}
-              aria-selected={selected}
-              className={styles.blockTab}
-              data-state={target.state}
-              key={target.id}
-              onClick={() => {
-                setSelectedBlockNumber(number);
-                setSelectedMiniBlockNumber(1);
-                setRequestedCandidateId(undefined);
-                preserveStoryboardAddress(number, 1);
-              }}
-              role="tab"
-              type="button"
-            >
-              <i aria-hidden="true" className={styles.stateLight} />
-              <span>{String(number).padStart(2, "0")}</span>
-            </button>
-          );
-        })}
-      </nav>
 
       {selectedTarget ? (
         <section
@@ -167,7 +180,7 @@ export default function StoryboardReadinessWorkspace({
               <p className={styles.blockKicker}>Block {String(selectedNumber).padStart(2, "0")}</p>
               <h2>{selectedTarget.label.replace(/^Block \d+: /, "")}</h2>
               <p>{selectedTarget.storyboardAllowed
-                ? "Screenplay placement allows visual exploration. Check the Outline handoff below before accepting a visual anchor."
+                ? "Screenplay placement allows visual exploration. Select a Mini-Block to see its mapped Scenes, authored Beats and storyboard images."
                 : qaOnlyAccess
                   ? `QA access is open for this Block. Canonical prerequisites remain unresolved: ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is incomplete."}`
                   : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
@@ -177,12 +190,12 @@ export default function StoryboardReadinessWorkspace({
               <strong>{STATE_LABELS[selectedTarget.state]}</strong>
             </span>
           </header>
-          <aside className={styles.outlineHandoff} aria-label={`Block ${selectedNumber} Outline to Storyboard handoff`} data-outline-handoff={outline?.status ?? "review"}>
-            <strong>OUTLINE → STORYBOARD · {outline?.status === "needs-support" ? "Needs support" : outline?.status === "review" ? "Review" : "Evidence ready"}</strong>
+          <details className={styles.outlineHandoff} aria-label={`Block ${selectedNumber} Outline to Storyboard handoff`} data-outline-handoff={outline?.status ?? "review"}>
+            <summary>Outline handoff · {outline?.status === "needs-support" ? "Needs support" : outline?.status === "review" ? "Review" : "Evidence ready"}</summary>
             <p>{outlineAssessment ? `${outlineAssessment.structural.state.replaceAll("-", " / ")}: ${outlineAssessment.structural.reason}` : "Story Architect has not assessed this Block against the screenplay. Observed passage placement is not a structural finding."}</p>
             {outline?.issues.length ? <ul>{outline.issues.slice(0, 4).map((issue) => <li key={issue}>{issue}</li>)}</ul> : null}
             <a href={`/?workspace=dashboard&block=${selectedNumber}&mini=${selectedMiniBlockNumber}`}>Back to Dashboard · open Outline at this Block</a>
-          </aside>
+          </details>
 
           <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual anchors`}>
             {[1, 2, 3, 4].map((miniNumber) => {
@@ -224,11 +237,15 @@ export default function StoryboardReadinessWorkspace({
                           : "replacement concept candidate"
                       : "no visual candidate"}
                   </small>
+                  <button aria-pressed={selectedMiniBlockNumber === miniNumber} onClick={() => {
+                    selectStoryboardAddress(selectedNumber, miniNumber);
+                  }} type="button">View Scenes &amp; Beats</button>
                   <button
                     data-storyboard-open-visual-story="true"
                     onClick={() => {
                       setSelectedMiniBlockNumber(miniNumber);
                       preserveStoryboardAddress(selectedNumber, miniNumber);
+                      onAddressChange?.({ blockNumber: selectedNumber, miniBlockNumber: miniNumber });
                       setVisualStoryOpen(true);
                     }}
                     type="button"
@@ -246,6 +263,15 @@ export default function StoryboardReadinessWorkspace({
               );
             })}
           </div>
+          <section className={styles.visualBreakdown} aria-label={`Block ${selectedNumber} Mini-Block ${selectedMiniBlockNumber} Scene and Beat visuals`}>
+            <header><div><span className={styles.eyebrow}>Scene → Beat → Storyboard images</span><h3>Block {String(selectedNumber).padStart(2, "0")} · Mini-Block {selectedMiniBlockNumber}</h3></div><small>Up to 25 nominal positions at 120 minutes · no image or video quota</small></header>
+            <div className={styles.sceneList}>
+              {selectedScenes.length ? selectedScenes.map((scene) => <article key={scene.id} data-storyboard-scene-id={scene.id}><strong>{scene.title}</strong><small>Scene spans {scene.relatedMiniBlockIds.length} Mini-Block{scene.relatedMiniBlockIds.length === 1 ? "" : "s"}</small><p>{scene.purpose || "Scene mapped from screenplay; visual Beat planning remains open."}</p></article>) : <p>No Scene is mapped to this Mini-Block yet. Visual positions remain available without inventing a Scene.</p>}
+            </div>
+            <div className={styles.beatList}><strong>Beats</strong>{selectedVisualAnchor?.beats.length ? selectedVisualAnchor.beats.map((beat) => <p key={beat.id}>{String(beat.order).padStart(2, "0")} · {beat.label || beat.visualAction || beat.purpose}</p>) : <p>No authored Beat is mapped to this address yet. Scene passages are evidence, not automatically named Beats.</p>}</div>
+            <div className={styles.visualSequence}><strong>Visual sequence · optional positions 01–25</strong><p>Place storyboard stills as the Scenes and Beats need them. Three-second clips belong to later production planning.</p><div className={styles.positionGrid} aria-label="25 optional storyboard visual positions">{Array.from({ length: 25 }, (_, index) => <span key={index} aria-label={`Optional visual position ${index + 1}`}>{String(index + 1).padStart(2, "0")}</span>)}</div></div>
+            <div className={styles.visualCandidates}><strong>Existing visuals at this Mini-Block</strong><div>{selectedVisualAnchor?.frames.map((frame) => <figure key={frame.id}><img alt={frame.narrativePurpose || "Storyboard visual"} decoding="async" loading="lazy" src={frame.assetUrl} /><figcaption>{frame.accepted ? "Kept" : "Candidate"} · {frame.narrativePurpose || frame.id}</figcaption></figure>)}{miniReferences.filter((reference) => !selectedVisualAnchor?.frames.some((frame) => frame.id === reference.acceptedArtifactId)).map((reference) => <figure key={reference.id}><img alt={reference.caption} decoding="async" loading="lazy" src={reference.assetUrl} /><figcaption>Reference candidate · {reference.caption}</figcaption></figure>)}</div>{!selectedVisualAnchor?.frames.length && !miniReferences.length ? <p>No storyboard image has been attached yet.</p> : null}</div>
+          </section>
         </section>
       ) : null}
 
@@ -277,7 +303,7 @@ export default function StoryboardReadinessWorkspace({
       ) : null}
 
       <footer className={styles.footer}>
-        Storyboard starts from 24 Block tabs and 96 canonical Mini-Block anchors so visual intent never loses its story address. The final image count is intentionally flexible: an anchor may have no visual yet, one preferred visual, or multiple candidates and later visual beats as the story develops. A missing visual remains truthful and never blocks navigation to another canonical story address.
+        Four Acts contain six Blocks each, with four Mini-Block visual anchors per Block. Scenes and Beats can call for any number of storyboard images. The 25 optional positions in the 120-minute example help plan coverage; they do not prescribe 25 images or three-second clips.
       </footer>
     </main>
   );

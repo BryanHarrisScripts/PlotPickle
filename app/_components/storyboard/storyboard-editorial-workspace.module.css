@@ -217,10 +217,12 @@
 }
 
 .sourceEvidence {
-  display: grid;
-  gap: var(--pp-skin-space-3);
+  display: block;
   padding: var(--pp-skin-space-4);
 }
+
+.sourceEvidence > summary { cursor: pointer; color: var(--pp-skin-ink-soft); }
+.sourceEvidence > header, .sourceEvidence .sourceColumns { margin-top: var(--pp-skin-space-3); }
 
 .sourceColumns {
   display: grid;

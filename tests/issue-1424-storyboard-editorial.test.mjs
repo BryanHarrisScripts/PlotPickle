@@ -69,26 +69,29 @@ test("#1424 keeps Keep explicit while Change Try and Compare remain same-anchor 
   assert.match(editorial, /viewing, changing or comparing them never promotes a reference/);
 });
 
-test("#1424 renders 24 Block tabs and 96 canonical anchors without making 96 a final-frame quota", async () => {
+test("#1424 renders four Acts, six selected Blocks and 96 canonical addresses without a final-image quota", async () => {
   const workspace = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   const css = await read("app/_components/storyboard/storyboard-readiness-workspace.module.css");
 
-  assert.match(workspace, /Storyboard · 24 Blocks \/ 96 Mini-Block anchors/);
+  assert.match(workspace, /Storyboard · 4 Acts \/ 24 Blocks \/ 96 Mini-Block anchors/);
   assert.match(workspace, /Math\.trunc\(value \?\? 1\)/, "Block 01 must remain the default Storyboard tab when no Story Map context is supplied.");
   assert.match(workspace, /useState\(\(\) => boundedBlockNumber\(initialBlockNumber\)\)/, "Story Map deep links may restore an explicitly selected Block.");
-  assert.match(workspace, /role="tablist"/);
+  assert.match(workspace, /aria-label="Storyboard Acts"/);
+  assert.match(workspace, /actBlocks = blocks\.filter/);
+  assert.match(workspace, /Scene → Beat → Storyboard images/);
+  assert.match(workspace, /Array\.from\(\{ length: 25 \}/);
   assert.match(workspace, /role="tab"/);
   assert.match(workspace, /role="tabpanel"/);
   assert.match(workspace, /\[1, 2, 3, 4\]\.map/);
   assert.match(workspace, /Visual anchors<\/dt><dd>96/);
   assert.match(workspace, /not a fixed final-frame quota/);
-  assert.match(workspace, /multiple candidates and later visual beats/);
+  assert.match(workspace, /Scenes and Beats can call for any number of storyboard images/);
   assert.match(workspace, /hasQaWorkspaceAccess\(selectedTarget\.storyboardAllowed\)/);
   assert.match(workspace, /const canReviewReference = Boolean\(storyboardAccessible && reference\)/);
   assert.match(workspace, /disabled=\{!canReviewReference\}/);
   assert.match(workspace, /Awaiting candidate/);
   assert.doesNotMatch(workspace, /Locked by BUILD/);
-  assert.match(css, /grid-template-columns: repeat\(24/);
+  assert.match(css, /grid-template-columns: repeat\(6/);
   assert.match(css, /grid-template-columns: repeat\(4/);
 });
 
@@ -123,17 +126,17 @@ test("#1424 exposes exact anchor refs to Story Decisions and lazy-loads dense vi
   assert.match(editorial, /decoding="async"/);
 });
 
-test("#1424 uses the same five saturated evidence colours as BUILD and never restores legacy Storyboard authority", async () => {
+test("#1424 uses shared evidence-state tokens and never restores legacy Storyboard storage", async () => {
   const workspace = await read("app/_components/storyboard/storyboard-readiness-workspace.tsx");
   const css = await read("app/_components/storyboard/storyboard-readiness-workspace.module.css");
   const page = await read("app/storyboard/page.tsx");
 
   for (const label of ["DEFINED", "OBSERVED", "EMERGING", "MISSING", "LOCKED"]) assert.ok(workspace.includes(label));
-  for (const colour of ["#35d779", "#3bb8ff", "#f6a93b", "#ff4d6d", "#a875ff"]) assert.ok(css.includes(colour));
+  for (const colour of ["accent-bright", "ink-soft", "warning", "danger", "disabled"]) assert.ok(css.includes(`--pp-skin-${colour}`));
   assert.match(workspace, /StoryboardEditorialWorkspace/);
   assert.match(workspace, /storyboardReferenceCandidates/);
   assert.match(workspace, /onProjectChange/);
-  assert.match(page, /onProjectChange=\{setProject\}/);
-  assert.doesNotMatch(workspace, /PlotPickleProject|plotpickle\.project\.v1|localStorage/);
-  assert.doesNotMatch(page, /PlotPickleProject|plotpickle\.project\.v1|localStorage/);
+  assert.match(page, /onProjectChange=\{applyProjectChange\}/);
+  assert.doesNotMatch(workspace, /plotpickle\.project\.v1|localStorage/);
+  assert.doesNotMatch(page, /plotpickle\.project\.v1|localStorage/);
 });

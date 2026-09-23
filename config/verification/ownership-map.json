@@ -1098,6 +1098,7 @@
         "scripts/run-webmcp-startup-uat.mjs",
         "scripts/lock-skin-visual-baseline.mjs",
         "scripts/verification-webmcp-live.mjs",
+        "scripts/performance/measure-browser-responsiveness.mjs",
         "scripts/run-uat-guide.mjs",
         "scripts/start-uat-guide-window.ps1",
         "scripts/write-skin-v1-surface-contract-matrix.mjs",

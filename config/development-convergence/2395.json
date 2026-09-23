@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "issue": 2395,
+  "phase": "storyboard-act-scene-beat-layout",
+  "brief": "docs/developer-briefs/2395-storyboard-act-scene-beat-layout.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-editorial-workspace.module.css",
+    "app/_components/storyboard/storyboard-editorial-workspace.tsx",
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/skin-v1/preproduction-review-surfaces.tsx",
+    "config/development-convergence/2395.json",
+    "config/verification/ownership-map.json",
+    "docs/developer-briefs/2395-storyboard-act-scene-beat-layout.md",
+    "scripts/performance/measure-browser-responsiveness.mjs",
+    "tests/issue-1424-storyboard-editorial.test.mjs",
+    "tests/issue-1612-visual-density-cost.test.mjs",
+    "tests/issue-2169-storyboard-convergence.test.mjs",
+    "tests/issue-2395-storyboard-act-layout.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2395-layout-A1",
+      "criterion": "Four Act tabs select six Blocks without losing the Mini-Block address or deep link.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "Storyboard Acts" },
+        { "type": "file-contains", "path": "tests/issue-2395-storyboard-act-layout.test.mjs", "contains": "selectStoryboardAddress" }
+      ]
+    },
+    {
+      "id": "P2395-layout-A2",
+      "criterion": "A Mini-Block shows mapped Scenes, authored Beats, existing visuals and optional visual positions without inventing records.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "projectPreproductionSemantics(project, legacyProject)" },
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "Array.from({ length: 25 }" },
+        { "type": "file-contains", "path": "tests/issue-2395-storyboard-act-layout.test.mjs", "contains": "No authored Beat is mapped" }
+      ]
+    },
+    {
+      "id": "P2395-layout-A3",
+      "criterion": "Storyboard header, context and footer use full width; text provenance stays inspectable without occupying the main visual flow.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.module.css", "contains": ".footer {\n  width: 100%" },
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-editorial-workspace.tsx", "contains": "<summary>Evidence &amp; provenance</summary>" }
+      ]
+    }
+  ]
+}

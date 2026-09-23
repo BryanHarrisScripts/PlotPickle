@@ -2,7 +2,7 @@
 
 ## Why this exists
 
-The Human starts PlotPickle from `C:\Users\bryan` using `GIT-PlotPickle.ps1`. The governed `PlotPickle.ps1` lives inside the repository at `C:\Users\bryan\PlotPickle`, so launching `./PlotPickle.ps1` from the home directory fails by design.
+The Human starts PlotPickle from `C:\Users\bryan` using `.\PlotPickle.ps1`. The governed `PlotPickle.ps1` lives inside the repository at `C:\Users\bryan\PlotPickle`, so a home copy of the repository launcher fails because it looks for `Start-PlotPickle.bat` beside itself.
 
 The home-folder launcher must therefore be a tiny bootstrap, not a second startup authority.
 
@@ -37,18 +37,18 @@ No LEARN, curriculum, Journey, Agent, provider, project schema, or Phase 5 behav
 
 ## One-time Windows placement
 
-The tracked canonical bootstrap lives at the repository root as `GIT-PlotPickle.ps1`. The Human-facing copy may live at `C:\Users\bryan\GIT-PlotPickle.ps1` so it can be launched directly from the normal PowerShell starting directory.
+The tracked canonical bootstrap lives at the repository root as `GIT-PlotPickle.ps1`. The Human-facing copy lives at `$HOME\PlotPickle.ps1` and contains the tracked bootstrap from `GIT-PlotPickle.ps1`. The installer backs up an existing home script before replacing it.
 
 After this change is merged and pulled once, the canonical file can be installed/replaced with:
 
 ```powershell
-Copy-Item "$HOME\PlotPickle\GIT-PlotPickle.ps1" "$HOME\GIT-PlotPickle.ps1" -Force
+& "$HOME\PlotPickle\Utilities\Install-PlotPickle-HomeLauncher.ps1"
 ```
 
 From then on the normal command is:
 
 ```powershell
-.\GIT-PlotPickle.ps1
+.\PlotPickle.ps1
 ```
 
 The expected visible order is repository path, Git update, repository-current confirmation, then the Y/N testing-mode prompt from `PlotPickle.ps1`.

@@ -306,6 +306,7 @@
       "include": [
         "GIT-PlotPickle.ps1",
         "PlotPickle.ps1",
+        "Utilities/Install-PlotPickle-HomeLauncher.ps1",
         "Start-PlotPickle.bat"
       ],
       "ownerLayer": "experience-skins",

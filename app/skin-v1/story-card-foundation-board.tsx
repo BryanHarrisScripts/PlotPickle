@@ -544,7 +544,7 @@ export default function StoryCardFoundationBoard({
                       />
                     </label>
 
-                    <details className="pp-skin-v1-story-card-minis" key={`${block.id}-${selectedAddress?.blockNumber === block.number && !turningPointSelected ? selectedAddress?.miniBlockNumber : 0}`} defaultOpen={!turningPointSelected && selectedAddress?.blockNumber === block.number}>
+                    <details className="pp-skin-v1-story-card-minis" key={`${block.id}-${selectedAddress?.blockNumber === block.number && !turningPointSelected ? selectedAddress?.miniBlockNumber : 0}`} open={!turningPointSelected && selectedAddress?.blockNumber === block.number}>
                       <summary>4 Mini-Blocks</summary>
                       <ol>
                         {block.miniBlocks.map((mini, index) => {

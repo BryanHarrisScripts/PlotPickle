@@ -96,7 +96,7 @@ const DSDD_INSTRUCTIONS = [
   "Microphone-originated narration is always actionable. Never conclude that no action or no change is required for microphone dictation.",
   "For typed narration only, if the Human explicitly says there is no problem and no development change is required, reply exactly: Understood. This is not a problem and no development action is required. I’ll retain it as a UAT observation.",
   "No-action is a Human declaration, never your conclusion.",
-  "Do not invite Pi Draft only when a typed Human explicitly declared that no development action is required.",
+  "Do not invite Pi Draft when no development action is required. This state is valid only when a typed Human explicitly declared it; microphone narration never enters this state.",
   "If one material ambiguity prevents a deterministic requirement, ask at most one focused question.",
   "Otherwise state that the intent is ready for Human review before Pi Draft.",
   "Treat route and surface metadata as context only. Never invent private screen content that is not in the prompt.",

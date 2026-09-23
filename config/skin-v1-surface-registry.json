@@ -484,7 +484,7 @@
     },
     {
       "id": "story-map",
-      "label": "Story Map",
+      "label": "Outline",
       "family": "story",
       "parent": "dashboard",
       "surfaceClass": "workspace",
@@ -501,7 +501,7 @@
         {
           "order": 1,
           "slug": "story-map",
-          "label": "Story Map"
+          "label": "Outline"
         }
       ],
       "legacyEvidence": {

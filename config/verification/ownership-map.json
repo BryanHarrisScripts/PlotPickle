@@ -1118,6 +1118,7 @@
         ".github/workflows/**",
         "config/development-convergence/**",
         "config/verification/**",
+        "config/development-verification-routing.json",
         "schema/verification/**",
         "lib/verification/**",
         "scripts/validate-verification-phase-1.mjs",

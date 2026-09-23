@@ -29,11 +29,13 @@ function currentAddress(): PreproductionReviewAddress {
 }
 
 export default function MatrixStoryMapSurface({
+  address: selectedAddress,
   onAddressChange,
   onOpenStage,
   onOpenPrevis,
   onOpenStoryModeSettings,
 }: {
+  readonly address?: PreproductionReviewAddress;
   readonly onAddressChange?: (address: PreproductionReviewAddress) => void;
   readonly onOpenStage?: (stage: StoryMapReviewStage, address: PreproductionReviewAddress) => void;
   readonly onOpenPrevis?: (address: PreproductionReviewAddress) => void;
@@ -41,6 +43,8 @@ export default function MatrixStoryMapSurface({
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const [address, setAddress] = useState<PreproductionReviewAddress>(() => currentAddress());
+  const activeAddress = selectedAddress ?? address;
+  const activeAct = Math.floor((activeAddress.blockNumber - 1) / 6) + 1;
 
   useEffect(() => {
     const sync = () => setProject(loadFoundationProject());
@@ -58,16 +62,16 @@ export default function MatrixStoryMapSurface({
     [project],
   );
   const blockPassages = useMemo(
-    () => screenplay?.passages.filter((passage) => passage.blockNumber === address.blockNumber) ?? [],
-    [address.blockNumber, screenplay],
+    () => screenplay?.passages.filter((passage) => passage.blockNumber === activeAddress.blockNumber) ?? [],
+    [activeAddress.blockNumber, screenplay],
   );
   const miniPassages = useMemo(
-    () => blockPassages.filter((passage) => passage.miniBlockNumber === address.miniBlockNumber),
-    [address.miniBlockNumber, blockPassages],
+    () => blockPassages.filter((passage) => passage.miniBlockNumber === activeAddress.miniBlockNumber),
+    [activeAddress.miniBlockNumber, blockPassages],
   );
   const learningContext = useMemo(
-    () => storyLearningContext(address),
-    [address],
+    () => storyLearningContext(activeAddress),
+    [activeAddress],
   );
 
   function syncAddressAfterSelection() {
@@ -110,21 +114,21 @@ export default function MatrixStoryMapSurface({
   if (!project) return <p role="status">Opening Story Map…</p>;
   return (
     <div data-canonical-project-id={project.id} data-skin-v1-story-map-review="true" onClickCapture={handleClickCapture}>
-      <StoryCardFoundationBoard project={project} onProjectChange={setProject} />
-      <ProgressiveStoryMap project={project} />
+      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} />
+      <ProgressiveStoryMap key={`${project.id}-act-${activeAct}`} project={project} act={activeAct} initialBlockNumber={activeAddress.blockNumber} initialMiniBlockNumber={activeAddress.miniBlockNumber} />
 
       <section className="pp-skin-v1-writer-story-panel" aria-labelledby="writer-story-position-title" data-writer-story-projection="mini-block-source">
         <header>
           <div>
             <p>SELECTED STORY POSITION</p>
-            <h2 id="writer-story-position-title">Block {String(address.blockNumber).padStart(2, "0")} · Mini-Block {address.miniBlockNumber}</h2>
+            <h2 id="writer-story-position-title">Block {String(activeAddress.blockNumber).padStart(2, "0")} · Mini-Block {activeAddress.miniBlockNumber}</h2>
           </div>
           <div className="pp-skin-v1-writer-flow" aria-label="Writer story flow">
             <span aria-current="step">WRITTEN STORY</span>
             <button
               data-writer-story-action="write"
               type="button"
-              onClick={() => window.location.assign(`/write?block=${address.blockNumber}&mini=${address.miniBlockNumber}`)}
+              onClick={() => window.location.assign(`/write?block=${activeAddress.blockNumber}&mini=${activeAddress.miniBlockNumber}`)}
             >
               WRITE
             </button>
@@ -132,14 +136,14 @@ export default function MatrixStoryMapSurface({
               data-writer-story-action="pageflow"
               type="button"
               onClick={() => {
-                const returnPath = encodeURIComponent(`/?workspace=dashboard&block=${address.blockNumber}&mini=${address.miniBlockNumber}`);
-                window.location.assign(`/pageflow?block=${address.blockNumber}&mini=${address.miniBlockNumber}&from=preproduction&return=${returnPath}`);
+                const returnPath = encodeURIComponent(`/?workspace=dashboard&block=${activeAddress.blockNumber}&mini=${activeAddress.miniBlockNumber}`);
+                window.location.assign(`/pageflow?block=${activeAddress.blockNumber}&mini=${activeAddress.miniBlockNumber}&from=preproduction&return=${returnPath}`);
               }}
             >
               PAGEFLOW
             </button>
-            <button data-writer-story-action="storyboard" type="button" onClick={() => onOpenStage?.("storyboard", address)}>STORYBOARD</button>
-            <button data-writer-story-action="previs" type="button" onClick={() => onOpenPrevis?.(address)}>PREVIS</button>
+            <button data-writer-story-action="storyboard" type="button" onClick={() => onOpenStage?.("storyboard", activeAddress)}>STORYBOARD</button>
+            <button data-writer-story-action="previs" type="button" onClick={() => onOpenPrevis?.(activeAddress)}>PREVIS</button>
           </div>
         </header>
 
@@ -156,7 +160,7 @@ export default function MatrixStoryMapSurface({
               <button
                 data-learning-lesson-id={reference.lessonId}
                 key={reference.lessonId}
-                onClick={() => window.location.assign(storyLearningHref(reference, address))}
+                onClick={() => window.location.assign(storyLearningHref(reference, activeAddress))}
                 type="button"
               >
                 {reference.actionLabel}

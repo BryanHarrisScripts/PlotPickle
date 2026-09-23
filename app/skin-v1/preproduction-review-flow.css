@@ -39,6 +39,20 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
   font-family: var(--pp-skin-font-ui);
 }
 
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-story-act-rail="four-acts"] {
+  width: calc(100% - 40px);
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: var(--pp-skin-space-4) auto;
+  border-color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-story-act-rail="four-acts"] button[aria-current="page"] {
+  border-color: var(--pp-skin-ink);
+  outline: var(--pp-skin-border-thin) solid var(--pp-skin-ink);
+  outline-offset: var(--pp-skin-space-1);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button {
   min-height: var(--pp-skin-control-height);
   padding: var(--pp-skin-space-2) var(--pp-skin-space-3);

@@ -1089,7 +1089,8 @@
       "runner": {
         "kind": "node-test",
         "targets": [
-          "tests/issue-1938-verification-core.test.mjs"
+          "tests/issue-1938-verification-core.test.mjs",
+          "tests/issue-2348-verification-routing.test.mjs"
         ]
       },
       "cost": "fast",
@@ -1114,7 +1115,7 @@
           ".artifacts/verification/verification.json"
         ]
       },
-      "notes": "Shared verification planning/execution/evidence core baseline."
+      "notes": "Shared verification planning/execution/evidence core baseline. #2348 adds change-class to product-proof planning without a new permanent gate."
     },
     {
       "id": "verification.phase7-merge-authority",

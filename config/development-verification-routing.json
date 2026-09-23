@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "issue": 2348,
+  "authority": "config/verification/ownership-map.json",
+  "proofs": {
+    "focused-regression": { "kind": "deterministic", "description": "Focused tests selected by the existing architecture verification catalogue" },
+    "production-build": { "kind": "deterministic", "description": "Production build of the tested source" },
+    "exact-head-ci": { "kind": "deterministic", "description": "Required architecture checks on the exact PR head" },
+    "visual-observation": { "kind": "product", "description": "The changed surface is rendered and inspected" },
+    "navigation-action": { "kind": "product", "description": "A user performs the changed navigation or keyboard action" },
+    "device-input": { "kind": "product", "description": "The real device supplies input and the application receives it" },
+    "provider-execution": { "kind": "product", "description": "The configured provider completes the changed operation" },
+    "generated-image": { "kind": "product", "description": "An image is generated and visible in the product" },
+    "playable-video": { "kind": "product", "description": "A generated or exported video artifact plays" },
+    "state-recovery": { "kind": "product", "description": "User state survives the affected save/reload path" },
+    "startup-install": { "kind": "product", "description": "The affected startup or installer path completes on its target platform" }
+  },
+  "classes": [
+    { "id": "documentation", "paths": ["docs/**", "**/*.md", "README.md"], "proofs": [] },
+    { "id": "application-logic", "paths": ["app/**", "core/**", "modules/**", "build/**", "lib/**"], "proofs": ["focused-regression", "production-build", "exact-head-ci"] },
+    { "id": "ui-visual", "paths": ["app/**/*.css", "app/**/*.tsx", "public/**", "config/skin-v1-*.json"], "proofs": ["visual-observation"] },
+    { "id": "navigation-keyboard", "paths": ["app/**/*navigation*", "app/**/*dashboard*", "app/**/*menu*", "config/skin-v1-surface-registry.json"], "proofs": ["navigation-action"] },
+    { "id": "device-input", "paths": ["**/*microphone*", "**/*dictation*", "**/*voice-input*", "**/*camera*", "**/*whisper*"], "proofs": ["device-input"] },
+    { "id": "provider-runtime", "paths": ["build/ai/**", "lib/runtime/**", "**/*provider*"], "proofs": ["provider-execution"] },
+    { "id": "image-generation", "paths": ["**/*image-generation*", "**/*generate-image*", "**/*image-provider*"], "proofs": ["generated-image"] },
+    { "id": "video-generation", "paths": ["**/*video-generation*", "**/*video-export*", "**/*mp4*", "**/*animatic*"], "proofs": ["playable-video"] },
+    { "id": "persistence-state", "paths": ["**/*persistence*", "**/*state-store*", "**/*storage*"], "proofs": ["state-recovery"] },
+    { "id": "security-authentication", "paths": ["build/auth/**", "**/*security*", "**/*credential*"], "proofs": ["focused-regression", "exact-head-ci"] },
+    { "id": "build-release-installer", "paths": ["scripts/**/*installer*", "scripts/**/*startup*", "scripts/**/*release*", "build/local-app/**"], "proofs": ["startup-install"] },
+    { "id": "architecture-ownership", "paths": ["architecture/**", "config/verification/**", "config/development-verification-routing.json"], "proofs": ["focused-regression", "exact-head-ci"] }
+  ]
+}

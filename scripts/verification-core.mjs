@@ -4,19 +4,21 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { emitEvidence, explainPlan, planVerification, runLayer } from "../lib/verification/verification-core.mjs";
+import { resolveProofRoute } from "../lib/verification/development/proof-routing.mjs";
 
 const root = process.cwd();
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), "utf8"));
 
 async function loadConfiguration() {
-  const [architecture, phase0Inventory, vocabulary, catalog, ownership] = await Promise.all([
+  const [architecture, phase0Inventory, vocabulary, catalog, ownership, proofRouting] = await Promise.all([
     readJson("architecture/plotpickle.architecture.json"),
     readJson("config/verification/phase-0-inventory.json"),
     readJson("config/verification/phase-1-vocabulary.json"),
     readJson("config/verification/test-catalog.json"),
     readJson("config/verification/ownership-map.json"),
+    readJson("config/development-verification-routing.json"),
   ]);
-  return { architecture, phase0Inventory, vocabulary, catalog, ownership };
+  return { architecture, phase0Inventory, vocabulary, catalog, ownership, proofRouting };
 }
 
 function parseArgs(argv) {
@@ -24,6 +26,7 @@ function parseArgs(argv) {
   const options = {
     command,
     changedFiles: [],
+    proofClasses: [],
     mode: "impact",
     platform: process.platform === "win32" ? "windows" : process.platform === "darwin" ? "macos" : "linux",
     allowHeavy: false,
@@ -40,6 +43,7 @@ function parseArgs(argv) {
     const arg = rest[index];
     const next = () => rest[++index];
     if (arg === "--changed-file") options.changedFiles.push(next());
+    else if (arg === "--proof-class") options.proofClasses.push(next());
     else if (arg === "--base-ref") options.baseRef = next();
     else if (arg === "--mode") options.mode = next();
     else if (arg === "--platform") options.platform = next();
@@ -106,7 +110,7 @@ function typedRunners() {
 function usage() {
   return [
     "Usage:",
-    "  node scripts/verification-core.mjs plan [--changed-file PATH ... | --base-ref REF] [--json]",
+    "  node scripts/verification-core.mjs plan [--changed-file PATH ... | --base-ref REF] [--proof-class CLASS ...] [--json]",
     "  node scripts/verification-core.mjs explain [--changed-file PATH ... | --base-ref REF]",
     "  node scripts/verification-core.mjs run-layer LAYER_ID [--changed-file PATH ... | --base-ref REF] [permissions]",
     "",
@@ -136,9 +140,15 @@ async function main() {
     allowNative: options.allowNative,
     allowSecrets: options.allowSecrets,
   });
+  plan.proofRoute = resolveProofRoute({
+    changedFiles,
+    classes: options.proofClasses,
+    contract: configuration.proofRouting,
+    ownershipPlan: plan,
+  });
 
   if (options.command === "plan") {
-    console.log(options.json ? JSON.stringify(plan, null, 2) : explainPlan(plan));
+    console.log(options.json ? JSON.stringify(plan, null, 2) : `${explainPlan(plan)}\nproof-classes: ${plan.proofRoute.classes.join(", ") || "none"}\nproduct-proof: ${plan.proofRoute.productProofStatus} [${plan.proofRoute.productProofs.join(", ") || "none"}]`);
     if (plan.status === "blocked") process.exitCode = 3;
     return;
   }

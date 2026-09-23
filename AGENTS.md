@@ -70,6 +70,8 @@ For non-trivial product and architecture work, use the repository-native loop do
 
 The active focused UAT scope is Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood.
 
+Before calling changed behavior complete, resolve change classes and proof requirements from `config/development-verification-routing.json` using `node scripts/verification-core.mjs plan --changed-file PATH --json`. The route adds product observations for affected runtime or user-visible behavior; it does not replace the ownership map, focused UAT or exact-head Architecture Verification. Planned product proof stays UNPROVEN until observed evidence exists. Add `--proof-class CLASS` when the task's behavior cannot be inferred from its file paths.
+
 - Add or strengthen the nearest focused regression for behavior changes.
 - Keep `config/uat-autopilot-registry.json` as the ownership registry for focused UAT.
 - Do not pull the legacy whole-app UAT suite into routine focused validation.

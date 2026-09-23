@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "issue": 2348,
+  "phase": "verification-routing-first-slice",
+  "brief": "docs/developer-briefs/2348-verification-routing-slice.md",
+  "allowedChanges": [
+    "AGENTS.md",
+    "config/development-convergence/2348.json",
+    "config/development-verification-routing.json",
+    "config/verification/ownership-map.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2348-verification-routing-slice.md",
+    "lib/verification/development/proof-routing.mjs",
+    "scripts/verification-core.mjs",
+    "tests/issue-2348-verification-routing.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2348-V1",
+      "criterion": "One policy extends canonical verification ownership and composes multiple product proof classes.",
+      "evidence": [
+        { "type": "file-contains", "path": "config/development-verification-routing.json", "contains": "config/verification/ownership-map.json" },
+        { "type": "file-contains", "path": "tests/issue-2348-verification-routing.test.mjs", "contains": "device and visual changes combine their real-product obligations" }
+      ]
+    },
+    {
+      "id": "P2348-V2",
+      "criterion": "Product proof remains unproven after a build and requires observed exact-head evidence.",
+      "evidence": [
+        { "type": "file-contains", "path": "tests/issue-2348-verification-routing.test.mjs", "contains": "a build cannot claim image or video product proof" },
+        { "type": "file-contains", "path": "tests/issue-2348-verification-routing.test.mjs", "contains": "only observed exact-head evidence can satisfy required product proofs" }
+      ]
+    },
+    {
+      "id": "P2348-V3",
+      "criterion": "The existing developer plan and verification catalogue expose the route without a new CI check.",
+      "evidence": [
+        { "type": "file-contains", "path": "scripts/verification-core.mjs", "contains": "plan.proofRoute = resolveProofRoute" },
+        { "type": "file-contains", "path": "config/verification/test-catalog.json", "contains": "tests/issue-2348-verification-routing.test.mjs" }
+      ]
+    }
+  ]
+}

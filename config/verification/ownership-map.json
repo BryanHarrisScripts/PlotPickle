@@ -1112,12 +1112,25 @@
       ]
     },
     {
+      "id": "development-agent-rules",
+      "classification": "docs",
+      "include": [
+        "AGENTS.md"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs",
+        "test-harness"
+      ]
+    },
+    {
       "id": "verification-contract-files",
       "classification": "verification",
       "include": [
         ".github/workflows/**",
         "config/development-convergence/**",
         "config/verification/**",
+        "config/development-verification-routing.json",
         "schema/verification/**",
         "lib/verification/**",
         "scripts/validate-verification-phase-1.mjs",

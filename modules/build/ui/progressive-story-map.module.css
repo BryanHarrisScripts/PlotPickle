@@ -31,6 +31,7 @@
 .sourceSummary span { overflow-wrap: anywhere; color: #9bc2b9; font-size: .78rem; }
 .sourceSummary small { color: #738f88; line-height: 1.4; }
 .map { display: grid; grid-template-columns: repeat(4,minmax(250px,1fr)); grid-template-rows: repeat(3,minmax(0,auto)); grid-auto-flow: column; gap: 9px 18px; align-items: stretch; overflow-x: auto; padding: 28px 2px 4px; }
+.map[aria-label^="Act "] { grid-template-columns: repeat(3,minmax(240px,1fr)); grid-template-rows: auto; grid-auto-flow: row; }
 .sequenceSlot { position: relative; min-width: 0; }
 .sequenceSlot[data-sequence="1"]::before,
 .sequenceSlot[data-sequence="4"]::before,

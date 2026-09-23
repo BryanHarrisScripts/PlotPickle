@@ -933,7 +933,7 @@ html[data-plotpickle-skin^="skin-"] [data-outline-readiness="review"] { --outlin
 html[data-plotpickle-skin^="skin-"] [data-outline-readiness="needs-support"] { --outline-accent: #ff4d6d; }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid article[data-outline-readiness] { border-left-color: var(--outline-accent); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card[data-outline-readiness],
-html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] button[data-outline-readiness] { border-left: 4px solid var(--outline-accent) !important; }
+html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] button[data-outline-readiness] { border-left: 2px solid var(--outline-accent) !important; }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-status { color: var(--outline-accent); font-weight: 700; }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini summary { cursor: pointer; font-weight: 700; padding: .3rem 0; }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini[data-mini-support="missing"] summary { color: #ff4d6d; }

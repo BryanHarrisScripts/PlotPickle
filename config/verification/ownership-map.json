@@ -681,6 +681,7 @@
         "core/project/story-structure-v2.ts",
         "modules/library/import/rich-ppf-to-library-project.ts",
         "modules/plan/story-card-board.ts",
+        "modules/plan/outline-readiness.ts",
         "data/afterglow-screenplay.ts",
         "data/afterglow-reconciliation.ts",
         "core/contracts/imported-screenplay-evidence/index.ts",

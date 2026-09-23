@@ -4,6 +4,7 @@ import { blockWritingEntry } from "@/core/contracts/block-writing";
 import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
+import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
 import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
 import { STORY_CARD_MINI_LABELS, storyCardActRows } from "@/modules/plan/story-card-board";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
@@ -33,6 +34,7 @@ export default function ActWrittenStoryBoard({ project, act, outlineReadiness, s
           <div className="pp-skin-v1-story-card-row">
             {row.blocks.map((block) => {
               const readiness = outlineReadiness?.find((item) => item.blockNumber === block.number);
+              const assessment = currentOutlineAssessment(project, block.number);
               const placeholder = `Block ${String(block.number).padStart(2, "0")}`;
               const sectionTitle = screenplay?.sectionMarkers?.find((marker) => marker.blockNumber === block.number)?.title;
               const title = block.title !== placeholder ? block.title : sectionTitle || placeholder;
@@ -50,10 +52,12 @@ export default function ActWrittenStoryBoard({ project, act, outlineReadiness, s
                   </header>
                   <h3>{title}</h3>
                   {readiness ? <p className="pp-skin-v1-outline-status">Outline: {readiness.status === "needs-support" ? "Needs support" : readiness.status === "review" ? "Review" : "Evidence ready"}</p> : null}
+                  {assessment ? <p className="pp-skin-v1-outline-agent-mini">Story Architect: {assessment.structural.state.replaceAll("-", " / ")} · {assessment.structural.reason}</p> : <p className="pp-skin-v1-outline-agent-mini">Story Architect assessment pending. Script placement alone does not establish structural coverage.</p>}
                   {!hasText ? <p className="pp-skin-v1-written-act-empty">No script mapped to this Block yet.</p> : null}
                   {miniSections.map(({ index, saved, passages }) => (
                     <details className="pp-skin-v1-written-act-mini" data-mini-support={readiness?.unsupportedMiniBlocks.includes(index + 1) ? "missing" : "present"} data-selected={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === index + 1 ? "true" : undefined} aria-label={`Block ${block.number} ${STORY_CARD_MINI_LABELS[index]}`} key={`${index}-${!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === index + 1 ? "selected" : "idle"}`} open={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === index + 1}>
                       <summary onClick={(event) => { if (turningPointSelected || selectedAddress?.blockNumber !== block.number || selectedAddress?.miniBlockNumber !== index + 1) { event.preventDefault(); onSelectAddress?.({ blockNumber: block.number, miniBlockNumber: index + 1 }); } }}>{index + 1} · {STORY_CARD_MINI_LABELS[index]} {readiness?.unsupportedMiniBlocks.includes(index + 1) ? "· Needs support" : ""}</summary>
+                      {assessment?.miniBlocks[index] ? <p className="pp-skin-v1-outline-agent-mini">{assessment.miniBlocks[index].state} · {assessment.miniBlocks[index].reason}</p> : null}
                       {saved ? (
                         <div><small>Saved PPF writing</small><p>{saved.text}</p></div>
                       ) : passages.length ? (
@@ -61,6 +65,7 @@ export default function ActWrittenStoryBoard({ project, act, outlineReadiness, s
                           {passages.map((passage) => <p key={passage.id}>{passage.text}</p>)}
                         </div>
                       ) : <p>No script or saved writing mapped to this Mini-Block yet. Check the planned intent in its Story Card.</p>}
+                      <div className="pp-skin-v1-outline-storyboard-handoff"><strong>Storyboard handoff</strong><p>{assessment?.miniBlocks[index]?.storyboardCue || "Read this screenplay movement and choose a visual scene or anchor. No visual decision has been accepted yet."}</p><a href={`/storyboard?block=${block.number}&mini=${index + 1}`}>Open Storyboard · Block {block.number} / Mini {index + 1}</a></div>
                     </details>
                   ))}
                 </article>

@@ -181,7 +181,7 @@ test("#2178 attaches character evidence to the same PPF and cross-links #2168 st
   assert.match(storyMatrix, /characterEvidenceRefs: uniqueStrings/u);
 });
 
-test("#2178 Story Cards let Humans review arc evidence while restricted claims stay out of guidance", async () => {
+test("#2178 Story Cards show cited agent arc proposals while restricted claims stay out of guidance", async () => {
   const [board, css] = await Promise.all([
     read("app/skin-v1/story-card-foundation-board.tsx"),
     read("app/skin-v1/preproduction-review-flow.css"),
@@ -189,13 +189,13 @@ test("#2178 Story Cards let Humans review arc evidence while restricted claims s
 
   assert.match(board, /const characterTruth = normalizedSourceEvidence\.characterTruth/u);
   assert.match(board, /Character arc evidence/u);
-  assert.match(board, /Human arc-evidence finding/u);
-  assert.match(board, /reviewCharacterArcEvidence/u);
+  assert.match(board, /assessment\.characters.find/u);
+  assert.doesNotMatch(board, /Human arc-evidence finding/u);
   assert.match(board, /handling === "writer-reference"/u);
   assert.match(board, /restricted historical reference/u);
   assert.match(board, /not surfaced as character guidance/u);
-  assert.match(board, /Profile\/backstory may explain motivation, but it is not audience-visible screenplay proof/u);
-  assert.match(board, /Character profile source and screenplay text were not changed/u);
+  assert.match(board, /Profile\/backstory is separate source context/u);
+  assert.match(board, /screenplay and accepted canon were not rewritten/u);
   assert.match(css, /pp-skin-v1-story-card-character-review/u);
   assert.match(css, /pp-skin-v1-story-card-character-grid/u);
 });

@@ -6,6 +6,7 @@ import {
   normalizeStoryEvidenceMatrix,
   type StoryEvidenceMatrix,
 } from "../story-evidence-matrix";
+import { normalizeOutlineAgentAssessments, type OutlineAgentAssessment } from "../outline-agent-assessment";
 
 export type ImportedScreenplayEvidenceState = "none" | "suggested" | "reviewed";
 
@@ -78,6 +79,7 @@ export type ProjectSourceEvidence = {
   readonly referenceFixture: ReferenceFixtureEvidence | null;
   readonly storyMatrix?: StoryEvidenceMatrix | null;
   readonly characterTruth?: CharacterTruthEvidence | null;
+  readonly outlineAssessments?: readonly OutlineAgentAssessment[];
 };
 
 export function createEmptyProjectSourceEvidence(): ProjectSourceEvidence {
@@ -217,12 +219,14 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     readonly referenceFixture?: unknown;
     readonly storyMatrix?: unknown;
     readonly characterTruth?: unknown;
+    readonly outlineAssessments?: unknown;
   };
   const referenceFixture = normalizeReferenceFixture(source.referenceFixture);
   const storyMatrix = normalizeStoryEvidenceMatrix(source.storyMatrix);
   const characterTruth = normalizeCharacterTruthEvidence(source.characterTruth);
+  const outlineAssessments = normalizeOutlineAgentAssessments(source.outlineAssessments);
   if (!source.screenplay || typeof source.screenplay !== "object" || Array.isArray(source.screenplay)) {
-    return { screenplay: null, referenceFixture, storyMatrix, characterTruth };
+    return { screenplay: null, referenceFixture, storyMatrix, characterTruth, outlineAssessments };
   }
   const screenplay = source.screenplay as Partial<ImportedScreenplayEvidence>;
   const passages = Array.isArray(screenplay.passages)
@@ -270,6 +274,7 @@ export function normalizeProjectSourceEvidence(value: unknown): ProjectSourceEvi
     referenceFixture,
     storyMatrix,
     characterTruth,
+    outlineAssessments,
   };
 }
 

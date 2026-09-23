@@ -13,10 +13,10 @@ test("Outline separates observed screenplay evidence from deterministic support 
     source("modules/build/ui/progressive-story-map.tsx"),
     source("app/skin-v1/preproduction-review-flow.css"),
   ]);
-  assert.match(check, /finding\?\.state === "unresolved"/);
+  assert.match(check, /assessment\?\.structural.state === "unresolved"/);
   assert.match(check, /unsupportedMiniBlocks\.length/);
   assert.match(check, /page-progress-fallback/);
-  assert.match(check, /unresolved-insufficient-evidence/);
+  assert.match(check, /assessment\?\.characters.some/);
   assert.match(surface, /deriveOutlineReadiness\(project\)/);
   assert.match(cards, /data-outline-readiness=\{readiness\?\.status\}/);
   assert.match(script, /<details className="pp-skin-v1-written-act-mini"/);

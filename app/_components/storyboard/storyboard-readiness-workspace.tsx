@@ -7,6 +7,8 @@ import type { PPFProject } from "@/core/project/project";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
 import { deriveVisualReadiness, type VisualReadinessTarget } from "@/modules/build/visual-readiness";
+import { currentOutlineAssessment } from "@/modules/plan/outline-agent-assessment";
+import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import StoryboardEditorialWorkspace from "./storyboard-editorial-workspace";
@@ -75,6 +77,8 @@ export default function StoryboardReadinessWorkspace({
   const [requestedCandidateId, setRequestedCandidateId] = useState<string | undefined>();
   const selectedTarget = blocks.find((target) => blockNumber(target) === selectedBlockNumber) ?? blocks[0] ?? null;
   const selectedNumber = selectedTarget ? blockNumber(selectedTarget) : 1;
+  const outline = deriveOutlineReadiness(project).find((item) => item.blockNumber === selectedNumber);
+  const outlineAssessment = currentOutlineAssessment(project, selectedNumber);
   const storyboardAccessible = selectedTarget ? hasQaWorkspaceAccess(selectedTarget.storyboardAllowed) : false;
   const qaOnlyAccess = selectedTarget ? isQaAccessOverride(selectedTarget.storyboardAllowed) : false;
   const selectedReferences = useMemo(
@@ -112,7 +116,7 @@ export default function StoryboardReadinessWorkspace({
           <div><dt>Project</dt><dd>{project.title}</dd></div>
           <div><dt>PPF revision</dt><dd>{project.revision}</dd></div>
           <div><dt>Visual anchors</dt><dd>96</dd></div>
-          <div><dt>Ready Blocks</dt><dd>{readyCount} / {blocks.length}</dd></div>
+          <div><dt>Blocks with mapped text</dt><dd>{readyCount} / {blocks.length}</dd></div>
         </dl>
       </header>
 
@@ -163,7 +167,7 @@ export default function StoryboardReadinessWorkspace({
               <p className={styles.blockKicker}>Block {String(selectedNumber).padStart(2, "0")}</p>
               <h2>{selectedTarget.label.replace(/^Block \d+: /, "")}</h2>
               <p>{selectedTarget.storyboardAllowed
-                ? "This Block has enough reviewed structural evidence to begin visual decisions."
+                ? "Screenplay placement allows visual exploration. Check the Outline handoff below before accepting a visual anchor."
                 : qaOnlyAccess
                   ? `QA access is open for this Block. Canonical prerequisites remain unresolved: ${selectedTarget.missingPrerequisites.join(" · ") || "BUILD evidence is incomplete."}`
                   : selectedTarget.missingPrerequisites.join(" · ") || "This Block remains visible but is not ready for visual authoring."}</p>
@@ -173,6 +177,12 @@ export default function StoryboardReadinessWorkspace({
               <strong>{STATE_LABELS[selectedTarget.state]}</strong>
             </span>
           </header>
+          <aside className={styles.outlineHandoff} aria-label={`Block ${selectedNumber} Outline to Storyboard handoff`} data-outline-handoff={outline?.status ?? "review"}>
+            <strong>OUTLINE → STORYBOARD · {outline?.status === "needs-support" ? "Needs support" : outline?.status === "review" ? "Review" : "Evidence ready"}</strong>
+            <p>{outlineAssessment ? `${outlineAssessment.structural.state.replaceAll("-", " / ")}: ${outlineAssessment.structural.reason}` : "Story Architect has not assessed this Block against the screenplay. Observed passage placement is not a structural finding."}</p>
+            {outline?.issues.length ? <ul>{outline.issues.slice(0, 4).map((issue) => <li key={issue}>{issue}</li>)}</ul> : null}
+            <a href={`/?workspace=dashboard&block=${selectedNumber}&mini=${selectedMiniBlockNumber}`}>Back to Dashboard · open Outline at this Block</a>
+          </aside>
 
           <div className={styles.miniBlockGrid} aria-label={`Block ${selectedNumber} Mini-Block visual anchors`}>
             {[1, 2, 3, 4].map((miniNumber) => {
@@ -204,6 +214,7 @@ export default function StoryboardReadinessWorkspace({
                     : qaOnlyAccess
                       ? "QA access is open. A real visual candidate is still required before this anchor can be reviewed."
                       : "Visual anchor reserved. BUILD evidence must mature before authoring begins.")}</p>
+                  {outlineAssessment?.miniBlocks[miniNumber - 1] ? <p className={styles.outlineCue}>Outline cue · {outlineAssessment.miniBlocks[miniNumber - 1].storyboardCue || outlineAssessment.miniBlocks[miniNumber - 1].reason}</p> : null}
                   <small className={styles.anchorEvidence}>
                     {anchorEvidence.passages.length} screenplay passage{anchorEvidence.passages.length === 1 ? "" : "s"} · {reference
                       ? reference.acceptedArtifactId

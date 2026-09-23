@@ -61,7 +61,7 @@ export default function MatrixStoryMapSurface({
       />
       <section className="pp-skin-v1-outline-readiness" aria-label={`Act ${activeAct} Outline readiness`} data-outline-readiness-summary={activeAct}>
         <h2>Act {activeAct} · Outline readiness</h2>
-        <p>Observed means screenplay text is mapped. Readiness also checks reviewed structure, story intent, and Mini-Block support before Storyboard.</p>
+        <p>Observed means screenplay text is mapped. Readiness checks source placement, Story Architect findings, story intent, and Mini-Block support before Storyboard. Run the Act assessment below to replace generic pending findings with cited proposals.</p>
         <div className="pp-skin-v1-outline-readiness-grid">
           {actReadiness.map((block) => (
             <article data-outline-readiness={block.status} data-selected={block.blockNumber === address.blockNumber && !turningPointSelected ? "true" : undefined} key={block.blockNumber}>

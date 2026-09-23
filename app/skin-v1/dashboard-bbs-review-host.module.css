@@ -25,3 +25,10 @@
   font-weight: 700;
   letter-spacing: var(--pp-skin-tracking-label);
 }
+
+.reviewSurface[data-dashboard-review-surface="outline"] {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  border-color: var(--pp-skin-ink);
+}

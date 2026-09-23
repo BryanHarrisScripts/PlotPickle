@@ -213,10 +213,11 @@ export default function StoryboardEditorialWorkspace({
         </div>
       </div>
 
-      <section className={styles.sourceEvidence} aria-label="Written source and provenance for selected Storyboard anchor">
+      <details className={styles.sourceEvidence} aria-label="Evidence and provenance for selected Storyboard anchor">
+        <summary>Evidence &amp; provenance</summary>
         <header>
           <div>
-            <p className={styles.kicker}>Written source · same canonical address</p>
+            <p className={styles.kicker}>Source inspection · same canonical address</p>
             <h3>{sourceEvidence.blockTitle || `Block ${String(sourceEvidence.blockNumber).padStart(2, "0")}`} · Mini-Block {sourceEvidence.miniBlockNumber}</h3>
           </div>
           <span data-visual-review-state={selectedIsKept ? "accepted" : "candidate"}>
@@ -256,7 +257,7 @@ export default function StoryboardEditorialWorkspace({
           </div>
         </div>
         <p className={styles.evidenceBoundary}>The #2168 evidence matrix explains where source material came from; it does not make this image canon. Keep/accepted state remains the existing PPF visual-artifact authority, and shot/reveal intent remains owned by the existing Storyboard Shot contract.</p>
-      </section>
+      </details>
 
       {comparing ? (
         <div className={styles.compare} aria-label="Storyboard variations for this Mini-Block anchor">

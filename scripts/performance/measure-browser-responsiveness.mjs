@@ -159,7 +159,7 @@ const readinessExpression = `(() => {
   else if (routeKey === "/?workspace=learn") routeReady = shellWorkspace === "learn" && Boolean(document.querySelector('[aria-label="PlotPickle curriculum"]'));
   else if (routeKey === "/?workspace=plan") routeReady = shellWorkspace === "plan";
   else if (routeKey === "/?workspace=build") routeReady = shellWorkspace === "build" && Boolean(document.querySelector('[data-progressive-story-map="24x96"]'));
-  else if (routeKey === "/storyboard") routeReady = Boolean(document.querySelector('[aria-label="Storyboard Block tabs"]')) && body.includes("Visual anchors");
+  else if (routeKey === "/storyboard") routeReady = Boolean(document.querySelector('[aria-label="Storyboard Acts"]')) && body.includes("Visual anchors");
   else if (routeKey === "/story-decisions") routeReady = body.includes("Story Decisions");
   else if (routeKey === "/story-workbench") routeReady = body.includes("Story Workbench");
   const controls = document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])').length;
@@ -203,7 +203,8 @@ const visualDensityExpression = `(() => {
     miniBlockCount: null,
     decisionTargetCount: document.querySelectorAll('[data-story-decision-target]').length,
     projectionImpactCount: document.querySelectorAll('[data-projection-impact]').length,
-    storyboardBlockTabCount: null,
+    storyboardActTabCount: null,
+    storyboardVisibleBlockCount: null,
     visibleMiniBlockAnchorCount: null,
     declaredVisualAnchorCount: null,
     topologyComplete: null,
@@ -213,11 +214,12 @@ const visualDensityExpression = `(() => {
     profile.miniBlockCount = document.querySelectorAll('[data-progressive-story-map="24x96"] [aria-label^="Mini-Block "]').length;
     profile.topologyComplete = profile.blockCount === 24 && profile.miniBlockCount === 96;
   } else if (routeKey === '/storyboard') {
-    profile.storyboardBlockTabCount = document.querySelectorAll('[aria-label="Storyboard Block tabs"] [role="tab"]').length;
+    profile.storyboardActTabCount = document.querySelectorAll('[aria-label="Storyboard Acts"] [role="tab"]').length;
+    profile.storyboardVisibleBlockCount = document.querySelectorAll('[aria-label="Storyboard Block tabs"] button').length;
     profile.visibleMiniBlockAnchorCount = document.querySelectorAll('[data-story-decision-target^="storyboard-anchor:"]').length;
     const visualAnchorTerm = [...document.querySelectorAll('dt')].find((item) => (item.textContent || '').trim() === 'Visual anchors');
     profile.declaredVisualAnchorCount = Number(visualAnchorTerm?.nextElementSibling?.textContent || 0) || null;
-    profile.topologyComplete = profile.storyboardBlockTabCount === 24 && profile.visibleMiniBlockAnchorCount === 4 && profile.declaredVisualAnchorCount === 96;
+    profile.topologyComplete = profile.storyboardActTabCount === 4 && profile.storyboardVisibleBlockCount === 6 && profile.visibleMiniBlockAnchorCount === 4 && profile.declaredVisualAnchorCount === 96;
   }
   return profile;
 })()`;
@@ -481,7 +483,7 @@ async function measureVisualStoryCost(client, baseUrl) {
   const build = surfaces.find((surface) => surface.label === "build-24x96");
   const storyboard = surfaces.find((surface) => surface.label === "storyboard-24x96");
   if (!build?.topologyComplete) throw new Error("#1411 visual evidence did not observe the canonical BUILD 24/96 topology.");
-  if (!storyboard?.topologyComplete) throw new Error("#1411 visual evidence did not observe Storyboard's 24 tabs, 96 declared anchors and four selected Mini-Block anchors.");
+  if (!storyboard?.topologyComplete) throw new Error("#1411 visual evidence did not observe Storyboard's four Act tabs, six selected Act Blocks, 96 declared anchors and four selected Mini-Block anchors.");
   return {
     reliability: "headless-browser-cdp-visual-density-profile",
     surfaces,

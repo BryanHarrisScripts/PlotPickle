@@ -56,14 +56,15 @@ test("#1411 Slice E ties BUILD and Storyboard measurement to their canonical 24/
   assert.match(measurement, /did not observe the canonical BUILD 24\/96 topology/);
 
   assert.match(storyboard, /aria-label="Storyboard Block tabs"/);
+  assert.match(storyboard, /aria-label="Storyboard Acts"/);
   assert.match(storyboard, /<dd>96<\/dd>/);
   assert.match(storyboard, /data-story-decision-target=\{storyboardAnchorTargetRef/);
   assert.match(storyboardModel, /return `storyboard-anchor:\$\{targetId\}:mini-\$\{miniBlockNumber\}`/);
   assert.match(measurement, /data-story-decision-target\^="storyboard-anchor:"/);
-  assert.match(measurement, /profile\.storyboardBlockTabCount === 24/);
+  assert.match(measurement, /profile\.storyboardActTabCount === 4 && profile\.storyboardVisibleBlockCount === 6/);
   assert.match(measurement, /profile\.visibleMiniBlockAnchorCount === 4/);
   assert.match(measurement, /profile\.declaredVisualAnchorCount === 96/);
-  assert.match(measurement, /did not observe Storyboard's 24 tabs, 96 declared anchors and four selected Mini-Block anchors/);
+  assert.match(measurement, /did not observe Storyboard's four Act tabs, six selected Act Blocks, 96 declared anchors and four selected Mini-Block anchors/);
 });
 
 test("#1411 Slice E keeps Workbench projection evidence and Storyboard lazy imagery observable", async () => {

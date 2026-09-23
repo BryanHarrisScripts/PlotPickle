@@ -1,7 +1,7 @@
 import { blockWritingEntry } from "../../core/contracts/block-writing";
 import { normalizeProjectSourceEvidence } from "../../core/contracts/imported-screenplay-evidence";
 import type { ImportedScreenplayPassage } from "../../core/contracts/imported-screenplay-evidence";
-import type { OutlineAgentAssessment } from "../../core/contracts/outline-agent-assessment";
+import type { OutlineAgentAssessment } from "../../core/contracts/imported-screenplay-evidence/outline-agent-assessment";
 import type { LibraryPPFProject } from "../../core/storage/library-project";
 
 const STRUCTURAL = new Set(["covered", "condensed-shared", "gap-underdeveloped", "unresolved"]);

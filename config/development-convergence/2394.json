@@ -13,7 +13,7 @@
     "config/development-convergence/2394.json",
     "config/verification/ownership-map.json",
     "core/contracts/imported-screenplay-evidence/index.ts",
-    "core/contracts/outline-agent-assessment.ts",
+    "core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts",
     "docs/developer-briefs/outline-evidence-assessment.md",
     "modules/plan/outline-agent-assessment.ts",
     "modules/plan/outline-readiness.ts",

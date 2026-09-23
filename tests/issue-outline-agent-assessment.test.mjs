@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { normalizeOutlineAgentAssessments } from "../core/contracts/outline-agent-assessment.ts";
+import { normalizeOutlineAgentAssessments } from "../core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 

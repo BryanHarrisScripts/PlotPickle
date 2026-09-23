@@ -701,7 +701,7 @@
       "classification": "production",
       "include": [
         "core/contracts/story-evidence-matrix.ts",
-        "core/contracts/outline-agent-assessment.ts",
+        "core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts",
         "data/afterglow-reference-identity.ts",
         "modules/library/reference/afterglow-golden-story-fixture.ts",
         "modules/library/reference/afterglow-v9-foundations.ts"

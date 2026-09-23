@@ -6,7 +6,7 @@ import {
   normalizeStoryEvidenceMatrix,
   type StoryEvidenceMatrix,
 } from "../story-evidence-matrix";
-import { normalizeOutlineAgentAssessments, type OutlineAgentAssessment } from "../outline-agent-assessment";
+import { normalizeOutlineAgentAssessments, type OutlineAgentAssessment } from "./outline-agent-assessment";
 
 export type ImportedScreenplayEvidenceState = "none" | "suggested" | "reviewed";
 

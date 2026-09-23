@@ -1,5 +1,5 @@
-import type { CharacterArcEvidenceState } from "./character-truth-evidence";
-import type { StoryStructuralFindingState } from "./story-evidence-matrix";
+import type { CharacterArcEvidenceState } from "../character-truth-evidence";
+import type { StoryStructuralFindingState } from "../story-evidence-matrix";
 
 /** Agent proposals are evidence-linked observations, never canon or Human-reviewed findings. */
 export type OutlineAgentAssessment = Readonly<{

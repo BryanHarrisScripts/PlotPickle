@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "issue": 2394,
+  "phase": "outline-evidence-assessment",
+  "brief": "docs/developer-briefs/outline-evidence-assessment.md",
+  "allowedChanges": [
+    "app/_components/storyboard/storyboard-readiness-workspace.module.css",
+    "app/_components/storyboard/storyboard-readiness-workspace.tsx",
+    "app/skin-v1/act-written-story-board.tsx",
+    "app/skin-v1/matrix-story-map-surface.tsx",
+    "app/skin-v1/preproduction-review-flow.css",
+    "app/skin-v1/story-card-foundation-board.tsx",
+    "config/development-convergence/2394.json",
+    "config/verification/ownership-map.json",
+    "core/contracts/imported-screenplay-evidence/index.ts",
+    "core/contracts/imported-screenplay-evidence/outline-agent-assessment.ts",
+    "docs/developer-briefs/outline-evidence-assessment.md",
+    "modules/plan/outline-agent-assessment.ts",
+    "modules/plan/outline-readiness.ts",
+    "tests/issue-2168-afterglow-golden-story-fixture.test.mjs",
+    "tests/issue-2178-afterglow-character-truth-arc-map.test.mjs",
+    "tests/issue-outline-agent-assessment.test.mjs",
+    "tests/issue-outline-readiness.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2394-A1",
+      "criterion": "Story Architect proposes source-cited structural, character and Mini-Block findings; manual state dropdowns are removed.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/plan/outline-agent-assessment.ts", "contains": "validateOutlineAgentAssessment" },
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "Assess this Block with Story Architect" },
+        { "type": "file-contains", "path": "tests/issue-outline-agent-assessment.test.mjs", "contains": "assert.doesNotMatch(board, /<select\\s/u)" }
+      ]
+    },
+    {
+      "id": "P2394-A2",
+      "criterion": "Outline preserves current evidence and surfaces specific uncertainty instead of treating text density as proof.",
+      "evidence": [
+        { "type": "file-contains", "path": "modules/plan/outline-readiness.ts", "contains": "Story Architect cannot confirm structural coverage" },
+        { "type": "file-contains", "path": "modules/plan/outline-agent-assessment.ts", "contains": "inputFingerprint: outlineAssessmentFingerprint" },
+        { "type": "file-contains", "path": "app/skin-v1/story-card-foundation-board.tsx", "contains": "Screenplay passages behind this finding" }
+      ]
+    },
+    {
+      "id": "P2394-A3",
+      "criterion": "Storyboard receives grounded cues and Outline status at the same Block and Mini-Block coordinates.",
+      "evidence": [
+        { "type": "file-contains", "path": "app/_components/storyboard/storyboard-readiness-workspace.tsx", "contains": "OUTLINE → STORYBOARD" },
+        { "type": "file-contains", "path": "app/skin-v1/act-written-story-board.tsx", "contains": "Storyboard handoff" },
+        { "type": "file-contains", "path": "tests/issue-outline-agent-assessment.test.mjs", "contains": "outlineAssessment\\.miniBlocks" }
+      ]
+    }
+  ]
+}

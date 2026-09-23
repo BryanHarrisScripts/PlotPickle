@@ -958,3 +958,12 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-mini-picks { display: fl
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-mini-picks button { padding: .3rem .5rem; border: 1px solid var(--pp-skin-line); background: var(--pp-skin-surface-1); color: var(--pp-skin-ink); cursor: pointer; }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-mini-picks button[data-selected="true"] { outline: 2px solid var(--pp-skin-accent-bright); outline-offset: -2px; background: var(--pp-skin-fill-row-hover); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-minis li > div button { padding: 0; border: 0; background: transparent; color: var(--pp-skin-ink); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-assess-act,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-summary button { margin: .5rem 0; padding: .5rem .75rem; border: 1px solid var(--pp-skin-accent-bright); background: var(--pp-skin-surface-1); color: var(--pp-skin-ink); cursor: pointer; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-summary { display: grid; gap: .5rem; border: 1px solid var(--pp-skin-line); padding: .75rem; background: var(--pp-skin-surface-1); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-summary[data-agent-structural-state="gap-underdeveloped"] { border-left: 2px solid var(--pp-skin-danger); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-summary[data-agent-structural-state="unresolved"] { border-left: 2px solid var(--pp-skin-warning); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-mini { color: var(--pp-skin-ink-soft); line-height: var(--pp-skin-leading-body); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff { padding: .5rem; border-top: 1px solid var(--pp-skin-line); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff a { color: var(--pp-skin-accent-bright); }

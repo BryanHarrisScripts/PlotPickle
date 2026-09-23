@@ -391,3 +391,11 @@
     grid-template-columns: repeat(24, 40px);
   }
 }
+
+.outlineHandoff { margin: var(--pp-skin-space-3) 0; padding: var(--pp-skin-space-3); border: 1px solid var(--pp-skin-line); background: var(--pp-skin-surface-1); }
+.outlineHandoff strong { color: var(--pp-skin-accent-bright); }
+.outlineHandoff[data-outline-handoff="needs-support"] { border-left: 2px solid var(--pp-skin-danger); }
+.outlineHandoff[data-outline-handoff="review"] { border-left: 2px solid var(--pp-skin-warning); }
+.outlineHandoff p, .outlineHandoff li, .outlineCue { color: var(--pp-skin-ink-soft); }
+.outlineHandoff a { color: var(--pp-skin-accent-bright); }
+.outlineCue { border-top: 1px solid var(--pp-skin-line); padding-top: var(--pp-skin-space-2); }

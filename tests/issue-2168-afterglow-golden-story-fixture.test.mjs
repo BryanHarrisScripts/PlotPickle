@@ -123,7 +123,7 @@ test("#2168 attaches the golden matrix to the packaged Afterglow PPF and keeps i
   assert.match(evidence, /storyMatrix,/u);
 });
 
-test("#2168 Story Cards expose responsibility, provenance and review without auto-rewriting the screenplay", async () => {
+test("#2168 Story Cards expose responsibility, provenance and agent proposals without rewriting the screenplay", async () => {
   const [board, css] = await Promise.all([
     read("app/skin-v1/story-card-foundation-board.tsx"),
     read("app/skin-v1/preproduction-review-flow.css"),
@@ -131,13 +131,11 @@ test("#2168 Story Cards expose responsibility, provenance and review without aut
 
   assert.match(board, /const storyMatrix = normalizedSourceEvidence\.storyMatrix/u);
   assert.match(board, /Structural responsibility/u);
-  assert.match(board, /Human structural finding/u);
-  assert.match(board, /Covered/u);
-  assert.match(board, /Condensed \/ Shared/u);
-  assert.match(board, /Gap \/ Underdeveloped/u);
-  assert.match(board, /Source density and curriculum guidance do not decide this finding/u);
-  assert.match(board, /reviewStoryEvidenceBlock/u);
-  assert.match(board, /No screenplay text or comparison source was changed/u);
+  assert.match(board, /currentOutlineAssessment\(project, block.number\)/u);
+  assert.match(board, /requestOutlineAgentAssessment/u);
+  assert.match(board, /sourceMappings.map/u);
+  assert.match(board, /screenplay and accepted canon were not rewritten/u);
+  assert.doesNotMatch(board, /Human structural finding/u);
   assert.doesNotMatch(board, /generate.*screenplay|rewrite.*screenplay|auto.*repair/iu);
   assert.match(css, /pp-skin-v1-story-card-structural-review/u);
   assert.match(css, /pp-skin-v1-story-card-source-map/u);

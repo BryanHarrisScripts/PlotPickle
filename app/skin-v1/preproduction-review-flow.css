@@ -923,3 +923,18 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-footnote {
     grid-template-columns: minmax(240px, 1fr);
   }
 }
+
+/* Outline readiness is separate from the blue Observed source-evidence state. */
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness { padding: 1.5rem; border: 1px solid var(--pp-skin-line); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid article { padding: 1rem; background: #15191c; border-left: 4px solid #f6a93b; }
+html[data-plotpickle-skin^="skin-"] [data-outline-readiness="ready"] { --outline-accent: #35d779; }
+html[data-plotpickle-skin^="skin-"] [data-outline-readiness="review"] { --outline-accent: #f6a93b; }
+html[data-plotpickle-skin^="skin-"] [data-outline-readiness="needs-support"] { --outline-accent: #ff4d6d; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid article[data-outline-readiness] { border-left-color: var(--outline-accent); }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card[data-outline-readiness],
+html[data-plotpickle-skin^="skin-"] [data-progressive-story-map="24x96"] button[data-outline-readiness] { border-left: 4px solid var(--outline-accent) !important; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-status { color: var(--outline-accent); font-weight: 700; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini summary { cursor: pointer; font-weight: 700; padding: .3rem 0; }
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini[data-mini-support="missing"] summary { color: #ff4d6d; }
+@media (max-width: 850px) { html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid { grid-template-columns: 1fr; } }

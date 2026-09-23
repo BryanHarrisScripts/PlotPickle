@@ -35,7 +35,7 @@ const STATE_LABELS: Readonly<Record<BuildStoryEvidenceState, string>> = {
   observed: "OBSERVED",
   emerging: "EMERGING",
   missing: "AVAILABLE",
-  locked: "LOCKED",
+  locked: "BLOCKED",
 };
 
 const STORY_MAP_VISUAL_WORKFLOW = "story-map-visual-candidate-v1" as const;
@@ -292,7 +292,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
     <section className={styles.panel} aria-labelledby="progressive-story-map-title" data-progressive-story-map="24x96">
       <header className={styles.header}>
         <div>
-          <p className={styles.kicker}>Story Map · 4 Acts / 24 Blocks / 96 Mini-Blocks</p>
+          <p className={styles.kicker}>{act ? `Outline · Act ${act}` : "Outline · 4 Acts / 24 Blocks / 96 Mini-Blocks"}</p>
           <h2 id="progressive-story-map-title">The story is the navigation.</h2>
           <p>{act ? `Act ${act} · Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select a Block and one of its four Mini-Blocks to develop this part of the story.` : "Select a Block, select one of its four Mini-Blocks, then PLAN, BUILD, collect visuals and STORYBOARD without losing your place in the whole story."}</p>
         </div>

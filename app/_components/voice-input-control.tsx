@@ -19,6 +19,7 @@ type CaptureResources = {
 type VoiceInputControlProps = {
   readonly value: string;
   readonly onValueChange: (next: string) => void;
+  readonly onDictationInserted?: () => void;
   readonly inputRef: RefObject<VoiceField | null>;
   readonly disabled?: boolean;
   readonly inputType?: string;
@@ -133,6 +134,7 @@ function stateFromFailure(error: unknown): VoiceInputState {
 export default function VoiceInputControl({
   value,
   onValueChange,
+  onDictationInserted,
   inputRef,
   disabled = false,
   inputType = "text",
@@ -301,6 +303,7 @@ export default function VoiceInputControl({
       const current = valueRef.current;
       const next = insertDictationText(current, body.text, selectionRef.current.start, selectionRef.current.end);
       onValueChange(next.value);
+      onDictationInserted?.();
       valueRef.current = next.value;
       setState("INSERTED");
       window.requestAnimationFrame(() => {

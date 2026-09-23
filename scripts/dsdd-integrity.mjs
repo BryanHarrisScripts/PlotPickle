@@ -11,7 +11,7 @@ const STOP_WORDS = new Set([
   "when","where","which","who","will","with","would","yeah","yes","you","your"
 ]);
 
-const NO_ACTION_HUMAN = /\b(?:not a problem|no problem|working as expected|nothing to change|no change needed)\b/iu;
+const NO_ACTION_HUMAN = /\b(?:not a problem|no problem|working as expected|nothing to change|no change needed|just record this observation|record this as an observation|observation only)\b/iu;
 const NO_ACTION_INTERPRETATION = /\b(?:not a problem|no (?:development )?(?:action|change) (?:is )?required|no development action is required)\b/iu;
 
 function normalizedWords(value) {
@@ -50,9 +50,10 @@ function repeatedSentence(value) {
   return false;
 }
 
-export function assessDsddInterpretation({ humanStatement, interpretation }) {
+export function assessDsddInterpretation({ humanStatement, interpretation, inputMode = "typed" }) {
   const human = String(humanStatement || "").trim();
   const meaning = String(interpretation || "").trim();
+  const mode = inputMode === "voice" ? "voice" : "typed";
   if (!human || !meaning) {
     return { ok: false, code: "missing-content", message: "DSDD needs both Human narration and an interpretation before intent can be locked." };
   }
@@ -66,8 +67,15 @@ export function assessDsddInterpretation({ humanStatement, interpretation }) {
   const humanNoAction = NO_ACTION_HUMAN.test(human);
   const meaningNoAction = NO_ACTION_INTERPRETATION.test(meaning);
   if (meaningNoAction) {
+    if (mode === "voice") {
+      return {
+        ok: false,
+        code: "voice-no-action",
+        message: "Microphone DSDD narration is always actionable and cannot be classified as no action required. Interpret the Human intent again.",
+      };
+    }
     return humanNoAction
-      ? { ok: true, code: "valid-no-action", message: "Explicit no-action observation is consistent with the Human narration." }
+      ? { ok: true, code: "valid-no-action", message: "Explicit typed no-action observation is consistent with the Human narration." }
       : { ok: false, code: "unjustified-no-action", message: "DSDD concluded that no action is required, but the Human narration did not. Interpret the Human intent again." };
   }
 

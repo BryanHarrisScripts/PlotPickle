@@ -20,6 +20,8 @@ type DsddContext = {
   capturedAt: string;
 };
 
+type DsddInputMode = "typed" | "voice";
+
 type DsddMessage = {
   id: string;
   role: "human" | "dsdd";
@@ -27,6 +29,7 @@ type DsddMessage = {
   context?: DsddContext;
   provider?: string;
   model?: string;
+  inputMode?: DsddInputMode;
 };
 
 type TextResponse = {
@@ -60,6 +63,8 @@ type DsddPublishedIssue = {
 type DsddLockedIntent = {
   version: number;
   locked: true;
+  humanEntryId: string;
+  inputMode?: DsddInputMode;
   understoodMeaning: string;
   requirements: Array<{ id: string; text: string; status: "PASS" | "FAIL" | "UNPROVEN" }>;
   handoffPacket?: { id: string; intentDigest: string };
@@ -88,8 +93,10 @@ const DSDD_INSTRUCTIONS = [
   "Interpret the Human's language as business/user intent first, not as an implementation command.",
   "Return a concise product interpretation under 1200 characters.",
   "Use at most five short bullets across expected outcome, observed behavior, constraints, and testable requirements.",
-  "If the Human clearly says there is no problem and no development change is required, reply exactly: Understood. This is not a problem and no development action is required. I’ll retain it as a UAT observation.",
-  "Do not invite Pi Draft when no development action is required.",
+  "Microphone-originated narration is always actionable. Never conclude that no action or no change is required for microphone dictation.",
+  "For typed narration only, if the Human explicitly says there is no problem and no development change is required, reply exactly: Understood. This is not a problem and no development action is required. I’ll retain it as a UAT observation.",
+  "No-action is a Human declaration, never your conclusion.",
+  "Do not invite Pi Draft when no development action is required. This state is valid only when a typed Human explicitly declared it; microphone narration never enters this state.",
   "If one material ambiguity prevents a deterministic requirement, ask at most one focused question.",
   "Otherwise state that the intent is ready for Human review before Pi Draft.",
   "Treat route and surface metadata as context only. Never invent private screen content that is not in the prompt.",
@@ -150,17 +157,24 @@ function contextPrompt(context: DsddContext) {
   ].join("\n");
 }
 
-function conversationPrompt(messages: DsddMessage[], context: DsddContext, submitted: string) {
-  const recent = messages.slice(-8).map((message) => (
-    `${message.role === "human" ? "Human" : "DSDD"}: ${message.text.slice(0, 1800)}`
-  )).join("\n\n");
+function conversationPrompt(messages: DsddMessage[], context: DsddContext, submitted: string, inputMode: DsddInputMode) {
+  const priorHuman = messages
+    .filter((message) => message.role === "human")
+    .slice(-4)
+    .map((message) => `Human: ${message.text.slice(0, 1800)}`)
+    .join("\n\n");
+  const inputDirective = inputMode === "voice"
+    ? "INPUT MODE: MICROPHONE DICTATION. This narration is actionable. Do not return a no-action or no-change interpretation."
+    : "INPUT MODE: TYPED. A no-action interpretation is allowed only when the Human explicitly typed that no change/action is needed.";
 
   return [
     contextPrompt(context),
     "",
-    recent ? "RECENT CONVERSATION\n" + recent : "",
+    priorHuman ? "PRIOR HUMAN NARRATION (context only)\n" + priorHuman : "",
     "",
-    "NEW HUMAN NARRATION",
+    inputDirective,
+    "",
+    "NEW HUMAN NARRATION — AUTHORITATIVE FOR THIS CYCLE",
     submitted,
     "",
     "Respond as the DSDD Conversational UAT interpreter. Preserve meaning; do not claim implementation work.",
@@ -174,6 +188,8 @@ export default function GlobalDsddConversation() {
   const [context, setContext] = useState<DsddContext | null>(null);
   const [messages, setMessages] = useState<DsddMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [draftHasVoice, setDraftHasVoice] = useState(false);
+  const [activeInputMode, setActiveInputMode] = useState<DsddInputMode>("typed");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
   const [lockedIntent, setLockedIntent] = useState<DsddLockedIntent | null>(null);
@@ -183,12 +199,20 @@ export default function GlobalDsddConversation() {
   const narrationRef = useRef<HTMLTextAreaElement | null>(null);
   const threadRef = useRef<HTMLDivElement | null>(null);
   const busy = working || piDrafting || publishing;
-  const latestInterpretation = useMemo(
-    () => [...messages].reverse().find((message) => message.role === "dsdd")?.text || "",
-    [messages],
-  );
+  const latestHumanIndex = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].role === "human") return index;
+    }
+    return -1;
+  }, [messages]);
+  const latestInterpretation = useMemo(() => {
+    for (let index = messages.length - 1; index > latestHumanIndex; index -= 1) {
+      if (messages[index].role === "dsdd") return messages[index].text;
+    }
+    return "";
+  }, [messages, latestHumanIndex]);
   const hasInterpretation = Boolean(latestInterpretation);
-  const noActionRequired = NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
+  const noActionRequired = activeInputMode === "typed" && NO_DEVELOPMENT_ACTION_PATTERN.test(latestInterpretation);
   const piDraftReady = Boolean(lockedIntent?.developerBrief);
   const briefPublished = Boolean(lockedIntent?.publishedIssue);
   const interpretStep = working ? "active" : hasInterpretation ? "complete" : draft.trim() ? "active" : "locked";
@@ -251,16 +275,21 @@ export default function GlobalDsddConversation() {
         if (!response.ok || !body.ok) throw new Error(body.message || "DSDD session could not be restored.");
         if (cancelled) return;
         const conversation = Array.isArray(body.session?.conversation) ? body.session!.conversation! : [];
-        setMessages(conversation.slice(-MAX_MESSAGES).map((entry) => ({
+        const restoredMessages = conversation.slice(-MAX_MESSAGES).map((entry) => ({
           id: entry.id,
           role: entry.role,
           text: entry.text,
           context: entry.context,
           provider: entry.provider,
           model: entry.model,
-        })));
+          inputMode: entry.inputMode,
+        }));
+        setMessages(restoredMessages);
         const intents = Array.isArray(body.session?.intents) ? body.session!.intents! : [];
-        setLockedIntent(intents.at(-1) || null);
+        const latestHuman = [...restoredMessages].reverse().find((entry) => entry.role === "human");
+        const latestIntent = intents.at(-1) || null;
+        setLockedIntent(latestIntent && latestHuman?.id === latestIntent.humanEntryId ? latestIntent : null);
+        setActiveInputMode(latestHuman?.inputMode === "voice" ? "voice" : "typed");
         setHydrated(true);
       })
       .catch((cause) => {
@@ -287,16 +316,21 @@ export default function GlobalDsddConversation() {
     if (!submitted || busy) return;
 
     const snapshot = currentSurfaceContext(pathname);
+    const inputMode: DsddInputMode = draftHasVoice ? "voice" : "typed";
     const humanMessage: DsddMessage = {
       id: messageId("dsdd-human"),
       role: "human",
       text: submitted,
       context: snapshot,
+      inputMode,
     };
     const prior = messages;
     const pending = [...prior, humanMessage].slice(-MAX_MESSAGES);
     setMessages(pending);
+    setLockedIntent(null);
+    setActiveInputMode(inputMode);
     setDraft("");
+    setDraftHasVoice(false);
     setError("");
     setWorking(true);
     setContext(snapshot);
@@ -305,7 +339,7 @@ export default function GlobalDsddConversation() {
       const persistHuman = await authenticatedProfileFetch("/api/dsdd/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "append-human", text: submitted, context: snapshot }),
+        body: JSON.stringify({ action: "append-human", text: submitted, context: snapshot, inputMode }),
       });
       const persistedHuman = await persistHuman.json() as DsddSessionPayload;
       if (!persistHuman.ok || !persistedHuman.ok) {
@@ -319,7 +353,7 @@ export default function GlobalDsddConversation() {
           provider: "local",
           modelRole: "quality",
           instructions: DSDD_INSTRUCTIONS,
-          prompt: conversationPrompt(prior, snapshot, submitted),
+          prompt: conversationPrompt(prior, snapshot, submitted, inputMode),
         }),
       });
       const body = await response.json() as TextResponse;
@@ -347,6 +381,7 @@ export default function GlobalDsddConversation() {
       }].slice(-MAX_MESSAGES));
     } catch (cause) {
       setDraft(submitted);
+      setDraftHasVoice(inputMode === "voice");
       setError(cause instanceof Error ? cause.message : "The DSDD interpreter is unavailable.");
     } finally {
       setWorking(false);
@@ -515,7 +550,11 @@ export default function GlobalDsddConversation() {
               aria-label="DSDD narration"
               data-purpose="natural-language developer uat narration"
               disabled={busy}
-              onChange={(event) => setDraft(event.currentTarget.value)}
+              onChange={(event) => {
+                const next = event.currentTarget.value;
+                setDraft(next);
+                if (!next.trim()) setDraftHasVoice(false);
+              }}
               placeholder="Example: When I open this, I expect the current draft to stay exactly where I left it, but it sends me back to the dashboard."
               rows={4}
               value={draft}
@@ -526,6 +565,7 @@ export default function GlobalDsddConversation() {
                 value={draft}
                 onValueChange={setDraft}
                 inputRef={narrationRef}
+                onDictationInserted={() => setDraftHasVoice(true)}
                 disabled={busy}
                 inputType="textarea"
                 purpose="natural-language developer uat narration"

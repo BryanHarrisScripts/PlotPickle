@@ -21,6 +21,8 @@ type DsddContext = {
   capturedAt: string;
 };
 
+type DsddInputMode = "typed" | "voice";
+
 type DsddConversationEntry = {
   id: string;
   role: "human" | "dsdd";
@@ -28,6 +30,7 @@ type DsddConversationEntry = {
   context: DsddContext | null;
   recordedAt: string;
   piEntryId: string;
+  inputMode?: DsddInputMode;
 };
 
 type DsddEvidence = {
@@ -76,6 +79,7 @@ type DsddIntent = {
   humanEntryId: string;
   interpretationEntryId: string;
   humanStatement: string;
+  inputMode?: DsddInputMode;
   understoodMeaning: string;
   context: DsddContext | null;
   requirements: DsddRequirement[];
@@ -149,6 +153,10 @@ async function readDsddRequestBody(request: IncomingMessage, maximum = MAX_BODY)
 
 function text(value: unknown, max = 12000) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function normalizeInputMode(value: unknown): DsddInputMode {
+  return value === "voice" ? "voice" : "typed";
 }
 
 function normalizeContext(value: unknown): DsddContext | null {
@@ -236,6 +244,7 @@ function ensureHandoffPacket(intent: DsddIntent) {
   const digest = text(legacy.buildPacket?.intentDigest, 128) || createHash("sha256").update(JSON.stringify({
     version: intent.version,
     human: intent.humanStatement,
+    inputMode: intent.inputMode || "typed",
     interpretation: intent.understoodMeaning,
     context: intent.context,
     requirements: intent.requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
@@ -258,6 +267,7 @@ function lockedText(intent: DsddIntent) {
   return [
     `LOCKED DSDD INTENT v${intent.version}`,
     `Human statement: ${intent.humanStatement}`,
+    `Input mode: ${intent.inputMode || "typed"}`,
     `Approved meaning: ${intent.understoodMeaning}`,
     "Requirements:",
     ...intent.requirements.map((requirement) => `${requirement.id} ${requirement.text}`),
@@ -271,6 +281,7 @@ async function appendHuman(body: Record<string, unknown>) {
   const { context, session } = await load();
   const narration = text(body.text);
   if (!narration) throw new Error("Narrate the DSDD workflow or problem first.");
+  const inputMode = normalizeInputMode(body.inputMode);
   const captured = normalizeContext(body.context);
   const pi = await runDsddPiAction({
     action: "append-human",
@@ -290,6 +301,7 @@ async function appendHuman(body: Record<string, unknown>) {
     context: captured,
     recordedAt: new Date().toISOString(),
     piEntryId: pi.entryId,
+    inputMode,
   };
   session.conversation.push(entry);
   await save(context, session);
@@ -302,7 +314,11 @@ async function appendInterpretation(body: Record<string, unknown>) {
   if (!interpretation) throw new Error("DSDD interpretation is required.");
   const latestHuman = [...session.conversation].reverse().find((entry) => entry.role === "human");
   if (!latestHuman) throw new Error("DSDD needs Human narration before it can preserve an interpretation.");
-  assertDsddInterpretationIntegrity({ humanStatement: latestHuman.text, interpretation });
+  assertDsddInterpretationIntegrity({
+    humanStatement: latestHuman.text,
+    interpretation,
+    inputMode: latestHuman.inputMode || "typed",
+  });
   const captured = normalizeContext(body.context);
   const pi = await runDsddPiAction({
     action: "append-interpretation",
@@ -336,7 +352,11 @@ async function lockIntent() {
   if (session.conversation.indexOf(interpretation) < session.conversation.indexOf(human)) {
     throw new Error("DSDD must reflect the latest Human narration before Pi Draft.");
   }
-  assertDsddInterpretationIntegrity({ humanStatement: human.text, interpretation: interpretation.text });
+  assertDsddInterpretationIntegrity({
+    humanStatement: human.text,
+    interpretation: interpretation.text,
+    inputMode: human.inputMode || "typed",
+  });
   const version = (session.intents.at(-1)?.version || 0) + 1;
   const requirements: DsddRequirement[] = requirementTexts(interpretation.text).map((value, index) => ({
     id: `R${index + 1}`,
@@ -347,6 +367,7 @@ async function lockIntent() {
   const digestSource = JSON.stringify({
     version,
     human: human.text,
+    inputMode: human.inputMode || "typed",
     interpretation: interpretation.text,
     context: human.context,
     requirements: requirements.map(({ id, text: requirement }) => ({ id, text: requirement })),
@@ -358,6 +379,7 @@ async function lockIntent() {
     humanEntryId: human.id,
     interpretationEntryId: interpretation.id,
     humanStatement: human.text,
+    inputMode: human.inputMode || "typed",
     understoodMeaning: interpretation.text,
     context: human.context,
     requirements,
@@ -390,10 +412,17 @@ async function lockIntent() {
   return { session, intent };
 }
 
+function currentLockedIntent(session: DsddSession) {
+  const latestHuman = [...session.conversation].reverse().find((entry) => entry.role === "human");
+  const intent = session.intents.at(-1);
+  if (!latestHuman || !intent?.locked || intent.humanEntryId !== latestHuman.id) return null;
+  return intent;
+}
+
 async function draftDeveloperBrief() {
   const { context, session } = await load();
-  const intent = session.intents.at(-1);
-  if (!intent?.locked) throw new Error("Choose Pi Draft after reviewing the latest DSDD interpretation.");
+  const intent = currentLockedIntent(session);
+  if (!intent) throw new Error("Choose Pi Draft only after the current Human narration has a reviewed locked intent.");
   ensureHandoffPacket(intent);
   if (intent.developerBrief?.state === "ready") return { session, intent };
 
@@ -467,6 +496,7 @@ function issueBody(intent: DsddIntent) {
     "",
     "## DSDD provenance",
     `- Intent version: ${intent.version}`,
+    `- Input mode: ${intent.inputMode || "typed"}`,
     `- Intent digest: ${packet.intentDigest}`,
     "- Pi tools: read, grep, find, ls",
     "- Pi repository mutation: false",
@@ -478,9 +508,13 @@ function issueBody(intent: DsddIntent) {
 
 async function publishBriefIssue() {
   const { context, session } = await load();
-  const intent = session.intents.at(-1);
-  if (!intent?.locked) throw new Error("Lock a DSDD intent with Pi Draft before publishing.");
-  assertDsddInterpretationIntegrity({ humanStatement: intent.humanStatement, interpretation: intent.understoodMeaning });
+  const intent = currentLockedIntent(session);
+  if (!intent) throw new Error("Publish Brief requires a locked intent for the current Human narration.");
+  assertDsddInterpretationIntegrity({
+    humanStatement: intent.humanStatement,
+    interpretation: intent.understoodMeaning,
+    inputMode: intent.inputMode || "typed",
+  });
   if (!intent.developerBrief) throw new Error("Run Pi Draft before publishing the developer brief.");
   ensureHandoffPacket(intent);
   if (intent.publishedIssue) return { session, intent };

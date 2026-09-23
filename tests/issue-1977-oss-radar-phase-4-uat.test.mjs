@@ -91,7 +91,8 @@ test("#1977 Phase 4 workflow is daily, manually dispatchable and least-privilege
 
 test("#1977 Phase 4 full UAT keeps one monthly thread and the adaptive architecture review queue", async () => {
   const api = fullRadarFixture();
-  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl, stateAdapter: api.stateAdapter };
+  const base = { repository: "BryanHarrisScripts/PlotPickle", auth: "fixture-auth", fetchImpl: api.fetchImpl, stateAdapter: api.stateAdapter,
+    ossRulesResearch: async () => ({ schemaVersion: 1, status: "unavailable", repositoriesChecked: 0, findings: [], checks: [] }) };
 
   const first = await runRadar({ ...base, now: new Date("2026-09-13T11:00:00Z") });
   assert.equal(first.action, "created");

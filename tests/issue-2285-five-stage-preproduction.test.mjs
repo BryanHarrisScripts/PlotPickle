@@ -36,9 +36,10 @@ test("#2285 exposes the same five stages horizontally and preserves one shared a
 
   assert.match(host, /type PreproductionStage = "outline" \| "storyboard" \| "previs" \| "timeline" \| "production"/u);
   assert.match(host, /data-preproduction-stage-rail="five-stage"/u);
-  for (const stage of ["outline", "storyboard", "previs", "timeline", "production"]) {
+  for (const stage of ["storyboard", "previs", "timeline", "production"]) {
     assert.match(host, new RegExp('PreproductionStageRail active="' + stage + '"', "u"));
   }
+  assert.match(host, /<StoryActRail activeAct=/u);
   assert.match(host, /openPreproductionStage\([\s\S]*address: PreproductionReviewAddress = reviewAddress/u);
   assert.match(host, /setReviewAddress\(address\)/u);
 });

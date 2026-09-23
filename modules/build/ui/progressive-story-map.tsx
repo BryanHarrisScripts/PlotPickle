@@ -111,7 +111,7 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number }) {
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
@@ -169,6 +169,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
     window.history.replaceState({ plotpickleStoryMap: true }, "", `${location.pathname}${location.search}`);
   }, [selected.number, selectedMini.number]);
   useEffect(() => {
+    if (navigationOnly) return;
     let cancelled = false;
     setDecisionMarkerError("");
     void authenticatedProfileFetch(`/api/story-decisions?projectId=${encodeURIComponent(project.id)}`, { cache: "no-store" })
@@ -184,15 +185,16 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
         }
       });
     return () => { cancelled = true; };
-  }, [project.id, project.revision]);
+  }, [navigationOnly, project.id, project.revision]);
   useEffect(() => {
+    if (navigationOnly) return;
     let cancelled = false;
     fetch("/api/ai-routing/status", { cache: "no-store" })
       .then(async (response) => response.ok ? response.json() as Promise<ImageRouteStatus> : null)
       .then((status) => { if (!cancelled && status) setRouteStatus(status); })
       .catch(() => undefined);
     return () => { cancelled = true; };
-  }, []);
+  }, [navigationOnly]);
 
   const saveSequenceShift = (sequenceNumber: number, shiftId: string) => {
     const id = sequenceId(sequenceNumber);
@@ -359,7 +361,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
         {(Object.keys(STATE_LABELS) as BuildStoryEvidenceState[]).map((state) => <span data-state={state} key={state}><i aria-hidden="true" className={styles.legendDot} />{STATE_LABELS[state]}</span>)}
       </div>
 
-      <article className={styles.inspector} data-canonical-story-id={selected.id} data-selected-block={selected.number}>
+      {!navigationOnly ? <article className={styles.inspector} data-canonical-story-id={selected.id} data-selected-block={selected.number}>
         <header>
           <div><p className={styles.kicker}>Selected story position</p><h3>Act {selected.act} · Block {String(selected.number).padStart(2, "0")} · {selected.sequenceTitle}</h3></div>
           <span role="img" aria-label={`Status: ${STATE_LABELS[selected.state]}`} className={styles.inspectorStatus} data-state={selected.state}><i aria-hidden="true" className={styles.statusDot} /></span>
@@ -454,7 +456,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
           </details>
         </div>
         <p className={styles.provenance}>The Story Map stays the navigation surface. Generated visuals remain candidates until the Human selects them; four accepted Mini-Block visual anchors complete a Block and unlock the next one.</p>
-      </article>
+      </article> : null}
     </section>
   );
 }

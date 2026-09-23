@@ -44,13 +44,13 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [d
   box-sizing: border-box;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: var(--pp-skin-space-4) auto;
-  border-color: var(--pp-skin-ink);
+  border: 0;
 }
 
 html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-story-act-rail="four-acts"] button[aria-current="page"] {
-  border-color: var(--pp-skin-ink);
-  outline: var(--pp-skin-border-thin) solid var(--pp-skin-ink);
-  outline-offset: var(--pp-skin-space-1);
+  border-color: transparent;
+  background: var(--pp-skin-fill-row-hover);
+  font-weight: 700;
 }
 
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail button {

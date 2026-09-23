@@ -174,18 +174,17 @@ html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-activ
   max-width: none;
 }
 
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] .pp-skin-v1-orchestrator-header {
-  border-bottom-color: var(--pp-skin-ink);
-}
-
-html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] .pp-skin-v1-orchestrator-workspace-header {
-  border-color: var(--pp-skin-ink);
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] :is(
+  .pp-skin-v1-orchestrator-header,
+  .pp-skin-v1-orchestrator-workspace-header
+) {
+  border: 0;
 }
 
 html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"][data-skin-v1-surface-id="story-map"] {
   width: calc(100% - 40px) !important;
   max-width: none !important;
-  border-color: var(--pp-skin-ink) !important;
+  border: 0 !important;
 }
 
 /* Nested registered roots remain semantic subregions until they become the active

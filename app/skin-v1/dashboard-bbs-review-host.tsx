@@ -10,7 +10,7 @@ import BlockVisualJourneyWorkspace from "./block-visual-journey-workspace";
 import DiscoverySurface from "./discovery-surface";
 import DashboardBbsPanel, { type DashboardBbsItem } from "./dashboard-bbs-panel";
 import HelpIssueLogSkinPanel from "./help-issue-log-skin-panel";
-import MatrixStoryMapSurface, { type StoryMapReviewStage } from "./matrix-story-map-surface";
+import MatrixStoryMapSurface from "./matrix-story-map-surface";
 import NodeShutdownPanel from "./node-shutdown-panel";
 import OpenSourceSkinPanel from "./open-source-skin-panel";
 import StoryBibleSurface from "./story-bible-surface";
@@ -236,18 +236,6 @@ export default function DashboardBbsReviewHost({
     restoreDashboardFocus(itemId);
   }
 
-  function openStoryMapStage(stage: StoryMapReviewStage, address: PreproductionReviewAddress) {
-    if (stage === "outline") {
-      openOutline(address);
-      return;
-    }
-    if (stage === "build") {
-      openBuild(address, "outline");
-      return;
-    }
-    openStoryboard(address);
-  }
-
   function openStoryboard(address: PreproductionReviewAddress = reviewAddress) {
     updateReviewAddress("storyboard", address);
     closePreproductionSurfaces();
@@ -322,17 +310,6 @@ export default function DashboardBbsReviewHost({
     closePreproductionSurfaces();
     setOutlineOpen(true);
     onSurfaceNameChange("STORY MAP");
-  }
-
-  function openStoryModeSettings() {
-    closePreproductionSurfaces();
-    onSurfaceNameChange("DASHBOARD");
-    window.requestAnimationFrame(() => {
-      document.querySelector<HTMLButtonElement>("[data-dashboard-menu-item='settings']")?.click();
-      window.setTimeout(() => {
-        document.querySelector<HTMLButtonElement>("[data-settings-secondary-item='story-mode']")?.click();
-      }, 0);
-    });
   }
 
   function closeOpenSource() {
@@ -526,9 +503,6 @@ export default function DashboardBbsReviewHost({
         <MatrixStoryMapSurface
           address={reviewAddress}
           onAddressChange={(address) => updateReviewAddress("outline", address)}
-          onOpenStage={openStoryMapStage}
-          onOpenPrevis={openPrevis}
-          onOpenStoryModeSettings={openStoryModeSettings}
         />
       </section>
     );

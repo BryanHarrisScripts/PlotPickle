@@ -29,9 +29,15 @@ import {
 } from "@/modules/plan/story-card-board";
 
 import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
+import { outlineTurningPoint } from "@/modules/plan/outline-turning-point";
+import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 
 type StoryCardFoundationBoardProps = {
   readonly outlineReadiness?: readonly OutlineBlockReadiness[];
+  readonly selectedAddress?: PreproductionReviewAddress;
+  readonly onSelectAddress?: (address: PreproductionReviewAddress) => void;
+  readonly turningPointSelected?: boolean;
+  readonly onSelectTurningPoint?: () => void;
   readonly project: LibraryPPFProject;
   readonly onProjectChange: (project: LibraryPPFProject) => void;
   readonly act?: number;
@@ -77,6 +83,10 @@ export default function StoryCardFoundationBoard({
   onProjectChange,
   act,
   outlineReadiness,
+  selectedAddress,
+  onSelectAddress,
+  turningPointSelected,
+  onSelectTurningPoint,
 }: StoryCardFoundationBoardProps) {
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
@@ -326,6 +336,7 @@ export default function StoryCardFoundationBoard({
                     className="pp-skin-v1-story-card"
                     data-locked={locked ? "true" : "false"}
                     data-outline-readiness={readiness?.status}
+                    data-selected={!turningPointSelected && selectedAddress?.blockNumber === block.number ? "true" : undefined}
                     data-story-card-address={block.id}
                     draggable={!locked}
                     key={block.id}
@@ -533,15 +544,15 @@ export default function StoryCardFoundationBoard({
                       />
                     </label>
 
-                    <details className="pp-skin-v1-story-card-minis">
+                    <details className="pp-skin-v1-story-card-minis" key={`${block.id}-${selectedAddress?.blockNumber === block.number && !turningPointSelected ? selectedAddress?.miniBlockNumber : 0}`} defaultOpen={!turningPointSelected && selectedAddress?.blockNumber === block.number}>
                       <summary>4 Mini-Blocks</summary>
                       <ol>
                         {block.miniBlocks.map((mini, index) => {
                           const miniTitle = mini.title === structuralMiniTitle(mini.number) ? "" : mini.title;
                           return (
-                            <li key={mini.id} data-mini-address={mini.id}>
+                            <li key={mini.id} data-mini-address={mini.id} data-selected={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === mini.ordinal ? "true" : undefined}>
                               <div>
-                                <strong>{index + 1} · {STORY_CARD_MINI_LABELS[index]}</strong>
+                                <button type="button" aria-pressed={!turningPointSelected && selectedAddress?.blockNumber === block.number && selectedAddress?.miniBlockNumber === mini.ordinal} onClick={() => onSelectAddress?.({ blockNumber: block.number, miniBlockNumber: mini.ordinal })}>{index + 1} · {STORY_CARD_MINI_LABELS[index]}</button>
                                 <small>{mini.id}</small>
                               </div>
                               <input
@@ -578,6 +589,9 @@ export default function StoryCardFoundationBoard({
                 );
               })}
             </div>
+            {act ? <button className="pp-skin-v1-outline-turning-point" data-selected={turningPointSelected ? "true" : undefined} aria-pressed={Boolean(turningPointSelected)} onClick={onSelectTurningPoint} type="button">
+              <strong>{outlineTurningPoint(act).label}</strong><span>After Block {String(act * 6).padStart(2, "0")} · Review the Act change against the six Story Cards. The turning point is a checkpoint, not a seventh Block.</span>
+            </button> : null}
           </section>
         ))}
       </div>

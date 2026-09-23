@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import {
   FOUNDATION_PROJECT_SAVED_EVENT,
   loadFoundationProject,
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
+import { deriveOutlineReadiness } from "@/modules/plan/outline-readiness";
 import ActWrittenStoryBoard from "./act-written-story-board";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 import StoryCardFoundationBoard from "./story-card-foundation-board";
@@ -29,6 +30,8 @@ export default function MatrixStoryMapSurface({
 }) {
   const [project, setProject] = useState<LibraryPPFProject | null>(null);
   const activeAct = Math.floor((address.blockNumber - 1) / 6) + 1;
+  const readiness = useMemo(() => project ? deriveOutlineReadiness(project) : [], [project]);
+  const actReadiness = readiness.filter((block) => Math.floor((block.blockNumber - 1) / 6) + 1 === activeAct);
 
   useEffect(() => {
     const sync = () => setProject(loadFoundationProject());
@@ -57,9 +60,22 @@ export default function MatrixStoryMapSurface({
         initialBlockNumber={address.blockNumber}
         initialMiniBlockNumber={address.miniBlockNumber}
         navigationOnly
+        outlineReadiness={readiness}
       />
-      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} />
-      <ActWrittenStoryBoard project={project} act={activeAct} />
+      <section className="pp-skin-v1-outline-readiness" aria-label={`Act ${activeAct} Outline readiness`} data-outline-readiness-summary={activeAct}>
+        <h2>Act {activeAct} · Outline readiness</h2>
+        <p>Observed means screenplay text is mapped. Readiness also checks reviewed structure, story intent, and Mini-Block support before Storyboard.</p>
+        <div className="pp-skin-v1-outline-readiness-grid">
+          {actReadiness.map((block) => (
+            <article data-outline-readiness={block.status} key={block.blockNumber}>
+              <strong>Block {String(block.blockNumber).padStart(2, "0")} · {block.status === "needs-support" ? "Needs support" : block.status === "review" ? "Review" : "Evidence ready"}</strong>
+              {block.issues.length ? <ul>{block.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <p>No deterministic evidence gaps found. Human creative review still applies.</p>}
+            </article>
+          ))}
+        </div>
+      </section>
+      <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} outlineReadiness={readiness} />
+      <ActWrittenStoryBoard project={project} act={activeAct} outlineReadiness={readiness} />
     </div>
   );
 }

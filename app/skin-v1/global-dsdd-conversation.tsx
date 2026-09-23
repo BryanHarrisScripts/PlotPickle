@@ -564,8 +564,8 @@ export default function GlobalDsddConversation() {
               <VoiceInputControl
                 value={draft}
                 onValueChange={setDraft}
-                onDictationInserted={() => setDraftHasVoice(true)}
                 inputRef={narrationRef}
+                onDictationInserted={() => setDraftHasVoice(true)}
                 disabled={busy}
                 inputType="textarea"
                 purpose="natural-language developer uat narration"

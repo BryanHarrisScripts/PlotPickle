@@ -468,7 +468,7 @@
     },
     "story-map": {
       "surfaceId": "story-map",
-      "label": "Story Map",
+      "label": "Outline",
       "parent": "dashboard",
       "runtimeSelector": "[data-progressive-story-map='24x96']",
       "formatProfile": {
@@ -479,7 +479,7 @@
         "typography": "project-workspace"
       },
       "titleStack": {
-        "globalSurfaceLabel": "Story Map",
+        "globalSurfaceLabel": "Outline",
         "workspaceTitlePolicy": "rendered-project-aware-content",
         "alignment": "left"
       },

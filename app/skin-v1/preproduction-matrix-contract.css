@@ -30,6 +30,15 @@ html[data-plotpickle-skin^="skin-"] :is(
   font-family: var(--pp-skin-font-ui) !important;
 }
 
+/* Restore the five distinct evidence colors on Outline's navigation and legend. */
+html[data-plotpickle-skin^="skin-"] [data-skin-v1-story-map-review="true"] [data-progressive-story-map="24x96"] {
+  --story-defined: #35d779;
+  --story-observed: #3bb8ff;
+  --story-emerging: #f6a93b;
+  --story-missing: #ff4d6d;
+  --story-locked: #a875ff;
+}
+
 html[data-plotpickle-skin^="skin-"] :is(
   [data-progressive-story-map="24x96"],
   [data-visual-story="scene-beat-shot-frame"],

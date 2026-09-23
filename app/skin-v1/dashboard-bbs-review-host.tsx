@@ -309,7 +309,7 @@ export default function DashboardBbsReviewHost({
     updateReviewAddress("outline", address);
     closePreproductionSurfaces();
     setOutlineOpen(true);
-    onSurfaceNameChange("STORY MAP");
+    onSurfaceNameChange("OUTLINE");
   }
 
   function closeOpenSource() {
@@ -487,7 +487,7 @@ export default function DashboardBbsReviewHost({
     return (
       <section
         className={reviewStyles.reviewSurface}
-        aria-label="Story Map"
+        aria-label="Outline"
         data-dashboard-review-surface="outline"
         data-review-state="in-review"
         onKeyDown={(event) => {
@@ -495,7 +495,7 @@ export default function DashboardBbsReviewHost({
         }}
       >
         <div className="pp-skin-v1-bbs-banner">
-          <h1>STORY MAP</h1>
+          <h1>OUTLINE</h1>
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => closeReview("plan")}>Back to Dashboard</button>
         </div>

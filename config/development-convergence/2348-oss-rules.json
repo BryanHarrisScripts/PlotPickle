@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "issue": 2348,
+  "phase": "oss-rules-intelligence",
+  "brief": "docs/developer-briefs/2348-oss-rules-intelligence.md",
+  "allowedChanges": [
+    ".github/workflows/oss-radar.yml",
+    "config/development-convergence/2348-oss-rules.json",
+    "config/verification/test-catalog.json",
+    "docs/developer-briefs/2348-oss-rules-intelligence.md",
+    "lib/verification/oss-radar/artifact-bundle.mjs",
+    "lib/verification/oss-radar/issue-lifecycle.mjs",
+    "lib/verification/oss-radar/oss-rules/intelligence.mjs",
+    "lib/verification/oss-radar/report-renderer-core.mjs",
+    "lib/verification/oss-radar/report-renderer.mjs",
+    "lib/verification/oss-radar/run-radar.mjs",
+    "tests/issue-1977-oss-radar-phase-4-uat.test.mjs",
+    "tests/issue-2210-oss-radar-state-store.test.mjs",
+    "tests/issue-2348-oss-rules-intelligence.test.mjs"
+  ],
+  "acceptance": [
+    {
+      "id": "P2348-O1",
+      "criterion": "Only selected GitHub repositories receive read-only OSS Rules enrichment with pinned provenance.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/oss-radar/issue-lifecycle.mjs", "contains": "candidates: selection.reviewQueue" },
+        { "type": "file-contains", "path": "lib/verification/oss-radar/oss-rules/intelligence.mjs", "contains": "sourceFromProject(project)" },
+        { "type": "file-contains", "path": "tests/issue-2348-oss-rules-intelligence.test.mjs", "contains": "expands only a selected exact-match summary" }
+      ]
+    },
+    {
+      "id": "P2348-O2",
+      "criterion": "Optional research fails soft and publishes bounded evidence without upstream instruction bodies.",
+      "evidence": [
+        { "type": "file-contains", "path": "lib/verification/oss-radar/oss-rules/intelligence.mjs", "contains": "RESEARCH_BUDGET_MS = 20_000" },
+        { "type": "file-contains", "path": "lib/verification/oss-radar/artifact-bundle.mjs", "contains": "oss-rules-intelligence.json" },
+        { "type": "file-contains", "path": "tests/issue-2348-oss-rules-intelligence.test.mjs", "contains": "evidence artifact contains bounded metadata" }
+      ]
+    }
+  ]
+}

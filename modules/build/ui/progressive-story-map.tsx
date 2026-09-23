@@ -111,7 +111,7 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project }: { readonly project: PPFProject }) {
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
@@ -119,8 +119,8 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
     return { number, id: sequenceId(number), title: blocks[0]?.sequenceTitle ?? `Sequence ${number}`, blocks, marker: STRUCTURAL_MARKERS[number] };
   }), [storyMap.blocks]);
   const rememberedContext = hydratedStoryMapContext(project.id);
-  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedLocation("block", 24, rememberedContext?.blockNumber ?? 1));
-  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedLocation("mini", 4, rememberedContext?.miniBlockNumber ?? 1));
+  const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => initialBlockNumber ?? boundedLocation("block", 24, rememberedContext?.blockNumber ?? 1));
+  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => initialMiniBlockNumber ?? boundedLocation("mini", 4, rememberedContext?.miniBlockNumber ?? 1));
   const [openShiftSequence, setOpenShiftSequence] = useState<number | null>(null);
   const [localShifts, setLocalShifts] = useState<Readonly<Record<string, string>>>({});
   const [decisionMarkers, setDecisionMarkers] = useState<readonly VisualStoryDecisionMarker[]>([]);
@@ -292,7 +292,7 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
         <div>
           <p className={styles.kicker}>Story Map · 4 Acts / 24 Blocks / 96 Mini-Blocks</p>
           <h2 id="progressive-story-map-title">The story is the navigation.</h2>
-          <p>Select a Block, select one of its four Mini-Blocks, then PLAN, BUILD, collect visuals and STORYBOARD without losing your place in the whole story.</p>
+          <p>{act ? `Act ${act} · Blocks ${(act - 1) * 6 + 1}–${act * 6}. Select a Block and one of its four Mini-Blocks to develop this part of the story.` : "Select a Block, select one of its four Mini-Blocks, then PLAN, BUILD, collect visuals and STORYBOARD without losing your place in the whole story."}</p>
         </div>
         <div className={styles.sourceSummary}>
           <strong>Active project</strong>
@@ -301,8 +301,8 @@ export default function ProgressiveStoryMap({ project }: { readonly project: PPF
         </div>
       </header>
 
-      <div className={styles.map} aria-label="12 story Sequences containing 24 Blocks">
-        {sequences.map((sequence) => {
+      <div className={styles.map} aria-label={act ? `Act ${act}: 3 Sequences containing 6 Blocks` : "12 story Sequences containing 24 Blocks"}>
+        {sequences.filter((sequence) => !act || Math.ceil(sequence.number / 3) === act).map((sequence) => {
           const currentShift = shiftOption(localShifts[sequence.id] ?? persistedShifts[sequence.id], sequence.number);
           const shiftOpen = openShiftSequence === sequence.number;
           return (

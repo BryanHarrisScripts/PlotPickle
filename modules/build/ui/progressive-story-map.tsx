@@ -111,7 +111,7 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean }) {
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, outlineReadiness }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[] }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
@@ -331,12 +331,14 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
                 <div className={styles.sequenceBlocks}>
                   {sequence.blocks.map((block) => {
                     const blockDecisionCount = markersByBlock.get(block.id)?.length ?? 0;
+                    const readiness = outlineReadiness?.find((item) => item.blockNumber === block.number);
                     return (
-                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => { setSelectedBlockNumber(block.number); setSelectedMiniBlockNumber(1); setVisualMessage(""); rememberPosition(block.number, 1); }} type="button">
+                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-outline-readiness={readiness?.status} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => { setSelectedBlockNumber(block.number); setSelectedMiniBlockNumber(1); setVisualMessage(""); rememberPosition(block.number, 1); }} type="button">
                         <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                         <span className={styles.sequence}>A{block.act} · S{String(block.sequenceNumber).padStart(2, "0")}</span>
                         <span role="img" aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
                         <small>{block.state === "defined" ? "4 / 4 visual anchors accepted" : block.state === "locked" ? "Visible · waiting for previous Block" : `${block.acceptedMiniBlockCount} / 4 visual anchors accepted`}{blockDecisionCount ? ` · ${blockDecisionCount} Story Decision${blockDecisionCount === 1 ? "" : "s"}` : ""}</small>
+                        {readiness ? <strong className={styles.statusLine}>Outline: {readiness.status === "needs-support" ? "Needs support" : readiness.status === "review" ? "Review" : "Evidence ready"}</strong> : null}
                         <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
                           {block.miniBlocks.map((mini) => (
                             <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>

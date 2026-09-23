@@ -22,5 +22,5 @@ test("Outline separates observed screenplay evidence from deterministic support 
   assert.match(script, /<details className="pp-skin-v1-written-act-mini"/);
   assert.match(script, /miniSections\.map/);
   assert.match(map, /data-outline-readiness=\{readiness\?\.status\}/);
-  assert.match(css, /border-left: 4px solid var\(--outline-accent\) !important/);
+  assert.match(css, /border-left: 2px solid var\(--outline-accent\) !important/);
 });

@@ -11,11 +11,11 @@ export const DASHBOARD_MENU: readonly DashboardBbsItem[] = [
   { id: "community", shortcut: "C", label: "Community", description: "Share and Collaborate", group: "EXPLORE" },
   { id: "library", shortcut: "L", label: "Library", description: "Load Your Stories", group: "EXPLORE" },
 
-  { id: "discovery", shortcut: "G", label: "Discover", description: "Capture and Map New Story Material", group: "DEVELOP" },
+  { id: "discovery", shortcut: "G", label: "MindMap", description: "Capture and Map New Story Material", group: "DEVELOP" },
+  { id: "story-bible", shortcut: "V", label: "Story", description: "Story, Logline, Theme and Visual Reference", group: "DEVELOP" },
   { id: "write", shortcut: "W", label: "Write", description: "Write Scenes, Dialogue and Action Blocks", group: "DEVELOP" },
   { id: "edit", shortcut: "E", label: "Edit", description: "Review and Improve Screenplay Flow", group: "DEVELOP" },
 
-  { id: "story-bible", shortcut: "V", label: "Story", description: "Story, Logline, Theme and Visual Reference", group: "VISUALIZE" },
   { id: "plan", shortcut: "O", label: "Outline", description: "Visualize Story Structure", group: "VISUALIZE" },
   { id: "storyboard", shortcut: "S", label: "Storyboard", description: "Visualize Scenes Before You Write", group: "VISUALIZE" },
   { id: "previs", shortcut: "P", label: "Previs", description: "Preview Shots, Timing and Camera Motion", group: "VISUALIZE" },

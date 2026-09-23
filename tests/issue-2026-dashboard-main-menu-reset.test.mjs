@@ -13,10 +13,10 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
     ["learn", "1", "Learn", "Learn Story Craft", "EXPLORE"],
     ["community", "C", "Community", "Share and Collaborate", "EXPLORE"],
     ["library", "L", "Library", "Load Your Stories", "EXPLORE"],
-    ["discovery", "G", "Discover", "Capture and Map New Story Material", "DEVELOP"],
+    ["discovery", "G", "MindMap", "Capture and Map New Story Material", "DEVELOP"],
+    ["story-bible", "V", "Story", "Story, Logline, Theme and Visual Reference", "DEVELOP"],
     ["write", "W", "Write", "Write Scenes, Dialogue and Action Blocks", "DEVELOP"],
     ["edit", "E", "Edit", "Review and Improve Screenplay Flow", "DEVELOP"],
-    ["story-bible", "V", "Story", "Story, Logline, Theme and Visual Reference", "VISUALIZE"],
     ["plan", "O", "Outline", "Visualize Story Structure", "VISUALIZE"],
     ["storyboard", "S", "Storyboard", "Visualize Scenes Before You Write", "VISUALIZE"],
     ["previs", "P", "Previs", "Preview Shots, Timing and Camera Motion", "VISUALIZE"],
@@ -52,8 +52,8 @@ test("#2026/#2032/#2050/#2068/#2085/#2266/#2285/#2287/#2302 locks the Human-appr
   for (const [, , , , group] of ordered) groupCounts.set(group, (groupCounts.get(group) || 0) + 1);
   assert.deepEqual([...groupCounts.entries()], [
     ["EXPLORE", 3],
-    ["DEVELOP", 3],
-    ["VISUALIZE", 6],
+    ["DEVELOP", 4],
+    ["VISUALIZE", 5],
     ["REVIEW", 3],
     ["PITCH", 2],
     ["PLAY", 3],

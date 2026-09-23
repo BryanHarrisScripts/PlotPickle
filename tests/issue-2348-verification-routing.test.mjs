@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { assessProductProof, resolveProofRoute, validateProofRouting } from "../lib/verification/development-proof-routing.mjs";
+import { assessProductProof, resolveProofRoute, validateProofRouting } from "../lib/verification/development/proof-routing.mjs";
 
 const contract = JSON.parse(await readFile(new URL("../config/development-verification-routing.json", import.meta.url), "utf8"));
 const plan = (files, classes = []) => resolveProofRoute({ changedFiles: files, classes, contract, ownershipPlan: { status: "ready" } });

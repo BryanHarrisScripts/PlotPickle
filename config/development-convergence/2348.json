@@ -10,7 +10,7 @@
     "config/verification/ownership-map.json",
     "config/verification/test-catalog.json",
     "docs/developer-briefs/2348-verification-routing-slice.md",
-    "lib/verification/development-proof-routing.mjs",
+    "lib/verification/development/proof-routing.mjs",
     "scripts/verification-core.mjs",
     "tests/issue-2348-verification-routing.test.mjs"
   ],

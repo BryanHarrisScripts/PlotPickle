@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { emitEvidence, explainPlan, planVerification, runLayer } from "../lib/verification/verification-core.mjs";
-import { resolveProofRoute } from "../lib/verification/development-proof-routing.mjs";
+import { resolveProofRoute } from "../lib/verification/development/proof-routing.mjs";
 
 const root = process.cwd();
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), "utf8"));

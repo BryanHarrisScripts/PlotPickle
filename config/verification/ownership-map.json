@@ -1112,6 +1112,18 @@
       ]
     },
     {
+      "id": "development-agent-rules",
+      "classification": "docs",
+      "include": [
+        "AGENTS.md"
+      ],
+      "ownerLayer": "verification",
+      "riskTokens": [
+        "docs",
+        "test-harness"
+      ]
+    },
+    {
       "id": "verification-contract-files",
       "classification": "verification",
       "include": [

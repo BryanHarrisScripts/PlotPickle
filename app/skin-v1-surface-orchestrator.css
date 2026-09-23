@@ -164,6 +164,30 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-ski
   align-self: start !important;
 }
 
+/* Story Map uses the available browser width through its act navigation. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] :is(
+  .pp-skin-v1-orchestrator-header,
+  .pp-skin-v1-orchestrator-actions,
+  .pp-skin-v1-orchestrator-workspace-header
+) {
+  width: calc(100% - 40px);
+  max-width: none;
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] .pp-skin-v1-orchestrator-header {
+  border-bottom-color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] .pp-skin-v1-orchestrator-workspace-header {
+  border-color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator[data-skin-v1-active-surface="story-map"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="true"][data-skin-v1-surface-id="story-map"] {
+  width: calc(100% - 40px) !important;
+  max-width: none !important;
+  border-color: var(--pp-skin-ink) !important;
+}
+
 /* Nested registered roots remain semantic subregions until they become the active
    WebMCP/application surface. This avoids decorative frame stacking. */
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrated="true"][data-skin-v1-orchestrator-active="false"] {

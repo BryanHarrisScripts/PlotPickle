@@ -7,6 +7,7 @@ import {
   loadFoundationProject,
 } from "@/core/storage/foundation-project-browser";
 import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
+import ActWrittenStoryBoard from "./act-written-story-board";
 import type { PreproductionReviewAddress } from "./preproduction-review-surfaces";
 import StoryCardFoundationBoard from "./story-card-foundation-board";
 
@@ -58,6 +59,7 @@ export default function MatrixStoryMapSurface({
         navigationOnly
       />
       <StoryCardFoundationBoard project={project} onProjectChange={setProject} act={activeAct} />
+      <ActWrittenStoryBoard project={project} act={activeAct} />
     </div>
   );
 }

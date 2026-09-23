@@ -475,6 +475,40 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]
 
 /* #2166 — Story Cards Foundation Board. The card wall is a planning projection
    over the canonical 24/96 structure; visual treatment never creates a second store. */
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-board .pp-skin-v1-story-card {
+  align-content: start;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-board .pp-skin-v1-story-card h3 {
+  margin: var(--pp-skin-space-3) 0;
+  color: var(--pp-skin-ink);
+  overflow-wrap: anywhere;
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini {
+  padding: var(--pp-skin-space-3) 0;
+  border-top: var(--pp-skin-border-thin) solid var(--pp-skin-line);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini h4 {
+  margin: 0 0 var(--pp-skin-space-2);
+  color: var(--pp-skin-ink);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini small {
+  color: var(--pp-skin-ink-soft);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-mini p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: var(--pp-skin-leading-body);
+}
+
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-written-act-empty {
+  color: var(--pp-skin-ink-soft);
+}
+
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board {
   display: grid;
   gap: var(--pp-skin-space-4);

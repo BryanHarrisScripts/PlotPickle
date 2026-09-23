@@ -111,7 +111,7 @@ function newVisualId(blockNumber: number, miniBlockNumber: number) {
   return globalThis.crypto?.randomUUID?.() ?? `story-map-${blockNumber}-${miniBlockNumber}-${Date.now()}`;
 }
 
-export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, outlineReadiness }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[] }) {
+export default function ProgressiveStoryMap({ project, act, initialBlockNumber, initialMiniBlockNumber, navigationOnly = false, outlineReadiness, onSelectAddress, onSelectTurningPoint, turningPointSelected = false }: { readonly project: PPFProject; readonly act?: number; readonly initialBlockNumber?: number; readonly initialMiniBlockNumber?: number; readonly navigationOnly?: boolean; readonly outlineReadiness?: readonly import("../../plan/outline-readiness").OutlineBlockReadiness[]; readonly onSelectAddress?: (address: { blockNumber: number; miniBlockNumber: number }) => void; readonly onSelectTurningPoint?: (act: number) => void; readonly turningPointSelected?: boolean }) {
   const storyMap = useMemo(() => deriveProgressiveStoryMap(project), [project]);
   const sequences = useMemo(() => Array.from({ length: 12 }, (_, index) => {
     const number = index + 1;
@@ -156,6 +156,17 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
   const rememberPosition = (blockNumber: number, miniBlockNumber: number) => {
     void persistStoryMapContext(project.id, { blockNumber, miniBlockNumber, stage: "map" }).catch(() => undefined);
   };
+  const selectPosition = (blockNumber: number, miniBlockNumber: number) => {
+    setSelectedBlockNumber(blockNumber);
+    setSelectedMiniBlockNumber(miniBlockNumber);
+    setVisualMessage("");
+    rememberPosition(blockNumber, miniBlockNumber);
+    onSelectAddress?.({ blockNumber, miniBlockNumber });
+  };
+  useEffect(() => {
+    if (initialBlockNumber !== undefined) setSelectedBlockNumber(initialBlockNumber);
+    if (initialMiniBlockNumber !== undefined) setSelectedMiniBlockNumber(initialMiniBlockNumber);
+  }, [initialBlockNumber, initialMiniBlockNumber]);
 
   useEffect(() => { setLocalShifts({}); }, [project.revision]);
   useEffect(() => {
@@ -333,7 +344,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
                     const blockDecisionCount = markersByBlock.get(block.id)?.length ?? 0;
                     const readiness = outlineReadiness?.find((item) => item.blockNumber === block.number);
                     return (
-                      <button aria-pressed={selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-outline-readiness={readiness?.status} data-story-decision-count={blockDecisionCount} key={block.id} onClick={() => { setSelectedBlockNumber(block.number); setSelectedMiniBlockNumber(1); setVisualMessage(""); rememberPosition(block.number, 1); }} type="button">
+                      <button aria-pressed={!turningPointSelected && selected.number === block.number} className={styles.block} data-canonical-story-id={block.id} data-state={block.state} data-outline-readiness={readiness?.status} data-story-decision-count={blockDecisionCount} key={block.id} onClick={(event) => { const target = event.target as HTMLElement; const mini = Number(target.closest<HTMLElement>("[data-mini-number]")?.dataset.miniNumber ?? 1); selectPosition(block.number, mini); }} onKeyDown={(event) => { if (navigationOnly && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); selectPosition(block.number, Math.max(1, Math.min(4, selectedMiniBlockNumber + (event.key === "ArrowRight" ? 1 : -1)))); } }} type="button">
                         <span className={styles.blockNumber}>{String(block.number).padStart(2, "0")}</span>
                         <span className={styles.sequence}>A{block.act} · S{String(block.sequenceNumber).padStart(2, "0")}</span>
                         <span role="img" aria-label={`Status: ${STATE_LABELS[block.state]}${block.state === "locked" ? ". Editing unavailable." : ""}`} className={styles.statusLine} data-state={block.state}><i aria-hidden="true" className={styles.statusDot} /></span>
@@ -341,7 +352,7 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
                         {readiness ? <strong className={styles.statusLine}>Outline: {readiness.status === "needs-support" ? "Needs support" : readiness.status === "review" ? "Review" : "Evidence ready"}</strong> : null}
                         <span className={styles.minis} aria-label={`Block ${block.number} Mini-Blocks`}>
                           {block.miniBlocks.map((mini) => (
-                            <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>
+                            <span aria-label={`Mini-Block ${mini.number}, ${mini.label}: ${STATE_LABELS[mini.state]}`} className={styles.miniStep} data-state={mini.state} data-mini-number={mini.number} data-selected={!turningPointSelected && selected.number === block.number && selectedMiniBlockNumber === mini.number ? "true" : undefined} key={mini.id} title={`${mini.label}: ${STATE_LABELS[mini.state]}`}>{mini.number}</span>
                           ))}
                         </span>
                       </button>
@@ -350,9 +361,9 @@ export default function ProgressiveStoryMap({ project, act, initialBlockNumber, 
                 </div>
               </div>
               {sequence.marker ? (
-                <div aria-label={sequence.marker.meaning} className={styles.turningPoint} data-marker={sequence.marker.badge} title={sequence.marker.meaning}>
+                <button aria-label={`Select ${sequence.marker.meaning}`} aria-pressed={turningPointSelected && act === Math.ceil(sequence.number / 3)} className={styles.turningPoint} data-marker={sequence.marker.badge} onClick={() => onSelectTurningPoint?.(Math.ceil(sequence.number / 3))} title={sequence.marker.meaning} type="button">
                   {sequence.marker.badge === "FINALE" ? <strong className={styles.finale}>FINALE</strong> : <><strong>{sequence.marker.badge.slice(0, 2)}</strong><span>TP</span></>}
-                </div>
+                </button>
               ) : null}
             </section>
           );

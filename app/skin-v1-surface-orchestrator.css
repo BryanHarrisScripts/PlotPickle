@@ -298,3 +298,6 @@ html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [
 html[data-plotpickle-skin="skin-v1"] [data-skin-v1-orchestrator-active="true"] [data-skin-v1-local-return="true"] {
   display: none !important;
 }
+
+/* Outline spans the available viewport, including its shared status footer. */
+html[data-plotpickle-skin="skin-v1"] .pp-skin-v1-orchestrator:has([data-dashboard-review-surface="outline"]) .pp-skin-v1-orchestrator-footer { width: calc(100vw - 40px); max-width: none; }

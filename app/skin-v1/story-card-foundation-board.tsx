@@ -28,7 +28,10 @@ import {
   updateStoryCardMini,
 } from "@/modules/plan/story-card-board";
 
+import type { OutlineBlockReadiness } from "@/modules/plan/outline-readiness";
+
 type StoryCardFoundationBoardProps = {
+  readonly outlineReadiness?: readonly OutlineBlockReadiness[];
   readonly project: LibraryPPFProject;
   readonly onProjectChange: (project: LibraryPPFProject) => void;
   readonly act?: number;
@@ -73,6 +76,7 @@ export default function StoryCardFoundationBoard({
   project,
   onProjectChange,
   act,
+  outlineReadiness,
 }: StoryCardFoundationBoardProps) {
   const [draggingBlockNumber, setDraggingBlockNumber] = useState<number | null>(null);
   const [message, setMessage] = useState("Story Cards ready. Structural addresses stay fixed while planning content moves.");
@@ -309,6 +313,7 @@ export default function StoryCardFoundationBoard({
             </header>
             <div className="pp-skin-v1-story-card-row">
               {row.blocks.map((block) => {
+                const readiness = outlineReadiness?.find((item) => item.blockNumber === block.number);
                 const locked = Boolean(block.planningLockedAt);
                 const authoredTitle = block.title === structuralBlockTitle(block.number) ? "" : block.title;
                 const coverage = storyCardSourceCoverage(sourcePassages, block.number);
@@ -320,6 +325,7 @@ export default function StoryCardFoundationBoard({
                   <article
                     className="pp-skin-v1-story-card"
                     data-locked={locked ? "true" : "false"}
+                    data-outline-readiness={readiness?.status}
                     data-story-card-address={block.id}
                     draggable={!locked}
                     key={block.id}
@@ -347,6 +353,7 @@ export default function StoryCardFoundationBoard({
                       <span data-story-card-lock-state={locked ? "locked" : "exploratory"}>{locked ? "LOCKED" : "MOVE"}</span>
                     </header>
 
+                    {readiness ? <p className="pp-skin-v1-outline-status">Outline: {readiness.status === "needs-support" ? "Needs support" : readiness.status === "review" ? "Review" : "Evidence ready"} · {readiness.issues.length} issue{readiness.issues.length === 1 ? "" : "s"}</p> : null}
                     <div className="pp-skin-v1-story-card-coverage" aria-label={`Mapped screenplay coverage for PPF Block ${block.number}`}>
                       <strong>MAPPED SCREENPLAY EVIDENCE</strong>
                       <span>{coverage.passageCount} passages · {coverage.sceneCount} scenes · {coverage.wordCount} words · {coverage.sourceSharePercent}% of stored source</span>
@@ -360,7 +367,7 @@ export default function StoryCardFoundationBoard({
 
                     {matrixBlock ? (
                       <details className="pp-skin-v1-story-card-structural-review" data-structural-finding={matrixBlock.structuralFinding.state}>
-                        <summary>Structural responsibility · {matrixBlock.structuralFinding.state.replace("-", " / ")}</summary>
+                        <summary>Structural responsibility · {matrixBlock.structuralFinding.state.replace("-", " / ")} · {matrixBlock.structuralFinding.reviewedAt ? "human reviewed" : "awaiting review"}</summary>
                         <p>{matrixBlock.responsibility}</p>
                         <div className="pp-skin-v1-story-card-source-map">
                           {matrixBlock.sourceMappings.map((mapping) => (

@@ -134,9 +134,8 @@ export default function StoryCardFoundationBoard({
     structure: LibraryPPFProject["structure"],
     occurredAt: string,
   ): readonly CreativeRevisionPropagationPlan[] {
-    return structureRevisionTargets(structure).flatMap((revision, index) => {
-      try {
-        return [planCreativeRevisionPropagation({
+    return structureRevisionTargets(structure).map((revision, index) =>
+        planCreativeRevisionPropagation({
           project,
           target: revision.target,
           beforeValue: revision.beforeValue,
@@ -144,11 +143,8 @@ export default function StoryCardFoundationBoard({
           changeSetId: `story-card-impact-${project.revision}-${index + 1}`,
           summary: "Story Card planning revision",
           occurredAt,
-        })];
-      } catch {
-        return [];
-      }
-    });
+        }),
+    );
   }
 
   function commitStructure(

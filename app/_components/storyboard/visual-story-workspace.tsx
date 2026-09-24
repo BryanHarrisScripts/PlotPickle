@@ -26,6 +26,7 @@ export default function VisualStoryWorkspace({
   initialSceneId,
   initialShotId,
   initialView = "story",
+  allowTimeline = true,
   sequenceDirectorDrafts = [],
   editorialShots = [],
   providerInstructions = null,
@@ -39,6 +40,7 @@ export default function VisualStoryWorkspace({
   readonly initialSceneId?: string;
   readonly initialShotId?: string;
   readonly initialView?: "story" | "timeline";
+  readonly allowTimeline?: boolean;
   readonly sequenceDirectorDrafts?: readonly SequenceDirectorDraft[];
   readonly editorialShots?: readonly StoryboardEditorialShot[];
   readonly providerInstructions?: ProviderInstructionBundle | null;
@@ -47,7 +49,7 @@ export default function VisualStoryWorkspace({
 }) {
   const [selectedSceneId, setSelectedSceneId] = useState(initialSceneId ?? "");
   const [selectedShotId, setSelectedShotId] = useState(initialShotId ?? "");
-  const [view, setView] = useState<"story" | "timeline">(initialView);
+  const [view, setView] = useState<"story" | "timeline">(allowTimeline ? initialView : "story");
   const projection = useMemo(() => projectVisualStory({
     project,
     legacyProject,
@@ -124,14 +126,14 @@ export default function VisualStoryWorkspace({
           >
             Visual Story
           </button>
-          <button
+          {allowTimeline ? <button
             aria-pressed={view === "timeline"}
             data-visual-story-view="timeline"
             onClick={() => setView("timeline")}
             type="button"
           >
             Timeline
-          </button>
+          </button> : null}
         </nav>
 
         {view === "story" ? (
@@ -321,14 +323,14 @@ export default function VisualStoryWorkspace({
         >
           Visual Story
         </button>
-        <button
+        {allowTimeline ? <button
           aria-pressed={view === "timeline"}
           data-visual-story-view="timeline"
           onClick={() => setView("timeline")}
           type="button"
         >
           Timeline
-        </button>
+        </button> : null}
       </nav>
 
       {view === "story" ? (

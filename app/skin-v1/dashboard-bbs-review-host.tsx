@@ -250,6 +250,11 @@ export default function DashboardBbsReviewHost({
     onSurfaceNameChange("STORYBOARD");
   }
 
+  // The shared header follows the rendered surface even after an Outline → Dashboard → Storyboard transition.
+  useEffect(() => {
+    if (storyboardOpen) onSurfaceNameChange("STORYBOARD");
+  }, [storyboardOpen, onSurfaceNameChange]);
+
   function openPrevis(address: PreproductionReviewAddress = reviewAddress) {
     updateReviewAddress("previs", address);
     closePreproductionSurfaces();

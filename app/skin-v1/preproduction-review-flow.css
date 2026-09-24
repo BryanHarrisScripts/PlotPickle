@@ -39,7 +39,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-preproduction-stage-rail {
   font-family: var(--pp-skin-font-ui);
 }
 
-html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-story-act-rail="four-acts"] {
+html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"]) [data-story-act-rail="four-acts"] {
   width: calc(100% - 40px);
   box-sizing: border-box;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -47,7 +47,7 @@ html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [d
   border: 0;
 }
 
-html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="outline"] [data-story-act-rail="four-acts"] button[aria-current="page"] {
+html[data-plotpickle-skin^="skin-"] :is([data-dashboard-review-surface="outline"], [data-dashboard-review-surface="storyboard"]) [data-story-act-rail="four-acts"] button[aria-current="page"] {
   border-color: transparent;
   background: var(--pp-skin-fill-row-hover);
   font-weight: 700;
@@ -968,6 +968,6 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-mini { color: var(
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff { padding: .5rem; border-top: 1px solid var(--pp-skin-line); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff a { color: var(--pp-skin-accent-bright); }
 /* The shared entry map gives way to the focused Visual Story projection. */
-html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]:has([data-visual-story="scene-beat-shot-frame"]) :is([data-story-act-rail="four-acts"], [data-progressive-story-map="24x96"]) {
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]:has(:is([data-visual-story="scene-beat-shot-frame"], [data-storyboard-scene-beat-detail="true"])) :is([data-story-act-rail="four-acts"], [data-skin-v1-storyboard-map-review="true"]) {
   display: none;
 }

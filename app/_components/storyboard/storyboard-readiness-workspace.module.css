@@ -8,11 +8,14 @@
   font-family: var(--pp-skin-font-ui);
 }
 
-.workspace [data-state="defined"] { --story-state: var(--pp-skin-accent-bright); }
-.workspace [data-state="observed"] { --story-state: var(--pp-skin-ink-soft); }
-.workspace [data-state="emerging"] { --story-state: var(--pp-skin-warning); }
-.workspace [data-state="missing"] { --story-state: var(--pp-skin-danger); }
-.workspace [data-state="locked"] { --story-state: var(--pp-skin-disabled); }
+.workspace [data-state="defined"] { --story-state: var(--story-defined, var(--pp-skin-accent-bright)); }
+.workspace [data-state="observed"] { --story-state: var(--story-observed, var(--pp-skin-ink-soft)); }
+.workspace [data-state="emerging"] { --story-state: var(--story-emerging, var(--pp-skin-warning)); }
+.workspace [data-state="missing"] { --story-state: var(--story-missing, var(--pp-skin-danger)); }
+.workspace [data-state="locked"] { --story-state: var(--story-locked, var(--pp-skin-disabled)); }
+
+.backToMap { width: fit-content; margin: var(--pp-skin-space-2) 0; padding: var(--pp-skin-space-2) var(--pp-skin-space-3); border: 1px solid var(--pp-skin-line-strong); background: var(--pp-skin-surface-1); color: var(--pp-skin-ink); font: inherit; cursor: pointer; }
+.backToMap:focus-visible { outline: 2px solid var(--pp-skin-focus); }
 
 .hero,
 .notice,

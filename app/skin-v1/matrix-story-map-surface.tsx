@@ -27,6 +27,12 @@ export default function MatrixStoryMapSurface({
   const turningPoint = outlineTurningPoint(activeAct);
   const readiness = useMemo(() => project ? deriveOutlineReadiness(project) : [], [project]);
   const actReadiness = readiness.filter((block) => Math.floor((block.blockNumber - 1) / 6) + 1 === activeAct);
+  const selectedStructureBlock = project?.structure.blocks.find((block) => block.number === address.blockNumber) ?? null;
+  const selectedSequenceNumber = selectedStructureBlock?.sequenceNumber ?? Math.ceil(address.blockNumber / 2);
+  const selectedSequenceBlocks = project?.structure.blocks
+    .filter((block) => block.sequenceNumber === selectedSequenceNumber)
+    .map((block) => block.number)
+    .sort((left, right) => left - right) ?? [];
 
   useEffect(() => {
     const sync = () => setProject(loadFoundationProject());
@@ -59,6 +65,23 @@ export default function MatrixStoryMapSurface({
         onSelectTurningPoint={setTurningPointAct}
         turningPointSelected={turningPointSelected}
       />
+      <section className="pp-skin-v1-outline-hierarchy" aria-labelledby="outline-hierarchy-title" data-outline-hierarchy="story-through-beat">
+        <header>
+          <div>
+            <span>OUTLINE STORY HIERARCHY</span>
+            <h2 id="outline-hierarchy-title">Sequence → Block → Mini-Block → Scene → Beat</h2>
+          </div>
+          <strong>Act {activeAct} · Sequence {String(selectedSequenceNumber).padStart(2, "0")} · Blocks {selectedSequenceBlocks.length ? selectedSequenceBlocks.map((number) => String(number).padStart(2, "0")).join("–") : "—"}</strong>
+        </header>
+        <p>Outline answers what happens and what changes. A Sequence pairs two Blocks; a Block is about five minutes and a Mini-Block about 75 seconds in the default feature model. Scene and Beat counts stay flexible and follow the screenplay rather than a quota.</p>
+        <dl>
+          <div><dt>Sequence</dt><dd>larger story movement · two Blocks</dd></div>
+          <div><dt>Block</dt><dd>chapter-sized dramatic movement</dd></div>
+          <div><dt>Mini-Block</dt><dd>focused story address · about 75 seconds</dd></div>
+          <div><dt>Scene</dt><dd>what happens in one continuous place/time</dd></div>
+          <div><dt>Beat</dt><dd>the meaningful change inside the Scene</dd></div>
+        </dl>
+      </section>
       <section className="pp-skin-v1-outline-readiness" aria-label={`Act ${activeAct} Outline readiness`} data-outline-readiness-summary={activeAct}>
         <h2>Act {activeAct} · Outline readiness</h2>
         <p>Observed means screenplay text is mapped. Readiness checks source placement, Story Architect findings, story intent, and Mini-Block support before Storyboard. Run the Act assessment below to replace generic pending findings with cited proposals.</p>

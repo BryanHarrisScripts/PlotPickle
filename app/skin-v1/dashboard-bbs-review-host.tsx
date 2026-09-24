@@ -19,6 +19,7 @@ import {
   SkinV1PrevisReviewSurface,
   SkinV1ProductionReviewSurface,
   SkinV1StoryboardReviewSurface,
+  SkinV1StoryboardStoryMap,
   SkinV1TimelineReviewSurface,
   type PreproductionReviewAddress,
 } from "./preproduction-review-surfaces";
@@ -547,6 +548,14 @@ export default function DashboardBbsReviewHost({
           <span className={reviewStyles.reviewBadge}>IN REVIEW</span>
           <button autoFocus type="button" className="pp-skin-v1-return" onClick={() => returnDashboard("storyboard")}>Back to Dashboard</button>
         </div>
+        <StoryActRail activeAct={Math.floor((reviewAddress.blockNumber - 1) / 6) + 1} onOpen={(act) => updateReviewAddress("storyboard", { blockNumber: (act - 1) * 6 + 1, miniBlockNumber: 1 })} />
+        <SkinV1StoryboardStoryMap
+          address={reviewAddress}
+          onAddressChange={(address) => {
+            updateReviewAddress("storyboard", address);
+            window.requestAnimationFrame(() => document.getElementById("storyboard-block-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
+        />
         <PreproductionStageRail active="storyboard" onOpen={(stage) => openPreproductionStage(stage, reviewAddress)} />
         <BlockVisualJourneyWorkspace
           address={reviewAddress}

@@ -146,6 +146,49 @@
       "notes": "Phase 5 live read-only WebMCP observer. It is single-owned by Experience Skins but can be selected by Skin, Experience surface/navigation, or WebMCP verifier risk tokens. Network permission is limited to repository dependencies plus pinned Playwright/WebMCP verification tooling; no external AI provider calls or secrets are permitted."
     },
     {
+      "id": "experience.storyboard-batch-progression-2418",
+      "ownerLayer": "experience-skins",
+      "architectureComponents": [
+        "skin-surface-readiness",
+        "experience-navigation"
+      ],
+      "triggerTokens": [
+        "surface",
+        "visual",
+        "canon",
+        "test-harness"
+      ],
+      "runner": {
+        "kind": "node-test",
+        "targets": [
+          "tests/issue-2418-storyboard-batch-progression.test.mjs"
+        ]
+      },
+      "cost": "medium",
+      "modes": [
+        "impact"
+      ],
+      "platforms": [
+        "linux"
+      ],
+      "requirements": {
+        "network": true,
+        "native": false,
+        "secrets": false
+      },
+      "evidence": {
+        "types": [
+          "test-result",
+          "build",
+          "report"
+        ],
+        "artifactPaths": [
+          ".artifacts/development-convergence/issue-2418.json"
+        ]
+      },
+      "notes": "#2418 bounded Storyboard proof. While the #2418 convergence manifest is in the current diff it runs the focused 1/5/25 progression regression, changed-manifest convergence, and a production build after the live Experience Skins dependency setup. On later diffs the convergence/build subtest skips."
+    },
+    {
       "id": "experience.webmcp-baseline-approval-2151",
       "ownerLayer": "experience-skins",
       "architectureComponents": [

@@ -21,7 +21,7 @@ test("#2422 opens Library on Load and offers Import Export in the requested keyb
 test("#2422 exports a canonical backup and imports it as a separate story while preserving legacy PPF import", async () => {
   const [source, backup] = await Promise.all([
     read("modules/library/ui/library-workspace.tsx"),
-    read("modules/library/project-library-backup.ts"),
+    read("core/storage/library-project.ts"),
   ]);
   assert.match(backup, /source\.format !== PPF_FOUNDATION_VERSION/u);
   assert.match(backup, /return normalizeLibraryProject\(value\)/u);

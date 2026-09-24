@@ -8,10 +8,10 @@
     "config/skin-v1-surface-declarations/standard-surfaces.json",
     "config/skin-v1-surface-registry.json",
     "config/verification/test-catalog.json",
+    "core/storage/library-project.ts",
     "docs/developer-briefs/2422-library-load-import-export.md",
     "lib/verification/skin-v1-menu-contract-audit.mjs",
     "lib/verification/webmcp-surface-capture-registry.mjs",
-    "modules/library/project-library-backup.ts",
     "modules/library/ui/avery-session-history/index.tsx",
     "modules/library/ui/library-workspace.tsx",
     "tests/issue-1029-avery-progressive-session-history.test.mjs",
@@ -38,7 +38,7 @@
       "id": "P2422-E2",
       "criterion": "Import Export accepts legacy PPF and canonical backup while exporting the active Library project locally.",
       "evidence": [
-        { "type": "file-contains", "path": "modules/library/project-library-backup.ts", "contains": "parseLibraryBackup" },
+        { "type": "file-contains", "path": "core/storage/library-project.ts", "contains": "parseLibraryBackup" },
         { "type": "file-contains", "path": "modules/library/ui/library-workspace.tsx", "contains": "function exportCurrentStory()" }
       ]
     },

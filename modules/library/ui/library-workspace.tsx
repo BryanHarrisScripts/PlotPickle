@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { PPFProject } from "../../../core/project/project";
+import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../../../core/storage/library-project";
 import {
   DEFAULT_LOCAL_PROFILE_ID,
   PROJECT_LIBRARY_ACTIVE_PROFILE_KEY,
@@ -26,7 +27,6 @@ import {
   type LibraryCatalogItem,
   type LibraryFrontierCoverage,
 } from "../project-library-catalog";
-import { libraryBackupFileName, parseLibraryBackup, serializeLibraryBackup } from "../project-library-backup";
 import styles from "./library-workspace.module.css";
 
 type LibraryDestination = "load" | "new" | "import-export" | "examples" | "presets" | "avery" | "archive";

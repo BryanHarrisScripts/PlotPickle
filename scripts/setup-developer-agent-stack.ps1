@@ -73,7 +73,7 @@ if (-not $VerifyOnly) {
   if ($LASTEXITCODE -ne 0) { throw "Cline installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing Pi coding agent"
-  & npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+  & npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.87.1
   if ($LASTEXITCODE -ne 0) { throw "Pi installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing pinned Pi project extensions"

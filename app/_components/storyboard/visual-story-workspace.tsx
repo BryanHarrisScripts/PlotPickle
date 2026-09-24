@@ -27,6 +27,7 @@ export default function VisualStoryWorkspace({
   initialShotId,
   initialView = "story",
   allowTimeline = true,
+  embedded = false,
   sequenceDirectorDrafts = [],
   editorialShots = [],
   providerInstructions = null,
@@ -41,6 +42,7 @@ export default function VisualStoryWorkspace({
   readonly initialShotId?: string;
   readonly initialView?: "story" | "timeline";
   readonly allowTimeline?: boolean;
+  readonly embedded?: boolean;
   readonly sequenceDirectorDrafts?: readonly SequenceDirectorDraft[];
   readonly editorialShots?: readonly StoryboardEditorialShot[];
   readonly providerInstructions?: ProviderInstructionBundle | null;
@@ -103,13 +105,13 @@ export default function VisualStoryWorkspace({
 
   if (!projection.selectedScene) {
     return (
-      <section className={styles.workspace} data-projection-only="true" data-visual-story="scene-beat-shot-frame">
-        <button
+      <section className={styles.workspace} data-embedded={embedded ? "true" : undefined} data-projection-only="true" data-visual-story="scene-beat-shot-frame">
+        {!embedded ? <button
           type="button"
           className="pp-skin-v1-return"
           data-skin-v1-return="storyboard"
           onClick={onReturnToStoryboard}
-        >Back to Storyboard</button>
+        >Back to Storyboard</button> : null}
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>
@@ -117,7 +119,7 @@ export default function VisualStoryWorkspace({
           </div>
         </header>
 
-        <nav className={styles.sceneRail} aria-label="Visual pre-production view">
+        {!embedded ? <nav className={styles.sceneRail} aria-label="Visual pre-production view">
           <button
             aria-pressed={view === "story"}
             data-visual-story-view="story"
@@ -134,7 +136,7 @@ export default function VisualStoryWorkspace({
           >
             Timeline
           </button> : null}
-        </nav>
+        </nav> : null}
 
         {view === "story" ? (
           <>
@@ -265,16 +267,17 @@ export default function VisualStoryWorkspace({
   return (
     <section
       className={styles.workspace}
+      data-embedded={embedded ? "true" : undefined}
       data-projection-only="true"
       data-scene-id={projection.selectedScene.id}
       data-visual-story="scene-beat-shot-frame"
     >
-      <button
+      {!embedded ? <button
         type="button"
         className="pp-skin-v1-return"
         data-skin-v1-return="storyboard"
         onClick={onReturnToStoryboard}
-      >Back to Storyboard</button>
+      >Back to Storyboard</button> : null}
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Visual Story · Scene → Beat → Shot → Frame</p>
@@ -314,7 +317,7 @@ export default function VisualStoryWorkspace({
         <div><dt>Outcome</dt><dd>{detail(projection.selectedScene.outcome)}</dd></div>
       </dl>
 
-      <nav className={styles.sceneRail} aria-label="Visual pre-production view">
+      {!embedded ? <nav className={styles.sceneRail} aria-label="Visual pre-production view">
         <button
           aria-pressed={view === "story"}
           data-visual-story-view="story"
@@ -331,7 +334,7 @@ export default function VisualStoryWorkspace({
         >
           Timeline
         </button> : null}
-      </nav>
+      </nav> : null}
 
       {view === "story" ? (
         <div className={styles.storyBody}>

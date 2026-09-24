@@ -147,6 +147,31 @@ export default function StoryboardReadinessWorkspace({
       label: reference.caption,
     })),
   ].filter((image, index, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === index);
+  const frameArtifacts = project.build.foundations.visualArtifacts.filter((artifact) =>
+    artifact.workflow === "storyboard-frame-webp-v2"
+    && (artifact.sourceDecisionKeys ?? []).includes(`storyboard-anchor:block:block-${String(selectedNumber).padStart(2, "0")}:mini-${selectedMiniBlockNumber}`),
+  );
+
+  function reviewFrame(artifact: FoundationsVisualArtifact, decision: "accept" | "discard") {
+    if (qaOnlyAccess || !storyboardAccessible) return;
+    const now = new Date().toISOString();
+    let next: PPFProject = project;
+    if (decision === "accept") {
+      for (const previous of frameArtifacts.filter((candidate) =>
+        candidate.id !== artifact.id && candidate.frameNumber === artifact.frameNumber
+        && project.build.foundations.acceptedVisualArtifactIds.includes(candidate.id))) {
+        next = applyStoryCommand(next, { type: "foundations.visual.unaccept", artifactId: previous.id, occurredAt: now });
+      }
+    }
+    next = applyStoryCommand(next, { type: decision === "accept" ? "foundations.visual.accept" : "foundations.visual.discard", artifactId: artifact.id, occurredAt: now });
+    saveFoundationProject(next);
+    onProjectChange(next);
+    if (decision === "discard") {
+      const key = `${selectedNumber}.${selectedMiniBlockNumber}.${artifact.frameNumber}`;
+      setSelectedImageByPosition((values) => ({ ...values, [key]: "" }));
+    }
+    setFrameNotice(`Position ${String(artifact.frameNumber).padStart(2, "0")} ${decision === "accept" ? "accepted" : "rejected"}.`);
+  }
 
   const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
   const storyboardCharacters: readonly StoryboardCharacterGrounding[] = (legacyProject?.characters ?? []).map((character) => {
@@ -487,8 +512,10 @@ export default function StoryboardReadinessWorkspace({
                   const position = index + 1;
                   const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position) ?? null;
                   const selectionKey = `${selectedNumber}.${selectedMiniBlockNumber}.${position}`;
-                  const selectedImageId = selectedImageByPosition[selectionKey] ?? shot?.frames[0]?.id ?? "";
+                  const selectedImageId = selectedImageByPosition[selectionKey] ?? frameArtifacts.find((artifact) => artifact.frameNumber === position && artifact.reviewState !== "rejected")?.id ?? shot?.frames[0]?.id ?? "";
                   const selectedImage = availablePositionImages.find((image) => image.id === selectedImageId) ?? null;
+                  const selectedArtifact = frameArtifacts.find((artifact) => artifact.id === selectedImageId && artifact.frameNumber === position && artifact.reviewState !== "rejected");
+                  const accepted = Boolean(selectedArtifact && project.build.foundations.acceptedVisualArtifactIds.includes(selectedArtifact.id));
                   const shotLabel = shot
                     ? [`Shot ${String(shot.order).padStart(2, "0")}`, shot.shotSize || shot.angle, shot.narrativePurpose || shot.visualIntent].filter(Boolean).join(" · ")
                     : "Open Shot / Frame position";
@@ -511,10 +538,20 @@ export default function StoryboardReadinessWorkspace({
                           onChange={(event) => setSelectedImageByPosition((current) => ({ ...current, [selectionKey]: event.target.value }))}
                         >
                           <option value="">No Frame selected</option>
-                          {availablePositionImages.map((image) => <option key={image.id} value={image.id}>{image.label}</option>)}
+                          {availablePositionImages.map((image) => {
+                            const artifact = project.build.foundations.visualArtifacts.find((candidate) => candidate.id === image.id);
+                            return !artifact || artifact.workflow !== "storyboard-frame-webp-v2" || artifact.frameNumber === position
+                              ? <option key={image.id} value={image.id}>{image.label}</option> : null;
+                          })}
                         </select>
                       </label>
                       <button className={styles.framePromptButton} type="button" onClick={() => prepareFramePrompt(position)}>Create frame prompt</button>
+                      {selectedArtifact ? <div className={styles.frameReview} aria-label={`Review frame at position ${position}`}>
+                        <span>{accepted ? "Accepted" : "Awaiting review"}</span>
+                        <button disabled={accepted || qaOnlyAccess || frameBusy} type="button" onClick={() => reviewFrame(selectedArtifact, "accept")}>Accept</button>
+                        <button disabled={frameBusy} type="button" onClick={() => { prepareFramePrompt(position); setGenerationScope("single"); }}>Regenerate</button>
+                        <button disabled={qaOnlyAccess || frameBusy} type="button" onClick={() => reviewFrame(selectedArtifact, "discard")}>Reject</button>
+                      </div> : null}
                     </div>
                   );
                 })}

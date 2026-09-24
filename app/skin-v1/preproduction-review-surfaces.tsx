@@ -169,12 +169,10 @@ export function SkinV1PrevisReviewSurface({
   address,
   onAddressChange,
   onOpenStoryboard,
-  onOpenBuild,
 }: {
   readonly address: PreproductionReviewAddress;
   readonly onAddressChange: (address: PreproductionReviewAddress) => void;
   readonly onOpenStoryboard: (address: PreproductionReviewAddress) => void;
-  readonly onOpenBuild: () => void;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [error, setError] = useState("");
@@ -238,7 +236,6 @@ export function SkinV1PrevisReviewSurface({
         onProjectChange={setProject}
         onAddressChange={onAddressChange}
         onOpenStoryboard={(anchor) => onOpenStoryboard(storyboardAddress(anchor))}
-        onOpenBuild={onOpenBuild}
       />
     </div>
   );

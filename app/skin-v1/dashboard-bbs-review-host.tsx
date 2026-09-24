@@ -602,7 +602,6 @@ export default function DashboardBbsReviewHost({
           address={reviewAddress}
           onAddressChange={(address) => updateReviewAddress("previs", address)}
           onOpenStoryboard={openStoryboard}
-          onOpenBuild={() => openBuild(reviewAddress, "previs")}
         />
       </section>
     );

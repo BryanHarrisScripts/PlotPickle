@@ -16,9 +16,6 @@ import {
 import { applyStoryCommand } from "@/core/project/apply-command";
 import type { PPFProject } from "@/core/project/project";
 import { saveFoundationProject } from "@/core/storage/foundation-project-browser";
-import { deriveVisualReadiness } from "@/modules/build/visual-readiness";
-import StoryboardEditorialWorkspace from "../storyboard/storyboard-editorial-workspace";
-import { storyboardReferenceCandidates } from "../storyboard/storyboard-editorial-model";
 import {
   createProductionShotForAnchor,
   derivePrevisProjection,
@@ -54,14 +51,12 @@ export default function PrevisReadinessWorkspace({
   project,
   onProjectChange,
   onOpenStoryboard,
-  onOpenBuild,
   address,
   onAddressChange,
 }: {
   readonly project: PPFProject;
   readonly onProjectChange: (project: PPFProject) => void;
   readonly onOpenStoryboard: (anchor?: PrevisAnchorProjection) => void;
-  readonly onOpenBuild: (anchor?: PrevisAnchorProjection) => void;
   readonly address?: { readonly blockNumber: number; readonly miniBlockNumber: number };
   readonly onAddressChange?: (address: { blockNumber: number; miniBlockNumber: number }) => void;
 }) {
@@ -88,12 +83,6 @@ export default function PrevisReadinessWorkspace({
   const selectedAnchor = allAnchors.find((anchor) => anchor.shots.some((shot) => shot.id === selectedShotId)) ?? null;
   const selectedShot = selectedAnchor?.shots.find((shot) => shot.id === selectedShotId) ?? null;
   const selectedShotStale = Boolean(selectedShot && selectedAnchor && shotNeedsReview(selectedAnchor, selectedShot));
-  const editorialTarget = useMemo(() => deriveVisualReadiness({ project }).targets.find((target) => (
-    target.id === selectedBlock?.targetId
-  )), [project, selectedBlock?.targetId]);
-  const editorialCandidateId = useMemo(() => editorialTarget
-    ? storyboardReferenceCandidates(project, editorialTarget.id).find((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber)?.id
-    : undefined, [project, editorialTarget, selectedMiniBlockNumber]);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     const next = applyStoryCommand(project, command);
@@ -148,14 +137,6 @@ export default function PrevisReadinessWorkspace({
     setMessage(`Shot ${shot.order} saved. Previs intent remains Human-authored. For the current 120-minute render preset, a reviewed ${RENDER_MINI_BLOCK_SECONDS}s Mini-Block can map to the fixed ${RENDER_CLIPS_PER_MINI_BLOCK}-clip technical Render Plan.`);
   }
 
-  function removeShot() {
-    if (!selectedShot) return;
-    const now = new Date().toISOString();
-    commit({ type: "previs.shot.remove", shotId: selectedShot.id, occurredAt: now });
-    setSelectedShotId("");
-    setMessage("Creative Previs shot removed. Storyboard, Render Plan addresses and story canon were not changed.");
-  }
-
   return (
     <main className={styles.workspace} aria-labelledby="previs-title">
       <header className={styles.hero}>
@@ -182,7 +163,6 @@ export default function PrevisReadinessWorkspace({
         </div>
         <div className={styles.noticeActions}>
           <button type="button" onClick={() => onOpenStoryboard()}>Open Storyboard</button>
-          <button type="button" onClick={() => onOpenBuild(selectedAddressAnchor ?? undefined)}>Open BUILD evidence</button>
         </div>
       </section>
 
@@ -280,18 +260,17 @@ export default function PrevisReadinessWorkspace({
                     setSelectedMiniBlockNumber(anchor.miniBlockNumber);
                     preservePrevisAddress(anchor.blockNumber, anchor.miniBlockNumber);
                     onAddressChange?.({ blockNumber: anchor.blockNumber, miniBlockNumber: anchor.miniBlockNumber });
+                    window.requestAnimationFrame(() => document.getElementById("previs-selected-evidence")?.scrollIntoView({ behavior: "smooth", block: "start" }));
                   }}>Inspect evidence</button>
                   <button disabled={!anchor.timingAllowed} type="button" onClick={() => addShot(anchor)}>Add creative shot</button>
-                  <button type="button" onClick={() => anchor.storyboardAllowed ? onOpenStoryboard(anchor) : onOpenBuild(anchor)}>
-                    {anchor.storyboardAllowed ? "Open Storyboard" : "Review BUILD"}
-                  </button>
+                  <button type="button" onClick={() => onOpenStoryboard(anchor)}>Open Storyboard</button>
                 </div>
               </article>
             ))}
           </div>
 
           {selectedAddressAnchor ? (
-            <section className={styles.evidencePanel} aria-label="Selected Previs anchor source and Storyboard provenance">
+            <section className={styles.evidencePanel} id="previs-selected-evidence" aria-label="Selected Previs anchor source and Storyboard provenance">
               <header>
                 <div>
                   <span>Selected story address</span>
@@ -346,7 +325,6 @@ export default function PrevisReadinessWorkspace({
             </div>
             <div className={styles.noticeActions}>
               <button type="button" onClick={() => onOpenStoryboard(selectedAnchor)}>Open owning Storyboard Mini-Block</button>
-              <button type="button" onClick={removeShot}>Remove shot</button>
             </div>
           </header>
           {selectedShotStale ? (
@@ -358,7 +336,7 @@ export default function PrevisReadinessWorkspace({
             <label>Movement<input name="movement" defaultValue={selectedShot.movement} /></label>
             <label>Lens<input name="lens" defaultValue={selectedShot.lens} /></label>
             <label>Duration seconds<input name="durationSeconds" type="number" min="0.01" step="0.01" defaultValue={selectedShot.durationSeconds ?? ""} placeholder="Optional until Human-authored" /></label>
-            <label>Status<select name="reviewState" defaultValue={selectedShot.reviewState}><option value="planned">Planned</option><option value="approved">Approved</option><option value="omitted">Omitted</option></select></label>
+            <label>Status<select name="reviewState" defaultValue={selectedShot.reviewState === "omitted" ? "planned" : selectedShot.reviewState}><option value="planned">Planned</option><option value="approved">Approved</option></select></label>
             <label>Transition in<input name="transitionIn" defaultValue={selectedShot.transitionIn} placeholder="Optional" /></label>
             <label>Transition out<input name="transitionOut" defaultValue={selectedShot.transitionOut} placeholder="Optional" /></label>
             <label className={styles.fullField}>Blocking intent<textarea name="blockingIntent" defaultValue={selectedShot.blockingIntent ?? ""} placeholder="Human-authored movement, position, eyeline or staging intent. Leave blank when unknown." /></label>
@@ -394,19 +372,6 @@ export default function PrevisReadinessWorkspace({
         </div>
         <p>Creative shots are not the render quota. PlotPickle preserves Human-authored camera, blocking, performance and timing intent. For the current two-hour preset only, a complete 75-second Mini-Block maps onto Clip 01–25. Each clip has a stable address and shares its boundary keyframe with the next clip, enabling surgical regeneration without rebuilding the whole sequence.</p>
       </section>
-
-      {editorialTarget && editorialCandidateId ? (
-        <div id="previs-storyboard-editorial">
-          <StoryboardEditorialWorkspace
-            key={`${editorialTarget.id}-mini-${selectedMiniBlockNumber}`}
-            project={project}
-            requestedCandidateId={editorialCandidateId}
-            target={editorialTarget}
-            onProjectChange={onProjectChange}
-            onOpenBuild={() => onOpenBuild(selectedAddressAnchor ?? undefined)}
-          />
-        </div>
-      ) : null}
 
       <p className={styles.message} role="status">{message}</p>
       <footer className={styles.footer}>

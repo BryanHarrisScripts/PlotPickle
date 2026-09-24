@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import type { FoundationsVisualArtifact } from "@/core/contracts/build-progress";
+import { normalizeProjectSourceEvidence } from "@/core/contracts/imported-screenplay-evidence";
 import { applyStoryCommand } from "@/core/project/apply-command";
 import { loadFoundationProject, saveFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
@@ -17,7 +18,15 @@ import type { PlotPickleProject } from "@/lib/projects/project";
 import type { ProviderInstructionBundle } from "@/lib/preproduction/provider-instruction-compiler";
 import { projectPreproductionSemantics } from "@/lib/preproduction/semantic-projection";
 import { projectVisualStory } from "@/lib/preproduction/visual-story-projection";
+import { approvedCharacterReferenceImages, getCharacterVisualIdentity, type CharacterWithVisualIdentity } from "@/lib/projects/visual/character-visual-identity";
 import { storyboardFramePrompt } from "./storyboard-editorial-model";
+import {
+  storyboardFrameBriefs,
+  storyboardPositionsForScope,
+  type StoryboardCharacterGrounding,
+  type StoryboardFrameBrief,
+  type StoryboardGenerationScope,
+} from "./storyboard-frame-planner";
 import VisualStoryWorkspace from "./visual-story-workspace";
 import {
   storyboardAnchorEvidence,

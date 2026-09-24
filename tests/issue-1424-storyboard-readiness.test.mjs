@@ -43,7 +43,8 @@ test("#1424 preserves reusable Storyboard identity and editorial behavior instea
   assert.match(legacyBoard, /VisualMediaVersion/);
   assert.match(legacyBoard, /approvedCharacterReferenceImages/);
   assert.match(audit, /`app\/visual-storyboard\.tsx` \| Adapt in Phase 8/);
-  assert.match(workspace, /StoryboardEditorialWorkspace/);
+  const previs = await read("app/_components/previs/previs-readiness-workspace.tsx");
+  assert.match(previs, /StoryboardEditorialWorkspace/);
   assert.match(workspace, /storyboardReferenceCandidates/);
   assert.match(editorial, /qaOnlyAccess \? "Keep requires BUILD" : "Keep"/);
   assert.match(editorial, /disabled=\{selectedIsKept \|\| qaOnlyAccess\}/);

@@ -38,8 +38,13 @@ test("#2398 keeps one selected address across map, Storyboard detail and standal
   assert.doesNotMatch(standalone, /embeddedNavigation/);
 });
 
-test("#2398 hands focus to Visual Story after the entry map", async () => {
-  const css = await read("app/skin-v1/preproduction-review-flow.css");
-  assert.match(css, /\[data-dashboard-review-surface="storyboard"\]:has\(\[data-visual-story="scene-beat-shot-frame"\]\)/);
-  assert.match(css, /\[data-progressive-story-map="24x96"\]/);
+test("#2398 keeps Storyboard navigation visible while visual detail stays inline", async () => {
+  const [css, detail] = await Promise.all([
+    read("app/skin-v1/preproduction-review-flow.css"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
+  ]);
+  assert.match(css, /Storyboard remains one continuous surface/);
+  assert.doesNotMatch(css, /storyboard"\]:has[\s\S]*display:\s*none/);
+  assert.match(detail, /data-storyboard-scene-beat-detail="inline"/);
+  assert.match(detail, /<VisualStoryWorkspace[\s\S]*?embedded/);
 });

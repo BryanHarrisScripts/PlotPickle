@@ -89,11 +89,15 @@ function findActiveSurface(): ActiveSurface | null {
       ([key, value]) => currentUrl.searchParams.get(key) === value,
     );
   });
-  const candidates = exactRouteMatches.length
+  const routeCandidates = exactRouteMatches.length
     ? exactRouteMatches
     : directRouteMatches.length
       ? directRouteMatches
       : matches;
+  const storyboardOwnsInlineChildren = routeCandidates.some((surface) => surface.id === "storyboard");
+  const candidates = storyboardOwnsInlineChildren
+    ? routeCandidates.filter((surface) => !["story-map", "visual-story"].includes(surface.id))
+    : routeCandidates;
   candidates.sort((a, b) =>
     surfaceDepth(b) - surfaceDepth(a)
     || domDepth(b.root) - domDepth(a.root)

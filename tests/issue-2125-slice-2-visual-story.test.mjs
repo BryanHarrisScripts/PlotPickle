@@ -74,8 +74,8 @@ test("#2125/#2189 keeps Story Map Block/Mini selection without reading legacy St
 
   assert.match(readiness, /selectedMiniBlockNumber/);
   assert.match(readiness, /data-selected=\{selectedMiniBlockNumber === miniNumber/);
-  assert.match(readiness, />Open Visual Story<\/button>/);
-  assert.match(readiness, /<VisualStoryWorkspace/);
+  assert.doesNotMatch(readiness, /Open Visual Story/);
+  assert.match(readiness, /<VisualStoryWorkspace[\s\S]*?embedded/);
   assert.match(page, /legacyProject=\{null\}/);
   assert.match(skinReview, /legacyProject=\{null\}/);
   assert.match(readiness, /miniBlockNumber=\{selectedMiniBlockNumber\}/);

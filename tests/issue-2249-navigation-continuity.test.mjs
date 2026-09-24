@@ -33,7 +33,7 @@ test("#2249 global Dashboard return closes Licensing and Issue Log owner state",
   assert.match(host, /data-dashboard-review-surface="help"[\s\S]*closeHelpIssueLog/u);
 });
 
-test("#2249 Visual Story has an explicit Storyboard-owned open and return lifecycle", async () => {
+test("#2249 Visual Story stays Storyboard-owned while rendering inline", async () => {
   const [storyboard, visual, scene, capture] = await Promise.all([
     read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/visual-story-workspace.tsx"),
@@ -41,23 +41,21 @@ test("#2249 Visual Story has an explicit Storyboard-owned open and return lifecy
     read("lib/verification/webmcp-surface-capture-registry.mjs"),
   ]);
 
-  assert.match(storyboard, /const \[visualStoryOpen, setVisualStoryOpen\] = useState/u);
-  assert.match(storyboard, /data-storyboard-open-visual-story="true"/u);
-  assert.match(storyboard, /setVisualStoryOpen\(true\)/u);
-  assert.match(storyboard, /\{visualStoryOpen && selectedTarget \? \(/u);
-  assert.match(storyboard, /onReturnToStoryboard=\{\(\) => setVisualStoryOpen\(false\)\}/u);
-  assert.match(visual, /data-skin-v1-return="storyboard"/u);
-  assert.match(visual, />Back to Storyboard<\/button>/u);
-  assert.match(visual, /onClick=\{onReturnToStoryboard\}/u);
+  assert.doesNotMatch(storyboard, /visualStoryOpen|data-storyboard-open-visual-story/u);
+  assert.match(storyboard, /data-storyboard-scene-beat-detail="inline"/u);
+  assert.match(storyboard, /<VisualStoryWorkspace[\s\S]*?embedded/u);
+  assert.match(visual, /readonly embedded\?: boolean/u);
+  assert.match(visual, /data-embedded=\{embedded \? "true" : undefined\}/u);
+  assert.match(visual, /\{!embedded \? <button[\s\S]*?Back to Storyboard/u);
   assert.match(scene, /data-skin-v1-return="storyboard"/u);
   assert.match(scene, /onClick=\{onReturnToStoryboard\}/u);
-  assert.match(visual, /onReturnToStoryboard=\{onReturnToStoryboard\}/u);
   assert.doesNotMatch(storyboard + visual + scene, /history\.back\(/u);
 
   const visualStart = capture.indexOf('"visual-story": Object.freeze');
   const visualEnd = capture.indexOf("profile: Object.freeze", visualStart);
   const visualContract = capture.slice(visualStart, visualEnd);
-  assert.match(visualContract, /data-storyboard-open-visual-story='true'/u);
+  assert.match(visualContract, /Storyboard Dashboard row/u);
+  assert.doesNotMatch(visualContract, /data-storyboard-open-/u);
   assert.match(visualContract, /backPath: "Storyboard > Dashboard"/u);
 });
 

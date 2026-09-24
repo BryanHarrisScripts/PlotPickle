@@ -154,6 +154,9 @@ export default function SkinV1Client() {
     setDashboardSelection(index);
     const item = DASHBOARD_MENU[index];
     if (!item) return;
+    if (["plan", "storyboard", "previs", "timeline", "production"].includes(item.id)) {
+      setDashboardSurfaceName(item.label.toUpperCase());
+    }
     if (item.id === "profile") {
       setUserProfileOpen(true);
       return;

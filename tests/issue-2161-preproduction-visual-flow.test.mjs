@@ -55,16 +55,16 @@ test("#2161 keeps Story Map PLAN BUILD STORYBOARD handoffs inside the current Sk
   assert.doesNotMatch(surface, /window\.location\.assign/u);
 });
 
-test("#2161 makes Visual Story navigation visible without inventing missing story objects", async () => {
-  const [surfaces, visualStory] = await Promise.all([
+test("#2161 keeps Visual Story inline without inventing missing story objects", async () => {
+  const [surfaces, readiness, visualStory] = await Promise.all([
     read("app/skin-v1/preproduction-review-surfaces.tsx"),
+    read("app/_components/storyboard/storyboard-readiness-workspace.tsx"),
     read("app/_components/storyboard/visual-story-workspace.tsx"),
   ]);
-  assert.match(surfaces, /Open Visual Story/u);
-  assert.match(surfaces, /data-visual-story='scene-beat-shot-frame'/u);
-  assert.match(surfaces, /scrollIntoView/u);
-  assert.match(surfaces, /BLOCK \{String\(normalized\.blockNumber\)/u);
-  assert.match(surfaces, /MINI-BLOCK \{normalized\.miniBlockNumber\}/u);
+  assert.match(surfaces, /<StoryboardReadinessWorkspace[\s\S]*embeddedNavigation/u);
+  assert.doesNotMatch(surfaces, /Open Visual Story/u);
+  assert.match(readiness, /<VisualStoryWorkspace[\s\S]*embedded/u);
+  assert.match(visualStory, /data-embedded=\{embedded \? "true" : undefined\}/u);
   assert.match(visualStory, /Visual Story does not manufacture a Scene to fill the surface/u);
   assert.match(visualStory, /Scene Workspace does not manufacture timing material to fill the surface/u);
 });

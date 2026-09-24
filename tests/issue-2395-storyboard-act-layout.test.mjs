@@ -14,7 +14,7 @@ test("#2395 keeps Act and Mini-Block selection connected to the preproduction ad
   assert.match(workspace, /const firstBlock = \(act - 1\) \* 6 \+ 1/);
   assert.match(workspace, /actBlocks = blocks\.filter/);
   assert.match(workspace, /selectStoryboardAddress\(number, 1\)/);
-  assert.match(workspace, /selectStoryboardAddress\(selectedNumber, miniNumber\)/);
+  assert.match(workspace, /data-selected=\{selectedMiniBlockNumber === miniNumber/);
   assert.match(workspace, /onAddressChange\?\.\(\{ blockNumber: block, miniBlockNumber: mini \}\)/);
   assert.match(wrapper, /onAddressChange=\{onAddressChange\}/);
   assert.match(css, /\.actRail \{ grid-template-columns: repeat\(4/);
@@ -29,11 +29,12 @@ test("#2395 presents real Scenes, Beats and existing visuals without making 25 v
   ]);
   assert.match(workspace, /projectPreproductionSemantics\(project, legacyProject\)/);
   assert.match(workspace, /sceneIds\.includes\(scene\.id\)/);
-  assert.match(workspace, /selectedVisualAnchor\?\.beats\.length/);
-  assert.match(workspace, /selectedVisualAnchor\?\.frames\.map/);
-  assert.match(workspace, /miniReferences\.filter/);
+  assert.match(workspace, /blockBeats = visualStory\.anchors\.flatMap/);
+  assert.match(workspace, /\(selectedVisualAnchor\?\.frames \?\? \[\]\)\.map/);
+  assert.match(workspace, /miniReferences\.map/);
   assert.match(workspace, /Array\.from\(\{ length: 25 \}/);
-  assert.match(workspace, /no image or video quota/);
+  assert.match(workspace, /no fixed image quota/);
+  assert.match(workspace, /className=\{styles\.positionList\}/);
   assert.match(workspace, /No authored Beat is mapped/);
   assert.doesNotMatch(workspace, /createStoryboardReferenceArtifact\(/);
   assert.match(editorial, /<details className=\{styles\.sourceEvidence\}/);

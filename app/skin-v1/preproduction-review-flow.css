@@ -967,3 +967,7 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-summary[data-agent
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-agent-mini { color: var(--pp-skin-ink-soft); line-height: var(--pp-skin-leading-body); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff { padding: .5rem; border-top: 1px solid var(--pp-skin-line); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-storyboard-handoff a { color: var(--pp-skin-accent-bright); }
+/* The shared entry map gives way to the focused Visual Story projection. */
+html[data-plotpickle-skin^="skin-"] [data-dashboard-review-surface="storyboard"]:has([data-visual-story="scene-beat-shot-frame"]) :is([data-story-act-rail="four-acts"], [data-progressive-story-map="24x96"]) {
+  display: none;
+}

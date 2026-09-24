@@ -10,13 +10,13 @@ const [installer, config, companion] = await Promise.all([
 
 const parsedConfig = JSON.parse(config);
 
-test("PlotPickle keeps Buzz Desktop 0.5.22 as a verified reviewed fallback", () => {
-  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.22");
-  assert.equal(parsedConfig.version, "0.5.22");
-  assert.equal(parsedConfig.sourceCommit, "9ceb1f79bbc21785a0a075c40aecb3c058b1ea15");
-  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.22_x64-setup_alpha-unsigned.exe");
-  assert.equal(parsedConfig.windows.sha256, "c76aa32e75faa20aee5d8cd1c1c2c00265bc94166c3cb6a88455a6819e9ec289");
-  assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.22\//);
+test("PlotPickle keeps Buzz Desktop 0.5.24 as a verified reviewed fallback", () => {
+  assert.equal(parsedConfig.releaseTag, "desktop-v0.5.24");
+  assert.equal(parsedConfig.version, "0.5.24");
+  assert.equal(parsedConfig.sourceCommit, "3befaf16002d802a97aa79007be29b23623ceb3f");
+  assert.equal(parsedConfig.windows.asset, "Buzz_0.5.24_x64-setup_alpha-unsigned.exe");
+  assert.equal(parsedConfig.windows.sha256, "38a9be91d547c177f9d69d801b09e73b27aa600dad43f1e9abaaa8dc3ceb70c6");
+  assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.24\//);
 });
 
 test("startup maintenance checks block/buzz releases and selects the newest compatible Windows desktop asset", () => {

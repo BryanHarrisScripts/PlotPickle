@@ -99,6 +99,7 @@ export default function StoryboardReadinessWorkspace({
   const [selectedImageByPosition, setSelectedImageByPosition] = useState<Readonly<Record<string, string>>>({});
   const [promptPosition, setPromptPosition] = useState<number | null>(null);
   const [framePrompt, setFramePrompt] = useState("");
+  const [generationScope, setGenerationScope] = useState<StoryboardGenerationScope>("group5");
   const [frameConsent, setFrameConsent] = useState(false);
   const [frameBusy, setFrameBusy] = useState(false);
   const [frameNotice, setFrameNotice] = useState("");
@@ -146,6 +147,84 @@ export default function StoryboardReadinessWorkspace({
       label: reference.caption,
     })),
   ].filter((image, index, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === index);
+
+  const normalizedSourceEvidence = normalizeProjectSourceEvidence(project.sourceEvidence);
+  const storyboardCharacters: readonly StoryboardCharacterGrounding[] = (legacyProject?.characters ?? []).map((character) => {
+    const visualCharacter = character as CharacterWithVisualIdentity;
+    const identity = getCharacterVisualIdentity(visualCharacter);
+    const identityLocked = identity.status === "locked" && Boolean(identity.approvedPrompt.trim());
+    const approvedVisualRefs = identityLocked
+      ? approvedCharacterReferenceImages(visualCharacter).filter((reference) => reference.startsWith("/api/local-ai/assets/"))
+      : [];
+    const truthClaims = (normalizedSourceEvidence.characterTruth?.claims ?? [])
+      .filter((claim) => claim.characterIds.includes(character.id)
+        && claim.reviewState !== "rejected"
+        && claim.handling === "writer-reference"
+        && claim.kind !== "sensitive-source")
+      .map((claim) => claim.summary)
+      .slice(0, 4);
+    return {
+      id: character.id,
+      name: character.name,
+      aliases: character.id === "isobel" ? ["Summer"] : [],
+      pronouns: character.pronouns,
+      role: character.role,
+      description: character.description,
+      truthClaims,
+      approvedVisualRefs,
+      identityLock: identityLocked ? {
+        characterId: character.id,
+        status: identity.status,
+        version: identity.version,
+        approvedPrompt: identity.approvedPrompt,
+      } : null,
+    };
+  });
+  const activeAnchorEvidence = selectedTarget
+    ? storyboardAnchorEvidence(project, selectedTarget.id, selectedMiniBlockNumber)
+    : null;
+  const storyboardBriefs = storyboardFrameBriefs({
+    positions: Array.from({ length: 25 }, (_, index) => index + 1),
+    passages: activeAnchorEvidence?.passages ?? [],
+    characters: storyboardCharacters,
+  });
+
+  function briefForPosition(position: number): StoryboardFrameBrief {
+    return storyboardBriefs.find((brief) => brief.position === position) ?? storyboardFrameBriefs({
+      positions: [position],
+      passages: activeAnchorEvidence?.passages ?? [],
+      characters: storyboardCharacters,
+    })[0];
+  }
+
+  function generationPlanForPosition(position: number) {
+    const brief = briefForPosition(position);
+    const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position);
+    const previousShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position - 1);
+    const nextShot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position + 1);
+    const describeShot = (candidate: typeof shot) => candidate
+      ? [candidate.narrativePurpose, candidate.visualIntent, candidate.shotSize, candidate.angle, candidate.movement].filter(Boolean).join("; ")
+      : "";
+    const prompt = storyboardFramePrompt({
+      title: project.title,
+      blockNumber: selectedNumber,
+      miniBlockNumber: selectedMiniBlockNumber,
+      position,
+      scene: selectedScenes.map((scene) => [scene.title, scene.purpose].filter(Boolean).join(" — ")).join("; "),
+      beat: selectedVisualAnchor?.beats.map((beat) => beat.visualAction || beat.purpose || beat.label).filter(Boolean).join("; ") ?? "",
+      shot: describeShot(shot),
+      previousShot: describeShot(previousShot),
+      nextShot: describeShot(nextShot),
+      source: brief.evidenceSummary,
+      storyFunction: brief.storyFunction,
+      visibleChange: brief.visibleChange,
+      characterTruth: brief.characterTruth,
+      identityMode: brief.identityMode,
+      continuityIn: brief.continuityIn,
+      continuityOut: brief.continuityOut,
+    });
+    return { brief, prompt };
+  }
 
   function prepareFramePrompt(position: number) {
     const shot = selectedVisualAnchor?.shots.find((candidate) => candidate.order === position);

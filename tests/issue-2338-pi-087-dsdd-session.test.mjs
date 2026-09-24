@@ -22,9 +22,9 @@ test("#2338 promotes Pi 0.87 only with the candidate proof and authoritative met
   assert.equal(contract.requiredCapabilities.contextEditEntry, true);
   assert.equal(contract.requiredCapabilities.contextWithSystemExtensionEvent, true);
   assert.deepEqual(contract.requiredExtensions, stack.piPackages);
-  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.0"/u);
-  assert.equal(stack.piRuntime.managedVersion, "0.87.0");
-  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.87.0");
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.87\.1"/u);
+  assert.equal(stack.piRuntime.managedVersion, "0.87.1");
+  assert.equal(oss.systems.find((item) => item.id === "pi-coding-agent")?.version, "0.87.1");
   assert.match(brief, /TALK[\s\S]*CONFIRM[\s\S]*BUILD[\s\S]*PROVE/u);
   assert.match(brief, /Original Human language remains immutable provenance/u);
 });

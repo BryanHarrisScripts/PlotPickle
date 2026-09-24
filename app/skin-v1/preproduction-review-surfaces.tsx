@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
 import type { PPFProject } from "@/core/project/project";
-import { loadFoundationProject } from "@/core/storage/foundation-project-browser";
+import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject } from "@/core/storage/foundation-project-browser";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import FoundationsBuildWorkspace from "@/modules/build/ui/foundations-build-workspace";
+import ProgressiveStoryMap from "@/modules/build/ui/progressive-story-map";
 import PrevisReadinessWorkspace from "../_components/previs/previs-readiness-workspace";
 import { derivePrevisProjection, type PrevisAnchorProjection } from "../_components/previs/previs-projection-model";
 import StoryboardReadinessWorkspace from "../_components/storyboard/storyboard-readiness-workspace";
@@ -71,14 +72,19 @@ export function SkinV1StoryboardReviewSurface({
   const normalized = normalizedAddress(address);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const sync = () => {
       try {
         setProject(loadFoundationProject());
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
       }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
   }, []);
 
   function applyProjectChange(next: PPFProject) {
@@ -111,6 +117,7 @@ export function SkinV1StoryboardReviewSurface({
   return (
     <div data-skin-v1-preproduction-review="storyboard" onClickCapture={handleClickCapture}>
       <StoryboardReadinessWorkspace
+        embeddedNavigation
         initialBlockNumber={normalized.blockNumber}
         initialMiniBlockNumber={normalized.miniBlockNumber}
         legacyProject={null}
@@ -121,6 +128,49 @@ export function SkinV1StoryboardReviewSurface({
       />
     </div>
   );
+}
+
+export function SkinV1StoryboardStoryMap({
+  address,
+  onAddressChange,
+}: {
+  readonly address: PreproductionReviewAddress;
+  readonly onAddressChange: (address: PreproductionReviewAddress) => void;
+}) {
+  const [project, setProject] = useState<LibraryPPFProject | null>(null);
+  const [error, setError] = useState("");
+  const normalized = normalizedAddress(address);
+  const act = Math.ceil(normalized.blockNumber / 6);
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setProject(loadFoundationProject());
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "The canonical project could not be opened.");
+      }
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(FOUNDATION_PROJECT_SAVED_EVENT, sync);
+    };
+  }, []);
+
+  if (error) return <p role="alert">{error}</p>;
+  if (!project) return <p role="status">Opening Storyboard Story Map…</p>;
+
+  return <ProgressiveStoryMap
+    key={`${project.id}-storyboard-act-${act}`}
+    project={project}
+    act={act}
+    initialBlockNumber={normalized.blockNumber}
+    initialMiniBlockNumber={normalized.miniBlockNumber}
+    navigationOnly
+    surfaceLabel="Storyboard"
+    onSelectAddress={onAddressChange}
+  />;
 }
 
 export function SkinV1PrevisReviewSurface({

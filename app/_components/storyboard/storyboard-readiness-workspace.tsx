@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- bundled Storyboard references are local PlotPickle assets. */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PPFProject } from "@/core/project/project";
 import type { LibraryPPFProject } from "@/core/storage/project-library-browser";
 import { hasQaWorkspaceAccess, isQaAccessOverride } from "@/core/progression/qa-access";
@@ -56,6 +56,7 @@ export default function StoryboardReadinessWorkspace({
   initialSceneId,
   initialShotId,
   initialVisualView,
+  embeddedNavigation = false,
 }: {
   readonly project: LibraryPPFProject;
   readonly legacyProject: PlotPickleProject | null;
@@ -68,6 +69,7 @@ export default function StoryboardReadinessWorkspace({
   readonly initialSceneId?: string;
   readonly initialShotId?: string;
   readonly initialVisualView?: "story" | "timeline";
+  readonly embeddedNavigation?: boolean;
 }) {
   const readiness = deriveVisualReadiness({ project });
   const blocks = readiness.targets
@@ -75,6 +77,13 @@ export default function StoryboardReadinessWorkspace({
     .sort((left, right) => blockNumber(left) - blockNumber(right));
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(() => boundedBlockNumber(initialBlockNumber));
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(() => boundedMiniBlockNumber(initialMiniBlockNumber));
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSelectedBlockNumber(boundedBlockNumber(initialBlockNumber));
+      setSelectedMiniBlockNumber(boundedMiniBlockNumber(initialMiniBlockNumber));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialBlockNumber, initialMiniBlockNumber]);
   const [visualStoryOpen, setVisualStoryOpen] = useState(() => Boolean(
     initialSceneId || initialShotId || initialVisualView === "timeline",
   ));
@@ -141,16 +150,16 @@ export default function StoryboardReadinessWorkspace({
         </dl>
       </header>
 
-      <nav aria-label="Storyboard Acts" className={styles.actRail} role="tablist">
+      {!embeddedNavigation ? <nav aria-label="Storyboard Acts" className={styles.actRail} role="tablist">
         {[1, 2, 3, 4].map((act) => (
           <button aria-controls="storyboard-act-panel" aria-selected={selectedAct === act} className={styles.actTab} key={act} onClick={() => {
             const firstBlock = (act - 1) * 6 + 1;
             selectStoryboardAddress(firstBlock, 1);
           }} role="tab" type="button">Act {act}</button>
         ))}
-      </nav>
+      </nav> : null}
 
-      <section id="storyboard-act-panel" aria-label={`Act ${selectedAct} Storyboard`} role="tabpanel">
+      {!embeddedNavigation ? <section id="storyboard-act-panel" aria-label={`Act ${selectedAct} Storyboard`} role="tabpanel">
         <nav aria-label="Storyboard Block tabs" className={styles.tabRail}>
           {actBlocks.map((target) => {
             const number = blockNumber(target);
@@ -159,7 +168,7 @@ export default function StoryboardReadinessWorkspace({
             }} type="button"><i aria-hidden="true" className={styles.stateLight} /><span>Block {number - (selectedAct - 1) * 6}</span></button>;
           })}
         </nav>
-      </section>
+      </section> : null}
 
       <section className={styles.notice} aria-label="Storyboard authority boundary">
         <strong>{readiness.storyboardAllowed ? "Storyboard has eligible visual targets." : "QA access is open; BUILD readiness remains unresolved."}</strong>

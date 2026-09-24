@@ -107,7 +107,7 @@ export default function StoryboardReadinessWorkspace({
   const blockBeats = visualStory.anchors.flatMap((anchor) => anchor.beats.map((beat) => ({ ...beat, anchorRef: anchor.anchorRef })));
   const selectedVisualAnchor = visualStory.anchors.find((anchor) => anchor.anchorRef === sequenceDirectorAnchorRef(selectedNumber, selectedMiniBlockNumber));
   const miniReferences = selectedReferences.filter((candidate) => candidate.miniBlockNumber === selectedMiniBlockNumber);
-  const availablePositionImages = Array.from(new Map([
+  const availablePositionImages = [
     ...(selectedVisualAnchor?.frames ?? []).map((frame) => ({
       id: frame.id,
       assetUrl: frame.assetUrl,
@@ -118,7 +118,7 @@ export default function StoryboardReadinessWorkspace({
       assetUrl: reference.assetUrl,
       label: reference.caption,
     })),
-  ].map((image) => [image.assetUrl, image])).values());
+  ].filter((image, index, all) => all.findIndex((candidate) => candidate.assetUrl === image.assetUrl) === index);
 
   function preserveStoryboardAddress(block: number, mini: number) {
     const url = new URL(window.location.href);

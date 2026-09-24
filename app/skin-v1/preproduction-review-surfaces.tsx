@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { plotPickleCurriculum } from "@/adapters/curriculum/current-catalog";
 import type { PPFProject } from "@/core/project/project";
 import { FOUNDATION_PROJECT_SAVED_EVENT, loadFoundationProject } from "@/core/storage/foundation-project-browser";
@@ -98,26 +98,11 @@ export function SkinV1StoryboardReviewSurface({
     } : current);
   }
 
-  function handleClickCapture(event: ReactMouseEvent<HTMLDivElement>) {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
-    if (!button) return;
-
-    if ((button.textContent || "").trim() !== "Open Visual Story") return;
-    window.requestAnimationFrame(() => {
-      const visualStory = document.querySelector<HTMLElement>("[data-visual-story='scene-beat-shot-frame']");
-      visualStory?.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (visualStory) {
-        visualStory.tabIndex = -1;
-        visualStory.focus({ preventScroll: true });
-      }
-    });
-  }
-
   if (error) return <p role="alert">{error}</p>;
   if (!project) return <p role="status">Opening canonical Storyboard readiness…</p>;
 
   return (
-    <div data-skin-v1-preproduction-review="storyboard" onClickCapture={handleClickCapture}>
+    <div data-skin-v1-preproduction-review="storyboard">
       <StoryboardReadinessWorkspace
         embeddedNavigation
         initialBlockNumber={normalized.blockNumber}

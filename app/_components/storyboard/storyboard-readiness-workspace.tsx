@@ -235,7 +235,7 @@ export default function StoryboardReadinessWorkspace({
                           : "replacement concept candidate"
                       : "no visual candidate"}
                   </small>
-                  <button aria-pressed={selectedMiniBlockNumber === miniNumber} onClick={() => {
+                  <button data-storyboard-open-scenes-beats="true" aria-pressed={selectedMiniBlockNumber === miniNumber} onClick={() => {
                     selectStoryboardAddress(selectedNumber, miniNumber);
                     setSceneBeatOpen(true);
                   }} type="button">View Scenes &amp; Beats</button>
@@ -255,7 +255,7 @@ export default function StoryboardReadinessWorkspace({
             <div className={styles.beatList}><strong>Beats</strong>{blockBeats.length ? blockBeats.map((beat) => <p key={`${beat.anchorRef}-${beat.id}`}>{beat.anchorRef} · {String(beat.order).padStart(2, "0")} · {beat.label || beat.visualAction || beat.purpose}</p>) : <p>No authored Beat is mapped to this Block yet. Scene passages are evidence, not automatically named Beats.</p>}</div>
             <div className={styles.visualSequence}><strong>25 Scene and Beat positions</strong><p>Use these numbered positions to plan the visual sequence. Only authored Scenes and Beats above are story content; empty positions do not create them.</p><div className={styles.positionGrid} aria-label="25 optional storyboard visual positions">{Array.from({ length: 25 }, (_, index) => <span key={index} aria-label={`Scene and Beat position ${index + 1}`}>Scene / Beat {String(index + 1).padStart(2, "0")}</span>)}</div></div>
             <div className={styles.visualCandidates}><strong>Existing visuals at this Mini-Block</strong><div>{selectedVisualAnchor?.frames.map((frame) => <figure key={frame.id}><img alt={frame.narrativePurpose || "Storyboard visual"} decoding="async" loading="lazy" src={frame.assetUrl} /><figcaption>{frame.accepted ? "Kept" : "Candidate"} · {frame.narrativePurpose || frame.id}</figcaption></figure>)}{miniReferences.filter((reference) => !selectedVisualAnchor?.frames.some((frame) => frame.id === reference.acceptedArtifactId)).map((reference) => <figure key={reference.id}><img alt={reference.caption} decoding="async" loading="lazy" src={reference.assetUrl} /><figcaption>Reference candidate · {reference.caption}</figcaption></figure>)}</div>{!selectedVisualAnchor?.frames.length && !miniReferences.length ? <p>No storyboard image has been attached yet.</p> : null}</div>
-            <button className={styles.backToMap} type="button" onClick={() => setVisualStoryOpen(true)}>Open Beat, Shot &amp; Frame</button>
+            <button className={styles.backToMap} data-storyboard-open-beat-shot-frame="true" type="button" onClick={() => setVisualStoryOpen(true)}>Open Beat, Shot &amp; Frame</button>
           </section>
         </section> : null}
 

@@ -924,6 +924,59 @@ html[data-plotpickle-skin^="skin-"] .pp-skin-v1-story-card-board-footnote {
   }
 }
 
+/* #2406: Outline teaches the story hierarchy without turning it into a quota. */
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy {
+  display: grid;
+  gap: .75rem;
+  margin: 0 0 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-1);
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: end;
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy header span,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dt {
+  color: var(--pp-skin-accent-bright);
+  font-size: var(--pp-skin-font-meta);
+  font-weight: 700;
+  letter-spacing: var(--pp-skin-tracking-meta);
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy h2,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dl {
+  margin: 0;
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy p,
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dd {
+  color: var(--pp-skin-ink-soft);
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .5rem;
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dl > div {
+  padding: .65rem;
+  border: 1px solid var(--pp-skin-line);
+  background: var(--pp-skin-surface-0);
+}
+html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dd {
+  margin: .25rem 0 0;
+  font-size: var(--pp-skin-font-meta);
+  line-height: 1.35;
+}
+@media (max-width: 1000px) {
+  html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-hierarchy dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Outline readiness is separate from the blue Observed source-evidence state. */
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness { padding: 1.5rem; border: 1px solid var(--pp-skin-line); }
 html[data-plotpickle-skin^="skin-"] .pp-skin-v1-outline-readiness-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
